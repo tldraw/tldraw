@@ -53,6 +53,7 @@ import { getLogger, getReplicator, getUserDurableObject } from './utils/durableO
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
+export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'

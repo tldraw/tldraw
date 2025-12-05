@@ -8,6 +8,7 @@ type FeatureFlags = Record<FeatureFlagKey, FeatureFlagValue>
 export const featureFlagsAtom: Atom<FeatureFlags> = atom('featureFlags', {
 	fairies: { enabled: false, description: '' },
 	fairies_purchase: { enabled: false, description: '' },
+	sqlite_file_storage: { enabled: false, description: '' },
 })
 
 // Atom to track if flags have been loaded at least once

@@ -23,6 +23,7 @@ import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	InMemorySyncStorage,
 	RoomSnapshot,
+	SqlLiteSyncStorage,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
@@ -96,39 +97,41 @@ export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
-	_storage: Promise<TLSyncStorage<TLRecord>> | null = null
+	private _storage: Promise<TLSyncStorage<TLRecord>> | null = null
 
-	getStorage(): Promise<TLSyncStorage<TLRecord>> {
+	protected async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+		const result = await this.loadFromDatabase(slug)
+		switch (result.type) {
+			case 'room_found': {
+				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+				this.setRoomStorageUsedPercentage(result.roomSizeMB)
+				return storage
+			}
+			case 'room_not_found': {
+				throw ROOM_NOT_FOUND
+			}
+			case 'error': {
+				throw result.error
+			}
+			default: {
+				exhaustiveSwitchError(result)
+			}
+		}
+	}
+
+	private getStorage(): Promise<TLSyncStorage<TLRecord>> {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
-		const slug = this._documentInfo.slug
 		if (!this._storage) {
-			this._storage = this.loadFromDatabase(slug).then(async (result) => {
-				switch (result.type) {
-					case 'room_found': {
-						const storage = new InMemorySyncStorage<TLRecord>({
-							snapshot: result.snapshot,
-							onChange: () => {
-								this.triggerPersist()
-							},
-						})
-						storage.transaction((txn) => {
-							createTLSchema().migrateStorage(txn)
-						})
-						this.setRoomStorageUsedPercentage(storage, result.roomSizeMB)
-						return storage
-					}
-					case 'room_not_found': {
-						throw ROOM_NOT_FOUND
-					}
-					case 'error': {
-						throw result.error
-					}
-					default: {
-						exhaustiveSwitchError(result)
-					}
-				}
+			this._storage = this.loadStorage(this.documentInfo.slug).then((storage) => {
+				storage.onChange(() => {
+					this.triggerPersist()
+				})
+				storage.transaction((txn) => {
+					createTLSchema().migrateStorage(txn)
+				})
+				return storage
 			})
 		}
 		return this._storage
@@ -173,8 +176,11 @@ export class TLDrawDurableObject extends DurableObject {
 						// make sure nobody joined the room while we were persisting
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
-						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 						room.close()
+						console.error('room closed')
+						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+						this._db?.destroy()
+						this._db = null
 					},
 					onBeforeSendMessage: ({ message, stringified }) => {
 						this.logEvent({
@@ -216,7 +222,15 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_documentInfo: DocumentInfo | null = null
 
-	db: Kysely<DB>
+	_db: Kysely<DB> | null = null
+
+	// eslint-disable-next-line no-restricted-syntax
+	get db() {
+		if (!this._db) {
+			this._db = createPostgresConnectionPool(this.env, 'TLDrawDurableObject')
+		}
+		return this._db
+	}
 
 	private readonly changeSource = 'TLDrawDurableObject'
 
@@ -247,7 +261,6 @@ export class TLDrawDurableObject extends DurableObject {
 				this._documentInfo = existingDocumentInfo
 			}
 		})
-		this.db = createPostgresConnectionPool(env, 'TLDrawDurableObject')
 	}
 
 	readonly router = Router()
@@ -881,7 +894,8 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
-	private async setRoomStorageUsedPercentage(storage: TLSyncStorage<TLRecord>, roomSizeMB: number) {
+	private async setRoomStorageUsedPercentage(roomSizeMB: number) {
+		const storage = await this.getStorage()
 		const percentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
 		storage.transaction((txn) => {
 			const document = txn.get(TLDOCUMENT_ID) as TLDocument
@@ -916,7 +930,10 @@ export class TLDrawDurableObject extends DurableObject {
 						if (!this._room) return
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
-						assert(storage instanceof InMemorySyncStorage, 'storage must be an InMemorySyncStorage')
+						assert(
+							storage instanceof InMemorySyncStorage || storage instanceof SqlLiteSyncStorage,
+							'storage must be an InMemorySyncStorage or SqlLiteSyncStorage'
+						)
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
@@ -925,7 +942,7 @@ export class TLDrawDurableObject extends DurableObject {
 						this.maybeAssociateFileAssets()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-						await this._uploadSnapshotToR2(storage, snapshot, key)
+						await this._uploadSnapshotToR2(snapshot, key)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = snapshot.documentClock
@@ -964,16 +981,12 @@ export class TLDrawDurableObject extends DurableObject {
 			})
 	}
 
-	private async _uploadSnapshotToR2(
-		storage: InMemorySyncStorage<TLRecord>,
-		snapshot: RoomSnapshot,
-		key: string
-	) {
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
 		// Update storage percentage
 		if (roomSizeMB !== null) {
-			await this.setRoomStorageUsedPercentage(storage, roomSizeMB)
+			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
 		// Then upload to version cache

@@ -16,7 +16,9 @@ export {
 	type RecordOp,
 	type ValueOp,
 } from './lib/diff'
+export { DurableObjectSqliteSyncWrapper } from './lib/DurableObjectSqliteSyncWrapper'
 export { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './lib/InMemorySyncStorage'
+export { NodeSqliteWrapper, type SyncSqliteDatabase } from './lib/NodeSqliteWrapper'
 export {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
@@ -30,6 +32,15 @@ export {
 export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
+export {
+	SqlLiteSyncStorage,
+	type TLSqliteInputValue,
+	type TLSqliteOutputValue,
+	type TLSqliteRow,
+	type TLSyncSqliteStatement,
+	type TLSyncSqliteWrapper,
+	type TLSyncSqliteWrapperConfig,
+} from './lib/SqlLiteSyncStorage'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
 export {
 	TLSocketRoom,
