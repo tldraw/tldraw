@@ -1,15 +1,8 @@
 import { modulate } from 'tldraw'
+import { WingSpriteProps } from '../sprite-types'
 
-export function LoweredWingsSprite1({
-	topWingColor,
-	bottomWingColor,
-}: {
-	topWingColor: string
-	bottomWingColor: string
-}) {
-	return (
-		<LoweredWingsSprite frame={0} topWingColor={topWingColor} bottomWingColor={bottomWingColor} />
-	)
+export function LoweredWingsSprite1(props: WingSpriteProps) {
+	return <LoweredWingsSprite frame={0} {...props} />
 }
 
 export function LoweredWingsSprite2({
@@ -36,6 +29,54 @@ export function LoweredWingsSprite3({
 	)
 }
 
+export function SoaringWingsSprite1(props: WingSpriteProps) {
+	return <SoaringWingsSprite frame={0} {...props} />
+}
+
+export function SoaringWingsSprite2({
+	topWingColor,
+	bottomWingColor,
+}: {
+	topWingColor: string
+	bottomWingColor: string
+}) {
+	return (
+		<SoaringWingsSprite frame={1} topWingColor={topWingColor} bottomWingColor={bottomWingColor} />
+	)
+}
+
+function SoaringWingsSprite({
+	frame,
+	topWingColor = 'var(--tl-color-fairy-light)',
+	bottomWingColor = 'var(--tl-color-fairy-light)',
+}: {
+	frame: number
+	topWingColor?: string
+	bottomWingColor?: string
+}) {
+	const bwRotation = modulate(frame, [0, 2], [-20, -35])
+	const bwOffsetX = modulate(frame, [0, 2], [0, -1])
+	const bwOffsetY = modulate(frame, [0, 2], [0, 0])
+
+	const twRotation = modulate(frame, [0, 2], [22, 32])
+	const twOffsetX = modulate(frame, [0, 2], [0, 0])
+	const twOffsetY = modulate(frame, [0, 2], [-8, -8])
+
+	return (
+		<BaseWingsSprite
+			rotation={10}
+			topWingColor={topWingColor}
+			bottomWingColor={bottomWingColor}
+			bwRotation={bwRotation}
+			bwOffsetX={bwOffsetX}
+			bwOffsetY={bwOffsetY}
+			twRotation={twRotation}
+			twOffsetX={twOffsetX}
+			twOffsetY={twOffsetY}
+		/>
+	)
+}
+
 function LoweredWingsSprite({
 	frame,
 	topWingColor = 'var(--tl-color-fairy-light)',
@@ -56,6 +97,7 @@ function LoweredWingsSprite({
 		<BaseWingsSprite
 			topWingColor={topWingColor}
 			bottomWingColor={bottomWingColor}
+			rotation={0}
 			bwRotation={bwRotation}
 			bwOffsetX={bwOffsetX}
 			bwOffsetY={bwOffsetY}
@@ -66,74 +108,8 @@ function LoweredWingsSprite({
 	)
 }
 
-// export function RaisedWingsSprite1({
-// 	topWingColor,
-// 	bottomWingColor,
-// }: {
-// 	topWingColor: string
-// 	bottomWingColor: string
-// }) {
-// 	return (
-// 		<RaisedWingsSprite frame={0} topWingColor={topWingColor} bottomWingColor={bottomWingColor} />
-// 	)
-// }
-
-// export function RaisedWingsSprite2({
-// 	topWingColor,
-// 	bottomWingColor,
-// }: {
-// 	topWingColor: string
-// 	bottomWingColor: string
-// }) {
-// 	return (
-// 		<RaisedWingsSprite frame={1} topWingColor={topWingColor} bottomWingColor={bottomWingColor} />
-// 	)
-// }
-
-// export function RaisedWingsSprite3({
-// 	topWingColor,
-// 	bottomWingColor,
-// }: {
-// 	topWingColor: string
-// 	bottomWingColor: string
-// }) {
-// 	return (
-// 		<RaisedWingsSprite frame={2} topWingColor={topWingColor} bottomWingColor={bottomWingColor} />
-// 	)
-// }
-
-// function RaisedWingsSprite({
-// 	frame,
-// 	topWingColor,
-// 	bottomWingColor,
-// }: {
-// 	frame: number
-// 	topWingColor: string
-// 	bottomWingColor: string
-// }) {
-// 	console.log('frame', frame)
-// 	const bwRotation = modulate(frame, [0, 2], [16, 30])
-// 	const bwOffsetX = modulate(frame, [0, 2], [3, 6])
-// 	const bwOffsetY = modulate(frame, [0, 2], [-12, -6])
-
-// 	const twRotation = modulate(frame, [0, 2], [-36, -16])
-// 	const twOffsetX = modulate(frame, [0, 2], [0, -3])
-// 	const twOffsetY = modulate(frame, [0, 2], [0, -3])
-// 	return (
-// 		<BaseWingsSprite
-// 			topWingColor={topWingColor}
-// 			bottomWingColor={bottomWingColor}
-// 			bwRotation={bwRotation}
-// 			bwOffsetX={bwOffsetX}
-// 			bwOffsetY={bwOffsetY}
-// 			twRotation={twRotation}
-// 			twOffsetX={twOffsetX}
-// 			twOffsetY={twOffsetY}
-// 		/>
-// 	)
-// }
-
 export function BaseWingsSprite({
+	rotation,
 	topWingColor,
 	bottomWingColor,
 	bwRotation,
@@ -143,6 +119,7 @@ export function BaseWingsSprite({
 	twOffsetX,
 	twOffsetY,
 }: {
+	rotation: number
 	topWingColor: string
 	bottomWingColor: string
 	bwRotation: number
@@ -153,7 +130,7 @@ export function BaseWingsSprite({
 	twOffsetY: number
 }) {
 	return (
-		<>
+		<g transform={`rotate(${rotation}, 55, 55)`}>
 			{/* Bottom left wing */}
 			<path
 				d="M76.704 80.505C75.6457 77.7148 70.2496 71.7015 67.4457 68.6916C66.8328 68.0336 65.7644 68.4713 65.7849 69.3703C65.8856 73.8009 66.2643 82.8929 67.6837 85.6768C72.0879 94.3147 80.0998 89.4582 76.704 80.505Z"
@@ -188,6 +165,6 @@ export function BaseWingsSprite({
 				strokeLinejoin="round"
 				transform={`translate(${-twOffsetX}, ${twOffsetY}) rotate(${twRotation}, 57, 55) `}
 			/>
-		</>
+		</g>
 	)
 }

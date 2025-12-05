@@ -3,7 +3,11 @@ import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
 import { FairyAppTaskListManager } from '../FairyAppTaskListManager'
-import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
+import {
+	createTestEditor,
+	createTestFairyApp,
+	getFairyProject,
+} from './fairy-app-managers-test-shared'
 
 describe('FairyAppTaskListManager', () => {
 	let editor: Editor
@@ -245,14 +249,7 @@ describe('FairyAppTaskListManager', () => {
 			manager.createTask({ id: 'task-1', title: 'Task 1' })
 			manager.createTask({ id: 'task-2', title: 'Task 2' })
 
-			fairyApp.projects.addProject({
-				id: 'project-1',
-				title: 'Project 1',
-				description: 'Test',
-				color: 'blue',
-				members: [],
-				plan: 'Test',
-			})
+			fairyApp.projects.addProject(getFairyProject())
 
 			expect(manager.getTasks()).toHaveLength(2)
 			expect(fairyApp.projects.getProjects()).toHaveLength(1)

@@ -1,3 +1,4 @@
+import { getProjectColor } from '@tldraw/fairy-shared'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent, useCallback } from 'react'
 import {
@@ -8,9 +9,8 @@ import {
 } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getProjectColor } from '../../fairy-helpers/getProjectColor'
 import { fairyMessages } from '../../fairy-messages'
-import { FairySprite, getHatColor } from '../../fairy-sprite/FairySprite'
+import { FairySprite } from '../../fairy-sprite/FairySprite'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from '../menus/FairyContextMenuContent'
 
@@ -37,7 +37,8 @@ export function FairySidebarButton({
 		[agent]
 	)
 
-	const fairyOutfit = useValue('fairy outfit', () => agent.getConfig()?.outfit, [agent])
+	const fairyConfig = useValue('fairy config', () => agent.getConfig(), [agent])
+
 	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
 	const isSleeping = useValue('is-sleeping', () => agent.mode.getMode() === 'sleeping', [agent])
@@ -47,14 +48,15 @@ export function FairySidebarButton({
 		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
 		[agent]
 	)
-	const projectColor = project ? getProjectColor(project.color) : undefined
-
+	const projectColor = project ? getProjectColor(project.color) : 'var(--tl-color-fairy-light)'
 	const handlePlusClick = useCallback(() => {
 		// Toggle selection like shift-clicking would
 		agent.updateEntity((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
 	}, [agent])
 
-	if (!fairyEntity || !fairyOutfit) return null
+	if (!fairyEntity || !fairyConfig) return null
+
+	const { hatColor, hat, legLength } = fairyConfig
 
 	const showPlusButton =
 		hasAnySelectedFairies &&
@@ -80,14 +82,15 @@ export function FairySidebarButton({
 					>
 						<div className="fairy-sprite-wrapper">
 							<FairySprite
-								showShadow
 								pose={fairyEntity.pose}
 								gesture={fairyEntity.gesture}
-								hatColor={getHatColor(fairyOutfit.hat)}
+								hatColor={hatColor}
+								hatType={hat}
 								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.pose === 'sleeping' ? false : fairyEntity.flipX}
 								isOrchestrator={isOrchestrator}
 								projectColor={projectColor}
+								legLength={legLength}
 							/>
 							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">

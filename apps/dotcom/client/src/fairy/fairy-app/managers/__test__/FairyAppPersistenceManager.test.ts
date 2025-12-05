@@ -3,7 +3,11 @@ import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
 import { FairyAppPersistenceManager } from '../FairyAppPersistenceManager'
-import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
+import {
+	createTestEditor,
+	createTestFairyApp,
+	getFairyProject,
+} from './fairy-app-managers-test-shared'
 
 describe('FairyAppPersistenceManager', () => {
 	let editor: Editor
@@ -58,6 +62,7 @@ describe('FairyAppPersistenceManager', () => {
 					[agentId]: {
 						fairyEntity: {
 							position: { x: 0, y: 0 },
+							velocity: { x: 0, y: 0 },
 							flipX: false,
 							isSelected: false,
 							pose: 'idle',
@@ -80,16 +85,7 @@ describe('FairyAppPersistenceManager', () => {
 						assignedTo: null,
 					},
 				],
-				projects: [
-					{
-						id: 'project-1',
-						title: 'Test Project',
-						description: 'Test project description',
-						color: 'blue',
-						members: [],
-						plan: 'Test plan',
-					},
-				],
+				projects: [getFairyProject()],
 			}
 
 			manager.loadState(fairyState)
@@ -161,6 +157,7 @@ describe('FairyAppPersistenceManager', () => {
 					[agents[0]!.id]: {
 						fairyEntity: {
 							position: { x: 0, y: 0 },
+							velocity: { x: 0, y: 0 },
 							flipX: false,
 							isSelected: false,
 							pose: 'idle',
@@ -198,14 +195,7 @@ describe('FairyAppPersistenceManager', () => {
 				assignedTo: null,
 			})
 
-			fairyApp.projects.addProject({
-				id: 'project-1',
-				title: 'Test Project',
-				description: 'Test project description',
-				color: 'blue',
-				members: [],
-				plan: 'Test plan',
-			})
+			fairyApp.projects.addProject(getFairyProject())
 
 			const serialized = manager.serializeState()
 
@@ -240,6 +230,7 @@ describe('FairyAppPersistenceManager', () => {
 			vi.spyOn(agent, 'serializeState').mockReturnValue({
 				fairyEntity: {
 					position: { x: 0, y: 0 },
+					velocity: { x: 0, y: 0 },
 					flipX: false,
 					isSelected: false,
 					pose: 'idle',

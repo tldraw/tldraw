@@ -7,8 +7,11 @@ import {
 } from '@tldraw/fairy-shared'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
+import { getRandomFairyHat } from '../../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../../fairy-helpers/getRandomFairyHatColor'
 import { getRandomFairyName } from '../../fairy-helpers/getRandomFairyName'
 import { getRandomFairySign } from '../../fairy-helpers/getRandomFairySign'
+import { getRandomLegLength } from '../../fairy-helpers/getRandomLegLength'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
 /**
@@ -66,6 +69,8 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			configIds.push(id)
 		}
 
+		this.migrateFairyConfigs(fairyConfigs)
+
 		// Find agents to create (new configs that don't have agents yet)
 		const idsToCreate = configIds.filter((id) => !existingIds.has(id))
 
@@ -122,12 +127,36 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			sign: getRandomFairySign(),
+			hat: getRandomFairyHat(),
+			hatColor: getRandomFairyHatColor(),
+			legLength: getRandomLegLength(),
+			version: 2,
 		}
 
 		// Add the config to the user's settings
 		this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({ id, properties: config })
 
 		return id
+	}
+
+	migrateFairyConfigs(fairyConfigs: PersistedFairyConfigs) {
+		for (const [id, config] of Object.entries(fairyConfigs)) {
+			let didMigrate = false
+			if (!config.version || config.version < 1) {
+				didMigrate = true
+				config.hat = getRandomFairyHat()
+				config.hatColor = getRandomFairyHatColor()
+				config.version = 1
+			}
+			if (!config.version || config.version < 2) {
+				didMigrate = true
+				config.legLength = getRandomLegLength()
+				config.version = 2
+			}
+			if (didMigrate) {
+				this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({ id, properties: config })
+			}
+		}
 	}
 
 	/**
@@ -149,6 +178,15 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	 */
 	clearLoadedAgentIds() {
 		this.loadedAgentIds.clear()
+	}
+
+	/**
+	 * Reset the state of all agents without disposing them.
+	 * Clears chats, todos, projects, and returns agents to idle mode.
+	 */
+	resetAllAgents() {
+		const agents = this.$agents.get()
+		agents.forEach((agent) => agent.reset())
 	}
 
 	/**

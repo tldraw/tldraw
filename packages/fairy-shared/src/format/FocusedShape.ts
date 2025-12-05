@@ -3,8 +3,6 @@ import { FocusColorSchema } from './FocusColor'
 import { FocusFillSchema } from './FocusFill'
 import { FocusFontSizeSchema } from './FocusFontSize'
 
-const FocusedLabelSchema = z.string()
-
 export const FocusedGeoTypeSchema = z.enum([
 	'rectangle',
 	'ellipse',
@@ -37,7 +35,7 @@ export const FocusedGeoShapeSchema = z.object({
 	h: z.number(),
 	note: z.string(),
 	shapeId: z.string(),
-	text: FocusedLabelSchema.optional(),
+	text: z.string().optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
 	x: z.number(),
@@ -64,7 +62,7 @@ export const FocusedNoteShapeSchema = z.object({
 	color: FocusColorSchema,
 	note: z.string(),
 	shapeId: z.string(),
-	text: FocusedLabelSchema.optional(),
+	text: z.string().optional(),
 	x: z.number(),
 	y: z.number(),
 })
@@ -91,9 +89,10 @@ const FocusedTextShapeSchema = z
 		anchor: FocusedTextAnchorSchema,
 		color: FocusColorSchema,
 		fontSize: FocusFontSizeSchema.optional(),
+		maxWidth: z.number().nullable(),
 		note: z.string(),
 		shapeId: z.string(),
-		text: FocusedLabelSchema,
+		text: z.string(),
 		width: z.number().optional(),
 		wrap: z.boolean().optional(),
 		x: z.number(),
@@ -102,7 +101,7 @@ const FocusedTextShapeSchema = z
 	.meta({
 		title: 'Text Shape',
 		description:
-			'A text shape is a shape that contains text. The `anchor` property indicates how the text shape is positioned and aligned. For example, the "top-left" anchor means the text shape\'s x and y coordinates are the top left corner of the text shape, and the text gets left aligned. A shape with the "bottom-center" anchor means the text shape\'s x and y coordinates are the bottom center of the text shape, and the text gets center aligned on the horizontal axis. If `wrap` is set to true, the text will automatically wrap text to the next line if it exceeds the width of the shape (there is no need to add manual line breaks for word wrapping if `wrap` is enabled).',
+			'A text shape is a shape that contains text. The `anchor` property indicates how the text shape is positioned and aligned. For example, the "top-left" anchor means the text shape\'s x and y coordinates are the top left corner of the text shape, and the text gets left aligned. A shape with the "bottom-center" anchor means the text shape\'s x and y coordinates are the bottom center of the text shape, and the text gets center aligned on the horizontal axis. By default, text shapes auto-size to fit their content. If you provide a `maxWidth`, the text will automatically wrap to the next line if it exceeds that width (there is no need to add manual line breaks for word wrapping).',
 	})
 
 export type FocusedTextShape = z.infer<typeof FocusedTextShapeSchema>

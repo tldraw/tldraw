@@ -146,6 +146,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		anchor,
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeToFocusFontSize(textSize, shape.props.scale),
+		maxWidth: shape.props.autoSize ? null : shape.props.w,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
