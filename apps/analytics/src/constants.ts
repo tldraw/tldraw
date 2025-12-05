@@ -22,3 +22,8 @@ export const POSTHOG_UI_HOST = 'https://eu.i.posthog.com'
 
 // Google Tag Manager configuration.
 export const GTM_SCRIPT_ID = 'gtm-script-loader'
+
+// Kick2 analytics configuration.
+export const KICK2_SCRIPT_ID = 'kick2-script-loader'
+export const KICK2_SCRIPT_URL =
+	'https://knock2-backend-2ba4792164c3.herokuapp.com/install/tldraw_dev'
