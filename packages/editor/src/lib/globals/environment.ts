@@ -1,4 +1,4 @@
-import { atom } from '@tldraw/state'
+import { atom, unsafe__withoutCapture } from '@tldraw/state'
 
 /**
  * An object that contains information about the current device and environment.
@@ -18,6 +18,8 @@ const tlenv = {
 	hasCanvasSupport: false,
 }
 
+let isForcedFinePointer = false
+
 if (typeof window !== 'undefined') {
 	if ('navigator' in window) {
 		tlenv.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
@@ -28,6 +30,7 @@ if (typeof window !== 'undefined') {
 		tlenv.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 	}
 	tlenv.hasCanvasSupport = 'Promise' in window && 'HTMLCanvasElement' in window
+	isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
 }
 
 /**
@@ -44,14 +47,15 @@ const tlenvReactive = atom('tlenvReactive', {
 	isCoarsePointer: false,
 })
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !isForcedFinePointer) {
 	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
 
 	if (mql) {
 		const updateIsCoarsePointer = () => {
 			const isCoarsePointer = mql.matches
-			if (isCoarsePointer === tlenvReactive.get().isCoarsePointer) return
-			tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarsePointer }))
+			if (isCoarsePointer !== unsafe__withoutCapture(() => tlenvReactive.get().isCoarsePointer)) {
+				tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarsePointer }))
+			}
 		}
 		updateIsCoarsePointer()
 		mql.addEventListener('change', updateIsCoarsePointer)
@@ -66,7 +70,10 @@ if (typeof window !== 'undefined') {
 			// otherwise, we assume they have a coarse pointer.
 			const isCoarseEvent = e.pointerType !== 'mouse'
 			if (tlenvReactive.get().isCoarsePointer === isCoarseEvent) return
-			tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarseEvent }))
+			tlenvReactive.update((prev) => ({
+				...prev,
+				isCoarsePointer: isCoarseEvent && !isForcedFinePointer,
+			}))
 		},
 		{ capture: true }
 	)
