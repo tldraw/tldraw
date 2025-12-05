@@ -107,9 +107,11 @@ export class TLDrawDurableObject extends DurableObject {
 			this._storage = this.loadFromDatabase(slug).then(async (result) => {
 				switch (result.type) {
 					case 'room_found': {
-						const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
-						storage.onChange(() => {
-							this.triggerPersist()
+						const storage = new InMemorySyncStorage<TLRecord>({
+							snapshot: result.snapshot,
+							onChange: () => {
+								this.triggerPersist()
+							},
 						})
 						storage.transaction((txn) => {
 							createTLSchema().migrateStorage(txn)

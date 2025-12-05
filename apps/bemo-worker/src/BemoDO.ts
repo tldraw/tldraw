@@ -144,11 +144,9 @@ export class BemoDO extends DurableObject<Environment> {
 				// create the storage layer that holds the document state
 				const storage = new InMemorySyncStorage<TLRecord>({
 					snapshot: result.type === 'room_found' ? result.snapshot : undefined,
-				})
-
-				// when the data changes, we make sure to persist the room
-				storage.onChange(() => {
-					this.triggerPersistSchedule()
+					onChange: () => {
+						this.triggerPersistSchedule()
+					},
 				})
 
 				return new TLSocketRoom<TLRecord, { origin: string }>({

@@ -83,7 +83,8 @@ export function getTlsyncProtocolVersion(): number;
 
 // @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ snapshot }?: {
+    constructor({ snapshot, onChange, }?: {
+        onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
     // @internal (undocumented)

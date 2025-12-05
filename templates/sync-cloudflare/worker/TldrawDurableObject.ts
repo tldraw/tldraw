@@ -100,11 +100,11 @@ export class TldrawDurableObject {
 					: DEFAULT_INITIAL_SNAPSHOT
 
 				// create the storage layer that holds the document state
-				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: initialSnapshot })
-
-				// persist whenever the data in the room changes
-				storage.onChange(() => {
-					this.schedulePersistToR2()
+				const storage = new InMemorySyncStorage<TLRecord>({
+					snapshot: initialSnapshot,
+					onChange: () => {
+						this.schedulePersistToR2()
+					},
 				})
 
 				// create a new TLSocketRoom. This handles all the sync protocol & websocket connections.

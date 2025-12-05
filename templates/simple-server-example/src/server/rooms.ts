@@ -45,11 +45,9 @@ export async function makeOrLoadRoom(roomId: string) {
 			// create the storage layer that holds the document state
 			const storage = new InMemorySyncStorage({
 				snapshot: initialSnapshot ?? undefined,
-			})
-			// listen for changes before creating the room, in order to capture changes
-			// from migrations run by the room constructor.
-			storage.onChange(() => {
-				roomState.needsPersist = true
+				onChange: () => {
+					roomState.needsPersist = true
+				},
 			})
 
 			const roomState: RoomState = {
