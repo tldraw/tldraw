@@ -16,7 +16,6 @@ import {
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 import { startEditingShapeWithLabel } from '../selectHelpers'
@@ -53,8 +52,6 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
-
 		switch (info.target) {
 			case 'canvas': {
 				// Check to see if we hit any shape under the pointer; if so,
@@ -70,10 +67,11 @@ export class Idle extends StateNode {
 				}
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				const {
 					inputs: { currentPagePoint },
 				} = this.editor
+
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -136,7 +134,8 @@ export class Idle extends StateNode {
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
-						if (shouldEnterCropMode) {
+						const onlySelectedShape = this.editor.getOnlySelectedShape()
+						if (info.ctrlKey && this.editor.getCanCropShape(onlySelectedShape)) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
 							if (info.accelKey) {
@@ -276,10 +275,7 @@ export class Idle extends StateNode {
 						}
 					}
 					// For corners OR edges but NOT rotation corners
-					if (
-						util.canCrop(onlySelectedShape) &&
-						!this.editor.isShapeOrAncestorLocked(onlySelectedShape)
-					) {
+					if (this.editor.getCanCropShape(onlySelectedShape)) {
 						this.parent.transition('crop', info)
 						return
 					}
@@ -542,7 +538,7 @@ export class Idle extends StateNode {
 				}
 
 				// If the only selected shape is croppable, then begin cropping it
-				if (getShouldEnterCropMode(this.editor)) {
+				if (this.editor.getCanCropShape(onlySelectedShape)) {
 					this.parent.transition('crop', info)
 				}
 				break
