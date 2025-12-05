@@ -50,10 +50,14 @@ const tlenvReactive = atom('tlenvReactive', {
 if (typeof window !== 'undefined' && !isForcedFinePointer) {
 	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
 
+	const isCurrentCoarsePointer = () =>
+		unsafe__withoutCapture(() => tlenvReactive.get().isCoarsePointer)
+
 	if (mql) {
+		// 1. Update the coarse pointer automatically when the media query changes
 		const updateIsCoarsePointer = () => {
 			const isCoarsePointer = mql.matches
-			if (isCoarsePointer !== unsafe__withoutCapture(() => tlenvReactive.get().isCoarsePointer)) {
+			if (isCoarsePointer !== isCurrentCoarsePointer()) {
 				tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarsePointer }))
 			}
 		}
@@ -61,7 +65,7 @@ if (typeof window !== 'undefined' && !isForcedFinePointer) {
 		mql.addEventListener('change', updateIsCoarsePointer)
 	}
 
-	// Update the coarse pointer state when a pointer down event occurs. We need `capture: true`
+	// 2. Also update the coarse pointer state when a pointer down event occurs. We need `capture: true`
 	// here because the tldraw component itself stops propagation on pointer events it receives.
 	window.addEventListener(
 		'pointerdown',
@@ -69,11 +73,9 @@ if (typeof window !== 'undefined' && !isForcedFinePointer) {
 			// when the user interacts with a mouse, we assume they have a fine pointer.
 			// otherwise, we assume they have a coarse pointer.
 			const isCoarseEvent = e.pointerType !== 'mouse'
-			if (tlenvReactive.get().isCoarsePointer === isCoarseEvent) return
-			tlenvReactive.update((prev) => ({
-				...prev,
-				isCoarsePointer: isCoarseEvent && !isForcedFinePointer,
-			}))
+			if (isCoarseEvent !== isCurrentCoarsePointer()) {
+				tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarseEvent }))
+			}
 		},
 		{ capture: true }
 	)
