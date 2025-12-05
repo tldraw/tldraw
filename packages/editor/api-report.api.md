@@ -1188,6 +1188,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
+    getCanEditShape(shape: TLShape | TLShapeId): boolean;
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
