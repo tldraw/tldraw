@@ -1,12 +1,12 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import {
+	AgentId,
 	FAIRY_VARIANTS,
 	FairyConfig,
 	FairyVariantType,
 	PersistedFairyConfigs,
 	toAgentId,
 } from '@tldraw/fairy-shared'
-import { AgentId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { getRandomFairyHat } from '../../fairy-helpers/getRandomFairyHat'

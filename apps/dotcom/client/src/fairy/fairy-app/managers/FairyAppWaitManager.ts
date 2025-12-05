@@ -1,12 +1,13 @@
 import {
+	AgentId,
 	AgentModeTransitionEvent,
 	FairyModeDefinition,
 	FairyTask,
 	TaskCompletedEvent,
+	TaskId,
 	type FairyWaitCondition,
 	type FairyWaitEvent,
 } from '@tldraw/fairy-shared'
-import { AgentId, TaskId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
 /**

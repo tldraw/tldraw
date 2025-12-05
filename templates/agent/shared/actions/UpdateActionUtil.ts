@@ -1,4 +1,3 @@
-import { toSimpleShapeId } from '@tldraw/fairy-shared'
 import { TLBindingId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -7,6 +6,7 @@ import {
 	convertSimpleShapeToTldrawShape,
 } from '../format/convertSimpleShapeToTldrawShape'
 import { SimpleShapeSchema } from '../format/SimpleShape'
+import { toSimpleShapeId } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 

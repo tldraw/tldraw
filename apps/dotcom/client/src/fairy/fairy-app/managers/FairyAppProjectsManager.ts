@@ -1,10 +1,11 @@
 import {
+	AgentId,
 	FairyProject,
 	FairyProjectMember,
 	FairyProjectRole,
+	ProjectId,
 	toProjectId,
 } from '@tldraw/fairy-shared'
-import { AgentId, ProjectId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { BaseFairyAppManager } from './BaseFairyAppManager'

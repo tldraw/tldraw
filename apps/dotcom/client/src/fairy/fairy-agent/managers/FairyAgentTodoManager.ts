@@ -1,5 +1,4 @@
-import { FairyTodoItem } from '@tldraw/fairy-shared'
-import { TaskId } from '@tldraw/fairy-shared/src/schema/id-schemas'
+import { FairyTodoItem, TaskId } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'

@@ -1,4 +1,3 @@
-import { SimpleShapeId } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import {
 	Box,
 	createShapeId,
@@ -15,6 +14,7 @@ import {
 	TLShapeId,
 	TLTextShape,
 } from 'tldraw'
+import { SimpleShapeId } from '../types/ids-schema'
 import { convertTldrawFillToSimpleFill } from './SimpleFill'
 import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
 import { SimpleGeoShapeType } from './SimpleGeoShapeType'

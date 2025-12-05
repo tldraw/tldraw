@@ -1,4 +1,4 @@
-import { AgentId } from '@tldraw/fairy-shared/src/schema/id-schemas'
+import { AgentId } from '@tldraw/fairy-shared'
 import { Atom, atom, Box, react } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { BaseFairyAppManager } from './BaseFairyAppManager'

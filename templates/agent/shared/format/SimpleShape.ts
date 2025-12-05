@@ -1,5 +1,5 @@
-import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { z } from 'zod'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { SimpleColor } from './SimpleColor'
 import { SimpleFillSchema } from './SimpleFill'
 import { SimpleFontSize } from './SimpleFontSize'

@@ -1,5 +1,6 @@
 import {
 	AgentAction,
+	AgentId,
 	AgentInput,
 	AgentPrompt,
 	AgentRequest,
@@ -19,7 +20,6 @@ import {
 	PromptPart,
 	Streaming,
 } from '@tldraw/fairy-shared'
-import { AgentId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import {
 	Atom,
 	atom,

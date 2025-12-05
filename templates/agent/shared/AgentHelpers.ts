@@ -1,10 +1,9 @@
-import { toTldrawShapeId } from '@tldraw/fairy-shared'
-import { SimpleShapeId } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
-import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { BoxModel, createShapeId, Editor, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
 import { SimpleShape } from './format/SimpleShape'
 import { ContextItem } from './types/ContextItem'
+import { SimpleShapeId } from './types/ids-schema'
 
 /**
  * This class contains handles the transformations that happen throughout a
@@ -270,7 +269,7 @@ export class AgentHelpers {
 		}
 
 		// If there's an existing shape with this ID, use that
-		const existingShape = editor.getShape(toTldrawShapeId(id))
+		const existingShape = editor.getShape(createShapeId(id))
 		if (existingShape) {
 			return id
 		}

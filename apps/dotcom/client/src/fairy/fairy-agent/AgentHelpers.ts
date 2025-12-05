@@ -1,5 +1,11 @@
-import { ContextItem, FocusFill, FocusFillSchema, FocusedShape } from '@tldraw/fairy-shared'
-import { SimpleShapeId, SimpleShapeIdKey } from '@tldraw/fairy-shared/src/schema/id-schemas'
+import {
+	ContextItem,
+	FocusFill,
+	FocusFillSchema,
+	FocusedShape,
+	SimpleShapeId,
+	SimpleShapeIdKey,
+} from '@tldraw/fairy-shared'
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { FairyAgent } from './FairyAgent'
 
