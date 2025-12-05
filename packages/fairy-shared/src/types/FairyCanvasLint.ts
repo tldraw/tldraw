@@ -1,6 +1,8 @@
+import { SimpleShapeId } from '../schema/id-schemas'
+
 export interface FairyCanvasLint {
 	type: FairyCanvasLintType
-	shapeIds: string[]
+	shapeIds: SimpleShapeId[]
 }
 
 export type FairyCanvasLintType = 'growY-on-shape' | 'overlapping-text' | 'friendless-arrow'
