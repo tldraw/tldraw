@@ -999,10 +999,51 @@
 	animation: fairy-shimmer 2s ease-in-out infinite;
 }
 
+/* Fairy ID display text with shimmer effect */
+.fairy-id-display-text {
+	position: relative;
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Shimmer overlay using pseudo-element */
+.fairy-id-display-text::after {
+	content: attr(data-text);
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	background: linear-gradient(
+		90deg,
+		var(--tl-color-text-3) 0%,
+		var(--tl-color-text-3) 35%,
+		var(--tl-color-text-1) 50%,
+		var(--tl-color-text-3) 65%,
+		var(--tl-color-text-3) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+/* When generating, fade in shimmer and animate */
+.fairy-id-display--generating .fairy-id-display-text::after {
+	opacity: 1;
+	animation: fairy-shimmer 2s ease-in-out infinite;
+}
+
 .fairy-project-chat-tasks {
 	display: flex;
 	flex-direction: column;
-	margin-left: 10px;
 	position: relative;
 }
 
