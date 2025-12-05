@@ -1,15 +1,20 @@
-import { AgentRequest, CanvasLintsPart, FairyCanvasLint } from '@tldraw/fairy-shared'
+import {
+	AgentRequest,
+	CanvasLintsPart,
+	convertTldrawIdToSimpleId,
+	FairyCanvasLint,
+} from '@tldraw/fairy-shared'
 import {
 	Box,
 	Editor,
-	TLArrowShape,
-	TLShape,
 	getArrowBindings,
 	intersectPolygonPolygon,
 	linesIntersect,
 	pointInPolygon,
 	polygonIntersectsPolyline,
 	polygonsIntersect,
+	TLArrowShape,
+	TLShape,
 } from 'tldraw'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -39,38 +44,49 @@ export class CanvasLintsPartUtil extends PromptPartUtil<CanvasLintsPart> {
 
 function detectCanvasLints(shapesInRequestBounds: TLShape[], editor: Editor): FairyCanvasLint[] {
 	const lints: FairyCanvasLint[] = []
-	lints.push(...getGrowYOnShapeLints(shapesInRequestBounds, editor))
-	lints.push(...getOverlappingTextLints(shapesInRequestBounds, editor))
-	lints.push(...getFriendlessArrowsLints(shapesInRequestBounds, editor))
+
+	// Collect shapes for each lint type
+	const growYShapes = getShapesWithGrowY(shapesInRequestBounds, editor)
+	const overlappingTextGroups = getOverlappingTextGroups(shapesInRequestBounds, editor)
+	const friendlessArrows = getFriendlessArrows(shapesInRequestBounds, editor)
+
+	// Convert shapes to lints (converting shape IDs to strings)
+	for (const shape of growYShapes) {
+		lints.push({
+			type: 'growY-on-shape',
+			shapeIds: [convertTldrawIdToSimpleId(shape.id)],
+		})
+	}
+
+	for (const group of overlappingTextGroups) {
+		lints.push({
+			type: 'overlapping-text',
+			shapeIds: group.map((shape) => convertTldrawIdToSimpleId(shape.id)),
+		})
+	}
+
+	for (const arrow of friendlessArrows) {
+		lints.push({
+			type: 'friendless-arrow',
+			shapeIds: [convertTldrawIdToSimpleId(arrow.id)],
+		})
+	}
+
 	return lints
 }
 
-function getGrowYOnShapeLints(
-	shapesInRequestBounds: TLShape[],
-	_editor: Editor
-): FairyCanvasLint[] {
-	const lints: FairyCanvasLint[] = []
+function getShapesWithGrowY(shapesInRequestBounds: TLShape[], _editor: Editor): TLShape[] {
 	const shapesWithGrowY = shapesInRequestBounds.filter((shape) => {
 		if ('growY' in shape.props) {
 			return shape.props.growY > 0
 		}
 		return false
 	})
-
-	shapesWithGrowY.forEach((shape) => {
-		lints.push({
-			type: 'growY-on-shape',
-			shapeIds: [shape.id],
-		})
-	})
-	return lints
+	return shapesWithGrowY
 }
 
-function getOverlappingTextLints(
-	shapesInRequestBounds: TLShape[],
-	editor: Editor
-): FairyCanvasLint[] {
-	const lints: FairyCanvasLint[] = []
+function getOverlappingTextGroups(shapesInRequestBounds: TLShape[], editor: Editor): TLShape[][] {
+	const groups: TLShape[][] = []
 	const shapesWithText = shapesInRequestBounds.filter((shape) => {
 		const util = editor.getShapeUtil(shape)
 		const text = util.getText(shape)
@@ -78,7 +94,7 @@ function getOverlappingTextLints(
 	})
 
 	if (shapesWithText.length < 2) {
-		return lints
+		return groups
 	}
 
 	// Use union-find to group overlapping shapes
@@ -115,22 +131,19 @@ function getOverlappingTextLints(
 	}
 
 	// Group shapes by their root
-	const groups = new Map<TLShape, TLShape[]>()
+	const rootGroups = new Map<TLShape, TLShape[]>()
 	for (const shape of shapesWithText) {
 		const root = find(shape)
-		if (!groups.has(root)) {
-			groups.set(root, [])
+		if (!rootGroups.has(root)) {
+			rootGroups.set(root, [])
 		}
-		groups.get(root)!.push(shape)
+		rootGroups.get(root)!.push(shape)
 	}
 
-	// Create lint entries for groups with 2+ shapes (overlapping)
-	for (const [, group] of groups) {
+	// Collect groups with 2+ shapes (overlapping)
+	for (const [, group] of rootGroups) {
 		if (group.length >= 2) {
-			lints.push({
-				type: 'overlapping-text',
-				shapeIds: group.map((shape) => shape.id),
-			})
+			groups.push(group)
 		}
 	}
 
@@ -141,31 +154,21 @@ function getOverlappingTextLints(
 	for (const textShape of textShapes) {
 		for (const geoShape of geoShapes) {
 			if (textShapeIntersectsGeoEdge(editor, textShape, geoShape)) {
-				// Check if we already have a lint for these shapes
-				const existingLint = lints.find(
-					(lint) =>
-						lint.type === 'overlapping-text' &&
-						lint.shapeIds.includes(textShape.id) &&
-						lint.shapeIds.includes(geoShape.id)
+				// Check if we already have a group for these shapes
+				const existingGroup = groups.find(
+					(group) => group.includes(textShape) && group.includes(geoShape)
 				)
-				if (!existingLint) {
-					lints.push({
-						type: 'overlapping-text',
-						shapeIds: [textShape.id, geoShape.id],
-					})
+				if (!existingGroup) {
+					groups.push([textShape, geoShape])
 				}
 			}
 		}
 	}
 
-	return lints
+	return groups
 }
 
-function getFriendlessArrowsLints(
-	shapesInRequestBounds: TLShape[],
-	editor: Editor
-): FairyCanvasLint[] {
-	const lints: FairyCanvasLint[] = []
+function getFriendlessArrows(shapesInRequestBounds: TLShape[], editor: Editor): TLArrowShape[] {
 	const arrowShapes = shapesInRequestBounds.filter(
 		(shape) => shape.type === 'arrow'
 	) as TLArrowShape[]
@@ -176,14 +179,7 @@ function getFriendlessArrowsLints(
 		return !bindings.start || !bindings.end
 	})
 
-	friendlessArrows.forEach((arrow) => {
-		lints.push({
-			type: 'friendless-arrow',
-			shapeIds: [arrow.id],
-		})
-	})
-
-	return lints
+	return friendlessArrows
 }
 
 function shapesOverlap(editor: Editor, shapeA: TLShape, shapeB: TLShape): boolean {
