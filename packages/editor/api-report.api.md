@@ -1188,6 +1188,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
+    getCanCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
     getCanEditShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
     getCanRedo(): boolean;
     getCanUndo(): boolean;
