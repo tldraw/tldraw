@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -8,7 +9,7 @@ const MoveAction = z
 	.object({
 		_type: z.literal('move'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
 	})

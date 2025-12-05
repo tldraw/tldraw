@@ -1,4 +1,5 @@
 import { ContextItem, FocusFill, FocusFillSchema, FocusedShape } from '@tldraw/fairy-shared'
+import { SimpleShapeId, SimpleShapeIdKey } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { FairyAgent } from './FairyAgent'
 
@@ -48,13 +49,13 @@ export class AgentHelpers {
 	 * A map of shape ids that have been transformed as part of this request.
 	 * The key is the original id, and the value is the transformed id.
 	 */
-	shapeIdMap = new Map<string, string>()
+	shapeIdMap = new Map<SimpleShapeId, SimpleShapeId>()
 
 	/**
 	 * A map of rounding diffs, stored by key.
 	 * These are used to restore the original values of rounded numbers.
 	 */
-	roundingDiffMap = new Map<string, number>()
+	roundingDiffMap = new Map<SimpleShapeIdKey, number>()
 
 	/**
 	 * Apply the offset of this request to a position.
@@ -225,37 +226,33 @@ export class AgentHelpers {
 
 	/**
 	 * Ensure that a shape ID is unique.
-	 * @param id - The id to check.
-	 * @returns The unique id.
+	 * @param id - The id to check (should be a SimpleShapeId from the model, not a TLShapeId).
+	 * @returns The unique id (always without the "shape:" prefix).
 	 */
-	ensureShapeIdIsUnique(id: string = 'shape'): string {
+	ensureShapeIdIsUnique(id = 'shape' as SimpleShapeId): SimpleShapeId {
+		// todo: remove default and have a better handling of cases where id is undefined
+
 		const { editor } = this.agent
-		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
+		// Defensively strip the prefix in case the model incorrectly includes it
 
 		// Ensure the id is unique by incrementing a number at the end
-		let newId = idWithoutPrefix
+		let newId = id
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
 			newId = /^.*(\d+)$/.exec(newId)?.[1]
-				? newId.replace(/(\d+)(?=\D?)$/, (m) => {
+				? (newId.replace(/(\d+)(?=\D?)$/, (m) => {
 						return (+m + 1).toString()
-					})
-				: `${newId}-1`
+					}) as SimpleShapeId)
+				: (`${newId}-1` as SimpleShapeId)
 			existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		}
 
 		// If the id was transformed, track it so that future events can refer to it by its original id.
-		if (idWithoutPrefix !== newId) {
-			this.shapeIdMap.set(idWithoutPrefix, newId)
+		if (id !== newId) {
+			this.shapeIdMap.set(id, newId)
 		}
 
-		// If the provided id didn't contain a prefix, return it without one
-		if (idWithoutPrefix === id) {
-			return newId
-		}
-
-		// Otherwise, return the id with the prefix
-		return `shape:${newId}`
+		return newId as SimpleShapeId
 	}
 
 	/**
@@ -263,19 +260,17 @@ export class AgentHelpers {
 	 * @param id - The id to check.
 	 * @returns The real id, or null if the shape doesn't exist.
 	 */
-	ensureShapeIdExists(id: string): string | null {
+	ensureShapeIdExists(id: SimpleShapeId): SimpleShapeId | null {
 		const { editor } = this.agent
 
-		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
-
 		// If there's already a transformed ID, use that
-		const existingId = this.shapeIdMap.get(idWithoutPrefix)
+		const existingId = this.shapeIdMap.get(id)
 		if (existingId) {
-			return existingId
+			return existingId as SimpleShapeId
 		}
 
 		// If there's an existing shape with this ID, use that
-		const existingShape = editor.getShape(`shape:${idWithoutPrefix}` as TLShapeId)
+		const existingShape = editor.getShape(`shape:${id}` as TLShapeId)
 		if (existingShape) {
 			return id
 		}
@@ -289,7 +284,7 @@ export class AgentHelpers {
 	 * @param ids - An array of ids to check.
 	 * @returns The array of ids, with imaginary ids removed.
 	 */
-	ensureShapeIdsExist(ids: string[]): string[] {
+	ensureShapeIdsExist(ids: SimpleShapeId[]): SimpleShapeId[] {
 		return ids.map((id) => this.ensureShapeIdExists(id)).filter((v) => v !== null)
 	}
 
@@ -363,7 +358,7 @@ export class AgentHelpers {
 	 * @param key - The key to save the diff under.
 	 * @returns The rounded number.
 	 */
-	roundAndSaveNumber(number: number, key: string): number {
+	roundAndSaveNumber(number: number, key: SimpleShapeIdKey): number {
 		const roundedNumber = Math.round(number)
 		const diff = roundedNumber - number
 		this.roundingDiffMap.set(key, diff)
@@ -376,7 +371,7 @@ export class AgentHelpers {
 	 * @param key - The key to restore the diff from.
 	 * @returns The unrounded number.
 	 */
-	unroundAndRestoreNumber(number: number, key: string): number {
+	unroundAndRestoreNumber(number: number, key: SimpleShapeIdKey): number {
 		const diff = this.roundingDiffMap.get(key)
 		if (diff === undefined) return number
 		return number + diff
@@ -392,7 +387,7 @@ export class AgentHelpers {
 		if (typeof shape[property] !== 'number') return shape
 
 		const value = shape[property]
-		const key = `${shape.shapeId}_${property as string}`
+		const key = `${shape.shapeId}_${property as string}` as SimpleShapeIdKey
 		const roundedValue = this.roundAndSaveNumber(value, key)
 
 		;(shape[property] as number) = roundedValue
@@ -408,7 +403,7 @@ export class AgentHelpers {
 	unroundProperty<T extends FocusedShape>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
-		const key = `${shape.shapeId}_${property as string}`
+		const key = `${shape.shapeId}_${property as string}` as SimpleShapeIdKey
 		const diff = this.roundingDiffMap.get(key)
 		if (diff === undefined) return shape
 		;(shape[property] as number) += diff

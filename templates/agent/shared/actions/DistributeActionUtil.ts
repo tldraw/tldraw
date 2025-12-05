@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -9,7 +10,7 @@ const DistributeAction = z
 		_type: z.literal('distribute'),
 		direction: z.enum(['horizontal', 'vertical']),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Distribute',

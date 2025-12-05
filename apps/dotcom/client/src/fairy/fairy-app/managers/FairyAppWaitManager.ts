@@ -6,6 +6,7 @@ import {
 	type FairyWaitCondition,
 	type FairyWaitEvent,
 } from '@tldraw/fairy-shared'
+import { AgentId, TaskId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
 /**
@@ -25,8 +26,8 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 		getUserFacingMessage,
 	}: {
 		event: FairyWaitEvent
-		getAgentFacingMessage(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
-		getUserFacingMessage?(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
+		getAgentFacingMessage(agentId: AgentId, condition: FairyWaitCondition<FairyWaitEvent>): string
+		getUserFacingMessage?(agentId: AgentId, condition: FairyWaitCondition<FairyWaitEvent>): string
 	}) {
 		const eventType = event.type
 		const agents = this.fairyApp.agents.getAgents()
@@ -78,7 +79,7 @@ Description: "${task.text}"`
 	/**
 	 * Create a wait condition for waiting on a specific task completion.
 	 */
-	createTaskWaitCondition(taskId: string): FairyWaitCondition<TaskCompletedEvent> {
+	createTaskWaitCondition(taskId: TaskId): FairyWaitCondition<TaskCompletedEvent> {
 		return {
 			eventType: 'task-completed',
 			matcher: (event) => event.task.id === taskId,
@@ -89,7 +90,7 @@ Description: "${task.text}"`
 	/**
 	 * Notify all agents waiting for a mode transition event.
 	 */
-	notifyAgentModeTransition(agentId: string, mode: FairyModeDefinition['type']) {
+	notifyAgentModeTransition(agentId: AgentId, mode: FairyModeDefinition['type']) {
 		this.notifyWaitingAgents({
 			event: { type: 'agent-mode-transition', agentId, mode },
 			getAgentFacingMessage: () => `Agent ${agentId} has transitioned to mode ${mode}.`,
@@ -100,7 +101,7 @@ Description: "${task.text}"`
 	 * Create a wait condition for waiting on a specific mode transition.
 	 */
 	createAgentModeTransitionWaitCondition(
-		agentId: string,
+		agentId: AgentId,
 		mode: FairyModeDefinition['type']
 	): FairyWaitCondition<AgentModeTransitionEvent> {
 		return {

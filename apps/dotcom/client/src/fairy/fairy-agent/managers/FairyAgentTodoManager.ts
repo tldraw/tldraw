@@ -1,4 +1,5 @@
 import { FairyTodoItem } from '@tldraw/fairy-shared'
+import { TaskId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
@@ -37,7 +38,7 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 	 * @param text - The text of the todo item.
 	 * @returns The id of the todo item.
 	 */
-	push(id: string, text: string) {
+	push(id: TaskId, text: string) {
 		this.$personalTodoList.update((personalTodoItems) => {
 			return [
 				...personalTodoItems,
@@ -55,7 +56,7 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 	 * Update a todo item's status and optionally its text.
 	 * @param params - The update parameters
 	 */
-	update(params: { id: string; status: FairyTodoItem['status']; text?: string }) {
+	update(params: { id: TaskId; status: FairyTodoItem['status']; text?: string }) {
 		const { id, status, text } = params
 		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
@@ -74,7 +75,7 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 	 * Delete specific todo items by their ids.
 	 * @param ids - The ids of the todos to delete
 	 */
-	delete(ids: string[]) {
+	delete(ids: TaskId[]) {
 		const idsSet = new Set(ids)
 		this.$personalTodoList.update((todoItems) => {
 			return todoItems.filter((item) => !idsSet.has(item.id))

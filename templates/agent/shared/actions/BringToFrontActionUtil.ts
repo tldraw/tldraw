@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -8,7 +9,7 @@ const BringToFrontAction = z
 	.object({
 		_type: z.literal('bringToFront'),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Bring to Front',

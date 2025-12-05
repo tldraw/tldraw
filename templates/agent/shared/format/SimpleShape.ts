@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { z } from 'zod'
 import { SimpleColor } from './SimpleColor'
 import { SimpleFillSchema } from './SimpleFill'
@@ -12,7 +13,7 @@ export const SimpleGeoShape = z.object({
 	fill: SimpleFillSchema,
 	h: z.number(),
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: SimpleLabel.optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
@@ -26,7 +27,7 @@ const SimpleLineShape = z.object({
 	_type: z.literal('line'),
 	color: SimpleColor,
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	x1: z.number(),
 	x2: z.number(),
 	y1: z.number(),
@@ -39,7 +40,7 @@ const SimpleNoteShape = z.object({
 	_type: z.literal('note'),
 	color: SimpleColor,
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: SimpleLabel.optional(),
 	x: z.number(),
 	y: z.number(),
@@ -52,7 +53,7 @@ const SimpleTextShape = z.object({
 	color: SimpleColor,
 	fontSize: SimpleFontSize.optional(),
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: SimpleLabel,
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	width: z.number().optional(),
@@ -66,11 +67,11 @@ export type SimpleTextShape = z.infer<typeof SimpleTextShape>
 const SimpleArrowShape = z.object({
 	_type: z.literal('arrow'),
 	color: SimpleColor,
-	fromId: z.string().nullable(),
+	fromId: SimpleShapeIdSchema.nullable(),
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: z.string().optional(),
-	toId: z.string().nullable(),
+	toId: SimpleShapeIdSchema.nullable(),
 	x1: z.number(),
 	x2: z.number(),
 	y1: z.number(),
@@ -86,7 +87,7 @@ const SimpleDrawShape = z
 		color: SimpleColor,
 		fill: SimpleFillSchema.optional(),
 		note: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({
 		title: 'Draw Shape',
@@ -100,7 +101,7 @@ const SimpleUnknownShape = z
 	.object({
 		_type: z.literal('unknown'),
 		note: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		subType: z.string(),
 		x: z.number(),
 		y: z.number(),

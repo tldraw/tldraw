@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -10,7 +11,7 @@ const AlignAction = z
 		alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
 		gap: z.number(),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({ title: 'Align', description: 'The AI aligns shapes to each other on an axis.' })
 

@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -28,7 +28,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -39,13 +39,13 @@ describe('MoveActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			const sanitized = moveUtil.sanitizeAction(action, helpers)
 
-			expect(sanitized?.shapeId).toBe('shape1')
+			expect(sanitized?.shapeId).toBe(toSimpleShapeId('shape1'))
 		})
 
 		it('should return null if shape does not exist', () => {
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('nonexistent'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -65,7 +65,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: '100' as any,
 				y: '200' as any,
 				intent: 'test',
@@ -86,7 +86,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 'invalid' as any,
 				y: 100,
 				intent: 'test',
@@ -106,7 +106,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 'invalid' as any,
 				intent: 'test',
@@ -123,7 +123,7 @@ describe('MoveActionUtil', () => {
 		it('should not sanitize incomplete actions', () => {
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -146,7 +146,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -171,7 +171,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
 				intent: 'Move shape',
@@ -197,7 +197,7 @@ describe('MoveActionUtil', () => {
 		it('should not apply action if shape does not exist', () => {
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('nonexistent'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -220,7 +220,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -248,7 +248,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 200,
 				y: 200,
 				intent: 'Move to 200, 200',
@@ -282,7 +282,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 150,
 				y: 150,
 				intent: 'test',
@@ -310,7 +310,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
 				intent: 'test',
@@ -335,7 +335,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: -50,
 				y: -50,
 				intent: 'Move to negative position',
@@ -364,7 +364,7 @@ describe('MoveActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'move',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				x: 0,
 				y: 0,
 				intent: 'Move to origin',

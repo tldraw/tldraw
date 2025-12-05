@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, PenAction, Streaming, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { Editor, TLDrawShape } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -30,7 +30,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				points: [
 					{ x: 0, y: 0 },
 					{ x: 100, y: 100 },
@@ -54,7 +54,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				points: [
 					{ x: 0, y: 0 },
 					{ x: 100, y: 100 },
@@ -84,7 +84,7 @@ describe('PenActionUtil', () => {
 					closed: false,
 					fill: 'none',
 					style: 'smooth',
-					shapeId: 'test-shape',
+					shapeId: toSimpleShapeId('test-shape'),
 				}),
 				complete: false,
 				time: 0,
@@ -114,7 +114,7 @@ describe('PenActionUtil', () => {
 					closed: false,
 					fill: 'none',
 					style: 'smooth',
-					shapeId: 'test-shape',
+					shapeId: toSimpleShapeId('test-shape'),
 				}),
 				complete: true,
 				time: 0,
@@ -141,7 +141,7 @@ describe('PenActionUtil', () => {
 					closed: false,
 					fill: 'none',
 					style: 'smooth',
-					shapeId: 'test-shape',
+					shapeId: toSimpleShapeId('test-shape'),
 				}),
 				complete: true,
 				time: 0,
@@ -171,7 +171,7 @@ describe('PenActionUtil', () => {
 					color: 'black',
 					fill: 'none',
 					style: 'smooth',
-					shapeId: 'test-shape',
+					shapeId: toSimpleShapeId('test-shape'),
 				}),
 				complete: true,
 				time: 0,
@@ -195,7 +195,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -218,7 +218,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				closed: false,
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -239,7 +239,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				points: [],
 				complete: true,
 				time: 0,
@@ -260,7 +260,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: '',
+				shapeId: toSimpleShapeId(''),
 				points: [
 					{ x: 0, y: 0 },
 					{ x: 100, y: 100 },
@@ -288,14 +288,15 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'shape:prefixed-id',
 				points: [
 					{ x: 0, y: 0 },
 					{ x: 100, y: 100 },
 				],
 				complete: true,
 				time: 0,
-			})
+				// @ts-expect-error - testing edge case
+				shapeId: 'shape:prefixed-id',
+			}) as Streaming<PenAction>
 
 			const helpers = new AgentHelpers(agent)
 			const sanitized = penUtil.sanitizeAction(action, helpers)
@@ -319,7 +320,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -340,7 +341,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -364,7 +365,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				intent: 'Draw line',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -398,7 +399,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -424,7 +425,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -455,7 +456,7 @@ describe('PenActionUtil', () => {
 				intent: 'test',
 				color: 'black',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -482,7 +483,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -509,7 +510,7 @@ describe('PenActionUtil', () => {
 				intent: 'test',
 				color: 'black',
 				fill: 'none',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -535,7 +536,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})
@@ -569,7 +570,7 @@ describe('PenActionUtil', () => {
 					intent: 'test',
 					fill: 'none',
 					style: 'smooth',
-					shapeId: `test-shape-${index}`,
+					shapeId: toSimpleShapeId(`test-shape-${index}`),
 					complete: true,
 					time: 0,
 				})
@@ -598,7 +599,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
-				shapeId: 'test-shape',
+				shapeId: toSimpleShapeId('test-shape'),
 				complete: true,
 				time: 0,
 			})

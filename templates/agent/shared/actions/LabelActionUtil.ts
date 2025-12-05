@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { TLRichText, TLShape, TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -8,7 +9,7 @@ const LabelAction = z
 	.object({
 		_type: z.literal('label'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		text: z.string(),
 	})
 	.meta({ title: 'Label', description: "The AI changes a shape's text." })

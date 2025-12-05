@@ -1,4 +1,4 @@
-import { FairyProject } from '@tldraw/fairy-shared'
+import { FairyProject, toAgentId, toProjectId, toTaskId } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
@@ -9,6 +9,14 @@ import {
 	getDefaultFairyConfig,
 	getFairyProject,
 } from './fairy-app-managers-test-shared'
+
+const agentId1 = toAgentId('agent-1')
+const agentId2 = toAgentId('agent-2')
+const projectId1 = toProjectId('project-1')
+const projectId2 = toProjectId('project-2')
+const taskId1 = toTaskId('task-1')
+const taskId2 = toTaskId('task-2')
+const taskId3 = toTaskId('task-3')
 
 describe('FairyAppProjectsManager', () => {
 	let editor: Editor
@@ -36,7 +44,7 @@ describe('FairyAppProjectsManager', () => {
 		it('should set projects', () => {
 			const projects: FairyProject[] = [
 				{
-					id: 'project-1',
+					id: projectId1,
 					title: 'Test Project',
 					description: 'Test description',
 					color: 'blue',
@@ -54,7 +62,7 @@ describe('FairyAppProjectsManager', () => {
 	describe('addProject', () => {
 		it('should add a new project', () => {
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
@@ -69,7 +77,7 @@ describe('FairyAppProjectsManager', () => {
 
 		it('should not add duplicate projects', () => {
 			const project = getFairyProject({
-				id: 'project-1',
+				id: projectId1,
 			})
 
 			manager.addProject(project)
@@ -82,103 +90,103 @@ describe('FairyAppProjectsManager', () => {
 	describe('getProjectById', () => {
 		it('should return a project by ID', () => {
 			const project = getFairyProject({
-				id: 'project-1',
+				id: projectId1,
 			})
 
 			manager.addProject(project)
 
-			expect(manager.getProjectById('project-1')).toEqual(project)
+			expect(manager.getProjectById(projectId1)).toEqual(project)
 		})
 
 		it('should return undefined when project not found', () => {
-			expect(manager.getProjectById('non-existent')).toBeUndefined()
+			expect(manager.getProjectById(toProjectId('non-existent'))).toBeUndefined()
 		})
 	})
 
 	describe('getProjectByAgentId', () => {
 		it('should return a project by agent ID', () => {
 			const project = getFairyProject({
-				id: 'project-1',
+				id: projectId1,
 				members: [
-					{ id: 'agent-1', role: 'orchestrator' },
-					{ id: 'agent-2', role: 'drone' },
+					{ id: agentId1, role: 'orchestrator' },
+					{ id: agentId2, role: 'drone' },
 				],
 			})
 
 			manager.addProject(project)
 
-			expect(manager.getProjectByAgentId('agent-1')).toEqual(project)
-			expect(manager.getProjectByAgentId('agent-2')).toEqual(project)
+			expect(manager.getProjectByAgentId(agentId1)).toEqual(project)
+			expect(manager.getProjectByAgentId(agentId2)).toEqual(project)
 		})
 
 		it('should return undefined when agent not in any project', () => {
-			expect(manager.getProjectByAgentId('non-existent')).toBeUndefined()
+			expect(manager.getProjectByAgentId(toAgentId('non-existent'))).toBeUndefined()
 		})
 	})
 
 	describe('getRoleByAgentId', () => {
 		it('should return the role of an agent', () => {
 			const project = getFairyProject({
-				id: 'project-1',
+				id: projectId1,
 				members: [
-					{ id: 'agent-1', role: 'orchestrator' },
-					{ id: 'agent-2', role: 'drone' },
+					{ id: agentId1, role: 'orchestrator' },
+					{ id: agentId2, role: 'drone' },
 				],
 			})
 
 			manager.addProject(project)
 
-			expect(manager.getRoleByAgentId('agent-1')).toBe('orchestrator')
-			expect(manager.getRoleByAgentId('agent-2')).toBe('drone')
+			expect(manager.getRoleByAgentId(agentId1)).toBe('orchestrator')
+			expect(manager.getRoleByAgentId(agentId2)).toBe('drone')
 		})
 
 		it('should return undefined when agent not in any project', () => {
-			expect(manager.getRoleByAgentId('non-existent')).toBeUndefined()
+			expect(manager.getRoleByAgentId(toAgentId('non-existent'))).toBeUndefined()
 		})
 	})
 
 	describe('getProjectOrchestrator', () => {
 		it('should return the orchestrator of a project', () => {
 			const project = getFairyProject({
-				id: 'project-1',
+				id: projectId1,
 				members: [
-					{ id: 'agent-1', role: 'orchestrator' },
-					{ id: 'agent-2', role: 'drone' },
+					{ id: agentId1, role: 'orchestrator' },
+					{ id: agentId2, role: 'drone' },
 				],
 			})
 
 			const orchestrator = manager.getProjectOrchestrator(project)
 
-			expect(orchestrator).toEqual({ id: 'agent-1', role: 'orchestrator' })
+			expect(orchestrator).toEqual({ id: agentId1, role: 'orchestrator' })
 		})
 
 		it('should return duo-orchestrator when present', () => {
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
 				members: [
-					{ id: 'agent-1', role: 'duo-orchestrator' },
-					{ id: 'agent-2', role: 'drone' },
+					{ id: agentId1, role: 'duo-orchestrator' },
+					{ id: agentId2, role: 'drone' },
 				],
 				plan: 'Test plan',
 			}
 
 			const orchestrator = manager.getProjectOrchestrator(project)
 
-			expect(orchestrator).toEqual({ id: 'agent-1', role: 'duo-orchestrator' })
+			expect(orchestrator).toEqual({ id: agentId1, role: 'duo-orchestrator' })
 		})
 
 		it('should return undefined when no orchestrator present', () => {
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
 				members: [
-					{ id: 'agent-1', role: 'drone' },
-					{ id: 'agent-2', role: 'drone' },
+					{ id: agentId1, role: 'drone' },
+					{ id: agentId2, role: 'drone' },
 				],
 				plan: 'Test plan',
 			}
@@ -192,7 +200,7 @@ describe('FairyAppProjectsManager', () => {
 	describe('updateProject', () => {
 		it('should update a project', () => {
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
@@ -201,16 +209,16 @@ describe('FairyAppProjectsManager', () => {
 			}
 
 			manager.addProject(project)
-			manager.updateProject('project-1', { title: 'Updated Project' })
+			manager.updateProject(projectId1, { title: 'Updated Project' })
 
-			expect(manager.getProjectById('project-1')!.title).toBe('Updated Project')
+			expect(manager.getProjectById(projectId1)!.title).toBe('Updated Project')
 		})
 	})
 
 	describe('deleteProject', () => {
 		it('should delete a project', () => {
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
@@ -221,7 +229,7 @@ describe('FairyAppProjectsManager', () => {
 			manager.addProject(project)
 			expect(manager.getProjects()).toHaveLength(1)
 
-			manager.deleteProject('project-1')
+			manager.deleteProject(projectId1)
 
 			expect(manager.getProjects()).toHaveLength(0)
 		})
@@ -230,7 +238,7 @@ describe('FairyAppProjectsManager', () => {
 	describe('clearProjects', () => {
 		it('should clear all projects', () => {
 			manager.addProject({
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project 1',
 				description: 'Test description',
 				color: 'blue',
@@ -239,7 +247,7 @@ describe('FairyAppProjectsManager', () => {
 			})
 
 			manager.addProject({
-				id: 'project-2',
+				id: projectId2,
 				title: 'Test Project 2',
 				description: 'Test description',
 				color: 'red',
@@ -258,7 +266,7 @@ describe('FairyAppProjectsManager', () => {
 	describe('deleteProjectAndAssociatedTasks', () => {
 		it('should delete a project and its tasks', () => {
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
@@ -269,26 +277,26 @@ describe('FairyAppProjectsManager', () => {
 			manager.addProject(project)
 
 			fairyApp.tasks.createTask({
-				id: 'task-1',
+				id: taskId1,
 				title: 'Task 1',
 				text: 'Test',
 				status: 'todo',
-				projectId: 'project-1',
+				projectId: projectId1,
 				assignedTo: null,
 			})
 
 			fairyApp.tasks.createTask({
-				id: 'task-2',
+				id: taskId2,
 				title: 'Task 2',
 				text: 'Test',
 				status: 'todo',
-				projectId: 'project-1',
+				projectId: projectId1,
 				assignedTo: null,
 			})
 
 			expect(fairyApp.tasks.getTasks()).toHaveLength(2)
 
-			manager.deleteProjectAndAssociatedTasks('project-1')
+			manager.deleteProjectAndAssociatedTasks(projectId1)
 
 			expect(manager.getProjects()).toHaveLength(0)
 			expect(fairyApp.tasks.getTasks()).toHaveLength(0)
@@ -329,7 +337,7 @@ describe('FairyAppProjectsManager', () => {
 			}
 
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
@@ -345,7 +353,7 @@ describe('FairyAppProjectsManager', () => {
 			const interruptSpy1 = vi.spyOn(agent1, 'interrupt')
 			const interruptSpy2 = vi.spyOn(agent2, 'interrupt')
 
-			manager.disbandProject('project-1')
+			manager.disbandProject(projectId1)
 
 			expect(interruptSpy1).toHaveBeenCalled()
 			expect(interruptSpy2).toHaveBeenCalled()
@@ -363,7 +371,7 @@ describe('FairyAppProjectsManager', () => {
 			const agent1 = agents[0]!
 
 			const project: FairyProject = {
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',
@@ -373,7 +381,7 @@ describe('FairyAppProjectsManager', () => {
 
 			manager.addProject(project)
 
-			manager.disbandProject('project-1')
+			manager.disbandProject(projectId1)
 
 			// Project should still exist
 			expect(manager.getProjects()).toHaveLength(1)
@@ -417,7 +425,7 @@ describe('FairyAppProjectsManager', () => {
 			}
 
 			manager.addProject({
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project 1',
 				description: 'Test description',
 				color: 'blue',
@@ -429,7 +437,7 @@ describe('FairyAppProjectsManager', () => {
 			})
 
 			manager.addProject({
-				id: 'project-2',
+				id: projectId2,
 				title: 'Test Project 2',
 				description: 'Test description',
 				color: 'red',
@@ -455,27 +463,27 @@ describe('FairyAppProjectsManager', () => {
 
 	describe('addAgentToDummyProject', () => {
 		it('should create a dummy project if it does not exist', () => {
-			manager.addAgentToDummyProject('agent-1')
+			manager.addAgentToDummyProject(agentId1)
 
-			const dummyProject = manager.getProjectById('dummy')
+			const dummyProject = manager.getProjectById(toProjectId('dummy'))
 			expect(dummyProject).toBeDefined()
-			expect(dummyProject!.members).toContainEqual({ id: 'agent-1', role: 'orchestrator' })
+			expect(dummyProject!.members).toContainEqual({ id: agentId1, role: 'orchestrator' })
 		})
 
 		it('should add agent to existing dummy project', () => {
-			manager.addAgentToDummyProject('agent-1')
-			manager.addAgentToDummyProject('agent-2')
+			manager.addAgentToDummyProject(agentId1)
+			manager.addAgentToDummyProject(agentId2)
 
-			const dummyProject = manager.getProjectById('dummy')
+			const dummyProject = manager.getProjectById(toProjectId('dummy'))
 			expect(dummyProject!.members).toHaveLength(2)
-			expect(dummyProject!.members).toContainEqual({ id: 'agent-2', role: 'drone' })
+			expect(dummyProject!.members).toContainEqual({ id: agentId2, role: 'drone' })
 		})
 
 		it('should not add the same agent twice', () => {
-			manager.addAgentToDummyProject('agent-1')
-			manager.addAgentToDummyProject('agent-1')
+			manager.addAgentToDummyProject(agentId1)
+			manager.addAgentToDummyProject(agentId1)
 
-			const dummyProject = manager.getProjectById('dummy')
+			const dummyProject = manager.getProjectById(toProjectId('dummy'))
 			expect(dummyProject!.members).toHaveLength(1)
 		})
 	})
@@ -483,7 +491,7 @@ describe('FairyAppProjectsManager', () => {
 	describe('reset', () => {
 		it('should reset the manager', () => {
 			manager.addProject({
-				id: 'project-1',
+				id: projectId1,
 				title: 'Test Project',
 				description: 'Test description',
 				color: 'blue',

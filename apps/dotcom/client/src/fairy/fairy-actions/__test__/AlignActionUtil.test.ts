@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { Box, createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -35,7 +35,11 @@ describe('AlignActionUtil', () => {
 				alignment: 'left',
 				gap: 0,
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'nonexistent'],
+				shapeIds: [
+					toSimpleShapeId('shape1'),
+					toSimpleShapeId('shape2'),
+					toSimpleShapeId('nonexistent'),
+				],
 				complete: true,
 				time: 0,
 			})
@@ -45,9 +49,9 @@ describe('AlignActionUtil', () => {
 
 			// Should filter out the nonexistent shape
 			expect(sanitized?.shapeIds).toHaveLength(2)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).toContain('shape2')
-			expect(sanitized?.shapeIds).not.toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape2'))
+			expect(sanitized?.shapeIds).not.toContain(toSimpleShapeId('nonexistent'))
 		})
 	})
 
@@ -84,7 +88,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'left',
 				gap: 0,
 				intent: 'Align left',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -120,7 +124,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'right',
 				gap: 0,
 				intent: 'Align right',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -156,7 +160,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'top',
 				gap: 0,
 				intent: 'Align top',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -192,7 +196,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'bottom',
 				gap: 0,
 				intent: 'Align bottom',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -228,7 +232,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'center-horizontal',
 				gap: 0,
 				intent: 'Center horizontally',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -265,7 +269,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'center-vertical',
 				gap: 0,
 				intent: 'Center vertically',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -299,7 +303,7 @@ describe('AlignActionUtil', () => {
 				alignment: 'left',
 				gap: 0,
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})

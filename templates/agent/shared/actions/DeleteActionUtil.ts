@@ -1,3 +1,4 @@
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -9,7 +10,7 @@ const DeleteAction = z
 	.object({
 		_type: z.literal('delete'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
 

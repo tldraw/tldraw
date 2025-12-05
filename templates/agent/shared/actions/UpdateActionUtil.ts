@@ -1,3 +1,4 @@
+import { toSimpleShapeId } from '@tldraw/fairy-shared'
 import { TLBindingId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
@@ -42,7 +43,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
-		const shapeId = helpers.ensureShapeIdExists(update.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(toSimpleShapeId(update.shapeId))
 		if (!shapeId) return null
 		update.shapeId = shapeId
 

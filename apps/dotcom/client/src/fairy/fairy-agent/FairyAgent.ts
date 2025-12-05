@@ -19,6 +19,7 @@ import {
 	PromptPart,
 	Streaming,
 } from '@tldraw/fairy-shared'
+import { AgentId } from '@tldraw/fairy-shared/src/schema/id-schemas'
 import {
 	Atom,
 	atom,
@@ -63,7 +64,7 @@ export interface FairyAgentOptions {
 	/** The fairy app to associate the agent with. */
 	fairyApp: FairyApp
 	/** A key used to differentiate the agent from other agents. */
-	id: string
+	id: AgentId
 	/** A callback for when an error occurs. */
 	onError(e: any): void
 	/** A function to get the authentication token. */
@@ -82,7 +83,7 @@ export interface FairyAgentOptions {
  */
 export class FairyAgent {
 	/** An id to differentiate the agent from other agents. */
-	id: string
+	id: AgentId
 
 	/** The editor associated with this agent. */
 	editor: Editor

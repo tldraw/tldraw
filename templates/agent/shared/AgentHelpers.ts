@@ -1,3 +1,5 @@
+import { toTldrawShapeId } from '@tldraw/fairy-shared'
+import { SimpleShapeId } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
 import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
@@ -227,37 +229,32 @@ export class AgentHelpers {
 
 	/**
 	 * Ensure that a shape ID is unique.
-	 * @param id - The id to check.
-	 * @returns The unique id.
+	 * @param id - The id to check (should be a SimpleShapeId from the model, not a TLShapeId).
+	 * @returns The unique id (always without the "shape:" prefix).
 	 */
-	ensureShapeIdIsUnique(id: string): string {
+	ensureShapeIdIsUnique(id: SimpleShapeId): SimpleShapeId {
 		const { editor } = this.agent
-		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
+		// Defensively strip the prefix in case the model incorrectly includes it
 
 		// Ensure the id is unique by incrementing a number at the end
-		let newId = idWithoutPrefix
+		let newId = id
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
-			newId = /^.*(\d+)$/.exec(newId)?.[1]
-				? newId.replace(/(\d+)(?=\D?)$/, (m) => {
-						return (+m + 1).toString()
-					})
-				: `${newId}-1`
+			const match = /^.*(\d+)$/.exec(newId)?.[1]
+			if (match) {
+				newId = newId.replace(/(\d+)(?=\D?)$/, (m: string) => (+m + 1).toString()) as SimpleShapeId
+			} else {
+				newId = `${newId}-1` as SimpleShapeId
+			}
 			existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		}
 
 		// If the id was transformed, track it so that future events can refer to it by its original id.
-		if (idWithoutPrefix !== newId) {
-			this.shapeIdMap.set(idWithoutPrefix, newId)
+		if (id !== newId) {
+			this.shapeIdMap.set(id, newId)
 		}
 
-		// If the provided id didn't contain a prefix, return it without one
-		if (idWithoutPrefix === id) {
-			return newId
-		}
-
-		// Otherwise, return the id with the prefix
-		return `shape:${newId}`
+		return newId as SimpleShapeId
 	}
 
 	/**
@@ -265,19 +262,17 @@ export class AgentHelpers {
 	 * @param id - The id to check.
 	 * @returns The real id, or null if the shape doesn't exist.
 	 */
-	ensureShapeIdExists(id: string): string | null {
+	ensureShapeIdExists(id: SimpleShapeId): SimpleShapeId | null {
 		const { editor } = this.agent
 
-		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
-
 		// If there's already a transformed ID, use that
-		const existingId = this.shapeIdMap.get(idWithoutPrefix)
+		const existingId = this.shapeIdMap.get(id)
 		if (existingId) {
-			return existingId
+			return existingId as SimpleShapeId
 		}
 
 		// If there's an existing shape with this ID, use that
-		const existingShape = editor.getShape(`shape:${idWithoutPrefix}` as TLShapeId)
+		const existingShape = editor.getShape(toTldrawShapeId(id))
 		if (existingShape) {
 			return id
 		}
@@ -291,7 +286,7 @@ export class AgentHelpers {
 	 * @param ids - An array of ids to check.
 	 * @returns The array of ids, with imaginary ids removed.
 	 */
-	ensureShapeIdsExist(ids: string[]): string[] {
+	ensureShapeIdsExist(ids: SimpleShapeId[]): SimpleShapeId[] {
 		return ids.map((id) => this.ensureShapeIdExists(id)).filter((v) => v !== null)
 	}
 

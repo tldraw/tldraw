@@ -1,3 +1,4 @@
+import { SimpleShapeId } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
 import {
 	Box,
 	createShapeId,
@@ -90,8 +91,8 @@ const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
 	'arrow-down': 'fat-arrow-down',
 } as const
 
-export function convertTldrawIdToSimpleId(id: TLShapeId): string {
-	return id.slice('shape:'.length)
+export function convertTldrawIdToSimpleId(id: TLShapeId): SimpleShapeId {
+	return id.slice(6) as SimpleShapeId
 }
 
 function convertDrawShapeToSimple(editor: Editor, shape: TLDrawShape): SimpleDrawShape {
@@ -204,11 +205,11 @@ function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleA
 		_type: 'arrow',
 		bend: shape.props.bend * -1,
 		color: shape.props.color,
-		fromId: startBinding?.toId ?? null,
+		fromId: startBinding ? convertTldrawIdToSimpleId(startBinding.toId) : null,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: (shape.meta.text as string) ?? '',
-		toId: endBinding?.toId ?? null,
+		toId: endBinding ? convertTldrawIdToSimpleId(endBinding.toId) : null,
 		x1: shape.props.start.x + bounds.x,
 		x2: shape.props.end.x + bounds.x,
 		y1: shape.props.start.y + bounds.y,
