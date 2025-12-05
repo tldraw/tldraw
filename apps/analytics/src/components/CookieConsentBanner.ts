@@ -17,6 +17,11 @@ export function createCookieConsentBanner(
 	banner.className = 'tl-analytics-banner'
 	banner.setAttribute('data-theme', theme)
 
+	// Enable pointer events after animation completes
+	setTimeout(() => {
+		banner.style.pointerEvents = 'auto'
+	}, 3000)
+
 	// Create content
 	banner.innerHTML = `
 		<p class="tl-analytics-banner__text">

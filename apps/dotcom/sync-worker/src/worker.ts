@@ -28,6 +28,7 @@ import {
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
+import { paddleWebhooks } from './paddleWebhooks'
 import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
@@ -44,10 +45,12 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { redeemFairyInvite } from './routes/tla/redeemFairyInvite'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
+import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -135,6 +138,7 @@ const router = createRouter<Environment>()
 	.post('/app/uploads/:objectName', upload)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
+	.post('/app/fairy-invite/redeem', redeemFairyInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
@@ -156,6 +160,7 @@ const router = createRouter<Environment>()
 		return new Response('Not Found', { status: 404 })
 	})
 	.post('/app/submit-feedback', submitFeedback)
+	.get('/app/feature-flags', getFeatureFlags)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
@@ -168,6 +173,7 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
+	.all('/app/paddle/*', paddleWebhooks.fetch)
 	.post('/app/zero/push', async (req, env) => {
 		const auth = await requireAuth(req, env)
 		const processor = new PushProcessor(

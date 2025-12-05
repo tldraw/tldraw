@@ -7,30 +7,31 @@ import {
 	HTMLContainer,
 	RecordProps,
 	ShapeUtil,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	Vec,
 	VecLike,
 	vecModelValidator,
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 
+const BEZIER_CURVE_TYPE = 'bezier-curve'
+
 // [1]
-export type MyBezierCurveShape = TLBaseShape<
-	'bezier-curve',
-	{
-		start: VecLike
-		cp1: VecLike
-		cp2: VecLike
-		end: VecLike
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[BEZIER_CURVE_TYPE]: { start: VecLike; cp1: VecLike; cp2: VecLike; end: VecLike }
 	}
->
+}
 
 // [2]
+export type MyBezierCurveShape = TLShape<typeof BEZIER_CURVE_TYPE>
+
+// [3]
 export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
-	static override type = 'bezier-curve' as const
+	static override type = BEZIER_CURVE_TYPE
 	static override props: RecordProps<MyBezierCurveShape> = {
 		start: vecModelValidator,
 		cp1: vecModelValidator,
@@ -54,7 +55,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return true
 	}
 
-	// [3]
+	// [4]
 	getGeometry(shape: MyBezierCurveShape): Geometry2d {
 		return new CubicBezier2d({
 			start: new Vec(shape.props.start.x, shape.props.start.y),
@@ -99,7 +100,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return <path d={path} stroke="black" fill="transparent" strokeWidth={2} />
 	}
 
-	// [4]
+	// [5]
 	override getHandles(shape: MyBezierCurveShape): TLHandle[] {
 		const indices = [ZERO_INDEX_KEY, ...getIndicesAbove(ZERO_INDEX_KEY, 3)]
 
@@ -119,6 +120,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 				y: shape.props.cp1.y,
 				index: indices[1],
 				snapType: 'align',
+				snapReferenceHandleId: 'start',
 			},
 			{
 				id: 'cp2',
@@ -149,7 +151,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return handles
 	}
 
-	// [5]
+	// [6]
 	override getHandleSnapGeometry(shape: MyBezierCurveShape): HandleSnapGeometry {
 		return {
 			points: [shape.props.start, shape.props.end],
@@ -163,7 +165,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
-	// [6]
+	// [7]
 	override onHandleDrag(shape: MyBezierCurveShape, info: TLHandleDragInfo<MyBezierCurveShape>) {
 		const { handle } = info
 		const { id, x, y } = handle
@@ -235,7 +237,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
-	// [7]
+	// [8]
 	override onTranslateStart(shape: MyBezierCurveShape) {
 		// only bend if we start translating with the command or control key pressed
 		// this avoids bending the curve midway through a translation where the user accidentally
@@ -287,7 +289,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return
 	}
 
-	// [8]
+	// [9]
 	component(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
 		const { start, end, cp1, cp2 } = shape.props
@@ -350,37 +352,42 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 This is our custom cubic bezier curve shape. A cubic bezier curve is defined by four points: start, end, and two control points (cp1, cp2).
 
 [1]
-Define the shape type with TLBaseShape. The props include the four points that define the curve.
+First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
+This tells TypeScript about the shape's properties. For this shape, we define four points (start, cp1, cp2, end)
+that define the curve.
 
 [2]
+Define the shape type using TLShape with the shape's type as a type argument.
+
+[3]
 The BezierCurveShapeUtil extends ShapeUtil to define all behavior for our custom shape. We specify
 the static 'type' and 'props' with validators.
 
-[3]
+[4]
 The getGeometry method returns a CubicBezier2d geometry used for hit-testing, bounds calculations,
 and rendering.
 
-[4]
+[5]
 Define four interactive handles: start, end, cp1, and cp2. Each has an id, type, position, and index.
 Control point handles are hidden when they're at the same position as their associated endpoints (collapsed).
 
-[5]
+[6]
 Custom handle snapping via getHandleSnapGeometry: control points (cp1, cp2) can snap to start/end points.
-The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual 
-snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at 
+The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual
+snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at
 that end, creating a sharp corner.
 
-[6]
+[7]
 Handle drag behaviors:
 - Meta key + drag start/end handles repositions the associated control point (cp1 or cp2)
 - Dragging start/end handles moves the associated control point to maintain curve shape
 - Dragging cp1/cp2 directly moves only that control point
 
-[7]
+[8]
 Translation with curve bending: Hold meta key while dragging the curve (not handles) to bend it
 by moving both control points together. This is detected on translate start to avoid accidental bending.
 
-[8]
+[9]
 Visual feedback: Display dashed lines from start→cp1 and end→cp2 when the shape is selected
 and actively being edited or translated.
 */

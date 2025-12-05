@@ -3,7 +3,7 @@ import { Slider as _Slider } from 'radix-ui'
 import React, { useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiTooltip, tooltipManager } from './TldrawUiTooltip'
+import { hideAllTooltips, TldrawUiTooltip } from './TldrawUiTooltip'
 
 /** @public */
 export interface TLUiSliderProps {
@@ -52,7 +52,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	)
 
 	const handlePointerDown = useCallback(() => {
-		tooltipManager.hideAllTooltips()
+		hideAllTooltips()
 		onHistoryMark?.('click slider')
 	}, [onHistoryMark])
 

@@ -39,7 +39,7 @@ test.describe('Watermarked license', () => {
 	test('shows watermark with default license key', async ({ page }) => {
 		// Don't set any license key - this should use our default license that shows the watermark
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(6000)
+		await page.waitForSelector('.tl-canvas')
 
 		// The editor should render normally
 		await expect(page.locator('.tl-canvas')).toBeVisible()
@@ -64,7 +64,7 @@ test.describe('Unlicensed', () => {
 			window.__TLDRAW_LICENSE_KEY__ = null;
 		`)
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(6000)
+		await page.waitForSelector('.tl-canvas')
 
 		// In development mode (localhost), the editor should render normally with watermark
 		await expect(page.locator('.tl-canvas')).toBeVisible()
@@ -91,7 +91,7 @@ test.describe('Unlicensed', () => {
 			window.__TLDRAW_LICENSE_KEY__ = undefined;
 		`)
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(6000)
+		await page.waitForSelector('.tl-canvas')
 
 		// In development mode (localhost), the editor should render normally with watermark
 		await expect(page.locator('.tl-canvas')).toBeVisible()
@@ -112,7 +112,7 @@ test.describe('Unlicensed', () => {
 			window.__TLDRAW_LICENSE_KEY__ = "";
 		`)
 		await page.goto('http://localhost:5420/end-to-end')
-		await page.waitForTimeout(6000)
+		await page.waitForSelector('.tl-canvas')
 
 		// In development mode (localhost), the editor should render normally with watermark
 		await expect(page.locator('.tl-canvas')).toBeVisible()

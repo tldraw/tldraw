@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, react, useDialogs } from 'tldraw'
+import { assert, deleteFromSessionStorage, getFromSessionStorage, react, useDialogs } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -20,6 +20,14 @@ export function Component() {
 	useEffect(() => {
 		const handleFileOperations = async () => {
 			if (!app) return
+
+			// Check for redirect-to first (e.g., after OAuth sign-in)
+			const redirectTo = getFromSessionStorage('redirect-to')
+			if (redirectTo) {
+				deleteFromSessionStorage('redirect-to')
+				navigate(redirectTo, { replace: true })
+				return
+			}
 
 			if (getShouldSlurpFile()) {
 				const res = await app.slurpFile()

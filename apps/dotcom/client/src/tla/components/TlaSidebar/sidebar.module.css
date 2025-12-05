@@ -491,8 +491,6 @@
 }
 
 .sidebarFileListItemRenameInputWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--tl-color-primary);
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
@@ -508,7 +506,6 @@
 	bottom: 0px;
 	inset: 0px;
 	border-radius: 6px;
-	background-color: white;
 	border: 1px solid var(--tla-color-primary);
 }
 
@@ -713,6 +710,26 @@
 	justify-content: center;
 	color: var(--tla-color-inactive);
 	transition: opacity 0.2s ease-in-out;
+}
+
+/* Fairy checkout link */
+
+.sidebarFairyCheckoutButton {
+	cursor: pointer;
+	padding: 0px 8px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: transparent;
+	border: none;
+	color: inherit;
+	font-size: inherit;
+}
+
+.sidebarFairyCheckoutButtonPrice {
+	margin-left: 8px;
 }
 
 .sidebarDotDevDismissButton div {

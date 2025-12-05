@@ -45,14 +45,14 @@
 	box-shadow: var(--tla-shadow-3);
 	margin-bottom: 4px;
 	margin-right: 4px;
-	transform: translate(0px, 100%);
-	animation: slideUp 5s ease-in forwards;
+	transform: translate(0px, 110%);
+	animation: slideUp 3s ease-out forwards;
 	animation-delay: 2s;
 }
 
 @keyframes slideUp {
 	0% {
-		transform: translate(0px, 100%);
+		transform: translate(0px, 110%);
 	}
 	100% {
 		transform: translate(0px, 0%);
@@ -149,7 +149,7 @@
 	position: fixed;
 	bottom: 0;
 	right: 0;
-	z-index: var(--tl-layer-menus);
+	z-index: var(--tl-layer-canvas-in-front);
 	width: fit-content;
 }
 

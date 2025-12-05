@@ -1,4 +1,4 @@
-import { TLGeoShape, Tldraw, toRichText } from 'tldraw'
+import { Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
@@ -8,7 +8,7 @@ export default function PreventMoveExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					editor.createShape<TLGeoShape>({
+					editor.createShape({
 						type: 'geo',
 						x: 100,
 						y: 100,
@@ -22,8 +22,8 @@ export default function PreventMoveExample() {
 					// [1]
 					editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
 						if (
-							editor.isShapeOfType<TLGeoShape>(prev, 'geo') &&
-							editor.isShapeOfType<TLGeoShape>(next, 'geo') &&
+							editor.isShapeOfType(prev, 'geo') &&
+							editor.isShapeOfType(next, 'geo') &&
 							next.props.geo === 'rectangle'
 						) {
 							if (

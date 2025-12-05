@@ -19,11 +19,6 @@ export interface AgentModeTransitionEvent {
 }
 
 /**
- * The type of event being waited for.
- */
-export type FairyWaitEventType = FairyWaitEvent['type']
-
-/**
  * A condition that an agent is waiting for.
  * When an event matching this condition occurs, the agent will be notified.
  */
@@ -39,6 +34,12 @@ export interface FairyWaitCondition<T extends FairyWaitEvent> {
 	 * @returns true if the event matches this condition
 	 */
 	matcher(event: T): boolean
+
+	/**
+	 * Unique identifier for this condition.
+	 * Used for deduplication - conditions with the same id and eventType are considered duplicates.
+	 */
+	id: string
 
 	/**
 	 * Optional metadata associated with this wait condition.

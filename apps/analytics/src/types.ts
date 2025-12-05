@@ -38,9 +38,19 @@ declare global {
 	}
 }
 
-export type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
+export const COOKIE_CONSENT_VALUES = ['unknown', 'opted-in', 'opted-out'] as const
+export type CookieConsent = (typeof COOKIE_CONSENT_VALUES)[number]
+
+export const CONSENT_OPT_IN_TYPES = ['manual', 'auto'] as const
+export type ConsentOptInType = (typeof CONSENT_OPT_IN_TYPES)[number]
+
+export interface CookieConsentData {
+	consent: CookieConsent
+	optInType: ConsentOptInType
+}
 
 export interface ConsentPreferences {
 	analytics: 'granted' | 'denied'
 	marketing: 'granted' | 'denied'
+	opt_in_type: 'manual' | 'auto'
 }

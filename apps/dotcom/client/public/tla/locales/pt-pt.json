@@ -2,14 +2,14 @@
   "0095a9fa74": {
     "translation": "Exportar"
   },
+  "00b177e080": {
+    "translation": "Aceitar convite"
+  },
   "03b3e13197": {
     "translation": "Arraste o ficheiro para a barra lateral nesta página. Ou selecione a opção \"Importar ficheiro\" no menu de utilizador."
   },
   "043973ec1f": {
     "translation": "Ainda está a ter dificuldades? {GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "Abra o tldraw."
   },
   "06b9281e39": {
     "translation": "Automático"
@@ -23,8 +23,11 @@
   "08bd40c754": {
     "translation": "Conta"
   },
-  "08d2d725a9": {
-    "translation": "Crie uma conta gratuita para salvar seu trabalho, colaborar em tempo real e muito mais."
+  "0a91f7fa87": {
+    "translation": "Este arquivo atingiu o limite de tamanho e as alterações podem não ser mais salvas. Remova parte do conteúdo ou crie um novo arquivo."
+  },
+  "0ab1ef22a3": {
+    "translation": "Fale com o grupo…"
   },
   "0b27918290": {
     "translation": "Ficheiro"
@@ -32,14 +35,17 @@
   "0b9a4cde72": {
     "translation": "Menu Ficheiro"
   },
-  "0beb3ca97b": {
-    "translation": "O tldraw é um quadro branco virtual gratuito e instantâneo."
+  "0befa10111": {
+    "translation": "Fadas"
   },
   "0d1f2bb523": {
     "translation": "Enviar feedback"
   },
   "110a4b01be": {
     "translation": "Publicar"
+  },
+  "11a755d598": {
+    "translation": "Parar"
   },
   "129b9e34ea": {
     "translation": "Sair do grupo"
@@ -68,11 +74,11 @@
   "1dd1c5fb7f": {
     "translation": "Hoje"
   },
-  "20976e7bec": {
-    "translation": "A sala está cheia"
+  "23f879f41a": {
+    "translation": "Seu limite semanal de uso de fadas foi atingido. Ele será reiniciado no início da próxima semana."
   },
-  "21bfb2dc2e": {
-    "translation": "Esta sala está se aproximando do limite de tamanho. Considere remover algum conteúdo ou iniciar um novo arquivo."
+  "243924bfd5": {
+    "translation": "Dormir"
   },
   "2445e5e347": {
     "translation": "Criar grupo"
@@ -80,14 +86,23 @@
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
+  "269097080b": {
+    "translation": "Suas fadas estão esperando"
+  },
+  "275173253d": {
+    "translation": "Invoque todos"
+  },
+  "284d5cd0dd": {
+    "translation": "Modelo:"
+  },
   "299cb00a7a": {
     "translation": "O carregamento falhou"
   },
   "2c3ef76333": {
     "translation": "Meus arquivos"
   },
-  "2deec2cb74": {
-    "translation": "Esta sala atingiu o limite de tamanho e as alterações podem não ser mais salvas. Remova algum conteúdo ou crie um novo arquivo."
+  "30cd34258a": {
+    "translation": "Um bando de <b>fadas</b> chegou ao tldraw durante o mês de dezembro. Para investigar mais a fundo, encontre a fada e clique nela."
   },
   "31246941ad": {
     "translation": "Tem de iniciar sessão para ver este ficheiro."
@@ -95,14 +110,38 @@
   "31418ce4ad": {
     "translation": "i18n: Realce em falta"
   },
+  "3209f407ed": {
+    "translation": "três fadas"
+  },
   "32210b37e4": {
     "translation": "Adicionar link"
+  },
+  "324a0f3182": {
+    "translation": "Voltar ao tldraw"
   },
   "335defdafe": {
     "translation": "Tente atualizar a página."
   },
+  "34140869c6": {
+    "translation": "Um bando de fadas chegará ao tldraw durante o mês de dezembro. Volte a consultar no dia 1 de dezembro."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34abfe7a0d": {
+    "translation": "Durma tudo"
+  },
+  "34e34c43ec": {
+    "translation": "Gerenciar"
+  },
+  "3596c1b1f7": {
+    "translation": "Deixar de seguir"
+  },
+  "3903aab323": {
+    "translation": "Seguir"
+  },
+  "3b6c2b4caa": {
+    "translation": "Termos de Serviço"
   },
   "3bc7d6ea2f": {
     "translation": "Continuar com o e-mail"
@@ -122,8 +161,17 @@
   "44db318ee5": {
     "translation": "Obter ajuda no Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>As fadas</strong> vieram desenhar durante o mês de dezembro."
+  },
   "46137245cd": {
     "translation": "Obrigado por nos ajudar a melhorar o tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Nenhuma fada selecionada"
+  },
+  "477df802ca": {
+    "translation": "Para continuar a edição, copie o arquivo para a sua pasta de arquivos."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -140,6 +188,9 @@
   "49ee308734": {
     "translation": "Nome"
   },
+  "4c41e0bd95": {
+    "translation": "Selecionar tudo"
+  },
   "4d0d3ddec9": {
     "translation": "Este site usa cookies para fazer o aplicativo funcionar e coletar análises."
   },
@@ -148,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Excluir grupo…"
+  },
+  "4dab36ac83": {
+    "translation": "Mais opções"
   },
   "4e6fbf032b": {
     "translation": "Tem certeza de que deseja excluir este grupo? Esta ação não pode ser desfeita."
@@ -158,11 +212,11 @@
   "517bb809d9": {
     "translation": "Menu da página"
   },
+  "542248f0ba": {
+    "translation": "Este arquivo agora é somente leitura."
+  },
   "54286b1d01": {
     "translation": "Limite de colaboradores atingido"
-  },
-  "54d240fa41": {
-    "translation": "Por favor, abrande."
   },
   "554a05155c": {
     "translation": "Ainda está com problemas? <a>Reportar um problema</a>"
@@ -176,17 +230,14 @@
   "56c34c6410": {
     "translation": "Política de Privacidade"
   },
+  "5a2ccdc00a": {
+    "translation": "Falha ao resgatar o código de convite"
+  },
   "5a86b22fa0": {
     "translation": "Arraste os arquivos para cá, <create>criar um arquivo</create> ou <invite>copiar link de convite</invite> para começar."
   },
   "5a95a425f7": {
     "translation": "Partilhar"
-  },
-  "5bb6cf3b53": {
-    "translation": "A sala está ficando grande"
-  },
-  "5bcc12ace8": {
-    "translation": "Esta sala agora é somente leitura"
   },
   "5bec508475": {
     "translation": "Navegador antigo detectado. Atualize seu navegador para usar este aplicativo."
@@ -197,6 +248,9 @@
   "5d26ae7550": {
     "translation": "Não conseguimos carregar alguns dos conteúdos que criou antes de iniciar sessão."
   },
+  "5ea8bb44be": {
+    "translation": "Você foi convidado(a) a participar do grupo:"
+  },
   "5f3c333678": {
     "translation": "Feedback enviado"
   },
@@ -206,11 +260,17 @@
   "61057a0c84": {
     "translation": "Mais tarde"
   },
+  "61daf2e53d": {
+    "translation": "Fale com {name}…"
+  },
   "625fd29749": {
     "translation": "Mais antigo"
   },
   "639bae9ac6": {
     "translation": "você"
+  },
+  "6602bbeb29": {
+    "translation": "Guia"
   },
   "6609dd239e": {
     "translation": "Algo correu mal"
@@ -218,11 +278,20 @@
   "6637a98151": {
     "translation": "Uma nova versão do tldraw está disponível. Recarregue a página para continuar."
   },
-  "68257bb646": {
-    "translation": "Você foi convidado(a) para o grupo <br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "Insira seu endereço de e-mail"
+  },
+  "688761c83e": {
+    "translation": "Acordar"
+  },
+  "68d390535e": {
+    "translation": "Digite sua mensagem"
+  },
+  "6910bbdc82": {
+    "translation": "Nome da fada"
+  },
+  "695c3e899d": {
+    "translation": "Fadas de depuração"
   },
   "6a26f54883": {
     "translation": "Ajuda"
@@ -263,8 +332,14 @@
   "764671e008": {
     "translation": "Converse conosco no Discord"
   },
+  "76dea3c9ca": {
+    "translation": "O tldraw é um quadro branco online gratuito. Crie uma conta para salvar seus arquivos e trabalhar com seus amigos."
+  },
   "777f9e90cf": {
     "translation": "Pedido inválido."
+  },
+  "7827371d1a": {
+    "translation": "Este arquivo multiplayer anônimo do tldraw agora é somente leitura. Para continuar editando, faça login e copie-o para seus arquivos."
   },
   "78e9815992": {
     "translation": "Entendi"
@@ -272,11 +347,20 @@
   "797799f35e": {
     "translation": "Envie um problema no GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Uma fada é um pequeno ser que pode trabalhar com você na tela. As fadas podem trabalhar sozinhas ou em equipe. Não há limites para o que uma fada pode fazer. Ninguém sabe de onde elas vieram."
+  },
   "7b1329f5ca": {
     "translation": "Manual do usuário"
   },
   "7be10fc592": {
     "translation": "Restaurar versão"
+  },
+  "7c0747a5df": {
+    "translation": "Abra o tldraw"
+  },
+  "7cb471f815": {
+    "translation": "Você foi convidado(a) a se juntar às fadas do tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Esquecer"
@@ -296,6 +380,12 @@
   "815e116a2e": {
     "translation": "Tem algum bug, problema ou ideia para o tldraw? Conte para a gente! Preencha este formulário e entraremos em contato por e-mail, se necessário. Você também pode <discord>conversar conosco no Discord</discord> ou <github>enviar um problema no GitHub</github>."
   },
+  "81aa2078d1": {
+    "translation": "Limpar tudo"
+  },
+  "83218ac34c": {
+    "translation": "Bem-vindo"
+  },
   "85a082de1b": {
     "translation": "Atualize a página para obter a última versão do tldraw."
   },
@@ -305,17 +395,29 @@
   "86c66437fd": {
     "translation": "Renomear arquivo"
   },
+  "8726ef8909": {
+    "translation": "reinicialização completa"
+  },
+  "88e83b88c5": {
+    "translation": "Adquira o Pacote de Fadas"
+  },
   "8ad4303b83": {
     "translation": "Não, obrigado"
   },
-  "8b1946f965": {
-    "translation": "Para continuar editando, copie a sala para seus arquivos."
+  "8be569f100": {
+    "translation": "pagamento único"
   },
   "8c2d3d730c": {
     "translation": "Verifique seu e-mail para obter um código de verificação."
   },
+  "8cf04a9734": {
+    "translation": "Lar"
+  },
   "8eb2c00e96": {
     "translation": "Partilhado consigo"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Sobre"
   },
   "8ff3d0a705": {
     "translation": "Taxa limitada"
@@ -331,6 +433,12 @@
   },
   "930390d222": {
     "translation": "Link do convite copiado"
+  },
+  "94186070ef": {
+    "translation": "Desmarcar"
+  },
+  "94966d9074": {
+    "translation": "Enviar"
   },
   "95aacd4d4a": {
     "translation": "Iniciar sessão com o Google"
@@ -350,14 +458,14 @@
   "9914a0ce04": {
     "translation": "Claro"
   },
+  "9953e9946b": {
+    "translation": "Visão de depuração"
+  },
   "9b33f5c63c": {
     "translation": "Não recebeu o código? <resend>Reenviar</resend>."
   },
   "9bef626805": {
     "translation": "Eliminar ficheiro"
-  },
-  "9c258b8f88": {
-    "translation": "Esta sala multijogador anônima do tldraw agora é somente leitura. Para continuar editando, faça login e copie-a para seus arquivos."
   },
   "9ceb927baa": {
     "translation": "Publicar este ficheiro"
@@ -383,11 +491,17 @@
   "a239905023": {
     "translation": "Exportar imagem"
   },
+  "a286d9991c": {
+    "translation": "Juntar"
+  },
   "a3debabee7": {
     "translation": "Política de cookies"
   },
   "a4d3b161ce": {
     "translation": "Enviar"
+  },
+  "a603905470": {
+    "translation": "Depurar"
   },
   "a6cc403d56": {
     "translation": "Qualquer pessoa com o link"
@@ -395,11 +509,17 @@
   "a768caa988": {
     "translation": "Análise"
   },
+  "a8873770ab": {
+    "translation": "O arquivo está ficando grande."
+  },
+  "a8de4c27a8": {
+    "translation": "Limite semanal de fadas atingido"
+  },
+  "a917baaf14": {
+    "translation": "Novo bate-papo"
+  },
   "a9ded1e5ce": {
     "translation": "Fundo"
-  },
-  "aa916767cf": {
-    "translation": "Faça login para aceitar o convite."
   },
   "ab0df9ba36": {
     "translation": "Limite de arquivo atingido"
@@ -410,6 +530,12 @@
   },
   "b028909917": {
     "translation": "Usuário convidado"
+  },
+  "b2c3c2e30c": {
+    "translation": "O arquivo está cheio"
+  },
+  "b34a671e2c": {
+    "translation": "Tempo de resposta do log"
   },
   "b357b524e7": {
     "translation": "Endereço de email"
@@ -438,6 +564,9 @@
   "bc88b0e89e": {
     "translation": "Partilhado por {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zoom para fada"
+  },
   "c2276c9127": {
     "translation": "Saiba mais sobre partilha."
   },
@@ -447,11 +576,20 @@
   "c303bd1095": {
     "translation": "Não foi possível publicar o ficheiro."
   },
+  "c3bf447eab": {
+    "translation": "Abrir"
+  },
+  "c3eb5c3b90": {
+    "translation": "Eu entendo"
+  },
   "c4b39a1cc3": {
     "translation": "Cookies essenciais"
   },
   "c6155aaecc": {
     "translation": "Nome do grupo"
+  },
+  "c64518704c": {
+    "translation": "Uso"
   },
   "c655b27b1e": {
     "translation": "i18n: String longa"
@@ -474,11 +612,20 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Este arquivo está se aproximando do limite de tamanho. Considere remover parte do conteúdo ou criar um novo arquivo."
+  },
+  "ce1424d44b": {
+    "translation": "Você já tem acesso às fadas!"
+  },
   "cea291e45e": {
     "translation": "Saiba mais sobre publicação."
   },
   "d3d2e61733": {
     "translation": "Fechar"
+  },
+  "d46632fe1f": {
+    "translation": "Muitas solicitações. Por favor, diminua o ritmo."
   },
   "d4bbf74f3e": {
     "translation": "Alternar barra lateral"
@@ -498,17 +645,32 @@
   "d9100f3e10": {
     "translation": "Vá aqui para ver o conteúdo"
   },
+  "d9bfb9789a": {
+    "translation": "Habilitar fadas"
+  },
   "d9e35d0f55": {
     "translation": "Você atingiu o número máximo de grupos. É necessário excluir os grupos antigos antes de criar novos."
   },
   "dbbebf3c03": {
     "translation": "Apenas por convite"
   },
+  "dc30bc0c79": {
+    "translation": "Claro"
+  },
   "dcdaa754fe": {
     "translation": "URL de arquivo tldraw inválida"
   },
+  "de290d52ef": {
+    "translation": "Selecione uma fada à direita para conversar."
+  },
+  "df6ff49394": {
+    "translation": "As fadas são um recurso <strong>temporário</strong>. Em 1º de janeiro de 2026, todas as fadas serão removidas do aplicativo. Talvez elas retornem algum dia. Sua compra dá acesso às fadas apenas em dezembro de 2025."
+  },
   "dfdb78a4e4": {
     "translation": "Sinalizadores de depuração da aplicação"
+  },
+  "e062622261": {
+    "translation": "Selecione"
   },
   "e0c88179b3": {
     "translation": "Convide membros"
@@ -524,6 +686,9 @@
   },
   "e404559826": {
     "translation": "Termos de serviço"
+  },
+  "e43ec38a93": {
+    "translation": "Vá para"
   },
   "e81c4e4f2b": {
     "translation": "ou"
@@ -552,11 +717,17 @@
   "ede55d955f": {
     "translation": "Leia nossa <a>política de cookies</a> para saber mais."
   },
+  "eee6f05922": {
+    "translation": "Dissolver"
+  },
   "ef53538ae4": {
     "translation": "Membros"
   },
   "ef7de3f485": {
     "translation": "selecionado"
+  },
+  "efde983742": {
+    "translation": "Invocar"
   },
   "f09b16bc5f": {
     "translation": "Usamos cookies para mantê-lo conectado, sincronizar seus arquivos e coletar análises para nos ajudar a melhorar o tldraw."
@@ -569,9 +740,6 @@
   },
   "f2a6c498fb": {
     "translation": "Apagar"
-  },
-  "f43fb62093": {
-    "translation": "Voltar ao tldraw."
   },
   "f4f70727dc": {
     "translation": "Configurações"

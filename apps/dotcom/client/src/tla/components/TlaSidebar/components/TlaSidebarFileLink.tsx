@@ -15,6 +15,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
@@ -199,6 +200,8 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
+	const hasGroups = useHasFlag('groups_frontend')
+	const isDragEnabled = hasGroups && !isCoarsePointer
 
 	if (!file) return null
 
@@ -229,11 +232,10 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
-			draggable={!isCoarsePointer}
+			draggable={isDragEnabled}
 			onDragStart={
-				isCoarsePointer
-					? undefined
-					: (event) => {
+				isDragEnabled
+					? (event) => {
 							// Set native drag data for drag-to-new-tab functionality
 							const fileUrl = routes.tlaFile(fileId, { asUrl: true })
 							event.dataTransfer.effectAllowed = 'move'
@@ -245,6 +247,7 @@ export function TlaSidebarFileLinkInner({
 								clientY: event.clientY,
 							})
 						}
+					: undefined
 			}
 		>
 			<Link
@@ -272,7 +275,7 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
-				{isPinned && pinIcon}
+				{isPinned && hasGroups && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,

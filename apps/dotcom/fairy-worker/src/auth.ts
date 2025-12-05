@@ -1,5 +1,6 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
+import { INTERNAL_BASE_URL } from './constants'
 import { Environment } from './environment'
 
 export async function requireAuth(
@@ -69,6 +70,16 @@ export async function requireAdminAccess(env: Environment, auth: { userId: strin
 	}
 }
 
+export async function requireFairyAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		throw new StatusError(403, 'Unauthorized')
+	}
+	const hasFairyAccessValue = await hasFairyAccess(env, auth)
+	if (!hasFairyAccessValue) {
+		throw new StatusError(403, 'Unauthorized - fairy access required')
+	}
+}
+
 export async function isAdmin(env: Environment, auth: { userId: string } | null) {
 	if (!auth?.userId) {
 		return false
@@ -78,4 +89,32 @@ export async function isAdmin(env: Environment, auth: { userId: string } | null)
 		user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') &&
 		user.primaryEmailAddress?.verification?.status === 'verified'
 	)
+}
+
+export async function hasFairyAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		return false
+	}
+
+	const userDoId = env.TL_USER.idFromName(auth.userId)
+	const userDo = env.TL_USER.get(userDoId)
+
+	try {
+		const response = await userDo.fetch(
+			`${INTERNAL_BASE_URL}/app/${auth.userId}/fairy/has-access`,
+			{
+				method: 'GET',
+			}
+		)
+
+		if (!response.ok) {
+			return false
+		}
+
+		const data = (await response.json()) as { hasAccess: boolean }
+		return data.hasAccess
+	} catch (error) {
+		console.error('Failed to check fairy access:', error)
+		return false
+	}
 }

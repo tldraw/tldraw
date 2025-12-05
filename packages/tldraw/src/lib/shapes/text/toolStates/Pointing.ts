@@ -124,7 +124,7 @@ export class Pointing extends StateNode {
 	}
 
 	private createTextShape(id: TLShapeId, point: Vec, autoSize: boolean, width: number) {
-		this.editor.createShape<TLTextShape>({
+		this.editor.createShape({
 			id,
 			type: 'text',
 			x: point.x,

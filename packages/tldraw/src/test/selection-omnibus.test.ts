@@ -76,7 +76,7 @@ describe('Hovering shapes', () => {
 		editor.pointerMove(50, 50)
 		expect(editor.getHoveredShapeId()).toBe(null)
 
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			id: ids.box1,
 			type: 'geo',
 			props: { richText: toRichText('hello') },
@@ -88,7 +88,7 @@ describe('Hovering shapes', () => {
 	})
 
 	it('selects a shape with a full label on pointer down', () => {
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			id: ids.box1,
 			type: 'geo',
 			props: { richText: toRichText('hello') },
@@ -462,7 +462,7 @@ describe('when shape is hollow', () => {
 describe('when shape is a frame', () => {
 	let frame1: TLFrameShape
 	beforeEach(() => {
-		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
 		frame1 = editor.getShape<TLFrameShape>(ids.frame1)!
 	})
 
@@ -517,8 +517,8 @@ describe('when shape is a frame', () => {
 describe('When a shape is behind a frame', () => {
 	beforeEach(() => {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
-		editor.createShape<TLGeoShape>({ id: ids.box1, type: 'geo', x: 25, y: 25 })
-		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape({ id: ids.box1, type: 'geo', x: 25, y: 25 })
+		editor.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
 	})
 
 	it('does not select the shape when clicked inside', () => {
@@ -548,8 +548,8 @@ describe('when shape is inside of a frame', () => {
 	let frame1: TLFrameShape
 	let box1: TLGeoShape
 	beforeEach(() => {
-		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
-		editor.createShape<TLGeoShape>({
+		editor.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape({
 			id: ids.box1,
 			parentId: ids.frame1,
 			type: 'geo',
@@ -703,15 +703,15 @@ describe('when a frame has multiple children', () => {
 	let box2: TLGeoShape
 	beforeEach(() => {
 		editor
-			.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
-			.createShape<TLGeoShape>({
+			.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+			.createShape({
 				id: ids.box1,
 				parentId: ids.frame1,
 				type: 'geo',
 				x: 25,
 				y: 25,
 			})
-			.createShape<TLGeoShape>({
+			.createShape({
 				id: ids.box2,
 				parentId: ids.frame1,
 				type: 'geo',
@@ -849,7 +849,7 @@ describe('When shapes are overlapping', () => {
 	let box4: TLGeoShape
 	let box5: TLGeoShape
 	beforeEach(() => {
-		editor.createShapes<TLGeoShape>([
+		editor.createShapes([
 			{
 				id: ids.box1,
 				type: 'geo',

@@ -1,10 +1,10 @@
-import { FocusColor } from '../format/FocusColor'
+import { ProjectColor } from '../format/FocusColor'
 
 export interface FairyProject {
 	id: string
 	title: string
 	description: string
-	color: FocusColor
+	color: ProjectColor | ''
 	members: FairyProjectMember[]
 	plan: string
 }
@@ -14,4 +14,4 @@ export interface FairyProjectMember {
 	role: FairyProjectRole
 }
 
-export type FairyProjectRole = 'orchestrator' | 'drone'
+export type FairyProjectRole = 'orchestrator' | 'duo-orchestrator' | 'drone'

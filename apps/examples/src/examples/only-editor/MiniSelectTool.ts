@@ -1,10 +1,4 @@
-import {
-	StateNode,
-	TLClickEventInfo,
-	TLPointerEventInfo,
-	TLUnknownShape,
-	createShapeId,
-} from 'tldraw'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape, createShapeId } from 'tldraw'
 // There's a guide at the bottom of this file!
 
 //[1]
@@ -111,9 +105,9 @@ class PointingState extends StateNode {
 class DraggingState extends StateNode {
 	static override id = 'dragging'
 	//[a]
-	private initialDraggingShapes = [] as TLUnknownShape[]
+	private initialDraggingShapes: TLShape[] = []
 	//[b]
-	override onEnter(info: { shapes: TLUnknownShape[] }) {
+	override onEnter(info: { shapes: TLShape[] }) {
 		this.initialDraggingShapes = info.shapes
 	}
 	//[c]
@@ -139,12 +133,12 @@ class DraggingState extends StateNode {
 
 /*
 This is where we implement our select tool. In tldraw, tools are part of the
-tldraw state chart. Check out the docs for more info: 
+tldraw state chart. Check out the docs for more info:
 https://tldraw.dev/docs/editor#State-Chart
 
 
-Our state node [1] has three children: idle [2], pointing [3], and dragging [4]. 
-Only one child state can be "active" at a time. The parent state's initial active 
+Our state node [1] has three children: idle [2], pointing [3], and dragging [4].
+Only one child state can be "active" at a time. The parent state's initial active
 state is "idle". Certain events received by the child states will cause the parent
 state to transition to another child state, making that state active instead.
 
@@ -152,29 +146,29 @@ Note that when `transition()` is called, the parent state will call the new
 active state(s)'s `onEnter` method with the second argument passed to the
 transition method. This is useful for passing data between states.
 
-[1] 
-This is where we define our state node by extending the StateNode class. We 
+[1]
+This is where we define our state node by extending the StateNode class. We
 give it an id, a list of children states, and its initial active state.
 
 [2]
 The idle state is the tool's default state. This is where most of the action is.
 We have some handy methods available to help us handle events:
-	
+
 	[a] onPointerDown
 		The user clicked on something, let's figure out what it was. We can
 		access the editor via this.editor, and then use it to check if we hit
 		a shape. If we did then we call the onPointerDown method again with the
-		shape as the target, select the shape and transition to the pointing state. 
+		shape as the target, select the shape and transition to the pointing state.
 		Otherwise we deselect everything.
-	
+
 	[b] onDoubleClick
 		The user double clicked on something, let's do the same thing as above.
 		If we hit a shape then we call the onDoubleClick method again with the
 		shape as the target, and delete the shape. Otherwise we create a new shape.
 
 [3]
-The pointing state is something of a transitionary state. Its job is to transition 
-to the dragging state when the user starts dragging, or go back to the idle state 
+The pointing state is something of a transitionary state. Its job is to transition
+to the dragging state when the user starts dragging, or go back to the idle state
 on pointer up.
 
 	[a] onPointerUp

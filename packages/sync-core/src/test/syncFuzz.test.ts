@@ -1,7 +1,5 @@
 import {
 	Editor,
-	TLArrowBinding,
-	TLArrowShape,
 	TLRecord,
 	TLStore,
 	computed,
@@ -111,9 +109,9 @@ let totalNumShapes = 0
 let totalNumPages = 0
 
 function arrowsAreSound(editor: Editor) {
-	const arrows = editor.getCurrentPageShapes().filter((s): s is TLArrowShape => s.type === 'arrow')
+	const arrows = editor.getCurrentPageShapes().filter((s) => s.type === 'arrow')
 	for (const arrow of arrows) {
-		const bindings = editor.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		const bindings = editor.getBindingsFromShape(arrow, 'arrow')
 		const terminalsSeen = new Set()
 		for (const binding of bindings) {
 			if (terminalsSeen.has(binding.props.terminal)) {

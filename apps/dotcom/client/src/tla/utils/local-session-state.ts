@@ -24,6 +24,7 @@ export interface TldrawAppSessionState {
 	}
 	shareMenuActiveTab: 'share' | 'export' | 'publish' | 'anon-share'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
+	fairyManualActiveTab: 'introduction' | 'usage' | 'about'
 	theme: 'light' | 'dark'
 	views: {
 		[key: string]: {
@@ -39,6 +40,9 @@ export interface TldrawAppSessionState {
 	>
 	sidebarWidth?: number
 	shouldShowWelcomeDialog?: boolean
+	fairiesEnabled?: boolean
+	fairiesDebugEnabled?: boolean
+	hasManualBeenOpened?: boolean
 }
 
 let prev: TldrawAppSessionState = {
@@ -47,6 +51,7 @@ let prev: TldrawAppSessionState = {
 	isSidebarOpenMobile: false,
 	shareMenuActiveTab: 'share',
 	sidebarActiveTab: 'recent',
+	fairyManualActiveTab: 'introduction',
 	theme: 'light',
 	views: {},
 	flags: {},
@@ -57,6 +62,9 @@ let prev: TldrawAppSessionState = {
 		exportPadding: true,
 	},
 	sidebarWidth: 260,
+	fairiesEnabled: true,
+	fairiesDebugEnabled: false,
+	hasManualBeenOpened: false,
 }
 
 try {
@@ -140,4 +148,48 @@ export function updateLocalSessionState(
 
 export function useLocalSessionState() {
 	return useValue('session', () => getLocalSessionState(), [])
+}
+
+export function getAreFairiesEnabled() {
+	return localSessionState.get().fairiesEnabled ?? true
+}
+
+export function useAreFairiesEnabled() {
+	return useValue('areFairiesEnabled', getAreFairiesEnabled, [])
+}
+
+export function toggleFairies(enabled?: boolean) {
+	const nextEnabled = enabled ?? !getAreFairiesEnabled()
+	updateLocalSessionState(() => {
+		return { fairiesEnabled: nextEnabled }
+	})
+}
+
+export function getAreFairiesDebugEnabled() {
+	return localSessionState.get().fairiesDebugEnabled ?? false
+}
+
+export function useAreFairiesDebugEnabled() {
+	return useValue('areFairiesDebugEnabled', getAreFairiesDebugEnabled, [])
+}
+
+export function toggleFairiesDebug(enabled?: boolean) {
+	const nextEnabled = enabled ?? !getAreFairiesDebugEnabled()
+	updateLocalSessionState(() => {
+		return { fairiesDebugEnabled: nextEnabled }
+	})
+}
+
+export function getHasManualBeenOpened() {
+	return localSessionState.get().hasManualBeenOpened ?? false
+}
+
+export function useHasManualBeenOpened() {
+	return useValue('hasManualBeenOpened', getHasManualBeenOpened, [])
+}
+
+export function markManualAsOpened() {
+	updateLocalSessionState(() => {
+		return { hasManualBeenOpened: true }
+	})
 }

@@ -45,8 +45,9 @@
 	max-width: 240px;
 	/* Slide-in animation */
 	transform: translateY(110%);
-	animation: slideUp 5s ease-in forwards;
+	animation: slideUp 3s ease-in forwards;
 	animation-delay: 2s;
+	pointer-events: none;
 }
 
 @keyframes slideUp {

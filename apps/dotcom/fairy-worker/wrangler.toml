@@ -15,6 +15,7 @@ enabled = true
 # - OPENAI_API_KEY: OpenAI API key
 # - ANTHROPIC_API_KEY: Anthropic API key
 # - GOOGLE_API_KEY: Google API key
+# - FAIRY_MODEL: The model to use for the fairy agent
 # - SENTRY_DSN (optional): Sentry DSN for error tracking
 # - IS_LOCAL (optional): Set to "true" for local development
 
@@ -45,24 +46,29 @@ renamed_classes = [
 [env.dev.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "dev-tldraw-multiplayer" },
 ]
 
 [env.preview.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    # Preview script_name is set dynamically by deploy-dotcom.ts based on PR number
 ]
 
 [durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "tldraw-multiplayer" },
 ]
 
 [env.staging.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "main-tldraw-multiplayer" },
 ]
 
 [env.production.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "tldraw-multiplayer" },
 ]
