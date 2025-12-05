@@ -815,7 +815,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.sessionId,
 				sessionSchema,
 				requiresDownMigrations,
-				{ puts: Object.fromEntries(this.presenceStore.values().map((p) => [p.id, p])), deletes: [] }
+				{
+					puts: Object.fromEntries([...this.presenceStore.values()].map((p) => [p.id, p])),
+					deletes: [],
+				}
 			)
 			if (!presenceDiff.ok) return null
 
