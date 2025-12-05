@@ -192,11 +192,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		if ('onDataChange' in opts && opts.onDataChange) {
 			this.disposables.add(
-				storage.onChange(({ id }) => {
-					if (id !== this.room.internalTxnId) {
-						// eslint-disable-next-line @typescript-eslint/no-deprecated
-						opts.onDataChange?.()
-					}
+				storage.onChange(() => {
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					opts.onDataChange?.()
 				})
 			)
 		}
