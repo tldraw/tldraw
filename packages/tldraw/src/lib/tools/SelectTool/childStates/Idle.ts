@@ -243,8 +243,6 @@ export class Idle extends StateNode {
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (onlySelectedShape) {
-					if (!this.editor.getCanEditShape(onlySelectedShape)) return
-
 					const util = this.editor.getShapeUtil(onlySelectedShape)
 					const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 
@@ -286,7 +284,7 @@ export class Idle extends StateNode {
 						return
 					}
 
-					if (this.shouldStartEditingShape(onlySelectedShape)) {
+					if (this.editor.getCanEditShape(onlySelectedShape)) {
 						this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					}
 				}
@@ -317,7 +315,7 @@ export class Idle extends StateNode {
 				}
 
 				// If the shape can edit, then begin editing
-				if (this.shouldStartEditingShape(shape)) {
+				if (this.editor.getCanEditShape(shape)) {
 					this.startEditingShape(shape, info, true /* select all */)
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -339,7 +337,7 @@ export class Idle extends StateNode {
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
-					if (this.shouldStartEditingShape(shape)) {
+					if (this.editor.getCanEditShape(shape)) {
 						this.startEditingShape(shape, info, true /* select all */)
 					}
 				}
@@ -469,7 +467,7 @@ export class Idle extends StateNode {
 					// If it's a note shape, then edit on type
 					this.editor.isShapeOfType(onlySelectedShape, 'note') &&
 					// If it's not locked or anything
-					this.shouldStartEditingShape(onlySelectedShape)
+					this.editor.getCanEditShape(onlySelectedShape)
 				) {
 					this.startEditingShape(
 						onlySelectedShape,
@@ -530,7 +528,7 @@ export class Idle extends StateNode {
 
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
+				if (onlySelectedShape && this.editor.getCanEditShape(onlySelectedShape)) {
 					this.startEditingShape(
 						onlySelectedShape,
 						{
@@ -557,13 +555,6 @@ export class Idle extends StateNode {
 				break
 			}
 		}
-	}
-
-	private shouldStartEditingShape(
-		shape: TLShape | null = this.editor.getOnlySelectedShape()
-	): boolean {
-		if (!shape) return false
-		return this.editor.getCanEditShape(shape)
 	}
 
 	private startEditingShape(
