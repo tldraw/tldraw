@@ -881,6 +881,9 @@ export class FairyAgent {
 
 		// Reset cumulative usage tracking when starting a new chat
 		this.usage.resetCumulativeUsage()
+
+		// Reset lint tracking when starting a new chat
+		this.lints.reset()
 	}
 
 	/**
