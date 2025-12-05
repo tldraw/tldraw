@@ -234,8 +234,6 @@ export class AgentHelpers {
 	 */
 	ensureShapeIdIsUnique(id: SimpleShapeId): SimpleShapeId {
 		const { editor } = this.agent
-		// Defensively strip the prefix in case the model incorrectly includes it
-
 		// Ensure the id is unique by incrementing a number at the end
 		let newId = id
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
