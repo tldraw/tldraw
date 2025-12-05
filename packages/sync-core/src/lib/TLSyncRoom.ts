@@ -270,11 +270,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.lastDocumentClock = documentClock
 
-		this.storage.onChange(({ id }) => {
-			if (id !== this.internalTxnId) {
-				this.broadcastExternalStorageChanges()
-			}
-		})
+		this.disposables.push(
+			this.storage.onChange(({ id }) => {
+				if (id !== this.internalTxnId) {
+					this.broadcastExternalStorageChanges()
+				}
+			})
+		)
 	}
 	private broadcastExternalStorageChanges() {
 		this.storage.transaction((txn) => {
