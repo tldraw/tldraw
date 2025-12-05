@@ -3,9 +3,10 @@ import {
 	Streaming,
 	asColor,
 	convertFocusFillToTldrawFill,
+	convertSimpleIdToTldrawId,
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
-import { TLDrawShapeSegment, Vec, VecModel, createShapeId, last } from 'tldraw'
+import { TLDrawShapeSegment, Vec, VecModel, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -22,6 +23,9 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 
 	override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 		if (!action.points) return action
+
+		// Ensure the shape has a unique ID
+		action.shapeId = helpers.ensureShapeIdIsUnique(action.shapeId)
 
 		// Don't include the final point if we're still streaming.
 		// Its numbers might be incomplete.
@@ -44,6 +48,9 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 
 		if (!action.points) return
 		if (action.points.length === 0) return
+
+		if (!action.shapeId) return
+		const shapeId = convertSimpleIdToTldrawId(action.shapeId)
 
 		action.points = action.points.map((point) => helpers.removeOffsetFromVec(point))
 
@@ -89,7 +96,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 		]
 
 		this.agent.editor.createShape({
-			id: createShapeId(),
+			id: shapeId,
 			type: 'draw',
 			x: minX,
 			y: minY,

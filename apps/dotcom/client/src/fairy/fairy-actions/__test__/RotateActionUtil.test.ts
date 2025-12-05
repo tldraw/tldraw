@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor, TLShapeId } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -31,7 +31,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				degrees: 90,
 				originX: 50,
 				originY: 50,
@@ -45,8 +45,8 @@ describe('RotateActionUtil', () => {
 			const sanitized = rotateUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized?.shapeIds).toHaveLength(2)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).toContain('shape2')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape2'))
 		})
 
 		it('should filter out nonexistent shapes', () => {
@@ -55,7 +55,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1', 'nonexistent'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('nonexistent')],
 				degrees: 90,
 				originX: 50,
 				originY: 50,
@@ -69,8 +69,8 @@ describe('RotateActionUtil', () => {
 			const sanitized = rotateUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized?.shapeIds).toHaveLength(1)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).not.toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).not.toContain(toSimpleShapeId('nonexistent'))
 		})
 
 		it('should handle empty shapeIds array', () => {
@@ -139,7 +139,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: undefined as any,
 				originX: 50,
 				originY: 50,
@@ -162,7 +162,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 90,
 				originX: undefined as any,
 				originY: 50,
@@ -185,7 +185,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 90,
 				originX: 50,
 				originY: undefined as any,
@@ -211,7 +211,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 90,
 				originX: 50,
 				originY: 50,
@@ -245,7 +245,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				degrees: 45,
 				originX: 150,
 				originY: 50,
@@ -278,7 +278,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 90,
 				originX: 50,
 				originY: 50,
@@ -300,7 +300,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 180,
 				originX: 50,
 				originY: 50,
@@ -326,7 +326,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 360,
 				originX: 50,
 				originY: 50,
@@ -352,7 +352,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: -45,
 				originX: 50,
 				originY: 50,
@@ -378,7 +378,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 5,
 				originX: 50,
 				originY: 50,
@@ -404,7 +404,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 0,
 				originX: 50,
 				originY: 50,
@@ -431,7 +431,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 90,
 				originX: 100,
 				originY: 100,
@@ -466,7 +466,7 @@ describe('RotateActionUtil', () => {
 
 				const action = createAgentAction({
 					_type: 'rotate',
-					shapeIds: ['shape1'],
+					shapeIds: [toSimpleShapeId('shape1')],
 					degrees,
 					originX: 50,
 					originY: 50,
@@ -491,7 +491,7 @@ describe('RotateActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'rotate',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				degrees: 90,
 				originX: -50,
 				originY: -50,

@@ -1,6 +1,7 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -12,7 +13,7 @@ const RotateAction = z
 		intent: z.string(),
 		originX: z.number(),
 		originY: z.number(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Rotate',

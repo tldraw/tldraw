@@ -1,6 +1,7 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -10,10 +11,10 @@ const PlaceAction = z
 		align: z.enum(['start', 'center', 'end']),
 		alignOffset: z.number(),
 		intent: z.string(),
-		referenceShapeId: z.string(),
+		referenceShapeId: SimpleShapeIdSchema,
 		side: z.enum(['top', 'bottom', 'left', 'right']),
 		sideOffset: z.number(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
 

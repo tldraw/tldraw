@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor, TLShapeId } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -31,7 +31,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 0,
@@ -45,8 +45,8 @@ describe('ResizeActionUtil', () => {
 			const sanitized = resizeUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized?.shapeIds).toHaveLength(2)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).toContain('shape2')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape2'))
 		})
 
 		it('should filter out nonexistent shapes', () => {
@@ -55,7 +55,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1', 'nonexistent'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('nonexistent')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 0,
@@ -69,14 +69,14 @@ describe('ResizeActionUtil', () => {
 			const sanitized = resizeUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized?.shapeIds).toHaveLength(1)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).not.toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).not.toContain(toSimpleShapeId('nonexistent'))
 		})
 
 		it('should return null if no valid shapes exist', () => {
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['nonexistent1', 'nonexistent2'],
+				shapeIds: [toSimpleShapeId('nonexistent1'), toSimpleShapeId('nonexistent2')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 0,
@@ -158,7 +158,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: undefined as any,
 				scaleY: 2,
 				originX: 0,
@@ -181,7 +181,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: undefined as any,
 				originX: 0,
@@ -204,7 +204,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: undefined as any,
@@ -227,7 +227,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 0,
@@ -254,7 +254,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 50,
@@ -289,7 +289,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				scaleX: 1.5,
 				scaleY: 1.5,
 				originX: 100,
@@ -319,7 +319,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 50,
@@ -345,7 +345,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 0.5,
 				scaleY: 0.5,
 				originX: 50,
@@ -375,7 +375,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: 0.5,
 				originX: 50,
@@ -404,7 +404,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 2,
 				scaleY: 2,
 				originX: 100,
@@ -427,7 +427,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: -1,
 				scaleY: 1,
 				originX: 50,
@@ -454,7 +454,7 @@ describe('ResizeActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'resize',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				scaleX: 1,
 				scaleY: 1,
 				originX: 50,

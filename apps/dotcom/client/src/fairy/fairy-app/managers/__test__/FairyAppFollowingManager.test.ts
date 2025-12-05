@@ -1,3 +1,4 @@
+import { toAgentId } from '@tldraw/fairy-shared'
 import { Editor, PageRecordType } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
@@ -32,7 +33,7 @@ describe('FairyAppFollowingManager', () => {
 
 	describe('isFollowingFairy', () => {
 		it('should return false when not following any fairy', () => {
-			expect(manager.isFollowingFairy('test-fairy-id')).toBe(false)
+			expect(manager.isFollowingFairy(toAgentId('test-fairy-id'))).toBe(false)
 		})
 	})
 
@@ -152,7 +153,7 @@ describe('FairyAppFollowingManager', () => {
 		it('should not start following non-existent fairy', () => {
 			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-			manager.startFollowing('non-existent-fairy')
+			manager.startFollowing(toAgentId('non-existent-fairy'))
 
 			expect(manager.isFollowing()).toBe(false)
 			expect(consoleWarnSpy).toHaveBeenCalledWith(

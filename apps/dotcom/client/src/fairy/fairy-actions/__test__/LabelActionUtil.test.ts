@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor, TLGeoShape, TLNoteShape, toRichText } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -25,7 +25,7 @@ describe('LabelActionUtil', () => {
 		it('should return action as-is if not complete', () => {
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Hello',
 				intent: 'test',
 				complete: false,
@@ -41,7 +41,7 @@ describe('LabelActionUtil', () => {
 		it('should return null if shape does not exist', () => {
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('nonexistent'),
 				text: 'Hello',
 				intent: 'test',
 				complete: true,
@@ -61,7 +61,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Hello',
 				intent: 'test',
 				complete: true,
@@ -81,7 +81,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Hello',
 				intent: 'test',
 				complete: true,
@@ -92,7 +92,7 @@ describe('LabelActionUtil', () => {
 			const sanitized = labelUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized).not.toBeNull()
-			expect(sanitized?.shapeId).toBe('shape1')
+			expect(sanitized?.shapeId).toBe(toSimpleShapeId('shape1'))
 		})
 
 		it('should sanitize action for note shape with richText', () => {
@@ -101,7 +101,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Hello',
 				intent: 'test',
 				complete: true,
@@ -112,7 +112,7 @@ describe('LabelActionUtil', () => {
 			const sanitized = labelUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized).not.toBeNull()
-			expect(sanitized?.shapeId).toBe('shape1')
+			expect(sanitized?.shapeId).toBe(toSimpleShapeId('shape1'))
 		})
 	})
 
@@ -123,7 +123,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Hello',
 				intent: 'test',
 				complete: false,
@@ -142,7 +142,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Hello World',
 				intent: 'Add label',
 				complete: true,
@@ -167,7 +167,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: '',
 				intent: 'Clear label',
 				complete: true,
@@ -186,7 +186,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: '',
 				intent: 'test',
 				complete: true,
@@ -205,7 +205,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Test',
 				intent: 'test',
 				complete: true,
@@ -226,7 +226,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'Note content',
 				intent: 'Add note',
 				complete: true,
@@ -251,7 +251,7 @@ describe('LabelActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: 'New text',
 				intent: 'Update label',
 				complete: true,
@@ -271,7 +271,7 @@ describe('LabelActionUtil', () => {
 			const multilineText = 'Line 1\nLine 2\nLine 3'
 			const action = createAgentAction({
 				_type: 'label',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				text: multilineText,
 				intent: 'Add multiline label',
 				complete: true,

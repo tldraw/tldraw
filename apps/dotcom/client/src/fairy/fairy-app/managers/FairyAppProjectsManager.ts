@@ -1,4 +1,11 @@
-import { FairyProject, FairyProjectMember, FairyProjectRole } from '@tldraw/fairy-shared'
+import {
+	AgentId,
+	FairyProject,
+	FairyProjectMember,
+	FairyProjectRole,
+	ProjectId,
+	toProjectId,
+} from '@tldraw/fairy-shared'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
@@ -45,21 +52,21 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Get a project by ID.
 	 */
-	getProjectById(id: string): FairyProject | undefined {
+	getProjectById(id: ProjectId): FairyProject | undefined {
 		return this.$projects.get().find((p) => p.id === id)
 	}
 
 	/**
 	 * Get a project that an agent is a member of.
 	 */
-	getProjectByAgentId(agentId: string): FairyProject | undefined {
+	getProjectByAgentId(agentId: AgentId): FairyProject | undefined {
 		return this.$projects.get().find((p) => p.members.some((m) => m.id === agentId))
 	}
 
 	/**
 	 * Get an agent's role within their project.
 	 */
-	getRoleByAgentId(agentId: string): FairyProjectRole | undefined {
+	getRoleByAgentId(agentId: AgentId): FairyProjectRole | undefined {
 		const project = this.getProjectByAgentId(agentId)
 		if (!project) return undefined
 		return project.members.find((m) => m.id === agentId)?.role
@@ -77,7 +84,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Update a project's properties.
 	 */
-	updateProject(projectId: string, updates: Partial<FairyProject>) {
+	updateProject(projectId: ProjectId, updates: Partial<FairyProject>) {
 		this.$projects.update((projects) =>
 			projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p))
 		)
@@ -86,7 +93,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Delete a project.
 	 */
-	deleteProject(projectId: string) {
+	deleteProject(projectId: ProjectId) {
 		this.$projects.update((projects) => projects.filter((p) => p.id !== projectId))
 	}
 
@@ -100,7 +107,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Delete a project and all associated tasks.
 	 */
-	deleteProjectAndAssociatedTasks(projectId: string) {
+	deleteProjectAndAssociatedTasks(projectId: ProjectId) {
 		this.fairyApp.tasks.getTasksByProjectId(projectId).forEach((task) => {
 			this.fairyApp.tasks.deleteTask(task.id)
 		})
@@ -165,7 +172,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Disband a project, interrupting all agents and cleaning up.
 	 */
-	disbandProject(projectId: string) {
+	disbandProject(projectId: ProjectId) {
 		const project = this.getProjectById(projectId)
 		if (!project || project.members.length <= 1) return
 
@@ -198,7 +205,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Resume a project after a page reload or interruption.
 	 */
-	resumeProject(projectId: string) {
+	resumeProject(projectId: ProjectId) {
 		this.rectifyFairyModesUponBadState(projectId)
 
 		const project = this.getProjectById(projectId)
@@ -436,7 +443,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Rectify fairy modes when in bad state (e.g., after reload).
 	 */
-	private rectifyFairyModesUponBadState(projectId: string) {
+	private rectifyFairyModesUponBadState(projectId: ProjectId) {
 		const project = this.getProjectById(projectId)
 		if (!project) return
 
@@ -459,13 +466,13 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Add an agent to a dummy project (for debug purposes).
 	 */
-	addAgentToDummyProject(agentId: string) {
+	addAgentToDummyProject(agentId: AgentId) {
 		this.$projects.update((projects) => {
 			const dummyProject = projects.find((p) => p.id === 'dummy')
 
 			if (!dummyProject) {
 				const newProject: FairyProject = {
-					id: 'dummy',
+					id: toProjectId('dummy'),
 					title: 'Dummy Project',
 					description: 'A dummy project for testing',
 					color: 'violet',

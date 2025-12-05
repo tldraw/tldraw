@@ -1,10 +1,12 @@
+import { AgentId, ProjectId, TaskId } from '../schema/id-schemas'
+
 export interface FairyTask {
-	id: string
+	id: TaskId
 	title: string
 	text: string
 	// description: string,
-	projectId: string | null
-	assignedTo: string | null
+	projectId: ProjectId | null
+	assignedTo: AgentId | null
 	status: FairyTaskStatus
 	x?: number
 	y?: number

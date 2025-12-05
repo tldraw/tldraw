@@ -16,6 +16,8 @@ import {
 	TLTextShape,
 	Vec,
 } from '@tldraw/editor'
+import { toSimpleShapeId } from '..'
+import { SimpleShapeId } from '../schema/id-schemas'
 import { convertTldrawFillToFocusFill } from './FocusFill'
 import { convertTldrawFontSizeToFocusFontSize } from './FocusFontSize'
 import {
@@ -98,8 +100,8 @@ const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, FocusedGeoType> = {
 	'arrow-down': 'fat-arrow-down',
 } as const
 
-export function convertTldrawIdToSimpleId(id: TLShapeId): string {
-	return id.slice('shape:'.length)
+export function convertTldrawIdToSimpleId(id: TLShapeId): SimpleShapeId {
+	return toSimpleShapeId(id.slice(6))
 }
 
 function convertDrawShapeToFocused(editor: Editor, shape: TLDrawShape): FocusedDrawShape {
@@ -220,11 +222,11 @@ function convertArrowShapeToFocused(editor: Editor, shape: TLArrowShape): Focuse
 		_type: 'arrow',
 		bend: shape.props.bend * -1,
 		color: shape.props.color,
-		fromId: startBinding?.toId ?? null,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: (shape.meta.text as string) ?? '',
-		toId: endBinding?.toId ?? null,
+		fromId: startBinding ? convertTldrawIdToSimpleId(startBinding.toId) : null,
+		toId: endBinding ? convertTldrawIdToSimpleId(endBinding.toId) : null,
 		x1: shape.props.start.x + bounds.x,
 		x2: shape.props.end.x + bounds.x,
 		y1: shape.props.start.y + bounds.y,

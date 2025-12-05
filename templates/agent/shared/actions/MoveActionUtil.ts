@@ -1,6 +1,7 @@
 import { TLShapeId, Vec } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -8,7 +9,7 @@ const MoveAction = z
 	.object({
 		_type: z.literal('move'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
 	})

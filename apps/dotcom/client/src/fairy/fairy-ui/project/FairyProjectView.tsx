@@ -5,6 +5,7 @@ import {
 	FairyProject,
 	FairyProjectRole,
 	LipsIcon,
+	toProjectId,
 } from '@tldraw/fairy-shared'
 import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Editor, uniqueId, useValue } from 'tldraw'
@@ -155,7 +156,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			const newProjectId = uniqueId(5)
 			const newProject: FairyProject = {
-				id: newProjectId,
+				id: toProjectId(newProjectId),
 				title: '',
 				description: '',
 				color: '',
