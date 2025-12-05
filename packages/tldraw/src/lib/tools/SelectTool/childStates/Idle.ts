@@ -243,11 +243,10 @@ export class Idle extends StateNode {
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (onlySelectedShape) {
-					const util = this.editor.getShapeUtil(onlySelectedShape)
+					if (!this.editor.getCanEditShape(onlySelectedShape)) return
 
-					if (!this.canInteractWithShapeInReadOnly(onlySelectedShape)) {
-						return
-					}
+					const util = this.editor.getShapeUtil(onlySelectedShape)
+					const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 
 					// Test edges for an onDoubleClickEdge handler
 					if (
@@ -256,7 +255,6 @@ export class Idle extends StateNode {
 						info.handle === 'top' ||
 						info.handle === 'bottom'
 					) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
@@ -565,9 +563,7 @@ export class Idle extends StateNode {
 		shape: TLShape | null = this.editor.getOnlySelectedShape()
 	): boolean {
 		if (!shape) return false
-		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
-		if (!this.canInteractWithShapeInReadOnly(shape)) return false
-		return this.editor.getShapeUtil(shape).canEdit(shape)
+		return this.editor.getCanEditShape(shape)
 	}
 
 	private startEditingShape(
@@ -575,7 +571,7 @@ export class Idle extends StateNode {
 		info: TLClickEventInfo | TLKeyboardEventInfo,
 		shouldSelectAll?: boolean
 	) {
-		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
+		if (!this.editor.getCanEditShape(shape)) return
 		this.editor.markHistoryStoppingPoint('editing shape')
 		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
@@ -616,12 +612,7 @@ export class Idle extends StateNode {
 		const shape = this.editor.getShape(id)
 		if (!shape) return
 
-		const util = this.editor.getShapeUtil(shape)
-		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadonly(shape)) {
-				return
-			}
-		}
+		if (!this.editor.getCanEditShape(shape)) return
 
 		this.editor.setEditingShape(id)
 		this.editor.select(id)
@@ -664,13 +655,6 @@ export class Idle extends StateNode {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step))
 		kickoutOccludedShapes(this.editor, selectedShapeIds)
-	}
-
-	private canInteractWithShapeInReadOnly(shape: TLShape) {
-		if (!this.editor.getIsReadonly()) return true
-		const util = this.editor.getShapeUtil(shape)
-		if (util.canEditInReadonly(shape)) return true
-		return false
 	}
 }
 
