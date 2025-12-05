@@ -50,6 +50,7 @@ import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
 import { FairyAgentChatOriginManager } from './managers/FairyAgentChatOriginManager'
 import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
+import { FairyAgentLintManager } from './managers/FairyAgentLintManager'
 import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
 import { FairyAgentPositionManager } from './managers/FairyAgentPositionManager'
 import { FairyAgentRequestManager } from './managers/FairyAgentRequestManager'
@@ -123,6 +124,9 @@ export class FairyAgent {
 
 	/** The wait manager associated with this agent. */
 	waits: FairyAgentWaitManager
+
+	/** The lint manager associated with this agent. */
+	lints: FairyAgentLintManager
 
 	/** The fairy entity associated with this agent. */
 	private $fairyEntity: Atom<FairyEntity>
@@ -238,6 +242,7 @@ export class FairyAgent {
 		this.usage = new FairyAgentUsageTracker(this)
 		this.userAction = new FairyAgentUserActionTracker(this)
 		this.waits = new FairyAgentWaitManager(this)
+		this.lints = new FairyAgentLintManager(this)
 
 		const spawnPoint = this.position.findFairySpawnPoint()
 
@@ -995,6 +1000,8 @@ export class FairyAgent {
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
 								incompleteDiff = null
+								// Track shapes created by this complete action for lint detection
+								agent.lints.trackShapesFromDiff(diff)
 							} else {
 								incompleteDiff = diff
 							}
