@@ -31,12 +31,6 @@ export class EditingShape extends StateNode {
 		)
 	}
 
-	private transitionToTranslating(info: TLPointerEventInfo): void {
-		this.editor.select(this.hitLabelOnShapeForPointerUp!)
-		this.parent.transition('translating', info)
-		this.hitLabelOnShapeForPointerUp = null
-	}
-
 	override onEnter(info: EditingShapeInfo) {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
@@ -75,7 +69,9 @@ export class EditingShape extends StateNode {
 			if (this.editor.getIsReadonly()) return
 			if (this.hitLabelOnShapeForPointerUp.isLocked) return
 
-			this.transitionToTranslating(info)
+			this.editor.select(this.hitLabelOnShapeForPointerUp)
+			this.parent.transition('translating', info)
+			this.hitLabelOnShapeForPointerUp = null
 			return
 		}
 
