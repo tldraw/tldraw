@@ -6,10 +6,10 @@ import {
 	generateText,
 	JSONContent,
 } from '@tiptap/core'
-import Code from '@tiptap/extension-code'
-import Highlight from '@tiptap/extension-highlight'
+import { Code } from '@tiptap/extension-code'
+import { Highlight } from '@tiptap/extension-highlight'
 import { Node } from '@tiptap/pm/model'
-import StarterKit from '@tiptap/starter-kit'
+import { StarterKit } from '@tiptap/starter-kit'
 import {
 	Editor,
 	getOwnProperty,

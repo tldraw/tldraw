@@ -1,6 +1,8 @@
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPart } from '../types/PromptPart'
 import {
+	AbortDuoProjectActionSchema,
+	AbortProjectActionSchema,
 	ActivateFairyActionSchema,
 	AlignActionSchema,
 	AwaitDuoTasksCompletionActionSchema,
@@ -28,6 +30,8 @@ import {
 	MarkSoloTaskDoneActionSchema,
 	MessageActionSchema,
 	MoveActionSchema,
+	MovePositionActionSchema,
+	OffsetActionSchema,
 	PenActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
@@ -58,11 +62,11 @@ import {
 	OtherFairiesPartDefinition,
 	PagesPartDefinition,
 	PeripheralShapesPartDefinition,
-	PersonalityPartDefinition,
 	PersonalTodoListPartDefinition,
 	PromptPartDefinition,
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
+	SignPartDefinition,
 	SoloTasksPartDefinition,
 	TimePartDefinition,
 	UserActionHistoryPartDefinition,
@@ -81,6 +85,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
+	MovePositionActionSchema,
 	UpsertPersonalTodoItemActionSchema,
 	DeletePersonalTodoItemsActionSchema,
 
@@ -92,6 +97,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	MoveActionSchema,
 
 	// Groups of shapes
+	OffsetActionSchema,
 	PlaceActionSchema,
 	BringToFrontActionSchema,
 	SendToBackActionSchema,
@@ -116,6 +122,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	StartDuoProjectActionSchema,
 	EndCurrentProjectActionSchema,
 	EndDuoProjectActionSchema,
+	AbortProjectActionSchema,
+	AbortDuoProjectActionSchema,
 	ActivateFairyActionSchema,
 	AwaitTasksCompletionActionSchema,
 	AwaitDuoTasksCompletionActionSchema,
@@ -153,7 +161,7 @@ export const PROMPT_PART_DEFINITIONS = [
 	AgentViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,
 	OtherFairiesPartDefinition,
-	PersonalityPartDefinition,
+	SignPartDefinition,
 	ModePartDefinition,
 	CurrentProjectDronePartDefinition,
 	CurrentProjectOrchestratorPartDefinition,

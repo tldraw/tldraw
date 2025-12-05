@@ -11,12 +11,6 @@
       "value": "Daveti kabul et"
     }
   ],
-  "038c9b4432": [
-    {
-      "type": 0,
-      "value": "Peri'nin kişiliği"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -57,16 +51,16 @@
       "value": "Hesap"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Dikenli"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Bu dosya boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Gruba konuş…"
     }
   ],
   "0b27918290": [
@@ -129,12 +123,6 @@
       "value": "Dışa aktarma formatı"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Peri özelleştirmesi"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +153,10 @@
       "value": "Bugün"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Periye git"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Gruba talimat verin…"
+      "value": "Haftalık peri kullanım limitiniz doldu. Gelecek haftanın başında sıfırlanacak."
     }
   ],
   "243924bfd5": [
@@ -195,6 +177,18 @@
       "value": "tldraw hakkında"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Perileriniz sizi bekliyor"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Hepsini çağır"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +205,6 @@
     {
       "type": 0,
       "value": "Dosyalarım"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Lider seç"
     }
   ],
   "30cd34258a": [
@@ -275,12 +263,6 @@
       "value": "Lütfen sayfayı yenilemeyi deneyin."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Grubu dağıt"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +275,18 @@
       "value": "Düzenleyici"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Hepiniz uyuyun"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Üstesinden gelmek"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +297,6 @@
     {
       "type": 0,
       "value": "Takip etmek"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Yardım isteyin"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Yeni bir görev ekle…"
     }
   ],
   "3b6c2b4caa": [
@@ -347,12 +329,6 @@
       "value": "Hepsini kabul et"
     }
   ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Kel"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -363,6 +339,22 @@
     {
       "type": 0,
       "value": "Discord'da yardım alın"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Periler"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " Aralık ayı için tldraw'a geldiler."
     }
   ],
   "46137245cd": [
@@ -413,6 +405,12 @@
       "value": "İsim"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Tümünü seç"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -431,16 +429,16 @@
       "value": "Grubu sil…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Daha fazla seçenek"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Bu grubu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Sivri"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +587,16 @@
       "value": "Daha sonra"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ile konuş…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +609,10 @@
       "value": "Sen"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Özelleştirmek"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Kaldırmak için tıklayın veya taşımak için sürükleyin"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Görev listesi"
+      "value": "Rehber"
     }
   ],
   "6609dd239e": [
@@ -637,10 +633,28 @@
       "value": "E-posta adresinizi girin"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Uyan"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Mesajınızı girin"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Peri'nin adı"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Perileri ayıkla"
     }
   ],
   "6a26f54883": [
@@ -659,12 +673,6 @@
     {
       "type": 0,
       "value": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Perileri uzaklaştırın"
     }
   ],
   "70222abcfc": [
@@ -745,12 +753,6 @@
       "value": "Bu anonim tldraw çok oyunculu dosyası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyayı dosyalarınıza kopyalayın."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Pervane"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +771,10 @@
       "value": "Peri, tuval üzerinde sizinle birlikte çalışabilen küçük bir adamdır. Periler tek başlarına veya ekip halinde çalışabilirler. Bir perinin yapabileceklerinin sınırı yoktur. Kimse nereden geldiğini bilmez."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Tuvale sürükleyin"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Kullanıcı kılavuzu"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Anten"
     }
   ],
   "7be10fc592": [
@@ -869,16 +859,16 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Görevleri tuvalde göster"
+      "value": "Tümünü temizle"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Aralık ayı için periler tldraw'a geldi."
+      "value": "Hoş geldin"
     }
   ],
   "85a082de1b": [
@@ -897,28 +887,22 @@
       "value": " .tldr dosyası eklendi."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Perileri çağır"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Dosyayı yeniden adlandır"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Sert sıfırlama"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Peri Paketini Satın Alın"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Her şeyi sıfırla"
     }
   ],
   "8ad4303b83": [
@@ -939,10 +923,22 @@
       "value": "Doğrulama kodu için e-postanızı kontrol edin."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Ev"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Sizinle paylaşıldı"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Hakkında"
     }
   ],
   "8ff3d0a705": [
@@ -975,16 +971,10 @@
       "value": "Davet bağlantısı kopyalandı"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Kulaklar"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Peri seçimini kaldır"
+      "value": "Seçimi kaldır"
     }
   ],
   "94966d9074": [
@@ -1011,12 +1001,6 @@
       "value": "Bu ay"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Yeni peri"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1027,12 +1011,6 @@
     {
       "type": 0,
       "value": "Dosya bağlantısı ekle"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Peri sohbetine geç"
     }
   ],
   "9914a0ce04": [
@@ -1121,10 +1099,10 @@
       "value": "Resmi dışa aktar"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Görev listesine geç"
+      "value": "Katılmak"
     }
   ],
   "a3debabee7": [
@@ -1133,22 +1111,16 @@
       "value": "Çerez politikası"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Peri'nin adı"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Göndermek"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Tepe"
+      "value": "Hata ayıklama"
     }
   ],
   "a6cc403d56": [
@@ -1163,16 +1135,22 @@
       "value": "Analitik"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Lider peri seçimi"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Dosya büyüyor"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Haftalık peri limiti aşıldı"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Yeni sohbet"
     }
   ],
   "a9ded1e5ce": [
@@ -1247,12 +1225,6 @@
       "value": "Bağlantıyı kopyala"
     }
   ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Tuvaldeki görevleri gizle"
-    }
-  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1313,6 +1285,12 @@
       "value": " tarafından paylaşıldı"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Periye yakınlaştır"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1339,16 +1317,16 @@
       "value": "'e izin verin."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Saç"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Bu dosya yayınlanamıyor."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Açık"
     }
   ],
   "c3eb5c3b90": [
@@ -1367,6 +1345,12 @@
     {
       "type": 0,
       "value": "Grup adı"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Kullanım"
     }
   ],
   "c655b27b1e": [
@@ -1391,12 +1375,6 @@
     {
       "type": 0,
       "value": "Oturumu kapat"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Lideri seçimi kaldır"
     }
   ],
   "c9cc8cce24": [
@@ -1435,22 +1413,10 @@
       "value": "Yayınlama hakkında daha fazla bilgi edinin."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Sohbetleri sıfırla"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Kapat"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Tüm perileri uyutun"
     }
   ],
   "d46632fe1f": [
@@ -1505,22 +1471,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "'e fısılda…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Görevi sil"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1539,6 +1489,12 @@
       "value": "İçeriği görmek için buraya gidin"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Perileri etkinleştir"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1549,12 +1505,6 @@
     {
       "type": 0,
       "value": "Yalnızca davetle"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Tüm sohbetleri temizle"
     }
   ],
   "dc30bc0c79": [
@@ -1601,6 +1551,12 @@
       "value": "Uygulama hata ayıklama bayrakları"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Seçme"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1631,6 +1587,12 @@
       "value": "Hizmet Şartları"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Git"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1641,12 +1603,6 @@
     {
       "type": 0,
       "value": "Tehlikeli bölge"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Peri seç"
     }
   ],
   "ea4788705e": [
@@ -1705,6 +1661,12 @@
       "value": " okuyun."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Dağılmak"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1715,12 +1677,6 @@
     {
       "type": 0,
       "value": "seçilmiş"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Yapılacaklar listesi"
     }
   ],
   "efde983742": [
@@ -1741,12 +1697,6 @@
       "value": "Kullanıcı ayarları"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Yeni proje"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1765,28 +1715,10 @@
       "value": "Ayarlar"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Tüm asaları sıfırla"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Bu gruptan ayrılmak istediğinize emin misiniz?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Önce bir lider seçin…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Tüm perileri çağır"
     }
   ],
   "fa2ead697d": [
@@ -1799,12 +1731,6 @@
     {
       "type": 0,
       "value": "Görüntüleyici"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Projeleri dağıtın"
     }
   ],
   "fd1be3efcf": [
@@ -1829,12 +1755,6 @@
     {
       "type": 0,
       "value": "Dosyayı içe aktar…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Peri erişimi satın al"
     }
   ]
 }

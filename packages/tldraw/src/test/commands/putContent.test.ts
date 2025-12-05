@@ -1,4 +1,4 @@
-import { TLContent, structuredClone } from '@tldraw/editor'
+import { TLContent, createShapeId, structuredClone } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -36,5 +36,83 @@ describe('Migrations', () => {
 		// @ts-expect-error
 		withInvalidShapeModel.shapes[0].x = 'invalid'
 		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeModel)).toThrow()
+	})
+})
+
+describe('Paste parent selection with explicit point', () => {
+	it('falls back to the page when the cursor is outside the original parent', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+
+		editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				x: 0,
+				y: 0,
+				props: { w: 200, h: 200 },
+			},
+			{
+				id: childId,
+				type: 'geo',
+				parentId: frameId,
+				x: 40,
+				y: 40,
+				props: { w: 60, h: 60 },
+			},
+		])
+
+		editor.select(childId)
+		editor.copy()
+
+		editor.putContentOntoCurrentPage(editor.clipboard!, {
+			point: { x: 500, y: 500 },
+			select: true,
+		})
+
+		const [pastedId] = editor.getSelectedShapeIds()
+		expect(editor.getShape(pastedId)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('uses the parent under the cursor when it can accept the pasted shapes', () => {
+		const frameAId = createShapeId('frameA')
+		const frameBId = createShapeId('frameB')
+		const childId = createShapeId('child')
+
+		editor.createShapes([
+			{
+				id: frameAId,
+				type: 'frame',
+				x: 0,
+				y: 0,
+				props: { w: 200, h: 200 },
+			},
+			{
+				id: frameBId,
+				type: 'frame',
+				x: 400,
+				y: 0,
+				props: { w: 200, h: 200 },
+			},
+			{
+				id: childId,
+				type: 'geo',
+				parentId: frameAId,
+				x: 40,
+				y: 40,
+				props: { w: 60, h: 60 },
+			},
+		])
+
+		editor.select(childId)
+		editor.copy()
+
+		editor.putContentOntoCurrentPage(editor.clipboard!, {
+			point: { x: 450, y: 50 },
+			select: true,
+		})
+
+		const [pastedId] = editor.getSelectedShapeIds()
+		expect(editor.getShape(pastedId)?.parentId).toBe(frameBId)
 	})
 })

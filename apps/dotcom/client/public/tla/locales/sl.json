@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Sprejmi povabilo"
   },
-  "038c9b4432": {
-    "translation": "Vilinska osebnost"
-  },
   "03b3e13197": {
     "translation": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
   },
@@ -26,11 +23,11 @@
   "08bd40c754": {
     "translation": "Račun"
   },
-  "090b807281": {
-    "translation": "Koničast"
-  },
   "0a91f7fa87": {
     "translation": "Ta datoteka je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite ustvarjati novo datoteko."
+  },
+  "0ab1ef22a3": {
+    "translation": "Pogovorite se s skupino…"
   },
   "0b27918290": {
     "translation": "Datoteka"
@@ -62,9 +59,6 @@
   "13ddd375ad": {
     "translation": "Izvozi kot"
   },
-  "141c7239d3": {
-    "translation": "Prilagajanje vil"
-  },
   "146ffe2fd9": {
     "translation": "Prikaži več"
   },
@@ -80,11 +74,8 @@
   "1dd1c5fb7f": {
     "translation": "Danes"
   },
-  "1e38506832": {
-    "translation": "Pojdi k vili"
-  },
-  "1fe250ea06": {
-    "translation": "Naroči skupini…"
+  "23f879f41a": {
+    "translation": "Vaša tedenska omejitev uporabe vil je bila dosežena. Ponastavljena bo na začetku naslednjega tedna."
   },
   "243924bfd5": {
     "translation": "Spanje"
@@ -95,6 +86,12 @@
   "250ddea65c": {
     "translation": "O tldrawu"
   },
+  "269097080b": {
+    "translation": "Tvoje vile čakajo"
+  },
+  "275173253d": {
+    "translation": "Prikliči vse"
+  },
   "284d5cd0dd": {
     "translation": "Model:"
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "Moje datoteke"
-  },
-  "2e86e6853d": {
-    "translation": "Izberite vodjo"
   },
   "30cd34258a": {
     "translation": "V decembru je na tldraw prišla skupina <b>vil</b>. Če želite raziskati več, poiščite vilo in jo kliknite."
@@ -128,26 +122,23 @@
   "335defdafe": {
     "translation": "Poskusite osvežiti stran."
   },
-  "33f9ea6fe8": {
-    "translation": "Razpustite skupino"
-  },
   "34140869c6": {
     "translation": "V decembru na tldraw prihaja množica vil. Prosimo, preverite spet 1. decembra."
   },
   "344a7f427f": {
     "translation": "Urednik"
   },
+  "34abfe7a0d": {
+    "translation": "Spi vse"
+  },
+  "34e34c43ec": {
+    "translation": "Upravljanje"
+  },
   "3596c1b1f7": {
     "translation": "Ne sledi"
   },
   "3903aab323": {
     "translation": "Sledi"
-  },
-  "3a295397e6": {
-    "translation": "Prosite za pomoč"
-  },
-  "3a77f951ca": {
-    "translation": "Dodaj novo nalogo …"
   },
   "3b6c2b4caa": {
     "translation": "Pogoji storitve"
@@ -164,14 +155,14 @@
   "3d0238bf16": {
     "translation": "Sprejmi vse"
   },
-  "4131ec34ef": {
-    "translation": "Plešast"
-  },
   "42e53c47c1": {
     "translation": "Za dostop zaprosite lastnika."
   },
   "44db318ee5": {
     "translation": "Poiščite pomoč pri Discordu"
+  },
+  "45b43c2d28": {
+    "translation": "<strong>Vile</strong> so prišle risati za mesec december."
   },
   "46137245cd": {
     "translation": "Hvala, ker nam pomagate izboljšati tldraw!"
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "Ime"
   },
+  "4c41e0bd95": {
+    "translation": "Izberi vse"
+  },
   "4d0d3ddec9": {
     "translation": "To spletno mesto uporablja piškotke za delovanje aplikacije in zbiranje analitičnih podatkov."
   },
@@ -206,11 +200,11 @@
   "4da5988a2e": {
     "translation": "Izbriši skupino …"
   },
+  "4dab36ac83": {
+    "translation": "Več možnosti"
+  },
   "4e6fbf032b": {
     "translation": "Ali ste prepričani, da želite izbrisati to skupino? Tega dejanja ni mogoče razveljaviti."
-  },
-  "4f827717f7": {
-    "translation": "Koničast"
   },
   "50db1b7e1e": {
     "translation": "Ni mogoče preklicati objave datoteke."
@@ -266,20 +260,17 @@
   "61057a0c84": {
     "translation": "Kasneje"
   },
+  "61daf2e53d": {
+    "translation": "Pogovorite se z {name}…"
+  },
   "625fd29749": {
     "translation": "Starejši"
   },
   "639bae9ac6": {
     "translation": "ti"
   },
-  "63a78ed464": {
-    "translation": "Prilagodi"
-  },
-  "64ebe56d8c": {
-    "translation": "Kliknite za odstranitev ali povlecite za premikanje"
-  },
-  "65709fd250": {
-    "translation": "Seznam opravil"
+  "6602bbeb29": {
+    "translation": "Vodnik"
   },
   "6609dd239e": {
     "translation": "Nekaj je šlo narobe"
@@ -290,8 +281,17 @@
   "6832ac5936": {
     "translation": "Vnesite svoj e-poštni naslov"
   },
+  "688761c83e": {
+    "translation": "Zbudi se"
+  },
   "68d390535e": {
     "translation": "Vnesite svoje sporočilo"
+  },
+  "6910bbdc82": {
+    "translation": "Ime vile"
+  },
+  "695c3e899d": {
+    "translation": "Vile za odpravljanje napak"
   },
   "6a26f54883": {
     "translation": "Pomoč"
@@ -301,9 +301,6 @@
   },
   "6dfc62f621": {
     "translation": "Za ročni uvoz vsebine sledite tem korakom:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Odstranite vile"
   },
   "70222abcfc": {
     "translation": "Nastavitve skupine"
@@ -344,9 +341,6 @@
   "7827371d1a": {
     "translation": "Ta anonimna datoteka za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
-  "7835039819": {
-    "translation": "Propeler"
-  },
   "78e9815992": {
     "translation": "Razumem"
   },
@@ -356,14 +350,8 @@
   "79cc22ac6b": {
     "translation": "Vila je majhen fant, ki lahko dela z vami na platnu. Vile lahko delajo same ali v ekipi. Ni omejitev glede tega, kaj vila zmore. Nihče ne ve, od kod prihaja."
   },
-  "7a3113b0ba": {
-    "translation": "Povlecite na platno"
-  },
   "7b1329f5ca": {
     "translation": "Uporabniški priročnik"
-  },
-  "7b5449bd84": {
-    "translation": "Antena"
   },
   "7be10fc592": {
     "translation": "Obnovi različico"
@@ -392,11 +380,11 @@
   "815e116a2e": {
     "translation": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam! Izpolnite ta obrazec in po potrebi se vam bomo oglasili po e-pošti. Lahko pa tudi <discord>klepetate z nami na Discordu</discord> ali <github>oddate težavo na GitHubu</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Prikaži naloge na platnu"
+  "81aa2078d1": {
+    "translation": "Počisti vse"
   },
-  "8472a551f1": {
-    "translation": "Vile so prišle risati za mesec december."
+  "83218ac34c": {
+    "translation": "Dobrodošli"
   },
   "85a082de1b": {
     "translation": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
@@ -404,17 +392,14 @@
   "86353d2c41": {
     "translation": "Dodane {total} datoteke .tldr."
   },
-  "86a7df7572": {
-    "translation": "Prikličite vile"
-  },
   "86c66437fd": {
     "translation": "Preimenuj datoteko"
   },
+  "8726ef8909": {
+    "translation": "Trda ponastavitev"
+  },
   "88e83b88c5": {
     "translation": "Nakup paketa za vile"
-  },
-  "898e76f01a": {
-    "translation": "Ponastavi vse"
   },
   "8ad4303b83": {
     "translation": "Ne, hvala."
@@ -425,8 +410,14 @@
   "8c2d3d730c": {
     "translation": "Preverite svojo e-pošto za potrditveno kodo."
   },
+  "8cf04a9734": {
+    "translation": "Domov"
+  },
   "8eb2c00e96": {
     "translation": "V skupni rabi z vami"
+  },
+  "8f7f4c1ce7": {
+    "translation": "O nas"
   },
   "8ff3d0a705": {
     "translation": "Omejili smo število akcij"
@@ -443,11 +434,8 @@
   "930390d222": {
     "translation": "Povezava za povabilo je bila kopirana"
   },
-  "93346fdd70": {
-    "translation": "Ušesa"
-  },
-  "93dfe9fbbe": {
-    "translation": "Prekliči izbor vile"
+  "94186070ef": {
+    "translation": "Prekliči izbor"
   },
   "94966d9074": {
     "translation": "Pošlji"
@@ -461,17 +449,11 @@
   "96165d6df5": {
     "translation": "Ta mesec"
   },
-  "97a9f16b2e": {
-    "translation": "Nova vila"
-  },
   "985a4b720f": {
     "translation": "Pogoji uporabe"
   },
   "98c997a27e": {
     "translation": "Dodaj povezavo do datoteke"
-  },
-  "98e528aac6": {
-    "translation": "Preklopi na klepet z vilami"
   },
   "9914a0ce04": {
     "translation": "Svetlo"
@@ -509,20 +491,17 @@
   "a239905023": {
     "translation": "Izvozi sliko"
   },
-  "a2f0372a75": {
-    "translation": "Preklopi na seznam opravil"
+  "a286d9991c": {
+    "translation": "Pridruži se"
   },
   "a3debabee7": {
     "translation": "Politika piškotkov"
   },
-  "a3e932550c": {
-    "translation": "Ime vile"
-  },
   "a4d3b161ce": {
     "translation": "Predloži"
   },
-  "a4ffdcf0dc": {
-    "translation": "Zgoraj"
+  "a603905470": {
+    "translation": "Odpravljanje napak"
   },
   "a6cc403d56": {
     "translation": "Vsak s povezavo"
@@ -530,11 +509,14 @@
   "a768caa988": {
     "translation": "analitika"
   },
-  "a885eb91ac": {
-    "translation": "Izbor vile vodje"
-  },
   "a8873770ab": {
     "translation": "Datoteka postaja velika"
+  },
+  "a8de4c27a8": {
+    "translation": "Dosežena je bila tedenska omejitev vil."
+  },
+  "a917baaf14": {
+    "translation": "Nov klepet"
   },
   "a9ded1e5ce": {
     "translation": "Ozadje"
@@ -570,9 +552,6 @@
   "b758336699": {
     "translation": "Kopiraj povezavo"
   },
-  "b8996797b9": {
-    "translation": "Skrij opravila na platnu"
-  },
   "ba0318cb81": {
     "translation": "Prijavite se za skupno rabo"
   },
@@ -585,17 +564,20 @@
   "bc88b0e89e": {
     "translation": "Delil {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Povečaj na vilo"
+  },
   "c2276c9127": {
     "translation": "Preberite več o skupni rabi."
   },
   "c28aed8348": {
     "translation": "Dovoli <cookies>analytics</cookies>, da nam pomaga izboljšati tldraw."
   },
-  "c2ad21c079": {
-    "translation": "Lasje"
-  },
   "c303bd1095": {
     "translation": "Datoteke ni mogoče objaviti."
+  },
+  "c3bf447eab": {
+    "translation": "Odprto"
   },
   "c3eb5c3b90": {
     "translation": "Razumem"
@@ -605,6 +587,9 @@
   },
   "c6155aaecc": {
     "translation": "Ime skupine"
+  },
+  "c64518704c": {
+    "translation": "Uporaba"
   },
   "c655b27b1e": {
     "translation": "i18n: dolg niz"
@@ -617,9 +602,6 @@
   },
   "c87aacf567": {
     "translation": "Odjava"
-  },
-  "c9b04e7b53": {
-    "translation": "Prekliči izbor vodje"
   },
   "c9cc8cce24": {
     "translation": "Shrani"
@@ -639,14 +621,8 @@
   "cea291e45e": {
     "translation": "Preberite več o objavljanju."
   },
-  "cf62a7f9a7": {
-    "translation": "Ponastavi klepete"
-  },
   "d3d2e61733": {
     "translation": "Zapri"
-  },
-  "d438a51e6e": {
-    "translation": "Uspavaj vse vile"
   },
   "d46632fe1f": {
     "translation": "Preveč zahtev. Prosim, upočasnite."
@@ -660,12 +636,6 @@
   "d721757161": {
     "translation": "Tema"
   },
-  "d739f35e18": {
-    "translation": "Zašepetaj {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Izbriši opravilo"
-  },
   "d876a9fe1a": {
     "translation": "Poskusi znova"
   },
@@ -675,14 +645,14 @@
   "d9100f3e10": {
     "translation": "Za ogled vsebine pojdite sem"
   },
+  "d9bfb9789a": {
+    "translation": "Omogoči vile"
+  },
   "d9e35d0f55": {
     "translation": "Dosegli ste največje dovoljeno število skupin. Preden ustvarite nove skupine, morate izbrisati stare."
   },
   "dbbebf3c03": {
     "translation": "Samo povabljeni"
-  },
-  "dbbece0c3a": {
-    "translation": "Počisti vse klepete"
   },
   "dc30bc0c79": {
     "translation": "Jasno"
@@ -699,6 +669,9 @@
   "dfdb78a4e4": {
     "translation": "Zastavice za odpravljanje napak v aplikaciji"
   },
+  "e062622261": {
+    "translation": "Izberite"
+  },
   "e0c88179b3": {
     "translation": "Povabi člane"
   },
@@ -714,14 +687,14 @@
   "e404559826": {
     "translation": "Pogoji storitve"
   },
+  "e43ec38a93": {
+    "translation": "Pojdi na"
+  },
   "e81c4e4f2b": {
     "translation": "ali"
   },
   "ea0626ac5a": {
     "translation": "Nevarno območje"
-  },
-  "ea181d98ca": {
-    "translation": "Izberite vilo"
   },
   "ea4788705e": {
     "translation": "Prekliči"
@@ -744,14 +717,14 @@
   "ede55d955f": {
     "translation": "Za več informacij preberite našo <a>pravilnik o piškotkih</a>."
   },
+  "eee6f05922": {
+    "translation": "Razpustitev"
+  },
   "ef53538ae4": {
     "translation": "Člani"
   },
   "ef7de3f485": {
     "translation": "izbrano"
-  },
-  "efb2d9d471": {
-    "translation": "Seznam opravil"
   },
   "efde983742": {
     "translation": "Priklic"
@@ -762,9 +735,6 @@
   "f0e8bff6f9": {
     "translation": "Uporabniške nastavitve"
   },
-  "f23056da60": {
-    "translation": "Nov projekt"
-  },
   "f2569594b2": {
     "translation": "Te piškotke uporabljamo za shranjevanje vaših datotek in nastavitev."
   },
@@ -774,26 +744,14 @@
   "f4f70727dc": {
     "translation": "Nastavitve"
   },
-  "f6ae34b4ba": {
-    "translation": "Ponastavi vse palice"
-  },
   "f714e36843": {
     "translation": "Ali ste prepričani, da želite zapustiti to skupino?"
-  },
-  "f7d5ee6855": {
-    "translation": "Najprej izberite vodjo …"
-  },
-  "f87386b4ba": {
-    "translation": "Prikliči vse vile"
   },
   "fa2ead697d": {
     "translation": "Pravilnik o zasebnosti"
   },
   "fb15c53f22": {
     "translation": "Gledalec"
-  },
-  "fd11eafb92": {
-    "translation": "Razpustitev projektov"
   },
   "fd1be3efcf": {
     "translation": "Ali ste prepričani, da želite izbrisati to datoteko?"
@@ -806,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Uvozi datoteko …"
-  },
-  "ffec95af2f": {
-    "translation": "Nakup dostopa za vile"
   }
 }

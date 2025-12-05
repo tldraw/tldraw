@@ -43,6 +43,8 @@ export type FairyModeDefinition = (typeof FAIRY_MODE_DEFINITIONS)[number]
  */
 export type ActiveFairyModeDefinition = (typeof ACTIVE_FAIRY_MODE_DEFINITIONS)[number]
 
+export type FairyModeDefinitionType = FairyModeDefinition['type']
+
 /**
  * Definitions of fairy modes — states that fairies can be in.
  */
@@ -65,10 +67,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 		active: true,
 		pose: 'active',
 		parts: (_work: FairyWork) => [
+			'sign',
 			'messages',
 			'modelName',
 			'mode',
 			'screenshot',
+			'userViewportBounds',
 			'agentViewportBounds',
 			'canvasLints',
 			'blurryShapes',
@@ -127,7 +131,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			// 'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -156,7 +160,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -194,7 +198,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -244,7 +248,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			// 'personality',
+			'sign',
 			'currentProjectOrchestrator',
 			'debug',
 		],
@@ -258,6 +262,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'create-page',
 
 			// Project management
+			'abort-project',
 			'start-project',
 			'end-project',
 			'create-project-task',
@@ -293,7 +298,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			// 'personality',
+			'sign',
 			'currentProjectOrchestrator',
 			'debug',
 		],
@@ -307,6 +312,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'create-page',
 
 			// Duo project management
+			'abort-duo-project',
 			'start-duo-project',
 			'end-duo-project',
 			'create-duo-task',
@@ -338,7 +344,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			// 'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [

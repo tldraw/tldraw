@@ -1,5 +1,4 @@
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
-import { FairyEntity } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -28,6 +27,7 @@ import {
 	type TLStore,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
@@ -39,10 +39,11 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useFairyAccess } from '../../hooks/useFairyAccess'
+import { useFairyAccess, useShouldShowFairies } from '../../hooks/useFairyAccess'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
+import { useAreFairiesEnabled } from '../../utils/local-session-state'
 import { maybeSlurp } from '../../utils/slurping'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
@@ -58,28 +59,34 @@ import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
+// eslint-disable-next-line local/no-fairy-imports -- ok for types
+import { type FairyApp } from '../../../fairy/fairy-app/FairyApp'
+import { useFeatureFlags } from '../../hooks/useFeatureFlags'
+
 // Lazy load fairy components
-const FairyApp = lazy(() =>
-	import('../../../fairy/FairyApp').then((m) => ({
-		default: m.FairyApp,
+
+const FairyAppProvider = lazy(() =>
+	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
+		default: m.FairyAppProvider,
 	}))
 )
 const FairyHUD = lazy(() =>
-	import('../../../fairy/FairyHUD').then((m) => ({ default: m.FairyHUD }))
+	import('../../../fairy/fairy-ui/FairyHUD').then((m) => ({ default: m.FairyHUD }))
 )
-const FairyVision = lazy(() =>
-	import('../../../fairy/FairyVision').then((m) => ({ default: m.FairyVision }))
+const Fairies = lazy(() =>
+	import('../../../fairy/fairy-canvas-ui/Fairies').then((m) => ({ default: m.Fairies }))
 )
-const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ default: m.Fairies })))
 const RemoteFairies = lazy(() =>
-	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
+	import('../../../fairy/fairy-canvas-ui/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
 const FairyHUDTeaser = lazy(() =>
-	import('../../../fairy/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
+	import('../../../fairy/fairy-ui/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
 )
-// const InCanvasTaskList = lazy(() =>
-// 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
-// )
+const FairyAppContextProvider = lazy(() =>
+	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
+		default: m.FairyAppContextProvider,
+	}))
+)
 
 /** @internal */
 export const components: TLComponents = {
@@ -122,6 +129,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
+
+	const [hoistedFairyApp, setHoistedFairyApp] = useState<FairyApp | null>(null)
 
 	const dialogs = useDialogs()
 	// need to wrap this in a useEvent to prevent the context id from changing on us
@@ -204,10 +213,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
 
-	// Ref to store agents for presence syncing
-	// TODO(mime): use TldrawFairyAgent[] type when ready
-	const agentsRef = useRef<any[]>([])
-
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -226,23 +231,36 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				const defaultPresence = getDefaultUserPresence(store, userInfo)
 				if (!defaultPresence) return null
 
+				if (!hoistedFairyApp) return defaultPresence
+
 				// Add fairy positions to presence for all active agents
 				const fairyPresences =
-					agentsRef.current
-						?.map((agent) => {
-							const entity = agent?.$fairyEntity?.get?.() as FairyEntity | undefined
-							const outfit = agent?.$fairyConfig?.get?.()?.outfit as string | undefined
-							if (!entity || !outfit) return null
-							return { entity, outfit }
+					hoistedFairyApp.agents
+						.getAgents()
+						.map((agent) => {
+							const entity = agent.getEntity()
+							const config = agent.getConfig()
+							if (!entity || !config) return null
+							return {
+								entity,
+								outfit: config.outfit,
+								hatColor: config.hatColor,
+								hatType: config.hat,
+								legLength: config.legLength,
+							}
 						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
 				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
 				return defaultPresence
 			},
-			[]
+			[hoistedFairyApp]
 		),
 	})
+
+	const handleUnmount = useCallback(() => {
+		setHoistedFairyApp(null)
+	}, [])
 
 	// we need to prevent calling onFileExit if the store is in an error state
 	const storeError = useRef(false)
@@ -287,46 +305,87 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
 	const hasFairyAccess = useFairyAccess()
+	const areFairiesEnabled = useAreFairiesEnabled()
+	const shouldShowFairies = useShouldShowFairies()
+	const { flags, isLoaded } = useFeatureFlags()
 
-	// Fairy stuff
-
-	// TODO(mime): use TldrawFairyAgent[] type when ready
-	const [_agents, setAgents] = useState<any[]>([])
-	// filter out deleted fairies (setAgents gets called after a fairy has been deleted)
-	const agents = useValue('agents', () => _agents.filter((a) => a.$fairyConfig.get()), [_agents])
-	// keep a ref in sync so getUserPresence can read current agents without re-creating the callback
-	useEffect(() => {
-		agentsRef.current = agents
-	}, [agents])
+	const RemoteFairiesDelayed = ({ enableForMe }: { enableForMe: boolean }) => {
+		const editor = useEditor()
+		const collaborators = editor.getCollaborators()
+		const doesAnybodyHaveFairiesEnabled = collaborators.some(
+			// @ts-ignore meh it's fine
+			(collaborator) => collaborator.meta?.fairies?.length > 0
+		)
+		return enableForMe || doesAnybodyHaveFairiesEnabled ? (
+			<Suspense fallback={<div />}>
+				<RemoteFairies />
+			</Suspense>
+		) : null
+	}
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairyAccess
+		// User can control their own fairies if they have fairy access and it's enabled
+		const canControlFairies = app && hasFairyAccess && areFairiesEnabled
 
+		// Show fairy UI (HUD, remote fairies) if feature flag is enabled and local toggle is on
+		// This allows guests to see fairies on shared files without requiring login
+		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
+
+		const shouldShowTeaser =
+			isLoaded &&
+			flags.fairies.enabled &&
+			flags.fairies_purchase.enabled &&
+			!hasFairyAccess &&
+			areFairiesEnabled
 		return {
 			...components,
-			Overlays: () => (
-				<>
-					<TldrawOverlays />
-					{canShowFairies ? (
-						<Suspense fallback={<div />}>
-							<FairyVision agents={agents} />
-							{/* <InCanvasTaskList agents={agents} /> */}
-							<RemoteFairies />
-							<Fairies agents={agents} />
-						</Suspense>
-					) : null}
-				</>
-			),
-			InFrontOfTheCanvas: () => (
-				<>
-					<Suspense fallback={<div />}>
-						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
-					</Suspense>
-				</>
-			),
+			Overlays: () => {
+				return (
+					<>
+						<TldrawOverlays />
+						<RemoteFairiesDelayed enableForMe={!!(shouldShowFairyUI && hoistedFairyApp)} />
+						{shouldShowFairyUI && hoistedFairyApp ? (
+							<Suspense fallback={<div />}>
+								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+									{/* <DebugFairyVision agents={agents} /> */}
+									{canControlFairies && <Fairies />}
+								</FairyAppContextProvider>
+							</Suspense>
+						) : null}
+					</>
+				)
+			},
+			InFrontOfTheCanvas: () => {
+				return (
+					<>
+						{shouldShowFairyUI && hoistedFairyApp ? (
+							<Suspense fallback={<div />}>
+								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+									{canControlFairies ? <FairyHUD /> : <FairyHUDTeaser />}
+								</FairyAppContextProvider>
+							</Suspense>
+						) : (
+							shouldShowTeaser && (
+								<Suspense fallback={<div />}>
+									<FairyHUDTeaser />
+								</Suspense>
+							)
+						)}
+					</>
+				)
+			},
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairyAccess, app])
+	}, [
+		isLoaded,
+		flags.fairies.enabled,
+		flags.fairies_purchase.enabled,
+		app,
+		hasFairyAccess,
+		areFairiesEnabled,
+		shouldShowFairies,
+		hoistedFairyApp,
+	])
 
 	return (
 		<TlaEditorWrapper>
@@ -349,9 +408,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{app && hasFairyAccess && (
+				{app && hasFairyAccess && areFairiesEnabled && (
 					<Suspense fallback={null}>
-						<FairyApp setAgents={setAgents} fileId={fileId} />
+						<FairyAppProvider
+							fileId={fileId}
+							onMount={setHoistedFairyApp}
+							onUnmount={handleUnmount}
+						/>
 					</Suspense>
 				)}
 			</Tldraw>

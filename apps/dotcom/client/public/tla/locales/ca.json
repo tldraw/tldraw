@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accepta la invitació"
   },
-  "038c9b4432": {
-    "translation": "La personalitat de la fada"
-  },
   "03b3e13197": {
     "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
   },
@@ -26,11 +23,11 @@
   "08bd40c754": {
     "translation": "Compte"
   },
-  "090b807281": {
-    "translation": "Espigat"
-  },
   "0a91f7fa87": {
     "translation": "Aquest fitxer ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimineu part del contingut o comenceu un fitxer nou."
+  },
+  "0ab1ef22a3": {
+    "translation": "Parla amb el grup…"
   },
   "0b27918290": {
     "translation": "Fitxer"
@@ -62,9 +59,6 @@
   "13ddd375ad": {
     "translation": "Exporta com a"
   },
-  "141c7239d3": {
-    "translation": "Personalització de fades"
-  },
   "146ffe2fd9": {
     "translation": "Mostra'n més"
   },
@@ -80,11 +74,8 @@
   "1dd1c5fb7f": {
     "translation": "Avui"
   },
-  "1e38506832": {
-    "translation": "Anar a la fada"
-  },
-  "1fe250ea06": {
-    "translation": "Instrueix el grup…"
+  "23f879f41a": {
+    "translation": "S'ha assolit el límit d'ús setmanal de fades. Es restablirà a principis de la setmana vinent."
   },
   "243924bfd5": {
     "translation": "Dormir"
@@ -95,6 +86,12 @@
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
+  "269097080b": {
+    "translation": "Les teves fades t'esperen"
+  },
+  "275173253d": {
+    "translation": "Convoca tots"
+  },
   "284d5cd0dd": {
     "translation": "Model:"
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "Els meus fitxers"
-  },
-  "2e86e6853d": {
-    "translation": "Selecciona el líder"
   },
   "30cd34258a": {
     "translation": "Un grup de <b>fades</b> han vingut a tldraw durant el mes de desembre. Per investigar més a fons, busqueu la fada i feu-hi clic."
@@ -128,26 +122,23 @@
   "335defdafe": {
     "translation": "Si us plau, prova d'actualitzar la pàgina."
   },
-  "33f9ea6fe8": {
-    "translation": "Dissoldre el grup"
-  },
   "34140869c6": {
     "translation": "Un grup de fades arriba al sorteig durant el mes de desembre. Si us plau, torneu a consultar l'1 de desembre."
   },
   "344a7f427f": {
     "translation": "Editor"
   },
+  "34abfe7a0d": {
+    "translation": "Dormir tots"
+  },
+  "34e34c43ec": {
+    "translation": "Gestiona"
+  },
   "3596c1b1f7": {
     "translation": "Deixar de seguir"
   },
   "3903aab323": {
     "translation": "Segueix"
-  },
-  "3a295397e6": {
-    "translation": "Demana ajuda"
-  },
-  "3a77f951ca": {
-    "translation": "Afegeix una tasca nova…"
   },
   "3b6c2b4caa": {
     "translation": "Condicions del servei"
@@ -164,14 +155,14 @@
   "3d0238bf16": {
     "translation": "Accepta-ho tot"
   },
-  "4131ec34ef": {
-    "translation": "Calb"
-  },
   "42e53c47c1": {
     "translation": "Contacta amb el propietari per sol·licitar accés."
   },
   "44db318ee5": {
     "translation": "Obteniu ajuda a Discord"
+  },
+  "45b43c2d28": {
+    "translation": "Les <strong>fades</strong> han vingut a dibuixar durant el mes de desembre."
   },
   "46137245cd": {
     "translation": "Gràcies per ajudar-nos a millorar tldraw!"
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "Nom"
   },
+  "4c41e0bd95": {
+    "translation": "Selecciona-ho tot"
+  },
   "4d0d3ddec9": {
     "translation": "Aquest lloc web utilitza cookies per fer que l'aplicació funcioni i per recopilar dades analítiques."
   },
@@ -206,11 +200,11 @@
   "4da5988a2e": {
     "translation": "Suprimeix el grup…"
   },
+  "4dab36ac83": {
+    "translation": "Més opcions"
+  },
   "4e6fbf032b": {
     "translation": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
-  },
-  "4f827717f7": {
-    "translation": "Punxegut"
   },
   "50db1b7e1e": {
     "translation": "No es pot anul·lar la publicació del fitxer."
@@ -266,20 +260,17 @@
   "61057a0c84": {
     "translation": "Més tard"
   },
+  "61daf2e53d": {
+    "translation": "Parla amb {name}…"
+  },
   "625fd29749": {
     "translation": "Més vell"
   },
   "639bae9ac6": {
     "translation": "tu"
   },
-  "63a78ed464": {
-    "translation": "Personalitza"
-  },
-  "64ebe56d8c": {
-    "translation": "Feu clic per eliminar o arrossegueu per moure"
-  },
-  "65709fd250": {
-    "translation": "Llista de tasques"
+  "6602bbeb29": {
+    "translation": "Guia"
   },
   "6609dd239e": {
     "translation": "Alguna cosa va fallar"
@@ -290,8 +281,17 @@
   "6832ac5936": {
     "translation": "Introdueix la teva adreça electrònica"
   },
+  "688761c83e": {
+    "translation": "Despertar"
+  },
   "68d390535e": {
     "translation": "Introdueix el teu missatge"
+  },
+  "6910bbdc82": {
+    "translation": "Nom de la fada"
+  },
+  "695c3e899d": {
+    "translation": "Depurar fades"
   },
   "6a26f54883": {
     "translation": "Ajuda"
@@ -301,9 +301,6 @@
   },
   "6dfc62f621": {
     "translation": "Seguiu aquests passos per importar el contingut manualment:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Guarda les fades"
   },
   "70222abcfc": {
     "translation": "Configuració del grup"
@@ -344,9 +341,6 @@
   "7827371d1a": {
     "translation": "Aquest fitxer multijugador anònim de tldraw ara és de només lectura. Per continuar editant-lo, inicia la sessió i copia'l als teus fitxers."
   },
-  "7835039819": {
-    "translation": "Hèlix"
-  },
   "78e9815992": {
     "translation": "Ho entenc"
   },
@@ -356,14 +350,8 @@
   "79cc22ac6b": {
     "translation": "Una fada és un petit noi que pot treballar amb tu al llenç. Les fades poden treballar soles o en equip. No hi ha límit al que pot fer una fada. Ningú sap d'on ve."
   },
-  "7a3113b0ba": {
-    "translation": "Arrossega al llenç"
-  },
   "7b1329f5ca": {
     "translation": "Manual d'usuari"
-  },
-  "7b5449bd84": {
-    "translation": "Antena"
   },
   "7be10fc592": {
     "translation": "Restaurar versió"
@@ -392,11 +380,11 @@
   "815e116a2e": {
     "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber! Emplena aquest formulari i et contactarem per correu electrònic si cal. També pots <discord>xatejar amb nosaltres a Discord</discord> o <github>enviar un problema a GitHub</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Mostra les tasques al llenç"
+  "81aa2078d1": {
+    "translation": "Esborra-ho tot"
   },
-  "8472a551f1": {
-    "translation": "Les fades han vingut a dibuixar durant el mes de desembre."
+  "83218ac34c": {
+    "translation": "Benvingut/da"
   },
   "85a082de1b": {
     "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
@@ -404,17 +392,14 @@
   "86353d2c41": {
     "translation": "S'han afegit {total} fitxers .tldr."
   },
-  "86a7df7572": {
-    "translation": "Invoca fades"
-  },
   "86c66437fd": {
     "translation": "Canvia el nom del fitxer"
   },
+  "8726ef8909": {
+    "translation": "Restabliment complet"
+  },
   "88e83b88c5": {
     "translation": "Compra el paquet de fades"
-  },
-  "898e76f01a": {
-    "translation": "Restableix-ho tot"
   },
   "8ad4303b83": {
     "translation": "No, gràcies."
@@ -425,8 +410,14 @@
   "8c2d3d730c": {
     "translation": "Revisa el teu correu electrònic per obtenir un codi de verificació."
   },
+  "8cf04a9734": {
+    "translation": "Inici"
+  },
   "8eb2c00e96": {
     "translation": "Compartit amb tu"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Sobre"
   },
   "8ff3d0a705": {
     "translation": "Tarifa limitada"
@@ -443,11 +434,8 @@
   "930390d222": {
     "translation": "Enllaç d'invitació copiat"
   },
-  "93346fdd70": {
-    "translation": "Orelles"
-  },
-  "93dfe9fbbe": {
-    "translation": "Desselecciona la fada"
+  "94186070ef": {
+    "translation": "Desselecciona"
   },
   "94966d9074": {
     "translation": "Enviar"
@@ -461,17 +449,11 @@
   "96165d6df5": {
     "translation": "Aquest mes"
   },
-  "97a9f16b2e": {
-    "translation": "Nova fada"
-  },
   "985a4b720f": {
     "translation": "Condicions d'ús"
   },
   "98c997a27e": {
     "translation": "Afegeix un enllaç de fitxer"
-  },
-  "98e528aac6": {
-    "translation": "Canvia al xat de fades"
   },
   "9914a0ce04": {
     "translation": "Llum"
@@ -509,20 +491,17 @@
   "a239905023": {
     "translation": "Exportar imatge"
   },
-  "a2f0372a75": {
-    "translation": "Canvia a la llista de tasques"
+  "a286d9991c": {
+    "translation": "Uneix-te"
   },
   "a3debabee7": {
     "translation": "Política de cookies"
   },
-  "a3e932550c": {
-    "translation": "Nom de la fada"
-  },
   "a4d3b161ce": {
     "translation": "Envia"
   },
-  "a4ffdcf0dc": {
-    "translation": "Superior"
+  "a603905470": {
+    "translation": "Depuració"
   },
   "a6cc403d56": {
     "translation": "Qualsevol persona amb l'enllaç"
@@ -530,11 +509,14 @@
   "a768caa988": {
     "translation": "Analítica"
   },
-  "a885eb91ac": {
-    "translation": "Selecció de fades líders"
-  },
   "a8873770ab": {
     "translation": "El fitxer s'està fent gran"
+  },
+  "a8de4c27a8": {
+    "translation": "S'ha arribat al límit setmanal de fades"
+  },
+  "a917baaf14": {
+    "translation": "Nou xat"
   },
   "a9ded1e5ce": {
     "translation": "Fons"
@@ -570,9 +552,6 @@
   "b758336699": {
     "translation": "Copia l'enllaç"
   },
-  "b8996797b9": {
-    "translation": "Amaga les tasques al llenç"
-  },
   "ba0318cb81": {
     "translation": "Inicia la sessió per compartir"
   },
@@ -585,17 +564,20 @@
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zoom a la fada"
+  },
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
   },
   "c28aed8348": {
     "translation": "Permet que <cookies>analytics</cookies> ens ajudi a millorar tldraw."
   },
-  "c2ad21c079": {
-    "translation": "cabell"
-  },
   "c303bd1095": {
     "translation": "No es pot publicar el fitxer."
+  },
+  "c3bf447eab": {
+    "translation": "Obre"
   },
   "c3eb5c3b90": {
     "translation": "Ho entenc"
@@ -605,6 +587,9 @@
   },
   "c6155aaecc": {
     "translation": "Nom del grup"
+  },
+  "c64518704c": {
+    "translation": "Ús"
   },
   "c655b27b1e": {
     "translation": "i18n: cadena llarga"
@@ -617,9 +602,6 @@
   },
   "c87aacf567": {
     "translation": "Tanca la sessió"
-  },
-  "c9b04e7b53": {
-    "translation": "Desselecciona el líder"
   },
   "c9cc8cce24": {
     "translation": "Desa"
@@ -639,14 +621,8 @@
   "cea291e45e": {
     "translation": "Més informació sobre la publicació."
   },
-  "cf62a7f9a7": {
-    "translation": "Restableix els xats"
-  },
   "d3d2e61733": {
     "translation": "Tancar"
-  },
-  "d438a51e6e": {
-    "translation": "Dormiu totes les fades"
   },
   "d46632fe1f": {
     "translation": "Massa sol·licituds. Si us plau, afluixa."
@@ -660,12 +636,6 @@
   "d721757161": {
     "translation": "Tema"
   },
-  "d739f35e18": {
-    "translation": "Xiuxiueja a {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Suprimeix la tasca"
-  },
   "d876a9fe1a": {
     "translation": "Torna-ho a provar"
   },
@@ -675,14 +645,14 @@
   "d9100f3e10": {
     "translation": "Entra aquí per veure el contingut"
   },
+  "d9bfb9789a": {
+    "translation": "Habilita les fades"
+  },
   "d9e35d0f55": {
     "translation": "Heu arribat al nombre màxim de grups. Heu de suprimir els grups antics abans de crear-ne de nous."
   },
   "dbbebf3c03": {
     "translation": "Només convidar"
-  },
-  "dbbece0c3a": {
-    "translation": "Esborra tots els xats"
   },
   "dc30bc0c79": {
     "translation": "Clar"
@@ -699,6 +669,9 @@
   "dfdb78a4e4": {
     "translation": "Senyals de depuració d'aplicacions"
   },
+  "e062622261": {
+    "translation": "Selecciona"
+  },
   "e0c88179b3": {
     "translation": "Convida membres"
   },
@@ -714,14 +687,14 @@
   "e404559826": {
     "translation": "Condicions del servei"
   },
+  "e43ec38a93": {
+    "translation": "Anar a"
+  },
   "e81c4e4f2b": {
     "translation": "o"
   },
   "ea0626ac5a": {
     "translation": "Zona de perill"
-  },
-  "ea181d98ca": {
-    "translation": "Selecciona una fada"
   },
   "ea4788705e": {
     "translation": "Cancel·la"
@@ -744,14 +717,14 @@
   "ede55d955f": {
     "translation": "Llegiu la nostra <a>política de cookies</a> per obtenir més informació."
   },
+  "eee6f05922": {
+    "translation": "Dissoldre"
+  },
   "ef53538ae4": {
     "translation": "Membres"
   },
   "ef7de3f485": {
     "translation": "seleccionat"
-  },
-  "efb2d9d471": {
-    "translation": "Llista de tasques pendents"
   },
   "efde983742": {
     "translation": "Invocar"
@@ -762,9 +735,6 @@
   "f0e8bff6f9": {
     "translation": "Configuració de l'usuari"
   },
-  "f23056da60": {
-    "translation": "Nou projecte"
-  },
   "f2569594b2": {
     "translation": "Fem servir aquestes galetes per desar els vostres fitxers i la configuració."
   },
@@ -774,26 +744,14 @@
   "f4f70727dc": {
     "translation": "Configuració"
   },
-  "f6ae34b4ba": {
-    "translation": "Restableix totes les varetes"
-  },
   "f714e36843": {
     "translation": "Esteu segur que voleu sortir d'aquest grup?"
-  },
-  "f7d5ee6855": {
-    "translation": "Primer trieu un líder…"
-  },
-  "f87386b4ba": {
-    "translation": "Invoca totes les fades"
   },
   "fa2ead697d": {
     "translation": "Política de privacitat"
   },
   "fb15c53f22": {
     "translation": "Visor"
-  },
-  "fd11eafb92": {
-    "translation": "Dissoldre projectes"
   },
   "fd1be3efcf": {
     "translation": "Esteu segur que voleu suprimir aquest fitxer?"
@@ -806,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importa el fitxer…"
-  },
-  "ffec95af2f": {
-    "translation": "Compra accés de fades"
   }
 }

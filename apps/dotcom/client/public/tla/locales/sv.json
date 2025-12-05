@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Acceptera inbjudan"
   },
-  "038c9b4432": {
-    "translation": "Féens personlighet"
-  },
   "03b3e13197": {
     "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet 'Importera fil' från användarmenyn."
   },
@@ -26,11 +23,11 @@
   "08bd40c754": {
     "translation": "Konto"
   },
-  "090b807281": {
-    "translation": "Taggig"
-  },
   "0a91f7fa87": {
     "translation": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+  },
+  "0ab1ef22a3": {
+    "translation": "Prata med gruppen…"
   },
   "0b27918290": {
     "translation": "Fil"
@@ -62,9 +59,6 @@
   "13ddd375ad": {
     "translation": "Exportera som"
   },
-  "141c7239d3": {
-    "translation": "Anpassning av älvor"
-  },
   "146ffe2fd9": {
     "translation": "Visa mer"
   },
@@ -80,11 +74,8 @@
   "1dd1c5fb7f": {
     "translation": "Idag"
   },
-  "1e38506832": {
-    "translation": "Gå till älvan"
-  },
-  "1fe250ea06": {
-    "translation": "Instruera gruppen…"
+  "23f879f41a": {
+    "translation": "Din veckogräns för användning av älvor har nåtts. Den återställs i början av nästa vecka."
   },
   "243924bfd5": {
     "translation": "Sova"
@@ -95,6 +86,12 @@
   "250ddea65c": {
     "translation": "Om tldraw"
   },
+  "269097080b": {
+    "translation": "Dina älvor väntar"
+  },
+  "275173253d": {
+    "translation": "Kalla fram alla"
+  },
   "284d5cd0dd": {
     "translation": "Modell:"
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "Mina filer"
-  },
-  "2e86e6853d": {
-    "translation": "Välj ledare"
   },
   "30cd34258a": {
     "translation": "En fladdrande mängd <b>älvor</b> har kommit till tldraw under december månad. För att undersöka saken närmare, hitta fen och klicka på den."
@@ -128,26 +122,23 @@
   "335defdafe": {
     "translation": "Försök att uppdatera sidan."
   },
-  "33f9ea6fe8": {
-    "translation": "Upplösa gruppen"
-  },
   "34140869c6": {
     "translation": "Ett fladdrande av älvor kommer till tldraw under december månad. Vänligen återkom den 1 december."
   },
   "344a7f427f": {
     "translation": "Redigeringsverktyg"
   },
+  "34abfe7a0d": {
+    "translation": "Sov alla"
+  },
+  "34e34c43ec": {
+    "translation": "Hantera"
+  },
   "3596c1b1f7": {
     "translation": "Sluta följa"
   },
   "3903aab323": {
     "translation": "Följa"
-  },
-  "3a295397e6": {
-    "translation": "Be om hjälp"
-  },
-  "3a77f951ca": {
-    "translation": "Lägg till en ny uppgift…"
   },
   "3b6c2b4caa": {
     "translation": "Användarvillkor"
@@ -164,14 +155,14 @@
   "3d0238bf16": {
     "translation": "Acceptera alla"
   },
-  "4131ec34ef": {
-    "translation": "Skallig"
-  },
   "42e53c47c1": {
     "translation": "Kontakta ägaren för att begära åtkomst."
   },
   "44db318ee5": {
     "translation": "Få hjälp med Discord"
+  },
+  "45b43c2d28": {
+    "translation": "<strong>Féer</strong> har kommit för att dra i december månad."
   },
   "46137245cd": {
     "translation": "Tack för att du hjälper oss att förbättra tldraw!"
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "Namn"
   },
+  "4c41e0bd95": {
+    "translation": "Markera alla"
+  },
   "4d0d3ddec9": {
     "translation": "Den här webbplatsen använder cookies för att appen ska fungera och för att samla in analyser."
   },
@@ -206,11 +200,11 @@
   "4da5988a2e": {
     "translation": "Radera grupp…"
   },
+  "4dab36ac83": {
+    "translation": "Fler alternativ"
+  },
   "4e6fbf032b": {
     "translation": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
-  },
-  "4f827717f7": {
-    "translation": "Spetsig"
   },
   "50db1b7e1e": {
     "translation": "Det gick inte att avpublicera filen."
@@ -266,20 +260,17 @@
   "61057a0c84": {
     "translation": "Senare"
   },
+  "61daf2e53d": {
+    "translation": "Prata med {name}…"
+  },
   "625fd29749": {
     "translation": "Äldre"
   },
   "639bae9ac6": {
     "translation": "du"
   },
-  "63a78ed464": {
-    "translation": "Anpassa"
-  },
-  "64ebe56d8c": {
-    "translation": "Klicka för att ta bort eller dra för att flytta"
-  },
-  "65709fd250": {
-    "translation": "Uppgiftslista"
+  "6602bbeb29": {
+    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Något gick fel"
@@ -290,8 +281,17 @@
   "6832ac5936": {
     "translation": "Ange din e-postadress"
   },
+  "688761c83e": {
+    "translation": "Vakna"
+  },
   "68d390535e": {
     "translation": "Ange ditt meddelande"
+  },
+  "6910bbdc82": {
+    "translation": "Féens namn"
+  },
+  "695c3e899d": {
+    "translation": "Felsök älvor"
   },
   "6a26f54883": {
     "translation": "Hjälp"
@@ -301,9 +301,6 @@
   },
   "6dfc62f621": {
     "translation": "Följ dessa steg för att importera innehållet manuellt:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Lägg undan älvorna"
   },
   "70222abcfc": {
     "translation": "Gruppinställningar"
@@ -344,9 +341,6 @@
   "7827371d1a": {
     "translation": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
   },
-  "7835039819": {
-    "translation": "Propeller"
-  },
   "78e9815992": {
     "translation": "Förstod"
   },
@@ -356,14 +350,8 @@
   "79cc22ac6b": {
     "translation": "En älva är en liten kille som kan arbeta med dig på duken. Älvor kan arbeta ensamma eller i team. Det finns ingen gräns för vad en älva kan göra. Ingen vet var de kommer ifrån."
   },
-  "7a3113b0ba": {
-    "translation": "Dra till arbetsytan"
-  },
   "7b1329f5ca": {
     "translation": "Användarmanual"
-  },
-  "7b5449bd84": {
-    "translation": "Antenn"
   },
   "7be10fc592": {
     "translation": "Återställ version"
@@ -392,11 +380,11 @@
   "815e116a2e": {
     "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta! Fyll i det här formuläret så återkommer vi via e-post om det behövs. Du kan också <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Visa uppgifter på arbetsytan"
+  "81aa2078d1": {
+    "translation": "Rensa alla"
   },
-  "8472a551f1": {
-    "translation": "Feer har kommit för att dra i december månad."
+  "83218ac34c": {
+    "translation": "Välkomna"
   },
   "85a082de1b": {
     "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
@@ -404,17 +392,14 @@
   "86353d2c41": {
     "translation": "Lade till {total} .tldr-filer."
   },
-  "86a7df7572": {
-    "translation": "Kalla fram älvor"
-  },
   "86c66437fd": {
     "translation": "Byt namn på filen"
   },
+  "8726ef8909": {
+    "translation": "Hård återställning"
+  },
   "88e83b88c5": {
     "translation": "Köp älvpaket"
-  },
-  "898e76f01a": {
-    "translation": "Återställ allt"
   },
   "8ad4303b83": {
     "translation": "Nej tack"
@@ -425,8 +410,14 @@
   "8c2d3d730c": {
     "translation": "Kontrollera din e-post för en verifieringskod."
   },
+  "8cf04a9734": {
+    "translation": "Hem"
+  },
   "8eb2c00e96": {
     "translation": "Delas med dig"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Om"
   },
   "8ff3d0a705": {
     "translation": "Begränsad hastighet"
@@ -443,11 +434,8 @@
   "930390d222": {
     "translation": "Kopierad inbjudningslänk"
   },
-  "93346fdd70": {
-    "translation": "Öron"
-  },
-  "93dfe9fbbe": {
-    "translation": "Avmarkera älva"
+  "94186070ef": {
+    "translation": "Välja bort"
   },
   "94966d9074": {
     "translation": "Skicka"
@@ -461,17 +449,11 @@
   "96165d6df5": {
     "translation": "Denna månad"
   },
-  "97a9f16b2e": {
-    "translation": "Ny älva"
-  },
   "985a4b720f": {
     "translation": "Användarvillkor"
   },
   "98c997a27e": {
     "translation": "Lägg till fillänk"
-  },
-  "98e528aac6": {
-    "translation": "Växla till älvchatt"
   },
   "9914a0ce04": {
     "translation": "Ljus"
@@ -509,20 +491,17 @@
   "a239905023": {
     "translation": "Exportera bild"
   },
-  "a2f0372a75": {
-    "translation": "Växla till uppgiftslistan"
+  "a286d9991c": {
+    "translation": "Ansluta sig till"
   },
   "a3debabee7": {
     "translation": "Cookiepolicy"
   },
-  "a3e932550c": {
-    "translation": "Féens namn"
-  },
   "a4d3b161ce": {
     "translation": "Överlämna"
   },
-  "a4ffdcf0dc": {
-    "translation": "Bästa"
+  "a603905470": {
+    "translation": "Felsök"
   },
   "a6cc403d56": {
     "translation": "Alla som har länken"
@@ -530,11 +509,14 @@
   "a768caa988": {
     "translation": "Analytics"
   },
-  "a885eb91ac": {
-    "translation": "Val av ledare för feer"
-  },
   "a8873770ab": {
     "translation": "Filen blir stor"
+  },
+  "a8de4c27a8": {
+    "translation": "Veckogränsen för feer nådd"
+  },
+  "a917baaf14": {
+    "translation": "Ny chatt"
   },
   "a9ded1e5ce": {
     "translation": "Bakgrund"
@@ -570,9 +552,6 @@
   "b758336699": {
     "translation": "Kopiera länk"
   },
-  "b8996797b9": {
-    "translation": "Dölj uppgifter på arbetsytan"
-  },
   "ba0318cb81": {
     "translation": "Logga in för att dela"
   },
@@ -585,17 +564,20 @@
   "bc88b0e89e": {
     "translation": "Delas av {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zooma till älva"
+  },
   "c2276c9127": {
     "translation": "Läs mer om delning."
   },
   "c28aed8348": {
     "translation": "Tillåt <cookies>analytics</cookies> för att hjälpa oss att förbättra tldraw."
   },
-  "c2ad21c079": {
-    "translation": "Hår"
-  },
   "c303bd1095": {
     "translation": "Det gick inte att publicera filen."
+  },
+  "c3bf447eab": {
+    "translation": "Öppna"
   },
   "c3eb5c3b90": {
     "translation": "Jag förstår"
@@ -605,6 +587,9 @@
   },
   "c6155aaecc": {
     "translation": "Gruppnamn"
+  },
+  "c64518704c": {
+    "translation": "Användande"
   },
   "c655b27b1e": {
     "translation": "i18n: Lång sträng"
@@ -617,9 +602,6 @@
   },
   "c87aacf567": {
     "translation": "Logga ut"
-  },
-  "c9b04e7b53": {
-    "translation": "Avmarkera ledare"
   },
   "c9cc8cce24": {
     "translation": "Spara"
@@ -639,14 +621,8 @@
   "cea291e45e": {
     "translation": "Läs mer om publicering."
   },
-  "cf62a7f9a7": {
-    "translation": "Återställ chattar"
-  },
   "d3d2e61733": {
     "translation": "Stäng"
-  },
-  "d438a51e6e": {
-    "translation": "Sova alla älvor"
   },
   "d46632fe1f": {
     "translation": "För många förfrågningar. Var vänlig och sakta ner."
@@ -660,12 +636,6 @@
   "d721757161": {
     "translation": "Tema"
   },
-  "d739f35e18": {
-    "translation": "Viska till {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Ta bort uppgift"
-  },
   "d876a9fe1a": {
     "translation": "Försök igen"
   },
@@ -675,14 +645,14 @@
   "d9100f3e10": {
     "translation": "Gå hit för att se innehållet"
   },
+  "d9bfb9789a": {
+    "translation": "Aktivera älvor"
+  },
   "d9e35d0f55": {
     "translation": "Du har nått det maximala antalet grupper. Du måste ta bort gamla grupper innan du skapar nya."
   },
   "dbbebf3c03": {
     "translation": "Endast inbjudan"
-  },
-  "dbbece0c3a": {
-    "translation": "Rensa alla chattar"
   },
   "dc30bc0c79": {
     "translation": "Rensa"
@@ -699,6 +669,9 @@
   "dfdb78a4e4": {
     "translation": "Appfelsökningsflaggor"
   },
+  "e062622261": {
+    "translation": "Välja"
+  },
   "e0c88179b3": {
     "translation": "Bjud in medlemmar"
   },
@@ -714,14 +687,14 @@
   "e404559826": {
     "translation": "Användarvillkor"
   },
+  "e43ec38a93": {
+    "translation": "Gå till"
+  },
   "e81c4e4f2b": {
     "translation": "eller"
   },
   "ea0626ac5a": {
     "translation": "Riskzon"
-  },
-  "ea181d98ca": {
-    "translation": "Välj älva"
   },
   "ea4788705e": {
     "translation": "Avbryt"
@@ -744,14 +717,14 @@
   "ede55d955f": {
     "translation": "Läs vår <a>cookiepolicy</a> för att lära dig mer."
   },
+  "eee6f05922": {
+    "translation": "Upplösa"
+  },
   "ef53538ae4": {
     "translation": "Medlemmar"
   },
   "ef7de3f485": {
     "translation": "vald"
-  },
-  "efb2d9d471": {
-    "translation": "Att-göra-lista"
   },
   "efde983742": {
     "translation": "Kalla"
@@ -762,9 +735,6 @@
   "f0e8bff6f9": {
     "translation": "Användarinställningar"
   },
-  "f23056da60": {
-    "translation": "Nytt projekt"
-  },
   "f2569594b2": {
     "translation": "Vi använder dessa cookies för att spara dina filer och inställningar."
   },
@@ -774,26 +744,14 @@
   "f4f70727dc": {
     "translation": "Inställningar"
   },
-  "f6ae34b4ba": {
-    "translation": "Återställ alla trollstavar"
-  },
   "f714e36843": {
     "translation": "Är du säker på att du vill lämna den här gruppen?"
-  },
-  "f7d5ee6855": {
-    "translation": "Välj en ledare först…"
-  },
-  "f87386b4ba": {
-    "translation": "Kalla fram alla älvor"
   },
   "fa2ead697d": {
     "translation": "Integritetspolicy"
   },
   "fb15c53f22": {
     "translation": "Visningsverktyg"
-  },
-  "fd11eafb92": {
-    "translation": "Avveckla projekt"
   },
   "fd1be3efcf": {
     "translation": "Är du säker på att du vill ta bort den här filen?"
@@ -806,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importera fil…"
-  },
-  "ffec95af2f": {
-    "translation": "Köp tillgång till älvor"
   }
 }

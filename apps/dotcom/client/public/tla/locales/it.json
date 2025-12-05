@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accetta l'invito"
   },
-  "038c9b4432": {
-    "translation": "Personalità della fata"
-  },
   "03b3e13197": {
     "translation": "Trascina il file nella barra laterale su questa pagina. Oppure seleziona l'opzione \"Importa file\" dal menu utente."
   },
@@ -26,11 +23,11 @@
   "08bd40c754": {
     "translation": "Account"
   },
-  "090b807281": {
-    "translation": "Spinoso"
-  },
   "0a91f7fa87": {
     "translation": "Questo file ha raggiunto il limite di dimensione e le modifiche potrebbero non essere più salvate. Rimuovi parte del contenuto o crea un nuovo file."
+  },
+  "0ab1ef22a3": {
+    "translation": "Parla con il gruppo…"
   },
   "0b27918290": {
     "translation": "File"
@@ -62,9 +59,6 @@
   "13ddd375ad": {
     "translation": "Esporta come"
   },
-  "141c7239d3": {
-    "translation": "Personalizzazione delle fate"
-  },
   "146ffe2fd9": {
     "translation": "Mostra altro"
   },
@@ -80,11 +74,8 @@
   "1dd1c5fb7f": {
     "translation": "Oggi"
   },
-  "1e38506832": {
-    "translation": "Vai alla fata"
-  },
-  "1fe250ea06": {
-    "translation": "Istruire il gruppo…"
+  "23f879f41a": {
+    "translation": "Il limite settimanale di utilizzo delle fate è stato raggiunto. Verrà azzerato all'inizio della prossima settimana."
   },
   "243924bfd5": {
     "translation": "Sonno"
@@ -95,6 +86,12 @@
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
   },
+  "269097080b": {
+    "translation": "Le tue fate ti stanno aspettando"
+  },
+  "275173253d": {
+    "translation": "Evoca tutti"
+  },
   "284d5cd0dd": {
     "translation": "Modello:"
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "I miei file"
-  },
-  "2e86e6853d": {
-    "translation": "Seleziona il leader"
   },
   "30cd34258a": {
     "translation": "Un gruppo di <b>fate</b> è arrivato su tldraw per il mese di dicembre. Per approfondire, trova la fata e cliccaci sopra."
@@ -128,26 +122,23 @@
   "335defdafe": {
     "translation": "Prova a ricaricare la pagina."
   },
-  "33f9ea6fe8": {
-    "translation": "Sciogliere il gruppo"
-  },
   "34140869c6": {
     "translation": "Un'ondata di fate arriverà su tldraw per il mese di dicembre. Tornate a trovarci il 1° dicembre."
   },
   "344a7f427f": {
     "translation": "Editor"
   },
+  "34abfe7a0d": {
+    "translation": "Dormire tutto"
+  },
+  "34e34c43ec": {
+    "translation": "Maneggio"
+  },
   "3596c1b1f7": {
     "translation": "Non seguire più"
   },
   "3903aab323": {
     "translation": "Seguire"
-  },
-  "3a295397e6": {
-    "translation": "Chiedi aiuto"
-  },
-  "3a77f951ca": {
-    "translation": "Aggiungi una nuova attività…"
   },
   "3b6c2b4caa": {
     "translation": "Termini di servizio"
@@ -164,14 +155,14 @@
   "3d0238bf16": {
     "translation": "Accetta tutto"
   },
-  "4131ec34ef": {
-    "translation": "Calvo"
-  },
   "42e53c47c1": {
     "translation": "Contatta il proprietario per richiedere l'accesso."
   },
   "44db318ee5": {
     "translation": "Chiedi aiuto su Discord"
+  },
+  "45b43c2d28": {
+    "translation": "Le <strong>fate</strong> sono arrivate a tldraw per il mese di dicembre."
   },
   "46137245cd": {
     "translation": "Grazie per averci aiutato a migliorare tldraw!"
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "Nome"
   },
+  "4c41e0bd95": {
+    "translation": "Seleziona tutto"
+  },
   "4d0d3ddec9": {
     "translation": "Questo sito utilizza i cookie per far funzionare l'app e per raccogliere dati analitici."
   },
@@ -206,11 +200,11 @@
   "4da5988a2e": {
     "translation": "Elimina gruppo…"
   },
+  "4dab36ac83": {
+    "translation": "Altre opzioni"
+  },
   "4e6fbf032b": {
     "translation": "Vuoi davvero eliminare questo gruppo? Questa azione non può essere annullata."
-  },
-  "4f827717f7": {
-    "translation": "Appuntito"
   },
   "50db1b7e1e": {
     "translation": "Impossibile annullare la pubblicazione del file."
@@ -266,20 +260,17 @@
   "61057a0c84": {
     "translation": "Più tardi"
   },
+  "61daf2e53d": {
+    "translation": "Parla con {name}…"
+  },
   "625fd29749": {
     "translation": "Meno recenti"
   },
   "639bae9ac6": {
     "translation": "Voi"
   },
-  "63a78ed464": {
-    "translation": "Personalizza"
-  },
-  "64ebe56d8c": {
-    "translation": "Fare clic per rimuovere o trascinare per spostare"
-  },
-  "65709fd250": {
-    "translation": "Elenco delle attività"
+  "6602bbeb29": {
+    "translation": "Guida"
   },
   "6609dd239e": {
     "translation": "Si è verificato un errore"
@@ -290,8 +281,17 @@
   "6832ac5936": {
     "translation": "Inserisci il tuo indirizzo email"
   },
+  "688761c83e": {
+    "translation": "Veglia"
+  },
   "68d390535e": {
     "translation": "Inserisci il tuo messaggio"
+  },
+  "6910bbdc82": {
+    "translation": "Nome della fata"
+  },
+  "695c3e899d": {
+    "translation": "Fate del debug"
   },
   "6a26f54883": {
     "translation": "Aiuto"
@@ -301,9 +301,6 @@
   },
   "6dfc62f621": {
     "translation": "Per importare il contenuto manualmente, segui questi passaggi:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Metti via le fate"
   },
   "70222abcfc": {
     "translation": "Impostazioni di gruppo"
@@ -344,9 +341,6 @@
   "7827371d1a": {
     "translation": "Questo file multigiocatore tldraw anonimo è ora di sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
   },
-  "7835039819": {
-    "translation": "Elica"
-  },
   "78e9815992": {
     "translation": "Fatto"
   },
@@ -356,14 +350,8 @@
   "79cc22ac6b": {
     "translation": "Una fata è un piccolo essere che può lavorare con te sulla tela. Le fate possono lavorare da sole o in gruppo. Non c'è limite a ciò che una fata può fare. Nessuno sa da dove vengano."
   },
-  "7a3113b0ba": {
-    "translation": "Trascina sulla tela"
-  },
   "7b1329f5ca": {
     "translation": "Manuale utente"
-  },
-  "7b5449bd84": {
-    "translation": "Antenna"
   },
   "7be10fc592": {
     "translation": "Ripristina versione"
@@ -392,11 +380,11 @@
   "815e116a2e": {
     "translation": "Hai un bug, un problema o un'idea per tldraw? Faccelo sapere! Compila questo modulo e ti contatteremo via email se necessario. Puoi anche <discord>chattare con noi su Discord</discord> o <github>segnalare un problema su GitHub</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Mostra le attività sulla tela"
+  "81aa2078d1": {
+    "translation": "Cancella tutto"
   },
-  "8472a551f1": {
-    "translation": "Le fate sono arrivate per disegnare per il mese di dicembre."
+  "83218ac34c": {
+    "translation": "Benvenuto"
   },
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
@@ -404,17 +392,14 @@
   "86353d2c41": {
     "translation": "Aggiunti {total} file .tldr."
   },
-  "86a7df7572": {
-    "translation": "Evoca le fate"
-  },
   "86c66437fd": {
     "translation": "Rinomina file"
   },
+  "8726ef8909": {
+    "translation": "Ripristino completo"
+  },
   "88e83b88c5": {
     "translation": "Acquista il pacchetto Fairy"
-  },
-  "898e76f01a": {
-    "translation": "Reimposta tutto"
   },
   "8ad4303b83": {
     "translation": "No grazie"
@@ -425,8 +410,14 @@
   "8c2d3d730c": {
     "translation": "Controlla la tua email per un codice di verifica."
   },
+  "8cf04a9734": {
+    "translation": "Casa"
+  },
   "8eb2c00e96": {
     "translation": "Condivisi con te"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Di"
   },
   "8ff3d0a705": {
     "translation": "Richieste limitate"
@@ -443,11 +434,8 @@
   "930390d222": {
     "translation": "Link di invito copiato"
   },
-  "93346fdd70": {
-    "translation": "Orecchie"
-  },
-  "93dfe9fbbe": {
-    "translation": "Deseleziona fata"
+  "94186070ef": {
+    "translation": "Deseleziona"
   },
   "94966d9074": {
     "translation": "Inviare"
@@ -461,17 +449,11 @@
   "96165d6df5": {
     "translation": "Questo mese"
   },
-  "97a9f16b2e": {
-    "translation": "Nuova fata"
-  },
   "985a4b720f": {
     "translation": "Termini di utilizzo"
   },
   "98c997a27e": {
     "translation": "Aggiungi collegamento al file"
-  },
-  "98e528aac6": {
-    "translation": "Passa alla chat delle fate"
   },
   "9914a0ce04": {
     "translation": "Chiaro"
@@ -509,20 +491,17 @@
   "a239905023": {
     "translation": "Esporta immagine"
   },
-  "a2f0372a75": {
-    "translation": "Passa all'elenco delle attività"
+  "a286d9991c": {
+    "translation": "Giuntura"
   },
   "a3debabee7": {
     "translation": "Politica sui cookie"
   },
-  "a3e932550c": {
-    "translation": "Nome della fata"
-  },
   "a4d3b161ce": {
     "translation": "Invia"
   },
-  "a4ffdcf0dc": {
-    "translation": "Superiore"
+  "a603905470": {
+    "translation": "Debug"
   },
   "a6cc403d56": {
     "translation": "Chiunque abbia il link"
@@ -530,11 +509,14 @@
   "a768caa988": {
     "translation": "Analisi"
   },
-  "a885eb91ac": {
-    "translation": "Selezione della fata leader"
-  },
   "a8873770ab": {
     "translation": "Il file sta diventando grande"
+  },
+  "a8de4c27a8": {
+    "translation": "Limite settimanale di fate raggiunto"
+  },
+  "a917baaf14": {
+    "translation": "Nuova chat"
   },
   "a9ded1e5ce": {
     "translation": "Sfondo"
@@ -570,9 +552,6 @@
   "b758336699": {
     "translation": "Copia link"
   },
-  "b8996797b9": {
-    "translation": "Nascondi le attività sulla tela"
-  },
   "ba0318cb81": {
     "translation": "Accedi per condividere"
   },
@@ -585,17 +564,20 @@
   "bc88b0e89e": {
     "translation": "Condivisi da {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zoom su fata"
+  },
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
   },
   "c28aed8348": {
     "translation": "Consenti <cookies>analytics</cookies> per aiutarci a migliorare tldraw."
   },
-  "c2ad21c079": {
-    "translation": "Capelli"
-  },
   "c303bd1095": {
     "translation": "Impossibile pubblicare il file."
+  },
+  "c3bf447eab": {
+    "translation": "Aprire"
   },
   "c3eb5c3b90": {
     "translation": "Capisco"
@@ -605,6 +587,9 @@
   },
   "c6155aaecc": {
     "translation": "Nome del gruppo"
+  },
+  "c64518704c": {
+    "translation": "Utilizzo"
   },
   "c655b27b1e": {
     "translation": "i18n: stringa lunga"
@@ -617,9 +602,6 @@
   },
   "c87aacf567": {
     "translation": "Esci"
-  },
-  "c9b04e7b53": {
-    "translation": "Deseleziona leader"
   },
   "c9cc8cce24": {
     "translation": "Salva"
@@ -639,14 +621,8 @@
   "cea291e45e": {
     "translation": "Maggiori informazioni sulla pubblicazione."
   },
-  "cf62a7f9a7": {
-    "translation": "Reimposta le chat"
-  },
   "d3d2e61733": {
     "translation": "Chiudi"
-  },
-  "d438a51e6e": {
-    "translation": "Metti tutte le fate a dormire"
   },
   "d46632fe1f": {
     "translation": "Troppe richieste. Rallenta."
@@ -660,12 +636,6 @@
   "d721757161": {
     "translation": "Tema"
   },
-  "d739f35e18": {
-    "translation": "Sussurra a {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Elimina attività"
-  },
   "d876a9fe1a": {
     "translation": "Riprova"
   },
@@ -675,14 +645,14 @@
   "d9100f3e10": {
     "translation": "Vai qui per vedere i contenuti"
   },
+  "d9bfb9789a": {
+    "translation": "Abilita le fate"
+  },
   "d9e35d0f55": {
     "translation": "Hai raggiunto il numero massimo di gruppi. Devi eliminare i vecchi gruppi prima di crearne di nuovi."
   },
   "dbbebf3c03": {
     "translation": "Solo su invito"
-  },
-  "dbbece0c3a": {
-    "translation": "Cancella tutte le chat"
   },
   "dc30bc0c79": {
     "translation": "Chiaro"
@@ -699,6 +669,9 @@
   "dfdb78a4e4": {
     "translation": "Flag di debug dell'app"
   },
+  "e062622261": {
+    "translation": "Selezionare"
+  },
   "e0c88179b3": {
     "translation": "Invita i membri"
   },
@@ -714,14 +687,14 @@
   "e404559826": {
     "translation": "Termini di servizio"
   },
+  "e43ec38a93": {
+    "translation": "Vai a"
+  },
   "e81c4e4f2b": {
     "translation": "O"
   },
   "ea0626ac5a": {
     "translation": "Zona pericolosa"
-  },
-  "ea181d98ca": {
-    "translation": "Seleziona fata"
   },
   "ea4788705e": {
     "translation": "Annulla"
@@ -744,14 +717,14 @@
   "ede55d955f": {
     "translation": "Per saperne di più, leggi la nostra <a>informativa sui cookie</a>."
   },
+  "eee6f05922": {
+    "translation": "Sciogliere"
+  },
   "ef53538ae4": {
     "translation": "Membri"
   },
   "ef7de3f485": {
     "translation": "selezionato"
-  },
-  "efb2d9d471": {
-    "translation": "Lista delle cose da fare"
   },
   "efde983742": {
     "translation": "Convocare"
@@ -762,9 +735,6 @@
   "f0e8bff6f9": {
     "translation": "Impostazioni utente"
   },
-  "f23056da60": {
-    "translation": "Nuovo progetto"
-  },
   "f2569594b2": {
     "translation": "Utilizziamo questi cookie per salvare i tuoi file e le tue impostazioni."
   },
@@ -774,26 +744,14 @@
   "f4f70727dc": {
     "translation": "Impostazioni"
   },
-  "f6ae34b4ba": {
-    "translation": "Reimposta tutte le bacchette"
-  },
   "f714e36843": {
     "translation": "Sei sicuro di voler abbandonare questo gruppo?"
-  },
-  "f7d5ee6855": {
-    "translation": "Seleziona prima un leader…"
-  },
-  "f87386b4ba": {
-    "translation": "Evoca tutte le fate"
   },
   "fa2ead697d": {
     "translation": "politica sulla riservatezza"
   },
   "fb15c53f22": {
     "translation": "Visualizzatore"
-  },
-  "fd11eafb92": {
-    "translation": "Sciogliere i progetti"
   },
   "fd1be3efcf": {
     "translation": "Confermi di voler eliminare questo file?"
@@ -806,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importa file…"
-  },
-  "ffec95af2f": {
-    "translation": "Acquista l'accesso fatato"
   }
 }

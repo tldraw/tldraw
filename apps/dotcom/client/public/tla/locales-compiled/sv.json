@@ -11,12 +11,6 @@
       "value": "Acceptera inbjudan"
     }
   ],
-  "038c9b4432": [
-    {
-      "type": 0,
-      "value": "Féens personlighet"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -57,16 +51,16 @@
       "value": "Konto"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Taggig"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Prata med gruppen…"
     }
   ],
   "0b27918290": [
@@ -129,12 +123,6 @@
       "value": "Exportera som"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Anpassning av älvor"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +153,10 @@
       "value": "Idag"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Gå till älvan"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Instruera gruppen…"
+      "value": "Din veckogräns för användning av älvor har nåtts. Den återställs i början av nästa vecka."
     }
   ],
   "243924bfd5": [
@@ -195,6 +177,18 @@
       "value": "Om tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Dina älvor väntar"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Kalla fram alla"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +205,6 @@
     {
       "type": 0,
       "value": "Mina filer"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Välj ledare"
     }
   ],
   "30cd34258a": [
@@ -275,12 +263,6 @@
       "value": "Försök att uppdatera sidan."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Upplösa gruppen"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +275,18 @@
       "value": "Redigeringsverktyg"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Sov alla"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Hantera"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +297,6 @@
     {
       "type": 0,
       "value": "Följa"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Be om hjälp"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Lägg till en ny uppgift…"
     }
   ],
   "3b6c2b4caa": [
@@ -347,12 +329,6 @@
       "value": "Acceptera alla"
     }
   ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Skallig"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -363,6 +339,22 @@
     {
       "type": 0,
       "value": "Få hjälp med Discord"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Féer"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " har kommit för att dra i december månad."
     }
   ],
   "46137245cd": [
@@ -413,6 +405,12 @@
       "value": "Namn"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Markera alla"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -431,16 +429,16 @@
       "value": "Radera grupp…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Fler alternativ"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Spetsig"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +587,20 @@
       "value": "Senare"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Prata med "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +613,10 @@
       "value": "du"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Anpassa"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Klicka för att ta bort eller dra för att flytta"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Uppgiftslista"
+      "value": "Guide"
     }
   ],
   "6609dd239e": [
@@ -637,10 +637,28 @@
       "value": "Ange din e-postadress"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Vakna"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Ange ditt meddelande"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Féens namn"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Felsök älvor"
     }
   ],
   "6a26f54883": [
@@ -659,12 +677,6 @@
     {
       "type": 0,
       "value": "Följ dessa steg för att importera innehållet manuellt:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Lägg undan älvorna"
     }
   ],
   "70222abcfc": [
@@ -745,12 +757,6 @@
       "value": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Propeller"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +775,10 @@
       "value": "En älva är en liten kille som kan arbeta med dig på duken. Älvor kan arbeta ensamma eller i team. Det finns ingen gräns för vad en älva kan göra. Ingen vet var de kommer ifrån."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Dra till arbetsytan"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Användarmanual"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenn"
     }
   ],
   "7be10fc592": [
@@ -869,16 +863,16 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Visa uppgifter på arbetsytan"
+      "value": "Rensa alla"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Feer har kommit för att dra i december månad."
+      "value": "Välkomna"
     }
   ],
   "85a082de1b": [
@@ -901,28 +895,22 @@
       "value": " .tldr-filer."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Kalla fram älvor"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Byt namn på filen"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Hård återställning"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Köp älvpaket"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Återställ allt"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +931,22 @@
       "value": "Kontrollera din e-post för en verifieringskod."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Hem"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Delas med dig"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Om"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +979,10 @@
       "value": "Kopierad inbjudningslänk"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Öron"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Avmarkera älva"
+      "value": "Välja bort"
     }
   ],
   "94966d9074": [
@@ -1015,12 +1009,6 @@
       "value": "Denna månad"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Ny älva"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1019,6 @@
     {
       "type": 0,
       "value": "Lägg till fillänk"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Växla till älvchatt"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1107,10 @@
       "value": "Exportera bild"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Växla till uppgiftslistan"
+      "value": "Ansluta sig till"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1119,16 @@
       "value": "Cookiepolicy"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Féens namn"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Överlämna"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Bästa"
+      "value": "Felsök"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1143,22 @@
       "value": "Analytics"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Val av ledare för feer"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Filen blir stor"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Veckogränsen för feer nådd"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Ny chatt"
     }
   ],
   "a9ded1e5ce": [
@@ -1251,12 +1233,6 @@
       "value": "Kopiera länk"
     }
   ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Dölj uppgifter på arbetsytan"
-    }
-  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1321,6 +1297,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zooma till älva"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1347,16 +1329,16 @@
       "value": " för att hjälpa oss att förbättra tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Hår"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Det gick inte att publicera filen."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Öppna"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1357,12 @@
     {
       "type": 0,
       "value": "Gruppnamn"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Användande"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1387,6 @@
     {
       "type": 0,
       "value": "Logga ut"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Avmarkera ledare"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1425,10 @@
       "value": "Läs mer om publicering."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Återställ chattar"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Stäng"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Sova alla älvor"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1483,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Viska till "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Ta bort uppgift"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1501,12 @@
       "value": "Gå hit för att se innehållet"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Aktivera älvor"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1517,6 @@
     {
       "type": 0,
       "value": "Endast inbjudan"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Rensa alla chattar"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1563,12 @@
       "value": "Appfelsökningsflaggor"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Välja"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1643,6 +1599,12 @@
       "value": "Användarvillkor"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Gå till"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1615,6 @@
     {
       "type": 0,
       "value": "Riskzon"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Välj älva"
     }
   ],
   "ea4788705e": [
@@ -1717,6 +1673,12 @@
       "value": " för att lära dig mer."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Upplösa"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1727,12 +1689,6 @@
     {
       "type": 0,
       "value": "vald"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Att-göra-lista"
     }
   ],
   "efde983742": [
@@ -1753,12 +1709,6 @@
       "value": "Användarinställningar"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Nytt projekt"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1777,28 +1727,10 @@
       "value": "Inställningar"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Återställ alla trollstavar"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Är du säker på att du vill lämna den här gruppen?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Välj en ledare först…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Kalla fram alla älvor"
     }
   ],
   "fa2ead697d": [
@@ -1811,12 +1743,6 @@
     {
       "type": 0,
       "value": "Visningsverktyg"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Avveckla projekt"
     }
   ],
   "fd1be3efcf": [
@@ -1841,12 +1767,6 @@
     {
       "type": 0,
       "value": "Importera fil…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Köp tillgång till älvor"
     }
   ]
 }

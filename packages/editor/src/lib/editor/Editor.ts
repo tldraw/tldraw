@@ -969,6 +969,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.clear()
 		this.store.dispose()
 		this.isDisposed = true
+		this.emit('dispose')
 	}
 
 	/* ------------------- Shape Utils ------------------ */
@@ -3671,16 +3672,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (_willSetInitialBounds) {
 			// If we have just received the initial bounds, don't center the camera.
 			this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
+			this.emit('resize', screenBounds.toJson())
 			this.setCamera(this.getCamera())
 		} else {
 			if (center && !this.getInstanceState().followingUserId) {
 				// Get the page center before the change, make the change, and restore it
 				const before = this.getViewportPageBounds().center
 				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
+				this.emit('resize', screenBounds.toJson())
 				this.centerOnPoint(before)
 			} else {
 				// Otherwise,
 				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
+				this.emit('resize', screenBounds.toJson())
 				this._setCamera(Vec.From({ ...this.getCamera() }))
 			}
 		}
@@ -9184,6 +9188,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		if (point) {
+			const shapesById = new Map<TLShapeId, TLShape>(shapes.map((shape) => [shape.id, shape]))
+			const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
+			if (rootShapesFromContent.length > 0) {
+				const targetParent = this.getShapeAtPoint(point, {
+					hitInside: true,
+					hitFrameInside: true,
+					hitLocked: true,
+					filter: (shape) => {
+						const util = this.getShapeUtil(shape)
+						if (!util.canReceiveNewChildrenOfType) return false
+						return rootShapesFromContent.every((rootShape) =>
+							util.canReceiveNewChildrenOfType!(shape, rootShape.type)
+						)
+					},
+				})
+
+				// When pasting at a specific point (e.g. paste-at-cursor) prefer the
+				// parent under the pointer so that we don't keep using the original
+				// selection's parent (which can keep shapes clipped inside frames).
+				pasteParentId = targetParent ? targetParent.id : currentPageId
+			}
+		}
+
 		let isDuplicating = false
 
 		if (!isPageId(pasteParentId)) {
@@ -10290,8 +10318,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this.emit('event', info)
 			this.root.handleEvent(info)
+			this.emit('event', info)
 			return
 		}
 

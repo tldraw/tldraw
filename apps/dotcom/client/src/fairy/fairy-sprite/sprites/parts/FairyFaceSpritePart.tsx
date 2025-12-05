@@ -1,8 +1,6 @@
-export function FairyFaceSpritePart({
-	bodyColor = 'var(--tl-color-fairy-light)',
-}: {
-	bodyColor?: string
-}) {
+import { FairySpriteProps } from '../sprite-types'
+
+export function FairyFaceSpritePart({ bodyColor }: FairySpriteProps) {
 	return (
 		<>
 			{/* Head circle */}

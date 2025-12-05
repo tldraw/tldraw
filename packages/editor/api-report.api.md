@@ -3506,6 +3506,11 @@ export const tlenv: {
     isWebview: boolean;
 };
 
+// @public
+export const tlenvReactive: Atom<    {
+isCoarsePointer: boolean;
+}, unknown>;
+
 // @public (undocumented)
 export interface TLErrorBoundaryProps {
     // (undocumented)
@@ -3612,6 +3617,8 @@ export interface TLEventMap {
         error: unknown;
     }];
     // (undocumented)
+    dispose: [];
+    // (undocumented)
     edit: [];
     // (undocumented)
     event: [TLEventInfo];
@@ -3619,6 +3626,8 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    // (undocumented)
+    resize: [BoxModel];
     // (undocumented)
     tick: [number];
     // (undocumented)

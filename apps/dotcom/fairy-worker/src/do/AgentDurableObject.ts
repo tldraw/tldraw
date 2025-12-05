@@ -161,8 +161,9 @@ export class AgentDurableObject extends DurableObject<Environment> {
 				}
 
 				console.error('Stream error:', error)
-				const errorMessage = error?.message || error?.toString() || 'Unknown error'
+				const errorMessage = error?.message || error?.error?.name?.toString() || 'Unknown error'
 				const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
+				console.error('Error data:', errorData)
 				try {
 					await writer.write(encoder.encode(errorData))
 					await writer.close()

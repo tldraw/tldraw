@@ -11,12 +11,6 @@
       "value": "Accepta la invitació"
     }
   ],
-  "038c9b4432": [
-    {
-      "type": 0,
-      "value": "La personalitat de la fada"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -57,16 +51,16 @@
       "value": "Compte"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Espigat"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Aquest fitxer ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimineu part del contingut o comenceu un fitxer nou."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Parla amb el grup…"
     }
   ],
   "0b27918290": [
@@ -129,12 +123,6 @@
       "value": "Exporta com a"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Personalització de fades"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +153,10 @@
       "value": "Avui"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Anar a la fada"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Instrueix el grup…"
+      "value": "S'ha assolit el límit d'ús setmanal de fades. Es restablirà a principis de la setmana vinent."
     }
   ],
   "243924bfd5": [
@@ -195,6 +177,18 @@
       "value": "Sobre tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Les teves fades t'esperen"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Convoca tots"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +205,6 @@
     {
       "type": 0,
       "value": "Els meus fitxers"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Selecciona el líder"
     }
   ],
   "30cd34258a": [
@@ -275,12 +263,6 @@
       "value": "Si us plau, prova d'actualitzar la pàgina."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Dissoldre el grup"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +275,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Dormir tots"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Gestiona"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +297,6 @@
     {
       "type": 0,
       "value": "Segueix"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Demana ajuda"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Afegeix una tasca nova…"
     }
   ],
   "3b6c2b4caa": [
@@ -347,12 +329,6 @@
       "value": "Accepta-ho tot"
     }
   ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Calb"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -363,6 +339,26 @@
     {
       "type": 0,
       "value": "Obteniu ajuda a Discord"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "type": 0,
+      "value": "Les "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fades"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " han vingut a dibuixar durant el mes de desembre."
     }
   ],
   "46137245cd": [
@@ -413,6 +409,12 @@
       "value": "Nom"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Selecciona-ho tot"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -431,16 +433,16 @@
       "value": "Suprimeix el grup…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Més opcions"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Punxegut"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +591,20 @@
       "value": "Més tard"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Parla amb "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +617,10 @@
       "value": "tu"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Personalitza"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Feu clic per eliminar o arrossegueu per moure"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Llista de tasques"
+      "value": "Guia"
     }
   ],
   "6609dd239e": [
@@ -637,10 +641,28 @@
       "value": "Introdueix la teva adreça electrònica"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Despertar"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Introdueix el teu missatge"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Nom de la fada"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Depurar fades"
     }
   ],
   "6a26f54883": [
@@ -659,12 +681,6 @@
     {
       "type": 0,
       "value": "Seguiu aquests passos per importar el contingut manualment:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Guarda les fades"
     }
   ],
   "70222abcfc": [
@@ -745,12 +761,6 @@
       "value": "Aquest fitxer multijugador anònim de tldraw ara és de només lectura. Per continuar editant-lo, inicia la sessió i copia'l als teus fitxers."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Hèlix"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +779,10 @@
       "value": "Una fada és un petit noi que pot treballar amb tu al llenç. Les fades poden treballar soles o en equip. No hi ha límit al que pot fer una fada. Ningú sap d'on ve."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Arrossega al llenç"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manual d'usuari"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antena"
     }
   ],
   "7be10fc592": [
@@ -869,16 +867,16 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Mostra les tasques al llenç"
+      "value": "Esborra-ho tot"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Les fades han vingut a dibuixar durant el mes de desembre."
+      "value": "Benvingut/da"
     }
   ],
   "85a082de1b": [
@@ -901,28 +899,22 @@
       "value": " fitxers .tldr."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Invoca fades"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Canvia el nom del fitxer"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Restabliment complet"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Compra el paquet de fades"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Restableix-ho tot"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +935,22 @@
       "value": "Revisa el teu correu electrònic per obtenir un codi de verificació."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Inici"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Compartit amb tu"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Sobre"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +983,10 @@
       "value": "Enllaç d'invitació copiat"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Orelles"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Desselecciona la fada"
+      "value": "Desselecciona"
     }
   ],
   "94966d9074": [
@@ -1015,12 +1013,6 @@
       "value": "Aquest mes"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nova fada"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1023,6 @@
     {
       "type": 0,
       "value": "Afegeix un enllaç de fitxer"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Canvia al xat de fades"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1111,10 @@
       "value": "Exportar imatge"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Canvia a la llista de tasques"
+      "value": "Uneix-te"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1123,16 @@
       "value": "Política de cookies"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Nom de la fada"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Envia"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Superior"
+      "value": "Depuració"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1147,22 @@
       "value": "Analítica"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Selecció de fades líders"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "El fitxer s'està fent gran"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "S'ha arribat al límit setmanal de fades"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nou xat"
     }
   ],
   "a9ded1e5ce": [
@@ -1251,12 +1237,6 @@
       "value": "Copia l'enllaç"
     }
   ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Amaga les tasques al llenç"
-    }
-  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1321,6 +1301,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom a la fada"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1347,16 +1333,16 @@
       "value": " ens ajudi a millorar tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "cabell"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "No es pot publicar el fitxer."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Obre"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1361,12 @@
     {
       "type": 0,
       "value": "Nom del grup"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Ús"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1391,6 @@
     {
       "type": 0,
       "value": "Tanca la sessió"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Desselecciona el líder"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1429,10 @@
       "value": "Més informació sobre la publicació."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Restableix els xats"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Tancar"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Dormiu totes les fades"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1487,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Xiuxiueja a "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Suprimeix la tasca"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1505,12 @@
       "value": "Entra aquí per veure el contingut"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Habilita les fades"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1521,6 @@
     {
       "type": 0,
       "value": "Només convidar"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Esborra tots els xats"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1567,12 @@
       "value": "Senyals de depuració d'aplicacions"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Selecciona"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1643,6 +1603,12 @@
       "value": "Condicions del servei"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Anar a"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1619,6 @@
     {
       "type": 0,
       "value": "Zona de perill"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Selecciona una fada"
     }
   ],
   "ea4788705e": [
@@ -1717,6 +1677,12 @@
       "value": " per obtenir més informació."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Dissoldre"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1727,12 +1693,6 @@
     {
       "type": 0,
       "value": "seleccionat"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Llista de tasques pendents"
     }
   ],
   "efde983742": [
@@ -1753,12 +1713,6 @@
       "value": "Configuració de l'usuari"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Nou projecte"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1777,28 +1731,10 @@
       "value": "Configuració"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Restableix totes les varetes"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Esteu segur que voleu sortir d'aquest grup?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Primer trieu un líder…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Invoca totes les fades"
     }
   ],
   "fa2ead697d": [
@@ -1811,12 +1747,6 @@
     {
       "type": 0,
       "value": "Visor"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Dissoldre projectes"
     }
   ],
   "fd1be3efcf": [
@@ -1841,12 +1771,6 @@
     {
       "type": 0,
       "value": "Importa el fitxer…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Compra accés de fades"
     }
   ]
 }

@@ -11,12 +11,6 @@
       "value": "Prihvati pozivnicu"
     }
   ],
-  "038c9b4432": [
-    {
-      "type": 0,
-      "value": "Vilinska osobnost"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -57,16 +51,16 @@
       "value": "Račun"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Šiljat"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Ova je datoteka dosegla ograničenje veličine i promjene se možda više neće moći spremiti. Uklonite dio sadržaja ili započnite novu datoteku."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Razgovarajte s grupom…"
     }
   ],
   "0b27918290": [
@@ -129,12 +123,6 @@
       "value": "Izvezi kao"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Prilagođavanje vila"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +153,10 @@
       "value": "Danas"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Idi kod vile"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Uputite grupu…"
+      "value": "Dostignut je vaš tjedni limit korištenja vila. Bit će resetiran početkom sljedećeg tjedna."
     }
   ],
   "243924bfd5": [
@@ -195,6 +177,18 @@
       "value": "O tldrawu"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tvoje vile čekaju"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Prizovi sve"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +205,6 @@
     {
       "type": 0,
       "value": "Moje datoteke"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Odaberite vođu"
     }
   ],
   "30cd34258a": [
@@ -275,12 +263,6 @@
       "value": "Pokušajte osvježiti stranicu."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Raspustiti grupu"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +275,18 @@
       "value": "Urednik"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Spavaj sve"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Upravljati"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +297,6 @@
     {
       "type": 0,
       "value": "Prati"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Zatražite pomoć"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Dodaj novi zadatak…"
     }
   ],
   "3b6c2b4caa": [
@@ -347,12 +329,6 @@
       "value": "Prihvati sve"
     }
   ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Ćelav"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -363,6 +339,22 @@
     {
       "type": 0,
       "value": "Zatražite pomoć na Discordu"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Vile"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " su došle crtati za prosinac."
     }
   ],
   "46137245cd": [
@@ -413,6 +405,12 @@
       "value": "Ime"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Odaberi sve"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -431,16 +429,16 @@
       "value": "Izbriši grupu…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Više opcija"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Jeste li sigurni da želite izbrisati ovu grupu? Ova se radnja ne može poništiti."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Šiljast"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +587,20 @@
       "value": "Kasnije"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Razgovarajte s "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +613,10 @@
       "value": "vas"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Prilagodi"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Kliknite za uklanjanje ili povucite za premještanje"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Popis zadataka"
+      "value": "Vodič"
     }
   ],
   "6609dd239e": [
@@ -637,10 +637,28 @@
       "value": "Unesite svoju adresu e-pošte"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Probuditi"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Unesite svoju poruku"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Ime vile"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Vile za otklanjanje grešaka"
     }
   ],
   "6a26f54883": [
@@ -659,12 +677,6 @@
     {
       "type": 0,
       "value": "Slijedite ove korake za ručni uvoz sadržaja:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Sklonite vile"
     }
   ],
   "70222abcfc": [
@@ -745,12 +757,6 @@
       "value": "Ova anonimna tldraw datoteka za više igrača sada je samo za čitanje. Za nastavak uređivanja prijavite se i kopirajte je u svoje datoteke."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Propeler"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +775,10 @@
       "value": "Vila je mali čovjek koji može raditi s vama na platnu. Vile mogu raditi same ili u timu. Ne postoje granice onome što vila može učiniti. Nitko ne zna odakle su došle."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Povucite na platno"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Korisnički priručnik"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antena"
     }
   ],
   "7be10fc592": [
@@ -869,16 +863,16 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Prikaži zadatke na platnu"
+      "value": "Obriši sve"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Vile su došle crtati za mjesec prosinac."
+      "value": "Dobrodošli"
     }
   ],
   "85a082de1b": [
@@ -901,28 +895,22 @@
       "value": " .tldr datoteke."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Prizovi vile"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Preimenuj datoteku"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Tvrdi reset"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Kupite paket za vile"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Resetiraj sve"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +931,22 @@
       "value": "Provjerite svoju e-poštu za kod za potvrdu."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Dom"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Podijeljeno s vama"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Oko"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +979,10 @@
       "value": "Kopirana je poveznica za poziv"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Uši"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Poništi odabir vile"
+      "value": "Poništi odabir"
     }
   ],
   "94966d9074": [
@@ -1015,12 +1009,6 @@
       "value": "Ovaj mjesec"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nova vila"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1019,6 @@
     {
       "type": 0,
       "value": "Dodaj vezu do datoteke"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Prebaci se na vilinski chat"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1107,10 @@
       "value": "Izvoz slike"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Prebaci na popis zadataka"
+      "value": "Pridruži se"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1119,16 @@
       "value": "Politika kolačića"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Ime vile"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Pošalji"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Vrh"
+      "value": "Otklanjanje pogrešaka"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1143,22 @@
       "value": "Analitika"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Izbor vile vođe"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Datoteka postaje velika"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Dosegnut je tjedni limit vila"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Novi razgovor"
     }
   ],
   "a9ded1e5ce": [
@@ -1251,12 +1233,6 @@
       "value": "Kopiraj vezu"
     }
   ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Sakrij zadatke na platnu"
-    }
-  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1325,6 +1301,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zumiraj do vile"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1351,16 +1333,16 @@
       "value": " kako biste nam pomogli poboljšati tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Dlaka"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Nije moguće objaviti datoteku."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Otvoriti"
     }
   ],
   "c3eb5c3b90": [
@@ -1379,6 +1361,12 @@
     {
       "type": 0,
       "value": "Naziv grupe"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Upotreba"
     }
   ],
   "c655b27b1e": [
@@ -1403,12 +1391,6 @@
     {
       "type": 0,
       "value": "Odjavi se"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Poništi odabir vođe"
     }
   ],
   "c9cc8cce24": [
@@ -1447,22 +1429,10 @@
       "value": "Saznajte više o objavljivanju."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Poništi razgovore"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Zatvoriti"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Uspavaj sve vile"
     }
   ],
   "d46632fe1f": [
@@ -1517,26 +1487,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Šapni "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Izbriši zadatak"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1555,6 +1505,12 @@
       "value": "Idite ovdje da vidite sadržaj"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Omogući vile"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1565,12 +1521,6 @@
     {
       "type": 0,
       "value": "Samo na poziv"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Obriši sve razgovore"
     }
   ],
   "dc30bc0c79": [
@@ -1617,6 +1567,12 @@
       "value": "Oznake za otklanjanje pogrešaka aplikacije"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Odaberite"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1647,6 +1603,12 @@
       "value": "Uvjeti usluge"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Idi na"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1657,12 +1619,6 @@
     {
       "type": 0,
       "value": "Opasna zona"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Odaberite vilu"
     }
   ],
   "ea4788705e": [
@@ -1721,6 +1677,12 @@
       "value": " kako biste saznali više."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Raspustiti"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1731,12 +1693,6 @@
     {
       "type": 0,
       "value": "odabrano"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Popis obaveza"
     }
   ],
   "efde983742": [
@@ -1757,12 +1713,6 @@
       "value": "Korisničke postavke"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Novi projekt"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1781,28 +1731,10 @@
       "value": "Postavke"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Resetiraj sve štapiće"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Jeste li sigurni da želite napustiti ovu grupu?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Prvo odaberite vođu…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Prizovi sve vile"
     }
   ],
   "fa2ead697d": [
@@ -1815,12 +1747,6 @@
     {
       "type": 0,
       "value": "Gledatelj"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Raspuštanje projekata"
     }
   ],
   "fd1be3efcf": [
@@ -1845,12 +1771,6 @@
     {
       "type": 0,
       "value": "Uvoz datoteke…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Kupite pristup vili"
     }
   ]
 }

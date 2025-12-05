@@ -45,6 +45,8 @@ export interface Environment {
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
 
+	FEATURE_FLAGS: KVNamespace
+
 	CF_VERSION_METADATA: WorkerVersionMetadata
 
 	// env vars

@@ -58,7 +58,7 @@ export function IFrameProtector({
 	}, [embeddedState, slug, context])
 
 	if (embeddedState === EMBEDDED_STATE.IFRAME_NOT_ALLOWED) {
-		// We're in an iframe and its not one of ours
+		// We're in an iframe and its not one of ours.
 		return (
 			<div className="tldraw__editor tl-container">
 				<div className="iframe-warning__container">

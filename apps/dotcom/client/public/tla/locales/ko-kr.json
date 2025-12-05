@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "초대 수락"
   },
-  "038c9b4432": {
-    "translation": "요정의 성격"
-  },
   "03b3e13197": {
     "translation": "이 페이지의 사이드바로 파일을 드래그하세요. 또는 사용자 메뉴에서 '파일 가져오기' 옵션을 선택합니다."
   },
@@ -26,11 +23,11 @@
   "08bd40c754": {
     "translation": "계정"
   },
-  "090b807281": {
-    "translation": "대못 같은"
-  },
   "0a91f7fa87": {
     "translation": "이 파일은 크기 제한에 도달하여 변경 사항이 더 이상 저장되지 않을 수 있습니다. 일부 콘텐츠를 삭제하거나 새 파일을 시작하세요."
+  },
+  "0ab1ef22a3": {
+    "translation": "그룹에 말하세요…"
   },
   "0b27918290": {
     "translation": "파일"
@@ -62,9 +59,6 @@
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
-  "141c7239d3": {
-    "translation": "요정 커스터마이징"
-  },
   "146ffe2fd9": {
     "translation": "더 보기"
   },
@@ -80,11 +74,8 @@
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
-  "1e38506832": {
-    "translation": "요정에게 가다"
-  },
-  "1fe250ea06": {
-    "translation": "그룹에 지시하세요…"
+  "23f879f41a": {
+    "translation": "주간 요정 사용 한도에 도달했습니다. 다음 주 초에 초기화됩니다."
   },
   "243924bfd5": {
     "translation": "잠"
@@ -95,6 +86,12 @@
   "250ddea65c": {
     "translation": "tldraw에 대하여"
   },
+  "269097080b": {
+    "translation": "당신의 요정들이 기다리고 있습니다"
+  },
+  "275173253d": {
+    "translation": "모두 소환"
+  },
   "284d5cd0dd": {
     "translation": "모델:"
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "내 파일"
-  },
-  "2e86e6853d": {
-    "translation": "리더 선택"
   },
   "30cd34258a": {
     "translation": "12월을 맞아 <b>요정</b>들이 tldraw에 찾아왔습니다. 더 자세히 알아보려면 요정을 찾아 클릭하세요."
@@ -128,26 +122,23 @@
   "335defdafe": {
     "translation": "페이지를 새로 고침해 주세요."
   },
-  "33f9ea6fe8": {
-    "translation": "그룹 해체"
-  },
   "34140869c6": {
     "translation": "12월 한 달 동안 요정들이 tldraw에 찾아옵니다. 12월 1일에 다시 확인해 주세요."
   },
   "344a7f427f": {
     "translation": "편집기"
   },
+  "34abfe7a0d": {
+    "translation": "모두 잠자다"
+  },
+  "34e34c43ec": {
+    "translation": "관리하다"
+  },
   "3596c1b1f7": {
     "translation": "팔로우 취소"
   },
   "3903aab323": {
     "translation": "따르다"
-  },
-  "3a295397e6": {
-    "translation": "도움을 요청하세요"
-  },
-  "3a77f951ca": {
-    "translation": "새로운 작업을 추가하세요…"
   },
   "3b6c2b4caa": {
     "translation": "서비스 약관"
@@ -164,14 +155,14 @@
   "3d0238bf16": {
     "translation": "모두 수락"
   },
-  "4131ec34ef": {
-    "translation": "노골적인"
-  },
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
   },
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
+  },
+  "45b43c2d28": {
+    "translation": "<strong>요정</strong>이 12월 한 달 동안 그림을 그리러 왔습니다."
   },
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "이름"
   },
+  "4c41e0bd95": {
+    "translation": "모두 선택"
+  },
   "4d0d3ddec9": {
     "translation": "이 사이트에서는 앱을 작동시키고 분석 정보를 수집하기 위해 쿠키를 사용합니다."
   },
@@ -206,11 +200,11 @@
   "4da5988a2e": {
     "translation": "그룹 삭제…"
   },
+  "4dab36ac83": {
+    "translation": "더 많은 옵션"
+  },
   "4e6fbf032b": {
     "translation": "이 그룹을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
-  },
-  "4f827717f7": {
-    "translation": "뾰족한"
   },
   "50db1b7e1e": {
     "translation": "파일 게시를 취소할 수 없습니다."
@@ -266,20 +260,17 @@
   "61057a0c84": {
     "translation": "이후"
   },
+  "61daf2e53d": {
+    "translation": "{name}에게 말하세요…"
+  },
   "625fd29749": {
     "translation": "이전"
   },
   "639bae9ac6": {
     "translation": "너"
   },
-  "63a78ed464": {
-    "translation": "사용자 정의"
-  },
-  "64ebe56d8c": {
-    "translation": "클릭하여 제거하거나 드래그하여 이동하세요"
-  },
-  "65709fd250": {
-    "translation": "작업 목록"
+  "6602bbeb29": {
+    "translation": "가이드"
   },
   "6609dd239e": {
     "translation": "문제가 발생했습니다"
@@ -290,8 +281,17 @@
   "6832ac5936": {
     "translation": "이메일 주소를 입력하세요"
   },
+  "688761c83e": {
+    "translation": "깨어 있다"
+  },
   "68d390535e": {
     "translation": "메시지를 입력하세요"
+  },
+  "6910bbdc82": {
+    "translation": "요정의 이름"
+  },
+  "695c3e899d": {
+    "translation": "디버그 요정"
   },
   "6a26f54883": {
     "translation": "도움말"
@@ -301,9 +301,6 @@
   },
   "6dfc62f621": {
     "translation": "수동으로 콘텐츠를 가져오려면 다음 단계를 따르세요."
-  },
-  "6e02bd9e1e": {
-    "translation": "요정을 치워라"
   },
   "70222abcfc": {
     "translation": "그룹 설정"
@@ -344,9 +341,6 @@
   "7827371d1a": {
     "translation": "이 익명의 tldraw 멀티플레이어 파일은 이제 읽기 전용입니다. 편집을 계속하려면 로그인하여 파일에 복사하세요."
   },
-  "7835039819": {
-    "translation": "추진자"
-  },
   "78e9815992": {
     "translation": "알았어요"
   },
@@ -356,14 +350,8 @@
   "79cc22ac6b": {
     "translation": "요정은 캔버스 위에서 여러분과 함께 작업할 수 있는 작은 친구입니다. 요정은 혼자 또는 팀으로 작업할 수 있습니다. 요정이 할 수 있는 일에는 한계가 없습니다. 요정이 어디에서 왔는지 아무도 모릅니다."
   },
-  "7a3113b0ba": {
-    "translation": "캔버스로 드래그"
-  },
   "7b1329f5ca": {
     "translation": "사용 설명서"
-  },
-  "7b5449bd84": {
-    "translation": "안테나"
   },
   "7be10fc592": {
     "translation": "버전 복원"
@@ -392,11 +380,11 @@
   "815e116a2e": {
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
-  "81d48c2f3a": {
-    "translation": "캔버스에 작업 표시"
+  "81aa2078d1": {
+    "translation": "모두 지우기"
   },
-  "8472a551f1": {
-    "translation": "12월에는 요정들이 그림을 그리러 왔어요."
+  "83218ac34c": {
+    "translation": "환영"
   },
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
@@ -404,17 +392,14 @@
   "86353d2c41": {
     "translation": "{total}개의 .tldr 파일을 추가했습니다."
   },
-  "86a7df7572": {
-    "translation": "요정을 소환하다"
-  },
   "86c66437fd": {
     "translation": "파일 이름 바꾸기"
   },
+  "8726ef8909": {
+    "translation": "하드 리셋"
+  },
   "88e83b88c5": {
     "translation": "요정 번들 구매"
-  },
-  "898e76f01a": {
-    "translation": "모든 것을 재설정"
   },
   "8ad4303b83": {
     "translation": "아니요, 고맙습니다"
@@ -425,8 +410,14 @@
   "8c2d3d730c": {
     "translation": "이메일에서 인증 코드를 확인하세요."
   },
+  "8cf04a9734": {
+    "translation": "집"
+  },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
+  },
+  "8f7f4c1ce7": {
+    "translation": "에 대한"
   },
   "8ff3d0a705": {
     "translation": "비율 제한됨"
@@ -443,11 +434,8 @@
   "930390d222": {
     "translation": "초대 링크 복사됨"
   },
-  "93346fdd70": {
-    "translation": "귀"
-  },
-  "93dfe9fbbe": {
-    "translation": "요정 선택 해제"
+  "94186070ef": {
+    "translation": "선택 취소"
   },
   "94966d9074": {
     "translation": "보내다"
@@ -461,17 +449,11 @@
   "96165d6df5": {
     "translation": "이번 달"
   },
-  "97a9f16b2e": {
-    "translation": "새로운 요정"
-  },
   "985a4b720f": {
     "translation": "이용 약관"
   },
   "98c997a27e": {
     "translation": "파일 링크 추가"
-  },
-  "98e528aac6": {
-    "translation": "요정 채팅으로 전환"
   },
   "9914a0ce04": {
     "translation": "라이트"
@@ -509,20 +491,17 @@
   "a239905023": {
     "translation": "이미지 내보내기"
   },
-  "a2f0372a75": {
-    "translation": "작업 목록으로 전환"
+  "a286d9991c": {
+    "translation": "가입하다"
   },
   "a3debabee7": {
     "translation": "쿠키 정책"
   },
-  "a3e932550c": {
-    "translation": "요정의 이름"
-  },
   "a4d3b161ce": {
     "translation": "제출하다"
   },
-  "a4ffdcf0dc": {
-    "translation": "맨 위"
+  "a603905470": {
+    "translation": "디버그"
   },
   "a6cc403d56": {
     "translation": "링크가 있는 사람"
@@ -530,11 +509,14 @@
   "a768caa988": {
     "translation": "해석학"
   },
-  "a885eb91ac": {
-    "translation": "리더 요정 선택"
-  },
   "a8873770ab": {
     "translation": "파일이 커지고 있습니다"
+  },
+  "a8de4c27a8": {
+    "translation": "주간 요정 한도에 도달했습니다"
+  },
+  "a917baaf14": {
+    "translation": "새로운 채팅"
   },
   "a9ded1e5ce": {
     "translation": "배경"
@@ -570,9 +552,6 @@
   "b758336699": {
     "translation": "링크 복사"
   },
-  "b8996797b9": {
-    "translation": "캔버스에서 작업 숨기기"
-  },
   "ba0318cb81": {
     "translation": "공유하려면 로그인하세요"
   },
@@ -585,17 +564,20 @@
   "bc88b0e89e": {
     "translation": "{ownerName} 님이 공유함"
   },
+  "be4f1c62d3": {
+    "translation": "요정으로 확대"
+  },
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
   },
   "c28aed8348": {
     "translation": "<cookies>analytics</cookies>를 허용하여 tldraw를 개선하세요."
   },
-  "c2ad21c079": {
-    "translation": "머리카락"
-  },
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
+  },
+  "c3bf447eab": {
+    "translation": "열려 있는"
   },
   "c3eb5c3b90": {
     "translation": "이해합니다"
@@ -605,6 +587,9 @@
   },
   "c6155aaecc": {
     "translation": "그룹 이름"
+  },
+  "c64518704c": {
+    "translation": "용법"
   },
   "c655b27b1e": {
     "translation": "i18n(국제화): 롱 스트링"
@@ -617,9 +602,6 @@
   },
   "c87aacf567": {
     "translation": "로그아웃"
-  },
-  "c9b04e7b53": {
-    "translation": "리더 선택 해제"
   },
   "c9cc8cce24": {
     "translation": "구하다"
@@ -639,14 +621,8 @@
   "cea291e45e": {
     "translation": "게시에 대해 자세히 알아보세요."
   },
-  "cf62a7f9a7": {
-    "translation": "채팅 재설정"
-  },
   "d3d2e61733": {
     "translation": "닫기"
-  },
-  "d438a51e6e": {
-    "translation": "모든 요정을 잠재우세요"
   },
   "d46632fe1f": {
     "translation": "요청이 너무 많습니다. 천천히 해주세요."
@@ -660,12 +636,6 @@
   "d721757161": {
     "translation": "테마"
   },
-  "d739f35e18": {
-    "translation": "{name}에게 속삭여주세요…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "작업 삭제"
-  },
   "d876a9fe1a": {
     "translation": "다시 시도"
   },
@@ -675,14 +645,14 @@
   "d9100f3e10": {
     "translation": "여기로 이동하여 콘텐츠 보기"
   },
+  "d9bfb9789a": {
+    "translation": "요정 활성화"
+  },
   "d9e35d0f55": {
     "translation": "최대 그룹 수에 도달했습니다. 새 그룹을 만들려면 기존 그룹을 삭제해야 합니다."
   },
   "dbbebf3c03": {
     "translation": "초대만"
-  },
-  "dbbece0c3a": {
-    "translation": "모든 채팅 지우기"
   },
   "dc30bc0c79": {
     "translation": "분명한"
@@ -699,6 +669,9 @@
   "dfdb78a4e4": {
     "translation": "앱 디버그 신고"
   },
+  "e062622261": {
+    "translation": "선택하다"
+  },
   "e0c88179b3": {
     "translation": "회원 초대"
   },
@@ -714,14 +687,14 @@
   "e404559826": {
     "translation": "서비스 약관"
   },
+  "e43ec38a93": {
+    "translation": "로 가다"
+  },
   "e81c4e4f2b": {
     "translation": "또는"
   },
   "ea0626ac5a": {
     "translation": "위험 구역"
-  },
-  "ea181d98ca": {
-    "translation": "요정을 선택하세요"
   },
   "ea4788705e": {
     "translation": "취소"
@@ -744,14 +717,14 @@
   "ede55d955f": {
     "translation": "자세한 내용을 알아보려면 <a>쿠키 정책</a>을 읽어보세요."
   },
+  "eee6f05922": {
+    "translation": "해산하다"
+  },
   "ef53538ae4": {
     "translation": "회원들"
   },
   "ef7de3f485": {
     "translation": "선택된"
-  },
-  "efb2d9d471": {
-    "translation": "할 일 목록"
   },
   "efde983742": {
     "translation": "소환하다"
@@ -762,9 +735,6 @@
   "f0e8bff6f9": {
     "translation": "사용자 설정"
   },
-  "f23056da60": {
-    "translation": "새로운 프로젝트"
-  },
   "f2569594b2": {
     "translation": "이 쿠키는 귀하의 파일과 설정을 저장하는 데 사용됩니다."
   },
@@ -774,26 +744,14 @@
   "f4f70727dc": {
     "translation": "설정"
   },
-  "f6ae34b4ba": {
-    "translation": "모든 지팡이 재설정"
-  },
   "f714e36843": {
     "translation": "정말로 이 그룹을 떠나시겠습니까?"
-  },
-  "f7d5ee6855": {
-    "translation": "먼저 리더를 선택하세요…"
-  },
-  "f87386b4ba": {
-    "translation": "모든 요정을 소환하세요"
   },
   "fa2ead697d": {
     "translation": "개인정보 보호정책"
   },
   "fb15c53f22": {
     "translation": "뷰어"
-  },
-  "fd11eafb92": {
-    "translation": "프로젝트 해체"
   },
   "fd1be3efcf": {
     "translation": "이 파일을 삭제하시겠습니까?"
@@ -806,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "파일 가져오기…"
-  },
-  "ffec95af2f": {
-    "translation": "요정 접근권 구매"
   }
 }

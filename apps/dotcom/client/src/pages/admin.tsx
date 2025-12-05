@@ -1,13 +1,21 @@
-import { MAX_FAIRY_COUNT, TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
+import {
+	FeatureFlagValue,
+	MAX_FAIRY_COUNT,
+	TlaFile,
+	TlaUser,
+	userHasFlag,
+	ZStoreData,
+} from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { fetch } from 'tldraw'
+import { fetch, useValue } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
+import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
 
-// Helper component for structured data display
+// Helper component for structured data display.
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
 	const [copied, setCopied] = useState(false)
 
@@ -241,6 +249,12 @@ export function Component() {
 					<FairyInvites />
 				</section>
 
+				{/* Feature Flags Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Feature Flags</h3>
+					<FeatureFlags />
+				</section>
+
 				{/* File Operations Section */}
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">File Operations</h3>
@@ -263,6 +277,8 @@ export function Component() {
 }
 
 function FairyInvites() {
+	const app = useApp()
+	const user = useValue('user', () => app.getUser(), [app])
 	const [invites, setInvites] = useState<
 		Array<{
 			id: string
@@ -270,19 +286,25 @@ function FairyInvites() {
 			maxUses: number
 			currentUses: number
 			createdAt: number
+			description: string | null
+			redeemedBy: string[]
 		}>
 	>([])
 	const [maxUses, setMaxUses] = useState(1)
-	const [grantEmail, setGrantEmail] = useState('')
-	const [grantSetToZero, setGrantSetToZero] = useState(false)
-	const [removeEmail, setRemoveEmail] = useState('')
+	const [inviteDescription, setInviteDescription] = useState('')
+	const [accessEmail, setAccessEmail] = useState('')
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isEnabling, setIsEnabling] = useState(false)
+	const [isRemovingForMe, setIsRemovingForMe] = useState(false)
 	const [isGranting, setIsGranting] = useState(false)
 	const [isRemoving, setIsRemoving] = useState(false)
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [isTableExpanded, setIsTableExpanded] = useState(false)
+	const [limitEmail, setLimitEmail] = useState('')
+	const [limit, setLimit] = useState<number | ''>('')
+	const [isSettingLimit, setIsSettingLimit] = useState(false)
 
 	const loadInvites = useCallback(async () => {
 		setIsLoading(true)
@@ -318,7 +340,7 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy-invites', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ maxUses }),
+				body: JSON.stringify({ maxUses, description: inviteDescription || null }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
@@ -326,13 +348,15 @@ function FairyInvites() {
 			}
 			const invite = await res.json()
 			setSuccessMessage(`Invite created: ${invite.id}`)
+			setInviteDescription('')
+			setIsTableExpanded(true)
 			await loadInvites()
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to create invite')
 		} finally {
 			setIsCreating(false)
 		}
-	}, [maxUses, loadInvites])
+	}, [maxUses, inviteDescription, loadInvites])
 
 	const deleteInvite = useCallback(
 		async (id: string) => {
@@ -360,7 +384,7 @@ function FairyInvites() {
 	)
 
 	const grantAccess = useCallback(async () => {
-		if (!grantEmail || !grantEmail.includes('@')) {
+		if (!accessEmail || !accessEmail.includes('@')) {
 			setError('Please enter a valid email address')
 			return
 		}
@@ -372,21 +396,21 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy/grant-access', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: grantEmail, setToZero: grantSetToZero }),
+				body: JSON.stringify({ email: accessEmail }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
 			await res.json()
-			setSuccessMessage(`Fairy access granted to ${grantEmail}!`)
-			setGrantEmail('')
+			setSuccessMessage(`Fairy access granted to ${accessEmail}!`)
+			setAccessEmail('')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to grant fairy access')
 		} finally {
 			setIsGranting(false)
 		}
-	}, [grantEmail, grantSetToZero])
+	}, [accessEmail])
 
 	const enableForMe = useCallback(async () => {
 		setIsEnabling(true)
@@ -409,9 +433,41 @@ function FairyInvites() {
 		}
 	}, [])
 
+	const removeForMe = useCallback(async () => {
+		if (!user?.email) {
+			setError('No user email found')
+			return
+		}
+
+		setIsRemovingForMe(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/remove-access', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: user.email }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage('Fairy access removed!')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
+		} finally {
+			setIsRemovingForMe(false)
+		}
+	}, [user?.email])
+
 	const removeFairyAccess = useCallback(async () => {
-		if (!removeEmail || !removeEmail.includes('@')) {
+		if (!accessEmail || !accessEmail.includes('@')) {
 			setError('Please enter a valid email address')
+			return
+		}
+
+		if (!window.confirm(`Remove fairy access from ${accessEmail}?`)) {
 			return
 		}
 
@@ -422,21 +478,65 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy/remove-access', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: removeEmail }),
+				body: JSON.stringify({ email: accessEmail }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
 			await res.json()
-			setSuccessMessage(`Fairy access removed from ${removeEmail}!`)
-			setRemoveEmail('')
+			setSuccessMessage(`Fairy access removed from ${accessEmail}!`)
+			setAccessEmail('')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
 		} finally {
 			setIsRemoving(false)
 		}
-	}, [removeEmail])
+	}, [accessEmail])
+
+	const setWeeklyLimit = useCallback(
+		async (newLimit: number) => {
+			if (!limitEmail) {
+				setError('Email is required')
+				return
+			}
+
+			setIsSettingLimit(true)
+			setError(null)
+			setSuccessMessage(null)
+			try {
+				const res = await fetch('/api/app/admin/fairy/set-weekly-limit', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email: limitEmail, limit: newLimit }),
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				setSuccessMessage(`Weekly limit set to ${newLimit === 0 ? 'blocked' : `$${newLimit}`}`)
+				setLimitEmail('')
+				setLimit('')
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to set weekly limit')
+			} finally {
+				setIsSettingLimit(false)
+			}
+		},
+		[limitEmail]
+	)
+
+	const handleSetCustomLimit = useCallback(async () => {
+		if (limit === '') {
+			setError('Please enter a limit value')
+			return
+		}
+		await setWeeklyLimit(Number(limit))
+	}, [limit, setWeeklyLimit])
+
+	const handleBlock = useCallback(async () => {
+		await setWeeklyLimit(0)
+	}, [setWeeklyLimit])
 
 	useEffect(() => {
 		if (successMessage) {
@@ -455,72 +555,87 @@ function FairyInvites() {
 				Quick access toggle for development. Grants {MAX_FAIRY_COUNT} fairies with 1 year
 				expiration.
 			</p>
-			<div style={{ marginBottom: '16px' }}>
+			<div className={styles.fairyButtonContainer}>
 				<TlaButton onClick={enableForMe} variant="primary" isLoading={isEnabling}>
 					Enable fairies for me
 				</TlaButton>
+				<TlaButton
+					onClick={removeForMe}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isRemovingForMe}
+				>
+					Remove access for me
+				</TlaButton>
 			</div>
 
-			<h4 className="tla-text_ui__medium">Grant Fairy Access to User</h4>
+			<h4 className="tla-text_ui__medium">Manage Fairy Access</h4>
 			<p className="tla-text_ui__small">
-				Grant fairy access to a user by email. This will grant {MAX_FAIRY_COUNT} fairies, or use the
-				checkbox to set to 0 (shows purchase option).
+				Grant or remove fairy access by email. Granting access will give {MAX_FAIRY_COUNT} fairies.
 			</p>
-			<div style={{ marginBottom: '24px' }}>
-				<div className={styles.downloadContainer}>
-					<div>
-						<label htmlFor="grantEmail">Email:</label>
-						<input
-							id="grantEmail"
-							type="email"
-							placeholder="user@example.com"
-							value={grantEmail}
-							onChange={(e) => setGrantEmail(e.target.value)}
-							className={styles.searchInput}
-							style={{ width: '250px', marginLeft: '8px' }}
-						/>
-					</div>
-					<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
-						Grant Access
-					</TlaButton>
-				</div>
-				<div style={{ marginTop: '8px' }}>
-					<label
-						htmlFor="grantSetToZero"
-						style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-					>
-						<input
-							id="grantSetToZero"
-							type="checkbox"
-							checked={grantSetToZero}
-							onChange={(e) => setGrantSetToZero(e.target.checked)}
-						/>
-						<span className="tla-text_ui__small">
-							Set to 0 (show purchase option without granting access)
-						</span>
-					</label>
-				</div>
-			</div>
-
-			<h4 className="tla-text_ui__medium">Remove Fairy Access from User</h4>
-			<p className="tla-text_ui__small">
-				Remove fairy access from a user by email. This will set fairy limit and expiration to null.
-			</p>
-			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
+			<div className={`${styles.downloadContainer} ${styles.fairyAccessContainer}`}>
 				<div>
-					<label htmlFor="removeEmail">Email:</label>
+					<label htmlFor="accessEmail">Email:</label>
 					<input
-						id="removeEmail"
+						id="accessEmail"
 						type="email"
 						placeholder="user@example.com"
-						value={removeEmail}
-						onChange={(e) => setRemoveEmail(e.target.value)}
-						className={styles.searchInput}
-						style={{ width: '250px', marginLeft: '8px' }}
+						value={accessEmail}
+						onChange={(e) => setAccessEmail(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
 					/>
 				</div>
-				<TlaButton onClick={removeFairyAccess} variant="primary" isLoading={isRemoving}>
+				<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
+					Grant Access
+				</TlaButton>
+				<TlaButton
+					onClick={removeFairyAccess}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isRemoving}
+				>
 					Remove Access
+				</TlaButton>
+			</div>
+
+			<h4 className="tla-text_ui__medium">Manage weekly limits</h4>
+			<p className="tla-text_ui__small">
+				Set per-user weekly usage limits. Default is $25 per week.
+			</p>
+			<div className={`${styles.downloadContainer} ${styles.fairyAccessContainer}`}>
+				<div>
+					<label htmlFor="limitEmail">Email:</label>
+					<input
+						id="limitEmail"
+						type="text"
+						placeholder="user@example.com"
+						value={limitEmail}
+						onChange={(e) => setLimitEmail(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<div>
+					<label htmlFor="customLimit">New limit:</label>
+					<input
+						id="customLimit"
+						type="number"
+						placeholder="25"
+						value={limit}
+						onChange={(e) => setLimit(e.target.value === '' ? '' : Number(e.target.value))}
+						min={0}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<TlaButton onClick={handleSetCustomLimit} variant="primary" isLoading={isSettingLimit}>
+					Set custom limit
+				</TlaButton>
+				<TlaButton
+					onClick={handleBlock}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isSettingLimit}
+				>
+					Block
 				</TlaButton>
 			</div>
 
@@ -531,6 +646,17 @@ function FairyInvites() {
 			</p>
 			<div className={styles.downloadContainer}>
 				<div>
+					<label htmlFor="inviteDescription">Description:</label>
+					<input
+						id="inviteDescription"
+						type="text"
+						placeholder="Optional description"
+						value={inviteDescription}
+						onChange={(e) => setInviteDescription(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyDescriptionInput}`}
+					/>
+				</div>
+				<div>
 					<label htmlFor="maxUses">Max uses:</label>
 					<input
 						id="maxUses"
@@ -539,8 +665,7 @@ function FairyInvites() {
 						value={maxUses}
 						onChange={(e) => setMaxUses(Number(e.target.value))}
 						min={0}
-						className={styles.searchInput}
-						style={{ width: '120px', marginLeft: '8px' }}
+						className={`${styles.searchInput} ${styles.fairyMaxUsesInput}`}
 					/>
 				</div>
 				<TlaButton onClick={createInvite} variant="primary" isLoading={isCreating}>
@@ -548,53 +673,194 @@ function FairyInvites() {
 				</TlaButton>
 			</div>
 
+			<div className={styles.invitesTableContainer}>
+				<TlaButton
+					onClick={() => setIsTableExpanded(!isTableExpanded)}
+					variant="secondary"
+					className={styles.toggleTableButton}
+				>
+					{isTableExpanded ? '▼' : '▶'} {isTableExpanded ? 'Hide' : 'Show'} {invites.length} invite
+					{invites.length !== 1 ? 's' : ''}
+				</TlaButton>
+
+				{isTableExpanded && (
+					<>
+						{isLoading ? (
+							<p className="tla-text_ui__small">Loading invites...</p>
+						) : invites.length === 0 ? (
+							<p className="tla-text_ui__small">No invites yet</p>
+						) : (
+							<table className={styles.invitesTable}>
+								<thead>
+									<tr>
+										<th>ID</th>
+										<th>Description</th>
+										<th>Fairy Limit</th>
+										<th>Uses</th>
+										<th>Redeemed By</th>
+										<th>Created</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{[...invites]
+										.sort((a, b) => b.createdAt - a.createdAt)
+										.map((invite) => (
+											<tr key={invite.id}>
+												<td>{invite.id}</td>
+												<td>{invite.description || '-'}</td>
+												<td>{invite.fairyLimit}</td>
+												<td>
+													{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
+												</td>
+												<td>
+													{invite.redeemedBy && invite.redeemedBy.length > 0
+														? invite.redeemedBy.join(', ')
+														: '-'}
+												</td>
+												<td>{new Date(invite.createdAt).toLocaleString()}</td>
+												<td className={styles.tableActions}>
+													<TlaButton
+														onClick={() => {
+															const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
+															navigator.clipboard.writeText(inviteUrl)
+															setSuccessMessage('Link copied to clipboard!')
+														}}
+														variant="secondary"
+													>
+														Copy link
+													</TlaButton>
+													<TlaButton
+														onClick={() => deleteInvite(invite.id)}
+														variant="warning"
+														className={styles.deleteButton}
+													>
+														Delete
+													</TlaButton>
+												</td>
+											</tr>
+										))}
+								</tbody>
+							</table>
+						)}
+					</>
+				)}
+			</div>
+		</div>
+	)
+}
+
+function FeatureFlags() {
+	const [flags, setFlags] = useState<Record<string, FeatureFlagValue>>({})
+	const [isLoading, setIsLoading] = useState(true)
+	const [isSaving, setIsSaving] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const loadFlags = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/feature-flags')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = await res.json()
+			setFlags(data)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load flags')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		loadFlags()
+	}, [loadFlags])
+
+	const toggleFlag = useCallback(async (flag: string, enabled: boolean) => {
+		const action = enabled ? 'enable' : 'disable'
+		if (!window.confirm(`Are you sure you want to ${action} "${flag}" for ALL users?`)) {
+			return
+		}
+
+		setIsSaving(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/feature-flags', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ flag, enabled }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setFlags((prev) => ({ ...prev, [flag]: { ...prev[flag], enabled } }))
+			setSuccessMessage(`${flag} ${enabled ? 'enabled' : 'disabled'}`)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to update flag')
+		} finally {
+			setIsSaving(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+
+			<p className={`tla-text_ui__small ${styles.featureFlagsNote}`}>
+				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
+			</p>
+			<p className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
+				Unchecking these flags will completely disable the feature for everyone, regardless of their
+				individual access settings.
+			</p>
+
 			{isLoading ? (
-				<p className="tla-text_ui__small">Loading invites...</p>
-			) : invites.length === 0 ? (
-				<p className="tla-text_ui__small">No invites yet</p>
+				<p className="tla-text_ui__small">Loading flags...</p>
 			) : (
-				<table className={styles.invitesTable}>
-					<thead>
-						<tr>
-							<th>ID</th>
-							<th>Fairy Limit</th>
-							<th>Uses</th>
-							<th>Created</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{invites.map((invite) => (
-							<tr key={invite.id}>
-								<td>{invite.id}</td>
-								<td>{invite.fairyLimit}</td>
-								<td>
-									{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
-								</td>
-								<td>{new Date(invite.createdAt).toLocaleString()}</td>
-								<td style={{ display: 'flex', gap: '8px' }}>
-									<TlaButton
-										onClick={() => {
-											const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
-											navigator.clipboard.writeText(inviteUrl)
-											setSuccessMessage('Link copied to clipboard!')
-										}}
-										variant="secondary"
-									>
-										Copy link
-									</TlaButton>
-									<TlaButton
-										onClick={() => deleteInvite(invite.id)}
-										variant="warning"
-										className={styles.deleteButton}
-									>
-										Delete
-									</TlaButton>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+				<div className={styles.featureFlagsContainer}>
+					{Object.entries(flags)
+						.sort(([a], [b]) => a.localeCompare(b))
+						.map(([flagName, flagValue]) => {
+							const label = flagName
+								.split('_')
+								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+								.join(' ')
+							return (
+								<div key={flagName} className={styles.featureFlagItem}>
+									<label htmlFor={flagName} className={styles.featureFlagLabel}>
+										<input
+											id={flagName}
+											type="checkbox"
+											checked={flagValue.enabled}
+											onChange={(e) => toggleFlag(flagName, e.target.checked)}
+											disabled={isSaving}
+										/>
+										<span className="tla-text_ui__small">
+											<strong>{label}</strong>
+										</span>
+									</label>
+									{flagValue.description && (
+										<span className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
+											{flagValue.description}
+										</span>
+									)}
+								</div>
+							)
+						})}
+				</div>
 			)}
 		</div>
 	)
@@ -1025,8 +1291,7 @@ function BatchMigrateUsersToGroups() {
 						onChange={(e) => setSleepMs(Number(e.target.value))}
 						disabled={isMigrating}
 						min={0}
-						className={styles.searchInput}
-						style={{ width: '100px', marginLeft: '8px' }}
+						className={`${styles.searchInput} ${styles.sleepInput}`}
 					/>
 				</div>
 			</div>
