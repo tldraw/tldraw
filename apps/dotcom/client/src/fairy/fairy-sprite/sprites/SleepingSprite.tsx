@@ -1,46 +1,47 @@
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function SleepingSprite({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint: string | null
-}) {
-	;<circle
-		cx="55.4159"
-		cy="33.7832"
-		r="19.8442"
-		fill={bodyColor}
-		stroke="var(--tl-color-fairy-dark)"
-		strokeWidth="5"
-	/>
+// Approximate path lengths for sleeping legs (measured from the SVG paths)
+const LEFT_LEG_LENGTH = 18
+const RIGHT_LEG_LENGTH = 17
+
+export function SleepingSprite(props: FairySpriteProps) {
+	const { legLength } = props
+	// legLength is 0-1, where 1 is full length
+	const scale = 0.5 + legLength * 0.5
+	const leftDashOffset = LEFT_LEG_LENGTH * (1 - scale)
+	const rightDashOffset = RIGHT_LEG_LENGTH * (1 - scale * 0.96)
+
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} offsetX={1} offsetY={3} />
+			<FairyHatSpritePart {...props} offsetX={1} offsetY={3} />
 			<path
 				d="M65.6146 53.7521C68.8514 55.8325 73.413 60.9857 74.1733 66.8989"
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6"
 				strokeLinecap="round"
 			/>
+			{/* Left leg - path reversed to grow from body down */}
 			<path
-				d="M48.4376 100.267C48.4376 100.267 47.0636 95.8756 46.7201 92.5821C46.3766 89.2887 46.5827 85.4702 46.5827 85.4702"
+				d="M46.5827 85.4702C46.5827 85.4702 46.3766 89.2887 46.7201 92.5821C47.0636 95.8756 48.4376 100.267 48.4376 100.267"
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6"
 				strokeLinecap="round"
+				strokeDasharray={LEFT_LEG_LENGTH}
+				strokeDashoffset={leftDashOffset}
 			/>
+			{/* Right leg - path reversed to grow from body down */}
 			<path
-				d="M60.1818 101.42C60.1818 101.42 61.222 97.0898 61.4859 93.6972C61.7497 90.3046 61.5989 87.3418 61.5989 87.3418"
+				d="M61.5989 87.3418C61.5989 87.3418 61.7497 90.3046 61.4859 93.6972C61.222 97.0898 60.1818 101.42 60.1818 101.42"
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6"
 				strokeLinecap="round"
+				strokeDasharray={RIGHT_LEG_LENGTH}
+				strokeDashoffset={rightDashOffset}
 			/>
 			<path
 				d="M43.3818 82.9905C39.5997 78.381 40.496 56.9063 41.9702 53.1565C44.9926 45.4689 64.1965 49.0706 66.134 56.5728C67.2994 61.0851 68.3209 81.8677 65.484 84.4088C62.647 86.95 47.1639 87.6001 43.3818 82.9905Z"
-				fill={tint ?? bodyColor}
+				fill={props.tint ?? props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>
@@ -48,7 +49,7 @@ export function SleepingSprite({
 				cx="55.9419"
 				cy="37.8115"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>

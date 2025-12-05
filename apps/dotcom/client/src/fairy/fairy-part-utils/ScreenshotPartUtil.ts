@@ -29,6 +29,7 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		const result = await editor.toImage(shapes, {
 			format: 'jpeg',
 			background: true,
+			darkMode: false,
 			bounds: Box.From(request.bounds),
 			padding: 0,
 			pixelRatio: 1,
