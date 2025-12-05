@@ -56,8 +56,17 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		},
 	},
 	['one-shotting']: {
+		onEnter(agent, fromMode) {
+			// When entering one-shotting mode from idling, clear created shapes tracking
+			// This handles the case where a user prompt starts while in idling mode,
+			// which transitions to one-shotting before one-shotting.onPromptStart is called
+			if (fromMode === 'idling') {
+				agent.lints.clearCreatedShapes()
+			}
+		},
 		onPromptStart(agent, request) {
 			// one-shotting fairies get lints on shapes created over the course of the prompt, new user prompts reset this
+			// This handles cases where a prompt starts while already in one-shotting mode (e.g., continuation, interrupt)
 			if (request.source === 'user') {
 				agent.lints.clearCreatedShapes()
 			}
