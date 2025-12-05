@@ -4,6 +4,7 @@ import { AnalyticsService } from './analytics-service'
 class Kick2Service extends AnalyticsService {
 	override enable() {
 		if (this.isEnabled) return
+		if (document.getElementById(KICK2_SCRIPT_ID)) return
 		const kick2ScriptTag = document.createElement('script')
 		kick2ScriptTag.id = KICK2_SCRIPT_ID
 		kick2ScriptTag.src = KICK2_SCRIPT_URL
