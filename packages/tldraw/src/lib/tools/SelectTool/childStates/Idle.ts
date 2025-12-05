@@ -243,7 +243,6 @@ export class Idle extends StateNode {
 
 				if (onlySelectedShape) {
 					const util = this.editor.getShapeUtil(onlySelectedShape)
-					const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 
 					// Test edges for an onDoubleClickEdge handler
 					if (
@@ -252,6 +251,7 @@ export class Idle extends StateNode {
 						info.handle === 'top' ||
 						info.handle === 'bottom'
 					) {
+						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
