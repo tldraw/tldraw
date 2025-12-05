@@ -1044,7 +1044,6 @@
 .fairy-project-chat-tasks {
 	display: flex;
 	flex-direction: column;
-	margin-left: 10px;
 	position: relative;
 }
 
