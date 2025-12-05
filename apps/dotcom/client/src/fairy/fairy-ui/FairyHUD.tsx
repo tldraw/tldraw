@@ -179,11 +179,6 @@ export function FairyHUD() {
 
 							{/* Multi-fairy mode - multiple fairies selected (pre-project or active project) */}
 							{panelState === 'fairy-multi' && (
-								// <FairyFeedView
-								// 	orchestratorAgent={activeOrchestratorAgent}
-								// 	agents={selectedFairies}
-								// />
-
 								<FairyProjectView
 									editor={editor}
 									agents={selectedFairies}
