@@ -1003,6 +1003,10 @@
 .fairy-id-display-text {
 	position: relative;
 	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 /* Shimmer overlay using pseudo-element */
@@ -1011,6 +1015,10 @@
 	position: absolute;
 	left: 0;
 	top: 0;
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	background: linear-gradient(
 		90deg,
 		var(--tl-color-text-3) 0%,
