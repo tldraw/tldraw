@@ -196,7 +196,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isEmpty = isEmptyRichText(shape.props.richText)
 		const showHtmlContainer = isReadyForEditing || !isEmpty
-		const isForceSolid = useEfficientZoomThreshold(shape.props.scale)
+		const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
 
 		return (
 			<>
@@ -234,7 +234,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useEfficientZoomThreshold()
+		const isZoomedOut = useEfficientZoomThreshold(shape.props.scale * 0.25)
 
 		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
