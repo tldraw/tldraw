@@ -1188,6 +1188,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
+    getCanEditShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
@@ -2627,6 +2628,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     canCull(_shape: Shape): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadonly(_shape: Shape): boolean;
+    canEditWhileLocked(_shape: Shape): boolean;
     canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
     canResizeChildren(_shape: Shape): boolean;
