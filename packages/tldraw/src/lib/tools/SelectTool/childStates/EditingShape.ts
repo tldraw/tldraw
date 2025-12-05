@@ -27,8 +27,7 @@ export class EditingShape extends StateNode {
 		return (
 			container.contains(document.activeElement) &&
 			(document.activeElement?.nodeName === 'INPUT' ||
-				document.activeElement?.nodeName === 'TEXTAREA' ||
-				(document.activeElement as HTMLElement)?.isContentEditable)
+				document.activeElement?.nodeName === 'TEXTAREA')
 		)
 	}
 
