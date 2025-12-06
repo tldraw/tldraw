@@ -271,8 +271,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
 
-		// Shadows are hidden on dark mode anyway
-		const hideShadows = useEfficientZoomThreshold(scale * 0.25) && !isDarkMode
+		// Shadows are hidden when zoomed out far enough or in dark mode
+		let hideShadows = useEfficientZoomThreshold(scale * 0.25)
+		if (isDarkMode) hideShadows = true
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
