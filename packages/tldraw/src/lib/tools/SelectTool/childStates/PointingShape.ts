@@ -151,21 +151,14 @@ export class PointingShape extends StateNode {
 								) {
 									this.editor.run(() => {
 										this.editor.markHistoryStoppingPoint('editing on pointer up')
-										this.editor.select(selectingShape.id)
-
-										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.getIsReadonly()) {
-											if (!util.canEditInReadonly(selectingShape)) {
-												return
-											}
+										const didStartEditing = this.editor.startEditingShape(selectingShape, {
+											info,
+											selectAll: this.isDoubleClick,
+										})
+										if (!didStartEditing) {
+											return
 										}
-
-										this.editor.setEditingShape(selectingShape.id)
-										this.editor.setCurrentTool('select.editing_shape')
-
-										if (this.isDoubleClick) {
-											this.editor.emit('select-all-text', { shapeId: selectingShape.id })
-										} else {
+										if (!this.isDoubleClick) {
 											this.editor.emit('place-caret', {
 												shapeId: selectingShape.id,
 												point: info.point,
