@@ -4,7 +4,7 @@ import { useContainer } from './useContainer'
 import { useMaybeEditor } from './useEditor'
 
 /** @public */
-export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>) {
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
 	const container = useContainer()
 	const editor = useMaybeEditor()

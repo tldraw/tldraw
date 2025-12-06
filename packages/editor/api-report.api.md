@@ -15,10 +15,11 @@ import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
 import { ExtractShapeByProps } from '@tldraw/tlschema';
 import { ForwardRefExoticComponent } from 'react';
+import { FragmentProps } from 'react';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
-import { JSX as JSX_2 } from 'react/jsx-runtime';
+import { JSX } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
@@ -472,7 +473,7 @@ export class ClickManager {
 export function clockwiseAngleDist(a0: number, a1: number): number;
 
 // @public (undocumented)
-export function ContainerProvider({ container, children }: ContainerProviderProps): JSX_2.Element;
+export function ContainerProvider({ container, children }: ContainerProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface ContainerProviderProps {
@@ -612,16 +613,16 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
 // @public (undocumented)
-export function DefaultBackground(): JSX_2.Element;
+export function DefaultBackground(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultBrush: ({ brush, color, opacity, className }: TLBrushProps) => JSX_2.Element;
+export const DefaultBrush: ({ brush, color, opacity, className }: TLBrushProps) => JSX.Element;
 
 // @public (undocumented)
-export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX_2.Element;
+export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity, }: TLCollaboratorHintProps): JSX_2.Element;
+export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity, }: TLCollaboratorHintProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
@@ -630,22 +631,22 @@ export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX_2.Element;
+export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX_2.Element;
+export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX.Element;
 
 // @public (undocumented)
-export const DefaultHandles: ({ children }: TLHandlesProps) => JSX_2.Element;
+export const DefaultHandles: ({ children }: TLHandlesProps) => JSX.Element;
 
 // @public (undocumented)
-export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
+export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX.Element | null;
 
 // @public (undocumented)
-export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX_2.Element;
+export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps): JSX_2.Element;
+export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
@@ -657,10 +658,10 @@ export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
+export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX_2.Element;
+export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
@@ -689,9 +690,7 @@ export const defaultTldrawOptions: {
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
     readonly enableToolbarKeyboardShortcuts: true;
-    readonly exportProvider: ExoticComponent<    {
-    children?: ReactNode | undefined;
-    }>;
+    readonly exportProvider: ExoticComponent<FragmentProps>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
@@ -1592,7 +1591,7 @@ export class EditorAtom<T> {
 export const EditorContext: React_3.Context<Editor | null>;
 
 // @public (undocumented)
-export function EditorProvider({ editor, children }: EditorProviderProps): JSX_2.Element;
+export function EditorProvider({ editor, children }: EditorProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface EditorProviderProps {
@@ -1630,7 +1629,7 @@ export class Ellipse2d extends Geometry2d {
 }
 
 // @public (undocumented)
-export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_2.PropsWithChildren<TLErrorBoundaryProps>>, {
+export class ErrorBoundary extends React_2.Component<React_2.PropsWithChildren<TLErrorBoundaryProps>, {
     error: Error | null;
 }> {
     // (undocumented)
@@ -1640,7 +1639,7 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): boolean | JSX_2.Element | Iterable<React_2.ReactNode> | null | number | string | undefined;
+    render(): bigint | boolean | JSX.Element | Iterable<React_2.ReactNode> | null | number | Promise<bigint | boolean | Iterable<React_2.ReactNode> | null | number | React_2.ReactElement<unknown, React_2.JSXElementConstructor<any> | string> | React_2.ReactPortal | string | undefined> | string | undefined;
     // (undocumented)
     state: {
         error: null;
@@ -1648,7 +1647,7 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_
 }
 
 // @public (undocumented)
-export function ErrorScreen({ children }: LoadingScreenProps): JSX_2.Element;
+export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -1942,7 +1941,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canResizeChildren(): boolean;
     // (undocumented)
-    component(shape: TLGroupShape): JSX_2.Element | null;
+    component(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
     // (undocumented)
@@ -1950,7 +1949,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
-    indicator(shape: TLGroupShape): JSX_2.Element;
+    indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2044,7 +2043,7 @@ export class HistoryManager<R extends UnknownRecord> {
 }
 
 // @public (undocumented)
-export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
+export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX.Element;
 
 // @public (undocumented)
 export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
@@ -2148,7 +2147,7 @@ export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
 
 // @public (undocumented)
-export function LoadingScreen({ children }: LoadingScreenProps): JSX_2.Element;
+export function LoadingScreen({ children }: LoadingScreenProps): JSX.Element;
 
 // @public (undocumented)
 export interface LoadingScreenProps {
@@ -2335,7 +2334,7 @@ export interface MatModel {
 export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 
 // @public
-export function MenuClickCapture(): false | JSX_2.Element;
+export function MenuClickCapture(): false | JSX.Element;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -2350,7 +2349,7 @@ export function openWindow(url: string, target?: string, allowReferrer?: boolean
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
-}): boolean | JSX_2.Element | Iterable<React_2.ReactNode> | null | number | string | undefined;
+}): bigint | boolean | JSX.Element | Iterable<React_2.ReactNode> | null | number | Promise<bigint | boolean | Iterable<React_2.ReactNode> | null | number | React_2.ReactElement<unknown, React_2.JSXElementConstructor<any> | string> | React_2.ReactPortal | string | undefined> | string | undefined;
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -2892,7 +2891,7 @@ export type StoreName = (typeof Table)[keyof typeof Table];
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 
 // @public (undocumented)
-export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
+export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX.Element;
 
 // @public (undocumented)
 export type SVGContainerProps = React_2.ComponentProps<'svg'>;
@@ -4543,10 +4542,10 @@ export function useMaybeEditor(): Editor | null;
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @public (undocumented)
-export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>): void;
+export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>): void;
 
 // @public (undocumented)
-export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;
 
 // @public (undocumented)
 export function usePeerIds(): string[];
@@ -4654,7 +4653,7 @@ export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TL
 export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
-export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
+export function useTransform(ref: React.RefObject<HTMLElement | null | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 // @public
 export function useUniqueSafeId(suffix?: string): SafeId;

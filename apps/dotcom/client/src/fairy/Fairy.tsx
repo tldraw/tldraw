@@ -96,7 +96,7 @@ function setFairiesToThrowTool(editor: ReturnType<typeof useEditor>, fairies: Fa
 }
 
 function useFairyPointerInteraction(
-	ref: React.RefObject<HTMLDivElement>,
+	ref: React.RefObject<HTMLDivElement | null>,
 	agent: FairyAgent,
 	editor: ReturnType<typeof useEditor>,
 	isFairyGrabbable: boolean,

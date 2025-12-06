@@ -38,7 +38,7 @@ function ContextualToolbarInner({
 }) {
 	const { isEditingLink, onEditLinkStart, onEditLinkClose } = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
-	const previousSelectionBounds = useRef<Box | undefined>()
+	const previousSelectionBounds = useRef<Box | undefined>(undefined)
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
 	const msg = useTranslation()
 

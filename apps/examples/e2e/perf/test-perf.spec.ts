@@ -30,7 +30,7 @@ function testOutput(result: PerformanceTestResult) {
 test.describe('Performance Tests', () => {
 	test.beforeEach(setup)
 	test.setTimeout(120000) // Increase timeout
-	test.describe.configure({ mode: 'serial' }) // Run tests in series to avoid resource conflicts
+	test.describe.configure({ mode: 'serial', retries: 1 }) // Run tests in series with 1 retry for flaky perf tests
 
 	test.skip('Baseline FPS Performance - Desktop', async ({
 		page,

@@ -52,8 +52,8 @@ export const TldrawUiContextualToolbar = ({
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 
-	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
-	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
+	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement | null>)
+	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement | null>)
 
 	const { isVisible, isInteractive, hide, show, position, move } =
 		useToolbarVisibilityStateMachine(changeOnlyWhenYChanges)
@@ -105,7 +105,9 @@ export const TldrawUiContextualToolbar = ({
 					// to have the last updated position in page space, so that we could convert
 					// it to screen space and update it here
 					const elm = toolbarRef.current
-					elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
+					if (elm) {
+						elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
+					}
 				} else {
 					const moveImmediately = lastContentSizeUpdateCounter !== nextContentSizeUpdateCounter
 					// Schedule a move to its next location

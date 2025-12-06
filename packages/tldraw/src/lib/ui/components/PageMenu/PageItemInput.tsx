@@ -48,7 +48,9 @@ export const PageItemInput = function PageItemInput({
 	return (
 		<TldrawUiInput
 			className="tlui-page-menu__item__input"
-			ref={(el) => (rInput.current = el)}
+			ref={(el) => {
+				rInput.current = el
+			}}
 			defaultValue={name}
 			onValueChange={handleChange}
 			onComplete={onComplete}
