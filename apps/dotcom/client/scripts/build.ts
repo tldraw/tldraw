@@ -18,7 +18,7 @@ const commonSecurityHeaders = {
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
-// It uses a jest snapshot file because deriving the set of routes from our
+// It uses a vitest snapshot file because deriving the set of routes from our
 // react-router config works fine in our test environment, but is tricky to get running in this
 // build script environment for various reasons (no global React, tsx being weird about decorators, etc).
 function loadSpaRoutes() {

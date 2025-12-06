@@ -1,0 +1,6 @@
+---
+description: Writing excellent examples for the tldraw SDK.
+globs: 
+alwaysApply: false
+---
+When writing examples, be sure to read the `./apps/examples/writing-examples.md` file.

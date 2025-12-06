@@ -1,6 +1,6 @@
 import { EditorEvents as TextEditorEvents } from '@tiptap/core'
-import FontFamily from '@tiptap/extension-font-family'
-import TextStyle from '@tiptap/extension-text-style'
+import { FontFamily } from '@tiptap/extension-font-family'
+import { TextStyleKit } from '@tiptap/extension-text-style'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { useEffect, useState } from 'react'
 import {
@@ -11,7 +11,6 @@ import {
 	TLTextOptions,
 	Tldraw,
 	defaultAddFontsFromNode,
-	stopEventPropagation,
 	tipTapDefaultExtensions,
 	useEditor,
 	useValue,
@@ -72,8 +71,9 @@ const components: TLComponents = {
 		return (
 			<DefaultRichTextToolbar>
 				<select
+					className="rich-text-font-extension-select"
 					value={currentFontFamily}
-					onPointerDown={stopEventPropagation}
+					onPointerDown={editor.markEventAsHandled}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontFamily(e.target.value).run()
 					}}
@@ -85,8 +85,9 @@ const components: TLComponents = {
 					))}
 				</select>
 				<select
+					className="rich-text-font-extension-select"
 					value={currentFontSize}
-					onPointerDown={stopEventPropagation}
+					onPointerDown={editor.markEventAsHandled}
 					onChange={(e) => {
 						textEditor?.chain().focus().setFontSize(e.target.value).run()
 					}}
@@ -106,7 +107,7 @@ const components: TLComponents = {
 
 const textOptions: Partial<TLTextOptions> = {
 	tipTapConfig: {
-		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyle],
+		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyleKit],
 	},
 	addFontsFromNode(node, state, addFont) {
 		state = defaultAddFontsFromNode(node, state, addFont)

@@ -1,12 +1,19 @@
+import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
+	TLPresenceStateInfo,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
+	TldrawOverlays,
+	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
+	getDefaultUserPresence,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -15,27 +22,71 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useValue,
+	type TLPresenceUserInfo,
+	type TLStore,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useFairyAccess, useShouldShowFairies } from '../../hooks/useFairyAccess'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
+import { useAreFairiesEnabled } from '../../utils/local-session-state'
 import { maybeSlurp } from '../../utils/slurping'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
+import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// eslint-disable-next-line local/no-fairy-imports -- ok for types
+import { type FairyApp } from '../../../fairy/fairy-app/FairyApp'
+import { useFeatureFlags } from '../../hooks/useFeatureFlags'
+
+// Lazy load fairy components
+
+const FairyAppProvider = lazy(() =>
+	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
+		default: m.FairyAppProvider,
+	}))
+)
+const FairyHUD = lazy(() =>
+	import('../../../fairy/fairy-ui/FairyHUD').then((m) => ({ default: m.FairyHUD }))
+)
+const Fairies = lazy(() =>
+	import('../../../fairy/fairy-canvas-ui/Fairies').then((m) => ({ default: m.Fairies }))
+)
+const RemoteFairies = lazy(() =>
+	import('../../../fairy/fairy-canvas-ui/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
+)
+const FairyHUDTeaser = lazy(() =>
+	import('../../../fairy/fairy-ui/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
+)
+const FairyAppContextProvider = lazy(() =>
+	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
+		default: m.FairyAppContextProvider,
+	}))
+)
 
 /** @internal */
 export const components: TLComponents = {
@@ -45,6 +96,12 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+
+	InFrontOfTheCanvas: () => (
+		<Suspense fallback={<div />}>
+			<FairyHUDTeaser />
+		</Suspense>
+	),
 }
 
 interface TlaEditorProps {
@@ -73,6 +130,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const setIsReady = useSetIsReady()
 
+	const [hoistedFairyApp, setHoistedFairyApp] = useState<FairyApp | null>(null)
+
 	const dialogs = useDialogs()
 	// need to wrap this in a useEvent to prevent the context id from changing on us
 	const addDialog: TLUiDialogsContextType['addDialog'] = useEvent((dialog) =>
@@ -84,7 +143,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	const isShapeHidden = useCallback(() => hideAllShapes.get(), [hideAllShapes])
+	const getShapeVisibility = useCallback(
+		() => (hideAllShapes.get() ? 'hidden' : 'inherit'),
+		[hideAllShapes]
+	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
 		requestAnimationFrame(() => {
@@ -92,8 +154,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})
 	}, [hideAllShapes])
 
+	const trackRoomLoaded = useRoomLoadTracking()
+	const trackNewRoomCreation = useNewRoomCreationTracking()
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			trackRoomLoaded(editor)
+			trackNewRoomCreation(app, fileId)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -117,21 +184,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
-			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
-			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
-				app.onFileSessionStateUpdate(fileId, state)
-			}, 5000)
-			// don't want to update if they only open the file and didn't look around
-			let firstTime = true
-			const cleanup = react('update session state', () => {
-				const state = sessionState$.get()
-				if (!state) return
-				if (firstTime) {
-					firstTime = false
-					return
-				}
-				updateSessionState(state)
-			})
+			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -144,12 +197,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
-				updateSessionState.flush()
+				fileStateUpdater.dispose()
 				abortController.abort()
-				cleanup()
 			}
 		},
-		[addDialog, app, fileId, remountImageShapes, setIsReady]
+		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -171,14 +223,57 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
+		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
+			trackEvent(message.type)
+		}, []),
+		getUserPresence: useCallback(
+			(store: TLStore, userInfo: TLPresenceUserInfo): TLPresenceStateInfo | null => {
+				const defaultPresence = getDefaultUserPresence(store, userInfo)
+				if (!defaultPresence) return null
+
+				if (!hoistedFairyApp) return defaultPresence
+
+				// Add fairy positions to presence for all active agents
+				const fairyPresences =
+					hoistedFairyApp.agents
+						.getAgents()
+						.map((agent) => {
+							const entity = agent.getEntity()
+							const config = agent.getConfig()
+							if (!entity || !config) return null
+							return {
+								entity,
+								outfit: config.outfit,
+								hatColor: config.hatColor,
+								hatType: config.hat,
+								legLength: config.legLength,
+							}
+						})
+						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
+
+				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
+				return defaultPresence
+			},
+			[hoistedFairyApp]
+		),
 	})
+
+	const handleUnmount = useCallback(() => {
+		setHoistedFairyApp(null)
+	}, [])
+
+	// we need to prevent calling onFileExit if the store is in an error state
+	const storeError = useRef(false)
+	if (store.status === 'error') {
+		storeError.current = true
+	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
 		let didEnter = false
-		let timer: any
+		let timer: number
 
 		const fileState = app.getFileState(fileId)
 
@@ -200,58 +295,236 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return () => {
 			clearTimeout(timer)
-			if (didEnter) {
-				app.onFileExit(fileId)
+			if (didEnter && !storeError.current) {
+				app.updateFileState(fileId, { lastVisitAt: Date.now() })
 			}
 		}
 	}, [app, fileId, store.status])
 
 	const overrides = useFileEditorOverrides({ fileSlug })
+	const extraDragIconOverrides = useExtraDragIconOverrides()
+
+	const hasFairyAccess = useFairyAccess()
+	const areFairiesEnabled = useAreFairiesEnabled()
+	const shouldShowFairies = useShouldShowFairies()
+	const { flags, isLoaded } = useFeatureFlags()
+
+	const RemoteFairiesDelayed = ({ enableForMe }: { enableForMe: boolean }) => {
+		const editor = useEditor()
+		const collaborators = editor.getCollaborators()
+		const doesAnybodyHaveFairiesEnabled = collaborators.some(
+			// @ts-ignore meh it's fine
+			(collaborator) => collaborator.meta?.fairies?.length > 0
+		)
+		return enableForMe || doesAnybodyHaveFairiesEnabled ? (
+			<Suspense fallback={<div />}>
+				<RemoteFairies />
+			</Suspense>
+		) : null
+	}
+
+	const instanceComponents = useMemo((): TLComponents => {
+		// User can control their own fairies if they have fairy access and it's enabled
+		const canControlFairies = app && hasFairyAccess && areFairiesEnabled
+
+		// Show fairy UI (HUD, remote fairies) if feature flag is enabled and local toggle is on
+		// This allows guests to see fairies on shared files without requiring login
+		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
+
+		const shouldShowTeaser =
+			isLoaded &&
+			flags.fairies.enabled &&
+			flags.fairies_purchase.enabled &&
+			!hasFairyAccess &&
+			areFairiesEnabled
+		return {
+			...components,
+			Overlays: () => {
+				return (
+					<>
+						<TldrawOverlays />
+						<RemoteFairiesDelayed enableForMe={!!(shouldShowFairyUI && hoistedFairyApp)} />
+						{shouldShowFairyUI && hoistedFairyApp ? (
+							<Suspense fallback={<div />}>
+								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+									{/* <DebugFairyVision agents={agents} /> */}
+									{canControlFairies && <Fairies />}
+								</FairyAppContextProvider>
+							</Suspense>
+						) : null}
+					</>
+				)
+			},
+			InFrontOfTheCanvas: () => {
+				return (
+					<>
+						{shouldShowFairyUI && hoistedFairyApp ? (
+							<Suspense fallback={<div />}>
+								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+									{canControlFairies ? <FairyHUD /> : <FairyHUDTeaser />}
+								</FairyAppContextProvider>
+							</Suspense>
+						) : (
+							shouldShowTeaser && (
+								<Suspense fallback={<div />}>
+									<FairyHUDTeaser />
+								</Suspense>
+							)
+						)}
+					</>
+				)
+			},
+			DebugMenu: () => <CustomDebugMenu />,
+		}
+	}, [
+		isLoaded,
+		flags.fairies.enabled,
+		flags.fairies_purchase.enabled,
+		app,
+		hasFairyAccess,
+		areFairiesEnabled,
+		shouldShowFairies,
+		hoistedFairyApp,
+	])
 
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={instanceComponents}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
-				overrides={overrides}
-				isShapeHidden={isShapeHidden}
+				overrides={[overrides, extraDragIconOverrides]}
+				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
-				<SneakyFileUpdateHandler fileId={fileId} />
+				<SneakyLargeFileHander />
+				{app && hasFairyAccess && areFairiesEnabled && (
+					<Suspense fallback={null}>
+						<FairyAppProvider
+							fileId={fileId}
+							onMount={setHoistedFairyApp}
+							onUnmount={handleUnmount}
+						/>
+					</Suspense>
+				)}
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
 }
 
-function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
+function CustomDebugMenu() {
 	const app = useMaybeApp()
+	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
-	useEffect(() => {
-		const onChange = throttle(
-			() => {
-				if (!app) return
-				app.onFileEdit(fileId)
-			},
-			// This is used to update the lastEditAt time in the database, and to let the local
-			// room know that an edit has been made.
-			// It doesn't need to be super fast or accurate so we can throttle it a lot
-			10_000
-		)
-		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
-		return () => {
-			onChange.flush()
-			unsub()
-		}
-	}, [app, fileId, editor])
+	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	return (
+		<DefaultDebugMenu>
+			<A11yAudit />
+			{!isReadOnly && app && (
+				<>
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+					{!isProductionEnv && (
+						<TldrawUiMenuItem
+							id="user-manual"
+							label="File history (pierre)"
+							readonlyOk
+							onSelect={() => {
+								const url = new URL(window.location.href)
+								url.pathname += '/pierre-history'
+								openAndTrack(url.toString())
+							}}
+						/>
+					)}
+				</>
+			)}
+			<DefaultDebugMenuContent />
+		</DefaultDebugMenu>
+	)
+}
 
-	return null
+const FILE_STATE_UPDATE_INTERVAL = 10_000
+class FileStateUpdater {
+	disposables = new Set<() => void>()
+	constructor(
+		private readonly app: TldrawApp,
+		private readonly fileId: string,
+		editor: Editor
+	) {
+		this.disposables.add(
+			editor.store.listen(
+				() => {
+					this.didDocumentChange = true
+					this.update()
+				},
+				{ scope: 'document', source: 'user' }
+			)
+		)
+		const flush = () => {
+			this.update.flush()
+		}
+		window.addEventListener('beforeunload', flush)
+		this.disposables.add(() => {
+			window.removeEventListener('beforeunload', flush)
+		})
+
+		const sessionState$ = createSessionStateSnapshotSignal(editor.store)
+		let firstTime = true
+		this.disposables.add(
+			react('update session state', () => {
+				const state = sessionState$.get()
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				if (!state) return
+				this.nextSessionState = state
+				this.update()
+			})
+		)
+	}
+
+	private nextSessionState: TLSessionStateSnapshot | null = null
+	private didDocumentChange = false
+
+	private update = throttle(
+		() => {
+			if (!this.nextSessionState && !this.didDocumentChange) return
+			const state = this.nextSessionState
+			this.nextSessionState = null
+			const didChange = this.didDocumentChange
+			this.didDocumentChange = false
+			this.app.updateFileState(this.fileId, {
+				lastSessionState: state ? JSON.stringify(state) : undefined,
+				lastEditAt: didChange ? Date.now() : undefined,
+				lastVisitAt: Date.now(),
+			})
+		},
+		FILE_STATE_UPDATE_INTERVAL,
+		{ trailing: true, leading: false }
+	)
+
+	dispose() {
+		this.update.flush()
+		this.disposables.forEach((dispose) => dispose())
+		this.disposables.clear()
+	}
 }

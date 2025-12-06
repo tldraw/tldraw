@@ -46,10 +46,10 @@ export class MinimapManager {
 		const style = getComputedStyle(this.editor.getContainer())
 
 		return {
-			shapeFill: getRgba(style.getPropertyValue('--color-text-3').trim()),
-			selectFill: getRgba(style.getPropertyValue('--color-selected').trim()),
-			viewportFill: getRgba(style.getPropertyValue('--color-muted-1').trim()),
-			background: getRgba(style.getPropertyValue('--color-low').trim()),
+			shapeFill: getRgba(style.getPropertyValue('--tl-color-text-3').trim()),
+			selectFill: getRgba(style.getPropertyValue('--tl-color-selected').trim()),
+			viewportFill: getRgba(style.getPropertyValue('--tl-color-muted-1').trim()),
+			background: getRgba(style.getPropertyValue('--tl-color-low').trim()),
 		}
 	}
 
@@ -248,6 +248,12 @@ export class MinimapManager {
 			if (!geometry) continue
 
 			const len = geometry.length
+
+			const shape = this.editor.getShape(shapeId)
+			if (shape) {
+				const shapeUtil = this.editor.getShapeUtil(shape.type)
+				if (shapeUtil.hideInMinimap?.(shape)) continue
+			}
 
 			if (selectedShapes.has(shapeId)) {
 				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)

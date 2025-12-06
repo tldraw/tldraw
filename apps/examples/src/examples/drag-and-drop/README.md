@@ -1,13 +1,13 @@
 ---
-title: Drag and drop
+title: Drag and drop shape
 component: ./DragAndDropExample.tsx
 category: shapes/tools
-priority: 1
+priority: 5
 keywords: [reparent, shapes, grid, counter]
 ---
 
-Shapes that can be dragged and dropped onto each other.
+Custom shapes that can be dragged and dropped onto each other.
 
 ---
 
-You can create custom shapes that can be dragged and dropped onto each other.
+This example shows how to create custom shapes that can be dragged and dropped onto each other.

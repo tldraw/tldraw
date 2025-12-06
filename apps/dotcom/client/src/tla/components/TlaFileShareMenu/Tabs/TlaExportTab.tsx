@@ -24,13 +24,13 @@ import {
 	updateLocalSessionState,
 } from '../../../utils/local-session-state'
 import { TlaButton } from '../../TlaButton/TlaButton'
-import { TlaSelect } from '../../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
+	TlaMenuSelect,
+	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
 import styles from '../file-share-menu.module.css'
 
@@ -89,10 +89,10 @@ function ExportPaddingToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>
+			<TlaMenuControlLabel htmlFor="tla-export-padding-switch">
 				<F defaultMessage="Padding" />
 			</TlaMenuControlLabel>
-			<TlaSwitch checked={value} onChange={handleChange} />
+			<TlaMenuSwitch id="tla-export-padding-switch" checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
 }
@@ -117,10 +117,10 @@ function ExportBackgroundToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>
+			<TlaMenuControlLabel htmlFor="tla-export-background-switch">
 				<F defaultMessage="Background" />
 			</TlaMenuControlLabel>
-			<TlaSwitch checked={value} onChange={handleChange} />
+			<TlaMenuSwitch id="tla-export-background-switch" checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
 }
@@ -147,10 +147,11 @@ function ExportFormatSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>
+			<TlaMenuControlLabel htmlFor="tla-export-format-select">
 				<F defaultMessage="Export as" />
 			</TlaMenuControlLabel>
-			<TlaSelect
+			<TlaMenuSelect
+				id="tla-export-format-select"
 				value={value}
 				label={value === 'svg' ? 'SVG' : 'PNG'}
 				onChange={handleChange}
@@ -188,10 +189,11 @@ function ExportThemeSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>
+			<TlaMenuControlLabel htmlFor="tla-export-theme-select">
 				<F defaultMessage="Theme" />
 			</TlaMenuControlLabel>
-			<TlaSelect
+			<TlaMenuSelect
+				id="tla-export-theme-select"
 				value={value}
 				label={label}
 				onChange={handleChange}
@@ -318,11 +320,11 @@ function ExportPreviewImage() {
 	)
 
 	return (
-		<div className={styles.exportPreview}>
-			<img ref={ref} className={styles.exportPreviewInner} />
+		<div className={styles.fileShareMenuExportPreview}>
+			<img ref={ref} className={styles.fileShareMenuExportPreviewInner} />
 			<div
 				ref={rImagePreviewSize}
-				className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}
+				className={classNames(styles.fileShareMenuExportPreviewSize, 'tla-text_ui__small')}
 			/>
 		</div>
 	)

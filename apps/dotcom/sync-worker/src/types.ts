@@ -1,5 +1,6 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
+import { Queue } from '@cloudflare/workers-types'
 import type { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -28,6 +29,7 @@ export interface Environment {
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	DISCORD_FAIRY_PURCHASE_WEBHOOK_URL?: string
 
 	MEASURE: Analytics | undefined
 
@@ -42,6 +44,8 @@ export interface Environment {
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
+
+	FEATURE_FLAGS: KVNamespace
 
 	CF_VERSION_METADATA: WorkerVersionMetadata
 
@@ -62,7 +66,17 @@ export interface Environment {
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
+	ANALYTICS_API_URL: string | undefined
+	ANALYTICS_API_TOKEN: string | undefined
+
+	PIERRE_KEY: string | undefined
+
+	PADDLE_WEBHOOK_SECRET: string | undefined
+	PADDLE_ENVIRONMENT: 'sandbox' | 'production' | undefined
+
 	RATE_LIMITER: RateLimit
+
+	QUEUE: Queue<QueueMessage>
 }
 
 export function isDebugLogging(env: Environment) {
@@ -82,6 +96,7 @@ export type DBLoadResult =
 	| {
 			type: 'room_found'
 			snapshot: RoomSnapshot
+			roomSizeMB: number
 	  }
 	| {
 			type: 'room_not_found'
@@ -117,6 +132,10 @@ export type TLServerEvent =
 			messageType: string
 			messageLength: number
 	  }
+	| {
+			type: 'persist_success'
+			attempts: number
+	  }
 
 export type TLPostgresReplicatorRebootSource =
 	| 'constructor'
@@ -128,7 +147,15 @@ export type TLPostgresReplicatorRebootSource =
 export type TLPostgresReplicatorEvent =
 	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
 	| { type: 'request_lsn_update' }
-	| { type: 'reboot_error' | 'register_user' | 'unregister_user' | 'get_file_record' }
+	| {
+			type:
+				| 'reboot_error'
+				| 'register_user'
+				| 'unregister_user'
+				| 'get_file_record'
+				| 'prune'
+				| 'resume_sequence'
+	  }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
 	| { type: 'active_users'; count: number }
@@ -149,7 +176,15 @@ export type TLUserDurableObjectEvent =
 				| 'connect_retry'
 				| 'user_do_abort'
 				| 'not_enough_history_for_fast_reboot'
+				| 'woken_up_by_replication_event'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
+
+export interface QueueMessage {
+	type: 'asset-upload'
+	objectName: string
+	fileId: string
+	userId: string | null
+}

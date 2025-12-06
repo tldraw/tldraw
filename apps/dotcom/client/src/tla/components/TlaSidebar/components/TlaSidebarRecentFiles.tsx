@@ -13,7 +13,7 @@ export function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const recentFiles = app.getUserRecentFiles()
+			const recentFiles = app.getMyFiles()
 			if (!recentFiles) return null
 
 			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
@@ -63,9 +63,14 @@ export function TlaSidebarRecentFiles() {
 	return (
 		<Fragment>
 			{results.pinnedFiles.length ? (
-				<TlaSidebarFileSection iconLeft="pin" title={<F defaultMessage="Pinned" />}>
+				<TlaSidebarFileSection
+					iconLeft="pin"
+					title={<F defaultMessage="Pinned" />}
+					onePixelOfPaddingAtTheTop
+				>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							groupId={app.getHomeGroupId()}
 							key={'file_link_pinned_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-pinned-${i}`}
@@ -77,6 +82,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />}>
 					{results.todayFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							groupId={app.getHomeGroupId()}
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
@@ -88,6 +94,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="Yesterday" />}>
 					{results.yesterdayFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							groupId={app.getHomeGroupId()}
 							key={'file_link_yesterday_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-yesterday-${i}`}
@@ -99,6 +106,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This week" />}>
 					{results.thisWeekFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							groupId={app.getHomeGroupId()}
 							key={'file_link_this-week_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-week-${i}`}
@@ -110,6 +118,7 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This month" />}>
 					{results.thisMonthFiles.map((item, i) => (
 						<TlaSidebarFileLink
+							groupId={app.getHomeGroupId()}
 							key={'file_link_this-month_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-month-${i}`}
@@ -123,6 +132,7 @@ export function TlaSidebarRecentFiles() {
 						.sort((a, b) => b.date - a.date)
 						.map((item, i) => (
 							<TlaSidebarFileLink
+								groupId={app.getHomeGroupId()}
 								key={'file_link_older' + item.fileId}
 								item={item}
 								testId={`tla-file-link-older-${i}`}

@@ -1,5 +1,5 @@
 ---
-title: Editable shape
+title: Editable custom shape
 component: ./EditableShapeExample.tsx
 category: shapes/tools
 priority: 2
@@ -10,7 +10,7 @@ A custom shape that you can edit by double-clicking it.
 
 ---
 
-In Tldraw, the Editor can have one editing shape at a time. When in its editing state, the editor will ignore events until the user exits the editing state by pressing Escape or clicking on the canvas.
+In tldraw, the Editor can have one editing shape at a time. When in its editing state, the editor will ignore events until the user exits the editing state by pressing Escape or clicking on the canvas.
 
 Only shapes with a `canEdit` flag that returns true may become editable. A user may begin editing a shape by double clicking on the editable shape, or selecting the editable shape and pressing enter.
 

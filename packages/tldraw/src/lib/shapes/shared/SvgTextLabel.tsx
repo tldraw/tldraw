@@ -21,6 +21,7 @@ export function SvgTextLabel({
 	bounds,
 	padding = 16,
 	stroke = true,
+	showTextOutline = true,
 }: {
 	fontSize: number
 	font: TLDefaultFontStyle
@@ -33,6 +34,7 @@ export function SvgTextLabel({
 	bounds: Box
 	padding?: number
 	stroke?: boolean
+	showTextOutline?: boolean
 }) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
@@ -68,10 +70,10 @@ export function SvgTextLabel({
 	const mainSpans = createTextJsxFromSpans(editor, spans, opts)
 
 	let outlineSpans = null
-	if (stroke) {
+	if (showTextOutline && stroke) {
 		opts.fill = theme.background
 		opts.stroke = theme.background
-		opts.strokeWidth = 2
+		opts.strokeWidth = 3
 		outlineSpans = createTextJsxFromSpans(editor, spans, opts)
 	}
 

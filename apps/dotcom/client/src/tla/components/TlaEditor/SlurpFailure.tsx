@@ -35,7 +35,7 @@ export function SlurpFailure({
 					maxWidth: 350,
 					display: 'flex',
 					flexDirection: 'column',
-					gap: 'var(--space-4)',
+					gap: 'var(--tl-space-4)',
 				}}
 			>
 				<p>
@@ -51,7 +51,7 @@ export function SlurpFailure({
 						</ExternalLink>
 					</li>
 					<li>
-						<F defaultMessage="Export the content as a .tldr file: Select 'Download file' in the top left menu." />
+						<F defaultMessage="Export the content as a .tldr file: Select 'Download' in the top left menu." />
 					</li>
 					<li>
 						<F defaultMessage="Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu." />

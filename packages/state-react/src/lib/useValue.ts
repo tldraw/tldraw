@@ -1,98 +1,108 @@
 /* eslint-disable prefer-rest-params */
 import { Signal, computed, react } from '@tldraw/state'
-import { useMemo, useRef, useSyncExternalStore } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 
 /**
- * Extracts the value from a signal and subscribes to it.
+ * Extracts the current value from a signal and subscribes the component to changes.
  *
- * Note that you do not need to use this hook if you are wrapping the component with {@link track}
+ * This is the most straightforward way to read signal values in React components.
+ * When the signal changes, the component will automatically re-render with the new value.
  *
- * @example
- * ```ts
- * const Counter: React.FC = () => {
- *   const $count = useAtom('count', 0)
- *   const increment = useCallback(() => $count.set($count.get() + 1), [count])
- *   const currentCount = useValue($count)
- *   return <button onClick={increment}>{currentCount}</button>
- * }
- * ```
+ * Note: You do not need to use this hook if you are wrapping the component with {@link track},
+ * as tracked components automatically subscribe to any signals accessed with `.get()`.
  *
- * You can also pass a function to compute the value and it will be memoized as in {@link state#useComputed}:
+ * @param value - The signal to read the value from
+ * @returns The current value of the signal
  *
  * @example
  * ```ts
- * type GreeterProps = {
- *   firstName: Signal<string>
- *   lastName: Signal<string>
- * }
+ * import { atom } from '@tldraw/state'
+ * import { useValue } from '@tldraw/state-react'
  *
- * const Greeter = track(function Greeter({ firstName, lastName }: GreeterProps) {
- *   const fullName = useValue('fullName', () => `${firstName.get()} ${lastName.get()}`, [
- *     firstName,
- *     lastName,
- *   ])
- *   return <div>Hello {fullName}!</div>
- * })
+ * const count = atom('count', 0)
+ *
+ * function Counter() {
+ *   const currentCount = useValue(count)
+ *   return (
+ *     <button onClick={() => count.set(currentCount + 1)}>
+ *       Count: {currentCount}
+ *     </button>
+ *   )
+ * }
  * ```
  *
  * @public
  */
 export function useValue<Value>(value: Signal<Value>): Value
-/** @public */
+
+/**
+ * Creates a computed value with automatic dependency tracking and subscribes to changes.
+ *
+ * This overload allows you to compute a value from one or more signals with automatic
+ * memoization. The computed function will only re-execute when its dependencies change,
+ * and the component will only re-render when the computed result changes.
+ *
+ * @param name - A descriptive name for debugging purposes
+ * @param fn - Function that computes the value, should call `.get()` on any signals it depends on
+ * @param deps - Array of signals that the computed function depends on
+ * @returns The computed value
+ *
+ * @example
+ * ```ts
+ * import { atom } from '@tldraw/state'
+ * import { useValue } from '@tldraw/state-react'
+ *
+ * const firstName = atom('firstName', 'John')
+ * const lastName = atom('lastName', 'Doe')
+ *
+ * function UserGreeting() {
+ *   const fullName = useValue('fullName', () => {
+ *     return `${firstName.get()} ${lastName.get()}`
+ *   }, [firstName, lastName])
+ *
+ *   return <div>Hello {fullName}!</div>
+ * }
+ * ```
+ *
+ * @public
+ */
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value
-/** @public */
+
+/**
+ * Implementation function for useValue hook overloads.
+ *
+ * Handles both single signal subscription and computed value creation with dependency tracking.
+ * Uses React's useSyncExternalStore for efficient subscription management and automatic cleanup.
+ *
+ * @internal
+ */
 export function useValue() {
 	const args = arguments
 	// deps will be either the computed or the deps array
 	const deps = args.length === 3 ? args[2] : [args[0]]
 	const name = args.length === 3 ? args[0] : `useValue(${args[0].name})`
 
-	const isInRender = useRef(true)
-	isInRender.current = true
+	const { $val, subscribe, getSnapshot } = useMemo(() => {
+		const $val =
+			args.length === 1 ? (args[0] as Signal<any>) : (computed(name, args[1]) as Signal<any>)
 
-	const $val = useMemo(() => {
-		if (args.length === 1) {
-			return args[0]
+		return {
+			$val,
+			subscribe: (notify: () => void) => {
+				return react(`useValue(${name})`, () => {
+					try {
+						$val.get()
+					} catch {
+						// Will be rethrown during render if the component doesn't unmount first.
+					}
+					notify()
+				})
+			},
+			getSnapshot: () => $val.lastChangedEpoch,
 		}
-		return computed(name, () => {
-			if (isInRender.current) {
-				return args[1]()
-			} else {
-				try {
-					return args[1]()
-				} catch {
-					// when getSnapshot is called outside of the render phase &
-					// subsequently throws an error, it might be because we're
-					// in a zombie-child state. in that case, we suppress the
-					// error and instead return a new dummy value to trigger a
-					// react re-render. if we were in a zombie child, react will
-					// unmount us instead of re-rendering so the error is
-					// irrelevant. if we're not in a zombie-child, react will
-					// call `getSnapshot` again in the render phase, and the
-					// error will be thrown as expected.
-					return {}
-				}
-			}
-		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, deps)
 
-	try {
-		const { subscribe, getSnapshot } = useMemo(() => {
-			return {
-				subscribe: (listen: () => void) => {
-					return react(`useValue(${name})`, () => {
-						$val.get()
-						listen()
-					})
-				},
-				getSnapshot: () => $val.get(),
-			}
-			// eslint-disable-next-line react-hooks/exhaustive-deps
-		}, [$val])
-
-		return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-	} finally {
-		isInRender.current = false
-	}
+	useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+	return $val.__unsafe__getWithoutCapture()
 }

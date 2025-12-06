@@ -1,5 +1,4 @@
-import { mapObjectMapValues } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
+import { isEqual, mapObjectMapValues } from '@tldraw/utils'
 import { T, Validator } from '..'
 
 class RandomSource {

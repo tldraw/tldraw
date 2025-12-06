@@ -1,12 +1,5 @@
-import {
-	IndexKey,
-	TLArrowShape,
-	TLGeoShape,
-	TLNoteShape,
-	TLTextShape,
-	createShapeId,
-	toRichText,
-} from '@tldraw/editor'
+import { IndexKey, createShapeId, toRichText } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -18,7 +11,7 @@ const ids = {
 	arrow1: createShapeId('arrow1'),
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -60,7 +53,7 @@ describe('TLSelectTool.Idle', () => {
 describe.skip('Edit on type', () => {
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
 		const id = createShapeId()
-		editor.createShapes<TLNoteShape>([
+		editor.createShapes([
 			{
 				id,
 				type: 'note',
@@ -84,7 +77,7 @@ describe.skip('Edit on type', () => {
 
 	it('Does not start editing on excluded keys', () => {
 		const id = createShapeId()
-		editor.createShapes<TLNoteShape>([
+		editor.createShapes([
 			{
 				id,
 				type: 'note',
@@ -101,7 +94,7 @@ describe.skip('Edit on type', () => {
 
 	it('Ignores key down if altKey or ctrlKey is pressed', () => {
 		const id = createShapeId()
-		editor.createShapes<TLNoteShape>([
+		editor.createShapes([
 			{
 				id,
 				type: 'note',
@@ -160,7 +153,7 @@ describe('TLSelectTool.Translating', () => {
 		// There's a timer here! We shouldn't end the clone until the timer is done
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 
-		jest.advanceTimersByTime(250) // tick tock
+		vi.advanceTimersByTime(250) // tick tock
 
 		// Timer is done! We should have ended the clone.
 		expect(editor.getCurrentPageShapes().length).toBe(1)
@@ -269,47 +262,85 @@ describe('DraggingHandle', () => {
 
 describe('PointingLabel', () => {
 	it('Enters from pointing_arrow_label and exits to idle', () => {
-		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
 		])
-		const shape = editor.getShape(ids.arrow1)
-		editor.pointerDown(150, 150, {
+		const shape = editor.getShape(ids.arrow1)!
+		// First select the shape so it's already selected
+		editor.select(shape.id)
+
+		// Click at the middle of the arrow where the label would be and drag to move the label
+		editor.pointerDown(150, 100, {
 			target: 'shape',
 			shape,
 		})
-		editor.pointerMove(100, 100)
+		editor.pointerMove(160, 100)
 		editor.expectToBeIn('select.pointing_arrow_label')
 
+		// Continue dragging to actually move the label, then it should go to idle
+		editor.pointerMove(170, 100)
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
 
 	it('Bails on escape', () => {
-		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
 		])
 		const shape = editor.getShape(ids.arrow1)
 
-		editor.pointerDown(150, 150, {
+		// Click at the middle of the arrow where the label would be
+		editor.pointerDown(150, 100, {
 			target: 'shape',
 			shape,
 		})
-		editor.pointerMove(100, 100)
+		editor.pointerMove(160, 100)
 		editor.expectToBeIn('select.pointing_arrow_label')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
 
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
-		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText(''), // Empty label
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
 		])
-		const shape = editor.getShape(ids.arrow1)
-		editor.pointerDown(0, 150, {
+		const shape = editor.getShape(ids.arrow1)!
+		// Click anywhere on the arrow - since there's no label, it should go to translating
+		editor.pointerDown(150, 100, {
 			target: 'shape',
 			shape,
 		})
-		editor.pointerMove(100, 100)
+		editor.pointerMove(155, 105)
 		editor.expectToBeIn('select.translating')
 
 		editor.pointerUp()
@@ -338,7 +369,7 @@ describe('When pressing enter on a selected shape', () => {
 			.selectNone()
 			.createShapes([{ id, type: 'geo' }])
 			.select(id)
-			.keyUp('Enter')
+			.keyPress('Enter')
 			.expectToBeIn('select.editing_shape')
 	})
 })
@@ -367,7 +398,7 @@ describe('When double clicking the selection edge', () => {
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
 			.selectNone()
-			.createShapes<TLTextShape>([
+			.createShapes([
 				{
 					id,
 					type: 'text',
@@ -425,7 +456,7 @@ describe('When editing shapes', () => {
 			text2: createShapeId(),
 		}
 
-		editor.createShapes<TLGeoShape | TLTextShape>([
+		editor.createShapes([
 			{
 				id: ids.geo1,
 				type: 'geo',
@@ -577,7 +608,7 @@ describe('When in readonly mode', () => {
 		editor.setSelectedShapes([ids.embed1])
 		expect(editor.getSelectedShapeIds().length).toBe(1)
 
-		editor.keyUp('Enter')
+		editor.keyPress('Enter')
 		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
 })
@@ -608,4 +639,255 @@ test('right clicking a shape inside of a group does not focus the group if the g
 	editor.pointerDown(100, 100, { target: 'shape', button: 0, shape: editor.getShape(boxAId)! })
 	editor.pointerUp(100, 100, { target: 'shape', button: 0, shape: editor.getShape(boxAId)! })
 	expect(editor.getFocusedGroupId()).toBe(groupId)
+})
+
+describe('when passing a function to onInteractionEnd', () => {
+	it('calls the function for cropping', () => {
+		const id = createShapeId('image')
+		editor.createShapes([
+			{
+				id,
+				type: 'image',
+				x: 100,
+				y: 100,
+				props: {
+					w: 1200,
+					h: 800,
+				},
+			},
+		])
+
+		editor.select(id)
+
+		const fn = vi.fn()
+		editor.setCurrentTool('select.cropping', {
+			handle: 'bottom_right',
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('calls the function for pointing crop handle', () => {
+		const fn = vi.fn()
+		editor.setCurrentTool('select.crop.pointing_crop_handle', {
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('calls the function for pointing arrow label', () => {
+		const fn = vi.fn()
+		const id = createShapeId('arrow')
+
+		const arrow = {
+			id,
+			type: 'arrow' as const,
+			x: 100,
+			y: 100,
+			props: {
+				richText: toRichText('Test Label'),
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
+			},
+		}
+
+		editor.createShapes([arrow])
+
+		editor.setCurrentTool('select.pointing_arrow_label', {
+			shape: arrow,
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('calls the function for pointing a resize handle', () => {
+		const fn = vi.fn()
+		editor.setCurrentTool('select.pointing_resize_handle', {
+			target: 'selection',
+			handle: 'bottom_right',
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('calls the function for pointing a rotate handle', () => {
+		const fn = vi.fn()
+		editor.setCurrentTool('select.pointing_rotate_handle', {
+			target: 'selection',
+			handle: 'bottom_right_rotate',
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('calls the function for resizing', () => {
+		const id = createShapeId('box')
+		editor.createShapes([
+			{
+				id,
+				type: 'geo',
+				x: 100,
+				y: 100,
+			},
+		])
+
+		editor.select(id)
+
+		const fn = vi.fn()
+		editor.setCurrentTool('select.resizing', {
+			target: 'selection',
+			handle: 'bottom_right',
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('calls the function for translating', () => {
+		const id = createShapeId('box')
+		editor.createShapes([
+			{
+				id,
+				type: 'geo',
+				x: 100,
+				y: 100,
+			},
+		])
+		editor.select(id)
+
+		const fn = vi.fn()
+		editor.setCurrentTool('select.translating', {
+			onInteractionEnd: fn,
+		})
+		editor.pointerUp(50, 50)
+		expect(fn).toHaveBeenCalled()
+	})
+})
+
+describe('when passing a string to onInteractionEnd', () => {
+	it('transitions to the tool for cropping', () => {
+		const id = createShapeId('image')
+		editor.createShapes([
+			{
+				id,
+				type: 'image',
+				x: 100,
+				y: 100,
+				props: {
+					w: 1200,
+					h: 800,
+				},
+			},
+		])
+
+		editor.select(id)
+
+		editor.setCurrentTool('select.cropping', {
+			handle: 'bottom_right',
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('transitions to the tool for pointing crop handle', () => {
+		editor.setCurrentTool('select.crop.pointing_crop_handle', {
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('transitions to the tool for pointing arrow label', () => {
+		const id = createShapeId('arrow')
+
+		const arrow = {
+			id,
+			type: 'arrow' as const,
+			x: 100,
+			y: 100,
+			props: {
+				richText: toRichText('Test Label'),
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
+			},
+		}
+
+		editor.createShapes([arrow])
+
+		editor.setCurrentTool('select.pointing_arrow_label', {
+			shape: arrow,
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('transitions to the tool for pointing a resize handle', () => {
+		editor.setCurrentTool('select.pointing_resize_handle', {
+			target: 'selection',
+			handle: 'bottom_right',
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('transitions to the tool for pointing a rotate handle', () => {
+		editor.setCurrentTool('select.pointing_rotate_handle', {
+			target: 'selection',
+			handle: 'bottom_right_rotate',
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('transitions to the tool for resizing', () => {
+		const id = createShapeId('box')
+		editor.createShapes([
+			{
+				id,
+				type: 'geo',
+				x: 100,
+				y: 100,
+			},
+		])
+
+		editor.select(id)
+
+		editor.setCurrentTool('select.resizing', {
+			target: 'selection',
+			handle: 'bottom_right',
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('transitions to the tool for translating', () => {
+		const id = createShapeId('box')
+		editor.createShapes([
+			{
+				id,
+				type: 'geo',
+				x: 100,
+				y: 100,
+			},
+		])
+		editor.select(id)
+
+		editor.setCurrentTool('select.translating', {
+			onInteractionEnd: 'select.idle',
+		})
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('select.idle')
+	})
 })

@@ -1,11 +1,11 @@
 import { tlenv, useEditor, useReactor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import React, { ReactNode, useRef, useState } from 'react'
+import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
-import { FollowingIndicator } from './components/FollowingIndicator'
+import { SkipToMainContent } from './components/A11y'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
-import { PORTRAIT_BREAKPOINT } from './constants'
+import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from './constants'
 import {
 	TLUiContextProviderProps,
 	TldrawUiContextProvider,
@@ -107,10 +107,9 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
-		CursorChatBubble,
-		RichTextToolbar,
 		Toasts,
 		Dialogs,
+		A11y,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -156,6 +155,19 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
+	const { breakpointsAbove, breakpointsBelow } = useMemo(() => {
+		const breakpointsAbove = []
+		const breakpointsBelow = []
+		for (let bp = 0; bp < PORTRAIT_BREAKPOINTS.length; bp++) {
+			if (bp <= breakpoint) {
+				breakpointsAbove.push(bp)
+			} else {
+				breakpointsBelow.push(bp)
+			}
+		}
+		return { breakpointsAbove, breakpointsBelow }
+	}, [breakpoint])
+
 	return (
 		<div
 			className={classNames('tlui-layout', {
@@ -165,7 +177,10 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
 			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
+			data-breakpoints-above={breakpointsAbove.join(' ')}
+			data-breakpoints-below={breakpointsBelow.join(' ')}
 		>
+			<SkipToMainContent />
 			{isFocusMode ? (
 				<div className="tlui-layout__top">
 					<TldrawUiButton
@@ -199,14 +214,28 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 							{HelpMenu && <HelpMenu />}
 						</div>
 						{isDebugMode && DebugPanel && <DebugPanel />}
+						{A11y && <A11y />}
 					</div>
 				</>
 			)}
-			{RichTextToolbar && <RichTextToolbar />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
-			<FollowingIndicator />
-			{CursorChatBubble && <CursorChatBubble />}
 		</div>
 	)
 })
+
+/** @public @react */
+export function TldrawUiInFrontOfTheCanvas() {
+	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble, FollowingIndicator } =
+		useTldrawUiComponents()
+
+	return (
+		<>
+			{RichTextToolbar && <RichTextToolbar />}
+			{ImageToolbar && <ImageToolbar />}
+			{VideoToolbar && <VideoToolbar />}
+			{FollowingIndicator && <FollowingIndicator />}
+			{CursorChatBubble && <CursorChatBubble />}
+		</>
+	)
+}

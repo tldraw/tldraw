@@ -1,0 +1,294 @@
+:root {
+	--tl-analytics-button-bg: hsl(0, 0%, 100%);
+	--tl-analytics-button-text: hsl(235, 6.8%, 13.5%);
+	--tl-analytics-bg: hsl(235, 6.8%, 13.5%);
+	--tl-analytics-text: hsl(0, 9%, 94%);
+	--tl-analytics-text-secondary: hsl(204, 4%, 75%);
+	--tl-analytics-link: #60a5fa;
+	--tl-analytics-link-hover: #93c5fd;
+	--tl-analytics-overlay: rgba(0, 0, 0, 0.2);
+	--tl-analytics-shadow:
+		0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+}
+
+[data-theme='dark'] {
+	--tl-analytics-button-bg: hsl(0, 0%, 0%);
+	--tl-analytics-button-text: hsl(0, 0%, 100%);
+	--tl-analytics-bg: hsl(0, 0%, 99%);
+	--tl-analytics-text: hsl(0, 0%, 0%);
+	--tl-analytics-text-secondary: hsl(204, 4%, 45%);
+	--tl-analytics-link: #3b82f6;
+	--tl-analytics-link-hover: #2563eb;
+	--tl-analytics-overlay: rgba(0, 0, 0, 0.45);
+	--tl-analytics-shadow:
+		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+}
+
+.tl-analytics-banner {
+	position: fixed;
+	z-index: 1000;
+	padding: 6px;
+	border-radius: 8px;
+	box-shadow: var(--tl-analytics-shadow);
+	background-color: var(--tl-analytics-bg);
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	/* Inter is usually available on our properties */
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+	/* Safe area aware overrides */
+	bottom: max(4px, env(safe-area-inset-bottom));
+	right: max(4px, env(safe-area-inset-right));
+	max-width: 240px;
+	/* Slide-in animation */
+	transform: translateY(110%);
+	animation: slideUp 3s ease-in forwards;
+	animation-delay: 2s;
+	pointer-events: none;
+}
+
+@keyframes slideUp {
+	0% {
+		transform: translateY(110%);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
+.tl-analytics-banner__text {
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--tl-analytics-text);
+	margin: 0;
+	padding: 8px 8px 12px;
+}
+
+.tl-analytics-banner__link {
+	color: var(--tl-analytics-link);
+	text-decoration: none;
+}
+
+.tl-analytics-banner__link:hover {
+	color: var(--tl-analytics-link-hover);
+}
+
+.tl-analytics-banner__buttons {
+	display: flex;
+	gap: 4px;
+	justify-content: space-between;
+	width: 100%;
+	flex-wrap: wrap;
+}
+
+.tl-analytics-button {
+	font-size: 12px;
+	cursor: pointer;
+	text-decoration: none;
+	border: none;
+	padding: 4px 8px;
+	border-radius: 6px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.tl-analytics-button--primary {
+	font-weight: 500;
+	background-color: var(--tl-analytics-button-bg);
+	color: var(--tl-analytics-button-text);
+	overflow: hidden;
+	position: relative;
+	padding: 6px 6px;
+	min-width: 96px;
+}
+
+.tl-analytics-button__text-wrapper {
+	overflow: hidden;
+}
+
+.tl-analytics-button__text {
+	display: inline-block;
+	animation: marquee 2.5s linear infinite;
+	white-space: nowrap;
+	transform: translateX(72px);
+}
+
+@keyframes marquee {
+	0% {
+		transform: translateX(72px);
+	}
+	100% {
+		transform: translateX(-72px);
+	}
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	.tl-analytics-banner {
+		animation: none;
+		transform: translateY(0);
+	}
+
+	.tl-analytics-button__text {
+		animation: none;
+		transform: translateX(0);
+	}
+}
+
+.tl-analytics-button--secondary {
+	background: none;
+	color: var(--tl-analytics-text);
+}
+
+.tl-analytics-dialog {
+	font-family: 'Inter', sans-serif;
+	color: var(--tl-analytics-text);
+	position: fixed;
+	inset: 0;
+	z-index: 10000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.tl-analytics-dialog__overlay {
+	position: fixed;
+	inset: 0;
+	background-color: var(--tl-analytics-overlay);
+	z-index: 1;
+}
+
+.tl-analytics-dialog__wrapper {
+	z-index: 2;
+}
+
+.tl-analytics-dialog__content {
+	position: relative;
+	max-width: 350px;
+	min-width: 350px;
+	background-color: var(--tl-analytics-bg);
+	border-radius: 8px;
+	box-shadow: var(--tl-analytics-shadow);
+	font-size: 12px;
+	line-height: 1.6;
+	text-align: left;
+}
+
+.tl-analytics-dialog__header {
+	height: 40px;
+	padding-left: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.tl-analytics-dialog__title {
+	font-weight: 500;
+	font-size: 12px;
+	color: var(--tl-analytics-text);
+	margin: 0;
+}
+
+.tl-analytics-dialog__close {
+	position: relative;
+	height: 40px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: var(--tl-analytics-text);
+}
+
+@media (hover: hover) {
+	.tl-analytics-dialog__close::after {
+		content: '';
+		position: absolute;
+		inset: 4px;
+		background-color: var(--tl-analytics-overlay);
+		border-radius: 4px;
+		opacity: 0;
+	}
+	.tl-analytics-dialog__close:hover::after {
+		opacity: 0.2;
+	}
+}
+
+.tl-analytics-dialog__body {
+	margin: 12px;
+}
+
+.tl-analytics-dialog__body p {
+	margin: 0;
+	color: var(--tl-analytics-text-secondary);
+}
+
+.tl-analytics-dialog__body a {
+	display: inline-block;
+	color: var(--tl-analytics-link);
+	text-decoration: none;
+}
+
+.tl-analytics-dialog__body a:hover {
+	color: var(--tl-analytics-link-hover);
+}
+
+.tl-analytics-dialog__checkbox-group {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 12px;
+	padding-bottom: 12px;
+}
+
+.tl-analytics-checkbox {
+	width: 32px;
+	height: 20px;
+	background-color: var(--tl-analytics-text-secondary);
+	border-radius: 9999px;
+	position: relative;
+	cursor: pointer;
+	border: 0;
+	padding: 0;
+}
+
+.tl-analytics-checkbox__thumb {
+	display: block;
+	width: 16px;
+	height: 16px;
+	background-color: var(--tl-analytics-bg);
+	border-radius: 9999px;
+	transition: transform 100ms;
+	transform: translateX(2px);
+}
+
+.tl-analytics-checkbox[aria-checked='true'] {
+	background-color: var(--tl-analytics-link);
+}
+
+.tl-analytics-checkbox[aria-checked='true'] .tl-analytics-checkbox__thumb {
+	transform: translateX(14px);
+}
+
+.tl-analytics-checkbox__label {
+	margin: 0;
+	font-size: 12px;
+}
+
+.tl-analytics-dialog__footer {
+	padding: 0 8px 8px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 4px;
+}
+
+body:has(.tl-analytics-dialog) .tl-analytics-banner {
+	opacity: 0;
+}

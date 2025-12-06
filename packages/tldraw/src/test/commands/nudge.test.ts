@@ -131,25 +131,72 @@ describe('When a shape is selected...', () => {
 
 describe('When a shape is rotated...', () => {
 	it('Translates correctly in page space', () => {
-		// Rotate boxB by 90 degrees and move it to 0,0 for simplicity's sake
-		editor.select(ids.boxB)
-		editor.rotateShapesBy([ids.boxB], Math.PI / 2)
-		editor.updateShapes([{ id: ids.boxB, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
-		// Make box A a child of box B
-		editor.reparentShapes([ids.boxA], ids.boxB)
-		// editor.updateShapes([{ id: ids.boxB, type: 'geo', x: 10, y: 10 }])
+		editor.createShape({ type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } })
+		const frame = editor.getLastCreatedShape()
+		editor.reparentShapes([ids.boxA], frame.id)
+		editor.updateShape({ id: ids.boxA, type: 'geo', x: 10, y: 10, props: { w: 100, h: 100 } })
 
 		// Here's the selection page bounds and shape before we nudge it
 		editor.setSelectedShapes([ids.boxA])
 		expect(editor.getSelectionPageBounds()).toCloselyMatchObject({ x: 10, y: 10, w: 100, h: 100 })
-		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({ x: 10, y: -10 })
+		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({ x: 10, y: 10 })
 
-		// Select box A and move it up. The page bounds should move up, but the
-		// shape should move left (since its parent is rotated 90 degrees)
+		// Select box A and move it up.
 		editor.keyDown('ArrowUp')
-		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 10, y: 9, w: 100, h: 100 })
-		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 9, y: -10 })
 		editor.keyUp('ArrowUp')
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 10, y: 9 })
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 10, y: 9, w: 100, h: 100 })
+
+		editor.updateShape({ id: frame.id, type: 'frame', rotation: Math.PI / 2, x: 100 })
+
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 10, y: 9 })
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: -9, y: 10, w: 100, h: 100 })
+
+		editor.setSelectedShapes([ids.boxA])
+		editor.keyDown('ArrowUp')
+		editor.keyUp('ArrowUp')
+		// The relative position moves down by 1 on x, because the shape's parent frame is rotated 90deg
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 9, y: 9 })
+		// The absolute position moves up by 1 on y though, because nudges occur in absolute space
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: -9, y: 9, w: 100, h: 100 })
+	})
+})
+
+describe('When a shape is a child of a frame...', () => {
+	it('Nudges out of the parent', () => {
+		editor.createShape({ type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } })
+		const frame = editor.getLastCreatedShape()
+		editor.reparentShapes([ids.boxA], frame.id)
+		editor.updateShape({ id: ids.boxA, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } })
+
+		// Here's the selection page bounds and shape before we nudge it
+		editor.setSelectedShapes([ids.boxA])
+		expect(editor.getSelectionPageBounds()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({ parentId: frame.id, x: 0, y: 0 })
+
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+		editor.keyDown('ArrowUp')
+
+		// still barely in the parent frame
+		expect(editor.getSelectionPageBounds()).toCloselyMatchObject({ x: 0, y: -10 })
+		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({ parentId: frame.id, x: 0, y: -10 })
+
+		editor.keyDown('ArrowUp')
+		// now we're out of the parent frame and reparented to the page
+		expect(editor.getSelectionPageBounds()).toCloselyMatchObject({ x: 0, y: -11 })
+		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 0,
+			y: -11,
+		})
 	})
 })
 

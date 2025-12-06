@@ -1,4 +1,14 @@
-// The maximum size for an array in an ArraySet
+/**
+ * The maximum number of items that can be stored in an ArraySet in array mode before switching to Set mode.
+ *
+ * @public
+ * @example
+ * ```ts
+ * import { ARRAY_SIZE_THRESHOLD } from '@tldraw/state'
+ *
+ * console.log(ARRAY_SIZE_THRESHOLD) // 8
+ * ```
+ */
 export const ARRAY_SIZE_THRESHOLD = 8
 
 /**
@@ -32,11 +42,18 @@ export class ArraySet<T> {
 	}
 
 	/**
-	 * Add an item to the ArraySet if it is not already present.
+	 * Add an element to the ArraySet if it is not already present.
 	 *
-	 * @param elem - The element to add.
+	 * @param elem - The element to add to the set
+	 * @returns `true` if the element was added, `false` if it was already present
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<string>()
+	 *
+	 * console.log(arraySet.add('hello')) // true
+	 * console.log(arraySet.add('hello')) // false (already exists)
+	 * ```
 	 */
-
 	add(elem: T) {
 		if (this.array) {
 			const idx = this.array.indexOf(elem)
@@ -78,9 +95,18 @@ export class ArraySet<T> {
 	}
 
 	/**
-	 * Remove an item from the ArraySet if it is present.
+	 * Remove an element from the ArraySet if it is present.
 	 *
-	 * @param elem - The element to remove
+	 * @param elem - The element to remove from the set
+	 * @returns `true` if the element was removed, `false` if it was not present
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<string>()
+	 * arraySet.add('hello')
+	 *
+	 * console.log(arraySet.remove('hello')) // true
+	 * console.log(arraySet.remove('hello')) // false (not present)
+	 * ```
 	 */
 	remove(elem: T) {
 		if (this.array) {
@@ -119,9 +145,19 @@ export class ArraySet<T> {
 	}
 
 	/**
-	 * Run a callback for each element in the ArraySet.
+	 * Execute a callback function for each element in the ArraySet.
 	 *
-	 * @param visitor - The callback to run for each element.
+	 * @param visitor - A function to call for each element in the set
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<string>()
+	 * arraySet.add('hello')
+	 * arraySet.add('world')
+	 *
+	 * arraySet.visit((item) => {
+	 *   console.log(item) // 'hello', 'world'
+	 * })
+	 * ```
 	 */
 	visit(visitor: (item: T) => void) {
 		if (this.array) {
@@ -145,6 +181,23 @@ export class ArraySet<T> {
 		throw new Error('no set or array')
 	}
 
+	/**
+	 * Make the ArraySet iterable, allowing it to be used in for...of loops and with spread syntax.
+	 *
+	 * @returns An iterator that yields each element in the set
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<number>()
+	 * arraySet.add(1)
+	 * arraySet.add(2)
+	 *
+	 * for (const item of arraySet) {
+	 *   console.log(item) // 1, 2
+	 * }
+	 *
+	 * const items = [...arraySet] // [1, 2]
+	 * ```
+	 */
 	*[Symbol.iterator]() {
 		if (this.array) {
 			for (let i = 0; i < this.arraySize; i++) {
@@ -161,6 +214,20 @@ export class ArraySet<T> {
 		}
 	}
 
+	/**
+	 * Check whether an element is present in the ArraySet.
+	 *
+	 * @param elem - The element to check for
+	 * @returns `true` if the element is present, `false` otherwise
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<string>()
+	 * arraySet.add('hello')
+	 *
+	 * console.log(arraySet.has('hello')) // true
+	 * console.log(arraySet.has('world')) // false
+	 * ```
+	 */
 	has(elem: T) {
 		if (this.array) {
 			return this.array.indexOf(elem) !== -1
@@ -169,6 +236,19 @@ export class ArraySet<T> {
 		}
 	}
 
+	/**
+	 * Remove all elements from the ArraySet.
+	 *
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<string>()
+	 * arraySet.add('hello')
+	 * arraySet.add('world')
+	 *
+	 * arraySet.clear()
+	 * console.log(arraySet.size()) // 0
+	 * ```
+	 */
 	clear() {
 		if (this.set) {
 			this.set.clear()
@@ -178,6 +258,19 @@ export class ArraySet<T> {
 		}
 	}
 
+	/**
+	 * Get the number of elements in the ArraySet.
+	 *
+	 * @returns The number of elements in the set
+	 * @example
+	 * ```ts
+	 * const arraySet = new ArraySet<string>()
+	 * console.log(arraySet.size()) // 0
+	 *
+	 * arraySet.add('hello')
+	 * console.log(arraySet.size()) // 1
+	 * ```
+	 */
 	size() {
 		if (this.set) {
 			return this.set.size

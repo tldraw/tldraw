@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -6,7 +7,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 it('Shift Key', () => {
 	editor.pointerDown(0, 0)

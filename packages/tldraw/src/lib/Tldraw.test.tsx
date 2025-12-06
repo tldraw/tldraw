@@ -1,5 +1,5 @@
 import { act, screen } from '@testing-library/react'
-import { BaseBoxShapeUtil, Editor } from '@tldraw/editor'
+import { BaseBoxShapeUtil, Editor, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { useState } from 'react'
 import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
@@ -74,5 +74,55 @@ describe('<Tldraw />', () => {
 			)
 		})
 		await screen.findByTestId('canvas-2')
+	})
+
+	it('correctly merges custom tools with default tools, allowing custom tools to override defaults', async () => {
+		// Create a custom tool that overrides a default tool
+		class CustomSelectTool extends StateNode {
+			static override id = 'select' // This should override the default select tool
+			static override initial = 'idle'
+			static override children(): TLStateNodeConstructor[] {
+				return [CustomIdleState]
+			}
+		}
+
+		class CustomIdleState extends StateNode {
+			static override id = 'idle'
+		}
+
+		// Create a custom tool that doesn't conflict with defaults
+		class CustomTool extends StateNode {
+			static override id = 'custom-tool'
+			static override initial = 'idle'
+			static override children(): TLStateNodeConstructor[] {
+				return [CustomToolIdleState]
+			}
+		}
+
+		class CustomToolIdleState extends StateNode {
+			static override id = 'idle'
+		}
+
+		let editor: Editor
+		await renderTldrawComponent(
+			<Tldraw
+				tools={[CustomSelectTool, CustomTool]}
+				onMount={(e) => {
+					editor = e
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+
+		// Verify that the custom select tool overrides the default select tool
+		expect(editor!.root.children!['select']).toBeInstanceOf(CustomSelectTool)
+
+		// Verify that the custom tool is also available
+		expect(editor!.root.children!['custom-tool']).toBeInstanceOf(CustomTool)
+
+		// Verify that other default tools are still available
+		expect(editor!.root.children!['eraser']).toBeDefined()
+		expect(editor!.root.children!['hand']).toBeDefined()
+		expect(editor!.root.children!['zoom']).toBeDefined()
 	})
 })

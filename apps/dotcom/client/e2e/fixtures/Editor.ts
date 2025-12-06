@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { Sidebar } from './Sidebar'
+import { sleep } from './helpers'
 import { step } from './tla-test'
 
 export class Editor {
@@ -16,18 +17,19 @@ export class Editor {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
 		this.fileName = this.page.getByTestId('tla-file-name')
 		this.shapes = this.page.locator('.tl-shape')
-		this.pageMenu = this.page.getByTestId('tla-page-menu')
+		this.pageMenu = this.page.getByTestId('tla-main-menu')
 	}
 
 	async toggleSidebar() {
 		await this.sidebarToggle.click()
+		await sleep(500)
 	}
 
 	@step
 	async ensureSidebarOpen() {
 		const visible = await this.sidebar.isVisible()
 		if (!visible) {
-			await this.sidebarToggle.click()
+			await this.toggleSidebar()
 		}
 		await this.sidebar.expectIsVisible()
 	}
@@ -36,13 +38,17 @@ export class Editor {
 	async ensureSidebarClosed() {
 		const visible = await this.sidebar.isVisible()
 		if (visible) {
-			await this.sidebarToggle.click()
+			await this.toggleSidebar()
 		}
 		await this.sidebar.expectIsNotVisible()
 	}
 
 	async isLoaded() {
 		await expect(this.sidebarToggle).toBeVisible()
+	}
+
+	async getShapeCount() {
+		return await this.shapes.count()
 	}
 
 	@step
@@ -69,6 +75,7 @@ export class Editor {
 	@step
 	async createNewPage() {
 		await this.page.getByTestId('page-menu.button').click()
+		await expect(this.page.getByTestId('page-menu.create')).toBeVisible()
 		await expect(this.page.getByTestId('page-menu.item').first()).toBeVisible()
 		const count = await this.page.getByTestId('page-menu.item').count()
 		await this.page.getByTestId('page-menu.create').click()
@@ -79,8 +86,8 @@ export class Editor {
 
 	@step
 	async createTextShape(text: string) {
+		await this.page.getByTestId('tools.select').click()
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
 		await this.page.locator('div[contenteditable="true"]').fill(text)
-		await this.page.pause()
 	}
 }

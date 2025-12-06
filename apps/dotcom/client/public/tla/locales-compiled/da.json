@@ -1,134 +1,1772 @@
 {
-  "0095a9fa74": "Eksportere",
-  "03b3e13197": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen.",
-  "043973ec1f": "Har du stadig problemer? {GetHelpLink}",
-  "05596b840b": "Åbn tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Unavngivet fil",
-  "08331c1710": "Satsgrænsen er overskredet. Prøv igen senere.",
-  "0b27918290": "Fil",
-  "0b9a4cde72": "Fil menu",
-  "110a4b01be": "Offentliggøre",
-  "13ddd375ad": "Eksporter som",
-  "181b90f889": "Opret fil",
-  "1bef75f760": "Tillad tldraw at e-maile mig om dette",
-  "1da2e8106b": "Der opstod en uventet fejl.",
-  "1dd1c5fb7f": "I dag",
-  "26e5b44256": "Giv os feedback",
-  "299cb00a7a": "Upload mislykkedes",
-  "31246941ad": "Du skal logge ind for at se denne fil.",
-  "31418ce4ad": "i18n: Fremhæv mangler",
-  "32656a600c": "Ser du noget galt? Har du en idé til at forbedre tldraw? Vi vil meget gerne høre det!",
-  "335defdafe": "Prøv venligst at opdatere siden.",
-  "344a7f427f": "Redaktør",
-  "3bd1b98dbd": "Ændringerne kunne ikke offentliggøres.",
-  "3c5e891bff": "Fastgjort",
-  "42e53c47c1": "Kontakt ejeren for at anmode om adgang.",
-  "44db318ee5": "Få hjælp til Discord",
-  "46137245cd": "Tak, fordi du hjælper os med at forbedre tldraw!",
-  "4778b9f3f2": "Indstillinger for beskyttelse af personlige oplysninger",
-  "47839e47a5": "tltegn",
-  "4908687e50": "Er du sikker på, at du vil glemme denne fil?",
-  "4c06678729": "Vi bruger førstepartscookies til at forbedre vores tjenester. <a>Få flere oplysninger</a>",
-  "4d1c8263ba": "Genindlæs",
-  "50db1b7e1e": "Filen kunne ikke fjernes.",
-  "517bb809d9": "Sidemenu",
-  "54286b1d01": "Samarbejdsgrænsen er nået",
-  "54d240fa41": "Sæt farten ned.",
-  "554a05155c": "Har du stadig problemer? <a>Rapportér et problem</a>",
-  "55505ba281": "PNG",
-  "56c34c6410": "Privatlivspolitik",
-  "5817f82c16": "Valgfrit – Hjælp os med at forstå, hvordan folk bruger tldraw, og hvordan vi kan gøre det bedre.",
-  "5a95a425f7": "Dele",
-  "5d160eb095": "Din session",
-  "5d26ae7550": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind.",
-  "5db1e9a8ca": "Udfyld denne formular, <discord>chat med os på Discord</discord> eller <github>indsend et problem på GitHub</github>.",
-  "5f3c333678": "Feedback indsendt",
-  "5fb63579fc": "Kopi",
-  "61057a0c84": "Senere",
-  "625fd29749": "Ældre",
-  "6609dd239e": "Noget gik galt",
-  "6637a98151": "En ny version af tldraw er tilgængelig. Genindlæs siden for at fortsætte.",
-  "6a26f54883": "Hjælp",
-  "6dc0836c1b": "Du har ikke de nødvendige tilladelser til at udføre denne handling.",
-  "6dfc62f621": "Følg disse trin for at importere indholdet manuelt:",
-  "70a6facb9d": "Denne uge",
-  "73ab799383": "Denne version af tldraw understøttes ikke længere.",
-  "7408cf0d7b": "Genindlæs venligst siden",
-  "752b79f137": "Du har nået det maksimale antal filer. Du skal slette gamle filer, før du opretter nye.",
-  "7573b8110a": "Ingen adgang",
-  "761e93ede9": "Administrer cookies",
-  "764671e008": "Chat med os på Discord",
-  "7697920637": "Genindlæs venligst",
-  "777f9e90cf": "Ugyldig anmodning.",
-  "797799f35e": "Indsend et problem på GitHub",
-  "7cb5f8b4a5": "Glemme",
-  "7daeced9ff": "Udgiv ændringer",
-  "7fcdcc6455": "Glem fil",
-  "81d389ac80": "Eksporter indholdet som en .tldr-fil: Vælg 'Download fil' i menuen øverst til venstre.",
-  "85a082de1b": "Opdater siden for at få den seneste version af tldraw.",
-  "86353d2c41": "Tilføjet {total} .tldr-filer.",
-  "86c66437fd": "Omdøb fil",
-  "8eb2c00e96": "Delt med dig",
-  "8f7f4c1ce7": "Om",
-  "8ff3d0a705": "Sats begrænset",
-  "902b0d55fd": "Fejl",
-  "904a830405": "Omdøb",
-  "91e49bb0eb": "Kopier til mine filer",
-  "96165d6df5": "Denne måned",
-  "9914a0ce04": "Lys",
-  "9bef626805": "Slet fil",
-  "9ceb927baa": "Udgiv denne fil",
-  "9e076f5885": "Ikke fundet",
-  "9e93c98d88": "Fravælg",
-  "a104439641": "Polstring",
-  "a18366b217": "Mørk",
-  "a1c915578c": "Filen du leder efter findes ikke.",
-  "a239905023": "Eksporter billede",
-  "a3debabee7": "Cookie politik",
-  "a4d3b161ce": "Indsend",
-  "a6cc403d56": "Enhver med linket",
-  "a768caa988": "Analytics",
-  "a9ded1e5ce": "Baggrund",
-  "ab0df9ba36": "Filgrænsen er nået",
-  "af3dc88931": "Sidst offentliggjort <date></date>",
-  "b6d4223e60": "Log ind",
-  "b758336699": "Kopiér link",
-  "bb792693e2": "Frigør",
-  "bbbcefd7ce": "{total, plural, one {Uploader .tldr-fil...} other {Uploader {uploaded} af {total} .tldr-filer...}}",
-  "bc88b0e89e": "Delt af {ownerName}",
-  "bcb62136a3": "Upload .tldr-filer",
-  "c2276c9127": "Få mere at vide om deling.",
-  "c303bd1095": "Filen kunne ikke udgives.",
-  "c4408d3350": "Acceptere",
-  "c655b27b1e": "i18n: Lang streng",
-  "c6a00f137b": "Invitere",
-  "c87aacf567": "Log ud",
-  "cceaefbc20": "Del denne fil",
-  "cd15a75c26": "SVG",
-  "cd16f555de": "Vigtigt - Påkrævet for at gemme dine filer og indstillinger og synkronisere dem på tværs af dine enheder.",
-  "cea291e45e": "Få mere at vide om udgivelse.",
-  "d3d2e61733": "Tæt",
-  "d4bbf74f3e": "Skift sidebjælke",
-  "d5ef96e383": "Download fil",
-  "d721757161": "Tema",
-  "d876a9fe1a": "Prøv igen",
-  "d9100f3e10": "Gå her for at se indholdet",
-  "dbbebf3c03": "Kun invitation",
-  "dfdb78a4e4": "App debug flag",
-  "e371526ad0": "Denne cookie er påkrævet for at tldraw kan fungere og kan ikke deaktiveres.",
-  "e404559826": "Servicevilkår",
-  "e78e14c5f1": "Stift",
-  "e8d1090cb9": "Vi bruger cookies til at holde dig logget ind, til at synkronisere dine filer og til at indsamle analyser for at hjælpe os med at forbedre tldraw. Læs vores <a>cookiepolitik</a> for at få flere oplysninger.",
-  "ea4788705e": "Ophæve",
-  "ebfe9ce86e": "I går",
-  "ec59b960ea": "Denne fil har nået det maksimale antal aktive samarbejdspartnere.",
-  "ec611e9a08": "Konto menu",
-  "ed53713239": "i18n: Accent",
-  "ed75712b0e": "Duplikere",
-  "f2a6c498fb": "Slet",
-  "f43fb62093": "Tilbage til tldraw.",
-  "fb15c53f22": "Seer",
-  "fd1be3efcf": "Er du sikker på, at du vil slette denne fil?",
-  "fed5ec05eb": "Kopieret link"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Eksportere"
+    }
+  ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accepter invitationen"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Har du stadig problemer? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Unavngivet fil"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Satsgrænsen er overskredet. Prøv igen senere."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Konto"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Denne fil har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Tal med gruppen…"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Fil"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Fil menu"
+    }
+  ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Feer"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Send feedback"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Offentliggøre"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stop"
+    }
+  ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Forlad gruppen"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Frigør fil"
+    }
+  ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Prøv tldraw SDK'et"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Eksporter som"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Vis mere"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Slet gruppe"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Opret fil"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Der opstod en uventet fejl."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "I dag"
+    }
+  ],
+  "23f879f41a": [
+    {
+      "type": 0,
+      "value": "Din ugentlige grænse for fe-forbrug er nået. Den nulstilles i starten af næste uge."
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Sove"
+    }
+  ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Opret gruppe"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Om tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Dine feer venter"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Indkald alle"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Upload mislykkedes"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Mine filer"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "En flok "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "feer"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " er kommet til tldraw i december måned. For at undersøge sagen nærmere, find feen og klik på den."
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Du skal logge ind for at se denne fil."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Fremhæv mangler"
+    }
+  ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tre feer"
+    }
+  ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Tilføj link"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Tilbage til tldraw"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Prøv venligst at opdatere siden."
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "En flok feer kommer til tldraw i december måned. Kig venligst tilbage den 1. december."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Redaktør"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Sov alle"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Styre"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Fjern følg"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Følge"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Servicevilkår"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Fortsæt med e-mail"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Ændringerne kunne ikke offentliggøres."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Fastgjort"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Accepter alle"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Kontakt ejeren for at anmode om adgang."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Få hjælp til Discord"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Feer"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " er kommet for at tegne i december måned."
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Tak, fordi du hjælper os med at forbedre tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Ingen feer valgt"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "For at fortsætte redigeringen, kopier venligst filen til dine filer."
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tltegn"
+    }
+  ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Fastgør fil"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Indsæt tldraw-filens URL..."
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Er du sikker på, at du vil glemme denne fil?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Navn"
+    }
+  ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Vælg alle"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Dette websted bruger cookies til at få appen til at fungere og til at indsamle analyser."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Genindlæs"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Slet gruppe…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Flere muligheder"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Er du sikker på, at du vil slette denne gruppe? Denne handling kan ikke fortrydes."
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Filen kunne ikke fjernes."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Sidemenu"
+    }
+  ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Denne fil er nu skrivebeskyttet"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Samarbejdsgrænsen er nået"
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Har du stadig problemer? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Rapportér et problem"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Vi bruger analysecookies til at forbedre tldraw."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Privatlivspolitik"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Kunne ikke indløse invitationskoden"
+    }
+  ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Træk filer hertil, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "opret en fil"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", eller "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "kopiér invitationslinket"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " for at komme i gang."
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Dele"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Tilbagekald dette link og opret et nyt."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Du er blevet inviteret til at deltage i gruppen:"
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Feedback indsendt"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Kopi"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Senere"
+    }
+  ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Tal til "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Ældre"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "du"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Guide"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Noget gik galt"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "En ny version af tldraw er tilgængelig. Genindlæs siden for at fortsætte."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Indtast din e-mailadresse"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Vågne"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Indtast din besked"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Feens navn"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Fejlfind feer"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Hjælp"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Du har ikke de nødvendige tilladelser til at udføre denne handling."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Følg disse trin for at importere indholdet manuelt:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Gruppeindstillinger"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Denne uge"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Har du en fejl, et problem eller en idé til tldraw? Fortæl os det!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Denne version af tldraw understøttes ikke længere."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Genindlæs venligst siden"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Du har nået det maksimale antal filer. Du skal slette gamle filer, før du opretter nye."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Ingen adgang"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Administrer cookies"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Chat med os på Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Genindlæs venligst"
+    }
+  ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw er et gratis online whiteboard. Opret en konto for at gemme dine filer og arbejde med dine venner."
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Ugyldig anmodning."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Denne anonyme tldraw multiplayer-fil er nu skrivebeskyttet. For at fortsætte med at redigere, skal du logge ind og kopiere den til dine filer."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Forstået"
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Indsend et problem på GitHub"
+    }
+  ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "En fe er en lille fyr, der kan arbejde sammen med dig på lærredet. Feer kan arbejde alene eller som et hold. Der er ingen grænser for, hvad en fe kan gøre. Ingen ved, hvor de kommer fra."
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Brugermanual"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Gendan version"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Åbn tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Du er blevet inviteret til at blive en del af tldraw-feer!"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Glemme"
+    }
+  ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Forlad gruppen…"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Udgiv ændringer"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Glem fil"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Download"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Har du en fejl, et problem eller en idé til tldraw? Fortæl os det! Udfyld denne formular, så følger vi op via e-mail, hvis det er nødvendigt. Du kan også "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chatte med os på Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " eller "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "indsende et problem på GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Ryd alt"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Velkomst"
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Opdater siden for at få den seneste version af tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Tilføjet "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr-filer."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Omdøb fil"
+    }
+  ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Hård nulstilling"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Køb fe-pakke"
+    }
+  ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Nej tak"
+    }
+  ],
+  "8be569f100": [
+    {
+      "type": 0,
+      "value": "engangsbetaling"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Tjek din e-mail for en bekræftelseskode."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Hjem"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Delt med dig"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Om"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Sats begrænset"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Fejl"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Omdøb"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Kopier til mine filer"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kopieret invitationslink"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Fravælg"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Sende"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Log ind med Google"
+    }
+  ],
+  "95d2109dc8": [
+    {
+      "type": 0,
+      "value": "Byg med tldraw SDK'et"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Denne måned"
+    }
+  ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Brugsbetingelser"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Tilføj fillink"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Lys"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Fejlfindingsvisning"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Har du ikke modtaget en kode? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Send igen"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Slet fil"
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Udgiv denne fil"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Ikke fundet"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Fravælg"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Eksporter indholdet som en .tldr-fil: Vælg 'Download' i menuen øverst til venstre."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Polstring"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Mørk"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Filen du leder efter findes ikke."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Eksporter billede"
+    }
+  ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Deltag"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Cookie politik"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Indsend"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Fejlfinding"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Enhver med linket"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Filen bliver stor"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Ugentlig fe-grænse nået"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Ny chat"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Baggrund"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Filgrænsen er nået"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Sidst offentliggjort "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Gæstebruger"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Filen er fuld"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Logresponstid"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "E-mailadresse"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "Fil-URL"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Log ind"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Ejer"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Kopiér link"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Log ind for at dele"
+    }
+  ],
+  "bb93a7590f": [
+    {
+      "type": 0,
+      "value": "Accepter og bliv medlem af gruppen"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploader .tldr-fil..."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Uploader "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " af "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr-filer..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Delt af "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom til fe"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Få mere at vide om deling."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Tillad "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analyse"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " for at hjælpe os med at forbedre tldraw."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Filen kunne ikke udgives."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Åben"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Jeg forstår"
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Vigtige cookies"
+    }
+  ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Gruppenavn"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Brug"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Lang streng"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Invitere"
+    }
+  ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Vis mindre"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Log ud"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Spare"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Del denne fil"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Denne fil nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Du har allerede adgang til feer!"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Få mere at vide om udgivelse."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Tæt"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "For mange anmodninger. Sæt farten ned."
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Skift sidebjælke"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Før du starter, bedes du acceptere vores "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "brugsbetingelser"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " og "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "privatlivspolitik"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Tema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Prøv igen"
+    }
+  ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Accepter og fortsæt"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Gå her for at se indholdet"
+    }
+  ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Aktivér feer"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Du har nået det maksimale antal grupper. Du skal slette gamle grupper, før du opretter nye."
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Kun invitation"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Klar"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Ugyldig URL til tldraw-fil"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Vælg en fe til højre at chatte med"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Feer er en "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "midlertidig"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funktion. Den 1. januar 2026 fjernes alle feer fra applikationen. Måske vender de tilbage igen en dag. Dit køb gælder kun adgang til feer i december 2025."
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App debug flag"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Vælge"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Inviter medlemmer"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Kopiér invitationslinket"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Juridisk resumé"
+    }
+  ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Admin"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Servicevilkår"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Gå til"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "eller"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Farezone"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Ophæve"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "I går"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Denne fil har nået det maksimale antal aktive samarbejdspartnere."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Konto menu"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Accent"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplikere"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Læs vores "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "cookiepolitik"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " for at få mere at vide."
+    }
+  ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Opløse"
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Medlemmer"
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "udvalgte"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Tilkalde"
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Vi bruger cookies til at holde dig logget ind, synkronisere dine filer og indsamle analyser, der kan hjælpe os med at forbedre tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Brugerindstillinger"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Vi bruger disse cookies til at gemme dine filer og indstillinger."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Slet"
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Indstillinger"
+    }
+  ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Er du sikker på, at du vil forlade denne gruppe?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Privatlivspolitik"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Seer"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Er du sikker på, at du vil slette denne fil?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Kopieret link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Tilføj fillink…"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Importér fil…"
+    }
+  ]
 }

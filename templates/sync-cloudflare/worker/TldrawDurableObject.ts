@@ -7,7 +7,6 @@ import {
 } from '@tldraw/tlschema'
 import { AutoRouter, IRequest, error } from 'itty-router'
 import throttle from 'lodash.throttle'
-import { Environment } from './types'
 
 // add custom shapes and bindings here if needed:
 const schema = createTLSchema({
@@ -30,7 +29,7 @@ export class TldrawDurableObject {
 
 	constructor(
 		private readonly ctx: DurableObjectState,
-		env: Environment
+		env: Env
 	) {
 		this.r2 = env.TLDRAW_BUCKET
 
@@ -46,7 +45,7 @@ export class TldrawDurableObject {
 		},
 	})
 		// when we get a connection request, we stash the room id if needed and handle the connection
-		.get('/connect/:roomId', async (request) => {
+		.get('/api/connect/:roomId', async (request) => {
 			if (!this.roomId) {
 				await this.ctx.blockConcurrencyWhile(async () => {
 					await this.ctx.storage.put('roomId', request.params.roomId)
@@ -62,7 +61,7 @@ export class TldrawDurableObject {
 	}
 
 	// what happens when someone tries to connect to this room?
-	async handleConnect(request: IRequest): Promise<Response> {
+	async handleConnect(request: IRequest) {
 		// extract query params from request
 		const sessionId = request.query.sessionId as string
 		if (!sessionId) return error(400, 'Missing sessionId')

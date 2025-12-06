@@ -36,7 +36,7 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { Background, SvgDefs, ShapeIndicators } = useEditorComponents()
+	const { SelectionBackground, Background, SvgDefs, ShapeIndicators } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -86,6 +86,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 				x + offset
 			)}px,${toDomPrecision(y + offset)}px)`
+
 			setStyleProperty(rHtmlLayer.current, 'transform', transform)
 			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 		},
@@ -138,7 +139,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				data-testid="canvas"
 				{...events}
 			>
-				<svg className="tl-svg-context">
+				<svg className="tl-svg-context" aria-hidden="true">
 					<defs>
 						{shapeSvgDefs}
 						<CursorDef />
@@ -154,7 +155,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<GridWrapper />
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
-					<SelectionBackgroundWrapper />
+					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
 				<div className="tl-overlays">
@@ -168,13 +169,22 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
+						<OverlaysWrapper />
 						<LiveCollaborators />
 					</div>
 				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
+			<div
+				className="tl-canvas__in-front"
+				onPointerDown={editor.markEventAsHandled}
+				onPointerUp={editor.markEventAsHandled}
+				onTouchStart={editor.markEventAsHandled}
+				onTouchEnd={editor.markEventAsHandled}
+			>
+				<InFrontOfTheCanvasWrapper />
+			</div>
 			<MenuClickCapture />
-			<InFrontOfTheCanvasWrapper />
 		</>
 	)
 }
@@ -200,7 +210,7 @@ function GridWrapper() {
 function ScribbleWrapper() {
 	const editor = useEditor()
 	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const { Scribble } = useEditorComponents()
 
 	if (!(Scribble && scribbles.length)) return null
@@ -233,7 +243,7 @@ function ZoomBrushWrapper() {
 function SnapIndicatorWrapper() {
 	const editor = useEditor()
 	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const { SnapIndicator } = useEditorComponents()
 
 	if (!(SnapIndicator && lines.length > 0)) return null
@@ -274,7 +284,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
@@ -361,9 +371,25 @@ function HandleWrapper({
 	if (!Handle) return null
 
 	return (
-		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
+		<g
+			role="button"
+			// TODO(mime): handle.label needs to be required in the future.
+			aria-label={handle.label || 'handle'}
+			transform={`translate(${handle.x}, ${handle.y})`}
+			{...events}
+		>
 			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
+	)
+}
+
+function OverlaysWrapper() {
+	const { Overlays } = useEditorComponents()
+	if (!Overlays) return null
+	return (
+		<div className="tl-custom-overlays tl-overlays__item">
+			<Overlays />
+		</div>
 	)
 }
 
@@ -540,9 +566,13 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 
 function SelectionForegroundWrapper() {
 	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
-		editor,
-	])
+	const selectionRotation = useValue(
+		'selection rotation',
+		function getSelectionRotation() {
+			return editor.getSelectionRotation()
+		},
+		[editor]
+	)
 	const selectionBounds = useValue(
 		'selection bounds',
 		() => editor.getSelectionRotatedPageBounds(),

@@ -26,7 +26,9 @@ export function getRotationSnapshot({
 		return null
 	}
 
-	const pageCenter = rotatedPageBounds.center.clone().rotWith(rotatedPageBounds.point, rotation)
+	const initialPageCenter = rotatedPageBounds.center
+		.clone()
+		.rotWith(rotatedPageBounds.point, rotation)
 
 	return {
 		pageCenter,
@@ -43,7 +45,7 @@ export function getRotationSnapshot({
  * @internal
  **/
 export interface TLRotationSnapshot {
-	pageCenter: Vec
+	initialPageCenter: Vec
 	initialCursorAngle: number
 	initialShapesRotation: number
 	shapeSnapshots: {
@@ -66,7 +68,7 @@ export function applyRotationToSnapshotShapes({
 	stage: 'start' | 'update' | 'end' | 'one-off'
 	centerOverride?: VecLike
 }) {
-	const { pageCenter, shapeSnapshots } = snapshot
+	const { initialPageCenter, shapeSnapshots } = snapshot
 
 	editor.updateShapes(
 		shapeSnapshots.map(({ shape, initialPagePoint }) => {
@@ -77,7 +79,7 @@ export function applyRotationToSnapshotShapes({
 				? editor.getShapePageTransform(shape.parentId)!
 				: Mat.Identity()
 
-			const newPagePoint = Vec.RotWith(initialPagePoint, centerOverride ?? pageCenter, delta)
+			const newPagePoint = Vec.RotWith(initialPagePoint, centerOverride ?? initialPageCenter, delta)
 
 			const newLocalPoint = Mat.applyToPoint(
 				// use the current parent transform in case it has moved/resized since the start

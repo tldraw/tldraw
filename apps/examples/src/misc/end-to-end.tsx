@@ -2,10 +2,11 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
-	TLBaseShape,
+	TLShape,
 	Tldraw,
 	createShapeId,
 	exportAs,
+	getArrowInfo,
 	toRichText,
 	useActions,
 	useEditor,
@@ -16,9 +17,17 @@ import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
 
-type HtmlCssShape = TLBaseShape<'html', { html: string; css: string; w: number; h: number }>
+const HTML_TYPE = 'html' as const
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[HTML_TYPE]: { html: string; css: string; w: number; h: number }
+	}
+}
+
+export type HtmlCssShape = TLShape<typeof HTML_TYPE>
 class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
-	static override type = 'html'
+	static override type = HTML_TYPE
 
 	override getDefaultProps(): { html: string; css: string; w: number; h: number } {
 		return { w: 100, h: 100, html: '', css: '' }
@@ -48,6 +57,12 @@ function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 }
 
 export default function EndToEnd() {
+	// Use test license key if available, otherwise use the default
+	// Check if __TLDRAW_LICENSE_KEY__ was explicitly set (including null/undefined/empty string)
+	const testLicenseKey = (window as any).__TLDRAW_LICENSE_KEY__
+	const hasExplicitTestKey = Object.prototype.hasOwnProperty.call(window, '__TLDRAW_LICENSE_KEY__')
+	const licenseKey = hasExplicitTestKey ? testLicenseKey : getLicenseKey()
+
 	useLayoutEffect(() => {
 		if (customElements.get('custom-element')) return
 
@@ -94,7 +109,7 @@ export default function EndToEnd() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
+				licenseKey={licenseKey}
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
@@ -125,6 +140,53 @@ function SneakyExportButton() {
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
 			toRichText: (text: string) => toRichText(text),
+			markAllArrowBindings: () => {
+				const markRadius = 3
+				for (const shape of editor.getCurrentPageShapes()) {
+					if (!editor.isShapeOfType(shape, 'arrow')) continue
+
+					const info = getArrowInfo(editor, shape)
+					if (!info) continue
+
+					const transform = editor.getShapePageTransform(shape.id)
+
+					if (info.bindings.start) {
+						const pagePoint = transform.applyToPoint(info.start.handle)
+						editor.createShape({
+							type: 'geo',
+							x: pagePoint.x - markRadius,
+							y: pagePoint.y - markRadius,
+							props: {
+								geo: 'ellipse',
+								w: markRadius * 2,
+								h: markRadius * 2,
+								color: 'light-blue',
+								fill: 'none',
+								dash: 'solid',
+								size: 's',
+							},
+						})
+					}
+
+					if (info.bindings.end) {
+						const pagePoint = transform.applyToPoint(info.end.handle)
+						editor.createShape({
+							type: 'geo',
+							x: pagePoint.x - markRadius,
+							y: pagePoint.y - markRadius,
+							props: {
+								geo: 'ellipse',
+								w: markRadius * 2,
+								h: markRadius * 2,
+								color: 'light-blue',
+								fill: 'none',
+								dash: 'solid',
+								size: 's',
+							},
+						})
+					}
+				}
+			},
 		}
 		;(window as any).tldrawApi = api
 	}, [actions, editor])

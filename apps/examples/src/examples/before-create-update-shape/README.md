@@ -1,7 +1,7 @@
 ---
 title: Before create/update shape
 component: ./BeforeCreateUpdateShapeExample.tsx
-category: editor-api
+category: events
 priority: 4
 keywords: [handler, register, side effects, records]
 ---

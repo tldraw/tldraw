@@ -1,12 +1,5 @@
-import {
-	Editor,
-	StateNode,
-	TLArrowShape,
-	TLHandle,
-	TLNoteShape,
-	TLPointerEventInfo,
-	Vec,
-} from '@tldraw/editor'
+import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,
@@ -28,11 +21,21 @@ export class PointingHandle extends StateNode {
 		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
+		if (this.editor.isShapeOfType(shape, 'arrow')) {
+			const initialBindings = getArrowBindings(this.editor, shape)
+			const currentBinding = initialBindings[info.handle.id as 'start' | 'end']
+			const oppositeBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
+			const arrowTransform = this.editor.getShapePageTransform(shape.id)!
 
-			if (initialBinding) {
-				this.editor.setHintingShapes([initialBinding.toId])
+			if (currentBinding) {
+				updateArrowTargetState({
+					editor: this.editor,
+					pointInPageSpace: arrowTransform.applyToPoint(info.handle),
+					arrow: shape,
+					isPrecise: currentBinding.props.isPrecise,
+					currentBinding: currentBinding,
+					oppositeBinding: oppositeBinding,
+				})
 			}
 		}
 
@@ -47,7 +50,7 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
-		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
@@ -79,7 +82,7 @@ export class PointingHandle extends StateNode {
 		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
-		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+		if (editor.isShapeOfType(shape, 'note')) {
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer

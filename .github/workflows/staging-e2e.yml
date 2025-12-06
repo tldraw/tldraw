@@ -1,0 +1,84 @@
+name: Staging E2E Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_files_count:
+        description: 'Number of test files to copy to staging'
+        required: false
+        default: '10'
+        type: number
+
+permissions:
+  contents: read
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: 'Staging E2E Tests'
+    timeout-minutes: 40
+    runs-on: ubuntu-latest-8-cores-open
+    environment: 'e2e-dotcom'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Get installed Playwright version
+        id: playwright-version
+        run: |
+          yarn info @playwright/test --json > playwright.json
+          echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
+        working-directory: 'apps/dotcom/client'
+
+      - uses: actions/cache@v3
+        name: Check for Playwright browsers cache
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium chrome
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: Run cleanup of test files
+        run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          SUPABASE_STAGING_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          STAGING_OWNER_ID: ${{ secrets.STAGING_OWNER_ID }}
+
+      - name: Copy random files to staging
+        run: yarn tsx internal/scripts/dotcom/copy-random-files-to-staging.ts
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          SUPABASE_PRODUCTION_DB_URL: ${{ secrets.SUPABASE_PRODUCTION_DB_URL }}
+          SUPABASE_STAGING_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          STAGING_OWNER_ID: ${{ secrets.STAGING_OWNER_ID }}
+          STAGING_TEST_FILES_COUNT: ${{ github.event.inputs.test_files_count || '10' }}
+
+      - name: Run staging e2e tests
+        run: yarn e2e-staging
+        working-directory: apps/dotcom/client
+        env:
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          STAGING_TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
+          STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
+          STAGING_TESTS: 'true'

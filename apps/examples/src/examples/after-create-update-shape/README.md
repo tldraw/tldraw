@@ -1,7 +1,7 @@
 ---
 title: After create/update shape
 component: ./AfterCreateUpdateShapeExample.tsx
-category: editor-api
+category: events
 priority: 5
 keywords: [handler, register, side effects, records]
 ---

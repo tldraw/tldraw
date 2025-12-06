@@ -1,33 +1,39 @@
+import { CustomMutatorImpl } from '@rocicorp/zero'
+import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
-	isColumnMutable,
-	MAX_NUMBER_OF_FILES,
-	TlaFile,
-	TlaFilePartial,
-	TlaFileState,
-	TlaFileStatePartial,
-	TlaUser,
-	Z_PROTOCOL_VERSION,
+	MIN_Z_PROTOCOL_VERSION,
+	TlaSchema,
+	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
+	ZServerSentPacket,
+	createMutators,
+	hasActiveFairyAccess,
+	schema,
 } from '@tldraw/dotcom-shared'
-import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, ExecutionQueue, sleep } from '@tldraw/utils'
+import {
+	JsonChunkAssembler,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '@tldraw/sync-core'
+import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, sql, Transaction } from 'kysely'
+import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
+import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
-import { createPostgresConnectionPool } from './postgres'
-import { getR2KeyForRoom } from './r2'
-import { Analytics, Environment, getUserDoSnapshotKey, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject } from './utils/durableObjects'
+import { getFeatureFlag } from './utils/featureFlags'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
+import { getClerkClient } from './utils/tla/getAuth'
+import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
+import { ServerQuery } from './zero/ServerQuery'
+import { ZMutationError } from './zero/ZMutationError'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
@@ -55,7 +61,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sentry = createSentry(ctx, env)
 
-		this.db = createPostgresConnectionPool(env, 'TLUserDurableObject')
+		this.pool = new Pool({
+			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			application_name: 'user-do',
+			idleTimeoutMillis: 3_000,
+			max: 1,
+		})
+
+		this.db = new Kysely<DB>({
+			dialect: new PostgresDialect({ pool: this.pool }),
+			log: ['error'],
+		})
 		this.measure = env.MEASURE
 
 		// debug logging in preview envs by default
@@ -68,7 +84,68 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
-				this.userId = req.params.userId
+				const id = (this.userId = req.params.userId)
+				const user = await this.db
+					.selectFrom('user')
+					.where('id', '=', id)
+					.select('id')
+					.executeTakeFirst()
+				if (!user) {
+					// auth is checked in the main worker, before it gets here, so the clerk
+					// user definitely exists at this point.
+					const clerk = getClerkClient(this.env)
+					const clerkUser = await clerk.users.getUser(id)
+					assert(clerkUser, 'Clerk user not found')
+					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
+					await this.db.transaction().execute(async (tx) => {
+						// check that user wasn't added by another request in between the auth check and the snapshot deletion
+						if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
+							return
+						}
+						const now = Date.now()
+						await tx
+							.insertInto('user')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								email: clerkUser.emailAddresses[0].emailAddress,
+								avatar: clerkUser.imageUrl,
+								color: '___INIT___',
+								exportFormat: 'png',
+								exportTheme: 'light',
+								exportBackground: true,
+								exportPadding: true,
+								createdAt: now,
+								updatedAt: now,
+								flags: 'groups_backend',
+							})
+							.execute()
+						await tx
+							.insertInto('group')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								createdAt: now,
+								updatedAt: now,
+								isDeleted: false,
+								inviteSecret: null,
+							})
+							.execute()
+						await tx
+							.insertInto('group_user')
+							.values({
+								userId: id,
+								groupId: id,
+								createdAt: now,
+								updatedAt: now,
+								role: 'owner',
+								index: 'a1' as IndexKey,
+								userName: clerkUser.fullName ?? '',
+								userColor: '',
+							})
+							.execute()
+					})
+				}
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
@@ -91,6 +168,101 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
+		.post('/app/:userId/fairy/check-rate-limit', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+			const DEFAULT_WEEKLY_LIMIT = 25
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select(['weeklyUsage', 'weeklyLimit'])
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			const effectiveLimit = userFairies.weeklyLimit ?? DEFAULT_WEEKLY_LIMIT
+
+			if (effectiveLimit === 0) {
+				return Response.json({ error: 'Fairy access blocked' }, { status: 403 })
+			}
+
+			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
+
+			if (currentUsage >= effectiveLimit) {
+				return Response.json({ error: 'Weekly rate limit exceeded' }, { status: 429 })
+			}
+
+			return new Response(null, { status: 200 })
+		})
+		.post('/app/:userId/fairy/record-usage', async (req) => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const body = (await req.json()) as any
+			const { actualCost } = body
+
+			if (typeof actualCost !== 'number' || actualCost < 0 || !isFinite(actualCost)) {
+				return Response.json({ error: 'Invalid actualCost' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+
+			// Atomic increment using PostgreSQL JSONB operators
+			const result = await this.db
+				.updateTable('user_fairies')
+				.set({
+					weeklyUsage: sql`
+						jsonb_set(
+							COALESCE("weeklyUsage", '{}'::jsonb),
+							${sql.lit(`{${weekKey}}`)},
+							to_jsonb(COALESCE(("weeklyUsage"->>${sql.lit(weekKey)})::numeric, 0) + ${actualCost}::numeric)
+						)
+					`,
+				})
+				.where('userId', '=', this.userId)
+				.returning(sql<number>`("weeklyUsage"->>${sql.lit(weekKey)})::numeric`.as('totalUsage'))
+				.executeTakeFirst()
+
+			if (!result) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			return Response.json({ success: true, totalUsage: result.totalUsage })
+		})
+		.get('/app/:userId/fairy/has-access', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const flagEnabled = await getFeatureFlag(this.env, 'fairies')
+			if (!flagEnabled) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select(['fairyAccessExpiresAt', 'fairyLimit'])
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const hasAccess = hasActiveFairyAccess(
+				userFairies.fairyAccessExpiresAt ?? null,
+				userFairies.fairyLimit ?? null
+			)
+
+			return Response.json({ hasAccess })
+		})
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -126,7 +298,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.cache?.onInterval()
 
 				// clean up closed sockets if there are any
-				for (const socket of this.sockets) {
+				for (const socket of this.sockets.keys()) {
 					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
 						this.sockets.delete(socket)
 					}
@@ -136,33 +308,66 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					clearInterval(this.interval)
 					this.interval = null
 				}
-			}, 1000)
+			}, 2000)
 		}
 	}
 
-	private readonly sockets = new Set<WebSocket>()
+	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
-	maybeReportColdStartTime(type: ZServerSentMessage['type']) {
+	private makeCrud(
+		client: PoolClient,
+		signal: AbortSignal,
+		changeAccumulator: ChangeAccumulator
+	): SchemaCRUD<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
+		)
+	}
+
+	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
+		return mapObjectMapValues(
+			schema.tables,
+			(tableName) => new ServerQuery(signal, client, false, tableName) as any
+		)
+	}
+
+	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
 		if (type !== 'initial_data' || !this.coldStartStartTime) return
 		const time = Date.now() - this.coldStartStartTime
 		this.coldStartStartTime = null
 		this.logEvent({ type: 'cold_start_time', id: this.userId!, duration: time })
 	}
 
-	broadcast(message: ZServerSentMessage) {
+	private outgoingBuffer = null as ZServerSentPacket[] | null
+	private flushBuffer() {
+		const buffer = this.outgoingBuffer
+		this.outgoingBuffer = null
+		if (!buffer) return
+
+		for (const [socket] of this.sockets.entries()) {
+			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+				this.sockets.delete(socket)
+				continue
+			}
+			if (socket.readyState !== WebSocket.OPEN) {
+				continue
+			}
+
+			socket.send(JSON.stringify(buffer))
+		}
+	}
+
+	broadcast(message: ZServerSentPacket) {
 		this.logEvent({ type: 'broadcast_message', id: this.userId! })
 		this.maybeReportColdStartTime(message.type)
-		const msg = JSON.stringify(message)
-		for (const socket of this.sockets) {
-			if (socket.readyState === WebSocket.OPEN) {
-				socket.send(msg)
-			} else if (
-				socket.readyState === WebSocket.CLOSED ||
-				socket.readyState === WebSocket.CLOSING
-			) {
-				this.sockets.delete(socket)
-			}
+		if (!this.outgoingBuffer) {
+			this.outgoingBuffer = []
+			setTimeout(() => {
+				this.flushBuffer()
+			})
 		}
+		this.outgoingBuffer.push(message)
 	}
 	private readonly messageQueue = new ExecutionQueue()
 
@@ -174,6 +379,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const params = Object.fromEntries(url.searchParams.entries())
 		const { sessionId } = params
 
+		// before we sent the protocolVersion param, the protocol was the same as v1
 		const protocolVersion = params.protocolVersion ? Number(params.protocolVersion) : 1
 
 		assert(sessionId, 'Session ID is required')
@@ -185,14 +391,29 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		serverWebSocket.addEventListener('message', (e) =>
-			this.messageQueue.push(() => this.handleSocketMessage(serverWebSocket, e.data.toString()))
-		)
+		const assembler = new JsonChunkAssembler()
+		serverWebSocket.addEventListener('message', (e) => {
+			const res = assembler.handleMessage(e.data.toString())
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('error' in res) {
+				this.captureException(res.error, { source: 'serverWebSocket "message" event, bad chunk' })
+				return
+			}
+
+			this.messageQueue.push(() =>
+				this.handleSocketMessage(serverWebSocket, res.stringified).catch((e) =>
+					this.captureException(e, { source: 'serverWebSocket "message" event' })
+				)
+			)
+		})
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
 		})
@@ -201,17 +422,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.sockets.delete(serverWebSocket)
 		})
 
-		this.sockets.add(serverWebSocket)
+		this.sockets.set(serverWebSocket, {
+			protocolVersion,
+			sessionId,
+		})
 		this.maybeStartInterval()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
 			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
-				JSON.stringify({
-					type: 'initial_data',
-					initialData,
-				} satisfies ZServerSentMessage)
+				JSON.stringify([
+					{
+						type: 'initial_data',
+						initialData,
+					} satisfies ZServerSentPacket,
+				])
 			)
 		} else {
 			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
@@ -226,7 +452,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
-			case 'mutate':
+			case 'mutator':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
 					await this.rejectMutation(socket, msg.mutationId, ZErrorCode.rate_limit_exceeded)
@@ -261,220 +487,78 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
-		socket?.send(
-			JSON.stringify({
-				type: 'reject',
-				mutationId,
-				errorCode,
-			} satisfies ZServerSentMessage)
-		)
+
+		const msg: ZServerSentPacket = {
+			type: 'reject',
+			mutationId,
+			errorCode,
+		}
+
+		socket?.send(JSON.stringify([msg]))
 	}
 
-	private async assertValidMutation(update: ZRowUpdate, tx: Transaction<DB>) {
-		// s is the entire set of data that the user has access to
-		// and is up to date with all committed mutations so far.
-		// we commit each mutation one at a time before handling the next.
-		const s = this.cache!.store.getFullData()
-		if (!s) {
-			// This should never happen
-			throw new ZMutationError(ZErrorCode.unknown_error, 'Store data not fetched')
-		}
-		switch (update.table) {
-			case 'user': {
-				const isUpdatingSelf = (update.row as TlaUser).id === this.userId
-				if (!isUpdatingSelf)
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update user record that is not our own: ' + (update.row as TlaUser).id
-					)
-				// todo: prevent user from updating their email?
-				return
-			}
-			case 'file': {
-				const nextFile = update.row as TlaFilePartial
-				const prevFile = s.files.find((f) => f.id === nextFile.id)
-				if (!prevFile) {
-					const isOwner = nextFile.ownerId === this.userId
-					if (isOwner) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot create a file for another user. fileId: ${nextFile.id} file owner: ${nextFile.ownerId} current user: ${this.userId}`
-					)
-				}
-				if (prevFile.isDeleted)
-					throw new ZMutationError(ZErrorCode.forbidden, 'Cannot update a deleted file')
-				// Owners are allowed to make changes
-				if (prevFile.ownerId === this.userId) return
-
-				// We can make changes to updatedAt field in a shared, editable file
-				if (prevFile.shared && prevFile.sharedLinkType === 'edit') {
-					const { id: _id, ...rest } = nextFile
-					if (Object.keys(rest).length === 1 && rest.updatedAt !== undefined) return
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						'Cannot update fields other than updatedAt on a shared file'
-					)
-				}
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					'Cannot update file that is not our own and not shared in edit mode' +
-						` user id ${this.userId} ownerId ${prevFile.ownerId}`
-				)
-			}
-			case 'file_state': {
-				const nextFileState = update.row as TlaFileStatePartial
-				let file = s.files.find((f) => f.id === nextFileState.fileId)
-				if (!file) {
-					// The user might not have access to this file yet, because they just followed a link
-					// let's allow them to create a file state for it if it exists and is shared.
-					file = await tx
-						.selectFrom('file')
-						.selectAll()
-						.where('id', '=', nextFileState.fileId)
-						.executeTakeFirst()
-				}
-				if (!file) {
-					throw new ZMutationError(ZErrorCode.bad_request, `File not found ${nextFileState.fileId}`)
-				}
-				if (nextFileState.userId !== this.userId) {
-					throw new ZMutationError(
-						ZErrorCode.forbidden,
-						`Cannot update file state for another user ${nextFileState.userId}`
-					)
-				}
-				if (file.ownerId === this.userId) return
-				if (file.shared) return
-
-				throw new ZMutationError(
-					ZErrorCode.forbidden,
-					"Cannot update file state of file we don't own and is not shared"
-				)
-			}
-		}
-	}
+	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
+		this.log.debug('doMutate', this.userId, msg)
+		assert(msg.type === 'mutator', 'Invalid message type')
 		this.assertCache()
-		const { insertedFiles, newGuestFiles } = await this.db.transaction().execute(async (tx) => {
-			const insertedFiles: TlaFile[] = []
-			const newGuestFiles: TlaFile[] = []
-			for (const update of msg.updates) {
-				await this.assertValidMutation(update, tx)
-				switch (update.event) {
-					case 'insert': {
-						if (update.table === 'file_state') {
-							const { fileId, userId, ...rest } = update.row as any
-							await tx
-								.insertInto(update.table)
-								.values(update.row as TlaFileState)
-								.onConflict((oc) => {
-									if (Object.keys(rest).length === 0) {
-										return oc.columns(['fileId', 'userId']).doNothing()
-									} else {
-										return oc.columns(['fileId', 'userId']).doUpdateSet(rest)
-									}
-								})
-								.execute()
-							const guestFile = await tx
-								.selectFrom('file')
-								.where('id', '=', fileId)
-								.where('ownerId', '!=', userId)
-								.selectAll()
-								.executeTakeFirst()
-							if (guestFile) {
-								newGuestFiles.push(guestFile as any as TlaFile)
-							}
-							break
-						} else {
-							const { id: _id, ...rest } = update.row as any
-							if (update.table === 'file') {
-								const count =
-									this.cache.store
-										.getFullData()
-										?.files.filter((f) => f.ownerId === this.userId && !f.isDeleted).length ?? 0
-								if (count >= MAX_NUMBER_OF_FILES) {
-									throw new ZMutationError(
-										ZErrorCode.max_files_reached,
-										`Cannot create more than ${MAX_NUMBER_OF_FILES} files.`
-									)
-								}
-							}
-							const result = await tx
-								.insertInto(update.table)
-								.values(update.row as any)
-								.onConflict((oc) => oc.column('id').doUpdateSet(rest))
-								.returningAll()
-								.execute()
-							if (update.table === 'file' && result.length > 0) {
-								insertedFiles.push(result[0] as any as TlaFile)
-							}
-							break
-						}
-					}
-					case 'update': {
-						const mutableColumns = Object.keys(update.row).filter((k) =>
-							isColumnMutable(update.table, k)
-						)
-						if (mutableColumns.length === 0) continue
-						const updates = Object.fromEntries(
-							mutableColumns.map((k) => [k, (update.row as any)[k]])
-						)
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.updateTable('file_state')
-								.set(updates)
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id, ...rest } = update.row as any
+		const client = await this.pool.connect()
 
-							await tx.updateTable(update.table).set(updates).where('id', '=', id).execute()
-							if (update.table === 'file') {
-								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-								if (
-									currentFile &&
-									rest.published !== undefined &&
-									currentFile.published !== rest.published
-								) {
-									if (rest.published) {
-										await this.publishSnapshot(currentFile)
-									} else {
-										await this.unpublishSnapshot(currentFile)
-									}
-								} else if (
-									currentFile &&
-									currentFile.published &&
-									rest.lastPublished !== undefined &&
-									currentFile.lastPublished < rest.lastPublished
-								) {
-									await this.publishSnapshot(currentFile)
-								}
-							}
-						}
-						break
-					}
-					case 'delete':
-						if (update.table === 'file_state') {
-							const { fileId, userId } = update.row as any
-							await tx
-								.deleteFrom('file_state')
-								.where('fileId', '=', fileId)
-								.where('userId', '=', userId)
-								.execute()
-						} else {
-							const { id } = update.row as any
-							await tx.deleteFrom(update.table).where('id', '=', id).execute()
-						}
-						break
-				}
-				this.cache.store.updateOptimisticData([update], msg.mutationId)
+		try {
+			const changeAccumulator: ChangeAccumulator = {
+				file: { added: [] },
+				user_fairies: { added: [], updated: [], removed: [] },
+				file_fairies: { added: [], updated: [], removed: [] },
 			}
-			const result = await this.bumpMutationNumber(tx)
+
+			await client.query('BEGIN')
+
+			// Acquire shared advisory lock to coordinate with migration
+			// This will wait if migrate_user_to_groups is running (which uses exclusive lock)
+			// but won't block other mutations (which also use shared locks)
+			// Lock will be automatically released when transaction ends
+			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
+
+			const controller = new AbortController()
+			const mutate = this.makeCrud(client, controller.signal, changeAccumulator)
+			try {
+				// new
+				const mutators = createMutators(this.userId!)
+				const path = msg.name.split('.')
+				assert(path.length <= 2, 'Invalid mutation path')
+				const mutator: CustomMutatorImpl<TlaSchema> =
+					path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+				assert(mutator, 'Invalid mutator path')
+				await mutator(
+					{
+						clientID: '',
+						dbTransaction: {
+							wrappedTransaction: null as any,
+							async query(sqlString: string, params: unknown[]): Promise<any[]> {
+								return client.query(sqlString, params).then((res) => res.rows)
+							},
+						},
+						mutate,
+						location: 'server',
+						reason: 'authoritative',
+						mutationID: 0,
+						query: this.makeQuery(client, controller.signal),
+					},
+					msg.props
+				)
+			} finally {
+				controller.abort()
+			}
+
+			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
+			const res = await client.query<{ mutationNumber: number }>(
+				`insert into user_mutation_number ("userId", "mutationNumber") values ($1, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`,
+				[this.userId]
+			)
 
 			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
-			const mutationNumber = result.mutationNumber
+			const mutationNumber = res.rows[0].mutationNumber
 			assert(
 				mutationNumber > currentMutationNumber,
 				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
@@ -485,14 +569,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				mutationId: msg.mutationId,
 				timestamp: Date.now(),
 			})
-			return { insertedFiles, newGuestFiles }
-		})
 
-		for (const file of insertedFiles) {
-			getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-		}
-		for (const file of newGuestFiles) {
-			this.cache.addGuestFile(file)
+			await client.query('COMMIT')
+
+			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
+		} catch (e) {
+			await client.query('ROLLBACK')
+			throw e
+		} finally {
+			client.release()
 		}
 	}
 
@@ -504,6 +589,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		this.log.debug('mutation', this.userId, msg)
 		try {
+			assert(msg.type === 'mutator', 'Invalid message type')
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 			await retryOnConnectionFailure(
@@ -527,7 +613,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
+		if (!this.cache) {
+			this.logEvent({ type: 'woken_up_by_replication_event', id: this.userId ?? 'anon' })
 			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
@@ -541,63 +628,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return 'ok'
 	}
 
-	async notActive() {
-		return !this.cache
-	}
-
 	/* --------------  */
 
-	private async publishSnapshot(file: TlaFile) {
-		if (file.ownerId !== this.userId) {
-			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot publish file that is not our own')
-		}
-
-		try {
-			// make sure the room's snapshot is up to date
-			await getRoomDurableObject(this.env, file.id).awaitPersist()
-			// and that it exists
-			const snapshot = await this.env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
-
-			if (!snapshot) {
-				throw new Error('Snapshot not found')
-			}
-			const blob = await snapshot.blob()
-
-			// Create a new slug for the published room
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
-
-			// Bang the snapshot into the database
-			await this.env.ROOM_SNAPSHOTS.put(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
-				blob
-			)
-			const currentTime = new Date().toISOString()
-			await this.env.ROOM_SNAPSHOTS.put(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
-				blob
-			)
-		} catch (e) {
-			throw new ZMutationError(ZErrorCode.publish_failed, 'Failed to publish snapshot', e)
-		}
-	}
-
-	private async unpublishSnapshot(file: TlaFile) {
-		if (file.ownerId !== this.userId) {
-			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot unpublish file that is not our own')
-		}
-
-		try {
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
-			await this.env.ROOM_SNAPSHOTS.delete(
-				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
-			)
-		} catch (e) {
-			throw new ZMutationError(ZErrorCode.unpublish_failed, 'Failed to unpublish snapshot', e)
-		}
-	}
-
 	private writeEvent(eventData: EventData) {
-		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, 'user_durable_object', eventData)
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
@@ -628,17 +662,123 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		this.sockets.forEach((socket) => {
+		for (const socket of this.sockets.keys()) {
 			socket.close()
+		}
+	}
+
+	async __test__prepareForTest(userId: string) {
+		if (this.env.IS_LOCAL !== 'true') {
+			return
+		}
+		this.userId ??= userId
+
+		await this.db.transaction().execute(async (tx) => {
+			const user = await tx
+				.selectFrom('user')
+				.where('id', '=', userId)
+				.selectAll()
+				.executeTakeFirst()
+			if (!user) {
+				console.error('User not found', userId)
+				return
+			}
+
+			await tx
+				.updateTable('user')
+				.set({
+					flags: 'groups_backend',
+					allowAnalyticsCookie: null,
+					enhancedA11yMode: null,
+					colorScheme: null,
+					locale: null,
+					exportBackground: true,
+					exportPadding: true,
+					exportFormat: 'png',
+					inputMode: null,
+				} satisfies Omit<TlaUserPartial, 'id'>)
+				.where('id', '=', userId)
+				.execute()
+
+			// Get all groups the user is a member of and delete them
+			// CASCADE will automatically delete group_user, group_file, and owned files
+			const userGroups = await tx
+				.selectFrom('group_user')
+				.where('userId', '=', userId)
+				.select('groupId')
+				.execute()
+			const groupIds = userGroups.map((g) => g.groupId)
+
+			if (groupIds.length > 0) {
+				await tx.deleteFrom('group').where('id', 'in', groupIds).execute()
+			}
+
+			// Re-create the home group
+			await tx
+				.insertInto('group')
+				.values({
+					id: userId,
+					name: '',
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					isDeleted: false,
+					inviteSecret: null,
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
+			await tx
+				.insertInto('group_user')
+				.values({
+					userId: userId,
+					groupId: userId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					role: 'owner',
+					index: 'a1' as IndexKey,
+					userColor: '',
+					userName: '',
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
 		})
+
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+	}
+
+	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
+		this.userId ??= userId
+
+		this.log.debug('migrating to groups', userId, inviteSecret)
+		// Call the Postgres migration function
+		const result = await sql<{
+			files_migrated: number
+			pinned_files_migrated: number
+			flag_added: boolean
+		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
+
+		this.log.debug('migration result', result.rows[0])
+
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		this.log.debug('migration complete, user rebooted')
+
+		return result.rows[0]
 	}
 
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
-			await this.cache?.reboot({ hard: true, delay: false })
+			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
+		// Close all websocket connections to force reconnect with fresh data
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
 	}
 
 	async admin_getData(userId: string) {
@@ -658,14 +798,40 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		return cache.store.getCommittedData()
 	}
+
+	async admin_delete(userId: string) {
+		// Close all websocket connections
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
+
+		// Clear the cache/state
+		if (this.cache) {
+			this.cache = null
+		}
+
+		// Delete R2 data snapshot
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+
+		// Clear any intervals
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
+		}
+
+		await this.db.destroy()
+	}
 }
 
-class ZMutationError extends Error {
-	constructor(
-		public errorCode: ZErrorCode,
-		message: string,
-		public cause?: unknown
-	) {
-		super(message)
-	}
+function getISOWeekKey(): string {
+	const now = new Date()
+	const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+	const dayNum = d.getUTCDay() || 7
+	// Move to Thursday of the ISO week (determines which year the week belongs to)
+	d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+	const year = d.getUTCFullYear()
+	const yearStart = new Date(Date.UTC(year, 0, 1))
+	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+	return `${year}-W${String(week).padStart(2, '0')}`
 }

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 		default: 'Docs',
 		template: `%s • tldraw Docs`,
 	},
-	description: 'The latest news from the team on the tldraw blog.',
+	description: 'Documentation for the tldraw SDK.',
 }
 
 export default async function Layout({ children }: { children: React.ReactNode }) {

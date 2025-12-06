@@ -1,9 +1,15 @@
-import { RecordProps, TLPropsMigrations, TLShape, TLUnknownBinding } from '@tldraw/tlschema'
+import {
+	RecordProps,
+	TLBinding,
+	TLPropsMigrations,
+	TLShape,
+	TLUnknownBinding,
+} from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
 /** @public */
 export interface TLBindingUtilConstructor<
-	T extends TLUnknownBinding,
+	T extends TLBinding,
 	U extends BindingUtil<T> = BindingUtil<T>,
 > {
 	new (editor: Editor): U
@@ -20,7 +26,7 @@ export interface TLBindingUtilConstructor<
  *
  * @public
  */
-export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnCreateOptions<Binding extends TLBinding = TLBinding> {
 	/** The binding being created. */
 	binding: Binding
 }
@@ -31,7 +37,7 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
  *
  * @public
  */
-export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnChangeOptions<Binding extends TLBinding = TLBinding> {
 	/** The binding record before the change is made. */
 	bindingBefore: Binding
 	/** The binding record after the change is made. */
@@ -44,7 +50,7 @@ export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
  *
  * @public
  */
-export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnDeleteOptions<Binding extends TLBinding = TLBinding> {
 	/** The binding being deleted. */
 	binding: Binding
 }
@@ -55,13 +61,19 @@ export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
  *
  * @public
  */
-export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeChangeOptions<Binding extends TLBinding = TLBinding> {
 	/** The binding record linking these two shapes. */
 	binding: Binding
 	/** The shape record before the change is made. */
 	shapeBefore: TLShape
 	/** The shape record after the change is made. */
 	shapeAfter: TLShape
+	/**
+	 * Why did this shape change?
+	 * - 'self': the shape itself changed
+	 * - 'ancestry': the ancestry of the shape changed, but the shape itself may not have done
+	 */
+	reason: 'self' | 'ancestry'
 }
 
 /**
@@ -89,7 +101,7 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
  *
  * @public
  */
-export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeIsolateOptions<Binding extends TLBinding = TLBinding> {
 	/** The binding record that refers to the shape in question. */
 	binding: Binding
 	/**
@@ -108,7 +120,7 @@ export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> 
  *
  * @public
  */
-export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeDeleteOptions<Binding extends TLBinding = TLBinding> {
 	/** The binding record that refers to the shape in question. */
 	binding: Binding
 	/** The shape that is about to be deleted. */
@@ -116,7 +128,7 @@ export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
 }
 
 /** @public */
-export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
+export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
 	constructor(public editor: Editor) {}
 	static props?: RecordProps<TLUnknownBinding>
 	static migrations?: TLPropsMigrations

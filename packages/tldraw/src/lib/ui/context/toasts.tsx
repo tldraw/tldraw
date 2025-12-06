@@ -1,5 +1,5 @@
-import { ToastProvider } from '@radix-ui/react-toast'
 import { Atom, Editor, uniqueId, useAtom } from '@tldraw/editor'
+import { Toast as _Toast } from 'radix-ui'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { TLUiIconType } from '../icon-types'
 
@@ -10,6 +10,7 @@ export type AlertSeverity = 'success' | 'info' | 'warning' | 'error'
 export interface TLUiToast {
 	id: string
 	icon?: TLUiIconType
+	iconLabel?: string
 	severity?: AlertSeverity
 	title?: string
 	description?: string
@@ -71,9 +72,9 @@ export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps) {
 	}
 
 	return (
-		<ToastProvider>
+		<_Toast.Provider>
 			<ToastsContext.Provider value={current}>{children}</ToastsContext.Provider>
-		</ToastProvider>
+		</_Toast.Provider>
 	)
 }
 

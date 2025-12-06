@@ -6,8 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+/worktrees
 
 .rooms
+
+# Temporary files
+*.tmp.ts
 
 node_modules
 dist
@@ -90,7 +94,8 @@ apps/examples/playwright-report
 apps/dotcom/client/test-results
 apps/dotcom/client/playwright-report
 apps/dotcom/client/e2e/.auth
-
+apps/dotcom/zero-cache/.schema.js
+sst-env.d.ts
 
 apps/docs/content/gen
 apps/docs/content/releases
@@ -105,6 +110,15 @@ apps/docs/api
 /vercel.json
 license-report-prod.html
 license-report.html
+license-report.md
 
 .bundle-meta.json
 .zed
+
+# sst
+.sst
+
+.mcp.json
+
+# TypeScript profiling
+.ts-profile

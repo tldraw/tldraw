@@ -1,5 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useShowCollaborationUi } from '../../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
 import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,

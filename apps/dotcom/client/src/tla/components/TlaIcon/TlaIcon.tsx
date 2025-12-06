@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
+import { CSSProperties, HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
 import styles from './icon.module.css'
 
 import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
@@ -13,11 +13,15 @@ export function TlaIcon({
 	className = '',
 	invertIcon,
 	inline,
+	ariaLabel,
+	style,
 }: {
 	icon: string
 	className?: string
 	invertIcon?: boolean
 	inline?: boolean
+	ariaLabel?: string
+	style?: CSSProperties
 }) {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -44,9 +48,13 @@ export function TlaIcon({
 		<span
 			ref={ref}
 			className={_className}
+			aria-hidden="true"
+			role="img"
+			aria-label={ariaLabel}
 			style={{
 				mask: getMaskStyle(icon),
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
+				...style,
 			}}
 		/>
 	)

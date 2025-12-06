@@ -1,6 +1,12 @@
-import { SelectionHandle, ShapeWithCrop, StateNode, TLPointerEventInfo, Vec } from '@tldraw/editor'
-import { getCropBox, getDefaultCrop } from '../../../../../shapes/shared/crop'
-import { kickoutOccludedShapes } from '../../../selectHelpers'
+import {
+	SelectionHandle,
+	ShapeWithCrop,
+	StateNode,
+	TLPointerEventInfo,
+	Vec,
+	kickoutOccludedShapes,
+} from '@tldraw/editor'
+import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -11,7 +17,7 @@ export class Cropping extends StateNode {
 	info = {} as TLPointerEventInfo & {
 		target: 'selection'
 		handle: SelectionHandle
-		onInteractionEnd?: string
+		onInteractionEnd?: string | (() => void)
 	}
 
 	markId = ''
@@ -22,16 +28,27 @@ export class Cropping extends StateNode {
 		info: TLPointerEventInfo & {
 			target: 'selection'
 			handle: SelectionHandle
-			onInteractionEnd?: string
+			onInteractionEnd?: string | (() => void)
 		}
 	) {
 		this.info = info
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
 	}
 
 	override onPointerMove() {
+		this.updateShapes()
+	}
+
+	override onKeyDown() {
+		this.updateShapes()
+	}
+
+	override onKeyUp() {
 		this.updateShapes()
 	}
 
@@ -45,6 +62,10 @@ export class Cropping extends StateNode {
 
 	override onCancel() {
 		this.cancel()
+	}
+
+	override onExit() {
+		this.parent.setCurrentToolIdMask(undefined)
 	}
 
 	private updateCursor() {
@@ -68,10 +89,7 @@ export class Cropping extends StateNode {
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
-		const uncroppedSize = {
-			w: (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w,
-			h: (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h,
-		}
+		const uncroppedSize = getUncroppedSize(shape.props, crop)
 
 		const cropFn = util.onCrop?.bind(util) ?? getCropBox
 		const partial = cropFn(shape, {
@@ -80,6 +98,7 @@ export class Cropping extends StateNode {
 			crop,
 			uncroppedSize,
 			initialShape: this.snapshot.shape,
+			aspectRatioLocked: shiftKey,
 		})
 		if (!partial) return
 
@@ -96,8 +115,13 @@ export class Cropping extends StateNode {
 	private complete() {
 		this.updateShapes()
 		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
 		} else {
 			this.editor.setCroppingShape(null)
 			this.editor.setCurrentTool('select.idle')
@@ -106,8 +130,13 @@ export class Cropping extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
 		} else {
 			this.editor.setCroppingShape(null)
 			this.editor.setCurrentTool('select.idle')

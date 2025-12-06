@@ -1,11 +1,11 @@
 'use client'
 
+import { track } from '@/app/analytics'
 import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
 import { Field, Label, Textarea } from '@headlessui/react'
 import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroicons/react/20/solid'
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
-import { track } from '@vercel/analytics'
 import { usePathname } from 'next/navigation'
 import { FormEventHandler, useCallback, useState } from 'react'
 
@@ -20,6 +20,11 @@ async function submitFeedback(
 	const feedback: { value: number; message?: string } = { value: _feedback }
 	if (_note !== '') feedback.message = _note
 	track('Feedback', feedback)
+	return
+}
+async function submitThumbsFeedback(_sessionId: string, _pathname: string, _feedback: 1 | -1 | 0) {
+	const feedback: { value: number; message?: string } = { value: _feedback }
+	track('Helpful', feedback)
 	return
 }
 
@@ -39,27 +44,23 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 
 	const handleThumbsDown = useCallback(async () => {
 		setState((s) => {
-			if (s === 'loading') {
-				return s
-			} else if (s === 'thumbs-down') {
-				return 'idle'
-			} else {
-				return 'thumbs-down'
+			const next = s === 'thumbs-down' ? 'idle' : 'thumbs-down'
+			if (s === 'thumbs-down') {
+				submitThumbsFeedback(sessionId, pathname, -1)
 			}
+			return next
 		})
-	}, [])
+	}, [pathname, sessionId])
 
 	const handleThumbsUp = useCallback(() => {
 		setState((s) => {
-			if (s === 'loading') {
-				return s
-			} else if (s === 'thumbs-up') {
-				return 'idle'
-			} else {
-				return 'thumbs-up'
+			const next = s === 'thumbs-up' ? 'idle' : 'thumbs-up'
+			if (s === 'thumbs-up') {
+				submitThumbsFeedback(sessionId, pathname, 1)
 			}
+			return next
 		})
-	}, [])
+	}, [pathname, sessionId])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {

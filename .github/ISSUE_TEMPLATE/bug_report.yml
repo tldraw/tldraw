@@ -32,6 +32,7 @@ body:
         - Chrome
         - Safari
         - Microsoft Edge
+        - VS Code
   - type: dropdown
     id: product
     attributes:
@@ -41,6 +42,7 @@ body:
         - The tldraw.com website
         - The tldraw.dev website
         - The makereal.tldraw.com website
+        - The VS Code extension
     validations:
       required: true
   - type: input

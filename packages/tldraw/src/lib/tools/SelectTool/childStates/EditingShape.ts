@@ -3,10 +3,8 @@ import {
 	TLCancelEventInfo,
 	TLCompleteEventInfo,
 	tlenv,
-	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
-	TLTextShape,
 } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { renderPlaintextFromRichText } from '../../../utils/text/richText'
@@ -46,12 +44,6 @@ export class EditingShape extends StateNode {
 		this.editor.setEditingShape(null)
 
 		updateHoveredShapeId.cancel()
-
-		const shape = this.editor.getShape(editingShapeId)!
-		const util = this.editor.getShapeUtil(shape)
-
-		// Check for changes on editing end
-		util.onEditEnd?.(shape)
 
 		if (this.info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask(undefined)
@@ -115,7 +107,7 @@ export class EditingShape extends StateNode {
 				const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
 				// N.B. One nuance here is that we want empty text fields to be removed from the canvas when the user clicks away from them.
 				const isEmptyTextShape =
-					this.editor.isShapeOfType<TLTextShape>(editingShape, 'text') &&
+					this.editor.isShapeOfType(editingShape, 'text') &&
 					renderPlaintextFromRichText(this.editor, editingShape.props.richText).trim() === ''
 				if (textLabel && !isEmptyTextShape) {
 					const pointInShapeSpace = this.editor.getPointInShapeSpace(
@@ -141,7 +133,7 @@ export class EditingShape extends StateNode {
 				} else {
 					if (selectingShape.id === editingShape.id) {
 						// If we clicked on a frame, while editing its heading, cancel editing
-						if (this.editor.isShapeOfType<TLFrameShape>(selectingShape, 'frame')) {
+						if (this.editor.isShapeOfType(selectingShape, 'frame')) {
 							this.editor.setEditingShape(null)
 							this.parent.transition('idle', info)
 						}
@@ -174,7 +166,7 @@ export class EditingShape extends StateNode {
 		if (hitShape.isLocked) return
 
 		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadOnly(hitShape)) {
+			if (!util.canEditInReadonly(hitShape)) {
 				this.parent.transition('pointing_shape', info)
 				return
 			}
@@ -196,10 +188,12 @@ export class EditingShape extends StateNode {
 	}
 
 	override onComplete(info: TLCompleteEventInfo) {
+		this.editor.getContainer().focus()
 		this.parent.transition('idle', info)
 	}
 
 	override onCancel(info: TLCancelEventInfo) {
+		this.editor.getContainer().focus()
 		this.parent.transition('idle', info)
 	}
 }

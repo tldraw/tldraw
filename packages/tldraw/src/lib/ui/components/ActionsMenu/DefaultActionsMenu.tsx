@@ -4,13 +4,14 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+import { useTldrawUiOrientation } from '../primitives/layout'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
@@ -26,6 +27,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
+	const { orientation } = useTldrawUiOrientation()
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -47,27 +49,38 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	return (
 		<TldrawUiPopover id="actions-menu">
 			<TldrawUiPopoverTrigger>
-				<TldrawUiButton
+				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
 					title={msg('actions-menu.title')}
 				>
-					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
+					<TldrawUiButtonIcon
+						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
+						small
+					/>
+				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
-				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
+				side={
+					orientation === 'horizontal'
+						? breakpoint >= PORTRAIT_BREAKPOINT.TABLET
+							? 'bottom'
+							: 'top'
+						: 'right'
+				}
 				sideOffset={6}
 			>
-				<div
+				<TldrawUiToolbar
 					ref={ref}
-					className="tlui-actions-menu tlui-buttons__grid"
+					label={msg('actions-menu.title')}
+					className="tlui-actions-menu"
 					data-testid="actions-menu.content"
+					orientation="grid"
 				>
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</div>
+				</TldrawUiToolbar>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)

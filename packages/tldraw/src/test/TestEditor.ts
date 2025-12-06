@@ -10,12 +10,12 @@ import {
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TLArrowBinding,
 	TLArrowShape,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
 	TLKeyboardEventInfo,
+	TLMeasureTextOpts,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLShape,
@@ -32,6 +32,7 @@ import {
 	rotateSelectionHandle,
 	tlenv,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
@@ -40,7 +41,14 @@ import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
-jest.useFakeTimers()
+declare module 'vitest' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Matchers<T = any> {
+		toCloselyMatchObject(expected: any, roundToNearest?: number): void
+	}
+}
+
+vi.useFakeTimers()
 
 Object.assign(navigator, {
 	clipboard: {
@@ -52,16 +60,6 @@ Object.assign(navigator, {
 
 // @ts-expect-error
 window.ClipboardItem = class {}
-
-declare global {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
-	namespace jest {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		interface Matchers<R> {
-			toCloselyMatchObject(value: any, precision?: number): void
-		}
-	}
-}
 
 export class TestEditor extends Editor {
 	constructor(
@@ -80,14 +78,20 @@ export class TestEditor extends Editor {
 			right: 1080,
 		}
 		// make the app full screen for the sake of the insets property
-		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
-		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+		vi.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		vi.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
 
 		elm.tabIndex = 0
 		elm.getBoundingClientRect = () => bounds as DOMRect
 
-		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
-		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
+		const shapeUtilsWithDefaults = [
+			...defaultShapeUtils.filter((s) => !options.shapeUtils?.some((su) => su.type === s.type)),
+			...(options.shapeUtils ?? []),
+		]
+		const bindingUtilsWithDefaults = [
+			...defaultBindingUtils.filter((b) => !options.bindingUtils?.some((bu) => bu.type === b.type)),
+			...(options.bindingUtils ?? []),
+		]
 
 		super({
 			...options,
@@ -116,15 +120,7 @@ export class TestEditor extends Editor {
 
 		this.textMeasure.measureText = (
 			textToMeasure: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
@@ -138,23 +134,19 @@ export class TestEditor extends Editor {
 				y: 0,
 				w: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 				h:
-					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
+					(opts.maxWidth === null ? breaks.length : Math.ceil(w / opts.maxWidth) + breaks.length) *
 					opts.fontSize,
-				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
+				scrollWidth: opts.measureScrollWidth
+					? opts.maxWidth === null
+						? w
+						: Math.max(w, opts.maxWidth)
+					: 0,
 			}
 		}
 
 		this.textMeasure.measureHtml = (
 			html: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const textToMeasure = html
 				.split('</p><p dir="auto">')
@@ -282,12 +274,12 @@ export class TestEditor extends Editor {
 	 * methods, or call mockRestore() to restore the actual implementation (e.g.
 	 * _transformPointerDownSpy.mockRestore())
 	 */
-	_transformPointerDownSpy = jest
+	_transformPointerDownSpy = vi
 		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})
-	_transformPointerUpSpy = jest
+	_transformPointerUpSpy = vi
 		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
@@ -524,6 +516,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+		this.keyDown(key, options)
+		this.keyUp(key, options)
+		return this
+	}
+
 	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
@@ -740,12 +738,11 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(
-		shapesJsx: React.JSX.Element | React.JSX.Element[]
-	): Record<string, TLShapeId> {
-		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
+		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
 		this.createAssets(assets)
 		this.createShapes(shapes)
+		this.createBindings(bindings)
 		return ids
 	}
 
@@ -791,9 +788,7 @@ export class TestEditor extends Editor {
 	}
 
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
+		const ids = new Set(this.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
 		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 }

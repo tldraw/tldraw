@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`the_routes 1`] = `
 [
@@ -19,6 +19,30 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/f/[^/]*/?$",
   },
   {
+    "reactRouterPattern": "/f/:fileSlug/history",
+    "vercelRouterPattern": "^/f/[^/]*/history/?$",
+  },
+  {
+    "reactRouterPattern": "/f/:fileSlug/history/:timestamp",
+    "vercelRouterPattern": "^/f/[^/]*/history/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/f/:fileSlug/pierre-history",
+    "vercelRouterPattern": "^/f/[^/]*/pierre-history/?$",
+  },
+  {
+    "reactRouterPattern": "/f/:fileSlug/pierre-history/:commitHash",
+    "vercelRouterPattern": "^/f/[^/]*/pierre-history/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/fairy-invite/:token",
+    "vercelRouterPattern": "^/fairy-invite/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/invite/:token",
+    "vercelRouterPattern": "^/invite/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/lf",
     "vercelRouterPattern": "^/lf/?$",
   },
@@ -37,6 +61,10 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/preview",
     "vercelRouterPattern": "^/preview/?$",
+  },
+  {
+    "reactRouterPattern": "/pricing",
+    "vercelRouterPattern": "^/pricing/?$",
   },
   {
     "reactRouterPattern": "/r/:boardId/history",

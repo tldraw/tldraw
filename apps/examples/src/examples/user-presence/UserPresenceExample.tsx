@@ -102,8 +102,8 @@ export default function UserPresenceExample() {
 
 /* 
 This example shows how to add instance presence records to the store to show other users' cursors.
-It is not an example of how to implement user presence, check out the yjs example for that:
-https://github.com/tldraw/tldraw-yjs-example
+It is not an example of how to implement user presence, check out the collaboration examples for that:
+https://tldraw.dev/examples/sync-demo
 
 [1]
 We're going to a fake a user's cursor and chat message, these are the values we'll use.

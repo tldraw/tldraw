@@ -14,7 +14,7 @@ function constrainShapeToRadius(editor: Editor, shape: TLShape, radius: number) 
 
 	// if the shape is outside the radius, move it to the edge of the radius:
 	if (distanceFromCenter > radius) {
-		const newPoint = shapePoint.norm().mul(radius)
+		const newPoint = shapePoint.uni().mul(radius)
 		return {
 			...shape,
 			x: newPoint.x,

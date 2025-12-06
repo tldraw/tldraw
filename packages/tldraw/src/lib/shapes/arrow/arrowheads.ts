@@ -1,4 +1,12 @@
-import { HALF_PI, PI, Vec, VecLike, intersectCircleCircle } from '@tldraw/editor'
+import {
+	HALF_PI,
+	PI,
+	Vec,
+	VecLike,
+	clamp,
+	exhaustiveSwitchError,
+	intersectCircleCircle,
+} from '@tldraw/editor'
 import { TLArrowInfo } from './arrow-types'
 
 interface TLArrowPointsInfo {
@@ -11,37 +19,53 @@ function getArrowPoints(
 	side: 'start' | 'end',
 	strokeWidth: number
 ): TLArrowPointsInfo {
-	const PT = side === 'end' ? info.end.point : info.start.point
-	const PB = side === 'end' ? info.start.point : info.end.point
+	const point = side === 'end' ? info.end.point : info.start.point
+	let int: VecLike
 
-	const compareLength = info.isStraight ? Vec.Dist(PB, PT) : Math.abs(info.bodyArc.length) // todo: arc length for curved arrows
-
-	const length = Math.max(Math.min(compareLength / 5, strokeWidth * 3), strokeWidth)
-
-	let P0: VecLike
-
-	if (info.isStraight) {
-		P0 = Vec.Nudge(PT, PB, length)
-	} else {
-		const ints = intersectCircleCircle(PT, length, info.handleArc.center, info.handleArc.radius)
-		P0 =
-			side === 'end'
-				? info.handleArc.sweepFlag
-					? ints[0]
-					: ints[1]
-				: info.handleArc.sweepFlag
-					? ints[1]
-					: ints[0]
+	switch (info.type) {
+		case 'straight': {
+			const opposite = side === 'end' ? info.start.point : info.end.point
+			const compareLength = Vec.Dist(opposite, point)
+			const length = clamp(compareLength / 5, strokeWidth, strokeWidth * 3)
+			int = Vec.Nudge(point, opposite, length)
+			break
+		}
+		case 'arc': {
+			const compareLength = Math.abs(info.bodyArc.length)
+			const length = clamp(compareLength / 5, strokeWidth, strokeWidth * 3)
+			const intersections = intersectCircleCircle(
+				point,
+				length,
+				info.handleArc.center,
+				info.handleArc.radius
+			)
+			int =
+				side === 'end'
+					? info.handleArc.sweepFlag
+						? intersections[0]
+						: intersections[1]
+					: info.handleArc.sweepFlag
+						? intersections[1]
+						: intersections[0]
+			break
+		}
+		case 'elbow': {
+			const previousPoint =
+				side === 'end' ? info.route.points[info.route.points.length - 2] : info.route.points[1]
+			const previousSegmentLength = Vec.ManhattanDist(previousPoint, point)
+			const length = clamp(previousSegmentLength / 2, strokeWidth, strokeWidth * 3)
+			int = previousPoint ? Vec.Nudge(point, previousPoint, length) : point
+			break
+		}
+		default:
+			exhaustiveSwitchError(info, 'type')
 	}
 
-	if (Vec.IsNaN(P0)) {
-		P0 = info.start.point
+	if (Vec.IsNaN(int)) {
+		int = point
 	}
 
-	return {
-		point: PT,
-		int: P0,
-	}
+	return { point, int }
 }
 
 function getArrowhead({ point, int }: TLArrowPointsInfo) {

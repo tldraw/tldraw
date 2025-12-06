@@ -1,8 +1,8 @@
-import { TldrawUiIcon } from '../TldrawUiIcon'
+import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 
 /** @public */
 export interface TLUiButtonIconProps {
-	icon: string
+	icon: string | TLUiIconJsx
 	small?: boolean
 	invertIcon?: boolean
 }
@@ -10,6 +10,13 @@ export interface TLUiButtonIconProps {
 /** @public @react */
 export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconProps) {
 	return (
-		<TldrawUiIcon className="tlui-button__icon" icon={icon} small={small} invertIcon={invertIcon} />
+		<TldrawUiIcon
+			aria-hidden="true"
+			label=""
+			className="tlui-button__icon"
+			icon={icon}
+			small={small}
+			invertIcon={invertIcon}
+		/>
 	)
 }

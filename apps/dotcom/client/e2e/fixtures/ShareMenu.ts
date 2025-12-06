@@ -63,14 +63,14 @@ export class ShareMenu {
 	async share(tab: ShareMenuTab) {
 		await this.ensureTabSelected(tab)
 		if (!(await this.isToggleChecked())) {
-			await this.page.getByRole('checkbox').check()
+			await this.page.getByRole('switch').check()
 		}
 	}
 
 	async unshare(tab: ShareMenuTab) {
 		await this.ensureTabSelected(tab)
 		if (await this.isToggleChecked()) {
-			await this.page.getByRole('checkbox').uncheck()
+			await this.page.getByRole('switch').uncheck()
 		}
 	}
 
@@ -95,7 +95,7 @@ export class ShareMenu {
 	}
 
 	async isToggleChecked() {
-		return await this.page.getByRole('checkbox').isChecked()
+		return await this.page.getByRole('switch').isChecked()
 	}
 
 	@step

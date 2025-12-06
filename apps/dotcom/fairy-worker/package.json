@@ -1,0 +1,34 @@
+{
+	"name": "dotcom-fairy-worker",
+	"description": "A Cloudflare Worker for AI agent interactions",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "worker.ts",
+	"scripts": {
+		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9559",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@ai-sdk/anthropic": "^2.0.2",
+		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/openai": "^2.0.24",
+		"@clerk/backend": "^1.23.7",
+		"@tldraw/fairy-shared": "workspace:*",
+		"@tldraw/worker-shared": "workspace:*",
+		"ai": "^5.0.63",
+		"esbuild": "^0.25.6",
+		"itty-router": "^5.0.18"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"lazyrepo": "0.0.0-alpha.27",
+		"wrangler": "^4.37.1"
+	}
+}

@@ -1,7 +1,6 @@
 import {
 	Editor,
 	PageRecordType,
-	TLArrowBinding,
 	TLPage,
 	TLPageId,
 	TLShape,
@@ -41,8 +40,8 @@ export type Op =
 	  }
 	| {
 			type: 'create-arrow'
-			start: TLArrowBinding | VecModel
-			end: TLArrowBinding | VecModel
+			start: VecModel
+			end: VecModel
 	  }
 	| {
 			type: 'delete-shape'
@@ -315,8 +314,8 @@ export class FuzzEditor extends RandomSource {
 					x: 0,
 					y: 0,
 					props: {
-						start: op.start,
-						end: op.end,
+						start: op.start as any,
+						end: op.end as any,
 					},
 				})
 				break

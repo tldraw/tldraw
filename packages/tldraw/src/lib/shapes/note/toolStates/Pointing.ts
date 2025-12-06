@@ -42,7 +42,14 @@ export class Pointing extends StateNode {
 		if (offset) {
 			center = Vec.Sub(center, offset)
 		}
-		this.shape = createNoteShape(this.editor, id, center)
+
+		// Allow this to trigger the max shapes reached alert
+		const shape = createNoteShape(this.editor, id, center)
+		if (shape) {
+			this.shape = shape
+		} else {
+			this.cancel()
+		}
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
@@ -125,7 +132,11 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: VecLike) 
 		})
 		.select(id)
 
-	const shape = editor.getShape<TLNoteShape>(id)!
+	const shape = editor.getShape<TLNoteShape>(id)
+	// Should never happen since we just checked, but just in case
+	if (!shape) return
+
+	editor.select(id)
 	const bounds = editor.getShapeGeometry(shape).bounds
 	const newPoint = maybeSnapToGrid(
 		new Vec(shape.x - bounds.width / 2, shape.y - bounds.height / 2),
@@ -142,5 +153,5 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: VecLike) 
 		},
 	])
 
-	return editor.getShape<TLNoteShape>(id)!
+	return editor.getShape<TLNoteShape>(id)
 }

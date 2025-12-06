@@ -69,7 +69,7 @@ When users interact with tldraw we listen for changes and when changes happen we
 
 ### Overview of the communication between VS Code, Extension, and the Editor
 
-VS Code actives our extension when needed - when a user opens the first `.tldr` file or when a user runs our registered command. Then, VS Code calls into `TldrawEditorProvider` to open the custom editor, which in turn creates a `TldrawDocument` instance. We read the file contents from disk and send them to the WebView, which then shows the Editor. When the user interacts with the editor we send the changes back to the Extension, which then updates the `TldrawDocument` instance. Since the instance is always kept up to date we can correctly handle user actions like `save`, `save as`, `undo`, `redo`, and `revert`.
+VS Code activates our extension when needed - when a user opens the first `.tldr` file or when a user runs our registered command. Then, VS Code calls into `TldrawEditorProvider` to open the custom editor, which in turn creates a `TldrawDocument` instance. We read the file contents from disk and send them to the WebView, which then shows the Editor. When the user interacts with the editor we send the changes back to the Extension, which then updates the `TldrawDocument` instance. Since the instance is always kept up to date we can correctly handle user actions like `save`, `save as`, `undo`, `redo`, and `revert`.
 
 ![VS Code Extension](VS-Code-Extension-1.png)
 

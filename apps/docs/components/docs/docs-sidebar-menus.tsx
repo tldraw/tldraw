@@ -12,13 +12,20 @@ export function DocsSidebarMenus({ menus }: { menus: any }) {
 
 	useEffect(() => {
 		container.current?.scrollTo(0, scrollPosition)
-		const element = document.querySelector('.sidebar-link[data-active=true]') as HTMLElement | null
-		if (!element) return
-		const aboveView = container.current && element.offsetTop < container.current.scrollTop
-		const belowView =
-			container.current &&
-			element.offsetTop > container.current.scrollTop + container.current.clientHeight
-		if (aboveView || belowView) element.scrollIntoView({ block: 'center' })
+		const elements = document.querySelectorAll(
+			'.sidebar-link[data-active=true]'
+		) as NodeListOf<HTMLElement>
+		for (const element of elements) {
+			const aboveView = container.current && element.offsetTop < container.current.scrollTop
+			const belowView =
+				container.current &&
+				element.offsetTop > container.current.scrollTop + container.current.clientHeight
+			if (!aboveView && !belowView) {
+				return
+			}
+		}
+		const element = elements[0]
+		element?.scrollIntoView({ block: 'center' })
 	}, [pathname])
 
 	const onScroll: UIEventHandler<HTMLDivElement> = (e) => {

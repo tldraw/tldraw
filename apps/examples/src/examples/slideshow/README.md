@@ -1,5 +1,5 @@
 ---
-title: Slideshow with Camera
+title: Slideshow (fixed camera)
 component: ./SlideShowExample.tsx
 category: use-cases
 keywords:
@@ -16,10 +16,11 @@ keywords:
     slides,
     presentation,
   ]
+priority: 0
 ---
 
+A simple slideshow app with a fixed camera.
+
 ---
 
-The `Tldraw` component provides the tldraw editor as a regular React component. You can put this component anywhere in your React project. In this example, we make the component take up the height and width of the container.
-
-By default, the component does not persist between refreshes or sync locally between tabs. To keep your work after a refresh, check the [`persistenceKey`](/peristence-key) example.
+This example shows one way of making a simple slideshow app with a fixed camera, using camera options.

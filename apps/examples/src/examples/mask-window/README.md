@@ -3,6 +3,7 @@ title: Canvas mask
 component: ./MaskWindowExample.tsx
 category: use-cases
 keywords: [mask, window, clip]
+priority: 2
 ---
 
 This example shows how you can mask the canvas.

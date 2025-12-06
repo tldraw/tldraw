@@ -2,7 +2,7 @@
 
 import { NavigationLink } from '@/components/navigation/link'
 import { RocketLaunchIcon } from '@heroicons/react/16/solid'
-import { AcademicCapIcon, CommandLineIcon, PlayIcon } from '@heroicons/react/20/solid'
+import { AcademicCapIcon, CommandLineIcon, CubeIcon, PlayIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 const categoryLinks = [
@@ -28,8 +28,14 @@ const categoryLinks = [
 	{
 		caption: 'Examples',
 		icon: PlayIcon,
-		href: '/examples/basic/basic',
+		href: '/examples',
 		active: (pathname: string) => pathname.startsWith('/examples'),
+	},
+	{
+		caption: 'Starter Kits',
+		icon: CubeIcon,
+		href: '/starter-kits/overview',
+		active: (pathname: string) => ['/starter-kits'].some((e) => pathname.startsWith(e)),
 	},
 ]
 

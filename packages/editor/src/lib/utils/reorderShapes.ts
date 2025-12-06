@@ -1,8 +1,6 @@
 import { TLParentId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { IndexKey, compact, getIndicesBetween, sortByIndex } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { Vec } from '../primitives/Vec'
-import { polygonsIntersect } from '../primitives/intersect'
 
 export function getReorderingShapesChanges(
 	editor: Editor,
@@ -154,27 +152,19 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
 	}
 }
 
-function getVerticesInPageSpace(editor: Editor, shape: TLShape) {
-	const geo = editor.getShapeGeometry(shape)
-	const pageTransform = editor.getShapePageTransform(shape)
-	if (!geo || !pageTransform) return null
-	return pageTransform.applyToPoints(geo.vertices)
-}
-
 function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
-	const movingVertices = Array.from(moving)
-		.map((shape) => {
-			const vertices = getVerticesInPageSpace(editor, shape)
-			if (!vertices) return null
-			return { shape, vertices }
+	const movingBounds = compact(
+		Array.from(moving).map((shape) => {
+			const bounds = editor.getShapePageBounds(shape)
+			if (!bounds) return null
+			return { shape, bounds }
 		})
-		.filter(Boolean) as { shape: TLShape; vertices: Vec[] }[]
-
+	)
 	const isOverlapping = (child: TLShape) => {
-		const vertices = getVerticesInPageSpace(editor, child)
-		if (!vertices) return false
-		return movingVertices.some((other) => {
-			return polygonsIntersect(other.vertices, vertices)
+		const bounds = editor.getShapePageBounds(child)
+		if (!bounds) return false
+		return movingBounds.some((other) => {
+			return other.bounds.includes(bounds)
 		})
 	}
 

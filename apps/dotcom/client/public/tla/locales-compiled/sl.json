@@ -1,134 +1,1780 @@
 {
-  "0095a9fa74": "Izvozi",
-  "03b3e13197": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'.",
-  "043973ec1f": "Še vedno imate težave? {GetHelpLink}",
-  "05596b840b": "Odpri tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Datoteka brez naslova",
-  "08331c1710": "Omejitev stopnje je presežena, poskusite znova pozneje.",
-  "0b27918290": "Datoteka",
-  "0b9a4cde72": "Meni datoteke",
-  "110a4b01be": "Objavi",
-  "13ddd375ad": "Izvozi kot",
-  "181b90f889": "Ustvari datoteko",
-  "1bef75f760": "Dovoli, da mi tldraw pošlje e-pošto o tem",
-  "1da2e8106b": "Prišlo je do nepričakovane napake.",
-  "1dd1c5fb7f": "Danes",
-  "26e5b44256": "Posredujte nam povratne informacije",
-  "299cb00a7a": "Nalaganje ni uspelo",
-  "31246941ad": "Za ogled te datoteke se morate prijaviti.",
-  "31418ce4ad": "i18n: Oznaka manjka",
-  "32656a600c": "Vidiš kaj narobe? Imate idejo za izboljšanje tldraw? Radi bi ga slišali!",
-  "335defdafe": "Poskusite osvežiti stran.",
-  "344a7f427f": "Urednik",
-  "3bd1b98dbd": "Ni mogoče objaviti sprememb.",
-  "3c5e891bff": "Pripeto",
-  "42e53c47c1": "Za dostop zaprosite lastnika.",
-  "44db318ee5": "Poiščite pomoč pri Discordu",
-  "46137245cd": "Hvala, ker nam pomagate izboljšati tldraw!",
-  "4778b9f3f2": "Nastavitve zasebnosti",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Ali ste prepričani, da želite pozabiti to datoteko?",
-  "4c06678729": "Za izboljšanje naših storitev uporabljamo lastne piškotke. <a>Več o tem</a>",
-  "4d1c8263ba": "Ponovno naloži",
-  "50db1b7e1e": "Ni mogoče preklicati objave datoteke.",
-  "517bb809d9": "Meni strani",
-  "54286b1d01": "Dosežena je omejitev sodelavcev",
-  "54d240fa41": "Prosim, upočasnite.",
-  "554a05155c": "Še vedno imate težave? <a>Prijavite težavo</a>",
-  "55505ba281": "PNG",
-  "56c34c6410": "Politika zasebnosti",
-  "5817f82c16": "Izbirno – Pomagajte nam razumeti, kako ljudje uporabljajo tldraw in kako ga lahko izboljšamo.",
-  "5a95a425f7": "Deli",
-  "5d160eb095": "Vaša seja",
-  "5d26ae7550": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti.",
-  "5db1e9a8ca": "Izpolnite ta obrazec, <discord>klepetajte z nami na Discord</discord> ali <github>pošljite težavo na GitHub</github>.",
-  "5f3c333678": "Povratne informacije so poslane",
-  "5fb63579fc": "Kopiraj",
-  "61057a0c84": "Kasneje",
-  "625fd29749": "Starejši",
-  "6609dd239e": "Nekaj je šlo narobe",
-  "6637a98151": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran.",
-  "6a26f54883": "Pomoč",
-  "6dc0836c1b": "Nimate potrebnih dovoljenj za izvedbo tega dejanja.",
-  "6dfc62f621": "Za ročni uvoz vsebine sledite tem korakom:",
-  "70a6facb9d": "Ta teden",
-  "73ab799383": "Ta različica tldraw ni več podprta.",
-  "7408cf0d7b": "Ponovno naložite stran",
-  "752b79f137": "Dosegli ste največje število datotek. Preden ustvarite nove, morate izbrisati stare datoteke.",
-  "7573b8110a": "Ni dostopa",
-  "761e93ede9": "Upravljanje piškotkov",
-  "764671e008": "Klepetajte z nami na Discordu",
-  "7697920637": "Ponovno naložite",
-  "777f9e90cf": "Neveljavna zahteva.",
-  "797799f35e": "Predložite težavo na GitHub",
-  "7cb5f8b4a5": "Pozabi",
-  "7daeced9ff": "Objavi spremembe",
-  "7fcdcc6455": "Pozabi datoteko",
-  "81d389ac80": "Izvozite vsebino kot datoteko .tldr: V zgornjem levem meniju izberite »Prenesi datoteko«.",
-  "85a082de1b": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw.",
-  "86353d2c41": "Dodane {total} datoteke .tldr.",
-  "86c66437fd": "Preimenuj datoteko",
-  "8eb2c00e96": "V skupni rabi z vami",
-  "8f7f4c1ce7": "O tem",
-  "8ff3d0a705": "Omejili smo število akcij",
-  "902b0d55fd": "Napaka",
-  "904a830405": "Preimenuj",
-  "91e49bb0eb": "Kopiraj v moje datoteke",
-  "96165d6df5": "Ta mesec",
-  "9914a0ce04": "Svetlo",
-  "9bef626805": "Izbriši datoteko",
-  "9ceb927baa": "Objavite to datoteko",
-  "9e076f5885": "Ni najdeno",
-  "9e93c98d88": "Odjavi se",
-  "a104439641": "Obroba",
-  "a18366b217": "Temno",
-  "a1c915578c": "Datoteka, ki jo iščete, ne obstaja.",
-  "a239905023": "Izvozi sliko",
-  "a3debabee7": "Politika piškotkov",
-  "a4d3b161ce": "Predloži",
-  "a6cc403d56": "Vsak s povezavo",
-  "a768caa988": "analitika",
-  "a9ded1e5ce": "Ozadje",
-  "ab0df9ba36": "Dosežena je omejitev datotek",
-  "af3dc88931": "Nazadnje objavljeno <date></date>",
-  "b6d4223e60": "Prijava",
-  "b758336699": "Kopiraj povezavo",
-  "bb792693e2": "Odpni",
-  "bbbcefd7ce": "{total, plural, one {Nalaganje datoteke .tldr …} two {} few {} other {Nalaganje {uploaded} od {total} datotek .tldr …}}",
-  "bc88b0e89e": "Delil {ownerName}",
-  "bcb62136a3": "Naložite datoteke .tldr",
-  "c2276c9127": "Preberite več o skupni rabi.",
-  "c303bd1095": "Datoteke ni mogoče objaviti.",
-  "c4408d3350": "Sprejmi",
-  "c655b27b1e": "i18n: dolg niz",
-  "c6a00f137b": "Povabi",
-  "c87aacf567": "Odjava",
-  "cceaefbc20": "Delite to datoteko",
-  "cd15a75c26": "SVG",
-  "cd16f555de": "Bistveno — potrebno za shranjevanje datotek in nastavitev ter njihovo sinhronizacijo v napravah.",
-  "cea291e45e": "Preberite več o objavljanju.",
-  "d3d2e61733": "Zapri",
-  "d4bbf74f3e": "Preklopi stransko vrstico",
-  "d5ef96e383": "Prenesi datoteko",
-  "d721757161": "Tema",
-  "d876a9fe1a": "Poskusi znova",
-  "d9100f3e10": "Za ogled vsebine pojdite sem",
-  "dbbebf3c03": "Samo povabljeni",
-  "dfdb78a4e4": "Zastavice za odpravljanje napak v aplikaciji",
-  "e371526ad0": "Ta piškotek je potreben za delovanje tldraw in ga ni mogoče onemogočiti.",
-  "e404559826": "Pogoji storitve",
-  "e78e14c5f1": "Pin",
-  "e8d1090cb9": "Piškotke uporabljamo, da ostanete prijavljeni, sinhronizirate vaše datoteke in zbirate analitične podatke, ki nam pomagajo izboljšati tldraw. Preberite našo <a>politiko o piškotkih</a>, če želite izvedeti več.",
-  "ea4788705e": "Prekliči",
-  "ebfe9ce86e": "Včeraj",
-  "ec59b960ea": "Ta datoteka je dosegla največje dovoljeno število aktivnih sodelavcev.",
-  "ec611e9a08": "Meni računa",
-  "ed53713239": "i18n: Naglašeno",
-  "ed75712b0e": "Podvoji",
-  "f2a6c498fb": "Izbriši",
-  "f43fb62093": "Nazaj na tldraw.",
-  "fb15c53f22": "Gledalec",
-  "fd1be3efcf": "Ali ste prepričani, da želite izbrisati to datoteko?",
-  "fed5ec05eb": "Povezava kopirana"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Izvozi"
+    }
+  ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Sprejmi povabilo"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Še vedno imate težave? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Datoteka brez naslova"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Omejitev stopnje je presežena, poskusite znova pozneje."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Račun"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Ta datoteka je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite ustvarjati novo datoteko."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Pogovorite se s skupino…"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Datoteka"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Meni datoteke"
+    }
+  ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Vile"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Pošlji povratne informacije"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Objavi"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Ustavi se"
+    }
+  ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Zapusti skupino"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Odpri datoteko"
+    }
+  ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Preizkusite SDK tldraw"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Izvozi kot"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Prikaži več"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Izbriši skupino"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Ustvari datoteko"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Prišlo je do nepričakovane napake."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Danes"
+    }
+  ],
+  "23f879f41a": [
+    {
+      "type": 0,
+      "value": "Vaša tedenska omejitev uporabe vil je bila dosežena. Ponastavljena bo na začetku naslednjega tedna."
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Spanje"
+    }
+  ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Ustvari skupino"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "O tldrawu"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tvoje vile čakajo"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Prikliči vse"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Nalaganje ni uspelo"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Moje datoteke"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "V decembru je na tldraw prišla skupina "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "vil"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": ". Če želite raziskati več, poiščite vilo in jo kliknite."
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Za ogled te datoteke se morate prijaviti."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Oznaka manjka"
+    }
+  ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tri vile"
+    }
+  ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Dodaj povezavo"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Nazaj na tldraw"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Poskusite osvežiti stran."
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "V decembru na tldraw prihaja množica vil. Prosimo, preverite spet 1. decembra."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Urednik"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Spi vse"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Upravljanje"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Ne sledi"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Sledi"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Pogoji storitve"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Nadaljuj z e-pošto"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Ni mogoče objaviti sprememb."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Pripeto"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Sprejmi vse"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Za dostop zaprosite lastnika."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Poiščite pomoč pri Discordu"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Vile"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " so prišle risati za mesec december."
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Hvala, ker nam pomagate izboljšati tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Ni izbranih vil"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Za nadaljevanje urejanja kopirajte datoteko v svoje datoteke."
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Pripni datoteko"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Prilepi URL datoteke tldraw ..."
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite pozabiti to datoteko?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Ime"
+    }
+  ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Izberi vse"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "To spletno mesto uporablja piškotke za delovanje aplikacije in zbiranje analitičnih podatkov."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Ponovno naloži"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Izbriši skupino …"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Več možnosti"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati to skupino? Tega dejanja ni mogoče razveljaviti."
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Ni mogoče preklicati objave datoteke."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Meni strani"
+    }
+  ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Ta datoteka je zdaj samo za branje"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Dosežena je omejitev sodelavcev"
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Še vedno imate težave? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Prijavite težavo"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Za izboljšanje spletnega mesta tldraw uporabljamo analitične piškotke."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Politika zasebnosti"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Unovčenje kode povabila ni uspelo"
+    }
+  ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Za začetek povlecite datoteke sem, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "ustvarite datoteko"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " ali "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "kopirajte povezavo za povabilo"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Deli"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Zaznan je bil star brskalnik. Za uporabo te aplikacije posodobite brskalnik."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Prekliči to povezavo in ustvari novo."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili, da se pridružite skupini:"
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Povratne informacije so poslane"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Kopiraj"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Kasneje"
+    }
+  ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Pogovorite se z "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Starejši"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "ti"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Vodnik"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Nekaj je šlo narobe"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Vnesite svoj e-poštni naslov"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Zbudi se"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Vnesite svoje sporočilo"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Ime vile"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Vile za odpravljanje napak"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Pomoč"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Nimate potrebnih dovoljenj za izvedbo tega dejanja."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Za ročni uvoz vsebine sledite tem korakom:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Nastavitve skupine"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Ta teden"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Ta različica tldraw ni več podprta."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Ponovno naložite stran"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Dosegli ste največje število datotek. Preden ustvarite nove, morate izbrisati stare datoteke."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Ni dostopa"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Upravljanje piškotkov"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Klepetajte z nami na Discordu"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Ponovno naložite"
+    }
+  ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw je brezplačna spletna tabla. Ustvarite račun za shranjevanje datotek in sodelovanje s prijatelji."
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Neveljavna zahteva."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Ta anonimna datoteka za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Razumem"
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Predložite težavo na GitHub"
+    }
+  ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Vila je majhen fant, ki lahko dela z vami na platnu. Vile lahko delajo same ali v ekipi. Ni omejitev glede tega, kaj vila zmore. Nihče ne ve, od kod prihaja."
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Uporabniški priročnik"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Obnovi različico"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Odpri tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste, da se pridružite tldraw fairies!"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Pozabi"
+    }
+  ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Zapusti skupino …"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Objavi spremembe"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Pozabi datoteko"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Prenesi"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam! Izpolnite ta obrazec in po potrebi se vam bomo oglasili po e-pošti. Lahko pa tudi "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "klepetate z nami na Discordu"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " ali "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "oddate težavo na GitHubu"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Počisti vse"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Dobrodošli"
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Dodane "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " datoteke .tldr."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Preimenuj datoteko"
+    }
+  ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Trda ponastavitev"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Nakup paketa za vile"
+    }
+  ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Ne, hvala."
+    }
+  ],
+  "8be569f100": [
+    {
+      "type": 0,
+      "value": "enkratno plačilo"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Preverite svojo e-pošto za potrditveno kodo."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Domov"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "V skupni rabi z vami"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "O nas"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Omejili smo število akcij"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Napaka"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Preimenuj"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Kopiraj v moje datoteke"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Povezava za povabilo je bila kopirana"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Prekliči izbor"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Pošlji"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Prijava z Googlom"
+    }
+  ],
+  "95d2109dc8": [
+    {
+      "type": 0,
+      "value": "Zgradite s kompletom za razvoj programske opreme tldraw"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Ta mesec"
+    }
+  ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Pogoji uporabe"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Dodaj povezavo do datoteke"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Svetlo"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Pogled za odpravljanje napak"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Niste prejeli kode? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Ponovno pošlji"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Izbriši datoteko"
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Objavite to datoteko"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Ni najdeno"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Odjavi se"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Izvozite vsebino kot datoteko .tldr: V zgornjem levem meniju izberite »Prenesi«."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Obroba"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Temno"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Datoteka, ki jo iščete, ne obstaja."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Izvozi sliko"
+    }
+  ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Pridruži se"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Politika piškotkov"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Predloži"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Odpravljanje napak"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Vsak s povezavo"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "analitika"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Datoteka postaja velika"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Dosežena je bila tedenska omejitev vil."
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nov klepet"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Ozadje"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Dosežena je omejitev datotek"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Nazadnje objavljeno "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Gostujoči uporabnik"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Datoteka je polna"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Čas odziva dnevnika"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "E-poštni naslov"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL datoteke"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Prijava"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Lastnik"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Kopiraj povezavo"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Prijavite se za skupno rabo"
+    }
+  ],
+  "bb93a7590f": [
+    {
+      "type": 0,
+      "value": "Sprejmi in se pridruži skupini"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Nalaganje datoteke .tldr …"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Nalaganje "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " od "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " datotek .tldr …"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Delil "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Povečaj na vilo"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Preberite več o skupni rabi."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Dovoli "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": ", da nam pomaga izboljšati tldraw."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Datoteke ni mogoče objaviti."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Odprto"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Razumem"
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Bistveni piškotki"
+    }
+  ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Ime skupine"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Uporaba"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: dolg niz"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Povabi"
+    }
+  ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Prikaži manj"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Odjava"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Shrani"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Delite to datoteko"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Ta datoteka se bliža svoji omejitvi velikosti. Razmislite o odstranitvi dela vsebine ali ustvarjanju nove datoteke."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Že imaš dostop za vile!"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Preberite več o objavljanju."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Zapri"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Preveč zahtev. Prosim, upočasnite."
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Preklopi stransko vrstico"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Preden začnete, sprejmite naše "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "pogoje uporabe"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " in "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "politiko zasebnosti"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Tema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Poskusi znova"
+    }
+  ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Sprejmi in nadaljuj"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Za ogled vsebine pojdite sem"
+    }
+  ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Omogoči vile"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Dosegli ste največje dovoljeno število skupin. Preden ustvarite nove skupine, morate izbrisati stare."
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Samo povabljeni"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Jasno"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Neveljaven URL datoteke tldraw"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Izberite vilo na desni, s katero se želite pogovarjati"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Vile so "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "začasna"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funkcija. 1. januarja 2026 bodo vse vile odstranjene iz aplikacije. Morda se bodo nekega dne spet vrnile. Vaš nakup velja samo za dostop do vil v decembru 2025."
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Zastavice za odpravljanje napak v aplikaciji"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Izberite"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Povabi člane"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Kopiraj povezavo za povabilo"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Pravni povzetek"
+    }
+  ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Skrbnik"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Pogoji storitve"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Pojdi na"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "ali"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Nevarno območje"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Prekliči"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Včeraj"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Ta datoteka je dosegla največje dovoljeno število aktivnih sodelavcev."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Meni računa"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Naglašeno"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Podvoji"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Za več informacij preberite našo "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "pravilnik o piškotkih"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Razpustitev"
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Člani"
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "izbrano"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Priklic"
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Piškotke uporabljamo za ohranjanje vaše prijave, sinhronizacijo datotek in zbiranje analitičnih podatkov, ki nam pomagajo izboljšati tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Uporabniške nastavitve"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Te piškotke uporabljamo za shranjevanje vaših datotek in nastavitev."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Izbriši"
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Nastavitve"
+    }
+  ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite zapustiti to skupino?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Pravilnik o zasebnosti"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Gledalec"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati to datoteko?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Povezava kopirana"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Dodaj povezavo do datoteke …"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Uvozi datoteko …"
+    }
+  ]
 }

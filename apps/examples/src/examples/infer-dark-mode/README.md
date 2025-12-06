@@ -1,10 +1,12 @@
 ---
 title: Infer dark mode
 component: ./InferDarkModeExample.tsx
-category: basic
-priority: 5
+category: ui
+priority: 4
 keywords: [props]
 ---
+
+Infer dark mode based on system preferences.
 
 ---
 

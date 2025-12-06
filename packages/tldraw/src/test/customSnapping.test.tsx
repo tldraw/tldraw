@@ -2,11 +2,12 @@ import {
 	BaseBoxShapeUtil,
 	IndexKey,
 	Polyline2d,
+	ShapeUtil,
 	TLAnyShapeUtilConstructor,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLLineShape,
+	TLShape,
 	TLShapeId,
 	Vec,
 	VecModel,
@@ -15,13 +16,19 @@ import {
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
+const TEST1_TYPE = 'test1'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[TEST1_TYPE]: { w: number; h: number; boundsSnapPoints: VecModel[] | null }
+	}
+}
+
+type Test1Shape = TLShape<typeof TEST1_TYPE>
+
 describe('custom shape bounds snapping - translate', () => {
-	type TestShape = TLBaseShape<
-		'test',
-		{ w: number; h: number; boundsSnapPoints: VecModel[] | null }
-	>
-	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
-		static override type = 'test'
+	class TestShapeUtil extends BaseBoxShapeUtil<Test1Shape> {
+		static override type = TEST1_TYPE
 		override getDefaultProps() {
 			return { w: 100, h: 100, boundsSnapPoints: null }
 		}
@@ -31,7 +38,7 @@ describe('custom shape bounds snapping - translate', () => {
 		override indicator() {
 			throw new Error('Method not implemented.')
 		}
-		override getBoundsSnapGeometry(shape: TestShape) {
+		override getBoundsSnapGeometry(shape: Test1Shape) {
 			return {
 				points: shape.props.boundsSnapPoints ?? undefined,
 			}
@@ -45,14 +52,14 @@ describe('custom shape bounds snapping - translate', () => {
 		editor = new TestEditor({ shapeUtils })
 		ids = editor.createShapesFromJsx([
 			<TL.geo ref="box" x={0} y={0} w={100} h={100} />,
-			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
+			<TL.test1 ref="test1" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
 		])
 	})
 
 	describe('with default boundSnapPoints', () => {
 		test('normal snapping works with default boundSnapPoints when moving test shape', () => {
 			// start translating the test shape
-			editor.setSelectedShapes([ids.test]).pointerDown(250, 250)
+			editor.setSelectedShapes([ids.test1]).pointerDown(250, 250)
 
 			// move the left edge of the test shape to the right edge of the box shape - it should snap
 			editor.pointerMove(155, 250, undefined, { ctrlKey: true })
@@ -83,15 +90,15 @@ describe('custom shape bounds snapping - translate', () => {
 
 	describe('with only the center in boundSnapPoints', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test1,
+				type: TEST1_TYPE,
 				props: { boundsSnapPoints: [{ x: 50, y: 50 }] },
 			})
 		})
 
 		describe('when moving the test shape', () => {
-			beforeEach(() => editor.select(ids.test).pointerDown(250, 250))
+			beforeEach(() => editor.select(ids.test1).pointerDown(250, 250))
 
 			test('does not snap its edges to the box edges', () => {
 				editor.pointerMove(155, 250, undefined, { ctrlKey: true })
@@ -125,15 +132,15 @@ describe('custom shape bounds snapping - translate', () => {
 
 	describe('with empty boundSnapPoints', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test1,
+				type: TEST1_TYPE,
 				props: { boundsSnapPoints: [] },
 			})
 		})
 
 		test('test shape does not snap to anything', () => {
-			editor.select(ids.test).pointerDown(250, 250)
+			editor.select(ids.test1).pointerDown(250, 250)
 
 			// try to snap our left edge to the right edge of the box shape - it should not snap
 			editor.pointerMove(155, 250, undefined, { ctrlKey: true })
@@ -162,10 +169,11 @@ describe('custom shape bounds snapping - translate', () => {
 	})
 })
 
-describe('custom handle snapping', () => {
-	type TestShape = TLBaseShape<
-		'test',
-		{
+const TEST2_TYPE = 'test2'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[TEST2_TYPE]: {
 			w: number
 			h: number
 			ownHandle: VecModel
@@ -173,11 +181,17 @@ describe('custom handle snapping', () => {
 			handlePoints: VecModel[] | 'default'
 			selfSnapOutline: VecModel[] | 'default'
 			selfSnapPoints: VecModel[] | 'default'
+			handleSnapType?: 'point' | 'align'
 		}
-	>
-	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
-		static override type = 'test'
-		override getDefaultProps(): TestShape['props'] {
+	}
+}
+
+type Test2Shape = TLShape<typeof TEST2_TYPE>
+
+describe('custom handle snapping', () => {
+	class TestShapeUtil extends BaseBoxShapeUtil<Test2Shape> {
+		static override type = TEST2_TYPE
+		override getDefaultProps(): Test2Shape['props'] {
 			return {
 				w: 100,
 				h: 100,
@@ -194,7 +208,7 @@ describe('custom handle snapping', () => {
 		override indicator() {
 			throw new Error('Method not implemented.')
 		}
-		override getHandleSnapGeometry(shape: TestShape) {
+		override getHandleSnapGeometry(shape: Test2Shape) {
 			const { handleOutline, handlePoints, selfSnapOutline, selfSnapPoints } = shape.props
 			return {
 				outline:
@@ -212,19 +226,26 @@ describe('custom handle snapping', () => {
 				getSelfSnapPoints: selfSnapPoints === 'default' ? undefined : () => selfSnapPoints,
 			}
 		}
-		override getHandles(shape: TestShape): TLHandle[] {
-			return [
-				{
-					id: 'handle',
-					type: 'vertex',
-					x: shape.props.ownHandle.x,
-					y: shape.props.ownHandle.y,
-					index: ZERO_INDEX_KEY,
-					canSnap: true,
-				},
-			]
+		override getHandles(shape: Test2Shape): TLHandle[] {
+			const handle: TLHandle = {
+				id: 'handle',
+				label: 'handle',
+				type: 'vertex',
+				x: shape.props.ownHandle.x,
+				y: shape.props.ownHandle.y,
+				index: ZERO_INDEX_KEY,
+			}
+
+			if (shape.props.handleSnapType) {
+				handle.snapType = shape.props.handleSnapType
+			} else {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				handle.canSnap = true
+			}
+
+			return [handle]
 		}
-		override onHandleDrag(shape: TestShape, { handle }: TLHandleDragInfo<TestShape>) {
+		override onHandleDrag(shape: Test2Shape, { handle }: TLHandleDragInfo<Test2Shape>) {
 			return { ...shape, props: { ...shape.props, ownHandle: { x: handle.x, y: handle.y } } }
 		}
 	}
@@ -244,7 +265,7 @@ describe('custom handle snapping', () => {
 					a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
 				}}
 			/>,
-			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
+			<TL.test2 ref="test2" x={200} y={200} w={100} h={100} />,
 		])
 	})
 
@@ -287,9 +308,9 @@ describe('custom handle snapping', () => {
 
 	describe('with empty handleSnapGeometry.outline', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test2,
+				type: TEST2_TYPE,
 				props: { handleOutline: null },
 			})
 		})
@@ -304,9 +325,9 @@ describe('custom handle snapping', () => {
 
 	describe('with custom handleSnapGeometry.outline', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test2,
+				type: TEST2_TYPE,
 				props: {
 					// a diagonal line from the top left to the bottom right
 					handleOutline: [
@@ -351,9 +372,9 @@ describe('custom handle snapping', () => {
 
 	describe('with custom handleSnapGeometry.points', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test2,
+				type: TEST2_TYPE,
 				props: {
 					handlePoints: [
 						{ x: 30, y: 30 },
@@ -378,12 +399,12 @@ describe('custom handle snapping', () => {
 
 	describe('with custom handleSnapGeometry.points along the outline', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test2,
+				type: TEST2_TYPE,
 				props: {
 					handlePoints: editor
-						.getShapeGeometry(ids.test)
+						.getShapeGeometry(ids.test2)
 						.bounds.cornersAndCenter.map(({ x, y }) => ({ x, y })),
 				},
 			})
@@ -417,9 +438,9 @@ describe('custom handle snapping', () => {
 	describe('self snapping', () => {
 		beforeEach(() => {
 			editor.deleteShape(ids.line)
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape({
+				id: ids.test2,
+				type: TEST2_TYPE,
 				x: 0,
 				y: 0,
 				props: {
@@ -428,12 +449,12 @@ describe('custom handle snapping', () => {
 			})
 		})
 		function startDraggingOwnHandle() {
-			const shape = editor.select(ids.test).getOnlySelectedShape()!
+			const shape = editor.select(ids.test2).getOnlySelectedShape()!
 			const handles = editor.getShapeHandles(shape)!
 			editor.pointerDown(0, 0, { target: 'handle', shape, handle: handles[0] })
 		}
 		function ownHandlePosition() {
-			const shape = editor.select(ids.test).getOnlySelectedShape()!
+			const shape = editor.select(ids.test2).getOnlySelectedShape()!
 			const handle = editor.getShapeHandles(shape)![0]
 			return { x: handle.x, y: handle.y }
 		}
@@ -453,9 +474,9 @@ describe('custom handle snapping', () => {
 		})
 		describe('with custom self snap outline & points', () => {
 			beforeEach(() => {
-				editor.updateShape<TestShape>({
-					id: ids.test,
-					type: 'test',
+				editor.updateShape({
+					id: ids.test2,
+					type: TEST2_TYPE,
 					props: {
 						selfSnapOutline: [
 							{ x: 20, y: 50 },
@@ -494,5 +515,229 @@ describe('custom handle snapping', () => {
 				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 50 })
 			})
 		})
+
+		describe('with snapType set to align', () => {
+			beforeEach(() => {
+				editor.updateShape({
+					id: ids.test2,
+					type: TEST2_TYPE,
+					props: {
+						selfSnapPoints: [
+							{ x: 20, y: 50 },
+							{ x: 60, y: 10 },
+						],
+						handleSnapType: 'align',
+					},
+				})
+			})
+
+			test('snaps to the y axis', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(18, 0, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(1)
+				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 0 })
+			})
+
+			test('snaps to the x axis', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(0, 48, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(1)
+				expect(ownHandlePosition()).toMatchObject({ x: 0, y: 50 })
+			})
+
+			test('snaps to both axes', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(18, 9, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(2)
+				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 10 })
+			})
+		})
+	})
+})
+
+const BEZIER_TYPE = 'bezier'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[BEZIER_TYPE]: {
+			start: VecModel
+			cp1: VecModel
+			cp2: VecModel
+			end: VecModel
+		}
+	}
+}
+
+type BezierShape = TLShape<typeof BEZIER_TYPE>
+
+describe('custom adjacent handle for shift snapping', () => {
+	class BezierShapeUtil extends ShapeUtil<BezierShape> {
+		static override type = BEZIER_TYPE
+		override getDefaultProps() {
+			return {
+				start: { x: 0, y: 0 },
+				cp1: { x: 50, y: 0 },
+				cp2: { x: 50, y: 100 },
+				end: { x: 100, y: 100 },
+			}
+		}
+		override component() {
+			throw new Error('Method not implemented.')
+		}
+		override indicator() {
+			throw new Error('Method not implemented.')
+		}
+		override getGeometry() {
+			return new Polyline2d({ points: [] })
+		}
+
+		override getHandles(shape: BezierShape): TLHandle[] {
+			return [
+				{
+					id: 'start',
+					type: 'vertex',
+					index: 'a0' as IndexKey,
+					x: shape.props.start.x,
+					y: shape.props.start.y,
+				},
+				{
+					id: 'cp1',
+					type: 'vertex',
+					index: 'a1' as IndexKey,
+					x: shape.props.cp1.x,
+					y: shape.props.cp1.y,
+					snapReferenceHandleId: 'start', // cp1 snaps relative to start
+				},
+				{
+					id: 'cp2',
+					type: 'vertex',
+					index: 'a2' as IndexKey,
+					x: shape.props.cp2.x,
+					y: shape.props.cp2.y,
+					snapReferenceHandleId: 'end', // cp2 snaps relative to end
+				},
+				{
+					id: 'end',
+					type: 'vertex',
+					index: 'a3' as IndexKey,
+					x: shape.props.end.x,
+					y: shape.props.end.y,
+				},
+			]
+		}
+
+		override onHandleDrag(shape: BezierShape, { handle }: TLHandleDragInfo<BezierShape>) {
+			return {
+				...shape,
+				props: {
+					...shape.props,
+					[handle.id]: { x: handle.x, y: handle.y },
+				},
+			}
+		}
+	}
+
+	const shapeUtils = [BezierShapeUtil] as TLAnyShapeUtilConstructor[]
+
+	let editor: TestEditor
+	let ids: Record<string, TLShapeId>
+
+	beforeEach(() => {
+		editor = new TestEditor({ shapeUtils })
+		ids = editor.createShapesFromJsx([
+			<TL.bezier
+				ref="bezier"
+				x={0}
+				y={0}
+				start={{ x: 0, y: 0 }}
+				cp1={{ x: 50, y: 0 }}
+				cp2={{ x: 50, y: 100 }}
+				end={{ x: 100, y: 100 }}
+			/>,
+		])
+	})
+
+	test('cp1 snaps angle relative to start point when using custom adjacent handle', () => {
+		editor.select(ids.bezier)
+		const bezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp1Handle = editor.getShapeHandles(bezier)!.find((h) => h.id === 'cp1')!
+
+		// Start dragging cp1 handle
+		editor.pointerDown(cp1Handle.x, cp1Handle.y, {
+			target: 'handle',
+			shape: bezier,
+			handle: cp1Handle,
+		})
+
+		// Move with shift key - should snap angle relative to start (0, 0) not cp2
+		editor.pointerMove(60, 20, { shiftKey: true })
+
+		const updatedBezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp1Pos = updatedBezier.props.cp1
+		const startPos = updatedBezier.props.start
+
+		// The angle from start to cp1 should be snapped to nearest 15 degrees
+		const angle = Math.atan2(cp1Pos.y - startPos.y, cp1Pos.x - startPos.x)
+		const degrees = (angle * 180) / Math.PI
+
+		// Should snap to a multiple of 15 degrees (snapAngle uses 24 divisions = 15 degrees)
+		const remainder = ((degrees % 15) + 15) % 15
+		expect(Math.min(remainder, 15 - remainder)).toBeLessThan(1)
+	})
+
+	test('cp2 snaps angle relative to end point when using custom adjacent handle', () => {
+		editor.select(ids.bezier)
+		const bezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp2Handle = editor.getShapeHandles(bezier)!.find((h) => h.id === 'cp2')!
+
+		// Start dragging cp2 handle
+		editor.pointerDown(cp2Handle.x, cp2Handle.y, {
+			target: 'handle',
+			shape: bezier,
+			handle: cp2Handle,
+		})
+
+		// Move with shift key - should snap angle relative to end (100, 100)
+		editor.pointerMove(80, 80, { shiftKey: true })
+
+		const updatedBezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp2Pos = updatedBezier.props.cp2
+		const endPos = updatedBezier.props.end
+
+		// The angle from end to cp2 should be snapped to nearest 15 degrees
+		const angle = Math.atan2(cp2Pos.y - endPos.y, cp2Pos.x - endPos.x)
+		const degrees = (angle * 180) / Math.PI
+
+		// Should snap to a multiple of 15 degrees
+		const remainder = ((degrees % 15) + 15) % 15
+		expect(Math.min(remainder, 15 - remainder)).toBeLessThan(1)
+	})
+
+	test('default handles use default adjacent handle logic', () => {
+		editor.select(ids.bezier)
+		const bezier = editor.getShape<BezierShape>(ids.bezier)!
+		const startHandle = editor.getShapeHandles(bezier)!.find((h) => h.id === 'start')!
+
+		// Start dragging start handle
+		editor.pointerDown(startHandle.x, startHandle.y, {
+			target: 'handle',
+			shape: bezier,
+			handle: startHandle,
+		})
+
+		// Move with shift key - should use default logic (next vertex handle = cp1)
+		editor.pointerMove(10, 10, { shiftKey: true })
+
+		const updatedBezier = editor.getShape<BezierShape>(ids.bezier)!
+		const startPos = updatedBezier.props.start
+		const cp1Pos = updatedBezier.props.cp1
+
+		// The angle from cp1 to start should be snapped to nearest 15 degrees
+		const angle = Math.atan2(startPos.y - cp1Pos.y, startPos.x - cp1Pos.x)
+		const degrees = (angle * 180) / Math.PI
+
+		// Should snap to a multiple of 15 degrees
+		const remainder = ((degrees % 15) + 15) % 15
+		expect(Math.min(remainder, 15 - remainder)).toBeLessThan(1)
 	})
 })

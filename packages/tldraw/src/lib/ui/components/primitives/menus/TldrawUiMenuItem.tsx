@@ -1,9 +1,18 @@
-import { ContextMenuItem } from '@radix-ui/react-context-menu'
-import { exhaustiveSwitchError, preventDefault } from '@tldraw/editor'
-import { useState } from 'react'
+import {
+	exhaustiveSwitchError,
+	getPointerInfo,
+	preventDefault,
+	TLPointerEventInfo,
+	useEditor,
+	Vec,
+	VecModel,
+} from '@tldraw/editor'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
+import { TLUiToolItem } from '../../../hooks/useTools'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
@@ -12,7 +21,10 @@ import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
 import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
+import { TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
+import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
+import { hideAllTooltips } from '../TldrawUiTooltip'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -22,9 +34,13 @@ export interface TLUiMenuItemProps<
 > {
 	id: string
 	/**
-	 * The icon to display on the item.
+	 * The icon to display on the item. Icons are only shown in certain menu types.
 	 */
-	icon?: IconType
+	icon?: IconType | TLUiIconJsx
+	/**
+	 * An icon to display to the left of the menu item.
+	 */
+	iconLeft?: IconType | TLUiIconJsx
 	/**
 	 * The keyboard shortcut to display on the item.
 	 */
@@ -57,6 +73,10 @@ export interface TLUiMenuItemProps<
 	 * Whether the item is selected.
 	 */
 	isSelected?: boolean
+	/**
+	 * The function to call when the item is dragged. If this is provided, the item will be draggable.
+	 */
+	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
 }
 
 /** @public @react */
@@ -71,9 +91,11 @@ export function TldrawUiMenuItem<
 	kbd,
 	label,
 	icon,
+	iconLeft,
 	onSelect,
 	noClose,
 	isSelected,
+	onDragStart,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
@@ -98,7 +120,6 @@ export function TldrawUiMenuItem<
 						type="menu"
 						data-testid={`${sourceId}.${id}`}
 						disabled={disabled}
-						title={titleStr}
 						onClick={(e) => {
 							if (noClose) {
 								preventDefault(e)
@@ -110,8 +131,10 @@ export function TldrawUiMenuItem<
 							}
 						}}
 					>
+						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
 						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+						{icon && <TldrawUiButtonIcon icon={icon} small />}
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuItem>
 			)
@@ -121,9 +144,8 @@ export function TldrawUiMenuItem<
 			if (disabled) return null
 
 			return (
-				<ContextMenuItem
+				<_ContextMenu.Item
 					dir="ltr"
-					title={titleStr}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
@@ -139,37 +161,24 @@ export function TldrawUiMenuItem<
 					<span className="tlui-button__label" draggable={false}>
 						{labelStr}
 					</span>
+					{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
-				</ContextMenuItem>
-			)
-		}
-		case 'panel': {
-			return (
-				<TldrawUiButton
-					data-testid={`${sourceId}.${id}`}
-					type="menu"
-					title={titleStr}
-					disabled={disabled}
-					onClick={() => onSelect(sourceId)}
-				>
-					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-					{spinner ? <Spinner /> : icon && <TldrawUiButtonIcon icon={icon} />}
-				</TldrawUiButton>
+				</_ContextMenu.Item>
 			)
 		}
 		case 'small-icons':
 		case 'icons': {
 			return (
-				<TldrawUiButton
+				<TldrawUiToolbarButton
 					data-testid={`${sourceId}.${id}`}
 					type="icon"
 					title={titleStr}
 					disabled={disabled}
 					onClick={() => onSelect(sourceId)}
 				>
-					<TldrawUiButtonIcon icon={icon!} small={menuType === 'small-icons'} />
-				</TldrawUiButton>
+					<TldrawUiButtonIcon icon={icon!} small />
+				</TldrawUiToolbarButton>
 			)
 		}
 		case 'keyboard-shortcuts': {
@@ -198,48 +207,248 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'toolbar': {
+			if (onDragStart) {
+				return (
+					<DraggableToolbarButton
+						id={id}
+						icon={icon}
+						onSelect={onSelect}
+						onDragStart={onDragStart}
+						labelStr={labelStr}
+						titleStr={titleStr}
+						disabled={disabled}
+						isSelected={isSelected}
+					/>
+				)
+			}
 			return (
-				<TldrawUiButton
-					type="tool"
-					data-testid={`tools.${id}`}
+				<TldrawUiToolbarButton
 					aria-label={labelStr}
+					aria-pressed={isSelected ? 'true' : 'false'}
+					data-testid={`tools.${id}`}
 					data-value={id}
-					onClick={() => onSelect('toolbar')}
-					title={titleStr}
 					disabled={disabled}
+					onClick={() => onSelect('toolbar')}
 					onTouchStart={(e) => {
 						preventDefault(e)
 						onSelect('toolbar')
 					}}
-					role="radio"
-					aria-checked={isSelected ? 'true' : 'false'}
+					title={titleStr}
+					type="tool"
 				>
 					<TldrawUiButtonIcon icon={icon!} />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			)
 		}
 		case 'toolbar-overflow': {
+			if (onDragStart) {
+				return (
+					<DraggableToolbarButton
+						id={id}
+						icon={icon}
+						onSelect={onSelect}
+						onDragStart={onDragStart}
+						labelStr={labelStr}
+						titleStr={titleStr}
+						disabled={disabled}
+						isSelected={isSelected}
+						overflow
+					/>
+				)
+			}
 			return (
-				<TldrawUiButton
-					type="icon"
-					className="tlui-button-grid__button"
-					onClick={() => {
-						onSelect('toolbar')
-					}}
+				<TldrawUiToolbarButton
 					aria-label={labelStr}
+					aria-pressed={isSelected ? 'true' : 'false'}
+					isActive={isSelected}
 					data-testid={`tools.more.${id}`}
-					title={titleStr}
-					disabled={disabled}
-					role="radio"
-					aria-checked={isSelected ? 'true' : 'false'}
 					data-value={id}
+					disabled={disabled}
+					onClick={() => onSelect('toolbar')}
+					title={titleStr}
+					type="icon"
 				>
 					<TldrawUiButtonIcon icon={icon!} />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			)
 		}
 		default: {
 			throw exhaustiveSwitchError(menuType)
 		}
 	}
+}
+
+function useDraggableEvents(
+	onDragStart: TLUiToolItem['onDragStart'],
+	onSelect: TLUiToolItem['onSelect']
+) {
+	const editor = useEditor()
+	const events = useMemo(() => {
+		let state = { name: 'idle' } as
+			| {
+					name: 'idle'
+			  }
+			| {
+					name: 'pointing'
+					screenSpaceStart: VecModel
+			  }
+			| {
+					name: 'dragging'
+					screenSpaceStart: VecModel
+			  }
+			| {
+					name: 'dragged'
+			  }
+
+		function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+			state = {
+				name: 'pointing',
+				screenSpaceStart: { x: e.clientX, y: e.clientY },
+			}
+
+			e.currentTarget.setPointerCapture(e.pointerId)
+		}
+
+		function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+			if ((e as any).isSpecialRedispatchedEvent) return
+
+			if (state.name === 'pointing') {
+				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
+				if (
+					distanceSq >
+					(editor.getInstanceState().isCoarsePointer
+						? editor.options.uiCoarseDragDistanceSquared
+						: editor.options.uiDragDistanceSquared)
+				) {
+					const screenSpaceStart = state.screenSpaceStart
+					state = {
+						name: 'dragging',
+						screenSpaceStart,
+					}
+
+					editor.run(() => {
+						editor.setCurrentTool('select')
+
+						// Set origin point
+						editor.dispatch({
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_down',
+							...getPointerInfo(editor, e),
+							point: screenSpaceStart,
+						})
+
+						// Pointer down potentially selects shapes, so we need to deselect them.
+						editor.selectNone()
+
+						// start drag
+						onDragStart?.('toolbar', {
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_move',
+							...getPointerInfo(editor, e),
+							point: screenSpaceStart,
+						})
+
+						hideAllTooltips()
+						editor.getContainer().focus()
+					})
+				}
+			}
+		}
+
+		function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
+			if ((e as any).isSpecialRedispatchedEvent) return
+
+			e.currentTarget.releasePointerCapture(e.pointerId)
+
+			editor.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_up',
+				...getPointerInfo(editor, e),
+			})
+		}
+
+		function handleClick() {
+			if (state.name === 'dragging' || state.name === 'dragged') {
+				state = { name: 'idle' }
+				return true
+			}
+
+			state = { name: 'idle' }
+			onSelect?.('toolbar')
+		}
+
+		return {
+			onPointerDown: handlePointerDown,
+			onPointerMove: handlePointerMove,
+			onPointerUp: handlePointerUp,
+			onClick: handleClick,
+		}
+	}, [onDragStart, editor, onSelect])
+
+	return events
+}
+
+function DraggableToolbarButton({
+	id,
+	labelStr,
+	titleStr,
+	disabled,
+	isSelected,
+	icon,
+	onSelect,
+	onDragStart,
+	overflow,
+}: {
+	id: string
+	disabled: boolean
+	labelStr?: string
+	titleStr?: string
+	isSelected?: boolean
+	icon: TLUiMenuItemProps['icon']
+	onSelect: TLUiMenuItemProps['onSelect']
+	onDragStart: TLUiMenuItemProps['onDragStart']
+	overflow?: boolean
+}) {
+	const events = useDraggableEvents(onDragStart, onSelect)
+
+	if (overflow) {
+		return (
+			<TldrawUiToolbarButton
+				aria-label={labelStr}
+				aria-pressed={isSelected ? 'true' : 'false'}
+				isActive={isSelected}
+				className="tlui-button-grid__button"
+				data-testid={`tools.more.${id}`}
+				data-value={id}
+				disabled={disabled}
+				title={titleStr}
+				type="icon"
+				{...events}
+			>
+				<TldrawUiButtonIcon icon={icon!} />
+			</TldrawUiToolbarButton>
+		)
+	}
+
+	return (
+		<TldrawUiToolbarButton
+			aria-label={labelStr}
+			aria-pressed={isSelected ? 'true' : 'false'}
+			data-testid={`tools.${id}`}
+			data-value={id}
+			disabled={disabled}
+			onTouchStart={(e) => {
+				preventDefault(e)
+				onSelect('toolbar')
+			}}
+			title={titleStr}
+			type="tool"
+			{...events}
+		>
+			<TldrawUiButtonIcon icon={icon!} />
+		</TldrawUiToolbarButton>
+	)
 }

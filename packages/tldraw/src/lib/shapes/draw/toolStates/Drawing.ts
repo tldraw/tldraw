@@ -238,7 +238,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial])
+				this.editor.updateShapes([shapePartial])
 
 				return
 			}
@@ -249,30 +249,34 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint
 		const id = createShapeId()
 
-		this.editor.createShapes<DrawableShape>([
-			{
-				id,
-				type: this.shapeType,
-				x: originPagePoint.x,
-				y: originPagePoint.y,
-				props: {
-					isPen: this.isPenOrStylus,
-					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
-					segments: [
-						{
-							type: this.segmentMode,
-							points: [
-								{
-									x: 0,
-									y: 0,
-									z: +pressure.toFixed(2),
-								},
-							],
-						},
-					],
-				},
+		// Allow this to trigger the max shapes reached alert
+		this.editor.createShape({
+			id,
+			type: this.shapeType,
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				isPen: this.isPenOrStylus,
+				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+				segments: [
+					{
+						type: this.segmentMode,
+						points: [
+							{
+								x: 0,
+								y: 0,
+								z: +pressure.toFixed(2),
+							},
+						],
+					},
+				],
 			},
-		])
+		})
+		const shape = this.editor.getShape<DrawableShape>(id)
+		if (!shape) {
+			this.cancel()
+			return
+		}
 		this.currentLineLength = 0
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
@@ -370,7 +374,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial])
+					this.editor.updateShapes([shapePartial])
 				}
 				break
 			}
@@ -659,9 +663,17 @@ export class Drawing extends StateNode {
 								],
 							},
 						},
-					])
+					})
 
-					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
+					const shape = this.editor.getShape<DrawableShape>(newShapeId)
+
+					if (!shape) {
+						// This would only happen if the page is full and no more shapes can be created. The bug would manifest as a crash when we try to clone the shape.
+						// todo: handle this type of thing better
+						return this.cancel()
+					}
+
+					this.initialShape = structuredClone(shape)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = inputs.getCurrentPagePoint()
 					this.currentLineLength = 0

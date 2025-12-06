@@ -1,6 +1,7 @@
 import {
 	Box,
 	DefaultFontFamilies,
+	ExtractShapeByProps,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
@@ -8,6 +9,7 @@ import {
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
+	openWindow,
 	preventDefault,
 	useEditor,
 	useValue,
@@ -22,7 +24,7 @@ import { useEditableRichText } from './useEditableRichText'
 /** @public */
 export interface RichTextLabelProps {
 	shapeId: TLShapeId
-	type: string
+	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number
@@ -40,6 +42,7 @@ export interface RichTextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	hasCustomTabBehavior?: boolean
 }
 
 /**
@@ -67,10 +70,12 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	style,
 	textWidth,
 	textHeight,
+	hasCustomTabBehavior,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
+
 	const html = useMemo(() => {
 		if (richText) {
 			return renderHtmlFromRichText(editor, richText)
@@ -95,7 +100,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			// We don't get the mouseup event later because we preventDefault
 			// so we have to do it manually.
 			const handlePointerUp = (e: TLEventInfo) => {
-				if (e.name !== 'pointer_up') return
+				if (e.name !== 'pointer_up' || !link) return
 
 				if (!editor.inputs.getIsDragging()) {
 					window.open(link, '_blank', 'noopener, noreferrer')
@@ -106,20 +111,19 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}
 
-	if (!isEditing && isEmpty) {
-		return null
-	}
+	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
+	if (!isEditing && isEmpty) return null
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`}
+			aria-hidden={!isEditing}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -133,7 +137,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: lineHeight.toString(),
 					minHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
@@ -149,12 +153,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
-							data-iseditinganything={isEditingAnything}
+							data-is-ready-for-editing={isReadyForEditing}
 						/>
 					)}
 				</div>
-				{/* todo: it might be okay to have just isEditing here */}
-				{(isEditingAnything || isSelected) && (
+				{(isReadyForEditing || isSelected) && (
 					<RichTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
@@ -162,6 +165,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						isEditing={isEditing}
 						shapeId={shapeId}
 						{...editableTextRest}
+						hasCustomTabBehavior={hasCustomTabBehavior}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>
 				)}
@@ -181,6 +185,7 @@ export interface RichTextSVGProps {
 	wrap?: boolean
 	labelColor: string
 	padding: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -198,6 +203,7 @@ export function RichTextSVG({
 	wrap,
 	labelColor,
 	padding,
+	showTextOutline = true,
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
@@ -233,6 +239,7 @@ export function RichTextSVG({
 		wordWrap: 'break-word' as const,
 		overflowWrap: 'break-word' as const,
 		whiteSpace: 'pre-wrap',
+		textShadow: showTextOutline ? 'var(--tl-text-outline)' : 'none',
 	}
 
 	return (

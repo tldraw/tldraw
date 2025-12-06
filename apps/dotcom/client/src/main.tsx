@@ -1,5 +1,4 @@
 import { ClerkProvider } from '@clerk/clerk-react'
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -8,6 +7,7 @@ import '../styles/globals.css'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
+import { showConsoleBranding } from './utils/consoleBranding'
 
 const browserRouter = createBrowserRouter(router)
 
@@ -29,10 +29,11 @@ createRoot(document.getElementById('root')!).render(
 		<HelmetProvider>
 			<Head />
 			<RouterProvider router={browserRouter} />
-			<VercelAnalytics debug={false} />
 		</HelmetProvider>
 	</ClerkProvider>
 )
+
+showConsoleBranding()
 
 try {
 	// we have a dummy service worker that unregisters itself immediately

@@ -27,6 +27,8 @@ export interface TldrawOptions {
 	readonly multiClickDurationMs: number
 	readonly coarseDragDistanceSquared: number
 	readonly dragDistanceSquared: number
+	readonly uiDragDistanceSquared: number
+	readonly uiCoarseDragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
 	readonly gridSteps: readonly {
@@ -53,6 +55,7 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
 	readonly maxExportDelayMs: number
+	readonly tooltipDelayMs: number
 	/**
 	 * How long should previews created by {@link Editor.createTemporaryAssetPreview} last before
 	 * they expire? Defaults to 3 minutes.
@@ -80,6 +83,21 @@ export interface TldrawOptions {
 	 * nonce to use in the editor's styles.
 	 */
 	readonly nonce: string | undefined
+	/**
+	 * Branding name of the app, currently only used for adding aria-label for the application.
+	 */
+	readonly branding?: string
+	/**
+	 * Whether to use debounced zoom level for certain rendering optimizations. When true,
+	 * `editor.getDebouncedZoomLevel()` returns a cached zoom value while the camera is moving,
+	 * reducing re-renders. When false, it always returns the current zoom level.
+	 */
+	readonly debouncedZoom: boolean
+	/**
+	 * The number of shapes that must be on the page for the debounced zoom level to be used.
+	 * Defaults to 300 shapes.
+	 */
+	readonly debouncedZoomThreshold: number
 }
 
 /** @public */
@@ -93,6 +111,10 @@ export const defaultTldrawOptions = {
 	multiClickDurationMs: 200,
 	coarseDragDistanceSquared: 36, // 6 squared
 	dragDistanceSquared: 16, // 4 squared
+	uiDragDistanceSquared: 16, // 4 squared
+	// it's really easy to accidentally drag from the toolbar on mobile, so we use a much larger
+	// threshold than usual here to try and prevent accidental drags.
+	uiCoarseDragDistanceSquared: 625, // 25 squared
 	defaultSvgPadding: 32,
 	cameraSlideFriction: 0.09,
 	gridSteps: [
@@ -120,6 +142,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
 	maxExportDelayMs: 5000,
+	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
@@ -127,4 +150,6 @@ export const defaultTldrawOptions = {
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,
+	debouncedZoom: true,
+	debouncedZoomThreshold: 500,
 } as const satisfies TldrawOptions

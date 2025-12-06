@@ -4,15 +4,11 @@
 	"main": "index.js",
 	"license": "SEE LICENSE IN LICENSE.md",
 	"private": true,
-	"files": [
-		"eslint-preset.js"
-	],
-	"dependencies": {
-		"eslint": "^9.19.0",
-		"eslint-config-prettier": "^9.1.0",
-		"eslint-plugin-react": "^7.37.4"
-	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27"
+		"@jest/expect-utils": "^30.0.5",
+		"@peculiar/webcrypto": "^1.5.0",
+		"jest-matcher-utils": "^30.0.5",
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest-canvas-mock": "^0.3.3"
 	}
 }

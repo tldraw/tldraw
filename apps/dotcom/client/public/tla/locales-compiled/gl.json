@@ -1,134 +1,1776 @@
 {
-  "0095a9fa74": "Exportar",
-  "03b3e13197": "Arrastra o ficheiro á barra lateral desta páxina. Ou selecciona a opción \"Importar ficheiro\" no menú de usuario.",
-  "043973ec1f": "Aínda tes problemas? {GetHelpLink}",
-  "05596b840b": "Abre tldraw.",
-  "06b9281e39": "Automático",
-  "07dbd11b21": "Ficheiro sen título",
-  "08331c1710": "Superouse o límite de taxas. Téntao de novo máis tarde.",
-  "0b27918290": "Arquivo",
-  "0b9a4cde72": "Menú Ficheiro",
-  "110a4b01be": "Publicar",
-  "13ddd375ad": "Exportar como",
-  "181b90f889": "Crear ficheiro",
-  "1bef75f760": "Permitir que tldraw me envíe un correo electrónico sobre isto",
-  "1da2e8106b": "Produciuse un erro inesperado.",
-  "1dd1c5fb7f": "Hoxe",
-  "26e5b44256": "Dános comentarios",
-  "299cb00a7a": "Produciuse un erro na carga",
-  "31246941ad": "Debes iniciar sesión para ver este ficheiro.",
-  "31418ce4ad": "i18n: Falta resaltar",
-  "32656a600c": "Ves algo mal? Tes algunha idea para mellorar tldraw? Encantaríanos escoitalo!",
-  "335defdafe": "Proba a actualizar a páxina.",
-  "344a7f427f": "Editor",
-  "3bd1b98dbd": "Non se poden publicar os cambios.",
-  "3c5e891bff": "Fixado",
-  "42e53c47c1": "Ponte en contacto co propietario para solicitar acceso.",
-  "44db318ee5": "Obtén axuda en Discord",
-  "46137245cd": "Grazas por axudarnos a mellorar tldraw!",
-  "4778b9f3f2": "Configuración de privacidade",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Estás seguro de que queres esquecer este ficheiro?",
-  "4c06678729": "Usamos cookies propias para mellorar os nosos servizos. <a>Máis información</a>",
-  "4d1c8263ba": "Recarga",
-  "50db1b7e1e": "Non se puido anular a publicación do ficheiro.",
-  "517bb809d9": "Menú da páxina",
-  "54286b1d01": "Alcanzouse o límite de colaboradores",
-  "54d240fa41": "Por favor, abranda.",
-  "554a05155c": "Aínda tes problemas? <a>Informar dun problema</a>",
-  "55505ba281": "PNG",
-  "56c34c6410": "Política de privacidade",
-  "5817f82c16": "Opcional: axúdanos a comprender como a xente usa tldraw e como podemos melloralo.",
-  "5a95a425f7": "Compartir",
-  "5d160eb095": "A túa sesión",
-  "5d26ae7550": "Non puidemos cargar parte do contido que creaches antes de iniciar sesión.",
-  "5db1e9a8ca": "Encha este formulario, <discord>chatea connosco en Discord</discord> ou <github>envía un problema en GitHub</github>.",
-  "5f3c333678": "Comentarios enviados",
-  "5fb63579fc": "Copiar",
-  "61057a0c84": "Máis tarde",
-  "625fd29749": "Máis vello",
-  "6609dd239e": "Algo saíu mal",
-  "6637a98151": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar.",
-  "6a26f54883": "Axuda",
-  "6dc0836c1b": "Non tes os permisos necesarios para realizar esta acción.",
-  "6dfc62f621": "Siga estes pasos para importar o contido manualmente:",
-  "70a6facb9d": "Esta semana",
-  "73ab799383": "Esta versión de tldraw xa non é compatible.",
-  "7408cf0d7b": "Volve cargar a páxina",
-  "752b79f137": "Alcanzaches o número máximo de ficheiros. Debes eliminar ficheiros antigos antes de crear outros novos.",
-  "7573b8110a": "Sen acceso",
-  "761e93ede9": "Xestionar cookies",
-  "764671e008": "Chatea connosco en Discord",
-  "7697920637": "Volve cargar",
-  "777f9e90cf": "Solicitude non válida.",
-  "797799f35e": "Envía un problema en GitHub",
-  "7cb5f8b4a5": "Esquece",
-  "7daeced9ff": "Publicar cambios",
-  "7fcdcc6455": "Esquece o ficheiro",
-  "81d389ac80": "Exporta o contido como ficheiro .tldr: selecciona \"Descargar ficheiro\" no menú superior esquerdo.",
-  "85a082de1b": "Actualiza a páxina para obter a última versión de tldraw.",
-  "86353d2c41": "Engadíronse {total} ficheiros .tldr.",
-  "86c66437fd": "Cambiar o nome do ficheiro",
-  "8eb2c00e96": "Compartido contigo",
-  "8f7f4c1ce7": "Sobre",
-  "8ff3d0a705": "Tarifa limitada",
-  "902b0d55fd": "Erro",
-  "904a830405": "Cambiar o nome",
-  "91e49bb0eb": "Copiar nos meus ficheiros",
-  "96165d6df5": "Este mes",
-  "9914a0ce04": "Luz",
-  "9bef626805": "Eliminar ficheiro",
-  "9ceb927baa": "Publicar este ficheiro",
-  "9e076f5885": "Non atopado",
-  "9e93c98d88": "Desactivar",
-  "a104439641": "Acolchado",
-  "a18366b217": "Escuro",
-  "a1c915578c": "O ficheiro que busca non existe.",
-  "a239905023": "Exportar imaxe",
-  "a3debabee7": "Política de cookies",
-  "a4d3b161ce": "Enviar",
-  "a6cc403d56": "Calquera persoa coa ligazón",
-  "a768caa988": "Analítica",
-  "a9ded1e5ce": "Fondo",
-  "ab0df9ba36": "Alcanzouse o límite de ficheiros",
-  "af3dc88931": "Última publicación <date></date>",
-  "b6d4223e60": "Inicia sesión",
-  "b758336699": "Copiar ligazón",
-  "bb792693e2": "Desfixo",
-  "bbbcefd7ce": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {uploaded} de {total} ficheiros .tldr...}}",
-  "bc88b0e89e": "Compartido por {ownerName}",
-  "bcb62136a3": "Carga ficheiros .tldr",
-  "c2276c9127": "Obtén máis información sobre como compartir.",
-  "c303bd1095": "Non se puido publicar o ficheiro.",
-  "c4408d3350": "Aceptar",
-  "c655b27b1e": "i18n: Corda longa",
-  "c6a00f137b": "Invitar",
-  "c87aacf567": "Pechar sesión",
-  "cceaefbc20": "Comparte este ficheiro",
-  "cd15a75c26": "SVG",
-  "cd16f555de": "Esencial: é necesario para gardar os teus ficheiros e configuracións e sincronizalos nos teus dispositivos.",
-  "cea291e45e": "Máis información sobre a publicación.",
-  "d3d2e61733": "Pechar",
-  "d4bbf74f3e": "Alterna a barra lateral",
-  "d5ef96e383": "Descargar ficheiro",
-  "d721757161": "Tema",
-  "d876a9fe1a": "Téntao de novo",
-  "d9100f3e10": "Entra aquí para ver o contido",
-  "dbbebf3c03": "Só invitar",
-  "dfdb78a4e4": "Marcadores de depuración de aplicacións",
-  "e371526ad0": "Esta cookie é necesaria para que tldraw funcione e non se pode desactivar.",
-  "e404559826": "Condicións do servizo",
-  "e78e14c5f1": "Pin",
-  "e8d1090cb9": "Usamos cookies para manterte conectado, para sincronizar os teus ficheiros e para recoller análises que nos axuden a mellorar tldraw. Le a nosa <a>política de cookies</a> para obter máis información.",
-  "ea4788705e": "Cancelar",
-  "ebfe9ce86e": "Onte",
-  "ec59b960ea": "Este ficheiro alcanzou o número máximo de colaboradores activos.",
-  "ec611e9a08": "Menú de conta",
-  "ed53713239": "i18n: acentuado",
-  "ed75712b0e": "Duplicar",
-  "f2a6c498fb": "Eliminar",
-  "f43fb62093": "Volver a tldraw.",
-  "fb15c53f22": "Visor",
-  "fd1be3efcf": "Estás seguro de que queres eliminar este ficheiro?",
-  "fed5ec05eb": "Ligazón copiada"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Exportar"
+    }
+  ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Aceptar a invitación"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Arrastra o ficheiro á barra lateral desta páxina. Ou selecciona a opción \"Importar ficheiro\" no menú de usuario."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Aínda tes problemas? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Automático"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Ficheiro sen título"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Superouse o límite de taxas. Téntao de novo máis tarde."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Conta"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Este ficheiro alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Fala co grupo…"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Arquivo"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Menú Ficheiro"
+    }
+  ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Fadas"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Enviar comentarios"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Publicar"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Parar"
+    }
+  ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Abandonar o grupo"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Desfixar ficheiro"
+    }
+  ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Proba o SDK de tldraw"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Exportar como"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Mostrar máis"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Eliminar grupo"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Crear ficheiro"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Produciuse un erro inesperado."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Hoxe"
+    }
+  ],
+  "23f879f41a": [
+    {
+      "type": 0,
+      "value": "Alcanzouse o teu límite de uso semanal de fadas. Reiniciarase a principios da próxima semana."
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Sono"
+    }
+  ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Crear grupo"
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Acerca de tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "As túas fadas están esperando"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Convocar a todos"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Modelo:"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Produciuse un erro na carga"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Os meus ficheiros"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "Un grupo de "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fadas"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " viñeron a debuxar durante o mes de decembro. Para investigar máis, busca a fada e fai clic nela."
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Debes iniciar sesión para ver este ficheiro."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Falta resaltar"
+    }
+  ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tres fadas"
+    }
+  ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Engadir ligazón"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Volver a tldraw"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Proba a actualizar a páxina."
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Un grupo de fadas chega ao sorteo durante o mes de decembro. Volve o 1 de decembro."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Durmir todos"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Xestionar"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Deixar de seguir"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Seguir"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Condicións de servizo"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Continuar co correo electrónico"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Non se poden publicar os cambios."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Fixado"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Aceptar todo"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Ponte en contacto co propietario para solicitar acceso."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Obtén axuda en Discord"
+    }
+  ],
+  "45b43c2d28": [
+    {
+      "type": 0,
+      "value": "As "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fadas"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " viñeron debuxar durante o mes de decembro."
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Grazas por axudarnos a mellorar tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Non se seleccionaron fadas"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Para continuar coa edición, copia o ficheiro nos teus ficheiros."
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Ficheiro fixado"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Pegar o URL do ficheiro tldraw..."
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Estás seguro de que queres esquecer este ficheiro?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Nome"
+    }
+  ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Seleccionar todo"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Este sitio usa cookies para que a aplicación funcione e para recompilar análises."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Recarga"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Eliminar grupo…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Máis opcións"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Seguro que queres eliminar este grupo? Esta acción non se pode desfacer."
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Non se puido anular a publicación do ficheiro."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Menú da páxina"
+    }
+  ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Este ficheiro agora é de só lectura"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Alcanzouse o límite de colaboradores"
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Aínda tes problemas? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Informar dun problema"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Usamos cookies analíticas para mellorar tldraw."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Política de privacidade"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Non se puido trocar o código de invitación"
+    }
+  ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Arrastra ficheiros aquí, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "crea un ficheiro"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " ou "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copia a ligazón de invitación"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " para comezar."
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Compartir"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Detectouse un navegador antigo. Actualízao para usar esta aplicación."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Revoga esta ligazón e crea unha nova."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Non puidemos cargar parte do contido que creaches antes de iniciar sesión."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Convidáronte a unirte ao grupo:"
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Comentarios enviados"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Copiar"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Máis tarde"
+    }
+  ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Fala con "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Máis vello"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "ti"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Guía"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Algo saíu mal"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Introduce o teu enderezo de correo electrónico"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Despertar"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Introduce a túa mensaxe"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Nome da fada"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Depurar fadas"
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Axuda"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Non tes os permisos necesarios para realizar esta acción."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Siga estes pasos para importar o contido manualmente:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Configuración do grupo"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Esta semana"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Tes algún erro, problema ou idea para tldraw? Avísanos!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Esta versión de tldraw xa non é compatible."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Volve cargar a páxina"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Alcanzaches o número máximo de ficheiros. Debes eliminar ficheiros antigos antes de crear outros novos."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Sen acceso"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Xestionar cookies"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Chatea connosco en Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Volve cargar"
+    }
+  ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw é unha pizarra branca en liña gratuíta. Crea unha conta para gardar os teus ficheiros e traballar cos teus amigos."
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Solicitude non válida."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Este ficheiro multixogador tldraw anónimo agora é de só lectura. Para continuar editándoo, inicia sesión e cópiao nos teus ficheiros."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Entendido"
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Envía un problema en GitHub"
+    }
+  ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Unha fada é un rapaz pequeno que pode traballar contigo na lona. As fadas poden traballar soas ou en equipo. Non hai límite para o que unha fada pode facer. Ninguén sabe de onde vén."
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Manual do usuario"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Restaurar versión"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Abrir tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Convidáronte a unirte a tldraw fairies!"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Esquece"
+    }
+  ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Abandonar o grupo…"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Publicar cambios"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Esquece o ficheiro"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Descargar"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Tes algún erro, problema ou idea para tldraw? Avísanos! Completa este formulario e poñerémonos en contacto connosco por correo electrónico se é necesario. Tamén podes "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chatear connosco en Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " ou "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "enviar un problema en GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Borrar todo"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Benvido/a"
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Actualiza a páxina para obter a última versión de tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Engadíronse "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " ficheiros .tldr."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Cambiar o nome do ficheiro"
+    }
+  ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Reinicio completo"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Compra o paquete de fadas"
+    }
+  ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Non, grazas."
+    }
+  ],
+  "8be569f100": [
+    {
+      "type": 0,
+      "value": "pago único"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Consulta o teu correo electrónico para obter un código de verificación."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Inicio"
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Compartido contigo"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Acerca de"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Tarifa limitada"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Erro"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Cambiar o nome"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Copiar nos meus ficheiros"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Ligazón de invitación copiada"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Deseleccionar"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Enviar"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Iniciar sesión con Google"
+    }
+  ],
+  "95d2109dc8": [
+    {
+      "type": 0,
+      "value": "Compilar co SDK de tldraw"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Este mes"
+    }
+  ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Condicións de uso"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Engadir ligazón ao ficheiro"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Luz"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Vista de depuración"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Non recibiches o código? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Volver enviar"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Eliminar ficheiro"
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Publicar este ficheiro"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Non atopado"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Desactivar"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Exportar o contido como un ficheiro .tldr: selecciona \"Descargar\" no menú superior esquerdo."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Acolchado"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Escuro"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "O ficheiro que busca non existe."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Exportar imaxe"
+    }
+  ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Unirse"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Política de cookies"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Enviar"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Depurar"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Calquera persoa coa ligazón"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analítica"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "O ficheiro está a facerse grande"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Alcanzouse o límite semanal de fadas"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Novo chat"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Fondo"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Alcanzouse o límite de ficheiros"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Última publicación "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Usuario convidado"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "O ficheiro está cheo"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Tempo de resposta do rexistro"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Enderezo de correo electrónico"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL do ficheiro"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Inicia sesión"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Propietario"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Copiar ligazón"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Inicia sesión para compartir"
+    }
+  ],
+  "bb93a7590f": [
+    {
+      "type": 0,
+      "value": "Aceptar e unirse ao grupo"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Cargando ficheiro .tldr..."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Cargando "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " de "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " ficheiros .tldr..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Compartido por "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom á fada"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Obtén máis información sobre como compartir."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Permite que as "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " nos axuden a mellorar tldraw."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Non se puido publicar o ficheiro."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Abrir"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Entendo"
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Galletas esenciais"
+    }
+  ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Nome do grupo"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Uso"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Corda longa"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Invitar"
+    }
+  ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Mostrar menos"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Pechar sesión"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Gardar"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Comparte este ficheiro"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Este ficheiro está a chegar ao seu límite de tamaño. Considera eliminar parte do contido ou comezar un ficheiro novo."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Xa tes acceso de fadas!"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Máis información sobre a publicación."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Pechar"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Demasiadas solicitudes. Por favor, vaia máis amodo."
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Alterna a barra lateral"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Antes de comezar, acepta as nosas "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "condicións de uso"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " e a nosa "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "política de privacidade"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Tema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Téntao de novo"
+    }
+  ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Aceptar e continuar"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Entra aquí para ver o contido"
+    }
+  ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Activar fadas"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Alcanzaches o número máximo de grupos. Debes eliminar os grupos antigos antes de crear outros novos."
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Só invitar"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Limpar"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "URL de ficheiro tldraw non válida"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Selecciona unha fada á dereita para conversar con ela"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "As fadas son unha funcionalidade "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "temporal"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". O 1 de xaneiro de 2026, eliminaranse todas as fadas da aplicación. Quizais volvan algún día. A túa compra é para acceder ás fadas só en decembro de 2025."
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Marcadores de depuración de aplicacións"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Seleccionar"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Convidar membros"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copiar ligazón de invitación"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Resumo legal"
+    }
+  ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Administrador"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Condicións do servizo"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Ir a"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "ou"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Zona de perigo"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Cancelar"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Onte"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Este ficheiro alcanzou o número máximo de colaboradores activos."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Menú de conta"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: acentuado"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplicar"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Lea a nosa "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "política de cookies"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " para obter máis información."
+    }
+  ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Disolver"
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Membros"
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "seleccionado"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Invocar"
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Usamos cookies para manter a sesión iniciada, sincronizar os teus ficheiros e recompilar análises que nos axuden a mellorar tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Configuración do usuario"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Usamos estas cookies para gardar os teus ficheiros e a túa configuración."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Eliminar"
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Configuración"
+    }
+  ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Seguro que queres saír deste grupo?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Política de privacidade"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Visor"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Estás seguro de que queres eliminar este ficheiro?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Ligazón copiada"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Engadir ligazón ao ficheiro…"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Importar ficheiro…"
+    }
+  ]
 }

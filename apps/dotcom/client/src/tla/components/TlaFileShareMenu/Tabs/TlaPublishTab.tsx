@@ -9,8 +9,6 @@ import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, FormattedRelativeTime } from '../../../utils/i18n'
 import { TlaButton } from '../../TlaButton/TlaButton'
-import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
-import { TlaTabsPage } from '../../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -18,6 +16,8 @@ import {
 	TlaMenuControlLabel,
 	TlaMenuDetail,
 	TlaMenuSection,
+	TlaMenuSwitch,
+	TlaMenuTabsPage,
 } from '../../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
@@ -33,7 +33,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const editor = useEditor()
 	const app = useApp()
 	const { publishedSlug, published } = file
-	const isOwner = app.isFileOwner(file.id)
+	const isOwner = app.canUpdateFile(file.id)
 	const auth = useAuth()
 	const trackEvent = useTldrawAppUiEvents()
 	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
@@ -72,23 +72,27 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const secondsSince = Math.min(0, Math.floor((Date.now() - file.lastPublished) / 1000))
 	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'
 	return (
-		<TlaTabsPage id="publish">
+		<TlaMenuTabsPage id="publish">
 			<TlaMenuSection>
 				<TlaMenuControlGroup>
 					{isOwner && (
 						<TlaMenuControl>
-							<TlaMenuControlLabel>
+							<TlaMenuControlLabel htmlFor="tla-publish-this-file-switch">
 								<F defaultMessage="Publish this file" />
 							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
 								onClick={() =>
-									trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })
+									trackEvent('open-url', {
+										destinationUrl: learnMoreUrl,
+										source: 'file-share-menu',
+									})
 								}
 								href={learnMoreUrl}
 							>
 								<F defaultMessage="Learn more about publishing." />
 							</TlaMenuControlInfoTooltip>
-							<TlaSwitch
+							<TlaMenuSwitch
+								id="tla-publish-this-file-switch"
 								checked={published}
 								onChange={() => (published ? unpublish() : publish(false))}
 							/>
@@ -128,7 +132,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 				)}
 				{/* {published && publishShareUrl && <QrCode url={publishShareUrl} />} */}
 			</TlaMenuSection>
-		</TlaTabsPage>
+		</TlaMenuTabsPage>
 	)
 }
 

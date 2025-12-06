@@ -3,11 +3,13 @@ title: Custom shape and tool
 component: ./CustomConfigExample.tsx
 category: shapes/tools
 keywords: [toolbar, migrations, icon, util, ui overrides, card shape]
-priority: 3
+priority: 1
 ---
 
-Create custom shapes / tools
+A custom shape and tool.
 
 ---
 
-The card shape (select ⚫️ in the toolbar) is a custom shape - but also just a normal react component.
+This example shows how to define a custom shape, as well as a custom tool that can be used to create that shape.
+
+In this case, the card tool (select ⚫️ in the toolbar) can be used to create a card shape.

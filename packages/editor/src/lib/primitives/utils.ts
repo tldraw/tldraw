@@ -78,6 +78,17 @@ export function approximately(a: number, b: number, precision = 0.000001) {
 }
 
 /**
+ * Whether a number is approximately less than or equal to another number.
+ *
+ * @param a - The first number.
+ * @param b - The second number.
+ * @public
+ */
+export function approximatelyLte(a: number, b: number, precision = 0.000001) {
+	return a < b || approximately(a, b, precision)
+}
+
+/**
  * Find the approximate perimeter of an ellipse.
  *
  * @param rx - The ellipse's x radius.

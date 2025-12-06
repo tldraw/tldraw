@@ -95,8 +95,8 @@ menu. Check out the exploded example to see how to do this.
 
 [2]
 We use the `track` function to wrap our component. This makes our component reactive- it will
-re-render when the signals it is tracking change. Check out the signia docs for more: 
-https://signia.tldraw.dev/docs/API/signia_react/functions/track
+re-render when the signals it is tracking change. Check out the signals example for more info:
+https://tldraw.dev/examples/signals
 
 We gain access to the editor instance via the `useEditor` hook. We use the `useEffect` hook
 to add event listeners for keyboard shortcuts. We use editor methods to change the current

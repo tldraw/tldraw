@@ -2,13 +2,18 @@ import {
 	AssetRecordType,
 	TLAsset,
 	TLAssetId,
-	TLDefaultShape,
+	TLBinding,
+	TLBindingCreate,
+	TLBindingId,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	ZERO_INDEX_KEY,
 	assert,
+	createBindingId,
 	createShapeId,
 	getIndexAbove,
+	isShapeId,
 	mapObjectMapValues,
 	omitFromStackTrace,
 } from '@tldraw/editor'
@@ -16,6 +21,7 @@ import React, { Fragment } from 'react'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
 const assetTypeSymbol = Symbol('assetJsx')
+const bindingTypeSymbol = Symbol('bindingJsx')
 
 interface CommonShapeProps {
 	x?: number
@@ -28,7 +34,6 @@ interface CommonShapeProps {
 	opacity?: number
 }
 
-type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
 type FormatShapeProps<Props extends object> = {
 	[K in keyof Props]?: Props[K] extends TLAssetId
 		? TLAssetId | React.JSX.Element
@@ -36,16 +41,44 @@ type FormatShapeProps<Props extends object> = {
 			? TLAssetId | React.JSX.Element | null
 			: Props[K]
 }
-type PropsForShape<Type extends string> = Type extends TLDefaultShape['type']
-	? CommonShapeProps & FormatShapeProps<ShapeByType<Type>['props']>
-	: CommonShapeProps & Record<string, unknown>
+type PropsForShape<Type extends TLShape['type']> = CommonShapeProps &
+	FormatShapeProps<TLShape<Type>['props']>
 
 type AssetByType<Type extends TLAsset['type']> = Extract<TLAsset, { type: Type }>
 type PropsForAsset<Type extends string> = Type extends TLAsset['type']
 	? Partial<AssetByType<Type>['props']>
 	: Record<string, unknown>
 
-const createElement = (type: typeof shapeTypeSymbol | typeof assetTypeSymbol, tag: string) => {
+interface BindingReactConnections {
+	from?: string | TLShapeId
+	to: string | TLShapeId
+}
+
+interface CommonBindingReactProps extends BindingReactConnections {
+	ref?: string
+	id?: TLBindingId
+}
+
+type ReactPropsForBinding<Type extends TLBinding['type']> = CommonBindingReactProps &
+	Partial<TLBinding<Type>['props']>
+
+type BindingToCreate = TLBinding extends infer E
+	? E extends TLBinding
+		? {
+				type: E['type']
+				props: Partial<TLBinding<E['type']>['props']>
+				id: TLBindingId | undefined
+				parentId: TLShapeId | undefined
+				ref: string | undefined
+				connections: BindingReactConnections
+			}
+		: never
+	: never
+
+const createElement = (
+	type: typeof shapeTypeSymbol | typeof assetTypeSymbol | typeof bindingTypeSymbol,
+	tag: string
+) => {
 	const component = () => {
 		throw new Error(`Cannot render test tag ${tag}`)
 	}
@@ -64,6 +97,17 @@ const tlAsset = new Proxy(
 	(props: PropsForAsset<string>) => null
 >
 
+const tlBinding = new Proxy(
+	{},
+	{
+		get(target, key) {
+			return createElement(bindingTypeSymbol, key as string)
+		},
+	}
+) as {
+	[K in TLBinding['type']]: (props: ReactPropsForBinding<K>) => null
+}
+
 /**
  * TL - jsx helpers for creating tldraw shapes in test cases
  */
@@ -74,17 +118,24 @@ export const TL = new Proxy(
 			if (key === 'asset') {
 				return tlAsset
 			}
+			if (key === 'binding') {
+				return tlBinding
+			}
 			return createElement(shapeTypeSymbol, key as string)
 		},
 	}
-) as { asset: typeof tlAsset } & {
-	[K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null
-} & Record<string, (props: PropsForShape<string>) => null>
+) as { asset: typeof tlAsset; binding: typeof tlBinding } & {
+	[K in TLShape['type']]: (props: PropsForShape<K>) => null
+}
 
-export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>) {
-	const ids = {} as Record<string, TLShapeId>
+export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>, idPrefix = '') {
+	const ids = { bindings: {} } as Record<string, TLShapeId> & {
+		bindings: Record<string, TLBindingId>
+	}
 	const currentPageShapes: Array<TLShapePartial> = []
 	const assets: Array<TLAsset> = []
+
+	const bindingsToCreate: Array<BindingToCreate> = []
 
 	function addChildren(
 		children: React.JSX.Element | Array<React.JSX.Element>,
@@ -93,7 +144,13 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 		let nextIndex = ZERO_INDEX_KEY
 
 		for (const el of Array.isArray(children) ? children : [children]) {
-			if (el.type === Fragment) {
+			if (
+				el.type === Fragment ||
+				(el.type &&
+					typeof el.type === 'object' &&
+					'__pw_jsx_fragment' in el.type &&
+					el.type.__pw_jsx_fragment === true)
+			) {
 				addChildren(el.props.children, parentId)
 				continue
 			}
@@ -101,85 +158,150 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 			if (el.type[assetTypeSymbol]) {
 				throw new Error('TL.asset types can only be used as props')
 			}
-			const shapeType = (el.type as any)[shapeTypeSymbol] as string
-			if (!shapeType) {
-				throw new Error(
-					`Cannot use ${el.type} as a shape. Only TL.* tags are allowed in shape jsx.`
+
+			if (el.type[bindingTypeSymbol]) {
+				const bindingType = (el.type as any)[bindingTypeSymbol] as TLBinding['type']
+				const { id, from, to, ref, ...props } = el.props
+				const bindingRef: unknown = (el as any).ref || ref
+				assert(
+					bindingRef === undefined || typeof bindingRef === 'string',
+					'ref must be string or undefined'
 				)
-			}
-
-			const props: any = mapObjectMapValues(el.props, (key: string, value: any) => {
-				if (key === 'children' || !value || typeof value !== 'object' || !value.type) return value
-				if (value.type[shapeTypeSymbol]) {
-					throw new Error("TL.* shape types can't be used as props.")
+				bindingsToCreate.push({
+					type: bindingType,
+					props,
+					id,
+					parentId,
+					ref: bindingRef,
+					connections: { from, to },
+				})
+			} else {
+				const shapeType = (el.type as any)[shapeTypeSymbol] as string
+				if (!shapeType) {
+					throw new Error(
+						`Cannot use ${el.type} as a shape. Only TL.* tags are allowed in shape jsx.`
+					)
 				}
-				const assetType = (value.type as any)[assetTypeSymbol] as string
-				if (!assetType) {
-					return value
-				}
 
-				// inline assets:
-				const asset = AssetRecordType.create({
-					type: assetType as TLAsset['type'],
-					props: value.props as any,
+				const props: any = mapObjectMapValues(el.props, (key: string, value: any) => {
+					if (key === 'children' || !value || typeof value !== 'object' || !value.type) return value
+					if (value.type[shapeTypeSymbol]) {
+						throw new Error("TL.* shape types can't be used as props.")
+					}
+					const assetType = (value.type as any)[assetTypeSymbol] as string
+					if (!assetType) {
+						return value
+					}
+
+					// inline assets:
+					const asset = AssetRecordType.create({
+						type: assetType as TLAsset['type'],
+						props: value.props as any,
+					})
+
+					assets.push(asset)
+
+					return asset.id
 				})
 
-				assets.push(asset)
-
-				return asset.id
-			})
-
-			let id
-			const ref = (el as any).ref as string | undefined
-			if (ref) {
-				assert(!ids[ref], `Duplicate ref: ${ref}`)
-				assert(!props.id, `Cannot use both ref and id on shape: ${ref}`)
-				id = createShapeId(ref)
-				ids[ref] = id
-			} else if (props.id) {
-				id = props.id
-			} else {
-				id = createShapeId()
-			}
-
-			const x: number = props.x ?? 0
-			const y: number = props.y ?? 0
-
-			const shapePartial = {
-				id,
-				type: shapeType,
-				x,
-				y,
-				index: nextIndex,
-				props: {},
-			} as TLShapePartial
-
-			nextIndex = getIndexAbove(nextIndex)
-
-			if (parentId) {
-				shapePartial.parentId = parentId
-			}
-
-			for (const [key, value] of Object.entries(props)) {
-				if (key === 'x' || key === 'y' || key === 'ref' || key === 'id' || key === 'children') {
-					continue
+				let id
+				const ref = ((el as any).ref || props.ref) as string | undefined
+				if (ref) {
+					assert(!ids[ref], `Duplicate ref: ${ref}`)
+					assert(!props.id, `Cannot use both ref and id on shape: ${ref}`)
+					id = createShapeId(`${idPrefix}${ref}`)
+					ids[ref] = id
+				} else if (props.id) {
+					id = props.id
+				} else {
+					id = createShapeId()
 				}
-				if (key === 'rotation' || key === 'isLocked' || key === 'opacity') {
-					shapePartial[key] = value as any
-					continue
+
+				const x: number = props.x ?? 0
+				const y: number = props.y ?? 0
+
+				const shapePartial = {
+					id,
+					type: shapeType,
+					x,
+					y,
+					index: nextIndex,
+					props: {},
+				} as TLShapePartial
+
+				nextIndex = getIndexAbove(nextIndex)
+
+				if (parentId) {
+					shapePartial.parentId = parentId
 				}
-				;(shapePartial.props as Record<string, unknown>)[key] = value
-			}
 
-			currentPageShapes.push(shapePartial)
+				for (const [key, value] of Object.entries(props)) {
+					if (key === 'x' || key === 'y' || key === 'ref' || key === 'id' || key === 'children') {
+						continue
+					}
+					if (key === 'rotation' || key === 'isLocked' || key === 'opacity') {
+						shapePartial[key] = value as any
+						continue
+					}
+					;(shapePartial.props as Record<string, unknown>)[key] = value
+				}
 
-			if (props.children) {
-				addChildren(props.children, id)
+				currentPageShapes.push(shapePartial)
+
+				if (props.children) {
+					addChildren(props.children, id)
+				}
 			}
 		}
 	}
 
 	addChildren(shapes)
+
+	const bindings: TLBindingCreate[] = []
+	for (const { id, parentId, ref, connections, ...binding } of bindingsToCreate) {
+		let fromId: TLShapeId, toId: TLShapeId
+		if (connections.from) {
+			assert(typeof connections.from === 'string', 'from must be a ref string or a shape id')
+			if (isShapeId(connections.from)) {
+				fromId = connections.from
+			} else {
+				assert(ids[connections.from], `Ref not found: ${connections.from}`)
+				fromId = ids[connections.from]
+			}
+		} else if (parentId) {
+			fromId = parentId
+		} else {
+			throw new Error('from must be specified, or binding must be a child of a shape')
+		}
+
+		assert(connections.to, 'to must be specified')
+		assert(typeof connections.to === 'string', 'to must be a ref string or a shape id')
+		if (isShapeId(connections.to)) {
+			toId = connections.to
+		} else {
+			assert(ids[connections.to], `Ref not found: ${connections.to}`)
+			toId = ids[connections.to]
+		}
+
+		let bindingId = id
+		if (ref) {
+			assert(typeof ref === 'string', 'binding ref must be string')
+			assert(!ids.bindings[ref], `Duplicate ref: ${ref}`)
+			assert(!bindingId, `Cannot use both ref and id on binding: ${ref}`)
+			bindingId = createBindingId(`${idPrefix}${ref}`)
+			ids.bindings[ref] = bindingId
+		}
+		if (!bindingId) {
+			bindingId = createBindingId()
+		}
+
+		bindings.push({
+			...binding,
+			id: bindingId,
+			fromId,
+			toId,
+		})
+	}
 
 	return {
 		ids: new Proxy(ids, {
@@ -198,5 +320,6 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 		}),
 		shapes: currentPageShapes,
 		assets,
+		bindings,
 	}
 }

@@ -8,6 +8,7 @@ test('can login', async ({ homePage, editor }) => {
 	expect(homePage.signInButton).toBeVisible()
 	const user = USERS[test.info().parallelIndex]
 	await homePage.loginAs(user)
+	await editor.isLoaded()
 	await expect(homePage.signInButton).not.toBeVisible()
 	await expect(editor.sidebarToggle).toBeVisible()
 })
@@ -17,6 +18,7 @@ test('can sign out', async ({ homePage, editor, sidebar }) => {
 		const user = USERS[test.info().parallelIndex]
 		await homePage.loginAs(user)
 	})
+	await editor.isLoaded()
 	await homePage.expectSignInButtonNotVisible()
 	await editor.ensureSidebarOpen()
 	await sidebar.signOut()

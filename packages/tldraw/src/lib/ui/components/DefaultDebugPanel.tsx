@@ -17,11 +17,11 @@ export const DefaultDebugPanel = memo(function DefaultDebugPanel() {
 	usePassThroughWheelEvents(ref)
 
 	return (
-		<div ref={ref} className="tlui-debug-panel">
+		<footer ref={ref} className="tlui-debug-panel">
 			<CurrentState />
 			<FPS />
 			{DebugMenu && <DebugMenu />}
-		</div>
+		</footer>
 	)
 })
 

@@ -1,4 +1,5 @@
 import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
@@ -150,7 +151,7 @@ export class PointingShape extends StateNode {
 
 										const util = this.editor.getShapeUtil(selectingShape)
 										if (this.editor.getIsReadonly()) {
-											if (!util.canEditInReadOnly(selectingShape)) {
+											if (!util.canEditInReadonly(selectingShape)) {
 												return
 											}
 										}

@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import { openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -10,11 +10,11 @@ import { TldrawUiInput } from '../primitives/TldrawUiInput'
 export interface LinkEditorProps {
 	textEditor: TiptapEditor
 	value: string
-	onComplete(): void
+	onClose(): void
 }
 
 /** @public @react */
-export function LinkEditor({ textEditor, value: initialValue, onComplete }: LinkEditorProps) {
+export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEditorProps) {
 	const editor = useEditor()
 	const [value, setValue] = useState(initialValue)
 	const msg = useTranslation()
@@ -31,7 +31,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 			link = `https://${link}`
 		}
 
-		textEditor.commands.setLink({ href: link })
+		textEditor.chain().setLink({ href: link }).run()
 		// N.B. We shouldn't focus() on mobile because it causes the
 		// Return key to replace the link with a newline :facepalm:
 		if (editor.getInstanceState().isCoarsePointer) {
@@ -39,27 +39,25 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 		} else {
 			textEditor.commands.focus()
 		}
-		onComplete()
+		onClose()
 	}
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
-		window.open(linkifiedValue, '_blank', 'noopener, noreferrer')
-		onComplete()
+		openWindow(linkifiedValue, '_blank')
+		onClose()
 	}
 
 	const handleRemoveLink = () => {
 		trackEvent('rich-text', { operation: 'link-remove', source })
 		textEditor.chain().unsetLink().focus().run()
-		onComplete()
+		onClose()
 	}
 
-	const handleLinkCancel = () => onComplete()
+	const handleLinkCancel = () => onClose()
 
 	useEffect(() => {
-		if (!value) {
-			ref.current?.focus()
-		}
+		ref.current?.focus()
 	}, [value])
 
 	useEffect(() => {
@@ -77,6 +75,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
 				placeholder="example.com"
+				aria-label="example.com"
 			/>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-visit"

@@ -6,8 +6,8 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	usePreventAccidentalDrops()
 
 	return (
-		<div className={styles.layout}>
-			<div className={styles.editorWrapper}>{children}</div>
+		<div className={styles.anonLayout}>
+			<div className={styles.anonEditorWrapper}>{children}</div>
 		</div>
 	)
 }

@@ -2,7 +2,7 @@ import { RotateCorner, StateNode, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class PointingRotateHandle extends StateNode {
@@ -18,8 +18,10 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onEnter(info: PointingRotateHandleInfo) {
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.info = info
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.updateCursor()
 	}
 
@@ -60,18 +62,29 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	private complete() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				// Return to the tool that was active before this one, whether tool lock is turned on or not!
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd?.()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 }

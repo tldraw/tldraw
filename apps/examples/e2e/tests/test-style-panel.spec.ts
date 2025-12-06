@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
-import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import test from '../fixtures/fixtures'
+import { setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Style selection behaviour', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test('selecting a style hints the button', async ({ isMobile, stylePanel, toolbar }) => {
 		const { blue, black } = stylePanel.colors
 		const { pattern, none } = stylePanel.fill
@@ -14,21 +14,21 @@ test.describe('Style selection behaviour', () => {
 			await toolbar.mobileStylesButton.click()
 		}
 		// these are hinted by default
-		await stylePanel.isHinted(black)
-		await stylePanel.isHinted(none)
+		await stylePanel.isActive(black)
+		await stylePanel.isActive(none)
 		// these are not hinted by default
-		await stylePanel.isNotHinted(pattern)
-		await stylePanel.isNotHinted(blue)
+		await stylePanel.isInactive(pattern)
+		await stylePanel.isInactive(blue)
 
 		await blue.click()
-		await stylePanel.isHinted(blue)
-		await stylePanel.isNotHinted(black)
+		await stylePanel.isActive(blue)
+		await stylePanel.isInactive(black)
 
 		await pattern.click()
-		await stylePanel.isHinted(pattern)
-		await stylePanel.isNotHinted(none)
+		await stylePanel.isActive(pattern)
+		await stylePanel.isInactive(none)
 		// this should not change the hint state of color buttons
-		await stylePanel.isHinted(blue)
+		await stylePanel.isActive(blue)
 	})
 
 	test('selecting a style changes the style of the shapes', async ({
@@ -114,7 +114,7 @@ test.describe('Style selection behaviour', () => {
 })
 
 test.describe('mobile style panel', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test('opens and closes as expected', async ({ isMobile, page, toolbar, stylePanel }) => {
 		test.skip(!isMobile, 'only run on mobile')
 

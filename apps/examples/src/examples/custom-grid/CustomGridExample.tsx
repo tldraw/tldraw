@@ -70,7 +70,7 @@ export default function CustomGridExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				persistenceKey="example"
+				persistenceKey="custom-grid-example"
 				components={components}
 				onMount={(e) => {
 					e.updateInstanceState({ isGridMode: true })

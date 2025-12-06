@@ -1,5 +1,5 @@
 import { capitalize } from 'lodash'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Editor, TLShapeId, useEditor, useValue } from 'tldraw'
 import { VisibilityOff, VisibilityOn } from '../../icons/icons'
 
@@ -30,6 +30,8 @@ function ShapeItem({
 
 	const [isEditingName, setIsEditingName] = useState(false)
 
+	const timeSinceLastVisibilityToggle = useRef(Date.now())
+
 	if (!shape) return null
 
 	return (
@@ -40,7 +42,7 @@ function ShapeItem({
 					onDoubleClick={() => {
 						setIsEditingName(true)
 					}}
-					onClick={() => {
+					onPointerDown={() => {
 						// We synchronize the selection state of the layer panel items with the selection state of the shapes in the editor.
 						if (editor.inputs.getCtrlKey() || editor.inputs.getShiftKey()) {
 							if (isSelected) {
@@ -54,7 +56,7 @@ function ShapeItem({
 					}}
 					style={{
 						paddingLeft: 10 + depth * 20,
-						opacity: parentIsHidden || isHidden ? 0.5 : 1,
+						opacity: isHidden ? 0.5 : 1,
 						background: isSelected
 							? selectedBg
 							: parentIsSelected
@@ -89,9 +91,23 @@ function ShapeItem({
 					)}
 					<button
 						className="shape-visibility-toggle"
-						onClick={(ev) => {
-							editor.updateShape({ ...shape, meta: { hidden: !shape.meta.hidden } })
+						onPointerDown={(ev) => {
+							// prevent the event from bubbling up to the shape list item
 							ev.stopPropagation()
+							const now = Date.now()
+							if (now - timeSinceLastVisibilityToggle.current < 200) {
+								editor.updateShape({
+									...shape,
+									meta: { hidden: false, force_show: true },
+								})
+								timeSinceLastVisibilityToggle.current = 0
+							} else {
+								editor.updateShape({
+									...shape,
+									meta: { hidden: !shape.meta.hidden, force_show: false },
+								})
+								timeSinceLastVisibilityToggle.current = now
+							}
 						}}
 					>
 						{shape.meta.hidden ? <VisibilityOff /> : <VisibilityOn />}

@@ -2,6 +2,7 @@ import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/clien
 import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
+import * as fs from 'fs'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import { PassThrough } from 'stream'
@@ -31,27 +32,51 @@ const imageResize = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
+const fairyWorker = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/fairy-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
+const zeroCacheFolder = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/zero-cache')
+)
+
+const zeroCachePackageJsonPath = path.join(zeroCacheFolder, 'package.json')
+const zeroVersion = JSON.parse(fs.readFileSync(zeroCachePackageJsonPath).toString()).dependencies[
+	'@rocicorp/zero'
+]
 
 const { previewId, sha } = getDeployInfo()
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv([
+	'ANALYTICS_API_TOKEN',
+	'ANALYTICS_API_URL',
+	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
+	'FAIRY_MODEL',
+	'FAIRY_WORKER',
+	'FAIRY_WORKER_SENTRY_DSN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
+	'DISCORD_FAIRY_PURCHASE_WEBHOOK_URL',
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
+	'GOOGLE_API_KEY',
 	'HEALTH_CHECK_BEARER_TOKEN',
 	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'IMAGE_WORKER',
 	'MULTIPLAYER_SERVER',
+	'OPENAI_API_KEY',
+	'PADDLE_ENVIRONMENT',
+	'PADDLE_WEBHOOK_SECRET',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
@@ -66,17 +91,30 @@ const env = makeEnv([
 	'VERCEL_PROJECT_ID',
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
+	'PADDLE_CLIENT_TOKEN',
+	'PADDLE_FAIRY_PRICE_ID',
 	'WORKER_SENTRY_DSN',
-	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
-	previewId
-		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
-		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'BOTCOM_POSTGRES_CONNECTION_STRING',
+	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'DEPLOY_ZERO',
 ])
+
+const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
+const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
+
+// pierre is not in production yet, so get the key directly from process.env
+const pierreKey = process.env.PIERRE_KEY ?? ''
+
+const clerkJWKSUrl =
+	env.TLDRAW_ENV === 'production'
+		? 'https://clerk.tldraw.com/.well-known/jwks.json'
+		: 'https://clerk.staging.tldraw.com/.well-known/jwks.json'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
-	totalSteps: 8,
+	totalSteps: previewId ? 10 : 9,
+	messagePrefix: '[DOTCOM]',
 })
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
@@ -85,7 +123,10 @@ if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
+	env.FAIRY_WORKER = `https://${previewId}-fairy.tldraw.xyz`
 }
+
+const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
 
 async function main() {
 	assert(
@@ -117,6 +158,7 @@ async function main() {
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
 		await deployImageResizeWorker({ dryRun: true })
+		await deployFairyWorker({ dryRun: true })
 	})
 
 	// --- point of no return! do the deploy for real --- //
@@ -135,6 +177,9 @@ async function main() {
 	})
 	await discord.step('deploying health worker to cloudflare', async () => {
 		await deployHealthWorker({ dryRun: false })
+	})
+	await discord.step('deploying fairy worker to cloudflare', async () => {
+		await deployFairyWorker({ dryRun: false })
 	})
 
 	// 3. deploy the pre-build dotcom app:
@@ -167,6 +212,25 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
+function getZeroUrl() {
+	switch (env.TLDRAW_ENV) {
+		case 'preview': {
+			if (deployZero === 'flyio') {
+				return `https://${flyioAppName}.fly.dev/`
+			} else if (deployZero === 'sst') {
+				return `https://${previewId}.zero.tldraw.com/`
+			} else {
+				return 'https://zero-backend-not-deployed.tldraw.com'
+			}
+		}
+		case 'staging':
+			return 'https://staging.zero.tldraw.com/'
+		case 'production':
+			return 'https://production.zero.tldraw.com/'
+	}
+	return 'https://zero-backend-not-deployed.tldraw.com'
+}
+
 async function prepareDotcomApp() {
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
@@ -174,7 +238,10 @@ async function prepareDotcomApp() {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
+			FAIRY_MODEL: env.FAIRY_MODEL,
+			FAIRY_WORKER: env.FAIRY_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			ZERO_SERVER: getZeroUrl(),
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
 			SENTRY_ORG: 'tldraw',
@@ -182,6 +249,9 @@ async function prepareDotcomApp() {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SUPABASE_URL: env.SUPABASE_LITE_URL,
 			TLDRAW_ENV: env.TLDRAW_ENV,
+			PADDLE_CLIENT_TOKEN: env.PADDLE_CLIENT_TOKEN,
+			PADDLE_ENVIRONMENT: env.PADDLE_ENVIRONMENT,
+			PADDLE_FAIRY_PRICE_ID: env.PADDLE_FAIRY_PRICE_ID,
 		},
 	})
 }
@@ -210,22 +280,85 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
+let didUpdateFairyWorker = false
+async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-fairy`
+	const multiplayerWorkerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
+	if (previewId && !didUpdateFairyWorker) {
+		await setWranglerPreviewConfig(fairyWorker, {
+			name: workerId,
+			customDomain: `${previewId}-fairy.tldraw.xyz`,
+		})
+
+		// Add TL_USER DO binding for preview
+		const wranglerPath = path.join(fairyWorker, 'wrangler.toml')
+		let wranglerContent = fs.readFileSync(wranglerPath, 'utf-8')
+		const doBinding = `[env.preview.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "${multiplayerWorkerId}" },
+]`
+
+		// Replace preview DO section
+		const previewDORegex = /\[env\.preview\.durable_objects\]\s*bindings\s*=\s*\[[^\]]*\]/
+		if (previewDORegex.test(wranglerContent)) {
+			wranglerContent = wranglerContent.replace(previewDORegex, doBinding)
+		} else {
+			wranglerContent += `\n${doBinding}\n`
+		}
+		fs.writeFileSync(wranglerPath, wranglerContent)
+
+		didUpdateFairyWorker = true
+	}
+
+	await wranglerDeploy({
+		location: fairyWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			SENTRY_DSN: env.FAIRY_WORKER_SENTRY_DSN,
+			WORKER_NAME: workerId,
+			ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
+			GOOGLE_API_KEY: env.GOOGLE_API_KEY,
+			OPENAI_API_KEY: env.OPENAI_API_KEY,
+			FAIRY_MODEL: env.FAIRY_MODEL,
+			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
+			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
+		},
+		sentry: {
+			project: 'fairy-worker',
+			authToken: env.SENTRY_AUTH_TOKEN,
+		},
+	})
+}
+
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
-	if (previewId && !didUpdateTlsyncWorker) {
-		await setWranglerPreviewConfig(worker, { name: workerId })
-		didUpdateTlsyncWorker = true
+	if (previewId) {
+		const queueName = `tldraw-multiplayer-queue-${previewId}`
+		if (!didUpdateTlsyncWorker) {
+			await setWranglerPreviewConfig(worker, { name: workerId }, queueName)
+			didUpdateTlsyncWorker = true
+		}
+		if (!dryRun) {
+			try {
+				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+			} catch (_e) {
+				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+			}
+		}
 	}
-	const BOTCOM_POSTGRES_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
-	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
-		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 	})
+	// Deploy zero after the migrations but before the sync worker
+	if (!dryRun && deployZero !== false) {
+		await deployZeroBackend()
+	}
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -235,15 +368,21 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
+			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
-			BOTCOM_POSTGRES_CONNECTION_STRING,
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			BOTCOM_POSTGRES_CONNECTION_STRING: env.BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
+			DISCORD_FAIRY_PURCHASE_WEBHOOK_URL: env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
+			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
+			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
+			PADDLE_WEBHOOK_SECRET: env.PADDLE_WEBHOOK_SECRET,
+			PADDLE_ENVIRONMENT: env.PADDLE_ENVIRONMENT,
 		},
 		sentry: {
 			project: 'tldraw-sync',
@@ -327,6 +466,78 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 			},
 		}
 	)
+}
+
+async function deployZeroViaSst() {
+	const stage = previewId ? previewId : env.TLDRAW_ENV
+	await exec('yarn', [
+		'sst',
+		'secret',
+		'set',
+		'PostgresConnectionString',
+		env.BOTCOM_POSTGRES_CONNECTION_STRING,
+		'--stage',
+		stage,
+	])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'unlock', '--stage', stage])
+	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
+	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
+}
+
+function updateFlyioToml(appName: string): void {
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
+
+	const updatedContent = fileContent
+		.replace('__APP_NAME', appName)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_PUSH_URL', zeroPushUrl)
+
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+}
+
+async function deployPermissionsToFlyIo() {
+	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
+	const permissionsFile = 'permissions.sql'
+	await exec('npx', [
+		'zero-deploy-permissions',
+		'--schema-path',
+		schemaPath,
+		'--output-file',
+		permissionsFile,
+	])
+	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
+	if (result.toLowerCase().includes('error')) {
+		throw new Error('Error deploying permissions to fly.io')
+	}
+}
+
+async function deployZeroViaFlyIo() {
+	if (!flyioAppName) {
+		throw new Error('Fly.io app name is not defined')
+	}
+	updateFlyioToml(flyioAppName)
+	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
+	if (apps.indexOf(flyioAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await deployPermissionsToFlyIo()
+}
+
+async function deployZeroBackend() {
+	if (deployZero === 'flyio') {
+		await deployZeroViaFlyIo()
+	} else if (deployZero === 'sst') {
+		await deployZeroViaSst()
+	}
 }
 
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {

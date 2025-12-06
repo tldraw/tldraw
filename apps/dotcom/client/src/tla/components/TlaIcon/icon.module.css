@@ -14,7 +14,7 @@
 	display: inline-flex;
 }
 
-.icon_wrapper {
+.iconWrapper {
 	width: 40px;
 	height: 40px;
 	display: flex;
@@ -24,16 +24,16 @@
 	flex-shrink: 0;
 }
 
-.icon_wrapper > .icon {
+.iconWrapper > .icon {
 	height: 15px;
 	width: 15px;
 }
 
-.icon_wrapper[data-size='m'] {
+.iconWrapper[data-size='m'] {
 	width: 32px;
 }
 
-.icon_wrapper[data-size='m'] > .icon {
+.iconWrapper[data-size='m'] > .icon {
 	height: 20px;
 	width: 20px;
 }

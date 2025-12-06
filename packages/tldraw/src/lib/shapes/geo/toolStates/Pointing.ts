@@ -24,7 +24,7 @@ export class Pointing extends StateNode {
 			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 			const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
 			this.editor
-				.createShapes<TLGeoShape>([
+				.createShapes([
 					{
 						id,
 						type: 'geo',
@@ -39,15 +39,22 @@ export class Pointing extends StateNode {
 					},
 				])
 				.select(id)
-				.setCurrentTool('select.resizing', {
-					...info,
-					target: 'selection',
-					handle: 'bottom_right',
-					isCreating: true,
-					creatingMarkId,
-					creationCursorOffset: { x: 1, y: 1 },
-					onInteractionEnd: 'geo',
-				})
+
+			const shape = this.editor.getShape(id)
+			if (!shape) {
+				this.cancel()
+				return
+			}
+
+			this.editor.setCurrentTool('select.resizing', {
+				...info,
+				target: 'selection',
+				handle: 'bottom_right',
+				isCreating: true,
+				creatingMarkId,
+				creationCursorOffset: { x: 1, y: 1 },
+				onInteractionEnd: 'geo',
+			})
 		}
 	}
 
@@ -81,7 +88,7 @@ export class Pointing extends StateNode {
 					? { w: 300, h: 180 }
 					: { w: 200, h: 200 }
 
-		this.editor.createShapes<TLGeoShape>([
+		this.editor.createShapes([
 			{
 				id,
 				type: 'geo',
@@ -96,7 +103,10 @@ export class Pointing extends StateNode {
 		])
 
 		const shape = this.editor.getShape<TLGeoShape>(id)!
-		if (!shape) return
+		if (!shape) {
+			this.cancel()
+			return
+		}
 
 		const { w, h } = shape.props
 
@@ -105,7 +115,7 @@ export class Pointing extends StateNode {
 		if (parentTransform) delta.rot(-parentTransform.rotation())
 		const newPoint = maybeSnapToGrid(new Vec(shape.x - delta.x, shape.y - delta.y), this.editor)
 		this.editor.select(id)
-		this.editor.updateShape<TLGeoShape>({
+		this.editor.updateShape({
 			id: shape.id,
 			type: 'geo',
 			x: newPoint.x,

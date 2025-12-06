@@ -1,11 +1,15 @@
-import { TlaFile } from '@tldraw/dotcom-shared'
-import { assert, sleep, uniqueId } from '@tldraw/utils'
+import { FeatureFlagKey, MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
+import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import { sql } from 'kysely'
+import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
 import { createPostgresConnectionPool } from './postgres'
+import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { getClerkClient, requireAuth } from './utils/tla/getAuth'
+import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
+import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -21,16 +25,155 @@ async function requireUser(env: Environment, q: string) {
 	return userRow
 }
 
+export async function upsertFairyAccessWithDb(
+	env: Environment,
+	userId: string,
+	fairyLimit: number | null,
+	expiresAt: number | null
+) {
+	const db = createPostgresConnectionPool(env, 'upsertFairyAccessWithDb')
+	try {
+		return await upsertFairyAccess(env, userId, fairyLimit, expiresAt, db)
+	} finally {
+		await db.destroy()
+	}
+}
+
+export async function upsertFairyAccess(
+	env: Environment,
+	userId: string,
+	fairyLimit: number | null,
+	expiresAt: number | null,
+	db: ReturnType<typeof createPostgresConnectionPool>
+) {
+	try {
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId,
+				fairyLimit,
+				fairyAccessExpiresAt: expiresAt,
+				fairies: '{}',
+				weeklyUsage: {},
+				weeklyLimit: 25,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					fairyLimit,
+					fairyAccessExpiresAt: expiresAt,
+				})
+			)
+			.execute()
+
+		const userDO = getUserDurableObject(env, userId)
+		await userDO.admin_forceHardReboot(userId)
+
+		return { success: true }
+	} catch (error) {
+		console.error('Failed to upsert fairy access:', error)
+		return { success: false, error: String(error) }
+	}
+}
+
+async function setFairyWeeklyLimit(
+	env: Environment,
+	email: string,
+	limit: number | null
+): Promise<{ success: boolean; error?: string; limit?: number | null }> {
+	if (limit !== null && (typeof limit !== 'number' || limit < 0)) {
+		return { success: false, error: 'limit must be null or a number >= 0' }
+	}
+
+	const db = createPostgresConnectionPool(env, '/app/admin/fairy/set-weekly-limit')
+	try {
+		// Look up user by email
+		const user = await db
+			.selectFrom('user')
+			.where('email', '=', email)
+			.selectAll()
+			.executeTakeFirst()
+		if (!user) {
+			return { success: false, error: 'User not found' }
+		}
+
+		// Upsert user_fairies with new weeklyLimit
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId: user.id,
+				fairies: '{}',
+				weeklyUsage: {},
+				weeklyLimit: limit,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					weeklyLimit: limit,
+				})
+			)
+			.execute()
+
+		return { success: true, limit }
+	} catch (error) {
+		console.error('Failed to set fairy weekly limit:', error)
+		return { success: false, error: String(error) }
+	} finally {
+		await db.destroy()
+	}
+}
+
+async function grantFairyAccess(env: Environment, email: string) {
+	assert(typeof email === 'string' && email, 'email is required')
+
+	const clerkClient = getClerkClient(env)
+	const users = await clerkClient.users.getUserList({ emailAddress: [email] })
+
+	if (users.totalCount === 0) {
+		throw new StatusError(404, `No user found with email: ${email}`)
+	}
+
+	const clerkUser = users.data[0]
+	const userId = clerkUser.id
+
+	const result = await upsertFairyAccessWithDb(
+		env,
+		userId,
+		MAX_FAIRY_COUNT,
+		FAIRY_WORLDWIDE_EXPIRATION
+	)
+
+	if (!result.success) {
+		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
+	}
+
+	return { success: true }
+}
+
+async function removeFairyAccess(env: Environment, email: string) {
+	assert(typeof email === 'string' && email, 'email is required')
+
+	const clerkClient = getClerkClient(env)
+	const users = await clerkClient.users.getUserList({ emailAddress: [email] })
+
+	if (users.totalCount === 0) {
+		throw new StatusError(404, `No user found with email: ${email}`)
+	}
+
+	const clerkUser = users.data[0]
+	const userId = clerkUser.id
+
+	const result = await upsertFairyAccessWithDb(env, userId, null, null)
+
+	if (!result.success) {
+		throw new StatusError(500, `Failed to remove fairy access: ${result.error}`)
+	}
+
+	return { success: true }
+}
+
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		const user = await getClerkClient(env).users.getUser(auth.userId)
-		if (
-			!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
-			user.primaryEmailAddress?.verification?.status !== 'verified'
-		) {
-			throw new StatusError(403, 'Unauthorized')
-		}
+		await requireAdminAccess(env, auth)
 	})
 	.get('/app/admin/user', async (res, env) => {
 		const q = res.query['q']
@@ -57,6 +200,198 @@ export const adminRoutes = createRouter<Environment>()
 		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Rebooted', { status: 200 })
 	})
+	.post('/app/admin/user/migrate', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const user = getUserDurableObject(env, userRow.id)
+		const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
+		return json(result)
+	})
+	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
+		return json({ count: await getNumUnmigratedUsers(pg) })
+	})
+	.get('/app/admin/migrate_users_batch', async (res, env) => {
+		let stopRequested = false
+
+		// Parse query parameters for batch configuration
+		const sleepMs = parseInt((res.query['sleepMs'] as string) || '100')
+
+		return new Response(
+			new ReadableStream({
+				async start(controller) {
+					try {
+						// Helper function to send progress events
+						const sendProgress = (step: string, message: string, details?: any) => {
+							const event = {
+								type: 'progress',
+								step,
+								message,
+								timestamp: Date.now(),
+								details,
+							}
+							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
+						}
+
+						const shouldStop = () => stopRequested
+
+						sendProgress('starting', 'Beginning batch user migration process...')
+
+						const hasMore = await startUserMigration(env, sendProgress, shouldStop, sleepMs)
+
+						// Send completion event
+						const completionEvent = {
+							type: 'complete',
+							step: 'finished',
+							message: stopRequested
+								? 'Batch migration stopped by user'
+								: 'Batch migration completed successfully',
+							timestamp: Date.now(),
+							hasMore,
+						}
+						controller.enqueue(
+							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
+						)
+					} catch (error) {
+						// Send error event
+						const errorEvent = {
+							type: 'error',
+							step: 'error',
+							message: error instanceof Error ? error.message : 'Unknown error occurred',
+							timestamp: Date.now(),
+							details: { error: error instanceof Error ? error.stack : String(error) },
+						}
+						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+					} finally {
+						controller.close()
+					}
+				},
+				cancel() {
+					// Called when client closes the EventSource connection
+					stopRequested = true
+				},
+			}),
+			{
+				headers: {
+					'Content-Type': 'text/event-stream',
+					'Cache-Control': 'no-cache',
+					Connection: 'keep-alive',
+					'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Headers': 'Cache-Control',
+				},
+			}
+		)
+	})
+	.post('/app/admin/fairy-invites', async (req, env) => {
+		const body: any = await req.json()
+		const maxUses = body?.maxUses
+		const description = body?.description ?? null
+
+		if (typeof maxUses !== 'number' || maxUses < 0) {
+			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
+		}
+
+		if (description !== null && typeof description !== 'string') {
+			return new Response('description must be a string or null', { status: 400 })
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		const id = uniqueId()
+		const createdAt = Date.now()
+
+		await sql`
+			INSERT INTO fairy_invite (id, "fairyLimit", "maxUses", "currentUses", "createdAt", description, "redeemedBy")
+			VALUES (${id}, ${MAX_FAIRY_COUNT}, ${maxUses}, 0, ${createdAt}, ${description}, '[]'::jsonb)
+		`.execute(db)
+
+		return json({
+			id,
+			fairyLimit: MAX_FAIRY_COUNT,
+			maxUses,
+			currentUses: 0,
+			createdAt,
+			description,
+			redeemedBy: [],
+		})
+	})
+	.get('/app/admin/fairy-invites', async (_req, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		const invites = await db.selectFrom('fairy_invite').selectAll().execute()
+		return json(invites)
+	})
+	.delete('/app/admin/fairy-invites/:id', async (req, env) => {
+		const id = req.params.id
+		assert(typeof id === 'string', 'id is required')
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		await db.deleteFrom('fairy_invite').where('id', '=', id).execute()
+
+		return new Response('Deleted', { status: 200 })
+	})
+	.post('/app/admin/fairy/grant-access', async (req, env) => {
+		const body: any = await req.json()
+		const { email } = body
+
+		const result = await grantFairyAccess(env, email)
+		return json(result)
+	})
+	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
+		const auth = await requireAuth(req, env)
+
+		const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000
+		const result = await upsertFairyAccessWithDb(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
+
+		if (!result.success) {
+			throw new StatusError(500, `Failed to enable fairy access: ${result.error}`)
+		}
+
+		return json(result)
+	})
+	.post('/app/admin/fairy/remove-access', async (req, env) => {
+		const body: any = await req.json()
+		const { email } = body
+
+		const result = await removeFairyAccess(env, email)
+		return json(result)
+	})
+	.post('/app/admin/fairy/set-weekly-limit', async (req, env) => {
+		const body: any = await req.json()
+		const { email, limit } = body
+
+		if (typeof email !== 'string' || !email) {
+			throw new StatusError(400, 'email (string) is required')
+		}
+
+		if (limit !== null && (typeof limit !== 'number' || limit < 0)) {
+			throw new StatusError(400, 'limit must be null or a number >= 0')
+		}
+
+		const result = await setFairyWeeklyLimit(env, email, limit)
+		if (!result.success) {
+			throw new StatusError(400, result.error || 'Failed to set weekly limit')
+		}
+		return json(result)
+	})
+	.get('/app/admin/feature-flags', getFeatureFlags)
+	.post('/app/admin/feature-flags', async (req, env) => {
+		const body: any = await req.json()
+		const { flag, enabled } = body
+
+		if (typeof flag !== 'string' || typeof enabled !== 'boolean') {
+			throw new StatusError(400, 'flag (string) and enabled (boolean) are required')
+		}
+
+		const validFlags: FeatureFlagKey[] = ['fairies', 'fairies_purchase']
+		if (!validFlags.includes(flag as FeatureFlagKey)) {
+			throw new StatusError(400, `Invalid flag. Must be one of: ${validFlags.join(', ')}`)
+		}
+
+		await setFeatureFlag(env, flag as FeatureFlagKey, enabled)
+		return json({ success: true, flag, enabled })
+	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
 		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)
@@ -76,6 +411,92 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	.post('/app/admin/delete_user', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+
+		await performUserDeletion(userRow, env)
+
+		return new Response('User deleted', { status: 200 })
+	})
+	.get('/app/admin/delete_user_sse', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+
+		const userRow = await requireUser(env, q)
+
+		return new Response(
+			new ReadableStream({
+				async start(controller) {
+					try {
+						// Helper function to send progress events
+						const sendProgress = (step: string, message: string, details?: any) => {
+							const event = {
+								type: 'progress',
+								step,
+								message,
+								timestamp: Date.now(),
+								details,
+							}
+							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
+						}
+
+						sendProgress('starting', 'Beginning user deletion process...', { userId: userRow.id })
+
+						await performUserDeletion(userRow, env, sendProgress)
+
+						// Send completion event
+						const completionEvent = {
+							type: 'complete',
+							step: 'finished',
+							message: 'User deletion completed successfully',
+							timestamp: Date.now(),
+							details: { userId: userRow.id },
+						}
+						controller.enqueue(
+							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
+						)
+					} catch (error) {
+						// Send error event
+						const errorEvent = {
+							type: 'error',
+							step: 'error',
+							message: error instanceof Error ? error.message : 'Unknown error occurred',
+							timestamp: Date.now(),
+							details: { error: error instanceof Error ? error.stack : String(error) },
+						}
+						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+					} finally {
+						controller.close()
+					}
+				},
+			}),
+			{
+				headers: {
+					'Content-Type': 'text/event-stream',
+					'Cache-Control': 'no-cache',
+					Connection: 'keep-alive',
+					'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Headers': 'Cache-Control',
+				},
+			}
+		)
+	})
+	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+		return await returnFileSnapshot(env, fileSlug, true)
+	})
+	.get('/app/admin/download-legacy-tldr/:fileSlug', async (res, env) => {
+		const fileSlug = res.params.fileSlug
+		assert(typeof fileSlug === 'string', 'fileSlug is required')
+		return await returnFileSnapshot(env, fileSlug, false)
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
@@ -120,4 +541,239 @@ async function hardDeleteAppFile({
 	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
 	return new Response('Deleted', { status: 200 })
+}
+
+async function deleteUserFromAnalytics(
+	userId: string,
+	env: Environment,
+	sendProgress?: (step: string, message: string, details?: any) => void
+) {
+	if (!env.ANALYTICS_API_URL || !env.ANALYTICS_API_TOKEN) {
+		sendProgress?.(
+			'analytics',
+			'Skipping analytics deletion - missing configuration (ANALYTICS_API_URL or ANALYTICS_API_TOKEN)'
+		)
+		return
+	}
+
+	try {
+		const response = await fetch(`${env.ANALYTICS_API_URL}/api/user-deletion`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${env.ANALYTICS_API_TOKEN}`,
+			},
+			body: JSON.stringify({
+				clerk_id: userId,
+			}),
+			signal: AbortSignal.timeout(30000),
+		})
+
+		if (!response.ok) {
+			const errorText = await response.text().catch(() => 'Unknown error')
+			throw new Error(`Analytics API returned ${response.status}: ${errorText}`)
+		}
+
+		const result = (await response.json()) as { success: boolean }
+		sendProgress?.('analytics', 'Successfully deleted user data from analytics', {
+			success: result.success,
+		})
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		console.error('Failed to delete user from analytics:', errorMessage)
+		sendProgress?.('analytics', `Warning: Analytics deletion failed - ${errorMessage}`)
+	}
+}
+
+async function performUserDeletion(
+	userRow: any,
+	env: any,
+	sendProgress?: (step: string, message: string, details?: any) => void
+) {
+	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
+
+	// First, get all files owned by this user
+	const userFiles = await pg
+		.selectFrom('file')
+		.where('ownerId', '=', userRow.id)
+		.selectAll()
+		.execute()
+
+	sendProgress?.('files', `Found ${userFiles.length} files to delete`, {
+		fileCount: userFiles.length,
+	})
+
+	// Hard delete all user's files
+	for (let i = 0; i < userFiles.length; i++) {
+		const file = userFiles[i]
+		sendProgress?.('files', `Deleting file ${i + 1}/${userFiles.length}: ${file.name}`, {
+			fileId: file.id,
+		})
+		await hardDeleteAppFile({ pg, file, env })
+	}
+
+	sendProgress?.('database', 'Cleaning up database records...')
+
+	// Clean up tables that don't have CASCADE delete constraints and delete user in a transaction
+	await pg.transaction().execute(async (tx) => {
+		// Clean up tables that don't have CASCADE delete constraints
+		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
+
+		// Clean up assets that reference this user (nullable foreign key)
+		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
+
+		// Delete the user row (this will cascade delete any remaining related records)
+		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()
+	})
+
+	sendProgress?.('clerk', 'Deleting user from Clerk...')
+
+	// Delete user from Clerk
+	const clerk = getClerkClient(env)
+	await clerk.users.deleteUser(userRow.id)
+
+	// Delete user from analytics service
+	sendProgress?.('analytics', 'Deleting user from analytics...')
+	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
+
+	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
+
+	// Clean up user durable object state and R2 data
+	const user = getUserDurableObject(env, userRow.id)
+	await user.admin_delete(userRow.id)
+}
+
+async function getNextUnmigratedUser(pg: ReturnType<typeof createPostgresConnectionPool>) {
+	return await pg
+		.selectFrom('user')
+		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
+		.select(['id', 'email', 'name'])
+		.limit(1)
+		.executeTakeFirst()
+}
+
+async function getNumUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
+	const res = await sql<{
+		count: number
+	}>`select count(*) from public.user where flags not like '%groups_backend%' or flags is null`.execute(
+		pg
+	)
+	return res.rows[0].count
+}
+async function getTotalUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
+	const res = await sql<{ count: number }>`select count(*) from public.user`.execute(pg)
+	return res.rows[0].count
+}
+
+async function startUserMigration(
+	env: Environment,
+	sendProgress: (step: string, message: string, details?: any) => void,
+	shouldStop: () => boolean,
+	sleepTime: number = 100
+): Promise<boolean> {
+	const batchSize = 50
+	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
+
+	sendProgress('query', 'Fetching users without groups_backend flag...')
+
+	const usersToMigrate = await getNumUnmigratedUsers(pg)
+	const totalUsers = await getTotalUsers(pg)
+	let successCount = 0
+	let failureCount = 0
+
+	function getStats() {
+		return {
+			totalUsers,
+			usersToMigrate,
+			successCount,
+			failureCount,
+			progress: successCount / usersToMigrate,
+		}
+	}
+
+	sendProgress('query', `${usersToMigrate}/${totalUsers} users left to migrate`, getStats())
+
+	if (usersToMigrate === 0) {
+		sendProgress('complete', 'No users to migrate')
+		return false
+	}
+
+	const failures: Array<{ userId: string; email: string; error: string }> = []
+	let processedCount = 0
+
+	// Process users in batches
+	while (processedCount < batchSize) {
+		const userRow = await getNextUnmigratedUser(pg)
+		if (!userRow) {
+			break
+		}
+
+		// Check if we should stop
+		if (shouldStop()) {
+			sendProgress('stopped', 'Migration stopped by user', getStats())
+			break
+		}
+
+		sendProgress('migrating', `Migrating user ${userRow.email}`, {
+			userId: userRow.id,
+			email: userRow.email,
+			...getStats(),
+		})
+
+		try {
+			await retry(async () => {
+				const user = getUserDurableObject(env, userRow.id)
+
+				const result = await sql<{
+					files_migrated: number
+					pinned_files_migrated: number
+					flag_added: boolean
+				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
+				await user.admin_forceHardReboot(userRow.id)
+
+				successCount++
+				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
+					userId: userRow.id,
+					email: userRow.email,
+					result: result.rows[0],
+					...getStats(),
+				})
+			})
+		} catch (error) {
+			failureCount++
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			failures.push({
+				userId: userRow.id,
+				email: userRow.email,
+				error: errorMessage,
+			})
+
+			// Send failure event to client so it can be stored in the log
+			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
+				userId: userRow.id,
+				email: userRow.email,
+				error: errorMessage,
+				...getStats(),
+			})
+
+			// Stop processing immediately after reporting the failure
+			sendProgress('summary', 'Migration stopped due to failure', {
+				failures: failures.length > 0 ? failures : undefined,
+			})
+			return false
+		}
+
+		processedCount++
+
+		// Brief pause between migrations to avoid overwhelming the system
+		await sleep(sleepTime)
+	}
+
+	sendProgress('summary', 'Migration batch complete', {
+		failures: failures.length > 0 ? failures : undefined,
+	})
+
+	// Check if there are more users to migrate
+	const remainingUsers = await getNumUnmigratedUsers(pg)
+	return remainingUsers > 0
 }

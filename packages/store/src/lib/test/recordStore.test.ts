@@ -1,9 +1,10 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
+import { vi } from 'vitest'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createMigrationSequence } from '../migrate'
 import { RecordsDiff, reverseRecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
-import { CollectionDiff, Store } from '../Store'
+import { CollectionDiff, HistoryEntry, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -206,7 +207,7 @@ describe('Store', () => {
 
 	it('allows adding onAfterChange callbacks that see the final state of the world', () => {
 		/* ADDING */
-		const onAfterCreate = jest.fn((current) => {
+		const onAfterCreate = vi.fn((current) => {
 			expect(current).toEqual(
 				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
 			)
@@ -218,7 +219,7 @@ describe('Store', () => {
 		expect(onAfterCreate).toHaveBeenCalledTimes(1)
 
 		/* UPDATING */
-		const onAfterChange = jest.fn((prev, current) => {
+		const onAfterChange = vi.fn((prev, current) => {
 			expect(prev.name).toBe('J.R.R Tolkein')
 			expect(current.name).toBe('Butch Cassidy')
 
@@ -231,7 +232,7 @@ describe('Store', () => {
 		expect(onAfterChange).toHaveBeenCalledTimes(1)
 
 		/* REMOVING */
-		const onAfterDelete = jest.fn((prev) => {
+		const onAfterDelete = vi.fn((prev) => {
 			if (prev.typeName === 'author') {
 				expect(prev.name).toBe('Butch Cassidy')
 			}
@@ -309,7 +310,7 @@ describe('Store', () => {
 	})
 
 	it('supports listening for changes to the whole store', async () => {
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener)
 
 		transact(() => {
@@ -336,7 +337,7 @@ describe('Store', () => {
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(1)
-		expect(listener.mock.lastCall[0]).toMatchInlineSnapshot(`
+		expect(listener.mock.lastCall?.[0]).toMatchInlineSnapshot(`
 		{
 		  "changes": {
 		    "added": {
@@ -391,7 +392,7 @@ describe('Store', () => {
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(2)
 
-		expect(listener.mock.lastCall[0]).toMatchInlineSnapshot(`
+		expect(listener.mock.lastCall?.[0]).toMatchInlineSnapshot(`
 		{
 		  "changes": {
 		    "added": {},
@@ -444,7 +445,7 @@ describe('Store', () => {
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(3)
 
-		expect(listener.mock.lastCall[0]).toMatchInlineSnapshot(`
+		expect(listener.mock.lastCall?.[0]).toMatchInlineSnapshot(`
 		{
 		  "changes": {
 		    "added": {},
@@ -480,7 +481,7 @@ describe('Store', () => {
 	})
 
 	it('supports filtering history by scope', () => {
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener, {
 			scope: 'session',
 		})
@@ -521,7 +522,7 @@ describe('Store', () => {
 	})
 
 	it('supports filtering history by scope (2)', () => {
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener, {
 			scope: 'document',
 		})
@@ -550,7 +551,7 @@ describe('Store', () => {
 	})
 
 	it('supports filtering history by source', () => {
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener, {
 			source: 'remote',
 		})
@@ -600,7 +601,7 @@ describe('Store', () => {
 	})
 
 	it('supports filtering history by source (user)', () => {
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener, {
 			source: 'user',
 		})
@@ -658,7 +659,7 @@ describe('Store', () => {
 			// @ts-expect-error
 			globalThis.__FORCE_RAF_IN_TESTS__ = true
 			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
-			const firstListener = jest.fn()
+			const firstListener = vi.fn()
 			store.listen(firstListener)
 			expect(firstListener).toHaveBeenCalledTimes(0)
 
@@ -666,7 +667,7 @@ describe('Store', () => {
 
 			expect(firstListener).toHaveBeenCalledTimes(0)
 
-			const secondListener = jest.fn()
+			const secondListener = vi.fn()
 
 			store.listen(secondListener)
 
@@ -707,7 +708,7 @@ describe('Store', () => {
 		const id = Author.createId('tolkein')
 		store.put([Author.create({ name: 'J.R.R Tolkein', id })])
 
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener)
 
 		// Return the exact same value that came in
@@ -717,7 +718,7 @@ describe('Store', () => {
 	})
 
 	it('tells listeners the source of the changes so they can decide if they want to run or not', async () => {
-		const listener = jest.fn()
+		const listener = vi.fn()
 		store.listen(listener)
 
 		store.put([Author.create({ name: 'Jimmy Beans', id: Author.createId('jimmy') })])
@@ -824,7 +825,7 @@ describe('snapshots', () => {
 		expect(() => {
 			// @ts-expect-error
 			store2.loadStoreSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: Missing definition for record type author]`)
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {
@@ -839,12 +840,12 @@ describe('snapshots', () => {
 
 		expect(() => {
 			store2.loadStoreSnapshot(snapshot1 as any)
-		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: Missing definition for record type author]`)
 	})
 
 	it('migrates the snapshot', () => {
 		const snapshot1 = store.getStoreSnapshot()
-		const up = jest.fn((s: any) => {
+		const up = vi.fn((s: any) => {
 			s['book:lotr'].numPages = 42
 		})
 
@@ -969,7 +970,7 @@ describe('diffs', () => {
 	})
 	it('produces diffs from `addHistoryInterceptor`', () => {
 		const diffs: any[] = []
-		const interceptor = jest.fn((diff) => diffs.push(diff))
+		const interceptor = vi.fn((diff) => diffs.push(diff))
 		store.addHistoryInterceptor(interceptor)
 
 		store.put([
@@ -1076,7 +1077,7 @@ describe('diffs', () => {
 	})
 })
 
-describe('after callbacks', () => {
+describe('callbacks', () => {
 	let store: Store<Book>
 	let callbacks: any[] = []
 
@@ -1095,10 +1096,15 @@ describe('after callbacks', () => {
 		numPages: 1,
 	})
 
-	let onAfterCreate: jest.Mock
-	let onAfterChange: jest.Mock
-	let onAfterDelete: jest.Mock
-	let onOperationComplete: jest.Mock
+	let onAfterCreate: ReturnType<typeof vi.fn>
+	let onAfterChange: ReturnType<typeof vi.fn>
+	let onAfterDelete: ReturnType<typeof vi.fn>
+
+	let onBeforeCreate: ReturnType<typeof vi.fn>
+	let onBeforeChange: ReturnType<typeof vi.fn>
+	let onBeforeDelete: ReturnType<typeof vi.fn>
+
+	let onOperationComplete: ReturnType<typeof vi.fn>
 
 	beforeEach(() => {
 		store = new Store({
@@ -1108,15 +1114,25 @@ describe('after callbacks', () => {
 			}),
 		})
 
-		onAfterCreate = jest.fn((record) => callbacks.push({ type: 'create', record }))
-		onAfterChange = jest.fn((from, to) => callbacks.push({ type: 'change', from, to }))
-		onAfterDelete = jest.fn((record) => callbacks.push({ type: 'delete', record }))
-		onOperationComplete = jest.fn(() => callbacks.push({ type: 'complete' }))
+		onAfterCreate = vi.fn((record) => callbacks.push({ type: 'create', record }))
+		onAfterChange = vi.fn((from, to) => callbacks.push({ type: 'change', from, to }))
+		onAfterDelete = vi.fn((record) => callbacks.push({ type: 'delete', record }))
+
+		onBeforeCreate = vi.fn((record) => record)
+		onBeforeChange = vi.fn((_from, to) => to)
+		onBeforeDelete = vi.fn((_record) => {})
+
+		onOperationComplete = vi.fn(() => callbacks.push({ type: 'complete' }))
 		callbacks = []
 
 		store.sideEffects.registerAfterCreateHandler('book', onAfterCreate)
 		store.sideEffects.registerAfterChangeHandler('book', onAfterChange)
 		store.sideEffects.registerAfterDeleteHandler('book', onAfterDelete)
+
+		store.sideEffects.registerBeforeCreateHandler('book', onBeforeCreate)
+		store.sideEffects.registerBeforeChangeHandler('book', onBeforeChange)
+		store.sideEffects.registerBeforeDeleteHandler('book', onBeforeDelete)
+
 		store.sideEffects.registerOperationCompleteHandler(onOperationComplete)
 	})
 
@@ -1146,12 +1162,12 @@ describe('after callbacks', () => {
 
 	it('bails out if too many callbacks are fired', () => {
 		let limit = 10
-		onAfterCreate.mockImplementation((record) => {
+		onAfterCreate.mockImplementation((record: any) => {
 			if (record.numPages < limit) {
 				store.put([{ ...record, numPages: record.numPages + 1 }])
 			}
 		})
-		onAfterChange.mockImplementation((from, to) => {
+		onAfterChange.mockImplementation((from: any, to: any) => {
 			if (to.numPages < limit) {
 				store.put([{ ...to, numPages: to.numPages + 1 }])
 			}
@@ -1166,7 +1182,9 @@ describe('after callbacks', () => {
 		store.clear()
 		expect(() => {
 			store.put([book2])
-		}).toThrowErrorMatchingInlineSnapshot(`"Maximum store update depth exceeded, bailing out"`)
+		}).toThrowErrorMatchingInlineSnapshot(
+			`[Error: Maximum store update depth exceeded, bailing out]`
+		)
 	})
 
 	it('keeps firing operation complete callbacks until all are cleared', () => {
@@ -1182,7 +1200,7 @@ describe('after callbacks', () => {
 
 		store.put([book1])
 
-		onAfterChange.mockImplementation((prev, next) => {
+		onAfterChange.mockImplementation((prev: any, next: any) => {
 			if ([0, 1, 2, 5, 6].includes(step)) {
 				step++
 				store.put([{ ...next, numPages: next.numPages + 1 }])
@@ -1209,5 +1227,159 @@ describe('after callbacks', () => {
 
 		expect(store.get(book1Id)!.numPages).toBe(1007)
 		expect(step).toBe(9)
+	})
+
+	test('fired during mergeRemoteChanges are flushed at the end so that they end up receiving remote source but outputting user source changes', () => {
+		const diffs: HistoryEntry<Book>[] = []
+		store.listen((entry) => {
+			diffs.push(entry)
+		})
+
+		const firstOrderEffectSources: string[] = []
+		store.sideEffects.registerAfterCreateHandler('book', (record, source) => {
+			firstOrderEffectSources.push(source)
+			if (record.title.startsWith('Harry Potter')) {
+				store.put([
+					{
+						...record,
+						title: record.title + ' is a really great book fr fr',
+					},
+				])
+			}
+		})
+
+		const secondOrderEffectSources: string[] = []
+		store.sideEffects.registerAfterChangeHandler('book', (from, to, source) => {
+			secondOrderEffectSources.push(source)
+		})
+
+		store.mergeRemoteChanges(() => {
+			store.put([
+				{
+					...book1,
+					title: "Harry Potter and the Philosopher's Stone",
+				},
+			])
+		})
+
+		expect(firstOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "remote",
+		]
+	`)
+
+		// recursive changes are always user
+		expect(secondOrderEffectSources).toMatchInlineSnapshot(`
+		[
+		  "user",
+		]
+	`)
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "book:darkness": {
+		          "author": "author:ursula",
+		          "id": "book:darkness",
+		          "numPages": 1,
+		          "title": "Harry Potter and the Philosopher's Stone",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "remote",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:darkness": [
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:ursula",
+		            "id": "book:darkness",
+		            "numPages": 1,
+		            "title": "Harry Potter and the Philosopher's Stone is a really great book fr fr",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
+	})
+
+	test('noop changes do not fire with store.atomic', () => {
+		const book1A = book1
+		const book1B = {
+			...book1,
+			title: book1.title + ' is a really great book fr fr',
+		}
+		const book1C = structuredClone(book1A)
+		store.put([book1A])
+
+		store.atomic(() => {
+			store.put([book1B])
+			store.put([book1C])
+		})
+		expect(onAfterChange).toHaveBeenCalledTimes(0)
+
+		store.atomic(() => {
+			store.put([book1B])
+			store.put([book1C])
+			store.put([book1B])
+		})
+
+		expect(onAfterChange).toHaveBeenCalledTimes(1)
+	})
+
+	test('an atomic block with callbacks enabled can be overridden with an atomic block with callbacks disabled which causes the beforeCallbacks only to not run', () => {
+		store.atomic(() => {
+			store.put([book1])
+			store.atomic(() => {
+				store.put([book2])
+			}, false)
+		})
+
+		expect(onBeforeCreate).toHaveBeenCalledTimes(1)
+		expect(onAfterCreate).toHaveBeenCalledTimes(2)
+
+		store.atomic(() => {
+			store.update(book1Id, (book) => ({
+				...book,
+				numPages: book.numPages + 1,
+			}))
+			store.atomic(() => {
+				store.update(book2Id, (book) => ({
+					...book,
+					numPages: book.numPages + 1,
+				}))
+			}, false)
+		})
+
+		expect(onBeforeChange).toHaveBeenCalledTimes(1)
+		expect(onAfterChange).toHaveBeenCalledTimes(2)
+
+		store.atomic(() => {
+			store.remove([book1Id])
+			store.atomic(() => {
+				store.remove([book2Id])
+			}, false)
+		})
+		expect(onBeforeDelete).toHaveBeenCalledTimes(1)
+		expect(onAfterDelete).toHaveBeenCalledTimes(2)
 	})
 })

@@ -86,9 +86,12 @@ function App({ roomId }: { roomId: string }) {
 				store={store}
 				deepLinks
 				// [4]
-				isShapeHidden={(shape, editor) => {
+				getShapeVisibility={(shape, editor) => {
 					const userId = editor.user.getId()
-					return !!shape.meta.private && shape.meta.ownerId !== userId
+					if (!!shape.meta.private && shape.meta.ownerId !== userId) {
+						return 'hidden'
+					}
+					return 'inherit'
 				}}
 				onMount={(editor) => {
 					// [5]
@@ -136,7 +139,7 @@ export default function SyncPrivateContentExample({ roomId }: { roomId: string }
  * 1. We create a context to store the atom that will hold the state of the private drawing mode. We are using signals here but you can use any state management library you like.
  * 2. We override the `InFrontOfTheCanvas` component to add a tool panel at the top of the screen that allows the user to toggle private drawing mode on and off, and to make private shapes public.
  * 3. We use the context to get the atom that holds the state of the private drawing mode. We then have to call 'useValue' on the atom to get the current value in a reactive way.
- * 4. We override the `isShapeHidden` function to hide shapes that are private and not owned by the current user.
+ * 4. We override the `getShapeVisibility` function to hide shapes that are private and not owned by the current user.
  * 5. We register a side effect that adds the 'private' and 'ownerId' meta fields to each shape created. We set the 'private' field to the current value of the private drawing mode atom.
  * 6. We register a side effect that cleans up the selection by removing any hidden shapes from the selection. This re-runs whenever the selection or the hidden state of a selected shape changes.
  * 7. Child shapes (e.g inside groups and frames) do not inherit the 'private' meta property from their parent. So when making a shape public, we decide to also make all descendant shapes public since this is most likely what the user intended.

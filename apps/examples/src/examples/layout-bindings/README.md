@@ -3,6 +3,7 @@ title: Layout constraints (bindings)
 component: ./LayoutExample.tsx
 category: shapes/tools
 keywords: [constraints, group, shape, custom, bindings, drag, drop, position]
+priority: 10
 ---
 
 How to constrain shapes to a layout using bindings.

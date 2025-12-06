@@ -1,5 +1,6 @@
-import { Atom, atom, transaction } from '@tldraw/state'
+import { transact, transaction } from '@tldraw/state'
 import {
+	AtomMap,
 	IdOf,
 	MigrationFailureReason,
 	RecordType,
@@ -16,12 +17,11 @@ import {
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
+	isEqual,
 	isNativeStructuredClone,
-	objectMapEntries,
-	objectMapKeys,
+	objectMapEntriesIterable,
 	structuredClone,
 } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
 import { createNanoEvents } from 'nanoevents'
 import {
 	RoomSession,
@@ -41,6 +41,7 @@ import {
 	applyObjectDiff,
 	diffRecord,
 } from './diff'
+import { findMin } from './findMin'
 import { interval } from './interval'
 import {
 	TLIncompatibilityReason,
@@ -50,26 +51,71 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @internal */
+/**
+ * WebSocket interface for server-side room connections. This defines the contract
+ * that socket implementations must follow to work with TLSyncRoom.
+ *
+ * @internal
+ */
 export interface TLRoomSocket<R extends UnknownRecord> {
+	/**
+	 * Whether the socket connection is currently open and ready to send messages.
+	 */
 	isOpen: boolean
+	/**
+	 * Send a message to the connected client through this socket.
+	 *
+	 * @param msg - The server-sent event message to transmit
+	 */
 	sendMessage(msg: TLSocketServerSentEvent<R>): void
+	/**
+	 * Close the socket connection with optional status code and reason.
+	 *
+	 * @param code - WebSocket close code (optional)
+	 * @param reason - Human-readable close reason (optional)
+	 */
 	close(code?: number, reason?: string): void
 }
 
-// the max number of tombstones to keep in the store
+/**
+ * The maximum number of tombstone records to keep in memory. Tombstones track
+ * deleted records to prevent resurrection during sync operations.
+ * @public
+ */
 export const MAX_TOMBSTONES = 3000
-// the number of tombstones to delete when the max is reached
+
+/**
+ * The number of tombstones to delete when pruning occurs after reaching MAX_TOMBSTONES.
+ * This buffer prevents frequent pruning operations.
+ * @public
+ */
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
-// the minimum time between data-related messages to the clients
+
+/**
+ * The minimum time interval (in milliseconds) between sending batched data messages
+ * to clients. This debouncing prevents overwhelming clients with rapid updates.
+ * @public
+ */
 export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
-/** @internal */
+/**
+ * Represents the state of a document record within a sync room, including
+ * its current data and the clock value when it was last modified.
+ *
+ * @internal
+ */
 export class DocumentState<R extends UnknownRecord> {
-	_atom: Atom<{ state: R; lastChangedClock: number }>
-
+	/**
+	 * Create a DocumentState instance without validating the record data.
+	 * Used for performance when validation has already been performed.
+	 *
+	 * @param state - The record data
+	 * @param lastChangedClock - Clock value when this record was last modified
+	 * @param recordType - The record type definition for validation
+	 * @returns A new DocumentState instance
+	 */
 	static createWithoutValidating<R extends UnknownRecord>(
 		state: R,
 		lastChangedClock: number,
@@ -78,6 +124,14 @@ export class DocumentState<R extends UnknownRecord> {
 		return new DocumentState(state, lastChangedClock, recordType)
 	}
 
+	/**
+	 * Create a DocumentState instance with validation of the record data.
+	 *
+	 * @param state - The record data to validate
+	 * @param lastChangedClock - Clock value when this record was last modified
+	 * @param recordType - The record type definition for validation
+	 * @returns Result containing the DocumentState or validation error
+	 */
 	static createAndValidate<R extends UnknownRecord>(
 		state: R,
 		lastChangedClock: number,
@@ -92,48 +146,120 @@ export class DocumentState<R extends UnknownRecord> {
 	}
 
 	private constructor(
-		state: R,
-		lastChangedClock: number,
+		public readonly state: R,
+		public readonly lastChangedClock: number,
 		private readonly recordType: RecordType<R, any>
-	) {
-		this._atom = atom('document:' + state.id, { state, lastChangedClock })
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	get state() {
-		return this._atom.get().state
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	get lastChangedClock() {
-		return this._atom.get().lastChangedClock
-	}
-	replaceState(state: R, clock: number): Result<ObjectDiff | null, Error> {
-		const diff = diffRecord(this.state, state)
+	) {}
+
+	/**
+	 * Replace the current state with new state and calculate the diff.
+	 *
+	 * @param state - The new record state
+	 * @param clock - The new clock value
+	 * @param legacyAppendMode - If true, string append operations will be converted to Put operations
+	 * @returns Result containing the diff and new DocumentState, or null if no changes, or validation error
+	 */
+	replaceState(
+		state: R,
+		clock: number,
+		legacyAppendMode = false
+	): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
+		const diff = diffRecord(this.state, state, legacyAppendMode)
 		if (!diff) return Result.ok(null)
 		try {
 			this.recordType.validate(state)
 		} catch (error: any) {
 			return Result.err(error)
 		}
-		this._atom.set({ state, lastChangedClock: clock })
-		return Result.ok(diff)
+		return Result.ok([diff, new DocumentState(state, clock, this.recordType)])
 	}
-	mergeDiff(diff: ObjectDiff, clock: number): Result<ObjectDiff | null, Error> {
+	/**
+	 * Apply a diff to the current state and return the resulting changes.
+	 *
+	 * @param diff - The object diff to apply
+	 * @param clock - The new clock value
+	 * @param legacyAppendMode - If true, string append operations will be converted to Put operations
+	 * @returns Result containing the final diff and new DocumentState, or null if no changes, or validation error
+	 */
+	mergeDiff(
+		diff: ObjectDiff,
+		clock: number,
+		legacyAppendMode = false
+	): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
 		const newState = applyObjectDiff(this.state, diff)
-		return this.replaceState(newState, clock)
+		return this.replaceState(newState, clock, legacyAppendMode)
 	}
-}
-
-/** @public */
-export interface RoomSnapshot {
-	clock: number
-	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
-	tombstones?: Record<string, number>
-	schema?: SerializedSchema
 }
 
 /**
- * A room is a workspace for a group of clients. It allows clients to collaborate on documents
- * within that workspace.
+ * Snapshot of a room's complete state that can be persisted and restored.
+ * Contains all documents, tombstones, and metadata needed to reconstruct the room.
+ *
+ * @public
+ */
+export interface RoomSnapshot {
+	/**
+	 * The current logical clock value for the room
+	 */
+	clock: number
+	/**
+	 * Clock value when document data was last changed (optional for backwards compatibility)
+	 */
+	documentClock?: number
+	/**
+	 * Array of all document records with their last modification clocks
+	 */
+	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
+	/**
+	 * Map of deleted record IDs to their deletion clock values (optional)
+	 */
+	tombstones?: Record<string, number>
+	/**
+	 * Clock value where tombstone history begins - older deletions are not tracked (optional)
+	 */
+	tombstoneHistoryStartsAtClock?: number
+	/**
+	 * Serialized schema used when creating this snapshot (optional)
+	 */
+	schema?: SerializedSchema
+}
+
+function getDocumentClock(snapshot: RoomSnapshot) {
+	if (typeof snapshot.documentClock === 'number') {
+		return snapshot.documentClock
+	}
+	let max = 0
+	for (const doc of snapshot.documents) {
+		max = Math.max(max, doc.lastChangedClock)
+	}
+	for (const tombstone of Object.values(snapshot.tombstones ?? {})) {
+		max = Math.max(max, tombstone)
+	}
+	return max
+}
+
+/**
+ * A collaborative workspace that manages multiple client sessions and synchronizes
+ * document changes between them. The room serves as the authoritative source for
+ * all document state and handles conflict resolution, schema migrations, and
+ * real-time data distribution.
+ *
+ * @example
+ * ```ts
+ * const room = new TLSyncRoom({
+ *   schema: mySchema,
+ *   onDataChange: () => saveToDatabase(room.getSnapshot()),
+ *   onPresenceChange: () => updateLiveCursors()
+ * })
+ *
+ * // Handle new client connections
+ * room.handleNewSession({
+ *   sessionId: 'user-123',
+ *   socket: webSocketAdapter,
+ *   meta: { userId: '123', name: 'Alice' },
+ *   isReadonly: false
+ * })
+ * ```
  *
  * @internal
  */
@@ -178,6 +304,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private _isClosed = false
 
+	/**
+	 * Close the room and clean up all resources. Disconnects all sessions
+	 * and stops background processes.
+	 */
 	close() {
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
@@ -186,6 +316,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this._isClosed = true
 	}
 
+	/**
+	 * Check if the room has been closed and is no longer accepting connections.
+	 *
+	 * @returns True if the room is closed
+	 */
 	isClosed() {
 		return this._isClosed
 	}
@@ -197,20 +332,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	// Values associated with each uid (must be serializable).
 	/** @internal */
-	state = atom<{
-		documents: Record<string, DocumentState<R>>
-		tombstones: Record<string, number>
-	}>('room state', {
-		documents: {},
-		tombstones: {},
-	})
+	documents: AtomMap<string, DocumentState<R>>
+	tombstones: AtomMap<string, number>
 
 	// this clock should start higher than the client, to make sure that clients who sync with their
 	// initial lastServerClock value get the full state
 	// in this case clients will start with 0, and the server will start with 1
-	clock = 1
-	documentClock = 1
-	tombstoneHistoryStartsAtClock = this.clock
+	clock: number
+	documentClock: number
+	tombstoneHistoryStartsAtClock: number
 	// map from record id to clock upon deletion
 
 	readonly serializedSchema: SerializedSchema
@@ -220,17 +350,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onDataChange?(): void
+	private onPresenceChange?(): void
 
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		snapshot?: RoomSnapshot
 		onDataChange?(): void
+		onPresenceChange?(): void
 	}) {
 		this.schema = opts.schema
 		let snapshot = opts.snapshot
 		this.log = opts.log
 		this.onDataChange = opts.onDataChange
+		this.onPresenceChange = opts.onPresenceChange
 
 		assert(
 			isNativeStructuredClone,
@@ -262,6 +395,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (!snapshot) {
 			snapshot = {
 				clock: 0,
+				documentClock: 0,
 				documents: [
 					{
 						state: DocumentRecordType.create({ id: TLDOCUMENT_ID }),
@@ -276,6 +410,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.clock = snapshot.clock
+
 		let didIncrementClock = false
 		const ensureClockDidIncrement = (_reason: string) => {
 			if (!didIncrementClock) {
@@ -284,104 +419,139 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		const tombstones = { ...snapshot.tombstones }
-		const filteredDocuments = []
-		for (const doc of snapshot.documents) {
-			if (this.documentTypes.has(doc.state.typeName)) {
-				filteredDocuments.push(doc)
-			} else {
-				ensureClockDidIncrement('doc type was not doc type')
-				tombstones[doc.state.id] = this.clock
-			}
-		}
-
-		const documents: Record<string, DocumentState<R>> = Object.fromEntries(
-			filteredDocuments.map((r) => [
-				r.state.id,
-				DocumentState.createWithoutValidating<R>(
-					r.state as R,
-					r.lastChangedClock,
-					assertExists(getOwnProperty(this.schema.types, r.state.typeName))
-				),
-			])
+		this.tombstones = new AtomMap(
+			'room tombstones',
+			objectMapEntriesIterable(snapshot.tombstones ?? {})
+		)
+		this.documents = new AtomMap(
+			'room documents',
+			function* (this: TLSyncRoom<R, SessionMeta>) {
+				for (const doc of snapshot.documents) {
+					if (this.documentTypes.has(doc.state.typeName)) {
+						yield [
+							doc.state.id,
+							DocumentState.createWithoutValidating<R>(
+								doc.state as R,
+								doc.lastChangedClock,
+								assertExists(getOwnProperty(this.schema.types, doc.state.typeName))
+							),
+						] as const
+					} else {
+						ensureClockDidIncrement('doc type was not doc type')
+						this.tombstones.set(doc.state.id, this.clock)
+					}
+				}
+			}.call(this)
 		)
 
-		const migrationResult = this.schema.migrateStoreSnapshot({
-			store: Object.fromEntries(
-				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
-			) as Record<IdOf<R>, R>,
+		this.tombstoneHistoryStartsAtClock =
+			snapshot.tombstoneHistoryStartsAtClock ?? findMin(this.tombstones.values()) ?? this.clock
+
+		if (this.tombstoneHistoryStartsAtClock === 0) {
+			// Before this comment was added, new clients would send '0' as their 'lastServerClock'
+			// which was technically an error because clocks start at 0, but the error didn't manifest
+			// because we initialized tombstoneHistoryStartsAtClock to 1 and then never updated it.
+			// Now that we handle tombstoneHistoryStartsAtClock properly we need to increment it here to make sure old
+			// clients still get data when they connect. This if clause can be deleted after a few months.
+			this.tombstoneHistoryStartsAtClock++
+		}
+
+		transact(() => {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			schema: snapshot.schema ?? this.schema.serializeEarliestVersion(),
+			const schema = snapshot.schema ?? this.schema.serializeEarliestVersion()
+
+			const migrationsToApply = this.schema.getMigrationsSince(schema)
+			assert(migrationsToApply.ok, 'Failed to get migrations')
+
+			if (migrationsToApply.value.length > 0) {
+				// only bother allocating a snapshot if there are migrations to apply
+				const store = {} as Record<IdOf<R>, R>
+				for (const [k, v] of this.documents.entries()) {
+					store[k as IdOf<R>] = v.state
+				}
+
+				const migrationResult = this.schema.migrateStoreSnapshot(
+					{ store, schema },
+					{ mutateInputStore: true }
+				)
+
+				if (migrationResult.type === 'error') {
+					// TODO: Fault tolerance
+					throw new Error('Failed to migrate: ' + migrationResult.reason)
+				}
+
+				// use for..in to iterate over the keys of the object because it consumes less memory than
+				// Object.entries
+				for (const id in migrationResult.value) {
+					if (!Object.prototype.hasOwnProperty.call(migrationResult.value, id)) {
+						continue
+					}
+					const r = migrationResult.value[id as keyof typeof migrationResult.value]
+					const existing = this.documents.get(id)
+					if (!existing || !isEqual(existing.state, r)) {
+						// record was added or updated during migration
+						ensureClockDidIncrement('record was added or updated during migration')
+						this.documents.set(
+							r.id,
+							DocumentState.createWithoutValidating(
+								r,
+								this.clock,
+								assertExists(getOwnProperty(this.schema.types, r.typeName)) as any
+							)
+						)
+					}
+				}
+
+				for (const id of this.documents.keys()) {
+					if (!migrationResult.value[id as keyof typeof migrationResult.value]) {
+						// record was removed during migration
+						ensureClockDidIncrement('record was removed during migration')
+						this.tombstones.set(id, this.clock)
+						this.documents.delete(id)
+					}
+				}
+			}
+
+			this.pruneTombstones()
 		})
 
-		if (migrationResult.type === 'error') {
-			// TODO: Fault tolerance
-			throw new Error('Failed to migrate: ' + migrationResult.reason)
-		}
-
-		for (const [id, r] of objectMapEntries(migrationResult.value)) {
-			const existing = documents[id]
-			if (!existing) {
-				// record was added during migration
-				ensureClockDidIncrement('record was added during migration')
-				documents[id] = DocumentState.createWithoutValidating(
-					r,
-					this.clock,
-					assertExists(getOwnProperty(this.schema.types, r.typeName)) as any
-				)
-			} else if (!isEqual(existing.state, r)) {
-				// record was maybe updated during migration
-				ensureClockDidIncrement('record was maybe updated during migration')
-				existing.replaceState(r, this.clock)
-			}
-		}
-
-		for (const id of objectMapKeys(documents)) {
-			if (!migrationResult.value[id as keyof typeof migrationResult.value]) {
-				// record was removed during migration
-				ensureClockDidIncrement('record was removed during migration')
-				tombstones[id] = this.clock
-				delete documents[id]
-			}
-		}
-
-		this.state.set({ documents, tombstones })
-
-		this.pruneTombstones()
-		this.documentClock = this.clock
 		if (didIncrementClock) {
+			this.documentClock = this.clock
 			opts.onDataChange?.()
+		} else {
+			this.documentClock = getDocumentClock(snapshot)
 		}
 	}
 
+	private didSchedulePrune = true
 	// eslint-disable-next-line local/prefer-class-methods
 	private pruneTombstones = () => {
+		this.didSchedulePrune = false
 		// avoid blocking any pending responses
-		this.state.update(({ tombstones, documents }) => {
-			const entries = Object.entries(this.state.get().tombstones)
-			if (entries.length > MAX_TOMBSTONES) {
-				// sort entries in ascending order by clock
-				entries.sort((a, b) => a[1] - b[1])
-				// trim off the first bunch
-				const excessQuantity = entries.length - MAX_TOMBSTONES
-				tombstones = Object.fromEntries(entries.slice(excessQuantity + TOMBSTONE_PRUNE_BUFFER_SIZE))
+		if (this.tombstones.size > MAX_TOMBSTONES) {
+			const entries = Array.from(this.tombstones.entries())
+			// sort entries in ascending order by clock
+			entries.sort((a, b) => a[1] - b[1])
+			let idx = entries.length - 1 - MAX_TOMBSTONES + TOMBSTONE_PRUNE_BUFFER_SIZE
+			const cullClock = entries[idx++][1]
+			while (idx < entries.length && entries[idx][1] === cullClock) {
+				idx++
 			}
-			return {
-				documents,
-				tombstones,
-			}
-		})
+			// trim off the first bunch
+			const keysToDelete = entries.slice(0, idx).map(([key]) => key)
+
+			this.tombstoneHistoryStartsAtClock = cullClock + 1
+			this.tombstones.deleteMany(keysToDelete)
+		}
 	}
 
 	private getDocument(id: string) {
-		return this.state.get().documents[id]
+		return this.documents.get(id)
 	}
 
 	private addDocument(id: string, state: R, clock: number): Result<void, Error> {
-		let { documents, tombstones } = this.state.get()
-		if (hasOwnProperty(tombstones, id)) {
-			tombstones = { ...tombstones }
-			delete tombstones[id]
+		if (this.tombstones.has(id)) {
+			this.tombstones.delete(id)
 		}
 		const createResult = DocumentState.createAndValidate(
 			state,
@@ -389,32 +559,54 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			assertExists(getOwnProperty(this.schema.types, state.typeName))
 		)
 		if (!createResult.ok) return createResult
-		documents = { ...documents, [id]: createResult.value }
-		this.state.set({ documents, tombstones })
+		this.documents.set(id, createResult.value)
 		return Result.ok(undefined)
 	}
 
 	private removeDocument(id: string, clock: number) {
-		this.state.update(({ documents, tombstones }) => {
-			documents = { ...documents }
-			delete documents[id]
-			tombstones = { ...tombstones, [id]: clock }
-			return { documents, tombstones }
-		})
+		this.documents.delete(id)
+		this.tombstones.set(id, clock)
+		if (!this.didSchedulePrune) {
+			this.didSchedulePrune = true
+			setTimeout(this.pruneTombstones, 0)
+		}
 	}
 
+	/**
+	 * Get a complete snapshot of the current room state that can be persisted
+	 * and later used to restore the room.
+	 *
+	 * @returns Room snapshot containing all documents, tombstones, and metadata
+	 * @example
+	 * ```ts
+	 * const snapshot = room.getSnapshot()
+	 * await database.saveRoomSnapshot(roomId, snapshot)
+	 *
+	 * // Later, restore from snapshot
+	 * const restoredRoom = new TLSyncRoom({
+	 *   schema: mySchema,
+	 *   snapshot: snapshot
+	 * })
+	 * ```
+	 */
 	getSnapshot(): RoomSnapshot {
-		const { documents, tombstones } = this.state.get()
-		return {
-			clock: this.clock,
-			tombstones,
-			schema: this.serializedSchema,
-			documents: Object.values(documents)
-				.filter((d) => this.documentTypes.has(d.state.typeName))
-				.map((doc) => ({
+		const tombstones = Object.fromEntries(this.tombstones.entries())
+		const documents = []
+		for (const doc of this.documents.values()) {
+			if (this.documentTypes.has(doc.state.typeName)) {
+				documents.push({
 					state: doc.state,
 					lastChangedClock: doc.lastChangedClock,
-				})),
+				})
+			}
+		}
+		return {
+			clock: this.clock,
+			documentClock: this.documentClock,
+			tombstones,
+			tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock,
+			schema: this.serializedSchema,
+			documents,
 		}
 	}
 
@@ -504,11 +696,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		if (presence) {
-			this.state.update(({ tombstones, documents }) => {
-				documents = { ...documents }
-				delete documents[session.presenceId!]
-				return { documents, tombstones }
-			})
+			this.documents.delete(session.presenceId!)
 
 			this.broadcastPatch({
 				diff: { [session.presenceId!]: [RecordOpType.Remove] },
@@ -542,6 +730,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			requiresLegacyRejection: session.requiresLegacyRejection,
+			supportsStringAppend: session.supportsStringAppend,
 		})
 
 		try {
@@ -552,9 +741,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Broadcast a message to all connected clients except the one with the sessionId provided.
+	 * Broadcast a patch to all connected clients except the one with the sessionId provided.
+	 * Automatically handles schema migration for clients on different versions.
 	 *
-	 * @param message - The message to broadcast.
+	 * @param message - The broadcast message
+	 *   - diff - The network diff to broadcast to all clients
+	 *   - sourceSessionId - Optional ID of the session that originated this change (excluded from broadcast)
+	 * @returns This room instance for method chaining
+	 * @example
+	 * ```ts
+	 * room.broadcastPatch({
+	 *   diff: { 'shape:123': [RecordOpType.Put, newShapeData] },
+	 *   sourceSessionId: 'user-456' // This user won't receive the broadcast
+	 * })
+	 * ```
 	 */
 	broadcastPatch(message: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
 		const { diff, sourceSessionId } = message
@@ -589,8 +789,50 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * When a client connects to the room, add them to the list of clients and then merge the history
-	 * down into the snapshots.
+	 * Send a custom message to a connected client. Useful for application-specific
+	 * communication that doesn't involve document synchronization.
+	 *
+	 * @param sessionId - The ID of the session to send the message to
+	 * @param data - The custom payload to send (will be JSON serialized)
+	 * @example
+	 * ```ts
+	 * // Send a custom notification
+	 * room.sendCustomMessage('user-123', {
+	 *   type: 'notification',
+	 *   message: 'Document saved successfully'
+	 * })
+	 *
+	 * // Send user-specific data
+	 * room.sendCustomMessage('user-456', {
+	 *   type: 'user_permissions',
+	 *   canEdit: true,
+	 *   canDelete: false
+	 * })
+	 * ```
+	 */
+	sendCustomMessage(sessionId: string, data: any): void {
+		this.sendMessage(sessionId, { type: 'custom', data })
+	}
+
+	/**
+	 * Register a new client session with the room. The session will be in an awaiting
+	 * state until it sends a connect message with protocol handshake.
+	 *
+	 * @param opts - Session configuration
+	 *   - sessionId - Unique identifier for this session
+	 *   - socket - WebSocket adapter for communication
+	 *   - meta - Application-specific metadata for this session
+	 *   - isReadonly - Whether this session can modify documents
+	 * @returns This room instance for method chaining
+	 * @example
+	 * ```ts
+	 * room.handleNewSession({
+	 *   sessionId: crypto.randomUUID(),
+	 *   socket: new WebSocketAdapter(ws),
+	 *   meta: { userId: '123', name: 'Alice', avatar: 'url' },
+	 *   isReadonly: !hasEditPermission
+	 * })
+	 * ```
 	 *
 	 * @internal
 	 */
@@ -612,8 +854,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
+			supportsStringAppend: true,
 		})
 		return this
+	}
+
+	/**
+	 * Checks if all connected sessions support string append operations (protocol version 8+).
+	 * If any client is on an older version, returns false to enable legacy append mode.
+	 *
+	 * @returns True if all connected sessions are on protocol version 8 or higher
+	 */
+	getCanEmitStringAppend(): boolean {
+		for (const session of this.sessions.values()) {
+			if (session.state === RoomSessionState.Connected) {
+				if (!session.supportsStringAppend) {
+					return false
+				}
+			}
+		}
+		return true
 	}
 
 	/**
@@ -636,14 +896,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		const result: NetworkDiff<R> = {}
-		for (const [id, op] of Object.entries(diff)) {
+		for (const [id, op] of objectMapEntriesIterable(diff)) {
 			if (op[0] === RecordOpType.Remove) {
 				result[id] = op
 				continue
 			}
 
+			const doc = this.getDocument(id)
+			if (!doc) {
+				return Result.err(MigrationFailureReason.TargetVersionTooNew)
+			}
 			const migrationResult = this.schema.migratePersistedRecord(
-				this.getDocument(id).state,
+				doc.state,
 				serializedSchema,
 				'down'
 			)
@@ -659,11 +923,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * When the server receives a message from the clients Currently, supports connect and patches.
-	 * Invalid messages types throws an error. Currently, doesn't validate data.
+	 * Process an incoming message from a client session. Handles connection requests,
+	 * data synchronization pushes, and ping/pong for connection health.
 	 *
-	 * @param sessionId - The session that sent the message
-	 * @param message - The message that was sent
+	 * @param sessionId - The ID of the session that sent the message
+	 * @param message - The client message to process
+	 * @example
+	 * ```ts
+	 * // Typically called by WebSocket message handlers
+	 * websocket.onMessage((data) => {
+	 *   const message = JSON.parse(data)
+	 *   room.handleMessage(sessionId, message)
+	 * })
+	 * ```
 	 */
 	async handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>) {
 		const session = this.sessions.get(sessionId)
@@ -690,7 +962,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	/** If the client is out of date, or we are out of date, we need to let them know */
+	/**
+	 * Reject and disconnect a session due to incompatibility or other fatal errors.
+	 * Sends appropriate error messages before closing the connection.
+	 *
+	 * @param sessionId - The session to reject
+	 * @param fatalReason - The reason for rejection (optional)
+	 * @example
+	 * ```ts
+	 * // Reject due to version mismatch
+	 * room.rejectSession('user-123', TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	 *
+	 * // Reject due to permission issue
+	 * room.rejectSession('user-456', 'Insufficient permissions')
+	 * ```
+	 */
 	rejectSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
@@ -753,6 +1039,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (theirProtocolVersion === 6) {
 			theirProtocolVersion++
 		}
+		if (theirProtocolVersion === 7) {
+			theirProtocolVersion++
+			session.supportsStringAppend = false
+		}
+
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
@@ -777,7 +1068,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			? this.serializedSchema
 			: message.schema
 
-		const connect = (msg: TLSocketServerSentEvent<R>) => {
+		const connect = async (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
 				sessionId: session.sessionId,
@@ -787,6 +1078,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				lastInteractionTime: Date.now(),
 				debounceTimer: null,
 				outstandingDataMessages: [],
+				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				requiresLegacyRejection: session.requiresLegacyRejection,
@@ -804,7 +1096,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				message.lastServerClock > this.clock
 			) {
 				const diff: NetworkDiff<R> = {}
-				for (const [id, doc] of Object.entries(this.state.get().documents)) {
+				for (const [id, doc] of this.documents.entries()) {
 					if (id !== session.presenceId) {
 						diff[id] = [RecordOpType.Put, doc.state]
 					}
@@ -833,30 +1125,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			} else {
 				// calculate the changes since the time the client last saw
 				const diff: NetworkDiff<R> = {}
-				const updatedDocs = Object.values(this.state.get().documents).filter(
-					(doc) => doc.lastChangedClock > message.lastServerClock
-				)
-				const presenceDocs = this.presenceType
-					? Object.values(this.state.get().documents).filter(
-							(doc) =>
-								this.presenceType!.typeName === doc.state.typeName &&
-								doc.state.id !== session.presenceId
-						)
-					: []
-				const deletedDocsIds = Object.entries(this.state.get().tombstones)
-					.filter(([_id, deletedAtClock]) => deletedAtClock > message.lastServerClock)
-					.map(([id]) => id)
-
-				for (const doc of updatedDocs) {
-					diff[doc.state.id] = [RecordOpType.Put, doc.state]
+				for (const doc of this.documents.values()) {
+					if (doc.lastChangedClock > message.lastServerClock) {
+						diff[doc.state.id] = [RecordOpType.Put, doc.state]
+					} else if (this.presenceType?.isId(doc.state.id) && doc.state.id !== session.presenceId) {
+						diff[doc.state.id] = [RecordOpType.Put, doc.state]
+					}
 				}
-				for (const doc of presenceDocs) {
-					diff[doc.state.id] = [RecordOpType.Put, doc.state]
+				for (const [id, deletedAtClock] of this.tombstones.entries()) {
+					if (deletedAtClock > message.lastServerClock) {
+						diff[id] = [RecordOpType.Remove]
+					}
 				}
 
-				for (const docId of deletedDocsIds) {
-					diff[docId] = [RecordOpType.Remove]
-				}
 				const migrated = this.migrateDiffForSession(sessionSchema, diff)
 				if (!migrated.ok) {
 					rollback()
@@ -901,7 +1182,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.clock++
 
 		const initialDocumentClock = this.documentClock
+		let didPresenceChange = false
 		transaction((rollback) => {
+			const legacyAppendMode = !this.getCanEmitStringAppend()
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
 			interface ActualChanges {
@@ -950,12 +1233,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (doc) {
 					// If there's an existing document, replace it with the new state
 					// but propagate a diff rather than the entire value
-					const diff = doc.replaceState(state, this.clock)
+					const diff = doc.replaceState(state, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
 					if (diff.value) {
-						propagateOp(changes, id, [RecordOpType.Patch, diff.value])
+						this.documents.set(id, diff.value[1])
+						propagateOp(changes, id, [RecordOpType.Patch, diff.value[0]])
 					}
 				} else {
 					// Otherwise, if we don't already have a document with this id
@@ -989,12 +1273,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (downgraded.value === doc.state) {
 					// If the versions are compatible, apply the patch and propagate the patch op
-					const diff = doc.mergeDiff(patch, this.clock)
+					const diff = doc.mergeDiff(patch, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
 					if (diff.value) {
-						propagateOp(changes, id, [RecordOpType.Patch, diff.value])
+						this.documents.set(id, diff.value[1])
+						propagateOp(changes, id, [RecordOpType.Patch, diff.value[0]])
 					}
 				} else {
 					// need to apply the patch to the downgraded version and then upgrade it
@@ -1010,12 +1295,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return fail(TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 					}
 					// replace the state with the upgraded version and propagate the patch op
-					const diff = doc.replaceState(upgraded.value, this.clock)
+					const diff = doc.replaceState(upgraded.value, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
 					if (diff.value) {
-						propagateOp(changes, id, [RecordOpType.Patch, diff.value])
+						this.documents.set(id, diff.value[1])
+						propagateOp(changes, id, [RecordOpType.Patch, diff.value[0]])
 					}
 				}
 
@@ -1053,7 +1339,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			if (message.diff && !session?.isReadonly) {
 				// The push request was for the document scope.
-				for (const [id, op] of Object.entries(message.diff!)) {
+				for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
 					switch (op[0]) {
 						case RecordOpType.Put: {
 							// Try to add the document.
@@ -1083,7 +1369,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 							// Delete the document and propagate the delete op
 							this.removeDocument(id, this.clock)
 							// Schedule a pruneTombstones call to happen on the next call stack
-							setTimeout(this.pruneTombstones, 0)
 							propagateOp(docChanges, id, op)
 							break
 						}
@@ -1161,6 +1446,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (docChanges.diff) {
 				this.documentClock = this.clock
 			}
+			if (presenceChanges.diff) {
+				didPresenceChange = true
+			}
 
 			return
 		})
@@ -1169,21 +1457,48 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (this.documentClock !== initialDocumentClock) {
 			this.onDataChange?.()
 		}
+
+		if (didPresenceChange) {
+			this.onPresenceChange?.()
+		}
 	}
 
 	/**
-	 * Handle the event when a client disconnects.
+	 * Handle the event when a client disconnects. Cleans up the session and
+	 * removes any presence information.
 	 *
-	 * @param sessionId - The session that disconnected.
+	 * @param sessionId - The session that disconnected
+	 * @example
+	 * ```ts
+	 * websocket.onClose(() => {
+	 *   room.handleClose(sessionId)
+	 * })
+	 * ```
 	 */
 	handleClose(sessionId: string) {
 		this.cancelSession(sessionId)
 	}
 
 	/**
-	 * Allow applying changes to the store in a transactional way.
-	 * @param updater - A function that will be called with a store object that can be used to make changes.
-	 * @returns A promise that resolves when the transaction is complete.
+	 * Apply changes to the room's store in a transactional way. Changes are
+	 * automatically synchronized to all connected clients.
+	 *
+	 * @param updater - Function that receives store methods to make changes
+	 * @returns Promise that resolves when the transaction is complete
+	 * @example
+	 * ```ts
+	 * // Add multiple shapes atomically
+	 * await room.updateStore((store) => {
+	 *   store.put(createShape({ type: 'geo', x: 100, y: 100 }))
+	 *   store.put(createShape({ type: 'text', x: 200, y: 200 }))
+	 * })
+	 *
+	 * // Async operations are supported
+	 * await room.updateStore(async (store) => {
+	 *   const template = await loadTemplate()
+	 *   template.shapes.forEach(shape => store.put(shape))
+	 * })
+	 * ```
 	 */
 	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
 		if (this._isClosed) {
@@ -1208,12 +1523,47 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 }
 
 /**
+ * Interface for making transactional changes to room store data. Used within
+ * updateStore transactions to modify documents atomically.
+ *
+ * @example
+ * ```ts
+ * await room.updateStore((store) => {
+ *   const shape = store.get('shape:123')
+ *   if (shape) {
+ *     store.put({ ...shape, x: shape.x + 10 })
+ *   }
+ *   store.delete('shape:456')
+ * })
+ * ```
+ *
  * @public
  */
 export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+	/**
+	 * Add or update a record in the store.
+	 *
+	 * @param record - The record to store
+	 */
 	put(record: R): void
+	/**
+	 * Delete a record from the store.
+	 *
+	 * @param recordOrId - The record or record ID to delete
+	 */
 	delete(recordOrId: R | string): void
+	/**
+	 * Get a record by its ID.
+	 *
+	 * @param id - The record ID
+	 * @returns The record or null if not found
+	 */
 	get(id: string): R | null
+	/**
+	 * Get all records in the store.
+	 *
+	 * @returns Array of all records
+	 */
 	getAll(): R[]
 }
 

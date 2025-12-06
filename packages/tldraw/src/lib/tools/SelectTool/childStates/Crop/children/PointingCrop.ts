@@ -12,8 +12,15 @@ export class PointingCrop extends StateNode {
 			this.editor.setCurrentTool('select.crop.translating_crop', info)
 		}
 	}
+	override onLongPress(info: TLPointerEventInfo) {
+		this.startDragging(info)
+	}
 
 	override onPointerUp(info: TLPointerEventInfo) {
 		this.editor.setCurrentTool('select.crop.idle', info)
+	}
+
+	startDragging(info: TLPointerEventInfo) {
+		this.editor.setCurrentTool('select.crop.translating_crop', info)
 	}
 }

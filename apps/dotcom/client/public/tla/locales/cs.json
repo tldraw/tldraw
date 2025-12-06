@@ -2,14 +2,14 @@
   "0095a9fa74": {
     "translation": "Vývozní"
   },
+  "00b177e080": {
+    "translation": "Přijmout pozvání"
+  },
   "03b3e13197": {
     "translation": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
   },
   "043973ec1f": {
     "translation": "Stále máte potíže? {GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "Otevřete tldraw."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -20,23 +20,53 @@
   "08331c1710": {
     "translation": "Překročen limit sazby, zkuste to znovu později."
   },
+  "08bd40c754": {
+    "translation": "Účet"
+  },
+  "0a91f7fa87": {
+    "translation": "Tento soubor dosáhl limitu velikosti a změny se již nemusí uložit. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
+  },
+  "0ab1ef22a3": {
+    "translation": "Promluvte si se skupinou…"
+  },
   "0b27918290": {
     "translation": "Soubor"
   },
   "0b9a4cde72": {
     "translation": "Nabídka Soubor"
   },
+  "0befa10111": {
+    "translation": "Víly"
+  },
+  "0d1f2bb523": {
+    "translation": "Odeslat zpětnou vazbu"
+  },
   "110a4b01be": {
     "translation": "Publikovat"
+  },
+  "11a755d598": {
+    "translation": "Zastávka"
+  },
+  "129b9e34ea": {
+    "translation": "Opustit skupinu"
+  },
+  "12a6766ba1": {
+    "translation": "Odepnout soubor"
+  },
+  "12c8a9838c": {
+    "translation": "Vyzkoušejte sadu SDK tldraw"
   },
   "13ddd375ad": {
     "translation": "Exportovat jako"
   },
+  "146ffe2fd9": {
+    "translation": "Zobrazit více"
+  },
+  "14d65465b7": {
+    "translation": "Smazat skupinu"
+  },
   "181b90f889": {
     "translation": "Vytvořit soubor"
-  },
-  "1bef75f760": {
-    "translation": "Dovolte tldraw, aby mi o tom poslal e-mail"
   },
   "1da2e8106b": {
     "translation": "Došlo k neočekávané chybě."
@@ -44,11 +74,35 @@
   "1dd1c5fb7f": {
     "translation": "Dnes"
   },
-  "26e5b44256": {
-    "translation": "Dejte nám zpětnou vazbu"
+  "23f879f41a": {
+    "translation": "Váš týdenní limit pro využití víl byl dosažen. Na začátku příštího týdne bude resetován."
+  },
+  "243924bfd5": {
+    "translation": "Spát"
+  },
+  "2445e5e347": {
+    "translation": "Vytvořit skupinu"
+  },
+  "250ddea65c": {
+    "translation": "O tldraw"
+  },
+  "269097080b": {
+    "translation": "Tvoje víly čekají"
+  },
+  "275173253d": {
+    "translation": "Přivolat všechny"
+  },
+  "284d5cd0dd": {
+    "translation": "Model:"
   },
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
+  },
+  "2c3ef76333": {
+    "translation": "Moje soubory"
+  },
+  "30cd34258a": {
+    "translation": "V prosinci se do tldraw sjela skupinka <b>víl</b>. Chcete-li se o tom dozvědět více, najděte vílu a klikněte na ni."
   },
   "31246941ad": {
     "translation": "Chcete-li zobrazit tento soubor, musíte se přihlásit."
@@ -56,14 +110,41 @@
   "31418ce4ad": {
     "translation": "i18n: Zvýraznění chybí"
   },
-  "32656a600c": {
-    "translation": "Vidíš něco špatně? Máte nápad na vylepšení tldraw? Rádi bychom to slyšeli!"
+  "3209f407ed": {
+    "translation": "tři víly"
+  },
+  "32210b37e4": {
+    "translation": "Přidat odkaz"
+  },
+  "324a0f3182": {
+    "translation": "Zpět na tldraw"
   },
   "335defdafe": {
     "translation": "Zkuste prosím obnovit stránku."
   },
+  "34140869c6": {
+    "translation": "V prosinci se do tldraw blíží vílí chaos. Zkuste to prosím znovu 1. prosince."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34abfe7a0d": {
+    "translation": "Spát všichni"
+  },
+  "34e34c43ec": {
+    "translation": "Spravovat"
+  },
+  "3596c1b1f7": {
+    "translation": "Přestat sledovat"
+  },
+  "3903aab323": {
+    "translation": "Následovat"
+  },
+  "3b6c2b4caa": {
+    "translation": "Podmínky služby"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Pokračovat s e-mailem"
   },
   "3bd1b98dbd": {
     "translation": "Změny nelze publikovat."
@@ -71,29 +152,59 @@
   "3c5e891bff": {
     "translation": "Připnuto"
   },
+  "3d0238bf16": {
+    "translation": "Přijmout vše"
+  },
   "42e53c47c1": {
     "translation": "Kontaktujte vlastníka a požádejte o přístup."
   },
   "44db318ee5": {
     "translation": "Získejte pomoc na Discordu"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Víly</strong> přišly kreslit v prosinci."
+  },
   "46137245cd": {
     "translation": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
   },
-  "4778b9f3f2": {
-    "translation": "Nastavení soukromí"
+  "465a8a92a4": {
+    "translation": "Nebyly vybrány žádné víly"
+  },
+  "477df802ca": {
+    "translation": "Chcete-li pokračovat v úpravách, zkopírujte soubor do svých souborů."
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Připnout soubor"
+  },
+  "49049467ff": {
+    "translation": "Vložit URL soubor tldraw..."
+  },
   "4908687e50": {
     "translation": "Opravdu chcete tento soubor zapomenout?"
   },
-  "4c06678729": {
-    "translation": "Ke zlepšení našich služeb používáme cookies první strany. <a>Další informace</a>"
+  "49ee308734": {
+    "translation": "Jméno"
+  },
+  "4c41e0bd95": {
+    "translation": "Vybrat vše"
+  },
+  "4d0d3ddec9": {
+    "translation": "Tato stránka používá soubory cookie k fungování aplikace a ke shromažďování analytických údajů."
   },
   "4d1c8263ba": {
     "translation": "Znovu načíst"
+  },
+  "4da5988a2e": {
+    "translation": "Smazat skupinu…"
+  },
+  "4dab36ac83": {
+    "translation": "Více možností"
+  },
+  "4e6fbf032b": {
+    "translation": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
   },
   "50db1b7e1e": {
     "translation": "Publikování souboru nelze zrušit."
@@ -101,11 +212,11 @@
   "517bb809d9": {
     "translation": "Nabídka stránek"
   },
+  "542248f0ba": {
+    "translation": "Tento soubor je nyní pouze pro čtení."
+  },
   "54286b1d01": {
     "translation": "Bylo dosaženo limitu spolupracovníků"
-  },
-  "54d240fa41": {
-    "translation": "Prosím zpomalte."
   },
   "554a05155c": {
     "translation": "Stále máte potíže? <a>Nahlásit problém</a>"
@@ -113,23 +224,32 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "Pro zlepšení webu tldraw používáme analytické soubory cookie."
+  },
   "56c34c6410": {
     "translation": "Zásady ochrany osobních údajů"
   },
-  "5817f82c16": {
-    "translation": "Volitelné — Pomozte nám pochopit, jak lidé používají tldraw a jak jej můžeme vylepšit."
+  "5a2ccdc00a": {
+    "translation": "Uplatnění pozvánkového kódu se nezdařilo"
+  },
+  "5a86b22fa0": {
+    "translation": "Přetáhněte soubory sem, <create>vytvořte soubor</create> nebo <invite>zkopírujte odkaz na pozvánku</invite> a začněte."
   },
   "5a95a425f7": {
     "translation": "Podíl"
   },
-  "5d160eb095": {
-    "translation": "Vaše relace"
+  "5bec508475": {
+    "translation": "Byl detekován starý prohlížeč. Pro použití této aplikace prosím aktualizujte prohlížeč."
+  },
+  "5c6fe42bc2": {
+    "translation": "Zrušte toto propojení a vytvořte nové."
   },
   "5d26ae7550": {
     "translation": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
   },
-  "5db1e9a8ca": {
-    "translation": "Vyplňte tento formulář, <discord>chatujte s námi na Discordu</discord> nebo <github>odešlete problém na GitHub</github>."
+  "5ea8bb44be": {
+    "translation": "Byli jste pozváni do skupiny:"
   },
   "5f3c333678": {
     "translation": "Odeslaná zpětná vazba"
@@ -140,14 +260,38 @@
   "61057a0c84": {
     "translation": "Později"
   },
+  "61daf2e53d": {
+    "translation": "Promluvte si s {name}…"
+  },
   "625fd29749": {
     "translation": "Starší"
+  },
+  "639bae9ac6": {
+    "translation": "Vy"
+  },
+  "6602bbeb29": {
+    "translation": "Průvodce"
   },
   "6609dd239e": {
     "translation": "Něco se pokazilo"
   },
   "6637a98151": {
     "translation": "K dispozici je nová verze tldraw. Chcete-li pokračovat, znovu načtěte stránku."
+  },
+  "6832ac5936": {
+    "translation": "Zadejte svou e-mailovou adresu"
+  },
+  "688761c83e": {
+    "translation": "Probudit"
+  },
+  "68d390535e": {
+    "translation": "Zadejte svou zprávu"
+  },
+  "6910bbdc82": {
+    "translation": "Jméno víly"
+  },
+  "695c3e899d": {
+    "translation": "Ladění víl"
   },
   "6a26f54883": {
     "translation": "Pomoc"
@@ -158,8 +302,14 @@
   "6dfc62f621": {
     "translation": "Chcete-li obsah importovat ručně, postupujte takto:"
   },
+  "70222abcfc": {
+    "translation": "Nastavení skupiny"
+  },
   "70a6facb9d": {
     "translation": "Tento týden"
+  },
+  "71a29b007b": {
+    "translation": "Máte chybu, problém nebo nápad ohledně tldraw? Dejte nám vědět!"
   },
   "73ab799383": {
     "translation": "Tato verze tldraw již není podporována."
@@ -182,14 +332,41 @@
   "764671e008": {
     "translation": "Chatujte s námi na Discordu"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw je bezplatná online bílá tabule. Vytvořte si účet pro ukládání souborů a spolupráci s přáteli."
+  },
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
+  },
+  "7827371d1a": {
+    "translation": "Tento anonymní soubor pro více hráčů ve hře tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte jej do svých souborů."
+  },
+  "78e9815992": {
+    "translation": "Rozumím"
   },
   "797799f35e": {
     "translation": "Odešlete problém na GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Víla je malý chlapík, který s vámi může pracovat na plátně. Víly mohou pracovat samy nebo v týmu. Neexistují žádná omezení toho, co víla dokáže. Nikdo neví, odkud se vzaly."
+  },
+  "7b1329f5ca": {
+    "translation": "Uživatelská příručka"
+  },
+  "7be10fc592": {
+    "translation": "Obnovit verzi"
+  },
+  "7c0747a5df": {
+    "translation": "Otevřít tldraw"
+  },
+  "7cb471f815": {
+    "translation": "Byli jste pozváni, abyste se připojili k vílám tldraw!"
+  },
   "7cb5f8b4a5": {
     "translation": "Zapomenout"
+  },
+  "7cfe6c43dc": {
+    "translation": "Opustit skupinu…"
   },
   "7daeced9ff": {
     "translation": "Publikovat změny"
@@ -197,8 +374,17 @@
   "7fcdcc6455": {
     "translation": "Zapomenout soubor"
   },
-  "81d389ac80": {
-    "translation": "Export obsahu jako soubor .tldr: V levém horním menu vyberte 'Stáhnout soubor'."
+  "801ab24683": {
+    "translation": "Stáhnout"
+  },
+  "815e116a2e": {
+    "translation": "Máte chybu, problém nebo nápad ohledně tldraw? Dejte nám vědět! Vyplňte tento formulář a v případě potřeby se vám ozveme e-mailem. Můžete si také <discord>chatovat s námi na Discordu</discord> nebo <github>nahlásit problém na GitHubu</github>."
+  },
+  "81aa2078d1": {
+    "translation": "Vymazat vše"
+  },
+  "83218ac34c": {
+    "translation": "Vítejte"
   },
   "85a082de1b": {
     "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
@@ -208,6 +394,24 @@
   },
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
+  },
+  "8726ef8909": {
+    "translation": "Tvrdý reset"
+  },
+  "88e83b88c5": {
+    "translation": "Zakoupit balíček víl"
+  },
+  "8ad4303b83": {
+    "translation": "Ne, děkuji."
+  },
+  "8be569f100": {
+    "translation": "jednorázová platba"
+  },
+  "8c2d3d730c": {
+    "translation": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
+  },
+  "8cf04a9734": {
+    "translation": "Domov"
   },
   "8eb2c00e96": {
     "translation": "Sdíleno s vámi"
@@ -227,11 +431,38 @@
   "91e49bb0eb": {
     "translation": "Kopírovat do mých souborů"
   },
+  "930390d222": {
+    "translation": "Zkopírován odkaz na pozvánku"
+  },
+  "94186070ef": {
+    "translation": "Zrušit výběr"
+  },
+  "94966d9074": {
+    "translation": "Poslat"
+  },
+  "95aacd4d4a": {
+    "translation": "Přihlásit se pomocí Googlu"
+  },
+  "95d2109dc8": {
+    "translation": "Sestavení s tldraw SDK"
+  },
   "96165d6df5": {
     "translation": "Tento měsíc"
   },
+  "985a4b720f": {
+    "translation": "Podmínky použití"
+  },
+  "98c997a27e": {
+    "translation": "Přidat odkaz na soubor"
+  },
   "9914a0ce04": {
     "translation": "Světlo"
+  },
+  "9953e9946b": {
+    "translation": "Zobrazení ladění"
+  },
+  "9b33f5c63c": {
+    "translation": "Neobdrželi jste kód? <resend>Znovu odeslat</resend>."
   },
   "9bef626805": {
     "translation": "Smazat soubor"
@@ -245,6 +476,9 @@
   "9e93c98d88": {
     "translation": "Odhlásit se"
   },
+  "a0da245992": {
+    "translation": "Export obsahu jako souboru .tldr: V levé horní nabídce vyberte možnost „Stáhnout“."
+  },
   "a104439641": {
     "translation": "Vycpávka"
   },
@@ -257,17 +491,32 @@
   "a239905023": {
     "translation": "Export obrázku"
   },
+  "a286d9991c": {
+    "translation": "Připojit se"
+  },
   "a3debabee7": {
     "translation": "Zásady používání souborů cookie"
   },
   "a4d3b161ce": {
     "translation": "Předložit"
   },
+  "a603905470": {
+    "translation": "Ladit"
+  },
   "a6cc403d56": {
     "translation": "Kdokoli s odkazem"
   },
   "a768caa988": {
     "translation": "Analytics"
+  },
+  "a8873770ab": {
+    "translation": "Soubor se zvětšuje"
+  },
+  "a8de4c27a8": {
+    "translation": "Dosažen týdenní limit víl"
+  },
+  "a917baaf14": {
+    "translation": "Nový chat"
   },
   "a9ded1e5ce": {
     "translation": "Pozadí"
@@ -279,14 +528,35 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Naposledy publikováno <date></date>"
   },
+  "b028909917": {
+    "translation": "Hostující uživatel"
+  },
+  "b2c3c2e30c": {
+    "translation": "Soubor je plný"
+  },
+  "b34a671e2c": {
+    "translation": "Doba odezvy protokolu"
+  },
+  "b357b524e7": {
+    "translation": "E-mailová adresa"
+  },
+  "b3d2db69fe": {
+    "translation": "URL souboru"
+  },
   "b6d4223e60": {
     "translation": "Přihlaste se"
+  },
+  "b6f4a2ec63": {
+    "translation": "Majitel"
   },
   "b758336699": {
     "translation": "Zkopírujte odkaz"
   },
-  "bb792693e2": {
-    "translation": "Odepnout"
+  "ba0318cb81": {
+    "translation": "Přihlaste se pro sdílení"
+  },
+  "bb93a7590f": {
+    "translation": "Přijmout a připojit se ke skupině"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Nahrávání souboru .tldr…} few {} many {} other {Nahrávání {uploaded} z {total} souborů .tldr…}}"
@@ -294,17 +564,32 @@
   "bc88b0e89e": {
     "translation": "Sdílel {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Nahrajte soubory .tldr"
+  "be4f1c62d3": {
+    "translation": "Přiblížit na vílu"
   },
   "c2276c9127": {
     "translation": "Další informace o sdílení."
   },
+  "c28aed8348": {
+    "translation": "Povolte <cookies>analytics</cookies>, které nám pomohou vylepšit tldraw."
+  },
   "c303bd1095": {
     "translation": "Soubor nelze publikovat."
   },
-  "c4408d3350": {
-    "translation": "Přijmout"
+  "c3bf447eab": {
+    "translation": "OTEVŘENO"
+  },
+  "c3eb5c3b90": {
+    "translation": "Rozumím"
+  },
+  "c4b39a1cc3": {
+    "translation": "Základní soubory cookie"
+  },
+  "c6155aaecc": {
+    "translation": "Název skupiny"
+  },
+  "c64518704c": {
+    "translation": "Používání"
   },
   "c655b27b1e": {
     "translation": "i18n: Dlouhá struna"
@@ -312,8 +597,14 @@
   "c6a00f137b": {
     "translation": "Pozvat"
   },
+  "c74ea6dbff": {
+    "translation": "Zobrazit méně"
+  },
   "c87aacf567": {
     "translation": "Odhlaste se"
+  },
+  "c9cc8cce24": {
+    "translation": "Uložit"
   },
   "cceaefbc20": {
     "translation": "Sdílet tento soubor"
@@ -321,8 +612,11 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
-  "cd16f555de": {
-    "translation": "Essential — Nutné k ukládání souborů a nastavení a jejich synchronizaci mezi vašimi zařízeními."
+  "ce0547606c": {
+    "translation": "Tento soubor se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
+  },
+  "ce1424d44b": {
+    "translation": "Už máš přístup k vílám!"
   },
   "cea291e45e": {
     "translation": "Další informace o publikování."
@@ -330,11 +624,14 @@
   "d3d2e61733": {
     "translation": "Blízko"
   },
+  "d46632fe1f": {
+    "translation": "Příliš mnoho požadavků. Prosím, zpomalte."
+  },
   "d4bbf74f3e": {
     "translation": "Přepnout postranní panel"
   },
-  "d5ef96e383": {
-    "translation": "Stáhnout soubor"
+  "d638a3344b": {
+    "translation": "Než začnete, přijměte prosím naše <tos>podmínky použití</tos> a <privacy>zásady ochrany osobních údajů</privacy>."
   },
   "d721757161": {
     "translation": "Téma"
@@ -342,26 +639,62 @@
   "d876a9fe1a": {
     "translation": "Zkuste to znovu"
   },
+  "d88ad2dc74": {
+    "translation": "Přijmout a pokračovat"
+  },
   "d9100f3e10": {
     "translation": "Přejděte sem a podívejte se na obsah"
+  },
+  "d9bfb9789a": {
+    "translation": "Povolit víly"
+  },
+  "d9e35d0f55": {
+    "translation": "Dosáhli jste maximálního počtu skupin. Před vytvořením nových skupin je třeba smazat staré skupiny."
   },
   "dbbebf3c03": {
     "translation": "Pouze na pozvání"
   },
+  "dc30bc0c79": {
+    "translation": "Jasný"
+  },
+  "dcdaa754fe": {
+    "translation": "Neplatná adresa URL souboru tldraw"
+  },
+  "de290d52ef": {
+    "translation": "Vyberte si vílu vpravo, se kterou si chcete popovídat."
+  },
+  "df6ff49394": {
+    "translation": "Víly jsou <strong>dočasnou</strong> funkcí. 1. ledna 2026 budou všechny víly z aplikace odstraněny. Možná se někdy vrátí. Váš nákup je pouze pro přístup k vílám v prosinci 2025."
+  },
   "dfdb78a4e4": {
     "translation": "Příznaky ladění aplikace"
   },
-  "e371526ad0": {
-    "translation": "Tento soubor cookie je vyžadován pro fungování tldraw a nelze jej zakázat."
+  "e062622261": {
+    "translation": "Vybrat"
+  },
+  "e0c88179b3": {
+    "translation": "Pozvat členy"
+  },
+  "e2198d6228": {
+    "translation": "Kopírovat odkaz na pozvánku"
+  },
+  "e2ae80a510": {
+    "translation": "Právní shrnutí"
+  },
+  "e3afed0047": {
+    "translation": "Administrátor"
   },
   "e404559826": {
     "translation": "Podmínky služby"
   },
-  "e78e14c5f1": {
-    "translation": "Připnout"
+  "e43ec38a93": {
+    "translation": "Jdi na"
   },
-  "e8d1090cb9": {
-    "translation": "Soubory cookie používáme k udržení přihlášení, k synchronizaci souborů a ke shromažďování analýz, které nám pomohou zlepšit tldraw. Přečtěte si naše <a>zásady používání souborů cookie</a>, kde se dozvíte více."
+  "e81c4e4f2b": {
+    "translation": "nebo"
+  },
+  "ea0626ac5a": {
+    "translation": "Nebezpečná zóna"
   },
   "ea4788705e": {
     "translation": "Zrušit"
@@ -381,11 +714,41 @@
   "ed75712b0e": {
     "translation": "Duplikát"
   },
+  "ede55d955f": {
+    "translation": "Přečtěte si naše <a>zásady používání souborů cookie</a> a dozvíte se více."
+  },
+  "eee6f05922": {
+    "translation": "Rozpustit"
+  },
+  "ef53538ae4": {
+    "translation": "Členové"
+  },
+  "ef7de3f485": {
+    "translation": "vybraný"
+  },
+  "efde983742": {
+    "translation": "Přivolat"
+  },
+  "f09b16bc5f": {
+    "translation": "Používáme soubory cookie, abychom vás udrželi přihlášené, synchronizovali vaše soubory a shromažďovali analytické údaje, které nám pomáhají vylepšovat tldraw."
+  },
+  "f0e8bff6f9": {
+    "translation": "Uživatelská nastavení"
+  },
+  "f2569594b2": {
+    "translation": "Tyto soubory cookie používáme k ukládání vašich souborů a nastavení."
+  },
   "f2a6c498fb": {
     "translation": "Vymazat"
   },
-  "f43fb62093": {
-    "translation": "Zpět k tldraw."
+  "f4f70727dc": {
+    "translation": "Nastavení"
+  },
+  "f714e36843": {
+    "translation": "Jste si jistý/á, že chcete tuto skupinu opustit?"
+  },
+  "fa2ead697d": {
+    "translation": "Zásady ochrany osobních údajů"
   },
   "fb15c53f22": {
     "translation": "Prohlížeč"
@@ -395,5 +758,11 @@
   },
   "fed5ec05eb": {
     "translation": "Zkopírován odkaz"
+  },
+  "ff7a814974": {
+    "translation": "Přidat odkaz na soubor…"
+  },
+  "ffcd73e997": {
+    "translation": "Importovat soubor…"
   }
 }

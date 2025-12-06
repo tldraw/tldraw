@@ -10,7 +10,6 @@ import {
 	TLRichText,
 	TLShapeId,
 	preventDefault,
-	stopEventPropagation,
 	useEditor,
 	useEvent,
 	useUniqueSafeId,
@@ -29,6 +28,8 @@ export interface TextAreaProps {
 	handleChange(changeInfo: { plaintext?: string; richText?: TLRichText }): void
 	handleInputPointerDown(e: React.PointerEvent<HTMLElement>): void
 	handleDoubleClick(e: any): any
+	handlePaste(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>): void
+	hasCustomTabBehavior?: boolean
 }
 
 /**
@@ -54,6 +55,8 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		handleBlur,
 		handleKeyDown,
 		handleDoubleClick,
+		hasCustomTabBehavior,
+		handlePaste,
 	},
 	ref
 ) {
@@ -110,6 +113,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	const onFocus = useEvent(handleFocus)
 	const onBlur = useEvent(handleBlur)
 	const onDoubleClick = useEvent(handleDoubleClick)
+	const onPaste = useEvent(handlePaste)
 	useLayoutEffect(() => {
 		if (!isEditing || !tipTapConfig || !rTextEditorEl.current) return
 
@@ -161,13 +165,17 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			},
 			editorProps: {
 				handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
-					if (event.key === 'Tab') {
+					if (!hasCustomTabBehavior && event.key === 'Tab') {
 						handleTab(editor, view, event)
 					}
 
 					onKeyDown(event)
 				},
-				handleDoubleClick: (view, pos, event) => onDoubleClick(event),
+				handlePaste: (view: EditorView, event: ClipboardEvent) => {
+					onPaste(event)
+					if (event.defaultPrevented) return true
+				},
+				handleDoubleClick: (_view, _pos, event) => onDoubleClick(event),
 				...editorProps,
 			},
 			coreExtensionOptions: {
@@ -206,9 +214,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		onBlur,
 		onDoubleClick,
 		onChange,
+		onPaste,
 		onKeyDown,
 		editor,
 		shapeId,
+		hasCustomTabBehavior,
 	])
 
 	if (!isEditing || !tipTapConfig) {
@@ -222,13 +232,13 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			tabIndex={-1}
 			data-testid="rich-text-area"
 			className="tl-rich-text tl-text tl-text-input"
-			onContextMenu={isEditing ? stopEventPropagation : undefined}
+			onContextMenu={isEditing ? (e) => e.stopPropagation() : undefined}
 			// N.B. When PointerStateExtension was introduced, this was moved there.
 			// However, that caused selecting over list items to break.
 			// The handleDOMEvents in TipTap don't seem to support the pointerDownCapture event.
-			onPointerDownCapture={stopEventPropagation}
+			onPointerDownCapture={(e) => e.stopPropagation()}
 			// This onTouchEnd is important for Android to be able to change selection on text.
-			onTouchEnd={stopEventPropagation}
+			onTouchEnd={(e) => e.stopPropagation()}
 			// On FF, there's a behavior where dragging a selection will grab that selection into
 			// the drag event. However, once the drag is over, and you select away from the textarea,
 			// starting a drag over the textarea will restart a selection drag instead of a shape drag.

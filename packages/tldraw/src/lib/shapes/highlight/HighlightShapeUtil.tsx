@@ -10,6 +10,7 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
+	getColorValue,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
@@ -289,7 +290,12 @@ function HighlightRenderer({
 			: getShapeDot(shape.props.segments[0].points[0])
 
 	const colorSpace = useColorSpace()
-	const color = theme[shape.props.color].highlight[colorSpace]
+
+	const color = getColorValue(
+		theme,
+		shape.props.color,
+		colorSpace === 'p3' ? 'highlightP3' : 'highlightSrgb'
+	)
 
 	return (
 		<path
@@ -309,7 +315,7 @@ function useHighlightForceSolid(editor: Editor, shape: TLHighlightShape) {
 		'forceSolid',
 		() => {
 			const sw = getStrokeWidth(shape)
-			const zoomLevel = editor.getZoomLevel()
+			const zoomLevel = editor.getEfficientZoomLevel()
 			if (sw / zoomLevel < 1.5) {
 				return true
 			}

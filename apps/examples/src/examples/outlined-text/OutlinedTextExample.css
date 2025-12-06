@@ -1,0 +1,10 @@
+.outlined {
+	-webkit-text-stroke: 2px #000000;
+	text-stroke: 2px #000000;
+	color: transparent;
+	font-weight: bold;
+}
+
+.outlined.filled {
+	color: #ffffff;
+}

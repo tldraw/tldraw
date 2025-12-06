@@ -1,6 +1,8 @@
 import react from '@vitejs/plugin-react-swc'
 import { config } from 'dotenv'
+import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
+import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 config({
 	path: './.env.local',
@@ -27,8 +29,28 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
-	plugins: [react({ tsDecorators: true })],
+	plugins: [
+		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
+		react({
+			tsDecorators: true,
+			plugins: [
+				[
+					'@swc/plugin-formatjs',
+					{
+						idInterpolationPattern: '[md5:contenthash:hex:10]',
+						additionalComponentNames: ['F'],
+						ast: true,
+					},
+				],
+			],
+		}),
+	],
 	publicDir: './public',
+	resolve: {
+		alias: {
+			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser',
+		},
+	},
 	build: {
 		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files
 		// these get uploaded to Sentry and can be used for debugging
@@ -45,10 +67,15 @@ export default defineConfig((env) => ({
 				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
 		),
 		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
+		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, 4848),
 		'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
 		'process.env.IMAGE_WORKER': urlOrLocalFallback(env.mode, process.env.IMAGE_WORKER, 8786),
+		'process.env.FAIRY_WORKER': urlOrLocalFallback(env.mode, process.env.FAIRY_WORKER, 8789),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
+		'process.env.PADDLE_CLIENT_TOKEN': JSON.stringify(process.env.PADDLE_CLIENT_TOKEN ?? ''),
+		'process.env.PADDLE_ENVIRONMENT': JSON.stringify(process.env.PADDLE_ENVIRONMENT ?? 'sandbox'),
+		'process.env.PADDLE_FAIRY_PRICE_ID': JSON.stringify(process.env.PADDLE_FAIRY_PRICE_ID ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
 		'process.env.SENTRY_DSN': JSON.stringify(

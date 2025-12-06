@@ -1,13 +1,18 @@
-import { IRequest, error } from 'itty-router'
-import { Environment } from './types'
+import { error, IRequest } from 'itty-router'
 
 // assets are stored in the bucket under the /uploads path
 function getAssetObjectName(uploadId: string) {
-	return `uploads/${uploadId.replace(/[^a-zA-Z0-9\_\-]+/g, '_')}`
+	return `uploads/${uploadId.replace(/[^a-zA-Z0-9_-]+/g, '_')}`
+}
+
+declare global {
+	interface CacheStorage {
+		default: Cache
+	}
 }
 
 // when a user uploads an asset, we store it in the bucket. we only allow image and video assets.
-export async function handleAssetUpload(request: IRequest, env: Environment) {
+export async function handleAssetUpload(request: IRequest, env: Env) {
 	const objectName = getAssetObjectName(request.params.uploadId)
 
 	const contentType = request.headers.get('content-type') ?? ''
@@ -27,11 +32,7 @@ export async function handleAssetUpload(request: IRequest, env: Environment) {
 }
 
 // when a user downloads an asset, we retrieve it from the bucket. we also cache the response for performance.
-export async function handleAssetDownload(
-	request: IRequest,
-	env: Environment,
-	ctx: ExecutionContext
-) {
+export async function handleAssetDownload(request: IRequest, env: Env, ctx: ExecutionContext) {
 	const objectName = getAssetObjectName(request.params.uploadId)
 
 	// if we have a cached response for this request (automatically handling ranges etc.), return it

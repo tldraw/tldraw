@@ -1,6 +1,8 @@
-import * as Popover from '@radix-ui/react-popover'
-import { preventDefault, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
@@ -10,12 +12,11 @@ import { UserPresenceEditor } from './UserPresenceEditor'
 
 /** @public */
 export interface PeopleMenuProps {
-	displayUserWhenAlone: boolean
 	children?: ReactNode
 }
 
 /** @public @react */
-export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) {
+export function PeopleMenu({ children }: PeopleMenuProps) {
 	const msg = useTranslation()
 
 	const container = useContainer()
@@ -26,17 +27,20 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
+	const breakpoint = useBreakpoint()
+	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
+
+	if (!userIds.length) return null
 
 	return (
-		<Popover.Root onOpenChange={onOpenChange} open={isOpen}>
-			<Popover.Trigger dir="ltr" asChild>
+		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
+			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
-					{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
 					<div className="tlui-people-menu__avatars">
-						{userIds.slice(-5).map((userId) => (
+						{userIds.slice(-maxAvatars).map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
 						))}
-						{(displayUserWhenAlone || userIds.length > 0) && (
+						{userIds.length > 0 && (
 							<div
 								className="tlui-people-menu__avatar"
 								style={{
@@ -46,17 +50,17 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 								{userName?.[0] ?? ''}
 							</div>
 						)}
+						{userIds.length > maxAvatars && <PeopleMenuMore count={userIds.length - maxAvatars} />}
 					</div>
 				</button>
-			</Popover.Trigger>
-			<Popover.Portal container={container}>
-				<Popover.Content
+			</_Popover.Trigger>
+			<_Popover.Portal container={container}>
+				<_Popover.Content
 					dir="ltr"
 					className="tlui-menu"
 					side="bottom"
 					sideOffset={2}
 					collisionPadding={4}
-					onEscapeKeyDown={preventDefault}
 				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
@@ -71,8 +75,8 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 						)}
 						{children}
 					</div>
-				</Popover.Content>
-			</Popover.Portal>
-		</Popover.Root>
+				</_Popover.Content>
+			</_Popover.Portal>
+		</_Popover.Root>
 	)
 }

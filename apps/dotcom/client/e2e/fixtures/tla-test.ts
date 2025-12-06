@@ -1,15 +1,16 @@
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
-import { test as base, expect, Page } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
 import fs from 'fs'
-import { sleep } from 'tldraw'
 import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
-import { createFixtures, getStorageStateFileName } from './helpers'
+import { GroupInviteDialog } from './GroupInviteDialog'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
+import { SignInDialog } from './SignInDialog'
+import { getStorageStateFileName } from './helpers'
 
 interface TlaFixtures {
 	homePage: HomePage
@@ -18,6 +19,8 @@ interface TlaFixtures {
 	shareMenu: ShareMenu
 	database: Database
 	deleteFileDialog: DeleteFileDialog
+	groupInviteDialog: GroupInviteDialog
+	signInDialog: SignInDialog
 	setupAndCleanup: void
 	retry(fn: () => Promise<void>): Promise<void>
 }
@@ -44,6 +47,12 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 	},
 	deleteFileDialog: async ({ page }, testUse) => {
 		await testUse(new DeleteFileDialog(page))
+	},
+	groupInviteDialog: async ({ page }, testUse) => {
+		await testUse(new GroupInviteDialog(page))
+	},
+	signInDialog: async ({ page }, testUse) => {
+		await testUse(new SignInDialog(page))
 	},
 	// This is an auto fixture which makes sure that we are on the home page when the test starts
 	// and that we clean up when the tests completes
@@ -135,25 +144,3 @@ export function repeatTest(
 
 repeatTest.only = (name: string, fn: (...args: any) => Promise<void>, { times = 5 } = {}) =>
 	repeatTest(name, fn, { times, only: true })
-
-const PROPAGATE_CHANGES_TIMEOUT = 100
-/**
- * Ensures that the provided expectations are met both before and after a page reload.
- *
- * @param fn - An asynchronous function containing the expectations to be tested.
- * @param page - The Playwright Page object representing the browser page.
- *
- * The function performs the following steps:
- * 1. Executes the provided expectations and ensures they pass.
- * 2. Waits for a specified timeout to allow optimistic changes to propagate to the server.
- * 3. Reloads the page.
- * 4. Executes the provided expectations again and ensures they pass.
- */
-export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: Page) {
-	await fn()
-	await sleep(PROPAGATE_CHANGES_TIMEOUT)
-	await page.reload()
-	const { newHomePage } = createFixtures(page)
-	await newHomePage.isLoaded()
-	await fn()
-}

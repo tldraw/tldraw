@@ -1,9 +1,10 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
-import { Required, annotateError } from '@tldraw/utils'
+import { annotateError, Required } from '@tldraw/utils'
+import classNames from 'classnames'
 import React, {
-	ReactNode,
 	memo,
+	ReactNode,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -12,16 +13,14 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-
-import classNames from 'classnames'
 import { version } from '../version'
-import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
-import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLStoreBaseOptions } from './config/createTLStore'
-import { TLUser, createTLUser } from './config/createTLUser'
+import { createTLUser, TLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
@@ -39,18 +38,18 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
+import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { stopEventPropagation } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when passing in a
- * {@link store#TLStore} directly. If you would like tldraw to create a store for you, use
+ * `TLStore` directly. If you would like tldraw to create a store for you, use
  * {@link TldrawEditorWithoutStoreProps}.
  *
  * @public
@@ -64,7 +63,7 @@ export interface TldrawEditorWithStoreProps {
 
 /**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when not passing in a
- * {@link store#TLStore} directly. If you would like to pass in a store directly, use
+ * `TLStore` directly. If you would like to pass in a store directly, use
  * {@link TldrawEditorWithStoreProps}.
  *
  * @public
@@ -189,13 +188,28 @@ export interface TldrawEditorBaseProps {
 	deepLinks?: true | TLDeepLinkOptions
 
 	/**
-	 * Predicate for whether or not a shape should be hidden.
+	 * Provides a way to hide shapes.
 	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
 	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeVisibility={(shape, editor) => shape.meta.hidden ? 'hidden' : 'inherit'}
+	 * ```
+	 *
+	 * - `'inherit' | undefined` - (default) The shape will be visible unless its parent is hidden.
+	 * - `'hidden'` - The shape will be hidden.
+	 * - `'visible'` - The shape will be visible.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
 	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+	getShapeVisibility?(
+		shape: TLShape,
+		editor: Editor
+	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -260,8 +274,9 @@ export const TldrawEditor = memo(function TldrawEditor({
 			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
-			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
+			role="application"
+			aria-label={_options?.branding ?? 'tldraw'}
 		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}
@@ -387,7 +402,7 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
-	isShapeHidden,
+	getShapeVisibility,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
@@ -446,7 +461,7 @@ function TldrawEditorWithReadyStore({
 				textOptions,
 				options,
 				licenseKey,
-				isShapeHidden,
+				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 			})
 
@@ -481,7 +496,7 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
-			isShapeHidden,
+			getShapeVisibility,
 			textOptions,
 			assetUrls,
 		]
@@ -557,8 +572,13 @@ function TldrawEditorWithReadyStore({
 	if (editor !== fontLoadingState?.editor) {
 		fontLoadingState = null
 	}
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!editor) return
+		if (editor.options.maxFontsToLoadBeforeRender === 0) {
+			setFontLoadingState({ editor, isLoaded: true })
+			return
+		}
+
 		let isCancelled = false
 
 		setFontLoadingState({ editor, isLoaded: false })
@@ -618,6 +638,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
+	useStateAttribute()
 	useOnMount((editor) => {
 		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)
@@ -642,7 +663,11 @@ export interface LoadingScreenProps {
 
 /** @public @react */
 export function LoadingScreen({ children }: LoadingScreenProps) {
-	return <div className="tl-loading">{children}</div>
+	return (
+		<div className="tl-loading" aria-busy="true" tabIndex={0}>
+			{children}
+		</div>
+	)
 }
 
 /** @public @react */

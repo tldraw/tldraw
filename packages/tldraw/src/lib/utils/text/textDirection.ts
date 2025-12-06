@@ -1,6 +1,9 @@
 import { Extension } from '@tiptap/core'
 
-const TextDirection = Extension.create({
+/**
+ * @public
+ */
+export const TextDirection = Extension.create({
 	name: 'textDirection',
 
 	addGlobalAttributes() {
@@ -27,5 +30,3 @@ const TextDirection = Extension.create({
 		]
 	},
 })
-
-export default TextDirection

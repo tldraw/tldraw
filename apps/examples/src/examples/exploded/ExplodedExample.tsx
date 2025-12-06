@@ -6,13 +6,14 @@ import {
 	DefaultContextMenuContent,
 	TldrawEditor,
 	TldrawHandles,
+	TldrawOverlays,
 	TldrawScribble,
-	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
+	defaultEditorAssetUrls,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
@@ -33,8 +34,8 @@ const defaultComponents = {
 	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
 	SelectionForeground: TldrawSelectionForeground,
-	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
+	Overlays: TldrawOverlays,
 }
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]
@@ -57,6 +58,7 @@ export default function ExplodedExample() {
 				components={defaultComponents}
 				persistenceKey="exploded-example"
 				textOptions={defaultTextOptions}
+				assetUrls={defaultEditorAssetUrls}
 			>
 				<TldrawUi>
 					<InsideEditorAndUiContext />

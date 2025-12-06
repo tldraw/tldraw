@@ -1,0 +1,37 @@
+app = "__APP_NAME"
+primary_region = "fra"
+
+[build]
+image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
+
+[http_service]
+internal_port = 4848
+force_https = true
+auto_stop_machines = "off"
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+timeout = "5s"
+path = "/"
+
+[[vm]]
+memory = "2gb"
+cpu_kind = "shared"
+cpus = 2
+
+[mounts]
+source = "sqlite_db"
+destination = "/data"
+
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CVR_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_AUTH_JWKS_URL = "https://clerk.staging.tldraw.com/.well-known/jwks.json"
+LOG_LEVEL = "debug"
+ZERO_PUSH_URL = "__ZERO_PUSH_URL"
+ZERO_LAZY_STARTUP = 'true'

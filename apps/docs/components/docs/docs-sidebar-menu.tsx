@@ -70,8 +70,8 @@ export function DocsSidebarMenu({
 								data-active={pathname === url}
 								className={cn(
 									'sidebar-link',
-									pathname === url
-										? 'text-black dark:text-white font-semibold line-clamp-1'
+									pathname === url || `/getting-started${pathname}` === url
+										? 'text-black dark:text-white font-semibold'
 										: 'hover:text-zinc-800 dark:hover:text-zinc-200'
 								)}
 							>

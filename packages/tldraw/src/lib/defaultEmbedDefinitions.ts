@@ -35,6 +35,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		embedOnPaste: false,
 	},
 	{
 		type: 'figma',
@@ -47,7 +48,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (
 				!!url.match(
 					// eslint-disable-next-line no-useless-escape
-					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
+					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto|design)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
 				) &&
 				!url.includes('figma.com/embed')
 			) {
@@ -65,6 +66,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		embedOnPaste: true,
 	},
 	{
 		type: 'google_maps',
@@ -116,6 +118,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		embedOnPaste: true,
 	},
 	{
 		type: 'val_town',
@@ -144,6 +147,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		embedOnPaste: true,
 	},
 	{
 		type: 'codesandbox',
@@ -170,6 +174,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		embedOnPaste: true,
 	},
 	{
 		type: 'codepen',
@@ -198,6 +203,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			}
 			return
 		},
+		embedOnPaste: true,
 	},
 	{
 		type: 'scratch',
@@ -206,6 +212,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		width: 520,
 		height: 400,
 		doesResize: false,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const SCRATCH_URL_REGEXP = /https?:\/\/scratch.mit.edu\/projects\/([^/]+)/
 			const matches = url.match(SCRATCH_URL_REGEXP)
@@ -237,6 +244,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			'allow-popups-to-escape-sandbox': true,
 		},
 		isAspectRatioLocked: true,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (!urlObj) return
@@ -244,13 +252,28 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			const hostname = urlObj.hostname.replace(/^www./, '')
 			if (hostname === 'youtu.be') {
 				const videoId = urlObj.pathname.split('/').filter(Boolean)[0]
-				return `https://www.youtube.com/embed/${videoId}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				const timeStart = searchParams.get('t')
+				if (timeStart) {
+					searchParams.set('start', timeStart)
+					searchParams.delete('t')
+				}
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			} else if (
 				(hostname === 'youtube.com' || hostname === 'm.youtube.com') &&
 				urlObj.pathname.match(/^\/watch/)
 			) {
 				const videoId = urlObj.searchParams.get('v')
-				return `https://www.youtube.com/embed/${videoId}`
+				const searchParams = new URLSearchParams(urlObj.search)
+				searchParams.delete('v')
+				const timeStart = searchParams.get('t')
+				if (timeStart) {
+					searchParams.set('start', timeStart)
+					searchParams.delete('t')
+				}
+				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
+				return `https://www.youtube.com/embed/${videoId}${search}`
 			}
 			return
 		},
@@ -262,7 +285,14 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (hostname === 'youtube.com') {
 				const matches = urlObj.pathname.match(/^\/embed\/([^/]+)\/?/)
 				if (matches) {
-					return `https://www.youtube.com/watch?v=${matches[1]}`
+					const params = new URLSearchParams(urlObj.search)
+					params.set('v', matches?.[1] ?? '')
+					const timeStart = params.get('start')
+					if (timeStart) {
+						params.set('t', timeStart)
+						params.delete('start')
+					}
+					return `https://www.youtube.com/watch?${params.toString()}`
 				}
 			}
 			return
@@ -281,6 +311,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		overridePermissions: {
 			'allow-popups-to-escape-sandbox': true,
 		},
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			const cidQs = urlObj?.searchParams.get('cid')
@@ -325,6 +356,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		overridePermissions: {
 			'allow-popups-to-escape-sandbox': true,
 		},
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 
@@ -359,6 +391,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
+		embedOnPaste: true,
 		// Security warning:
 		// Gists allow adding .json extensions to the URL which return JSONP.
 		// Furthermore, the JSONP can include callbacks that execute arbitrary JavaScript.
@@ -391,10 +424,12 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/@([^/]+)\/([^/]+)/)) {
-				return `${url}?embed=true`
+				urlObj.searchParams.append('embed', 'true')
+				return urlObj.href
 			}
 			return
 		},
@@ -418,6 +453,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/map\//)) {
@@ -443,6 +479,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		minHeight: 500,
 		overrideOutlineRadius: 12,
 		doesResize: true,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/(artist|album)\//)) {
@@ -466,6 +503,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		height: 360,
 		doesResize: true,
 		isAspectRatioLocked: true,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.hostname === 'vimeo.com') {
@@ -489,29 +527,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 	},
 	{
-		type: 'excalidraw',
-		title: 'Excalidraw',
-		hostnames: ['excalidraw.com'],
-		width: 720,
-		height: 500,
-		doesResize: true,
-		isAspectRatioLocked: true,
-		toEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
-			}
-			return
-		},
-		fromEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
-			}
-			return
-		},
-	},
-	{
 		type: 'observable',
 		title: 'Observable',
 		hostnames: ['observablehq.com'],
@@ -520,6 +535,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		doesResize: true,
 		isAspectRatioLocked: false,
 		backgroundColor: '#fff',
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/@([^/]+)\/([^/]+)\/?$/)) {
@@ -551,6 +567,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		width: 700,
 		height: 450,
 		doesResize: true,
+		embedOnPaste: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (
@@ -651,6 +668,7 @@ export interface EmbedDefinition {
 	readonly overridePermissions?: TLEmbedShapePermissions
 	readonly instructionLink?: string
 	readonly backgroundColor?: string
+	readonly embedOnPaste?: boolean
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
 	// eslint-disable-next-line @typescript-eslint/method-signature-style

@@ -16,7 +16,7 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 	const editor = useEditor()
 	const { gridSteps } = editor.options
 	return (
-		<svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
+		<svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 			<defs>
 				{gridSteps.map(({ min, mid, step }, i) => {
 					const s = step * size * z

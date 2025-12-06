@@ -1,5 +1,5 @@
 ---
-title: Meta Migrations
+title: Meta migrations
 component: ./MetaMigrations.tsx
 category: data/assets
 priority: 6

@@ -2,19 +2,10 @@
 	"extends": "../../../internal/config/tsconfig.base.json",
 	"include": ["src"],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
-	"compilerOptions": {
-		"noEmit": true,
-		"emitDeclarationOnly": false
-	},
+	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
 	"references": [
-		{
-			"path": "../../../packages/dotcom-shared"
-		},
-		{
-			"path": "../../../packages/validate"
-		},
-		{
-			"path": "../../../packages/worker-shared"
-		}
+		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/validate" },
+		{ "path": "../../../packages/worker-shared" }
 	]
 }

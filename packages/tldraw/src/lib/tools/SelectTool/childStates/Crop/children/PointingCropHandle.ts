@@ -4,7 +4,7 @@ import { CursorTypeMap } from '../../PointingResizeHandle'
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
 	target: 'selection'
 } & {
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class PointingCropHandle extends StateNode {
@@ -14,7 +14,9 @@ export class PointingCropHandle extends StateNode {
 
 	override onEnter(info: TLPointingCropHandleInfo) {
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
 
@@ -47,12 +49,17 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onPointerUp() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
-		} else {
-			this.editor.setCroppingShape(null)
-			this.editor.setCurrentTool('select.idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.editor.setCroppingShape(null)
+		this.editor.setCurrentTool('select.idle')
 	}
 
 	override onCancel() {
@@ -68,11 +75,16 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	private cancel() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
-		} else {
-			this.editor.setCroppingShape(null)
-			this.editor.setCurrentTool('select.idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.editor.setCroppingShape(null)
+		this.editor.setCurrentTool('select.idle')
 	}
 }

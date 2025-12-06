@@ -9,9 +9,9 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	StateNode,
-	TLBaseBinding,
-	TLBaseShape,
+	TLBinding,
 	TLPointerEventInfo,
+	TLShape,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -25,13 +25,20 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type StickerShape = TLBaseShape<'sticker', {}>
+const STICKER_TYPE = 'sticker'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[STICKER_TYPE]: Record<string, never>
+	}
+}
+
+type StickerShape = TLShape<typeof STICKER_TYPE>
 
 const offsetX = -16
 const offsetY = -26
 class StickerShapeUtil extends ShapeUtil<StickerShape> {
-	static override type = 'sticker' as const
+	static override type = STICKER_TYPE
 	static override props: RecordProps<StickerShape> = {}
 
 	override getDefaultProps() {
@@ -90,7 +97,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 	}
 
 	override onTranslateStart(shape: StickerShape) {
-		const bindings = this.editor.getBindingsFromShape(shape, 'sticker')
+		const bindings = this.editor.getBindingsFromShape(shape, STICKER_TYPE)
 		this.editor.deleteBindings(bindings)
 	}
 
@@ -100,7 +107,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 			hitInside: true,
 			filter: (shape) =>
 				shape.id !== sticker.id &&
-				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: 'sticker' }),
+				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: STICKER_TYPE }),
 		})
 
 		if (!target) return
@@ -114,7 +121,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		}
 
 		this.editor.createBinding({
-			type: 'sticker',
+			type: STICKER_TYPE,
 			fromId: sticker.id,
 			toId: target.id,
 			props: {
@@ -124,14 +131,18 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 	}
 }
 
-type StickerBinding = TLBaseBinding<
-	'sticker',
-	{
-		anchor: VecModel
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		[STICKER_TYPE]: {
+			anchor: VecModel
+		}
 	}
->
+}
+
+type StickerBinding = TLBinding<typeof STICKER_TYPE>
+
 class StickerBindingUtil extends BindingUtil<StickerBinding> {
-	static override type = 'sticker' as const
+	static override type = STICKER_TYPE
 
 	override getDefaultProps() {
 		return {
@@ -160,7 +171,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 
 		this.editor.updateShape({
 			id: sticker.id,
-			type: 'sticker',
+			type: STICKER_TYPE,
 			x: stickerParentAnchor.x,
 			y: stickerParentAnchor.y,
 		})
@@ -185,7 +196,7 @@ class StickerTool extends StateNode {
 		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({
 			id: stickerId,
-			type: 'sticker',
+			type: STICKER_TYPE,
 			x: currentPagePoint.x,
 			y: currentPagePoint.y,
 		})

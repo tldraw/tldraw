@@ -12,14 +12,9 @@ import {
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultSizeStyle,
 	TLDefaultTextAlignStyle,
-	TLDrawShape,
 	TLGeoShape,
-	TLImageShape,
-	TLNoteShape,
 	TLPageId,
 	TLShapeId,
-	TLTextShape,
-	TLVideoShape,
 	Vec,
 	VecModel,
 	clamp,
@@ -187,7 +182,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 					switch (v1Shape.type) {
 						case TLV1ShapeType.Sticky: {
-							editor.createShapes<TLNoteShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'note',
@@ -203,7 +198,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Rectangle: {
-							editor.createShapes<TLGeoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'geo',
@@ -225,7 +220,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes<TLGeoShape>([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -259,7 +254,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Triangle: {
-							editor.createShapes<TLGeoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'geo',
@@ -280,7 +275,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes<TLGeoShape>([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -314,7 +309,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Ellipse: {
-							editor.createShapes<TLGeoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'geo',
@@ -335,7 +330,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes<TLGeoShape>([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -375,7 +370,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								break
 							}
 
-							editor.createShapes<TLDrawShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'draw',
@@ -400,12 +395,12 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							const v2Bend = (dist * -v1Bend) / 2
 
 							// Could also be a line... but we'll use it as an arrow anyway
-							editor.createShapes<TLArrowShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'arrow',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 										color: getV2Color(v1Shape.style.color),
 										labelColor: getV2Color(v1Shape.style.color),
 										size: getV2Size(v1Shape.style.size),
@@ -429,7 +424,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Text: {
-							editor.createShapes<TLTextShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'text',
@@ -453,7 +448,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								return
 							}
 
-							editor.createShapes<TLImageShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'image',
@@ -474,7 +469,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								return
 							}
 
-							editor.createShapes<TLVideoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'video',
@@ -562,6 +557,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										y: point.y,
 									},
 									isPrecise: point.x !== 0.5 || point.y !== 0.5,
+									isCreatingShape: true,
 								})
 
 								if (change) {

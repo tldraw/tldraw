@@ -1,4 +1,4 @@
-import { preventDefault, stopEventPropagation } from '@tldraw/editor'
+import { preventDefault, useEditor } from '@tldraw/editor'
 import React from 'react'
 import { TextAreaProps } from './RichTextArea'
 
@@ -14,12 +14,14 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 		handleFocus,
 		handleChange,
 		handleKeyDown,
+		handlePaste,
 		handleBlur,
 		handleInputPointerDown,
 		handleDoubleClick,
 	},
 	ref
 ) {
+	const editor = useEditor()
 	const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		handleChange({ plaintext: e.target.value })
 	}
@@ -45,9 +47,10 @@ export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps
 			onChange={onChange}
 			onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
 			onBlur={handleBlur}
-			onTouchEnd={stopEventPropagation}
-			onContextMenu={isEditing ? stopEventPropagation : undefined}
+			onTouchEnd={editor.markEventAsHandled}
+			onContextMenu={isEditing ? (e) => e.stopPropagation() : undefined}
 			onPointerDown={handleInputPointerDown}
+			onPaste={handlePaste}
 			onDoubleClick={handleDoubleClick}
 			// On FF, there's a behavior where dragging a selection will grab that selection into
 			// the drag event. However, once the drag is over, and you select away from the textarea,

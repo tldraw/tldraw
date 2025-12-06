@@ -2,6 +2,8 @@ import test from '@playwright/test'
 import * as fs from 'fs'
 import path from 'path'
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+
 // get all routes from examples/src/examples folder
 const examplesFolderList = fs.readdirSync(path.join(__dirname, '../../src/examples'))
 const examplesWithoutCanvas = [
@@ -13,6 +15,8 @@ const examplesWithoutCanvas = [
 	'image-annotator',
 	// starts by asking the user to open a pdf
 	'pdf-editor',
+	// starts by asking the user to select a pdf (built on pdf-editor)
+	'exam-marking',
 ]
 const exampelsToTest = examplesFolderList.filter((route) => !examplesWithoutCanvas.includes(route))
 

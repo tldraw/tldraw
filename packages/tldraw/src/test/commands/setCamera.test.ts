@@ -1,4 +1,5 @@
 import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,6 +12,7 @@ beforeEach(() => {
 		},
 	})
 	editor.updateViewportScreenBounds(new Box(0, 0, 1600, 900))
+	editor.user.updateUserPreferences({ inputMode: null })
 })
 
 const wheelEvent = {
@@ -203,10 +205,22 @@ describe('CameraOptions.wheelBehavior', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
 	})
+
+	it('When input mode is set, camera wheel behavior is ignored', () => {
+		editor.user.updateUserPreferences({ inputMode: 'trackpad' })
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, wheelBehavior: 'zoom' })
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, 5, 0.01),
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
+	})
 })
 
 describe('CameraOptions.panSpeed', () => {
-	it('Effects wheel panning (2x)', () => {
+	it('Affects wheel panning (2x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2, wheelBehavior: 'pan' })
 			.dispatch({
@@ -217,7 +231,7 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 10, y: 20, z: 1 })
 	})
 
-	it('Effects wheel panning (.5x)', () => {
+	it('Affects wheel panning (.5x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 0.5, wheelBehavior: 'pan' })
 			.dispatch({
@@ -228,7 +242,7 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 2.5, y: 5, z: 1 })
 	})
 
-	it('Does not effect zoom mouse wheeling', () => {
+	it('Does not affect zoom mouse wheeling', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2, wheelBehavior: 'zoom' })
 			.dispatch({
@@ -239,33 +253,33 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1.01 }) // 1 + 1
 	})
 
-	it('Does not effect hand tool panning', () => {
+	it('Does not affect hand tool panning', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
 		editor.setCurrentTool('hand').pointerDown(0, 0).pointerMove(5, 10).forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Effects spacebar panning (2x)', () => {
+	it('Does not affect spacebar panning (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
 		editor
 			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
 			.pointerDown(0, 0)
 			.pointerMove(5, 10)
 			.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 10, y: 20, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Effects spacebar panning (0.5x)', () => {
+	it('Does not affect spacebar panning (0.5x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 0.5 })
 		editor
 			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
 			.pointerDown(0, 0)
 			.pointerMove(5, 10)
 			.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 2.5, y: 5, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Does not effect edge scroll panning', () => {
+	it('Does not affect edge scroll panning', () => {
 		const shapeId = createShapeId()
 		const viewportScreenBounds = editor.getViewportScreenBounds()
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
@@ -287,7 +301,7 @@ describe('CameraOptions.panSpeed', () => {
 })
 
 describe('CameraOptions.zoomSpeed', () => {
-	it('Effects wheel zooming (2x)', () => {
+	it('Affects wheel zooming (2x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2, wheelBehavior: 'zoom' })
 			.dispatch({
@@ -298,7 +312,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1.02 }) // 1 + (.01 * 2)
 	})
 
-	it('Effects wheel zooming (.5x)', () => {
+	it('Affects wheel zooming (.5x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5, wheelBehavior: 'zoom' })
 			.dispatch({
@@ -309,7 +323,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1.005 }) // 1 + (.01 * .5)
 	})
 
-	it('Does not effect mouse wheel panning', () => {
+	it('Does not affect mouse wheel panning', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5, wheelBehavior: 'pan' })
 			.dispatch({
@@ -320,7 +334,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Effects pinch zooming (2x)', () => {
+	it('Does not affect pinch zooming (2x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
 			.dispatch({
@@ -339,9 +353,9 @@ describe('CameraOptions.zoomSpeed', () => {
 			name: 'pinch_end',
 		})
 		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
-	it('Effects pinch zooming (0.5x)', () => {
+	it('Does not affect pinch zooming (0.5x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
 			.dispatch({
@@ -360,23 +374,23 @@ describe('CameraOptions.zoomSpeed', () => {
 			name: 'pinch_end',
 		})
 		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
-	it('Does not effect zoom tool zooming (2x)', () => {
+	it('Does not affect zoom tool zooming (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('zoom').click()
-		jest.advanceTimersByTime(300)
+		vi.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
-	it('Does not effect zoom tool zooming (0.5x)', () => {
+	it('Does not affect zoom tool zooming (0.5x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('zoom').click()
-		jest.advanceTimersByTime(300)
+		vi.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
-	it('Does not effect editor zoom method (2x)', () => {
+	it('Does not affect editor zoom method (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.zoomIn(new Vec(0, 0), { immediate: true })
@@ -384,7 +398,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		editor.zoomOut(new Vec(0, 0), { immediate: true })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
-	it('Does not effect editor zoom method (0.5x)', () => {
+	it('Does not affect editor zoom method (0.5x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.zoomIn(new Vec(0, 0), { immediate: true })
@@ -1028,7 +1042,7 @@ describe('Allows mixed values for x and y', () => {
 
 test('it animated towards the constrained viewport rather than the given viewport', () => {
 	// @ts-expect-error
-	const mockAnimateToViewport = (editor._animateToViewport = jest.fn())
+	const mockAnimateToViewport = (editor._animateToViewport = vi.fn())
 	editor.setCameraOptions({
 		...DEFAULT_CAMERA_OPTIONS,
 		constraints: {

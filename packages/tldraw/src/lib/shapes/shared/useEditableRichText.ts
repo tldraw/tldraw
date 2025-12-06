@@ -1,10 +1,14 @@
-import { TLRichText, TLShapeId, TLUnknownShape, useEditor } from '@tldraw/editor'
+import { ExtractShapeByProps, TLRichText, TLShapeId, isAccelKey, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { isEmptyRichText } from '../../utils/text/richText'
 import { useEditableTextCommon } from './useEditablePlainText'
 
 /** @public */
-export function useEditableRichText(shapeId: TLShapeId, type: string, richText?: TLRichText) {
+export function useEditableRichText(
+	shapeId: TLShapeId,
+	type: ExtractShapeByProps<{ richText: TLRichText }>['type'],
+	richText?: TLRichText
+) {
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
 	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
@@ -29,15 +33,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
-
-			switch (e.key) {
-				case 'Enter': {
-					if (e.ctrlKey || e.metaKey) {
-						editor.complete()
-					}
-					break
-				}
-			}
+			if (e.key === 'Enter' && isAccelKey(e)) editor.complete()
 		},
 		[editor, shapeId]
 	)
@@ -47,7 +43,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: string, richText?:
 		({ richText }: { richText: TLRichText }) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			editor.updateShape<TLUnknownShape & { props: { richText: TLRichText } }>({
+			editor.updateShape({
 				id: shapeId,
 				type,
 				props: { richText },
