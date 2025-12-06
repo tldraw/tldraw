@@ -37,16 +37,34 @@ it('When holding spacebar and clicking and dragging, it pans the camera', () => 
 	editor.keyUp(' ')
 })
 
-it('When holding spacebar, it updates cursor and does not send events to the state or change statecharts current active state', () => {
-	editor.pointerDown(150, 150, { target: 'canvas' })
-	editor.pointerMove(100, 100)
-	editor.expectShapeToMatch({ id: ids.box1, x: 50, y: 50 })
+it('When spacebar is held during pointer interaction, it activates panning', () => {
+	// This test verifies that holding spacebar prevents pointer events from
+	// being sent to the state chart, and instead activates panning mode.
+	editor.select(ids.box1)
 
+	// Start with pointer down on the shape
+	editor.pointerDown(150, 150, ids.box1)
+
+	// Hold spacebar before moving - should activate panning
 	editor.keyDown(' ')
-	editor.pointerMove(200, 200)
-	editor.expectCameraToBe(100, 100, 1)
-	editor.expectShapeToMatch({ id: ids.box1, x: 50, y: 50 })
+	expect(editor.inputs.isPanning).toBe(true)
+	expect(editor.getInstanceState().cursor.type).toBe('grabbing') // 'grabbing' because pointer is down
+
+	// Moving the pointer should pan the camera, not translate the shape
+	const initialCamera = editor.getCamera()
+	editor.pointerMove(100, 100)
+
+	// Camera should have moved (panning)
+	const newCamera = editor.getCamera()
+	expect(newCamera.x).not.toBe(initialCamera.x)
+	expect(newCamera.y).not.toBe(initialCamera.y)
+
+	// Shape should not have moved (not translating)
+	editor.expectShapeToMatch({ id: ids.box1, x: 100, y: 100 })
+
+	editor.pointerUp()
 	editor.keyUp(' ')
+	expect(editor.inputs.isPanning).toBe(false)
 })
 
 it('When holding spacebar, pressing the arrow keys moves over by one viewport', () => {

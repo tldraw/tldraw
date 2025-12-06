@@ -23,11 +23,14 @@ describe('TickManager', () => {
 	let mockDisposablesAdd: Mock
 	let mockInputs: {
 		_currentScreenPoint: Vec
+		getCurrentScreenPoint: () => Vec
 		currentScreenPoint: Vec
 		setCurrentScreenPoint: (value: Vec) => void
 		_pointerVelocity: Vec
+		getPointerVelocity: () => Vec
 		pointerVelocity: Vec
 		setPointerVelocity: (value: Vec) => void
+		updatePointerVelocity: (elapsed: number) => void
 	}
 
 	beforeEach(() => {
@@ -52,18 +55,27 @@ describe('TickManager', () => {
 		// Create a mock inputs object with getters and setters
 		mockInputs = {
 			_currentScreenPoint: new Vec(100, 100),
-			get currentScreenPoint() {
+			getCurrentScreenPoint() {
 				return this._currentScreenPoint
+			},
+			get currentScreenPoint() {
+				return this.getCurrentScreenPoint()
 			},
 			setCurrentScreenPoint(value: Vec) {
 				this._currentScreenPoint = value
 			},
 			_pointerVelocity: new Vec(0, 0),
-			get pointerVelocity() {
+			getPointerVelocity() {
 				return this._pointerVelocity
+			},
+			get pointerVelocity() {
+				return this.getPointerVelocity()
 			},
 			setPointerVelocity(value: Vec) {
 				this._pointerVelocity = value
+			},
+			updatePointerVelocity(_elapsed: number) {
+				// Mock implementation - no-op for tests
 			},
 		}
 

@@ -1,5 +1,4 @@
 import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
-import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
 
 const throttleToNextFrame =
@@ -41,7 +40,7 @@ export class TickManager {
 		const elapsed = now - this.now
 		this.now = now
 
-		this.updatePointerVelocity(elapsed)
+		this.editor.inputs.updatePointerVelocity(elapsed)
 		this.editor.emit('frame', elapsed)
 		this.editor.emit('tick', elapsed)
 		this.cancelRaf = throttleToNextFrame(this.tick)
@@ -53,35 +52,5 @@ export class TickManager {
 		this.isPaused = true
 
 		this.cancelRaf?.()
-	}
-
-	private prevPoint = new Vec()
-
-	updatePointerVelocity(elapsed: number) {
-		const {
-			prevPoint,
-			editor: {
-				inputs: { currentScreenPoint, pointerVelocity },
-			},
-		} = this
-
-		if (elapsed === 0) return
-
-		const delta = Vec.Sub(currentScreenPoint, prevPoint)
-		this.prevPoint = currentScreenPoint.clone()
-
-		const length = delta.len()
-		const direction = length ? delta.div(length) : new Vec(0, 0)
-
-		// consider adjusting this with an easing rather than a linear interpolation
-		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
-
-		// if the velocity is very small, just set it to 0
-		if (Math.abs(next.x) < 0.01) next.x = 0
-		if (Math.abs(next.y) < 0.01) next.y = 0
-
-		if (!pointerVelocity.equals(next)) {
-			this.editor.inputs.setPointerVelocity(next)
-		}
 	}
 }

@@ -266,36 +266,47 @@ describe('Editor.TickManager', () => {
 		// usually this is called by the app's tick manager, using the elapsed time
 		// between two animation frames, but we're calling it directly here.
 		const tick = (ms: number) => {
-			// @ts-ignore
-			editor.tick.updatePointerVelocity(ms)
+			editor.inputs.updatePointerVelocity(ms)
 		}
 
 		// 1. pointer velocity should be 0 when there is no movement
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({ x: 0, y: 0 })
 
 		editor.pointerMove(10, 10)
 
 		// 2. moving is not enough, we also need to wait a frame before the velocity is updated
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({ x: 0, y: 0 })
 
 		// 3. once time passes, the pointer velocity should be updated
 		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.3125, y: 0.3125 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.3125,
+			y: 0.3125,
+		})
 
 		// 4. let's do it again, it should be updated again. move, tick, measure
 		editor.pointerMove(20, 20)
 		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.46875, y: 0.46875 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.46875,
+			y: 0.46875,
+		})
 
 		// 5. if we tick again without movement, the velocity should decay
 		tick(16)
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.23437,
+			y: 0.23437,
+		})
 
 		// 6. if updatePointerVelocity is (for whatever reason) called with an elapsed time of zero milliseconds, it should be ignored
 		tick(0)
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.23437,
+			y: 0.23437,
+		})
 	})
 })
 

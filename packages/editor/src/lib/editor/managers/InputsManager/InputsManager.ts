@@ -115,8 +115,10 @@ export class InputsManager {
 	get pointerVelocity() {
 		return this.getPointerVelocity()
 	}
+
 	/**
 	 * Normally you shouldn't need to set the pointer velocity directly, this is set by the tick manager.
+	 * However, this is currently used in tests to fake pointer velocity.
 	 * @param pointerVelocity - The pointer velocity.
 	 * @internal
 	 */
@@ -382,6 +384,41 @@ export class InputsManager {
 	}
 
 	/**
+	 * The previous point used for velocity calculation (updated each tick, not each pointer event).
+	 * @internal
+	 */
+	private _velocityPrevPoint = new Vec()
+
+	/**
+	 * Update the pointer velocity based on elapsed time. Called by the tick manager.
+	 * @param elapsed - The time elapsed since the last tick in milliseconds.
+	 * @internal
+	 */
+	updatePointerVelocity(elapsed: number) {
+		const currentScreenPoint = this.getCurrentScreenPoint()
+		const pointerVelocity = this.getPointerVelocity()
+
+		if (elapsed === 0) return
+
+		const delta = Vec.Sub(currentScreenPoint, this._velocityPrevPoint)
+		this._velocityPrevPoint = currentScreenPoint.clone()
+
+		const length = delta.len()
+		const direction = length ? delta.div(length) : new Vec(0, 0)
+
+		// consider adjusting this with an easing rather than a linear interpolation
+		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+
+		// if the velocity is very small, just set it to 0
+		if (Math.abs(next.x) < 0.01) next.x = 0
+		if (Math.abs(next.y) < 0.01) next.y = 0
+
+		if (!pointerVelocity.equals(next)) {
+			this._pointerVelocity.set(next)
+		}
+	}
+
+	/**
 	 * Update the input points from a pointer, pinch, or wheel event.
 	 *
 	 * @param info - The event info.
@@ -446,15 +483,28 @@ export class InputsManager {
 		}
 	}
 
-	serialize() {
+	toJson() {
 		return {
-			originPagePoint: this._originPagePoint.get(),
-			originScreenPoint: this._originScreenPoint.get(),
-			previousPagePoint: this._previousPagePoint.get(),
-			previousScreenPoint: this._previousScreenPoint.get(),
-			currentPagePoint: this._currentPagePoint.get(),
-			currentScreenPoint: this._currentScreenPoint.get(),
-			pointerVelocity: this._pointerVelocity.get(),
+			originPagePoint: this._originPagePoint.get().toJson(),
+			originScreenPoint: this._originScreenPoint.get().toJson(),
+			previousPagePoint: this._previousPagePoint.get().toJson(),
+			previousScreenPoint: this._previousScreenPoint.get().toJson(),
+			currentPagePoint: this._currentPagePoint.get().toJson(),
+			currentScreenPoint: this._currentScreenPoint.get().toJson(),
+			pointerVelocity: this._pointerVelocity.get().toJson(),
+			shiftKey: this._shiftKey.get(),
+			metaKey: this._metaKey.get(),
+			ctrlKey: this._ctrlKey.get(),
+			altKey: this._altKey.get(),
+			isPen: this._isPen.get(),
+			isDragging: this._isDragging.get(),
+			isPointing: this._isPointing.get(),
+			isPinching: this._isPinching.get(),
+			isEditing: this._isEditing.get(),
+			isPanning: this._isPanning.get(),
+			isSpacebarPanning: this._isSpacebarPanning.get(),
+			keys: Array.from(this.keys.keys()),
+			buttons: Array.from(this.buttons.keys()),
 		}
 	}
 }

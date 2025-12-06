@@ -1,4 +1,5 @@
 import { Mocked, vi } from 'vitest'
+import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../../types/event-types'
 import { ClickManager } from './ClickManager'
@@ -35,6 +36,8 @@ describe('ClickManager', () => {
 			setTimeout: vi.fn((fn, delay) => setTimeout(fn, delay)),
 		}
 
+		const mockCurrentScreenPoint = new Vec(0, 0)
+
 		editor = {
 			timers: mockTimers,
 			dispatch: vi.fn(),
@@ -45,7 +48,8 @@ describe('ClickManager', () => {
 				coarseDragDistanceSquared: 36,
 			},
 			inputs: {
-				currentScreenPoint: { x: 0, y: 0 },
+				getCurrentScreenPoint: vi.fn(() => mockCurrentScreenPoint),
+				currentScreenPoint: mockCurrentScreenPoint, // deprecated getter for compatibility
 			},
 			getInstanceState: vi.fn(() => ({
 				isCoarsePointer: false,
@@ -321,8 +325,9 @@ describe('ClickManager', () => {
 			const downEvent = createPointerEvent('pointer_down', { x: 0, y: 0 })
 			const moveEvent = createPointerEvent('pointer_move', { x: 10, y: 10 })
 
-			editor.inputs.currentScreenPoint.x = 10
-			editor.inputs.currentScreenPoint.y = 10
+			const currentScreenPoint = editor.inputs.getCurrentScreenPoint()
+			currentScreenPoint.x = 10
+			currentScreenPoint.y = 10
 
 			clickManager.handlePointerEvent(downEvent)
 			expect(clickManager.clickState).toBe('pendingDouble')
@@ -347,13 +352,15 @@ describe('ClickManager', () => {
 			expect(clickManager.clickState).toBe('pendingDouble')
 
 			// Should not cancel for coarse pointer with small movement
-			editor.inputs.currentScreenPoint.x = 1
-			editor.inputs.currentScreenPoint.y = 1
+			const currentScreenPoint1 = editor.inputs.getCurrentScreenPoint()
+			currentScreenPoint1.x = 1
+			currentScreenPoint1.y = 1
 			clickManager.handlePointerEvent(moveEvent1)
 			expect(clickManager.clickState).toBe('pendingDouble')
 
-			editor.inputs.currentScreenPoint.x = 5
-			editor.inputs.currentScreenPoint.y = 5
+			const currentScreenPoint2 = editor.inputs.getCurrentScreenPoint()
+			currentScreenPoint2.x = 5
+			currentScreenPoint2.y = 5
 			clickManager.handlePointerEvent(moveEvent2)
 
 			expect(clickManager.clickState).toBe('idle')
@@ -362,8 +369,9 @@ describe('ClickManager', () => {
 		it('should not cancel in idle state', () => {
 			const moveEvent = createPointerEvent('pointer_move', { x: 100, y: 100 })
 
-			editor.inputs.currentScreenPoint.x = 100
-			editor.inputs.currentScreenPoint.y = 100
+			const currentScreenPoint = editor.inputs.getCurrentScreenPoint()
+			currentScreenPoint.x = 100
+			currentScreenPoint.y = 100
 
 			clickManager.handlePointerEvent(moveEvent)
 

@@ -1303,7 +1303,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}),
 					selectionCount: this.getSelectedShapes().length,
 					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
-					inputs: this.inputs.serialize(),
+					inputs: this.inputs.toJson(),
 					pageState: this.getCurrentPageState(),
 					instanceState: this.getInstanceState(),
 					collaboratorCount: this.getCollaboratorsOnCurrentPage().length,
@@ -9641,8 +9641,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			altKey: options?.altKey ?? this.inputs.getAltKey(),
 			ctrlKey: options?.ctrlKey ?? this.inputs.getCtrlKey(),
 			metaKey: options?.metaKey ?? this.inputs.getMetaKey(),
-			accelKey: options?.accelKey ?? this.inputs.getAccelKey(),
+			accelKey: false,
 		}
+
+		// needs to be calculated second
+		event.accelKey = options?.accelKey ?? this.inputs.getAccelKey()
 
 		if (options?.immediate) {
 			this._flushEventForTick(event)
@@ -10248,9 +10251,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
 		}
 
-		const originPagePoint = inputs.getOriginPagePoint()
-		const currentPagePoint = inputs.getCurrentPagePoint()
-
 		if (!inputs.getIsPointing()) {
 			inputs.setIsDragging(false)
 		}
@@ -10503,7 +10503,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (
 							inputs.getIsPointing() &&
 							!inputs.getIsDragging() &&
-							Vec.Dist2(originPagePoint, currentPagePoint) * this.getZoomLevel() >
+							Vec.Dist2(inputs.getOriginPagePoint(), inputs.getCurrentPagePoint()) *
+								this.getZoomLevel() >
 								(instanceState.isCoarsePointer
 									? this.options.coarseDragDistanceSquared
 									: this.options.dragDistanceSquared) /

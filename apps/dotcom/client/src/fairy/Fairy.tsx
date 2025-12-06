@@ -246,9 +246,9 @@ function useFairyPointerInteraction(
 				document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 				document.body.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
 
-				editor.inputs.isPointing = true
-				editor.inputs.isDragging = false
-				editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
+				editor.inputs.setIsPointing(true)
+				editor.inputs.setIsDragging(false)
+				editor.inputs.getOriginPagePoint().setTo(editor.inputs.getCurrentPagePoint())
 
 				// Listen for pointer move events on the captured element
 				// This is necessary on mobile to ensure editor.inputs.currentPagePoint is updated
