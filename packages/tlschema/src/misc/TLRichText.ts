@@ -12,7 +12,12 @@ import { T } from '@tldraw/validate'
  * const isValid = richTextValidator.check(richText) // true
  * ```
  */
-export const richTextValidator = T.object({ type: T.string, content: T.arrayOf(T.unknown) })
+
+export const richTextValidator = T.object({
+	type: T.string,
+	content: T.arrayOf(T.unknown),
+	attrs: T.any.optional(),
+})
 
 /**
  * Type representing rich text content in tldraw. Rich text follows a document-based
