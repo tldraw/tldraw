@@ -270,7 +270,6 @@ export class InputsManager {
 	}
 	/**
 	 * @param isDragging - Whether the user is dragging.
-	 * @internal
 	 */
 	setIsDragging(isDragging: boolean) {
 		this._isDragging.set(isDragging)

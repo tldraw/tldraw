@@ -404,7 +404,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	let noteAdjacentPositions: Vec[] | undefined
 	let noteSnapshot: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
 
-	const { originPagePoint } = editor.inputs
+	const originPagePoint = editor.inputs.getOriginPagePoint()
 
 	const allHoveredNotes = shapeSnapshots.filter(
 		(s) => editor.isShapeOfType(s.shape, 'note') && editor.isPointInShape(s.shape, originPagePoint)

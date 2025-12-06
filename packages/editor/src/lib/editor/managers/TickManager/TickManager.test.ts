@@ -23,14 +23,14 @@ describe('TickManager', () => {
 	let mockDisposablesAdd: Mock
 	let mockInputs: {
 		_currentScreenPoint: Vec
-		getCurrentScreenPoint: () => Vec
+		getCurrentScreenPoint(): Vec
 		currentScreenPoint: Vec
-		setCurrentScreenPoint: (value: Vec) => void
+		setCurrentScreenPoint(value: Vec): void
 		_pointerVelocity: Vec
-		getPointerVelocity: () => Vec
+		getPointerVelocity(): Vec
 		pointerVelocity: Vec
-		setPointerVelocity: (value: Vec) => void
-		updatePointerVelocity: (elapsed: number) => void
+		setPointerVelocity(value: Vec): void
+		updatePointerVelocity(elapsed: number): void
 	}
 
 	beforeEach(() => {

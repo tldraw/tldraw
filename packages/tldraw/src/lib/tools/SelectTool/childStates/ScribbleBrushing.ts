@@ -82,9 +82,10 @@ export class ScribbleBrushing extends StateNode {
 		const { editor } = this
 		// const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapes = this.editor.getCurrentPageRenderingShapesSorted()
-		const {
-			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
-		} = this.editor
+		const shiftKey = this.editor.inputs.getShiftKey()
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
+		const previousPagePoint = this.editor.inputs.getPreviousPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const { newlySelectedShapeIds, initialSelectedShapeIds } = this
 

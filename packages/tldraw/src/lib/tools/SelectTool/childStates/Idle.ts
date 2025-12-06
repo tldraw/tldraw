@@ -71,9 +71,7 @@ export class Idle extends StateNode {
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const {
-					inputs: { currentPagePoint },
-				} = this.editor
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -377,9 +375,7 @@ export class Idle extends StateNode {
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const {
-					inputs: { currentPagePoint },
-				} = this.editor
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||

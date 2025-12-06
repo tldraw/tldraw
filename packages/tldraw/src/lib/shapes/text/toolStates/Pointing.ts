@@ -37,7 +37,7 @@ export class Pointing extends StateNode {
 		if (Date.now() - this.enterTime < 150) return
 
 		const { editor } = this
-		const { isPointing } = editor.inputs
+		const isPointing = editor.inputs.getIsPointing()
 
 		if (!isPointing) return
 

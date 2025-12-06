@@ -2100,7 +2100,7 @@ export class InputsManager {
     setAltKey(altKey: boolean): void;
     // @internal (undocumented)
     setCtrlKey(ctrlKey: boolean): void;
-    // @internal (undocumented)
+    // (undocumented)
     setIsDragging(isDragging: boolean): void;
     // @internal (undocumented)
     setIsPanning(isPanning: boolean): void;

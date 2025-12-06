@@ -284,10 +284,12 @@ export class DraggingHandle extends StateNode {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const isSnapMode = this.editor.user.getIsSnapMode()
-		const {
-			snaps,
-			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
-		} = editor
+		const { snaps } = editor
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const shiftKey = editor.inputs.getShiftKey()
+		const ctrlKey = editor.inputs.getCtrlKey()
+		const altKey = editor.inputs.getAltKey()
+		const pointerVelocity = editor.inputs.getPointerVelocity()
 
 		const initial = this.info.shape
 

@@ -21,16 +21,16 @@ describe('EdgeScrollManager', () => {
 	let mockInputs: {
 		_currentScreenPoint: Vec
 		currentScreenPoint: Vec
-		getCurrentScreenPoint: () => Vec
-		setCurrentScreenPoint: (value: Vec) => void
+		getCurrentScreenPoint(): Vec
+		setCurrentScreenPoint(value: Vec): void
 		_isDragging: boolean
 		isDragging: boolean
-		getIsDragging: () => boolean
-		setIsDragging: (value: boolean) => void
+		getIsDragging(): boolean
+		setIsDragging(value: boolean): void
 		_isPanning: boolean
 		isPanning: boolean
-		getIsPanning: () => boolean
-		setIsPanning: (value: boolean) => void
+		getIsPanning(): boolean
+		setIsPanning(value: boolean): void
 	}
 
 	beforeEach(() => {

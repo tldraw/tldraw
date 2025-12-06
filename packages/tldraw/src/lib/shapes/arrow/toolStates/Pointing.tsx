@@ -90,7 +90,7 @@ export class Pointing extends StateNode {
 	}
 
 	createArrowShape() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const id = createShapeId()
 

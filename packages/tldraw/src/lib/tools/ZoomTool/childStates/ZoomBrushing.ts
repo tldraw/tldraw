@@ -29,9 +29,8 @@ export class ZoomBrushing extends StateNode {
 	}
 
 	private update() {
-		const {
-			inputs: { originPagePoint, currentPagePoint },
-		} = this.editor
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		this.zoomBrush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 		this.editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })

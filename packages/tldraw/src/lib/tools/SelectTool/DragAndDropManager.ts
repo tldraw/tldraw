@@ -92,7 +92,10 @@ export class DragAndDropManager {
 		this.intervalTimerId = this.editor.timers.setInterval(
 			() => {
 				skip2of3FramesWhileMovingFast++
-				if (skip2of3FramesWhileMovingFast % 3 && this.editor.inputs.pointerVelocity.len() > 0.5) {
+				if (
+					skip2of3FramesWhileMovingFast % 3 &&
+					this.editor.inputs.getPointerVelocity().len() > 0.5
+				) {
 					return
 				}
 				this.updateDraggingShapes(editor.inputs.getCurrentPagePoint(), cb)

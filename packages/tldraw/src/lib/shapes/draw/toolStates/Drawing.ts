@@ -60,8 +60,9 @@ export class Drawing extends StateNode {
 
 	override onPointerMove() {
 		const { inputs } = this.editor
+		const isPen = inputs.getIsPen()
 
-		if (this.isPen && !inputs.isPen) {
+		if (this.isPen && !isPen) {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
@@ -154,7 +155,7 @@ export class Drawing extends StateNode {
 	private startShape() {
 		const inputs = this.editor.inputs
 		const originPagePoint = inputs.getOriginPagePoint()
-		const isPen = inputs.isPen
+		const isPen = inputs.getIsPen()
 
 		this.markId = this.editor.markHistoryStoppingPoint('draw start')
 

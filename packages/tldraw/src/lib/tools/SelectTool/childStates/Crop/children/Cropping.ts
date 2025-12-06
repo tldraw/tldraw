@@ -83,7 +83,7 @@ export class Cropping extends StateNode {
 		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
 		if (!util) return
 
-		const { shiftKey } = this.editor.inputs
+		const shiftKey = this.editor.inputs.getShiftKey()
 		const currentPagePoint = this.editor.inputs
 			.getCurrentPagePoint()
 			.clone()
@@ -148,9 +148,7 @@ export class Cropping extends StateNode {
 
 	private createSnapshot() {
 		const selectionRotation = this.editor.getSelectionRotation()
-		const {
-			inputs: { originPagePoint },
-		} = this.editor
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 

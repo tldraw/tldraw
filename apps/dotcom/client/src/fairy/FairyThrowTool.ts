@@ -137,7 +137,7 @@ class ThrowingState extends StateNode {
 			return
 		}
 
-		const { pointerVelocity } = this.editor.inputs
+		const pointerVelocity = this.editor.inputs.getPointerVelocity()
 		const inverseZoomLevel = 1 / this.editor.getZoomLevel()
 		const scaledPointerVelocity = Vec.Mul(pointerVelocity, inverseZoomLevel)
 		for (const fairy of fairies) {

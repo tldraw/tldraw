@@ -54,7 +54,7 @@ export class PointingArrowLabel extends StateNode {
 		if (!labelGeometry) {
 			throw Error(`Expected to find an arrow label geometry for shape: ${shape.id}`)
 		}
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const pointInShapeSpace = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
 		this._labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
@@ -81,7 +81,7 @@ export class PointingArrowLabel extends StateNode {
 	private _labelDragOffset = new Vec(0, 0)
 
 	override onPointerMove() {
-		const { isDragging } = this.editor.inputs
+		const isDragging = this.editor.inputs.getIsDragging()
 		if (!isDragging) return
 
 		if (this.didCtrlOnEnter) {
