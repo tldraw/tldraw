@@ -267,7 +267,7 @@ describe('Editor.TickManager', () => {
 		// between two animation frames, but we're calling it directly here.
 		const tick = (ms: number) => {
 			// @ts-ignore
-			editor.clock.updatePointerVelocity(ms)
+			editor.tick.updatePointerVelocity(ms)
 		}
 
 		// 1. pointer velocity should be 0 when there is no movement

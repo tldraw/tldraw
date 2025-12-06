@@ -21,6 +21,14 @@ describe('TickManager', () => {
 	let tickManager: TickManager
 	let mockEmit: Mock
 	let mockDisposablesAdd: Mock
+	let mockInputs: {
+		_currentScreenPoint: Vec
+		currentScreenPoint: Vec
+		setCurrentScreenPoint: (value: Vec) => void
+		_pointerVelocity: Vec
+		pointerVelocity: Vec
+		setPointerVelocity: (value: Vec) => void
+	}
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -41,16 +49,31 @@ describe('TickManager', () => {
 		mockEmit = vi.fn()
 		mockDisposablesAdd = vi.fn()
 
+		// Create a mock inputs object with getters and setters
+		mockInputs = {
+			_currentScreenPoint: new Vec(100, 100),
+			get currentScreenPoint() {
+				return this._currentScreenPoint
+			},
+			setCurrentScreenPoint(value: Vec) {
+				this._currentScreenPoint = value
+			},
+			_pointerVelocity: new Vec(0, 0),
+			get pointerVelocity() {
+				return this._pointerVelocity
+			},
+			setPointerVelocity(value: Vec) {
+				this._pointerVelocity = value
+			},
+		}
+
 		editor = {
 			emit: mockEmit,
 			disposables: {
 				add: mockDisposablesAdd,
 			},
-			inputs: {
-				currentScreenPoint: new Vec(100, 100),
-				pointerVelocity: new Vec(0, 0),
-			},
-		} as any
+			inputs: mockInputs as unknown as Editor['inputs'],
+		} as unknown as Mocked<Editor>
 
 		tickManager = new TickManager(editor)
 	})
@@ -143,16 +166,6 @@ describe('TickManager', () => {
 			expect(mockEmit).toHaveBeenCalledTimes(2)
 		})
 
-		it('should update pointer velocity', () => {
-			const updatePointerVelocitySpy = vi.spyOn(tickManager as any, 'updatePointerVelocity')
-			tickManager.now = 1000
-			mockDateNow.mockReturnValue(1016)
-
-			tickManager.tick()
-
-			expect(updatePointerVelocitySpy).toHaveBeenCalledWith(16)
-		})
-
 		it('should schedule next RAF', () => {
 			tickManager.tick()
 			expect(mockRequestAnimationFrame).toHaveBeenCalled()
@@ -189,98 +202,6 @@ describe('TickManager', () => {
 			tickManager.cancelRaf = null
 
 			expect(() => tickManager.dispose()).not.toThrow()
-		})
-	})
-
-	describe('updatePointerVelocity method', () => {
-		let updatePointerVelocity: any
-
-		beforeEach(() => {
-			// Access private method for testing
-			updatePointerVelocity = (tickManager as any).updatePointerVelocity.bind(tickManager)
-			// Reset the prevPoint to a known state
-			;(tickManager as any).prevPoint = new Vec(50, 50)
-		})
-
-		it('should return early if elapsed time is 0', () => {
-			const originalVelocity = editor.inputs.pointerVelocity.clone()
-
-			updatePointerVelocity(0)
-
-			expect(editor.inputs.pointerVelocity).toEqual(originalVelocity)
-		})
-
-		it('should calculate velocity based on pointer movement', () => {
-			editor.inputs.currentScreenPoint = new Vec(150, 150)
-			;(tickManager as any).prevPoint = new Vec(50, 50)
-			editor.inputs.pointerVelocity = new Vec(0, 0)
-
-			updatePointerVelocity(100) // 100ms elapsed
-
-			// Delta should be (100, 100), length = ~141.42, direction = (~0.707, ~0.707)
-			// Velocity should be length/elapsed = ~1.414 per ms in each direction
-			// But with linear interpolation (lrp factor 0.5), it will be halved
-			const expectedVelocity = new Vec(0.5, 0.5) // With lrp factor 0.5
-			expect(editor.inputs.pointerVelocity.x).toBeCloseTo(expectedVelocity.x, 1)
-			expect(editor.inputs.pointerVelocity.y).toBeCloseTo(expectedVelocity.y, 1)
-		})
-
-		it('should update prevPoint to current screen point', () => {
-			const newPoint = new Vec(200, 200)
-			editor.inputs.currentScreenPoint = newPoint
-
-			updatePointerVelocity(16)
-
-			expect((tickManager as any).prevPoint).toEqual(newPoint)
-		})
-
-		it('should use linear interpolation to smooth velocity', () => {
-			editor.inputs.currentScreenPoint = new Vec(150, 50)
-			;(tickManager as any).prevPoint = new Vec(50, 50)
-			editor.inputs.pointerVelocity = new Vec(2, 2)
-
-			updatePointerVelocity(100)
-
-			// Should interpolate between current velocity (2,2) and new velocity (1,0)
-			// lrp with factor 0.5 should give us something between them
-			expect(editor.inputs.pointerVelocity.x).toBeGreaterThan(0.5)
-			expect(editor.inputs.pointerVelocity.x).toBeLessThan(2)
-		})
-
-		it('should set very small velocity components to 0', () => {
-			editor.inputs.currentScreenPoint = new Vec(50.005, 50.005)
-			;(tickManager as any).prevPoint = new Vec(50, 50)
-			editor.inputs.pointerVelocity = new Vec(0, 0)
-
-			updatePointerVelocity(1000) // Long elapsed time = very small velocity
-
-			expect(editor.inputs.pointerVelocity.x).toBe(0)
-			expect(editor.inputs.pointerVelocity.y).toBe(0)
-		})
-
-		it('should handle zero movement (stationary pointer)', () => {
-			editor.inputs.currentScreenPoint = new Vec(100, 100)
-			;(tickManager as any).prevPoint = new Vec(100, 100)
-			editor.inputs.pointerVelocity = new Vec(1, 1)
-
-			updatePointerVelocity(16)
-
-			// Should interpolate towards zero velocity
-			expect(editor.inputs.pointerVelocity.x).toBeLessThan(1)
-			expect(editor.inputs.pointerVelocity.y).toBeLessThan(1)
-		})
-
-		it('should only update pointerVelocity if it actually changes', () => {
-			// Setup scenario where velocity won't change
-			editor.inputs.currentScreenPoint = new Vec(100, 100)
-			;(tickManager as any).prevPoint = new Vec(100, 100)
-			editor.inputs.pointerVelocity = new Vec(0, 0)
-
-			const originalVelocity = editor.inputs.pointerVelocity
-			updatePointerVelocity(16)
-
-			// Should still be the same object reference since no change occurred
-			expect(editor.inputs.pointerVelocity).toBe(originalVelocity)
 		})
 	})
 

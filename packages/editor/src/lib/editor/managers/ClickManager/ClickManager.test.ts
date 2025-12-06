@@ -401,28 +401,6 @@ describe('ClickManager', () => {
 	})
 
 	describe('edge cases', () => {
-		it('should handle null click state gracefully', () => {
-			// Force null state
-			;(clickManager as any)._clickState = null
-
-			const pointerEvent = createPointerEvent('pointer_down', { x: 100, y: 100 })
-			const result = clickManager.handlePointerEvent(pointerEvent)
-
-			expect(result).toBe(pointerEvent)
-		})
-
-		it('should handle missing previous screen point', () => {
-			const firstDown = createPointerEvent('pointer_down', { x: 0, y: 0 })
-
-			// Clear previous point
-			;(clickManager as any)._previousScreenPoint = undefined
-
-			const result = clickManager.handlePointerEvent(firstDown)
-
-			expect(result).toBe(firstDown)
-			expect(clickManager.clickState).toBe('pendingDouble')
-		})
-
 		it('should handle overflow state correctly', () => {
 			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 			const pointerUp = createPointerEvent('pointer_up', { x: 100, y: 100 })

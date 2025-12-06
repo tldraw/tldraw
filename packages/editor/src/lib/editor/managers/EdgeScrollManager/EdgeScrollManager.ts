@@ -9,6 +9,10 @@ export class EdgeScrollManager {
 	private _isEdgeScrolling = false
 	private _edgeScrollDuration = -1
 
+	getIsEdgeScrolling() {
+		return this._isEdgeScrolling
+	}
+
 	/**
 	 * Update the camera position when the mouse is close to the edge of the screen.
 	 * Run this on every tick when in a state where edge scrolling is enabled.
