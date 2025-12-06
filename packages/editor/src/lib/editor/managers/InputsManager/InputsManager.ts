@@ -380,7 +380,7 @@ export class InputsManager {
 	}
 
 	@computed private _getHasCollaborators() {
-		return this.editor.getCollaborators().length > 1 // could we do this more efficiently?
+		return this.editor.getCollaborators().length > 0 // could we do this more efficiently?
 	}
 
 	/**

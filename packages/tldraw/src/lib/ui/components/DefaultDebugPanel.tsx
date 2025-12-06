@@ -1,11 +1,4 @@
-import {
-	debugFlags,
-	track,
-	useEditor,
-	usePassThroughWheelEvents,
-	useValue,
-	Vec,
-} from '@tldraw/editor'
+import { debugFlags, track, useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 
@@ -42,27 +35,26 @@ const CurrentState = track(function CurrentState() {
 	useTick()
 
 	const editor = useEditor()
-
 	const path = editor.getPath()
-	const hoverShape = editor.getHoveredShape()
-	const selectedShape = editor.getOnlySelectedShape()
-	const shape = path === 'select.idle' || !path.includes('select.') ? hoverShape : selectedShape
-	const currentPagePoint = editor.inputs.getCurrentPagePoint()
-	const shapeInfo =
-		shape && path.includes('select.')
-			? ` / ${shape.type || ''}${
-					'geo' in shape.props ? ' / ' + shape.props.geo : ''
-				} / [${Vec.ToInt(editor.getPointInShapeSpace(shape, currentPagePoint))}]`
-			: ''
-	const originPagePoint = editor.inputs.getOriginPagePoint()
-	const ruler =
-		path.startsWith('select.') && !path.includes('.idle')
-			? ` / [${Vec.ToInt(originPagePoint)}] → [${Vec.ToInt(
-					currentPagePoint
-				)}] = ${Vec.Dist(originPagePoint, currentPagePoint).toFixed(0)}`
-			: ''
-
-	return <div className="tlui-debug-panel__current-state">{`${path}${shapeInfo}${ruler}`}</div>
+	// const hoverShape = editor.getHoveredShape()
+	// const selectedShape = editor.getOnlySelectedShape()
+	// const shape = path === 'select.idle' || !path.includes('select.') ? hoverShape : selectedShape
+	// const currentPagePoint = editor.inputs.getCurrentPagePoint()
+	// const shapeInfo =
+	// shape && path.includes('select.')
+	// ? ` / ${shape.type || ''}${
+	// 	'geo' in shape.props ? ' / ' + shape.props.geo : ''
+	// 			} / [${Vec.ToInt(editor.getPointInShapeSpace(shape, currentPagePoint))}]`
+	// 		: ''
+	// const originPagePoint = editor.inputs.getOriginPagePoint()
+	// const ruler =
+	// 	path.startsWith('select.') && !path.includes('.idle')
+	// 		? ` / [${Vec.ToInt(originPagePoint)}] → [${Vec.ToInt(
+	// 				currentPagePoint
+	// 			)}] = ${Vec.Dist(originPagePoint, currentPagePoint).toFixed(0)}`
+	// 		: ''
+	// return <div className="tlui-debug-panel__current-state">{`${path}${shapeInfo}${ruler}`}</div>
+	return <div className="tlui-debug-panel__current-state">{`${path}`}</div>
 })
 
 function FPS() {
