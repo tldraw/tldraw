@@ -211,7 +211,8 @@ export class Resizing extends StateNode {
 	}
 
 	private updateShapes() {
-		const { altKey, shiftKey } = this.editor.inputs
+		const altKey = this.editor.inputs.getAltKey()
+		const shiftKey = this.editor.inputs.getShiftKey()
 		const {
 			frames,
 			shapeSnapshots,
@@ -266,12 +267,13 @@ export class Resizing extends StateNode {
 
 		const isHoldingAccel = isAccelKey(this.editor.inputs)
 
-		const currentPagePoint = this.editor.inputs.currentPagePoint
+		const currentPagePoint = this.editor.inputs
+			.getCurrentPagePoint()
 			.clone()
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 
 		if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = this.editor.getDocumentSettings()
@@ -474,9 +476,7 @@ export class Resizing extends StateNode {
 		const { editor } = this
 		const selectedShapeIds = editor.getSelectedShapeIds()
 		const selectionRotation = editor.getSelectionRotation()
-		const {
-			inputs: { originPagePoint },
-		} = editor
+		const originPagePoint = editor.inputs.getOriginPagePoint()
 
 		const selectionBounds = editor.getSelectionRotatedPageBounds()
 		if (!selectionBounds) throw Error('Resizing but nothing is selected')
