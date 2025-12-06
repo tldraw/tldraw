@@ -189,7 +189,7 @@ export type TLResizeShapeOptions = Partial<{
 /** @public */
 export interface TLEditorOptions {
 	/**
-	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
+	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
 	store: TLStore
@@ -325,7 +325,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.fonts = new FontManager(this, fontAssetUrls)
 
-		this.tick = new TickManager(this)
+		this._tickManager = new TickManager(this)
 
 		this.inputs = new InputsManager(this)
 
@@ -775,7 +775,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.on('tick', this._flushEventsForTick)
 
 		this.timers.requestAnimationFrame(() => {
-			this.tick.start()
+			this._tickManager.start()
 		})
 
 		this.performanceTracker = new PerformanceTracker()
@@ -863,7 +863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * A set of functions to call when the app is disposed.
+	 * A set of functions to call when the editor is disposed.
 	 *
 	 * @public
 	 */
@@ -877,20 +877,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isDisposed = false
 
 	/**
-	 * A manager for the app's tick events.
+	 * A manager for the editor's tick events.
 	 *
-	 * @public */
-	readonly tick: TickManager
+	 * @internal */
+	private readonly _tickManager: TickManager
 
 	/**
-	 * A manager for the app's input state.
+	 * A manager for the editor's input state.
 	 *
 	 * @public
 	 */
 	readonly inputs: InputsManager
 
 	/**
-	 * A manager for the app's snapping feature.
+	 * A manager for the editor's snapping feature.
 	 *
 	 * @public
 	 */
@@ -1067,7 +1067,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- History -------------------- */
 
 	/**
-	 * A manager for the app's history.
+	 * A manager for the editor's history.
 	 *
 	 * @readonly
 	 */
@@ -1091,7 +1091,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Whether the app can undo.
+	 * Whether the editor can undo.
 	 *
 	 * @public
 	 */
@@ -1122,7 +1122,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Whether the app can redo.
+	 * Whether the editor can redo.
 	 *
 	 * @public
 	 */
@@ -1328,7 +1328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * we're in a transaction that's about to be rolled back due to the same error we're currently
 	 * reporting.
 	 *
-	 * Instead, to listen to changes to this value, you need to listen to app's `crash` event.
+	 * Instead, to listen to changes to this value, you need to listen to editor's `crash` event.
 	 *
 	 * @internal
 	 */
@@ -2031,7 +2031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The id of the app's only selected shape.
+	 * The id of the editor's only selected shape.
 	 *
 	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape's id.
 	 *
@@ -2043,7 +2043,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The app's only selected shape.
+	 * The editor's only selected shape.
 	 *
 	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.
 	 *

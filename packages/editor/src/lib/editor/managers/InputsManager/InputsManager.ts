@@ -471,8 +471,8 @@ export class InputsManager {
 								// update our last activity timestamp; otherwise, update it to the current timestamp.
 								info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
 									? (this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
-											?.lastActivityTimestamp ?? this.editor.tick.now)
-									: this.editor.tick.now,
+											?.lastActivityTimestamp ?? Date.now())
+									: Date.now(),
 							meta: {},
 						},
 					])

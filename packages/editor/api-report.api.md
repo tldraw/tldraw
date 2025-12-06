@@ -1492,7 +1492,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
-    readonly tick: TickManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -3051,7 +3050,7 @@ export class TextManager {
     }[];
 }
 
-// @public (undocumented)
+// @internal (undocumented)
 export class TickManager {
     constructor(editor: Editor);
     // (undocumented)

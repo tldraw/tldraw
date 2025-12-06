@@ -12,7 +12,7 @@ const throttleToNextFrame =
 			}
 		: _throttleToNextFrame
 
-/** @public */
+/** @internal */
 export class TickManager {
 	constructor(public editor: Editor) {
 		this.editor.disposables.add(this.dispose)
