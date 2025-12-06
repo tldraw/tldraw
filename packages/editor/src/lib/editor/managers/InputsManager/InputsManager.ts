@@ -460,12 +460,13 @@ export class InputsManager {
 		if (this._getHasCollaborators()) {
 			this.editor.run(
 				() => {
+					const pagePoint = this._currentPagePoint.__unsafe__getWithoutCapture()
 					this.editor.store.put([
 						{
 							id: TLPOINTER_ID,
 							typeName: 'pointer',
-							x: currentPagePoint.x,
-							y: currentPagePoint.y,
+							x: pagePoint.x,
+							y: pagePoint.y,
 							lastActivityTimestamp:
 								// If our pointer moved only because we're following some other user, then don't
 								// update our last activity timestamp; otherwise, update it to the current timestamp.

@@ -248,6 +248,7 @@ function useFairyPointerInteraction(
 
 				editor.inputs.setIsPointing(true)
 				editor.inputs.setIsDragging(false)
+				// hack: set origin page point to current page point to ensure correct positioning on mobile
 				editor.inputs.getOriginPagePoint().setTo(editor.inputs.getCurrentPagePoint())
 
 				// Listen for pointer move events on the captured element
