@@ -2683,11 +2683,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getDebouncedZoomLevel() {
-		if (!this.options.debouncedZoom || this.getCameraState() === 'idle') {
-			return this.getZoomLevel()
-		} else {
-			return this._debouncedZoomLevel.get()
+		if (this.options.debouncedZoom) {
+			if (this.getCameraState() === 'idle') {
+				return this.getZoomLevel()
+			} else {
+				return this._debouncedZoomLevel.get()
+			}
 		}
+
+		return this.getZoomLevel()
 	}
 
 	@computed private _getAboveDebouncedZoomThreshold() {
