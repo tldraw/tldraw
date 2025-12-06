@@ -92,7 +92,7 @@ export class Translating extends StateNode {
 
 		// Don't clone on create; otherwise clone on altKey
 		if (!this.isCreating) {
-			if (this.editor.inputs.altKey) {
+			if (this.editor.inputs.getAltKey()) {
 				this.startCloning()
 				if (this.isCloning) return
 			}
@@ -132,7 +132,7 @@ export class Translating extends StateNode {
 	}
 
 	override onKeyUp() {
-		if (!this.editor.inputs.altKey && this.isCloning) {
+		if (!this.editor.inputs.getAltKey() && this.isCloning) {
 			this.stopCloning()
 			return
 		}

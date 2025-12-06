@@ -699,15 +699,15 @@ describe('middle-click panning', () => {
 			button: 1,
 		})
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(true)
 		editor.keyDown(' ')
 		editor.pointerUp(100, 100, {
 			button: 1,
 		})
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(true)
 
 		editor.keyUp(' ')
-		expect(editor.inputs.isPanning).toBe(false)
+		expect(editor.inputs.getIsPanning()).toBe(false)
 	})
 })
 

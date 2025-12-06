@@ -1037,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					const isFine = editor.inputs.altKey
+					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-cw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-cw')
 					editor.run(() => {
@@ -1060,7 +1060,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					const isFine = editor.inputs.altKey
+					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-ccw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-ccw')
 					editor.run(() => {

@@ -158,7 +158,7 @@ export class DragAndDropManager {
 					cursorDidMove &&
 					nextDraggingOverShape &&
 					isShapeId(nextDraggingOverShape.id) &&
-					!editor.inputs.previousPagePoint.equals(currentPagePoint)
+					!editor.inputs.getPreviousPagePoint().equals(currentPagePoint)
 				) {
 					// If the cursor moved, call onDragShapesOver for the previous dragging over shape
 					const util = editor.getShapeUtil(nextDraggingOverShape)

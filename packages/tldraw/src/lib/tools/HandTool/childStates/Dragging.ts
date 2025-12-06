@@ -28,7 +28,8 @@ export class Dragging extends StateNode {
 
 	private update() {
 		const { initialCamera, editor } = this
-		const { currentScreenPoint, originScreenPoint } = editor.inputs
+		const currentScreenPoint = editor.inputs.getCurrentScreenPoint()
+		const originScreenPoint = editor.inputs.originScreenPoint
 
 		const delta = Vec.Sub(currentScreenPoint, originScreenPoint).div(editor.getZoomLevel())
 		if (delta.len2() === 0) return

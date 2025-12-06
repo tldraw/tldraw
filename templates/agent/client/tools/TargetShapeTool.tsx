@@ -36,7 +36,7 @@ class TargetShapeIdle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerMove() {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const shape = this.editor.getShapeAtPoint(currentPagePoint, { hitInside: true })
 		if (shape) {
 			this.editor.setHintingShapes([shape])

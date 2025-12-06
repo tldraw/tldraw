@@ -26,9 +26,11 @@ export class ScreenshotDragging extends StateNode {
 	}
 
 	private update() {
-		const {
-			inputs: { shiftKey, altKey, originPagePoint, currentPagePoint },
-		} = this.editor
+		const inputs = this.editor.inputs
+		const shiftKey = inputs.getShiftKey()
+		const altKey = inputs.getAltKey()
+		const originPagePoint = inputs.getOriginPagePoint()
+		const currentPagePoint = inputs.getCurrentPagePoint()
 
 		const box = Box.FromPoints([originPagePoint, currentPagePoint])
 

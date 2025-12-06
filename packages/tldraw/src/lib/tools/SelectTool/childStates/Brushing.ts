@@ -96,7 +96,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (this.editor.inputs.altKey) {
+		if (this.editor.inputs.getAltKey()) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()

@@ -58,7 +58,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onKeyUp() {
-		if (!this.editor.inputs.altKey) {
+		if (!this.editor.inputs.getAltKey()) {
 			this.parent.transition('brushing')
 		} else {
 			this.updateScribbleSelection(false)

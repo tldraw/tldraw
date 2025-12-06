@@ -10,9 +10,7 @@ export class Pointing extends StateNode {
 
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
-		const {
-			inputs: { currentPagePoint },
-		} = this.editor
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const erasing = new Set<TLShapeId>()
 

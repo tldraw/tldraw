@@ -106,7 +106,7 @@ export class Idle extends StateNode {
 			}
 			case 'handle': {
 				if (this.editor.getIsReadonly()) break
-				if (this.editor.inputs.altKey) {
+				if (this.editor.inputs.getAltKey()) {
 					this.parent.transition('pointing_shape', info)
 				} else {
 					// If we're holding ctrl key, we might select it, or start brushing...
