@@ -423,8 +423,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const isSnapMode = this.editor.user.getIsSnapMode()
 				if (
 					snapPoint &&
-					!this.editor.inputs.metaKey &&
-					(isSnapMode ? !this.editor.inputs.ctrlKey : this.editor.inputs.ctrlKey)
+					!this.editor.inputs.getMetaKey() &&
+					(isSnapMode ? !this.editor.inputs.getCtrlKey() : this.editor.inputs.getCtrlKey())
 				) {
 					this.editor.snaps.setIndicators(snapPoint.indicators)
 
@@ -464,7 +464,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 
 				// drag both d handles at the same time
-				if (this.editor.inputs.metaKey) {
+				if (this.editor.inputs.getMetaKey()) {
 					const delta = Vec.Sub(handle, initialEdge.d)
 
 					return {
@@ -509,7 +509,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
 
 				// drag ALL the tension handles
-				if (this.editor.inputs.metaKey && this.editor.inputs.shiftKey) {
+				if (this.editor.inputs.getMetaKey() && this.editor.inputs.getShiftKey()) {
 					return {
 						...shape,
 						props: {
@@ -532,7 +532,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 
 				// drag opposite tension handles at the same time
-				if (this.editor.inputs.metaKey) {
+				if (this.editor.inputs.getMetaKey()) {
 					return {
 						...shape,
 						props: {
@@ -572,7 +572,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
 
 				// drag ALL the tension handles
-				if (this.editor.inputs.metaKey && this.editor.inputs.shiftKey) {
+				if (this.editor.inputs.getMetaKey() && this.editor.inputs.getShiftKey()) {
 					return {
 						...shape,
 						props: {
@@ -595,7 +595,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 
 				// drag opposite tension handles at the same time
-				if (this.editor.inputs.metaKey) {
+				if (this.editor.inputs.getMetaKey()) {
 					return {
 						...shape,
 						props: {
