@@ -217,7 +217,7 @@ export function SnowStorm() {
 			}
 
 			camera.setTo(newCamera)
-			snowstorm.render(editor.inputs.currentScreenPoint, editor.inputs.pointerVelocity, time)
+			snowstorm.render(editor.inputs.getCurrentScreenPoint(), editor.inputs.pointerVelocity, time)
 		}
 
 		snowstorm.start()

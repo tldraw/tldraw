@@ -69,7 +69,7 @@ export class Pointing extends StateNode {
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this._isHoldingAccelKey) return
 
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.startErasing(info)
 		}
 	}

@@ -84,8 +84,11 @@ export class Cropping extends StateNode {
 		if (!util) return
 
 		const { shiftKey } = this.editor.inputs
-		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
-		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const currentPagePoint = this.editor.inputs
+			.getCurrentPagePoint()
+			.clone()
+			.sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()

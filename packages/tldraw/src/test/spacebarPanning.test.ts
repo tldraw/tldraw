@@ -16,16 +16,16 @@ beforeEach(() => {
 
 it('Sets cursor and state correctly', () => {
 	expect(editor.getInstanceState().cursor.type).toBe('default')
-	expect(editor.inputs.isPanning).toBe(false)
+	expect(editor.inputs.getIsPanning()).toBe(false)
 	editor.keyDown(' ')
-	expect(editor.inputs.isPanning).toBe(true)
+	expect(editor.inputs.getIsPanning()).toBe(true)
 	expect(editor.getInstanceState().cursor.type).toBe('grab')
 	editor.pointerDown(0, 0)
 	expect(editor.getInstanceState().cursor.type).toBe('grabbing')
 	editor.pointerUp(0, 0)
 	expect(editor.getInstanceState().cursor.type).toBe('grab')
 	editor.keyUp(' ')
-	expect(editor.inputs.isPanning).toBe(false)
+	expect(editor.inputs.getIsPanning()).toBe(false)
 	expect(editor.getInstanceState().cursor.type).toBe('default')
 })
 
@@ -47,7 +47,7 @@ it('When spacebar is held during pointer interaction, it activates panning', () 
 
 	// Hold spacebar before moving - should activate panning
 	editor.keyDown(' ')
-	expect(editor.inputs.isPanning).toBe(true)
+	expect(editor.inputs.getIsPanning()).toBe(true)
 	expect(editor.getInstanceState().cursor.type).toBe('grabbing') // 'grabbing' because pointer is down
 
 	// Moving the pointer should pan the camera, not translate the shape
@@ -64,7 +64,7 @@ it('When spacebar is held during pointer interaction, it activates panning', () 
 
 	editor.pointerUp()
 	editor.keyUp(' ')
-	expect(editor.inputs.isPanning).toBe(false)
+	expect(editor.inputs.getIsPanning()).toBe(false)
 })
 
 it('When holding spacebar, pressing the arrow keys moves over by one viewport', () => {

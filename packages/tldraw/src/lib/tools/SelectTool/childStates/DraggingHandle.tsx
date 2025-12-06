@@ -73,7 +73,7 @@ export class DraggingHandle extends StateNode {
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
+		this.initialPagePoint = this.editor.inputs.getOriginPagePoint().clone()
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 

@@ -266,12 +266,13 @@ export class Resizing extends StateNode {
 
 		const isHoldingAccel = isAccelKey(this.editor.inputs)
 
-		const currentPagePoint = this.editor.inputs.currentPagePoint
+		const currentPagePoint = this.editor.inputs
+			.getCurrentPagePoint()
 			.clone()
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 
 		if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = this.editor.getDocumentSettings()

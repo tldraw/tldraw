@@ -119,7 +119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		pointingPreciseTimeout: 320,
 
 		shouldBeExact: (editor: Editor) => editor.inputs.altKey,
-		shouldIgnoreTargets: (editor: Editor) => editor.inputs.ctrlKey,
+		shouldIgnoreTargets: (editor: Editor) => editor.inputs.getCtrlKey(),
 	}
 
 	override canEdit() {

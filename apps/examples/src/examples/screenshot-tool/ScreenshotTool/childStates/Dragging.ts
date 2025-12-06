@@ -71,7 +71,7 @@ export class ScreenshotDragging extends StateNode {
 		})
 
 		if (shapes.length) {
-			if (editor.inputs.ctrlKey) {
+			if (editor.inputs.getCtrlKey()) {
 				// Copy the shapes to the clipboard
 				copyAs(
 					editor,

@@ -16,8 +16,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
-			const { originPagePoint } = this.editor.inputs
+		if (this.editor.inputs.getIsDragging()) {
+			const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 			const id = createShapeId()
 

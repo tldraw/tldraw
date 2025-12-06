@@ -128,7 +128,7 @@ export default function BezierCurveShapeExample() {
 
 					// allow translating in editing state
 					editingShapeState.onPointerMove = (info: TLPointerEventInfo) => {
-						if (editor.inputs.isDragging) {
+						if (editor.inputs.getIsDragging()) {
 							const editingShape = editor.getEditingShape()
 							if (editingShape && editor.isShapeOfType(editingShape, 'bezier-curve')) {
 								editor.updateInstanceState({ isToolLocked: true })

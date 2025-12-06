@@ -49,8 +49,8 @@ class PointingState extends StateNode {
 		if (tool.fairies.length === 0) return
 
 		// Calculate offset between click position and each fairy position
-		// Use originPagePoint instead of currentPagePoint to ensure correct positioning on mobile
-		const originPagePoint = editor.inputs.originPagePoint
+		// Use getOriginPagePoint() instead of getCurrentPagePoint() to ensure correct positioning on mobile
+		const originPagePoint = editor.inputs.getOriginPagePoint()
 		tool.clickOffsets.clear()
 
 		for (const fairy of tool.fairies) {
@@ -69,7 +69,7 @@ class PointingState extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			// User started moving - transition to throwing
 			this.parent.transition('throwing')
 		}
@@ -89,17 +89,20 @@ class ThrowingState extends StateNode {
 	lastDirectionChangePosition = new Vec()
 
 	override onEnter() {
-		this.flipX = this.editor.inputs.currentPagePoint.x < this.editor.inputs.originPagePoint.x
-		this.lastDirectionChangePosition.setTo(this.editor.inputs.currentPagePoint)
+		this.flipX =
+			this.editor.inputs.getCurrentPagePoint().x < this.editor.inputs.getOriginPagePoint().x
+		this.lastDirectionChangePosition.setTo(this.editor.inputs.getCurrentPagePoint())
 	}
 
 	override onPointerMove() {
 		const tool = this.parent as FairyThrowTool
 		const { editor } = this
 
-		if (Math.abs(this.lastDirectionChangePosition.x - this.editor.inputs.currentPagePoint.x) > 32) {
-			this.flipX = this.editor.inputs.currentPagePoint.x < this.lastDirectionChangePosition.x
-			this.lastDirectionChangePosition.setTo(this.editor.inputs.currentPagePoint)
+		if (
+			Math.abs(this.lastDirectionChangePosition.x - this.editor.inputs.getCurrentPagePoint().x) > 32
+		) {
+			this.flipX = this.editor.inputs.getCurrentPagePoint().x < this.lastDirectionChangePosition.x
+			this.lastDirectionChangePosition.setTo(this.editor.inputs.getCurrentPagePoint())
 		}
 
 		if (tool.fairies.length === 0) return
@@ -107,7 +110,10 @@ class ThrowingState extends StateNode {
 		for (const fairy of tool.fairies) {
 			const initialPosition = tool.initialFairyPositions.get(fairy)
 			if (!initialPosition) continue
-			const offset = Vec.Sub(editor.inputs.currentPagePoint, editor.inputs.originPagePoint)
+			const offset = Vec.Sub(
+				editor.inputs.getCurrentPagePoint(),
+				editor.inputs.getOriginPagePoint()
+			)
 
 			const newPosition = {
 				x: initialPosition.x + offset.x,

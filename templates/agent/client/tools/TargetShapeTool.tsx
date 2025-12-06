@@ -46,7 +46,7 @@ class TargetShapeIdle extends StateNode {
 	}
 
 	override onPointerDown() {
-		const shape = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+		const shape = this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
 			hitInside: true,
 		})
 		this.parent.transition('pointing', { shape })
@@ -61,14 +61,14 @@ class TargetShapePointing extends StateNode {
 	private initialPagePoint: VecModel | undefined = undefined
 
 	override onEnter({ shape }: { shape: TLShape }) {
-		this.initialScreenPoint = this.editor.inputs.currentScreenPoint.clone()
-		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
+		this.initialScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
+		this.initialPagePoint = this.editor.inputs.getCurrentPagePoint().clone()
 		this.shape = shape
 	}
 
 	override onPointerMove() {
 		if (!this.initialScreenPoint) return
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { initialPagePoint: this.initialPagePoint })
 		}
 	}
@@ -138,7 +138,7 @@ class TargetShapeDragging extends StateNode {
 
 	updateBounds() {
 		if (!this.initialPagePoint) return
-		const currentPagePoint = this.editor.inputs.currentPagePoint
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const x = Math.min(this.initialPagePoint.x, currentPagePoint.x)
 		const y = Math.min(this.initialPagePoint.y, currentPagePoint.y)
 		const w = Math.abs(currentPagePoint.x - this.initialPagePoint.x)

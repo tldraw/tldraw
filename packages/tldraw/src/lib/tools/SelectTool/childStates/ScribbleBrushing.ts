@@ -22,7 +22,7 @@ export class ScribbleBrushing extends StateNode {
 
 	override onEnter() {
 		this.initialSelectedShapeIds = new Set<TLShapeId>(
-			this.editor.inputs.shiftKey ? this.editor.getSelectedShapeIds() : []
+			this.editor.inputs.getShiftKey() ? this.editor.getSelectedShapeIds() : []
 		)
 		this.newlySelectedShapeIds = new Set<TLShapeId>()
 		this.size = 0
@@ -74,7 +74,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private pushPointToScribble() {
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 

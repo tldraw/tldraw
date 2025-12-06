@@ -58,7 +58,7 @@ export class Erasing extends StateNode {
 	}
 
 	private pushPointToScribble() {
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 

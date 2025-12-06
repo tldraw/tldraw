@@ -114,7 +114,7 @@ export class Pointing extends StateNode {
 	override onPointerMove() {
 		if (!this.shape) return
 
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			const handles = this.editor.getShapeHandles(this.shape)
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)

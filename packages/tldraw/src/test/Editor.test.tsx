@@ -143,17 +143,17 @@ describe('shapes that are moved to another page', () => {
 it('Begins dragging from pointer move', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(2, 2)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.getIsDragging()).toBe(false)
 	editor.pointerMove(10, 10)
-	expect(editor.inputs.isDragging).toBe(true)
+	expect(editor.inputs.getIsDragging()).toBe(true)
 })
 
 it('Begins dragging from wheel', () => {
 	editor.pointerDown(0, 0)
 	editor.wheel(2, 2)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.getIsDragging()).toBe(false)
 	editor.wheel(10, 10)
-	expect(editor.inputs.isDragging).toBe(true)
+	expect(editor.inputs.getIsDragging()).toBe(true)
 })
 
 it('Does not create an undo stack item when first clicking on an empty canvas', () => {
@@ -688,9 +688,9 @@ describe('middle-click panning', () => {
 			button: 1,
 		})
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(true)
 		editor.pointerUp(100, 100)
-		expect(editor.inputs.isPanning).toBe(false)
+		expect(editor.inputs.getIsPanning()).toBe(false)
 	})
 
 	it('does not clear thee isPanning state if the space bar is down', () => {
@@ -713,37 +713,37 @@ describe('middle-click panning', () => {
 
 describe('dragging', () => {
 	it('drags correctly at 100% zoom', () => {
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 1)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.getIsDragging()).toBe(true)
 	})
 
 	it('drags correctly at 150% zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
 
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 2)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.getIsDragging()).toBe(true)
 	})
 
 	it('drags correctly at 50% zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
 
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 2)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.getIsDragging()).toBe(true)
 	})
 })
 

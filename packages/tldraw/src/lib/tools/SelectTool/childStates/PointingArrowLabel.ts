@@ -97,7 +97,7 @@ export class PointingArrowLabel extends StateNode {
 		const transform = this.editor.getShapePageTransform(shape.id)
 
 		const pointInShapeSpace = this.editor
-			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			.getPointInShapeSpace(shape, this.editor.inputs.getCurrentPagePoint())
 			.add(this._labelDragOffset)
 
 		const defaultLabelPosition = getArrowLabelDefaultPosition(this.editor, shape)

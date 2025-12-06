@@ -54,7 +54,7 @@ export class Drawing extends StateNode {
 	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
 		this.info = info
-		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
+		this.lastRecordedPoint = this.editor.inputs.getCurrentPagePoint().clone()
 		this.startShape()
 	}
 
@@ -96,7 +96,7 @@ export class Drawing extends StateNode {
 				case 'free': {
 					// We've just entered straight mode, go to straight mode
 					this.segmentMode = 'starting_straight'
-					this.pagePointWhereNextSegmentChanged = this.editor.inputs.currentPagePoint.clone()
+					this.pagePointWhereNextSegmentChanged = this.editor.inputs.getCurrentPagePoint().clone()
 					break
 				}
 				case 'starting_free': {
@@ -115,7 +115,7 @@ export class Drawing extends StateNode {
 				case 'straight': {
 					// We've just exited straight mode, go back to free mode
 					this.segmentMode = 'starting_free'
-					this.pagePointWhereNextSegmentChanged = this.editor.inputs.currentPagePoint.clone()
+					this.pagePointWhereNextSegmentChanged = this.editor.inputs.getCurrentPagePoint().clone()
 					break
 				}
 				case 'starting_straight': {
@@ -131,7 +131,7 @@ export class Drawing extends StateNode {
 
 	override onExit() {
 		this.editor.snaps.clearIndicators()
-		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
+		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.getCurrentPagePoint().clone()
 	}
 
 	canClose() {
@@ -172,7 +172,7 @@ export class Drawing extends StateNode {
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
-		this.segmentMode = this.editor.inputs.shiftKey ? 'straight' : 'free'
+		this.segmentMode = this.editor.inputs.getShiftKey() ? 'straight' : 'free'
 
 		this.didJustShiftClickToExtendPreviousShapeLine = false
 
@@ -460,7 +460,7 @@ export class Drawing extends StateNode {
 				let shouldSnapToAngle = false
 
 				if (this.didJustShiftClickToExtendPreviousShapeLine) {
-					if (this.editor.inputs.isDragging) {
+					if (this.editor.inputs.getIsDragging()) {
 						// If we've just shift clicked to extend a line, only snap once we've started dragging
 						shouldSnapToAngle = !ctrlKey
 						this.didJustShiftClickToExtendPreviousShapeLine = false
@@ -705,7 +705,7 @@ export class Drawing extends StateNode {
 	}
 
 	override onInterrupt() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			return
 		}
 

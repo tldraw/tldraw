@@ -210,7 +210,7 @@ export class PointingShape extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			if (isOverArrowLabel(this.editor, this.hitShape)) {
 				// We're moving the label on a shape.
 				this.parent.transition('pointing_arrow_label', { ...info, shape: this.hitShape })
