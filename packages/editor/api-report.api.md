@@ -1629,7 +1629,7 @@ export class Ellipse2d extends Geometry2d {
 }
 
 // @public (undocumented)
-export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_2.PropsWithChildren<TLErrorBoundaryProps>>, {
+export class ErrorBoundary extends React_2.Component<React_2.PropsWithChildren<TLErrorBoundaryProps>, {
     error: Error | null;
 }> {
     // (undocumented)

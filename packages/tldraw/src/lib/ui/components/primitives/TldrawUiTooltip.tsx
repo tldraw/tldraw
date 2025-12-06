@@ -411,10 +411,10 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
 
 		const childElement = child as React.ReactElement<{
-			onMouseEnter?: (event: React.MouseEvent<HTMLElement>) => void
-			onMouseLeave?: (event: React.MouseEvent<HTMLElement>) => void
-			onFocus?: (event: React.FocusEvent<HTMLElement>) => void
-			onBlur?: (event: React.FocusEvent<HTMLElement>) => void
+			onMouseEnter?(event: React.MouseEvent<HTMLElement>): void
+			onMouseLeave?(event: React.MouseEvent<HTMLElement>): void
+			onFocus?(event: React.FocusEvent<HTMLElement>): void
+			onBlur?(event: React.FocusEvent<HTMLElement>): void
 		}>
 
 		const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
