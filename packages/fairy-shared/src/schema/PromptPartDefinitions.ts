@@ -611,13 +611,13 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 		const friendlessArrowLints = lints.filter((l) => l.type === 'friendless-arrow')
 
 		messages.push(
-			'<lints> The following potential problems have been detected in the canvas that you should be aware of. Defer to your view of the canvas to decide if you need to make changes.'
+			"[LINTER]: The following potential visual problems have been detected in the canvas. You should decide if you want to address them. Defer to your view of the canvas to decide if you need to make changes; it's very possible that you don't need to make any changes."
 		)
 
 		if (growYLints.length > 0) {
 			const shapeIds = growYLints.flatMap((l) => l.shapeIds)
 			const lines = [
-				'Text overflow: These shapes have text that caused their containers to grow past the size that they were intended to be. This means that they may be breaking the aligment of the shapes.',
+				'Text overflow: These shapes have text that caused their containers to grow past the size that they were intended to be, potentially breaking out of their container. If you decide to fix: you need to set the height back to what you originally intended after increasing the width.',
 				...shapeIds.map((id) => `  - ${id}`),
 			]
 			messages.push(lines.join('\n'))
@@ -625,7 +625,7 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 
 		if (overlappingTextLints.length > 0) {
 			const lines = [
-				'Overlapping text: The shapes in each group have text and overlap each other, which may make text hard to read.',
+				'Overlapping text: The shapes in each group have text and overlap each other, which may make text hard to read. If you decide to fix this, you may need to increase the size of any shapes containing the text.',
 				...overlappingTextLints.map((lint) => `  - ${lint.shapeIds.join(', ')}`),
 			]
 			messages.push(lines.join('\n'))
