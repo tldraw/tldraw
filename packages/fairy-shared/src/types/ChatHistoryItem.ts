@@ -34,6 +34,11 @@ export interface ChatHistoryActionItem {
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
 	memoryLevel: FairyMemoryLevel
+	/**
+	 * Timestamp (milliseconds since epoch) when the action completed.
+	 * Only set when action.complete === true.
+	 */
+	timestamp?: number
 }
 
 /**
