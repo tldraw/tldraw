@@ -18,6 +18,10 @@ import {
 export class Brushing extends StateNode {
 	static override id = 'brushing'
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 
 	initialSelectedShapeIds: TLShapeId[] = []

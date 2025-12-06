@@ -5,6 +5,10 @@ import { getTextLabels } from '../../../utils/shapes/shapes'
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	hitShape = {} as TLShape
 	hitShapeForPointerUp = {} as TLShape
 	isDoubleClick = false
