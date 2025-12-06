@@ -89,6 +89,12 @@ export function FairyHUDHeader({
 		[shownFairy]
 	)
 
+	const isGenerating = useValue(
+		'is-generating',
+		() => shownFairy?.requests.isGenerating() ?? false,
+		[shownFairy]
+	)
+
 	// Check if there are unselected fairies without active projects
 	const hasUnselectedFairiesWithoutActiveProjects = useValue(
 		'unselected-fairies-without-active-projects',
@@ -200,9 +206,18 @@ export function FairyHUDHeader({
 		selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">{getProjectDisplayName()}</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display" onClick={zoomToFairy}>
+			<div
+				className={`fairy-id-display ${isGenerating ? 'fairy-id-display--generating' : ''}`}
+				onClick={zoomToFairy}
+			>
 				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
-					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
+					<span
+						className="fairy-id-display-text"
+						style={{ cursor: fairyClickable ? 'pointer' : 'default' }}
+						data-text={getDisplayName()}
+					>
+						{getDisplayName()}
+					</span>
 				</TldrawUiTooltip>
 			</div>
 		) : (
