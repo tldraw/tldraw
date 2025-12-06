@@ -44,10 +44,11 @@
 		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"devDependencies": {
-		"@types/react": "^18.3.18",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
 		"@types/uuid-readable": "^0.0.3",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
 		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",

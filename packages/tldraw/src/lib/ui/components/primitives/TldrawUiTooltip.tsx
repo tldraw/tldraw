@@ -410,8 +410,15 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		const child = React.Children.only(children)
 		assert(React.isValidElement(child), 'TldrawUiTooltip children must be a single element')
 
+		const childElement = child as React.ReactElement<{
+			onMouseEnter?: (event: React.MouseEvent<HTMLElement>) => void
+			onMouseLeave?: (event: React.MouseEvent<HTMLElement>) => void
+			onFocus?: (event: React.FocusEvent<HTMLElement>) => void
+			onBlur?: (event: React.FocusEvent<HTMLElement>) => void
+		}>
+
 		const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-			child.props.onMouseEnter?.(event)
+			childElement.props.onMouseEnter?.(event)
 			tooltipManager.handleEvent({
 				type: 'show',
 				tooltip: {
@@ -427,7 +434,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		}
 
 		const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
-			child.props.onMouseLeave?.(event)
+			childElement.props.onMouseLeave?.(event)
 			tooltipManager.handleEvent({
 				type: 'hide',
 				tooltipId: tooltipId.current,
@@ -437,7 +444,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		}
 
 		const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
-			child.props.onFocus?.(event)
+			childElement.props.onFocus?.(event)
 			tooltipManager.handleEvent({
 				type: 'show',
 				tooltip: {
@@ -453,7 +460,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		}
 
 		const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
-			child.props.onBlur?.(event)
+			childElement.props.onBlur?.(event)
 			tooltipManager.handleEvent({
 				type: 'hide',
 				tooltipId: tooltipId.current,
@@ -462,7 +469,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			})
 		}
 
-		const childrenWithHandlers = React.cloneElement(children as React.ReactElement, {
+		const childrenWithHandlers = React.cloneElement(childElement, {
 			onMouseEnter: handleMouseEnter,
 			onMouseLeave: handleMouseLeave,
 			onFocus: handleFocus,

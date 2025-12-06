@@ -23,9 +23,10 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@types/react": "^18.3.18",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1"
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
