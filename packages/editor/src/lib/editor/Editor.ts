@@ -331,7 +331,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.fonts = new FontManager(this, fontAssetUrls)
 
-		this._tickManager = new TickManager(this)
+		this.clock = new TickManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -779,7 +779,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.on('tick', this._flushEventsForTick)
 
 		this.timers.requestAnimationFrame(() => {
-			this._tickManager.start()
+			this.clock.start()
 		})
 
 		this.performanceTracker = new PerformanceTracker()
@@ -880,8 +880,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	isDisposed = false
 
-	/** @internal */
-	private readonly _tickManager
+	/** @public */
+	readonly clock
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -9665,8 +9665,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// update our last activity timestamp; otherwise, update it to the current timestamp.
 							info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
 								? (this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
-									this._tickManager.now)
-								: this._tickManager.now,
+									this.clock.now)
+								: this.clock.now,
 						meta: {},
 					},
 				])
