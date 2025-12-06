@@ -9497,8 +9497,8 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     esbuild: "npm:^0.25.6"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -9527,8 +9527,8 @@ __metadata:
     "@types/js-cookie": "npm:^3.0.6"
     "@types/mdast": "npm:^4.0.4"
     "@types/node": "npm:^22.15.31"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/sqlite3": "npm:^3.1.11"
     "@types/ws": "npm:^8.18.1"
     algoliasearch: "npm:^4.24.0"
@@ -9589,14 +9589,14 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9619,7 +9619,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     "@types/pg": "npm:^8.11.11"
-    "@types/react": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
     esbuild: "npm:^0.25.6"
     itty-router: "npm:^5.0.18"
     jose: "npm:^5.9.6"
@@ -9654,8 +9654,8 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.5"
     "@types/core-js": "npm:^2.5.8"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/wicg-file-system-access": "npm:^2020.9.8"
     "@use-gesture/react": "npm:^10.3.1"
     benchmark: "npm:^2.1.4"
@@ -9672,7 +9672,7 @@ __metadata:
     vitest: "npm:^3.2.4"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9685,8 +9685,8 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     ai: "npm:^5.0.63"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -9694,7 +9694,7 @@ __metadata:
     zod: "npm:^4.1.8"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9714,8 +9714,8 @@ __metadata:
     "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
     "@types/node": "npm:^22.15.31"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/semver": "npm:^7.5.8"
     "@typescript-eslint/eslint-plugin": "npm:^8.21.0"
     "@typescript-eslint/parser": "npm:^8.21.0"
@@ -9806,8 +9806,8 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@types/bun": "npm:^1.1.6"
     "@types/express": "npm:^4.17.21"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/ws": "npm:^8.18.1"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     concurrently: "npm:^9.1.2"
@@ -9834,8 +9834,8 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@types/bun": "npm:^1.1.6"
     "@types/express": "npm:^4.17.21"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/ws": "npm:^8.18.1"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     concurrently: "npm:^9.1.2"
@@ -9863,15 +9863,15 @@ __metadata:
     "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     lodash: "npm:^4.17.21"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     vitest: "npm:^3.2.4"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9909,8 +9909,8 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/uuid-readable": "npm:^0.0.3"
     nanoevents: "npm:^7.0.1"
     react: "npm:^19.2.1"
@@ -9923,7 +9923,7 @@ __metadata:
     ws: "npm:^8.18.0"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9935,8 +9935,8 @@ __metadata:
     "@tldraw/state-react": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     nanoevents: "npm:^7.0.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -9948,7 +9948,7 @@ __metadata:
     ws: "npm:^8.18.0"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9956,8 +9956,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/tldraw@workspace:packages/namespaced-tldraw"
   dependencies:
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     lazyrepo: "npm:0.0.0-alpha.27"
     react: "npm:^19.2.1"
@@ -9965,7 +9965,7 @@ __metadata:
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9983,7 +9983,7 @@ __metadata:
     vitest: "npm:^3.2.4"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -10021,8 +10021,8 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
     "@types/node": "npm:^22.15.31"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/react-router-dom": "npm:^5.3.3"
     concurrently: "npm:^9.1.2"
     create-serve: "npm:1.0.1"
@@ -10789,7 +10789,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.0.0":
+"@types/react-dom@npm:^19.2.3":
   version: 19.2.3
   resolution: "@types/react-dom@npm:19.2.3"
   peerDependencies:
@@ -10829,7 +10829,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.0.0":
+"@types/react@npm:^19.2.7":
   version: 19.2.7
   resolution: "@types/react@npm:19.2.7"
   dependencies:
@@ -15138,8 +15138,8 @@ __metadata:
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^22.15.31"
     "@types/qrcode": "npm:^1.5.5"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/regexgen": "npm:^1.3.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     axe-core: "npm:^4.10.3"
@@ -16617,8 +16617,8 @@ __metadata:
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     ag-grid-community: "npm:^32.3.3"
     ag-grid-react: "npm:^32.3.3"
@@ -28063,8 +28063,8 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@google/generative-ai": "npm:^0.24.1"
     "@tldraw/tlschema": "workspace:*"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     "@worker-tools/json-stream": "npm:^0.1.0-pre.12"
     ai: "npm:^5.0.63"
@@ -28088,8 +28088,8 @@ __metadata:
     "@ai-sdk/google": "npm:^2.0.14"
     "@cloudflare/vite-plugin": "npm:^1.13.2"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     ai: "npm:^5.0.63"
     classnames: "npm:^2.5.1"
@@ -28113,8 +28113,8 @@ __metadata:
     "@ai-sdk/react": "npm:^2.0.15"
     "@google/genai": "npm:^1.17.0"
     "@types/node": "npm:^22.15.31"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     ai: "npm:^5.0.63"
     next: "npm:^15.4.6"
     react: "npm:^19.2.1"
@@ -28131,8 +28131,8 @@ __metadata:
   resolution: "tldraw-nextjs-app-example@workspace:templates/nextjs"
   dependencies:
     "@types/node": "npm:^22.15.31"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     next: "npm:^15.4.6"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -28145,8 +28145,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-shader-starter-kit@workspace:templates/shader"
   dependencies:
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -28165,8 +28165,8 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@types/lodash.throttle": "npm:^4.1.9"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     cloudflare-workers-unfurl: "npm:^0.0.8"
     concurrently: "npm:^9.1.2"
@@ -28186,8 +28186,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-vite-example@workspace:templates/vite"
   dependencies:
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -28204,8 +28204,8 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
     "@types/node-fetch": "npm:^2.6.12"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@types/vscode": "npm:^1.96.0"
     assert: "npm:^2.1.0"
     cheerio: "npm:^1.0.0"
@@ -28227,8 +28227,8 @@ __metadata:
     vsce: "npm:^2.15.0"
     webpack: "npm:^5.97.1"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -28236,8 +28236,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-vue-example@workspace:templates/vue"
   dependencies:
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     "@vitejs/plugin-vue": "npm:^6.0.0"
     react: "npm:^19.2.1"
@@ -28255,8 +28255,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-workflow@workspace:templates/workflow"
   dependencies:
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     classnames: "npm:^2.5.1"
     radix-ui: "npm:^1.4.2"
@@ -28286,8 +28286,8 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
     hotkeys-js: "npm:^3.13.9"
@@ -28301,7 +28301,7 @@ __metadata:
     vitest: "npm:^3.2.4"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 

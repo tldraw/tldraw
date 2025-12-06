@@ -137,8 +137,8 @@
 		"@tldraw/editor": "workspace:*",
 		"@types/fs-extra": "^11.0.4",
 		"@types/node-fetch": "^2.6.12",
-		"@types/react": "^19.0.0",
-		"@types/react-dom": "^19.0.0",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@types/vscode": "^1.96.0",
 		"assert": "^2.1.0",
 		"esbuild": "^0.25.6",
@@ -164,7 +164,7 @@
 		"node-fetch": "^2.7.0"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }

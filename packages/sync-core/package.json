@@ -44,8 +44,8 @@
 		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"devDependencies": {
-		"@types/react": "^19.0.0",
-		"@types/react-dom": "^19.0.0",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@types/uuid-readable": "^0.0.3",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
@@ -65,6 +65,6 @@
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }

@@ -16,15 +16,15 @@
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"devDependencies": {
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@types/react": "^19.0.0",
-		"@types/react-dom": "^19.0.0",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1"
 	},

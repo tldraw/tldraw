@@ -42,8 +42,8 @@
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.13.2",
 		"@types/lodash.throttle": "^4.1.9",
-		"@types/react": "^19.0.0",
-		"@types/react-dom": "^19.0.0",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"concurrently": "^9.1.2",
 		"typescript": "^5.8.3",

@@ -127,7 +127,7 @@ Single dependency on core tldraw package:
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }
 ```

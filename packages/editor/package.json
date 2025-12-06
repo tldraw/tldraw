@@ -67,15 +67,15 @@
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.5.0",
 		"@testing-library/dom": "^10.0.0",
 		"@testing-library/react": "^16.0.0",
 		"@types/benchmark": "^2.1.5",
-		"@types/react": "^19.0.0",
-		"@types/react-dom": "^19.0.0",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@types/wicg-file-system-access": "^2020.9.8",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.2",

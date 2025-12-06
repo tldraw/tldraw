@@ -47,7 +47,7 @@
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/pg": "^8.11.11",
-		"@types/react": "^19.0.0",
+		"@types/react": "^19.2.7",
 		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
