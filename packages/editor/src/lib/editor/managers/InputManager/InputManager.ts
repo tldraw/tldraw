@@ -1,17 +1,17 @@
 import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
-import { INTERNAL_POINTER_IDS } from '../../constants'
-import { ReadonlyVec } from '../../primitives/Vec'
-import { isAccelKey } from '../../utils/keyboard'
-import { Editor } from '../Editor'
-import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../types/event-types'
+import { INTERNAL_POINTER_IDS } from '../../../constants'
+import { Vec } from '../../../primitives/Vec'
+import { isAccelKey } from '../../../utils/keyboard'
+import { Editor } from '../../Editor'
+import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
 
 /** @public */
 export class InputManager {
 	constructor(private readonly editor: Editor) {}
 
-	private _originPagePoint = atom<ReadonlyVec>('originPagePoint', { x: 0, y: 0 })
+	private _originPagePoint = atom<Vec>('originPagePoint', new Vec())
 	/**
 	 * The most recent pointer down's position in the current page space.
 	 */
@@ -26,7 +26,7 @@ export class InputManager {
 		return this.getOriginPagePoint()
 	}
 
-	private _originScreenPoint = atom<ReadonlyVec>('originScreenPoint', { x: 0, y: 0 })
+	private _originScreenPoint = atom<Vec>('originScreenPoint', new Vec())
 	/**
 	 * The most recent pointer down's position in screen space.
 	 */
@@ -41,7 +41,7 @@ export class InputManager {
 		return this.getOriginScreenPoint()
 	}
 
-	private _previousPagePoint = atom<ReadonlyVec>('previousPagePoint', { x: 0, y: 0 })
+	private _previousPagePoint = atom<Vec>('previousPagePoint', new Vec())
 	/**
 	 * The previous pointer position in the current page space.
 	 */
@@ -56,7 +56,7 @@ export class InputManager {
 		return this.getPreviousPagePoint()
 	}
 
-	private _previousScreenPoint = atom<ReadonlyVec>('previousScreenPoint', { x: 0, y: 0 })
+	private _previousScreenPoint = atom<Vec>('previousScreenPoint', new Vec())
 	/**
 	 * The previous pointer position in screen space.
 	 */
@@ -71,7 +71,7 @@ export class InputManager {
 		return this.getPreviousScreenPoint()
 	}
 
-	private _currentPagePoint = atom<ReadonlyVec>('currentPagePoint', { x: 0, y: 0 })
+	private _currentPagePoint = atom<Vec>('currentPagePoint', new Vec())
 	/**
 	 * The most recent pointer position in the current page space.
 	 */
@@ -86,7 +86,7 @@ export class InputManager {
 		return this.getCurrentPagePoint()
 	}
 
-	private _currentScreenPoint = atom<ReadonlyVec>('currentScreenPoint', { x: 0, y: 0 })
+	private _currentScreenPoint = atom<Vec>('currentScreenPoint', new Vec())
 	/**
 	 * The most recent pointer position in screen space.
 	 */
@@ -101,7 +101,7 @@ export class InputManager {
 		return this.getCurrentScreenPoint()
 	}
 
-	private _pointerVelocity = atom<ReadonlyVec>('pointerVelocity', { x: 0, y: 0 })
+	private _pointerVelocity = atom<Vec>('pointerVelocity', new Vec())
 	/**
 	 * Velocity of mouse pointer, in pixels per millisecond.
 	 */
@@ -116,10 +116,11 @@ export class InputManager {
 		return this.getPointerVelocity()
 	}
 	/**
+	 * Normally you shouldn't need to set the pointer velocity directly, this is set by the tick manager.
 	 * @param pointerVelocity - The pointer velocity.
 	 * @internal
 	 */
-	setPointerVelocity(pointerVelocity: ReadonlyVec) {
+	setPointerVelocity(pointerVelocity: Vec) {
 		this._pointerVelocity.set(pointerVelocity)
 	}
 
@@ -404,18 +405,18 @@ export class InputManager {
 		// The "screen point" is relative to the "screen bounds";
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
-		this._currentScreenPoint.set({ x: sx, y: sy })
+		this._currentScreenPoint.set(new Vec(sx, sy))
 		const nx = sx / cz - cx
 		const ny = sy / cz - cy
 		if (isFinite(nx) && isFinite(ny)) {
-			this._currentPagePoint.set({ x: nx, y: ny, z: sz })
+			this._currentPagePoint.set(new Vec(nx, ny, sz))
 		}
 
 		this._isPen.set(info.type === 'pointer' && info.isPen)
 
 		// Reset velocity on pointer down, or when a pinch starts or ends
 		if (info.name === 'pointer_down' || isPinching) {
-			this._pointerVelocity.set({ x: 0, y: 0 })
+			this._pointerVelocity.set(new Vec())
 			this._originScreenPoint.set(this._currentScreenPoint.__unsafe__getWithoutCapture())
 			this._originPagePoint.set(this._currentPagePoint.__unsafe__getWithoutCapture())
 		}

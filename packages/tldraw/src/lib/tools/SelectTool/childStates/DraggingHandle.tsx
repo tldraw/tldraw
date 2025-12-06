@@ -1,5 +1,5 @@
 import {
-	ReadonlyVec,
+	Mat,
 	StateNode,
 	TLArrowShape,
 	TLHandle,
@@ -29,10 +29,10 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
 
-	shapeId = '' as TLShapeId
-	initialHandle = {} as TLHandle
-	initialAdjacentHandle = null as TLHandle | null
-	initialPagePoint: ReadonlyVec = { x: 0, y: 0 }
+	shapeId!: TLShapeId
+	initialHandle!: TLHandle
+	initialAdjacentHandle!: TLHandle | null
+	initialPagePoint!: Vec
 
 	markId!: string
 	initialPageTransform!: Mat
@@ -73,7 +73,7 @@ export class DraggingHandle extends StateNode {
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.getOriginPagePoint()
+		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
@@ -284,6 +284,13 @@ export class DraggingHandle extends StateNode {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const isSnapMode = this.editor.user.getIsSnapMode()
+		const { snaps, inputs } = editor
+
+		const currentPagePoint = inputs.getCurrentPagePoint()
+		const shiftKey = inputs.getShiftKey()
+		const ctrlKey = inputs.getCtrlKey()
+		const altKey = inputs.getAltKey()
+		const pointerVelocity = inputs.getPointerVelocity()
 
 		const initial = this.info.shape
 
@@ -291,11 +298,17 @@ export class DraggingHandle extends StateNode {
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
 
-		let point = Vec.Sub(editor.inputs.getCurrentPagePoint(), initialPagePoint)
+		const initialBinding = editor.isShapeOfType(shape, 'arrow')
+			? getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
+			: undefined
+
+		let point = currentPagePoint
+			.clone()
+			.sub(initialPagePoint)
 			.rot(-initialPageRotation)
 			.add(initialHandle)
 
-		if (editor.inputs.getShiftKey() && initialAdjacentHandle && initialHandle.id !== 'middle') {
+		if (shiftKey && initialAdjacentHandle && initialHandle.id !== 'middle') {
 			const angle = Vec.Angle(initialAdjacentHandle, point)
 			const snappedAngle = snapAngle(angle, 24)
 			const angleDifference = snappedAngle - angle
@@ -307,15 +320,23 @@ export class DraggingHandle extends StateNode {
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
 
-		if (
-			initialHandle.canSnap &&
-			(isSnapMode ? !editor.inputs.getCtrlKey() : editor.inputs.getCtrlKey())
-		) {
+		let canSnap = false
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (initialHandle.canSnap && initialHandle.snapType) {
+			warnOnce(
+				'canSnap is deprecated. Cannot use both canSnap and snapType together - snapping disabled. Please use only snapType.'
+			)
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
+		}
+
+		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
-			const snap = editor.snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
+			const snap = snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
 
 			if (snap) {
 				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
@@ -326,7 +347,8 @@ export class DraggingHandle extends StateNode {
 
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
-			isPrecise: this.isPrecise || editor.inputs.getAltKey(),
+			isPrecise: this.isPrecise || altKey,
+			isCreatingShape: !!this.info.isCreating,
 			initial: initial,
 		})
 
@@ -339,8 +361,7 @@ export class DraggingHandle extends StateNode {
 			if (bindingAfter) {
 				if (initialBinding?.toId !== bindingAfter.toId) {
 					this.pointingId = bindingAfter.toId
-					this.isPrecise =
-						Vec.Len(editor.inputs.getPointerVelocity()) < 0.5 || editor.inputs.getAltKey()
+					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}

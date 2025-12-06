@@ -10089,9 +10089,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _restoreToolId = 'select'
 
 	/** @internal */
-	private _pinchStart = 1
-
-	/** @internal */
 	private _didPinch = false
 
 	/** @internal */
@@ -10262,7 +10259,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.getIsPinching()) return
 
 						if (!inputs.getIsEditing()) {
-							this._pinchStart = this.getCamera().z
 							if (!this._selectedShapeIdsAtPointerDown.length) {
 								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 							}

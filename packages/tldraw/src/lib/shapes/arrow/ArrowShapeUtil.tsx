@@ -118,7 +118,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
 
-		shouldBeExact: (editor: Editor) => editor.inputs.altKey,
+		shouldBeExact: (editor: Editor) => editor.inputs.getAltKey(),
 		shouldIgnoreTargets: (editor: Editor) => editor.inputs.getCtrlKey(),
 	}
 
@@ -437,30 +437,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const oppositeHandleId = handleId === ArrowHandles.Start ? ArrowHandles.End : ArrowHandles.Start
 		const oppositeBinding = bindings[oppositeHandleId]
 
-		if (this.editor.inputs.getCtrlKey()) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			// Skip binding
-			removeArrowBinding(this.editor, shape, handleId)
-
-			update.props![handleId] = {
-				x: handle.x,
-				y: handle.y,
-			}
-			return update
-		}
-
-		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
-
-		const target = this.editor.getShapeAtPoint(point, {
-			hitInside: true,
-			hitFrameInside: true,
-			margin: 0,
-			filter: (targetShape) => {
-				return (
-					!targetShape.isLocked &&
-					this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
-				)
-			},
+		const targetInfo = updateArrowTargetState({
+			editor: this.editor,
+			pointInPageSpace: this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle),
+			arrow: shape,
+			isPrecise: isPrecise,
+			currentBinding,
+			oppositeBinding,
 		})
 
 		if (!targetInfo) {
@@ -475,58 +458,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		// we've got a target! the handle is being dragged over a shape, bind to it
-
-		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-		const pageTransform = this.editor.getShapePageTransform(update.id)!
-		const pointInPageSpace = pageTransform.applyToPoint(handle)
-		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
-
-		let precise = isPrecise
-
-		if (!precise) {
-			// If we're switching to a new bound shape, then precise only if moving slowly
-			if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
-				precise = Vec.Len(this.editor.inputs.getPointerVelocity()) < 0.5
-			}
-		}
-
-		if (!isPrecise) {
-			if (!targetGeometry.isClosed) {
-				precise = true
-			}
-
-			// Double check that we're not going to be doing an imprecise snap on
-			// the same shape twice, as this would result in a zero length line
-			if (otherBinding && target.id === otherBinding.toId && otherBinding.props.isPrecise) {
-				precise = true
-			}
-		}
-
-		const normalizedAnchor = {
-			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-		}
-
-		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-			if (
-				Vec.Dist(pointInTargetSpace, targetBounds.center) <
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.getZoomLevel()
-			) {
-				normalizedAnchor.x = 0.5
-				normalizedAnchor.y = 0.5
-			}
-		}
-
-		const b = {
+		const bindingProps: TLArrowBindingProps = {
 			terminal: handleId,
-			normalizedAnchor,
-			isPrecise: precise,
-			isExact: this.editor.inputs.getAltKey(),
+			normalizedAnchor: targetInfo.normalizedAnchor,
+			isPrecise: targetInfo.isPrecise,
+			isExact: targetInfo.isExact,
+			snap: targetInfo.snap,
 		}
 
 		createOrUpdateArrowBinding(this.editor, shape, targetInfo.target.id, bindingProps)

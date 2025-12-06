@@ -11,10 +11,13 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.getIsDragging()) {
-			const originPagePoint = this.editor.inputs.getOriginPagePoint()
+		const { editor } = this
+		const parent = this.parent as BaseBoxShapeTool
 
-			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
+		if (editor.inputs.getIsDragging()) {
+			const originPagePoint = editor.inputs.getOriginPagePoint()
+
+			const shapeType = parent.shapeType
 
 			const id = createShapeId()
 
@@ -22,7 +25,7 @@ export class Pointing extends StateNode {
 			const newPoint = maybeSnapToGrid(originPagePoint, editor)
 
 			// Allow this to trigger the max shapes reached alert
-			this.editor.createShapes([
+			editor.createShapes([
 				{
 					id,
 					type: shapeType,
@@ -41,8 +44,7 @@ export class Pointing extends StateNode {
 			}
 			editor.select(id)
 
-			const parent = this.parent as BaseBoxShapeTool
-			this.editor.setCurrentTool(
+			editor.setCurrentTool(
 				'select.resizing',
 				{
 					...info,

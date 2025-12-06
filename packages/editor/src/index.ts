@@ -347,8 +347,6 @@ export {
 	type SelectionEdge,
 	type SelectionHandle,
 } from './lib/primitives/Box'
-export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
-export { Vec, type ReadonlyVec, type VecLike } from './lib/primitives/Vec'
 export { EASINGS } from './lib/primitives/easings'
 export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'

@@ -6,13 +6,6 @@ import { clamp, toFixed } from './utils'
 export type VecLike = Vec | VecModel
 
 /** @public */
-export interface ReadonlyVec {
-	readonly x: number
-	readonly y: number
-	readonly z?: number
-}
-
-/** @public */
 export class Vec {
 	constructor(
 		public x = 0,

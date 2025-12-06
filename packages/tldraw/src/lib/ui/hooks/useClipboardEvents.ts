@@ -1,8 +1,8 @@
 import {
 	Editor,
 	FileHelpers,
-	ReadonlyVec,
 	TLExternalContentSource,
+	Vec,
 	VecLike,
 	assert,
 	compact,
@@ -775,7 +775,7 @@ export function useNativeClipboardEvents() {
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
 
 			// Where should the shapes go?
-			let point: ReadonlyVec | undefined = undefined
+			let point: Vec | undefined = undefined
 			let pasteAtCursor = false
 
 			// | Shiftkey | Paste at cursor mode | Paste at point? |

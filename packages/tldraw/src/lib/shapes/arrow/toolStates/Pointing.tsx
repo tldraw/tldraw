@@ -1,6 +1,6 @@
 import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
-import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
+import { clearArrowTargetState } from '../arrowTargetState'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -16,18 +16,6 @@ export class Pointing extends StateNode {
 		this.markId = ''
 		this.isPrecise = !!info.isPrecise
 
-<<<<<<< HEAD:packages/tldraw/src/lib/shapes/arrow/toolStates/Pointing.ts
-		const target = this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
-			filter: (targetShape) => {
-				return (
-					!targetShape.isLocked &&
-					this.editor.canBindShapes({ fromShape: 'arrow', toShape: targetShape, binding: 'arrow' })
-				)
-			},
-			margin: 0,
-			hitInside: true,
-			renderingOnly: true,
-=======
 		const targetState = updateArrowTargetState({
 			editor: this.editor,
 			pointInPageSpace: this.editor.inputs.getCurrentPagePoint(),
@@ -35,7 +23,6 @@ export class Pointing extends StateNode {
 			isPrecise: this.isPrecise,
 			currentBinding: undefined,
 			oppositeBinding: undefined,
->>>>>>> main:packages/tldraw/src/lib/shapes/arrow/toolStates/Pointing.tsx
 		})
 
 		if (!targetState) {

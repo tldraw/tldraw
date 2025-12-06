@@ -48,19 +48,19 @@ describe('ArrowShapeOptions', () => {
 			const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 
 			// Test without alt key, not precise
-			editor.inputs.altKey = false
+			editor.inputs.setAltKey(false)
 			expect(util.options.shouldBeExact(editor, false)).toBe(false)
 
 			// Test without alt key, precise
-			editor.inputs.altKey = false
+			editor.inputs.setAltKey(false)
 			expect(util.options.shouldBeExact(editor, true)).toBe(false)
 
 			// Test with alt key, not precise
-			editor.inputs.altKey = true
+			editor.inputs.setAltKey(true)
 			expect(util.options.shouldBeExact(editor, false)).toBe(true)
 
 			// Test with alt key, precise
-			editor.inputs.altKey = true
+			editor.inputs.setAltKey(true)
 			expect(util.options.shouldBeExact(editor, true)).toBe(true)
 		})
 
@@ -68,11 +68,11 @@ describe('ArrowShapeOptions', () => {
 			const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
 
 			// Test without ctrl key
-			editor.inputs.ctrlKey = false
+			editor.inputs.setCtrlKey(false)
 			expect(util.options.shouldIgnoreTargets(editor)).toBe(false)
 
 			// Test with ctrl key
-			editor.inputs.ctrlKey = true
+			editor.inputs.setCtrlKey(true)
 			expect(util.options.shouldIgnoreTargets(editor)).toBe(true)
 		})
 	})
@@ -82,7 +82,7 @@ describe('ArrowShapeOptions', () => {
 			editor.setCurrentTool('arrow')
 
 			// Simulate ctrl key held (default shouldIgnoreTargets behavior)
-			editor.inputs.ctrlKey = true
+			editor.inputs.setCtrlKey(true)
 
 			editor.pointerDown(50, 50) // Start outside any shape
 			editor.pointerMove(150, 150) // Move to center of box1
@@ -102,7 +102,7 @@ describe('ArrowShapeOptions', () => {
 			editor.setCurrentTool('arrow')
 
 			// Simulate no ctrl key (default shouldIgnoreTargets behavior)
-			editor.inputs.ctrlKey = false
+			editor.inputs.setCtrlKey(false)
 
 			editor.pointerDown(50, 50) // Start outside any shape
 			editor.pointerMove(150, 150) // Move to center of box1
@@ -120,7 +120,7 @@ describe('ArrowShapeOptions', () => {
 
 		it('should work with updateArrowTargetState function', () => {
 			// Test that updateArrowTargetState returns null when shouldIgnoreTargets is true
-			editor.inputs.ctrlKey = true
+			editor.inputs.setCtrlKey(true)
 
 			const targetState = updateArrowTargetState({
 				editor,
@@ -135,7 +135,7 @@ describe('ArrowShapeOptions', () => {
 		})
 
 		it('should return valid target state when shouldIgnoreTargets is false', () => {
-			editor.inputs.ctrlKey = false
+			editor.inputs.setCtrlKey(false)
 
 			const targetState = updateArrowTargetState({
 				editor,
@@ -153,8 +153,8 @@ describe('ArrowShapeOptions', () => {
 
 	describe('shouldBeExact option', () => {
 		it('should affect arrow targeting behavior when true', () => {
-			editor.inputs.altKey = true // shouldBeExact = true
-			editor.inputs.ctrlKey = false // shouldIgnoreTargets = false
+			editor.inputs.setAltKey(true) // shouldBeExact = true
+			editor.inputs.setCtrlKey(false) // shouldIgnoreTargets = false
 
 			const targetState = updateArrowTargetState({
 				editor,
@@ -170,8 +170,8 @@ describe('ArrowShapeOptions', () => {
 		})
 
 		it('should affect arrow targeting behavior when false', () => {
-			editor.inputs.altKey = false // shouldBeExact = false
-			editor.inputs.ctrlKey = false // shouldIgnoreTargets = false
+			editor.inputs.setAltKey(false) // shouldBeExact = false
+			editor.inputs.setCtrlKey(false) // shouldIgnoreTargets = false
 
 			const targetState = updateArrowTargetState({
 				editor,
@@ -201,14 +201,14 @@ describe('ArrowShapeOptions', () => {
 			const customUtil = new CustomArrowShapeUtil(editor)
 
 			// Test with shift key
-			editor.inputs.shiftKey = true
-			editor.inputs.altKey = false
+			editor.inputs.setShiftKey(true)
+			editor.inputs.setAltKey(false)
 			expect(customUtil.options.shouldBeExact(editor, false)).toBe(true)
 			expect(customUtil.options.shouldBeExact(editor, true)).toBe(true)
 
 			// Test without shift key
-			editor.inputs.shiftKey = false
-			editor.inputs.altKey = true // Alt key should not matter for custom implementation
+			editor.inputs.setShiftKey(false)
+			editor.inputs.setAltKey(true) // Alt key should not matter for custom implementation
 			expect(customUtil.options.shouldBeExact(editor, false)).toBe(false)
 			expect(customUtil.options.shouldBeExact(editor, true)).toBe(false)
 		})
@@ -226,13 +226,13 @@ describe('ArrowShapeOptions', () => {
 			const customUtil = new CustomArrowShapeUtil(editor)
 
 			// Test with shift key
-			editor.inputs.shiftKey = true
-			editor.inputs.ctrlKey = false
+			editor.inputs.setShiftKey(true)
+			editor.inputs.setCtrlKey(false)
 			expect(customUtil.options.shouldIgnoreTargets(editor)).toBe(true)
 
 			// Test without shift key
-			editor.inputs.shiftKey = false
-			editor.inputs.ctrlKey = true // Ctrl key should not matter for custom implementation
+			editor.inputs.setShiftKey(false)
+			editor.inputs.setCtrlKey(true) // Ctrl key should not matter for custom implementation
 			expect(customUtil.options.shouldIgnoreTargets(editor)).toBe(false)
 		})
 
@@ -256,30 +256,30 @@ describe('ArrowShapeOptions', () => {
 			const customUtil = new CustomArrowShapeUtil(editor)
 
 			// Test shouldBeExact with both keys and precise
-			editor.inputs.altKey = true
-			editor.inputs.shiftKey = true
+			editor.inputs.setAltKey(true)
+			editor.inputs.setShiftKey(true)
 			expect(customUtil.options.shouldBeExact(editor, true)).toBe(true)
 
 			// Test shouldBeExact with both keys but not precise
-			editor.inputs.altKey = true
-			editor.inputs.shiftKey = true
+			editor.inputs.setAltKey(true)
+			editor.inputs.setShiftKey(true)
 			expect(customUtil.options.shouldBeExact(editor, false)).toBe(false)
 
 			// Test shouldBeExact with only one key
-			editor.inputs.altKey = true
-			editor.inputs.shiftKey = false
+			editor.inputs.setAltKey(true)
+			editor.inputs.setShiftKey(false)
 			expect(customUtil.options.shouldBeExact(editor, true)).toBe(false)
 
 			// Test shouldIgnoreTargets with any key
-			editor.inputs.altKey = false
-			editor.inputs.ctrlKey = false
-			editor.inputs.shiftKey = true
+			editor.inputs.setAltKey(false)
+			editor.inputs.setCtrlKey(false)
+			editor.inputs.setShiftKey(true)
 			expect(customUtil.options.shouldIgnoreTargets(editor)).toBe(true)
 
 			// Test shouldIgnoreTargets with no keys
-			editor.inputs.altKey = false
-			editor.inputs.ctrlKey = false
-			editor.inputs.shiftKey = false
+			editor.inputs.setAltKey(false)
+			editor.inputs.setCtrlKey(false)
+			editor.inputs.setShiftKey(false)
 			expect(customUtil.options.shouldIgnoreTargets(editor)).toBe(false)
 		})
 	})
@@ -290,7 +290,7 @@ describe('ArrowShapeOptions', () => {
 			editor.expectToBeIn('arrow.idle')
 
 			// Move to a position over box1
-			editor.inputs.ctrlKey = true // shouldIgnoreTargets = true
+			editor.inputs.setCtrlKey(true) // shouldIgnoreTargets = true
 			editor.pointerMove(150, 150)
 
 			// The arrow tool should not show any target highlighting
@@ -315,10 +315,10 @@ describe('ArrowShapeOptions', () => {
 
 			try {
 				editor.setCurrentTool('arrow')
-				editor.inputs.ctrlKey = false // Allow binding
+				editor.inputs.setCtrlKey(false) // Allow binding
 
 				// Set up fast pointer velocity to ensure precise remains false
-				editor.inputs.pointerVelocity = { x: 2, y: 2, len: () => 2.8 } as any
+				// editor.inputs.pointerVelocity = { x: 2, y: 2, len: () => 2.8 } as any
 
 				const targetState = updateArrowTargetState({
 					editor,
@@ -357,7 +357,7 @@ describe('ArrowShapeOptions', () => {
 			editor.setCurrentTool('arrow')
 
 			// Start creating arrow with ctrl held (shouldIgnoreTargets = true)
-			editor.inputs.ctrlKey = true
+			editor.inputs.setCtrlKey(true)
 			editor.pointerDown(150, 150) // Start in center of box1
 
 			// Even though we're starting in a shape, no binding should be created
@@ -378,8 +378,8 @@ describe('ArrowShapeOptions', () => {
 			editor.setCurrentTool('arrow')
 
 			// Create arrow with alt held (shouldBeExact = true)
-			editor.inputs.altKey = true
-			editor.inputs.ctrlKey = false // Allow binding
+			editor.inputs.setAltKey(true)
+			editor.inputs.setCtrlKey(false) // Allow binding
 
 			editor.pointerDown(50, 50) // Start outside shapes
 			editor.pointerMove(150, 150) // Move to center of box1

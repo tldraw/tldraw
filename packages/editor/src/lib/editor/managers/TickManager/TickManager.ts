@@ -1,11 +1,6 @@
 import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
-<<<<<<< HEAD:packages/editor/src/lib/editor/managers/TickManager.ts
-import { ReadonlyVec, Vec } from '../../primitives/Vec'
-import { Editor } from '../Editor'
-=======
 import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
->>>>>>> main:packages/editor/src/lib/editor/managers/TickManager/TickManager.ts
 
 const throttleToNextFrame =
 	typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
@@ -60,7 +55,7 @@ export class TickManager {
 		this.cancelRaf?.()
 	}
 
-	private prevPoint: ReadonlyVec = { x: 0, y: 0 }
+	private prevPoint = new Vec(0, 0)
 
 	updatePointerVelocity(elapsed: number) {
 		const prevPoint = this.prevPoint

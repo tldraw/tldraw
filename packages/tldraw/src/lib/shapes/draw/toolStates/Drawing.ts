@@ -1,6 +1,5 @@
 import {
 	Mat,
-	ReadonlyVec,
 	StateNode,
 	TLDefaultSizeStyle,
 	TLDrawShape,
@@ -42,11 +41,11 @@ export class Drawing extends StateNode {
 
 	didJustShiftClickToExtendPreviousShapeLine = false
 
-	pagePointWhereCurrentSegmentChanged: ReadonlyVec = { x: 0, y: 0 }
+	pagePointWhereCurrentSegmentChanged: Vec = new Vec(0, 0)
 
-	pagePointWhereNextSegmentChanged: ReadonlyVec | null = null
+	pagePointWhereNextSegmentChanged: Vec | null = null
 
-	lastRecordedPoint: ReadonlyVec = { x: 0, y: 0 }
+	lastRecordedPoint: Vec = new Vec(0, 0)
 	mergeNextPoint = false
 	currentLineLength = 0
 
@@ -646,22 +645,20 @@ export class Drawing extends StateNode {
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
 					const currentPagePoint = inputs.getCurrentPagePoint()
-					this.editor.createShapes<DrawableShape>([
-						{
-							id: newShapeId,
-							type: this.shapeType,
-							x: toFixed(currentPagePoint.x),
-							y: toFixed(currentPagePoint.y),
-							props: {
-								isPen: this.isPenOrStylus,
-								scale: props.scale,
-								segments: [
-									{
-										type: 'free',
-										points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
-									},
-								],
-							},
+					this.editor.createShape<DrawableShape>({
+						id: newShapeId,
+						type: this.shapeType,
+						x: toFixed(currentPagePoint.x),
+						y: toFixed(currentPagePoint.y),
+						props: {
+							isPen: this.isPenOrStylus,
+							scale: props.scale,
+							segments: [
+								{
+									type: 'free',
+									points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
+								},
+							],
 						},
 					})
 
