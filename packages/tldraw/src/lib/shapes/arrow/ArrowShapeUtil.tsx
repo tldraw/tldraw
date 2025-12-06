@@ -120,6 +120,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		shouldBeExact: (editor: Editor) => editor.inputs.altKey,
 		shouldIgnoreTargets: (editor: Editor) => editor.inputs.ctrlKey,
+
+		showTextOutline: true,
 	}
 
 	override canEdit() {
@@ -795,6 +797,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
 						padding={0}
+						showTextOutline={this.options.showTextOutline}
 						style={{
 							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
 						}}
@@ -945,7 +948,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						.box.clone()
 						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
 					padding={0}
-					showTextOutline={true}
+					showTextOutline={this.options.showTextOutline}
 				/>
 			</g>
 		)
