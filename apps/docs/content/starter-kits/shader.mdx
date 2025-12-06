@@ -124,7 +124,7 @@ Every manager receives the live tldraw editor instance, which lets you:
 - Subscribe to document changes through `editor.store.listen()`.
 - Read the current camera via `editor.getCamera()`.
 - Convert coordinates with `editor.pageToViewport()`.
-- Track pointer data from `editor.inputs.currentPagePoint`.
+- Track pointer data from `editor.inputs.getCurrentPagePoint()`.
 
 See [`src/fluid/FluidManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/FluidManager.ts) for a full example of mixing editor state with GPU simulation.
 
