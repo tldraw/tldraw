@@ -10,6 +10,7 @@ import {
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
+import { TLPageId } from '@tldraw/tlschema'
 
 enum HistoryRecorderState {
 	Recording = 'recording',
@@ -20,37 +21,78 @@ enum HistoryRecorderState {
 /** @public */
 export class HistoryManager<R extends UnknownRecord> {
 	private readonly store: Store<R>
+	private readonly getCurrentPageId: () => TLPageId
 
 	readonly dispose: () => void
 
 	private state: HistoryRecorderState = HistoryRecorderState.Recording
-	private readonly pendingDiff = new PendingDiff<R>()
+	private readonly pendingDiffs = atom(
+		'HistoryManager.pendingDiffs',
+		new Map<TLPageId, PendingDiff<R>>(),
+		{
+			isEqual: (a, b) => {
+				if (a.size !== b.size) return false
+				for (const [pageId, diffA] of a) {
+					const diffB = b.get(pageId)
+					if (!diffB || !diffA.isEqual(diffB)) {
+						return false
+					}
+				}
+				return true
+			},
+		}
+	)
 	private stacks = atom(
 		'HistoryManager.stacks',
+		new Map<TLPageId, { undos: Stack<TLHistoryEntry<R>>; redos: Stack<TLHistoryEntry<R>> }>(),
 		{
-			undos: stack<TLHistoryEntry<R>>(),
-			redos: stack<TLHistoryEntry<R>>(),
-		},
-		{
-			isEqual: (a, b) => a.undos === b.undos && a.redos === b.redos,
+			isEqual: (a, b) => {
+				if (a.size !== b.size) return false
+				for (const [pageId, stacksA] of a) {
+					const stacksB = b.get(pageId)
+					if (!stacksB || stacksA.undos !== stacksB.undos || stacksA.redos !== stacksB.redos) {
+						return false
+					}
+				}
+				return true
+			},
 		}
 	)
 
 	private readonly annotateError: (error: unknown) => void
 
-	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
+	constructor(opts: {
+		store: Store<R>
+		getCurrentPageId?: () => TLPageId
+		annotateError?(error: unknown): void
+	}) {
 		this.store = opts.store
+		this.getCurrentPageId = opts.getCurrentPageId ?? (() => 'page:global' as TLPageId)
 		this.annotateError = opts.annotateError ?? noop
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
 			if (source !== 'user') return
 
+			const currentPageId = this.getCurrentPageId()
+			const currentPendingDiff = this.getCurrentPendingDiff()
+
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
-					this.pendingDiff.apply(entry.changes)
-					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+					currentPendingDiff.apply(entry.changes)
+					this.stacks.update((stacks) => {
+						const pageStacks = stacks.get(currentPageId) || {
+							undos: stack<TLHistoryEntry<R>>(),
+							redos: stack<TLHistoryEntry<R>>(),
+						}
+						const newStacks = new Map(stacks)
+						newStacks.set(currentPageId, {
+							undos: pageStacks.undos,
+							redos: stack<TLHistoryEntry<R>>(),
+						})
+						return newStacks
+					})
 					break
 				case HistoryRecorderState.RecordingPreserveRedoStack:
-					this.pendingDiff.apply(entry.changes)
+					currentPendingDiff.apply(entry.changes)
 					break
 				case HistoryRecorderState.Paused:
 					break
@@ -60,22 +102,71 @@ export class HistoryManager<R extends UnknownRecord> {
 		})
 	}
 
-	private flushPendingDiff() {
-		if (this.pendingDiff.isEmpty()) return
+	private getPageStacks(pageId: TLPageId) {
+		const stacks = this.stacks.get()
+		let pageStacks = stacks.get(pageId)
+		if (!pageStacks) {
+			pageStacks = {
+				undos: stack<TLHistoryEntry<R>>(),
+				redos: stack<TLHistoryEntry<R>>(),
+			}
+			const newStacks = new Map(stacks)
+			newStacks.set(pageId, pageStacks)
+			this.stacks.set(newStacks)
+		}
+		return pageStacks
+	}
 
-		const diff = this.pendingDiff.clear()
-		this.stacks.update(({ undos, redos }) => ({
-			undos: undos.push({ type: 'diff', diff }),
-			redos,
-		}))
+	private getCurrentPageStacks() {
+		return this.getPageStacks(this.getCurrentPageId())
+	}
+
+	private getCurrentPendingDiff() {
+		const pageId = this.getCurrentPageId()
+		const pendingDiffs = this.pendingDiffs.get()
+		let pendingDiff = pendingDiffs.get(pageId)
+		if (!pendingDiff) {
+			pendingDiff = new PendingDiff<R>()
+			const newPendingDiffs = new Map(pendingDiffs)
+			newPendingDiffs.set(pageId, pendingDiff)
+			this.pendingDiffs.set(newPendingDiffs)
+		}
+		return pendingDiff
+	}
+
+	private flushPendingDiffToPage(pageId: TLPageId) {
+		const pendingDiffs = this.pendingDiffs.get()
+		const pendingDiff = pendingDiffs.get(pageId)
+		if (!pendingDiff || pendingDiff.isEmpty()) return
+
+		const diff = pendingDiff.clear()
+		this.stacks.update((stacks) => {
+			const pageStacks = stacks.get(pageId) || {
+				undos: stack<TLHistoryEntry<R>>(),
+				redos: stack<TLHistoryEntry<R>>(),
+			}
+			const newStacks = new Map(stacks)
+			newStacks.set(pageId, {
+				undos: pageStacks.undos.push({ type: 'diff', diff }),
+				redos: pageStacks.redos,
+			})
+			return newStacks
+		})
+	}
+
+	private flushPendingDiff() {
+		this.flushPendingDiffToPage(this.getCurrentPageId())
 	}
 
 	getNumUndos() {
-		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
+		const pageStacks = this.getCurrentPageStacks()
+		const currentPendingDiff = this.getCurrentPendingDiff()
+		return pageStacks.undos.length + (currentPendingDiff.isEmpty() ? 0 : 1)
 	}
 
 	getNumRedos() {
-		return this.stacks.get().redos.length
+		const pageStacks = this.getCurrentPageStacks()
+		return pageStacks.redos.length
 	}
 
 	/** @internal */
@@ -116,11 +207,18 @@ export class HistoryManager<R extends UnknownRecord> {
 		const previousState = this.state
 		this.state = HistoryRecorderState.Paused
 		try {
-			let { undos, redos } = this.stacks.get()
+			const pageId = this.getCurrentPageId()
+			const stacks = this.stacks.get()
+			let pageStacks = stacks.get(pageId) || {
+				undos: stack<TLHistoryEntry<R>>(),
+				redos: stack<TLHistoryEntry<R>>(),
+			}
+			let { undos, redos } = pageStacks
 
 			// start by collecting the pending diff (everything since the last mark).
 			// we'll accumulate the diff to undo in this variable so we can apply it atomically.
-			const pendingDiff = this.pendingDiff.clear()
+			const currentPendingDiff = this.getCurrentPendingDiff()
+			const pendingDiff = currentPendingDiff.clear()
 			const isPendingDiffEmpty = isRecordsDiffEmpty(pendingDiff)
 			const diffToUndo = reverseRecordsDiff(pendingDiff)
 
@@ -178,7 +276,9 @@ export class HistoryManager<R extends UnknownRecord> {
 
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
-			this.stacks.set({ undos, redos })
+			const newStacks = new Map(stacks)
+			newStacks.set(pageId, { undos, redos })
+			this.stacks.set(newStacks)
 		} finally {
 			this.state = previousState
 		}
@@ -198,7 +298,13 @@ export class HistoryManager<R extends UnknownRecord> {
 		try {
 			this.flushPendingDiff()
 
-			let { undos, redos } = this.stacks.get()
+			const pageId = this.getCurrentPageId()
+			const stacks = this.stacks.get()
+			let pageStacks = stacks.get(pageId) || {
+				undos: stack<TLHistoryEntry<R>>(),
+				redos: stack<TLHistoryEntry<R>>(),
+			}
+			let { undos, redos } = pageStacks
 			if (redos.length === 0) {
 				return this
 			}
@@ -226,7 +332,9 @@ export class HistoryManager<R extends UnknownRecord> {
 
 			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
-			this.stacks.set({ undos, redos })
+			const newStacks = new Map(stacks)
+			newStacks.set(pageId, { undos, redos })
+			this.stacks.set(newStacks)
 		} finally {
 			this.state = previousState
 		}
@@ -249,9 +357,16 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	squashToMark(id: string) {
+		this.flushPendingDiff()
 		// remove marks between head and the mark
 
-		let top = this.stacks.get().undos
+		const pageId = this.getCurrentPageId()
+		const stacks = this.stacks.get()
+		let pageStacks = stacks.get(pageId) || {
+			undos: stack<TLHistoryEntry<R>>(),
+			redos: stack<TLHistoryEntry<R>>(),
+		}
+		let top = pageStacks.undos
 		const popped: Array<RecordsDiff<R>> = []
 
 		while (top.head && !(top.head.type === 'stop' && top.head.id === id)) {
@@ -272,13 +387,15 @@ export class HistoryManager<R extends UnknownRecord> {
 		const diff = createEmptyRecordsDiff<R>()
 		squashRecordDiffsMutable(diff, popped.reverse())
 
-		this.stacks.update(({ redos }) => ({
+		const newStacks = new Map(stacks)
+		newStacks.set(pageId, {
 			undos: top.push({
 				type: 'diff',
 				diff,
 			}),
-			redos,
-		}))
+			redos: pageStacks.redos,
+		})
+		this.stacks.set(newStacks)
 
 		return this
 	}
@@ -287,18 +404,43 @@ export class HistoryManager<R extends UnknownRecord> {
 	_mark(id: string) {
 		transact(() => {
 			this.flushPendingDiff()
-			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
+			this.stacks.update((stacks) => {
+				const pageId = this.getCurrentPageId()
+				const pageStacks = stacks.get(pageId) || {
+					undos: stack<TLHistoryEntry<R>>(),
+					redos: stack<TLHistoryEntry<R>>(),
+				}
+				const newStacks = new Map(stacks)
+				newStacks.set(pageId, {
+					undos: pageStacks.undos.push({ type: 'stop', id }),
+					redos: pageStacks.redos,
+				})
+				return newStacks
+			})
 		})
 	}
 
 	clear() {
-		this.stacks.set({ undos: stack(), redos: stack() })
-		this.pendingDiff.clear()
+		const pageId = this.getCurrentPageId()
+		this.stacks.update((stacks) => {
+			const newStacks = new Map(stacks)
+			newStacks.set(pageId, {
+				undos: stack<TLHistoryEntry<R>>(),
+				redos: stack<TLHistoryEntry<R>>(),
+			})
+			return newStacks
+		})
+		this.pendingDiffs.update((pendingDiffs) => {
+			const newPendingDiffs = new Map(pendingDiffs)
+			newPendingDiffs.set(pageId, new PendingDiff<R>())
+			return newPendingDiffs
+		})
 	}
 
 	/** @internal */
 	getMarkIdMatching(idSubstring: string) {
-		let top = this.stacks.get().undos
+		const pageStacks = this.getCurrentPageStacks()
+		let top = pageStacks.undos
 		while (top.head) {
 			if (top.head.type === 'stop' && top.head.id.includes(idSubstring)) {
 				return top.head.id
@@ -310,11 +452,47 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	/** @internal */
 	debug() {
-		const { undos, redos } = this.stacks.get()
+		// Flush all pending diffs for debugging purposes
+		const pendingDiffs = this.pendingDiffs.get()
+		for (const [pageId, pendingDiff] of pendingDiffs) {
+			if (pendingDiff && !pendingDiff.isEmpty()) {
+				this.flushPendingDiffToPage(pageId)
+			}
+		}
+
+		const stacks = this.stacks.get()
+		const currentPageId = this.getCurrentPageId()
+		const currentPageStacks = stacks.get(currentPageId) || {
+			undos: stack<TLHistoryEntry<R>>(),
+			redos: stack<TLHistoryEntry<R>>(),
+		}
+
+		// For backward compatibility, if using the global page, return the old format
+		if (currentPageId === 'page:global') {
+			const currentPendingDiff = this.pendingDiffs.get().get(currentPageId)
+			return {
+				undos: currentPageStacks.undos.toArray(),
+				redos: currentPageStacks.redos.toArray(),
+				pendingDiff: currentPendingDiff?.debug() ?? { diff: {}, isEmpty: true },
+				state: this.state as string,
+			}
+		}
+
+		// For per-page usage, return the new format
+		const allPages = Array.from(stacks.entries()).map(([pageId, pageStacks]) => ({
+			pageId,
+			undos: pageStacks.undos.toArray(),
+			redos: pageStacks.redos.toArray(),
+		}))
+		const currentPendingDiff = this.pendingDiffs.get().get(currentPageId)
 		return {
-			undos: undos.toArray(),
-			redos: redos.toArray(),
-			pendingDiff: this.pendingDiff.debug(),
+			currentPageId,
+			currentPage: {
+				undos: currentPageStacks.undos.toArray(),
+				redos: currentPageStacks.redos.toArray(),
+			},
+			allPages,
+			pendingDiff: currentPendingDiff?.debug() ?? { diff: {}, isEmpty: true },
 			state: this.state as string,
 		}
 	}
@@ -344,6 +522,11 @@ class PendingDiff<R extends UnknownRecord> {
 	apply(diff: RecordsDiff<R>) {
 		squashRecordDiffsMutable(this.diff, [diff])
 		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+	}
+
+	isEqual(other: PendingDiff<R>) {
+		// Compare the diff objects - this is a simple comparison
+		return this.isEmpty() === other.isEmpty() && JSON.stringify(this.diff) === JSON.stringify(other.diff)
 	}
 
 	debug() {
