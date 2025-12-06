@@ -2,15 +2,19 @@
 
 We have made significant changes to the `Editor.inputs` API. Read the current branch's changes to the Editor and InputsManager files in the editor package. Every test will need to be reviewed.
 
-1. Read the test
-2. Update any deprecated calls, such as `editor.inputs.currentPagePoint.x` -> `editor.inputs.getCurrentPagePoint().x`.
-3. If tests are extensively reading private data, consider whether to remove those tests.
-4. If tests are attempting to write private data, consider using actual events (ie the Editor's actual public APIs) to set that data instead.
-5. Test ONLY the file that you are editing. Do not run the full test suite.
+1. Choose the first unticked (`[ ]`) test from the list.
+2. Half-tick the test (`[-]`) to show that it is in progress.
+3. Read the test.
+4. Update any deprecated calls, such as `editor.inputs.currentPagePoint.x` -> `editor.inputs.getCurrentPagePoint().x`.
+5. If tests are extensively reading private data, consider whether to remove those tests.
+6. If tests are attempting to write private data, consider using actual events (ie the Editor's actual public APIs) to set that data instead.
+7. Test ONLY the file that you are editing. Do not run the full test suite.
+8. Don't hack your way to a passing test or passing types. If the test needs additional work or review, tick the item with a question mark ()`[?]`)
+9. Otherwise, if everything has gone smoothly, tick the item in the list [x].
 
 ## `packages/editor/src/lib/editor/`
 
-- [ ] `src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.test.ts`
+- [-] `src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.test.ts`
 - [ ] `src/lib/editor/managers/TickManager/TickManager.test.ts`
 - [ ] `src/lib/utils/sync/TLLocalSyncClient.test.ts`
 - [ ] `src/lib/utils/sync/LocalIndexedDb.test.ts`
