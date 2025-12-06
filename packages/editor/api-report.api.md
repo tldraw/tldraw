@@ -679,6 +679,8 @@ export const defaultTldrawOptions: {
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
     readonly createTextOnCanvasDoubleClick: true;
+    readonly debouncedZoom: true;
+    readonly debouncedZoomThreshold: 500;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -726,7 +728,6 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
-    readonly useDebouncedZoom: true;
 };
 
 // @public (undocumented)
@@ -3308,6 +3309,8 @@ export interface TldrawOptions {
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
     readonly createTextOnCanvasDoubleClick: boolean;
+    readonly debouncedZoom: boolean;
+    readonly debouncedZoomThreshold: number;
     // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)
@@ -3367,7 +3370,6 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
-    readonly useDebouncedZoom: boolean;
 }
 
 // @public (undocumented)

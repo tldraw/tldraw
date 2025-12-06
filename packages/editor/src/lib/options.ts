@@ -92,7 +92,12 @@ export interface TldrawOptions {
 	 * `editor.getDebouncedZoomLevel()` returns a cached zoom value while the camera is moving,
 	 * reducing re-renders. When false, it always returns the current zoom level.
 	 */
-	readonly useDebouncedZoom: boolean
+	readonly debouncedZoom: boolean
+	/**
+	 * The number of shapes that must be on the page for the debounced zoom level to be used.
+	 * Defaults to 300 shapes.
+	 */
+	readonly debouncedZoomThreshold: number
 }
 
 /** @public */
@@ -145,5 +150,6 @@ export const defaultTldrawOptions = {
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,
-	useDebouncedZoom: true,
+	debouncedZoom: true,
+	debouncedZoomThreshold: 500,
 } as const satisfies TldrawOptions

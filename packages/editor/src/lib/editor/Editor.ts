@@ -2683,15 +2683,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getDebouncedZoomLevel() {
-		if (!this.options.useDebouncedZoom || this.getCameraState() === 'idle') {
+		if (!this.options.debouncedZoom || this.getCameraState() === 'idle') {
 			return this.getZoomLevel()
 		} else {
 			return this._debouncedZoomLevel.get()
 		}
 	}
 
-	@computed private _getHasLotsOfShapes() {
-		return this.getCurrentPageShapeIds().size > 300
+	@computed private _getAboveDebouncedZoomThreshold() {
+		return this.getCurrentPageShapeIds().size > this.options.debouncedZoomThreshold
 	}
 
 	/**
@@ -2707,7 +2707,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getEfficientZoomLevel() {
-		return this._getHasLotsOfShapes() ? this.getDebouncedZoomLevel() : this.getZoomLevel()
+		return this._getAboveDebouncedZoomThreshold()
+			? this.getDebouncedZoomLevel()
+			: this.getZoomLevel()
 	}
 
 	/**
