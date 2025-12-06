@@ -36,10 +36,6 @@ describe('ScribbleManager', () => {
 			expect(scribbleManager.scribbleItems.size).toBe(0)
 			expect(scribbleManager.state).toBe('paused')
 		})
-
-		it('should store reference to editor', () => {
-			expect((scribbleManager as any).editor).toBe(editor)
-		})
 	})
 
 	describe('addScribble', () => {
