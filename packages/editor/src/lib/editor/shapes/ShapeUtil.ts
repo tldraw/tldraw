@@ -259,6 +259,15 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether the shape can be edited while locked or while an ancestor is locked.
+	 *
+	 * @public
+	 */
+	canEditWhileLocked(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * Whether the shape can be cropped.
 	 *
 	 * @public

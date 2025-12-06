@@ -669,6 +669,7 @@ export interface EmbedDefinition {
 	readonly instructionLink?: string
 	readonly backgroundColor?: string
 	readonly embedOnPaste?: boolean
+	readonly canEditWhileLocked?: boolean
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
 	// eslint-disable-next-line @typescript-eslint/method-signature-style

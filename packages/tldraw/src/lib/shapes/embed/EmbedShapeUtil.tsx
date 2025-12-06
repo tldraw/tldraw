@@ -43,6 +43,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override migrations = embedShapeMigrations
 	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
 
+	override canEditWhileLocked(shape: TLEmbedShape) {
+		const result = this.getEmbedDefinition(shape.props.url)
+		if (!result) return true
+		return result.definition.canEditWhileLocked ?? true
+	}
+
 	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
 		EmbedShapeUtil.embedDefinitions = embedDefinitions
 	}

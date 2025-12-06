@@ -1339,6 +1339,8 @@ export interface EmbedDefinition {
     // (undocumented)
     readonly backgroundColor?: string;
     // (undocumented)
+    readonly canEditWhileLocked?: boolean;
+    // (undocumented)
     readonly doesResize: boolean;
     // (undocumented)
     readonly embedOnPaste?: boolean;
@@ -1394,6 +1396,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     canEdit(): boolean;
     // (undocumented)
     canEditInReadonly(): boolean;
+    // (undocumented)
+    canEditWhileLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     canResize(shape: TLEmbedShape): boolean;
     // (undocumented)
