@@ -1,6 +1,7 @@
 import { assert, objectMapEntries } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { SerializedStore } from './Store'
+import { SerializedSchema } from './StoreSchema'
 
 function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migration[] {
 	const result: Migration[] = []
@@ -219,7 +220,35 @@ export type Migration = {
 				newState: SerializedStore<UnknownRecord>
 			) => void | SerializedStore<UnknownRecord>
 	  }
+	| {
+			readonly scope: 'storage'
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void
+			readonly down?: never
+	  }
 )
+
+/**
+ * Abstraction over the store that can be used to perform migrations.
+ * @public
+ */
+export interface SynchronousRecordStorage<R extends UnknownRecord> {
+	get(id: string): R | undefined
+	set(id: string, record: R): void
+	delete(id: string): void
+	keys(): Iterable<string>
+	values(): Iterable<R>
+	entries(): Iterable<[string, R]>
+}
+
+/**
+ * Abstraction over the storage that can be used to perform migrations.
+ * @public
+ */
+export interface SynchronousStorage<R extends UnknownRecord> extends SynchronousRecordStorage<R> {
+	getSchema(): SerializedSchema
+	setSchema(schema: SerializedSchema): void
+}
 
 /**
  * Base interface for legacy migration information.

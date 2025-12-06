@@ -294,10 +294,10 @@ describe('TLArrowShape', () => {
 			(m) => 'id' in m && m.id === arrowShapeVersions.ExtractBindings
 		)
 
-		it('should be a store-scope migration', () => {
+		it('should be a storage-scope migration', () => {
 			expect(migration).toBeDefined()
 			if (migration && 'scope' in migration) {
-				expect(migration.scope).toBe('store')
+				expect(migration.scope).toBe('storage')
 			}
 		})
 

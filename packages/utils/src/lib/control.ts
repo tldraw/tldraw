@@ -102,6 +102,20 @@ export const Result = {
 	err<E>(error: E): ErrorResult<E> {
 		return { ok: false, error }
 	},
+
+	/**
+	 * Create a successful result containing an array of values.
+	 *
+	 * If any of the results are errors, the returned result will be an error containing the first error.
+	 *
+	 * @param results - The array of results to wrap
+	 * @returns An OkResult containing the array of values
+	 */
+	all<T>(results: Result<T, any>[]): Result<T[], any> {
+		return results.every((result) => result.ok)
+			? Result.ok(results.map((result) => result.value))
+			: Result.err(results.find((result) => !result.ok)?.error)
+	},
 }
 
 /**

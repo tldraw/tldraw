@@ -1,8 +1,12 @@
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest'
 import { devFreeze } from './devFreeze'
+import { isDev } from './isDev'
 
 // Mock process.env for testing
 const originalEnv = process.env.NODE_ENV
+vi.mock('./isDev', () => ({
+	isDev: vi.fn(() => true),
+}))
 
 describe('devFreeze', () => {
 	beforeEach(() => {
@@ -13,7 +17,7 @@ describe('devFreeze', () => {
 	describe('production mode behavior', () => {
 		beforeEach(() => {
 			// Mock production environment
-			vi.stubGlobal('process', { env: { NODE_ENV: 'production' } })
+			;(isDev as MockedFunction<typeof isDev>).mockReturnValue(false)
 		})
 
 		it('should return objects unchanged in production mode', () => {

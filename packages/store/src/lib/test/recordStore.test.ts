@@ -883,6 +883,188 @@ describe('snapshots', () => {
 		expect(up).toHaveBeenCalledTimes(1)
 		expect(store2.get(Book.createId('lotr'))!.numPages).toBe(42)
 	})
+
+	it('migrates the snapshot with storage scope', () => {
+		const snapshot1 = store.getStoreSnapshot()
+		const up = vi.fn((storage: any) => {
+			const book = storage.get('book:lotr')
+			storage.set('book:lotr', { ...book, numPages: 42 })
+		})
+
+		expect((snapshot1.store as any)['book:lotr'].numPages).toBe(1000)
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [
+								{
+									id: `com.tldraw/1`,
+									scope: 'storage',
+									up,
+								},
+							],
+						}),
+					],
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadStoreSnapshot(snapshot1)
+		}).not.toThrow()
+
+		expect(up).toHaveBeenCalledTimes(1)
+		expect(store2.get(Book.createId('lotr'))!.numPages).toBe(42)
+	})
+
+	it('storage scope migration can delete records', () => {
+		const snapshot1 = store.getStoreSnapshot()
+		const up = vi.fn((storage: any) => {
+			storage.delete('author:mcavoy')
+		})
+
+		expect((snapshot1.store as any)['author:mcavoy']).toBeDefined()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [
+								{
+									id: `com.tldraw/1`,
+									scope: 'storage',
+									up,
+								},
+							],
+						}),
+					],
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadStoreSnapshot(snapshot1)
+		}).not.toThrow()
+
+		expect(up).toHaveBeenCalledTimes(1)
+		expect(store2.get(Author.createId('mcavoy'))).toBeUndefined()
+	})
+
+	it('storage scope migration can iterate records', () => {
+		const snapshot1 = store.getStoreSnapshot()
+		const up = vi.fn((storage: any) => {
+			for (const [id, record] of storage.entries()) {
+				if (record.typeName === 'book') {
+					storage.set(id, { ...record, numPages: record.numPages + 100 })
+				}
+			}
+		})
+
+		expect((snapshot1.store as any)['book:lotr'].numPages).toBe(1000)
+		expect((snapshot1.store as any)['book:hobbit'].numPages).toBe(300)
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [
+								{
+									id: `com.tldraw/1`,
+									scope: 'storage',
+									up,
+								},
+							],
+						}),
+					],
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadStoreSnapshot(snapshot1)
+		}).not.toThrow()
+
+		expect(up).toHaveBeenCalledTimes(1)
+		expect(store2.get(Book.createId('lotr'))!.numPages).toBe(1100)
+		expect(store2.get(Book.createId('hobbit'))!.numPages).toBe(400)
+	})
+
+	it('storage scope migration can use values() and keys()', () => {
+		const snapshot1 = store.getStoreSnapshot()
+		const keysCollected: string[] = []
+		const valuesCollected: any[] = []
+
+		const up = vi.fn((storage: any) => {
+			for (const key of storage.keys()) {
+				keysCollected.push(key)
+			}
+			for (const value of storage.values()) {
+				valuesCollected.push(value)
+			}
+		})
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [
+								{
+									id: `com.tldraw/1`,
+									scope: 'storage',
+									up,
+								},
+							],
+						}),
+					],
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadStoreSnapshot(snapshot1)
+		}).not.toThrow()
+
+		expect(up).toHaveBeenCalledTimes(1)
+		expect(keysCollected).toContain('book:lotr')
+		expect(keysCollected).toContain('book:hobbit')
+		expect(keysCollected).toContain('author:tolkein')
+		expect(keysCollected).toContain('author:mcavoy')
+		expect(keysCollected).toContain('author:cassidy')
+		expect(valuesCollected.length).toBe(5)
+	})
 })
 
 describe('diffs', () => {

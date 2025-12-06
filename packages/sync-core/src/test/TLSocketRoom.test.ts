@@ -1,11 +1,27 @@
-import { InstancePresenceRecordType, PageRecordType } from '@tldraw/tlschema'
-import { createTLSchema, createTLStore, ZERO_INDEX_KEY } from 'tldraw'
+/* eslint-disable @typescript-eslint/no-deprecated */
+import {
+	InstancePresenceRecordType,
+	PageRecordType,
+	TLDocument,
+	TLPage,
+	TLRecord,
+} from '@tldraw/tlschema'
+import {
+	createTLSchema,
+	createTLStore,
+	IndexKey,
+	promiseWithResolve,
+	sortById,
+	ZERO_INDEX_KEY,
+} from 'tldraw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecordOpType } from '../lib/diff'
+import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
+import { RoomSnapshot } from '../lib/TLSyncRoom'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -41,7 +57,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: snapshot,
 		})
 		expect(room.getCurrentSnapshot()).not.toMatchObject({ clock: 0, documents: [] })
-		expect(room.getCurrentSnapshot().clock).toBe(0)
+		expect(room.getCurrentSnapshot().documentClock).toBe(0)
 		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
 			.toMatchInlineSnapshot(`
 		[
@@ -75,7 +91,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: store.getStoreSnapshot(),
 		})
 
-		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 0, documents: [] })
+		expect(room.getCurrentSnapshot()).toMatchObject({ documentClock: 0, documents: [] })
 
 		// populate with an empty document (document:document and page:page records)
 		store.ensureStoreIsUsable()
@@ -83,7 +99,7 @@ describe(TLSocketRoom, () => {
 		const snapshot = store.getStoreSnapshot()
 		room.loadSnapshot(snapshot)
 
-		expect(room.getCurrentSnapshot().clock).toBe(1)
+		expect(room.getCurrentSnapshot().documentClock).toBe(1)
 		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
 			.toMatchInlineSnapshot(`
 		[
@@ -287,50 +303,38 @@ describe(TLSocketRoom, () => {
 	})
 
 	describe('Room state resetting behavior', () => {
-		it('sets documentClock to oldRoom.clock + 1 when resetting room state', () => {
+		it('increments documentClock when loading snapshot with different data', () => {
 			const store = getStore()
 			store.ensureStoreIsUsable()
 			const room = new TLSocketRoom({
 				initialSnapshot: store.getStoreSnapshot(),
 			})
 
-			// Load a snapshot to increment the clock
-			const snapshot = store.getStoreSnapshot()
-			room.loadSnapshot(snapshot)
+			const oldClock = room.getCurrentDocumentClock()
+			expect(oldClock).toBe(0)
 
-			const oldClock = room.getCurrentSnapshot().clock
-			expect(oldClock).toBe(1)
-
-			// Reset with a new snapshot
+			// Add a new page to make the snapshot different
+			store.put([PageRecordType.create({ name: 'New Page', index: 'a2' as IndexKey })])
 			const newSnapshot = store.getStoreSnapshot()
 			room.loadSnapshot(newSnapshot)
 
-			const newSnapshotResult = room.getCurrentSnapshot()
-			expect(newSnapshotResult.documentClock).toBe(oldClock + 1)
-			expect(newSnapshotResult.clock).toBe(oldClock + 1)
+			expect(room.getCurrentDocumentClock()).toBe(oldClock + 1)
 		})
 
-		it('updates all documents lastChangedClock when resetting', () => {
+		it('does not increment documentClock when loading identical snapshot', () => {
 			const store = getStore()
 			store.ensureStoreIsUsable()
 			const room = new TLSocketRoom({
 				initialSnapshot: store.getStoreSnapshot(),
 			})
 
-			// Get initial clock
-			const initialClock = room.getCurrentSnapshot().clock
+			const oldClock = room.getCurrentDocumentClock()
 
-			// Reset with a new snapshot
-			const newSnapshot = store.getStoreSnapshot()
-			room.loadSnapshot(newSnapshot)
+			// Load the same snapshot again
+			room.loadSnapshot(store.getStoreSnapshot())
 
-			const result = room.getCurrentSnapshot()
-			expect(result.clock).toBe(initialClock + 1)
-
-			// All documents should have updated lastChangedClock
-			for (const doc of result.documents) {
-				expect(doc.lastChangedClock).toBe(initialClock + 1)
-			}
+			// Clock should not change since data is identical
+			expect(room.getCurrentDocumentClock()).toBe(oldClock)
 		})
 
 		it('preserves existing tombstones with original clock values', async () => {
@@ -356,30 +360,13 @@ describe(TLSocketRoom, () => {
 
 			room.loadSnapshot(room.getCurrentSnapshot())
 
+			// Tombstones should be preserved
 			expect(room.getCurrentSnapshot().tombstones).toEqual({
 				[testPageId]: deletionClock,
 			})
 
-			expect(room.getCurrentSnapshot().documentClock).toBe(deletionClock + 1)
-		})
-
-		it('handles empty snapshot reset correctly', () => {
-			const store = getStore()
-			// Don't call ensureStoreIsUsable to get an empty snapshot
-			const room = new TLSocketRoom({
-				initialSnapshot: store.getStoreSnapshot(),
-			})
-
-			const oldClock = room.getCurrentSnapshot().clock
-
-			// Reset with empty snapshot
-			const emptySnapshot = store.getStoreSnapshot()
-			room.loadSnapshot(emptySnapshot)
-
-			const result = room.getCurrentSnapshot()
-			expect(result.documentClock).toBe(oldClock + 1)
-			expect(result.clock).toBe(oldClock + 1)
-			expect(result.documents).toHaveLength(0)
+			// Clock should not change since we loaded the same snapshot
+			expect(room.getCurrentSnapshot().documentClock).toBe(deletionClock)
 		})
 
 		it('preserves schema when resetting room state', () => {
@@ -815,5 +802,224 @@ describe(TLSocketRoom, () => {
 
 			expect(room.getCurrentDocumentClock()).toBeGreaterThan(initialClock)
 		})
+	})
+})
+
+describe('TLSocketRoom.updateStore', () => {
+	let storage = new InMemorySyncStorage<TLRecord>({ snapshot: DEFAULT_INITIAL_SNAPSHOT })
+
+	let room = new TLSocketRoom<TLRecord, undefined>({ storage })
+	function init(snapshot?: RoomSnapshot) {
+		storage = new InMemorySyncStorage<TLRecord>({ snapshot: snapshot ?? DEFAULT_INITIAL_SNAPSHOT })
+		room = new TLSocketRoom<TLRecord, undefined>({
+			storage,
+		})
+	}
+	beforeEach(() => {
+		init()
+	})
+
+	test('it allows updating records', async () => {
+		const clock = storage.getClock()
+		await room.updateStore((store) => {
+			const document = store.get('document:document') as TLDocument
+			document.name = 'My lovely document'
+			store.put(document)
+		})
+		expect(
+			(
+				storage.getSnapshot().documents.find((r) => r.state.id === 'document:document')
+					?.state as any
+			).name
+		).toBe('My lovely document')
+		expect(clock).toBeLessThan(storage.getClock())
+	})
+
+	test('it does not update unless you call .set', () => {
+		const clock = storage.getClock()
+		room.updateStore((store) => {
+			const document = store.get('document:document') as TLDocument
+			document.name = 'My lovely document'
+		})
+		expect(
+			(
+				storage.getSnapshot().documents.find((r) => r.state.id === 'document:document')
+					?.state as any
+			).name
+		).toBe('')
+		expect(clock).toBe(storage.getClock())
+	})
+
+	test('triggers onChange events on the storage if something changed', async () => {
+		const onChange = vi.fn()
+		storage.onChange(onChange)
+		await room.updateStore((store) => {
+			const document = store.get('document:document') as TLDocument
+			document.name = 'My lovely document'
+			store.put(document)
+		})
+		expect(onChange).toHaveBeenCalled()
+	})
+
+	test('does not trigger onChange events if the change is not committed', async () => {
+		const onChange = vi.fn()
+		storage.onChange(onChange)
+		room.updateStore((store) => {
+			const document = store.get('document:document') as TLDocument
+			document.name = 'My lovely document'
+		})
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	test('it allows adding new records', async () => {
+		const id = PageRecordType.createId('page_3')
+		await room.updateStore((store) => {
+			const page = PageRecordType.create({ id, name: 'page 3', index: 'a0' as IndexKey })
+			store.put(page)
+		})
+
+		expect(storage.getSnapshot().documents.find((r) => r.state.id === id)?.state).toBeTruthy()
+	})
+
+	test('it allows deleting records', async () => {
+		await room.updateStore((store) => {
+			store.delete('page:page_2')
+		})
+
+		expect(storage.getSnapshot().documents.find((r) => r.state.id === 'page:page_2')).toBeFalsy()
+	})
+
+	test('it returns all records if you ask for them', async () => {
+		let allRecords
+		await room.updateStore((store) => {
+			allRecords = store.getAll()
+		})
+		expect(allRecords!.sort(sortById)).toEqual(
+			storage
+				.getSnapshot()
+				.documents.map((r) => r.state)
+				.sort(sortById)
+		)
+		await room.updateStore((store) => {
+			const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
+			store.put(page3)
+			allRecords = store.getAll()
+			expect(allRecords.sort(sortById)).toEqual(
+				[...storage.getSnapshot().documents.map((r) => r.state), page3].sort(sortById)
+			)
+			store.delete(page3)
+			allRecords = store.getAll()
+		})
+		expect(allRecords!.sort(sortById)).toEqual(
+			storage
+				.getSnapshot()
+				.documents.map((r) => r.state)
+				.sort(sortById)
+		)
+	})
+
+	test('all operations fail after the store is closed', async () => {
+		let store
+		await room.updateStore((s) => {
+			store = s
+		})
+		expect(() => {
+			store!.put(PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey }))
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
+		expect(() => {
+			store!.delete('page:page_2')
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
+		expect(() => {
+			store!.getAll()
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
+		expect(() => {
+			store!.get('page:page_2')
+		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
+	})
+
+	test('it fails if the room is closed', async () => {
+		room.close()
+		await expect(
+			room.updateStore(() => {
+				// noop
+			})
+		).rejects.toMatchInlineSnapshot(`[Error: Cannot update store on a closed room]`)
+	})
+
+	test('it fails if you try to add bad data', async () => {
+		await expect(
+			room.updateStore((store) => {
+				const page = store.get('page:page') as TLPage
+				page.index = 34 as any
+				store.put(page)
+			})
+		).rejects.toMatchInlineSnapshot(
+			`[ValidationError: At page.index: Expected string, got a number]`
+		)
+	})
+
+	test('changes in multiple transaction are isolated from one another', async () => {
+		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
+		const didDelete = promiseWithResolve()
+		const didPut = promiseWithResolve()
+		const doneA = room.updateStore(async (store) => {
+			store.put(page3)
+			didPut.resolve(null)
+			await didDelete
+			expect(store.get(page3.id)).toBeTruthy()
+		})
+		const doneB = room.updateStore(async (store) => {
+			await didPut
+			expect(store.get(page3.id)).toBeFalsy()
+			store.delete(page3.id)
+			didDelete.resolve(null)
+		})
+		await Promise.all([doneA, doneB])
+	})
+
+	test('getting something that was deleted in the same transaction returns null', async () => {
+		await room.updateStore((store) => {
+			expect(store.get('page:page')).toBeTruthy()
+			store.delete('page:page')
+			expect(store.get('page:page')).toBe(null)
+		})
+	})
+
+	test('getting something that never existed in the first place returns null', async () => {
+		await room.updateStore((store) => {
+			expect(store.get('page:page_3')).toBe(null)
+		})
+	})
+
+	test('mutations to shapes gotten via .get are not committed unless you .put', async () => {
+		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
+		let page4 = PageRecordType.create({ name: 'page 4', index: 'a1' as IndexKey })
+		let page1
+		await room.updateStore((store) => {
+			page1 = store.get('page:page') as TLPage
+			page1.name = 'my lovely page 1'
+			store.put(page3)
+			page3.name = 'my lovely page 3'
+			store.put(page4)
+			page4 = store.get(page4.id) as TLPage
+			page4.name = 'my lovely page 4'
+		})
+
+		const getPageNames = () =>
+			room
+				.getCurrentSnapshot()
+				.documents.filter((r) => r.state.typeName === 'page')
+				.map((r) => (r.state as any).name)
+				.sort()
+
+		expect(getPageNames()).toEqual(['Page 1', 'page 3', 'page 4'])
+
+		await room.updateStore((store) => {
+			store.put(page1!)
+			store.put(page3)
+			store.put(page4)
+		})
+
+		expect(getPageNames()).toEqual(['my lovely page 1', 'my lovely page 3', 'my lovely page 4'])
 	})
 })

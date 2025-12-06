@@ -1,4 +1,9 @@
-import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
+import {
+	DEFAULT_INITIAL_SNAPSHOT,
+	InMemorySyncStorage,
+	RoomSnapshot,
+	TLSocketRoom,
+} from '@tldraw/sync-core'
 import {
 	TLRecord,
 	createTLSchema,
@@ -92,17 +97,21 @@ export class TldrawDurableObject {
 				// if it doesn't exist, we'll just create a new empty room
 				const initialSnapshot = roomFromBucket
 					? ((await roomFromBucket.json()) as RoomSnapshot)
-					: undefined
+					: DEFAULT_INITIAL_SNAPSHOT
+
+				// create the storage layer that holds the document state
+				const storage = new InMemorySyncStorage<TLRecord>({
+					snapshot: initialSnapshot,
+					onChange: () => {
+						this.schedulePersistToR2()
+					},
+				})
 
 				// create a new TLSocketRoom. This handles all the sync protocol & websocket connections.
 				// it's up to us to persist the room state to R2 when needed though.
 				return new TLSocketRoom<TLRecord, void>({
 					schema,
-					initialSnapshot,
-					onDataChange: () => {
-						// and persist whenever the data in the room changes
-						this.schedulePersistToR2()
-					},
+					storage,
 				})
 			})()
 		}
@@ -116,7 +125,7 @@ export class TldrawDurableObject {
 		const room = await this.getRoom()
 
 		// convert the room to JSON and upload it to R2
-		const snapshot = JSON.stringify(room.getCurrentSnapshot())
+		const snapshot = JSON.stringify(room.storage.getSnapshot?.())
 		await this.r2.put(`rooms/${this.roomId}`, snapshot)
 	}, 10_000)
 }
