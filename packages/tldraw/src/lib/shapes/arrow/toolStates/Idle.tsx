@@ -63,7 +63,7 @@ export class Idle extends StateNode {
 
 		const targetState = updateArrowTargetState({
 			editor: this.editor,
-			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			pointInPageSpace: this.editor.inputs.getCurrentPagePoint(),
 			arrow: undefined,
 			isPrecise: this.isPrecise,
 			currentBinding: undefined,

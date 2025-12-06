@@ -9,6 +9,10 @@ export class EdgeScrollManager {
 	private _isEdgeScrolling = false
 	private _edgeScrollDuration = -1
 
+	getIsEdgeScrolling() {
+		return this._isEdgeScrolling
+	}
+
 	/**
 	 * Update the camera position when the mouse is close to the edge of the screen.
 	 * Run this on every tick when in a state where edge scrolling is enabled.
@@ -81,11 +85,7 @@ export class EdgeScrollManager {
 
 	private getEdgeScroll() {
 		const { editor } = this
-		const {
-			inputs: {
-				currentScreenPoint: { x, y },
-			},
-		} = editor
+		const { x, y } = editor.inputs.getCurrentScreenPoint()
 		const screenBounds = editor.getViewportScreenBounds()
 
 		const {
@@ -107,7 +107,11 @@ export class EdgeScrollManager {
 	 */
 	private moveCameraWhenCloseToEdge(proximityFactor: { x: number; y: number }) {
 		const { editor } = this
-		if (!editor.inputs.isDragging || editor.inputs.isPanning || editor.getCameraOptions().isLocked)
+		if (
+			!editor.inputs.getIsDragging() ||
+			editor.inputs.getIsPanning() ||
+			editor.getCameraOptions().isLocked
+		)
 			return
 
 		if (proximityFactor.x === 0 && proximityFactor.y === 0) return

@@ -16,7 +16,7 @@ class StickerTool extends StateNode {
 
 	// [b]
 	override onPointerDown() {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		this.editor.createShape({
 			type: 'text',
 			x: currentPagePoint.x - OFFSET,

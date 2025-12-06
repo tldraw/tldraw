@@ -31,7 +31,7 @@ export class Brushing extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
-		const { altKey } = editor.inputs
+		const altKey = editor.inputs.getAltKey()
 
 		this.isWrapMode = editor.user.getIsWrapMode()
 
@@ -96,7 +96,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (this.editor.inputs.altKey) {
+		if (this.editor.inputs.getAltKey()) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()
@@ -114,9 +114,10 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const { editor, excludedShapeIds, isWrapMode } = this
-		const {
-			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
-		} = editor
+		const originPagePoint = editor.inputs.getOriginPagePoint()
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const shiftKey = editor.inputs.getShiftKey()
+		const ctrlKey = editor.inputs.getCtrlKey()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])

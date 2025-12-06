@@ -277,7 +277,7 @@ export class FluidManager {
 	 * Updates drag position in the fluid simulation during active dragging.
 	 */
 	handlePointerMove = (): void => {
-		if (!this.isPointerEffectActive || !this.editor.inputs.isDragging) return
+		if (!this.isPointerEffectActive || !this.editor.inputs.getIsDragging()) return
 		const { x, y } = this.getNormalizedPosition()
 		this.fluidSim?.updateDrag(x, y)
 	}
@@ -287,7 +287,7 @@ export class FluidManager {
 	 * Ends drag interaction with the fluid simulation.
 	 */
 	handlePointerUp = (): void => {
-		if (!this.isPointerEffectActive || !this.editor.inputs.isDragging) return
+		if (!this.isPointerEffectActive || !this.editor.inputs.getIsDragging()) return
 		this.fluidSim?.endDrag()
 	}
 
@@ -296,7 +296,7 @@ export class FluidManager {
 	 * @returns Normalized coordinates where x and y are in the range [0, 1], with y inverted for WebGL.
 	 */
 	private getNormalizedPosition() {
-		const position = this.editor.inputs.currentScreenPoint
+		const position = this.editor.inputs.getCurrentScreenPoint()
 		const vsb = this.editor.getViewportScreenBounds()
 		return {
 			x: position.x / vsb.w,

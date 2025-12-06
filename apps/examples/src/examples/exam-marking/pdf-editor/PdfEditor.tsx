@@ -61,10 +61,11 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				if (!selectIdleState) throw Error('SelectTool Idle state not found')
 
 				function customDoubleClickOnCanvasHandler(_info: TLClickEventInfo) {
+					const pagePoint = editor.inputs.getCurrentPagePoint()
 					editor.createShape({
 						type: 'exam-mark',
-						x: editor.inputs.currentPagePoint.x - EXAM_MARK_WIDTH / 2,
-						y: editor.inputs.currentPagePoint.y - EXAM_MARK_HEIGHT / 2,
+						x: pagePoint.x - EXAM_MARK_WIDTH / 2,
+						y: pagePoint.y - EXAM_MARK_HEIGHT / 2,
 					})
 				}
 

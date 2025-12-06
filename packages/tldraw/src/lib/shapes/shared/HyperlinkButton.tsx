@@ -11,7 +11,7 @@ export function HyperlinkButton({ url }: { url: string }) {
 	const hideButton = useEfficientZoomThreshold()
 	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
-			if (!editor.inputs.shiftKey) editor.markEventAsHandled(e)
+			if (!editor.inputs.getShiftKey()) editor.markEventAsHandled(e)
 		},
 		[editor]
 	)

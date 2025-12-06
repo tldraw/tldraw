@@ -146,6 +146,7 @@ export {
 	type TLFontFaceSource,
 } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
 	type ScribbleItem,
@@ -168,6 +169,7 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
+export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'

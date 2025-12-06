@@ -31,7 +31,7 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.startRotating()
 		}
 	}

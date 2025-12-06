@@ -12,8 +12,8 @@ export class Pointing extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		const { editor } = this
-		if (editor.inputs.isDragging) {
-			const { originPagePoint } = editor.inputs
+		if (editor.inputs.getIsDragging()) {
+			const originPagePoint = editor.inputs.getOriginPagePoint()
 
 			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
 
@@ -78,7 +78,7 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 

@@ -40,7 +40,7 @@ export class NodeState extends StateNode {
 	}
 
 	override onPointerMove(_info: TLPointerEventInfo) {
-		const pagePoint = this.editor.inputs.currentPagePoint
+		const pagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		if (!this.ghostShapeId) {
 			const id = createShapeId()
@@ -78,7 +78,7 @@ export class NodeState extends StateNode {
 		if (!node) return
 
 		// if we try place another node such that it overlaps with an existing node radii, don't allow it
-		const pagePoint = this.editor.inputs.currentPagePoint
+		const pagePoint = this.editor.inputs.getCurrentPagePoint()
 		const shapes = this.editor
 			.getShapesAtPoint(pagePoint, {
 				hitInside: true,
@@ -141,7 +141,7 @@ export class ConnectState extends StateNode {
 		if (!selectedNode) return
 
 		// Apply shift snapping for angle constraints
-		let pagePoint = this.editor.inputs.currentPagePoint
+		let pagePoint = this.editor.inputs.getCurrentPagePoint()
 		if (info.shiftKey) {
 			const selectedNodeCenter = new Vec(selectedNode.x, selectedNode.y)
 			const angle = Vec.Angle(selectedNodeCenter, pagePoint)

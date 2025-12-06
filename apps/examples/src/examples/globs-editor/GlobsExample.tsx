@@ -165,6 +165,9 @@ export default function GlobsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				options={{
+					spacebarPanning: false,
+				}}
 				onMount={(editor) => {
 					editor.updateInstanceState({ isDebugMode: true })
 
@@ -175,19 +178,6 @@ export default function GlobsExample() {
 						const originalOnKeyDown = draggingHandleState.onKeyDown?.bind(draggingHandleState)
 
 						draggingHandleState.onKeyDown = (info: TLKeyboardEventInfo) => {
-							// If space is pressed while dragging a glob handle, disable panning
-							const shape = editor.getShape(editor.getOnlySelectedShapeId()!)
-							if (
-								shape &&
-								editor.isShapeOfType<GlobShape>(shape, 'glob') &&
-								info.code === 'Space'
-							) {
-								// Prevent space from activating panning
-								editor.inputs.isPanning = false
-								editor.inputs.isSpacebarPanning = false
-								return
-							}
-
 							originalOnKeyDown?.(info)
 						}
 					}

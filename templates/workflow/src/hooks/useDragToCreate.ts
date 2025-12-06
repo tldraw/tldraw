@@ -98,7 +98,7 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 
 							// Flush the event to tldraw's event system
 							editor._flushEventForTick(pointerInfo)
-							editor.inputs.isDragging = true
+							editor.inputs.setIsDragging(true) // fake it!
 
 							// Switch to translating mode to handle the drag
 							editor.select(shapeId).setCurrentTool('select.translating', {

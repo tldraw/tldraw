@@ -144,7 +144,7 @@ describe('When pointing a start shape', () => {
 		expect(getArrowTargetState(editor)).not.toBeNull()
 
 		// Fake some velocity
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 
 		editor.pointerMove(375, 500)
 
@@ -189,7 +189,7 @@ describe('When pointing an end shape', () => {
 		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		// Fake some velocity
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 
 		// Move onto shape
 		editor.pointerMove(375, 375)
@@ -227,7 +227,7 @@ describe('When pointing an end shape', () => {
 	it('unbinds and rebinds', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 
 		editor.pointerMove(375, 375)
 
@@ -283,7 +283,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		// Build up some velocity
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 		editor.pointerMove(325, 325)
 		expect(getArrowTargetState(editor)).not.toBeNull()
 
@@ -403,7 +403,7 @@ describe('When pointing an end shape', () => {
 
 	it('begins imprecise when moving quickly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 		editor.pointerMove(370, 370)
 
 		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
@@ -435,7 +435,7 @@ describe('When pointing an end shape', () => {
 
 		expect(getArrowTargetState(editor)).toBeNull()
 
-		editor.inputs.pointerVelocity = new Vec(0.001, 0.001)
+		editor.inputs.setPointerVelocity(new Vec(0.001, 0.001))
 		editor.pointerMove(375, 375)
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
@@ -588,7 +588,7 @@ describe('precision timeout configuration', () => {
 
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		// Use high velocity to avoid precise mode immediately
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 		editor.pointerMove(100, 100)
 
 		const arrow = editor.getCurrentPageShapes()[
@@ -630,7 +630,7 @@ describe('precision timeout configuration', () => {
 
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		// Use high velocity to avoid precise mode immediately
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
 		editor.pointerMove(100, 100)
 
 		const arrow = editor.getCurrentPageShapes()[

@@ -375,7 +375,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (editor.root.getCurrent()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
-					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
+					if (!(editor.inputs.getShiftKey() || editor.inputs.getCtrlKey())) {
 						const currentTool = editor.root.getCurrent()
 						if (currentTool && currentTool.getCurrent()?.id === 'idle') {
 							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
@@ -973,7 +973,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							helpers.paste(
 								clipboardItems,
 								source,
-								source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
+								source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
 							)
 						})
 						.catch(() => {
@@ -1037,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					const isFine = editor.inputs.altKey
+					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-cw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-cw')
 					editor.run(() => {
@@ -1060,7 +1060,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					const isFine = editor.inputs.altKey
+					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-ccw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-ccw')
 					editor.run(() => {
@@ -1092,7 +1092,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
-					editor.zoomIn(editor.inputs.currentScreenPoint, {
+					editor.zoomIn(editor.inputs.getCurrentScreenPoint(), {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
@@ -1116,7 +1116,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
-					editor.zoomOut(editor.inputs.currentScreenPoint, {
+					editor.zoomOut(editor.inputs.getCurrentScreenPoint(), {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},

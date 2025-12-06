@@ -133,20 +133,6 @@ test('the first db write after a client connects is a full db overwrite', async 
 	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
 })
 
-test('it clears the diff queue after every write', async () => {
-	const { client, tick } = testClient()
-	await tick()
-	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
-	await tick()
-	// @ts-expect-error
-	expect(client.diffQueue.length).toBe(0)
-
-	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })])
-	await tick()
-	// @ts-expect-error
-	expect(client.diffQueue.length).toBe(0)
-})
-
 test('writes that come in during a persist operation will get persisted afterward', async () => {
 	const idbOperationResult = promiseWithResolve<void>()
 

@@ -2194,7 +2194,7 @@ describe('long press', () => {
 	it('works correctly with screenbounds offset', () => {
 		editor.updateViewportScreenBounds(new Box(100, 100, 800, 600))
 		editor.pointerDown(201, 202)
-		expect(editor.inputs.currentScreenPoint).toMatchObject({ x: 101, y: 102 })
+		expect(editor.inputs.getCurrentScreenPoint()).toMatchObject({ x: 101, y: 102 })
 	})
 
 	it('works correctly with screenbounds offset', () => {
@@ -2202,7 +2202,7 @@ describe('long press', () => {
 		editor.pointerDown(201, 202)
 		vi.advanceTimersByTime(1000)
 		// without the fix added in this PR, it would have been 1, 2
-		expect(editor.inputs.currentScreenPoint).toMatchObject({ x: 101, y: 102 })
+		expect(editor.inputs.getCurrentScreenPoint()).toMatchObject({ x: 101, y: 102 })
 	})
 })
 

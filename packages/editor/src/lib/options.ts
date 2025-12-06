@@ -98,6 +98,11 @@ export interface TldrawOptions {
 	 * Defaults to 300 shapes.
 	 */
 	readonly debouncedZoomThreshold: number
+	/**
+	 * Whether to allow spacebar panning. When true, the spacebar will pan the camera when held down.
+	 * When false, the spacebar will not pan the camera.
+	 */
+	readonly spacebarPanning: boolean
 }
 
 /** @public */
@@ -152,4 +157,5 @@ export const defaultTldrawOptions = {
 	nonce: undefined,
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
+	spacebarPanning: true,
 } as const satisfies TldrawOptions

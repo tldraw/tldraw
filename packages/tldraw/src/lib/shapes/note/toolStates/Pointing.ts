@@ -32,7 +32,7 @@ export class Pointing extends StateNode {
 		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
 		// Check for note pits; if the pointer is close to one, place the note centered on the pit
-		const center = this.editor.inputs.originPagePoint.clone()
+		const center = this.editor.inputs.getOriginPagePoint().clone()
 		const offset = getNoteShapeAdjacentPositionOffset(
 			this.editor,
 			center,
@@ -52,7 +52,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
