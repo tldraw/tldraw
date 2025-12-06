@@ -126,7 +126,7 @@ Single dependency on core tldraw package:
 		"tldraw": "workspace:*" // Re-export main package
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
+		"react": "^18.2.0 || ^19.2.1",
 		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }

@@ -9595,7 +9595,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9671,7 +9671,7 @@ __metadata:
     resize-observer-polyfill: "npm:^1.5.1"
     vitest: "npm:^3.2.4"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9693,7 +9693,7 @@ __metadata:
     tldraw: "workspace:*"
     zod: "npm:^4.1.8"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9870,7 +9870,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     vitest: "npm:^3.2.4"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9897,7 +9897,7 @@ __metadata:
     raf: "npm:^3.4.1"
     vitest: "npm:^3.2.4"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -9922,7 +9922,7 @@ __metadata:
     vitest: "npm:^3.2.4"
     ws: "npm:^8.18.0"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9947,7 +9947,7 @@ __metadata:
     vitest: "npm:^3.2.4"
     ws: "npm:^8.18.0"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9964,7 +9964,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -9982,7 +9982,7 @@ __metadata:
     react: "npm:^19.2.1"
     vitest: "npm:^3.2.4"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
@@ -28300,7 +28300,7 @@ __metadata:
     resize-observer-polyfill: "npm:^1.5.1"
     vitest: "npm:^3.2.4"
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
+    react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
