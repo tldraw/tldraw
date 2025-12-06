@@ -10585,46 +10585,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Add the key from the keys set
 						inputs.keys.add(info.code)
 
-						// If the space key is pressed (but meta / control isn't!) activate panning
-						if (info.code === 'Space' && !info.ctrlKey) {
-							if (!this.inputs.getIsPanning()) {
-								this._prevCursor = instanceState.cursor.type
+						if (this.options.spacebarPanning) {
+							// If the space key is pressed (but meta / control isn't!) activate panning
+							if (info.code === 'Space' && !info.ctrlKey) {
+								if (!this.inputs.getIsPanning()) {
+									this._prevCursor = instanceState.cursor.type
+								}
+
+								this.inputs.setIsPanning(true)
+								this.inputs.setIsSpacebarPanning(true)
+								clearTimeout(this._longPressTimeout)
+								this.setCursor({
+									type: this.inputs.getIsPointing() ? 'grabbing' : 'grab',
+									rotation: 0,
+								})
 							}
 
-							this.inputs.setIsPanning(true)
-							this.inputs.setIsSpacebarPanning(true)
-							clearTimeout(this._longPressTimeout)
-							this.setCursor({
-								type: this.inputs.getIsPointing() ? 'grabbing' : 'grab',
-								rotation: 0,
-							})
-						}
+							if (this.inputs.getIsSpacebarPanning()) {
+								let offset: Vec | undefined
+								switch (info.code) {
+									case 'ArrowUp': {
+										offset = new Vec(0, -1)
+										break
+									}
+									case 'ArrowRight': {
+										offset = new Vec(1, 0)
+										break
+									}
+									case 'ArrowDown': {
+										offset = new Vec(0, 1)
+										break
+									}
+									case 'ArrowLeft': {
+										offset = new Vec(-1, 0)
+										break
+									}
+								}
 
-						if (this.inputs.getIsSpacebarPanning()) {
-							let offset: Vec | undefined
-							switch (info.code) {
-								case 'ArrowUp': {
-									offset = new Vec(0, -1)
-									break
+								if (offset) {
+									const bounds = this.getViewportPageBounds()
+									const next = bounds.clone().translate(offset.mulV({ x: bounds.w, y: bounds.h }))
+									this._animateToViewport(next, { animation: { duration: 320 } })
 								}
-								case 'ArrowRight': {
-									offset = new Vec(1, 0)
-									break
-								}
-								case 'ArrowDown': {
-									offset = new Vec(0, 1)
-									break
-								}
-								case 'ArrowLeft': {
-									offset = new Vec(-1, 0)
-									break
-								}
-							}
-
-							if (offset) {
-								const bounds = this.getViewportPageBounds()
-								const next = bounds.clone().translate(offset.mulV({ x: bounds.w, y: bounds.h }))
-								this._animateToViewport(next, { animation: { duration: 320 } })
 							}
 						}
 
