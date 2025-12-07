@@ -17,8 +17,7 @@ function testOutput(result: PerformanceTestResult) {
 	)
 
 	// Validate performance
-	// Note: React 19 has lower performance for shape rotation (4-5 FPS vs 18 FPS in React 18)
-	expect(result.metrics.averageFps).toBeGreaterThan(4)
+	expect(result.metrics.averageFps).toBeGreaterThan(18)
 	expect(result.comparison.status).not.toBe('fail')
 
 	// Update baseline if this is a significant improvement
@@ -31,7 +30,7 @@ function testOutput(result: PerformanceTestResult) {
 test.describe('Performance Tests', () => {
 	test.beforeEach(setup)
 	test.setTimeout(120000) // Increase timeout
-	test.describe.configure({ mode: 'serial', retries: 1 }) // Run tests in series with 1 retry for flaky perf tests
+	test.describe.configure({ mode: 'serial' }) // Run tests in series to avoid resource conflicts
 
 	test.skip('Baseline FPS Performance - Desktop', async ({
 		page,
@@ -101,8 +100,7 @@ test.describe('Performance Tests', () => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
-		// Enable profiling to see where time is spent (scripting, rendering, painting)
-		testOutput(await perfSuite.testShapeRotation({ profile: true }))
+		testOutput(await perfSuite.testShapeRotation())
 	})
 
 	test.skip('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
