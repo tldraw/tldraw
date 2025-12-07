@@ -71,6 +71,7 @@
 		"@types/node": "^22.15.31",
 		"@types/qrcode": "^1.5.5",
 		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"dotenv": "^16.4.7",
 		"fast-glob": "^3.3.3",

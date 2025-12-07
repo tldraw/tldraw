@@ -164,10 +164,7 @@ export function Code(props: React.ComponentProps<'code'>) {
 	if (typeof props.children === 'string') {
 		return <InlineCodeElem {...props} />
 	}
-	if (
-		Array.isArray(props.children) &&
-		(props.children[0] as ReactElement<{ className?: string }>)?.props?.className === 'line'
-	) {
+	if (Array.isArray(props.children) && props.children[0].props?.className === 'line') {
 		return <HighlightedCodeElem {...props} />
 	}
 	if (
