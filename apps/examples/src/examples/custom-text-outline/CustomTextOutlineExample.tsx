@@ -1,5 +1,10 @@
-import { ArrowShapeUtil, TextShapeUtil, Tldraw, toRichText } from 'tldraw'
+import { ArrowShapeUtil, GeoShapeUtil, TextShapeUtil, Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+// Configure the geo shape to disable outline
+const CustomGeoShapeUtil = GeoShapeUtil.configure({
+	showTextOutline: false,
+})
 
 // Configure the arrow shape to disable text outline
 const CustomArrowShapeUtil = ArrowShapeUtil.configure({
@@ -12,7 +17,7 @@ const CustomTextShapeUtil = TextShapeUtil.configure({
 })
 
 // Use the configured shape utilities
-const customShapeUtils = [CustomArrowShapeUtil, CustomTextShapeUtil]
+const customShapeUtils = [CustomArrowShapeUtil, CustomTextShapeUtil, CustomGeoShapeUtil]
 
 export default function CustomTextOutlineExample() {
 	return (
