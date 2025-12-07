@@ -17,8 +17,8 @@ function testOutput(result: PerformanceTestResult) {
 	)
 
 	// Validate performance
-	// Note: React 19 has lower performance for shape rotation (4-5 FPS vs 18 FPS in React 18)
-	expect(result.metrics.averageFps).toBeGreaterThan(4)
+	// Note: Tests run against production build for accurate performance metrics
+	expect(result.metrics.averageFps).toBeGreaterThan(18)
 	expect(result.comparison.status).not.toBe('fail')
 
 	// Update baseline if this is a significant improvement
