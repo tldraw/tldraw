@@ -37,6 +37,20 @@ There may be cases where you will need to push commits with --no-verify in order
 
 ### Misc
 
-1. Never add yourself as an author or contributor on any branch.
+1. Never add yourself as an author or contributor on any branch or commit.
 2. Write your pull reuqest following the same instructions as in the pr.md command file.
 3. In your pull request, include a link to the original branch.
+
+Your commit should never include lines like:
+
+```md
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+or
+
+```md
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+```
+
+Or else I'll get in trouble with my boss.
