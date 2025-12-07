@@ -316,6 +316,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 							padding={LABEL_PADDING * scale}
 							hasCustomTabBehavior
+							showTextOutline={false}
 							onKeyDown={handleKeyDown}
 						/>
 					)}
