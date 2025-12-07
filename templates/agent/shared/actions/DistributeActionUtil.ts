@@ -1,6 +1,7 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -9,7 +10,7 @@ const DistributeAction = z
 		_type: z.literal('distribute'),
 		direction: z.enum(['horizontal', 'vertical']),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Distribute',

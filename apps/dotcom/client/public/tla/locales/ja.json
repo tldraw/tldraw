@@ -2,14 +2,14 @@
   "0095a9fa74": {
     "translation": "エクスポート"
   },
+  "00b177e080": {
+    "translation": "招待を承諾する"
+  },
   "03b3e13197": {
     "translation": "このページのサイドバーにファイルをドラッグします。または、ユーザーメニューから [ファイルをインポート] オプションを選択します。"
   },
   "043973ec1f": {
     "translation": "問題が解決しませんか？{GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "tldrawを開く"
   },
   "06b9281e39": {
     "translation": "自動"
@@ -23,8 +23,11 @@
   "08bd40c754": {
     "translation": "アカウント"
   },
-  "08d2d725a9": {
-    "translation": "無料アカウントを作成すると、作業の保存、リアルタイムでの共同作業などが行えます。"
+  "0a91f7fa87": {
+    "translation": "このファイルはサイズ制限に達したため、変更を保存できない可能性があります。一部のコンテンツを削除するか、新しいファイルを作成してください。"
+  },
+  "0ab1ef22a3": {
+    "translation": "グループに話しかける…"
   },
   "0b27918290": {
     "translation": "ファイル"
@@ -32,14 +35,17 @@
   "0b9a4cde72": {
     "translation": "ファイルメニュー"
   },
-  "0beb3ca97b": {
-    "translation": "tldraw は、無料ですぐに使える仮想ホワイトボードです。"
+  "0befa10111": {
+    "translation": "妖精たち"
   },
   "0d1f2bb523": {
     "translation": "フィードバックを送信"
   },
   "110a4b01be": {
     "translation": "公開"
+  },
+  "11a755d598": {
+    "translation": "停止"
   },
   "129b9e34ea": {
     "translation": "グループを脱退"
@@ -68,11 +74,11 @@
   "1dd1c5fb7f": {
     "translation": "今日"
   },
-  "20976e7bec": {
-    "translation": "部屋は満室です"
+  "23f879f41a": {
+    "translation": "妖精の週間使用制限に達しました。来週初めにリセットされます。"
   },
-  "21bfb2dc2e": {
-    "translation": "このルームのサイズ制限に近づいています。一部のコンテンツを削除するか、新しいファイルを作成することを検討してください。"
+  "243924bfd5": {
+    "translation": "寝る"
   },
   "2445e5e347": {
     "translation": "グループを作成"
@@ -80,14 +86,23 @@
   "250ddea65c": {
     "translation": "tldrawについて"
   },
+  "269097080b": {
+    "translation": "あなたの妖精たちが待っています"
+  },
+  "275173253d": {
+    "translation": "全員召喚"
+  },
+  "284d5cd0dd": {
+    "translation": "モデル："
+  },
   "299cb00a7a": {
     "translation": "アップロードに失敗しました"
   },
   "2c3ef76333": {
     "translation": "私のファイル"
   },
-  "2deec2cb74": {
-    "translation": "このルームはサイズ制限に達したため、変更内容が保存されない可能性があります。コンテンツの一部を削除するか、新しいファイルを作成してください。"
+  "30cd34258a": {
+    "translation": "12月はtldrawにたくさんの<b>妖精</b>がやって来ます。詳しく知りたい場合は、妖精を見つけてクリックしてください。"
   },
   "31246941ad": {
     "translation": "このファイルを閲覧するにはサインインしてください。"
@@ -95,14 +110,38 @@
   "31418ce4ad": {
     "translation": "i18n：ハイライト不足"
   },
+  "3209f407ed": {
+    "translation": "3人の妖精"
+  },
   "32210b37e4": {
     "translation": "リンクを追加"
+  },
+  "324a0f3182": {
+    "translation": "tldrawに戻る"
   },
   "335defdafe": {
     "translation": "ページの再読み込みをお試しください。"
   },
+  "34140869c6": {
+    "translation": "12月はtldrawにたくさんの妖精たちがやって来ます。12月1日にまたチェックしてください。"
+  },
   "344a7f427f": {
     "translation": "エディタ"
+  },
+  "34abfe7a0d": {
+    "translation": "みんな寝る"
+  },
+  "34e34c43ec": {
+    "translation": "管理"
+  },
+  "3596c1b1f7": {
+    "translation": "フォロー解除"
+  },
+  "3903aab323": {
+    "translation": "フォローする"
+  },
+  "3b6c2b4caa": {
+    "translation": "利用規約"
   },
   "3bc7d6ea2f": {
     "translation": "メールで続行"
@@ -122,8 +161,17 @@
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
+  "45b43c2d28": {
+    "translation": "12月は<strong>妖精たち</strong>がtldrawにやって来ます。"
+  },
   "46137245cd": {
     "translation": "tldraw の改善にご協力いただきありがとうございます。"
+  },
+  "465a8a92a4": {
+    "translation": "妖精が選択されていません"
+  },
+  "477df802ca": {
+    "translation": "編集を続けるには、ファイルをファイルにコピーしてください。"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -140,6 +188,9 @@
   "49ee308734": {
     "translation": "名前"
   },
+  "4c41e0bd95": {
+    "translation": "すべて選択"
+  },
   "4d0d3ddec9": {
     "translation": "このサイトでは、アプリの動作と分析情報の収集のために Cookie を使用します。"
   },
@@ -148,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "グループを削除…"
+  },
+  "4dab36ac83": {
+    "translation": "その他のオプション"
   },
   "4e6fbf032b": {
     "translation": "このグループを削除してもよろしいですか? この操作は元に戻せません。"
@@ -158,11 +212,11 @@
   "517bb809d9": {
     "translation": "ページメニュー"
   },
+  "542248f0ba": {
+    "translation": "このファイルは現在読み取り専用です"
+  },
   "54286b1d01": {
     "translation": "共同作業者の上限に達しました"
-  },
-  "54d240fa41": {
-    "translation": "ペースを落としてください。"
   },
   "554a05155c": {
     "translation": "まだ問題がありますか? <a>問題を報告</a>"
@@ -176,17 +230,14 @@
   "56c34c6410": {
     "translation": "プライバシーポリシー"
   },
+  "5a2ccdc00a": {
+    "translation": "招待コードの引き換えに失敗しました"
+  },
   "5a86b22fa0": {
     "translation": "開始するには、ファイルをここにドラッグするか、<create>ファイルを作成</create>するか、<invite>招待リンクをコピー</invite>してください。"
   },
   "5a95a425f7": {
     "translation": "共有"
-  },
-  "5bb6cf3b53": {
-    "translation": "部屋が広くなる"
-  },
-  "5bcc12ace8": {
-    "translation": "この部屋は現在読み取り専用です"
   },
   "5bec508475": {
     "translation": "古いブラウザが検出されました。このアプリを使用するにはブラウザを更新してください。"
@@ -197,6 +248,9 @@
   "5d26ae7550": {
     "translation": "サインイン前に作成されたコンテンツの一部のアップロードに失敗しました。"
   },
+  "5ea8bb44be": {
+    "translation": "グループに参加するよう招待されました:"
+  },
   "5f3c333678": {
     "translation": "フィードバックを送信しました"
   },
@@ -206,11 +260,17 @@
   "61057a0c84": {
     "translation": "後で"
   },
+  "61daf2e53d": {
+    "translation": "{name}と話してください…"
+  },
   "625fd29749": {
     "translation": "より古い"
   },
   "639bae9ac6": {
     "translation": "あなた"
+  },
+  "6602bbeb29": {
+    "translation": "ガイド"
   },
   "6609dd239e": {
     "translation": "エラーが発生しました"
@@ -218,11 +278,20 @@
   "6637a98151": {
     "translation": "tldraw の新しいバージョンが利用可能です。続行するにはページを再読み込みしてください。"
   },
-  "68257bb646": {
-    "translation": "グループ <br></br><groupName></groupName> に招待されました"
-  },
   "6832ac5936": {
     "translation": "メールアドレスを入力してください"
+  },
+  "688761c83e": {
+    "translation": "ウェイク"
+  },
+  "68d390535e": {
+    "translation": "メッセージを入力してください"
+  },
+  "6910bbdc82": {
+    "translation": "妖精の名前"
+  },
+  "695c3e899d": {
+    "translation": "デバッグ妖精"
   },
   "6a26f54883": {
     "translation": "ヘルプ"
@@ -263,8 +332,14 @@
   "764671e008": {
     "translation": "Discordでチャットしましょう"
   },
+  "76dea3c9ca": {
+    "translation": "tldrawは無料のオンラインホワイトボードです。アカウントを作成してファイルを保存し、友達と共同作業しましょう。"
+  },
   "777f9e90cf": {
     "translation": "無効なリクエストです。"
+  },
+  "7827371d1a": {
+    "translation": "この匿名tldrawマルチプレイヤーファイルは読み取り専用になりました。編集を続けるには、サインインしてファイルにコピーしてください。"
   },
   "78e9815992": {
     "translation": "わかった"
@@ -272,11 +347,20 @@
   "797799f35e": {
     "translation": "GitHubで問題を提出する"
   },
+  "79cc22ac6b": {
+    "translation": "妖精はキャンバスの上であなたと一緒に作業してくれる小さな生き物です。妖精は一人でもチームでも作業できます。妖精のできることには限界がありません。妖精がどこから来たのかは誰も知りません。"
+  },
   "7b1329f5ca": {
     "translation": "ユーザーマニュアル"
   },
   "7be10fc592": {
     "translation": "バージョンを復元"
+  },
+  "7c0747a5df": {
+    "translation": "tldrawを開く"
+  },
+  "7cb471f815": {
+    "translation": "あなたは tldraw 妖精たちに参加するよう招待されました!"
   },
   "7cb5f8b4a5": {
     "translation": "無視する"
@@ -296,6 +380,12 @@
   "815e116a2e": {
     "translation": "tldraw に関するバグ、問題、またはアイデアがありましたら、ぜひお知らせください。こちらのフォームにご記入いただければ、必要に応じてメールでご連絡いたします。また、<discord>Discord でチャット</discord>、<github>GitHub で問題を提出</github>することも可能です。"
   },
+  "81aa2078d1": {
+    "translation": "すべてクリア"
+  },
+  "83218ac34c": {
+    "translation": "いらっしゃいませ"
+  },
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
   },
@@ -305,17 +395,29 @@
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
+  "8726ef8909": {
+    "translation": "ハードリセット"
+  },
+  "88e83b88c5": {
+    "translation": "妖精バンドルを購入"
+  },
   "8ad4303b83": {
     "translation": "結構です"
   },
-  "8b1946f965": {
-    "translation": "編集を続けるには、部屋をファイルにコピーしてください。"
+  "8be569f100": {
+    "translation": "1回限りの支払い"
   },
   "8c2d3d730c": {
     "translation": "確認コードをメールで確認してください。"
   },
+  "8cf04a9734": {
+    "translation": "家"
+  },
   "8eb2c00e96": {
     "translation": "あなたと共有しました"
+  },
+  "8f7f4c1ce7": {
+    "translation": "について"
   },
   "8ff3d0a705": {
     "translation": "レートが制限されています"
@@ -331,6 +433,12 @@
   },
   "930390d222": {
     "translation": "招待リンクをコピーしました"
+  },
+  "94186070ef": {
+    "translation": "選択解除"
+  },
+  "94966d9074": {
+    "translation": "送信"
   },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
@@ -350,14 +458,14 @@
   "9914a0ce04": {
     "translation": "ライト"
   },
+  "9953e9946b": {
+    "translation": "デバッグビュー"
+  },
   "9b33f5c63c": {
     "translation": "コードが届きませんか？ <resend>再送信</resend>"
   },
   "9bef626805": {
     "translation": "ファイルを削除"
-  },
-  "9c258b8f88": {
-    "translation": "この匿名tldrawマルチプレイヤールームは現在読み取り専用です。編集を続けるには、サインインしてファイルにコピーしてください。"
   },
   "9ceb927baa": {
     "translation": "このファイルを公開"
@@ -383,11 +491,17 @@
   "a239905023": {
     "translation": "画像をエクスポート"
   },
+  "a286d9991c": {
+    "translation": "参加する"
+  },
   "a3debabee7": {
     "translation": "クッキーポリシー"
   },
   "a4d3b161ce": {
     "translation": "提出する"
+  },
+  "a603905470": {
+    "translation": "デバッグ"
   },
   "a6cc403d56": {
     "translation": "リンクを持つ人なら誰でも"
@@ -395,11 +509,17 @@
   "a768caa988": {
     "translation": "分析"
   },
+  "a8873770ab": {
+    "translation": "ファイルが大きくなりつつあります"
+  },
+  "a8de4c27a8": {
+    "translation": "週間妖精制限に達しました"
+  },
+  "a917baaf14": {
+    "translation": "新しいチャット"
+  },
   "a9ded1e5ce": {
     "translation": "背景"
-  },
-  "aa916767cf": {
-    "translation": "招待を承諾するにはサインインしてください"
   },
   "ab0df9ba36": {
     "translation": "ファイル制限に達しました"
@@ -410,6 +530,12 @@
   },
   "b028909917": {
     "translation": "ゲストユーザー"
+  },
+  "b2c3c2e30c": {
+    "translation": "ファイルがいっぱいです"
+  },
+  "b34a671e2c": {
+    "translation": "ログ応答時間"
   },
   "b357b524e7": {
     "translation": "電子メールアドレス"
@@ -438,6 +564,9 @@
   "bc88b0e89e": {
     "translation": "{ownerName}さんが共有"
   },
+  "be4f1c62d3": {
+    "translation": "妖精にズーム"
+  },
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
   },
@@ -447,11 +576,20 @@
   "c303bd1095": {
     "translation": "ファイルを公開できません"
   },
+  "c3bf447eab": {
+    "translation": "開ける"
+  },
+  "c3eb5c3b90": {
+    "translation": "わかりました"
+  },
   "c4b39a1cc3": {
     "translation": "必須クッキー"
   },
   "c6155aaecc": {
     "translation": "グループ名"
+  },
+  "c64518704c": {
+    "translation": "使用法"
   },
   "c655b27b1e": {
     "translation": "i18n：長い文字列"
@@ -474,11 +612,20 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "このファイルのサイズ制限に近づいています。一部のコンテンツを削除するか、新しいファイルを作成することを検討してください。"
+  },
+  "ce1424d44b": {
+    "translation": "あなたはすでに妖精へのアクセス権を持っています!"
+  },
   "cea291e45e": {
     "translation": "公開についてさらに詳しく。"
   },
   "d3d2e61733": {
     "translation": "閉じる"
+  },
+  "d46632fe1f": {
+    "translation": "リクエストが多すぎます。速度を落としてください。"
   },
   "d4bbf74f3e": {
     "translation": "サイドバーを切り替え"
@@ -498,17 +645,32 @@
   "d9100f3e10": {
     "translation": "コンテンツを見るにはこちらへ移動してください"
   },
+  "d9bfb9789a": {
+    "translation": "妖精を有効にする"
+  },
   "d9e35d0f55": {
     "translation": "グループの最大数に達しました。新しいグループを作成する前に、古いグループを削除する必要があります。"
   },
   "dbbebf3c03": {
     "translation": "招待のみ"
   },
+  "dc30bc0c79": {
+    "translation": "クリア"
+  },
   "dcdaa754fe": {
     "translation": "無効なtldrawファイルURL"
   },
+  "de290d52ef": {
+    "translation": "右側の妖精を選択してチャットしましょう"
+  },
+  "df6ff49394": {
+    "translation": "妖精は<strong>一時的な</strong>機能です。2026年1月1日以降、すべての妖精がアプリから削除されます。もしかしたら、いつかまた戻ってくるかもしれません。ご購入いただいた妖精へのアクセスは、2025年12月のみ有効です。"
+  },
   "dfdb78a4e4": {
     "translation": "デバッグのフラグを追加"
+  },
+  "e062622261": {
+    "translation": "選択"
   },
   "e0c88179b3": {
     "translation": "メンバーを招待する"
@@ -524,6 +686,9 @@
   },
   "e404559826": {
     "translation": "利用規約"
+  },
+  "e43ec38a93": {
+    "translation": "へ移動"
   },
   "e81c4e4f2b": {
     "translation": "または"
@@ -552,11 +717,17 @@
   "ede55d955f": {
     "translation": "詳細については、<a>Cookie ポリシー</a> をお読みください。"
   },
+  "eee6f05922": {
+    "translation": "解散"
+  },
   "ef53538ae4": {
     "translation": "メンバー"
   },
   "ef7de3f485": {
     "translation": "選択された"
+  },
+  "efde983742": {
+    "translation": "召喚"
   },
   "f09b16bc5f": {
     "translation": "弊社では、ログイン状態を維持し、ファイルを同期し、tldraw を改善するための分析情報を収集するために Cookie を使用します。"
@@ -569,9 +740,6 @@
   },
   "f2a6c498fb": {
     "translation": "削除"
-  },
-  "f43fb62093": {
-    "translation": "tldrawへ戻る"
   },
   "f4f70727dc": {
     "translation": "設定"

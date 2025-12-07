@@ -1,5 +1,5 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
-import StarterKit from '@tiptap/starter-kit'
+import { StarterKit } from '@tiptap/starter-kit'
 import {
 	DefaultRichTextToolbar,
 	TLComponents,

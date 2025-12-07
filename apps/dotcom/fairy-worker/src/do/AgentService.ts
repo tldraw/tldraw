@@ -13,6 +13,7 @@ import {
 	Streaming,
 } from '@tldraw/fairy-shared'
 import { LanguageModel, ModelMessage, streamText } from 'ai'
+import { INTERNAL_BASE_URL } from '../constants'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
@@ -25,11 +26,13 @@ import {
 } from './models'
 
 export class AgentService {
+	private readonly env: Environment
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
+		this.env = env
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
@@ -41,13 +44,56 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
+	private async handleFinish(
+		modelId: AgentModelName,
+		usage: any,
+		providerMetadata: any,
+		userStub: ReturnType<Environment['TL_USER']['get']>,
+		userId: string
+	): Promise<void> {
+		if (!providerMetadata) {
+			console.warn('No provider metadata found (this should probably not be happening).')
+			return
+		}
+
+		const cost = getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata)
+		console.warn(`Cost for request to ${modelId}: $${cost.toFixed(3)}`)
+
+		if (cost <= 0) return
+
+		try {
+			const recordRes = await userStub.fetch(
+				`${INTERNAL_BASE_URL}/app/${userId}/fairy/record-usage`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ actualCost: cost }),
+				}
+			)
+
+			if (!recordRes.ok) {
+				let errorDetails: string
+				try {
+					const errorData = (await recordRes.json()) as { error: string }
+					errorDetails = errorData.error
+				} catch {
+					errorDetails = await recordRes.text()
+				}
+				console.error('Failed to record usage:', errorDetails)
+			}
+		} catch (recordError) {
+			console.error('Exception recording usage:', recordError)
+		}
+	}
+
 	async *streamActions(
 		prompt: AgentPrompt,
-		isAdmin = false,
-		signal?: AbortSignal
+		signal: AbortSignal | undefined,
+		userId: string,
+		userStub: ReturnType<Environment['TL_USER']['get']>
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = getModelName(prompt)
+			const modelName = getModelName(prompt, this.env)
 			const model = this.getModel(modelName)
 
 			if (typeof model === 'string') {
@@ -144,15 +190,8 @@ export class AgentService {
 					console.error('Stream text error:', e)
 					throw e
 				},
-				onFinish: (e) => {
-					const { usage, providerMetadata } = e
-					if (providerMetadata) {
-						console.warn(
-							`Cost for request to ${modelId}: $${getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata).toFixed(3)}`
-						)
-					} else {
-						console.warn('No provider metadata found (this should probably not be happening).')
-					}
+				onFinish: async (e) => {
+					await this.handleFinish(modelId, e.usage, e.providerMetadata, userStub, userId)
 				},
 			})
 
@@ -218,19 +257,8 @@ export class AgentService {
 				}
 			}
 
-			if (isAdmin) {
-				const usage = await result.usage
-				const providerMetadata = await result.providerMetadata
-
-				// Yield usage information as a special metadata action (only for @tldraw.com admins)
-				yield {
-					_type: '__usage__',
-					complete: true,
-					time: 0,
-					usage,
-					providerMetadata,
-				} as any
-			}
+			// Await usage to ensure onFinish callback completes
+			await result.usage
 		} catch (error: any) {
 			// Check if it was aborted
 			if (signal?.aborted || error?.name === 'AbortError') {

@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { setup, sleep } from '../shared-e2e'
+import { setupOrReset, sleep } from '../shared-e2e'
 
 test.describe('page menu', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 
 	test.afterEach(async ({ page }) => {
 		// press escape a few times

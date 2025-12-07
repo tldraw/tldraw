@@ -119,3 +119,6 @@ license-report.md
 .sst
 
 .mcp.json
+
+# TypeScript profiling
+.ts-profile

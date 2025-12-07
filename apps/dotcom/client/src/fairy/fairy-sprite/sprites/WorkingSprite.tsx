@@ -1,117 +1,75 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
+import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function WorkingSprite1({
-	bodyColor = 'white',
-	hatColor = 'white',
-}: {
-	bodyColor?: string
-	hatColor?: string
-} = {}) {
+export function WorkingSprite1(props: FairySpriteProps) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<g stroke="black" strokeLinecap="round">
+		<>
+			<g stroke="var(--tl-color-fairy-dark)" strokeLinecap="round">
 				<path
 					d="M65.5907 53.3966C65.5907 53.3966 70.0926 55.3493 74.3761 55.1193C78.6596 54.8892 82.6283 51.7969 82.6283 51.7969"
 					strokeWidth="6"
 				/>
-				<WorkingSpriteBase bodyColor={bodyColor} hatColor={hatColor} />
+				<WorkingSpriteBase {...props} />
 				<path
 					d="M41.1356 56.2007C41.1356 56.2007 42.2812 64.0008 46.9921 69.0741C51.703 74.1473 58.4068 73.4227 58.4068 73.4227"
 					strokeWidth="7"
 				/>
 			</g>
-		</svg>
+		</>
 	)
 }
 
-export function WorkingSprite2({
-	bodyColor = 'white',
-	hatColor = 'white',
-}: {
-	bodyColor?: string
-	hatColor?: string
-} = {}) {
+export function WorkingSprite2(props: FairySpriteProps) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<g stroke="black" strokeLinecap="round">
+		<>
+			<g stroke="var(--tl-color-fairy-dark)" strokeLinecap="round">
 				<path
 					d="M65.2349 54.2168C65.2349 54.2168 66.9787 58.8999 71.7576 61.4642C76.5365 64.0285 81.5417 59.4712 81.5417 59.4712"
 					strokeWidth="6"
 				/>
-				<WorkingSpriteBase bodyColor={bodyColor} hatColor={hatColor} />
+				<WorkingSpriteBase {...props} />
 				<path
 					d="M41.5676 58.9449C41.5676 58.9449 40.9778 63.7401 46.5726 66.5375C52.1674 69.3348 59.0745 64.9068 59.0745 64.9068"
 					strokeWidth="7"
 				/>
 			</g>
-		</svg>
+		</>
 	)
 }
 
-export function WorkingSprite3({
-	bodyColor = 'white',
-	hatColor = 'white',
-}: {
-	bodyColor?: string
-	hatColor?: string
-} = {}) {
+export function WorkingSprite3(props: FairySpriteProps) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<g stroke="black" strokeLinecap="round">
+		<>
+			<g stroke="var(--tl-color-fairy-dark)" strokeLinecap="round">
 				<path
 					d="M65.8094 54.2964C65.8094 54.2964 66.6273 59.29 71.3381 62.9137C76.049 66.5375 80.3975 67.081 80.3975 67.081"
 					strokeWidth="6"
 				/>
-				<WorkingSpriteBase bodyColor={bodyColor} hatColor={hatColor} />
+				<WorkingSpriteBase {...props} />
 				<path
 					d="M41.7315 58.8285C41.7315 58.8285 43.114 64.9512 49.2333 66.1751C55.3526 67.399 57.9302 61.1019 57.9302 61.1019"
 					strokeWidth="7"
 				/>
 			</g>
-		</svg>
+		</>
 	)
 }
 
-export function WorkingSpriteBase({
-	bodyColor = 'white',
-	hatColor = 'white',
-}: {
-	bodyColor?: string
-	hatColor?: string
-}) {
+export function WorkingSpriteBase(props: FairySpriteProps) {
 	return (
 		<>
-			{/* Right arm */}
-			{/* Left leg */}
-			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyLegsSpritePart {...props} />
+			<FairyBodySpritePart {...props} />
+			<FairyHatSpritePart {...props} />
 			{/* Head */}
 			<circle
 				cx="55.4159"
 				cy="33.7832"
 				r="19.8442"
-				fill={bodyColor}
-				stroke="black"
+				fill={props.bodyColor}
+				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>
 			{/* Right eye */}
@@ -120,7 +78,7 @@ export function WorkingSpriteBase({
 				cy="32.294"
 				r="2.62701"
 				transform="rotate(3.23906 68.6311 32.294)"
-				fill="black"
+				fill="var(--tl-color-fairy-dark)"
 			/>
 			{/* Left eye */}
 			<circle
@@ -128,26 +86,15 @@ export function WorkingSpriteBase({
 				cy="35.1168"
 				r="2.77454"
 				transform="rotate(3.23906 50.8361 35.1168)"
-				fill="black"
+				fill="var(--tl-color-fairy-dark)"
 			/>
 			{/* Mouth */}
 			<path
 				d="M54.6211 43.9913C54.6211 43.9913 60.8177 43.9913 63.8067 42.2415"
-				stroke="black"
+				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 				strokeLinecap="round"
 			/>
-			{/* Hat */}
-			<path
-				d="M56.5614 3.05088C54.4626 3.24769 38.4994 15.119 37.8673 20.7098C37.7215 21.9997 45.5984 14.7551 54.1455 14.0794C62.6927 13.4038 68.1123 17.3462 69.0414 16.883C69.9705 16.4197 61.3353 2.60324 56.5614 3.05088Z"
-				fill={hatColor}
-			/>
-			{/* Hair */}
-			<path
-				d="M37.8673 20.7098L40.3515 20.9906L40.3515 20.9906L37.8673 20.7098ZM56.5614 3.05088L56.328 0.561798L56.5614 3.05088ZM69.0414 16.883L70.1569 19.1203L70.1569 19.1203L69.0414 16.883ZM54.1455 14.0794L54.3425 16.5717L54.1455 14.0794ZM37.8673 20.7098L40.3515 20.9906C40.3752 20.7815 40.5073 20.3313 40.9261 19.6124C41.3286 18.9215 41.9137 18.1215 42.664 17.2395C44.1642 15.476 46.1762 13.558 48.2857 11.7605C50.388 9.96925 52.5289 8.34712 54.252 7.17268C55.1165 6.58342 55.8461 6.12715 56.3945 5.82285C56.6705 5.6697 56.8682 5.57319 56.9935 5.51972C57.1753 5.44218 57.0662 5.51452 56.7948 5.53996L56.5614 3.05088L56.328 0.561798C55.7944 0.611841 55.3146 0.799984 55.0316 0.920694C54.6922 1.06547 54.3311 1.24964 53.9685 1.45086C53.2397 1.85528 52.3729 2.40242 51.4359 3.04113C49.5558 4.32262 47.2729 6.05464 45.0429 7.95467C42.8203 9.84846 40.5918 11.9588 38.8556 13.9997C37.9877 15.0199 37.2055 16.0661 36.6059 17.0954C36.0225 18.0966 35.5175 19.2403 35.3832 20.4289L37.8673 20.7098ZM56.5614 3.05088L56.7948 5.53996C56.7728 5.54203 56.9566 5.52413 57.4138 5.74629C57.8557 5.96103 58.4048 6.32863 59.0421 6.86737C60.3171 7.94514 61.6907 9.4896 62.9532 11.1427C64.2075 12.7852 65.2812 14.4414 65.9704 15.6794C66.3227 16.3122 66.5324 16.7608 66.6242 17.008C66.6791 17.1556 66.6403 17.0955 66.6206 16.9092C66.6116 16.8235 66.5846 16.5287 66.6879 16.1473C66.8036 15.7206 67.1356 15.0397 67.9258 14.6457L69.0414 16.883L70.1569 19.1203C71.0052 18.6973 71.3766 17.9614 71.5138 17.4552C71.6387 16.9944 71.6154 16.5958 71.5929 16.3836C71.5465 15.9442 71.4128 15.5401 71.3111 15.2665C71.09 14.6712 70.7401 13.9679 70.339 13.2473C69.5212 11.7783 68.3119 9.92157 66.9269 8.10799C65.55 6.30501 63.9278 4.45033 62.27 3.04893C61.441 2.34809 60.5395 1.7061 59.5991 1.24912C58.6739 0.79956 57.5436 0.447818 56.328 0.561798L56.5614 3.05088ZM69.0414 16.883L67.9258 14.6457C68.3852 14.4166 68.7772 14.4175 68.9027 14.422C69.047 14.427 69.1204 14.4495 69.0797 14.4395C68.9919 14.418 68.7998 14.356 68.4131 14.2088C67.721 13.9455 66.5756 13.4731 65.2381 13.0289C62.4966 12.1186 58.6576 11.215 53.9485 11.5872L54.1455 14.0794L54.3425 16.5717C58.1805 16.2683 61.325 16.998 63.6624 17.7742C64.8643 18.1733 65.7822 18.5574 66.6347 18.8819C67.0203 19.0286 67.4708 19.1933 67.8906 19.2961C68.1037 19.3483 68.3972 19.4073 68.7271 19.4189C69.0382 19.4298 69.5814 19.4073 70.1569 19.1203L69.0414 16.883ZM54.1455 14.0794L53.9485 11.5872C49.1026 11.9703 44.5988 14.1846 41.5014 15.9639C40.0059 16.8228 38.5693 17.7464 37.8659 18.1664C37.4044 18.4419 37.2902 18.4836 37.3521 18.462C37.3879 18.4496 37.5108 18.408 37.6919 18.3832C37.8482 18.3617 38.2503 18.3226 38.7382 18.4888C39.3243 18.6884 39.8634 19.1309 40.1553 19.7769C40.401 20.321 40.3737 20.7947 40.3515 20.9906L37.8673 20.7098L35.3832 20.4289C35.3519 20.7054 35.3311 21.2431 35.5986 21.8354C35.9123 22.5296 36.4884 23.0046 37.1262 23.2218C37.6659 23.4056 38.1345 23.3693 38.3717 23.3368C38.6337 23.3008 38.8518 23.2343 38.9966 23.1838C39.4948 23.0103 40.0388 22.6924 40.4288 22.4595C41.4284 21.8628 42.4678 21.1749 43.9918 20.2995C46.9331 18.61 50.6413 16.8642 54.3425 16.5717L54.1455 14.0794Z"
-				fill="black"
-			/>
-			{/* Left arm here*/}
 		</>
 	)
 }

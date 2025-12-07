@@ -37,7 +37,7 @@ export interface AgentActionInfo {
 
 	/**
 	 * The pose to display when the action is applied.
-	 * Defaults to idle if not set.
+	 * Null to keep the current pose.
 	 */
-	pose: FairyPose
+	pose: FairyPose | null
 }

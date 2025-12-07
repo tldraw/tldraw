@@ -1839,6 +1839,9 @@ export function HeartToolbarItem(): JSX_2.Element;
 export function HexagonToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function hideAllTooltips(): void;
+
+// @public (undocumented)
 export interface HighlightShapeOptions {
     readonly maxPointsPerShape: number;
     // (undocumented)

@@ -19,6 +19,8 @@ export interface FairyEntity {
 	gesture: FairyPose | null
 	/** The ID of the page that the fairy is currently on. */
 	currentPageId: TLPageId
+	/** The velocity of the fairy. */
+	velocity: VecModel
 }
 
 export const fairyEntityValidator: T.ObjectValidator<FairyEntity> = T.object({
@@ -28,4 +30,5 @@ export const fairyEntityValidator: T.ObjectValidator<FairyEntity> = T.object({
 	pose: T.literalEnum(...FAIRY_POSE),
 	gesture: T.literalEnum(...FAIRY_POSE).nullable(),
 	currentPageId: pageIdValidator,
+	velocity: vecModelValidator,
 })

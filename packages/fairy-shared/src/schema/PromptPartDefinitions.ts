@@ -5,8 +5,10 @@ import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
+import { AgentRequestSource } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
+import { FairyCanvasLint } from '../types/FairyCanvasLint'
 import { FairyProject } from '../types/FairyProject'
 import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
@@ -95,10 +97,11 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'prompt': {
 			const content: AgentMessageContent[] = []
 
-			if (item.message.trim() !== '') {
+			// Add agent-facing message to the content
+			if (item.agentFacingMessage && item.agentFacingMessage.trim() !== '') {
 				content.push({
 					type: 'text',
-					text: item.message,
+					text: item.agentFacingMessage,
 				})
 			}
 
@@ -106,8 +109,11 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				return null
 			}
 
+			// TODO: we can do something for source: 'self' messages like: I recevied this notification: <message>, or soemthing along those lines
+			const role =
+				item.promptSource === 'user' || item.promptSource === 'other-agent' ? 'user' : 'assistant'
 			return {
-				role: 'user',
+				role,
 				content,
 				priority,
 			}
@@ -156,7 +162,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'memory-transition': {
 			return {
 				role: 'assistant',
-				content: [{ type: 'text', text: item.message }],
+				content: [{ type: 'text', text: item.agentFacingMessage }],
 				priority,
 			}
 		}
@@ -187,7 +193,7 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 export interface MessagesPart {
 	type: 'messages'
 	messages: string[]
-	source: 'user' | 'self' | 'other-agent'
+	source: AgentRequestSource
 }
 
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
@@ -245,23 +251,27 @@ export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShap
 	},
 }
 
-// PersonalityPart
-export interface PersonalityPart {
-	type: 'personality'
-	personality: string
+// SignPart
+export interface SignPart {
+	type: 'sign'
+	sign: {
+		sun: string
+		moon: string
+		rising: string
+	}
 }
 
-export const PersonalityPartDefinition: PromptPartDefinition<PersonalityPart> = {
-	type: 'personality',
+export const SignPartDefinition: PromptPartDefinition<SignPart> = {
+	type: 'sign',
 	priority: 150,
-	buildContent({ personality }: PersonalityPart) {
-		if (!personality || personality.trim() === '') {
-			return []
+	buildContent({ sign }: SignPart) {
+		if (sign.sun && sign.moon && sign.rising) {
+			return [
+				`Your astrological sign is: Sun ${sign.sun}, Moon ${sign.moon}, Rising ${sign.rising}`,
+			]
 		}
-		return [
-			// `You are actually a specific kind of AI agent; a fairy! And so is everyone else (besides the user). So, if you hear other agents (or the user) refer to you or anyone else as a fairy, that's why.`,
-			// `Your personality is: ${personality}`,
-		]
+
+		return []
 	},
 }
 
@@ -312,7 +322,7 @@ export interface SoloTasksPart {
 
 export const SoloTasksPartDefinition: PromptPartDefinition<SoloTasksPart> = {
 	type: 'soloTasks',
-	priority: -10,
+	priority: -4,
 	buildContent(part: SoloTasksPart) {
 		if (part.tasks.length === 0) {
 			return ['There are no tasks at the moment.']
@@ -338,7 +348,7 @@ export interface WorkingTasksPart {
 
 export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> = {
 	type: 'workingTasks',
-	priority: -10,
+	priority: -4,
 	buildContent(part: WorkingTasksPart) {
 		if (part.tasks.length === 0) {
 			return ['There are no tasks currently in progress.']
@@ -371,9 +381,7 @@ export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoLi
 	priority: 10,
 	buildContent(part: PersonalTodoListPart) {
 		if (part.items.length === 0) {
-			return [
-				'You have no personal todos yet. Use the `update-personal-todo-list` action to create a todo.',
-			]
+			return ['You have no personal todos yet.']
 		}
 		return [
 			`Here is your current personal todo list for the task at hand:`,
@@ -579,4 +587,59 @@ export interface ModelNamePart {
 
 export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 	type: 'modelName',
+}
+
+// CanvasLintsPart
+export interface CanvasLintsPart {
+	type: 'canvasLints'
+	lints: FairyCanvasLint[]
+}
+
+export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = {
+	type: 'canvasLints',
+	priority: -50,
+	buildContent({ lints }: CanvasLintsPart) {
+		if (!lints || lints.length === 0) {
+			return []
+		}
+
+		const messages: string[] = []
+
+		// Group lints by type
+		const growYLints = lints.filter((l) => l.type === 'growY-on-shape')
+		const overlappingTextLints = lints.filter((l) => l.type === 'overlapping-text')
+		const friendlessArrowLints = lints.filter((l) => l.type === 'friendless-arrow')
+
+		messages.push(
+			'<lints> The following potential problems have been detected in the canvas that you should be aware of. Defer to your view of the canvas to decide if you need to make changes.'
+		)
+
+		if (growYLints.length > 0) {
+			const shapeIds = growYLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				'Text overflow: These shapes have text that caused their containers to grow past the size that they were intended to be. This means that they may be breaking the aligment of the shapes.',
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (overlappingTextLints.length > 0) {
+			const lines = [
+				'Overlapping text: The shapes in each group have text and overlap each other, which may make text hard to read.',
+				...overlappingTextLints.map((lint) => `  - ${lint.shapeIds.join(', ')}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (friendlessArrowLints.length > 0) {
+			const shapeIds = friendlessArrowLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				"Unconnected arrows: These arrows aren't fully connected to other shapes.",
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		return messages
+	},
 }
