@@ -71,11 +71,11 @@ const config: PlaywrightTestConfig = {
 
 	/* Build and serve production version for accurate performance metrics */
 	webServer: {
-		command: 'yarn build && yarn preview --port 5421 --strictPort',
+		command: 'cd apps/examples && yarn build && yarn preview --port 5421 --strictPort',
 		port: 5421,
 		reuseExistingServer: !process.env.CI,
 		timeout: 180 * 1000, // 3 minutes for build
-		cwd: path.join(__dirname, '../..'),
+		cwd: path.join(__dirname, '../../..'),
 	},
 }
 
