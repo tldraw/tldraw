@@ -1,5 +1,5 @@
-import { FairyEntity } from '@tldraw/fairy-shared'
-import { Atom, StateNode, TLKeyboardEventInfo } from 'tldraw'
+import { StateNode, TLKeyboardEventInfo, Vec, VecModel } from 'tldraw'
+import { FairyAgent } from './fairy-agent/FairyAgent'
 
 export class FairyThrowTool extends StateNode {
 	static override id = 'fairy-throw'
@@ -10,14 +10,23 @@ export class FairyThrowTool extends StateNode {
 
 	static override isLockable = false
 
-	fairies: Atom<FairyEntity>[] = []
+	fairies: FairyAgent[] = []
 
-	clickOffsets = new Map<Atom<FairyEntity>, { x: number; y: number }>()
+	initialFairyPositions = new Map<FairyAgent, VecModel>()
+
+	clickOffsets = new Map<FairyAgent, { x: number; y: number }>()
 
 	override onEnter() {
 		if (this.fairies.length === 0) return
 		for (const fairy of this.fairies) {
-			fairy.update((f) => ({ ...f, isSelected: true }))
+			fairy.updateEntity((f) => ({ ...f, isSelected: true, velocity: { x: 0, y: 0 } }))
+		}
+		for (const fairy of this.fairies) {
+			const initialPosition = fairy.getEntity()?.position
+			if (!initialPosition) {
+				throw Error('Initial fairy position not found')
+			}
+			this.initialFairyPositions.set(fairy, initialPosition)
 		}
 	}
 
@@ -25,7 +34,7 @@ export class FairyThrowTool extends StateNode {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	setFairies(fairies: Atom<FairyEntity>[]) {
+	setFairies(fairies: FairyAgent[]) {
 		this.fairies = fairies
 	}
 }
@@ -40,14 +49,13 @@ class PointingState extends StateNode {
 		if (tool.fairies.length === 0) return
 
 		// Calculate offset between click position and each fairy position
-		const originPagePoint = editor.inputs.currentPagePoint
+		// Use originPagePoint instead of currentPagePoint to ensure correct positioning on mobile
+		const originPagePoint = editor.inputs.originPagePoint
 		tool.clickOffsets.clear()
 
 		for (const fairy of tool.fairies) {
-			const fairyEntity = fairy.get()
-			if (!fairyEntity) continue
-
-			const fairyPosition = fairyEntity.position
+			const fairyPosition = fairy.getEntity()?.position
+			if (!fairyPosition) continue
 			tool.clickOffsets.set(fairy, {
 				x: fairyPosition.x - originPagePoint.x,
 				y: fairyPosition.y - originPagePoint.y,
@@ -61,8 +69,10 @@ class PointingState extends StateNode {
 	}
 
 	override onPointerMove() {
-		// User started moving - transition to throwing
-		this.parent.transition('throwing')
+		if (this.editor.inputs.isDragging) {
+			// User started moving - transition to throwing
+			this.parent.transition('throwing')
+		}
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo): void {
@@ -75,37 +85,59 @@ class PointingState extends StateNode {
 class ThrowingState extends StateNode {
 	static override id = 'throwing'
 
+	flipX = false
+	lastDirectionChangePosition = new Vec()
+
+	override onEnter() {
+		this.flipX = this.editor.inputs.currentPagePoint.x < this.editor.inputs.originPagePoint.x
+		this.lastDirectionChangePosition.setTo(this.editor.inputs.currentPagePoint)
+	}
+
 	override onPointerMove() {
 		const tool = this.parent as FairyThrowTool
 		const { editor } = this
 
-		if (tool.fairies.length === 0) return
-		// Get current pointer position and convert to page space
-		const screenPoint = editor.inputs.currentScreenPoint
-		const { screenBounds } = editor.getInstanceState()
-		const pagePoint = editor.screenToPage({
-			x: screenPoint.x + screenBounds.x,
-			y: screenPoint.y + screenBounds.y,
-		})
+		if (Math.abs(this.lastDirectionChangePosition.x - this.editor.inputs.currentPagePoint.x) > 32) {
+			this.flipX = this.editor.inputs.currentPagePoint.x < this.lastDirectionChangePosition.x
+			this.lastDirectionChangePosition.setTo(this.editor.inputs.currentPagePoint)
+		}
 
-		// Update positions for all fairies
+		if (tool.fairies.length === 0) return
+
 		for (const fairy of tool.fairies) {
-			const offset = tool.clickOffsets.get(fairy)
-			if (!offset) continue
+			const initialPosition = tool.initialFairyPositions.get(fairy)
+			if (!initialPosition) continue
+			const offset = Vec.Sub(editor.inputs.currentPagePoint, editor.inputs.originPagePoint)
 
 			const newPosition = {
-				x: pagePoint.x + offset.x,
-				y: pagePoint.y + offset.y,
+				x: initialPosition.x + offset.x,
+				y: initialPosition.y + offset.y,
 			}
 
-			fairy.update((f) => ({
+			fairy.updateEntity((f) => ({
 				...f,
+				flipX: this.flipX,
 				position: newPosition,
 			}))
 		}
 	}
 
 	override onPointerUp() {
+		// Set the selected fairy's velocity to the pointer movement
+		const tool = this.parent as FairyThrowTool
+		const fairies = tool.fairies.filter((f) => f.getEntity()?.isSelected)
+		if (fairies.length === 0) {
+			this.cancel()
+			return
+		}
+
+		const { pointerVelocity } = this.editor.inputs
+		const inverseZoomLevel = 1 / this.editor.getZoomLevel()
+		const scaledPointerVelocity = Vec.Mul(pointerVelocity, inverseZoomLevel)
+		for (const fairy of fairies) {
+			fairy.updateEntity((f) => ({ ...f, velocity: scaledPointerVelocity }))
+		}
+
 		this.cancel()
 	}
 

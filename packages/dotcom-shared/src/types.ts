@@ -227,3 +227,29 @@ export interface SubmitFeedbackRequestBody {
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
 export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+
+/* ----------------------- Fairy Access ---------------------- */
+
+export interface PaddleCustomData {
+	userId: string
+	email?: string
+}
+
+export type FeatureFlagKey = 'fairies' | 'fairies_purchase'
+
+export interface FeatureFlagValue {
+	enabled: boolean
+	description: string
+}
+
+export function hasActiveFairyAccess(
+	fairyAccessExpiresAt: number | null,
+	fairyLimit: number | null
+): boolean {
+	return (
+		fairyLimit !== null &&
+		fairyLimit > 0 &&
+		fairyAccessExpiresAt !== null &&
+		fairyAccessExpiresAt > Date.now()
+	)
+}

@@ -12,20 +12,27 @@ import {
 	DebugPart,
 	Streaming,
 } from '@tldraw/fairy-shared'
-import { LanguageModel, ModelMessage, streamText, SystemModelMessage } from 'ai'
+import { LanguageModel, ModelMessage, streamText } from 'ai'
+import { INTERNAL_BASE_URL } from '../constants'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
-import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
+import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
 import { closeAndParseJson } from './closeAndParseJson'
-import { getAgentModelDefinition } from './models'
+import {
+	getAgentModelDefinition,
+	getGenerationCostFromUsageAndMetaData,
+	isAgentModelName,
+} from './models'
 
 export class AgentService {
+	private readonly env: Environment
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
+		this.env = env
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
@@ -37,268 +44,229 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
+	private async handleFinish(
+		modelId: AgentModelName,
+		usage: any,
+		providerMetadata: any,
+		userStub: ReturnType<Environment['TL_USER']['get']>,
+		userId: string
+	): Promise<void> {
+		if (!providerMetadata) {
+			console.warn('No provider metadata found (this should probably not be happening).')
+			return
+		}
+
+		const cost = getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata)
+		console.warn(`Cost for request to ${modelId}: $${cost.toFixed(3)}`)
+
+		if (cost <= 0) return
+
+		try {
+			const recordRes = await userStub.fetch(
+				`${INTERNAL_BASE_URL}/app/${userId}/fairy/record-usage`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ actualCost: cost }),
+				}
+			)
+
+			if (!recordRes.ok) {
+				let errorDetails: string
+				try {
+					const errorData = (await recordRes.json()) as { error: string }
+					errorDetails = errorData.error
+				} catch {
+					errorDetails = await recordRes.text()
+				}
+				console.error('Failed to record usage:', errorDetails)
+			}
+		} catch (recordError) {
+			console.error('Exception recording usage:', recordError)
+		}
+	}
+
 	async *streamActions(
 		prompt: AgentPrompt,
-		isAdmin = false
+		signal: AbortSignal | undefined,
+		userId: string,
+		userStub: ReturnType<Environment['TL_USER']['get']>
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = getModelName(prompt)
+			const modelName = getModelName(prompt, this.env)
 			const model = this.getModel(modelName)
-			for await (const action of _streamActions(model, prompt, isAdmin)) {
-				yield action
+
+			if (typeof model === 'string') {
+				throw new Error('Model is a string, not a LanguageModel')
 			}
-		} catch (error: any) {
-			console.error('Stream error:', error)
-			throw error
-		}
-	}
 
-	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
-		try {
-			const modelName = getModelName(prompt)
-			const model = this.getModel(modelName)
-			for await (const text of _streamText(model, prompt)) {
-				yield text
+			const { modelId, provider } = model
+			if (!isAgentModelName(modelId)) {
+				throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
 			}
-		} catch (error: any) {
-			console.error('Stream text error:', error)
-			throw error
-		}
-	}
-}
 
-// currently unused
-async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
-	if (typeof model === 'string') {
-		throw new Error('Model is a string, not a LanguageModel')
-	}
+			if (provider === 'openai.responses') {
+				console.warn(
+					'Using openai will severely undercount token usage because it only gets usage for the last prompt in a loop. Not sure why this happens.'
+				)
+			}
 
-	// -1 means dynamic budget
-	// 128 is minimum for 2.5 pro - we're not sure if this is too low
-	const geminiThinkingBudget =
-		model.modelId === 'gemini-2.5-pro' || model.modelId === 'gemini-3-pro-preview' ? 256 : 0
+			// Build the messages that we'll send to the model
+			const messages: ModelMessage[] = []
 
-	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
+			// Build the system prompt
+			const systemPrompt = buildSystemPrompt(prompt, { withSchema: true })
 
-	const messages = buildMessages(prompt)
-	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
+			if (provider === 'anthropic.messages') {
+				// at time of recording, anthropic does not offer implicit caching like deepmind and openai do.
+				// to cache, we set breakpoints in messages we send to the model. breakpoints cache all input up to and including that message. the cached hash of each block affected by the content of all previous blocks. the model checks back 20 blocks from the breakpoint looking for a match. because the hash depends on previous content, it will not find a match until it finds a block where all previous blocks are unchanged. if it goes more than 20 blocks with no match, it jumps backwards to the next earlier breakpoint.
+				// we put one breakpoint at the end of the system prompt. we concatenate all system prompt parts instead of splitting them into individual messages to make sure they hit the minimum cache length (1024 tokens for sonnet 4.5). we can also do this because parts of the system prompt generally all change together in predictable ways.
+				// if we put the chat history back at the beginning of the prompt parts, we could set a breakpoint at the end of chat history
+				messages.push({
+					role: 'system',
+					content: systemPrompt,
+					providerOptions: {
+						anthropic: { cacheControl: { type: 'ephemeral' } },
+					},
+				})
+			} else {
+				messages.push({
+					role: 'system',
+					content: systemPrompt,
+				})
+			}
 
-	// Debug logging
-	const debugPart = prompt.debug
-	if (debugPart) {
-		if (debugPart.logSystemPrompt) {
-			const promptWithoutSchema = buildSystemPromptWithoutSchema(prompt)
-			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
-		}
-		if (debugPart.logMessages) {
-			const sanitizedMessages = sanitizeMessagesForLogging(messages)
-			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
-		}
-	}
+			// Additional prompt messages (from parts)
+			const promptMessages = buildMessages(prompt)
+			messages.push(...promptMessages)
 
-	try {
-		const result = streamText({
-			model,
-			system: systemPrompt,
-			messages,
-			maxOutputTokens: 8192,
-			temperature: 0,
-			providerOptions: {
-				anthropic: {
-					thinking: { type: 'disabled' },
-				} satisfies AnthropicProviderOptions,
-				google: {
-					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
-				} satisfies GoogleGenerativeAIProviderOptions,
-				openai: {
-					reasoningEffort: gptThinkingBudget,
-				} satisfies OpenAIResponsesProviderOptions,
-			},
-			onError: (e) => {
-				console.error('Stream text error:', e)
-				throw e
-			},
-		})
+			// Check for debug flags
+			const debugPart = prompt.debug as DebugPart | undefined
+			if (debugPart) {
+				if (debugPart.logSystemPrompt) {
+					const promptWithoutSchema = buildSystemPrompt(prompt, { withSchema: false })
+					console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
+				}
+				if (debugPart.logMessages) {
+					const sanitizedMessages = sanitizeMessagesForLogging(promptMessages)
+					console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
+				}
+			}
 
-		for await (const text of result.textStream) {
-			yield text
-		}
+			// Add the assistant message to indicate the start of the actions
 
-		// After streaming is complete, get usage information
-		await result.usage
-		// Note: Usage is tracked but not currently logged for text streams
-	} catch (error: any) {
-		console.error('streamEventsVercel error:', error)
-		throw error
-	}
-}
+			messages.push({
+				role: 'assistant',
+				content: '{"actions": [{"_type":',
+			})
 
-// at time of recording, anthropic does not offer implicit caching like deepmind and openai do.
-// to cache, we set breakpoints in messages we send to the model. breakpoints cache all input up to and including that message. the cached hash of each block affected by the content of all previous blocks. the model checks back 20 blocks from the breakpoint looking for a match. because the hash depends on previous content, it will not find a match until it finds a block where all previous blocks are unchanged. if it goes more than 20 blocks with no match, it jumps backwards to the next earlier breakpoint.
-// we put one breakpoint at the end of the system prompt. we concatenate all system prompt parts instead of splitting them into individual messages to make sure they hit the minimum cache length (1024 tokens for sonnet 4.5). we can also do this because parts of the system prompt generally all change together in predictable ways.
-// if we put the chat history back at the beginning of the prompt parts, we could set a breakpoint at the end of chat history
-function buildFormattedSystemPromptWithAnthropicCacheBreakpoint(
-	systemPrompt: string
-): SystemModelMessage {
-	return {
-		role: 'system',
-		content: systemPrompt,
-		providerOptions: {
-			anthropic: { cacheControl: { type: 'ephemeral' } },
-		},
-	}
-}
+			// -1 means dynamic budget
+			// 128 is minimum for 2.5 pro - we're not sure if this is too low
+			const geminiThinkingBudget = modelId === 'gemini-3-pro-preview' ? 256 : 0
 
-function buildFormattedSystemPrompt(systemPrompt: string): SystemModelMessage {
-	return {
-		role: 'system',
-		content: systemPrompt,
-	}
-}
+			const gptThinkingBudget = modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
-async function* _streamActions(
-	model: LanguageModel,
-	prompt: AgentPrompt,
-	isAdmin: boolean
-): AsyncGenerator<Streaming<AgentAction>> {
-	if (typeof model === 'string') {
-		throw new Error('Model is a string, not a LanguageModel')
-	}
+			const result = streamText({
+				model,
+				messages,
+				maxOutputTokens: 8192,
+				temperature: 0,
+				abortSignal: signal,
+				providerOptions: {
+					anthropic: {
+						thinking: { type: 'disabled' },
+					} satisfies AnthropicProviderOptions,
+					google: {
+						thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+					} satisfies GoogleGenerativeAIProviderOptions,
+					openai: {
+						reasoningEffort: gptThinkingBudget,
+					} satisfies OpenAIResponsesProviderOptions,
+				},
+				onAbort() {
+					console.warn('Stream actions aborted')
+				},
+				onError: (e) => {
+					console.error('Stream text error:', e)
+					throw e
+				},
+				onFinish: async (e) => {
+					await this.handleFinish(modelId, e.usage, e.providerMetadata, userStub, userId)
+				},
+			})
 
-	// -1 means dynamic budget
-	// 128 is minimum for 2.5 pro - we're not sure if this is too low
-	const geminiThinkingBudget =
-		model.modelId === 'gemini-2.5-pro' || model.modelId === 'gemini-3-pro-preview' ? 256 : 0
+			const canForceResponseStart =
+				provider === 'anthropic.messages' || provider === 'google.generative-ai'
+			let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
+			let cursor = 0
+			let maybeIncompleteAction: AgentAction | null = null
 
-	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
+			let startTime = Date.now()
+			for await (const text of result.textStream) {
+				if (signal?.aborted) break
+				buffer += text
 
-	const formattedSystemPrompt =
-		model.provider === 'anthropic.messages'
-			? buildFormattedSystemPromptWithAnthropicCacheBreakpoint(buildSystemPrompt(prompt))
-			: buildFormattedSystemPrompt(buildSystemPrompt(prompt))
+				const partialObject = closeAndParseJson(buffer)
+				if (!partialObject) continue
 
-	const promptMessages = buildMessages(prompt)
+				const actions = partialObject.actions
+				if (!Array.isArray(actions)) continue
+				if (actions.length === 0) continue
 
-	const messages: ModelMessage[] = [formattedSystemPrompt, ...promptMessages]
+				// If the events list is ahead of the cursor, we know we've completed the current event
+				// We can complete the event and move the cursor forward
+				if (actions.length > cursor) {
+					const action = actions[cursor - 1] as AgentAction
+					if (action) {
+						yield {
+							...action,
+							complete: true,
+							time: Date.now() - startTime,
+						}
+						maybeIncompleteAction = null
+					}
+					cursor++
+				}
 
-	// Check for debug flags
-	const debugPart = prompt.debug as DebugPart | undefined
-	if (debugPart) {
-		if (debugPart.logSystemPrompt) {
-			const promptWithoutSchema = buildSystemPromptWithoutSchema(prompt)
-			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
-		}
-		if (debugPart.logMessages) {
-			const sanitizedMessages = sanitizeMessagesForLogging(promptMessages)
-			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
-		}
-	}
-
-	try {
-		messages.push({
-			role: 'assistant',
-			content: '{"actions": [{"_type":',
-		})
-		const result = streamText({
-			model,
-			messages,
-			maxOutputTokens: 8192,
-			temperature: 0,
-			providerOptions: {
-				anthropic: {
-					thinking: { type: 'disabled' },
-				} satisfies AnthropicProviderOptions,
-				google: {
-					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
-				} satisfies GoogleGenerativeAIProviderOptions,
-				openai: {
-					reasoningEffort: gptThinkingBudget,
-				} satisfies OpenAIResponsesProviderOptions,
-			},
-			onError: (e) => {
-				console.error('Stream text error:', e)
-				throw e
-			},
-		})
-
-		const canForceResponseStart =
-			model.provider === 'anthropic.messages' || model.provider === 'google.generative-ai'
-		let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
-		let cursor = 0
-		let maybeIncompleteAction: AgentAction | null = null
-
-		let startTime = Date.now()
-		for await (const text of result.textStream) {
-			buffer += text
-
-			const partialObject = closeAndParseJson(buffer)
-			if (!partialObject) continue
-
-			const actions = partialObject.actions
-			if (!Array.isArray(actions)) continue
-			if (actions.length === 0) continue
-
-			// If the events list is ahead of the cursor, we know we've completed the current event
-			// We can complete the event and move the cursor forward
-			if (actions.length > cursor) {
+				// Now let's check the (potentially new) current event
+				// And let's yield it in its (potentially incomplete) state
 				const action = actions[cursor - 1] as AgentAction
 				if (action) {
+					// If we don't have an incomplete event yet, this is the start of a new one
+					if (!maybeIncompleteAction) {
+						startTime = Date.now()
+					}
+
+					maybeIncompleteAction = action
+
+					// Yield the potentially incomplete event
 					yield {
 						...action,
-						complete: true,
+						complete: false,
 						time: Date.now() - startTime,
 					}
-					maybeIncompleteAction = null
 				}
-				cursor++
 			}
 
-			// Now let's check the (potentially new) current event
-			// And let's yield it in its (potentially incomplete) state
-			const action = actions[cursor - 1] as AgentAction
-			if (action) {
-				// If we don't have an incomplete event yet, this is the start of a new one
-				if (!maybeIncompleteAction) {
-					startTime = Date.now()
-				}
-
-				maybeIncompleteAction = action
-
-				// Yield the potentially incomplete event
+			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
+			if (maybeIncompleteAction) {
 				yield {
-					...action,
-					complete: false,
+					...maybeIncompleteAction,
+					complete: true,
 					time: Date.now() - startTime,
 				}
 			}
-		}
 
-		// If we've finished receiving events, but there's still an incomplete event, we need to complete it
-		if (maybeIncompleteAction) {
-			yield {
-				...maybeIncompleteAction,
-				complete: true,
-				time: Date.now() - startTime,
+			// Await usage to ensure onFinish callback completes
+			await result.usage
+		} catch (error: any) {
+			// Check if it was aborted
+			if (signal?.aborted || error?.name === 'AbortError') {
+				return
 			}
+			console.error('Stream error:', error)
+			throw error
 		}
-
-		// After streaming is complete, get usage information and yield it (only for admins)
-		if (isAdmin) {
-			const usage = await result.usage
-			const providerMetadata = await result.providerMetadata
-
-			// Yield usage information as a special metadata action (only for @tldraw.com admins)
-			yield {
-				_type: '__usage__',
-				complete: true,
-				time: 0,
-				usage,
-				providerMetadata,
-			} as any
-		}
-	} catch (error: any) {
-		console.error('streamEventsVercel error:', error)
-		throw error
 	}
 }
 

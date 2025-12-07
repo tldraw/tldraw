@@ -45,7 +45,6 @@ import {
 	useEditor,
 	useIsEditing,
 	useSharedSafeId,
-	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
@@ -56,6 +55,7 @@ import { ShapeFill } from '../shared/ShapeFill'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import {
@@ -269,7 +269,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 			const segmentStart = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentStart)
 			const segmentEnd = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentEnd)
-			const segmentLength = Vec.Dist(segmentStart, segmentEnd) * this.editor.getZoomLevel()
+			const segmentLength = Vec.Dist(segmentStart, segmentEnd) * this.editor.getEfficientZoomLevel()
 
 			if (segmentLength > this.options.elbowMinSegmentLengthToShowMidpointHandle) {
 				handles.push({
@@ -369,7 +369,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// we want to snap to certain points. the maximum distance at which a snap will occur is
 		// relative to the zoom level:
-		const maxSnapDistance = this.options.elbowMidpointSnapDistance / this.editor.getZoomLevel()
+		const maxSnapDistance =
+			this.options.elbowMidpointSnapDistance / this.editor.getEfficientZoomLevel()
 
 		// we snap to the midpoint of the range by default
 		const midPoint = perpDistanceToLineAngle(
@@ -1005,13 +1006,7 @@ const ArrowSvg = track(function ArrowSvg({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
-	const isForceSolid = useValue(
-		'force solid',
-		() => {
-			return editor.getZoomLevel() < 0.2
-		},
-		[editor]
-	)
+	const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
@@ -1037,7 +1032,7 @@ const ArrowSvg = track(function ArrowSvg({
 			start: 'skip',
 			end: 'skip',
 			lengthRatio: 2.5,
-			strokeWidth: 2 / editor.getZoomLevel(),
+			strokeWidth: 2 / editor.getEfficientZoomLevel(),
 			props: {
 				className: 'tl-arrow-hint',
 				markerStart: bindings.start

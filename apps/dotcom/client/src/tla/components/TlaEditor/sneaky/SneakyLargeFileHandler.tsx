@@ -19,12 +19,12 @@ function RoomSizeWarningDialog({ onClose }: { onClose(): void }) {
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Room getting large" />
+					<F defaultMessage="File is getting large" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<F defaultMessage="This room is approaching its size limit. Consider removing some content or starting a new file." />
+				<F defaultMessage="This file is approaching its size limit. Consider removing some content or starting a new file." />
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="primary" onClick={onClose}>
@@ -42,12 +42,12 @@ function RoomSizeLimitDialog({ onClose }: { onClose(): void }) {
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Room is full" />
+					<F defaultMessage="File is full" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<F defaultMessage="This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file." />
+				<F defaultMessage="This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file." />
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="primary" onClick={onClose}>

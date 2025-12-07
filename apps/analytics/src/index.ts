@@ -1,28 +1,29 @@
 import { ga4Gtag, ga4Service } from './analytics-services/ga4'
 import { gtmService } from './analytics-services/gtm'
 import { hubspotService } from './analytics-services/hubspot'
+import { kick2Service } from './analytics-services/kick2'
 import { posthogService } from './analytics-services/posthog'
 import { reoService } from './analytics-services/reo'
 import { mountCookieConsentBanner } from './components/CookieConsentBanner'
 import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
 import {
-	clearCookieValue,
 	CookieConsentState,
-	cookieConsentToCookieValue,
-	cookieValueToCookieConsent,
-	getCookieValue,
-	setCookieValue,
+	getCookieConsent,
+	setOrClearCookieConsent,
 } from './state/cookie-consent-state'
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
 import { ConsentPreferences, CookieConsent } from './types'
 import { shouldRequireConsent } from './utils/consent-check'
 
-function cookieConsentToPreferences(consent: CookieConsent): ConsentPreferences {
+function cookieConsentToPreferences(
+	consent: CookieConsent,
+	consentOptInType: 'manual' | 'auto'
+): ConsentPreferences {
 	if (consent === 'opted-in') {
-		return { analytics: 'granted', marketing: 'granted' }
+		return { analytics: 'granted', marketing: 'granted', opt_in_type: consentOptInType }
 	}
-	return { analytics: 'denied', marketing: 'denied' }
+	return { analytics: 'denied', marketing: 'denied', opt_in_type: consentOptInType }
 }
 
 class Analytics {
@@ -33,11 +34,21 @@ class Analytics {
 	private consentCallbacks: Array<(preferences: ConsentPreferences) => void> = []
 	private isInitialized = false
 
-	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
+	private services = [
+		posthogService,
+		ga4Service,
+		gtmService,
+		hubspotService,
+		reoService,
+		kick2Service,
+	]
 
-	private shouldTrackConsentChanges(wasUnknown: boolean, consent: CookieConsent): boolean {
-		// Track consent selection only if user actually interacted with banner (not during initialization)
-		return this.isInitialized && wasUnknown && consent !== 'unknown'
+	private maybeTrackConsentUpdate(consent: ConsentPreferences) {
+		if (this.isInitialized) {
+			this.track('consent_update', consent)
+		} else {
+			gtmService.trackEvent('consent_update', consent)
+		}
 	}
 
 	async initialize() {
@@ -61,32 +72,23 @@ class Analytics {
 
 		// Subscribe to consent changes
 		cookieConsentState.subscribe((consent) => {
+			// If the user changed the setting we want to change opt in type to manual
+			if (this.isInitialized && consent !== 'unknown' && consent !== this.consent) {
+				this.consentOptInType = 'manual'
+			}
 			// Set (or clear) the cookie value
-			const cookieValue = cookieConsentToCookieValue(consent)
-			if (cookieValue) setCookieValue(cookieValue)
-			else clearCookieValue()
+			setOrClearCookieConsent(consent, this.consentOptInType)
+
+			const consentState = cookieConsentToPreferences(consent, this.consentOptInType)
 
 			// If the consent is the same as the current consent, do nothing
-			if (consent === this.consent) return
+			if (consent === this.consent) {
+				// We still send the event to gtm, so that we can send data to gtm on website reload
+				gtmService.trackEvent('consent_update', consentState)
+				return
+			}
 
-			const wasUnknown = this.consent === 'unknown'
 			this.consent = consent
-
-			// Track the consent change (after enabling or disabling)
-			const consentState =
-				consent === 'opted-in'
-					? {
-							ad_user_data: 'granted',
-							ad_personalization: 'granted',
-							ad_storage: 'granted',
-							analytics_storage: 'granted',
-						}
-					: {
-							ad_user_data: 'denied',
-							ad_personalization: 'denied',
-							ad_storage: 'denied',
-							analytics_storage: 'denied',
-						}
 
 			if (this.consent === 'opted-in') {
 				// Enable the analytics services only when consent is granted
@@ -94,10 +96,8 @@ class Analytics {
 					service.enable()
 				}
 
-				if (this.shouldTrackConsentChanges(wasUnknown, consent)) {
-					// We have to enable services first, then track the event
-					this.track('consent_update', { consent: consentState })
-				}
+				this.maybeTrackConsentUpdate(consentState)
+
 				// Identify the user if we have a userId. Most of the time
 				// identify() should be called off of the window.tlanalytics object, ie. in an app
 				// where we have a user id and properties for that app (like tldraw computer). We do
@@ -108,10 +108,7 @@ class Analytics {
 					this.identify(this.userId, this.userProperties)
 				}
 			} else {
-				if (this.shouldTrackConsentChanges(wasUnknown, consent)) {
-					// We need to track the event first, then disable services or the opt out won't get tracked
-					this.track('consent_update', { consent: consentState })
-				}
+				this.maybeTrackConsentUpdate(consentState)
 				// Disable the analytics services when consent is revoked or when consent is unknown
 				for (const service of this.services) {
 					service.disable()
@@ -119,22 +116,16 @@ class Analytics {
 			}
 
 			// Track consent selection only if user actually interacted with banner (not during initialization)
-			if (this.shouldTrackConsentChanges(wasUnknown, consent)) {
-				const preferences = cookieConsentToPreferences(consent)
+			if (this.isInitialized && consent !== 'unknown') {
 				for (const service of this.services) {
-					service.trackConsentBannerSelected?.({
-						consent_analytics: preferences.analytics,
-						consent_marketing: preferences.marketing,
-						consent_opt_in_type: this.consentOptInType,
-					})
+					service.trackConsentBannerSelected?.(consentState)
 				}
 			}
 
 			// Notify consent callbacks
 			if (consent !== 'unknown') {
-				const preferences = cookieConsentToPreferences(consent)
 				for (const callback of this.consentCallbacks) {
-					callback(preferences)
+					callback(consentState)
 				}
 			}
 		})
@@ -146,7 +137,7 @@ class Analytics {
 			track: this.track.bind(this),
 			page: this.page.bind(this),
 			gtag: this.gtag.bind(this),
-			getConsentState: () => cookieConsentToPreferences(this.consent),
+			getConsentState: () => cookieConsentToPreferences(this.consent, this.consentOptInType),
 			onConsentUpdate: (callback: (preferences: ConsentPreferences) => void) => {
 				this.consentCallbacks.push(callback)
 				return () => {
@@ -164,12 +155,13 @@ class Analytics {
 		// Now that we have our subscriber set up, determine the initial consent state.
 		// If the user has already made a choice (cookie exists), use that.
 		// Otherwise, check their location to determine if we need explicit consent.
-		const initialCookieValue = getCookieValue()
+		const cookieData = getCookieConsent()
 		let initialConsent: CookieConsent
 
-		if (initialCookieValue) {
-			// User has previously made a consent decision - respect it
-			initialConsent = cookieValueToCookieConsent(initialCookieValue)
+		if (cookieData) {
+			// User has previously made a consent decision - respect it and restore opt-in type
+			initialConsent = cookieData.consent
+			this.consentOptInType = cookieData.optInType
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()

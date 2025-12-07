@@ -5,6 +5,12 @@
       "value": "Izvozi"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Sprejmi povabilo"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +25,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Odpri tldraw."
     }
   ],
   "06b9281e39": [
@@ -51,10 +51,16 @@
       "value": "Račun"
     }
   ],
-  "08d2d725a9": [
+  "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Ustvarite brezplačen račun za shranjevanje dela, sodelovanje v realnem času in še več."
+      "value": "Ta datoteka je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite ustvarjati novo datoteko."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Pogovorite se s skupino…"
     }
   ],
   "0b27918290": [
@@ -69,10 +75,10 @@
       "value": "Meni datoteke"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw je brezplačna in takojšnja virtualna tabla."
+      "value": "Vile"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +91,12 @@
     {
       "type": 0,
       "value": "Objavi"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Ustavi se"
     }
   ],
   "129b9e34ea": [
@@ -141,16 +153,16 @@
       "value": "Danes"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Soba je polna"
+      "value": "Vaša tedenska omejitev uporabe vil je bila dosežena. Ponastavljena bo na začetku naslednjega tedna."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Ta soba se bliža svoji omejitvi velikosti. Razmislite o odstranitvi nekaj vsebine ali ustvarjanju nove datoteke."
+      "value": "Spanje"
     }
   ],
   "2445e5e347": [
@@ -165,6 +177,24 @@
       "value": "O tldrawu"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tvoje vile čakajo"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Prikliči vse"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +207,24 @@
       "value": "Moje datoteke"
     }
   ],
-  "2deec2cb74": [
+  "30cd34258a": [
     {
       "type": 0,
-      "value": "Ta soba je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite novo datoteko."
+      "value": "V decembru je na tldraw prišla skupina "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "vil"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": ". Če želite raziskati več, poiščite vilo in jo kliknite."
     }
   ],
   "31246941ad": [
@@ -195,10 +239,22 @@
       "value": "i18n: Oznaka manjka"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tri vile"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Dodaj povezavo"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Nazaj na tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +263,46 @@
       "value": "Poskusite osvežiti stran."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "V decembru na tldraw prihaja množica vil. Prosimo, preverite spet 1. decembra."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Spi vse"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Upravljanje"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Ne sledi"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Sledi"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Pogoji storitve"
     }
   ],
   "3bc7d6ea2f": [
@@ -249,10 +341,38 @@
       "value": "Poiščite pomoč pri Discordu"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Vile"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " so prišle risati za mesec december."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Hvala, ker nam pomagate izboljšati tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Ni izbranih vil"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Za nadaljevanje urejanja kopirajte datoteko v svoje datoteke."
     }
   ],
   "47839e47a5": [
@@ -285,6 +405,12 @@
       "value": "Ime"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Izberi vse"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -301,6 +427,12 @@
     {
       "type": 0,
       "value": "Izbriši skupino …"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Več možnosti"
     }
   ],
   "4e6fbf032b": [
@@ -321,16 +453,16 @@
       "value": "Meni strani"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Ta datoteka je zdaj samo za branje"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Dosežena je omejitev sodelavcev"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Prosim, upočasnite."
     }
   ],
   "554a05155c": [
@@ -365,6 +497,12 @@
     {
       "type": 0,
       "value": "Politika zasebnosti"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Unovčenje kode povabila ni uspelo"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +545,6 @@
       "value": "Deli"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Soba postaja velika"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Ta soba je zdaj samo za branje"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +561,12 @@
     {
       "type": 0,
       "value": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili, da se pridružite skupini:"
     }
   ],
   "5f3c333678": [
@@ -455,6 +587,20 @@
       "value": "Kasneje"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Pogovorite se z "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -465,6 +611,12 @@
     {
       "type": 0,
       "value": "ti"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Vodnik"
     }
   ],
   "6609dd239e": [
@@ -479,28 +631,34 @@
       "value": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Povabljeni ste bili v skupino "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Vnesite svoj e-poštni naslov"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Zbudi se"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Vnesite svoje sporočilo"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Ime vile"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Vile za odpravljanje napak"
     }
   ],
   "6a26f54883": [
@@ -581,10 +739,22 @@
       "value": "Ponovno naložite"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw je brezplačna spletna tabla. Ustvarite račun za shranjevanje datotek in sodelovanje s prijatelji."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Neveljavna zahteva."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Ta anonimna datoteka za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
     }
   ],
   "78e9815992": [
@@ -599,6 +769,12 @@
       "value": "Predložite težavo na GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Vila je majhen fant, ki lahko dela z vami na platnu. Vile lahko delajo same ali v ekipi. Ni omejitev glede tega, kaj vila zmore. Nihče ne ve, od kod prihaja."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -609,6 +785,18 @@
     {
       "type": 0,
       "value": "Obnovi različico"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Odpri tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste, da se pridružite tldraw fairies!"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +863,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Počisti vse"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Dobrodošli"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -701,16 +901,28 @@
       "value": "Preimenuj datoteko"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Trda ponastavitev"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Nakup paketa za vile"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Ne, hvala."
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Za nadaljevanje urejanja kopirajte sobo v svoje datoteke."
+      "value": "enkratno plačilo"
     }
   ],
   "8c2d3d730c": [
@@ -719,10 +931,22 @@
       "value": "Preverite svojo e-pošto za potrditveno kodo."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Domov"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "V skupni rabi z vami"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "O nas"
     }
   ],
   "8ff3d0a705": [
@@ -753,6 +977,18 @@
     {
       "type": 0,
       "value": "Povezava za povabilo je bila kopirana"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Prekliči izbor"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Pošlji"
     }
   ],
   "95aacd4d4a": [
@@ -791,6 +1027,12 @@
       "value": "Svetlo"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Pogled za odpravljanje napak"
+    }
+  ],
   "9b33f5c63c": [
     {
       "type": 0,
@@ -815,12 +1057,6 @@
     {
       "type": 0,
       "value": "Izbriši datoteko"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Ta anonimna soba za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
     }
   ],
   "9ceb927baa": [
@@ -871,6 +1107,12 @@
       "value": "Izvozi sliko"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Pridruži se"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -881,6 +1123,12 @@
     {
       "type": 0,
       "value": "Predloži"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Odpravljanje napak"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1143,28 @@
       "value": "analitika"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Datoteka postaja velika"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Dosežena je bila tedenska omejitev vil."
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nov klepet"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Ozadje"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Prijavite se, da sprejmete povabilo"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1189,18 @@
     {
       "type": 0,
       "value": "Gostujoči uporabnik"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Datoteka je polna"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Čas odziva dnevnika"
     }
   ],
   "b357b524e7": [
@@ -1033,6 +1305,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Povečaj na vilo"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1065,6 +1343,18 @@
       "value": "Datoteke ni mogoče objaviti."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Odprto"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Razumem"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1075,6 +1365,12 @@
     {
       "type": 0,
       "value": "Ime skupine"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Uporaba"
     }
   ],
   "c655b27b1e": [
@@ -1119,6 +1415,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Ta datoteka se bliža svoji omejitvi velikosti. Razmislite o odstranitvi dela vsebine ali ustvarjanju nove datoteke."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Že imaš dostop za vile!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1129,6 +1437,12 @@
     {
       "type": 0,
       "value": "Zapri"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Preveč zahtev. Prosim, upočasnite."
     }
   ],
   "d4bbf74f3e": [
@@ -1195,6 +1509,12 @@
       "value": "Za ogled vsebine pojdite sem"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Omogoči vile"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1207,16 +1527,54 @@
       "value": "Samo povabljeni"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Jasno"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Neveljaven URL datoteke tldraw"
     }
   ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Izberite vilo na desni, s katero se želite pogovarjati"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Vile so "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "začasna"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funkcija. 1. januarja 2026 bodo vse vile odstranjene iz aplikacije. Morda se bodo nekega dne spet vrnile. Vaš nakup velja samo za dostop do vil v decembru 2025."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Zastavice za odpravljanje napak v aplikaciji"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Izberite"
     }
   ],
   "e0c88179b3": [
@@ -1247,6 +1605,12 @@
     {
       "type": 0,
       "value": "Pogoji storitve"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Pojdi na"
     }
   ],
   "e81c4e4f2b": [
@@ -1317,6 +1681,12 @@
       "value": "."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Razpustitev"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1327,6 +1697,12 @@
     {
       "type": 0,
       "value": "izbrano"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Priklic"
     }
   ],
   "f09b16bc5f": [
@@ -1351,12 +1727,6 @@
     {
       "type": 0,
       "value": "Izbriši"
-    }
-  ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Nazaj na tldraw."
     }
   ],
   "f4f70727dc": [

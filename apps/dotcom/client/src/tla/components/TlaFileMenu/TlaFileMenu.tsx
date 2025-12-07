@@ -41,7 +41,6 @@ const messages = defineMessages({
 	copyLink: { defaultMessage: 'Copy link' },
 	delete: { defaultMessage: 'Delete' },
 	duplicate: { defaultMessage: 'Duplicate' },
-	file: { defaultMessage: 'File' },
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
@@ -75,20 +74,15 @@ export function TlaFileMenu({
 	trigger: ReactNode
 }) {
 	const id = useId()
+	const fileItemsWhenNoChildren = (
+		<FileItems source={source} fileId={fileId} onRenameAction={onRenameAction} groupId={groupId} />
+	)
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-					<FileItemsWrapper showAsSubMenu={!!children}>
-						<FileItems
-							source={source}
-							fileId={fileId}
-							onRenameAction={onRenameAction}
-							groupId={groupId}
-						/>
-					</FileItemsWrapper>
-					{children}
+					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
@@ -325,24 +319,4 @@ export function FileItems({
 			</TldrawUiMenuGroup>
 		</Fragment>
 	)
-}
-
-export function FileItemsWrapper({
-	showAsSubMenu,
-	children,
-}: {
-	showAsSubMenu: boolean
-	children: ReactNode
-}) {
-	const fileSubmenuMsg = useMsg(messages.file)
-
-	if (showAsSubMenu) {
-		return (
-			<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
-				{children}
-			</TldrawUiMenuSubmenu>
-		)
-	}
-
-	return children
 }

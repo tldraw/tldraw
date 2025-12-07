@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Meghívás elfogadása"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +25,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Nyissa meg a tldraw-t."
     }
   ],
   "06b9281e39": [
@@ -51,10 +51,16 @@
       "value": "Fiók"
     }
   ],
-  "08d2d725a9": [
+  "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Hozz létre egy ingyenes fiókot a munkád mentéséhez, valós idejű együttműködéshez és sok máshoz."
+      "value": "Ez a fájl elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Beszélj a csoporttal…"
     }
   ],
   "0b27918290": [
@@ -69,10 +75,10 @@
       "value": "Fájl menü"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "A tldraw egy ingyenes és azonnal használható virtuális tábla."
+      "value": "Tündérek"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +91,12 @@
     {
       "type": 0,
       "value": "Közzététel"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -141,16 +153,16 @@
       "value": "Ma"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "A szoba tele van"
+      "value": "Elérted a heti tündérhasználati korlátodat. A jövő hét elején újraindul."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Ez a szoba közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
+      "value": "Alvás"
     }
   ],
   "2445e5e347": [
@@ -165,6 +177,24 @@
       "value": "A tldraw-ról"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "A tündéreid várnak"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Összes idézése"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Modell:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +207,24 @@
       "value": "Saját fájlok"
     }
   ],
-  "2deec2cb74": [
+  "30cd34258a": [
     {
       "type": 0,
-      "value": "Ez a szoba elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
+      "value": "Egy csapat "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tündér"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " érkezett a decemberi sorsolásra. A további nyomozáshoz keresd meg a tündért és kattints rá."
     }
   ],
   "31246941ad": [
@@ -195,10 +239,22 @@
       "value": "i18n: Hiányzó kiemelés"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "három tündér"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Link hozzáadása"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Vissza a tldraw-hoz"
     }
   ],
   "335defdafe": [
@@ -207,10 +263,46 @@
       "value": "Kérjük, próbálja meg frissíteni az oldalt."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Tündérek lepik el a decemberi sorsolást. Nézz vissza december 1-jén."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Szerkesztő"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Aludj mindet"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Kezelés"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Követés megszüntetése"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Követés"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Szolgáltatási feltételek"
     }
   ],
   "3bc7d6ea2f": [
@@ -249,10 +341,38 @@
       "value": "Kérjen segítséget a Discordhoz"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Tündérek"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " jöttek rajzolni december hónapra."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Köszönjük, hogy segít a tldraw fejlesztésében!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Nincsenek kiválasztva tündérek"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "A szerkesztés folytatásához másolja a fájlt a Fájlok mappába."
     }
   ],
   "47839e47a5": [
@@ -285,6 +405,12 @@
       "value": "Név"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Összes kijelölése"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -301,6 +427,12 @@
     {
       "type": 0,
       "value": "Csoport törlése…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "További lehetőségek"
     }
   ],
   "4e6fbf032b": [
@@ -321,16 +453,16 @@
       "value": "Oldal menü"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Ez a fájl mostantól írásvédett"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Elérte az együttműködők korlátját"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Kérlek lassíts."
     }
   ],
   "554a05155c": [
@@ -365,6 +497,12 @@
     {
       "type": 0,
       "value": "Adatvédelmi szabályzat"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Nem sikerült beváltani a meghívókódot"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +545,6 @@
       "value": "Részesedés"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Egyre nagyobb lesz a szoba"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Ez a szoba mostantól írásvédett"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +561,12 @@
     {
       "type": 0,
       "value": "Nem sikerült feltöltenünk a bejelentkezés előtt létrehozott tartalmak egy részét."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Meghívtak a következő csoportba:"
     }
   ],
   "5f3c333678": [
@@ -455,6 +587,20 @@
       "value": "Később"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Beszélj "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "-mel…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -465,6 +611,12 @@
     {
       "type": 0,
       "value": "te"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Útmutató"
     }
   ],
   "6609dd239e": [
@@ -479,32 +631,34 @@
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Meghívtak a(z) "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    },
-    {
-      "type": 0,
-      "value": " csoportba"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Add meg az e-mail címed"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Ébred"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Írd be az üzeneted"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Tündér neve"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Tündérek hibakeresése"
     }
   ],
   "6a26f54883": [
@@ -585,10 +739,22 @@
       "value": "Kérjük, töltse újra"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "A tldraw egy ingyenes online tábla. Hozz létre egy fiókot, hogy menthesd a fájljaidat és együtt dolgozhass a barátaiddal."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Érvénytelen kérés."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Ez a névtelen tldraw többjátékos fájl mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
     }
   ],
   "78e9815992": [
@@ -603,6 +769,12 @@
       "value": "Probléma benyújtása a GitHubon"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "A tündér egy apró fickó, akivel együtt dolgozhatsz a vásznon. A tündérek egyedül vagy csapatban is dolgozhatnak. Nincsenek határok abban, hogy mire képes egy tündér. Senki sem tudja, honnan jött."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -613,6 +785,18 @@
     {
       "type": 0,
       "value": "Verzió visszaállítása"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Nyissa meg a tldraw-t"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Meghívtak, hogy csatlakozz a tldraw tündérekhez!"
     }
   ],
   "7cb5f8b4a5": [
@@ -679,6 +863,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Összes törlése"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Üdvözöljük"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -701,16 +897,28 @@
       "value": "Fájl átnevezése"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Hard reset"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Tündércsomag vásárlása"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Nem, köszönöm"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "A szerkesztés folytatásához másold át a szobát a fájljaid közé."
+      "value": "egyszeri fizetés"
     }
   ],
   "8c2d3d730c": [
@@ -719,10 +927,22 @@
       "value": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Otthon"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Megosztva veled"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Körülbelül"
     }
   ],
   "8ff3d0a705": [
@@ -753,6 +973,18 @@
     {
       "type": 0,
       "value": "Meghívólink másolva"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Kijelölés törlése"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Elküld"
     }
   ],
   "95aacd4d4a": [
@@ -791,6 +1023,12 @@
       "value": "Fény"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Hibakeresési nézet"
+    }
+  ],
   "9b33f5c63c": [
     {
       "type": 0,
@@ -815,12 +1053,6 @@
     {
       "type": 0,
       "value": "Fájl törlése"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Ez az anonim tldraw többjátékos szoba mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
     }
   ],
   "9ceb927baa": [
@@ -871,6 +1103,12 @@
       "value": "Kép exportálása"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Csatlakozik"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -881,6 +1119,12 @@
     {
       "type": 0,
       "value": "Beküld"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Hibakeresés"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1139,28 @@
       "value": "Analitika"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "A fájl mérete növekszik"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Elérted a heti tündérkorlátot"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Új csevegés"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Háttér"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Jelentkezzen be a meghívás elfogadásához"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1185,18 @@
     {
       "type": 0,
       "value": "Vendégfelhasználó"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "A fájl megtelt"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Naplózási válaszidő"
     }
   ],
   "b357b524e7": [
@@ -1021,6 +1289,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Nagyítás a tündérhez"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1053,6 +1327,18 @@
       "value": "Nem lehet közzétenni a fájlt."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Nyitott"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Értem"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1063,6 +1349,12 @@
     {
       "type": 0,
       "value": "Csoport neve"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Használat"
     }
   ],
   "c655b27b1e": [
@@ -1107,6 +1399,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Ez a fájl közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Már van tündér hozzáférésed!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1117,6 +1421,12 @@
     {
       "type": 0,
       "value": "Közeli"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Túl sok kérés. Kérlek, lassíts."
     }
   ],
   "d4bbf74f3e": [
@@ -1183,6 +1493,12 @@
       "value": "Menjen ide a tartalom megtekintéséhez"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Tündérek engedélyezése"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1195,16 +1511,54 @@
       "value": "Csak meghívással"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Világos"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Érvénytelen tldraw fájl URL"
     }
   ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Válassz ki egy tündért a jobb oldalon, akivel csevegni szeretnél"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "A tündérek "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "ideiglenes"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funkciót jelentenek. 2026. január 1-jén az összes tündér eltávolításra kerül az alkalmazásból. Talán egy napon újra visszatérnek. A vásárlásoddal csak 2025 decemberében férhetsz hozzá a tündérekhez."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Alkalmazás-hibakeresési jelzők"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Válasszon"
     }
   ],
   "e0c88179b3": [
@@ -1235,6 +1589,12 @@
     {
       "type": 0,
       "value": "Szolgáltatási feltételek"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Menj ide"
     }
   ],
   "e81c4e4f2b": [
@@ -1305,6 +1665,12 @@
       "value": "."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Feloszlatás"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1315,6 +1681,12 @@
     {
       "type": 0,
       "value": "kiválasztott"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Idézés"
     }
   ],
   "f09b16bc5f": [
@@ -1339,12 +1711,6 @@
     {
       "type": 0,
       "value": "Töröl"
-    }
-  ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Vissza a tldraw-hoz."
     }
   ],
   "f4f70727dc": [
