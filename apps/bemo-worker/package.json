@@ -27,13 +27,13 @@
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.18",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1"
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250913.0",
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
