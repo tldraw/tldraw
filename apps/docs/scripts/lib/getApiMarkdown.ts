@@ -347,8 +347,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 	if (member.tsdocComment) {
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
 			member,
-			// Cast to any to work around type incompatibility between different versions of @microsoft/tsdoc
-			member.tsdocComment.summarySection as any
+			member.tsdocComment.summarySection
 		)
 	}
 
@@ -413,7 +412,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 				if (param.tsdocParamBlock) {
 					result.markdown += await MarkdownWriter.docNodeToMarkdown(
 						member,
-						param.tsdocParamBlock.content as any
+						param.tsdocParamBlock.content
 					)
 				}
 				result.markdown += `\n\n</ParametersTableDescription>\n`
@@ -431,7 +430,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			if (member.tsdocComment && member.tsdocComment.returnsBlock) {
 				result.markdown += await MarkdownWriter.docNodeToMarkdown(
 					member,
-					member.tsdocComment.returnsBlock.content as any
+					member.tsdocComment.returnsBlock.content
 				)
 			}
 		}
@@ -471,7 +470,7 @@ async function addDeprecationNotice(result: Result, member: ApiItem) {
 		result.markdown += `<Callout type="warning">\n\n**Deprecated:**`
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
 			member,
-			member.tsdocComment.deprecatedBlock.content as any
+			member.tsdocComment.deprecatedBlock.content
 		)
 		result.markdown += `\n\n</Callout>\n\n`
 	}

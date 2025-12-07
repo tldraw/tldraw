@@ -1,19 +1,27 @@
 import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model'
-import {
-	DocBlock,
-	DocCodeSpan,
-	DocEscapedText,
-	DocFencedCode,
-	DocLinkTag,
-	DocNode,
-	DocParagraph,
-	DocPlainText,
-	DocSection,
-} from '@microsoft/tsdoc'
-import { assert } from '@tldraw/utils'
 import { slug as githubSlug } from 'github-slugger'
 import path from 'path'
 import prettier from 'prettier'
+
+/**
+ * Structural interface for DocNode-like objects from any version of @microsoft/tsdoc.
+ * This allows us to work with DocNodes from both the standalone @microsoft/tsdoc package
+ * and the version bundled in @microsoft/api-extractor-model without type conflicts.
+ */
+interface AnyDocNode {
+	readonly kind: string
+	getChildNodes?(): ReadonlyArray<AnyDocNode>
+	// Properties for specific node types
+	text?: string // DocPlainText
+	nodes?: ReadonlyArray<AnyDocNode> // DocSection, DocParagraph
+	content?: { nodes: ReadonlyArray<AnyDocNode> } // DocBlock
+	code?: string // DocCodeSpan, DocFencedCode
+	language?: string // DocFencedCode
+	encodedText?: string // DocEscapedText
+	urlDestination?: string // DocLinkTag
+	linkText?: string // DocLinkTag
+	codeDestination?: any // DocLinkTag - DeclarationReference from either version
+}
 
 export const API_DIR = path.join(process.cwd(), 'api')
 export const CONTENT_DIR = path.join(process.cwd(), 'content')
@@ -109,7 +117,7 @@ export async function formatWithPrettier(
 }
 
 export class MarkdownWriter {
-	static async docNodeToMarkdown(apiContext: ApiItem, docNode: DocNode) {
+	static async docNodeToMarkdown(apiContext: ApiItem, docNode: AnyDocNode) {
 		const writer = new MarkdownWriter(apiContext)
 		await writer.writeDocNode(docNode)
 		return writer.toString()
@@ -135,22 +143,22 @@ export class MarkdownWriter {
 		return this
 	}
 
-	async writeDocNode(docNode: DocNode) {
+	async writeDocNode(docNode: AnyDocNode) {
 		// Use kind property instead of instanceof checks for better compatibility
 		switch (docNode.kind) {
 			case 'PlainText':
-				this.write((docNode as DocPlainText).text)
+				if (docNode.text) this.write(docNode.text)
 				break
 
 			case 'Section':
 			case 'Paragraph':
-				await this.writeDocNodes((docNode as DocSection | DocParagraph).nodes)
+				if (docNode.nodes) await this.writeDocNodes(docNode.nodes)
 				this.writeIfNeeded('\n\n')
 				break
 
 			case 'Block':
 				// DocBlock is a container node, process its content
-				await this.writeDocNodes((docNode as DocBlock).content.nodes)
+				if (docNode.content?.nodes) await this.writeDocNodes(docNode.content.nodes)
 				this.writeIfNeeded('\n\n')
 				break
 
@@ -159,26 +167,27 @@ export class MarkdownWriter {
 				break
 
 			case 'CodeSpan':
-				this.write('`', (docNode as DocCodeSpan).code, '`')
+				if (docNode.code) this.write('`', docNode.code, '`')
 				break
 
 			case 'FencedCode': {
-				const fencedCode = docNode as DocFencedCode
-				this.writeIfNeeded('\n').write(
-					'```',
-					fencedCode.language,
-					'\n',
-					await formatWithPrettier(fencedCode.code, {
-						languageTag: fencedCode.language,
-					}),
-					'\n',
-					'```\n'
-				)
+				if (docNode.code && docNode.language) {
+					this.writeIfNeeded('\n').write(
+						'```',
+						docNode.language,
+						'\n',
+						await formatWithPrettier(docNode.code, {
+							languageTag: docNode.language,
+						}),
+						'\n',
+						'```\n'
+					)
+				}
 				break
 			}
 
 			case 'EscapedText':
-				this.write((docNode as DocEscapedText).encodedText)
+				if (docNode.encodedText) this.write(docNode.encodedText)
 				break
 
 			case 'ErrorText':
@@ -186,21 +195,18 @@ export class MarkdownWriter {
 				break
 
 			case 'LinkTag': {
-				const linkTag = docNode as DocLinkTag
-				if (linkTag.urlDestination) {
+				if (docNode.urlDestination) {
 					this.write(
 						'[',
-						linkTag.linkText ?? linkTag.urlDestination,
+						docNode.linkText ?? docNode.urlDestination,
 						'](',
-						linkTag.urlDestination,
+						docNode.urlDestination,
 						')'
 					)
-				} else {
-					assert(linkTag.codeDestination)
+				} else if (docNode.codeDestination) {
 					const apiModel = getTopLevelModel(this.apiContext)
 					const refResult = apiModel.resolveDeclarationReference(
-						// Cast to any to work around type incompatibility between different versions of @microsoft/tsdoc
-						linkTag.codeDestination as any,
+						docNode.codeDestination,
 						this.apiContext
 					)
 
@@ -213,7 +219,7 @@ export class MarkdownWriter {
 
 					this.write(
 						'[',
-						linkTag.linkText ?? getDefaultReferenceText(linkedItem),
+						docNode.linkText ?? getDefaultReferenceText(linkedItem),
 						'](/reference/',
 						path,
 						')'
@@ -224,11 +230,11 @@ export class MarkdownWriter {
 
 			default:
 				// Handle any unknown container nodes generically by checking if they have a 'nodes' property
-				if ('nodes' in docNode && Array.isArray((docNode as any).nodes)) {
-					await this.writeDocNodes((docNode as any).nodes)
+				if (docNode.nodes && Array.isArray(docNode.nodes)) {
+					await this.writeDocNodes(docNode.nodes)
 					this.writeIfNeeded('\n\n')
-				} else if ('content' in docNode && (docNode as any).content?.nodes) {
-					await this.writeDocNodes((docNode as any).content.nodes)
+				} else if (docNode.content?.nodes) {
+					await this.writeDocNodes(docNode.content.nodes)
 					this.writeIfNeeded('\n\n')
 				} else {
 					console.warn(`⚠️  Unknown docNode kind: ${docNode.kind}, skipping...`)
@@ -236,7 +242,7 @@ export class MarkdownWriter {
 		}
 	}
 
-	async writeDocNodes(docNodes: readonly DocNode[]) {
+	async writeDocNodes(docNodes: ReadonlyArray<AnyDocNode>) {
 		for (const docNode of docNodes) {
 			await this.writeDocNode(docNode)
 		}

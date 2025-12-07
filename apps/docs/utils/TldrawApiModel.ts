@@ -35,8 +35,7 @@ export class TldrawApiModel extends ApiModel {
 					if (props instanceof ApiDocumentedItem && props.tsdocComment) {
 						const markdown = await MarkdownWriter.docNodeToMarkdown(
 							props,
-							// Cast to any to work around type incompatibility between different versions of @microsoft/tsdoc
-							props.tsdocComment.summarySection as any
+							props.tsdocComment.summarySection
 						)
 						if (markdown.trim()) {
 							this.nonBlockingError(
