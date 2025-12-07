@@ -235,6 +235,7 @@ export interface ArrowShapeOptions {
     readonly pointingPreciseTimeout: number;
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
+    readonly showTextOutline: boolean;
 }
 
 // @public (undocumented)
