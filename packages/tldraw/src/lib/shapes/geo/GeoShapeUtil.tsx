@@ -55,6 +55,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
+	override options = {
+		showTextOutline: true,
+	}
+
 	override canEdit() {
 		return true
 	}
@@ -225,6 +229,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							isSelected={isOnlySelected}
 							labelColor={getColorValue(theme, props.labelColor, 'solid')}
 							wrap
+							showTextOutline={this.options.showTextOutline}
 						/>
 					</HTMLContainer>
 				)}
@@ -282,6 +287,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					labelColor={getColorValue(theme, props.labelColor, 'solid')}
 					bounds={bounds}
 					padding={LABEL_PADDING}
+					showTextOutline={this.options.showTextOutline}
 				/>
 			)
 		}

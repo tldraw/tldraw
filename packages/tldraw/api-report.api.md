@@ -1744,6 +1744,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
+    options: {
+        showTextOutline: boolean;
+    };
+    // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX_2.Element;
