@@ -75,7 +75,7 @@ const isWheelEndEvent = (time: number) => {
 	return false
 }
 
-export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
+export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 	const editor = useEditor()
 
 	const events = React.useMemo(() => {
