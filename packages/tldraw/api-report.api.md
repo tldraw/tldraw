@@ -2967,6 +2967,7 @@ export const TextDirection: Extension<any, any>;
 // @public (undocumented)
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
+    showTextOutline: boolean;
 }
 
 // @public (undocumented)
