@@ -2484,6 +2484,8 @@ export interface PlainTextLabelProps {
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
+    showTextOutline?: boolean;
+    // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
     text?: string;
@@ -2605,6 +2607,8 @@ export interface RichTextLabelProps {
     richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
+    // (undocumented)
+    showTextOutline?: boolean;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
