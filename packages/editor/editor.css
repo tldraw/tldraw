@@ -607,7 +607,6 @@ input,
 	pointer-events: all;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
-	text-shadow: var(--tl-text-outline);
 }
 
 .tl-text-wrapper[data-font='draw'] {
@@ -770,7 +769,6 @@ input,
 	justify-content: center;
 	align-items: center;
 	color: var(--tl-color-text);
-	text-shadow: var(--tl-text-outline);
 	line-height: inherit;
 	position: absolute;
 	inset: 0px;
@@ -968,6 +966,14 @@ input,
 
 .tl-text-wrapper[data-isediting='true'] .tl-rich-text {
 	display: block;
+}
+
+.tl-text__outline {
+	text-shadow: var(--tl-text-outline);
+}
+
+.tl-text__no-outline {
+	text-shadow: none;
 }
 
 /* --------------------- Loading -------------------- */
@@ -1217,7 +1223,6 @@ input,
 	align-items: center;
 	text-align: center;
 	color: var(--tl-color-text);
-	text-shadow: var(--tl-text-outline);
 }
 
 .tl-shape[data-shape-type='arrow'] .tl-text-label__inner {
@@ -1446,7 +1451,6 @@ input,
 }
 
 .tl-note__container > .tl-text-label {
-	text-shadow: none;
 	color: currentColor;
 }
 
