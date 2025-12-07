@@ -171,10 +171,10 @@ export class MarkdownWriter {
 				break
 
 			case 'FencedCode': {
-				if (docNode.code && docNode.language) {
+				if (docNode.code) {
 					this.writeIfNeeded('\n').write(
 						'```',
-						docNode.language,
+						docNode.language || '',
 						'\n',
 						await formatWithPrettier(docNode.code, {
 							languageTag: docNode.language,
