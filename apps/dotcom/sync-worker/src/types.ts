@@ -29,6 +29,7 @@ export interface Environment {
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	DISCORD_FAIRY_PURCHASE_WEBHOOK_URL?: string
 
 	MEASURE: Analytics | undefined
 
@@ -43,6 +44,8 @@ export interface Environment {
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
+
+	FEATURE_FLAGS: KVNamespace
 
 	CF_VERSION_METADATA: WorkerVersionMetadata
 
@@ -62,6 +65,14 @@ export interface Environment {
 	MULTIPLAYER_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
+
+	ANALYTICS_API_URL: string | undefined
+	ANALYTICS_API_TOKEN: string | undefined
+
+	PIERRE_KEY: string | undefined
+
+	PADDLE_WEBHOOK_SECRET: string | undefined
+	PADDLE_ENVIRONMENT: 'sandbox' | 'production' | undefined
 
 	RATE_LIMITER: RateLimit
 
@@ -85,6 +96,7 @@ export type DBLoadResult =
 	| {
 			type: 'room_found'
 			snapshot: RoomSnapshot
+			roomSizeMB: number
 	  }
 	| {
 			type: 'room_not_found'
@@ -119,6 +131,10 @@ export type TLServerEvent =
 			roomId: string
 			messageType: string
 			messageLength: number
+	  }
+	| {
+			type: 'persist_success'
+			attempts: number
 	  }
 
 export type TLPostgresReplicatorRebootSource =

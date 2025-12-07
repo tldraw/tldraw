@@ -1,0 +1,107 @@
+---
+title: Releases
+status: published
+author: steveruizok
+order: 3
+---
+
+## How tldraw is versioned
+
+Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), the tldraw SDK does not follow [semantic versioning](https://semver.org/) in its release versions. Here's what we do instead:
+
+- Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
+- Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
+- Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
+
+{/* START AUTO-GENERATED CHANGELOG */}
+
+## Current release: [v4.2.0](/releases/v4.2.0)
+
+Welcome to tldraw v4.2.0!
+
+This is a minor maintenance release that includes many bug fixes and small API additions, along with a major version bump of our TipTap rich text editor.
+
+## TipTap v3 ([#5717](https://github.com/tldraw/tldraw/issues/5717))
+
+We've upgraded TipTap from v2 to v3. If you've done any customization to our standard TipTap kit, please refer to TipTap's Guide [How to upgrade Tiptap v2 to v3](https://tiptap.dev/docs/guides/upgrade-tiptap-v2) as to any breaking changes you might experience from a custom homebrew of the rich text editor in tldraw.
+
+## API Changes
+
+- Add `Editor.setTool`/`Editor.removeTool` for dynamically altering the editor's tool state chart. ([#6909](https://github.com/tldraw/tldraw/issues/6909)) ([#7134](https://github.com/tldraw/tldraw/issues/7134))
+- Allow using custom socket implementations with `useSync` via a new `connect` option ([#6859](https://github.com/tldraw/tldraw/issues/6859)) (thanks to [@Digital39999](https://github.com/Digital39999) for help on this one)
+- Support store queries on nested properties, e.g. props ([#6981](https://github.com/tldraw/tldraw/issues/6981))
+- Add `createBookmarkFromUrl` helper function for creating bookmark shapes more easily. ([#6894](https://github.com/tldraw/tldraw/issues/6894))
+- Allow handles to specify a custom reference point for shift-modifier angle snapping ([#6987](https://github.com/tldraw/tldraw/issues/6987)) (contributed by [@naaa760](https://github.com/naaa760))
+- Add a 'secret' lined-fill style similar to the full-fill style but with visible outlines. Users can select it by pressing `Option+Shift+F`. ([#7034](https://github.com/tldraw/tldraw/issues/7034))
+- Add option to pass callback to onInteractionEnd ([#6919](https://github.com/tldraw/tldraw/issues/6919))
+- Add `allowReferrer` option to window opening functions ([#7004](https://github.com/tldraw/tldraw/issues/7004))
+- Remove broken/defunct Excalidraw embed definition. Existing Excalidraw embed shapes will remain but render as bookmarks. ([#6897](https://github.com/tldraw/tldraw/issues/6897))
+
+## Improvements
+
+- Use window.prompt for renaming frames on mobile ([#6838](https://github.com/tldraw/tldraw/issues/6838))
+- Add string append optimization to sync protocol ([#7007](https://github.com/tldraw/tldraw/issues/7007)) (contributed by [@quasor](https://github.com/quasor))
+
+## Bug Fixes
+
+- Fix Replit embed URL handling ([#6892](https://github.com/tldraw/tldraw/issues/6892))
+- Fix accessibility issue that caused a misleading warning in the console ([#6904](https://github.com/tldraw/tldraw/issues/6904))
+- Fix convert-to-bookmark action ([#6894](https://github.com/tldraw/tldraw/issues/6894))
+- Fix pointer handling for dropdown menus in `InFrontOfTheCanvas` ([#7021](https://github.com/tldraw/tldraw/issues/7021))
+- Fixed a bug with iOS image uploads on Safari ([#7037](https://github.com/tldraw/tldraw/issues/7037))
+- Ignore alt+tab on Windows to avoid conflicting with the window manager ([#7005](https://github.com/tldraw/tldraw/issues/7005))
+- Fix text focus issue ([#7043](https://github.com/tldraw/tldraw/issues/7043))
+- Allow using `TldrawEditor` without needing `TldrawUiContextProvider` ([#7053](https://github.com/tldraw/tldraw/issues/7053))
+- Fix clipboard functionality for cross-realm apps ([#7026](https://github.com/tldraw/tldraw/issues/7026))
+- Fix broken ink on iOS by disabling coalesced events ([#6917](https://github.com/tldraw/tldraw/issues/6917))
+- Fix dragging behavior when menu is open ([#6918](https://github.com/tldraw/tldraw/issues/6918))
+
+## Previous releases
+
+- [v4.1.0](/releases/v4.1.0)
+
+- [v4.0.0](/releases/v4.0.0)
+
+- [v3.15.0](/releases/v3.15.0)
+
+- [v3.14.0](/releases/v3.14.0)
+
+- [v3.13.0](/releases/v3.13.0)
+
+- [v3.12.0](/releases/v3.12.0)
+
+- [v3.11.0](/releases/v3.11.0)
+
+- [v3.10.0](/releases/v3.10.0)
+
+- [v3.9.0](/releases/v3.9.0)
+
+- [v3.8.0](/releases/v3.8.0)
+
+- [v3.7.0](/releases/v3.7.0)
+
+- [v3.6.0](/releases/v3.6.0)
+
+- [v3.5.0](/releases/v3.5.0)
+
+- [v3.4.0](/releases/v3.4.0)
+
+- [v3.3.0](/releases/v3.3.0)
+
+- [v3.2.0](/releases/v3.2.0)
+
+- [v3.1.0](/releases/v3.1.0)
+
+- [v3.0.0](/releases/v3.0.0)
+
+- [v2.4.0](/releases/v2.4.0)
+
+- [v2.3.0](/releases/v2.3.0)
+
+- [v2.2.0](/releases/v2.2.0)
+
+- [v2.1.0](/releases/v2.1.0)
+
+- [v2.0.0](/releases/v2.0.0)
+
+{/* END AUTO-GENERATED CHANGELOG */}

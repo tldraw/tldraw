@@ -1,11 +1,10 @@
 import {
 	Editor,
+	ExtractShapeByProps,
 	TLShapeId,
-	TLUnknownShape,
 	getPointerInfo,
 	noop,
 	preventDefault,
-	stopEventPropagation,
 	tlenv,
 	useEditor,
 	useValue,
@@ -14,7 +13,11 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string) {
+export function useEditablePlainText(
+	shapeId: TLShapeId,
+	type: ExtractShapeByProps<{ text: string }>['type'],
+	text?: string
+) {
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
 	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
@@ -76,7 +79,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
-			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+			editor.updateShape({
 				id: shapeId,
 				type,
 				props: { text: normalizedPlaintext },
@@ -129,14 +132,14 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 			// partially if we didn't dispatch/stop below.
 
 			editor.dispatch({
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
 				shape: editor.getShape(shapeId)!,
 			})
 
-			stopEventPropagation(e) // we need to prevent blurring the input
+			e.stopPropagation() // we need to prevent blurring the input
 		},
 		[editor, shapeId]
 	)
@@ -161,15 +164,9 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick: stopEventPropagation,
+		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,
 		isEditing,
 		isReadyForEditing,
 	}
 }
-
-/**
- * @deprecated Use `useEditablePlainText` instead.
- * @public
- */
-export const useEditableText = useEditablePlainText

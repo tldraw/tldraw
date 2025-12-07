@@ -17,10 +17,21 @@ const expectedPackageJsonScriptsForAll = {
 	lint: tsScript('lint.ts'),
 }
 
+const expectedTestScripts = {
+	test: () => 'yarn run -T vitest --passWithNoTests',
+	'test-ci': () => 'yarn run -T vitest run --passWithNoTests',
+	'test-coverage': () => 'yarn run -T vitest run --coverage --passWithNoTests',
+}
+
 // packages (in packages/) should have these scripts
 const expectedPackageJsonScriptsForLibraries = {
 	...expectedPackageJsonScriptsForAll,
-	'test-ci': () => 'lazy inherit',
+	...expectedTestScripts,
+}
+
+const expectedPackageJsonScriptsForApps = {
+	...expectedPackageJsonScriptsForAll,
+	...expectedTestScripts,
 }
 
 // published packages should have these scripts
@@ -45,10 +56,17 @@ const packageJsonScriptExceptions: Record<string, Record<string, () => string | 
 		lint: () => 'lazy lint',
 	},
 	'@tldraw/assets': {
+		test: () => undefined,
 		'test-ci': () => undefined,
 		build: () => undefined,
 		'build-api': () => undefined,
 		prepack: () => undefined,
+		postpack: () => undefined,
+	},
+	'create-tldraw': {
+		build: () => './scripts/build.sh',
+		'build-api': () => undefined,
+		prepack: () => 'yarn build',
 		postpack: () => undefined,
 	},
 }
@@ -69,11 +87,12 @@ async function checkPackageJsonScripts({
 		}
 		const packageScripts = packageJson.scripts
 
-		let expected =
-			(name.startsWith('@tldraw/') || name === 'tldraw') && relativePath.startsWith('packages/')
-				? packageJson.private
-					? expectedPackageJsonScriptsForLibraries
-					: expectedPackageJsonScriptsForPublishedLibraries
+		let expected = relativePath.startsWith('packages/')
+			? packageJson.private
+				? expectedPackageJsonScriptsForLibraries
+				: expectedPackageJsonScriptsForPublishedLibraries
+			: relativePath.startsWith('apps/')
+				? expectedPackageJsonScriptsForApps
 				: expectedPackageJsonScriptsForAll
 
 		if (packageJsonScriptExceptions[name]) {

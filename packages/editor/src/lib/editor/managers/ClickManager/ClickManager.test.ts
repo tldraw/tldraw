@@ -1,12 +1,13 @@
+import { Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../../types/event-types'
 import { ClickManager } from './ClickManager'
 
 // Mock the Editor class
-jest.mock('../../Editor')
+vi.mock('../../Editor')
 
 describe('ClickManager', () => {
-	let editor: jest.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let clickManager: ClickManager
 	let mockTimers: any
 
@@ -29,14 +30,14 @@ describe('ClickManager', () => {
 	})
 
 	beforeEach(() => {
-		jest.useFakeTimers()
+		vi.useFakeTimers()
 		mockTimers = {
-			setTimeout: jest.fn((fn, delay) => setTimeout(fn, delay)),
+			setTimeout: vi.fn((fn, delay) => setTimeout(fn, delay)),
 		}
 
 		editor = {
 			timers: mockTimers,
-			dispatch: jest.fn(),
+			dispatch: vi.fn(),
 			options: {
 				doubleClickDurationMs: 300,
 				multiClickDurationMs: 300,
@@ -46,7 +47,7 @@ describe('ClickManager', () => {
 			inputs: {
 				currentScreenPoint: { x: 0, y: 0 },
 			},
-			getInstanceState: jest.fn(() => ({
+			getInstanceState: vi.fn(() => ({
 				isCoarsePointer: false,
 			})),
 		} as any
@@ -55,8 +56,8 @@ describe('ClickManager', () => {
 	})
 
 	afterEach(() => {
-		jest.useRealTimers()
-		jest.clearAllMocks()
+		vi.useRealTimers()
+		vi.clearAllMocks()
 	})
 
 	describe('constructor and initial state', () => {
@@ -100,7 +101,7 @@ describe('ClickManager', () => {
 			clickManager.handlePointerEvent(pointerEvent)
 			expect(clickManager.clickState).toBe('pendingDouble')
 
-			jest.advanceTimersByTime(350)
+			vi.advanceTimersByTime(350)
 
 			expect(clickManager.clickState).toBe('idle')
 		})
@@ -141,7 +142,7 @@ describe('ClickManager', () => {
 			clickManager.handlePointerEvent(firstDown)
 			clickManager.handlePointerEvent(secondDown)
 
-			jest.advanceTimersByTime(350)
+			vi.advanceTimersByTime(350)
 
 			expect(editor.dispatch).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -235,7 +236,7 @@ describe('ClickManager', () => {
 			clickManager.handlePointerEvent(pointerDown) // second
 			clickManager.handlePointerEvent(pointerDown) // third
 
-			jest.advanceTimersByTime(350)
+			vi.advanceTimersByTime(350)
 
 			expect(editor.dispatch).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -255,7 +256,7 @@ describe('ClickManager', () => {
 			clickManager.handlePointerEvent(pointerDown) // third
 			clickManager.handlePointerEvent(pointerDown) // fourth
 
-			jest.advanceTimersByTime(350)
+			vi.advanceTimersByTime(350)
 
 			expect(editor.dispatch).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -277,7 +278,7 @@ describe('ClickManager', () => {
 				editor.options.doubleClickDurationMs
 			)
 
-			jest.clearAllMocks()
+			vi.clearAllMocks()
 
 			// Second click - should use multiClickDurationMs
 			clickManager.handlePointerEvent(pointerDown)
@@ -392,7 +393,7 @@ describe('ClickManager', () => {
 			clickManager.cancelDoubleClickTimeout()
 
 			// Advance time - should not dispatch settle event
-			jest.advanceTimersByTime(350)
+			vi.advanceTimersByTime(350)
 
 			expect(editor.dispatch).not.toHaveBeenCalled()
 			expect(clickManager.clickState).toBe('idle')

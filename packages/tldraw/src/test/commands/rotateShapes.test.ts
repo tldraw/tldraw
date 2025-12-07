@@ -1,4 +1,5 @@
 import { createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -40,20 +41,20 @@ beforeEach(() => {
 })
 
 describe('editor.rotateShapesBy', () => {
-	let fnStart = jest.fn()
-	let fnChange = jest.fn()
-	let fnEnd = jest.fn()
+	let fnStart = vi.fn()
+	let fnChange = vi.fn()
+	let fnEnd = vi.fn()
 
 	beforeEach(() => {
 		// Set start / change / end events on only the geo shape
 		const util = editor.getShapeUtil('geo')
 
 		// Bad! who did this (did I do this)
-		util.onRotateStart = fnStart = jest.fn()
+		util.onRotateStart = fnStart = vi.fn()
 
-		util.onRotate = fnChange = jest.fn()
+		util.onRotate = fnChange = vi.fn()
 
-		util.onRotateEnd = fnEnd = jest.fn()
+		util.onRotateEnd = fnEnd = vi.fn()
 	})
 	it('Rotates shapes and fires events', () => {
 		// Select the shape...

@@ -98,7 +98,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				y={fullBox.minY - 3}
 				fontSize={10}
 				fill="black"
-				stroke="var(--color-background)"
+				stroke="var(--tl-color-background)"
 				strokeWidth={2}
 				paintOrder="stroke"
 			>
@@ -109,7 +109,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				y={info.A.expanded.y}
 				fontSize={10}
 				fill="black"
-				stroke="var(--color-background)"
+				stroke="var(--tl-color-background)"
 				strokeWidth={2}
 				paintOrder="stroke"
 			>
@@ -121,7 +121,7 @@ export function ElbowArrowDebug({ arrow }: { arrow: TLArrowShape }) {
 				y={info.B.expanded.y}
 				fontSize={10}
 				fill="black"
-				stroke="var(--color-background)"
+				stroke="var(--tl-color-background)"
 				strokeWidth={2}
 				paintOrder="stroke"
 			>

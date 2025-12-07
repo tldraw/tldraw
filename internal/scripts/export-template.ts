@@ -1,31 +1,9 @@
-import { T } from '@tldraw/validate'
 import { copyFile, mkdir, mkdtemp, readdir, readFile, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import { exec } from './lib/exec'
 import { readJsonIfExists, REPO_ROOT, writeCodeFile, writeJsonFile } from './lib/file'
-
-const EXPORT_CONFIG_KEY = 'tldraw_template' as const
-
-const ExportConfig = T.object({
-	repo: T.string.optional(),
-	scripts: T.dict(T.string, T.nullable(T.string)),
-})
-const PackageJson = T.object({
-	[EXPORT_CONFIG_KEY]: ExportConfig.optional(),
-	scripts: T.dict(T.string, T.nullable(T.string)),
-	dependencies: T.dict(T.string, T.string).optional(),
-	devDependencies: T.dict(T.string, T.string).optional(),
-	peerDependencies: T.dict(T.string, T.string).optional(),
-}).allowUnknownProperties()
-
-const TsConfigJson = T.object({
-	references: T.arrayOf(
-		T.object({
-			path: T.string,
-		})
-	).optional(),
-}).allowUnknownProperties()
+import { EXPORT_CONFIG_KEY, PackageJson, TsConfigJson } from './lib/types'
 
 const TEMPLATE_DIR = join(REPO_ROOT, 'templates')
 
@@ -65,11 +43,7 @@ async function main() {
 	if (!exportConfig) {
 		console.log('No export config found in package.json.')
 		console.log(`Please add a "${EXPORT_CONFIG_KEY}" key to your package.json.`)
-		process.exit(1)
-	}
-
-	if (!exportConfig.repo) {
-		console.log('No repo found in package.json. Skipping export.')
+		console.log('Skipping for now.')
 		process.exit(0)
 	}
 
@@ -112,6 +86,9 @@ async function main() {
 	delete packageJson[EXPORT_CONFIG_KEY]
 
 	if (exportConfig?.scripts) {
+		if (!packageJson.scripts) {
+			packageJson.scripts = {}
+		}
 		for (const [name, script] of Object.entries(exportConfig.scripts)) {
 			if (script === null) {
 				delete packageJson.scripts[name]
@@ -147,9 +124,11 @@ async function main() {
 	console.log('Committing...')
 	const latestTldrawVersion = await getLatestPackageVersion('tldraw')
 	await exec('git', ['add', '.'], { pwd: workingDir })
-	await exec('git', ['commit', '-m', `update from tldraw ${latestTldrawVersion}`], {
-		pwd: workingDir,
-	})
+	await exec(
+		'git',
+		['commit', '--allow-empty', '-m', `update from tldraw ${latestTldrawVersion}`],
+		{ pwd: workingDir }
+	)
 
 	console.log('Pushing...')
 	await exec('git', ['push', repoUrl, 'main'], { pwd: workingDir })

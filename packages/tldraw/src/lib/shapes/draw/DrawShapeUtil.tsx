@@ -13,6 +13,7 @@ import {
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
+	getColorValue,
 	last,
 	lerp,
 	rng,
@@ -138,7 +139,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const forceSolid = useValue(
 			'force solid',
 			() => {
-				const zoomLevel = this.editor.getZoomLevel()
+				const zoomLevel = this.editor.getEfficientZoomLevel()
 				return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 			},
 			[this.editor, sw]
@@ -229,7 +230,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const forceSolid = useValue(
 		'force solid',
 		() => {
-			const zoomLevel = zoomOverride ?? editor.getZoomLevel()
+			const zoomLevel = zoomOverride ?? editor.getEfficientZoomLevel()
 			return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 		},
 		[editor, sw, zoomOverride]
@@ -238,7 +239,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const dotAdjustment = useValue(
 		'dot adjustment',
 		() => {
-			const zoomLevel = zoomOverride ?? editor.getZoomLevel()
+			const zoomLevel = zoomOverride ?? editor.getEfficientZoomLevel()
 			// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
 			// Chrome doesn't render anything otherwise.
 			return zoomLevel < 0.2 ? 0 : 0.1
@@ -275,7 +276,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 				<path
 					d={svgInk(allPointsFromSegments, options)}
 					strokeLinecap="round"
-					fill={theme[shape.props.color].solid}
+					fill={getColorValue(theme, shape.props.color, 'solid')}
 				/>
 			</>
 		)
@@ -299,8 +300,8 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
-				fill={isDot ? theme[shape.props.color].solid : 'none'}
-				stroke={theme[shape.props.color].solid}
+				fill={isDot ? getColorValue(theme, shape.props.color, 'solid') : 'none'}
+				stroke={getColorValue(theme, shape.props.color, 'solid')}
 				strokeWidth={sw}
 				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"

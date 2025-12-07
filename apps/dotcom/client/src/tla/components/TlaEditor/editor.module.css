@@ -4,7 +4,7 @@
 	height: 100%;
 	overflow: hidden;
 	z-index: 1;
-	background-color: var(--color-background);
+	background-color: var(--tl-color-background);
 }
 
 .editorWrapper {
@@ -12,7 +12,7 @@
 	flex-grow: 2;
 	overflow: hidden;
 	border-top: 1px solid var(--tla-color-border);
-	background-color: var(--color-background);
+	background-color: var(--tl-color-background);
 }
 
 .editorWrapper > .tldraw__editor {

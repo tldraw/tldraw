@@ -28,8 +28,7 @@ export type TranslatingInfo = TLPointerEventInfo & {
 	isCreating?: boolean
 	creatingMarkId?: string
 	onCreate?(): void
-	didStartInPit?: boolean
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class Translating extends StateNode {
@@ -60,7 +59,9 @@ export class Translating extends StateNode {
 		}
 
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.isCreating = isCreating
 
 		this.markId = ''
@@ -191,24 +192,49 @@ export class Translating extends StateNode {
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd)
-		} else {
-			if (this.isCreating) {
-				this.onCreate?.(this.editor.getOnlySelectedShape())
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked) {
+					this.editor.setCurrentTool(onInteractionEnd)
+					return
+				}
 			} else {
-				this.parent.transition('idle')
+				onInteractionEnd()
+				return
 			}
+		}
+
+		if (this.isCreating) {
+			this.onCreate?.(this.editor.getOnlySelectedShape())
+		} else {
+			this.parent.transition('idle')
 		}
 	}
 
 	private cancel() {
+		// Call onTranslateCancel callback before resetting
+		const { movingShapes } = this.snapshot
+
+		movingShapes.forEach((shape) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onTranslateCancel?.(shape, current)
+			}
+		})
+
 		this.reset()
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd)
-		} else {
-			this.parent.transition('idle', this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle', this.info)
 	}
 
 	protected handleStart() {
@@ -381,9 +407,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	const { originPagePoint } = editor.inputs
 
 	const allHoveredNotes = shapeSnapshots.filter(
-		(s) =>
-			editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
-			editor.isPointInShape(s.shape, originPagePoint)
+		(s) => editor.isShapeOfType(s.shape, 'note') && editor.isPointInShape(s.shape, originPagePoint)
 	) as (MovingShapeSnapshot & { shape: TLNoteShape })[]
 
 	if (allHoveredNotes.length === 0) {

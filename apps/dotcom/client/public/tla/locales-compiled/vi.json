@@ -5,6 +5,12 @@
       "value": "Xuất"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Chấp nhận lời mời"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -21,22 +27,10 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Mở tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
       "value": "Tự động"
-    }
-  ],
-  "0776e18496": [
-    {
-      "type": 0,
-      "value": "Lưu và chia sẻ"
     }
   ],
   "07dbd11b21": [
@@ -57,6 +51,18 @@
       "value": "Tài khoản"
     }
   ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Tệp này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Nói chuyện với nhóm…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -67,6 +73,12 @@
     {
       "type": 0,
       "value": "Menu tệp"
+    }
+  ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Tiên nữ"
     }
   ],
   "0d1f2bb523": [
@@ -81,16 +93,46 @@
       "value": "Xuất bản"
     }
   ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Dừng lại"
+    }
+  ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Rời khỏi nhóm"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Bỏ ghim tệp"
+    }
+  ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Hãy thử SDK tldraw"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
       "value": "Xuất dưới dạng"
     }
   ],
-  "1460ab5e78": [
+  "146ffe2fd9": [
     {
       "type": 0,
-      "value": "Rút tiền miễn phí"
+      "value": "Hiển thị thêm"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Xóa nhóm"
     }
   ],
   "181b90f889": [
@@ -111,10 +153,22 @@
       "value": "Hôm nay"
     }
   ],
-  "22d84a12fd": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Figjam nhưng tldraw"
+      "value": "Giới hạn sử dụng tiên hằng tuần của bạn đã đạt đến. Giới hạn này sẽ được đặt lại vào đầu tuần sau."
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Ngủ"
+    }
+  ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Tạo nhóm"
     }
   ],
   "250ddea65c": [
@@ -123,16 +177,54 @@
       "value": "Giới thiệu về tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Các nàng tiên của bạn đang chờ đợi"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Triệu hồi tất cả"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Người mẫu:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
       "value": "Tải lên thất bại"
     }
   ],
-  "2c61d18599": [
+  "2c3ef76333": [
     {
       "type": 0,
-      "value": "Miro nhưng tốt và miễn phí"
+      "value": "Các tập tin của tôi"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "Một đàn "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tiên"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " nữ đã đến để vẽ tranh trong tháng 12. Để tìm hiểu thêm, hãy tìm tiên nữ và nhấp vào nó."
     }
   ],
   "31246941ad": [
@@ -147,16 +239,76 @@
       "value": "i18n: Thiếu đánh dấu"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "ba nàng tiên"
+    }
+  ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Thêm liên kết"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Quay lại tldraw"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Vui lòng thử tải lại trang."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Một đàn tiên sẽ đến để vẽ tranh trong tháng 12. Vui lòng quay lại vào ngày 1 tháng 12."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Biên tập viên"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Ngủ tất cả"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Quản lý"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Bỏ theo dõi"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Theo"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Điều khoản dịch vụ"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Tiếp tục với email"
     }
   ],
   "3bd1b98dbd": [
@@ -177,22 +329,10 @@
       "value": "Chấp nhận tất cả"
     }
   ],
-  "3fc6d0c83a": [
-    {
-      "type": 0,
-      "value": "Thêm bạn bè"
-    }
-  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
-    }
-  ],
-  "44281ab6e5": [
-    {
-      "type": 0,
-      "value": "Đăng nhập"
     }
   ],
   "44db318ee5": [
@@ -201,10 +341,38 @@
       "value": "Nhận trợ giúp trên Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Các nàng tiên"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " đã đến để vẽ tranh trong tháng 12."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Không có nàng tiên nào được chọn"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào thư mục của bạn."
     }
   ],
   "47839e47a5": [
@@ -213,10 +381,34 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Tệp ghim"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Dán URL tệp tldraw..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Bạn có chắc chắn muốn quên tệp này không?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Tên"
+    }
+  ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Chọn tất cả"
     }
   ],
   "4d0d3ddec9": [
@@ -231,16 +423,22 @@
       "value": "Tải lại"
     }
   ],
-  "4e029798f2": [
+  "4da5988a2e": [
     {
       "type": 0,
-      "value": "Cổ phiếu miễn phí"
+      "value": "Xóa nhóm…"
     }
   ],
-  "4e875b8d8e": [
+  "4dab36ac83": [
     {
       "type": 0,
-      "value": "Lưu miễn phí"
+      "value": "Thêm tùy chọn"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
     }
   ],
   "50db1b7e1e": [
@@ -255,16 +453,16 @@
       "value": "Menu trang"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Tập tin này hiện chỉ có thể đọc"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Đã đạt tới giới hạn cộng tác viên"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Vui lòng chậm lại."
     }
   ],
   "554a05155c": [
@@ -301,16 +499,50 @@
       "value": "Chính sách bảo mật"
     }
   ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Không đổi được mã mời"
+    }
+  ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Kéo tệp vào đây, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tạo tệp"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " hoặc "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "sao chép liên kết mời"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " để bắt đầu."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
       "value": "Chia sẻ"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Phòng này hiện chỉ có thể đọc"
     }
   ],
   "5bec508475": [
@@ -319,10 +551,22 @@
       "value": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
     }
   ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Thu hồi liên kết này và tạo liên kết mới."
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
       "value": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Bạn đã được mời tham gia nhóm:"
     }
   ],
   "5f3c333678": [
@@ -337,22 +581,42 @@
       "value": "Sao chép"
     }
   ],
-  "5ff75742e0": [
-    {
-      "type": 0,
-      "value": "Đăng ký miễn phí"
-    }
-  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Để sau"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Nói chuyện với "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
       "value": "Cũ hơn"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "Bạn"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Hướng dẫn"
     }
   ],
   "6609dd239e": [
@@ -367,10 +631,34 @@
       "value": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
     }
   ],
-  "697c59072d": [
+  "6832ac5936": [
     {
       "type": 0,
-      "value": "Đăng nhập để lưu"
+      "value": "Nhập địa chỉ email của bạn"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Thức dậy"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Nhập tin nhắn của bạn"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Tên của nàng tiên"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Tiên gỡ lỗi"
     }
   ],
   "6a26f54883": [
@@ -389,6 +677,12 @@
     {
       "type": 0,
       "value": "Làm theo các bước sau để nhập nội dung theo cách thủ công:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Cài đặt nhóm"
     }
   ],
   "70a6facb9d": [
@@ -445,16 +739,40 @@
       "value": "Vui lòng tải lại"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw là một bảng trắng trực tuyến miễn phí. Tạo tài khoản để lưu tệp và làm việc cùng bạn bè."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Yêu cầu không hợp lệ."
     }
   ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Tệp tldraw nhiều người chơi ẩn danh này hiện ở chế độ chỉ đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Hiểu rồi"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
       "value": "Gửi vấn đề trên GitHub"
+    }
+  ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Tiên là một chàng trai nhỏ có thể cùng bạn vẽ tranh. Tiên có thể làm việc độc lập hoặc theo nhóm. Không có giới hạn nào cho những gì tiên có thể làm. Không ai biết họ đến từ đâu."
     }
   ],
   "7b1329f5ca": [
@@ -469,10 +787,28 @@
       "value": "Khôi phục phiên bản"
     }
   ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Mở tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Bạn đã được mời tham gia tldraw fairies!"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Quên"
+    }
+  ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Rời khỏi nhóm…"
     }
   ],
   "7daeced9ff": [
@@ -527,10 +863,16 @@
       "value": "."
     }
   ],
-  "84c89d47c7": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Chia sẻ miễn phí"
+      "value": "Xóa tất cả"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Chào mừng"
     }
   ],
   "85a082de1b": [
@@ -559,22 +901,52 @@
       "value": "Đổi tên tập tin"
     }
   ],
-  "8b1946f965": [
+  "8726ef8909": [
     {
       "type": 0,
-      "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+      "value": "Đặt lại cứng"
     }
   ],
-  "8ea211024d": [
+  "88e83b88c5": [
     {
       "type": 0,
-      "value": "Tạo một tài khoản miễn phí"
+      "value": "Mua Fairy Bundle"
+    }
+  ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Không, cảm ơn"
+    }
+  ],
+  "8be569f100": [
+    {
+      "type": 0,
+      "value": "thanh toán một lần"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Kiểm tra email của bạn để lấy mã xác minh."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Trang chủ"
     }
   ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Chia sẻ với bạn"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Về"
     }
   ],
   "8ff3d0a705": [
@@ -601,10 +973,52 @@
       "value": "Sao chép vào tệp của tôi"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Đã sao chép liên kết mời"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Bỏ chọn"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Gửi"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Đăng nhập bằng Google"
+    }
+  ],
+  "95d2109dc8": [
+    {
+      "type": 0,
+      "value": "Xây dựng với SDK tldraw"
+    }
+  ],
   "96165d6df5": [
     {
       "type": 0,
       "value": "Tháng này"
+    }
+  ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Điều khoản sử dụng"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Thêm liên kết tệp"
     }
   ],
   "9914a0ce04": [
@@ -613,16 +1027,36 @@
       "value": "Sáng"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Chế độ xem gỡ lỗi"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Không nhận được mã? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Gửi lại"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "9bef626805": [
     {
       "type": 0,
       "value": "Xóa tệp"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Phòng nhiều người chơi tldraw ẩn danh này hiện chỉ có thể đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
     }
   ],
   "9ceb927baa": [
@@ -673,6 +1107,12 @@
       "value": "Xuất ảnh"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Tham gia"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -685,6 +1125,12 @@
       "value": "Nộp"
     }
   ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Gỡ lỗi"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -695,6 +1141,24 @@
     {
       "type": 0,
       "value": "Phân tích"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Tệp đang trở nên lớn hơn"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Đã đạt đến giới hạn tiên nữ hàng tuần"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Trò chuyện mới"
     }
   ],
   "a9ded1e5ce": [
@@ -727,10 +1191,40 @@
       "value": "Người dùng khách"
     }
   ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Tệp đã đầy"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Thời gian phản hồi của Nhật ký"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Địa chỉ email"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL tệp"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Đăng nhập"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Người sở hữu"
     }
   ],
   "b758336699": [
@@ -745,10 +1239,10 @@
       "value": "Đăng nhập để chia sẻ"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Bỏ ghim"
+      "value": "Chấp nhận và tham gia nhóm"
     }
   ],
   "bbbcefd7ce": [
@@ -795,22 +1289,10 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
+  "be4f1c62d3": [
     {
       "type": 0,
-      "value": "Tải lên các tệp .tldr."
-    }
-  ],
-  "bffe9a3c9a": [
-    {
-      "type": 0,
-      "value": "Đăng nhập"
-    }
-  ],
-  "c079282475": [
-    {
-      "type": 0,
-      "value": "Chia sẻ công việc của bạn"
+      "value": "Phóng to đến tiên"
     }
   ],
   "c2276c9127": [
@@ -819,10 +1301,24 @@
       "value": "Tìm hiểu thêm về chia sẻ."
     }
   ],
-  "c24e43cd1a": [
+  "c28aed8348": [
     {
       "type": 0,
-      "value": "Bạn sẽ đăng ký chứ?"
+      "value": "Cho phép "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " giúp chúng tôi cải thiện tldraw."
     }
   ],
   "c303bd1095": [
@@ -831,10 +1327,34 @@
       "value": "Không thể xuất bản tệp này."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Mở"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Tôi hiểu"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Cookie thiết yếu"
+    }
+  ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Tên nhóm"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Cách sử dụng"
     }
   ],
   "c655b27b1e": [
@@ -849,10 +1369,22 @@
       "value": "Mời"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Hiển thị ít hơn"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Đăng xuất"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Cứu"
     }
   ],
   "cceaefbc20": [
@@ -867,16 +1399,22 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Tệp này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo tệp mới."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Bạn đã có quyền truy cập vào Fairy rồi!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
       "value": "Tìm hiểu thêm về xuất bản."
-    }
-  ],
-  "d0eedb7995": [
-    {
-      "type": 0,
-      "value": "Chào"
     }
   ],
   "d3d2e61733": [
@@ -885,10 +1423,50 @@
       "value": "Đóng"
     }
   ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Quá nhiều yêu cầu. Vui lòng chậm lại."
+    }
+  ],
   "d4bbf74f3e": [
     {
       "type": 0,
       "value": "Chuyển đổi thanh bên"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Trước khi bắt đầu, vui lòng chấp nhận "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "điều khoản sử dụng"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " và "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chính sách bảo mật"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": " của chúng tôi."
     }
   ],
   "d721757161": [
@@ -903,22 +1481,28 @@
       "value": "Thử lại"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Chấp nhận và tiếp tục"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Vào đây để xem nội dung"
     }
   ],
-  "da404df474": [
+  "d9bfb9789a": [
     {
       "type": 0,
-      "value": "Lưu công việc của bạn"
+      "value": "Kích hoạt các nàng tiên"
     }
   ],
-  "db4c2dab9a": [
+  "d9e35d0f55": [
     {
       "type": 0,
-      "value": "Không phải Excalidraw"
+      "value": "Bạn đã đạt đến số lượng nhóm tối đa. Bạn cần xóa nhóm cũ trước khi tạo nhóm mới."
     }
   ],
   "dbbebf3c03": [
@@ -927,10 +1511,66 @@
       "value": "Chỉ mời"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Thông thoáng"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "URL tệp tldraw không hợp lệ"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Chọn một nàng tiên bên phải để trò chuyện"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Tiên là một tính năng "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tạm thời"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Vào ngày 1 tháng 1 năm 2026, tất cả tiên sẽ bị xóa khỏi ứng dụng. Có thể chúng sẽ quay trở lại vào một ngày nào đó. Giao dịch mua của bạn chỉ dành cho quyền truy cập vào tiên trong tháng 12 năm 2025."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Cờ gỡ lỗi ứng dụng"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Lựa chọn"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Mời thành viên"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Sao chép liên kết mời"
     }
   ],
   "e2ae80a510": [
@@ -939,16 +1579,34 @@
       "value": "Tóm tắt pháp lý"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Quản trị viên"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Điều khoản dịch vụ"
     }
   ],
-  "e78e14c5f1": [
+  "e43ec38a93": [
     {
       "type": 0,
-      "value": "Ghim"
+      "value": "Đi đến"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "hoặc"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Khu vực nguy hiểm"
     }
   ],
   "ea4788705e": [
@@ -1007,6 +1665,30 @@
       "value": " của chúng tôi để tìm hiểu thêm."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Giải tán"
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Thành viên"
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "đã chọn"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Triệu hồi"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1031,16 +1713,22 @@
       "value": "Xóa"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Quay lại tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Cài đặt"
+    }
+  ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn rời khỏi nhóm này không?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Chính sách bảo mật"
     }
   ],
   "fb15c53f22": [
@@ -1055,16 +1743,16 @@
       "value": "Bạn có chắc muốn xóa tệp này?"
     }
   ],
-  "fd27891570": [
-    {
-      "type": 0,
-      "value": "Tham gia danh sách chờ"
-    }
-  ],
   "fed5ec05eb": [
     {
       "type": 0,
       "value": "Đã sao chép liên kết"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Thêm liên kết tệp…"
     }
   ],
   "ffcd73e997": [

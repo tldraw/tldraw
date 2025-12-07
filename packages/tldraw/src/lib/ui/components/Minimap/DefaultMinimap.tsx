@@ -159,7 +159,7 @@ export function DefaultMinimap() {
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				point: screenPoint,
 				isPen: editor.getInstanceState().isPenMode,
 			}
@@ -204,6 +204,7 @@ export function DefaultMinimap() {
 			<canvas
 				role="img"
 				aria-label={msg('navigation-zone.minimap')}
+				data-testid="minimap.canvas"
 				ref={rCanvas}
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}

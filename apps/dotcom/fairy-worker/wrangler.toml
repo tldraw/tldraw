@@ -1,0 +1,74 @@
+name = "fairydraw"
+main = "src/worker.ts"
+compatibility_date = "2024-12-30"
+
+[dev]
+port = 8789
+
+[observability]
+enabled = true
+
+# Environment variables (set via wrangler secret or .dev.vars)
+# Required secrets:
+# - CLERK_SECRET_KEY: Clerk secret key for authentication
+# - CLERK_PUBLISHABLE_KEY: Clerk publishable key
+# - OPENAI_API_KEY: OpenAI API key
+# - ANTHROPIC_API_KEY: Anthropic API key
+# - GOOGLE_API_KEY: Google API key
+# - FAIRY_MODEL: The model to use for the fairy agent
+# - SENTRY_DSN (optional): Sentry DSN for error tracking
+# - IS_LOCAL (optional): Set to "true" for local development
+
+[env.dev]
+name = "fairydraw-dev"
+
+[env.staging]
+name = "fairydraw-staging"
+route = { pattern = "staging-fairy.tldraw.xyz", custom_domain = true }
+
+[env.production]
+name = "fairydraw"
+route = { pattern = "fairy.tldraw.xyz", custom_domain = true }
+
+#################### Durable Objects ####################
+# Durable objects require migrations to create/modify/delete them
+[[migrations]]
+tag = "v1"
+new_classes = ["TldrawAiDurableObject"]
+
+[[migrations]]
+tag = "v2"
+renamed_classes = [
+    { from = "TldrawAiDurableObject", to = "AgentDurableObject" },
+]
+
+# Durable objects have the same configuration in all environments
+[env.dev.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "dev-tldraw-multiplayer" },
+]
+
+[env.preview.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    # Preview script_name is set dynamically by deploy-dotcom.ts based on PR number
+]
+
+[durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "tldraw-multiplayer" },
+]
+
+[env.staging.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "main-tldraw-multiplayer" },
+]
+
+[env.production.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "tldraw-multiplayer" },
+]

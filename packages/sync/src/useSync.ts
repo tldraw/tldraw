@@ -2,7 +2,12 @@ import { atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
+	TLCustomMessageHandler,
+	TLPersistentClientSocket,
+	TLPresenceMode,
 	TLRemoteSyncError,
+	TLSocketClientSentEvent,
+	TLSocketServerSentEvent,
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
@@ -25,6 +30,7 @@ import {
 	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
+	useEvent,
 	useReactiveEvent,
 	useRefState,
 	useShallowObjectIdentity,
@@ -34,33 +40,124 @@ import {
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
-/** @public */
+const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
+
+/**
+ * A store wrapper specifically for remote collaboration that excludes local-only states.
+ * This type represents a tldraw store that is synchronized with a remote multiplayer server.
+ *
+ * Unlike the base TLStoreWithStatus, this excludes 'synced-local' and 'not-synced' states
+ * since remote stores are always either loading, connected to a server, or in an error state.
+ *
+ * @example
+ * ```tsx
+ * function MyCollaborativeApp() {
+ *   const store: RemoteTLStoreWithStatus = useSync({
+ *     uri: 'wss://myserver.com/sync/room-123',
+ *     assets: myAssetStore
+ *   })
+ *
+ *   if (store.status === 'loading') {
+ *     return <div>Connecting to multiplayer session...</div>
+ *   }
+ *
+ *   if (store.status === 'error') {
+ *     return <div>Connection failed: {store.error.message}</div>
+ *   }
+ *
+ *   // store.status === 'synced-remote'
+ *   return <Tldraw store={store.store} />
+ * }
+ * ```
+ *
+ * @public
+ */
 export type RemoteTLStoreWithStatus = Exclude<
 	TLStoreWithStatus,
 	{ status: 'synced-local' } | { status: 'not-synced' }
 >
 
 /**
- * useSync creates a store that is synced with a multiplayer server.
+ * Creates a reactive store synchronized with a multiplayer server for real-time collaboration.
  *
- * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
- * It will handle loading states, and enable multiplayer UX like user cursors and following.
+ * This hook manages the complete lifecycle of a collaborative tldraw session, including
+ * WebSocket connection establishment, state synchronization, user presence, and error handling.
+ * The returned store can be passed directly to the Tldraw component to enable multiplayer features.
  *
- * To enable external blob storage, you should also pass in an `assets` object that implements the {@link tldraw#TLAssetStore} interface.
- * If you don't do this, adding large images and videos to rooms will cause performance issues at serialization boundaries.
+ * The store progresses through multiple states:
+ * - `loading`: Establishing connection and synchronizing initial state
+ * - `synced-remote`: Successfully connected and actively synchronizing changes
+ * - `error`: Connection failed or synchronization error occurred
+ *
+ * For optimal performance with media assets, provide an `assets` store that implements
+ * external blob storage. Without this, large images and videos will be stored inline
+ * as base64, causing performance issues during serialization.
+ *
+ * @param opts - Configuration options for multiplayer synchronization
+ *   - `uri` - WebSocket server URI (string or async function returning URI)
+ *   - `assets` - Asset store for blob storage (required for production use)
+ *   - `userInfo` - User information for presence system (can be reactive signal)
+ *   - `getUserPresence` - Optional function to customize presence data
+ *   - `onCustomMessageReceived` - Handler for custom socket messages
+ *   - `roomId` - Room identifier for analytics (internal use)
+ *   - `onMount` - Callback when editor mounts (internal use)
+ *   - `trackAnalyticsEvent` - Analytics event tracker (internal use)
+ *
+ * @returns A reactive store wrapper with connection status and synchronized store
  *
  * @example
  * ```tsx
- * function MyApp() {
- *     const store = useSync({
- *         uri: 'wss://myapp.com/sync/my-test-room',
- *         assets: myAssetStore
- *     })
- *     return <Tldraw store={store} />
- * }
+ * // Basic multiplayer setup
+ * function CollaborativeApp() {
+ *   const store = useSync({
+ *     uri: 'wss://myserver.com/sync/room-123',
+ *     assets: myAssetStore,
+ *     userInfo: {
+ *       id: 'user-1',
+ *       name: 'Alice',
+ *       color: '#ff0000'
+ *     }
+ *   })
  *
+ *   if (store.status === 'loading') {
+ *     return <div>Connecting to collaboration session...</div>
+ *   }
+ *
+ *   if (store.status === 'error') {
+ *     return <div>Failed to connect: {store.error.message}</div>
+ *   }
+ *
+ *   return <Tldraw store={store.store} />
+ * }
  * ```
- * @param opts - Options for the multiplayer sync store. See {@link UseSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ *
+ * @example
+ * ```tsx
+ * // Dynamic authentication with reactive user info
+ * import { atom } from '@tldraw/state'
+ *
+ * function AuthenticatedApp() {
+ *   const currentUser = atom('user', { id: 'user-1', name: 'Alice', color: '#ff0000' })
+ *
+ *   const store = useSync({
+ *     uri: async () => {
+ *       const token = await getAuthToken()
+ *       return `wss://myserver.com/sync/room-123?token=${token}`
+ *     },
+ *     assets: authenticatedAssetStore,
+ *     userInfo: currentUser, // Reactive signal
+ *     getUserPresence: (store, user) => {
+ *       return {
+ *         userId: user.id,
+ *         userName: user.name,
+ *         cursor: getCurrentCursor(store)
+ *       }
+ *     }
+ *   })
+ *
+ *   return <Tldraw store={store.store} />
+ * }
+ * ```
  *
  * @public
  */
@@ -74,9 +171,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		roomId = 'default',
 		assets,
 		onMount,
+		connect,
 		trackAnalyticsEvent: track,
 		userInfo,
 		getUserPresence: _getUserPresence,
+		onCustomMessageReceived: _onCustomMessageReceived,
 		...schemaOpts
 	} = opts
 
@@ -89,6 +188,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 	const prefs = useShallowObjectIdentity(userInfo)
 	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
+	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 
 	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
 		'userAtom',
@@ -115,32 +215,60 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			}
 		)
 
-		const socket = new ClientWebSocketAdapter(async () => {
-			const uriString = typeof uri === 'string' ? uri : await uri()
-
-			// set sessionId as a query param on the uri
-			const withParams = new URL(uriString)
-			if (withParams.searchParams.has('sessionId')) {
-				throw new Error(
-					'useSync. "sessionId" is a reserved query param name. Please use a different name'
-				)
-			}
-			if (withParams.searchParams.has('storeId')) {
-				throw new Error(
-					'useSync. "storeId" is a reserved query param name. Please use a different name'
-				)
+		let socket: TLPersistentClientSocket<
+			TLSocketClientSentEvent<TLRecord>,
+			TLSocketServerSentEvent<TLRecord>
+		>
+		if (connect) {
+			if (uri) {
+				throw new Error('uri and connect cannot be used together')
 			}
 
-			withParams.searchParams.set('sessionId', TAB_ID)
-			withParams.searchParams.set('storeId', storeId)
-			return withParams.toString()
-		})
+			socket = connect({
+				sessionId: TAB_ID,
+				storeId,
+			}) as TLPersistentClientSocket<
+				TLSocketClientSentEvent<TLRecord>,
+				TLSocketServerSentEvent<TLRecord>
+			>
+		} else if (uri) {
+			if (connect) {
+				throw new Error('uri and connect cannot be used together')
+			}
+
+			socket = new ClientWebSocketAdapter(async () => {
+				const uriString = typeof uri === 'string' ? uri : await uri()
+
+				// set sessionId as a query param on the uri
+				const withParams = new URL(uriString)
+				if (withParams.searchParams.has('sessionId')) {
+					throw new Error(
+						'useSync. "sessionId" is a reserved query param name. Please use a different name'
+					)
+				}
+				if (withParams.searchParams.has('storeId')) {
+					throw new Error(
+						'useSync. "storeId" is a reserved query param name. Please use a different name'
+					)
+				}
+
+				withParams.searchParams.set('sessionId', TAB_ID)
+				withParams.searchParams.set('storeId', storeId)
+				return withParams.toString()
+			})
+		} else {
+			throw new Error('uri or connect must be provided')
+		}
 
 		let didCancel = false
 
-		const collaborationStatusSignal = computed('collaboration status', () =>
-			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-		)
+		function getConnectionStatus() {
+			return socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+		}
+		const collaborationStatusSignal = atom('collaboration status', getConnectionStatus())
+		const unsubscribeFromConnectionStatus = socket.onStatusChange(() => {
+			collaborationStatusSignal.set(getConnectionStatus())
+		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
 
@@ -165,7 +293,16 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			})
 		})
 
-		const client = new TLSyncClient({
+		const otherUserPresences = store.query.ids('instance_presence', () => ({
+			userId: { neq: userPreferences.get().id },
+		}))
+
+		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
+			if (otherUserPresences.get().size === 0) return 'solo'
+			return 'full'
+		})
+
+		const client = new TLSyncClient<TLRecord, TLStore>({
 			store,
 			socket,
 			didCancel: () => didCancel,
@@ -209,16 +346,30 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					store.ensureStoreIsUsable()
 				})
 			},
+			onCustomMessageReceived,
 			presence,
+			presenceMode,
 		})
 
 		return () => {
 			didCancel = true
+			unsubscribeFromConnectionStatus()
 			client.close()
 			socket.close()
-			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence])
+	}, [
+		assets,
+		onMount,
+		connect,
+		userAtom,
+		roomId,
+		schema,
+		setState,
+		track,
+		uri,
+		getUserPresence,
+		onCustomMessageReceived,
+	])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -238,36 +389,100 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 }
 
 /**
- * Options for the {@link useSync} hook.
+ * Configuration options for the {@link useSync} hook to establish multiplayer collaboration.
+ *
+ * This interface defines the required and optional settings for connecting to a multiplayer
+ * server, managing user presence, handling assets, and customizing the collaboration experience.
+ *
+ * @example
+ * ```tsx
+ * const syncOptions: UseSyncOptions = {
+ *   uri: 'wss://myserver.com/sync/room-123',
+ *   assets: myAssetStore,
+ *   userInfo: {
+ *     id: 'user-1',
+ *     name: 'Alice',
+ *     color: '#ff0000'
+ *   },
+ *   getUserPresence: (store, user) => ({
+ *     userId: user.id,
+ *     userName: user.name,
+ *     cursor: getCursorPosition()
+ *   })
+ * }
+ * ```
+ *
  * @public
  */
-export interface UseSyncOptions {
+export interface UseSyncOptionsBase {
 	/**
-	 * The URI of the multiplayer server. This must include the protocol,
+	 * User information for multiplayer presence and identification.
 	 *
-	 *   e.g. `wss://server.example.com/my-room` or `ws://localhost:5858/my-room`.
+	 * Can be a static object or a reactive signal that updates when user
+	 * information changes. The presence system automatically updates when
+	 * reactive signals change, allowing real-time user profile updates.
 	 *
-	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket
-	 * connection.
+	 * Should be synchronized with the `userPreferences` prop of the main
+	 * Tldraw component for consistent user experience. If not provided,
+	 * defaults to localStorage-based user preferences.
 	 *
-	 * Optionally, you can pass a function which will be called each time a connection is
-	 * established to get the URI. This is useful if you need to include e.g. a short-lived session
-	 * token for authentication.
-	 */
-	uri: string | (() => string | Promise<string>)
-	/**
-	 * A signal that contains the user information needed for multiplayer features.
-	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
-	 * If not provided, a default implementation based on localStorage will be used.
+	 * @example
+	 * ```ts
+	 * // Static user info
+	 * userInfo: { id: 'user-123', name: 'Alice', color: '#ff0000' }
+	 *
+	 * // Reactive user info
+	 * const userSignal = atom('user', { id: 'user-123', name: 'Alice', color: '#ff0000' })
+	 * userInfo: userSignal
+	 * ```
 	 */
 	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
+
 	/**
-	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
+	 * Asset store implementation for handling file uploads and storage.
 	 *
-	 * If you don't have time to implement blob storage and just want to get started, you can use the inline base64 asset store. {@link tldraw#inlineBase64AssetStore}
-	 * Note that storing base64 blobs inline in JSON is very inefficient and will cause performance issues quickly with large images and videos.
+	 * Required for production applications to handle images, videos, and other
+	 * media efficiently. Without an asset store, files are stored inline as
+	 * base64, which causes performance issues with large files.
+	 *
+	 * The asset store must implement upload (for new files) and resolve
+	 * (for displaying existing files) methods. For prototyping, you can use
+	 * {@link tldraw#inlineBase64AssetStore} but this is not recommended for production.
+	 *
+	 * @example
+	 * ```ts
+	 * const myAssetStore: TLAssetStore = {
+	 *   upload: async (asset, file) => {
+	 *     const url = await uploadToCloudStorage(file)
+	 *     return { src: url }
+	 *   },
+	 *   resolve: (asset, context) => {
+	 *     return getOptimizedUrl(asset.src, context)
+	 *   }
+	 * }
+	 * ```
 	 */
 	assets: TLAssetStore
+
+	/**
+	 * Handler for receiving custom messages sent through the multiplayer connection.
+	 *
+	 * Use this to implement custom communication channels between clients beyond
+	 * the standard shape and presence synchronization. Messages are sent using
+	 * the TLSyncClient's sendMessage method.
+	 *
+	 * @param data - The custom message data received from another client
+	 *
+	 * @example
+	 * ```ts
+	 * onCustomMessageReceived: (data) => {
+	 *   if (data.type === 'chat') {
+	 *     displayChatMessage(data.message, data.userId)
+	 *   }
+	 * }
+	 * ```
+	 */
+	onCustomMessageReceived?(data: any): void
 
 	/** @internal */
 	onMount?(editor: Editor): void
@@ -277,10 +492,90 @@ export interface UseSyncOptions {
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 
 	/**
-	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object. The
-	 * result of this function will be synchronized across all clients to display presence
-	 * indicators such as cursors. See {@link @tldraw/tlschema#getDefaultUserPresence} for
+	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object.
+	 *
+	 * This function is called reactively whenever the store state changes and
+	 * determines what presence information to broadcast to other clients. The
+	 * result is synchronized across all connected clients for displaying cursors,
+	 * selections, and other collaborative indicators.
+	 *
+	 * If not provided, uses the default implementation which includes standard
+	 * cursor position and selection state. Custom implementations allow you to
+	 * add additional presence data like current tool, view state, or custom status.
+	 *
+	 * See {@link @tldraw/tlschema#getDefaultUserPresence} for
 	 * the default implementation of this function.
+	 *
+	 * @param store - The current TLStore
+	 * @param user - The current user information
+	 * @returns Presence state to broadcast to other clients, or null to hide presence
+	 *
+	 * @example
+	 * ```ts
+	 * getUserPresence: (store, user) => {
+	 *   return {
+	 *     userId: user.id,
+	 *     userName: user.name,
+	 *     cursor: { x: 100, y: 200 },
+	 *     currentTool: 'select',
+	 *     isActive: true
+	 *   }
+	 * }
+	 * ```
 	 */
 	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
 }
+
+/** @public */
+export interface UseSyncOptionsWithUri extends UseSyncOptionsBase {
+	/**
+	 * The WebSocket URI of the multiplayer server for real-time synchronization.
+	 *
+	 * Must include the protocol (wss:// for secure, ws:// for local development).
+	 * HTTP/HTTPS URLs will be automatically upgraded to WebSocket connections.
+	 *
+	 * Can be a static string or a function that returns a URI (useful for dynamic
+	 * authentication tokens or room routing). The function is called on each
+	 * connection attempt, allowing for token refresh and dynamic routing.
+	 *
+	 * Reserved query parameters `sessionId` and `storeId` are automatically added
+	 * by the sync system and should not be included in your URI.
+	 *
+	 * @example
+	 * ```ts
+	 * // Static URI
+	 * uri: 'wss://myserver.com/sync/room-123'
+	 *
+	 * // Dynamic URI with authentication
+	 * uri: async () => {
+	 *   const token = await getAuthToken()
+	 *   return `wss://myserver.com/sync/room-123?token=${token}`
+	 * }
+	 * ```
+	 */
+	uri: string | (() => string | Promise<string>)
+	connect?: never
+}
+
+/** @public */
+export interface UseSyncOptionsWithConnectFn extends UseSyncOptionsBase {
+	/**
+	 * Create a connection to the server. Mostly you should use {@link UseSyncOptionsWithUri.uri}
+	 * instead, but this is useful if you want to use a custom transport to connect to the server,
+	 * instead of our default websocket-based transport.
+	 */
+	connect: UseSyncConnectFn
+	uri?: never
+}
+
+/** @public */
+export type UseSyncConnectFn = (query: {
+	sessionId: string
+	storeId: string
+}) => TLPersistentClientSocket
+
+/**
+ * Options for the {@link useSync} hook.
+ * @public
+ */
+export type UseSyncOptions = UseSyncOptionsWithUri | UseSyncOptionsWithConnectFn

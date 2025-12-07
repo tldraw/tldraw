@@ -2,9 +2,9 @@
 	position: absolute;
 	left: 10px;
 	top: 50px;
-	background: var(--color-panel);
+	background: var(--tl-color-panel);
 	border-radius: 9px;
-	box-shadow: var(--shadow-1);
+	box-shadow: var(--tl-shadow-1);
 	z-index: 1000;
 	pointer-events: all;
 	overflow: hidden;

@@ -1,7 +1,7 @@
 import { CDPSession, Page, expect } from '@playwright/test'
-import { Editor, sleep } from 'tldraw'
-import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import { type Editor } from 'tldraw'
+import test from '../fixtures/fixtures'
+import { setupOrReset, sleep } from '../shared-e2e'
 
 declare const editor: Editor
 
@@ -80,7 +80,7 @@ const scrollZoom = async ({
 }
 
 test.describe('camera', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 
 	test('panning', async ({ isMobile, page }) => {
 		test.skip(!isMobile)

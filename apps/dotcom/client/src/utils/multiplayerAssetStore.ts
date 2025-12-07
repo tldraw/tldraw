@@ -2,7 +2,7 @@ import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
 import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
-// This fixes an issue with jest importing zero
+// This fixes an issue with vitest importing zero
 // eslint-disable-next-line local/no-internal-imports
 import { APP_ASSET_UPLOAD_ENDPOINT } from '@tldraw/dotcom-shared/src/routes'
 

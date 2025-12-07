@@ -10,6 +10,7 @@ import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	CookieConsentMenuItem,
+	DotDevMenuItem,
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
@@ -38,6 +39,7 @@ export function TlaSidebarHelpMenu() {
 					<TldrawUiMenuGroup id="support">
 						<UserManualMenuItem />
 						<GiveUsFeedbackMenuItem />
+						<DotDevMenuItem />
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="legal">
 						<LegalSummaryMenuItem />

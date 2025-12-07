@@ -1,17 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { AgGridReact } from 'ag-grid-react'
-import { BaseBoxShapeUtil, TLBaseShape, Tldraw, createShapeId, useDelaySvgExport } from 'tldraw'
+import { BaseBoxShapeUtil, TLShape, Tldraw, createShapeId, useDelaySvgExport } from 'tldraw'
 
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import 'tldraw/tldraw.css'
 
-type AgGridShape = TLBaseShape<
-	'ag-grid',
-	{ w: number; h: number; rowData: any[]; columnDefs: any[] }
->
+const AG_GRID_TYPE = 'ag-grid'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[AG_GRID_TYPE]: { w: number; h: number; rowData: any[]; columnDefs: any[] }
+	}
+}
+
+type AgGridShape = TLShape<typeof AG_GRID_TYPE>
+
 class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
-	static override type = 'ag-grid'
+	static override type = AG_GRID_TYPE
 
 	override canScroll(): boolean {
 		return true
@@ -66,9 +72,9 @@ export default function DataGridExample() {
 					const agGridShapeId = createShapeId('ag-grid')
 
 					if (!editor.getShape(agGridShapeId)) {
-						editor.createShape<AgGridShape>({
+						editor.createShape({
 							id: agGridShapeId,
-							type: 'ag-grid',
+							type: AG_GRID_TYPE,
 							props: {
 								w: 400,
 								h: 300,

@@ -1,0 +1,26 @@
+.CustomClipping-toggleButton {
+	position: absolute;
+	top: 64px;
+	left: 12px;
+	pointer-events: all;
+	z-index: 1000;
+}
+
+.CustomClipping-button {
+	padding: 8px 16px;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.CustomClipping-button--enabled {
+	background-color: #ea4335;
+}
+
+.CustomClipping-button--disabled {
+	background-color: #34a853;
+}

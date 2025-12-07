@@ -7,12 +7,10 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
-	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLTextShape,
 	TLTickEventInfo,
 	Vec,
 	VecLike,
@@ -29,7 +27,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 	creatingMarkId?: string
 	onCreate?(shape: TLShape | null): void
 	creationCursorOffset?: VecLike
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class Resizing extends StateNode {
@@ -55,7 +53,9 @@ export class Resizing extends StateNode {
 		this.info = info
 		this.didHoldCommand = false
 
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.creationCursorOffset = creationCursorOffset
 
 		try {
@@ -122,13 +122,29 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
-		// Restore initial models
+		// Call onResizeCancel callback before resetting
+		const { shapeSnapshots } = this.snapshot
+
+		shapeSnapshots.forEach(({ shape }) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onResizeCancel?.(shape, current)
+			}
+		})
+
 		this.editor.bailToMark(this.markId)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 
 	private complete() {
@@ -141,9 +157,17 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-			return
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked) {
+					this.editor.setCurrentTool(onInteractionEnd, {})
+					return
+				}
+			} else {
+				onInteractionEnd()
+				return
+			}
 		}
 
 		this.parent.transition('idle')
@@ -202,7 +226,7 @@ export class Resizing extends StateNode {
 
 		if (shapeSnapshots.size === 1) {
 			const onlySnapshot = [...shapeSnapshots.values()][0]!
-			if (this.editor.isShapeOfType<TLTextShape>(onlySnapshot.shape, 'text')) {
+			if (this.editor.isShapeOfType(onlySnapshot.shape, 'text')) {
 				isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
 			}
 		}
@@ -502,7 +526,7 @@ export class Resizing extends StateNode {
 			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
 			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
 			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
-			if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (editor.isShapeOfType(shape, 'frame')) {
 				frames.push({
 					id: shape.id,
 					children: compact(

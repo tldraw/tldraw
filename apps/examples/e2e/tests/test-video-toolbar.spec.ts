@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
 import { Editor, TLAssetId, TLVideoShape } from 'tldraw'
-import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import test from '../fixtures/fixtures'
+import { setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Video toolbar behaviour', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test.beforeEach(async ({ page, isMobile }) => {
 		// TODO: the mobile e2e test may need special handling
 		if (isMobile) return
@@ -54,13 +54,13 @@ test.describe('Video toolbar behaviour', () => {
 		if (isMobile) return
 
 		// Click the Alt Text button
-		await page.getByTitle('Alternative text').click()
+		await page.getByTestId('tool.video-alt-text').click()
 
 		// Enter some alt text
 		await page.getByTestId('media-toolbar.alt-text-input').fill('A test video for e2e testing')
 
 		// Save the alt text
-		await page.getByTitle('Confirm').click()
+		await page.getByTestId('tool.media-alt-text-confirm').click()
 
 		// Check that the alt text was saved
 		const altText = await page.evaluate(() => {
@@ -81,7 +81,7 @@ test.describe('Video toolbar behaviour', () => {
 		})
 
 		// Click the replace video button
-		await page.getByTitle('Replace media').click()
+		await page.getByTestId('tool.video-replace').click()
 
 		// This would typically open a file dialog, which is hard to test in Playwright
 		// Instead, we'll directly trigger the video replacement through evaluation

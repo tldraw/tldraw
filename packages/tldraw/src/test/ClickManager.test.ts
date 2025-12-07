@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -10,7 +11,7 @@ beforeEach(() => {
 	editor._transformPointerUpSpy.mockRestore()
 })
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 describe('Handles events', () => {
 	it('Emits single click events', () => {
@@ -23,7 +24,7 @@ describe('Handles events', () => {
 		const eventsBeforeSettle = [{ name: 'pointer_down' }, { name: 'pointer_up' }]
 
 		// allow time for settle
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		// nothing should have settled
 		expect(events).toMatchObject(eventsBeforeSettle)
@@ -64,7 +65,7 @@ describe('Handles events', () => {
 		}
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
@@ -110,7 +111,7 @@ describe('Handles events', () => {
 		expect(eventsBeforeSettle).toMatchObject(eventsBeforeSettle)
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
@@ -162,7 +163,7 @@ describe('Handles events', () => {
 		expect(events).toMatchObject(eventsBeforeSettle)
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
@@ -218,7 +219,7 @@ describe('Handles events', () => {
 		expect(events).toMatchObject(eventsBeforeSettle)
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject(eventsBeforeSettle)
 

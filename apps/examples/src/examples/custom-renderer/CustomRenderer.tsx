@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { TLDrawShape, TLGeoShape, getDefaultColorTheme, useEditor } from 'tldraw'
+import { getColorValue, getDefaultColorTheme, useEditor } from 'tldraw'
 
 export function CustomRenderer() {
 	const editor = useEditor()
@@ -58,7 +58,7 @@ export function CustomRenderer() {
 				const transform = editor.getShapePageTransform(shape.id)
 				ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
 
-				if (editor.isShapeOfType<TLDrawShape>(shape, 'draw')) {
+				if (editor.isShapeOfType(shape, 'draw')) {
 					// Draw a freehand shape
 					for (const segment of shape.props.segments) {
 						ctx.moveTo(segment.points[0].x, segment.points[0].y)
@@ -70,17 +70,17 @@ export function CustomRenderer() {
 							}
 						}
 					}
-					ctx.strokeStyle = theme[shape.props.color].solid
+					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')
 					ctx.lineWidth = 4
 					ctx.stroke()
 					if (shape.props.fill !== 'none' && shape.props.isClosed) {
-						ctx.fillStyle = theme[shape.props.color].semi
+						ctx.fillStyle = getColorValue(theme, shape.props.color, 'semi')
 						ctx.fill()
 					}
-				} else if (editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
+				} else if (editor.isShapeOfType(shape, 'geo')) {
 					// Draw a geo shape
 					const bounds = editor.getShapeGeometry(shape).bounds
-					ctx.strokeStyle = theme[shape.props.color].solid
+					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')
 					ctx.lineWidth = 2
 					ctx.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 				} else {

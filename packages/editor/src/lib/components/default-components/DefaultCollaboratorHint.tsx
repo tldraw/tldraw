@@ -44,7 +44,7 @@ export function DefaultCollaboratorHint({
 				href={`#${cursorHintId}`}
 				color={color}
 				strokeWidth={3}
-				stroke="var(--color-background)"
+				stroke="var(--tl-color-background)"
 			/>
 			<use href={`#${cursorHintId}`} color={color} opacity={opacity} />
 		</svg>

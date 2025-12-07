@@ -31,7 +31,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 			<path
 				className="tl-scribble"
 				d={d}
-				fill={color ?? `var(--color-${scribble.color})`}
+				fill={color ?? `var(--tl-color-${scribble.color})`}
 				opacity={opacity ?? scribble.opacity}
 			/>
 		</svg>

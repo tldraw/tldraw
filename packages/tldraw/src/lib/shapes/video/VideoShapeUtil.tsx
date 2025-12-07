@@ -95,7 +95,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
 	const editor = useEditor()
-	const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
+	const showControls =
+		editor.getShapeGeometry(shape).bounds.w * editor.getEfficientZoomLevel() >= 110
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
@@ -142,9 +143,9 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			<HTMLContainer
 				id={shape.id}
 				style={{
-					color: 'var(--color-text-3)',
-					backgroundColor: asset ? 'transparent' : 'var(--color-low)',
-					border: asset ? 'none' : '1px solid var(--color-low-border)',
+					color: 'var(--tl-color-text-3)',
+					backgroundColor: asset ? 'transparent' : 'var(--tl-color-low)',
+					border: asset ? 'none' : '1px solid var(--tl-color-low-border)',
 				}}
 			>
 				<div className="tl-counter-scaled">

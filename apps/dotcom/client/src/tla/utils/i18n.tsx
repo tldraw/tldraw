@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-imports */
-
+import { FormatXMLElementFn } from 'intl-messageformat'
+import { ComponentPropsWithoutRef } from 'react'
 import {
 	FormattedMessage,
 	IntlConfig,
@@ -11,9 +12,6 @@ import {
 	defineMessages as originalDefineMessages,
 	useIntl,
 } from 'react-intl'
-
-import { FormatXMLElementFn } from 'intl-messageformat'
-import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
@@ -60,9 +58,9 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 }
 
 // We programmatically define ID's for messages to make things easier for devs.
-export function defineMessages<T extends string, D extends MessageDescriptor>(
-	msgs: Record<T, D>
-): Record<T, D> {
+export function defineMessages<Messages extends Record<string, MessageDescriptor>>(
+	msgs: Messages
+): Messages {
 	for (const key in msgs) {
 		if (!msgs[key].id) {
 			msgs[key].id = fetchId(msgs[key])

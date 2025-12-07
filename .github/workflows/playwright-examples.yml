@@ -49,6 +49,9 @@ jobs:
       - name: Run Playwright tests
         run: 'yarn e2e'
         working-directory: apps/examples
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -67,7 +70,7 @@ jobs:
         with:
           aws_key_id: ${{ secrets.AWS_S3_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_KEY}}
-          aws_bucket: playwright-reports.tldraw.xyz
+          aws_bucket: playwright.tldraw.xyz
           source_dir: apps/examples/playwright-report
 
       - name: Log report to summary

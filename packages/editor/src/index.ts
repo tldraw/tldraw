@@ -68,6 +68,10 @@ export {
 	type TLShapeIndicatorsProps,
 } from './lib/components/default-components/DefaultShapeIndicators'
 export {
+	DefaultShapeWrapper,
+	type TLShapeWrapperProps,
+} from './lib/components/default-components/DefaultShapeWrapper'
+export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
 } from './lib/components/default-components/DefaultSnapIndictor'
@@ -261,9 +265,10 @@ export {
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLExportType,
+	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
-	type TLSvgOptions,
+	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
 	type TLAdjacentDirection,
@@ -277,7 +282,7 @@ export {
 	type SvgExportDef,
 } from './lib/editor/types/SvgExportContext'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
-export { tlenv } from './lib/globals/environment'
+export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
 export {
@@ -325,9 +330,10 @@ export {
 	type InvalidLicenseReason,
 	type LicenseFromKeyResult,
 	type LicenseInfo,
-	type TestEnvironment,
+	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
+export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
 export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,
@@ -425,6 +431,7 @@ export {
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {
+	createDebugValue,
 	debugFlags,
 	featureFlags,
 	type DebugFlag,
@@ -445,6 +452,7 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
+export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
@@ -477,14 +485,6 @@ export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalInd
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { uniq } from './lib/utils/uniq'
 export { openWindow } from './lib/utils/window-open'
-
-/**
- * @deprecated Licensing is now enabled in the tldraw SDK.
- * @public */
-export function debugEnableLicensing() {
-	// noop
-	return
-}
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

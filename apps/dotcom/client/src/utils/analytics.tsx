@@ -3,17 +3,52 @@ import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
 import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
-import { useValue, warnOnce } from 'tldraw'
+import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+
+// Local storage key for cookie consent
+export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
+
+// Cookie consent structure
+interface CookieConsent {
+	analytics: boolean
+	// Future consent types can be added here
+	// marketing?: boolean
+	// functional?: boolean
+}
+
+// Cookie consent atom - stores the full consent object
+export const cookieConsent = atom<CookieConsent | null>('cookie consent', getStoredCookieConsent())
+
+// React to changes in the atom and sync with localStorage
+react('sync cookie consent to localStorage', () => {
+	const consent = cookieConsent.get()
+	if (consent !== null) {
+		try {
+			setInLocalStorage(COOKIE_CONSENT_KEY, JSON.stringify(consent))
+		} catch {
+			// Ignore localStorage errors
+		}
+	}
+})
+
+// Helper function to get analytics consent from the atom
+export function useAnalyticsConsentValue(): boolean | null {
+	return useValue('analytics consent', () => cookieConsent.get()?.analytics ?? null, [
+		cookieConsent,
+	])
+}
 
 export type AnalyticsOptions =
 	| {
 			optedIn: true
-			user: {
-				id: string
-				name: string
-				email: string
-			}
+			user:
+				| {
+						id: string
+						name: string
+						email: string
+				  }
+				| undefined
 	  }
 	| {
 			optedIn: false
@@ -49,6 +84,53 @@ function filterProperties(value: { [key: string]: any }) {
 	}, {})
 }
 
+// Helper functions for localStorage consent management
+export function getStoredCookieConsent(): CookieConsent | null {
+	try {
+		const stored = getFromLocalStorage(COOKIE_CONSENT_KEY)
+		if (!stored) return null
+		return JSON.parse(stored) as CookieConsent
+	} catch {
+		return null
+	}
+}
+
+export function setStoredCookieConsent(consent: Partial<CookieConsent>): void {
+	const existing = cookieConsent.get() || {}
+	const updated = { ...existing, ...consent }
+	// Ensure we only set the atom if we have a complete CookieConsent object
+	if (updated.analytics !== undefined) {
+		cookieConsent.set(updated as CookieConsent)
+	}
+}
+
+export function setStoredAnalyticsConsent(consent: boolean): void {
+	setStoredCookieConsent({ analytics: consent })
+}
+
+// Function to configure analytics when consent changes
+export function configureAnalytics(
+	consent: boolean,
+	user: { id: string; name: string; email: string } | undefined
+) {
+	configurePosthog({
+		optedIn: consent,
+		user,
+	} as AnalyticsOptions)
+
+	configureGA4({
+		optedIn: consent,
+		user,
+	} as AnalyticsOptions)
+
+	if (user) {
+		setupReo({
+			optedIn: consent,
+			user,
+		})
+	}
+}
+
 let currentOptionsPosthog: AnalyticsOptions | null = null
 let eventBufferPosthog: null | Array<{ name: string; data: Properties | null | undefined }> = []
 function configurePosthog(options: AnalyticsOptions) {
@@ -58,10 +140,11 @@ function configurePosthog(options: AnalyticsOptions) {
 	const sessionID = hashParams.get('session_id')
 	const distinctID = hashParams.get('distinct_id')
 	const config: Partial<PostHogConfig> = {
-		api_host: 'https://analytics.tldraw.com/ingest',
+		api_host: 'https://analytics.tldraw.com/i',
 		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
-		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
+		cookieless_mode: 'on_reject',
+		disable_surveys: true,
 		before_send: (payload) => {
 			if (!payload) return null
 			payload.properties.is_signed_in = !!options.user
@@ -88,19 +171,28 @@ function configurePosthog(options: AnalyticsOptions) {
 				: undefined,
 	}
 	if (!currentOptionsPosthog) {
+		// First time initialization only
 		posthog.init(POSTHOG_KEY, config)
+	} else {
+		// We need to call _before_ opt_in/opt_out to avoid interfering with
+		// their state management
+		posthog.set_config(config)
 	}
 
 	if (options.optedIn) {
-		posthog.identify(options.user.id, {
-			email: options.user.email,
-			name: options.user.name,
-		})
+		if (options.user) {
+			posthog.identify(options.user.id, {
+				email: options.user.email,
+				name: options.user.name,
+				analytics_consent: true,
+			})
+		}
+		posthog.opt_in_capturing()
 	} else if (currentOptionsPosthog?.optedIn) {
-		posthog.reset()
+		posthog.setPersonProperties({ analytics_consent: false })
+		posthog.opt_out_capturing()
 	}
 
-	posthog.set_config(config)
 	currentOptionsPosthog = options
 	eventBufferPosthog?.forEach((event) => posthog.capture(event.name, event.data))
 	eventBufferPosthog = null
@@ -121,12 +213,23 @@ function configureGA4(options: AnalyticsOptions) {
 			wait_for_update: 500,
 		})
 
-		ReactGA.initialize(GA4_MEASUREMENT_ID)
-		ReactGA.send('pageview')
+		// Set up conversion linker for cross-domain tracking with tldraw.dev
+		// Must be set before ReactGA.initialize() to ensure it's configured before gtag('config')
+		ReactGA.gtag('set', 'linker', {
+			domains: ['tldraw.dev'],
+		})
+
+		ReactGA.initialize(GA4_MEASUREMENT_ID, {
+			gtagOptions: {
+				send_page_view: false,
+			},
+		})
 	}
 
 	if (options.optedIn) {
-		ReactGA.set({ userId: options.user.id, anonymize_ip: false })
+		if (options.user) {
+			ReactGA.set({ userId: options.user.id, anonymize_ip: false })
+		}
 		ReactGA.gtag('consent', 'update', {
 			ad_user_data: 'granted',
 			ad_personalization: 'granted',
@@ -178,7 +281,20 @@ function getGA4() {
 
 export function trackEvent(name: string, data?: { [key: string]: any }) {
 	getPosthog()?.capture(name, data)
-	getGA4()?.event(name, data)
+
+	// Send pageviews to both platforms, but other app-specific events only to PostHog
+	if (name === '$pageview') {
+		getGA4()?.event('page_view', data)
+	}
+
+	// Track watermark clicks in GA4
+	if (name === 'click-watermark' && data?.url) {
+		if (getGA4()) {
+			ReactGA.gtag('event', 'click_tldraw_dev', {
+				link_url: data.url,
+			})
+		}
+	}
 }
 
 export function useHandleUiEvents() {
@@ -186,11 +302,12 @@ export function useHandleUiEvents() {
 }
 
 export function SignedOutAnalytics() {
+	const storedConsent = useAnalyticsConsentValue()
+
 	useEffect(() => {
-		configurePosthog({ optedIn: false })
-		configureGA4({ optedIn: false })
+		configureAnalytics(storedConsent === true, undefined)
 		document.getElementById('reo-iframe-loader')?.remove()
-	}, [])
+	}, [storedConsent])
 
 	useTrackPageViews()
 
@@ -211,10 +328,10 @@ function setupReo(options: AnalyticsOptions) {
 
 	const reoIdentify = () =>
 		postToReoIframe('identify', {
-			firstname: user.name,
-			username: user.email,
+			firstname: user?.name || '',
+			username: user?.email || '',
 			type: 'email',
-			userId: user.id,
+			userId: user?.id || '',
 		})
 
 	if (!document.getElementById('reo-iframe-loader')) {
@@ -232,21 +349,27 @@ function setupReo(options: AnalyticsOptions) {
 export function SignedInAnalytics() {
 	const app = useApp()
 	const user = useValue('userData', () => app.getUser(), [app])
+	const storedConsent = useAnalyticsConsentValue()
 
 	useEffect(() => {
-		configurePosthog({
-			optedIn: user.allowAnalyticsCookie === true,
-			user: { id: user.id, name: user.name, email: user.email },
-		})
-		configureGA4({
-			optedIn: user.allowAnalyticsCookie === true,
-			user: { id: user.id, name: user.name, email: user.email },
-		})
-		setupReo({
-			optedIn: user.allowAnalyticsCookie === true,
-			user: { id: user.id, name: user.name, email: user.email },
-		})
-	}, [user.allowAnalyticsCookie, user.email, user.id, user.name])
+		const userConsent = user.allowAnalyticsCookie
+
+		// If user has no preference in database but has one in atom/localStorage, sync it
+		if (userConsent === null && storedConsent !== null) {
+			app.updateUser({ id: user.id, allowAnalyticsCookie: storedConsent })
+		}
+
+		// Sync database consent to atom/localStorage to keep them in sync
+		// This will run if a logged in user changes their preference
+		if (userConsent !== null && userConsent !== storedConsent) {
+			setStoredAnalyticsConsent(userConsent)
+		}
+
+		// Use user's database preference if available, otherwise fall back to stored consent
+		const finalConsent = userConsent !== null ? userConsent : storedConsent === true
+
+		configureAnalytics(finalConsent, { id: user.id, name: user.name, email: user.email })
+	}, [user.allowAnalyticsCookie, user.email, user.id, user.name, app, storedConsent])
 
 	useTrackPageViews()
 
@@ -258,4 +381,9 @@ function useTrackPageViews() {
 	useEffect(() => {
 		trackEvent('$pageview')
 	}, [location])
+}
+
+export function signoutAnalytics() {
+	if (shouldUsePosthog) posthog.reset()
+	if (shouldUseGA4) ReactGA.reset()
 }

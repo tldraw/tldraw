@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -6,7 +7,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 it('zooms in gradually when duration is present and animtion speed is default', () => {
 	expect(editor.getZoomLevel()).toBe(1)

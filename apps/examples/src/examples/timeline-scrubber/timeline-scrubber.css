@@ -1,0 +1,36 @@
+.timeline-scrubber-example {
+	height: 100vh;
+	width: 100%;
+}
+
+.timeline-scrubber-controls {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 0 16px;
+	background: var(--color-panel);
+	border-top: 1px solid var(--color-muted-1);
+	font-size: 12px;
+	color: var(--color-text-1);
+}
+
+.timeline-scrubber-info {
+	flex-shrink: 0;
+	font-variant: tabular-nums;
+}
+
+.timeline-scrubber-controls .tlui-slider__container {
+	flex: 1;
+}
+
+.timeline-scrubber-example .tl-canvas {
+	top: 44px;
+}
+.timeline-scrubber-example .tlui-layout {
+	top: 44px;
+	height: calc(100% - 44px);
+}

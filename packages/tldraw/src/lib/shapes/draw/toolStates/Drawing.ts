@@ -239,7 +239,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial])
+				this.editor.updateShapes([shapePartial])
 
 				return
 			}
@@ -251,7 +251,7 @@ export class Drawing extends StateNode {
 		const id = createShapeId()
 
 		// Allow this to trigger the max shapes reached alert
-		this.editor.createShape<DrawableShape>({
+		this.editor.createShape({
 			id,
 			type: this.shapeType,
 			x: originPagePoint.x,
@@ -367,7 +367,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial])
+					this.editor.updateShapes([shapePartial])
 				}
 				break
 			}
@@ -645,7 +645,7 @@ export class Drawing extends StateNode {
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
-					this.editor.createShape<DrawableShape>({
+					this.editor.createShape({
 						id: newShapeId,
 						type: this.shapeType,
 						x: toFixed(inputs.currentPagePoint.x),

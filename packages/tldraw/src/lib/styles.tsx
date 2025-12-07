@@ -1,7 +1,9 @@
+import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
+
 /** @public */
 export type StyleValuesForUi<T> = readonly {
 	readonly value: T
-	readonly icon: string
+	readonly icon: string | TLUiIconJsx
 }[]
 
 // todo: default styles prop?

@@ -17,7 +17,7 @@ export class Cropping extends StateNode {
 	info = {} as TLPointerEventInfo & {
 		target: 'selection'
 		handle: SelectionHandle
-		onInteractionEnd?: string
+		onInteractionEnd?: string | (() => void)
 	}
 
 	markId = ''
@@ -28,10 +28,13 @@ export class Cropping extends StateNode {
 		info: TLPointerEventInfo & {
 			target: 'selection'
 			handle: SelectionHandle
-			onInteractionEnd?: string
+			onInteractionEnd?: string | (() => void)
 		}
 	) {
 		this.info = info
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
@@ -59,6 +62,10 @@ export class Cropping extends StateNode {
 
 	override onCancel() {
 		this.cancel()
+	}
+
+	override onExit() {
+		this.parent.setCurrentToolIdMask(undefined)
 	}
 
 	private updateCursor() {
@@ -108,8 +115,13 @@ export class Cropping extends StateNode {
 	private complete() {
 		this.updateShapes()
 		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
 		} else {
 			this.editor.setCroppingShape(null)
 			this.editor.setCurrentTool('select.idle')
@@ -118,8 +130,13 @@ export class Cropping extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
 		} else {
 			this.editor.setCroppingShape(null)
 			this.editor.setCurrentTool('select.idle')

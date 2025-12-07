@@ -14,6 +14,7 @@ import {
 	loadSnapshot,
 	react,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -415,24 +416,24 @@ describe('isFocused', () => {
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -444,13 +445,13 @@ describe('isFocused', () => {
 		editor.elm.blur()
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -466,17 +467,25 @@ describe('isFocused', () => {
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 })
+
+const BLORG_TYPE = 'blorg'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[BLORG_TYPE]: { w: number; h: number }
+	}
+}
 
 describe('getShapeUtil', () => {
 	let myUtil: any
 
 	beforeEach(() => {
 		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
-			static override type = 'blorg'
+			static override type = BLORG_TYPE
 
 			getDefaultProps() {
 				return {
@@ -518,16 +527,22 @@ describe('getShapeUtil', () => {
 	})
 
 	it('throws if that shape type isnt registered', () => {
-		const myMissingShape = { type: 'missing' } as TLShape
-		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
-		)
+		const myMissingShape = { type: 'missing' }
+		expect(() =>
+			editor.getShapeUtil(
+				// @ts-expect-error
+				myMissingShape
+			)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: No shape util found for type "missing"]`)
 	})
 
 	it('throws if that type isnt registered', () => {
-		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
-		)
+		expect(() =>
+			editor.getShapeUtil(
+				// @ts-expect-error
+				'missing'
+			)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: No shape util found for type "missing"]`)
 	})
 })
 
@@ -603,14 +618,14 @@ describe('snapshots', () => {
 
 describe('when the user prefers dark UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: query === '(prefers-color-scheme: dark)',
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -630,14 +645,14 @@ describe('when the user prefers dark UI', () => {
 
 describe('when the user prefers light UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: false,
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -722,7 +737,7 @@ describe('dragging', () => {
 })
 
 describe('getShapeVisibility', () => {
-	const getShapeVisibility = jest.fn(((shape: TLShape) => {
+	const getShapeVisibility = vi.fn(((shape: TLShape) => {
 		return shape.meta.visibility as any
 	}) satisfies TldrawEditorProps['getShapeVisibility'])
 
@@ -865,9 +880,19 @@ describe('instance.isReadonly', () => {
 	})
 })
 
+const MY_CUSTOM_SHAPE_TYPE = 'myCustomShape'
+
+type MyCustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number }
+	}
+}
+
 describe('the geometry cache', () => {
-	class CustomShapeUtil extends BaseBoxShapeUtil<any> {
-		static override type = 'custom'
+	class CustomShapeUtil extends BaseBoxShapeUtil<MyCustomShape> {
+		static override type = MY_CUSTOM_SHAPE_TYPE
 
 		getDefaultProps() {
 			return {
@@ -893,9 +918,11 @@ describe('the geometry cache', () => {
 		editor = new TestEditor({
 			shapeUtils: [CustomShapeUtil],
 		})
-		const { A } = editor.createShapesFromJsx([<TL.custom ref="A" x={0} y={0} w={100} h={100} />])
+		const { A } = editor.createShapesFromJsx([
+			<TL.myCustomShape ref="A" x={0} y={0} w={100} h={100} />,
+		])
 		expect(editor.getShapePageBounds(A)!.width).toBe(100)
-		editor.updateShape({ id: A, type: 'custom', meta: { double: true } })
+		editor.updateShape({ id: A, type: 'myCustomShape', meta: { double: true } })
 		expect(editor.getShapePageBounds(A)!.width).toBe(200)
 	})
 })

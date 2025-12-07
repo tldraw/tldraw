@@ -131,6 +131,21 @@ export class TldrawApiModel extends ApiModel {
 				return this.resolveToken(component, tokens[2])
 			}
 
+			if (
+				tokens.length === 9 &&
+				tokens[0].text === 'import("react").' &&
+				tokens[1].text === 'ForwardRefExoticComponent' &&
+				tokens[2].text === '<' &&
+				tokens[3].kind === ExcerptTokenKind.Reference &&
+				tokens[4].text === ' & import("react").' &&
+				tokens[5].text === 'RefAttributes' &&
+				tokens[6].text === '<' &&
+				tokens[7].kind === ExcerptTokenKind.Reference &&
+				tokens[8].text === '>>'
+			) {
+				return this.resolveToken(component, tokens[3])
+			}
+
 			if (component.variableTypeExcerpt.text === 'import("react").NamedExoticComponent<object>') {
 				// this is a `memo` component with no props
 				return null

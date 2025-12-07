@@ -11,6 +11,11 @@
 	"type": "module",
 	"tldraw_template": {
 		"repo": "tldraw/vite-template",
+		"cli": {
+			"name": "Basic",
+			"description": "A minimal tldraw template with Vite, React, and TypeScript.",
+			"order": 1
+		},
 		"scripts": {
 			"lint": null
 		}

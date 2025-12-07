@@ -96,7 +96,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 			const screenScale = exportInfo
 				? exportInfo.scale * (width / asset.props.w)
-				: editor.getZoomLevel() * (width / asset.props.w)
+				: editor.getEfficientZoomLevel() * (width / asset.props.w)
 
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
 				if (isCancelled) return // don't update if the hook has remounted
@@ -158,10 +158,3 @@ function resolveAssetUrl(
 			callback(url)
 		})
 }
-
-/**
- * @deprecated Use {@link useImageOrVideoAsset} instead.
- *
- * @public
- */
-export const useAsset = useImageOrVideoAsset

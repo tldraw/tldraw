@@ -22,8 +22,20 @@ export {
 } from './lib/shapes/shared/PathBuilder'
 export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
 export { DefaultA11yAnnouncer, useSelectedShapesAnnouncer } from './lib/ui/components/A11y'
+export { AccessibilityMenu } from './lib/ui/components/AccessibilityMenu'
 export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
+export { DefaultFollowingIndicator } from './lib/ui/components/DefaultFollowingIndicator'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
+export {
+	TldrawUiColumn,
+	TldrawUiGrid,
+	TldrawUiOrientationProvider,
+	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
+	type TLUiLayoutProps,
+} from './lib/ui/components/primitives/layout'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -41,6 +53,7 @@ export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTr
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
+export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
@@ -71,7 +84,9 @@ export {
 	defaultHandleExternalTldrawContent,
 	defaultHandleExternalUrlAsset,
 	defaultHandleExternalUrlContent,
+	getAssetInfo,
 	getMediaAssetInfoPartial,
+	notifyIfFileNotAllowed,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
@@ -91,6 +106,13 @@ export {
 } from './lib/shapes/arrow/arrow-types'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
+export {
+	clearArrowTargetState,
+	getArrowTargetState,
+	updateArrowTargetState,
+	type ArrowTargetState,
+	type UpdateArrowTargetStateOpts,
+} from './lib/shapes/arrow/arrowTargetState'
 export {
 	type ElbowArrowBox,
 	type ElbowArrowBoxEdges,
@@ -112,6 +134,7 @@ export {
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
+export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
@@ -153,11 +176,10 @@ export {
 	type TLDefaultFont,
 	type TLDefaultFonts,
 } from './lib/shapes/shared/defaultFonts'
-export {
-	PlainTextLabel,
-	TextLabel,
-	type PlainTextLabelProps,
-} from './lib/shapes/shared/PlainTextLabel'
+export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
+export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
+export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
+export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,
 	RichTextSVG,
@@ -165,10 +187,9 @@ export {
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
-export { useEditablePlainText, useEditableText } from './lib/shapes/shared/useEditablePlainText'
+export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
-	useAsset,
 	useImageOrVideoAsset,
 	type UseImageOrVideoAssetOptions,
 } from './lib/shapes/shared/useImageOrVideoAsset'
@@ -183,6 +204,7 @@ export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { getHitShapeOnCanvasPointerDown } from './lib/tools/selection-logic/getHitShapeOnCanvasPointerDown'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 export {
@@ -219,7 +241,10 @@ export {
 	DefaultDebugMenuContent,
 	ExampleDialog,
 	FeatureFlags,
+	type CustomDebugFlags,
+	type DebugFlagsProps,
 	type ExampleDialogProps,
+	type FeatureFlagsProps,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 export { DefaultMenuPanel } from './lib/ui/components/DefaultMenuPanel'
 export {
@@ -250,6 +275,7 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	LockGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
@@ -281,6 +307,7 @@ export {
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
+	ToggleEnhancedA11yModeItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleKeyboardShortcutsItem,
@@ -345,10 +372,6 @@ export {
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
 export {
-	TldrawUiButtonPicker,
-	type TLUiButtonPickerProps,
-} from './lib/ui/components/primitives/TldrawUiButtonPicker'
-export {
 	TldrawUiContextualToolbar,
 	type TLUiContextualToolbarProps,
 } from './lib/ui/components/primitives/TldrawUiContextualToolbar'
@@ -382,7 +405,11 @@ export {
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
 } from './lib/ui/components/primitives/TldrawUiDropdownMenu'
-export { TldrawUiIcon, type TLUiIconProps } from './lib/ui/components/primitives/TldrawUiIcon'
+export {
+	TldrawUiIcon,
+	type TLUiIconJsx,
+	type TLUiIconProps,
+} from './lib/ui/components/primitives/TldrawUiIcon'
 export { TldrawUiInput, type TLUiInputProps } from './lib/ui/components/primitives/TldrawUiInput'
 export { TldrawUiKbd, type TLUiKbdProps } from './lib/ui/components/primitives/TldrawUiKbd'
 export {
@@ -405,6 +432,13 @@ export {
 	type TLUiToolbarToggleItemProps,
 } from './lib/ui/components/primitives/TldrawUiToolbar'
 export {
+	hideAllTooltips,
+	TldrawUiTooltip,
+	TldrawUiTooltipProvider,
+	type TldrawUiTooltipProps,
+	type TldrawUiTooltipProviderProps,
+} from './lib/ui/components/primitives/TldrawUiTooltip'
+export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
@@ -417,17 +451,47 @@ export {
 	type TLUiStylePanelProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanel'
 export {
-	ArrowheadStylePickerSet,
-	CommonStylePickerSet,
 	DefaultStylePanelContent,
-	GeoStylePickerSet,
-	OpacitySlider,
-	SplineStylePickerSet,
-	TextStylePickerSet,
-	type StylePickerSetProps,
-	type ThemeStylePickerSetProps,
-	type TLUiStylePanelContentProps,
+	StylePanelArrowheadPicker,
+	StylePanelArrowKindPicker,
+	StylePanelColorPicker,
+	StylePanelDashPicker,
+	StylePanelFillPicker,
+	StylePanelFontPicker,
+	StylePanelGeoShapePicker,
+	StylePanelLabelAlignPicker,
+	StylePanelOpacityPicker,
+	StylePanelSection,
+	StylePanelSizePicker,
+	StylePanelSplinePicker,
+	StylePanelTextAlignPicker,
+	type StylePanelSectionProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export {
+	StylePanelButtonPicker,
+	StylePanelButtonPickerInline,
+	type StylePanelButtonPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelButtonPicker'
+export {
+	StylePanelContextProvider,
+	useStylePanelContext,
+	type StylePanelContext,
+	type StylePanelContextProviderProps,
+} from './lib/ui/components/StylePanel/StylePanelContext'
+export {
+	StylePanelDoubleDropdownPicker,
+	StylePanelDoubleDropdownPickerInline,
+	type StylePanelDoubleDropdownPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelDoubleDropdownPicker'
+export {
+	StylePanelDropdownPicker,
+	StylePanelDropdownPickerInline,
+	type StylePanelDropdownPickerProps,
+} from './lib/ui/components/StylePanel/StylePanelDropdownPicker'
+export {
+	StylePanelSubheading,
+	type StylePanelSubheadingProps,
+} from './lib/ui/components/StylePanel/StylePanelSubheading'
 export {
 	DefaultImageToolbar,
 	type TLUiImageToolbarProps,
@@ -495,6 +559,10 @@ export {
 	OverflowingToolbar,
 	type OverflowingToolbarProps,
 } from './lib/ui/components/Toolbar/OverflowingToolbar'
+export {
+	ToggleToolLockedButton,
+	type ToggleToolLockedButtonProps,
+} from './lib/ui/components/Toolbar/ToggleToolLockedButton'
 export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,
@@ -564,7 +632,7 @@ export {
 	type TLUiToastsContextType,
 	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
-export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
+export { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
@@ -578,7 +646,9 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
+	onDragFromToolbarToCreateShape,
 	useTools,
+	type OnDragFromToolbarToCreateShapesOpts,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
 	type TLUiToolsProviderProps,
@@ -593,13 +663,12 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export { TldrawUi, type TldrawUiProps } from './lib/ui/TldrawUi'
+export { TldrawUi, TldrawUiInFrontOfTheCanvas, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { putExcalidrawContent } from './lib/utils/excalidraw/putExcalidrawContent'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
-export { exportToBlob } from './lib/utils/export/export'
 export { downloadFile, exportAs, type ExportAsOptions } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {

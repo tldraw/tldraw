@@ -1,4 +1,12 @@
-import { TLFrameShape, TLGroupShape, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import {
+	TLFrameShape,
+	TLGroupShape,
+	TLPageId,
+	TLShape,
+	TLShapeId,
+	createShapeId,
+} from '@tldraw/tlschema'
+import { Mocked, vi } from 'vitest'
 import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
@@ -7,32 +15,33 @@ import { HandleSnaps } from './HandleSnaps'
 import { GapsSnapIndicator, PointsSnapIndicator, SnapManager } from './SnapManager'
 
 // Mock the Editor class
-jest.mock('../../Editor')
-jest.mock('./BoundsSnaps')
-jest.mock('./HandleSnaps')
+vi.mock('../../Editor')
+vi.mock('./BoundsSnaps')
+vi.mock('./HandleSnaps')
 
 describe('SnapManager', () => {
-	let editor: jest.Mocked<Editor>
+	let editor: Mocked<Editor>
 	let snapManager: SnapManager
 
 	const createMockShape = (
 		id: TLShapeId,
 		type: string = 'geo',
 		parentId: TLShapeId | string = 'page:page'
-	) => ({
-		id,
-		type,
-		parentId,
-		x: 0,
-		y: 0,
-		rotation: 0,
-		index: 'a1' as const,
-		opacity: 1,
-		isLocked: false,
-		meta: {},
-		props: {},
-		typeName: 'shape' as const,
-	})
+	) =>
+		({
+			id,
+			type,
+			parentId,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			index: 'a1' as const,
+			opacity: 1,
+			isLocked: false,
+			meta: {},
+			props: {},
+			typeName: 'shape' as const,
+		}) as TLShape
 
 	const createMockFrameShape = (id: TLShapeId): TLFrameShape =>
 		({
@@ -54,26 +63,26 @@ describe('SnapManager', () => {
 
 	beforeEach(() => {
 		editor = {
-			getZoomLevel: jest.fn(() => 1),
-			getViewportPageBounds: jest.fn(() => new Box(0, 0, 1000, 1000)),
-			getSelectedShapeIds: jest.fn(() => []),
-			getSelectedShapes: jest.fn(() => []),
-			findCommonAncestor: jest.fn(() => createShapeId('page')),
-			getCurrentPageId: jest.fn(() => 'page:page' as TLPageId),
-			getSortedChildIdsForParent: jest.fn(() => []),
-			getShape: jest.fn(),
-			getShapeUtil: jest.fn(() => ({
-				canSnap: jest.fn(() => true),
+			getZoomLevel: vi.fn(() => 1),
+			getViewportPageBounds: vi.fn(() => new Box(0, 0, 1000, 1000)),
+			getSelectedShapeIds: vi.fn(() => []),
+			getSelectedShapes: vi.fn(() => []),
+			findCommonAncestor: vi.fn(() => createShapeId('page')),
+			getCurrentPageId: vi.fn(() => 'page:page' as TLPageId),
+			getSortedChildIdsForParent: vi.fn(() => []),
+			getShape: vi.fn(),
+			getShapeUtil: vi.fn(() => ({
+				canSnap: vi.fn(() => true),
 			})),
-			getShapePageBounds: jest.fn(),
-			isShapeOfType: jest.fn(),
+			getShapePageBounds: vi.fn(),
+			isShapeOfType: vi.fn(),
 		} as any
 
 		snapManager = new SnapManager(editor)
 	})
 
 	afterEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 	})
 
 	describe('constructor and initialization', () => {
@@ -304,7 +313,7 @@ describe('SnapManager', () => {
 			editor.getSortedChildIdsForParent.mockReturnValue([shapeId])
 			editor.getShape.mockReturnValue(shape as any)
 			editor.getShapeUtil.mockReturnValue({
-				canSnap: jest.fn(() => false),
+				canSnap: vi.fn(() => false),
 			} as any)
 
 			const result = snapManager.getSnappableShapes()
@@ -329,7 +338,7 @@ describe('SnapManager', () => {
 			const frameShape = createMockFrameShape(frameId)
 
 			editor.getSortedChildIdsForParent.mockReturnValue([frameId])
-			editor.getShape.mockReturnValue(frameShape as any)
+			editor.getShape.mockReturnValue(frameShape)
 			editor.isShapeOfType.mockImplementation((_shape, type) => type === 'frame')
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
@@ -348,14 +357,12 @@ describe('SnapManager', () => {
 				.mockReturnValueOnce([childId]) // Inside group
 
 			editor.getShape.mockImplementation((id) => {
-				if (id === groupId) return groupShape as any
-				if (id === childId) return childShape as any
+				if (id === groupId) return groupShape
+				if (id === childId) return childShape
 				return undefined
 			})
 
-			editor.isShapeOfType.mockImplementation(
-				(shape, type) => shape && (shape as any).type === type
-			)
+			editor.isShapeOfType.mockImplementation((shape: any, type) => shape && shape.type === type)
 
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
@@ -372,26 +379,26 @@ describe('SnapManager', () => {
 
 			// Override the getCurrentCommonAncestor mock for this specific test
 			const originalGetCurrentCommonAncestor = snapManager.getCurrentCommonAncestor
-			jest.spyOn(snapManager, 'getCurrentCommonAncestor').mockReturnValue(parentFrameId)
+			vi.spyOn(snapManager, 'getCurrentCommonAncestor').mockReturnValue(parentFrameId)
 
 			editor.getSortedChildIdsForParent.mockReturnValueOnce([childFrameId]) // Children of parent frame
 
-			editor.getShape.mockImplementation((id) => {
+			editor.getShape.mockImplementation((id: any) => {
 				if (id === parentFrameId) return parentFrame as any
 				if (id === childFrameId) return childFrame as any
 				return undefined
 			})
 
-			editor.isShapeOfType.mockImplementation((shape, type) => type === 'frame')
+			editor.isShapeOfType.mockImplementation((shape: any, type: any) => type === 'frame')
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
 			const result = snapManager.getSnappableShapes()
 			expect(result.has(childFrameId)).toBe(true)
 
 			// Restore original method
-			jest
-				.spyOn(snapManager, 'getCurrentCommonAncestor')
-				.mockImplementation(originalGetCurrentCommonAncestor)
+			vi.spyOn(snapManager, 'getCurrentCommonAncestor').mockImplementation(
+				originalGetCurrentCommonAncestor
+			)
 		})
 
 		it('should handle missing shape bounds gracefully', () => {
@@ -422,7 +429,7 @@ describe('SnapManager', () => {
 
 			// Override the getCurrentCommonAncestor mock for this specific test
 			const originalGetCurrentCommonAncestor = snapManager.getCurrentCommonAncestor
-			jest.spyOn(snapManager, 'getCurrentCommonAncestor').mockReturnValue(undefined)
+			vi.spyOn(snapManager, 'getCurrentCommonAncestor').mockReturnValue(undefined)
 
 			editor.getCurrentPageId.mockReturnValue('page:current' as TLPageId)
 			editor.getSortedChildIdsForParent.mockReturnValue([shapeId])
@@ -433,9 +440,9 @@ describe('SnapManager', () => {
 			expect(editor.getSortedChildIdsForParent).toHaveBeenCalledWith('page:current')
 
 			// Restore original method
-			jest
-				.spyOn(snapManager, 'getCurrentCommonAncestor')
-				.mockImplementation(originalGetCurrentCommonAncestor)
+			vi.spyOn(snapManager, 'getCurrentCommonAncestor').mockImplementation(
+				originalGetCurrentCommonAncestor
+			)
 		})
 	})
 
@@ -470,7 +477,7 @@ describe('SnapManager', () => {
 
 			// Test with second set of shapes
 			editor.getSortedChildIdsForParent.mockReturnValue([shapeId1, shapeId2])
-			editor.getShape.mockImplementation((id) => {
+			editor.getShape.mockImplementation((id: any) => {
 				if (id === shapeId1) return createMockShape(shapeId1) as any
 				if (id === shapeId2) return createMockShape(shapeId2) as any
 				return undefined

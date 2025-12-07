@@ -35,7 +35,8 @@ export function LegacyLinks() {
 					readonlyOk
 					onSelect={() => {
 						openAndTrack(
-							'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more'
+							'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=learn-more',
+							true
 						)
 					}}
 				/>

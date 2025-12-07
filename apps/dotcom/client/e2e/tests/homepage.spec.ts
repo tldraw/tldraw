@@ -1,13 +1,19 @@
 import { Locator } from '@playwright/test'
-import { sleep } from 'tldraw'
-import { areUrlsEqual, expectBeforeAndAfterReload, getRandomName } from '../fixtures/helpers'
+import { areUrlsEqual, expectBeforeAndAfterReload, getRandomName, sleep } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ editor }) => {
 	await editor.isLoaded()
 })
 
-test('can toggle sidebar', async ({ editor, sidebar }) => {
+test('can instantiate', async ({ page }) => {
+	const dialogCloseButton = page.getByTestId('dialog.close')
+	// expect this button not to be present; ie that the dialog is not open
+	await expect(dialogCloseButton).not.toBeVisible()
+})
+
+test('can toggle sidebar', async ({ editor, sidebar, homePage }) => {
+	await homePage.expectSignInButtonNotVisible()
 	await editor.ensureSidebarOpen()
 	await editor.toggleSidebar()
 	await sidebar.expectIsNotVisible()

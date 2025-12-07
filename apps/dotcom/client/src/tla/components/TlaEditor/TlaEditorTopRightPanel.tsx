@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import {
 	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -7,12 +6,11 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
-	getFromLocalStorage,
 	PeopleMenu,
-	setInLocalStorage,
+	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -22,76 +20,15 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
 
 const ctaMessages = defineMessages({
-	signUp: { defaultMessage: 'Sign up for free' },
-	signInToSave: { defaultMessage: 'Sign in to save' },
-	saveAndShare: { defaultMessage: 'Save and share' },
-	signInToSaveAndShare: { defaultMessage: 'Sign in to share' },
-	saveYourWork: { defaultMessage: 'Save your work' },
-	shareYourWork: { defaultMessage: 'Share your work' },
-	shareYourWorkForFree: { defaultMessage: 'Share for free' },
-	createFreeAccount: { defaultMessage: 'Create a free account' },
-	signIn: { defaultMessage: 'Sign in' },
-	logIn: { defaultMessage: 'Log in' },
-	logUp: { defaultMessage: 'Log up' },
-	freeTldraws: { defaultMessage: 'Free tldraws' },
-	freeShares: { defaultMessage: 'Free shares' },
-	freeSaves: { defaultMessage: 'Free saves' },
-	getIn: { defaultMessage: "You'll sign up, won't you?" },
-	betterThanMiro: { defaultMessage: 'Miro but good and free' },
-	betterThanExcalidraw: { defaultMessage: 'Not Excalidraw' },
-	betterThanFigjam: { defaultMessage: 'Figjam but tldraw' },
-	joinTheWaitlist: { defaultMessage: 'Join the waitlist' },
-	addFriend: { defaultMessage: 'Add friend' },
-	hey: { defaultMessage: 'Hey' },
+	signInToShare: { defaultMessage: 'Sign in to share' },
 })
-
-function useCtaMessage() {
-	const ctaMessage = useMemo(() => {
-		if (process.env.NODE_ENV === 'test') return ctaMessages.signUp
-
-		const isFirstTime = getFromLocalStorage('tla-has-been-here')
-		if (!isFirstTime) {
-			setInLocalStorage('tla-has-been-here', 'yep')
-			return ctaMessages.signUp
-		}
-
-		const LIKELIHOOD_START = 0.25
-		const LIKELIHOOD_END = 0.0005
-
-		// Make earlier messages more likely and later messages less likely
-		const entries = Object.values(ctaMessages)
-		const messagesWithLikelihood = entries.map((entry, i) => ({
-			...entry,
-			likelihood:
-				LIKELIHOOD_START * Math.pow(LIKELIHOOD_END / LIKELIHOOD_START, i / (entries.length - 1)),
-		}))
-
-		// Calculate total likelihood for weighted selection
-		const totalLikelihood = messagesWithLikelihood.reduce((sum, msg) => sum + msg.likelihood, 0)
-
-		// Generate random number between 0 and totalLikelihood
-		let random = Math.random() * totalLikelihood
-
-		// Find the message based on weighted probability
-		for (const message of messagesWithLikelihood) {
-			random -= message.likelihood
-			if (random <= 0) {
-				return message
-			}
-		}
-
-		// Fallback (shouldn't happen, but just in case)
-		return messagesWithLikelihood[0]
-	}, [])
-
-	return ctaMessage
-}
 
 export function TlaEditorTopRightPanel({
 	isAnonUser,
@@ -100,35 +37,31 @@ export function TlaEditorTopRightPanel({
 	isAnonUser: boolean
 	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 }) {
-	const ctaMessage = useCtaMessage()
+	const ctaString = useMsg(ctaMessages.signInToShare)
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
 	const trackEvent = useTldrawAppUiEvents()
+	const { addDialog } = useDialogs()
 
 	if (isAnonUser) {
 		return (
-			<div ref={ref} className={classNames(styles.topRightPanel)}>
+			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
-				<SignInButton
-					mode="modal"
+				<TlaCtaButton
+					canvas
 					data-testid="tla-sign-in-button"
-					forceRedirectUrl={location.pathname + location.search}
-					signUpForceRedirectUrl={location.pathname + location.search}
+					onClick={() => {
+						trackEvent('sign-up-clicked', {
+							source: 'anon-landing-page',
+							ctaMessage: ctaString,
+						})
+						addDialog({ component: TlaSignInDialog })
+					}}
 				>
-					<TlaCtaButton
-						data-testid="tla-sign-up"
-						onClick={() =>
-							trackEvent('sign-up-clicked', {
-								source: 'anon-landing-page',
-								ctaMessage: ctaMessage.defaultMessage,
-							})
-						}
-					>
-						<F {...ctaMessage} />
-					</TlaCtaButton>
-				</SignInButton>
+					<F {...ctaMessages.signInToShare} />
+				</TlaCtaButton>
 			</div>
 		)
 	}
@@ -140,6 +73,7 @@ export function TlaEditorTopRightPanel({
 			{context !== 'legacy' && (
 				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
 					<TlaCtaButton
+						canvas
 						data-testid="tla-share-button"
 						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
 					>
@@ -204,14 +138,14 @@ function LegacyImportButton() {
 		const { prefix, id } = roomInfo
 		const res = await app.createFile({ name, createSource: `${prefix}/${id}` })
 		if (res.ok) {
-			const { file } = res.value
-			navigate(routes.tlaFile(file.id))
+			const { fileId } = res.value
+			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
 	}, [app, editor, name, navigate, roomInfo, trackEvent])
 
 	return (
-		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
+		<TlaCtaButton canvas data-testid="tla-import-button" onClick={handleClick}>
 			<F defaultMessage="Copy to my files" />
 		</TlaCtaButton>
 	)

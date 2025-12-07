@@ -18,6 +18,7 @@ import {
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
+	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
@@ -42,6 +43,7 @@ import {
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 
@@ -52,6 +54,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
+
+	override options = {
+		showTextOutline: true,
+	}
 
 	override canEdit() {
 		return true
@@ -125,6 +131,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 					isEmptyLabel: isEmptyRichText(shape.props.richText),
 				}),
 			],
@@ -193,7 +200,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isEmpty = isEmptyRichText(shape.props.richText)
 		const showHtmlContainer = isReadyForEditing || !isEmpty
-		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
+		const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
 
 		return (
 			<>
@@ -220,8 +227,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isOnlySelected}
-							labelColor={theme[props.labelColor].solid}
+							labelColor={getColorValue(theme, props.labelColor, 'solid')}
 							wrap
+							showTextOutline={this.options.showTextOutline}
 						/>
 					</HTMLContainer>
 				)}
@@ -231,9 +239,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useValue('isZoomedOut', () => this.editor.getZoomLevel() < 0.25, [
-			this.editor,
-		])
+		const isZoomedOut = useEfficientZoomThreshold(shape.props.scale * 0.25)
 
 		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
@@ -278,9 +284,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					richText={props.richText}
-					labelColor={theme[props.labelColor].solid}
+					labelColor={getColorValue(theme, props.labelColor, 'solid')}
 					bounds={bounds}
 					padding={LABEL_PADDING}
+					showTextOutline={this.options.showTextOutline}
 				/>
 			)
 		}

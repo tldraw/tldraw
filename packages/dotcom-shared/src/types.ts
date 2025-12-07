@@ -2,11 +2,15 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFilePartial,
+	TlaFileFairy,
 	TlaFileState,
-	TlaFileStatePartial,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
+	TlaRow,
+	TlaRowPartial,
 	TlaUser,
-	TlaUserPartial,
+	TlaUserFairy,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -38,6 +42,11 @@ export type CreateSnapshotResponseBody =
 export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
+}
+
+export interface HistoryResponseBody {
+	timestamps: string[]
+	hasMore: boolean
 }
 
 /* ----------------------- App ---------------------- */
@@ -75,35 +84,75 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-export interface ZStoreDataV1 {
-	files: TlaFile[]
-	fileStates: TlaFileState[]
-	user: TlaUser
-	lsn: string
-}
+export type GetInviteInfoResponseBody =
+	| {
+			error: false
+			groupId: string
+			groupName: string
+			isValid: true
+			inviteSecret: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type AcceptInviteResponseBody =
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			success: true
+	  }
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			alreadyMember: true
+	  }
+	| {
+			error: true
+			message: string
+	  }
 
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
+	group: TlaGroup[]
+	group_user: TlaGroupUser[]
+	group_file: TlaGroupFile[]
+	user_fairies: TlaUserFairy[]
+	file_fairies: TlaFileFairy[]
 	lsn: string
 }
 
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
 
 export interface ZRowInsert {
-	row: TlaFile | TlaFileState | TlaUser
+	row: TlaRow
 	table: ZTable
 	event: 'insert'
 }
 
 export interface ZRowDeleteOrUpdate {
-	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	row: TlaRowPartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'group_file'
+	| 'user_fairies'
+	| 'file_fairies'
+
 export type ZEvent = 'insert' | 'update' | 'delete'
 
 export const ZErrorCode = stringEnum(
@@ -115,14 +164,15 @@ export const ZErrorCode = stringEnum(
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded',
+	'max_groups_reached',
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
-export const Z_PROTOCOL_VERSION = 2
-export const MIN_Z_PROTOCOL_VERSION = 2
+export const Z_PROTOCOL_VERSION = 3
+export const MIN_Z_PROTOCOL_VERSION = 3
 
 export type ZServerSentPacket =
 	| {
@@ -162,6 +212,8 @@ export const UserPreferencesKeys = [
 	'isWrapMode',
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
+	'enhancedA11yMode',
+	'inputMode',
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>
@@ -173,3 +225,31 @@ export interface SubmitFeedbackRequestBody {
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
+
+export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+
+/* ----------------------- Fairy Access ---------------------- */
+
+export interface PaddleCustomData {
+	userId: string
+	email?: string
+}
+
+export type FeatureFlagKey = 'fairies' | 'fairies_purchase'
+
+export interface FeatureFlagValue {
+	enabled: boolean
+	description: string
+}
+
+export function hasActiveFairyAccess(
+	fairyAccessExpiresAt: number | null,
+	fairyLimit: number | null
+): boolean {
+	return (
+		fairyLimit !== null &&
+		fairyLimit > 0 &&
+		fairyAccessExpiresAt !== null &&
+		fairyAccessExpiresAt > Date.now()
+	)
+}

@@ -11,6 +11,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TranslatingInfo } from '../lib/tools/SelectTool/childStates/Translating'
 import { TestEditor } from './TestEditor'
@@ -41,7 +42,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	console.error = jest.fn()
+	console.error = vi.fn()
 	editor = new TestEditor({
 		options: {
 			adjacentShapeMargin: 20,
@@ -154,7 +155,7 @@ describe('When translating...', () => {
 			// We'll continue moving in the x position, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		editor.pointerUp()
 
 		const after = editor.getShape<TLGeoShape>(ids.box1)!
@@ -254,7 +255,7 @@ describe('When cloning...', () => {
 
 		// Stop cloning!
 		editor.keyUp('Alt')
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		editor.expectShapeToMatch({ id: ids.box1, x: 20, y: 0 }) // A should be at the translated position...
 		expect(editor.getShape(newShape.id)).toBeUndefined() // And the new node should be gone!
@@ -289,7 +290,7 @@ describe('When cloning...', () => {
 		editor.keyUp('Alt')
 
 		// wait 500ms
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 20, y: 0 }) // A should be at the translated position...
 			.expectShapeToMatch({ id: ids.box2, x: 210, y: 190 }) // B should be at the translated position...
@@ -327,7 +328,7 @@ describe('When cloning...', () => {
 		// Stop cloning!
 		editor.keyUp('Alt')
 		// wait 500ms
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		editor.expectShapeToMatch({ id: ids.box2, x: 210, y: 190 }) // B should be at the translated position...
 		expect(editor.getShape(cloneB.id)).toBeUndefined() // And the new node A should be gone!
@@ -352,7 +353,7 @@ describe('When cloning...', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		expect(editor.getCurrentPageShapes().length).toBe(count1) // 2 new box and group
 
@@ -500,7 +501,7 @@ describe('snapping with single shapes', () => {
 
 		// release ctrl key and it unsnaps
 		editor.keyUp('Control')
-		jest.advanceTimersByTime(200)
+		vi.advanceTimersByTime(200)
 
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 11, y: 0 })
 
@@ -1748,9 +1749,7 @@ describe('translating a shape with a bound shape', () => {
 
 		const newArrow = editor
 			.getCurrentPageShapes()
-			.find(
-				(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
-			)! as TLArrowShape
+			.find((s) => editor.isShapeOfType(s, 'arrow') && s.id !== arrow1)! as TLArrowShape
 		expect(getArrowBindings(editor, newArrow)).toMatchObject({
 			start: { type: 'arrow' },
 			end: undefined,
@@ -2060,7 +2059,7 @@ describe('Note shape grid helper positions / pits', () => {
 		editor
 			.createShape({ type: 'note' })
 			.createShape({ type: 'note', x: 500, y: 500 })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.updateShape({ ...editor.getLastCreatedShape<TLNoteShape>(), props: { growY: 100 } })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()
@@ -2079,7 +2078,7 @@ describe('Note shape grid helper positions / pits', () => {
 	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
 		editor
 			.createShape({ type: 'note' })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.updateShape({ ...editor.getLastCreatedShape<TLNoteShape>(), props: { growY: 100 } })
 			.createShape({ type: 'note', x: 500, y: 500 })
 			.pointerMove(600, 600)
 			// start translating
@@ -2182,7 +2181,7 @@ describe('Note shape grid helper positions / pits', () => {
 
 describe('cancelling a translate operation', () => {
 	it('undoes any changes since the start of the translate operation', () => {
-		editor.createShape<TLGeoShape>({
+		editor.createShape({
 			type: 'geo',
 			x: 0,
 			y: 0,
@@ -2219,7 +2218,7 @@ describe('cancelling a translate operation', () => {
 		const shapeId = createShapeId()
 
 		editor
-			.createShape<TLGeoShape>({
+			.createShape({
 				id: shapeId,
 				type: 'geo',
 				x: 0,
@@ -2267,7 +2266,7 @@ describe('cancelling a translate operation', () => {
 		const shapeId = createShapeId()
 
 		editor
-			.createShape<TLGeoShape>({
+			.createShape({
 				id: shapeId,
 				type: 'geo',
 				x: 0,
@@ -2325,7 +2324,7 @@ it('preserves z-indexes when translating', () => {
 	editor.pointerDown(50, 50)
 	editor.pointerMove(60, 60)
 
-	jest.advanceTimersByTime(500)
+	vi.advanceTimersByTime(500)
 
 	const ordered2 = editor.getCurrentPageShapesSorted().map((s) => s.id)
 	expect(ordered2.indexOf(box1.id)).toBe(0)

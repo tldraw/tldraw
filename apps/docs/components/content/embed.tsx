@@ -3,7 +3,12 @@ import { cn } from '@/utils/cn'
 import { useRef, useState } from 'react'
 import { Button } from '../common/button'
 
-export function Embed(props: any) {
+export function Embed(props: {
+	className?: string
+	src: string
+	caption?: string
+	tryButton?: string
+}) {
 	const [isExampleFocused, setIsExampleFocused] = useState(false)
 	const iframeRef = useRef<HTMLIFrameElement>(null)
 	function handleClick() {
@@ -36,12 +41,26 @@ export function Embed(props: any) {
 							className="absolute inset-0 bg-[#FBFCFE]/50 dark:bg-[#101011]/50 flex items-center justify-center cursor-pointer"
 							onClick={handleClick}
 						>
-							<Button onClick={handleClick} caption="Try example" icon="play" className="shadow" />
+							<Button
+								onClick={handleClick}
+								caption={props.tryButton ?? 'Try example'}
+								icon="play"
+								className="shadow"
+							/>
 						</div>
 					)}
 				</div>
 			</div>
 			{props.caption && <span className="block text-xs text-zinc-500 mt-3">{props.caption}</span>}
 		</div>
+	)
+}
+
+export function StarterKitEmbed(props: { id: string }) {
+	return (
+		<Embed
+			src={`https://${props.id}.templates.tldraw.dev/?utm_source=docs-embed`}
+			tryButton="Try starter kit"
+		/>
 	)
 }

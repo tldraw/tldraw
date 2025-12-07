@@ -2,20 +2,17 @@
   "0095a9fa74": {
     "translation": "내보내기"
   },
+  "00b177e080": {
+    "translation": "초대 수락"
+  },
   "03b3e13197": {
     "translation": "이 페이지의 사이드바로 파일을 드래그하세요. 또는 사용자 메뉴에서 '파일 가져오기' 옵션을 선택합니다."
   },
   "043973ec1f": {
     "translation": "여전히 문제가 있나요? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "tldraw를 여세요."
-  },
   "06b9281e39": {
     "translation": "자동"
-  },
-  "0776e18496": {
-    "translation": "저장하고 공유하세요"
   },
   "07dbd11b21": {
     "translation": "제목 없는 파일"
@@ -26,11 +23,20 @@
   "08bd40c754": {
     "translation": "계정"
   },
+  "0a91f7fa87": {
+    "translation": "이 파일은 크기 제한에 도달하여 변경 사항이 더 이상 저장되지 않을 수 있습니다. 일부 콘텐츠를 삭제하거나 새 파일을 시작하세요."
+  },
+  "0ab1ef22a3": {
+    "translation": "그룹에 말하세요…"
+  },
   "0b27918290": {
     "translation": "파일"
   },
   "0b9a4cde72": {
     "translation": "파일 메뉴"
+  },
+  "0befa10111": {
+    "translation": "요정들"
   },
   "0d1f2bb523": {
     "translation": "피드백 보내기"
@@ -38,11 +44,26 @@
   "110a4b01be": {
     "translation": "게시"
   },
+  "11a755d598": {
+    "translation": "멈추다"
+  },
+  "129b9e34ea": {
+    "translation": "그룹 탈퇴"
+  },
+  "12a6766ba1": {
+    "translation": "파일 고정 해제"
+  },
+  "12c8a9838c": {
+    "translation": "tldraw SDK를 사용해 보세요"
+  },
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
-  "1460ab5e78": {
-    "translation": "무료 tldraws"
+  "146ffe2fd9": {
+    "translation": "더 보기"
+  },
+  "14d65465b7": {
+    "translation": "그룹 삭제"
   },
   "181b90f889": {
     "translation": "파일 생성"
@@ -53,17 +74,35 @@
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
-  "22d84a12fd": {
-    "translation": "Figjam이지만 tldraw"
+  "23f879f41a": {
+    "translation": "주간 요정 사용 한도에 도달했습니다. 다음 주 초에 초기화됩니다."
+  },
+  "243924bfd5": {
+    "translation": "잠"
+  },
+  "2445e5e347": {
+    "translation": "그룹 만들기"
   },
   "250ddea65c": {
     "translation": "tldraw에 대하여"
   },
+  "269097080b": {
+    "translation": "당신의 요정들이 기다리고 있습니다"
+  },
+  "275173253d": {
+    "translation": "모두 소환"
+  },
+  "284d5cd0dd": {
+    "translation": "모델:"
+  },
   "299cb00a7a": {
     "translation": "업로드 실패"
   },
-  "2c61d18599": {
-    "translation": "미로지만 좋고 무료입니다"
+  "2c3ef76333": {
+    "translation": "내 파일"
+  },
+  "30cd34258a": {
+    "translation": "12월을 맞아 <b>요정</b>들이 tldraw에 찾아왔습니다. 더 자세히 알아보려면 요정을 찾아 클릭하세요."
   },
   "31246941ad": {
     "translation": "이 파일을 보려면 로그인해야 합니다."
@@ -71,11 +110,41 @@
   "31418ce4ad": {
     "translation": "i18n(국제화): 하이라이트 누락"
   },
+  "3209f407ed": {
+    "translation": "세 명의 요정"
+  },
+  "32210b37e4": {
+    "translation": "링크 추가"
+  },
+  "324a0f3182": {
+    "translation": "tldraw로 돌아가기"
+  },
   "335defdafe": {
     "translation": "페이지를 새로 고침해 주세요."
   },
+  "34140869c6": {
+    "translation": "12월 한 달 동안 요정들이 tldraw에 찾아옵니다. 12월 1일에 다시 확인해 주세요."
+  },
   "344a7f427f": {
     "translation": "편집기"
+  },
+  "34abfe7a0d": {
+    "translation": "모두 잠자다"
+  },
+  "34e34c43ec": {
+    "translation": "관리하다"
+  },
+  "3596c1b1f7": {
+    "translation": "팔로우 취소"
+  },
+  "3903aab323": {
+    "translation": "따르다"
+  },
+  "3b6c2b4caa": {
+    "translation": "서비스 약관"
+  },
+  "3bc7d6ea2f": {
+    "translation": "이메일로 계속하기"
   },
   "3bd1b98dbd": {
     "translation": "변경 사항을 게시할 수 없습니다."
@@ -86,26 +155,41 @@
   "3d0238bf16": {
     "translation": "모두 수락"
   },
-  "3fc6d0c83a": {
-    "translation": "친구 추가"
-  },
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
-  },
-  "44281ab6e5": {
-    "translation": "로그인"
   },
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
   },
+  "45b43c2d28": {
+    "translation": "<strong>요정</strong>이 12월 한 달 동안 그림을 그리러 왔습니다."
+  },
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
+  },
+  "465a8a92a4": {
+    "translation": "선택된 요정이 없습니다"
+  },
+  "477df802ca": {
+    "translation": "편집을 계속하려면 파일을 파일로 복사하세요."
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "핀 파일"
+  },
+  "49049467ff": {
+    "translation": "tldraw 파일 URL을 붙여넣습니다..."
+  },
   "4908687e50": {
     "translation": "이 파일을 무시하시겠습니까?"
+  },
+  "49ee308734": {
+    "translation": "이름"
+  },
+  "4c41e0bd95": {
+    "translation": "모두 선택"
   },
   "4d0d3ddec9": {
     "translation": "이 사이트에서는 앱을 작동시키고 분석 정보를 수집하기 위해 쿠키를 사용합니다."
@@ -113,11 +197,14 @@
   "4d1c8263ba": {
     "translation": "다시 로드"
   },
-  "4e029798f2": {
-    "translation": "무료 주식"
+  "4da5988a2e": {
+    "translation": "그룹 삭제…"
   },
-  "4e875b8d8e": {
-    "translation": "무료 저장"
+  "4dab36ac83": {
+    "translation": "더 많은 옵션"
+  },
+  "4e6fbf032b": {
+    "translation": "이 그룹을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
   },
   "50db1b7e1e": {
     "translation": "파일 게시를 취소할 수 없습니다."
@@ -125,11 +212,11 @@
   "517bb809d9": {
     "translation": "페이지 메뉴"
   },
+  "542248f0ba": {
+    "translation": "이 파일은 이제 읽기 전용입니다."
+  },
   "54286b1d01": {
     "translation": "공동 작업자 정원 도달"
-  },
-  "54d240fa41": {
-    "translation": "속도를 늦추세요."
   },
   "554a05155c": {
     "translation": "여전히 문제가 있습니까? <a>문제 보고</a>"
@@ -143,17 +230,26 @@
   "56c34c6410": {
     "translation": "개인정보 보호정책"
   },
+  "5a2ccdc00a": {
+    "translation": "초대 코드를 사용할 수 없습니다."
+  },
+  "5a86b22fa0": {
+    "translation": "시작하려면 파일을 여기로 끌어다 놓거나, <create>파일을 생성</create>하거나, <invite>초대 링크 복사</invite>하세요."
+  },
   "5a95a425f7": {
     "translation": "공유"
-  },
-  "5bcc12ace8": {
-    "translation": "이 방은 이제 읽기 전용입니다."
   },
   "5bec508475": {
     "translation": "이전 브라우저가 감지되었습니다. 이 앱을 사용하려면 브라우저를 업데이트하세요."
   },
+  "5c6fe42bc2": {
+    "translation": "이 링크를 취소하고 새 링크를 만드세요."
+  },
   "5d26ae7550": {
     "translation": "로그인하기 전에 생성하신 콘텐츠 중 일부를 업로드하지 못했습니다."
+  },
+  "5ea8bb44be": {
+    "translation": "귀하는 그룹에 초대되었습니다:"
   },
   "5f3c333678": {
     "translation": "피드백 제출됨"
@@ -161,14 +257,20 @@
   "5fb63579fc": {
     "translation": "복사"
   },
-  "5ff75742e0": {
-    "translation": "무료로 가입하세요"
-  },
   "61057a0c84": {
     "translation": "이후"
   },
+  "61daf2e53d": {
+    "translation": "{name}에게 말하세요…"
+  },
   "625fd29749": {
     "translation": "이전"
+  },
+  "639bae9ac6": {
+    "translation": "너"
+  },
+  "6602bbeb29": {
+    "translation": "가이드"
   },
   "6609dd239e": {
     "translation": "문제가 발생했습니다"
@@ -176,8 +278,20 @@
   "6637a98151": {
     "translation": "tldraw의 새 버전이 출시되었습니다. 계속하려면 페이지를 다시 로드하세요."
   },
-  "697c59072d": {
-    "translation": "저장하려면 로그인하세요"
+  "6832ac5936": {
+    "translation": "이메일 주소를 입력하세요"
+  },
+  "688761c83e": {
+    "translation": "깨어 있다"
+  },
+  "68d390535e": {
+    "translation": "메시지를 입력하세요"
+  },
+  "6910bbdc82": {
+    "translation": "요정의 이름"
+  },
+  "695c3e899d": {
+    "translation": "디버그 요정"
   },
   "6a26f54883": {
     "translation": "도움말"
@@ -187,6 +301,9 @@
   },
   "6dfc62f621": {
     "translation": "수동으로 콘텐츠를 가져오려면 다음 단계를 따르세요."
+  },
+  "70222abcfc": {
+    "translation": "그룹 설정"
   },
   "70a6facb9d": {
     "translation": "이번 주"
@@ -215,11 +332,23 @@
   "764671e008": {
     "translation": "Discord에서 우리와 채팅하세요"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw는 무료 온라인 화이트보드입니다. 계정을 만들어 파일을 저장하고 친구들과 함께 작업하세요."
+  },
   "777f9e90cf": {
     "translation": "유효하지 않은 요청입니다."
   },
+  "7827371d1a": {
+    "translation": "이 익명의 tldraw 멀티플레이어 파일은 이제 읽기 전용입니다. 편집을 계속하려면 로그인하여 파일에 복사하세요."
+  },
+  "78e9815992": {
+    "translation": "알았어요"
+  },
   "797799f35e": {
     "translation": "GitHub에 이슈 제출"
+  },
+  "79cc22ac6b": {
+    "translation": "요정은 캔버스 위에서 여러분과 함께 작업할 수 있는 작은 친구입니다. 요정은 혼자 또는 팀으로 작업할 수 있습니다. 요정이 할 수 있는 일에는 한계가 없습니다. 요정이 어디에서 왔는지 아무도 모릅니다."
   },
   "7b1329f5ca": {
     "translation": "사용 설명서"
@@ -227,8 +356,17 @@
   "7be10fc592": {
     "translation": "버전 복원"
   },
+  "7c0747a5df": {
+    "translation": "추첨 열기"
+  },
+  "7cb471f815": {
+    "translation": "당신은 tldraw fairies에 초대되었습니다!"
+  },
   "7cb5f8b4a5": {
     "translation": "무시"
+  },
+  "7cfe6c43dc": {
+    "translation": "그룹 탈퇴…"
   },
   "7daeced9ff": {
     "translation": "변경 사항 게시"
@@ -242,8 +380,11 @@
   "815e116a2e": {
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
-  "84c89d47c7": {
-    "translation": "무료로 공유하세요"
+  "81aa2078d1": {
+    "translation": "모두 지우기"
+  },
+  "83218ac34c": {
+    "translation": "환영"
   },
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
@@ -254,14 +395,29 @@
   "86c66437fd": {
     "translation": "파일 이름 바꾸기"
   },
-  "8b1946f965": {
-    "translation": "편집을 계속하려면 해당 방을 파일로 복사하세요."
+  "8726ef8909": {
+    "translation": "하드 리셋"
   },
-  "8ea211024d": {
-    "translation": "무료 계정을 만드세요"
+  "88e83b88c5": {
+    "translation": "요정 번들 구매"
+  },
+  "8ad4303b83": {
+    "translation": "아니요, 고맙습니다"
+  },
+  "8be569f100": {
+    "translation": "일회성 지불"
+  },
+  "8c2d3d730c": {
+    "translation": "이메일에서 인증 코드를 확인하세요."
+  },
+  "8cf04a9734": {
+    "translation": "집"
   },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
+  },
+  "8f7f4c1ce7": {
+    "translation": "에 대한"
   },
   "8ff3d0a705": {
     "translation": "비율 제한됨"
@@ -275,17 +431,41 @@
   "91e49bb0eb": {
     "translation": "내 파일로 복사"
   },
+  "930390d222": {
+    "translation": "초대 링크 복사됨"
+  },
+  "94186070ef": {
+    "translation": "선택 취소"
+  },
+  "94966d9074": {
+    "translation": "보내다"
+  },
+  "95aacd4d4a": {
+    "translation": "Google로 로그인"
+  },
+  "95d2109dc8": {
+    "translation": "tldraw SDK로 빌드"
+  },
   "96165d6df5": {
     "translation": "이번 달"
+  },
+  "985a4b720f": {
+    "translation": "이용 약관"
+  },
+  "98c997a27e": {
+    "translation": "파일 링크 추가"
   },
   "9914a0ce04": {
     "translation": "라이트"
   },
+  "9953e9946b": {
+    "translation": "디버그 뷰"
+  },
+  "9b33f5c63c": {
+    "translation": "코드를 받지 못하셨나요? <resend>다시 보내기</resend>."
+  },
   "9bef626805": {
     "translation": "파일 삭제"
-  },
-  "9c258b8f88": {
-    "translation": "이 익명 TLDraw 멀티플레이어 방은 이제 읽기 전용입니다. 편집을 계속하려면 로그인하여 파일에 복사하세요."
   },
   "9ceb927baa": {
     "translation": "이 파일 게시"
@@ -311,17 +491,32 @@
   "a239905023": {
     "translation": "이미지 내보내기"
   },
+  "a286d9991c": {
+    "translation": "가입하다"
+  },
   "a3debabee7": {
     "translation": "쿠키 정책"
   },
   "a4d3b161ce": {
     "translation": "제출하다"
   },
+  "a603905470": {
+    "translation": "디버그"
+  },
   "a6cc403d56": {
     "translation": "링크가 있는 사람"
   },
   "a768caa988": {
     "translation": "해석학"
+  },
+  "a8873770ab": {
+    "translation": "파일이 커지고 있습니다"
+  },
+  "a8de4c27a8": {
+    "translation": "주간 요정 한도에 도달했습니다"
+  },
+  "a917baaf14": {
+    "translation": "새로운 채팅"
   },
   "a9ded1e5ce": {
     "translation": "배경"
@@ -336,8 +531,23 @@
   "b028909917": {
     "translation": "게스트 사용자"
   },
+  "b2c3c2e30c": {
+    "translation": "파일이 가득 찼습니다"
+  },
+  "b34a671e2c": {
+    "translation": "로그 응답 시간"
+  },
+  "b357b524e7": {
+    "translation": "이메일 주소"
+  },
+  "b3d2db69fe": {
+    "translation": "파일 URL"
+  },
   "b6d4223e60": {
     "translation": "로그인"
+  },
+  "b6f4a2ec63": {
+    "translation": "소유자"
   },
   "b758336699": {
     "translation": "링크 복사"
@@ -345,8 +555,8 @@
   "ba0318cb81": {
     "translation": "공유하려면 로그인하세요"
   },
-  "bb792693e2": {
-    "translation": "고정 해제"
+  "bb93a7590f": {
+    "translation": "그룹 수락 및 가입"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {{uploaded}개 중 {total}개의 .tldr 파일을 업로드하는 중…}}"
@@ -354,26 +564,32 @@
   "bc88b0e89e": {
     "translation": "{ownerName} 님이 공유함"
   },
-  "bcb62136a3": {
-    "translation": ".tldr 파일 업로드"
-  },
-  "bffe9a3c9a": {
-    "translation": "로그인"
-  },
-  "c079282475": {
-    "translation": "당신의 작업을 공유하세요"
+  "be4f1c62d3": {
+    "translation": "요정으로 확대"
   },
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
   },
-  "c24e43cd1a": {
-    "translation": "당신도 가입할 거죠?"
+  "c28aed8348": {
+    "translation": "<cookies>analytics</cookies>를 허용하여 tldraw를 개선하세요."
   },
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
   },
+  "c3bf447eab": {
+    "translation": "열려 있는"
+  },
+  "c3eb5c3b90": {
+    "translation": "이해합니다"
+  },
   "c4b39a1cc3": {
     "translation": "필수 쿠키"
+  },
+  "c6155aaecc": {
+    "translation": "그룹 이름"
+  },
+  "c64518704c": {
+    "translation": "용법"
   },
   "c655b27b1e": {
     "translation": "i18n(국제화): 롱 스트링"
@@ -381,8 +597,14 @@
   "c6a00f137b": {
     "translation": "초대"
   },
+  "c74ea6dbff": {
+    "translation": "덜 보기"
+  },
   "c87aacf567": {
     "translation": "로그아웃"
+  },
+  "c9cc8cce24": {
+    "translation": "구하다"
   },
   "cceaefbc20": {
     "translation": "이 파일 공유"
@@ -390,17 +612,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "이 파일의 크기 제한에 거의 도달했습니다. 일부 콘텐츠를 삭제하거나 새 파일을 만들어 보세요."
+  },
+  "ce1424d44b": {
+    "translation": "당신은 이미 요정 접근 권한을 가지고 있습니다!"
+  },
   "cea291e45e": {
     "translation": "게시에 대해 자세히 알아보세요."
-  },
-  "d0eedb7995": {
-    "translation": "여기요"
   },
   "d3d2e61733": {
     "translation": "닫기"
   },
+  "d46632fe1f": {
+    "translation": "요청이 너무 많습니다. 천천히 해주세요."
+  },
   "d4bbf74f3e": {
     "translation": "사이드바 전환"
+  },
+  "d638a3344b": {
+    "translation": "시작하기에 앞서, <tos>이용약관</tos> 및 <privacy>개인정보처리방침</privacy>에 동의해 주시기 바랍니다."
   },
   "d721757161": {
     "translation": "테마"
@@ -408,29 +639,62 @@
   "d876a9fe1a": {
     "translation": "다시 시도"
   },
+  "d88ad2dc74": {
+    "translation": "수락하고 계속하세요"
+  },
   "d9100f3e10": {
     "translation": "여기로 이동하여 콘텐츠 보기"
   },
-  "da404df474": {
-    "translation": "작업을 저장하세요"
+  "d9bfb9789a": {
+    "translation": "요정 활성화"
   },
-  "db4c2dab9a": {
-    "translation": "엑스칼리드로우 아님"
+  "d9e35d0f55": {
+    "translation": "최대 그룹 수에 도달했습니다. 새 그룹을 만들려면 기존 그룹을 삭제해야 합니다."
   },
   "dbbebf3c03": {
     "translation": "초대만"
   },
+  "dc30bc0c79": {
+    "translation": "분명한"
+  },
+  "dcdaa754fe": {
+    "translation": "잘못된 tldraw 파일 URL"
+  },
+  "de290d52ef": {
+    "translation": "오른쪽에서 요정을 선택하여 채팅하세요"
+  },
+  "df6ff49394": {
+    "translation": "요정은 <strong>일시적인</strong> 기능입니다. 2026년 1월 1일부터 모든 요정이 앱에서 제거됩니다. 언젠가 다시 돌아올지도 모릅니다. 구매하신 요정은 2025년 12월까지만 이용하실 수 있습니다."
+  },
   "dfdb78a4e4": {
     "translation": "앱 디버그 신고"
+  },
+  "e062622261": {
+    "translation": "선택하다"
+  },
+  "e0c88179b3": {
+    "translation": "회원 초대"
+  },
+  "e2198d6228": {
+    "translation": "초대 링크 복사"
   },
   "e2ae80a510": {
     "translation": "법적 요약"
   },
+  "e3afed0047": {
+    "translation": "관리자"
+  },
   "e404559826": {
     "translation": "서비스 약관"
   },
-  "e78e14c5f1": {
-    "translation": "고정"
+  "e43ec38a93": {
+    "translation": "로 가다"
+  },
+  "e81c4e4f2b": {
+    "translation": "또는"
+  },
+  "ea0626ac5a": {
+    "translation": "위험 구역"
   },
   "ea4788705e": {
     "translation": "취소"
@@ -453,6 +717,18 @@
   "ede55d955f": {
     "translation": "자세한 내용을 알아보려면 <a>쿠키 정책</a>을 읽어보세요."
   },
+  "eee6f05922": {
+    "translation": "해산하다"
+  },
+  "ef53538ae4": {
+    "translation": "회원들"
+  },
+  "ef7de3f485": {
+    "translation": "선택된"
+  },
+  "efde983742": {
+    "translation": "소환하다"
+  },
   "f09b16bc5f": {
     "translation": "tldraw를 개선하는 데 도움이 되는 분석 자료를 수집하고, 파일을 동기화하고, 로그인 상태를 유지하기 위해 쿠키를 사용합니다."
   },
@@ -465,11 +741,14 @@
   "f2a6c498fb": {
     "translation": "삭제"
   },
-  "f43fb62093": {
-    "translation": "tldraw로 돌아갑니다."
-  },
   "f4f70727dc": {
     "translation": "설정"
+  },
+  "f714e36843": {
+    "translation": "정말로 이 그룹을 떠나시겠습니까?"
+  },
+  "fa2ead697d": {
+    "translation": "개인정보 보호정책"
   },
   "fb15c53f22": {
     "translation": "뷰어"
@@ -477,11 +756,11 @@
   "fd1be3efcf": {
     "translation": "이 파일을 삭제하시겠습니까?"
   },
-  "fd27891570": {
-    "translation": "대기자 명단에 가입하세요"
-  },
   "fed5ec05eb": {
     "translation": "복사된 링크"
+  },
+  "ff7a814974": {
+    "translation": "파일 링크 추가…"
   },
   "ffcd73e997": {
     "translation": "파일 가져오기…"

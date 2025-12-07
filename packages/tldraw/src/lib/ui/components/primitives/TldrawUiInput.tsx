@@ -1,4 +1,4 @@
-import { stopEventPropagation, tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
+import { tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -35,6 +35,7 @@ export interface TLUiInputProps {
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
 	'data-testid'?: string
+	'aria-label'?: string
 }
 
 /** @public @react */
@@ -60,6 +61,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			value,
 			'data-testid': dataTestId,
 			disabled,
+			'aria-label': ariaLabel,
 		},
 		ref
 	) {
@@ -118,7 +120,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						// `onChange` with a duplicated text value.
 						if (isComposing.current) return
 						e.currentTarget.blur()
-						stopEventPropagation(e)
+						e.stopPropagation()
 						onComplete?.(e.currentTarget.value)
 						break
 					}
@@ -126,7 +128,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						e.currentTarget.value = rInitialValue.current
 						onCancel?.(e.currentTarget.value)
 						e.currentTarget.blur()
-						stopEventPropagation(e)
+						e.stopPropagation()
 						break
 					}
 				}
@@ -198,6 +200,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					onCompositionStart={handleCompositionStart}
 					onCompositionEnd={handleCompositionEnd}
 					autoFocus={autoFocus}
+					aria-label={ariaLabel}
 					placeholder={placeholder}
 					value={value}
 					data-testid={dataTestId}

@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { sleep } from 'tldraw'
 import { Sidebar } from './Sidebar'
+import { sleep } from './helpers'
 import { step } from './tla-test'
 
 export class Editor {
@@ -75,6 +75,7 @@ export class Editor {
 	@step
 	async createNewPage() {
 		await this.page.getByTestId('page-menu.button').click()
+		await expect(this.page.getByTestId('page-menu.create')).toBeVisible()
 		await expect(this.page.getByTestId('page-menu.item').first()).toBeVisible()
 		const count = await this.page.getByTestId('page-menu.item').count()
 		await this.page.getByTestId('page-menu.create').click()

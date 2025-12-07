@@ -1,0 +1,27 @@
+{
+	"hooks": {
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "cd \"$(git rev-parse --show-toplevel)\" && git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs yarn run -T prettier --write 2>/dev/null || true"
+					}
+				]
+			}
+		]
+	},
+	"permissions": {
+		"allow": [
+			"WebSearch",
+			"Bash(gh pr:*)",
+			"Bash(yarn install)",
+			"Bash(yarn test:*)",
+			"Bash(yarn lint:*)",
+			"Bash(yarn typecheck)",
+			"Bash(git add:*)",
+			"mcp__Context7__resolve-library-id",
+			"mcp__Context7__get-library-docs"
+		]
+	}
+}

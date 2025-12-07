@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -17,22 +16,26 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuSubmenu,
 	ViewSubmenu,
+	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import {
+	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
@@ -42,6 +45,7 @@ import styles from './top.module.css'
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
+	file: { defaultMessage: 'File' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
 	untitledProject: { defaultMessage: 'Untitled file' },
@@ -88,7 +92,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	return (
 		<>
 			<Link to="/" className={styles.topLeftOfflineLogo}>
-				<TlaLogo data-testid="tla-sidebar-logo-icon" />
+				<TlaLogo data-testid="tla-top-left-logo-icon" />
 			</Link>
 			{anonFileName && (
 				<>
@@ -137,6 +141,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
 							<LegalSummaryMenuItem />
+							<CookieConsentMenuItem />
 						</TldrawUiMenuGroup>
 						{!app && (
 							<TldrawUiMenuGroup id="signin">
@@ -155,11 +160,12 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = useMsg(messages.pageMenu)
+	const fileSubmenuMsg = useMsg(messages.file)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
+	const isOwner = useHasFileAdminRights(fileSlug)
 
 	const app = useApp()
 	const fileId = useCurrentFileId()!
@@ -223,6 +229,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
+				groupId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
@@ -236,6 +243,14 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
+					<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
+						<FileItems
+							source="file-header"
+							fileId={fileId}
+							onRenameAction={handleRenameAction}
+							groupId={null}
+						/>
+					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
@@ -382,16 +397,18 @@ function TlaFileNameEditorInput({
 
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
+	const { addDialog } = useDialogs()
+
 	return (
-		<SignInButton
-			mode="modal"
-			forceRedirectUrl={location.pathname + location.search}
-			signUpForceRedirectUrl={location.pathname + location.search}
+		<TldrawUiButton
+			type="menu"
+			data-testid="tla-sign-in-menu-button"
+			onClick={() => {
+				addDialog({ component: TlaSignInDialog })
+			}}
 		>
-			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
-				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
-				<TlaIcon icon="sign-in" />
-			</TldrawUiButton>
-		</SignInButton>
+			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TlaIcon icon="sign-in" />
+		</TldrawUiButton>
 	)
 }

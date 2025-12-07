@@ -175,6 +175,7 @@ li.examples__sidebar__item {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	padding-right: 32px;
 }
 
 .examples__sidebar__item__link {

@@ -1,16 +1,25 @@
 import {
 	TlaFile,
 	TlaFileState,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaRow,
 	TlaUser,
 	TlaUserMutationNumber,
-	ZTable,
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
 import { Subscription } from './Subscription'
-import { ChangeV2, ReplicationEvent, ReplicatorEffect, Topic } from './replicatorTypes'
+import {
+	ChangeV2,
+	ReplicatedRow,
+	ReplicatedTable,
+	ReplicationEvent,
+	ReplicatorEffect,
+	Topic,
+} from './replicatorTypes'
 
 /**
  * Interface for collecting and organizing database changes for delivery to users.
@@ -39,7 +48,7 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		case 'file': {
 			const file = row as TlaFile
 			// File events notify both the file topic AND the file owner's user topic
-			return [`file:${file.id}`, `user:${file.ownerId}`]
+			return [`file:${file.id}`]
 		}
 		case 'file_state': {
 			const fileState = row as TlaFileState
@@ -47,6 +56,12 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		}
 		case 'user_mutation_number':
 			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
+		case 'group':
+			return [`group:${(row as TlaGroup).id}`]
+		case 'group_user':
+			return [`group:${(row as TlaGroupUser).groupId}`, `user:${(row as TlaGroupUser).userId}`]
+		case 'group_file':
+			return [`group:${(row as TlaGroupFile).groupId}`, `file:${(row as TlaGroupFile).fileId}`]
 		default: {
 			exhaustiveSwitchError(event.table)
 			return [] // just in case
@@ -208,8 +223,8 @@ export class LiveChangeCollator implements ChangeCollator {
 					}
 				: {
 						type: 'row_update',
-						row: change.row,
-						table: table as ZTable,
+						row: change.row as ReplicatedRow,
+						table: table as ReplicatedTable,
 						event: command,
 					}
 
