@@ -50,9 +50,7 @@ export class PerformanceTestSuite {
 		}
 
 		// Set up the page for performance testing
-		// Use port 5421 for production build (perf tests) or 5420 for dev (regular tests)
-		const port = process.env.PERF_TEST_PORT || '5420'
-		await page.goto(`http://localhost:${port}/end-to-end`)
+		await page.goto('http://localhost:5420/end-to-end')
 		await page.waitForSelector('.tl-canvas')
 
 		// Disable animations for consistent testing
