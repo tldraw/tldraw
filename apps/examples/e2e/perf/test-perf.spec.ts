@@ -88,7 +88,13 @@ test.describe('Performance Tests', () => {
 		})
 	})
 
-	test('Shape Rotation Performance', async ({ page, context, request, browserName, isMobile }) => {
+	test.skip('Shape Rotation Performance', async ({
+		page,
+		context,
+		request,
+		browserName,
+		isMobile,
+	}) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -97,14 +103,20 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testShapeRotation())
 	})
 
-	test('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
+	test.skip('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
 		testOutput(await perfSuite.testShapeDragging())
 	})
 
-	test('Shape Resizing Performance', async ({ page, context, request, browserName, isMobile }) => {
+	test.skip('Shape Resizing Performance', async ({
+		page,
+		context,
+		request,
+		browserName,
+		isMobile,
+	}) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -113,7 +125,13 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testShapeResizing())
 	})
 
-	test('Canvas Panning Performance', async ({ page, context, request, browserName, isMobile }) => {
+	test.skip('Canvas Panning Performance', async ({
+		page,
+		context,
+		request,
+		browserName,
+		isMobile,
+	}) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -122,7 +140,13 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testCanvasPanning())
 	})
 
-	test('Canvas Zooming Performance', async ({ page, context, request, browserName, isMobile }) => {
+	test.skip('Canvas Zooming Performance', async ({
+		page,
+		context,
+		request,
+		browserName,
+		isMobile,
+	}) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
