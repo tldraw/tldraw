@@ -132,9 +132,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={classNames(`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`, {
-				'tl-text__no-outline': !showTextOutline,
-			})}
+			className={classNames(
+				`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`,
+				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+			)}
 			aria-hidden={!isEditing}
 			data-font={font}
 			data-align={align}
