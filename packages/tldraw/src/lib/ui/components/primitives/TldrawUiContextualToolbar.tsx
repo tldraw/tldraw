@@ -52,8 +52,8 @@ export const TldrawUiContextualToolbar = ({
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 
-	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement>)
-	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement>)
+	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement | null>)
+	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement | null>)
 
 	const { isVisible, isInteractive, hide, show, position, move } =
 		useToolbarVisibilityStateMachine(changeOnlyWhenYChanges)

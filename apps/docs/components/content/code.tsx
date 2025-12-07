@@ -127,7 +127,7 @@ function HighlightedCodeElem({ children, ...props }: React.ComponentProps<'code'
 				}
 				// inject links where needed
 				if (codeLinks) {
-					line = React.cloneElement(line as ReactElement, {
+					line = React.cloneElement(line as ReactElement<{ children: ReactNode }>, {
 						...line.props,
 						children: React.Children.map(line.props.children, (elem) => {
 							if (!isValidElement<any>(elem)) return elem
