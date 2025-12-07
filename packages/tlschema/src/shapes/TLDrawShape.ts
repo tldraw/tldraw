@@ -208,6 +208,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 	],
 })
 
+/** @public */
 export function float16ArrayToBase64(float16Array: Float16Array) {
 	// Convert Float16Array to Uint8Array by accessing the underlying buffer
 	const uint8Array = new Uint8Array(
@@ -239,6 +240,7 @@ export function float16ArrayToBase64(float16Array: Float16Array) {
 	return result
 }
 
+/** @public */
 export function base64ToFloat16Array(base64: string): Float16Array {
 	assert(base64.length % 8 === 0 && !base64.endsWith('='), 'Base64 string must be a multiple of 8')
 	// Base64 alphabet (same as in float16ArrayToBase64)
