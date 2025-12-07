@@ -2,10 +2,10 @@
 	"baselines": {
 		"linux-1280x720": {
 			"rotate_shapes": {
-				"avgFps": 25,
-				"minFps": 8,
+				"avgFps": 32,
+				"minFps": 22,
 				"maxFps": 58,
-				"timestamp": "2025-12-06T22:18:16.000Z",
+				"timestamp": "2025-07-21T14:27:50.788Z",
 				"environment": {
 					"platform": "linux",
 					"viewport": "1280x720",
