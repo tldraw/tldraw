@@ -347,7 +347,8 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 	if (member.tsdocComment) {
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
 			member,
-			member.tsdocComment.summarySection
+			// Cast to any to work around type incompatibility between different versions of @microsoft/tsdoc
+			member.tsdocComment.summarySection as any
 		)
 	}
 
@@ -379,7 +380,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			result.markdown += `\n\n`
 			result.markdown += `<ApiHeading>Example</ApiHeading>\n\n`
 			for (const example of exampleBlocks) {
-				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content)
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content as any)
 			}
 		}
 	}
@@ -412,7 +413,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 				if (param.tsdocParamBlock) {
 					result.markdown += await MarkdownWriter.docNodeToMarkdown(
 						member,
-						param.tsdocParamBlock.content
+						param.tsdocParamBlock.content as any
 					)
 				}
 				result.markdown += `\n\n</ParametersTableDescription>\n`
@@ -430,7 +431,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			if (member.tsdocComment && member.tsdocComment.returnsBlock) {
 				result.markdown += await MarkdownWriter.docNodeToMarkdown(
 					member,
-					member.tsdocComment.returnsBlock.content
+					member.tsdocComment.returnsBlock.content as any
 				)
 			}
 		}
@@ -454,7 +455,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 				result.markdown += `\`${block.parameterName}\`\n\n`
 				result.markdown += `</ParametersTableName>\n`
 				result.markdown += `<ParametersTableDescription>\n\n`
-				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, block.content)
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, block.content as any)
 				result.markdown += `\n\n</ParametersTableDescription>\n`
 				result.markdown += `</ParametersTableRow>\n`
 			}
@@ -470,7 +471,7 @@ async function addDeprecationNotice(result: Result, member: ApiItem) {
 		result.markdown += `<Callout type="warning">\n\n**Deprecated:**`
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
 			member,
-			member.tsdocComment.deprecatedBlock.content
+			member.tsdocComment.deprecatedBlock.content as any
 		)
 		result.markdown += `\n\n</Callout>\n\n`
 	}

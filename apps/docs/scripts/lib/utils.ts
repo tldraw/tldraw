@@ -1,5 +1,6 @@
 import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model'
 import {
+	DocBlock,
 	DocCodeSpan,
 	DocEscapedText,
 	DocFencedCode,
@@ -8,7 +9,6 @@ import {
 	DocParagraph,
 	DocPlainText,
 	DocSection,
-	DocSoftBreak,
 } from '@microsoft/tsdoc'
 import { assert } from '@tldraw/utils'
 import { slug as githubSlug } from 'github-slugger'
@@ -136,62 +136,103 @@ export class MarkdownWriter {
 	}
 
 	async writeDocNode(docNode: DocNode) {
-		if (docNode instanceof DocPlainText) {
-			this.write(docNode.text)
-		} else if (docNode instanceof DocSection || docNode instanceof DocParagraph) {
-			await this.writeDocNodes(docNode.nodes)
-			this.writeIfNeeded('\n\n')
-		} else if (docNode instanceof DocSoftBreak) {
-			this.writeIfNeeded('\n')
-		} else if (docNode instanceof DocCodeSpan) {
-			this.write('`', docNode.code, '`')
-		} else if (docNode instanceof DocFencedCode) {
-			this.writeIfNeeded('\n').write(
-				'```',
-				docNode.language,
-				'\n',
-				await formatWithPrettier(docNode.code, {
-					languageTag: docNode.language,
-				}),
-				'\n',
-				'```\n'
-			)
-		} else if (docNode instanceof DocEscapedText) {
-			this.write(docNode.encodedText)
-		} else if (docNode instanceof DocLinkTag) {
-			if (docNode.urlDestination) {
-				this.write(
-					'[',
-					docNode.linkText ?? docNode.urlDestination,
-					'](',
-					docNode.urlDestination,
-					')'
-				)
-			} else {
-				assert(docNode.codeDestination)
-				const apiModel = getTopLevelModel(this.apiContext)
-				const refResult = apiModel.resolveDeclarationReference(
-					docNode.codeDestination,
-					this.apiContext
-				)
+		// Use kind property instead of instanceof checks for better compatibility
+		switch (docNode.kind) {
+			case 'PlainText':
+				this.write((docNode as DocPlainText).text)
+				break
 
-				if (refResult.errorMessage) {
-					console.warn(`☢️ Error processing API: ${refResult.errorMessage}`)
-					return
-				}
-				const linkedItem = refResult.resolvedApiItem!
-				const path = getPath(linkedItem)
+			case 'Section':
+			case 'Paragraph':
+				await this.writeDocNodes((docNode as DocSection | DocParagraph).nodes)
+				this.writeIfNeeded('\n\n')
+				break
 
-				this.write(
-					'[',
-					docNode.linkText ?? getDefaultReferenceText(linkedItem),
-					'](/reference/',
-					path,
-					')'
+			case 'Block':
+				// DocBlock is a container node, process its content
+				await this.writeDocNodes((docNode as DocBlock).content.nodes)
+				this.writeIfNeeded('\n\n')
+				break
+
+			case 'SoftBreak':
+				this.writeIfNeeded('\n')
+				break
+
+			case 'CodeSpan':
+				this.write('`', (docNode as DocCodeSpan).code, '`')
+				break
+
+			case 'FencedCode': {
+				const fencedCode = docNode as DocFencedCode
+				this.writeIfNeeded('\n').write(
+					'```',
+					fencedCode.language,
+					'\n',
+					await formatWithPrettier(fencedCode.code, {
+						languageTag: fencedCode.language,
+					}),
+					'\n',
+					'```\n'
 				)
+				break
 			}
-		} else {
-			throw new Error(`Unknown docNode kind: ${docNode.kind}`)
+
+			case 'EscapedText':
+				this.write((docNode as DocEscapedText).encodedText)
+				break
+
+			case 'ErrorText':
+				// Skip error text nodes
+				break
+
+			case 'LinkTag': {
+				const linkTag = docNode as DocLinkTag
+				if (linkTag.urlDestination) {
+					this.write(
+						'[',
+						linkTag.linkText ?? linkTag.urlDestination,
+						'](',
+						linkTag.urlDestination,
+						')'
+					)
+				} else {
+					assert(linkTag.codeDestination)
+					const apiModel = getTopLevelModel(this.apiContext)
+					const refResult = apiModel.resolveDeclarationReference(
+						// Cast to any to work around type incompatibility between different versions of @microsoft/tsdoc
+						linkTag.codeDestination as any,
+						this.apiContext
+					)
+
+					if (refResult.errorMessage) {
+						console.warn(`☢️ Error processing API: ${refResult.errorMessage}`)
+						break
+					}
+					const linkedItem = refResult.resolvedApiItem!
+					const path = getPath(linkedItem)
+
+					this.write(
+						'[',
+						linkTag.linkText ?? getDefaultReferenceText(linkedItem),
+						'](/reference/',
+						path,
+						')'
+					)
+				}
+				break
+			}
+
+			default:
+				// Handle any unknown container nodes generically by checking if they have a 'nodes' property
+				if ('nodes' in docNode && Array.isArray((docNode as any).nodes)) {
+					await this.writeDocNodes((docNode as any).nodes)
+					this.writeIfNeeded('\n\n')
+				} else if ('content' in docNode && (docNode as any).content?.nodes) {
+					await this.writeDocNodes((docNode as any).content.nodes)
+					this.writeIfNeeded('\n\n')
+				} else {
+					console.warn(`⚠️  Unknown docNode kind: ${docNode.kind}, skipping...`)
+				}
 		}
 	}
 
