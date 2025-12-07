@@ -1,5 +1,5 @@
 import { createAgentAction, PenAction, Streaming, toSimpleShapeId } from '@tldraw/fairy-shared'
-import { Editor, TLDrawShape } from 'tldraw'
+import { base64ToFloat16Array, Editor, TLDrawShape } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -437,10 +437,16 @@ describe('PenActionUtil', () => {
 
 			expect(drawShape.props.segments).toHaveLength(1)
 			expect(drawShape.props.segments[0].type).toBe('free')
-			expect(drawShape.props.segments[0].points.length).toBeGreaterThan(0)
+			// Decode the base64 points
+			const float16Array = base64ToFloat16Array(drawShape.props.segments[0].points)
+			const decodedPoints = []
+			for (let i = 0; i < float16Array.length; i += 3) {
+				decodedPoints.push({ x: float16Array[i], y: float16Array[i + 1], z: float16Array[i + 2] })
+			}
+			expect(decodedPoints.length).toBeGreaterThan(0)
 			// First point should be normalized to 0,0
-			expect(drawShape.props.segments[0].points[0].x).toBe(0)
-			expect(drawShape.props.segments[0].points[0].y).toBe(0)
+			expect(decodedPoints[0].x).toBe(0)
+			expect(decodedPoints[0].y).toBe(0)
 		})
 
 		it('should close shape by duplicating first point when closed is true', () => {

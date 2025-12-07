@@ -403,6 +403,9 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
     children: React.ReactNode;
 }): JSX_2.Element;
 
+// @internal
+export function base64ToPoints(base64: string): VecModel[];
+
 // @public (undocumented)
 export interface BasePathBuilderOpts {
     // (undocumented)
@@ -566,6 +569,9 @@ export interface CopyAsOptions extends TLImageExportOptions {
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
 
+// @internal (undocumented)
+export function createB64FromPoints(points: VecLike[]): string;
+
 // @public
 export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
     center?: {
@@ -574,6 +580,9 @@ export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
     };
     url: string;
 }): Promise<Result<TLBookmarkShape, string>>;
+
+// @internal
+export function createDrawSegments(pointArrays: VecModel[][], type?: 'free' | 'straight'): TLDrawShapeSegment[];
 
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
@@ -1184,7 +1193,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
         props: {
-            segments: TLDrawShapeSegment[];
+            scaleX: number;
+            scaleY: number;
         };
     };
     // (undocumented)
@@ -1794,6 +1804,12 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boole
 // @public (undocumented)
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
+// @internal (undocumented)
+export function getPointsFromSegment(segment: TLDrawShapeSegment, points?: Vec[]): Vec[];
+
+// @internal (undocumented)
+export function getPointsFromSegments(segments: TLDrawShapeSegment[]): Vec[];
+
 // @public
 export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
 
@@ -1897,7 +1913,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
         props: {
-            segments: TLDrawShapeSegment[];
+            scaleX: number;
+            scaleY: number;
         };
     };
     // (undocumented)
@@ -2507,6 +2524,9 @@ export interface PlainTextLabelProps {
     // (undocumented)
     wrap?: boolean;
 }
+
+// @internal
+export function pointsToBase64(points: VecModel[]): string;
 
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {

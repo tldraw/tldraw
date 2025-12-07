@@ -1,3 +1,4 @@
+import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
 import {
 	AssetRecordType,
 	TLAsset,
@@ -10,14 +11,83 @@ import {
 	TLShapePartial,
 	ZERO_INDEX_KEY,
 	assert,
+	base64ToFloat16Array,
 	createBindingId,
 	createShapeId,
+	float16ArrayToBase64,
 	getIndexAbove,
 	isShapeId,
 	mapObjectMapValues,
 	omitFromStackTrace,
 } from '@tldraw/editor'
 import React, { Fragment } from 'react'
+
+/**
+ * Helper function to convert draw shape points from VecModel[] to base64 string.
+ * This is useful for tests that create draw shapes with the legacy array format.
+ *
+ * @example
+ * ```ts
+ * const segments = [{ type: 'free', points: pointsToBase64([{x: 0, y: 0, z: 0.5}]) }]
+ * ```
+ *
+ * @internal
+ */
+export function pointsToBase64(points: VecModel[]): string {
+	const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
+	const float16Array = new Float16Array(nums)
+	return float16ArrayToBase64(float16Array)
+}
+
+/**
+ * Helper function to convert base64 string back to VecModel[] points.
+ * This is useful for tests that need to inspect draw shape points.
+ *
+ * @example
+ * ```ts
+ * const points = base64ToPoints(shape.props.segments[0].points)
+ * expect(points[0].x).toBe(0)
+ * ```
+ *
+ * @internal
+ */
+export function base64ToPoints(base64: string): VecModel[] {
+	const float16Array = base64ToFloat16Array(base64)
+	const points: VecModel[] = []
+	for (let i = 0; i < float16Array.length; i += 3) {
+		points.push({
+			x: float16Array[i],
+			y: float16Array[i + 1],
+			z: float16Array[i + 2],
+		})
+	}
+	return points
+}
+
+/**
+ * Helper function to create draw shape segments from legacy array format.
+ * This allows tests to use the old format while the shape uses the new base64 format.
+ *
+ * @example
+ * ```ts
+ * editor.createShapes([{
+ *   type: 'draw',
+ *   props: {
+ *     segments: createDrawSegments([[{x: 0, y: 0}, {x: 10, y: 10}]])
+ *   }
+ * }])
+ * ```
+ * @internal
+ */
+export function createDrawSegments(
+	pointArrays: VecModel[][],
+	type: 'free' | 'straight' = 'free'
+): TLDrawShapeSegment[] {
+	return pointArrays.map((points) => ({
+		type,
+		points: pointsToBase64(points),
+	}))
+}
 
 const shapeTypeSymbol = Symbol('shapeJsx')
 const assetTypeSymbol = Symbol('assetJsx')

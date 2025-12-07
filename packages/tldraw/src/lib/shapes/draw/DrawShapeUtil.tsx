@@ -29,7 +29,11 @@ import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
+import {
+	getDrawShapeStrokeDashArray,
+	getFreehandOptions,
+	getPointsFromDrawSegments,
+} from './getPath'
 
 /** @public */
 export interface DrawShapeOptions {
@@ -77,7 +81,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	getGeometry(shape: TLDrawShape) {
-		const points = getPointsFromSegments(shape.props.segments)
+		const points = getPointsFromDrawSegments(shape.props.segments)
 
 		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -131,7 +135,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	indicator(shape: TLDrawShape) {
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -222,7 +226,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const theme = useDefaultColorTheme()
 	const editor = useEditor()
 
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 

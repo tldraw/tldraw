@@ -104,6 +104,7 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
+/** @internal */
 export function b64PointsToVecs(b64Points: string) {
 	const points = base64ToFloat16Array(b64Points)
 	const result: Vec[] = []
@@ -116,23 +117,32 @@ export function b64PointsToVecs(b64Points: string) {
 	return result
 }
 
-export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
-	const points: Vec[] = []
+/** @internal */
+export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, points: Vec[] = []) {
+	const _points = b64PointsToVecs(segment.points)
 
-	for (const segment of segments) {
-		const _points = b64PointsToVecs(segment.points)
-
-		if (segment.type === 'free' || _points.length < 2 * 8) {
-			points.push(..._points.map(Vec.Cast))
-		} else {
-			const pointsToInterpolate = Math.max(4, Math.floor(Vec.Dist(_points[0], _points[1]) / 16))
-			points.push(...Vec.PointsBetween(_points[0], _points[1], pointsToInterpolate))
-		}
+	if (segment.type === 'free' || _points.length < 2 * 8) {
+		points.push(..._points.map(Vec.Cast))
+	} else {
+		const pointsToInterpolate = Math.max(4, Math.floor(Vec.Dist(_points[0], _points[1]) / 16))
+		points.push(...Vec.PointsBetween(_points[0], _points[1], pointsToInterpolate))
 	}
 
 	return points
 }
 
+/** @internal */
+export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[]) {
+	const points: Vec[] = []
+
+	for (const segment of segments) {
+		getPointsFromDrawSegment(segment, points)
+	}
+
+	return points
+}
+
+/** @internal */
 export function forEachMutablePoint(
 	cb: (point: Vec, prevPoint: Vec | null) => void,
 	segments: TLDrawShapeSegment[]
@@ -182,21 +192,25 @@ export function getPointAtIndexFromB64(b64Points: string, index: number): Vec | 
 	return index >= 0 && index < points.length ? points[index] : null
 }
 
+/** @internal */
 export function createB64FromPoints(points: VecLike[]): string {
 	const flatPoints = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
 	return float16ArrayToBase64(new Float16Array(flatPoints))
 }
 
+/** @internal */
 export function createB64FromSinglePoint(point: VecLike): string {
 	return float16ArrayToBase64(new Float16Array([point.x, point.y, point.z ?? 0.5]))
 }
 
+/** @internal */
 export function appendPointToB64(b64Points: string, newPoint: VecLike): string {
 	const existingPoints = b64PointsToVecs(b64Points)
 	existingPoints.push(Vec.Cast(newPoint))
 	return createB64FromPoints(existingPoints)
 }
 
+/** @internal */
 export function replaceLastPointInB64(b64Points: string, newPoint: VecLike): string {
 	const points = b64PointsToVecs(b64Points)
 	if (points.length === 0) return createB64FromSinglePoint(newPoint)
@@ -204,6 +218,7 @@ export function replaceLastPointInB64(b64Points: string, newPoint: VecLike): str
 	return createB64FromPoints(points)
 }
 
+/** @internal */
 export function getDistanceBetweenB64Points(b64Points1: string, b64Points2: string): number {
 	const point1 = getLastPointFromB64(b64Points1)
 	const point2 = getFirstPointFromB64(b64Points2)
@@ -211,12 +226,14 @@ export function getDistanceBetweenB64Points(b64Points1: string, b64Points2: stri
 	return Vec.Dist(point1, point2)
 }
 
+/** @internal */
 export function getDistanceFromLastPoint(b64Points: string, point: VecLike): number {
 	const lastPoint = getLastPointFromB64(b64Points)
 	if (!lastPoint) return 0
 	return Vec.Dist(lastPoint, point)
 }
 
+/** @internal */
 export function createSegmentFromPoints(
 	type: 'free' | 'straight',
 	points: VecLike[]
@@ -227,6 +244,7 @@ export function createSegmentFromPoints(
 	}
 }
 
+/** @internal */
 export function createSegmentFromTwoPoints(
 	type: 'free' | 'straight',
 	point1: VecLike,

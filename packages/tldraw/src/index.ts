@@ -2,6 +2,11 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export {
+	createB64FromPoints,
+	getPointsFromDrawSegment as getPointsFromSegment,
+	getPointsFromDrawSegments as getPointsFromSegments,
+} from './lib/shapes/draw/getPath'
+export {
 	PathBuilder,
 	PathBuilderGeometry2d,
 	type BasePathBuilderOpts,
@@ -732,6 +737,9 @@ export {
 	type TldrawFile,
 	type TldrawFileParseError,
 } from './lib/utils/tldr/file'
+
+// Test helpers for draw shape segments
+export { base64ToPoints, createDrawSegments, pointsToBase64 } from './test/test-jsx'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

@@ -18,7 +18,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
+import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
@@ -131,7 +131,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const strokeWidth = getStrokeWidth(shape)
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
 
 		let strokePath
 		if (strokePoints.length < 2) {
@@ -218,7 +218,7 @@ function getHighlightStrokePoints(
 	strokeWidth: number,
 	forceSolid: boolean
 ) {
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = strokeWidth
@@ -257,7 +257,7 @@ function HighlightRenderer({
 }) {
 	const theme = useDefaultColorTheme()
 
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
 
 	let sw = strokeWidth
 	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
