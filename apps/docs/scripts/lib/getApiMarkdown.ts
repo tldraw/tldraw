@@ -379,7 +379,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			result.markdown += `\n\n`
 			result.markdown += `<ApiHeading>Example</ApiHeading>\n\n`
 			for (const example of exampleBlocks) {
-				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content)
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content as any)
 			}
 		}
 	}
@@ -454,7 +454,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 				result.markdown += `\`${block.parameterName}\`\n\n`
 				result.markdown += `</ParametersTableName>\n`
 				result.markdown += `<ParametersTableDescription>\n\n`
-				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, block.content)
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, block.content as any)
 				result.markdown += `\n\n</ParametersTableDescription>\n`
 				result.markdown += `</ParametersTableRow>\n`
 			}
