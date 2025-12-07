@@ -94,7 +94,8 @@ test.describe('Performance Tests', () => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
-		testOutput(await perfSuite.testShapeRotation())
+		// Enable profiling to see where time is spent (scripting, rendering, painting)
+		testOutput(await perfSuite.testShapeRotation({ profile: true }))
 	})
 
 	test('Shape Dragging Performance', async ({ page, context, request, browserName }) => {

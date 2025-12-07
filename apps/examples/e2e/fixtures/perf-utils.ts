@@ -3,30 +3,36 @@ import { Editor } from 'tldraw'
 import { BaselineManager, ComparisonResult, Environment } from './baseline-manager'
 import { E2EFpsTracker, FPSMetrics } from './fps-tracker'
 import { HeavyBoardGenerator } from './heavy-board-generator'
+import { PerfProfiler, ProfileMetrics } from './perf-profiler'
 
 export interface PerformanceTestResult {
 	interaction: string
 	metrics: FPSMetrics
 	comparison: ComparisonResult
 	environment: Environment
+	profile?: ProfileMetrics
 }
 
 export interface InteractionTestOptions {
 	warmupMs?: number
 	measureMs?: number
 	expectMinFps?: number
+	profile?: boolean
+	saveTrace?: boolean
 }
 
 export class PerformanceTestSuite {
 	private fpsTracker: E2EFpsTracker
 	private baselineManager: BaselineManager
 	private boardGenerator: HeavyBoardGenerator
+	private profiler: PerfProfiler
 	private environment: Environment
 
 	constructor(page: Page, browserName: string) {
 		this.fpsTracker = new E2EFpsTracker(page)
 		this.baselineManager = new BaselineManager()
 		this.boardGenerator = new HeavyBoardGenerator(page)
+		this.profiler = new PerfProfiler(page)
 
 		// Detect environment
 		this.environment = {
@@ -83,7 +89,12 @@ export class PerformanceTestSuite {
 	}
 
 	async testShapeRotation(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
-		const { warmupMs = 500, measureMs = 10000, expectMinFps } = options // 10 seconds for lots of rotation
+		const { warmupMs = 500, measureMs = 10000, expectMinFps, profile, saveTrace } = options // 10 seconds for lots of rotation
+
+		// Start profiling if requested
+		if (profile) {
+			await this.profiler.startTracing()
+		}
 
 		const { metrics } = await this.fpsTracker.measureInteraction(
 			async () => {
@@ -122,6 +133,18 @@ export class PerformanceTestSuite {
 			{ warmupMs, measureMs }
 		)
 
+		// Stop profiling and get metrics
+		let profileMetrics: ProfileMetrics | undefined
+		if (profile) {
+			profileMetrics = await this.profiler.stopTracing()
+			// eslint-disable-next-line no-console
+			console.log(this.profiler.formatMetrics(profileMetrics))
+
+			if (saveTrace) {
+				await this.profiler.saveTrace(`rotate_shapes_${Date.now()}`)
+			}
+		}
+
 		// Clean up and clear selection
 		const page = this.getPage()
 
@@ -145,7 +168,7 @@ export class PerformanceTestSuite {
 		// Clear selection
 		await page.keyboard.press('Escape')
 
-		return this.finalizeTestResult('rotate_shapes', metrics, expectMinFps)
+		return this.finalizeTestResult('rotate_shapes', metrics, expectMinFps, profileMetrics)
 	}
 
 	async testShapeDragging(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
@@ -451,7 +474,8 @@ export class PerformanceTestSuite {
 	private finalizeTestResult(
 		interaction: string,
 		metrics: FPSMetrics,
-		expectMinFps?: number
+		expectMinFps?: number,
+		profile?: ProfileMetrics
 	): PerformanceTestResult {
 		const comparison = this.baselineManager.compareWithBaseline(
 			interaction,
@@ -470,6 +494,7 @@ export class PerformanceTestSuite {
 			metrics,
 			comparison,
 			environment: this.environment,
+			profile,
 		}
 	}
 
