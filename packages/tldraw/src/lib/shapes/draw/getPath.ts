@@ -104,7 +104,7 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
-/** @internal */
+/** @public */
 export function b64PointsToVecs(b64Points: string) {
 	const points = base64ToFloat16Array(b64Points)
 	const result: Vec[] = []
@@ -192,7 +192,7 @@ export function getPointAtIndexFromB64(b64Points: string, index: number): Vec | 
 	return index >= 0 && index < points.length ? points[index] : null
 }
 
-/** @internal */
+/** @public */
 export function createB64FromPoints(points: VecLike[]): string {
 	const flatPoints = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
 	return float16ArrayToBase64(new Float16Array(flatPoints))

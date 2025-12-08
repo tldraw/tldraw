@@ -6,7 +6,7 @@ import {
 	convertSimpleIdToTldrawId,
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
-import { createB64FromPoints, TLDrawShapeSegment, Vec, VecModel, last } from 'tldraw'
+import { TLDrawShapeSegment, Vec, VecModel, createB64FromPoints, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 

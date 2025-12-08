@@ -402,7 +402,7 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
     children: React.ReactNode;
 }): JSX_2.Element;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function b64PointsToVecs(b64Points: string): Vec[];
 
 // @public (undocumented)
@@ -568,7 +568,7 @@ export interface CopyAsOptions extends TLImageExportOptions {
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function createB64FromPoints(points: VecLike[]): string;
 
 // @public
