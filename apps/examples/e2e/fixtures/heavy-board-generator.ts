@@ -125,6 +125,7 @@ export class HeavyBoardGenerator {
 
 						case 'draw': {
 							// Create a simple drawn shape with some points
+							const tldrawApi = (window as any).tldrawApi
 							const numPoints = random.range(3, 8)
 							const points: Array<{ x: number; y: number; z: number }> = []
 							for (let p = 0; p < numPoints; p++) {
@@ -143,7 +144,7 @@ export class HeavyBoardGenerator {
 									segments: [
 										{
 											type: 'free',
-											points,
+											points: tldrawApi.createB64FromPoints(points),
 										},
 									],
 									color: random.choice(['black', 'blue', 'green', 'red']),

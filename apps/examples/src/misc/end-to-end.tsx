@@ -4,6 +4,7 @@ import {
 	BaseBoxShapeUtil,
 	TLShape,
 	Tldraw,
+	createB64FromPoints,
 	createShapeId,
 	exportAs,
 	getArrowInfo,
@@ -140,6 +141,8 @@ function SneakyExportButton() {
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
 			toRichText: (text: string) => toRichText(text),
+			createB64FromPoints: (points: Array<{ x: number; y: number; z?: number }>) =>
+				createB64FromPoints(points),
 			markAllArrowBindings: () => {
 				const markRadius = 3
 				for (const shape of editor.getCurrentPageShapes()) {
