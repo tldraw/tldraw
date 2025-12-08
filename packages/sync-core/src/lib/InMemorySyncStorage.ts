@@ -27,6 +27,59 @@ export const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
 export const MAX_TOMBSTONES = 5000
 
 /**
+ * Result of computing which tombstones to prune.
+ * @internal
+ */
+export interface TombstonePruneResult {
+	/** The new value for tombstoneHistoryStartsAtClock */
+	newTombstoneHistoryStartsAtClock: number
+	/** IDs of tombstones to delete */
+	idsToDelete: string[]
+}
+
+/**
+ * Computes which tombstones should be pruned, avoiding partial history for any clock value.
+ * Returns null if no pruning is needed (tombstone count <= maxTombstones).
+ *
+ * @param tombstones - Array of tombstones sorted by clock ascending (oldest first)
+ * @param documentClock - Current document clock (used as fallback if all tombstones are deleted)
+ * @param maxTombstones - Maximum number of tombstones to keep (default: MAX_TOMBSTONES)
+ * @param pruneBufferSize - Extra tombstones to prune beyond the threshold (default: TOMBSTONE_PRUNE_BUFFER_SIZE)
+ * @returns Pruning result or null if no pruning needed
+ *
+ * @internal
+ */
+export function computeTombstonePruning(
+	tombstones: Array<{ id: string; clock: number }>,
+	documentClock: number,
+	maxTombstones: number = MAX_TOMBSTONES,
+	pruneBufferSize: number = TOMBSTONE_PRUNE_BUFFER_SIZE
+): TombstonePruneResult | null {
+	if (tombstones.length <= maxTombstones) {
+		return null
+	}
+
+	// Determine how many to delete, avoiding partial history for a clock value
+	let cutoff = pruneBufferSize + tombstones.length - maxTombstones
+	while (
+		cutoff < tombstones.length &&
+		tombstones[cutoff - 1]?.clock === tombstones[cutoff]?.clock
+	) {
+		cutoff++
+	}
+
+	// Set history start to the oldest remaining tombstone's clock
+	// (or documentClock if we're deleting everything)
+	const oldestRemaining = tombstones[cutoff]
+	const newTombstoneHistoryStartsAtClock = oldestRemaining?.clock ?? documentClock
+
+	// Collect the oldest tombstones to delete (first cutoff entries)
+	const idsToDelete = tombstones.slice(0, cutoff).map((t) => t.id)
+
+	return { newTombstoneHistoryStartsAtClock, idsToDelete }
+}
+
+/**
  * Default initial snapshot for a new room.
  * @public
  */
@@ -170,23 +223,16 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	pruneTombstones = throttle(
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
-				const tombstones = Array.from(this.tombstones)
-				// sort entries in ascending order by clock (oldest first)
-				tombstones.sort((a, b) => a[1] - b[1])
-				// determine how many to delete, avoiding partial history for a clock value
-				let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE + this.tombstones.size - MAX_TOMBSTONES
-				while (cutoff < tombstones.length && tombstones[cutoff - 1][1] === tombstones[cutoff][1]) {
-					cutoff++
+				// Convert to array and sort by clock ascending (oldest first)
+				const tombstones = Array.from(this.tombstones.entries())
+					.map(([id, clock]) => ({ id, clock }))
+					.sort((a, b) => a.clock - b.clock)
+
+				const result = computeTombstonePruning(tombstones, this.documentClock.get())
+				if (result) {
+					this.tombstoneHistoryStartsAtClock.set(result.newTombstoneHistoryStartsAtClock)
+					this.tombstones.deleteMany(result.idsToDelete)
 				}
-
-				// Set history start to the oldest remaining tombstone's clock
-				// (or documentClock if we're deleting everything)
-				const oldestRemaining = tombstones[cutoff]
-				this.tombstoneHistoryStartsAtClock.set(oldestRemaining?.[1] ?? this.documentClock.get())
-
-				// Delete the oldest tombstones (first cutoff entries)
-				const toDelete = tombstones.slice(0, cutoff)
-				this.tombstones.deleteMany(toDelete.map(([id]) => id))
 			}
 		},
 		1000,

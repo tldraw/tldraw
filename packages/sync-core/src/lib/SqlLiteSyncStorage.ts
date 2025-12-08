@@ -1,6 +1,7 @@
 import { transaction } from '@tldraw/state'
 import { SerializedSchema, StoreSnapshot, UnknownRecord } from '@tldraw/store'
 import { assert, objectMapEntries, throttle } from '@tldraw/utils'
+import { computeTombstonePruning, MAX_TOMBSTONES } from './InMemorySyncStorage'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
@@ -14,9 +15,6 @@ import {
 	TLSyncStorageTransactionOptions,
 	TLSyncStorageTransactionResult,
 } from './TLSyncStorage'
-
-const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
-const MAX_TOMBSTONES = 5000
 
 /** @public */
 export type TLSqliteInputValue = null | number | bigint | string
@@ -102,6 +100,7 @@ export function migrateSqliteSyncStorage(
 				id TEXT PRIMARY KEY,
 				clock INTEGER NOT NULL
 			);
+			CREATE INDEX IF NOT EXISTS idx_${tombstonesTable}_clock ON ${tombstonesTable}(clock);
 
 			CREATE TABLE IF NOT EXISTS ${metadataTable} (
 			  migrationVersion INTEGER NOT NULL DEFAULT 1,
@@ -208,6 +207,9 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 			),
 			deleteTombstone: this.sql.prepare<TLSqliteRow, [id: string]>(
 				`DELETE FROM ${tombstonesTable} WHERE id = ?`
+			),
+			deleteTombstonesBefore: this.sql.prepare<TLSqliteRow, [clock: number]>(
+				`DELETE FROM ${tombstonesTable} WHERE clock < ?`
 			),
 			countTombstones: this.sql.prepare<{ count: number }>(
 				`SELECT count(*) as count FROM ${tombstonesTable}`
@@ -336,27 +338,12 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 				// Get all tombstones sorted by clock ascending (oldest first)
 				const tombstones = this.stmts.iterateTombstones.all()
 
-				// determine how many to delete, avoiding partial history for a clock value
-				let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE + tombstones.length - MAX_TOMBSTONES
-				while (
-					cutoff < tombstones.length &&
-					tombstones[cutoff - 1]?.clock === tombstones[cutoff]?.clock
-				) {
-					cutoff++
-				}
-
-				// Set history start to the oldest remaining tombstone's clock
-				// (or documentClock if we're deleting everything)
-				const oldestRemaining = tombstones[cutoff]
-				const newTombstoneHistoryStartsAtClock = oldestRemaining?.clock ?? this.getClock()
-
-				// Update clock table
-				this.stmts.setTombstoneHistoryStartsAtClock.run(newTombstoneHistoryStartsAtClock)
-
-				// Delete the oldest tombstones (first cutoff entries)
-				const toDelete = tombstones.slice(0, cutoff)
-				for (const { id } of toDelete) {
-					this.stmts.deleteTombstone.run(id)
+				const result = computeTombstonePruning(tombstones, this.getClock())
+				if (result) {
+					this.stmts.setTombstoneHistoryStartsAtClock.run(result.newTombstoneHistoryStartsAtClock)
+					// Delete all tombstones with clock < newTombstoneHistoryStartsAtClock in one operation.
+					// This works because computeTombstonePruning ensures we never split a clock value.
+					this.stmts.deleteTombstonesBefore.run(result.newTombstoneHistoryStartsAtClock)
 				}
 			}
 		},
