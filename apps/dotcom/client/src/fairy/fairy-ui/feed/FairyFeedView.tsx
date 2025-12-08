@@ -1,7 +1,8 @@
-import { memo } from 'react'
+import { memo, useLayoutEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
 
 /** Saturated IRC colors for consistent unique colors per agent */
@@ -89,7 +90,7 @@ const FairyFeedIRCLine = memo(
 				<span className="fairy-feed-irc-time">[{formatTime(timestamp)}]</span>
 				<div className="fairy-feed-irc-name-container">
 					<span className="fairy-feed-irc-name" style={{ color: getIRCColorForAgent(agentId) }}>
-						{`<${isOrchestrator ? '@' : ''}${formatShortName(agentName)}>`}
+						{`<${isOrchestrator ? '@' : ''}${formatShortName(agentName, agentId)}>`}
 					</span>
 				</div>
 				<span className="fairy-feed-irc-message">{description}</span>
@@ -111,6 +112,9 @@ const FairyFeedIRCLine = memo(
 
 export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) {
 	const fairyApp = useFairyApp()
+	const historyRef = useRef<HTMLDivElement>(null)
+	const previousScrollDistanceFromBottomRef = useRef(0)
+
 	const project = useValue('project', () => orchestratorAgent && orchestratorAgent.getProject(), [
 		orchestratorAgent,
 	])
@@ -126,16 +130,51 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 		[project, fairyApp, agents, orchestratorAgent]
 	)
 
+	useLayoutEffect(() => {
+		if (!historyRef.current) return
+
+		// If a new prompt is submitted by the user, scroll to the bottom
+		const lastItem = feedItems.at(-1)
+		if (lastItem) {
+			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+			previousScrollDistanceFromBottomRef.current = 0
+			return
+		}
+
+		// If the user is scrolled to the bottom, keep them there while new actions appear
+		if (previousScrollDistanceFromBottomRef.current <= 0) {
+			const scrollDistanceFromBottom =
+				historyRef.current.scrollHeight -
+				historyRef.current.scrollTop -
+				historyRef.current.clientHeight
+
+			if (scrollDistanceFromBottom > 0) {
+				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+			}
+		}
+	}, [historyRef, feedItems])
+
+	// Keep track of the user's scroll position
+	const handleScroll = () => {
+		if (!historyRef.current) return
+		const scrollDistanceFromBottom =
+			historyRef.current.scrollHeight -
+			historyRef.current.scrollTop -
+			historyRef.current.clientHeight
+
+		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
+	}
+
 	if (feedItems.length === 0) {
 		return (
 			<div className="fairy-feed-view-empty">
-				<p>No activity yet</p>
+				<p>Planning project...</p>
 			</div>
 		)
 	}
 
 	return (
-		<div className="fairy-feed-view fairy-feed-irc">
+		<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
 			{feedItems.map((item) => (
 				<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />
 			))}
@@ -170,11 +209,7 @@ function formatTime(timestamp: number): string {
 	return `${hours}:${minutes}`
 }
 
-/** Format name as "firstname_l" (e.g., "josh_b") */
-function formatShortName(name: string): string {
-	const parts = name.trim().split(/\s+/)
-	if (parts.length < 2) return name.toLowerCase()
-	const firstName = parts[0].toLowerCase()
-	const lastInitial = parts[parts.length - 1].charAt(0).toLowerCase()
-	return `${firstName}_${lastInitial}`
+/** Format name as IRC-style screen name (e.g., "xXSteveXx", "Alice_99") */
+function formatShortName(name: string, agentId: string): string {
+	return getIRCNameForFairy(name, agentId)
 }

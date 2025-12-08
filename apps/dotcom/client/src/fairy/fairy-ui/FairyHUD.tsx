@@ -85,9 +85,10 @@ export function FairyHUD() {
 		[activeOrchestratorAgent, agents, lastSeenFeedTimestamp]
 	)
 
-	// Close feed dialog when a new project starts
+	// Close feed dialog when a new project starts AND reset seen timestamp
 	useEffect(() => {
 		removeDialog(FAIRY_FEED_DIALOG_ID)
+		setLastSeenFeedTimestamp(0) // Reset so all items in new project show as unseen
 	}, [activeOrchestratorAgent, removeDialog])
 
 	// Toggle feed dialog and mark as seen when opening
@@ -98,10 +99,12 @@ export function FairyHUD() {
 			setLastSeenFeedTimestamp(Date.now())
 			addDialog({
 				id: FAIRY_FEED_DIALOG_ID,
-				component: () => <FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} />,
+				component: () => (
+					<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
+				),
 			})
 		}
-	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog])
+	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog, agents])
 
 	return (
 		<>
