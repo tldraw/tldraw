@@ -403,7 +403,7 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
     children: React.ReactNode;
 }): JSX_2.Element;
 
-// @internal
+// @public
 export function base64ToPoints(base64: string): VecModel[];
 
 // @public (undocumented)
@@ -581,7 +581,7 @@ export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
     url: string;
 }): Promise<Result<TLBookmarkShape, string>>;
 
-// @internal
+// @public
 export function createDrawSegments(pointArrays: VecModel[][], type?: 'free' | 'straight'): TLDrawShapeSegment[];
 
 // @public (undocumented)
@@ -2525,7 +2525,7 @@ export interface PlainTextLabelProps {
     wrap?: boolean;
 }
 
-// @internal
+// @public
 export function pointsToBase64(points: VecModel[]): string;
 
 // @public (undocumented)
