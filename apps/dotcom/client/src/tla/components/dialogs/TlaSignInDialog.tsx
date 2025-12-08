@@ -28,10 +28,12 @@ export function TlaSignInDialog({
 	onClose,
 	inviteInfo,
 	onInviteAccepted,
+	skipRedirect,
 }: {
 	onClose?(): void
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
 	onInviteAccepted?(): void
+	skipRedirect?: boolean
 }) {
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
@@ -39,8 +41,10 @@ export function TlaSignInDialog({
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
 
 	useEffect(() => {
-		setRedirectOnSignIn()
-	}, [])
+		if (!skipRedirect) {
+			setRedirectOnSignIn()
+		}
+	}, [skipRedirect])
 
 	let innerContent: ReactNode
 

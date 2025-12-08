@@ -1,14 +1,13 @@
 import { deleteFromSessionStorage, setInSessionStorage } from 'tldraw'
-
-const REDIRECT_KEY = 'redirect-to'
+import { SESSION_STORAGE_KEYS } from './session-storage'
 
 export function setRedirectOnSignIn() {
 	const path = window.location.pathname + window.location.search + window.location.hash
 	if (path !== '/') {
-		setInSessionStorage(REDIRECT_KEY, path)
+		setInSessionStorage(SESSION_STORAGE_KEYS.REDIRECT, path)
 	}
 }
 
 export function clearRedirectOnSignIn() {
-	deleteFromSessionStorage(REDIRECT_KEY)
+	deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 }

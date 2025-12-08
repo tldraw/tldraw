@@ -1,39 +1,27 @@
-import { useEffect, useMemo } from 'react'
-import { Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { DefaultSpinner } from 'tldraw'
-import { routes } from '../../routeDefs'
-import { useMaybeApp } from '../hooks/useAppState'
+import { useAuth } from '@clerk/clerk-react'
+import { useEffect } from 'react'
+import { Navigate, useParams } from 'react-router-dom'
+import { setInSessionStorage, useDialogs } from 'tldraw'
+import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
+import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 
 export function Component() {
 	const { token } = useParams<{ token: string }>()
-	const [searchParams] = useSearchParams()
-	const app = useMaybeApp()
-	const isAccepting = searchParams.get('accept') === 'true'
-
-	// Memoize the state object to prevent Navigate from re-rendering infinitely
-	const navigateState = useMemo(() => ({ inviteSecret: token }), [token])
+	const auth = useAuth()
+	const { addDialog } = useDialogs()
 
 	useEffect(() => {
-		if (app && isAccepting && token) {
-			app.acceptGroupInvite(token)
+		// Store token in session storage - handlers will process after sign-in
+		setInSessionStorage(SESSION_STORAGE_KEYS.GROUP_INVITE_TOKEN, token!)
+
+		// If user is not signed in, show sign-in dialog
+		if (auth.isLoaded && !auth.isSignedIn) {
+			addDialog({
+				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
+			})
 		}
-	}, [isAccepting, app, token])
+	}, [token, auth.isLoaded, auth.isSignedIn, addDialog])
 
-	// allow the app to do the redirect
-	if (app && isAccepting && token)
-		return (
-			<div
-				style={{
-					position: 'fixed',
-					inset: 0,
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-				}}
-			>
-				<DefaultSpinner />
-			</div>
-		)
-
-	return <Navigate to={routes.tlaRoot()} state={navigateState} replace />
+	// Always redirect to root - handlers will process the token
+	return <Navigate to="/" replace />
 }

@@ -1,15 +1,14 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, deleteFromSessionStorage, getFromSessionStorage, react, useDialogs } from 'tldraw'
+import { assert, deleteFromSessionStorage, getFromSessionStorage, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
-import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
-import { useInviteDetails } from '../hooks/useInviteDetails'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
 export function Component() {
@@ -22,9 +21,9 @@ export function Component() {
 			if (!app) return
 
 			// Check for redirect-to first (e.g., after OAuth sign-in)
-			const redirectTo = getFromSessionStorage('redirect-to')
+			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
-				deleteFromSessionStorage('redirect-to')
+				deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 				navigate(redirectTo, { replace: true })
 				return
 			}
@@ -77,30 +76,6 @@ export function Component() {
 }
 
 function LocalTldraw() {
-	const inviteInfo = useInviteDetails()
-	const dialogs = useDialogs()
-	const navigate = useNavigate()
-
-	useEffect(() => {
-		if (inviteInfo && !inviteInfo.error) {
-			// User is not signed in, show sign-in dialog with invite info
-			dialogs.addDialog({
-				component: ({ onClose }) => (
-					<TlaSignInDialog
-						inviteInfo={inviteInfo}
-						onClose={onClose}
-						onInviteAccepted={() => {
-							navigate(
-								routes.tlaInvite(inviteInfo.inviteSecret, { searchParams: { accept: 'true' } }),
-								{ replace: true }
-							)
-						}}
-					/>
-				),
-			})
-		}
-	}, [inviteInfo, dialogs, navigate])
-
 	return (
 		<TlaAnonLayout>
 			<LocalEditor
