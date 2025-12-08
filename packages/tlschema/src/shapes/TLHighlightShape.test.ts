@@ -1,11 +1,20 @@
+import { Float16Array } from '@petamoriken/float16'
 import { T } from '@tldraw/validate'
 import { describe, expect, it, test } from 'vitest'
 import { getTestMigration } from '../__tests__/migrationTestUtils'
+import { float16ArrayToBase64 } from './TLDrawShape'
 import {
 	highlightShapeMigrations,
 	highlightShapeProps,
 	highlightShapeVersions,
 } from './TLHighlightShape'
+
+// Helper to create base64-encoded points from VecModel array
+function createB64Points(points: Array<{ x: number; y: number; z?: number }>): string {
+	const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
+	const float16Array = new Float16Array(nums)
+	return float16ArrayToBase64(float16Array)
+}
 
 describe('TLHighlightShape', () => {
 	describe('highlightShapeProps validation schema', () => {
@@ -16,12 +25,14 @@ describe('TLHighlightShape', () => {
 				segments: [
 					{
 						type: 'free' as const,
-						points: [{ x: 0, y: 0, z: 0.5 }],
+						points: createB64Points([{ x: 0, y: 0, z: 0.5 }]),
 					},
 				],
 				isComplete: true,
 				isPen: false,
 				scale: 1,
+				scaleX: 1,
+				scaleY: 1,
 			}
 
 			const fullValidator = T.object(highlightShapeProps)
@@ -50,7 +61,7 @@ describe('TLHighlightShape', () => {
 				[
 					{
 						type: 'free' as const,
-						points: [{ x: 0, y: 0, z: 0.5 }],
+						points: createB64Points([{ x: 0, y: 0, z: 0.5 }]),
 					},
 				],
 			]
@@ -63,7 +74,8 @@ describe('TLHighlightShape', () => {
 				'not-array',
 				null,
 				undefined,
-				[{ type: 'invalid', points: [] }], // Invalid segment type
+				[{ type: 'invalid', points: createB64Points([]) }], // Invalid segment type
+				[{ type: 'free', points: [{ x: 0, y: 0 }] }], // Array instead of base64 string
 			]
 
 			invalidSegmentArrays.forEach((segments) => {
@@ -130,7 +142,7 @@ describe('TLHighlightShape', () => {
 		})
 
 		it('should have all expected migration versions', () => {
-			const expectedVersions: Array<keyof typeof highlightShapeVersions> = ['AddScale']
+			const expectedVersions: Array<keyof typeof highlightShapeVersions> = ['AddScale', 'Base64']
 
 			expectedVersions.forEach((version) => {
 				expect(highlightShapeVersions[version]).toBeDefined()
@@ -310,7 +322,7 @@ describe('TLHighlightShape', () => {
 	})
 
 	test('should handle all migration versions in correct order', () => {
-		const expectedOrder: Array<keyof typeof highlightShapeVersions> = ['AddScale']
+		const expectedOrder: Array<keyof typeof highlightShapeVersions> = ['AddScale', 'Base64']
 
 		const migrationIds = highlightShapeMigrations.sequence
 			.filter((migration) => 'id' in migration)

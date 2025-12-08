@@ -1,20 +1,32 @@
+import { Float16Array } from '@petamoriken/float16'
 import { T } from '@tldraw/validate'
 import { describe, expect, it } from 'vitest'
 import { getTestMigration } from '../__tests__/migrationTestUtils'
-import { VecModel } from '../misc/geometry-types'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
-import { DrawShapeSegment, drawShapeProps, drawShapeVersions } from './TLDrawShape'
+import {
+	DrawShapeSegment,
+	drawShapeProps,
+	drawShapeVersions,
+	float16ArrayToBase64,
+} from './TLDrawShape'
+
+// Helper to create base64-encoded points from VecModel array
+function createB64Points(points: Array<{ x: number; y: number; z?: number }>): string {
+	const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
+	const float16Array = new Float16Array(nums)
+	return float16ArrayToBase64(float16Array)
+}
 
 describe('TLDrawShape', () => {
 	describe('DrawShapeSegment validator', () => {
 		it('should validate valid segment structures', () => {
 			const validSegments = [
-				{ type: 'free', points: [{ x: 0, y: 0 }] },
-				{ type: 'straight', points: [{ x: 0, y: 0, z: 0.5 }] },
-				{ type: 'free', points: [] },
+				{ type: 'free', points: createB64Points([{ x: 0, y: 0 }]) },
+				{ type: 'straight', points: createB64Points([{ x: 0, y: 0, z: 0.5 }]) },
+				{ type: 'free', points: createB64Points([]) },
 			]
 
 			validSegments.forEach((segment) => {
@@ -24,9 +36,9 @@ describe('TLDrawShape', () => {
 
 		it('should reject invalid segment types and points', () => {
 			const invalidSegments = [
-				{ type: 'invalid', points: [{ x: 0, y: 0 }] },
-				{ type: 'free', points: [{ x: 'invalid', y: 0 }] },
-				{ type: 'free', points: 'not-array' },
+				{ type: 'invalid', points: createB64Points([{ x: 0, y: 0 }]) },
+				{ type: 'free', points: [{ x: 0, y: 0 }] }, // Array instead of string
+				{ type: 'free', points: 123 }, // Number instead of string
 				{}, // Missing required fields
 			]
 
@@ -45,11 +57,13 @@ describe('TLDrawShape', () => {
 				fill: 'solid' as const,
 				dash: 'dashed' as const,
 				size: 'l' as const,
-				segments: [{ type: 'free' as const, points: [{ x: 0, y: 0, z: 0.5 }] as VecModel[] }],
+				segments: [{ type: 'free' as const, points: createB64Points([{ x: 0, y: 0, z: 0.5 }]) }],
 				isComplete: true,
 				isClosed: true,
 				isPen: true,
 				scale: 1.5,
+				scaleX: 1,
+				scaleY: 1,
 			}
 
 			expect(() => fullValidator.validate(validProps)).not.toThrow()
