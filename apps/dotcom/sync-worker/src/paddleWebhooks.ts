@@ -283,7 +283,7 @@ async function handleTransactionCompleted(
 	// SUCCESS - mark processed FIRST, then notify async
 	await markTransactionProcessed(db, event.event_id)
 
-	sendDiscordNotification(webhookUrl, { type: 'success', email: email ?? 'N/A' }, ctx)
+	sendDiscordNotification(webhookUrl, { type: 'success', email: email ?? 'N/A', env }, ctx)
 }
 
 export const paddleWebhooks = createRouter<Environment>().post(

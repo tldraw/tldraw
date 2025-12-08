@@ -1,5 +1,8 @@
+import { createPostgresConnectionPool } from '../postgres'
+import type { Environment } from '../types'
+
 type DiscordNotification =
-	| { type: 'success'; email: string }
+	| { type: 'success'; email: string; env: Environment }
 	| { type: 'error'; transactionId: string; error: string }
 	| { type: 'refund'; transactionId: string; userId: string }
 	| { type: 'missing_user'; transactionId: string }
@@ -15,9 +18,26 @@ export function sendDiscordNotification(
 	const sendNotification = async () => {
 		let message: string
 		switch (notification.type) {
-			case 'success':
-				message = `🧚✨ Ka-ching! Someone just unlocked the magic! (${notification.email}) 💫🎊`
+			case 'success': {
+				let totalCount = '?'
+				try {
+					const db = createPostgresConnectionPool(notification.env, 'discordNotification')
+					const result = await db
+						.selectFrom('paddle_transactions')
+						.select((eb) => eb.fn.count<string>('transactionId').distinct().as('count'))
+						.where('eventType', '=', 'transaction.completed')
+						.where('status', '=', 'completed')
+						.executeTakeFirst()
+					await db.destroy()
+					const count = parseInt(result?.count ?? '0')
+					// Add +1 to account for one transaction from Nov 28 (before paddle_transactions table existed)
+					totalCount = (count + 1).toString()
+				} catch (error) {
+					console.error('Failed to query transaction count:', error)
+				}
+				message = `🧚✨ Ka-ching! Someone just unlocked the magic! (${notification.email}) Total: ${totalCount} 💫🎊`
 				break
+			}
 			case 'error':
 				message = `🚨 Fairy access grant FAILED for transaction ${notification.transactionId}: ${notification.error}`
 				break
