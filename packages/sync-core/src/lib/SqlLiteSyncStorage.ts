@@ -1,7 +1,11 @@
 import { transaction } from '@tldraw/state'
 import { SerializedSchema, StoreSnapshot, UnknownRecord } from '@tldraw/store'
 import { assert, objectMapEntries, throttle } from '@tldraw/utils'
-import { computeTombstonePruning, MAX_TOMBSTONES } from './InMemorySyncStorage'
+import {
+	computeTombstonePruning,
+	DEFAULT_INITIAL_SNAPSHOT,
+	MAX_TOMBSTONES,
+} from './InMemorySyncStorage'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
@@ -272,8 +276,11 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 			),
 		}
 
-		if (snapshot) {
-			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
+		// Check if we already have data
+		const hasData = SqlLiteSyncStorage.hasBeenInitialized(sql)
+
+		if (snapshot || !hasData) {
+			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot ?? DEFAULT_INITIAL_SNAPSHOT)
 
 			const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
 			const tombstoneHistoryStartsAtClock = snapshot.tombstoneHistoryStartsAtClock ?? documentClock

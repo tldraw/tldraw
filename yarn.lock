@@ -9819,12 +9819,13 @@ __metadata:
     "@fastify/websocket": "npm:^10.0.1"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
-    "@types/bun": "npm:^1.1.6"
+    "@types/better-sqlite3": "npm:^7.6.12"
     "@types/express": "npm:^4.17.21"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/ws": "npm:^8.18.1"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    better-sqlite3: "npm:^11.8.1"
     concurrently: "npm:^9.1.2"
     fastify: "npm:^4.28.1"
     itty-router: "npm:^5.0.18"
@@ -10240,6 +10241,15 @@ __metadata:
   version: 2.1.5
   resolution: "@types/benchmark@npm:2.1.5"
   checksum: 10/1540d8698620da2f4ef0d93dd6e57e40583bb3d5c735768d94c52bdfc039f474f83213badcc66013f0c1f73edcebec99dc731fa8943fc13b4f0d18ddfdf77bee
+  languageName: node
+  linkType: hard
+
+"@types/better-sqlite3@npm:^7.6.12":
+  version: 7.6.13
+  resolution: "@types/better-sqlite3@npm:7.6.13"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/c74dafa3c550ac866737870016d7b1a735c7d450c16d40962eeb54510fa150e91752bfdf678f55e91894d8853771b95f909b0062122116cddac4d80491b74411
   languageName: node
   linkType: hard
 
@@ -13151,6 +13161,17 @@ __metadata:
   version: 1.1.3
   resolution: "best-effort-json-parser@npm:1.1.3"
   checksum: 10/311ed25c95c480b44e082bfee7aaeb246e462e9504a7fcec9793e000b4661a7cf93d150e863dd816dd0567585846712571b04e6a4ce67695690c89f70ebe9dbd
+  languageName: node
+  linkType: hard
+
+"better-sqlite3@npm:^11.8.1":
+  version: 11.10.0
+  resolution: "better-sqlite3@npm:11.10.0"
+  dependencies:
+    bindings: "npm:^1.5.0"
+    node-gyp: "npm:latest"
+    prebuild-install: "npm:^7.1.1"
+  checksum: 10/5e4c7437c4fe6033335a79c82974d7ab29f33c51c36f48b73e87e087d21578468575de1c56a7badd4f76f17255e25abefddaeacf018e5eeb9e0cb8d6e3e4a5e1
   languageName: node
   linkType: hard
 
