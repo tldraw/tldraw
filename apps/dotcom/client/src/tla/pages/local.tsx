@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, deleteFromSessionStorage, getFromSessionStorage, react } from 'tldraw'
+import { assert, getFromSessionStorage, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -8,6 +8,7 @@ import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkMod
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { clearRedirectOnSignIn } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -23,7 +24,7 @@ export function Component() {
 			// Check for redirect-to first (set by OAuth sign-in)
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
-				deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
+				clearRedirectOnSignIn()
 				navigate(redirectTo, { replace: true })
 				return
 			}
