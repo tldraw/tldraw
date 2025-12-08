@@ -104,6 +104,7 @@ export class TLDrawDurableObject extends DurableObject {
 		switch (result.type) {
 			case 'room_found': {
 				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+				// In case it's an old snapshot with no usage percentage set, set it now.
 				// setRoomStorageUsedPercentage calls getStorage which calls loadStorage again,
 				// which seems like it might introduce a deadlock but it doesn't happen because
 				// 1. this doesn't await
@@ -897,7 +898,7 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
-	private async setRoomStorageUsedPercentage(roomSizeMB: number) {
+	protected async setRoomStorageUsedPercentage(roomSizeMB: number) {
 		const storage = await this.getStorage()
 		const percentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
 		storage.transaction((txn) => {
