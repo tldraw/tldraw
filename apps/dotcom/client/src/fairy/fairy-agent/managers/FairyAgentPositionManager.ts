@@ -218,7 +218,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 
 		if (speed < 0.003) {
 			if (this.agent.gesture.hasGestureInStack('soaring')) {
-				this.agent.gesture.clear()
+				this.agent.gesture.reset()
 			}
 			if (speed !== 0) {
 				this.agent.updateEntity((entity) => {

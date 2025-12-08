@@ -130,7 +130,7 @@ function useFairyPointerInteraction(
 
 		function startDraggingWithCurrentState(currentState: FairyPressedState) {
 			cancelLongPressTimer()
-			agent.gesture.clear()
+			agent.gesture.reset()
 			interactionState.current = {
 				status: 'dragging',
 				pointerId: currentState.pointerId,
@@ -174,7 +174,7 @@ function useFairyPointerInteraction(
 			cancelLongPressTimer()
 
 			// Clear panicking gesture if it was set
-			agent.gesture.clear()
+			agent.gesture.reset()
 
 			if (currentState.status === 'idle') {
 				cleanupPointerListeners()
