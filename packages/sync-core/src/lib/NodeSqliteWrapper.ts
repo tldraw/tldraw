@@ -8,7 +8,14 @@ import {
 
 /**
  * Minimal interface for a synchronous SQLite database.
- * Compatible with both `node:sqlite` DatabaseSync and `better-sqlite3` Database.
+ *
+ * This interface is compatible with:
+ * - `node:sqlite` DatabaseSync (Node.js 22.5+)
+ * - `better-sqlite3` Database
+ *
+ * Any SQLite library that provides synchronous `exec` and `prepare` methods
+ * with the signatures below can be used with {@link NodeSqliteWrapper}.
+ *
  * @public
  */
 export interface SyncSqliteDatabase {
@@ -26,14 +33,17 @@ export interface SyncSqliteDatabase {
  * A wrapper around synchronous SQLite databases that implements TLSyncSqliteWrapper.
  * Works with both `node:sqlite` DatabaseSync (Node.js 22.5+) and `better-sqlite3` Database.
  *
+ * Use this wrapper with SqlLiteSyncStorage to persist tldraw sync state to a SQLite database
+ * in Node.js environments.
+ *
  * @example
  * ```ts
- * // With node:sqlite
+ * // With node:sqlite (Node.js 22.5+)
  * import { DatabaseSync } from 'node:sqlite'
- * import { SqlLiteSyncStorage, NodeSqliteSyncWrapper } from '@tldraw/sync-core'
+ * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new DatabaseSync(':memory:')
- * const wrapper = new NodeSqliteSyncWrapper(db)
+ * const wrapper = new NodeSqliteWrapper(db)
  * const storage = new SqlLiteSyncStorage(wrapper)
  * ```
  *
@@ -41,18 +51,18 @@ export interface SyncSqliteDatabase {
  * ```ts
  * // With better-sqlite3
  * import Database from 'better-sqlite3'
- * import { SqlLiteSyncStorage, NodeSqliteSyncWrapper } from '@tldraw/sync-core'
+ * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new Database(':memory:')
- * const wrapper = new NodeSqliteSyncWrapper(db)
+ * const wrapper = new NodeSqliteWrapper(db)
  * const storage = new SqlLiteSyncStorage(wrapper)
  * ```
  *
  * @example
  * ```ts
- * // With table prefix
- * const wrapper = new NodeSqliteSyncWrapper(db, { tablePrefix: 'sync_' })
- * // Creates tables: sync_documents, sync_tombstones, sync_metadata
+ * // With table prefix to avoid conflicts with other tables
+ * const wrapper = new NodeSqliteWrapper(db, { tablePrefix: 'tldraw_' })
+ * // Creates tables: tldraw_documents, tldraw_tombstones, tldraw_metadata
  * ```
  *
  * @public

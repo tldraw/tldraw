@@ -36,22 +36,32 @@ class DurableObjectStatement<TResult extends TLSqliteRow, TParams extends TLSqli
 
 /**
  * A wrapper around Cloudflare Durable Object's SqlStorage that implements TLSyncSqliteWrapper.
- * This allows SqlLiteSyncStorage to work with Durable Object SQLite storage.
+ *
+ * Use this wrapper with SqlLiteSyncStorage to persist tldraw sync state using
+ * Cloudflare Durable Object's built-in SQLite storage. This provides automatic
+ * persistence that survives Durable Object hibernation and restarts.
  *
  * @example
  * ```ts
  * import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
  *
- * // In your Durable Object:
- * const wrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
- * const storage = new SqlLiteSyncStorage(wrapper)
+ * // In your Durable Object class:
+ * class MyDurableObject extends DurableObject {
+ *   private storage: SqlLiteSyncStorage
+ *
+ *   constructor(ctx: DurableObjectState, env: Env) {
+ *     super(ctx, env)
+ *     const wrapper = new DurableObjectSqliteSyncWrapper(ctx.storage)
+ *     this.storage = new SqlLiteSyncStorage(wrapper)
+ *   }
+ * }
  * ```
  *
  * @example
  * ```ts
- * // With table prefix
- * const wrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage, { tablePrefix: 'sync_' })
- * // Creates tables: sync_documents, sync_tombstones, sync_metadata
+ * // With table prefix to avoid conflicts with other tables
+ * const wrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage, { tablePrefix: 'tldraw_' })
+ * // Creates tables: tldraw_documents, tldraw_tombstones, tldraw_metadata
  * ```
  *
  * @public

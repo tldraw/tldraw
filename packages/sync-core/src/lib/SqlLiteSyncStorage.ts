@@ -16,11 +16,24 @@ import {
 	TLSyncStorageTransactionResult,
 } from './TLSyncStorage'
 
-/** @public */
+/**
+ * Valid input value types for SQLite query parameters.
+ * These are the types that can be passed as bindings to prepared statements.
+ * @public
+ */
 export type TLSqliteInputValue = null | number | bigint | string
-/** @public */
+
+/**
+ * Possible output value types returned from SQLite queries.
+ * Includes all input types plus Uint8Array for BLOB columns.
+ * @public
+ */
 export type TLSqliteOutputValue = null | number | bigint | string | Uint8Array
-/** @public */
+
+/**
+ * A row returned from a SQLite query, mapping column names to their values.
+ * @public
+ */
 export type TLSqliteRow = Record<string, TLSqliteOutputValue>
 
 /**
@@ -118,8 +131,37 @@ export function migrateSqliteSyncStorage(
 }
 
 /**
- * SQLite-based implementation of TLPersistentStorage.
+ * SQLite-based implementation of TLSyncStorage.
  * Stores documents, tombstones, metadata, and clock values in SQLite tables.
+ *
+ * This storage backend provides persistent synchronization state that survives
+ * process restarts, unlike InMemorySyncStorage which loses data when the process ends.
+ *
+ * @example
+ * ```ts
+ * // With Cloudflare Durable Objects
+ * import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
+ *
+ * const wrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+ * const storage = new SqlLiteSyncStorage(wrapper)
+ * ```
+ *
+ * @example
+ * ```ts
+ * // With Node.js sqlite (Node 22.5+)
+ * import { DatabaseSync } from 'node:sqlite'
+ * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
+ *
+ * const db = new DatabaseSync('sync-state.db')
+ * const wrapper = new NodeSqliteWrapper(db)
+ * const storage = new SqlLiteSyncStorage(wrapper)
+ * ```
+ *
+ * @example
+ * ```ts
+ * // Initialize with an existing snapshot
+ * const storage = new SqlLiteSyncStorage(wrapper, existingSnapshot)
+ * ```
  *
  * @public
  */
