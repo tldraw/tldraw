@@ -8,6 +8,7 @@ import {
 	useToasts,
 } from 'tldraw'
 import { useMaybeApp } from '../hooks/useAppState'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { defineMessages, useMsg } from '../utils/i18n'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { TlaInviteDialog } from './dialogs/TlaInviteDialog'
@@ -29,13 +30,7 @@ export function GroupInviteHandler() {
 		if (!auth.isLoaded) return
 		if (!auth.isSignedIn || !auth.userId) return
 		if (!app) return
-		if (
-			user &&
-			!user.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
-			!user.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
-		) {
-			return
-		}
+		if (hasNotAcceptedLegal(user)) return
 
 		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.GROUP_INVITE_TOKEN)
 

@@ -24,15 +24,16 @@ import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
+import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
+import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { FairyInviteHandler } from '../components/FairyInviteHandler'
 import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
-import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
@@ -272,11 +273,7 @@ function LegalTermsAcceptance() {
 	useEffect(() => {
 		function maybeShowDialog() {
 			const currentUser = userRef.current
-			if (
-				currentUser &&
-				!currentUser.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
-				!currentUser.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
-			) {
+			if (hasNotAcceptedLegal(currentUser)) {
 				addDialog({
 					component: TlaLegalAcceptance,
 					onClose: () => {

@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { deleteFromSessionStorage, getFromSessionStorage, useDialogs, useToasts } from 'tldraw'
 import { useFairyAccess } from '../hooks/useFairyAccess'
 import { useFeatureFlags } from '../hooks/useFeatureFlags'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { defineMessages, useMsg } from '../utils/i18n'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { TlaFairyInviteDialog } from './dialogs/TlaFairyInviteDialog'
@@ -25,13 +26,7 @@ export function FairyInviteHandler() {
 		if (!auth.isLoaded) return
 		if (!auth.isSignedIn || !auth.userId) return
 		if (!isLoaded) return // Wait for flags to load before processing
-		if (
-			user &&
-			!user.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
-			!user.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
-		) {
-			return
-		}
+		if (hasNotAcceptedLegal(user)) return
 
 		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.FAIRY_INVITE_TOKEN)
 
