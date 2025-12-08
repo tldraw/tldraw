@@ -37,15 +37,18 @@ import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
 export function convertPartialFocusedShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedShapePartial,
-	{ defaultShape }: { defaultShape: Partial<TLShape> }
+	{ defaultShape, complete }: { defaultShape: Partial<TLShape>; complete: boolean }
 ): { shape: TLShape | null; bindings?: TLBindingCreate[] } {
+	// Support partial text shapes
 	switch (focusedShape._type) {
 		case 'text': {
 			return convertTextShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
 	}
 
-	return { shape: null }
+	// Expect complete shapes for all other types
+	if (!complete) return { shape: null }
+	return convertFocusedShapeToTldrawShape(editor, focusedShape as FocusedShape, { defaultShape })
 }
 
 /**
@@ -155,7 +158,7 @@ function convertTextShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedShapePartial,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLTextShape } {
+): { shape: TLTextShape | null } {
 	const shapeId = focusedShape.shapeId
 		? convertSimpleIdToTldrawId(focusedShape.shapeId)
 		: createShapeId()
@@ -173,6 +176,10 @@ function convertTextShapeToTldrawShape(
 	const color = 'color' in focusedShape ? focusedShape.color : undefined
 	const _x = 'x' in focusedShape ? focusedShape.x : undefined
 	const _y = 'y' in focusedShape ? focusedShape.y : undefined
+
+	if (text === undefined || _x === undefined || _y === undefined) {
+		return { shape: null }
+	}
 
 	if (fontSize) {
 		const { textSize: calculatedTextSize, scale: calculatedScale } =

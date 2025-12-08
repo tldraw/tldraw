@@ -1,5 +1,4 @@
 import {
-	convertFocusedShapeToTldrawShape,
 	convertPartialFocusedShapeToTldrawShape,
 	CreateAction,
 	createAgentActionInfo,
@@ -7,7 +6,7 @@ import {
 	SIMPLE_TO_GEO_TYPES,
 	Streaming,
 } from '@tldraw/fairy-shared'
-import { IndexKey, toRichText } from 'tldraw'
+import { IndexKey, TLShape, toRichText } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -47,30 +46,24 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 
 	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 		const { editor } = this.agent
-		if (!action.complete) {
-			if (!action.shape) return
-			if (action.shape._type === 'text') {
-				const result = convertPartialFocusedShapeToTldrawShape(editor, action.shape, {
-					defaultShape: getDefaultShape(action.shape._type),
+
+		// Translate the shape back to the chat's position
+		const shape = action.shape ? helpers.removeOffsetFromShapePartial(action.shape) : undefined
+
+		const result = shape?._type
+			? convertPartialFocusedShapeToTldrawShape(editor, shape, {
+					defaultShape: getDefaultShape(shape._type),
+					complete: action.complete,
 				})
-				if (result.shape) {
-					editor.createShape(result.shape)
-				}
+			: { shape: null }
+
+		if (!result.shape) {
+			if (action.complete) {
+				this.agent.schedule({ data: [`Creating shape ${action.shape.shapeId} failed.`] })
 			}
 			return
 		}
 
-		// Translate the shape back to the chat's position
-		action.shape = helpers.removeOffsetFromShape(action.shape)
-
-		const result = convertFocusedShapeToTldrawShape(editor, action.shape, {
-			defaultShape: getDefaultShape(action.shape._type),
-		})
-
-		if (!result.shape) {
-			this.agent.schedule({ data: [`Creating shape ${action.shape.shapeId} failed.`] })
-			return
-		}
 		editor.createShape(result.shape)
 
 		// Handle arrow bindings if they exist
@@ -93,7 +86,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 }
 
-function getDefaultShape(shapeType: FocusedShape['_type']) {
+function getDefaultShape(shapeType: FocusedShape['_type']): Partial<TLShape> {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
 	return isGeo
 		? SHAPE_DEFAULTS.geo
@@ -105,7 +98,7 @@ const SHARED_DEFAULTS = {
 	opacity: 1,
 	rotation: 0,
 	meta: {},
-}
+} as const
 
 const SHAPE_DEFAULTS = {
 	text: {
@@ -210,4 +203,4 @@ const SHAPE_DEFAULTS = {
 		...SHARED_DEFAULTS,
 		props: {},
 	},
-}
+} as const
