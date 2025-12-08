@@ -1,5 +1,5 @@
 /* eslint-disable react/no-string-refs, local/no-internal-imports */
-import { degreesToRadians, TLShapeCrop, toRichText } from 'tldraw'
+import { createB64FromPoints, degreesToRadians, TLShapeCrop, toRichText } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
 
 export const frameContent = (
@@ -146,7 +146,7 @@ export const convexDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: [
+				points: createB64FromPoints([
 					{ x: 0, y: 0, z: 0.5 },
 					{ x: 0.1, y: 0, z: 0.5 },
 					{ x: 0.47, y: 0, z: 0.5 },
@@ -223,7 +223,7 @@ export const convexDrawShape = (
 					{ x: -0.03, y: 81.99, z: 0.5 },
 					{ x: -0.37, y: 81.99, z: 0.5 },
 					{ x: -0.62, y: 82.01, z: 0.5 },
-				],
+				]),
 			},
 		]}
 	/>
@@ -243,7 +243,7 @@ export const heyDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: [
+				points: createB64FromPoints([
 					{ x: 0, y: 0, z: 0.5 },
 					{ x: 0.12, y: 0, z: 0.5 },
 					{ x: 0.91, y: -0.18, z: 0.5 },
@@ -573,7 +573,7 @@ export const heyDrawShape = (
 					{ x: 74.43, y: -26.26, z: 0.5 },
 					{ x: 74.43, y: -26.34, z: 0.5 },
 					{ x: 74.43, y: -26.4, z: 0.5 },
-				],
+				]),
 			},
 		]}
 	/>

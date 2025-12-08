@@ -1,5 +1,6 @@
 import { createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { createB64FromPoints } from '../lib/shapes/draw/getPath'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -75,13 +76,13 @@ beforeEach(() => {
 				segments: [
 					{
 						type: 'free',
-						points: [
+						points: createB64FromPoints([
 							{ x: 0, y: 0 },
 							{ x: 2, y: 50 },
 							{ x: 10, y: 100 },
 							{ x: 48, y: 100 },
 							{ x: 100, y: 100 },
-						],
+						]),
 					},
 				],
 			},

@@ -74,6 +74,9 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 export const assetValidator: T.Validator<TLAsset>;
 
 // @public
+export function base64ToFloat16Array(base64: string): Float16Array;
+
+// @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
 
 // @public
@@ -305,6 +308,9 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 export type ExtractShapeByProps<P> = Extract<TLShape, {
     props: P;
 }>;
+
+// @public
+export function float16ArrayToBase64(float16Array: Float16Array): string;
 
 // @public
 export const frameShapeMigrations: TLPropsMigrations;
@@ -1000,13 +1006,15 @@ export interface TLDrawShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
+    scaleX: number;
+    scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
 }
 
 // @public
 export interface TLDrawShapeSegment {
-    points: VecModel[];
+    points: string;
     type: 'free' | 'straight';
 }
 
@@ -1097,6 +1105,8 @@ export interface TLHighlightShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
+    scaleX: number;
+    scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
 }

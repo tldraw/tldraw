@@ -92,7 +92,6 @@ import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
-import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
@@ -403,6 +402,9 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
     children: React.ReactNode;
 }): JSX_2.Element;
 
+// @internal (undocumented)
+export function b64PointsToVecs(b64Points: string): Vec[];
+
 // @public (undocumented)
 export interface BasePathBuilderOpts {
     // (undocumented)
@@ -565,6 +567,9 @@ export interface CopyAsOptions extends TLImageExportOptions {
 
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
+
+// @internal (undocumented)
+export function createB64FromPoints(points: VecLike[]): string;
 
 // @public
 export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
@@ -1184,7 +1189,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
         props: {
-            segments: TLDrawShapeSegment[];
+            scaleX: number;
+            scaleY: number;
         };
     };
     // (undocumented)
@@ -1897,7 +1903,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
         props: {
-            segments: TLDrawShapeSegment[];
+            scaleX: number;
+            scaleY: number;
         };
     };
     // (undocumented)

@@ -1,5 +1,5 @@
 import { createAgentAction, PenAction, Streaming, toSimpleShapeId } from '@tldraw/fairy-shared'
-import { Editor, TLDrawShape } from 'tldraw'
+import { b64PointsToVecs, Editor, TLDrawShape } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -437,10 +437,11 @@ describe('PenActionUtil', () => {
 
 			expect(drawShape.props.segments).toHaveLength(1)
 			expect(drawShape.props.segments[0].type).toBe('free')
-			expect(drawShape.props.segments[0].points.length).toBeGreaterThan(0)
+			const points = b64PointsToVecs(drawShape.props.segments[0].points)
+			expect(points.length).toBeGreaterThan(0)
 			// First point should be normalized to 0,0
-			expect(drawShape.props.segments[0].points[0].x).toBe(0)
-			expect(drawShape.props.segments[0].points[0].y).toBe(0)
+			expect(points[0].x).toBe(0)
+			expect(points[0].y).toBe(0)
 		})
 
 		it('should close shape by duplicating first point when closed is true', () => {
@@ -521,7 +522,8 @@ describe('PenActionUtil', () => {
 			const drawShape = shapes.find((s) => s.type === 'draw') as TLDrawShape
 
 			// Should have interpolated points between start and end
-			expect(drawShape.props.segments[0].points.length).toBeGreaterThan(2)
+			const points = b64PointsToVecs(drawShape.props.segments[0].points)
+			expect(points.length).toBeGreaterThan(2)
 		})
 
 		it('should handle default color', () => {

@@ -13,6 +13,7 @@ import {
 	TLAsset,
 	TLBindingCreate,
 	TLShapePartial,
+	createB64FromPoints,
 	degreesToRadians,
 	mapObjectMapValues,
 	mockUniqueId,
@@ -96,34 +97,34 @@ const snapshots: Snapshots = {
 						fill={fill}
 						color="light-violet"
 						segments={[
-							{ type: 'straight', points: [{ x: 0, y: 0 }] },
+							{ type: 'straight', points: createB64FromPoints([{ x: 0, y: 0 }]) },
 							{
 								type: 'straight',
-								points: [
+								points: createB64FromPoints([
 									{ x: 0, y: 0 },
 									{ x: 100, y: 0 },
-								],
+								]),
 							},
 							{
 								type: 'straight',
-								points: [
+								points: createB64FromPoints([
 									{ x: 100, y: 0 },
 									{ x: 0, y: 100 },
-								],
+								]),
 							},
 							{
 								type: 'straight',
-								points: [
+								points: createB64FromPoints([
 									{ x: 0, y: 100 },
 									{ x: 100, y: 100 },
-								],
+								]),
 							},
 							{
 								type: 'straight',
-								points: [
+								points: createB64FromPoints([
 									{ x: 100, y: 100 },
 									{ x: 0, y: 0 },
-								],
+								]),
 							},
 						]}
 						isClosed

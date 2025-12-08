@@ -16,6 +16,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { createB64FromPoints } from '../lib/shapes/draw/getPath'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
@@ -907,10 +908,10 @@ describe('When resizing a shape with children', () => {
 						segments: [
 							{
 								type: 'free',
-								points: [
+								points: createB64FromPoints([
 									{ x: 0, y: 0, z: 0.5 },
 									{ x: 100, y: 100, z: 0.5 },
-								],
+								]),
 							},
 						],
 					},
