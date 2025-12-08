@@ -14,6 +14,7 @@ import { useFairyAccess } from '../tla/hooks/useFairyAccess'
 import { useFeatureFlags } from '../tla/hooks/useFeatureFlags'
 import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
+import { SESSION_STORAGE_KEYS } from '../tla/utils/session-storage'
 import { PricingContent } from './PricingContent'
 import styles from './pricing.module.css'
 
@@ -77,7 +78,7 @@ export function PricingDialog({ onClose }: { onClose(): void }) {
 
 		if (!user) {
 			onClose()
-			setInSessionStorage('redirect-to', '/pricing?checkout=true')
+			setInSessionStorage(SESSION_STORAGE_KEYS.REDIRECT, '/pricing?checkout=true')
 			addDialog({ component: TlaSignInDialog })
 			return
 		}

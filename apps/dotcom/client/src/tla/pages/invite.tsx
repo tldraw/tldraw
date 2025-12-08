@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { setInSessionStorage, useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
@@ -9,19 +9,27 @@ export function Component() {
 	const { token } = useParams<{ token: string }>()
 	const auth = useAuth()
 	const { addDialog } = useDialogs()
+	const [dialogShown, setDialogShown] = useState(false)
 
 	useEffect(() => {
 		// Store token in session storage - handlers will process after sign-in
 		setInSessionStorage(SESSION_STORAGE_KEYS.GROUP_INVITE_TOKEN, token!)
 
+		// Wait for auth to load before deciding what to do
+		if (!auth.isLoaded) return
+
 		// If user is not signed in, show sign-in dialog
-		if (auth.isLoaded && !auth.isSignedIn) {
+		if (!auth.isSignedIn && !dialogShown) {
+			setDialogShown(true)
 			addDialog({
 				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
 			})
 		}
-	}, [token, auth.isLoaded, auth.isSignedIn, addDialog])
+	}, [token, auth.isLoaded, auth.isSignedIn, addDialog, dialogShown])
 
-	// Always redirect to root - handlers will process the token
-	return <Navigate to="/" replace />
+	if (auth.isLoaded && auth.isSignedIn) {
+		return <Navigate to="/" replace />
+	}
+
+	return null
 }
