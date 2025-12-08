@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-react'
 import { useEffect, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { setInSessionStorage, useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
@@ -9,6 +9,7 @@ export function Component() {
 	const { token } = useParams<{ token: string }>()
 	const auth = useAuth()
 	const { addDialog } = useDialogs()
+	const navigate = useNavigate()
 	const [dialogShown, setDialogShown] = useState(false)
 
 	useEffect(() => {
@@ -23,16 +24,14 @@ export function Component() {
 			setDialogShown(true)
 			addDialog({
 				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
+				onClose: () => navigate('/', { replace: true }),
 			})
 		}
-	}, [token, auth.isLoaded, auth.isSignedIn, addDialog, dialogShown])
+	}, [token, auth.isLoaded, auth.isSignedIn, addDialog, dialogShown, navigate])
 
-	// Only redirect if auth is loaded and user is signed in
-	// If not signed in, stay on this page to show the dialog
 	if (auth.isLoaded && auth.isSignedIn) {
 		return <Navigate to="/" replace />
 	}
 
-	// Wait for auth to load or show dialog
 	return null
 }
