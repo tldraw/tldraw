@@ -13,6 +13,7 @@ import {
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
+	fetch,
 	runtime,
 	setRuntimeOverrides,
 	useDialogs,
