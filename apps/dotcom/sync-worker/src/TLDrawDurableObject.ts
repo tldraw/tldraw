@@ -104,6 +104,10 @@ export class TLDrawDurableObject extends DurableObject {
 		switch (result.type) {
 			case 'room_found': {
 				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+				// setRoomStorageUsedPercentage calls getStorage which calls loadStorage again,
+				// which seems like it might introduce a deadlock but it doesn't happen because
+				// 1. this doesn't await
+				// 2. the _storage promise is already populated by the time this runs so it won't call loadStorage again
 				this.setRoomStorageUsedPercentage(result.roomSizeMB)
 				return storage
 			}
