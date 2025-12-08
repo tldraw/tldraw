@@ -16,6 +16,7 @@ const packagesOurTypesCanDependOn = [
 	'nanoevents',
 	'@tiptap/react',
 	'@tiptap/core',
+	'@petamoriken/float16',
 ]
 
 main()
