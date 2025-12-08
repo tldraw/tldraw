@@ -78,7 +78,9 @@ export function Component() {
 		if (!user) {
 			// Store redirect path for after sign-in
 			setInSessionStorage(SESSION_STORAGE_KEYS.REDIRECT, '/pricing?checkout=true')
-			addDialog({ component: TlaSignInDialog })
+			addDialog({
+				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
+			})
 			return
 		}
 

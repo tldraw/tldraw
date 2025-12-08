@@ -79,7 +79,9 @@ export function PricingDialog({ onClose }: { onClose(): void }) {
 		if (!user) {
 			onClose()
 			setInSessionStorage(SESSION_STORAGE_KEYS.REDIRECT, '/pricing?checkout=true')
-			addDialog({ component: TlaSignInDialog })
+			addDialog({
+				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
+			})
 			return
 		}
 
