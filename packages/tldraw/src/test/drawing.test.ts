@@ -78,7 +78,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const segment = shape.props.segments[0]
 			expect(segment.type).toBe('straight')
 
-			const points = segment.points
+			const points = base64ToPoints(segment.points)
 			expect(points.length).toBe(2)
 		})
 

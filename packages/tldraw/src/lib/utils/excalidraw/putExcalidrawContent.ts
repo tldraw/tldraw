@@ -1,3 +1,4 @@
+import { Float16Array } from '@petamoriken/float16'
 import {
 	AssetRecordType,
 	Box,
@@ -16,10 +17,12 @@ import {
 	TLShapeId,
 	Vec,
 	VecLike,
+	VecModel,
 	ZERO_INDEX_KEY,
 	compact,
 	createBindingId,
 	createShapeId,
+	float16ArrayToBase64,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
@@ -149,6 +152,15 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'freedraw': {
+				const points: VecModel[] = element.points.map(([x, y, z = 0.5]: number[]) => ({
+					x,
+					y,
+					z,
+				}))
+				const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
+				const float16Array = new Float16Array(nums)
+				const base64Points = float16ArrayToBase64(float16Array)
+
 				tldrawContent.shapes.push({
 					...base,
 					type: 'draw',
@@ -160,11 +172,7 @@ export async function putExcalidrawContent(
 						segments: [
 							{
 								type: 'free',
-								points: element.points.map(([x, y, z = 0.5]: number[]) => ({
-									x,
-									y,
-									z,
-								})),
+								points: base64Points,
 							},
 						],
 					},

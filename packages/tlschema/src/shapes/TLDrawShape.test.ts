@@ -6,7 +6,12 @@ import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
-import { DrawShapeSegment, drawShapeProps, drawShapeVersions } from './TLDrawShape'
+import {
+	DrawShapeSegment,
+	drawShapeProps,
+	drawShapeVersions,
+	float16ArrayToBase64,
+} from './TLDrawShape'
 
 describe('TLDrawShape', () => {
 	describe('DrawShapeSegment validator', () => {
@@ -45,7 +50,17 @@ describe('TLDrawShape', () => {
 				fill: 'solid' as const,
 				dash: 'dashed' as const,
 				size: 'l' as const,
-				segments: [{ type: 'free' as const, points: [{ x: 0, y: 0, z: 0.5 }] as VecModel[] }],
+				segments: [{ type: 'free' as const, points: [{ x: 0, y: 0, z: 0.5 }] as VecModel[] }].map(
+					(segment: any) => {
+						const nums = segment.points.flatMap((p: VecModel) => [p.x, p.y, p.z ?? 0.5])
+						const float16Array = new Float16Array(nums)
+						const base64 = float16ArrayToBase64(float16Array)
+						return {
+							...segment,
+							points: base64,
+						}
+					}
+				),
 				isComplete: true,
 				isClosed: true,
 				isPen: true,

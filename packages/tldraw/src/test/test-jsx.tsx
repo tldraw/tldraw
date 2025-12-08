@@ -1,3 +1,4 @@
+import { Float16Array } from '@petamoriken/float16'
 import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
 import {
 	AssetRecordType,
