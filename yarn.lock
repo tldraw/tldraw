@@ -16614,6 +16614,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
+    "@petamoriken/float16": "npm:^3.9.3"
     "@playwright/test": "npm:^1.50.0"
     "@tiptap/core": "npm:^3.6.2"
     "@tiptap/extension-font-family": "npm:^3.6.2"
