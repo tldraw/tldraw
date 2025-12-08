@@ -1,14 +1,27 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { useEffect } from 'react'
-import { deleteFromSessionStorage, fetch, getFromSessionStorage, useDialogs } from 'tldraw'
+import {
+	deleteFromSessionStorage,
+	fetch,
+	getFromSessionStorage,
+	useDialogs,
+	useToasts,
+} from 'tldraw'
 import { useMaybeApp } from '../hooks/useAppState'
+import { defineMessages, useMsg } from '../utils/i18n'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { TlaInviteDialog } from './dialogs/TlaInviteDialog'
+
+const groupInviteMessages = defineMessages({
+	alreadyMember: { defaultMessage: 'You are already a member of this group' },
+})
 
 export function GroupInviteHandler() {
 	const auth = useAuth()
 	const dialogs = useDialogs()
+	const { addToast } = useToasts()
 	const app = useMaybeApp()
+	const alreadyMemberMsg = useMsg(groupInviteMessages.alreadyMember)
 
 	const { user } = useClerkUser()
 
@@ -38,6 +51,15 @@ export function GroupInviteHandler() {
 						return
 					}
 
+					// Check if already a member
+					if (app.getGroupMembership(data.groupId)) {
+						addToast({
+							id: 'group-invite-already-member',
+							title: alreadyMemberMsg,
+						})
+						return
+					}
+
 					// Show invite dialog
 					dialogs.addDialog({
 						component: ({ onClose }) => <TlaInviteDialog inviteInfo={data} onClose={onClose} />,
@@ -47,7 +69,7 @@ export function GroupInviteHandler() {
 					// Error fetching invite, ignore
 				})
 		}
-	}, [auth.isLoaded, auth.userId, auth.isSignedIn, dialogs, app, user])
+	}, [auth.isLoaded, auth.userId, auth.isSignedIn, dialogs, app, user, addToast, alreadyMemberMsg])
 
 	return null
 }
