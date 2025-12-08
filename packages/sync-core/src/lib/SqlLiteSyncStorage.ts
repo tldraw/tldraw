@@ -338,7 +338,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 				// Get all tombstones sorted by clock ascending (oldest first)
 				const tombstones = this.stmts.iterateTombstones.all()
 
-				const result = computeTombstonePruning(tombstones, this.getClock())
+				const result = computeTombstonePruning({ tombstones, documentClock: this.getClock() })
 				if (result) {
 					this.stmts.setTombstoneHistoryStartsAtClock.run(result.newTombstoneHistoryStartsAtClock)
 					// Delete all tombstones with clock < newTombstoneHistoryStartsAtClock in one operation.

@@ -49,12 +49,17 @@ export interface TombstonePruneResult {
  *
  * @internal
  */
-export function computeTombstonePruning(
-	tombstones: Array<{ id: string; clock: number }>,
-	documentClock: number,
-	maxTombstones: number = MAX_TOMBSTONES,
-	pruneBufferSize: number = TOMBSTONE_PRUNE_BUFFER_SIZE
-): TombstonePruneResult | null {
+export function computeTombstonePruning({
+	tombstones,
+	documentClock,
+	maxTombstones = MAX_TOMBSTONES,
+	pruneBufferSize = TOMBSTONE_PRUNE_BUFFER_SIZE,
+}: {
+	tombstones: Array<{ id: string; clock: number }>
+	documentClock: number
+	maxTombstones?: number
+	pruneBufferSize?: number
+}): TombstonePruneResult | null {
 	if (tombstones.length <= maxTombstones) {
 		return null
 	}
@@ -228,7 +233,10 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 					.map(([id, clock]) => ({ id, clock }))
 					.sort((a, b) => a.clock - b.clock)
 
-				const result = computeTombstonePruning(tombstones, this.documentClock.get())
+				const result = computeTombstonePruning({
+					tombstones,
+					documentClock: this.documentClock.get(),
+				})
 				if (result) {
 					this.tombstoneHistoryStartsAtClock.set(result.newTombstoneHistoryStartsAtClock)
 					this.tombstones.deleteMany(result.idsToDelete)
