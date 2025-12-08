@@ -120,6 +120,67 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 
 Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
 
+### Storage backends
+
+`TLSocketRoom` requires a storage backend to persist document state. The `@tldraw/sync-core` package provides two options:
+
+#### InMemorySyncStorage (default)
+
+[`InMemorySyncStorage`](?) keeps all document state in memory. It's simple to use but loses data when the process restarts. You'll need to implement your own persistence by listening to the `onChange` callback and saving snapshots to your database.
+
+```tsx
+import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+
+const storage = new InMemorySyncStorage({
+	snapshot: existingData, // optional: load from your database
+	onChange() {
+		// Save to your database when changes occur
+		saveToDatabase(storage.getSnapshot())
+	},
+})
+
+const room = new TLSocketRoom({ storage })
+```
+
+#### SqlLiteSyncStorage (recommended for persistence)
+
+[`SqlLiteSyncStorage`](?) stores document state in SQLite, providing automatic persistence that survives process restarts. This is the recommended approach for production deployments.
+
+**For Cloudflare Durable Objects:**
+
+```tsx
+import { DurableObject } from 'cloudflare:workers'
+import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper, TLSocketRoom } from '@tldraw/sync-core'
+
+export class TLSyncDurableObject extends DurableObject {
+	private room: TLSocketRoom
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env)
+		const wrapper = new DurableObjectSqliteSyncWrapper(ctx.storage)
+		const storage = new SqlLiteSyncStorage(wrapper)
+		this.room = new TLSocketRoom({ storage })
+	}
+}
+```
+
+**For Node.js with better-sqlite3 or node:sqlite:**
+
+```tsx
+import Database from 'better-sqlite3' // replace with 'node:sqlite' if using
+import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
+
+const db = new Database('rooms.db')
+const wrapper = new NodeSqliteWrapper(db)
+const storage = new SqlLiteSyncStorage(wrapper)
+const room = new TLSocketRoom({ storage })
+```
+
+<Callout type="info">
+	`SqlLiteSyncStorage` automatically creates and manages its database tables. You can use the
+	`tablePrefix` option to avoid conflicts if you're sharing a database with other data.
+</Callout>
+
 ### Asset storage
 
 As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
@@ -236,12 +297,41 @@ clients on different versions won't be able to collaborate without errors.
 
 If you have been using some other solution for data sync, you can migrate your existing data to the tldraw sync format.
 
-tldraw sync supports loading [`TLStoreSnapshot`](?) snapshots via the [`InMemorySyncStorage`](?) class, so in your data loading code you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
+Both [`InMemorySyncStorage`](?) and [`SqlLiteSyncStorage`](?) support loading [`TLStoreSnapshot`](?) snapshots, so you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
 
-Something like
+**Example with SqlLiteSyncStorage (recommended):**
 
 ```tsx
-import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
+import Database from 'better-sqlite3'
+
+function loadOrMakeRoom(roomId: string, db: Database.Database) {
+	const wrapper = new NodeSqliteWrapper(db, { tablePrefix: `room_${roomId}_` })
+
+	// Check if we already have data in SQLite
+	if (SqlLiteSyncStorage.hasBeenInitialized(wrapper)) {
+		const storage = new SqlLiteSyncStorage(wrapper)
+		return new TLSocketRoom({ storage })
+	}
+
+	// Try to load from legacy system
+	const legacyData = loadRoomDataFromLegacyStore(roomId)
+	if (legacyData) {
+		const snapshot = convertOldDataToSnapshot(legacyData)
+		const storage = new SqlLiteSyncStorage(wrapper, snapshot)
+		deleteLegacyRoomData(roomId)
+		return new TLSocketRoom({ storage })
+	}
+
+	// No data - create a new empty room
+	return new TLSocketRoom({ storage: new SqlLiteSyncStorage(wrapper) })
+}
+```
+
+**Example with InMemorySyncStorage:**
+
+```tsx
+import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 
 async function loadOrMakeRoom(roomId: string) {
 	const data = await loadRoomDataFromCurrentStore(roomId)
