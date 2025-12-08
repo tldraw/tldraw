@@ -1999,6 +1999,54 @@ describe('Add scale to highlight shape', () => {
 	})
 })
 
+describe('Base64 encoding for draw shape segments', () => {
+	const { up } = getTestMigration(drawShapeVersions.Base64)
+
+	test('up works as expected', () => {
+		const oldShape = {
+			props: {
+				segments: [
+					{
+						type: 'free',
+						points: [
+							{ x: 0, y: 0, z: 0.5 },
+							{ x: 10, y: 10, z: 0.5 },
+						],
+					},
+				],
+			},
+		}
+		const result = up(oldShape)
+		expect(result.props.scaleX).toBe(1)
+		expect(result.props.scaleY).toBe(1)
+		expect(typeof result.props.segments[0].points).toBe('string')
+	})
+})
+
+describe('Base64 encoding for highlight shape segments', () => {
+	const { up } = getTestMigration(highlightShapeVersions.Base64)
+
+	test('up works as expected', () => {
+		const oldShape = {
+			props: {
+				segments: [
+					{
+						type: 'free',
+						points: [
+							{ x: 0, y: 0, z: 0.5 },
+							{ x: 10, y: 10, z: 0.5 },
+						],
+					},
+				],
+			},
+		}
+		const result = up(oldShape)
+		expect(result.props.scaleX).toBe(1)
+		expect(result.props.scaleY).toBe(1)
+		expect(typeof result.props.segments[0].points).toBe('string')
+	})
+})
+
 describe('Add scale to geo shape', () => {
 	const { up, down } = getTestMigration(geoShapeVersions.AddScale)
 

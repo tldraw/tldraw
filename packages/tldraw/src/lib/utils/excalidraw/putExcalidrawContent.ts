@@ -25,6 +25,7 @@ import {
 	isShapeId,
 	toRichText,
 } from '@tldraw/editor'
+import { createB64FromPoints } from '../../shapes/draw/getPath'
 
 /**
  * Put excalidraw clipboard content onto the current page.
@@ -160,11 +161,13 @@ export async function putExcalidrawContent(
 						segments: [
 							{
 								type: 'free',
-								points: element.points.map(([x, y, z = 0.5]: number[]) => ({
-									x,
-									y,
-									z,
-								})),
+								points: createB64FromPoints(
+									element.points.map(([x, y, z = 0.5]: number[]) => ({
+										x,
+										y,
+										z,
+									}))
+								),
 							},
 						],
 					},
