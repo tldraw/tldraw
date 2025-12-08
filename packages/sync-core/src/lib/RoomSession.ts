@@ -132,6 +132,8 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			state: typeof RoomSessionState.Connected
 			/** Serialized schema information for this connected session */
 			serializedSchema: SerializedSchema
+			/** Whether this session requires down migrations */
+			requiresDownMigrations: boolean
 			/** Timestamp of the last interaction or message from this session */
 			lastInteractionTime: number
 			/** Timer for debouncing operations, if active */

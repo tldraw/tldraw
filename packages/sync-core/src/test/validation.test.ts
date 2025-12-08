@@ -95,7 +95,7 @@ async function makeTestInstance() {
 it('rejects invalid put operations that create a new document', async () => {
 	const { client, flush, onSyncError, server } = await makeTestInstance()
 
-	const prevServerDocs = server.room.getSnapshot().documents
+	const prevServerDocs = server.storage.getSnapshot().documents
 
 	client.store.put([
 		{
@@ -109,20 +109,20 @@ it('rejects invalid put operations that create a new document', async () => {
 
 	expect(onSyncError).toHaveBeenCalledTimes(1)
 	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
-	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
+	expect(server.storage.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
 
 it('rejects invalid put operations that replace an existing document', async () => {
 	const { client, flush, onSyncError, server } = await makeTestInstance()
 
-	let prevServerDocs = server.room.getSnapshot().documents
+	let prevServerDocs = server.storage.getSnapshot().documents
 	const book: Book = { typeName: 'book', id: Book.createId('1'), title: 'Annihilation' }
 	client.store.put([book])
 	await flush()
 
 	expect(onSyncError).toHaveBeenCalledTimes(0)
-	expect(server.room.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
-	prevServerDocs = server.room.getSnapshot().documents
+	expect(server.storage.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
+	prevServerDocs = server.storage.getSnapshot().documents
 
 	client.socket.sendMessage({
 		type: 'push',
@@ -143,13 +143,13 @@ it('rejects invalid put operations that replace an existing document', async () 
 
 	expect(onSyncError).toHaveBeenCalledTimes(1)
 	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
-	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
+	expect(server.storage.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
 
 it('rejects invalid update operations', async () => {
 	const { client, flush, onSyncError, server } = await makeTestInstance()
 
-	let prevServerDocs = server.room.getSnapshot().documents
+	let prevServerDocs = server.storage.getSnapshot().documents
 
 	// create the book
 	client.store.put([
@@ -162,8 +162,8 @@ it('rejects invalid update operations', async () => {
 	await flush()
 
 	expect(onSyncError).toHaveBeenCalledTimes(0)
-	expect(server.room.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
-	prevServerDocs = server.room.getSnapshot().documents
+	expect(server.storage.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
+	prevServerDocs = server.storage.getSnapshot().documents
 
 	// update the title to be wrong
 	client.store.put([
@@ -177,5 +177,5 @@ it('rejects invalid update operations', async () => {
 	await flush()
 	expect(onSyncError).toHaveBeenCalledTimes(1)
 	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
-	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
+	expect(server.storage.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
