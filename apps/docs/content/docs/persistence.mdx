@@ -317,7 +317,7 @@ const myMigrations = createMigrationSequence({
 		{
 			id: Versions.AddColor,
 			// Scope can be one of
-			// - 'store' to have the up function called on the whole snapshot at once
+			// - 'storage' to have the up function receive a storage object with get/set/delete methods for the entire document
 			// - 'record' to have the up function called on each record individually
 			scope: 'record',
 			// if scope is 'record', you can filter which records the migration runs on

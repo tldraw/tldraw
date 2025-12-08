@@ -4,7 +4,7 @@ import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
-import { DrawShapeSegment, TLDrawShapeSegment } from './TLDrawShape'
+import { DrawShapeSegment, float16ArrayToBase64, TLDrawShapeSegment } from './TLDrawShape'
 
 /**
  * Properties for a highlight shape. Highlight shapes represent highlighting strokes made with
@@ -36,6 +36,10 @@ export interface TLHighlightShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the highlight shape for display */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
+	scaleX: number
+	/** Vertical scale factor for lazy resize */
+	scaleY: number
 }
 
 /**
@@ -91,10 +95,13 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	isComplete: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	scaleX: T.nonZeroNumber,
+	scaleY: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
+	Base64: 2,
 })
 
 /**
@@ -120,6 +127,19 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.Base64,
+			up: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: float16ArrayToBase64(
+						new Float16Array(segment.points.flatMap((p: any) => [p.x, p.y, p.z]))
+					),
+				}))
+				props.scaleX = 1
+				props.scaleY = 1
 			},
 		},
 	],

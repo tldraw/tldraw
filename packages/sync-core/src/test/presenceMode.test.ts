@@ -97,21 +97,21 @@ test('presence is pushed on change when mode is full', () => {
 	const session = t.server.room.sessions.values().next().value
 	expect(session).toBeDefined()
 	expect(session?.presenceId).toBeDefined()
-	expect(t.server.room.documents.get(session!.presenceId!)?.state).toMatchObject({
+	expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
 		name: 'bob',
 		age: 10,
 	})
 
 	presenceSignal.set(Presence.create({ name: 'bob', age: 11 }))
 	t.flush()
-	expect(t.server.room.documents.get(session!.presenceId!)?.state).toMatchObject({
+	expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
 		name: 'bob',
 		age: 11,
 	})
 
 	presenceSignal.set(Presence.create({ name: 'bob', age: 12 }))
 	t.flush()
-	expect(t.server.room.documents.get(session!.presenceId!)?.state).toMatchObject({
+	expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
 		name: 'bob',
 		age: 12,
 	})
@@ -128,21 +128,21 @@ test('presence is only pushed once on connect when mode is solo', () => {
 	const session = t.server.room.sessions.values().next().value
 	expect(session).toBeDefined()
 	expect(session?.presenceId).toBeDefined()
-	expect(t.server.room.documents.get(session!.presenceId!)?.state).toMatchObject({
+	expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
 		name: 'bob',
 		age: 10,
 	})
 
 	presenceSignal.set(Presence.create({ name: 'bob', age: 11 }))
 	t.flush()
-	expect(t.server.room.documents.get(session!.presenceId!)?.state).not.toMatchObject({
+	expect(t.server.room.presenceStore.get(session!.presenceId!)).not.toMatchObject({
 		name: 'bob',
 		age: 11,
 	})
 
 	presenceSignal.set(Presence.create({ name: 'bob', age: 12 }))
 	t.flush()
-	expect(t.server.room.documents.get(session!.presenceId!)?.state).not.toMatchObject({
+	expect(t.server.room.presenceStore.get(session!.presenceId!)).not.toMatchObject({
 		name: 'bob',
 		age: 12,
 	})

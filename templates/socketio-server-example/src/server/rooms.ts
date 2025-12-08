@@ -1,4 +1,4 @@
-import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
+import { InMemorySyncStorage, RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 
@@ -42,11 +42,19 @@ export async function makeOrLoadRoom(roomId: string) {
 			console.log('loading room', roomId)
 			const initialSnapshot = await readSnapshotIfExists(roomId)
 
+			// create the storage layer that holds the document state
+			const storage = new InMemorySyncStorage({
+				snapshot: initialSnapshot ?? undefined,
+				onChange: () => {
+					roomState.needsPersist = true
+				},
+			})
+
 			const roomState: RoomState = {
 				needsPersist: false,
 				id: roomId,
 				room: new TLSocketRoom({
-					initialSnapshot,
+					storage,
 					onSessionRemoved(room, args) {
 						console.log('client disconnected', args.sessionId, roomId)
 						if (args.numSessionsRemaining === 0) {
@@ -54,11 +62,9 @@ export async function makeOrLoadRoom(roomId: string) {
 							room.close()
 						}
 					},
-					onDataChange() {
-						roomState.needsPersist = true
-					},
 				}),
 			}
+
 			rooms.set(roomId, roomState)
 			return null // all good
 		})
@@ -80,7 +86,10 @@ setInterval(() => {
 			// persist room
 			roomState.needsPersist = false
 			console.log('saving snapshot', roomState.id)
-			saveSnapshot(roomState.id, roomState.room.getCurrentSnapshot())
+			const snapshot = roomState.room.storage.getSnapshot?.()
+			if (snapshot) {
+				saveSnapshot(roomState.id, snapshot)
+			}
 		}
 		if (roomState.room.isClosed()) {
 			console.log('deleting room', roomState.id)
