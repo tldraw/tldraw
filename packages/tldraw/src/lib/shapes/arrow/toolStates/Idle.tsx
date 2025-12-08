@@ -42,7 +42,7 @@ export class Idle extends StateNode {
 		this.update()
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			if (this.editor.getCanEditShape(onlySelectedShape)) {
+			if (this.editor.canEditShape(onlySelectedShape)) {
 				startEditingShapeWithLabel(this.editor, onlySelectedShape, true)
 			}
 		}

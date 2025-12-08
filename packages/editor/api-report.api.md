@@ -836,6 +836,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     cancelDoubleClick(): void;
     canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
     canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
+    canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
+    canEditShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
@@ -1188,8 +1190,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
-    getCanCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
-    getCanEditShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];

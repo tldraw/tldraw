@@ -135,7 +135,7 @@ export class Idle extends StateNode {
 					case 'bottom_left':
 					case 'bottom_right': {
 						const onlySelectedShape = this.editor.getOnlySelectedShape()
-						if (info.ctrlKey && this.editor.getCanCropShape(onlySelectedShape)) {
+						if (info.ctrlKey && this.editor.canCropShape(onlySelectedShape)) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
 							if (info.accelKey) {
@@ -276,12 +276,12 @@ export class Idle extends StateNode {
 					}
 
 					// For corners OR edges but NOT rotation corners
-					if (this.editor.getCanCropShape(onlySelectedShape)) {
+					if (this.editor.canCropShape(onlySelectedShape)) {
 						this.parent.transition('crop', info)
 						return
 					}
 
-					if (this.editor.getCanEditShape(onlySelectedShape)) {
+					if (this.editor.canEditShape(onlySelectedShape)) {
 						this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					}
 				}
@@ -312,7 +312,7 @@ export class Idle extends StateNode {
 				}
 
 				// If the shape can edit, then begin editing
-				if (this.editor.getCanEditShape(shape)) {
+				if (this.editor.canEditShape(shape)) {
 					this.startEditingShape(shape, info, true /* select all */)
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -334,7 +334,7 @@ export class Idle extends StateNode {
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
-					if (this.editor.getCanEditShape(shape)) {
+					if (this.editor.canEditShape(shape)) {
 						this.startEditingShape(shape, info, true /* select all */)
 					}
 				}
@@ -464,7 +464,7 @@ export class Idle extends StateNode {
 					// If it's a note shape, then edit on type
 					this.editor.isShapeOfType(onlySelectedShape, 'note') &&
 					// If it's not locked or anything
-					this.editor.getCanEditShape(onlySelectedShape)
+					this.editor.canEditShape(onlySelectedShape)
 				) {
 					this.startEditingShape(
 						onlySelectedShape,
@@ -525,7 +525,7 @@ export class Idle extends StateNode {
 
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				if (onlySelectedShape && this.editor.getCanEditShape(onlySelectedShape)) {
+				if (onlySelectedShape && this.editor.canEditShape(onlySelectedShape)) {
 					this.startEditingShape(
 						onlySelectedShape,
 						{
@@ -539,7 +539,7 @@ export class Idle extends StateNode {
 				}
 
 				// If the only selected shape is croppable, then begin cropping it
-				if (this.editor.getCanCropShape(onlySelectedShape)) {
+				if (this.editor.canCropShape(onlySelectedShape)) {
 					this.parent.transition('crop', info)
 				}
 				break
@@ -559,7 +559,7 @@ export class Idle extends StateNode {
 		info: TLClickEventInfo | TLKeyboardEventInfo,
 		shouldSelectAll?: boolean
 	) {
-		if (!this.editor.getCanEditShape(shape)) return
+		if (!this.editor.canEditShape(shape)) return
 		this.editor.markHistoryStoppingPoint('editing shape')
 		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
@@ -600,7 +600,7 @@ export class Idle extends StateNode {
 		const shape = this.editor.getShape(id)
 		if (!shape) return
 
-		if (!this.editor.getCanEditShape(shape)) return
+		if (!this.editor.canEditShape(shape)) return
 
 		this.editor.setEditingShape(id)
 		this.editor.select(id)

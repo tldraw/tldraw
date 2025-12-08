@@ -2286,7 +2286,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @returns true if the shape can be edited, false otherwise.
 	 */
-	getCanEditShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
+	canEditShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (!id) return false // no shape
 		if (id === this.getEditingShapeId()) return false // already editing this shape
@@ -2339,7 +2339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
-		if (!this.getCanEditShape(id)) return this
+		if (!this.canEditShape(id)) return this
 
 		// id was provided and the next editing shape is editable, so set the rich text editor to null
 		this.run(
@@ -2579,7 +2579,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @returns true if the shape can be cropped, false otherwise.
 	 */
-	getCanCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
+	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
 		if (!shape) return false
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (!id) return false
@@ -2612,12 +2612,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				() => {
 					if (!id) {
 						this.updateCurrentPageState({ croppingShapeId: null })
-					} else {
-						const shape = this.getShape(id)!
-						const util = this.getShapeUtil(shape)
-						if (shape && util.canCrop(shape)) {
-							this.updateCurrentPageState({ croppingShapeId: id })
-						}
+					} else if (this.canCropShape(id)) {
+						this.updateCurrentPageState({ croppingShapeId: id })
 					}
 				},
 				{ history: 'ignore' }

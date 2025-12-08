@@ -153,7 +153,7 @@ export class PointingShape extends StateNode {
 										this.editor.markHistoryStoppingPoint('editing on pointer up')
 										this.editor.select(selectingShape.id)
 
-										if (!this.editor.getCanEditShape(selectingShape)) return
+										if (!this.editor.canEditShape(selectingShape)) return
 										this.editor.setEditingShape(selectingShape.id)
 										this.editor.setCurrentTool('select.editing_shape')
 
