@@ -118,20 +118,11 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 		agentFacingMessage: string
 		userFacingMessage: string | null
 	}): Promise<void> {
-		const { agent } = this
-		if (agent.requests.isGenerating()) {
-			agent.schedule({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
-		} else {
-			await agent.prompt({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
-		}
+		this.agent.schedule({
+			agentMessages: [agentFacingMessage],
+			userMessages: userFacingMessage ? [userFacingMessage] : undefined,
+			source: 'other-agent',
+		})
 	}
 
 	/**
