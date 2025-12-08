@@ -81,11 +81,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				return
 			}
 
-			if (agent.lints.hasUnsurfacedLints()) {
-				agent.lints.markCurrentLintsAsSurfaced()
+			if (agent.lints.hasUnsurfacedLints(agent.lints.getCreatedShapes())) {
 				agent.schedule({
 					agentMessages: [
-						'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed.', // these will show up in CanvasLintsPartUtil
+						'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed.', // these will show up in CanvasLintsPartUtil, where they will be makred as surfaced
 					],
 				})
 				return

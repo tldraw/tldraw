@@ -9,14 +9,6 @@ export class CanvasLintsPartUtil extends PromptPartUtil<CanvasLintsPart> {
 		const { editor, agent } = this
 		if (!editor) return { type: 'canvasLints', lints: [] }
 
-		const unsurfacedLints = agent.lints.getUnsurfacedLints()
-		if (unsurfacedLints.length > 0) {
-			return {
-				type: 'canvasLints',
-				lints: unsurfacedLints,
-			}
-		}
-
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
 		const shapesInBounds = shapes.filter((shape) => {
@@ -25,11 +17,13 @@ export class CanvasLintsPartUtil extends PromptPartUtil<CanvasLintsPart> {
 			return contextBoundsBox.includes(bounds)
 		})
 
-		// If in one-shotting mode, use the created shapes, otherwise (for orchestrators) use the shapes in the request bounds
-		const lints =
-			this.agent.mode.getMode() === 'one-shotting'
-				? agent.lints.detectCanvasLints(this.agent.lints.getCreatedShapes())
-				: agent.lints.detectCanvasLints(shapesInBounds)
+		// If in one-shotting mode, use the created shapes, otherwise (for orchestrators) use the shapes in the request bounds (ie, the bounds of the task they'll be reviewing)
+		const shapesToCheck =
+			this.agent.mode.getMode() === 'one-shotting' ? agent.lints.getCreatedShapes() : shapesInBounds
+
+		// Get unsurfaced lints and mark them as surfaced
+		const lints = agent.lints.getUnsurfacedLintsForShapes(shapesToCheck)
+		agent.lints.markLintsAsSurfaced(lints)
 
 		return {
 			type: 'canvasLints',

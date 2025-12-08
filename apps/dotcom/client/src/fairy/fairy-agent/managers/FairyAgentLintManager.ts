@@ -1,7 +1,5 @@
 import { convertTldrawIdToSimpleId, FairyCanvasLint } from '@tldraw/fairy-shared'
 import {
-	atom,
-	Atom,
 	Box,
 	getArrowBindings,
 	intersectPolygonPolygon,
@@ -29,9 +27,6 @@ function getLintKey(lint: FairyCanvasLint): string {
 /**
  * Tracks shapes created by the fairy during a prompt chain and computes lints on them.
  * This is cleared when starting a new top-level prompt (not nested prompts).
- *
- * Lints are computed lazily - they're only calculated when queried (via `getAllLints()`,
- * `getUnsurfacedLints()`, or `hasUnsurfacedLints()`) and cached until shapes change.
  */
 export class FairyAgentLintManager extends BaseFairyAgentManager {
 	/**
@@ -46,19 +41,8 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	 */
 	private surfacedLintKeys: Set<string> = new Set()
 
-	/**
-	 * The most recently computed lints (all of them, including surfaced).
-	 */
-	private $allLints: Atom<FairyCanvasLint[]>
-
-	/**
-	 * Whether the lint cache is stale and needs recomputation.
-	 */
-	private isDirty = true
-
 	constructor(public agent: FairyAgent) {
 		super(agent)
-		this.$allLints = atom('agentLints', [])
 	}
 
 	/**
@@ -67,8 +51,6 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	reset(): void {
 		this.createdShapeIds.clear()
 		this.surfacedLintKeys.clear()
-		this.$allLints.set([])
-		this.isDirty = true
 	}
 
 	/**
@@ -78,8 +60,6 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	clearCreatedShapes(): void {
 		this.createdShapeIds.clear()
 		this.surfacedLintKeys.clear()
-		this.$allLints.set([])
-		this.isDirty = true
 	}
 
 	/**
@@ -111,9 +91,6 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 		if (modifiedShapeIds.size > 0) {
 			this.clearSurfacedLintsForShapes(modifiedShapeIds)
 		}
-
-		// Mark as dirty so lints will be recomputed on next query
-		this.isDirty = true
 	}
 
 	/**
@@ -121,16 +98,18 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	 * This allows lints to be re-surfaced if a shape was modified but the lint still exists.
 	 */
 	private clearSurfacedLintsForShapes(shapeIds: Set<TLShapeId>): void {
-		const currentLints = this.$allLints.get()
 		// Convert TLShapeId to simple string for comparison
-		const simpleShapeIds = new Set(Array.from(shapeIds).map((id) => convertTldrawIdToSimpleId(id)))
-		const lintsToReconsider = currentLints.filter((lint) =>
-			lint.shapeIds.some((id) => simpleShapeIds.has(id))
+		const simpleShapeIds = new Set(
+			Array.from(shapeIds).map((id) => convertTldrawIdToSimpleId(id) as string)
 		)
 
-		for (const lint of lintsToReconsider) {
-			const key = getLintKey(lint)
-			this.surfacedLintKeys.delete(key)
+		// Remove any surfaced lint keys that involve the modified shapes
+		for (const key of this.surfacedLintKeys) {
+			const [, shapeIdsPart] = key.split(':')
+			const lintShapeIds = shapeIdsPart.split(',')
+			if (lintShapeIds.some((id) => simpleShapeIds.has(id))) {
+				this.surfacedLintKeys.delete(key)
+			}
 		}
 	}
 
@@ -152,47 +131,26 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Ensure lints are computed (lazy computation).
-	 * Only recomputes if the cache is stale.
+	 * Check if there are any unsurfaced lints for the given shapes.
 	 */
-	private ensureLintsComputed(): void {
-		if (!this.isDirty) return
-		const shapes = this.getCreatedShapes()
+	hasUnsurfacedLints(shapes: TLShape[]): boolean {
+		return this.getUnsurfacedLintsForShapes(shapes).length > 0
+	}
+
+	/**
+	 * Get unsurfaced lints for a specific set of shapes.
+	 */
+	getUnsurfacedLintsForShapes(shapes: TLShape[]): FairyCanvasLint[] {
 		const lints = this.detectCanvasLints(shapes)
-		this.$allLints.set(lints)
-		this.isDirty = false
+		return lints.filter((lint) => !this.surfacedLintKeys.has(getLintKey(lint)))
 	}
 
 	/**
-	 * Get all computed lints (including ones already surfaced).
-	 */
-	getAllLints(): FairyCanvasLint[] {
-		this.ensureLintsComputed()
-		return this.$allLints.get()
-	}
-
-	/**
-	 * Get only lints that haven't been surfaced yet.
-	 */
-	getUnsurfacedLints(): FairyCanvasLint[] {
-		this.ensureLintsComputed()
-		return this.$allLints.get().filter((lint) => !this.surfacedLintKeys.has(getLintKey(lint)))
-	}
-
-	/**
-	 * Check if there are any unsurfaced lints.
-	 */
-	hasUnsurfacedLints(): boolean {
-		return this.getUnsurfacedLints().length > 0
-	}
-
-	/**
-	 * Mark current unsurfaced lints as surfaced.
+	 * Mark the given lints as surfaced.
 	 * Call this when scheduling a lint-fixing prompt.
 	 */
-	markCurrentLintsAsSurfaced(): void {
-		const unsurfaced = this.getUnsurfacedLints()
-		for (const lint of unsurfaced) {
+	markLintsAsSurfaced(lints: FairyCanvasLint[]): void {
+		for (const lint of lints) {
 			this.surfacedLintKeys.add(getLintKey(lint))
 		}
 	}
