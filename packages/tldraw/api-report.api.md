@@ -235,6 +235,7 @@ export interface ArrowShapeOptions {
     readonly pointingPreciseTimeout: number;
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
+    readonly showTextOutline: boolean;
 }
 
 // @public (undocumented)
@@ -1743,6 +1744,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
+    options: {
+        showTextOutline: boolean;
+    };
+    // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX_2.Element;
@@ -1836,6 +1841,9 @@ export function HeartToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function HexagonToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function hideAllTooltips(): void;
 
 // @public (undocumented)
 export interface HighlightShapeOptions {
@@ -2481,6 +2489,8 @@ export interface PlainTextLabelProps {
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
+    showTextOutline?: boolean;
+    // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
     text?: string;
@@ -2602,6 +2612,8 @@ export interface RichTextLabelProps {
     richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
+    // (undocumented)
+    showTextOutline?: boolean;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
@@ -2959,6 +2971,7 @@ export const TextDirection: Extension<any, any>;
 // @public (undocumented)
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
+    showTextOutline: boolean;
 }
 
 // @public (undocumented)

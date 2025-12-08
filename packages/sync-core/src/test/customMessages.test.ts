@@ -12,7 +12,7 @@ const schema = StoreSchema.create<Presence>({ presence: presenceType })
 
 describe('custom messages', () => {
 	it('sends a message to a client', async () => {
-		const store = new Store({ schema, props: {} })
+		const store = new Store<any, any>({ schema, props: {} })
 
 		const sessionId = 'test-session-1'
 		const server = new TestServer(schema)

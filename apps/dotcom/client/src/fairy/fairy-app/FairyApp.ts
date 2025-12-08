@@ -125,6 +125,11 @@ export class FairyApp {
 	resetEverything() {
 		this.projects.disbandAllProjects()
 		this.tasks.reset()
+		// Delete all fairy configs first so new ones get created when agents are re-synced
+		const agents = this.agents.getAgents()
+		agents.forEach((agent) => {
+			this.tldrawApp.z.mutate.user.deleteFairyConfig({ id: agent.id })
+		})
 		this.agents.resetAllAgents()
 		this.following.reset()
 		this.waits.reset()

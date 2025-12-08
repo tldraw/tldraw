@@ -66,13 +66,26 @@ Write or update the pull request's body using the template in `pull_request_temp
 - Fixed a bug with…
 ```
 
-Tips:
+### API Changes
 
-- Place the PR description at the top of the file, above the Change type heading
+If the PR introduces changes to the api-report.md, you must also include an API changes section that describes what API changes were made, lists any breaking changes, and notes any new or removed parameters. Like the release notes section above, this section is intended to help us identify breaking changes, communicate with downstream developers, and write our release notes.
+
+```md
+### API changes
+
+- Added new `Editor.logSelectedShapes` method that will log the details of selected shapes.
+- Breaking! Removed `Editor.freeze` method.
+```
+
+## Tips
+
+- First paragraph matters in a PR description; A good PR begins with a sentence written like, "In order to X, this PR does Y.". You should aim to give high-level up-front information about the problem being solved as well as the type of work taken to solve it. Keep it short and specific, avoiding meaningless phrases like "In order to improve user experience" or "In order to reduce tech debt". If the PR relates to an isue, please link the issue in the first paragraph. Don't expect the reader to also read the issue; you still need to include information about the problem and solution.
+- Place the PR description at the top of the file, above the **Change type** heading
 - In Change type, you may delete any items that are not ticked
-- Make sure you tick ([-]) the Change type
+- Make sure you tick ([x]) the Change type
 - If your changes cannot be manually tested, you may remove that ordered list
 - Tick Unit tests if tests are present, otherwise leave it unticked
 - Tick End to end tests if e2e tests are present, otherwise leave it unticked
 - Make one or more brief notes in the Release notes list
 - A PR should NEVER include `Generated with Claude Code` or other mention of Claude Code unless the changes in the PR directly relate to claude code.
+- If the current PR does not conform to the notes here, update it to conform.

@@ -236,33 +236,35 @@ clients on different versions won't be able to collaborate without errors.
 
 If you have been using some other solution for data sync, you can migrate your existing data to the tldraw sync format.
 
-[`TLSocketRoom`](?) supports loading [`TLStoreSnapshot`](?) snapshots, so in your data loading code you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
+tldraw sync supports loading [`TLStoreSnapshot`](?) snapshots via the [`InMemorySyncStorage`](?) class, so in your data loading code you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
 
 Something like
 
 ```tsx
-import { TLSocketRoom } from '@tldraw/sync-core'
+import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 
 async function loadOrMakeRoom(roomId: string) {
 	const data = await loadRoomDataFromCurrentStore(roomId)
 	if (data) {
-		return new TLSocketRoom({ initialSnapshot: data })
+		const storage = new InMemorySyncStorage({ snapshot: data })
+		return new TLSocketRoom({ storage })
 	}
 	const legacyData = await loadRoomDataFromLegacyStore(roomId)
 	if (legacyData) {
 		// Convert your old data to a TLStoreSnapshot.
 		const snapshot = convertOldDataToSnapshot(legacyData)
 		// Load it into the room.
-		const room = new TLSocketRoom({ initialSnapshot: snapshot })
+		const storage = new InMemorySyncStorage({ snapshot })
+		const room = new TLSocketRoom({ storage })
 		// Save an updated copy of the snapshot in the new place
 		// so that next time we can load it directly.
-		await saveRoomData(roomId, room.getCurrentSnapshot())
+		await saveRoomData(roomId, storage.getSnapshot())
 		// Optionally delete the old data.
 		await deleteLegacyRoomData(roomId)
 		// And finally return the room.
 		return room
 	}
 	// If there's no data at all, just make a new blank room.
-	return new TLSocketRoom()
+	return new TLSocketRoom({ storage: new InMemorySyncStorage() })
 }
 ```

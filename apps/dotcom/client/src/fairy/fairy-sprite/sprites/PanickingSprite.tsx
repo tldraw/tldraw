@@ -1,19 +1,12 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function PanickingSprite1({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function PanickingSprite1(props: FairySpriteProps) {
 	return (
 		<>
-			<PanickingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+			<PanickingSpriteBase {...props} />
 			{/* Panicking arms */}
 			<path
 				d="M38.6163 53.9999C36.0284 51.6289 17.5418 48.5413 24.9514 27.1064"
@@ -32,18 +25,10 @@ export function PanickingSprite1({
 	)
 }
 
-export function PanickingSprite2({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function PanickingSprite2(props: FairySpriteProps) {
 	return (
 		<>
-			<PanickingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+			<PanickingSpriteBase {...props} />
 			{/* Panicking arms */}
 			<path
 				d="M38.6163 53.9073C34.1222 53.3389 21.655 53.6289 19.0456 30.144"
@@ -62,25 +47,17 @@ export function PanickingSprite2({
 	)
 }
 
-function PanickingSpriteBase({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+function PanickingSpriteBase(props: FairySpriteProps) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} />
-			<FairyLegsSpritePart />
-			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
+			<FairyHatSpritePart {...props} />
+			<FairyLegsSpritePart {...props} />
+			<FairyBodySpritePart {...props} />
 			<circle
 				cx="55.4159"
 				cy="33.7832"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>

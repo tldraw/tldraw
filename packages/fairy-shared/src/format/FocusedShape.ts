@@ -1,8 +1,13 @@
 import { z } from 'zod'
+import { SimpleShapeId, SimpleShapeIdSchema } from '../schema/id-schemas'
 import { FocusColorSchema } from './FocusColor'
 import { FocusFillSchema } from './FocusFill'
 import { FocusFontSizeSchema } from './FocusFontSize'
 
+/**
+ * A shape ID used in agent actions and focused shapes.
+ * This is a plain string (e.g. "myshape"), not a TLShapeId (which has the "shape:" prefix).
+ */
 export const FocusedGeoTypeSchema = z.enum([
 	'rectangle',
 	'ellipse',
@@ -34,7 +39,7 @@ export const FocusedGeoShapeSchema = z.object({
 	fill: FocusFillSchema,
 	h: z.number(),
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: z.string().optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
@@ -48,7 +53,7 @@ export const FocusedLineShapeSchema = z.object({
 	_type: z.literal('line'),
 	color: FocusColorSchema,
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	x1: z.number(),
 	x2: z.number(),
 	y1: z.number(),
@@ -61,7 +66,7 @@ export const FocusedNoteShapeSchema = z.object({
 	_type: z.literal('note'),
 	color: FocusColorSchema,
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: z.string().optional(),
 	x: z.number(),
 	y: z.number(),
@@ -91,7 +96,7 @@ const FocusedTextShapeSchema = z
 		fontSize: FocusFontSizeSchema.optional(),
 		maxWidth: z.number().nullable(),
 		note: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
 		text: z.string(),
@@ -107,11 +112,11 @@ export type FocusedTextShape = z.infer<typeof FocusedTextShapeSchema>
 export const FocusedArrowShapeSchema = z.object({
 	_type: z.literal('arrow'),
 	color: FocusColorSchema,
-	fromId: z.string().nullable(),
+	fromId: SimpleShapeIdSchema.nullable(),
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	text: z.string().optional(),
-	toId: z.string().nullable(),
+	toId: SimpleShapeIdSchema.nullable(),
 	x1: z.number(),
 	x2: z.number(),
 	y1: z.number(),
@@ -127,7 +132,7 @@ const FocusedDrawShapeSchema = z
 		color: FocusColorSchema,
 		fill: FocusFillSchema.optional(),
 		note: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({
 		title: 'Draw Shape',
@@ -142,7 +147,7 @@ const FocusedImageShapeSchema = z.object({
 	altText: z.string(),
 	h: z.number(),
 	note: z.string(),
-	shapeId: z.string(),
+	shapeId: SimpleShapeIdSchema,
 	w: z.number(),
 	x: z.number(),
 	y: z.number(),
@@ -154,7 +159,7 @@ const FocusedUnknownShapeSchema = z
 	.object({
 		_type: z.literal('unknown'),
 		note: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		subType: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -194,9 +199,15 @@ export const FocusedShapePartialSchema = z.union(
 	FOCUSED_SHAPES_SCHEMAS.map((schema) => schema.partial())
 )
 export type FocusedShape = z.infer<typeof FocusedShapeSchema>
-export type FocusedCreatableShape = z.infer<typeof FocusedCreatableShapeSchema>
-export type FocusedShapePartial = z.infer<typeof FocusedShapePartialSchema>
-export type FocusedTextShapePartial = z.infer<typeof FocusedTextShapePartialSchema>
+export type FocusedCreatableShape = z.infer<typeof FocusedCreatableShapeSchema> & {
+	shapeId: SimpleShapeId
+}
+export type FocusedShapePartial = z.infer<typeof FocusedShapePartialSchema> & {
+	shapeId?: SimpleShapeId
+}
+export type FocusedTextShapePartial = z.infer<typeof FocusedTextShapePartialSchema> & {
+	shapeId?: SimpleShapeId
+}
 
 /**
  * Extract all shape type names from the schema

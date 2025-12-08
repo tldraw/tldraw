@@ -1,6 +1,7 @@
 import { ga4Gtag, ga4Service } from './analytics-services/ga4'
 import { gtmService } from './analytics-services/gtm'
 import { hubspotService } from './analytics-services/hubspot'
+import { kick2Service } from './analytics-services/kick2'
 import { posthogService } from './analytics-services/posthog'
 import { reoService } from './analytics-services/reo'
 import { mountCookieConsentBanner } from './components/CookieConsentBanner'
@@ -33,7 +34,14 @@ class Analytics {
 	private consentCallbacks: Array<(preferences: ConsentPreferences) => void> = []
 	private isInitialized = false
 
-	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
+	private services = [
+		posthogService,
+		ga4Service,
+		gtmService,
+		hubspotService,
+		reoService,
+		kick2Service,
+	]
 
 	private maybeTrackConsentUpdate(consent: ConsentPreferences) {
 		if (this.isInitialized) {
