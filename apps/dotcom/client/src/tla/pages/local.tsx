@@ -20,7 +20,7 @@ export function Component() {
 		const handleFileOperations = async () => {
 			if (!app) return
 
-			// Check for redirect-to first (e.g., after OAuth sign-in)
+			// Check for redirect-to first (set by OAuth sign-in)
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
 				deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
