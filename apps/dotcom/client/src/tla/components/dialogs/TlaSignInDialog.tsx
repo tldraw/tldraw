@@ -12,6 +12,7 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { setRedirectOnSignIn } from '../../utils/redirect'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
@@ -36,6 +37,10 @@ export function TlaSignInDialog({
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
+
+	useEffect(() => {
+		setRedirectOnSignIn()
+	}, [])
 
 	let innerContent: ReactNode
 
