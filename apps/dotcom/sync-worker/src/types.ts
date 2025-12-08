@@ -1,7 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
-import type { RoomSnapshot } from '@tldraw/sync-core'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
