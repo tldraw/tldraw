@@ -288,24 +288,6 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 			}
 		}
 
-		// Check if text shapes intersect the edge of geo shapes
-		const textShapes = shapes.filter((shape) => shape.type === 'text')
-		const geoShapes = shapes.filter((shape) => shape.type === 'geo')
-
-		for (const textShape of textShapes) {
-			for (const geoShape of geoShapes) {
-				if (this.textShapeIntersectsGeoEdge(textShape, geoShape)) {
-					// Check if we already have a group for these shapes
-					const existingGroup = groups.find(
-						(group) => group.includes(textShape) && group.includes(geoShape)
-					)
-					if (!existingGroup) {
-						groups.push([textShape, geoShape])
-					}
-				}
-			}
-		}
-
 		return groups
 	}
 
