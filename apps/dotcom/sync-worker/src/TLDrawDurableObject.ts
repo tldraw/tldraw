@@ -177,7 +177,6 @@ export class TLDrawDurableObject extends DurableObject {
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
 						room.close()
-						console.error('room closed')
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 						this._db?.destroy()
 						this._db = null
