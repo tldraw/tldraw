@@ -68,6 +68,7 @@ describe('RoomSession state transitions', () => {
 			isReadonly: initialSession.isReadonly,
 			requiresLegacyRejection: initialSession.requiresLegacyRejection,
 			serializedSchema: mockSerializedSchema,
+			requiresDownMigrations: false,
 			supportsStringAppend: true,
 			lastInteractionTime: Date.now(),
 			debounceTimer: null,
