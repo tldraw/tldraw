@@ -8,11 +8,7 @@ export class MicrotaskNotifier<T extends unknown[]> {
 	notify(...props: T) {
 		queueMicrotask(() => {
 			for (const listener of this.listeners) {
-				try {
-					listener(...props)
-				} catch (error) {
-					console.error('Error in MicrotaskNotifier listener', error)
-				}
+				listener(...props)
 			}
 		})
 	}
