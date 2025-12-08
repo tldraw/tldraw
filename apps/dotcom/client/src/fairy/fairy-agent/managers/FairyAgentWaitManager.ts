@@ -114,14 +114,9 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * @returns Promise that resolves when the prompt completes (if prompted)
 	 */
 	async notifyWaitConditionFulfilled(request: Partial<AgentRequest>): Promise<void> {
-		const { agent } = this
 		// Ensure source is set to 'other-agent' for wait condition notifications
 		const requestWithSource: Partial<AgentRequest> = { ...request, source: 'other-agent' }
-		if (agent.requests.isGenerating()) {
-			agent.schedule(requestWithSource)
-		} else {
-			await agent.prompt(requestWithSource)
-		}
+		this.agent.schedule(requestWithSource)
 	}
 
 	/**
