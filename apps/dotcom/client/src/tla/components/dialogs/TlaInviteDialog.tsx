@@ -59,7 +59,7 @@ export function TlaInviteDialog({
 				>
 					<F defaultMessage="Accept and join group" />
 				</button>
-				<button className={styles.declineButton} onClick={() => onClose()}>
+				<button className={styles.declineButton} onClick={onClose}>
 					<F defaultMessage="No thanks" />
 				</button>
 			</TldrawUiDialogBody>

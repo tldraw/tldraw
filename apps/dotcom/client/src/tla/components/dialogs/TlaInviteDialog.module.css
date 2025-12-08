@@ -11,10 +11,7 @@
 	flex-direction: column;
 	align-items: center;
 	gap: 8px;
-	padding-left: 24px;
-	padding-right: 24px;
-	padding-bottom: 24px;
-	padding-top: 0px;
+	padding: 0 24px 24px;
 	width: 300px;
 }
 
