@@ -1,5 +1,6 @@
 import {
 	convertFocusedShapeToTldrawShape,
+	convertPartialFocusedShapeToTldrawShape,
 	CreateAction,
 	createAgentActionInfo,
 	FocusedShape,
@@ -45,9 +46,19 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 
 	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return
-		if (!this.agent) return
 		const { editor } = this.agent
+		if (!action.complete) {
+			if (!action.shape) return
+			if (action.shape._type === 'text') {
+				const result = convertPartialFocusedShapeToTldrawShape(editor, action.shape, {
+					defaultShape: getDefaultShape(action.shape._type),
+				})
+				if (result.shape) {
+					editor.createShape(result.shape)
+				}
+			}
+			return
+		}
 
 		// Translate the shape back to the chat's position
 		action.shape = helpers.removeOffsetFromShape(action.shape)
