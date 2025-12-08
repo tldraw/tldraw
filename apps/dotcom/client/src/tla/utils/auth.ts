@@ -1,4 +1,4 @@
-import { UserResource } from '@clerk/types'
+import type { UserResource } from '@clerk/types'
 
 export function hasNotAcceptedLegal(user: UserResource | null | undefined): boolean {
 	return !!(
