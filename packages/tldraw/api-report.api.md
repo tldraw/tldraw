@@ -403,9 +403,6 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
     children: React.ReactNode;
 }): JSX_2.Element;
 
-// @public
-export function base64ToPoints(base64: string): VecModel[];
-
 // @public (undocumented)
 export interface BasePathBuilderOpts {
     // (undocumented)
@@ -580,9 +577,6 @@ export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
     };
     url: string;
 }): Promise<Result<TLBookmarkShape, string>>;
-
-// @public
-export function createDrawSegments(pointArrays: VecModel[][], type?: 'free' | 'straight'): TLDrawShapeSegment[];
 
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
@@ -1805,10 +1799,10 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boole
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
 // @internal (undocumented)
-export function getPointsFromSegment(segment: TLDrawShapeSegment, points?: Vec[]): Vec[];
+export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, points?: Vec[]): Vec[];
 
 // @internal (undocumented)
-export function getPointsFromSegments(segments: TLDrawShapeSegment[]): Vec[];
+export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[]): Vec[];
 
 // @public
 export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
@@ -2524,9 +2518,6 @@ export interface PlainTextLabelProps {
     // (undocumented)
     wrap?: boolean;
 }
-
-// @public
-export function pointsToBase64(points: VecModel[]): string;
 
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {

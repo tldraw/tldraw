@@ -272,3 +272,21 @@ export function base64ToFloat16Array(base64: string): Float16Array {
 	// Create Float16Array from the buffer
 	return new Float16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2)
 }
+
+/** @public */
+export function compressLegacySegments(
+	segments: {
+		type: 'free' | 'straight'
+		points: VecModel[]
+	}[]
+): TLDrawShapeSegment[] {
+	return segments.map((segment: any) => {
+		const nums = segment.points.flatMap((p: VecModel) => [p.x, p.y, p.z ?? 0.5])
+		const float16Array = new Float16Array(nums)
+		const base64 = float16ArrayToBase64(float16Array)
+		return {
+			...segment,
+			points: base64,
+		}
+	})
+}

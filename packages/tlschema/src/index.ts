@@ -192,6 +192,7 @@ export {
 } from './shapes/TLBookmarkShape'
 export {
 	base64ToFloat16Array,
+	compressLegacySegments,
 	drawShapeMigrations,
 	drawShapeProps,
 	float16ArrayToBase64,

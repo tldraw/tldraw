@@ -5,7 +5,6 @@ export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selec
 	// Finish this shape and start editing the next one
 	editor.select(shape)
 	editor.setEditingShape(shape)
-	console.log('started editing shape with label')
 	editor.setCurrentTool('select.editing_shape', {
 		target: 'shape',
 		shape: shape,

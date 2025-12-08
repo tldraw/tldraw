@@ -161,7 +161,6 @@ export class PointingShape extends StateNode {
 										}
 
 										this.editor.setEditingShape(selectingShape.id)
-										console.log('editing on select tool pointer up')
 										this.editor.setCurrentTool('select.editing_shape')
 
 										if (this.isDoubleClick) {

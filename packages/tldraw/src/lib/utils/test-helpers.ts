@@ -1,6 +1,5 @@
-import { Float16Array } from '@petamoriken/float16'
 import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
-import { base64ToFloat16Array, float16ArrayToBase64 } from '@tldraw/editor'
+import { base64ToFloat16Array, compressLegacySegments } from '@tldraw/editor'
 
 /**
  * Helper function to convert draw shape points from VecModel[] to base64 string.
@@ -14,9 +13,7 @@ import { base64ToFloat16Array, float16ArrayToBase64 } from '@tldraw/editor'
  * @public
  */
 export function pointsToBase64(points: VecModel[]): string {
-	const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-	const float16Array = new Float16Array(nums)
-	return float16ArrayToBase64(float16Array)
+	return compressLegacySegments([{ type: 'free', points }])[0].points
 }
 
 /**
@@ -63,8 +60,10 @@ export function createDrawSegments(
 	pointArrays: VecModel[][],
 	type: 'free' | 'straight' = 'free'
 ): TLDrawShapeSegment[] {
-	return pointArrays.map((points) => ({
-		type,
-		points: pointsToBase64(points),
-	}))
+	return compressLegacySegments(
+		pointArrays.map((points) => ({
+			type,
+			points,
+		}))
+	)
 }
