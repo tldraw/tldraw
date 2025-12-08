@@ -2042,9 +2042,11 @@ export class InputsManager {
     get accelKey(): boolean;
     // @deprecated (undocumented)
     get altKey(): boolean;
+    set altKey(altKey: boolean);
     readonly buttons: AtomSet<number>;
     // @deprecated (undocumented)
     get ctrlKey(): boolean;
+    set ctrlKey(ctrlKey: boolean);
     // @deprecated (undocumented)
     get currentPagePoint(): Vec;
     // @deprecated (undocumented)
@@ -2068,23 +2070,30 @@ export class InputsManager {
     getPreviousPagePoint(): Vec;
     getPreviousScreenPoint(): Vec;
     getShiftKey(): boolean;
-    // @deprecated (undocumented)
     get isDragging(): boolean;
+    set isDragging(isDragging: boolean);
     // @deprecated (undocumented)
     get isEditing(): boolean;
+    set isEditing(isEditing: boolean);
     // @deprecated (undocumented)
     get isPanning(): boolean;
+    set isPanning(isPanning: boolean);
     // @deprecated (undocumented)
     get isPen(): boolean;
+    set isPen(isPen: boolean);
     // @deprecated (undocumented)
     get isPinching(): boolean;
+    set isPinching(isPinching: boolean);
     // @deprecated (undocumented)
     get isPointing(): boolean;
+    set isPointing(isPointing: boolean);
     // @deprecated (undocumented)
     get isSpacebarPanning(): boolean;
+    set isSpacebarPanning(isSpacebarPanning: boolean);
     readonly keys: AtomSet<string>;
     // @deprecated (undocumented)
     get metaKey(): boolean;
+    set metaKey(metaKey: boolean);
     // @deprecated (undocumented)
     get originPagePoint(): Vec;
     // @deprecated (undocumented)
@@ -2101,8 +2110,12 @@ export class InputsManager {
     setCtrlKey(ctrlKey: boolean): void;
     // (undocumented)
     setIsDragging(isDragging: boolean): void;
+    // (undocumented)
+    setIsEditing(isEditing: boolean): void;
     // @internal (undocumented)
     setIsPanning(isPanning: boolean): void;
+    // (undocumented)
+    setIsPen(isPen: boolean): void;
     // @internal (undocumented)
     setIsPinching(isPinching: boolean): void;
     // @internal (undocumented)
@@ -2117,6 +2130,7 @@ export class InputsManager {
     setShiftKey(shiftKey: boolean): void;
     // @deprecated (undocumented)
     get shiftKey(): boolean;
+    set shiftKey(shiftKey: boolean);
     // (undocumented)
     toJson(): {
         altKey: boolean;

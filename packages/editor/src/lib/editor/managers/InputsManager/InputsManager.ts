@@ -151,6 +151,16 @@ export class InputsManager {
 	get isPen() {
 		return this.getIsPen()
 	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isPen(isPen: boolean) {
+		this.setIsPen(isPen)
+	}
+	/**
+	 * @param isPen - Whether the input is from a pen.
+	 */
+	setIsPen(isPen: boolean) {
+		this._isPen.set(isPen)
+	}
 
 	private _shiftKey = atom<boolean>('shiftKey', false)
 	/**
@@ -165,6 +175,10 @@ export class InputsManager {
 	// eslint-disable-next-line no-restricted-syntax
 	get shiftKey() {
 		return this.getShiftKey()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set shiftKey(shiftKey: boolean) {
+		this.setShiftKey(shiftKey)
 	}
 	/**
 	 * @param shiftKey - Whether the shift key is pressed.
@@ -188,6 +202,10 @@ export class InputsManager {
 	get metaKey() {
 		return this.getMetaKey()
 	}
+	// eslint-disable-next-line no-restricted-syntax
+	set metaKey(metaKey: boolean) {
+		this.setMetaKey(metaKey)
+	}
 	/**
 	 * @param metaKey - Whether the meta key is pressed.
 	 * @internal
@@ -210,6 +228,10 @@ export class InputsManager {
 	get ctrlKey() {
 		return this.getCtrlKey()
 	}
+	// eslint-disable-next-line no-restricted-syntax
+	set ctrlKey(ctrlKey: boolean) {
+		this.setCtrlKey(ctrlKey)
+	}
 	/**
 	 * @param ctrlKey - Whether the ctrl key is pressed.
 	 * @internal
@@ -231,6 +253,10 @@ export class InputsManager {
 	// eslint-disable-next-line no-restricted-syntax
 	get altKey() {
 		return this.getAltKey()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set altKey(altKey: boolean) {
+		this.setAltKey(altKey)
 	}
 	/**
 	 * @param altKey - Whether the alt key is pressed.
@@ -262,11 +288,15 @@ export class InputsManager {
 		return this._isDragging.get()
 	}
 	/**
-	 * @deprecated Use `getIsDragging()` instead.
+	 * Soon to be deprecated, uise `getIsDragging()` instead.
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get isDragging() {
 		return this.getIsDragging()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isDragging(isDragging: boolean) {
+		this.setIsDragging(isDragging)
 	}
 	/**
 	 * @param isDragging - Whether the user is dragging.
@@ -288,6 +318,10 @@ export class InputsManager {
 	// eslint-disable-next-line no-restricted-syntax
 	get isPointing() {
 		return this.getIsPointing()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isPointing(isPointing: boolean) {
+		this.setIsPointing(isPointing)
 	}
 	/**
 	 * @param isPointing - Whether the user is pointing.
@@ -311,6 +345,10 @@ export class InputsManager {
 	get isPinching() {
 		return this.getIsPinching()
 	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isPinching(isPinching: boolean) {
+		this.setIsPinching(isPinching)
+	}
 	/**
 	 * @param isPinching - Whether the user is pinching.
 	 * @internal
@@ -333,6 +371,16 @@ export class InputsManager {
 	get isEditing() {
 		return this.getIsEditing()
 	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isEditing(isEditing: boolean) {
+		this.setIsEditing(isEditing)
+	}
+	/**
+	 * @param isEditing - Whether the user is editing.
+	 */
+	setIsEditing(isEditing: boolean) {
+		this._isEditing.set(isEditing)
+	}
 
 	private _isPanning = atom<boolean>('isPanning', false)
 	/**
@@ -347,6 +395,10 @@ export class InputsManager {
 	// eslint-disable-next-line no-restricted-syntax
 	get isPanning() {
 		return this.getIsPanning()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isPanning(isPanning: boolean) {
+		this.setIsPanning(isPanning)
 	}
 	/**
 	 * @param isPanning - Whether the user is panning.
@@ -369,6 +421,10 @@ export class InputsManager {
 	// eslint-disable-next-line no-restricted-syntax
 	get isSpacebarPanning() {
 		return this.getIsSpacebarPanning()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set isSpacebarPanning(isSpacebarPanning: boolean) {
+		this.setIsSpacebarPanning(isSpacebarPanning)
 	}
 	/**
 	 * @param isSpacebarPanning - Whether the user is spacebar panning.
