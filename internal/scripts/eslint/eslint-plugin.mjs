@@ -5,7 +5,6 @@ import { isReassignmentTarget } from 'tsutils';
 import ts from 'typescript';
 const { AST_NODE_TYPES, ESLintUtils } = utils;
 const TIPTAP_IMPORT_PREFIX = '@tiptap/';
-
 const rules = {
     // Rule to enforce using "while" instead of "whilst"
     'no-whilst': ESLintUtils.RuleCreator.withoutDocs({
