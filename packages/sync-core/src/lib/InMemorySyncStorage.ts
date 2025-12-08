@@ -8,6 +8,7 @@ import {
 	TLPageId,
 } from '@tldraw/tlschema'
 import { assert, IndexKey, objectMapEntries, throttle } from '@tldraw/utils'
+import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
 	TLSyncForwardDiff,
@@ -67,21 +68,9 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	/** @internal */
 	tombstoneHistoryStartsAtClock: Atom<number>
 
-	private listeners = new Set<(arg: TLSyncStorageOnChangeCallbackProps) => unknown>()
+	private notifier = new MicrotaskNotifier<[TLSyncStorageOnChangeCallbackProps]>()
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void {
-		let didDelete = false
-		// we put the callback registration in a microtask because the callback is invoked
-		// in a microtask, and so this makes sure the callback is invoked after all the updates
-		// that happened in the current callstack before this onChange registration have been processed.
-		queueMicrotask(() => {
-			if (didDelete) return
-			this.listeners.add(callback)
-		})
-		return () => {
-			if (didDelete) return
-			didDelete = true
-			this.listeners.delete(callback)
-		}
+		return this.notifier.register(callback)
 	}
 
 	constructor({
@@ -166,20 +155,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		const clockAfter = this.documentClock.get()
 		const didChange = clockAfter > clockBefore
 		if (didChange) {
-			// todo: batch these updates
-			queueMicrotask(() => {
-				const props: TLSyncStorageOnChangeCallbackProps = {
-					id: opts?.id,
-					documentClock: clockAfter,
-				}
-				for (const listener of this.listeners) {
-					try {
-						listener(props)
-					} catch (error) {
-						console.error('Error in onChange callback', error)
-					}
-				}
-			})
+			this.notifier.notify({ id: opts?.id, documentClock: clockAfter })
 		}
 		// InMemorySyncStorage applies changes verbatim, so we only emit changes
 		// when 'always' is specified (not for 'when-different')
