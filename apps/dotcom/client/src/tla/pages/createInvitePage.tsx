@@ -12,10 +12,11 @@ export function createInvitePage(sessionStorageKey: string) {
 		const navigate = useNavigate()
 		const [dialogShown, setDialogShown] = useState(false)
 
-		useEffect(() => {
-			// Store token in session storage - handlers will process after sign-in
-			setInSessionStorage(sessionStorageKey, token!)
+		if (token) {
+			setInSessionStorage(sessionStorageKey, token)
+		}
 
+		useEffect(() => {
 			// Wait for auth to load before deciding what to do
 			if (!auth.isLoaded) return
 
