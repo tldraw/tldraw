@@ -14,17 +14,6 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 			currentWork.tasks.find((task) => task.status === 'in-progress') ??
 			currentWork.tasks.find((task) => task.status === 'done')
 
-		if (!currentTask) {
-			console.warn('[MarkDroneTaskDone] No task found in currentWork:', {
-				tasksCount: currentWork.tasks.length,
-				taskStatuses: currentWork.tasks.map((t) => ({
-					id: t.id,
-					status: t.status,
-					title: t.title,
-				})),
-			})
-		}
-
 		const taskTitle = currentTask?.title ?? 'task'
 		return createAgentActionInfo({
 			icon: 'note',

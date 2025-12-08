@@ -105,15 +105,17 @@ export function FairyHUD() {
 	const handleToggleFeed = useCallback(() => {
 		if (isFeedDialogOpen) {
 			removeDialog(FAIRY_FEED_DIALOG_ID)
-		} else if (activeOrchestratorAgent) {
-			setLastSeenFeedTimestamp(Date.now())
-			addDialog({
-				id: FAIRY_FEED_DIALOG_ID,
-				component: () => (
-					<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
-				),
-			})
+			return
 		}
+
+		setLastSeenFeedTimestamp(Date.now())
+		addDialog({
+			id: FAIRY_FEED_DIALOG_ID,
+			component: () => (
+				<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
+			),
+		})
+		return
 	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog, agents])
 
 	return (
