@@ -1,3 +1,4 @@
+import { FairyHatColor } from '@tldraw/fairy-shared'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { shouldShowInFeed } from './FairyFeedView'
 
@@ -5,6 +6,7 @@ export interface FeedItemData {
 	id: string
 	agentName: string
 	hat: string
+	hatColor: FairyHatColor
 	agentId: string
 	timestamp: number
 	description: string
@@ -17,8 +19,7 @@ export interface FeedItemData {
  */
 export function buildFeedItems(
 	agents: FairyAgent[],
-	orchestratorAgent: FairyAgent | null,
-	transformDescription: (actionType: string, description: string) => string
+	orchestratorAgent: FairyAgent | null
 ): FeedItemData[] {
 	const items: FeedItemData[] = []
 
@@ -46,8 +47,9 @@ export function buildFeedItems(
 					continue
 				}
 
-				const rawDescription = actionInfo.description ?? actionInfo.summary ?? ''
-				const description = transformDescription(actionType, rawDescription)
+				// Prefer ircMessage over description for feed display
+				const description =
+					actionInfo.ircMessage ?? actionInfo.description ?? actionInfo.summary ?? ''
 
 				rawActions.push({
 					agent,
@@ -82,6 +84,7 @@ export function buildFeedItems(
 			id: actionId,
 			agentName: agentConfig.name,
 			hat: agentConfig.outfit?.hat ?? 'bald',
+			hatColor: agentConfig.hatColor,
 			agentId: agent.id,
 			isOrchestrator: agent.id === orchestratorAgent?.id,
 			timestamp,

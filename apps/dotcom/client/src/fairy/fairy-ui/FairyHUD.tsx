@@ -30,6 +30,7 @@ export function FairyHUD() {
 
 	const hudRef = useRef<HTMLDivElement>(null)
 	const [lastSeenFeedTimestamp, setLastSeenFeedTimestamp] = useState<number>(Date.now())
+	const wasFeedDialogOpenRef = useRef(false)
 
 	// Track if feed dialog is open
 	const isFeedDialogOpen = useValue(
@@ -91,6 +92,15 @@ export function FairyHUD() {
 		setLastSeenFeedTimestamp(0) // Reset so all items in new project show as unseen
 	}, [activeOrchestratorAgent, removeDialog])
 
+	// Update lastSeenFeedTimestamp when the feed dialog closes
+	// This ensures items viewed while the dialog was open are marked as seen
+	useEffect(() => {
+		if (wasFeedDialogOpenRef.current && !isFeedDialogOpen) {
+			setLastSeenFeedTimestamp(Date.now())
+		}
+		wasFeedDialogOpenRef.current = isFeedDialogOpen
+	}, [isFeedDialogOpen])
+
 	// Toggle feed dialog and mark as seen when opening
 	const handleToggleFeed = useCallback(() => {
 		if (isFeedDialogOpen) {
@@ -148,6 +158,7 @@ export function FairyHUD() {
 								onToggleManual={handleToggleManual}
 								onToggleFeed={handleToggleFeed}
 								hasUnseenFeedItems={hasUnseenFeedItemsValue}
+								isFeedDialogOpen={isFeedDialogOpen}
 							/>
 							{/* Solo fairy mode - no project */}
 							{panelState === 'fairy-solo' && shownFairy && (

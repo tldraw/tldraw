@@ -1,32 +1,10 @@
+import { FairyHatColor } from '@tldraw/fairy-shared'
 import { memo, useLayoutEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
-
-/** Saturated IRC colors for consistent unique colors per agent */
-const IRC_COLORS = [
-	'var(--irc-color-pink)',
-	'var(--irc-color-purple)',
-	'var(--irc-color-peach)',
-	'var(--irc-color-coral)',
-	'var(--irc-color-teal)',
-	'var(--irc-color-gold)',
-	'var(--irc-color-rose)',
-	'var(--irc-color-green)',
-]
-
-function getIRCColorForAgent(agentId: string): string {
-	// Use agent ID to deterministically assign a color
-	let hash = 0
-	for (let i = 0; i < agentId.length; i++) {
-		hash = (hash << 5) - hash + agentId.charCodeAt(i)
-		hash = hash & hash // Convert to 32-bit integer
-	}
-	const colorIndex = Math.abs(hash) % IRC_COLORS.length
-	return IRC_COLORS[colorIndex]
-}
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -77,6 +55,7 @@ interface FeedItem {
 	id: string
 	agentName: string
 	hat: string
+	hatColor: FairyHatColor
 	agentId: string
 	timestamp: number
 	description: string
@@ -84,12 +63,15 @@ interface FeedItem {
 }
 
 const FairyFeedIRCLine = memo(
-	({ agentName, agentId, timestamp, description, isOrchestrator = false }: FeedItem) => {
+	({ agentName, hatColor, agentId, timestamp, description, isOrchestrator = false }: FeedItem) => {
 		return (
 			<div className="fairy-feed-irc-line">
 				<span className="fairy-feed-irc-time">[{formatTime(timestamp)}]</span>
 				<div className="fairy-feed-irc-name-container">
-					<span className="fairy-feed-irc-name" style={{ color: getIRCColorForAgent(agentId) }}>
+					<span
+						className="fairy-feed-irc-name"
+						style={{ color: `var(--tl-color-fairy-${hatColor})` }}
+					>
 						{`<${isOrchestrator ? '@' : ''}${formatShortName(agentName, agentId)}>`}
 					</span>
 				</div>
@@ -102,6 +84,7 @@ const FairyFeedIRCLine = memo(
 		return (
 			prev.id === next.id &&
 			prev.agentName === next.agentName &&
+			prev.hatColor === next.hatColor &&
 			prev.agentId === next.agentId &&
 			prev.timestamp === next.timestamp &&
 			prev.description === next.description &&
@@ -114,6 +97,7 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 	const fairyApp = useFairyApp()
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
+	const previousItemCountRef = useRef(0)
 
 	const project = useValue('project', () => orchestratorAgent && orchestratorAgent.getProject(), [
 		orchestratorAgent,
@@ -125,44 +109,41 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 			if (!project || !fairyApp) return []
 
 			const projectAgents = agents.filter((agent) => project.members.some((m) => m.id === agent.id))
-			return buildFeedItems(projectAgents, orchestratorAgent, toFeedDescription)
+			return buildFeedItems(projectAgents, orchestratorAgent)
 		},
 		[project, fairyApp, agents, orchestratorAgent]
 	)
 
-	useLayoutEffect(() => {
-		if (!historyRef.current) return
+	// Small threshold to account for sub-pixel rounding when determining if user is "at bottom"
+	const SCROLL_BOTTOM_THRESHOLD = 10
 
-		// If a new prompt is submitted by the user, scroll to the bottom
-		const lastItem = feedItems.at(-1)
-		if (lastItem) {
-			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
-			previousScrollDistanceFromBottomRef.current = 0
-			return
-		}
-
-		// If the user is scrolled to the bottom, keep them there while new actions appear
-		if (previousScrollDistanceFromBottomRef.current <= 0) {
-			const scrollDistanceFromBottom =
-				historyRef.current.scrollHeight -
-				historyRef.current.scrollTop -
-				historyRef.current.clientHeight
-
-			if (scrollDistanceFromBottom > 0) {
-				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
-			}
-		}
-	}, [historyRef, feedItems])
-
-	// Keep track of the user's scroll position
-	const handleScroll = () => {
-		if (!historyRef.current) return
-		const scrollDistanceFromBottom =
+	const getScrollDistanceFromBottom = () => {
+		if (!historyRef.current) return 0
+		return (
 			historyRef.current.scrollHeight -
 			historyRef.current.scrollTop -
 			historyRef.current.clientHeight
+		)
+	}
 
-		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
+	useLayoutEffect(() => {
+		if (!historyRef.current) return
+
+		const currentItemCount = feedItems.length
+		const isNewItemAdded = currentItemCount > previousItemCountRef.current
+		previousItemCountRef.current = currentItemCount
+
+		// Only auto-scroll when new items are added AND user was at (or near) the bottom
+		const wasAtBottom = previousScrollDistanceFromBottomRef.current <= SCROLL_BOTTOM_THRESHOLD
+		if (isNewItemAdded && wasAtBottom) {
+			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+			previousScrollDistanceFromBottomRef.current = 0
+		}
+	}, [feedItems])
+
+	// Keep track of the user's scroll position relative to the bottom
+	const handleScroll = () => {
+		previousScrollDistanceFromBottomRef.current = getScrollDistanceFromBottom()
 	}
 
 	if (feedItems.length === 0) {
@@ -180,26 +161,6 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 			))}
 		</div>
 	)
-}
-
-/**
- * Transform action descriptions into past tense suitable for a live feed.
- * Task-related actions already have good past-tense descriptions from their utils.
- * This mainly handles shape creation/deletion which use LLM-generated intents.
- */
-function toFeedDescription(actionType: string, description: string): string {
-	if (!description) return ''
-
-	// Shape creation/deletion actions use LLM-generated intents - prefix with past tense
-	if (actionType === 'create' || actionType === 'pen') {
-		return `Drew: ${description}`
-	}
-	if (actionType === 'delete') {
-		return `Deleted: ${description}`
-	}
-
-	// All other actions (tasks, projects, etc.) already have past-tense descriptions
-	return description
 }
 
 function formatTime(timestamp: number): string {

@@ -8,9 +8,12 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 	static override type = 'end-duo-project' as const
 
 	override getInfo(action: Streaming<EndDuoProjectAction>) {
+		const project = this.agent.getProject()
+		const projectTitle = project?.title ?? 'project'
 		return createAgentActionInfo({
 			icon: 'flag',
 			description: action.complete ? 'Ended project' : 'Ending project...',
+			ircMessage: action.complete ? `I finished the project: ${projectTitle}` : null,
 			pose: 'reviewing',
 			canGroup: () => false,
 		})

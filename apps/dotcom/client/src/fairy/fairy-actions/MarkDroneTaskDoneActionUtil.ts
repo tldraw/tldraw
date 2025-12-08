@@ -7,9 +7,29 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 	static override type = 'mark-my-task-done' as const
 
 	override getInfo(action: Streaming<MarkDroneTaskDoneAction>) {
+		// Look for in-progress task first, then fall back to most recent done task
+		// (getInfo may be called after applyAction has already marked the task done)
+		const currentWork = this.agent.getWork()
+		const currentTask =
+			currentWork.tasks.find((task) => task.status === 'in-progress') ??
+			currentWork.tasks.find((task) => task.status === 'done')
+
+		if (!currentTask) {
+			console.warn('[MarkDroneTaskDone] No task found in currentWork:', {
+				tasksCount: currentWork.tasks.length,
+				taskStatuses: currentWork.tasks.map((t) => ({
+					id: t.id,
+					status: t.status,
+					title: t.title,
+				})),
+			})
+		}
+
+		const taskTitle = currentTask?.title ?? 'task'
 		return createAgentActionInfo({
 			icon: 'note',
 			description: action.complete ? `Completed task` : 'Completing task...',
+			ircMessage: action.complete ? `I completed the task: ${taskTitle}` : null,
 			pose: 'writing',
 			canGroup: () => false,
 		})

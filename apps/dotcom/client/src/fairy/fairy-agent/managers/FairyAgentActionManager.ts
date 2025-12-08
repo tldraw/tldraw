@@ -68,6 +68,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 			summary = null,
 			canGroup = () => true,
 			pose = null,
+			ircMessage,
 		} = info
 
 		return createAgentActionInfo({
@@ -76,6 +77,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 			summary,
 			canGroup,
 			pose,
+			ircMessage,
 		})
 	}
 

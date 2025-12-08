@@ -38,6 +38,7 @@ interface FairyHUDHeaderProps {
 	onToggleManual?(): void
 	onToggleFeed?(): void
 	hasUnseenFeedItems?: boolean
+	isFeedDialogOpen?: boolean
 }
 
 export function FairyHUDHeader({
@@ -50,6 +51,7 @@ export function FairyHUDHeader({
 	onToggleManual,
 	onToggleFeed,
 	hasUnseenFeedItems,
+	isFeedDialogOpen,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -248,7 +250,7 @@ export function FairyHUDHeader({
 							type="icon"
 							className="fairy-toolbar-button fairy-feed-button"
 							onClick={onToggleFeed}
-							data-has-unseen={hasUnseenFeedItems}
+							data-has-unseen={hasUnseenFeedItems && !isFeedDialogOpen}
 						>
 							<TldrawUiButtonIcon icon="comment" small />
 						</TldrawUiButton>

@@ -7,15 +7,19 @@
 export function getIRCNameForFairy(fairyName: string, agentId: string): string {
 	const firstName = fairyName.trim().split(/\s+/)[0]
 
-	// Use agentId to deterministically pick a pattern
-	let hash = 0
+	// Use a better hash function (djb2) for more varied distribution
+	let hash = 5381
 	for (let i = 0; i < agentId.length; i++) {
-		hash = (hash << 5) - hash + agentId.charCodeAt(i)
-		hash = hash & hash
+		hash = (hash * 33) ^ agentId.charCodeAt(i)
 	}
+	// Mix in the fairy name to ensure different fairies get different patterns
+	for (let i = 0; i < fairyName.length; i++) {
+		hash = (hash * 33) ^ fairyName.charCodeAt(i)
+	}
+	hash = Math.abs(hash)
 
-	const patternIndex = Math.abs(hash) % PATTERNS.length
-	const suffixIndex = Math.abs(hash >> 4) % SUFFIXES.length
+	const patternIndex = hash % PATTERNS.length
+	const suffixIndex = (hash >> 8) % SUFFIXES.length
 
 	return PATTERNS[patternIndex](firstName, SUFFIXES[suffixIndex])
 }
