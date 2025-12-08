@@ -1,37 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
-import { useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { setInSessionStorage, useDialogs } from 'tldraw'
-import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
+import { createInvitePage } from './createInvitePage'
 
-export function Component() {
-	const { token } = useParams<{ token: string }>()
-	const auth = useAuth()
-	const { addDialog } = useDialogs()
-	const navigate = useNavigate()
-	const [dialogShown, setDialogShown] = useState(false)
-
-	useEffect(() => {
-		// Store token in session storage - handlers will process after sign-in
-		setInSessionStorage(SESSION_STORAGE_KEYS.FAIRY_INVITE_TOKEN, token!)
-
-		// Wait for auth to load before deciding what to do
-		if (!auth.isLoaded) return
-
-		// If user is not signed in, show sign-in dialog
-		if (!auth.isSignedIn && !dialogShown) {
-			setDialogShown(true)
-			addDialog({
-				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
-				onClose: () => navigate('/', { replace: true }),
-			})
-		}
-	}, [token, auth.isLoaded, auth.isSignedIn, addDialog, dialogShown, navigate])
-
-	if (auth.isLoaded && auth.isSignedIn) {
-		return <Navigate to="/" replace />
-	}
-
-	return null
-}
+export const Component = createInvitePage(SESSION_STORAGE_KEYS.FAIRY_INVITE_TOKEN)
