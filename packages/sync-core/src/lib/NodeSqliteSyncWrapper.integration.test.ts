@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { RecordId } from 'tldraw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { NodeSqliteWrapper } from './NodeSqliteWrapper'
-import { SqlLiteSyncStorage } from './SqlLiteSyncStorage'
+import { migrateSqliteSyncStorage, SqlLiteSyncStorage } from './SqlLiteSyncStorage'
 
 // Simple record type for testing
 interface TestRecord {
@@ -24,30 +24,7 @@ const testSchema = {
 // doesn't support (prepare() only handles one statement). We need to initialize
 // the tables separately before creating the storage.
 function initializeTables(db: DatabaseSync) {
-	db.exec(`
-		CREATE TABLE IF NOT EXISTS documents (
-			id TEXT PRIMARY KEY,
-			state TEXT NOT NULL,
-			lastChangedClock INTEGER NOT NULL
-		)
-	`)
-	db.exec(
-		`CREATE INDEX IF NOT EXISTS idx_documents_lastChangedClock ON documents(lastChangedClock)`
-	)
-	db.exec(`
-		CREATE TABLE IF NOT EXISTS tombstones (
-			id TEXT PRIMARY KEY,
-			clock INTEGER NOT NULL
-		)
-	`)
-	db.exec(`
-		CREATE TABLE IF NOT EXISTS metadata (
-			id INTEGER PRIMARY KEY CHECK (id = 0),
-			documentClock INTEGER NOT NULL DEFAULT 0,
-			tombstoneHistoryStartsAtClock INTEGER NOT NULL DEFAULT 0,
-			schema TEXT NOT NULL
-		)
-	`)
+	migrateSqliteSyncStorage(new NodeSqliteWrapper(db))
 	// db.exec() doesn't support bindings, use prepare() for parameterized queries
 	db.prepare(
 		`INSERT INTO metadata (id, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (0, 0, 0, ?)`

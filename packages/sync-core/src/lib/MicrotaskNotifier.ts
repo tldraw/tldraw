@@ -8,22 +8,31 @@ export class MicrotaskNotifier<T extends unknown[]> {
 	notify(...props: T) {
 		queueMicrotask(() => {
 			for (const listener of this.listeners) {
-				listener(...props)
+				try {
+					listener(...props)
+				} catch (error) {
+					console.error('Error in MicrotaskNotifier listener', error)
+				}
 			}
 		})
 	}
 
 	register(_listener: (...props: T) => void) {
-		const listener = (...props: T) => {
-			try {
-				_listener(...props)
-			} catch (error) {
-				console.error(error)
-			}
-		}
-		queueMicrotask(() => this.listeners.add(listener))
+		// Track if unsubscribe was called before the add microtask ran
+		let didDelete = false
+
+		// We defer the add to the microtask queue to ensure the callback isn't invoked
+		// for changes that happened before this registration
+		queueMicrotask(() => {
+			if (didDelete) return
+			this.listeners.add(_listener)
+		})
+
 		return () => {
-			queueMicrotask(() => this.listeners.delete(listener))
+			if (didDelete) return
+			didDelete = true
+			// Synchronous delete ensures immediate unsubscription
+			this.listeners.delete(_listener)
 		}
 	}
 }

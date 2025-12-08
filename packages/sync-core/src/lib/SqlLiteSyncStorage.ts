@@ -67,6 +67,57 @@ export interface TLSyncSqliteWrapper {
 	transaction<T>(callback: () => T): T
 }
 
+export function migrateSqliteSyncStorage(
+	storage: TLSyncSqliteWrapper,
+	{
+		documentsTable = 'documents',
+		tombstonesTable = 'tombstones',
+		metadataTable = 'metadata',
+	}: { documentsTable?: string; tombstonesTable?: string; metadataTable?: string } = {}
+): void {
+	let migrationVersion = 0
+	try {
+		const row = storage
+			.prepare<{
+				migrationVersion: number
+			}>(`SELECT migrationVersion FROM ${metadataTable} LIMIT 1`)
+			.all()[0]
+		migrationVersion = row?.migrationVersion ?? 0
+	} catch (_e) {
+		// noop
+	}
+
+	if (migrationVersion === 0) {
+		migrationVersion++
+		storage.exec(`
+			CREATE TABLE IF NOT EXISTS ${documentsTable} (
+				id TEXT PRIMARY KEY,
+				state TEXT NOT NULL,
+				lastChangedClock INTEGER NOT NULL
+			);
+
+			CREATE INDEX IF NOT EXISTS idx_${documentsTable}_lastChangedClock ON ${documentsTable}(lastChangedClock);
+
+			CREATE TABLE IF NOT EXISTS ${tombstonesTable} (
+				id TEXT PRIMARY KEY,
+				clock INTEGER NOT NULL
+			);
+
+			CREATE TABLE IF NOT EXISTS ${metadataTable} (
+			  migrationVersion INTEGER NOT NULL DEFAULT 1,
+				id INTEGER PRIMARY KEY CHECK (id = 0),
+				documentClock INTEGER NOT NULL DEFAULT 0,
+				tombstoneHistoryStartsAtClock INTEGER NOT NULL DEFAULT 0,
+				schema TEXT NOT NULL
+			);
+		`)
+	}
+
+	// add more migrations here if and when needed
+
+	storage.exec(`UPDATE ${metadataTable} SET migrationVersion = ${migrationVersion} WHERE id = 0`)
+}
+
 /**
  * SQLite-based implementation of TLPersistentStorage.
  * Stores documents, tombstones, metadata, and clock values in SQLite tables.
@@ -99,29 +150,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 		const tombstonesTable = `${prefix}tombstones`
 		const metadataTable = `${prefix}metadata`
 
-		// Initialize all tables idempotently
-		// TODO: add sql schema migrations
-		this.sql.exec(`
-			CREATE TABLE IF NOT EXISTS ${documentsTable} (
-				id TEXT PRIMARY KEY,
-				state TEXT NOT NULL,
-				lastChangedClock INTEGER NOT NULL
-			);
-
-			CREATE INDEX IF NOT EXISTS idx_${documentsTable}_lastChangedClock ON ${documentsTable}(lastChangedClock);
-
-			CREATE TABLE IF NOT EXISTS ${tombstonesTable} (
-				id TEXT PRIMARY KEY,
-				clock INTEGER NOT NULL
-			);
-
-			CREATE TABLE IF NOT EXISTS ${metadataTable} (
-				id INTEGER PRIMARY KEY CHECK (id = 0),
-				documentClock INTEGER NOT NULL DEFAULT 0,
-				tombstoneHistoryStartsAtClock INTEGER NOT NULL DEFAULT 0,
-				schema TEXT NOT NULL
-			);
-		`)
+		migrateSqliteSyncStorage(this.sql, { documentsTable, tombstonesTable, metadataTable })
 
 		// Prepare all statements once
 		this.stmts = {
