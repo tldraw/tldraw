@@ -1,5 +1,11 @@
 import { useMemo } from 'react'
-import { DefaultSizeStyle, onDragFromToolbarToCreateShape, TLUiOverrides, VecModel } from 'tldraw'
+import {
+	createB64FromPoints,
+	DefaultSizeStyle,
+	onDragFromToolbarToCreateShape,
+	TLUiOverrides,
+	VecModel,
+} from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
 
 export function useExtraDragIconOverrides() {
@@ -237,11 +243,13 @@ for (const point of DRAW_POINTS) {
 }
 
 function scalePoints(points: VecModel[], scale: number) {
-	return points.map((p) => ({
-		x: p.x * scale,
-		y: p.y * scale,
-		z: p.z,
-	}))
+	return createB64FromPoints(
+		points.map((p) => ({
+			x: p.x * scale,
+			y: p.y * scale,
+			z: p.z,
+		}))
+	)
 }
 
 const SCALES = {
