@@ -1,3 +1,4 @@
+import { Float16Array } from '@petamoriken/float16'
 import { T } from '@tldraw/validate'
 import assert from 'assert'
 import { VecModel } from '../misc/geometry-types'

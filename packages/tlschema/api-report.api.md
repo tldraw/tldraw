@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { Float16Array as Float16Array_2 } from '@petamoriken/float16';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
@@ -74,7 +75,7 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 export const assetValidator: T.Validator<TLAsset>;
 
 // @public
-export function base64ToFloat16Array(base64: string): Float16Array;
+export function base64ToFloat16Array(base64: string): Float16Array_2;
 
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
@@ -310,7 +311,7 @@ export type ExtractShapeByProps<P> = Extract<TLShape, {
 }>;
 
 // @public
-export function float16ArrayToBase64(float16Array: Float16Array): string;
+export function float16ArrayToBase64(float16Array: Float16Array_2): string;
 
 // @public
 export const frameShapeMigrations: TLPropsMigrations;

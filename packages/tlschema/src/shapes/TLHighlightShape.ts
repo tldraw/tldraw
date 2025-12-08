@@ -1,3 +1,4 @@
+import { Float16Array } from '@petamoriken/float16'
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'

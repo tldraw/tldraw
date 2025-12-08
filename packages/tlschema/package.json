@@ -51,6 +51,7 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
+		"@petamoriken/float16": "^3.9.3",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/utils": "workspace:*",

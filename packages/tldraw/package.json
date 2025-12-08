@@ -53,6 +53,7 @@
 		"tldraw.css"
 	],
 	"dependencies": {
+		"@petamoriken/float16": "^3.9.3",
 		"@tiptap/core": "^3.6.2",
 		"@tiptap/extension-code": "^3.6.2",
 		"@tiptap/extension-highlight": "^3.6.2",
