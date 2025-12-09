@@ -79,18 +79,25 @@ ID:${task.id}
 Title: "${task.title}"
 Description: "${task.text}"`
 
+		let bounds: BoxModel | undefined
+		if (
+			task.x !== undefined &&
+			task.y !== undefined &&
+			task.w !== undefined &&
+			task.h !== undefined
+		) {
+			bounds = {
+				x: task.x,
+				y: task.y,
+				w: task.w,
+				h: task.h,
+			}
+		}
+
 		this.notifyWaitingAgents({
 			event: { type: 'task-completed', task },
 			getAgentFacingMessage: () => agentFacingMessage,
-			getBounds:
-				task.x !== undefined && task.y !== undefined && task.w !== undefined && task.h !== undefined
-					? () => ({
-							x: task.x!,
-							y: task.y!,
-							w: task.w!,
-							h: task.h!,
-						})
-					: undefined,
+			getBounds: bounds ? () => bounds : undefined,
 		})
 	}
 
