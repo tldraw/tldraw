@@ -115,9 +115,6 @@ export class TLDrawDurableObject extends DurableObject {
 			case 'room_not_found': {
 				throw ROOM_NOT_FOUND
 			}
-			case 'error': {
-				throw result.error
-			}
 			default: {
 				exhaustiveSwitchError(result)
 			}
@@ -129,15 +126,20 @@ export class TLDrawDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
-			this._storage = this.loadStorage(this.documentInfo.slug).then((storage) => {
-				storage.onChange(() => {
-					this.triggerPersist()
+			this._storage = retry(() => this.loadStorage(this.documentInfo.slug))
+				.then((storage) => {
+					storage.onChange(() => {
+						this.triggerPersist()
+					})
+					storage.transaction((txn) => {
+						createTLSchema().migrateStorage(txn)
+					})
+					return storage
 				})
-				storage.transaction((txn) => {
-					createTLSchema().migrateStorage(txn)
+				.catch((error) => {
+					this.reportError(error)
+					throw error
 				})
-				return storage
-			})
 		}
 		return this._storage
 	}
@@ -776,7 +778,7 @@ export class TLDrawDurableObject extends DurableObject {
 				loadTimer.report('db_load_total')
 
 				console.error('failed to retrieve document', slug, error)
-				return { type: 'error', error: new Error(error.message) }
+				throw new Error(error.message)
 			}
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
@@ -798,7 +800,7 @@ export class TLDrawDurableObject extends DurableObject {
 			loadTimer.report('db_load_total_error')
 
 			console.error('failed to fetch doc', slug, error)
-			return { type: 'error', error: error as Error }
+			throw error
 		}
 	}
 

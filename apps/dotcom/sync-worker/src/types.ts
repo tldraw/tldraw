@@ -90,10 +90,6 @@ export function getUserDoSnapshotKey(env: Environment, userId: string) {
 
 export type DBLoadResult =
 	| {
-			type: 'error'
-			error?: Error | undefined
-	  }
-	| {
 			type: 'room_found'
 			snapshot: RoomSnapshot
 			roomSizeMB: number
