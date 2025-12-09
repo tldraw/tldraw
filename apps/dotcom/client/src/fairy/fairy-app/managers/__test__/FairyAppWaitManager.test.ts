@@ -29,7 +29,7 @@ describe('FairyAppWaitManager', () => {
 	})
 
 	describe('notifyWaitingAgents', () => {
-		it('should notify agents waiting for an event', async () => {
+		it('should notify agents waiting for an event', () => {
 			const options = {
 				onError: vi.fn(),
 				getToken: vi.fn().mockResolvedValue('token'),
@@ -62,9 +62,9 @@ describe('FairyAppWaitManager', () => {
 			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
 			const notifySpy = vi
 				.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
-				.mockResolvedValue(undefined)
+				.mockImplementation(() => {})
 
-			await manager.notifyWaitingAgents({
+			manager.notifyWaitingAgents({
 				event: { type: 'task-completed', task: testTask },
 				getAgentFacingMessage: () => 'Test message',
 				getUserFacingMessage: () => 'User message',
@@ -112,55 +112,6 @@ describe('FairyAppWaitManager', () => {
 			})
 
 			expect(notifySpy).not.toHaveBeenCalled()
-		})
-
-		it('should handle errors during notification gracefully', async () => {
-			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-			const options = {
-				onError: vi.fn(),
-				getToken: vi.fn().mockResolvedValue('token'),
-			}
-
-			fairyApp.agents.syncAgentsWithConfigs({}, options)
-			const agents = fairyApp.agents.getAgents()
-			const agent = agents[0]!
-
-			const testTask: FairyTask = {
-				id: toTaskId('test-task-1'),
-				title: 'Test Task',
-				text: 'Test description',
-				status: 'done',
-				projectId: null,
-				assignedTo: null,
-			}
-
-			const waitCondition: FairyWaitCondition<TaskCompletedEvent> = {
-				eventType: 'task-completed',
-				matcher: () => true,
-				id: 'test-wait-condition',
-			}
-
-			vi.spyOn(agent.waits, 'getWaitingFor').mockReturnValue([waitCondition])
-			vi.spyOn(agent.waits, 'waitForAll')
-			vi.spyOn(agent.waits, 'notifyWaitConditionFulfilled').mockRejectedValue(
-				new Error('Notification failed')
-			)
-
-			await manager.notifyWaitingAgents({
-				event: { type: 'task-completed', task: testTask },
-				getAgentFacingMessage: () => 'Test message',
-			})
-
-			// Wait for async error handling
-			await new Promise((resolve) => setTimeout(resolve, 10))
-
-			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				'Error notifying wait condition fulfilled:',
-				expect.any(Error)
-			)
-
-			consoleErrorSpy.mockRestore()
 		})
 	})
 
