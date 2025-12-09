@@ -128,7 +128,7 @@ export function migrateSqliteSyncStorage(
 				schema TEXT NOT NULL
 			);
 			
-			INSERT INTO ${metadataTable} (migrationVersion, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (1, 0, 0, '{}')
+			INSERT INTO ${metadataTable} (migrationVersion, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (1, 0, 0, '')
 		`)
 	}
 
@@ -180,7 +180,10 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 	static hasBeenInitialized(storage: TLSyncSqliteWrapper): boolean {
 		const prefix = storage.config?.tablePrefix ?? ''
 		try {
-			return storage.prepare(`SELECT 1 FROM ${prefix}metadata LIMIT 1`).all().length > 0
+			const schema = storage
+				.prepare<{ schema: string }>(`SELECT schema FROM ${prefix}metadata LIMIT 1`)
+				.all()[0]?.schema
+			return !!schema
 		} catch (_e) {
 			return false
 		}

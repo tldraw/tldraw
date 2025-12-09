@@ -1,8 +1,9 @@
 import { DatabaseSync } from 'node:sqlite'
-import { RecordId } from 'tldraw'
+import { RecordId, StoreSchema } from 'tldraw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { NodeSqliteWrapper } from './NodeSqliteWrapper'
 import { migrateSqliteSyncStorage, SqlLiteSyncStorage } from './SqlLiteSyncStorage'
+import { RoomSnapshot } from './TLSyncRoom'
 
 // Simple record type for testing
 interface TestRecord {
@@ -14,21 +15,17 @@ interface TestRecord {
 
 type ID = RecordId<TestRecord>
 
-// Schema for testing
-const testSchema = {
-	schemaVersion: 1,
-	sequences: {},
-}
-
 // SqlLiteSyncStorage uses multi-statement DDL in constructor which node:sqlite
 // doesn't support (prepare() only handles one statement). We need to initialize
 // the tables separately before creating the storage.
 function initializeTables(db: DatabaseSync) {
 	migrateSqliteSyncStorage(new NodeSqliteWrapper(db))
-	// db.exec() doesn't support bindings, use prepare() for parameterized queries
-	db.prepare(
-		`INSERT INTO metadata (id, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (0, 0, 0, ?)`
-	).run(JSON.stringify(testSchema))
+}
+
+const defaultSnapshot: RoomSnapshot = {
+	documents: [],
+	tombstones: {},
+	schema: StoreSchema.create({}).serialize(),
 }
 
 describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
@@ -41,7 +38,10 @@ describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
 		initializeTables(db)
 		sql = new NodeSqliteWrapper(db)
 		// Pass undefined snapshot since we already initialized the tables
-		storage = new SqlLiteSyncStorage<TestRecord>({ sql })
+		storage = new SqlLiteSyncStorage<TestRecord>({
+			sql,
+			snapshot: defaultSnapshot,
+		})
 	})
 
 	describe('basic operations', () => {
@@ -148,7 +148,7 @@ describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
 				name: 'Alice',
 				value: 100,
 			})
-			expect(snapshot.schema).toEqual(testSchema)
+			expect(snapshot.schema).toEqual(defaultSnapshot.schema)
 		})
 
 		it('includes tombstones in snapshot', () => {
