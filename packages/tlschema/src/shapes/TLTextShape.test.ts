@@ -83,6 +83,7 @@ describe('TLTextShape', () => {
 				'RemoveJustify',
 				'AddTextAlign',
 				'AddRichText',
+				'AddRichTextAttrs',
 			]
 
 			expectedVersions.forEach((version) => {
@@ -403,5 +404,147 @@ describe('TLTextShape', () => {
 
 		// Note: The down migration is explicitly not defined (forced client update)
 		// so we don't test it
+	})
+
+	describe('textShapeMigrations - AddRichTextAttrs migration', () => {
+		const { up, down } = getTestMigration(textShapeVersions.AddRichTextAttrs)
+
+		describe('AddRichTextAttrs up migration', () => {
+			it('should handle richText without attrs', () => {
+				const oldRecord = {
+					id: 'shape:text1',
+					props: {
+						color: 'black',
+						font: 'draw',
+						size: 'm',
+						textAlign: 'start',
+						w: 200,
+						richText: toRichText('Test text'),
+						scale: 1,
+						autoSize: true,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.color).toBe('black') // Preserve other props
+			})
+
+			it('should handle richText with attrs already present', () => {
+				const oldRecord = {
+					id: 'shape:text1',
+					props: {
+						color: 'red',
+						font: 'sans',
+						size: 'l',
+						textAlign: 'middle',
+						w: 300,
+						richText: { ...toRichText('Test'), attrs: { someAttr: 'value' } },
+						scale: 1,
+						autoSize: false,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toEqual({ someAttr: 'value' })
+			})
+
+			it('should preserve all other properties during migration', () => {
+				const oldRecord = {
+					id: 'shape:text1',
+					props: {
+						color: 'green',
+						font: 'mono',
+						size: 's',
+						textAlign: 'start',
+						w: 250,
+						richText: toRichText('Migration test'),
+						scale: 0.8,
+						autoSize: false,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.color).toBe('green')
+				expect(result.props.font).toBe('mono')
+				expect(result.props.size).toBe('s')
+				expect(result.props.textAlign).toBe('start')
+				expect(result.props.w).toBe(250)
+				expect(result.props.scale).toBe(0.8)
+				expect(result.props.autoSize).toBe(false)
+			})
+		})
+
+		describe('AddRichTextAttrs down migration', () => {
+			it('should remove attrs from richText', () => {
+				const newRecord = {
+					id: 'shape:text1',
+					props: {
+						color: 'black',
+						font: 'draw',
+						size: 'm',
+						textAlign: 'start',
+						w: 200,
+						richText: { ...toRichText('Test text'), attrs: { someAttr: 'value' } },
+						scale: 1,
+						autoSize: true,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.color).toBe('black') // Preserve other props
+			})
+
+			it('should handle richText without attrs gracefully', () => {
+				const newRecord = {
+					id: 'shape:text1',
+					props: {
+						color: 'red',
+						font: 'sans',
+						size: 'l',
+						textAlign: 'middle',
+						w: 300,
+						richText: toRichText('Test text'),
+						scale: 1,
+						autoSize: false,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+			})
+
+			it('should preserve all other properties during down migration', () => {
+				const newRecord = {
+					id: 'shape:text1',
+					props: {
+						color: 'blue',
+						font: 'serif',
+						size: 'xl',
+						textAlign: 'end',
+						w: 400,
+						richText: { ...toRichText('Rich text with attrs'), attrs: { test: true } },
+						scale: 1.5,
+						autoSize: true,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.color).toBe('blue')
+				expect(result.props.font).toBe('serif')
+				expect(result.props.size).toBe('xl')
+				expect(result.props.textAlign).toBe('end')
+				expect(result.props.w).toBe(400)
+				expect(result.props.scale).toBe(1.5)
+				expect(result.props.autoSize).toBe(true)
+			})
+		})
 	})
 })

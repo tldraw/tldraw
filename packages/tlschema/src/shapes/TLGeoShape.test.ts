@@ -244,4 +244,138 @@ describe('TLGeoShape', () => {
 			expect(result.props.text).toBeUndefined()
 		})
 	})
+
+	describe('geoShapeMigrations - AddRichTextAttrs migration', () => {
+		const { up, down } = getTestMigration(geoShapeVersions.AddRichTextAttrs)
+
+		describe('AddRichTextAttrs up migration', () => {
+			it('should handle richText without attrs', () => {
+				const oldRecord = {
+					id: 'shape:geo1',
+					props: {
+						geo: 'rectangle',
+						w: 100,
+						h: 100,
+						richText: toRichText('Test label'),
+						scale: 1,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.geo).toBe('rectangle') // Preserve other props
+			})
+
+			it('should handle richText with attrs already present', () => {
+				const oldRecord = {
+					id: 'shape:geo1',
+					props: {
+						geo: 'ellipse',
+						w: 200,
+						h: 150,
+						richText: { ...toRichText('Test'), attrs: { someAttr: 'value' } },
+						scale: 1,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toEqual({ someAttr: 'value' })
+			})
+
+			it('should preserve all other properties during migration', () => {
+				const oldRecord = {
+					id: 'shape:geo1',
+					props: {
+						geo: 'triangle',
+						dash: 'dashed',
+						color: 'red',
+						fill: 'solid',
+						w: 300,
+						h: 200,
+						richText: toRichText('Migration test'),
+						scale: 1.5,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.geo).toBe('triangle')
+				expect(result.props.dash).toBe('dashed')
+				expect(result.props.color).toBe('red')
+				expect(result.props.fill).toBe('solid')
+				expect(result.props.w).toBe(300)
+				expect(result.props.h).toBe(200)
+				expect(result.props.scale).toBe(1.5)
+			})
+		})
+
+		describe('AddRichTextAttrs down migration', () => {
+			it('should remove attrs from richText', () => {
+				const newRecord = {
+					id: 'shape:geo1',
+					props: {
+						geo: 'rectangle',
+						w: 100,
+						h: 100,
+						richText: { ...toRichText('Test label'), attrs: { someAttr: 'value' } },
+						scale: 1,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.geo).toBe('rectangle') // Preserve other props
+			})
+
+			it('should handle richText without attrs gracefully', () => {
+				const newRecord = {
+					id: 'shape:geo1',
+					props: {
+						geo: 'ellipse',
+						w: 200,
+						h: 150,
+						richText: toRichText('Test label'),
+						scale: 1,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+			})
+
+			it('should preserve all other properties during down migration', () => {
+				const newRecord = {
+					id: 'shape:geo1',
+					props: {
+						geo: 'star',
+						dash: 'dotted',
+						color: 'blue',
+						fill: 'pattern',
+						size: 'l',
+						font: 'sans',
+						w: 400,
+						h: 300,
+						richText: { ...toRichText('Rich text with attrs'), attrs: { test: true } },
+						scale: 2,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.geo).toBe('star')
+				expect(result.props.dash).toBe('dotted')
+				expect(result.props.color).toBe('blue')
+				expect(result.props.fill).toBe('pattern')
+				expect(result.props.size).toBe('l')
+				expect(result.props.font).toBe('sans')
+				expect(result.props.w).toBe(400)
+				expect(result.props.h).toBe(300)
+				expect(result.props.scale).toBe(2)
+			})
+		})
+	})
 })

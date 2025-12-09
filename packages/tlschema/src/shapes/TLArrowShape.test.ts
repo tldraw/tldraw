@@ -1,5 +1,6 @@
 import { describe, expect, it, test } from 'vitest'
 import { getTestMigration } from '../__tests__/migrationTestUtils'
+import { toRichText } from '../misc/TLRichText'
 import { arrowShapeMigrations, arrowShapeProps, arrowShapeVersions } from './TLArrowShape'
 
 describe('TLArrowShape', () => {
@@ -490,6 +491,130 @@ describe('TLArrowShape', () => {
 
 		// Note: The down migration is explicitly not defined (forced client update)
 		// so we don't test it
+	})
+
+	describe('arrowShapeMigrations - AddRichTextAttrs migration', () => {
+		const { up, down } = getTestMigration(arrowShapeVersions.AddRichTextAttrs)
+
+		describe('AddRichTextAttrs up migration', () => {
+			it('should handle richText without attrs', () => {
+				const oldRecord = {
+					id: 'shape:arrow1',
+					props: {
+						richText: toRichText('Arrow label'),
+						color: 'blue',
+						start: { x: 0, y: 0 },
+						end: { x: 100, y: 100 },
+						scale: 1,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.color).toBe('blue') // Preserve other props
+			})
+
+			it('should handle richText with attrs already present', () => {
+				const oldRecord = {
+					id: 'shape:arrow1',
+					props: {
+						richText: { ...toRichText('Test'), attrs: { someAttr: 'value' } },
+						color: 'red',
+						start: { x: 10, y: 20 },
+						end: { x: 200, y: 150 },
+						scale: 1,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toEqual({ someAttr: 'value' })
+			})
+
+			it('should preserve all other properties during migration', () => {
+				const oldRecord = {
+					id: 'shape:arrow1',
+					props: {
+						richText: toRichText('Migration test'),
+						kind: 'elbow',
+						elbowMidPoint: 0.3,
+						color: 'green',
+						scale: 1.5,
+						labelPosition: 0.6,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.kind).toBe('elbow')
+				expect(result.props.elbowMidPoint).toBe(0.3)
+				expect(result.props.color).toBe('green')
+				expect(result.props.scale).toBe(1.5)
+				expect(result.props.labelPosition).toBe(0.6)
+			})
+		})
+
+		describe('AddRichTextAttrs down migration', () => {
+			it('should remove attrs from richText', () => {
+				const newRecord = {
+					id: 'shape:arrow1',
+					props: {
+						richText: { ...toRichText('Arrow label'), attrs: { someAttr: 'value' } },
+						color: 'blue',
+						start: { x: 0, y: 0 },
+						end: { x: 100, y: 100 },
+						scale: 1,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.color).toBe('blue') // Preserve other props
+			})
+
+			it('should handle richText without attrs gracefully', () => {
+				const newRecord = {
+					id: 'shape:arrow1',
+					props: {
+						richText: toRichText('Arrow label'),
+						color: 'red',
+						start: { x: 10, y: 20 },
+						end: { x: 200, y: 150 },
+						scale: 1,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+			})
+
+			it('should preserve all other properties during down migration', () => {
+				const newRecord = {
+					id: 'shape:arrow1',
+					props: {
+						richText: { ...toRichText('Rich text with attrs'), attrs: { test: true } },
+						kind: 'arc',
+						color: 'purple',
+						arrowheadStart: 'triangle',
+						arrowheadEnd: 'diamond',
+						scale: 2,
+						bend: 0.3,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.kind).toBe('arc')
+				expect(result.props.color).toBe('purple')
+				expect(result.props.arrowheadStart).toBe('triangle')
+				expect(result.props.arrowheadEnd).toBe('diamond')
+				expect(result.props.scale).toBe(2)
+				expect(result.props.bend).toBe(0.3)
+			})
+		})
 	})
 
 	describe('edge cases and error handling', () => {

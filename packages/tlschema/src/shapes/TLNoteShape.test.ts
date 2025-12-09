@@ -1260,6 +1260,151 @@ describe('TLNoteShape', () => {
 		// so we don't test it
 	})
 
+	describe('noteShapeMigrations - AddRichTextAttrs migration', () => {
+		const { up, down } = getTestMigration(noteShapeVersions.AddRichTextAttrs)
+
+		describe('AddRichTextAttrs up migration', () => {
+			it('should handle richText without attrs', () => {
+				const oldRecord = {
+					id: 'shape:note1',
+					props: {
+						color: 'yellow',
+						labelColor: 'black',
+						richText: toRichText('Test note'),
+						url: '',
+						align: 'start-legacy',
+						verticalAlign: 'middle',
+						fontSizeAdjustment: 0,
+						scale: 1,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.color).toBe('yellow') // Preserve other props
+			})
+
+			it('should handle richText with attrs already present', () => {
+				const oldRecord = {
+					id: 'shape:note1',
+					props: {
+						color: 'blue',
+						labelColor: 'white',
+						richText: { ...toRichText('Test'), attrs: { someAttr: 'value' } },
+						url: 'https://example.com',
+						align: 'middle-legacy',
+						verticalAlign: 'start',
+						fontSizeAdjustment: 2,
+						scale: 1,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toEqual({ someAttr: 'value' })
+			})
+
+			it('should preserve all other properties during migration', () => {
+				const oldRecord = {
+					id: 'shape:note1',
+					props: {
+						color: 'green',
+						labelColor: 'red',
+						richText: toRichText('Migration test'),
+						url: 'https://test.com',
+						align: 'end-legacy',
+						verticalAlign: 'end',
+						size: 'l',
+						font: 'sans',
+						fontSizeAdjustment: 3,
+						growY: 70,
+						scale: 1.4,
+					},
+				}
+
+				const result = up(oldRecord)
+				expect(result.props.richText).toBeDefined()
+				expect(result.props.color).toBe('green')
+				expect(result.props.labelColor).toBe('red')
+				expect(result.props.size).toBe('l')
+				expect(result.props.fontSizeAdjustment).toBe(3)
+			})
+		})
+
+		describe('AddRichTextAttrs down migration', () => {
+			it('should remove attrs from richText', () => {
+				const newRecord = {
+					id: 'shape:note1',
+					props: {
+						color: 'yellow',
+						labelColor: 'black',
+						richText: { ...toRichText('Test note'), attrs: { someAttr: 'value' } },
+						url: '',
+						align: 'start-legacy',
+						verticalAlign: 'middle',
+						fontSizeAdjustment: 0,
+						scale: 1,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.color).toBe('yellow') // Preserve other props
+			})
+
+			it('should handle richText without attrs gracefully', () => {
+				const newRecord = {
+					id: 'shape:note1',
+					props: {
+						color: 'blue',
+						labelColor: 'white',
+						richText: toRichText('Test note'),
+						url: 'https://example.com',
+						align: 'middle-legacy',
+						verticalAlign: 'start',
+						fontSizeAdjustment: 2,
+						scale: 1,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+			})
+
+			it('should preserve all other properties during down migration', () => {
+				const newRecord = {
+					id: 'shape:note1',
+					props: {
+						color: 'red',
+						labelColor: 'yellow',
+						richText: { ...toRichText('Rich text with attrs'), attrs: { test: true } },
+						url: 'https://example.com',
+						align: 'middle',
+						verticalAlign: 'middle',
+						size: 'xl',
+						font: 'serif',
+						fontSizeAdjustment: 5,
+						growY: 100,
+						scale: 2,
+					},
+				}
+
+				const result = down(newRecord)
+				expect(result.props.richText).toBeDefined()
+				expect((result.props.richText as any).attrs).toBeUndefined()
+				expect(result.props.color).toBe('red')
+				expect(result.props.labelColor).toBe('yellow')
+				expect(result.props.size).toBe('xl')
+				expect(result.props.font).toBe('serif')
+				expect(result.props.fontSizeAdjustment).toBe(5)
+				expect(result.props.growY).toBe(100)
+				expect(result.props.scale).toBe(2)
+			})
+		})
+	})
+
 	describe('integration tests', () => {
 		it('should work with complete note shape record validation', () => {
 			const completeValidator = T.object({
@@ -1357,6 +1502,7 @@ describe('TLNoteShape', () => {
 				'AddScale',
 				'AddLabelColor',
 				'AddRichText',
+				'AddRichTextAttrs',
 			]
 
 			const migrationIds = noteShapeMigrations.sequence
