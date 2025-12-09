@@ -179,6 +179,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			if (fairyApp) {
+				fairyApp.projects.hardDeleteSoftDeletedProjects()
 				fairyApp.projects.addProject(newProject)
 
 				// Select all fairies in the newly created project
