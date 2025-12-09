@@ -13,6 +13,15 @@
 	margin-bottom: 20px;
 	color: var(--tl-color-text);
 	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.date {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--tl-color-text-3);
 }
 
 .list {

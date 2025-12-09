@@ -13,12 +13,14 @@ type WhatsNewVersion =
 	| {
 			version: string
 			title: string
+			date: Date
 			/** Bulleted list of items */
 			items: string[]
 	  }
 	| {
 			version: string
 			title: string
+			date: Date
 			/** Plain text description (use for longer explanations) */
 			description: string
 	  }
@@ -51,6 +53,7 @@ const VERSIONS: WhatsNewVersion[] = [
 	{
 		version: '1.0',
 		title: 'Fairies and collaboration',
+		date: new Date(2025, 11),
 		items: [
 			'Introduced Fairies - AI assistants that work with you on the canvas',
 			'New grouping controls for better organization',
@@ -60,12 +63,14 @@ const VERSIONS: WhatsNewVersion[] = [
 	{
 		version: '0.9',
 		title: 'Important announcement',
+		date: new Date(2025, 10),
 		description:
 			'This is an example of using the description format instead of bullet points. Use this format when you need to communicate longer explanations, important announcements, or messages that work better as a paragraph rather than a list of items.',
 	},
 	{
 		version: '0.8',
 		title: 'Enhanced tools',
+		date: new Date(2025, 9),
 		items: [
 			'Enhanced shape manipulation tools',
 			'Improved export formats',
@@ -75,6 +80,7 @@ const VERSIONS: WhatsNewVersion[] = [
 	{
 		version: '0.7',
 		title: 'Collaboration and theming',
+		date: new Date(2025, 8),
 		items: [
 			'Real-time collaboration enhancements',
 			'New theming system',
@@ -84,11 +90,13 @@ const VERSIONS: WhatsNewVersion[] = [
 	{
 		version: '0.6',
 		title: 'Drawing improvements',
+		date: new Date(2025, 7),
 		items: ['Advanced drawing tools', 'Keyboard shortcuts update', 'Accessibility improvements'],
 	},
 	{
 		version: '0.5',
 		title: 'Polish and refinement',
+		date: new Date(2025, 6),
 		items: ['New color picker', 'Grid and snap improvements', 'Bug fixes and stability'],
 	},
 ]
@@ -105,13 +113,13 @@ export function TlaWhatsNewDialog() {
 			if (e.key === 'ArrowLeft') {
 				setCurrentIndex((i) => Math.max(0, i - 1))
 			} else if (e.key === 'ArrowRight') {
-				setCurrentIndex((i) => Math.min(MAX_DISPLAYED_VERSIONS - 1, i + 1))
+				setCurrentIndex((i) => Math.min(displayVersions.length - 1, i + 1))
 			}
 		}
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [])
+	}, [displayVersions.length])
 
 	return (
 		<>
@@ -122,7 +130,12 @@ export function TlaWhatsNewDialog() {
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.dialogBody}>
-				<div className={styles.title}>{currentVersion.title}</div>
+				<div className={styles.title}>
+					{currentVersion.title}
+					<span className={styles.date}>
+						{currentVersion.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+					</span>
+				</div>
 				{'items' in currentVersion ? (
 					<ul className={styles.list}>
 						{currentVersion.items.map((item, i) => (
