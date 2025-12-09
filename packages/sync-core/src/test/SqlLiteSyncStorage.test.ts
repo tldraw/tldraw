@@ -48,33 +48,37 @@ function createWrapper(config?: { tablePrefix?: string }) {
 	return new NodeSqliteWrapper(db, config)
 }
 
+function getStorage(snapshot: RoomSnapshot, wrapperConfig?: { tablePrefix?: string }) {
+	const sql = createWrapper(wrapperConfig)
+	return new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
+}
+
 describe('SqlLiteSyncStorage', () => {
 	describe('Static methods', () => {
 		describe('hasBeenInitialized', () => {
 			it('returns false for empty database', () => {
-				const wrapper = createWrapper()
-				expect(SqlLiteSyncStorage.hasBeenInitialized(wrapper)).toBe(false)
+				const sql = createWrapper()
+				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
 			})
 
 			it('returns true after storage is initialized', () => {
-				const wrapper = createWrapper()
-				new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
-				expect(SqlLiteSyncStorage.hasBeenInitialized(wrapper)).toBe(true)
+				const sql = createWrapper()
+				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 
 			it('respects table prefix', () => {
-				const wrapper = createWrapper({ tablePrefix: 'test_' })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(wrapper)).toBe(false)
-				new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
-				expect(SqlLiteSyncStorage.hasBeenInitialized(wrapper)).toBe(true)
+				const sql = createWrapper({ tablePrefix: 'test_' })
+				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
+				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 		})
 	})
 
 	describe('Constructor', () => {
 		it('initializes documents from snapshot', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+			const storage = getStorage(makeSnapshot(defaultRecords))
 
 			const snapshot = storage.getSnapshot()
 			expect(snapshot.documents.length).toBe(2)
@@ -82,50 +86,38 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('initializes schema from snapshot', () => {
-			const wrapper = createWrapper()
 			const snapshotIn = makeSnapshot(defaultRecords)
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, snapshotIn)
+			const storage = getStorage(snapshotIn)
 
 			const snapshot = storage.getSnapshot()
 			expect(snapshot.schema).toEqual(snapshotIn.schema)
 		})
 
 		it('initializes documentClock from snapshot', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
-				makeSnapshot(defaultRecords, { documentClock: 42 })
-			)
+			const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 42 }))
 
 			expect(storage.getClock()).toBe(42)
 		})
 
 		it('falls back to clock when documentClock is not present (legacy snapshot)', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
-				makeLegacySnapshot(defaultRecords, { clock: 15 }) as RoomSnapshot
-			)
+			const storage = getStorage(makeLegacySnapshot(defaultRecords, { clock: 15 }) as RoomSnapshot)
 
 			expect(storage.getClock()).toBe(15)
 		})
 
 		it('falls back to 0 when neither documentClock nor clock is present', () => {
-			const wrapper = createWrapper()
 			const snapshot = {
 				documents: defaultRecords.map((r) => ({ state: r, lastChangedClock: 0 })),
 				schema: tlSchema.serialize(),
 			} as RoomSnapshot
 
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, snapshot)
+			const storage = getStorage(snapshot)
 
 			expect(storage.getClock()).toBe(0)
 		})
 
 		it('initializes tombstones from snapshot', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					tombstones: { 'shape:deleted1': 5, 'shape:deleted2': 10 },
 					tombstoneHistoryStartsAtClock: 0,
@@ -140,9 +132,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('sets tombstoneHistoryStartsAtClock from snapshot', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					tombstoneHistoryStartsAtClock: 5,
 					documentClock: 10,
@@ -154,44 +144,41 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('defaults tombstoneHistoryStartsAtClock to documentClock when not provided', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
-				makeSnapshot(defaultRecords, { documentClock: 20 })
-			)
+			const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 20 }))
 
 			const snapshot = storage.getSnapshot()
 			expect(snapshot.tombstoneHistoryStartsAtClock).toBe(20)
 		})
 
 		it('handles empty documents array', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot([]))
+			const storage = getStorage(makeSnapshot([]))
 
 			const snapshot = storage.getSnapshot()
 			expect(snapshot.documents.length).toBe(0)
 		})
 
 		it('works with table prefix', () => {
-			const wrapper = createWrapper({ tablePrefix: 'myapp_' })
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+			const storage = getStorage(makeSnapshot(defaultRecords), { tablePrefix: 'myapp_' })
 
 			const snapshot = storage.getSnapshot()
 			expect(snapshot.documents.length).toBe(2)
 		})
 
 		it('reinitializes storage when snapshot provided to existing tables', () => {
-			const wrapper = createWrapper()
+			const sql = createWrapper()
 
 			// First initialization
-			new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords, { documentClock: 10 }))
+			new SqlLiteSyncStorage<TLRecord>({
+				sql,
+				snapshot: makeSnapshot(defaultRecords, { documentClock: 10 }),
+			})
 
 			// Second initialization with different data
 			const newRecords = [DocumentRecordType.create({ id: TLDOCUMENT_ID })]
-			const storage2 = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
-				makeSnapshot(newRecords, { documentClock: 20 })
-			)
+			const storage2 = new SqlLiteSyncStorage<TLRecord>({
+				sql,
+				snapshot: makeSnapshot(newRecords, { documentClock: 20 }),
+			})
 
 			const snapshot = storage2.getSnapshot()
 			expect(snapshot.documents.length).toBe(1)
@@ -202,8 +189,7 @@ describe('SqlLiteSyncStorage', () => {
 	describe('Transaction', () => {
 		describe('get()', () => {
 			it('returns record by id', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				storage.transaction((txn) => {
 					const doc = txn.get(TLDOCUMENT_ID)
@@ -213,8 +199,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('returns undefined for non-existent record', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				storage.transaction((txn) => {
 					expect(txn.get('nonexistent')).toBeUndefined()
@@ -224,8 +209,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('set()', () => {
 			it('creates new records', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const newPage = PageRecordType.create({
 					id: PageRecordType.createId('new_page'),
@@ -243,8 +227,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('updates existing records', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const pageId = PageRecordType.createId('page_1')
 				const updatedPage = PageRecordType.create({
@@ -262,7 +245,6 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('clears tombstone when re-creating a deleted record', () => {
-				const wrapper = createWrapper()
 				const pageId = PageRecordType.createId('page_to_delete')
 				const page = PageRecordType.create({
 					id: pageId,
@@ -270,10 +252,7 @@ describe('SqlLiteSyncStorage', () => {
 					index: 'a2' as IndexKey,
 				})
 
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot([...defaultRecords, page])
-				)
+				const storage = getStorage(makeSnapshot([...defaultRecords, page]))
 
 				// Delete the page
 				storage.transaction((txn) => {
@@ -295,11 +274,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('sets lastChangedClock to the incremented clock', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 5 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 5 }))
 
 				const newPage = PageRecordType.create({
 					id: PageRecordType.createId('new_page'),
@@ -318,8 +293,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('delete()', () => {
 			it('removes records', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const pageId = PageRecordType.createId('page_1')
 
@@ -332,11 +306,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('creates tombstones', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				const pageId = PageRecordType.createId('page_1')
 
@@ -351,11 +321,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('getClock()', () => {
 			it('returns current clock at start of transaction', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 42 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 42 }))
 
 				storage.transaction((txn) => {
 					expect(txn.getClock()).toBe(42)
@@ -363,11 +329,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('returns incremented clock after a write', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 42 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 42 }))
 
 				storage.transaction((txn) => {
 					expect(txn.getClock()).toBe(42)
@@ -382,11 +344,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('increments clock only once per transaction', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				storage.transaction((txn) => {
 					const page1 = PageRecordType.create({
@@ -416,8 +374,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('entries()', () => {
 			it('iterates over all documents', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				storage.transaction((txn) => {
 					const entries = Array.from(txn.entries())
@@ -429,8 +386,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('keys()', () => {
 			it('iterates over all document ids', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				storage.transaction((txn) => {
 					const keys = Array.from(txn.keys())
@@ -441,8 +397,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('values()', () => {
 			it('iterates over all document states', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				storage.transaction((txn) => {
 					const values = Array.from(txn.values())
@@ -454,8 +409,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('iterator consumption after transaction ends', () => {
 			it('throws when entries() iterator is consumed after transaction ends', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				let iterator: Iterator<[string, TLRecord]>
 
@@ -470,8 +424,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('throws when keys() iterator is consumed after transaction ends', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				let iterator: Iterator<string>
 
@@ -484,8 +437,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('throws when values() iterator is consumed after transaction ends', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				let iterator: Iterator<TLRecord>
 
@@ -498,8 +450,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('allows full consumption of iterator within transaction', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				storage.transaction((txn) => {
 					// Should be able to fully consume all iterators
@@ -516,9 +467,8 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('getSchema() / setSchema()', () => {
 			it('gets the current schema', () => {
-				const wrapper = createWrapper()
 				const snapshotIn = makeSnapshot(defaultRecords)
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, snapshotIn)
+				const storage = getStorage(snapshotIn)
 
 				storage.transaction((txn) => {
 					expect(txn.getSchema()).toEqual(snapshotIn.schema)
@@ -526,8 +476,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('sets the schema', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const newSchema = { ...tlSchema.serialize(), schemaVersion: 99 as any }
 
@@ -542,8 +491,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('transaction result', () => {
 			it('returns result from callback', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const { result } = storage.transaction((txn) => {
 					return txn.get(TLDOCUMENT_ID)
@@ -553,8 +501,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('returns didChange: false when no writes occur', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const { didChange, documentClock } = storage.transaction((txn) => {
 					txn.get(TLDOCUMENT_ID)
@@ -565,8 +512,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('returns didChange: true when writes occur', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const newPage = PageRecordType.create({
 					id: PageRecordType.createId('new'),
@@ -583,8 +529,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('throws when callback returns a promise', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				expect(() => {
 					storage.transaction(() => Promise.resolve() as any)
@@ -595,9 +540,7 @@ describe('SqlLiteSyncStorage', () => {
 
 	describe('getChangesSince', () => {
 		it('returns puts for records changed after sinceClock', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documents: [
 						{ state: defaultRecords[0], lastChangedClock: 5 },
@@ -619,9 +562,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('returns all records when sinceClock is before all changes', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documents: [
 						{ state: defaultRecords[0], lastChangedClock: 5 },
@@ -641,9 +582,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('returns deletes for tombstones after sinceClock', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					tombstones: {
 						'shape:deleted1': 5,
@@ -662,9 +601,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('returns wipeAll: true when sinceClock < tombstoneHistoryStartsAtClock', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: 20,
 					tombstoneHistoryStartsAtClock: 10,
@@ -682,9 +619,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('returns wipeAll: false when sinceClock >= tombstoneHistoryStartsAtClock', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: 20,
 					tombstoneHistoryStartsAtClock: 10,
@@ -699,9 +634,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('returns undefined when no changes since clock', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documents: [
 						{ state: defaultRecords[0], lastChangedClock: 5 },
@@ -720,9 +653,39 @@ describe('SqlLiteSyncStorage', () => {
 	})
 
 	describe('onChange', () => {
+		it('accepts onChange callback in constructor', async () => {
+			const listener = vi.fn()
+			const sql = createWrapper()
+			const storage = new SqlLiteSyncStorage<TLRecord>({
+				sql,
+				snapshot: makeSnapshot(defaultRecords),
+				onChange: listener,
+			})
+
+			await Promise.resolve()
+
+			const newPage = PageRecordType.create({
+				id: PageRecordType.createId('new'),
+				name: 'New',
+				index: 'a2' as IndexKey,
+			})
+
+			storage.transaction((txn) => {
+				txn.set(newPage.id, newPage)
+			})
+
+			await Promise.resolve()
+
+			expect(listener).toHaveBeenCalledTimes(1)
+			expect(listener).toHaveBeenCalledWith(
+				expect.objectContaining({
+					documentClock: 1,
+				})
+			)
+		})
+
 		it('notifies listeners after changes', async () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+			const storage = getStorage(makeSnapshot(defaultRecords))
 
 			const listener = vi.fn()
 			storage.onChange(listener)
@@ -747,11 +710,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('receives correct documentClock', async () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
-				makeSnapshot(defaultRecords, { documentClock: 10 })
-			)
+			const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 			const listener = vi.fn()
 			storage.onChange(listener)
@@ -778,8 +737,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('receives transaction id when provided', async () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+			const storage = getStorage(makeSnapshot(defaultRecords))
 
 			const listener = vi.fn()
 			storage.onChange(listener)
@@ -809,8 +767,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('unsubscribe prevents future notifications', async () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+			const storage = getStorage(makeSnapshot(defaultRecords))
 
 			const listener = vi.fn()
 			const unsubscribe = storage.onChange(listener)
@@ -836,8 +793,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('does not notify for read-only transactions', async () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+			const storage = getStorage(makeSnapshot(defaultRecords))
 
 			const listener = vi.fn()
 			storage.onChange(listener)
@@ -856,9 +812,7 @@ describe('SqlLiteSyncStorage', () => {
 
 	describe('getSnapshot', () => {
 		it('returns correct snapshot structure', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: 15,
 					tombstoneHistoryStartsAtClock: 5,
@@ -876,11 +830,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('reflects changes from transactions', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
-				makeSnapshot(defaultRecords, { documentClock: 0 })
-			)
+			const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 0 }))
 
 			const newPage = PageRecordType.create({
 				id: PageRecordType.createId('new'),
@@ -903,11 +853,7 @@ describe('SqlLiteSyncStorage', () => {
 	describe('Edge cases', () => {
 		describe('Transaction error handling', () => {
 			it('does not increment clock if transaction throws', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				expect(() => {
 					storage.transaction(() => {
@@ -920,11 +866,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('rolls back changes if transaction throws after a write', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				const newPage = PageRecordType.create({
 					id: PageRecordType.createId('new'),
@@ -949,11 +891,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('Deleting non-existent records', () => {
 			it('does not create a tombstone for records that never existed', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 5 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 5 }))
 
 				storage.transaction((txn) => {
 					txn.delete('nonexistent:record')
@@ -967,11 +905,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('does not increment clock when deleting non-existent record', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				const { didChange, documentClock } = storage.transaction((txn) => {
 					txn.delete('nonexistent:record')
@@ -984,8 +918,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('Set with mismatched ID', () => {
 			it('throws when key does not match record.id', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const page = PageRecordType.create({
 					id: PageRecordType.createId('actual_id'),
@@ -1002,8 +935,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('succeeds when key matches record.id', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(wrapper, makeSnapshot(defaultRecords))
+				const storage = getStorage(makeSnapshot(defaultRecords))
 
 				const page = PageRecordType.create({
 					id: PageRecordType.createId('my_page'),
@@ -1023,9 +955,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('getChangesSince boundary conditions', () => {
 			it('sinceClock exactly equal to tombstoneHistoryStartsAtClock is NOT wipeAll', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
+				const storage = getStorage(
 					makeSnapshot(defaultRecords, {
 						documentClock: 20,
 						tombstoneHistoryStartsAtClock: 10,
@@ -1040,9 +970,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('sinceClock one less than tombstoneHistoryStartsAtClock IS wipeAll', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
+				const storage = getStorage(
 					makeSnapshot(defaultRecords, {
 						documentClock: 20,
 						tombstoneHistoryStartsAtClock: 10,
@@ -1056,9 +984,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('handles negative sinceClock', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
+				const storage = getStorage(
 					makeSnapshot(defaultRecords, {
 						documentClock: 10,
 						tombstoneHistoryStartsAtClock: 0,
@@ -1075,9 +1001,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('returns undefined when sinceClock equals current documentClock', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
+				const storage = getStorage(
 					makeSnapshot(defaultRecords, {
 						documents: [
 							{ state: defaultRecords[0], lastChangedClock: 5 },
@@ -1095,11 +1019,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('returns all changes when sinceClock is greater than documentClock', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				storage.transaction((txn) => {
 					const changes = txn.getChangesSince(100)!
@@ -1111,11 +1031,7 @@ describe('SqlLiteSyncStorage', () => {
 
 		describe('Transaction result consistency', () => {
 			it('didChange reflects whether clock was incremented', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 10 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 10 }))
 
 				// Read-only transaction
 				const readResult = storage.transaction((txn) => {
@@ -1137,11 +1053,7 @@ describe('SqlLiteSyncStorage', () => {
 			})
 
 			it('documentClock in result matches storage.getClock()', () => {
-				const wrapper = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>(
-					wrapper,
-					makeSnapshot(defaultRecords, { documentClock: 5 })
-				)
+				const storage = getStorage(makeSnapshot(defaultRecords, { documentClock: 5 }))
 
 				const result = storage.transaction((txn) => {
 					const page = PageRecordType.create({
@@ -1169,10 +1081,8 @@ describe('SqlLiteSyncStorage', () => {
 		}
 
 		it('does not prune when below MAX_TOMBSTONES', () => {
-			const wrapper = createWrapper()
 			const tombstoneCount = Math.floor(MAX_TOMBSTONES / 2)
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: tombstoneCount + 1,
 					tombstoneHistoryStartsAtClock: 0,
@@ -1194,10 +1104,8 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('prunes when exceeding MAX_TOMBSTONES', () => {
-			const wrapper = createWrapper()
 			const totalTombstones = MAX_TOMBSTONES + 500
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: totalTombstones + 1,
 					tombstoneHistoryStartsAtClock: 0,
@@ -1221,10 +1129,8 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('updates tombstoneHistoryStartsAtClock correctly', () => {
-			const wrapper = createWrapper()
 			const totalTombstones = MAX_TOMBSTONES * 2
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: totalTombstones + 1000,
 					tombstoneHistoryStartsAtClock: 0,
@@ -1254,7 +1160,6 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('handles duplicate clock values across tombstones', () => {
-			const wrapper = createWrapper()
 			const totalTombstones = MAX_TOMBSTONES + 1
 			const expectedCutoff = TOMBSTONE_PRUNE_BUFFER_SIZE + 1
 			const overflow = 10
@@ -1267,8 +1172,7 @@ describe('SqlLiteSyncStorage', () => {
 				tombstones[`doc${i}`] = i < boundary ? lowerClockVal : upperClockVal
 			}
 
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: 3,
 					tombstoneHistoryStartsAtClock: 0,
@@ -1290,12 +1194,10 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('handles all tombstones with same clock value', () => {
-			const wrapper = createWrapper()
 			const totalTombstones = MAX_TOMBSTONES * 2
 			const sameClock = 100
 
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: 1000,
 					tombstoneHistoryStartsAtClock: 0,
@@ -1315,9 +1217,7 @@ describe('SqlLiteSyncStorage', () => {
 		})
 
 		it('does not prune at exactly MAX_TOMBSTONES', () => {
-			const wrapper = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>(
-				wrapper,
+			const storage = getStorage(
 				makeSnapshot(defaultRecords, {
 					documentClock: MAX_TOMBSTONES + 1,
 					tombstoneHistoryStartsAtClock: 0,

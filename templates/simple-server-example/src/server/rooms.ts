@@ -25,8 +25,8 @@ export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
 
 	// Open the database - file is created if it doesn't exist
 	const db = new Database(join(DIR, `${sanitizeRoomId(roomId)}.db`))
-	const wrapper = new NodeSqliteWrapper(db)
-	const storage = new SqlLiteSyncStorage(wrapper)
+	const sql = new NodeSqliteWrapper(db)
+	const storage = new SqlLiteSyncStorage({ sql })
 
 	const room = new TLSocketRoom({
 		storage,

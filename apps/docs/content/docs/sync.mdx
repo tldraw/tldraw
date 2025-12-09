@@ -157,8 +157,8 @@ export class TLSyncDurableObject extends DurableObject {
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env)
-		const wrapper = new DurableObjectSqliteSyncWrapper(ctx.storage)
-		const storage = new SqlLiteSyncStorage(wrapper)
+		const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
+		const storage = new SqlLiteSyncStorage({ sql })
 		this.room = new TLSocketRoom({ storage })
 	}
 }
@@ -171,8 +171,8 @@ import Database from 'better-sqlite3' // replace with 'node:sqlite' if using
 import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
 
 const db = new Database('rooms.db')
-const wrapper = new NodeSqliteWrapper(db)
-const storage = new SqlLiteSyncStorage(wrapper)
+const sql = new NodeSqliteWrapper(db)
+const storage = new SqlLiteSyncStorage({ sql })
 const room = new TLSocketRoom({ storage })
 ```
 
@@ -306,11 +306,11 @@ import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/syn
 import Database from 'better-sqlite3'
 
 function loadOrMakeRoom(roomId: string, db: Database.Database) {
-	const wrapper = new NodeSqliteWrapper(db, { tablePrefix: `room_${roomId}_` })
+	const sql = new NodeSqliteWrapper(db, { tablePrefix: `room_${roomId}_` })
 
 	// Check if we already have data in SQLite
-	if (SqlLiteSyncStorage.hasBeenInitialized(wrapper)) {
-		const storage = new SqlLiteSyncStorage(wrapper)
+	if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
+		const storage = new SqlLiteSyncStorage({ sql })
 		return new TLSocketRoom({ storage })
 	}
 
@@ -318,13 +318,13 @@ function loadOrMakeRoom(roomId: string, db: Database.Database) {
 	const legacyData = loadRoomDataFromLegacyStore(roomId)
 	if (legacyData) {
 		const snapshot = convertOldDataToSnapshot(legacyData)
-		const storage = new SqlLiteSyncStorage(wrapper, snapshot)
+		const storage = new SqlLiteSyncStorage({ sql, snapshot })
 		deleteLegacyRoomData(roomId)
 		return new TLSocketRoom({ storage })
 	}
 
 	// No data - create a new empty room
-	return new TLSocketRoom({ storage: new SqlLiteSyncStorage(wrapper) })
+	return new TLSocketRoom({ storage: new SqlLiteSyncStorage({ sql }) })
 }
 ```
 
@@ -423,11 +423,11 @@ export class TldrawDurableObjectSqlite {
 	// ... handleConnect, router, etc. stay the same ...
 
 	private async loadRoom(): Promise<TLSocketRoom<TLRecord, void>> {
-		const sqlWrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
 
 		// If SQLite already has data, use it directly
-		if (SqlLiteSyncStorage.hasBeenInitialized(sqlWrapper)) {
-			const storage = new SqlLiteSyncStorage<TLRecord>(sqlWrapper)
+		if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
+			const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
 			return new TLSocketRoom<TLRecord, void>({ schema, storage })
 		}
 
@@ -436,7 +436,7 @@ export class TldrawDurableObjectSqlite {
 			const r2Object = await this.env.TLDRAW_BUCKET.get(`rooms/${this.roomId}`)
 			if (r2Object) {
 				const snapshot = (await r2Object.json()) as RoomSnapshot
-				const storage = new SqlLiteSyncStorage<TLRecord>(sqlWrapper, snapshot)
+				const storage = new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
 
 				// Optionally delete the R2 object after successful migration
 				// await this.env.TLDRAW_BUCKET.delete(`rooms/${this.roomId}`)
@@ -446,7 +446,7 @@ export class TldrawDurableObjectSqlite {
 		}
 
 		// No existing data - create fresh room
-		const storage = new SqlLiteSyncStorage<TLRecord>(sqlWrapper)
+		const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
 		return new TLSocketRoom<TLRecord, void>({ schema, storage })
 	}
 }

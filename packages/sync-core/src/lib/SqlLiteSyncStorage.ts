@@ -146,8 +146,8 @@ export function migrateSqliteSyncStorage(
  * // With Cloudflare Durable Objects
  * import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
  *
- * const wrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
- * const storage = new SqlLiteSyncStorage(wrapper)
+ * const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+ * const storage = new SqlLiteSyncStorage({ sql })
  * ```
  *
  * @example
@@ -157,14 +157,14 @@ export function migrateSqliteSyncStorage(
  * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new DatabaseSync('sync-state.db')
- * const wrapper = new NodeSqliteWrapper(db)
- * const storage = new SqlLiteSyncStorage(wrapper)
+ * const sql = new NodeSqliteWrapper(db)
+ * const storage = new SqlLiteSyncStorage({ sql })
  * ```
  *
  * @example
  * ```ts
  * // Initialize with an existing snapshot
- * const storage = new SqlLiteSyncStorage(wrapper, existingSnapshot)
+ * const storage = new SqlLiteSyncStorage({ sql, snapshot: existingSnapshot })
  * ```
  *
  * @public
@@ -186,10 +186,18 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 	// Prepared statements - created once, reused many times
 	private readonly stmts
 
-	constructor(
-		private sql: TLSyncSqliteWrapper,
+	private readonly sql: TLSyncSqliteWrapper
+
+	constructor({
+		sql,
+		snapshot,
+		onChange,
+	}: {
+		sql: TLSyncSqliteWrapper
 		snapshot?: RoomSnapshot | StoreSnapshot<R>
-	) {
+		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
+	}) {
+		this.sql = sql
 		const prefix = sql.config?.tablePrefix ?? ''
 		const documentsTable = `${prefix}documents`
 		const tombstonesTable = `${prefix}tombstones`
@@ -310,6 +318,9 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 				tombstoneHistoryStartsAtClock,
 				JSON.stringify(snapshot.schema)
 			)
+		}
+		if (onChange) {
+			this.onChange(onChange)
 		}
 	}
 

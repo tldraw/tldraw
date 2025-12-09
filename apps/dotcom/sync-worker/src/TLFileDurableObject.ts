@@ -22,13 +22,13 @@ export class TLFileDurableObject extends TLDrawDurableObject {
 		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
 
 		if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
-			return new SqlLiteSyncStorage<TLRecord>(sql)
+			return new SqlLiteSyncStorage<TLRecord>({ sql })
 		}
 
 		const result = await this.loadFromDatabase(slug)
 		switch (result.type) {
 			case 'room_found': {
-				const storage = new SqlLiteSyncStorage<TLRecord>(sql, result.snapshot)
+				const storage = new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
 				// In case it's an old snapshot with no usage percentage set, set it now.
 				// This should not await because it calls getStorage under the hood which
 				// will only resolve once this function has returned.
@@ -36,7 +36,7 @@ export class TLFileDurableObject extends TLDrawDurableObject {
 				return storage
 			}
 			default: {
-				return new SqlLiteSyncStorage<TLRecord>(sql)
+				return new SqlLiteSyncStorage<TLRecord>({ sql })
 			}
 		}
 	}

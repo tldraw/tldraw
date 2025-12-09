@@ -25,8 +25,8 @@ export class TldrawDurableObject extends DurableObject {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env)
 		// Create SQLite-backed storage - persists automatically to Durable Object storage
-		const sqlWrapper = new DurableObjectSqliteSyncWrapper(ctx.storage)
-		const storage = new SqlLiteSyncStorage<TLRecord>(sqlWrapper)
+		const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
+		const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
 
 		// Create the room that handles sync protocol
 		this.room = new TLSocketRoom<TLRecord, void>({ schema, storage })

@@ -33,15 +33,15 @@ function initializeTables(db: DatabaseSync) {
 
 describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
 	let db: DatabaseSync
-	let wrapper: NodeSqliteWrapper
+	let sql: NodeSqliteWrapper
 	let storage: SqlLiteSyncStorage<TestRecord>
 
 	beforeEach(() => {
 		db = new DatabaseSync(':memory:')
 		initializeTables(db)
-		wrapper = new NodeSqliteWrapper(db)
+		sql = new NodeSqliteWrapper(db)
 		// Pass undefined snapshot since we already initialized the tables
-		storage = new SqlLiteSyncStorage<TestRecord>(wrapper)
+		storage = new SqlLiteSyncStorage<TestRecord>({ sql })
 	})
 
 	describe('basic operations', () => {
@@ -258,7 +258,7 @@ describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
 
 	describe('hasBeenInitialized', () => {
 		it('returns true for initialized storage', () => {
-			expect(SqlLiteSyncStorage.hasBeenInitialized(wrapper)).toBe(true)
+			expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 		})
 
 		it('returns false for uninitialized storage', () => {

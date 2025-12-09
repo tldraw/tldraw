@@ -43,8 +43,8 @@ export interface SyncSqliteDatabase {
  * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new DatabaseSync(':memory:')
- * const wrapper = new NodeSqliteWrapper(db)
- * const storage = new SqlLiteSyncStorage(wrapper)
+ * const sql = new NodeSqliteWrapper(db)
+ * const storage = new SqlLiteSyncStorage({ sql })
  * ```
  *
  * @example
@@ -54,14 +54,14 @@ export interface SyncSqliteDatabase {
  * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new Database(':memory:')
- * const wrapper = new NodeSqliteWrapper(db)
- * const storage = new SqlLiteSyncStorage(wrapper)
+ * const sql = new NodeSqliteWrapper(db)
+ * const storage = new SqlLiteSyncStorage({ sql })
  * ```
  *
  * @example
  * ```ts
  * // With table prefix to avoid conflicts with other tables
- * const wrapper = new NodeSqliteWrapper(db, { tablePrefix: 'tldraw_' })
+ * const sql = new NodeSqliteWrapper(db, { tablePrefix: 'tldraw_' })
  * // Creates tables: tldraw_documents, tldraw_tombstones, tldraw_metadata
  * ```
  *

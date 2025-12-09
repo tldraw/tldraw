@@ -7,8 +7,10 @@ import {
 } from './SqlLiteSyncStorage'
 
 /**
- * A "prepared statement" for Durable Objects that just holds the SQL
- * and executes it fresh each time (since DO doesn't have real prepared statements).
+ * Mimics a prepared statement interface for Durable Objects SQLite.
+ * Rather than actually preparing the statement, it just stores the SQL and
+ * executes it fresh each time. This is still fast because DO SQLite maintains
+ * an internal LRU cache of prepared statements.
  */
 class DurableObjectStatement<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[]>
 	implements TLSyncSqliteStatement<TResult, TParams>
@@ -51,8 +53,8 @@ class DurableObjectStatement<TResult extends TLSqliteRow, TParams extends TLSqli
  *
  *   constructor(ctx: DurableObjectState, env: Env) {
  *     super(ctx, env)
- *     const wrapper = new DurableObjectSqliteSyncWrapper(ctx.storage)
- *     this.storage = new SqlLiteSyncStorage(wrapper)
+ *     const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
+ *     this.storage = new SqlLiteSyncStorage({ sql })
  *   }
  * }
  * ```
@@ -60,7 +62,7 @@ class DurableObjectStatement<TResult extends TLSqliteRow, TParams extends TLSqli
  * @example
  * ```ts
  * // With table prefix to avoid conflicts with other tables
- * const wrapper = new DurableObjectSqliteSyncWrapper(this.ctx.storage, { tablePrefix: 'tldraw_' })
+ * const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage, { tablePrefix: 'tldraw_' })
  * // Creates tables: tldraw_documents, tldraw_tombstones, tldraw_metadata
  * ```
  *

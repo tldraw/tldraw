@@ -302,7 +302,11 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 
 // @public
 export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor(sql: TLSyncSqliteWrapper, snapshot?: RoomSnapshot | StoreSnapshot<R>);
+    constructor({ sql, snapshot, onChange, }: {
+        onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
+        snapshot?: RoomSnapshot | StoreSnapshot<R>;
+        sql: TLSyncSqliteWrapper;
+    });
     // (undocumented)
     getClock(): number;
     // @internal (undocumented)
