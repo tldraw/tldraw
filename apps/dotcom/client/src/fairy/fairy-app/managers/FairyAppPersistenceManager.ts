@@ -1,5 +1,6 @@
 import {
 	ChatHistoryItem,
+	FairyProject,
 	PersistedFairyAgentState,
 	PersistedFairyState,
 } from '@tldraw/fairy-shared'
@@ -69,7 +70,12 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 
 			// Load projects only once
 			if (fairyState.projects && !this.projectsLoaded) {
-				this.fairyApp.projects.setProjects(fairyState.projects)
+				// Ensure all projects have softDeleted set (default to false for backward compatibility)
+				const projectsWithSoftDeleted: FairyProject[] = fairyState.projects.map((p) => ({
+					...p,
+					softDeleted: (p as any).softDeleted ?? false,
+				}))
+				this.fairyApp.projects.setProjects(projectsWithSoftDeleted)
 				this.projectsLoaded = true
 			}
 
@@ -107,7 +113,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 				{} as Record<string, PersistedFairyAgentState>
 			),
 			fairyTaskList: this.fairyApp.tasks.getTasks(),
-			projects: this.fairyApp.projects.getProjects(),
+			projects: this.fairyApp.projects.getProjects(true), // Include soft-deleted projects for persistence
 		}
 	}
 
@@ -146,7 +152,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 		// Watch shared fairy state
 		const cleanupSharedFairyState = react('shared fairy atom state', () => {
 			this.fairyApp.tasks.getTasks()
-			this.fairyApp.projects.getProjects()
+			this.fairyApp.projects.getProjects(true) // Include soft-deleted projects for persistence
 			updateFairyState()
 		})
 		this.autoSaveCleanupFns.push(cleanupSharedFairyState)

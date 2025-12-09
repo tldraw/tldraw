@@ -24,9 +24,14 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 
 	/**
 	 * Get all projects.
+	 * @param includeSoftDeleted - If true, returns projects even if they're soft deleted. Defaults to false.
 	 */
-	getProjects(): FairyProject[] {
-		return this.$projects.get()
+	getProjects(includeSoftDeleted: boolean = false): FairyProject[] {
+		const projects = this.$projects.get()
+		if (includeSoftDeleted) {
+			return projects
+		}
+		return projects.filter((p) => p.softDeleted !== true)
 	}
 
 	/**
@@ -51,16 +56,33 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 
 	/**
 	 * Get a project by ID.
+	 * @param id - The ID of the project to get.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProjectById(id: ProjectId): FairyProject | undefined {
-		return this.$projects.get().find((p) => p.id === id)
+	getProjectById(id: ProjectId, includeSoftDeleted: boolean = false): FairyProject | undefined {
+		const project = this.$projects.get().find((p) => p.id === id)
+		if (!project) return undefined
+		if (!includeSoftDeleted && project.softDeleted === true) {
+			return undefined
+		}
+		return project
 	}
 
 	/**
 	 * Get a project that an agent is a member of.
+	 * @param agentId - The ID of the agent to get the project for.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProjectByAgentId(agentId: AgentId): FairyProject | undefined {
-		return this.$projects.get().find((p) => p.members.some((m) => m.id === agentId))
+	getProjectByAgentId(
+		agentId: AgentId,
+		includeSoftDeleted: boolean = false
+	): FairyProject | undefined {
+		const project = this.$projects.get().find((p) => p.members.some((m) => m.id === agentId))
+		if (!project) return undefined
+		if (!includeSoftDeleted && project.softDeleted === true) {
+			return undefined
+		}
+		return project
 	}
 
 	/**
@@ -112,6 +134,35 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 			this.fairyApp.tasks.deleteTask(task.id)
 		})
 		this.deleteProject(projectId)
+	}
+
+	/**
+	 * Soft delete a project and all associated tasks (mark as soft deleted instead of removing).
+	 */
+	softDeleteProjectAndAssociatedTasks(projectId: ProjectId) {
+		// Mark project as soft deleted
+		this.updateProject(projectId, { softDeleted: true })
+		// Tasks don't need soft delete flag - they'll be filtered by checking if their project is soft deleted
+	}
+
+	/**
+	 * Hard delete all soft deleted projects and their associated tasks.
+	 */
+	hardDeleteSoftDeletedProjects() {
+		const projects = this.$projects.get()
+		const softDeletedProjects = projects.filter((p) => p.softDeleted === true)
+
+		softDeletedProjects.forEach((project) => {
+			// Delete associated tasks (directly filter tasks since getTasksByProjectId filters out soft-deleted projects)
+			this.fairyApp.tasks
+				.getTasks()
+				.filter((task) => task.projectId === project.id)
+				.forEach((task) => {
+					this.fairyApp.tasks.deleteTask(task.id)
+				})
+			// Delete the project
+			this.deleteProject(project.id)
+		})
 	}
 
 	/**
@@ -478,6 +529,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 					color: 'violet',
 					members: [{ id: agentId, role: 'orchestrator' }],
 					plan: 'idk!!',
+					softDeleted: false,
 				}
 				return [...projects, newProject]
 			} else {
