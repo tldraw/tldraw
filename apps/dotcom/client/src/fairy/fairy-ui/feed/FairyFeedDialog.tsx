@@ -17,13 +17,13 @@ export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogPr
 	const projectName = useValue(
 		'project-name',
 		() => {
-			if (!orchestratorAgent) return 'Live Feed'
+			if (!orchestratorAgent) return 'Live feed'
 
 			const project = orchestratorAgent.getProject(true) // Include soft-deleted projects
-			if (!project) return 'Live Feed'
+			if (!project) return 'Live feed'
 
 			const projectName = project.title
-			if (!projectName) return 'Live Feed'
+			if (!projectName) return 'Live feed'
 
 			return `#${project.title.toLowerCase().replace(/\s+/g, '_')}`
 		},
