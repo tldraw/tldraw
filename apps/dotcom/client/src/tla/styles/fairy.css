@@ -1154,15 +1154,19 @@
 	column-gap: 8px;
 	padding-bottom: 8px;
 
-	/* Saturated IRC colors */
-	--irc-color-pink: #d6336c;
-	--irc-color-purple: #7c3aed;
-	--irc-color-peach: #ea580c;
-	--irc-color-coral: #dc2626;
-	--irc-color-teal: #0d9488;
-	--irc-color-gold: #ca8a04;
-	--irc-color-rose: #e11d48;
-	--irc-color-green: #16a34a;
+	/* Override fairy hat colors with more saturated versions for better IRC feed readability */
+	--tl-color-fairy-pink: #d946a0;
+	--tl-color-fairy-purple: #8b5cf6;
+	--tl-color-fairy-peach: #f97316;
+	--tl-color-fairy-coral: #f43f5e;
+	--tl-color-fairy-teal: #14b8a6;
+	--tl-color-fairy-gold: #eab308;
+	--tl-color-fairy-rose: #ec4899;
+	--tl-color-fairy-green: #22c55e;
+	--tl-color-fairy-mint: #2dd4bf;
+	--tl-color-fairy-sky: #0ea5e9;
+	--tl-color-fairy-azure: #06b6d4;
+	--tl-color-fairy-periwinkle: #818cf8;
 }
 
 .fairy-feed-irc-line {
