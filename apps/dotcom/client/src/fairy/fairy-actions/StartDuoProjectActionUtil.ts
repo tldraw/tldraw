@@ -17,7 +17,7 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 			description: action.complete
 				? `Planned project: ${action.projectName}`
 				: `Planning project${action.projectName ? `: ${action.projectName}` : ''}${action.projectDescription ? `\n\n${action.projectDescription}` : ''}${action.projectPlan ? `\n\n${action.projectPlan}` : ''}`,
-			ircMessage: action.complete ? `I'm planning a project: ${action.projectName}` : null,
+			ircMessage: action.complete ? `I planned the project: ${action.projectName}` : null,
 			pose: 'writing',
 			canGroup: () => false,
 		})

@@ -32,7 +32,7 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			description: text,
 			ircMessage:
 				action.complete && task?.title
-					? `${otherFairyFirstName}, can you do this task: ${task.title}`
+					? `${otherFairyFirstName}, do this task: ${task.title}`
 					: null,
 			canGroup: () => false,
 			pose: 'reviewing', // todo: bullhorn
