@@ -8,12 +8,17 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 	static override type = 'end-project' as const
 
 	override getInfo(action: Streaming<EndCurrentProjectAction>) {
-		const project = this.agent.getProject()
-		const projectTitle = project?.title ?? 'project'
+		// Include soft-deleted projects since the project may already be ended when getInfo is called
+		const project = this.agent.getProject(true)
+		const projectTitle = project?.title
 		return createAgentActionInfo({
 			icon: 'flag',
 			description: action.complete ? 'Ended project' : 'Ending project...',
-			ircMessage: action.complete ? `I finished the project: ${projectTitle}` : null,
+			ircMessage: action.complete
+				? projectTitle
+					? `I finished the project: ${projectTitle}`
+					: 'I finished the project'
+				: null,
 			pose: 'reviewing',
 			canGroup: () => false,
 		})
