@@ -73,8 +73,8 @@ describe('FairyAppWaitManager', () => {
 			expect(getWaitingForSpy).toHaveBeenCalled()
 			expect(waitForAllSpy).toHaveBeenCalledWith([])
 			expect(notifySpy).toHaveBeenCalledWith({
-				agentFacingMessage: 'Test message',
-				userFacingMessage: 'User message',
+				agentMessages: ['Test message'],
+				userMessages: ['User message'],
 			})
 		})
 
