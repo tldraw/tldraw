@@ -93,7 +93,12 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
-		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
+		// If feed dialog is open, soft delete instead of hard delete
+		if (this.agent.fairyApp.getIsFeedDialogOpen()) {
+			this.agent.fairyApp.projects.softDeleteProjectAndAssociatedTasks(project.id)
+		} else {
+			this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
+		}
 
 		// Select orchestrator after project deletion
 		const allAgents = this.agent.fairyApp.agents.getAgents()

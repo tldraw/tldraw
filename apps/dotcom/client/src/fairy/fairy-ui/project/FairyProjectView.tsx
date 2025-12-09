@@ -168,6 +168,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
 				],
 				plan: '',
+				softDeleted: false,
 			}
 
 			trackEvent('fairy-start-project', {

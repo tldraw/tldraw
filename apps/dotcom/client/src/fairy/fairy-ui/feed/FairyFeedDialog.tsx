@@ -19,7 +19,7 @@ export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogPr
 		() => {
 			if (!orchestratorAgent) return 'Live Feed'
 
-			const project = orchestratorAgent.getProject()
+			const project = orchestratorAgent.getProject(true) // Include soft-deleted projects
 			if (!project) return 'Live Feed'
 
 			const projectName = project.title

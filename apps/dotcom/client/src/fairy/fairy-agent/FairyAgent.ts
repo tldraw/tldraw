@@ -174,9 +174,10 @@ export class FairyAgent {
 
 	/**
 	 * Get the current project that the agent is working on.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProject(): FairyProject | null {
-		return this.fairyApp.projects.getProjectByAgentId(this.id) ?? null
+	getProject(includeSoftDeleted: boolean = false): FairyProject | null {
+		return this.fairyApp.projects.getProjectByAgentId(this.id, includeSoftDeleted) ?? null
 	}
 
 	getEntity(): FairyEntity {

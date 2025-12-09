@@ -68,6 +68,11 @@ export class FairyApp {
 	 */
 	private $modelSelection: Atom<AgentModelName> = atom('fairyAppModelSelection', DEFAULT_MODEL_NAME)
 
+	/**
+	 * Whether the feed dialog is currently open.
+	 */
+	private $isFeedDialogOpen: Atom<boolean> = atom('fairyAppIsFeedDialogOpen', false)
+
 	constructor(
 		public editor: Editor,
 		public tldrawApp: TldrawApp
@@ -120,6 +125,14 @@ export class FairyApp {
 
 	setModelSelection(value: AgentModelName): void {
 		this.$modelSelection.set(value)
+	}
+
+	getIsFeedDialogOpen(): boolean {
+		return this.$isFeedDialogOpen.get()
+	}
+
+	setIsFeedDialogOpen(value: boolean): void {
+		this.$isFeedDialogOpen.set(value)
 	}
 
 	resetEverything() {

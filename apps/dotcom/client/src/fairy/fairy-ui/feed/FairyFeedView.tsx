@@ -99,9 +99,11 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 	const previousScrollDistanceFromBottomRef = useRef(0)
 	const previousItemCountRef = useRef(0)
 
-	const project = useValue('project', () => orchestratorAgent && orchestratorAgent.getProject(), [
-		orchestratorAgent,
-	])
+	const project = useValue(
+		'project',
+		() => orchestratorAgent && orchestratorAgent.getProject(true), // Include soft-deleted projects
+		[orchestratorAgent]
+	)
 
 	const feedItems = useValue(
 		'feed-items',

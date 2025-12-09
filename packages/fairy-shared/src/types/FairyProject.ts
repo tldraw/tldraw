@@ -8,6 +8,7 @@ export interface FairyProject {
 	color: ProjectColor | ''
 	members: FairyProjectMember[]
 	plan: string
+	softDeleted: boolean
 }
 
 export interface FairyProjectMember {

@@ -86,20 +86,26 @@ export function FairyHUD() {
 		[activeOrchestratorAgent, agents, lastSeenFeedTimestamp]
 	)
 
-	// Close feed dialog when a new project starts AND reset seen timestamp
+	// Update feed dialog state in FairyApp
 	useEffect(() => {
-		removeDialog(FAIRY_FEED_DIALOG_ID)
-		setLastSeenFeedTimestamp(0) // Reset so all items in new project show as unseen
-	}, [activeOrchestratorAgent, removeDialog])
+		if (fairyApp) {
+			fairyApp.setIsFeedDialogOpen(isFeedDialogOpen)
+		}
+	}, [fairyApp, isFeedDialogOpen])
 
 	// Update lastSeenFeedTimestamp when the feed dialog closes
 	// This ensures items viewed while the dialog was open are marked as seen
+	// Also hard delete any soft deleted projects when feed closes
 	useEffect(() => {
 		if (wasFeedDialogOpenRef.current && !isFeedDialogOpen) {
 			setLastSeenFeedTimestamp(Date.now())
+			// Hard delete any soft deleted projects when feed closes
+			if (fairyApp) {
+				fairyApp.projects.hardDeleteSoftDeletedProjects()
+			}
 		}
 		wasFeedDialogOpenRef.current = isFeedDialogOpen
-	}, [isFeedDialogOpen])
+	}, [isFeedDialogOpen, fairyApp])
 
 	// Toggle feed dialog and mark as seen when opening
 	const handleToggleFeed = useCallback(() => {
