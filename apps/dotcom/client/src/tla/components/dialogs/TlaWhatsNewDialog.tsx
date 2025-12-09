@@ -42,7 +42,7 @@ type WhatsNewVersion =
  * - Don't use both - pick the one that fits your content
  *
  * NOTES:
- * - Only the 5 most recent versions are displayed to users
+ * - Only MAX_DISPLAYED_VERSIONS most recent versions are displayed
  * - Versions are displayed newest first (index 0 = most recent)
  * - Users can navigate through displayed versions
  * - Version strings are arbitrary but should be sequential (e.g., "1.0", "1.1", "2.0")
@@ -93,23 +93,25 @@ const VERSIONS: WhatsNewVersion[] = [
 	},
 ]
 
+const MAX_DISPLAYED_VERSIONS = 5
+
 export function TlaWhatsNewDialog() {
 	const [currentIndex, setCurrentIndex] = useState(0)
-	const displayVersions = VERSIONS.slice(0, 5)
+	const displayVersions = VERSIONS.slice(0, MAX_DISPLAYED_VERSIONS)
 	const currentVersion = displayVersions[currentIndex]
 
 	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
+		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key === 'ArrowLeft') {
 				setCurrentIndex((i) => Math.max(0, i - 1))
 			} else if (e.key === 'ArrowRight') {
-				setCurrentIndex((i) => Math.min(displayVersions.length - 1, i + 1))
+				setCurrentIndex((i) => Math.min(MAX_DISPLAYED_VERSIONS - 1, i + 1))
 			}
 		}
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [displayVersions.length])
+	}, [])
 
 	return (
 		<>
