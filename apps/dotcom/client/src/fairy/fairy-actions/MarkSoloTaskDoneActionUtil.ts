@@ -13,7 +13,7 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		const currentTask =
 			currentWork.tasks.find((task) => task.status === 'in-progress') ??
 			currentWork.tasks.find((task) => task.status === 'done')
-		const taskTitle = currentTask?.title ?? 'task'
+		const taskTitle = currentTask?.title
 		return createAgentActionInfo({
 			icon: 'note',
 			description: action.complete ? `Completed task` : 'Completing task...',
