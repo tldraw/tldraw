@@ -91,7 +91,7 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
     // (undocumented)
     exec(sql: string): void;
     // (undocumented)
-    prepare<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[] = []>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
+    prepare<TResult extends TLSqliteRow | void = void, TParams extends TLSqliteInputValue[] = []>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
     // (undocumented)
     transaction<T>(callback: () => T): T;
 }
@@ -174,7 +174,7 @@ export class NodeSqliteWrapper implements TLSyncSqliteWrapper {
     // (undocumented)
     exec(sql: string): void;
     // (undocumented)
-    prepare<TResult extends TLSqliteRow = TLSqliteRow, TParams extends TLSqliteInputValue[] = TLSqliteInputValue[]>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
+    prepare<TResult extends TLSqliteRow | void = void, TParams extends TLSqliteInputValue[] = TLSqliteInputValue[]>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
     // (undocumented)
     transaction<T>(callback: () => T): T;
 }
@@ -673,7 +673,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 }
 
 // @public
-export interface TLSyncSqliteStatement<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[] = []> {
+export interface TLSyncSqliteStatement<TResult extends TLSqliteRow | void, TParams extends TLSqliteInputValue[] = []> {
     all(...bindings: TParams): TResult[];
     iterate(...bindings: TParams): IterableIterator<TResult>;
     run(...bindings: TParams): void;
@@ -683,7 +683,7 @@ export interface TLSyncSqliteStatement<TResult extends TLSqliteRow, TParams exte
 export interface TLSyncSqliteWrapper {
     readonly config?: TLSyncSqliteWrapperConfig;
     exec(sql: string): void;
-    prepare<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[] = []>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
+    prepare<TResult extends TLSqliteRow | void, TParams extends TLSqliteInputValue[] = []>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
     transaction<T>(callback: () => T): T;
 }
 

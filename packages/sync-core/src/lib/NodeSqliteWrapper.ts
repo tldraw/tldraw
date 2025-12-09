@@ -78,7 +78,7 @@ export class NodeSqliteWrapper implements TLSyncSqliteWrapper {
 	}
 
 	prepare<
-		TResult extends TLSqliteRow = TLSqliteRow,
+		TResult extends TLSqliteRow | void = void,
 		TParams extends TLSqliteInputValue[] = TLSqliteInputValue[],
 	>(sql: string): TLSyncSqliteStatement<TResult, TParams> {
 		return this.db.prepare(sql) as unknown as TLSyncSqliteStatement<TResult, TParams>

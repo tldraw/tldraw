@@ -45,7 +45,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>
  * @public
  */
 export interface TLSyncSqliteStatement<
-	TResult extends TLSqliteRow,
+	TResult extends TLSqliteRow | void,
 	TParams extends TLSqliteInputValue[] = [],
 > {
 	/** Execute the statement and iterate over results one at a time */
@@ -73,7 +73,7 @@ export interface TLSyncSqliteWrapper {
 	/** Optional configuration for table names. If not provided, defaults are used. */
 	readonly config?: TLSyncSqliteWrapperConfig
 	/** Prepare a SQL statement for execution */
-	prepare<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[] = []>(
+	prepare<TResult extends TLSqliteRow | void, TParams extends TLSqliteInputValue[] = []>(
 		sql: string
 	): TLSyncSqliteStatement<TResult, TParams>
 	/** Execute raw SQL (for DDL, multi-statement scripts) */
@@ -105,33 +105,36 @@ export function migrateSqliteSyncStorage(
 	if (migrationVersion === 0) {
 		migrationVersion++
 		storage.exec(`
-			CREATE TABLE IF NOT EXISTS ${documentsTable} (
+			CREATE TABLE ${documentsTable} (
 				id TEXT PRIMARY KEY,
 				state TEXT NOT NULL,
 				lastChangedClock INTEGER NOT NULL
 			);
 
-			CREATE INDEX IF NOT EXISTS idx_${documentsTable}_lastChangedClock ON ${documentsTable}(lastChangedClock);
+			CREATE INDEX idx_${documentsTable}_lastChangedClock ON ${documentsTable}(lastChangedClock);
 
-			CREATE TABLE IF NOT EXISTS ${tombstonesTable} (
+			CREATE TABLE ${tombstonesTable} (
 				id TEXT PRIMARY KEY,
 				clock INTEGER NOT NULL
 			);
-			CREATE INDEX IF NOT EXISTS idx_${tombstonesTable}_clock ON ${tombstonesTable}(clock);
+			CREATE INDEX idx_${tombstonesTable}_clock ON ${tombstonesTable}(clock);
 
-			CREATE TABLE IF NOT EXISTS ${metadataTable} (
-			  migrationVersion INTEGER NOT NULL DEFAULT 1,
-				id INTEGER PRIMARY KEY CHECK (id = 0),
-				documentClock INTEGER NOT NULL DEFAULT 0,
-				tombstoneHistoryStartsAtClock INTEGER NOT NULL DEFAULT 0,
+			-- This table is used to store the metadata for the sync storage.
+			-- There should only be one row in this table.
+			CREATE TABLE ${metadataTable} (
+			  migrationVersion INTEGER NOT NULL,
+				documentClock INTEGER NOT NULL,
+				tombstoneHistoryStartsAtClock INTEGER NOT NULL,
 				schema TEXT NOT NULL
 			);
+			
+			INSERT INTO ${metadataTable} (migrationVersion, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (1, 0, 0, '{}')
 		`)
 	}
 
 	// add more migrations here if and when needed
 
-	storage.exec(`UPDATE ${metadataTable} SET migrationVersion = ${migrationVersion} WHERE id = 0`)
+	storage.exec(`UPDATE ${metadataTable} SET migrationVersion = ${migrationVersion}`)
 }
 
 /**
@@ -212,30 +215,25 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 				`SELECT documentClock FROM ${metadataTable} LIMIT 1`
 			),
 			getTombstoneHistoryStartsAtClock: this.sql.prepare<{ tombstoneHistoryStartsAtClock: number }>(
-				`SELECT tombstoneHistoryStartsAtClock FROM ${metadataTable} WHERE id = 0`
+				`SELECT tombstoneHistoryStartsAtClock FROM ${metadataTable}`
 			),
-			getSchema: this.sql.prepare<{ schema: string }>(
-				`SELECT schema FROM ${metadataTable} WHERE id = 0`
+			getSchema: this.sql.prepare<{ schema: string }>(`SELECT schema FROM ${metadataTable}`),
+			setSchema: this.sql.prepare<void, [schema: string]>(`UPDATE ${metadataTable} SET schema = ?`),
+			setTombstoneHistoryStartsAtClock: this.sql.prepare<void, [clock: number]>(
+				`UPDATE ${metadataTable} SET tombstoneHistoryStartsAtClock = ?`
 			),
-			setSchema: this.sql.prepare<TLSqliteRow, [schema: string]>(
-				`UPDATE ${metadataTable} SET schema = ? WHERE id = 0`
-			),
-			setTombstoneHistoryStartsAtClock: this.sql.prepare<TLSqliteRow, [clock: number]>(
-				`UPDATE ${metadataTable} SET tombstoneHistoryStartsAtClock = ? WHERE id = 0`
-			),
-			incrementDocumentClock: this.sql.prepare<TLSqliteRow>(
-				`UPDATE ${metadataTable} SET documentClock = documentClock + 1 WHERE id = 0`
+			incrementDocumentClock: this.sql.prepare<void>(
+				`UPDATE ${metadataTable} SET documentClock = documentClock + 1`
 			),
 
 			// Documents
 			getDocument: this.sql.prepare<{ state: string }, [id: string]>(
 				`SELECT state FROM ${documentsTable} WHERE id = ?`
 			),
-			insertDocument: this.sql.prepare<
-				TLSqliteRow,
-				[id: string, state: string, lastChangedClock: number]
-			>(`INSERT OR REPLACE INTO ${documentsTable} (id, state, lastChangedClock) VALUES (?, ?, ?)`),
-			deleteDocument: this.sql.prepare<TLSqliteRow, [id: string]>(
+			insertDocument: this.sql.prepare<void, [id: string, state: string, lastChangedClock: number]>(
+				`INSERT OR REPLACE INTO ${documentsTable} (id, state, lastChangedClock) VALUES (?, ?, ?)`
+			),
+			deleteDocument: this.sql.prepare<void, [id: string]>(
 				`DELETE FROM ${documentsTable} WHERE id = ?`
 			),
 			documentExists: this.sql.prepare<{ id: string }, [id: string]>(
@@ -256,13 +254,13 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 			),
 
 			// Tombstones
-			insertTombstone: this.sql.prepare<TLSqliteRow, [id: string, clock: number]>(
+			insertTombstone: this.sql.prepare<void, [id: string, clock: number]>(
 				`INSERT OR REPLACE INTO ${tombstonesTable} (id, clock) VALUES (?, ?)`
 			),
-			deleteTombstone: this.sql.prepare<TLSqliteRow, [id: string]>(
+			deleteTombstone: this.sql.prepare<void, [id: string]>(
 				`DELETE FROM ${tombstonesTable} WHERE id = ?`
 			),
-			deleteTombstonesBefore: this.sql.prepare<TLSqliteRow, [clock: number]>(
+			deleteTombstonesBefore: this.sql.prepare<void, [clock: number]>(
 				`DELETE FROM ${tombstonesTable} WHERE clock < ?`
 			),
 			countTombstones: this.sql.prepare<{ count: number }>(
@@ -276,11 +274,11 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 			),
 
 			// Initial setup (only used when loading a snapshot)
-			insertMetadata: this.sql.prepare<
-				TLSqliteRow,
+			updateMetadata: this.sql.prepare<
+				void,
 				[documentClock: number, tombstoneHistoryStartsAtClock: number, schema: string]
 			>(
-				`INSERT INTO ${metadataTable} (id, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (0, ?, ?, ?)`
+				`UPDATE ${metadataTable} SET documentClock = ?, tombstoneHistoryStartsAtClock = ?, schema = ?`
 			),
 		}
 
@@ -297,7 +295,6 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 			this.sql.exec(`
 				DELETE FROM ${documentsTable};
 				DELETE FROM ${tombstonesTable};
-				DELETE FROM ${metadataTable};
 			`)
 
 			// Insert documents
@@ -313,7 +310,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 			}
 
 			// Insert metadata row
-			this.stmts.insertMetadata.run(
+			this.stmts.updateMetadata.run(
 				documentClock,
 				tombstoneHistoryStartsAtClock,
 				JSON.stringify(snapshot.schema)

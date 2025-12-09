@@ -12,8 +12,10 @@ import {
  * executes it fresh each time. This is still fast because DO SQLite maintains
  * an internal LRU cache of prepared statements.
  */
-class DurableObjectStatement<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[]>
-	implements TLSyncSqliteStatement<TResult, TParams>
+class DurableObjectStatement<
+	TResult extends TLSqliteRow | void,
+	TParams extends TLSqliteInputValue[],
+> implements TLSyncSqliteStatement<TResult, TParams>
 {
 	constructor(
 		private sql: {
@@ -81,7 +83,7 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
 		this.storage.sql.exec(sql)
 	}
 
-	prepare<TResult extends TLSqliteRow, TParams extends TLSqliteInputValue[] = []>(
+	prepare<TResult extends TLSqliteRow | void = void, TParams extends TLSqliteInputValue[] = []>(
 		sql: string
 	): TLSyncSqliteStatement<TResult, TParams> {
 		return new DurableObjectStatement<TResult, TParams>(this.storage.sql, sql)
