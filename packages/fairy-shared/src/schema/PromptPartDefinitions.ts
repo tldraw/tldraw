@@ -266,9 +266,10 @@ export const SignPartDefinition: PromptPartDefinition<SignPart> = {
 	priority: 150,
 	buildContent({ sign }: SignPart) {
 		if (sign.sun && sign.moon && sign.rising) {
-			return [
-				`Your astrological sign is: Sun ${sign.sun}, Moon ${sign.moon}, Rising ${sign.rising}`,
-			]
+			if (sign.sun === sign.moon && sign.moon === sign.rising) {
+				return [`You're a triple ${sign.sun}.`]
+			}
+			return [`You're a ${sign.sun} sun, ${sign.moon} moon, and ${sign.rising} rising.`]
 		}
 
 		return []
