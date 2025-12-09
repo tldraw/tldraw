@@ -473,8 +473,8 @@ export class FairyAgent {
 	 *
 	 * @returns A promise for when the agent has finished its work.
 	 */
-	async prompt(input: AgentInput, { nested = false }: { nested?: boolean } = {}) {
-		if (this.requests.isGenerating() && !nested) {
+	async prompt(input: AgentInput) {
+		if (this.requests.isGenerating()) {
 			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
 		}
 
@@ -548,7 +548,7 @@ export class FairyAgent {
 
 		// Handle the scheduled request and clear it
 		this.requests.setScheduledRequest(null)
-		await this.prompt(scheduledRequest, { nested: true })
+		await this.prompt(scheduledRequest)
 	}
 
 	/**
