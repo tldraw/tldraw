@@ -73,7 +73,7 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 // @public
 export const assetValidator: T.Validator<TLAsset>;
 
-// @public (undocumented)
+// @public
 export function base64ToFloat16Array(base64: string): Float16Array;
 
 // @public
@@ -106,7 +106,7 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
-// @public (undocumented)
+// @public
 export function compressLegacySegments(segments: {
     points: VecModel[];
     type: 'free' | 'straight';
@@ -315,7 +315,7 @@ export type ExtractShapeByProps<P> = Extract<TLShape, {
     props: P;
 }>;
 
-// @public (undocumented)
+// @public
 export function float16ArrayToBase64(float16Array: Float16Array): string;
 
 // @public
@@ -1012,9 +1012,7 @@ export interface TLDrawShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
-    // (undocumented)
     scaleX: number;
-    // (undocumented)
     scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
@@ -1022,7 +1020,6 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
-    // (undocumented)
     points: string;
     type: 'free' | 'straight';
 }
@@ -1114,9 +1111,7 @@ export interface TLHighlightShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
-    // (undocumented)
     scaleX: number;
-    // (undocumented)
     scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;

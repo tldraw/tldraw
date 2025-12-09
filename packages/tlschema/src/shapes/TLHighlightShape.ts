@@ -36,7 +36,9 @@ export interface TLHighlightShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the highlight shape for display */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
 	scaleX: number
+	/** Vertical scale factor for lazy resize */
 	scaleY: number
 }
 

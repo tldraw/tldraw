@@ -117,7 +117,7 @@ export function b64PointsToVecs(b64Points: string) {
 	return result
 }
 
-/** @internal */
+/** @public */
 export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, points: Vec[] = []) {
 	const _points = b64PointsToVecs(segment.points)
 
@@ -131,7 +131,7 @@ export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, points: Ve
 	return points
 }
 
-/** @internal */
+/** @public */
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[]) {
 	const points: Vec[] = []
 

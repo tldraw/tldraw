@@ -17,6 +17,7 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLDrawShapeSegment {
 	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
+	/** Base64-encoded Float16Array of points (x, y, z triplets) */
 	points: string
 }
 
@@ -24,14 +25,6 @@ export interface TLDrawShapeSegment {
  * Validator for draw shape segments ensuring proper structure and data types.
  *
  * @public
- * @example
- * ```ts
- * const segment: TLDrawShapeSegment = {
- *   type: 'free',
- *   points: [{ x: 0, y: 0, z: 0.5 }, { x: 10, y: 10, z: 0.7 }]
- * }
- * const isValid = DrawShapeSegment.isValid(segment)
- * ```
  */
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
@@ -62,7 +55,9 @@ export interface TLDrawShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the drawing */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
 	scaleX: number
+	/** Vertical scale factor for lazy resize */
 	scaleY: number
 }
 
@@ -208,7 +203,11 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 	],
 })
 
-/** @public */
+/**
+ * Convert a Float16Array to a base64 string for compact storage.
+ *
+ * @public
+ */
 export function float16ArrayToBase64(float16Array: Float16Array) {
 	// Convert Float16Array to Uint8Array by accessing the underlying buffer
 	const uint8Array = new Uint8Array(
@@ -240,7 +239,11 @@ export function float16ArrayToBase64(float16Array: Float16Array) {
 	return result
 }
 
-/** @public */
+/**
+ * Convert a base64 string back to a Float16Array.
+ *
+ * @public
+ */
 export function base64ToFloat16Array(base64: string): Float16Array {
 	assert(base64.length % 8 === 0 && !base64.endsWith('='), 'Base64 string must be a multiple of 8')
 	// Base64 alphabet (same as in float16ArrayToBase64)
@@ -273,7 +276,12 @@ export function base64ToFloat16Array(base64: string): Float16Array {
 	return new Float16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2)
 }
 
-/** @public */
+/**
+ * Compress legacy draw shape segments by converting VecModel[] points to base64 format.
+ * This function is useful for converting old draw shape data to the new compressed format.
+ *
+ * @public
+ */
 export function compressLegacySegments(
 	segments: {
 		type: 'free' | 'straight'
