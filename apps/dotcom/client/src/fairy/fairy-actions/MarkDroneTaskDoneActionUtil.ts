@@ -14,11 +14,15 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 			currentWork.tasks.find((task) => task.status === 'in-progress') ??
 			currentWork.tasks.find((task) => task.status === 'done')
 
-		const taskTitle = currentTask?.title ?? 'task'
+		const taskTitle = currentTask?.title
 		return createAgentActionInfo({
 			icon: 'note',
 			description: action.complete ? `Completed task` : 'Completing task...',
-			ircMessage: action.complete ? `I completed the task: ${taskTitle}` : null,
+			ircMessage: action.complete
+				? taskTitle
+					? `I completed a task: ${taskTitle}`
+					: `I completed a task.`
+				: null,
 			pose: 'writing',
 			canGroup: () => false,
 		})

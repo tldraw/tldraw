@@ -17,7 +17,11 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 		return createAgentActionInfo({
 			icon: 'note',
 			description: action.complete ? `Completed task` : 'Completing task...',
-			ircMessage: action.complete ? `I completed the task: ${taskTitle}` : null,
+			ircMessage: action.complete
+				? taskTitle
+					? `I completed a task: ${taskTitle}`
+					: `I completed a task.`
+				: null,
 			pose: 'writing',
 			canGroup: () => false,
 		})
