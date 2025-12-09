@@ -410,6 +410,8 @@
 	white-space: nowrap;
 	max-width: 100%;
 	padding-left: 12px;
+	display: flex;
+	align-items: center;
 }
 
 .fairy-spinner-container {
