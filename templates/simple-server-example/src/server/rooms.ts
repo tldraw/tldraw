@@ -16,15 +16,16 @@ function sanitizeRoomId(roomId: string): string {
 const rooms = new Map<string, TLSocketRoom<any, void>>()
 
 export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
+	roomId = sanitizeRoomId(roomId)
+
 	const existing = rooms.get(roomId)
 	if (existing && !existing.isClosed()) {
 		return existing
 	}
 
 	console.log('loading room', roomId)
-
 	// Open the database - file is created if it doesn't exist
-	const db = new Database(join(DIR, `${sanitizeRoomId(roomId)}.db`))
+	const db = new Database(join(DIR, `${roomId}.db`))
 	const sql = new NodeSqliteWrapper(db)
 	const storage = new SqlLiteSyncStorage({ sql })
 

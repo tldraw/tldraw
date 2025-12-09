@@ -58,7 +58,7 @@ io.on('connection', async (socket) => {
 
 	try {
 		// Here we make or get an existing instance of TLSocketRoom for the given roomId
-		const room = await makeOrLoadRoom(roomId)
+		const room = makeOrLoadRoom(roomId)
 
 		// Create a socket adapter for TLSocketRoom
 		const socketAdapter: WebSocketMinimal = {

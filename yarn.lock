@@ -9848,12 +9848,13 @@ __metadata:
   dependencies:
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
-    "@types/bun": "npm:^1.1.6"
+    "@types/better-sqlite3": "npm:^7.6.12"
     "@types/express": "npm:^4.17.21"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
     "@types/ws": "npm:^8.18.1"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    better-sqlite3: "npm:^11.8.1"
     concurrently: "npm:^9.1.2"
     express: "npm:^5.1.0"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -10274,15 +10275,6 @@ __metadata:
   version: 1.0.2
   resolution: "@types/btoa-lite@npm:1.0.2"
   checksum: 10/4c46b163c881a75522c7556dd7a7df8a0d4c680a45e8bac34e50864e1c2d9df8dc90b99f75199154c60ef2faff90896b7e5f11df6936c94167a3e5e1c6f4d935
-  languageName: node
-  linkType: hard
-
-"@types/bun@npm:^1.1.6":
-  version: 1.2.17
-  resolution: "@types/bun@npm:1.2.17"
-  dependencies:
-    bun-types: "npm:1.2.17"
-  checksum: 10/5eaf5fde3925c00f3c3599eb0977fd48abb1e102bb3abcc9016f419503cd5bccf01a4908c87c8f09cb4c674d854c84510517f631f4278f4b3058def5468fad89
   languageName: node
   linkType: hard
 
@@ -13450,15 +13442,6 @@ __metadata:
     base64-js: "npm:^1.3.1"
     ieee754: "npm:^1.2.1"
   checksum: 10/b6bc68237ebf29bdacae48ce60e5e28fc53ae886301f2ad9496618efac49427ed79096750033e7eab1897a4f26ae374ace49106a5758f38fb70c78c9fda2c3b1
-  languageName: node
-  linkType: hard
-
-"bun-types@npm:1.2.17":
-  version: 1.2.17
-  resolution: "bun-types@npm:1.2.17"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/20f8a1fe7cb1375db22947da6ed68178058ac5895259e8ebb89b934540d523621786e831825931cf0aec87239674d839d2c108dab0ca7f258acd7a9539be5aff
   languageName: node
   linkType: hard
 
