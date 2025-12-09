@@ -1152,6 +1152,7 @@
 	display: grid;
 	grid-template-columns: 50px auto 1fr;
 	column-gap: 8px;
+	padding-bottom: 8px;
 
 	/* Saturated IRC colors */
 	--irc-color-pink: #d6336c;
@@ -1209,6 +1210,7 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
+	padding: 0px 12px;
 }
 
 .fairy-feed-irc-name-container {
