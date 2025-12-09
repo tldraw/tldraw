@@ -101,24 +101,9 @@ export class TLDrawDurableObject extends DurableObject {
 
 	protected async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
 		const result = await this.loadFromDatabase(slug)
-		switch (result.type) {
-			case 'room_found': {
-				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
-				// In case it's an old snapshot with no usage percentage set, set it now.
-				// setRoomStorageUsedPercentage calls getStorage which calls loadStorage again,
-				// which seems like it might introduce a deadlock but it doesn't happen because
-				// 1. this doesn't await
-				// 2. the _storage promise is already populated by the time this runs so it won't call loadStorage again
-				this.setRoomStorageUsedPercentage(result.roomSizeMB)
-				return storage
-			}
-			case 'room_not_found': {
-				throw ROOM_NOT_FOUND
-			}
-			default: {
-				exhaustiveSwitchError(result)
-			}
-		}
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+		this.setRoomStorageUsedPercentage(result.roomSizeMB)
+		return storage
 	}
 
 	private getStorage(): Promise<TLSyncStorage<TLRecord>> {
@@ -126,7 +111,11 @@ export class TLDrawDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
-			this._storage = retry(() => this.loadStorage(this.documentInfo.slug))
+			this._storage = retry(() => this.loadStorage(this.documentInfo.slug), {
+				// Allow ROOM_NOT_FOUND to bubble up since it means the room doesn't exist
+				// and there's no point in retrying.
+				matchError: (error) => error !== ROOM_NOT_FOUND,
+			})
 				.then((storage) => {
 					storage.onChange(() => {
 						this.triggerPersist()
@@ -647,11 +636,11 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	async handleFileCreateFromSource() {
+	async handleFileCreateFromSource(): Promise<DBLoadResult> {
 		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
 		const split = this._fileRecordCache.createSource?.split('/')
 		if (!split || split?.length !== 2) {
-			return { type: 'room_not_found' as const }
+			throw ROOM_NOT_FOUND
 		}
 
 		let data: RoomSnapshot | string | null | undefined = undefined
@@ -693,7 +682,7 @@ export class TLDrawDurableObject extends DurableObject {
 		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
-			return { type: 'room_not_found' as const }
+			throw ROOM_NOT_FOUND
 		}
 
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
@@ -705,10 +694,9 @@ export class TLDrawDurableObject extends DurableObject {
 		putTimer.report('create_from_source_r2_put')
 
 		return {
-			type: 'room_found',
 			snapshot,
 			roomSizeMB: roomObject ? roomObject.size / MB : 0,
-		} satisfies DBLoadResult
+		}
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
@@ -727,7 +715,6 @@ export class TLDrawDurableObject extends DurableObject {
 				loadTimer.report('db_load_total')
 
 				return {
-					type: 'room_found',
 					snapshot,
 					roomSizeMB: roomFromBucket.size / MB,
 				}
@@ -749,11 +736,10 @@ export class TLDrawDurableObject extends DurableObject {
 
 				loadTimer.report('db_load_total')
 				if (!file) {
-					return { type: 'room_not_found' }
+					throw ROOM_NOT_FOUND
 				}
 
 				return {
-					type: 'room_found',
 					snapshot: DEFAULT_INITIAL_SNAPSHOT,
 					roomSizeMB: 0,
 				}
@@ -761,7 +747,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			// if we don't have a room in the bucket, try to load from supabase
 			if (!this.supabaseClient) {
-				return { type: 'room_not_found' }
+				throw ROOM_NOT_FOUND
 			}
 
 			const supabaseFetchTimer = this.timer()
@@ -783,14 +769,13 @@ export class TLDrawDurableObject extends DurableObject {
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
 				loadTimer.report('db_load_total')
-				return { type: 'room_not_found' }
+				throw ROOM_NOT_FOUND
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
 			loadTimer.report('db_load_total')
 
 			return {
-				type: 'room_found',
 				snapshot: roomFromSupabase.drawing,
 				roomSizeMB: 0,
 			}

@@ -88,15 +88,10 @@ export function getUserDoSnapshotKey(env: Environment, userId: string) {
 	return `${snapshotPrefix}${userId}`
 }
 
-export type DBLoadResult =
-	| {
-			type: 'room_found'
-			snapshot: RoomSnapshot
-			roomSizeMB: number
-	  }
-	| {
-			type: 'room_not_found'
-	  }
+export interface DBLoadResult {
+	snapshot: RoomSnapshot
+	roomSizeMB: number
+}
 
 export type TLServerEvent =
 	| {
