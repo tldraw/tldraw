@@ -102,6 +102,8 @@ export class TLDrawDurableObject extends DurableObject {
 	protected async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
 		const result = await this.loadFromDatabase(slug)
 		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+		// We should not await on setRoomStorageUsedPercentage because it calls
+		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
 		return storage
 	}
