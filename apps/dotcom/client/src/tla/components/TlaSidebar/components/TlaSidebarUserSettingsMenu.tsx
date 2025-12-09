@@ -7,19 +7,24 @@ import {
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	useDialogs,
 	useValue,
 } from 'tldraw'
 import { isDevelopmentEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
+	markWhatsNewAsSeen,
 	toggleFairies,
 	toggleFairiesDebug,
 	useAreFairiesDebugEnabled,
 	useAreFairiesEnabled,
+	useHasNewWhatsNewContent,
 } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import { TlaWhatsNewDialog } from '../../dialogs/TlaWhatsNewDialog'
 import {
 	ColorThemeSubmenu,
 	DebugMenuGroup,
@@ -33,12 +38,21 @@ const messages = defineMessages({
 	fairies: { defaultMessage: 'Fairies' },
 	enableFairies: { defaultMessage: 'Enable fairies' },
 	debugFairies: { defaultMessage: 'Debug fairies' },
+	whatsNew: { defaultMessage: "What's new" },
 })
 
 export function TlaUserSettingsMenu() {
 	const app = useApp()
+	const { addDialog } = useDialogs()
 	const userMenuLbl = useMsg(messages.userMenu)
+	const whatsNewLbl = useMsg(messages.whatsNew)
 	const user = useValue('auth', () => app.getUser(), [app])
+	const hasNewWhatsNew = useHasNewWhatsNewContent()
+
+	const handleWhatsNewClick = () => {
+		markWhatsNewAsSeen()
+		addDialog({ component: TlaWhatsNewDialog })
+	}
 
 	if (!user) return null
 
@@ -59,6 +73,7 @@ export function TlaUserSettingsMenu() {
 							)}
 						>
 							{user.name || <F defaultMessage="Account" />}
+							{hasNewWhatsNew && <div className={styles.notificationDot} />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
@@ -68,6 +83,17 @@ export function TlaUserSettingsMenu() {
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={4} sideOffset={4}>
 					<TldrawUiMenuGroup id="files">
 						<ImportFileActionItem />
+					</TldrawUiMenuGroup>
+					<TldrawUiMenuGroup
+						id="whats-new"
+						className={hasNewWhatsNew ? styles.whatsNewMenuGroup : undefined}
+					>
+						<TldrawUiMenuItem
+							id="whats-new"
+							label={whatsNewLbl}
+							onSelect={handleWhatsNewClick}
+							readonlyOk
+						/>
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
