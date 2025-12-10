@@ -15,6 +15,7 @@ import { SerializedSchemaV2 } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
+import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
@@ -74,6 +75,26 @@ export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal
 export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
+
+// @public
+export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
+    constructor(storage: {
+        sql: {
+            exec(sql: string, ...bindings: unknown[]): Iterable<any> & {
+                toArray(): any[];
+            };
+        };
+        transactionSync(callback: () => any): any;
+    }, config?: TLSyncSqliteWrapperConfig | undefined);
+    // (undocumented)
+    config?: TLSyncSqliteWrapperConfig | undefined;
+    // (undocumented)
+    exec(sql: string): void;
+    // (undocumented)
+    prepare<TResult extends TLSqliteRow | void = void, TParams extends TLSqliteInputValue[] = []>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
+    // (undocumented)
+    transaction<T>(callback: () => T): T;
+}
 
 // @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
@@ -143,6 +164,19 @@ export interface MinimalDocStore<R extends UnknownRecord> {
 export interface NetworkDiff<R extends UnknownRecord> {
     // (undocumented)
     [id: string]: RecordOp<R>;
+}
+
+// @public
+export class NodeSqliteWrapper implements TLSyncSqliteWrapper {
+    constructor(db: SyncSqliteDatabase, config?: TLSyncSqliteWrapperConfig | undefined);
+    // (undocumented)
+    config?: TLSyncSqliteWrapperConfig | undefined;
+    // (undocumented)
+    exec(sql: string): void;
+    // (undocumented)
+    prepare<TResult extends TLSqliteRow | void = void, TParams extends TLSqliteInputValue[] = TLSqliteInputValue[]>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
+    // (undocumented)
+    transaction<T>(callback: () => T): T;
 }
 
 // @internal
@@ -267,7 +301,43 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 }
 
 // @public
+export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
+    constructor({ sql, snapshot, onChange, }: {
+        onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
+        snapshot?: RoomSnapshot | StoreSnapshot<R>;
+        sql: TLSyncSqliteWrapper;
+    });
+    // (undocumented)
+    getClock(): number;
+    // @internal (undocumented)
+    _getSchema(): SerializedSchema;
+    // (undocumented)
+    getSnapshot(): RoomSnapshot;
+    // @internal (undocumented)
+    _getTombstoneHistoryStartsAtClock(): number;
+    static hasBeenInitialized(storage: TLSyncSqliteWrapper): boolean;
+    // (undocumented)
+    onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
+    // @internal (undocumented)
+    pruneTombstones: DebouncedFunc<() => void>;
+    // @internal (undocumented)
+    _setSchema(schema: SerializedSchema): void;
+    // (undocumented)
+    transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
+}
+
+// @public
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
+
+// @public
+export interface SyncSqliteDatabase {
+    exec(sql: string): void;
+    prepare(sql: string): {
+        all(...params: unknown[]): unknown[];
+        iterate(...params: unknown[]): IterableIterator<unknown>;
+        run(...params: unknown[]): unknown;
+    };
+}
 
 // @internal
 export interface TLConnectRequest {
@@ -482,6 +552,15 @@ export type TLSocketStatusChangeEvent = {
 export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void;
 
 // @public
+export type TLSqliteInputValue = bigint | null | number | string;
+
+// @public
+export type TLSqliteOutputValue = bigint | null | number | string | Uint8Array;
+
+// @public
+export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
+
+// @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
         didCancel?(): boolean;
@@ -591,6 +670,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+}
+
+// @public
+export interface TLSyncSqliteStatement<TResult extends TLSqliteRow | void, TParams extends TLSqliteInputValue[] = []> {
+    all(...bindings: TParams): TResult[];
+    iterate(...bindings: TParams): IterableIterator<TResult>;
+    run(...bindings: TParams): void;
+}
+
+// @public
+export interface TLSyncSqliteWrapper {
+    readonly config?: TLSyncSqliteWrapperConfig;
+    exec(sql: string): void;
+    prepare<TResult extends TLSqliteRow | void, TParams extends TLSqliteInputValue[] = []>(sql: string): TLSyncSqliteStatement<TResult, TParams>;
+    transaction<T>(callback: () => T): T;
+}
+
+// @public
+export interface TLSyncSqliteWrapperConfig {
+    tablePrefix?: string;
 }
 
 // @public

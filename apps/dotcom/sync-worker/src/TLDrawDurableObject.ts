@@ -23,6 +23,7 @@ import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	InMemorySyncStorage,
 	RoomSnapshot,
+	SqlLiteSyncStorage,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
@@ -96,40 +97,40 @@ export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
-	_storage: Promise<TLSyncStorage<TLRecord>> | null = null
+	private _storage: Promise<TLSyncStorage<TLRecord>> | null = null
 
-	getStorage(): Promise<TLSyncStorage<TLRecord>> {
+	protected async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+		const result = await this.loadFromDatabase(slug)
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+		// We should not await on setRoomStorageUsedPercentage because it calls
+		// getStorage under the hood which will only resolve once this function has returned.
+		this.setRoomStorageUsedPercentage(result.roomSizeMB)
+		return storage
+	}
+
+	private getStorage(): Promise<TLSyncStorage<TLRecord>> {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
-		const slug = this._documentInfo.slug
 		if (!this._storage) {
-			this._storage = this.loadFromDatabase(slug).then(async (result) => {
-				switch (result.type) {
-					case 'room_found': {
-						const storage = new InMemorySyncStorage<TLRecord>({
-							snapshot: result.snapshot,
-							onChange: () => {
-								this.triggerPersist()
-							},
-						})
-						storage.transaction((txn) => {
-							createTLSchema().migrateStorage(txn)
-						})
-						this.setRoomStorageUsedPercentage(storage, result.roomSizeMB)
-						return storage
-					}
-					case 'room_not_found': {
-						throw ROOM_NOT_FOUND
-					}
-					case 'error': {
-						throw result.error
-					}
-					default: {
-						exhaustiveSwitchError(result)
-					}
-				}
+			this._storage = retry(() => this.loadStorage(this.documentInfo.slug), {
+				// Allow ROOM_NOT_FOUND to bubble up since it means the room doesn't exist
+				// and there's no point in retrying.
+				matchError: (error) => error !== ROOM_NOT_FOUND,
 			})
+				.then((storage) => {
+					storage.onChange(() => {
+						this.triggerPersist()
+					})
+					storage.transaction((txn) => {
+						createTLSchema().migrateStorage(txn)
+					})
+					return storage
+				})
+				.catch((error) => {
+					this.reportError(error)
+					throw error
+				})
 		}
 		return this._storage
 	}
@@ -173,8 +174,10 @@ export class TLDrawDurableObject extends DurableObject {
 						// make sure nobody joined the room while we were persisting
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
-						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 						room.close()
+						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+						this._db?.destroy()
+						this._db = null
 					},
 					onBeforeSendMessage: ({ message, stringified }) => {
 						this.logEvent({
@@ -216,7 +219,15 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_documentInfo: DocumentInfo | null = null
 
-	db: Kysely<DB>
+	_db: Kysely<DB> | null = null
+
+	// eslint-disable-next-line no-restricted-syntax
+	get db() {
+		if (!this._db) {
+			this._db = createPostgresConnectionPool(this.env, 'TLDrawDurableObject')
+		}
+		return this._db
+	}
 
 	private readonly changeSource = 'TLDrawDurableObject'
 
@@ -247,7 +258,6 @@ export class TLDrawDurableObject extends DurableObject {
 				this._documentInfo = existingDocumentInfo
 			}
 		})
-		this.db = createPostgresConnectionPool(env, 'TLDrawDurableObject')
 	}
 
 	readonly router = Router()
@@ -628,11 +638,11 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	async handleFileCreateFromSource() {
+	async handleFileCreateFromSource(): Promise<DBLoadResult> {
 		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
 		const split = this._fileRecordCache.createSource?.split('/')
 		if (!split || split?.length !== 2) {
-			return { type: 'room_not_found' as const }
+			throw ROOM_NOT_FOUND
 		}
 
 		let data: RoomSnapshot | string | null | undefined = undefined
@@ -674,7 +684,7 @@ export class TLDrawDurableObject extends DurableObject {
 		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
-			return { type: 'room_not_found' as const }
+			throw ROOM_NOT_FOUND
 		}
 
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
@@ -686,10 +696,9 @@ export class TLDrawDurableObject extends DurableObject {
 		putTimer.report('create_from_source_r2_put')
 
 		return {
-			type: 'room_found',
 			snapshot,
 			roomSizeMB: roomObject ? roomObject.size / MB : 0,
-		} satisfies DBLoadResult
+		}
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
@@ -708,7 +717,6 @@ export class TLDrawDurableObject extends DurableObject {
 				loadTimer.report('db_load_total')
 
 				return {
-					type: 'room_found',
 					snapshot,
 					roomSizeMB: roomFromBucket.size / MB,
 				}
@@ -730,11 +738,10 @@ export class TLDrawDurableObject extends DurableObject {
 
 				loadTimer.report('db_load_total')
 				if (!file) {
-					return { type: 'room_not_found' }
+					throw ROOM_NOT_FOUND
 				}
 
 				return {
-					type: 'room_found',
 					snapshot: DEFAULT_INITIAL_SNAPSHOT,
 					roomSizeMB: 0,
 				}
@@ -742,7 +749,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			// if we don't have a room in the bucket, try to load from supabase
 			if (!this.supabaseClient) {
-				return { type: 'room_not_found' }
+				throw ROOM_NOT_FOUND
 			}
 
 			const supabaseFetchTimer = this.timer()
@@ -759,19 +766,18 @@ export class TLDrawDurableObject extends DurableObject {
 				loadTimer.report('db_load_total')
 
 				console.error('failed to retrieve document', slug, error)
-				return { type: 'error', error: new Error(error.message) }
+				throw new Error(error.message)
 			}
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
 				loadTimer.report('db_load_total')
-				return { type: 'room_not_found' }
+				throw ROOM_NOT_FOUND
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
 			loadTimer.report('db_load_total')
 
 			return {
-				type: 'room_found',
 				snapshot: roomFromSupabase.drawing,
 				roomSizeMB: 0,
 			}
@@ -781,7 +787,7 @@ export class TLDrawDurableObject extends DurableObject {
 			loadTimer.report('db_load_total_error')
 
 			console.error('failed to fetch doc', slug, error)
-			return { type: 'error', error: error as Error }
+			throw error
 		}
 	}
 
@@ -881,7 +887,8 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
-	private async setRoomStorageUsedPercentage(storage: TLSyncStorage<TLRecord>, roomSizeMB: number) {
+	protected async setRoomStorageUsedPercentage(roomSizeMB: number) {
+		const storage = await this.getStorage()
 		const percentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
 		storage.transaction((txn) => {
 			const document = txn.get(TLDOCUMENT_ID) as TLDocument
@@ -916,7 +923,10 @@ export class TLDrawDurableObject extends DurableObject {
 						if (!this._room) return
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
-						assert(storage instanceof InMemorySyncStorage, 'storage must be an InMemorySyncStorage')
+						assert(
+							storage instanceof InMemorySyncStorage || storage instanceof SqlLiteSyncStorage,
+							'storage must be an InMemorySyncStorage or SqlLiteSyncStorage'
+						)
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
@@ -925,7 +935,7 @@ export class TLDrawDurableObject extends DurableObject {
 						this.maybeAssociateFileAssets()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-						await this._uploadSnapshotToR2(storage, snapshot, key)
+						await this._uploadSnapshotToR2(snapshot, key)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = snapshot.documentClock
@@ -964,16 +974,12 @@ export class TLDrawDurableObject extends DurableObject {
 			})
 	}
 
-	private async _uploadSnapshotToR2(
-		storage: InMemorySyncStorage<TLRecord>,
-		snapshot: RoomSnapshot,
-		key: string
-	) {
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
 		// Update storage percentage
 		if (roomSizeMB !== null) {
-			await this.setRoomStorageUsedPercentage(storage, roomSizeMB)
+			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
 		// Then upload to version cache
