@@ -939,6 +939,9 @@ export class TLDrawDurableObject extends DurableObject {
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = snapshot.documentClock
+						// Store the clock in DO storage so we can compare against SQLite on next load.
+						// This enables safe flag toggling for sqlite_file_storage.
+						this.ctx.storage.put('lastPersistedR2Clock', snapshot.documentClock)
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
 							this.persistenceBad = false
