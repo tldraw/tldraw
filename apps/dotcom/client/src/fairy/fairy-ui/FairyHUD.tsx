@@ -6,7 +6,6 @@ import { useFairyApp } from '../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../fairy-messages'
 import { FairyChatHistory } from './chat/FairyChatHistory'
 import { FairyFeedDialog } from './feed/FairyFeedDialog'
-import { hasUnseenFeedItems } from './feed/feedUtils'
 import { FairyHUDHeader } from './hud/FairyHUDHeader'
 import { FairySingleChatInput } from './hud/FairySingleChatInput'
 import { useFairySelection } from './hud/useFairySelection'
@@ -29,7 +28,6 @@ export function FairyHUD() {
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const hudRef = useRef<HTMLDivElement>(null)
-	const [lastSeenFeedTimestamp, setLastSeenFeedTimestamp] = useState<number>(Date.now())
 	const wasFeedDialogOpenRef = useRef(false)
 
 	// Track if feed dialog is open
@@ -79,13 +77,6 @@ export function FairyHUD() {
 	const selectMessage = useMsg(fairyMessages.selectFairy)
 	const manualLabel = useMsg(fairyMessages.manual)
 
-	// Track if there are unseen feed items (new items since last viewing)
-	const hasUnseenFeedItemsValue = useValue(
-		'hasUnseenFeedItems',
-		() => hasUnseenFeedItems(agents, activeOrchestratorAgent, lastSeenFeedTimestamp),
-		[activeOrchestratorAgent, agents, lastSeenFeedTimestamp]
-	)
-
 	// Update feed dialog state in FairyApp
 	useEffect(() => {
 		if (fairyApp) {
@@ -98,7 +89,6 @@ export function FairyHUD() {
 	// Also hard delete any soft deleted projects when feed closes
 	useEffect(() => {
 		if (wasFeedDialogOpenRef.current && !isFeedDialogOpen) {
-			setLastSeenFeedTimestamp(Date.now())
 			// Hard delete any soft deleted projects when feed closes
 			if (fairyApp) {
 				fairyApp.projects.hardDeleteSoftDeletedProjects()
@@ -114,7 +104,6 @@ export function FairyHUD() {
 			return
 		}
 
-		setLastSeenFeedTimestamp(Date.now())
 		addDialog({
 			id: FAIRY_FEED_DIALOG_ID,
 			component: () => (
@@ -165,8 +154,6 @@ export function FairyHUD() {
 								isMobile={isMobile}
 								onToggleManual={handleToggleManual}
 								onToggleFeed={handleToggleFeed}
-								hasUnseenFeedItems={hasUnseenFeedItemsValue}
-								isFeedDialogOpen={isFeedDialogOpen}
 							/>
 							{/* Solo fairy mode - no project */}
 							{panelState === 'fairy-solo' && shownFairy && (
