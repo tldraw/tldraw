@@ -62,7 +62,7 @@ describe('FairyAppWaitManager', () => {
 			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
 			const notifySpy = vi
 				.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
-				.mockImplementation(() => {})
+				.mockResolvedValue(undefined)
 
 			manager.notifyWaitingAgents({
 				event: { type: 'task-completed', task: testTask },
@@ -75,6 +75,7 @@ describe('FairyAppWaitManager', () => {
 			expect(notifySpy).toHaveBeenCalledWith({
 				agentMessages: ['Test message'],
 				userMessages: ['User message'],
+				bounds: undefined,
 			})
 		})
 
@@ -104,6 +105,7 @@ describe('FairyAppWaitManager', () => {
 			}
 
 			vi.spyOn(agent.waits, 'getWaitingFor').mockReturnValue([waitCondition])
+			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
 			const notifySpy = vi.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
 
 			manager.notifyWaitingAgents({
@@ -111,7 +113,53 @@ describe('FairyAppWaitManager', () => {
 				getAgentFacingMessage: () => 'Test message',
 			})
 
+			expect(waitForAllSpy).not.toHaveBeenCalled()
 			expect(notifySpy).not.toHaveBeenCalled()
+		})
+
+		it('should pass bounds when getBounds is provided', () => {
+			const options = {
+				onError: vi.fn(),
+				getToken: vi.fn().mockResolvedValue('token'),
+			}
+
+			fairyApp.agents.syncAgentsWithConfigs({}, options)
+			const agents = fairyApp.agents.getAgents()
+			const agent = agents[0]!
+
+			const testTask: FairyTask = {
+				id: toTaskId('test-task-1'),
+				title: 'Test Task',
+				text: 'Test description',
+				status: 'done',
+				projectId: null,
+				assignedTo: null,
+			}
+
+			const waitCondition: FairyWaitCondition<TaskCompletedEvent> = {
+				eventType: 'task-completed',
+				matcher: (event) => event.task.id === toTaskId('test-task-1'),
+				id: 'test-wait-condition',
+			}
+
+			const testBounds = { x: 10, y: 20, w: 100, h: 50 }
+
+			vi.spyOn(agent.waits, 'getWaitingFor').mockReturnValue([waitCondition])
+			const notifySpy = vi
+				.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
+				.mockResolvedValue(undefined)
+
+			manager.notifyWaitingAgents({
+				event: { type: 'task-completed', task: testTask },
+				getAgentFacingMessage: () => 'Test message',
+				getBounds: () => testBounds,
+			})
+
+			expect(notifySpy).toHaveBeenCalledWith({
+				agentMessages: ['Test message'],
+				userMessages: undefined,
+				bounds: testBounds,
+			})
 		})
 	})
 
@@ -164,7 +212,7 @@ describe('FairyAppWaitManager', () => {
 				})
 			)
 
-			// Verify bounds are correct - getBounds ignores parameters and returns the bounds
+			// Verify bounds are correct - getBounds function returns the bounds
 			const callArgs = notifySpy.mock.calls[0]![0]
 			const bounds = callArgs.getBounds?.(toAgentId('test-agent'), {
 				eventType: 'task-completed',
