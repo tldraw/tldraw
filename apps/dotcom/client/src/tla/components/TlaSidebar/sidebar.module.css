@@ -352,14 +352,6 @@
 	color: var(--tla-color-text-3);
 }
 
-.notificationDot {
-	width: 8px;
-	height: 8px;
-	background-color: #2d7ff9;
-	border-radius: 50%;
-	flex-shrink: 0;
-}
-
 .whatsNewMenuGroup :global(.tlui-button__label)::after {
 	content: '';
 	display: inline-block;
@@ -384,10 +376,6 @@
 	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
 		visibility: visible;
 		color: var(--tla-color-text-1);
-	}
-
-	.notificationDot {
-		visibility: visible;
 	}
 }
 

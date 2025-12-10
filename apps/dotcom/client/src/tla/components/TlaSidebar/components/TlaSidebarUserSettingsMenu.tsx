@@ -73,7 +73,6 @@ export function TlaUserSettingsMenu() {
 							)}
 						>
 							{user.name || <F defaultMessage="Account" />}
-							{hasNewWhatsNew && <div className={styles.notificationDot} />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
