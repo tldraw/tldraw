@@ -74,6 +74,53 @@ describe('SqlLiteSyncStorage', () => {
 				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 		})
+
+		describe('getDocumentClock', () => {
+			it('returns null for empty database', () => {
+				const sql = createWrapper()
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(null)
+			})
+
+			it('returns 0 for newly initialized storage with default snapshot', () => {
+				const sql = createWrapper()
+				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+			})
+
+			it('returns the documentClock value from snapshot', () => {
+				const sql = createWrapper()
+				const snapshot = makeSnapshot(defaultRecords)
+				snapshot.documentClock = 42
+				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(42)
+			})
+
+			it('returns updated clock after transactions', () => {
+				const sql = createWrapper()
+				const storage = new SqlLiteSyncStorage<TLRecord>({
+					sql,
+					snapshot: makeSnapshot(defaultRecords),
+				})
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+
+				const newPage = PageRecordType.create({
+					id: PageRecordType.createId('test_page'),
+					name: 'Test Page',
+					index: 'a1' as IndexKey,
+				})
+				storage.transaction((txn) => {
+					txn.set(newPage.id, newPage)
+				})
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(1)
+			})
+
+			it('respects table prefix', () => {
+				const sql = createWrapper({ tablePrefix: 'test_' })
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(null)
+				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+			})
+		})
 	})
 
 	describe('Constructor', () => {

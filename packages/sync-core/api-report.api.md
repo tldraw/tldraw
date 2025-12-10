@@ -309,6 +309,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
     });
     // (undocumented)
     getClock(): number;
+    static getDocumentClock(storage: TLSyncSqliteWrapper): null | number;
     // @internal (undocumented)
     _getSchema(): SerializedSchema;
     // (undocumented)

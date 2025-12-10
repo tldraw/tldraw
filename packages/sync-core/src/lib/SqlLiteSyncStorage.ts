@@ -189,6 +189,27 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 		}
 	}
 
+	/**
+	 * Get the current document clock value from storage without fully initializing.
+	 * Returns null if storage has not been initialized.
+	 * Useful for comparing storage freshness against external sources.
+	 */
+	static getDocumentClock(storage: TLSyncSqliteWrapper): number | null {
+		const prefix = storage.config?.tablePrefix ?? ''
+		try {
+			const row = storage
+				.prepare<{ documentClock: number }>(`SELECT documentClock FROM ${prefix}metadata LIMIT 1`)
+				.all()[0]
+			// documentClock exists but could be 0, so we check if the storage is initialized
+			if (row && SqlLiteSyncStorage.hasBeenInitialized(storage)) {
+				return row.documentClock
+			}
+			return null
+		} catch (_e) {
+			return null
+		}
+	}
+
 	// Prepared statements - created once, reused many times
 	private readonly stmts
 
