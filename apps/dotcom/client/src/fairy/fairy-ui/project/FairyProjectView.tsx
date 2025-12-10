@@ -209,6 +209,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				const offset = (index + 1) * 120
 				const position = { x: leaderPosition.x + offset, y: leaderPosition.y }
 				agent.position.moveTo(position)
+				agent.updateEntity((f) => ({ ...f, flipX: true }))
 			})
 
 			// Send the prompt to the leader
