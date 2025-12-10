@@ -189,6 +189,14 @@ export class EditingShape extends StateNode {
 	}
 
 	override onPointerUp(info: TLPointerEventInfo) {
+		if (this.didPointerDownOnEditingShape) {
+			this.didPointerDownOnEditingShape = false
+			if (!this.isTextInputFocused()) {
+				this.editor.getRichTextEditor()?.commands.focus('all')
+				return
+			}
+		}
+
 		// If we're not dragging, and it's a hit to the label, begin editing the shape.
 		const hitShape = this.hitLabelOnShapeForPointerUp
 		if (!hitShape) return

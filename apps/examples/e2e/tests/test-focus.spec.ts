@@ -256,4 +256,49 @@ test.describe('Focus', () => {
 
 		await page.mouse.up()
 	})
+
+	test('re-focuses and selects all text when clicking text label with blurred input', async ({
+		page,
+	}) => {
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForSelector('.tl-canvas')
+
+		// Create a geo shape with text
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 200)
+		await page.mouse.click(400, 400)
+
+		// Double-click to edit the shape and type some text
+		await page.mouse.dblclick(300, 300)
+		await page.waitForTimeout(100)
+		await page.keyboard.type('test')
+		await page.waitForTimeout(100)
+
+		// Verify we're in edit mode
+		expect(
+			await page.evaluate(() => !!document.querySelector('.tl-shape [contenteditable]:focus'))
+		).toBe(true)
+
+		// Blur the input by clicking outside
+		await page.mouse.click(100, 100)
+		await page.waitForTimeout(100)
+
+		// Verify input is no longer focused
+		expect(
+			await page.evaluate(() => !!document.querySelector('.tl-shape [contenteditable]:focus'))
+		).toBe(false)
+
+		// Click within text label (should re-focus and select all text)
+		await page.mouse.click(300, 300)
+		await page.waitForTimeout(100)
+
+		// Verify input is focused again
+		expect(
+			await page.evaluate(() => !!document.querySelector('.tl-shape [contenteditable]:focus'))
+		).toBe(true)
+
+		// Verify all text is selected
+		const selectedText = await page.evaluate(() => window.getSelection()?.toString())
+		expect(selectedText).toBe('test')
+	})
 })
