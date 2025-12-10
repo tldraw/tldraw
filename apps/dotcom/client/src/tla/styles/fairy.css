@@ -478,25 +478,6 @@
 	z-index: 1;
 }
 
-/* Feed Button */
-
-.fairy-feed-button {
-	position: relative;
-}
-
-.fairy-feed-button[data-has-unseen='true']::before {
-	content: '';
-	position: absolute;
-	top: 10px;
-	right: 8px;
-	width: 8px;
-	height: 8px;
-	background-color: var(--tl-color-fairy-lips-hover);
-	border-radius: 50%;
-	z-index: 10;
-	pointer-events: none;
-}
-
 /* Manual Panel Content */
 
 .fairy-manual-content-container {
