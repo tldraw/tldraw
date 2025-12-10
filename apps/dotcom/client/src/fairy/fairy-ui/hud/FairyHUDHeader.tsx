@@ -37,8 +37,6 @@ interface FairyHUDHeaderProps {
 	isMobile: boolean
 	onToggleManual?(): void
 	onToggleFeed?(): void
-	hasUnseenFeedItems?: boolean
-	isFeedDialogOpen?: boolean
 }
 
 export function FairyHUDHeader({
@@ -50,8 +48,6 @@ export function FairyHUDHeader({
 	allAgents,
 	onToggleManual,
 	onToggleFeed,
-	hasUnseenFeedItems,
-	isFeedDialogOpen,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -246,12 +242,7 @@ export function FairyHUDHeader({
 			<div className="tlui-row">
 				{panelState === 'fairy-project' && (
 					<TldrawUiTooltip content="Live feed" side="top">
-						<TldrawUiButton
-							type="icon"
-							className="fairy-toolbar-button fairy-feed-button"
-							onClick={onToggleFeed}
-							data-has-unseen={hasUnseenFeedItems && !isFeedDialogOpen}
-						>
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
 							<TldrawUiButtonIcon icon="comment" small />
 						</TldrawUiButton>
 					</TldrawUiTooltip>
