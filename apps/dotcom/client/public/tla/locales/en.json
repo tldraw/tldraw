@@ -434,6 +434,9 @@
   "94186070ef": {
     "translation": "Deselect"
   },
+  "9489b2f82a": {
+    "translation": "You are already a member of this group"
+  },
   "94966d9074": {
     "translation": "Send"
   },
@@ -659,9 +662,6 @@
   },
   "dcdaa754fe": {
     "translation": "Invalid tldraw file URL"
-  },
-  "de290d52ef": {
-    "translation": "Select a fairy on the right to chat with"
   },
   "df6ff49394": {
     "translation": "Fairies are a <strong>temporary</strong> feature. On January 1st, 2026, all fairies will be removed from the application. Perhaps they will return again someday. Your purchase is for access to fairies for December 2025 only."

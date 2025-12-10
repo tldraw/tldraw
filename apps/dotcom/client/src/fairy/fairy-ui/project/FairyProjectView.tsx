@@ -168,6 +168,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
 				],
 				plan: '',
+				softDeleted: false,
 			}
 
 			trackEvent('fairy-start-project', {
@@ -178,6 +179,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			if (fairyApp) {
+				fairyApp.projects.hardDeleteSoftDeletedProjects()
 				fairyApp.projects.addProject(newProject)
 
 				// Select all fairies in the newly created project

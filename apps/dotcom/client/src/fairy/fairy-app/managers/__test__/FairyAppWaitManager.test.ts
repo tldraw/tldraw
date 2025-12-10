@@ -73,8 +73,8 @@ describe('FairyAppWaitManager', () => {
 			expect(getWaitingForSpy).toHaveBeenCalled()
 			expect(waitForAllSpy).toHaveBeenCalledWith([])
 			expect(notifySpy).toHaveBeenCalledWith({
-				agentFacingMessage: 'Test message',
-				userFacingMessage: 'User message',
+				agentMessages: ['Test message'],
+				userMessages: ['User message'],
 			})
 		})
 
@@ -179,10 +179,48 @@ describe('FairyAppWaitManager', () => {
 
 			manager.notifyTaskCompleted(task)
 
-			expect(notifySpy).toHaveBeenCalledWith({
-				event: { type: 'task-completed', task },
-				getAgentFacingMessage: expect.any(Function),
+			expect(notifySpy).toHaveBeenCalledWith(
+				expect.objectContaining({
+					event: { type: 'task-completed', task },
+					getAgentFacingMessage: expect.any(Function),
+				})
+			)
+		})
+
+		it('should include bounds when task has bounds', () => {
+			const task: FairyTask = {
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				text: 'Test description',
+				status: 'done',
+				projectId: null,
+				assignedTo: null,
+				x: 10,
+				y: 20,
+				w: 100,
+				h: 50,
+			}
+
+			const notifySpy = vi.spyOn(manager, 'notifyWaitingAgents')
+
+			manager.notifyTaskCompleted(task)
+
+			expect(notifySpy).toHaveBeenCalledWith(
+				expect.objectContaining({
+					event: { type: 'task-completed', task },
+					getAgentFacingMessage: expect.any(Function),
+					getBounds: expect.any(Function),
+				})
+			)
+
+			// Verify bounds are correct - getBounds ignores parameters and returns the bounds
+			const callArgs = notifySpy.mock.calls[0]![0]
+			const bounds = callArgs.getBounds?.(toAgentId('test-agent'), {
+				eventType: 'task-completed',
+				matcher: () => true,
+				id: 'test',
 			})
+			expect(bounds).toEqual({ x: 10, y: 20, w: 100, h: 50 })
 		})
 	})
 

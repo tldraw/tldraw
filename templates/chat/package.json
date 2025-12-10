@@ -34,7 +34,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"ai": "^5.0.63",
-		"next": "^15.4.6",
+		"next": "^15.4.8",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-markdown": "^10.1.0",

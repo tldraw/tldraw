@@ -410,6 +410,8 @@
 	white-space: nowrap;
 	max-width: 100%;
 	padding-left: 12px;
+	display: flex;
+	align-items: center;
 }
 
 .fairy-spinner-container {
@@ -474,6 +476,25 @@
 	background-color: #2d7ff9;
 	border-radius: 50%;
 	z-index: 1;
+}
+
+/* Feed Button */
+
+.fairy-feed-button {
+	position: relative;
+}
+
+.fairy-feed-button[data-has-unseen='true']::before {
+	content: '';
+	position: absolute;
+	top: 10px;
+	right: 8px;
+	width: 8px;
+	height: 8px;
+	background-color: var(--tl-color-fairy-lips-hover);
+	border-radius: 50%;
+	z-index: 10;
+	pointer-events: none;
 }
 
 /* Manual Panel Content */
@@ -1085,10 +1106,136 @@
 	animation: fairy-shimmer 2s ease-in-out infinite;
 }
 
-.fairy-avatar {
-	opacity: 0.5;
-	width: 15px;
-	height: 15px;
+.fairy-feed-view {
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+}
+
+.fairy-feed-view span:not(button *),
+.fairy-feed-view div:not(button *),
+.fairy-feed-view p:not(button *),
+.fairy-feed-view strong:not(button *),
+.fairy-feed-view h1:not(button *),
+.fairy-feed-view h2:not(button *),
+.fairy-feed-view h3:not(button *),
+.fairy-feed-view h4:not(button *),
+.fairy-feed-view h5:not(button *),
+.fairy-feed-view h6:not(button *),
+.fairy-feed-view ul:not(button *),
+.fairy-feed-view ol:not(button *),
+.fairy-feed-view li:not(button *),
+.fairy-feed-view code:not(button *),
+.fairy-feed-view pre:not(button *),
+.fairy-feed-view blockquote:not(button *),
+.fairy-feed-view em:not(button *),
+.fairy-feed-view a:not(button *),
+.fairy-feed-view table:not(button *),
+.fairy-feed-view thead:not(button *),
+.fairy-feed-view tbody:not(button *),
+.fairy-feed-view tr:not(button *),
+.fairy-feed-view td:not(button *),
+.fairy-feed-view th:not(button *) {
+	user-select: text;
+	cursor: initial;
+}
+
+.fairy-feed-view-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+}
+
+.fairy-feed-irc {
+	font-family: var(--tl-font-mono);
+	display: grid;
+	grid-template-columns: 50px auto 1fr;
+	column-gap: 8px;
+	padding-bottom: 8px;
+
+	/* Override fairy hat colors with more saturated versions for better IRC feed readability */
+	--tl-color-fairy-pink: #d946a0;
+	--tl-color-fairy-purple: #8b5cf6;
+	--tl-color-fairy-peach: #f97316;
+	--tl-color-fairy-coral: #f43f5e;
+	--tl-color-fairy-teal: #14b8a6;
+	--tl-color-fairy-gold: #eab308;
+	--tl-color-fairy-rose: #ec4899;
+	--tl-color-fairy-green: #22c55e;
+	--tl-color-fairy-mint: #2dd4bf;
+	--tl-color-fairy-sky: #0ea5e9;
+	--tl-color-fairy-azure: #06b6d4;
+	--tl-color-fairy-periwinkle: #818cf8;
+}
+
+.fairy-feed-irc-line {
+	display: contents;
+	letter-spacing: -0.25px;
+}
+
+.fairy-feed-irc-time {
+	white-space: nowrap;
+	padding: 1px 0;
+}
+
+.fairy-feed-irc-name {
+	font-weight: 600;
+	white-space: nowrap;
+	padding: 1px 0;
+}
+
+.fairy-feed-irc-message {
+	color: var(--tl-color-text-1);
+	min-width: 0;
+	word-wrap: break-word;
+	padding: 1px 0;
+}
+
+/* Fairy Feed Dialog */
+
+.fairy-feed-dialog {
+	display: flex;
+	flex-direction: column;
+	width: 700px;
+	height: 730px;
+	max-width: 100%;
+	max-height: 100%;
+	overflow-y: auto;
+}
+
+.fairy-feed-dialog-header {
+	padding: 12px 16px;
+	padding-right: 0px;
+}
+
+.fairy-feed-dialog-body {
+	font-size: 12px;
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	padding: 0px 12px;
+}
+
+.fairy-feed-irc-name-container {
+	display: flex;
+	align-items: flex-start;
+	gap: 4px;
+}
+
+/* Hide all scrollbars in the feed dialog body */
+.fairy-feed-dialog-body,
+.fairy-feed-dialog-body * {
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
+}
+
+.fairy-feed-dialog-body::-webkit-scrollbar,
+.fairy-feed-dialog-body *::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
 }
 
 /* Fairy Info View */
@@ -1984,18 +2131,18 @@
 	pointer-events: none;
 }
 
-.fairy-container__in-throw-tool {
+.fairy-container__throwing {
 	cursor: grabbing;
 }
 
-.fairy-container__generating:not(.fairy-container__in-throw-tool) {
+.fairy-container__generating:not(.fairy-container__throwing) {
 	transition:
 		left 0.1s ease-in-out,
 		top 0.1s ease-in-out;
 }
 
 .fairy-container__not-generating,
-.fairy-container__in-throw-tool {
+.fairy-container__throwing {
 	transition: none;
 }
 

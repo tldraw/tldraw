@@ -50,6 +50,7 @@ import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
 import { FairyAgentChatOriginManager } from './managers/FairyAgentChatOriginManager'
 import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
+import { FairyAgentLintManager } from './managers/FairyAgentLintManager'
 import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
 import { FairyAgentPositionManager } from './managers/FairyAgentPositionManager'
 import { FairyAgentRequestManager } from './managers/FairyAgentRequestManager'
@@ -124,6 +125,9 @@ export class FairyAgent {
 	/** The wait manager associated with this agent. */
 	waits: FairyAgentWaitManager
 
+	/** The lint manager associated with this agent. */
+	lints: FairyAgentLintManager
+
 	/** The fairy entity associated with this agent. */
 	private $fairyEntity: Atom<FairyEntity>
 
@@ -170,9 +174,10 @@ export class FairyAgent {
 
 	/**
 	 * Get the current project that the agent is working on.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProject(): FairyProject | null {
-		return this.fairyApp.projects.getProjectByAgentId(this.id) ?? null
+	getProject(includeSoftDeleted: boolean = false): FairyProject | null {
+		return this.fairyApp.projects.getProjectByAgentId(this.id, includeSoftDeleted) ?? null
 	}
 
 	getEntity(): FairyEntity {
@@ -238,6 +243,7 @@ export class FairyAgent {
 		this.usage = new FairyAgentUsageTracker(this)
 		this.userAction = new FairyAgentUserActionTracker(this)
 		this.waits = new FairyAgentWaitManager(this)
+		this.lints = new FairyAgentLintManager(this)
 
 		const spawnPoint = this.position.findFairySpawnPoint()
 
@@ -876,6 +882,9 @@ export class FairyAgent {
 
 		// Reset cumulative usage tracking when starting a new chat
 		this.usage.resetCumulativeUsage()
+
+		// Reset lint tracking when starting a new chat
+		this.lints.reset()
 	}
 
 	/**
@@ -995,6 +1004,8 @@ export class FairyAgent {
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
 								incompleteDiff = null
+								// Track shapes created by this complete action for lint detection
+								agent.lints.trackShapesFromDiff(diff)
 							} else {
 								incompleteDiff = diff
 							}

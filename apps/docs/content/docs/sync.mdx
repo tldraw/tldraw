@@ -120,6 +120,67 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 
 Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
 
+### Storage backends
+
+`TLSocketRoom` requires a storage backend to persist document state. The `@tldraw/sync-core` package provides two options:
+
+#### InMemorySyncStorage (default)
+
+[`InMemorySyncStorage`](?) keeps all document state in memory. It's simple to use but loses data when the process restarts. You'll need to implement your own persistence by listening to the `onChange` callback and saving snapshots to your database.
+
+```tsx
+import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+
+const storage = new InMemorySyncStorage({
+	snapshot: existingData, // optional: load from your database
+	onChange() {
+		// Save to your database when changes occur
+		saveToDatabase(storage.getSnapshot())
+	},
+})
+
+const room = new TLSocketRoom({ storage })
+```
+
+#### SqlLiteSyncStorage (recommended for persistence)
+
+[`SqlLiteSyncStorage`](?) stores document state in SQLite, providing automatic persistence that survives process restarts. This is the recommended approach for production deployments.
+
+**For Cloudflare Durable Objects:**
+
+```tsx
+import { DurableObject } from 'cloudflare:workers'
+import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper, TLSocketRoom } from '@tldraw/sync-core'
+
+export class TLSyncDurableObject extends DurableObject {
+	private room: TLSocketRoom
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env)
+		const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
+		const storage = new SqlLiteSyncStorage({ sql })
+		this.room = new TLSocketRoom({ storage })
+	}
+}
+```
+
+**For Node.js with better-sqlite3 or node:sqlite:**
+
+```tsx
+import Database from 'better-sqlite3' // replace with 'node:sqlite' if using
+import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
+
+const db = new Database('rooms.db')
+const sql = new NodeSqliteWrapper(db)
+const storage = new SqlLiteSyncStorage({ sql })
+const room = new TLSocketRoom({ storage })
+```
+
+<Callout type="info">
+	`SqlLiteSyncStorage` automatically creates and manages its database tables. You can use the
+	`tablePrefix` option to avoid conflicts if you're sharing a database with other data.
+</Callout>
+
 ### Asset storage
 
 As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
@@ -236,12 +297,41 @@ clients on different versions won't be able to collaborate without errors.
 
 If you have been using some other solution for data sync, you can migrate your existing data to the tldraw sync format.
 
-tldraw sync supports loading [`TLStoreSnapshot`](?) snapshots via the [`InMemorySyncStorage`](?) class, so in your data loading code you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
+Both [`InMemorySyncStorage`](?) and [`SqlLiteSyncStorage`](?) support loading [`TLStoreSnapshot`](?) snapshots, so you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
 
-Something like
+**Example with SqlLiteSyncStorage (recommended):**
 
 ```tsx
-import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
+import Database from 'better-sqlite3'
+
+function loadOrMakeRoom(roomId: string, db: Database.Database) {
+	const sql = new NodeSqliteWrapper(db, { tablePrefix: `room_${roomId}_` })
+
+	// Check if we already have data in SQLite
+	if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
+		const storage = new SqlLiteSyncStorage({ sql })
+		return new TLSocketRoom({ storage })
+	}
+
+	// Try to load from legacy system
+	const legacyData = loadRoomDataFromLegacyStore(roomId)
+	if (legacyData) {
+		const snapshot = convertOldDataToSnapshot(legacyData)
+		const storage = new SqlLiteSyncStorage({ sql, snapshot })
+		deleteLegacyRoomData(roomId)
+		return new TLSocketRoom({ storage })
+	}
+
+	// No data - create a new empty room
+	return new TLSocketRoom({ storage: new SqlLiteSyncStorage({ sql }) })
+}
+```
+
+**Example with InMemorySyncStorage:**
+
+```tsx
+import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 
 async function loadOrMakeRoom(roomId: string) {
 	const data = await loadRoomDataFromCurrentStore(roomId)
@@ -268,3 +358,113 @@ async function loadOrMakeRoom(roomId: string) {
 	return new TLSocketRoom({ storage: new InMemorySyncStorage() })
 }
 ```
+
+### Migrating from R2 to SQLite on Cloudflare
+
+If you were previously using R2 to store room snapshots (as shown in earlier versions of the sync-cloudflare template), you can migrate to SQLite storage while preserving existing data.
+
+**Step 1: Update wrangler.toml if needed**
+
+If your Durable Object class was originally created _without_ SQLite support, you need to add a new migration with a new Durable Object class that uses SQLite storage.
+You need to keep the old class for at least one release because it can't be deleted while it's still being used, but you can convert it to an empty class.
+
+```toml
+# Keep existing migration for old class
+[[migrations]]
+tag = "v1"
+new_classes = ["TldrawDurableObject"]
+
+# Add new migration for SQLite-backed class
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["TldrawDurableObjectSqlite"]
+
+[durable_objects]
+bindings = [
+    # Point to the new SQLite-backed class
+    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObjectSqlite" },
+]
+```
+
+**Step 2: Rename your Durable Object and add fallback loading**
+
+Rename your existing class (e.g. `TldrawDurableObject` → `TldrawDurableObjectSqlite`) and update the loading logic to check SQLite first, then fall back to R2:
+
+```tsx
+import {
+	DurableObjectSqliteSyncWrapper,
+	RoomSnapshot,
+	SqlLiteSyncStorage,
+	TLSocketRoom,
+} from '@tldraw/sync-core'
+import { TLRecord, createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema'
+import { AutoRouter, error, IRequest } from 'itty-router'
+
+// Empty stub for the old class name - required until migration is complete
+export class TldrawDurableObject {}
+
+const schema = createTLSchema({ shapes: defaultShapeSchemas })
+
+// Renamed from TldrawDurableObject
+export class TldrawDurableObjectSqlite {
+	private roomPromise: Promise<TLSocketRoom<TLRecord, void>> | null = null
+	private roomId: string | null = null
+
+	constructor(
+		private ctx: DurableObjectState,
+		private env: Env
+	) {
+		// Load roomId from DO storage (needed for R2 fallback)
+		ctx.blockConcurrencyWhile(async () => {
+			this.roomId = (await ctx.storage.get('roomId')) as string | null
+		})
+	}
+
+	// ... handleConnect, router, etc. stay the same ...
+
+	private async loadRoom(): Promise<TLSocketRoom<TLRecord, void>> {
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+
+		// If SQLite already has data, use it directly
+		if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
+			const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
+			return new TLSocketRoom<TLRecord, void>({ schema, storage })
+		}
+
+		// Try to load from R2 (legacy storage, only happens once per room)
+		if (this.roomId) {
+			const r2Object = await this.env.TLDRAW_BUCKET.get(`rooms/${this.roomId}`)
+			if (r2Object) {
+				const snapshot = (await r2Object.json()) as RoomSnapshot
+				const storage = new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
+
+				// Optionally delete the R2 object after successful migration
+				// await this.env.TLDRAW_BUCKET.delete(`rooms/${this.roomId}`)
+
+				return new TLSocketRoom<TLRecord, void>({ schema, storage })
+			}
+		}
+
+		// No existing data - create fresh room
+		const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
+		return new TLSocketRoom<TLRecord, void>({ schema, storage })
+	}
+}
+```
+
+**Step 3: Update your worker exports**
+
+Make sure both classes are exported from your worker entry point:
+
+```tsx
+export { TldrawDurableObject, TldrawDurableObjectSqlite } from './TldrawDurableObject'
+```
+
+This approach:
+
+1. Checks SQLite first (fast path for already-migrated rooms)
+2. Falls back to R2 if SQLite is empty (one-time migration)
+3. Creates fresh storage for new rooms
+4. Optionally deletes R2 data after migration to save storage costs
+
+Once all your rooms have been accessed at least once, the migration is complete. You can then remove the R2 fallback code and the stub `TldrawDurableObject` class.
