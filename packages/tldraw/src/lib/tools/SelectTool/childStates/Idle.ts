@@ -18,7 +18,7 @@ import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { startEditingShape as startEditingShapeHelper } from '../selectHelpers'
+import { startEditingShape } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -466,15 +466,7 @@ export class Idle extends StateNode {
 					// If it's not locked or anything
 					this.editor.canEditShape(onlySelectedShape)
 				) {
-					this.startEditingShape(
-						onlySelectedShape,
-						{
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						},
-						true /* select all */
-					)
+					this.startEditingShape(onlySelectedShape, info, true /* select all text */)
 					return
 				}
 			}
@@ -526,15 +518,7 @@ export class Idle extends StateNode {
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.editor.canEditShape(onlySelectedShape)) {
-					this.startEditingShape(
-						onlySelectedShape,
-						{
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						},
-						true /* select all */
-					)
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					return
 				}
 
@@ -561,14 +545,13 @@ export class Idle extends StateNode {
 	) {
 		this.editor.markHistoryStoppingPoint('editing shape')
 		if (
-			!startEditingShapeHelper(this.editor, shape, {
+			!startEditingShape(this.editor, shape, {
 				selectAll: shouldSelectAll,
 				info,
 			})
 		) {
 			return
 		}
-		this.parent.transition('editing_shape', info)
 	}
 
 	isOverArrowLabelTest(shape: TLShape | undefined) {
@@ -607,14 +590,13 @@ export class Idle extends StateNode {
 		if (!shape) return
 
 		if (
-			!startEditingShapeHelper(this.editor, shape, {
+			!startEditingShape(this.editor, shape, {
 				selectAll: true,
 				info,
 			})
 		) {
 			return
 		}
-		this.parent.transition('editing_shape', info)
 	}
 
 	private nudgeSelectedShapes(ephemeral = false) {

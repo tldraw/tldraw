@@ -29,7 +29,7 @@ export function startEditingShape(
 	editor.select(shape.id)
 	editor.setEditingShape(shape)
 	editor.setCurrentTool('select.editing_shape', {
-		...(options.info ?? {}),
+		...options.info,
 		target: 'shape',
 		shape,
 	})
