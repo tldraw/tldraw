@@ -2135,7 +2135,7 @@
 	cursor: grabbing;
 }
 
-.fairy-container:not(.fairy-container__throwing):not(.fairy-container__poofing) {
+.fairy-container__active:not(.fairy-container__throwing):not(.fairy-container__poofing) {
 	transition:
 		left 0.1s ease-in-out,
 		top 0.1s ease-in-out;
