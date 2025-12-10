@@ -186,10 +186,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		},
 		[app, editor, fileId, intl]
 	)
-	const groupId = useValue('groupId', () => app.getFile(fileId)?.owningGroupId ?? null, [
-		app,
-		fileId,
-	])
 	const handleFileNameChange = useCallback(
 		(name: string) => {
 			if (isOwner) {
@@ -233,7 +229,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
-				groupId={groupId}
+				groupId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
@@ -252,7 +248,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 							source="file-header"
 							fileId={fileId}
 							onRenameAction={handleRenameAction}
-							groupId={groupId}
+							groupId={null}
 						/>
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
