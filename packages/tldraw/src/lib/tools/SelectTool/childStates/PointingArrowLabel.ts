@@ -11,6 +11,7 @@ import {
 	getArrowBodyGeometry,
 	getArrowLabelDefaultPosition,
 } from '../../../shapes/arrow/arrowLabel'
+import { startEditingShape } from '../selectHelpers'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -139,8 +140,10 @@ export class PointingArrowLabel extends StateNode {
 			this.complete()
 		} else if (this.editor.canEditShape(shape)) {
 			// Go into edit mode.
-			this.editor.setEditingShape(shape.id)
-			this.editor.setCurrentTool('select.editing_shape')
+			startEditingShape(this.editor, shape, {
+				// no selectAll; preserve existing behavior of caret placement
+				info: { ...this.info, target: 'shape', shape },
+			})
 		}
 	}
 

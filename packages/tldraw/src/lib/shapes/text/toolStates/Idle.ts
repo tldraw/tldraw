@@ -1,4 +1,5 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHoveredShapeId'
 
 export class Idle extends StateNode {
@@ -28,9 +29,15 @@ export class Idle extends StateNode {
 	override onKeyDown(info: TLKeyboardEventInfo) {
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			if (!this.editor.canEditShape(onlySelectedShape)) return
+			if (!onlySelectedShape) return
 			this.editor.setCurrentTool('select')
-			this.editor.setEditingShape(onlySelectedShape.id)
+			if (
+				!startEditingShape(this.editor, onlySelectedShape, {
+					info: { ...info, target: 'shape', shape: onlySelectedShape },
+				})
+			) {
+				return
+			}
 			this.editor.root.getCurrent()?.transition('editing_shape', {
 				...info,
 				target: 'shape',

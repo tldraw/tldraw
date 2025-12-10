@@ -1,5 +1,5 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
-import { startEditingShapeWithLabel } from '../../../tools/SelectTool/selectHelpers'
+import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
@@ -42,9 +42,8 @@ export class Idle extends StateNode {
 		this.update()
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			if (this.editor.canEditShape(onlySelectedShape)) {
-				startEditingShapeWithLabel(this.editor, onlySelectedShape, true)
-			}
+			if (!onlySelectedShape) return
+			startEditingShape(this.editor, onlySelectedShape, { selectAll: true, info })
 		}
 	}
 

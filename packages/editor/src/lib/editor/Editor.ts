@@ -2283,31 +2283,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		if (!util.canEdit(_shape)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) {
-			// locked and no exception. Note here: we're not distinguishing between a locked shape and
-			// a shape that is the descendant of a locked shape.
-			return false
-		}
+		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
-	}
-
-	/**
-	 * Whether the shape can be cropped.
-	 *
-	 * @param shape - The shape (or shape id) to check if it can be cropped.
-	 *
-	 * @public
-	 * @returns true if the shape can be cropped, false otherwise.
-	 */
-	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false
-		const _shape = this.getShape(id)
-		if (!_shape) return false
-		const util = this.getShapeUtil(_shape)
-		if (!util.canCrop(_shape)) return false
-		if (this.isShapeOrAncestorLocked(_shape)) return false
-		return true
 	}
 
 	/**
@@ -2324,10 +2301,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
-		return this._setEditingShapeInternal(shape)
-	}
-
-	private _setEditingShapeInternal(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		this.setRichTextEditor(null)
 		const prevEditingShapeId = this.getEditingShapeId()
@@ -2571,6 +2544,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Whether the shape can be cropped.
+	 *
+	 * @param shape - The shape (or shape id) to check if it can be cropped.
+	 *
+	 * @public
+	 * @returns true if the shape can be cropped, false otherwise.
+	 */
+	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		if (!id) return false
+		const _shape = this.getShape(id)
+		if (!_shape) return false
+		const util = this.getShapeUtil(_shape)
+		if (!util.canCrop(_shape)) return false
+		if (this.isShapeOrAncestorLocked(_shape)) return false
+		return true
+	}
+
+	/**
 	 * Set the current cropping shape.
 	 *
 	 * @example
@@ -2591,12 +2583,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				() => {
 					if (!id) {
 						this.updateCurrentPageState({ croppingShapeId: null })
-					} else {
-						const shape = this.getShape(id)!
-						const util = this.getShapeUtil(shape)
-						if (shape && util.canCrop(shape)) {
-							this.updateCurrentPageState({ croppingShapeId: id })
-						}
+					} else if (this.canCropShape(id)) {
+						this.updateCurrentPageState({ croppingShapeId: id })
 					}
 				},
 				{ history: 'ignore' }
@@ -9185,6 +9173,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		if (point) {
+			const shapesById = new Map<TLShapeId, TLShape>(shapes.map((shape) => [shape.id, shape]))
+			const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
+			if (rootShapesFromContent.length > 0) {
+				const targetParent = this.getShapeAtPoint(point, {
+					hitInside: true,
+					hitFrameInside: true,
+					hitLocked: true,
+					filter: (shape) => {
+						const util = this.getShapeUtil(shape)
+						if (!util.canReceiveNewChildrenOfType) return false
+						return rootShapesFromContent.every((rootShape) =>
+							util.canReceiveNewChildrenOfType!(shape, rootShape.type)
+						)
+					},
+				})
+
+				// When pasting at a specific point (e.g. paste-at-cursor) prefer the
+				// parent under the pointer so that we don't keep using the original
+				// selection's parent (which can keep shapes clipped inside frames).
+				pasteParentId = targetParent ? targetParent.id : currentPageId
+			}
+		}
+
 		let isDuplicating = false
 
 		if (!isPageId(pasteParentId)) {
@@ -10291,8 +10303,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this.emit('event', info)
 			this.root.handleEvent(info)
+			this.emit('event', info)
 			return
 		}
 

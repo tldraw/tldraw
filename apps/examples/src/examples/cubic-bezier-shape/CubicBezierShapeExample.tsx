@@ -35,7 +35,7 @@ export default function BezierCurveShapeExample() {
 						y: centerY - 150,
 					})
 
-					// Select and mark the shape as editing on appear
+					// Select and edit the shape on appear
 					editor.select(id)
 					editor.setEditingShape(id)
 

@@ -1,6 +1,7 @@
 import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
+import { startEditingShape } from '../selectHelpers'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -151,11 +152,13 @@ export class PointingShape extends StateNode {
 								) {
 									this.editor.run(() => {
 										this.editor.markHistoryStoppingPoint('editing on pointer up')
-										this.editor.select(selectingShape.id)
-
-										if (!this.editor.canEditShape(selectingShape)) return
-										this.editor.setEditingShape(selectingShape.id)
-										this.editor.setCurrentTool('select.editing_shape')
+										if (
+											!startEditingShape(this.editor, selectingShape, {
+												info: { ...info, target: 'shape', shape: selectingShape },
+											})
+										) {
+											return
+										}
 
 										if (this.isDoubleClick) {
 											this.editor.emit('select-all-text', { shapeId: selectingShape.id })

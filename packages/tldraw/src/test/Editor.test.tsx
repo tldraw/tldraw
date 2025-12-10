@@ -140,8 +140,6 @@ describe('shapes that are moved to another page', () => {
 	})
 })
 
-// Note: startEditingShape / stopEditingShape have been removed from the editor API.
-
 it('Begins dragging from pointer move', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(2, 2)
