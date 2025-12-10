@@ -279,7 +279,7 @@ test.describe('Focus', () => {
 		const contenteditable = page.locator('.tl-shape [contenteditable]')
 		await expect(contenteditable).toHaveText('test')
 
-		// Blur input while staying in editing mode by clicking on canvas
+		// Blur input while staying in editing mode by clicking on the text label (but not the input itself)
 		await page.mouse.click(200, 230)
 		await page.waitForTimeout(100)
 
