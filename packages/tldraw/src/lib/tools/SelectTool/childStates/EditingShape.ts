@@ -41,7 +41,7 @@ export class EditingShape extends StateNode {
 		if (!editingShapeId) return
 
 		// Clear the editing shape
-		this.editor.stopEditingShape()
+		this.editor.setEditingShape(null)
 
 		updateHoveredShapeId.cancel()
 
@@ -134,7 +134,7 @@ export class EditingShape extends StateNode {
 					if (selectingShape.id === editingShape.id) {
 						// If we clicked on a frame, while editing its heading, cancel editing
 						if (this.editor.isShapeOfType(selectingShape, 'frame')) {
-							this.editor.stopEditingShape()
+							this.editor.setEditingShape(null)
 							this.parent.transition('idle', info)
 						}
 						// If we clicked on the editing shape (which isn't a shape with a label), do nothing
@@ -176,7 +176,7 @@ export class EditingShape extends StateNode {
 
 		const currentEditingShape = this.editor.getEditingShape()
 		const isEditToEditAction = currentEditingShape && currentEditingShape.id !== hitShape.id
-		this.editor.startEditingShape(hitShape.id)
+		this.editor.setEditingShape(hitShape.id)
 
 		const isMobile = tlenv.isIos || tlenv.isAndroid
 		if (!isMobile || !isEditToEditAction) {

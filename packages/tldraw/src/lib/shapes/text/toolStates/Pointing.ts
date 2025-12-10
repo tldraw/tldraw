@@ -9,6 +9,7 @@ import {
 	maybeSnapToGrid,
 	toRichText,
 } from '@tldraw/editor'
+import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -83,7 +84,7 @@ export class Pointing extends StateNode {
 				creationCursorOffset: { x: currentDragDist * scale, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					editor.startEditingShape(shape)
+					startEditingShape(editor, shape)
 				},
 			})
 		}
@@ -113,7 +114,7 @@ export class Pointing extends StateNode {
 		if (!shape) return
 
 		this.editor.select(id)
-		this.editor.startEditingShape(id)
+		startEditingShape(this.editor, id)
 	}
 
 	private cancel() {

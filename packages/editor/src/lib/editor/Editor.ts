@@ -175,7 +175,6 @@ import {
 	TLGetShapeAtPointOptions,
 	TLImageExportOptions,
 	TLResizeShapeOptions,
-	TLStartEditingShapeOptions,
 	TLSvgExportOptions,
 	TLUpdatePointerOptions,
 } from './types/misc-types'
@@ -2268,49 +2267,47 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Try to begin editing a shape. Returns true if editing successfully started.
+	 * Whether the shape can be edited.
 	 *
-	 * @param shapeOrId - The shape (or shape id) to edit. Defaults to the only selected shape.
-	 * @param options - Additional options for starting the edit interaction.
+	 * @param shape - The shape (or shape id) to check if it can be edited.
 	 *
 	 * @public
+	 * @returns true if the shape can be edited, false otherwise.
 	 */
-	startEditingShape(
-		shapeOrId: TLShape | TLShapeId | null = this.getOnlySelectedShape(),
-		options: TLStartEditingShapeOptions = {}
-	): boolean {
-		const target = shapeOrId ?? this.getOnlySelectedShape()
-		const shape = typeof target === 'string' ? this.getShape(target) : target
-		if (!shape) return false
-
-		const util = this.getShapeUtil(shape)
-		if (this.getIsReadonly() && !util.canEditInReadonly(shape)) return false
-		if (!util.canEdit(shape)) return false
-
-		this.select(shape.id)
-		this._setEditingShapeInternal(shape.id)
-		if (!this.getEditingShape()) return false
-
-		this.setCurrentTool('select.editing_shape', {
-			...(options.info ?? {}),
-			target: 'shape',
-			shape,
-		})
-
-		if (options.selectAll) {
-			this.emit('select-all-text', { shapeId: shape.id })
+	canEditShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		if (!id) return false // no shape
+		if (id === this.getEditingShapeId()) return false // already editing this shape
+		const _shape = this.getShape(id)
+		if (!_shape) return false // no shape
+		const util = this.getShapeUtil(_shape)
+		if (!util.canEdit(_shape)) return false // shape is not editable
+		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) {
+			// locked and no exception. Note here: we're not distinguishing between a locked shape and
+			// a shape that is the descendant of a locked shape.
+			return false
 		}
-
-		return true
+		return true // shape is editable
 	}
 
 	/**
-	 * Stop editing the current shape, if any.
+	 * Whether the shape can be cropped.
+	 *
+	 * @param shape - The shape (or shape id) to check if it can be cropped.
 	 *
 	 * @public
+	 * @returns true if the shape can be cropped, false otherwise.
 	 */
-	stopEditingShape(): this {
-		return this._setEditingShapeInternal(null)
+	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		if (!id) return false
+		const _shape = this.getShape(id)
+		if (!_shape) return false
+		const util = this.getShapeUtil(_shape)
+		if (!util.canCrop(_shape)) return false
+		if (this.isShapeOrAncestorLocked(_shape)) return false
+		return true
 	}
 
 	/**
@@ -2323,8 +2320,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to set as editing.
-	 *
-	 * @deprecated Use {@link Editor.startEditingShape} / {@link Editor.stopEditingShape}.
 	 *
 	 * @public
 	 */

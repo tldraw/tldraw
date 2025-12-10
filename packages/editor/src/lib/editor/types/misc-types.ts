@@ -3,7 +3,6 @@ import { Box } from '../../primitives/Box'
 import { MatLike } from '../../primitives/Mat'
 import { VecLike } from '../../primitives/Vec'
 import { TLResizeMode } from '../shapes/ShapeUtil'
-import { TLClickEventInfo, TLKeyboardEventInfo, TLPointerEventInfo } from './event-types'
 import { TLResizeHandle } from './selection-types'
 
 /** @public */
@@ -270,9 +269,3 @@ export type TLResizeShapeOptions = Partial<{
 	mode: TLResizeMode
 	skipStartAndEndCallbacks: boolean
 }>
-
-/** @public */
-export interface TLStartEditingShapeOptions {
-	info?: TLClickEventInfo | TLKeyboardEventInfo | TLPointerEventInfo
-	selectAll?: boolean
-}

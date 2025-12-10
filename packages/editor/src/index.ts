@@ -267,7 +267,6 @@ export {
 	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
 	type TLResizeShapeOptions,
-	type TLStartEditingShapeOptions,
 	type TLSvgExportOptions,
 	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'

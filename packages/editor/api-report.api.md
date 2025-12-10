@@ -1469,7 +1469,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPage(page: TLPage | TLPageId): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
-    // @deprecated
     setEditingShape(shape: null | TLShape | TLShapeId): this;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
@@ -1500,10 +1499,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
-    startEditingShape(shapeOrId?: null | TLShape | TLShapeId, options?: TLStartEditingShapeOptions): boolean;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
-    stopEditingShape(): this;
     stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
@@ -4195,14 +4192,6 @@ export interface TLSnapIndicatorProps {
     line: SnapIndicator;
     // (undocumented)
     zoom: number;
-}
-
-// @public (undocumented)
-export interface TLStartEditingShapeOptions {
-    // (undocumented)
-    info?: TLClickEventInfo | TLKeyboardEventInfo | TLPointerEventInfo;
-    // (undocumented)
-    selectAll?: boolean;
 }
 
 // @public (undocumented)

@@ -12,10 +12,10 @@ export function SneakyUndoRedoWhileEditing() {
 
 				if (e.shiftKey) {
 					editor.redo()
-					editor.startEditingShape(editingShape)
+					editor.setEditingShape(editingShape)
 				} else {
 					editor.undo()
-					editor.startEditingShape(editingShape)
+					editor.setEditingShape(editingShape)
 				}
 			}
 		}

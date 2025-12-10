@@ -90,7 +90,7 @@ it('lists shapes in viewport', () => {
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.C]))
 
 	editor.selectNone()
-	editor.startEditingShape(ids.C)
+	editor.setEditingShape(ids.C)
 	// or shapes being edited
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B]))
 })

@@ -84,25 +84,25 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's editingShapeId", () => {
 		test('[root shape]', () => {
-			editor.startEditingShape(ids.box1)
+			editor.setEditingShape(ids.box1)
 			expect(editor.getEditingShapeId()).toBe(ids.box1)
 			moveShapesToPage2()
 			expect(editor.getEditingShapeId()).toBe(null)
 		})
 		test('[child of frame]', () => {
-			editor.startEditingShape(ids.box2)
+			editor.setEditingShape(ids.box2)
 			expect(editor.getEditingShapeId()).toBe(ids.box2)
 			moveShapesToPage2()
 			expect(editor.getEditingShapeId()).toBe(null)
 		})
 		test('[child of group]', () => {
-			editor.startEditingShape(ids.box3)
+			editor.setEditingShape(ids.box3)
 			expect(editor.getEditingShapeId()).toBe(ids.box3)
 			moveShapesToPage2()
 			expect(editor.getEditingShapeId()).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
-			editor.startEditingShape(ids.frame1)
+			editor.setEditingShape(ids.frame1)
 			expect(editor.getEditingShapeId()).toBe(ids.frame1)
 			moveShapesToPage2()
 			expect(editor.getEditingShapeId()).toBe(ids.frame1)
@@ -140,57 +140,7 @@ describe('shapes that are moved to another page', () => {
 	})
 })
 
-describe('Editor.startEditingShape / stopEditingShape', () => {
-	it('selects and edits the target shape', () => {
-		const didStart = editor.startEditingShape(ids.box1)
-		expect(didStart).toBe(true)
-		expect(editor.getEditingShapeId()).toBe(ids.box1)
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.isIn('select.editing_shape')).toBe(true)
-	})
-
-	it('uses the currently selected shape when no id is provided', () => {
-		editor.setSelectedShapes([ids.box2])
-		const didStart = editor.startEditingShape()
-		expect(didStart).toBe(true)
-		expect(editor.getEditingShapeId()).toBe(ids.box2)
-	})
-
-	it('emits select-all-text when requested', () => {
-		const handler = vi.fn()
-		editor.on('select-all-text', handler)
-		editor.startEditingShape(ids.box3, { selectAll: true })
-		expect(handler).toHaveBeenCalledWith({ shapeId: ids.box3 })
-		editor.off('select-all-text', handler)
-	})
-
-	it('returns false in readonly mode when the shape cannot edit in readonly', () => {
-		editor.updateInstanceState({ isReadonly: true })
-		const didStart = editor.startEditingShape(ids.box1)
-		expect(didStart).toBe(false)
-		expect(editor.getEditingShapeId()).toBe(null)
-	})
-
-	it('returns false when the shape util reports canEdit false', () => {
-		const shape = editor.getShape(ids.box1)
-		expect(shape).toBeTruthy()
-		const util = editor.getShapeUtil(shape!)
-		const spy = vi.spyOn(util, 'canEdit').mockReturnValue(false)
-
-		const didStart = editor.startEditingShape(ids.box1)
-		expect(didStart).toBe(false)
-		expect(editor.getEditingShapeId()).toBe(null)
-
-		spy.mockRestore()
-	})
-
-	it('stopEditingShape clears editing state and tool mode', () => {
-		editor.startEditingShape(ids.box1)
-		editor.stopEditingShape()
-		expect(editor.getEditingShapeId()).toBe(null)
-		expect(editor.isIn('select.editing_shape')).toBe(false)
-	})
-})
+// Note: startEditingShape / stopEditingShape have been removed from the editor API.
 
 it('Begins dragging from pointer move', () => {
 	editor.pointerDown(0, 0)

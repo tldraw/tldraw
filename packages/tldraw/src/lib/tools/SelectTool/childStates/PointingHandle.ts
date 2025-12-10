@@ -6,6 +6,7 @@ import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
 } from '../../../shapes/note/noteHelpers'
+import { startEditingShape } from '../selectHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -53,7 +54,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				editor.startEditingShape(nextNote, { selectAll: true })
+				startEditingShape(editor, nextNote, { selectAll: true })
 				return
 			}
 		}
@@ -102,7 +103,7 @@ export class PointingHandle extends StateNode {
 						isCreating: true,
 						onCreate: () => {
 							// When we're done, start editing it
-							editor.startEditingShape(nextNote, { selectAll: true })
+							startEditingShape(editor, nextNote, { selectAll: true })
 						},
 					})
 				return

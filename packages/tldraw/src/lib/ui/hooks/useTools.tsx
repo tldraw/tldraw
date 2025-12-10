@@ -10,6 +10,7 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { startEditingShape } from '../../tools/SelectTool/selectHelpers'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconJsx } from '../components/primitives/TldrawUiIcon'
 import { useA11y } from '../context/a11y'
@@ -239,7 +240,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						createShape: (id) =>
 							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
 						onDragEnd: (id) => {
-							editor.startEditingShape(id, { selectAll: true })
+							startEditingShape(editor, id, { selectAll: true })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'text' })
@@ -268,7 +269,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => editor.createShape({ id, type: 'note' }),
 						onDragEnd: (id) => {
-							editor.startEditingShape(id, { selectAll: true })
+							startEditingShape(editor, id, { selectAll: true })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'note' })
