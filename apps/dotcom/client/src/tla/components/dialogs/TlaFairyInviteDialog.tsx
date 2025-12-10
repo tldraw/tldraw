@@ -42,7 +42,7 @@ export function TlaFairyInviteDialog({
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.dialogBody}>
 				<Suspense fallback={<div style={{ height: 44, width: 44 }} />}>
-					<FairySprite pose="idle" hatColor="var(--tl-color-fairy-pink)" />
+					<FairySprite pose="idle" hatColor="pink" hatType="default" />
 				</Suspense>
 				<div className={styles.message}>
 					<F

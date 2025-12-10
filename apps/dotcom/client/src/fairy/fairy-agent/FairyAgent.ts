@@ -1,5 +1,6 @@
 import {
 	AgentAction,
+	AgentId,
 	AgentInput,
 	AgentPrompt,
 	AgentRequest,
@@ -37,6 +38,10 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../utils/config'
 import { FairyApp } from '../fairy-app/FairyApp'
+import { getRandomFairyHat } from '../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../fairy-helpers/getRandomFairyHatColor'
+import { getRandomFairyName } from '../fairy-helpers/getRandomFairyName'
+import { getRandomLegLength } from '../fairy-helpers/getRandomLegLength'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -45,6 +50,7 @@ import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
 import { FairyAgentChatOriginManager } from './managers/FairyAgentChatOriginManager'
 import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
+import { FairyAgentLintManager } from './managers/FairyAgentLintManager'
 import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
 import { FairyAgentPositionManager } from './managers/FairyAgentPositionManager'
 import { FairyAgentRequestManager } from './managers/FairyAgentRequestManager'
@@ -59,7 +65,7 @@ export interface FairyAgentOptions {
 	/** The fairy app to associate the agent with. */
 	fairyApp: FairyApp
 	/** A key used to differentiate the agent from other agents. */
-	id: string
+	id: AgentId
 	/** A callback for when an error occurs. */
 	onError(e: any): void
 	/** A function to get the authentication token. */
@@ -78,7 +84,7 @@ export interface FairyAgentOptions {
  */
 export class FairyAgent {
 	/** An id to differentiate the agent from other agents. */
-	id: string
+	id: AgentId
 
 	/** The editor associated with this agent. */
 	editor: Editor
@@ -118,6 +124,9 @@ export class FairyAgent {
 
 	/** The wait manager associated with this agent. */
 	waits: FairyAgentWaitManager
+
+	/** The lint manager associated with this agent. */
+	lints: FairyAgentLintManager
 
 	/** The fairy entity associated with this agent. */
 	private $fairyEntity: Atom<FairyEntity>
@@ -159,10 +168,16 @@ export class FairyAgent {
 	private handleMaxShapes: () => void
 
 	/**
-	 * Get the current project that the agent is working on.
+	 * Handler for the tick event to update the fairy's position.
 	 */
-	getProject(): FairyProject | null {
-		return this.fairyApp.projects.getProjectByAgentId(this.id) ?? null
+	private onTick: (delta: number) => void
+
+	/**
+	 * Get the current project that the agent is working on.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
+	 */
+	getProject(includeSoftDeleted: boolean = false): FairyProject | null {
+		return this.fairyApp.projects.getProjectByAgentId(this.id, includeSoftDeleted) ?? null
 	}
 
 	getEntity(): FairyEntity {
@@ -228,6 +243,7 @@ export class FairyAgent {
 		this.usage = new FairyAgentUsageTracker(this)
 		this.userAction = new FairyAgentUserActionTracker(this)
 		this.waits = new FairyAgentWaitManager(this)
+		this.lints = new FairyAgentLintManager(this)
 
 		const spawnPoint = this.position.findFairySpawnPoint()
 
@@ -238,16 +254,23 @@ export class FairyAgent {
 			pose: 'sleeping',
 			gesture: null,
 			currentPageId: editor.getCurrentPageId(),
+			velocity: { x: 0, y: 0 },
 		})
 
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
 			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
+
 			if (!userFairies) {
 				return {
-					name: '',
+					name: getRandomFairyName(),
 					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
+					hat: getRandomFairyHat(),
+					hatColor: getRandomFairyHatColor(),
+					legLength: getRandomLegLength(),
+					version: 2,
 				} satisfies FairyConfig
 			}
+
 			return JSON.parse(userFairies)[id] as FairyConfig
 		})
 
@@ -273,14 +296,18 @@ export class FairyAgent {
 			if (this.requests.isGenerating()) {
 				this.interrupt({
 					input: {
-						agentMessages: [
-							'Maximum shapes reached. Stop all your work and return to your home in the forest.',
-						],
+						agentMessages: ['Maximum shapes reached. Stop all your work.'],
 					},
 				})
 			}
 		}
+
+		this.onTick = (delta: number) => {
+			this.position.applyVelocity(delta)
+		}
+
 		editor.addListener('max-shapes', this.handleMaxShapes)
+		editor.addListener('tick', this.onTick)
 
 		// Poof on spawn
 		this.gesture.push('poof', 400)
@@ -294,6 +321,7 @@ export class FairyAgent {
 		this.userAction.dispose()
 		this.wakeOnSelectReaction?.()
 		this.editor.removeListener('max-shapes', this.handleMaxShapes)
+		this.editor.removeListener('tick', this.onTick)
 		// Stop following this fairy if it's currently being followed
 		if (this.position.getFollowingFairyId() === this.id) {
 			this.position.stopFollowing()
@@ -337,6 +365,7 @@ export class FairyAgent {
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
 					pose: state.fairyEntity?.pose ?? entity.pose,
+					velocity: { x: 0, y: 0 },
 					gesture: null,
 				}
 			})
@@ -853,6 +882,9 @@ export class FairyAgent {
 
 		// Reset cumulative usage tracking when starting a new chat
 		this.usage.resetCumulativeUsage()
+
+		// Reset lint tracking when starting a new chat
+		this.lints.reset()
 	}
 
 	/**
@@ -886,6 +918,10 @@ export class FairyAgent {
 	 */
 	promptStartTime: number | null = null
 
+	/**
+	 * Update the fairy configuration with the given partial configuration.
+	 * @param partial - The partial configuration to update.
+	 */
 	updateFairyConfig(partial: Partial<FairyConfig>) {
 		this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({
 			id: this.id,
@@ -968,6 +1004,8 @@ export class FairyAgent {
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
 								incompleteDiff = null
+								// Track shapes created by this complete action for lint detection
+								agent.lints.trackShapesFromDiff(diff)
 							} else {
 								incompleteDiff = diff
 							}

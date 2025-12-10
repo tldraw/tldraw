@@ -68,6 +68,11 @@ export class FairyApp {
 	 */
 	private $modelSelection: Atom<AgentModelName> = atom('fairyAppModelSelection', DEFAULT_MODEL_NAME)
 
+	/**
+	 * Whether the feed dialog is currently open.
+	 */
+	private $isFeedDialogOpen: Atom<boolean> = atom('fairyAppIsFeedDialogOpen', false)
+
 	constructor(
 		public editor: Editor,
 		public tldrawApp: TldrawApp
@@ -122,10 +127,23 @@ export class FairyApp {
 		this.$modelSelection.set(value)
 	}
 
+	getIsFeedDialogOpen(): boolean {
+		return this.$isFeedDialogOpen.get()
+	}
+
+	setIsFeedDialogOpen(value: boolean): void {
+		this.$isFeedDialogOpen.set(value)
+	}
+
 	resetEverything() {
-		this.projects.reset()
+		this.projects.disbandAllProjects()
 		this.tasks.reset()
-		this.agents.reset()
+		// Delete all fairy configs first so new ones get created when agents are re-synced
+		const agents = this.agents.getAgents()
+		agents.forEach((agent) => {
+			this.tldrawApp.z.mutate.user.deleteFairyConfig({ id: agent.id })
+		})
+		this.agents.resetAllAgents()
 		this.following.reset()
 		this.waits.reset()
 	}

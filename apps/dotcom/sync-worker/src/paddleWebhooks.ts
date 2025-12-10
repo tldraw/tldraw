@@ -205,14 +205,15 @@ async function markTransactionError(
 async function handleTransactionCompleted(
 	env: Environment,
 	db: ReturnType<typeof createPostgresConnectionPool>,
-	event: PaddleWebhookEvent
+	event: PaddleWebhookEvent,
+	ctx: ExecutionContext
 ): Promise<void> {
 	const { data } = event
 	const { userId, email } = extractUserData(data.custom_data)
 	const webhookUrl = env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL
 
 	if (!userId) {
-		await sendDiscordNotification(webhookUrl, { type: 'missing_user', transactionId: data.id })
+		sendDiscordNotification(webhookUrl, { type: 'missing_user', transactionId: data.id }, ctx)
 		throw new Error('Missing userId in transaction custom_data')
 	}
 
@@ -237,11 +238,15 @@ async function handleTransactionCompleted(
 			stack: error instanceof Error ? error.stack : undefined,
 		})
 
-		await sendDiscordNotification(webhookUrl, {
-			type: 'error',
-			transactionId: data.id,
-			error: `UNEXPECTED ERROR: ${errorMessage}`,
-		})
+		sendDiscordNotification(
+			webhookUrl,
+			{
+				type: 'error',
+				transactionId: data.id,
+				error: `UNEXPECTED ERROR: ${errorMessage}`,
+			},
+			ctx
+		)
 
 		await markTransactionError(db, event.event_id, `UNEXPECTED: ${errorMessage}`)
 
@@ -259,11 +264,15 @@ async function handleTransactionCompleted(
 			error: errorMessage,
 		})
 
-		await sendDiscordNotification(webhookUrl, {
-			type: 'error',
-			transactionId: data.id,
-			error: errorMessage,
-		})
+		sendDiscordNotification(
+			webhookUrl,
+			{
+				type: 'error',
+				transactionId: data.id,
+				error: errorMessage,
+			},
+			ctx
+		)
 
 		await markTransactionError(db, event.event_id, errorMessage)
 
@@ -271,16 +280,15 @@ async function handleTransactionCompleted(
 		throw new Error(`Failed to grant fairy access: ${errorMessage}`)
 	}
 
-	await sendDiscordNotification(webhookUrl, {
-		type: 'success',
-		email: email ?? 'N/A',
-	})
+	// SUCCESS - mark processed FIRST, then notify async
 	await markTransactionProcessed(db, event.event_id)
+
+	sendDiscordNotification(webhookUrl, { type: 'success', email: email ?? 'N/A', env }, ctx)
 }
 
 export const paddleWebhooks = createRouter<Environment>().post(
 	'/app/paddle/webhook',
-	async (req, env) => {
+	async (req, env, ctx) => {
 		const db = createPostgresConnectionPool(env, 'paddleWebhook')
 		try {
 			const event = await verifyWebhookSignature(env, req.clone())
@@ -292,13 +300,17 @@ export const paddleWebhooks = createRouter<Environment>().post(
 			}
 
 			if (event.event_type === 'transaction.completed') {
-				await handleTransactionCompleted(env, db, event)
+				await handleTransactionCompleted(env, db, event, ctx)
 			} else if (event.event_type === 'transaction.canceled' && userId) {
-				await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, {
-					type: 'refund',
-					transactionId: event.data.id,
-					userId,
-				})
+				sendDiscordNotification(
+					env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL,
+					{
+						type: 'refund',
+						transactionId: event.data.id,
+						userId,
+					},
+					ctx
+				)
 			}
 
 			return json({ received: true })

@@ -1,44 +1,17 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function WritingSprite1({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
-	return <BaseWritingSprite penRotation={0} bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+export function WritingSprite1(props: FairySpriteProps) {
+	return <BaseWritingSprite {...props} heading={0} />
 }
 
-export function WritingSprite2({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
-	return (
-		<BaseWritingSprite penRotation={10} bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
-	)
+export function WritingSprite2(props: FairySpriteProps) {
+	return <BaseWritingSprite {...props} heading={10} />
 }
 
-export function BaseWritingSprite({
-	penRotation,
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	penRotation: number
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function BaseWritingSprite(props: { heading: number } & FairySpriteProps) {
 	return (
 		<>
 			<path
@@ -47,14 +20,14 @@ export function BaseWritingSprite({
 				strokeWidth="6"
 				strokeLinecap="round"
 			/>
-			<FairyLegsSpritePart />
-			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
-			<FairyHatSpritePart hatColor={hatColor} offsetX={3} offsetY={2} />
+			<FairyLegsSpritePart {...props} />
+			<FairyBodySpritePart {...props} />
+			<FairyHatSpritePart {...props} offsetX={3} offsetY={2} />
 			<circle
 				cx="58.2658"
 				cy="36.4192"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>
@@ -74,7 +47,7 @@ export function BaseWritingSprite({
 			/>
 			<path
 				d="M49.534 71.7667L62.8736 35.9497C63.0491 35.4786 63.5469 35.211 64.0366 35.3246L85.7393 40.3574C86.3687 40.5034 86.6965 41.1988 86.4086 41.7772L82.0187 50.5956C81.9835 50.6664 81.9399 50.7328 81.889 50.7934L80.2836 52.7034C80.1517 52.8603 80.0712 53.0539 80.053 53.258L79.8992 54.9837C79.889 55.0977 79.8594 55.2091 79.8115 55.3131L70.958 74.5413C70.7792 74.9297 70.3731 75.1615 69.9477 75.1178L50.3691 73.1105C49.7181 73.0437 49.3056 72.3799 49.534 71.7667Z"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 				strokeLinecap="round"
@@ -90,7 +63,7 @@ export function BaseWritingSprite({
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 				strokeLinecap="round"
-				transform={`rotate(${penRotation} 56 51) translate(0, 0)`}
+				transform={`rotate(${props.heading} 56 51) translate(0, 0)`}
 			/>
 		</>
 	)

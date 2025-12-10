@@ -989,6 +989,12 @@
       "value": "Deselect"
     }
   ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "You are already a member of this group"
+    }
+  ],
   "94966d9074": [
     {
       "type": 0,
@@ -1541,12 +1547,6 @@
       "value": "Invalid tldraw file URL"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Select a fairy on the right to chat with"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1717,6 +1717,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configure"
     }
   ],
   "f2569594b2": [

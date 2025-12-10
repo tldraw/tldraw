@@ -12,6 +12,7 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { setRedirectOnSignIn } from '../../utils/redirect'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
@@ -27,10 +28,12 @@ export function TlaSignInDialog({
 	onClose,
 	inviteInfo,
 	onInviteAccepted,
+	skipRedirect,
 }: {
 	onClose?(): void
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
 	onInviteAccepted?(): void
+	skipRedirect?: boolean
 }) {
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
@@ -45,6 +48,7 @@ export function TlaSignInDialog({
 				<TlaEnterEmailStep
 					onClose={onClose}
 					inviteInfo={inviteInfo}
+					skipRedirect={skipRedirect}
 					onComplete={(identifier, isSignUp, emailId) => {
 						setIdentifier(identifier)
 						setIsSignUpFlow(isSignUp)
@@ -94,10 +98,12 @@ function TlaEnterEmailStep({
 	onClose,
 	onComplete,
 	inviteInfo,
+	skipRedirect,
 }: {
 	onClose?(): void
 	onComplete(identifier: string, isSignUpFlow: boolean, emailAddressId?: string): void
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
+	skipRedirect?: boolean
 }) {
 	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
 	const { setActive, client } = useClerk()
@@ -209,6 +215,11 @@ function TlaEnterEmailStep({
 							<TlaCtaButton
 								data-testid="tla-google-sign-in-button"
 								className={styles.authCtaButton}
+								onClick={() => {
+									if (!skipRedirect) {
+										setRedirectOnSignIn()
+									}
+								}}
 							>
 								<Clerk.Icon icon="google" />
 								<F defaultMessage="Sign in with Google" />

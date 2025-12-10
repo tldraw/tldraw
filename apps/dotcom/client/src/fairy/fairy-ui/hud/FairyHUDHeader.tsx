@@ -36,6 +36,7 @@ interface FairyHUDHeaderProps {
 	allAgents: FairyAgent[]
 	isMobile: boolean
 	onToggleManual?(): void
+	onToggleFeed?(): void
 }
 
 export function FairyHUDHeader({
@@ -46,6 +47,7 @@ export function FairyHUDHeader({
 	selectedFairies,
 	allAgents,
 	onToggleManual,
+	onToggleFeed,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -86,6 +88,12 @@ export function FairyHUDHeader({
 	const hasChatHistory = useValue(
 		'has-chat-history',
 		() => shownFairy && shownFairy.chat.getHistory().length > 0,
+		[shownFairy]
+	)
+
+	const isGenerating = useValue(
+		'is-generating',
+		() => shownFairy?.requests.isGenerating() ?? false,
 		[shownFairy]
 	)
 
@@ -200,9 +208,18 @@ export function FairyHUDHeader({
 		selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">{getProjectDisplayName()}</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display" onClick={zoomToFairy}>
+			<div
+				className={`fairy-id-display ${isGenerating ? 'fairy-id-display--generating' : ''}`}
+				onClick={zoomToFairy}
+			>
 				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
-					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
+					<span
+						className="fairy-id-display-text"
+						style={{ cursor: fairyClickable ? 'pointer' : 'default' }}
+						data-text={getDisplayName()}
+					>
+						{getDisplayName()}
+					</span>
 				</TldrawUiTooltip>
 			</div>
 		) : (
@@ -221,7 +238,16 @@ export function FairyHUDHeader({
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
+
 			<div className="tlui-row">
+				{panelState === 'fairy-project' && (
+					<TldrawUiTooltip content="Live feed" side="top">
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
+							<TldrawUiButtonIcon icon="comment" small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
+				)}
+
 				{showSelectAllButton ? (
 					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>

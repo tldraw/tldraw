@@ -432,6 +432,7 @@ export {
 	type TLUiToolbarToggleItemProps,
 } from './lib/ui/components/primitives/TldrawUiToolbar'
 export {
+	hideAllTooltips,
 	TldrawUiTooltip,
 	TldrawUiTooltipProvider,
 	type TldrawUiTooltipProps,

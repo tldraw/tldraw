@@ -1,8 +1,11 @@
 import {
+	AgentRequest,
 	FairyModeDefinition,
 	FairyWaitCondition,
 	FairyWaitEvent,
 	SerializedWaitCondition,
+	toAgentId,
+	toTaskId,
 } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
@@ -107,28 +110,17 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * already be removed by the notification system before calling this method.
 	 * If the agent is currently generating, the message will be scheduled.
 	 * Otherwise, it will be prompted immediately.
+	 * @param request - A partial agent request to send when the wait condition is fulfilled.
 	 * @returns Promise that resolves when the prompt completes (if prompted)
 	 */
-	async notifyWaitConditionFulfilled({
-		agentFacingMessage,
-		userFacingMessage,
-	}: {
-		agentFacingMessage: string
-		userFacingMessage: string | null
-	}): Promise<void> {
+	async notifyWaitConditionFulfilled(request: Partial<AgentRequest>): Promise<void> {
 		const { agent } = this
+		// Ensure source is set to 'other-agent' for wait condition notifications
+		const requestWithSource: Partial<AgentRequest> = { ...request, source: 'other-agent' }
 		if (agent.requests.isGenerating()) {
-			agent.schedule({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
+			agent.schedule(requestWithSource)
 		} else {
-			await agent.prompt({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
+			await agent.prompt(requestWithSource)
 		}
 	}
 
@@ -160,14 +152,14 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 					// Parse id format: "task-completed:${taskId}"
 					const match = serialized.id.match(/^task-completed:(.+)$/)
 					if (match) {
-						const taskId = match[1]
+						const taskId = toTaskId(match[1])
 						return this.agent.fairyApp.waits.createTaskWaitCondition(taskId)
 					}
 				} else if (serialized.eventType === 'agent-mode-transition') {
 					// Parse id format: "agent-mode-transition:${agentId}:${mode}"
 					const match = serialized.id.match(/^agent-mode-transition:(.+):(.+)$/)
 					if (match) {
-						const agentId = match[1]
+						const agentId = toAgentId(match[1])
 						const mode = match[2] as FairyModeDefinition['type']
 						return this.agent.fairyApp.waits.createAgentModeTransitionWaitCondition(agentId, mode)
 					}

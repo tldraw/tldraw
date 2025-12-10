@@ -1,16 +1,18 @@
-import { FocusColor } from '../format/FocusColor'
+import { ProjectColor } from '../format/FocusColor'
+import { AgentId, ProjectId } from '../schema/id-schemas'
 
 export interface FairyProject {
-	id: string
+	id: ProjectId
 	title: string
 	description: string
-	color: FocusColor
+	color: ProjectColor | ''
 	members: FairyProjectMember[]
 	plan: string
+	softDeleted: boolean
 }
 
 export interface FairyProjectMember {
-	id: string
+	id: AgentId
 	role: FairyProjectRole
 }
 

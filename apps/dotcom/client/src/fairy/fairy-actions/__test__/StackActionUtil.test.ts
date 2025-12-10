@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor, TLShapeId } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -35,7 +35,11 @@ describe('StackActionUtil', () => {
 				direction: 'horizontal',
 				gap: 10,
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'nonexistent'],
+				shapeIds: [
+					toSimpleShapeId('shape1'),
+					toSimpleShapeId('shape2'),
+					toSimpleShapeId('nonexistent'),
+				],
 				complete: true,
 				time: 0,
 			})
@@ -45,9 +49,9 @@ describe('StackActionUtil', () => {
 
 			// Should filter out the nonexistent shape
 			expect(sanitized?.shapeIds).toHaveLength(2)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).toContain('shape2')
-			expect(sanitized?.shapeIds).not.toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape2'))
+			expect(sanitized?.shapeIds).not.toContain(toSimpleShapeId('nonexistent'))
 		})
 
 		it('should not sanitize incomplete actions', () => {
@@ -56,7 +60,11 @@ describe('StackActionUtil', () => {
 				direction: 'horizontal',
 				gap: 10,
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'nonexistent'],
+				shapeIds: [
+					toSimpleShapeId('shape1'),
+					toSimpleShapeId('shape2'),
+					toSimpleShapeId('nonexistent'),
+				],
 				complete: false,
 				time: 0,
 			})
@@ -66,7 +74,7 @@ describe('StackActionUtil', () => {
 
 			// Should not filter when incomplete
 			expect(sanitized?.shapeIds).toHaveLength(3)
-			expect(sanitized?.shapeIds).toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('nonexistent'))
 		})
 	})
 
@@ -109,7 +117,7 @@ describe('StackActionUtil', () => {
 				direction: 'horizontal',
 				gap: 10,
 				intent: 'Stack horizontally',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -150,7 +158,7 @@ describe('StackActionUtil', () => {
 				direction: 'vertical',
 				gap: 20,
 				intent: 'Stack vertically',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -182,7 +190,7 @@ describe('StackActionUtil', () => {
 				direction: 'horizontal',
 				gap: 5,
 				intent: 'Stack with large gap',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -210,7 +218,7 @@ describe('StackActionUtil', () => {
 				direction: 'horizontal',
 				gap: 0,
 				intent: 'Stack with no gap',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -239,7 +247,7 @@ describe('StackActionUtil', () => {
 				direction: 'vertical',
 				gap: 15,
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -278,7 +286,7 @@ describe('StackActionUtil', () => {
 				direction: 'horizontal',
 				gap: 5,
 				intent: 'Stack two shapes',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})

@@ -3,6 +3,8 @@ import {
 	FairyTask,
 	FairyWaitCondition,
 	TaskCompletedEvent,
+	toAgentId,
+	toTaskId,
 } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -39,7 +41,7 @@ describe('FairyAppWaitManager', () => {
 
 			// Create a test task
 			const testTask: FairyTask = {
-				id: 'test-task-1',
+				id: toTaskId('test-task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'done',
@@ -50,7 +52,7 @@ describe('FairyAppWaitManager', () => {
 			// Mock the agent's wait methods
 			const waitCondition: FairyWaitCondition<TaskCompletedEvent> = {
 				eventType: 'task-completed',
-				matcher: (event) => event.task.id === 'test-task-1',
+				matcher: (event) => event.task.id === toTaskId('test-task-1'),
 				id: 'test-wait-condition',
 			}
 
@@ -71,8 +73,8 @@ describe('FairyAppWaitManager', () => {
 			expect(getWaitingForSpy).toHaveBeenCalled()
 			expect(waitForAllSpy).toHaveBeenCalledWith([])
 			expect(notifySpy).toHaveBeenCalledWith({
-				agentFacingMessage: 'Test message',
-				userFacingMessage: 'User message',
+				agentMessages: ['Test message'],
+				userMessages: ['User message'],
 			})
 		})
 
@@ -87,7 +89,7 @@ describe('FairyAppWaitManager', () => {
 			const agent = agents[0]!
 
 			const testTask: FairyTask = {
-				id: 'test-task-2',
+				id: toTaskId('test-task-2'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'done',
@@ -97,7 +99,7 @@ describe('FairyAppWaitManager', () => {
 
 			const waitCondition: FairyWaitCondition<TaskCompletedEvent> = {
 				eventType: 'task-completed',
-				matcher: (event) => event.task.id === 'test-task-1',
+				matcher: (event) => event.task.id === toTaskId('test-task-1'),
 				id: 'test-wait-condition',
 			}
 
@@ -125,7 +127,7 @@ describe('FairyAppWaitManager', () => {
 			const agent = agents[0]!
 
 			const testTask: FairyTask = {
-				id: 'test-task-1',
+				id: toTaskId('test-task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'done',
@@ -165,7 +167,7 @@ describe('FairyAppWaitManager', () => {
 	describe('notifyTaskCompleted', () => {
 		it('should notify agents waiting for task completion', () => {
 			const task: FairyTask = {
-				id: 'task-1',
+				id: toTaskId('task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'done',
@@ -177,27 +179,65 @@ describe('FairyAppWaitManager', () => {
 
 			manager.notifyTaskCompleted(task)
 
-			expect(notifySpy).toHaveBeenCalledWith({
-				event: { type: 'task-completed', task },
-				getAgentFacingMessage: expect.any(Function),
+			expect(notifySpy).toHaveBeenCalledWith(
+				expect.objectContaining({
+					event: { type: 'task-completed', task },
+					getAgentFacingMessage: expect.any(Function),
+				})
+			)
+		})
+
+		it('should include bounds when task has bounds', () => {
+			const task: FairyTask = {
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				text: 'Test description',
+				status: 'done',
+				projectId: null,
+				assignedTo: null,
+				x: 10,
+				y: 20,
+				w: 100,
+				h: 50,
+			}
+
+			const notifySpy = vi.spyOn(manager, 'notifyWaitingAgents')
+
+			manager.notifyTaskCompleted(task)
+
+			expect(notifySpy).toHaveBeenCalledWith(
+				expect.objectContaining({
+					event: { type: 'task-completed', task },
+					getAgentFacingMessage: expect.any(Function),
+					getBounds: expect.any(Function),
+				})
+			)
+
+			// Verify bounds are correct - getBounds ignores parameters and returns the bounds
+			const callArgs = notifySpy.mock.calls[0]![0]
+			const bounds = callArgs.getBounds?.(toAgentId('test-agent'), {
+				eventType: 'task-completed',
+				matcher: () => true,
+				id: 'test',
 			})
+			expect(bounds).toEqual({ x: 10, y: 20, w: 100, h: 50 })
 		})
 	})
 
 	describe('createTaskWaitCondition', () => {
 		it('should create a wait condition for a specific task', () => {
-			const taskId = 'task-1'
-			const condition = manager.createTaskWaitCondition(taskId)
+			const testTaskId = toTaskId('task-1')
+			const condition = manager.createTaskWaitCondition(testTaskId)
 
 			expect(condition).toEqual({
 				eventType: 'task-completed',
 				matcher: expect.any(Function),
-				id: `task-completed:${taskId}`,
+				id: `task-completed:${testTaskId}`,
 			})
 
 			// Test the matcher function
 			const matchingTask: FairyTask = {
-				id: taskId,
+				id: testTaskId,
 				title: 'Test',
 				text: 'Test',
 				status: 'done',
@@ -206,7 +246,7 @@ describe('FairyAppWaitManager', () => {
 			}
 
 			const nonMatchingTask: FairyTask = {
-				id: 'other-task',
+				id: toTaskId('other-task'),
 				title: 'Test',
 				text: 'Test',
 				status: 'done',
@@ -221,15 +261,15 @@ describe('FairyAppWaitManager', () => {
 
 	describe('notifyAgentModeTransition', () => {
 		it('should notify agents waiting for mode transition', () => {
-			const agentId = 'agent-1'
+			const testAgentId = toAgentId('agent-1')
 			const mode: FairyModeDefinition['type'] = 'orchestrating-active'
 
 			const notifySpy = vi.spyOn(manager, 'notifyWaitingAgents')
 
-			manager.notifyAgentModeTransition(agentId, mode)
+			manager.notifyAgentModeTransition(testAgentId, mode)
 
 			expect(notifySpy).toHaveBeenCalledWith({
-				event: { type: 'agent-mode-transition', agentId, mode },
+				event: { type: 'agent-mode-transition', agentId: testAgentId, mode },
 				getAgentFacingMessage: expect.any(Function),
 			})
 		})
@@ -237,27 +277,27 @@ describe('FairyAppWaitManager', () => {
 
 	describe('createAgentModeTransitionWaitCondition', () => {
 		it('should create a wait condition for mode transition', () => {
-			const agentId = 'agent-1'
+			const testAgentId = toAgentId('agent-1')
 			const mode: FairyModeDefinition['type'] = 'orchestrating-active'
-			const condition = manager.createAgentModeTransitionWaitCondition(agentId, mode)
+			const condition = manager.createAgentModeTransitionWaitCondition(testAgentId, mode)
 
 			expect(condition).toEqual({
 				eventType: 'agent-mode-transition',
 				matcher: expect.any(Function),
-				id: `agent-mode-transition:${agentId}:${mode}`,
+				id: `agent-mode-transition:${testAgentId}:${mode}`,
 			})
 
 			// Test the matcher function
 			expect(
 				// @ts-expect-error - mock return value is not typed
-				condition.matcher({ agentId: 'agent-1', mode: 'orchestrating-active' })
+				condition.matcher({ agentId: toAgentId('agent-1'), mode: 'orchestrating-active' })
 			).toBe(true)
 			expect(
 				// @ts-expect-error - mock return value is not typed
-				condition.matcher({ agentId: 'agent-2', mode: 'orchestrating-active' })
+				condition.matcher({ agentId: toAgentId('agent-2'), mode: 'orchestrating-active' })
 			).toBe(false)
 			// @ts-expect-error - mock return value is not typed
-			expect(condition.matcher({ agentId: 'agent-1', mode: 'idling' })).toBe(false)
+			expect(condition.matcher({ agentId: toAgentId('agent-1'), mode: 'idling' })).toBe(false)
 		})
 	})
 

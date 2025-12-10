@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -33,7 +33,11 @@ describe('SendToBackActionUtil', () => {
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'nonexistent'],
+				shapeIds: [
+					toSimpleShapeId('shape1'),
+					toSimpleShapeId('shape2'),
+					toSimpleShapeId('nonexistent'),
+				],
 				complete: true,
 				time: 0,
 			})
@@ -43,9 +47,9 @@ describe('SendToBackActionUtil', () => {
 
 			// Should filter out the nonexistent shape
 			expect(sanitized?.shapeIds).toHaveLength(2)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).toContain('shape2')
-			expect(sanitized?.shapeIds).not.toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape2'))
+			expect(sanitized?.shapeIds).not.toContain(toSimpleShapeId('nonexistent'))
 		})
 	})
 
@@ -54,7 +58,7 @@ describe('SendToBackActionUtil', () => {
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'test',
-				shapeIds: ['shape1'],
+				shapeIds: [toSimpleShapeId('shape1')],
 				complete: true,
 				time: 0,
 			})
@@ -97,7 +101,7 @@ describe('SendToBackActionUtil', () => {
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'Send to back',
-				shapeIds: ['shape2'],
+				shapeIds: [toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})
@@ -126,7 +130,7 @@ describe('SendToBackActionUtil', () => {
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'Send all to back',
-				shapeIds: ['shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -156,7 +160,7 @@ describe('SendToBackActionUtil', () => {
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2')],
 				complete: true,
 				time: 0,
 			})

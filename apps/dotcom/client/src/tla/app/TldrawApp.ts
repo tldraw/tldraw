@@ -804,6 +804,8 @@ export class TldrawApp {
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
+		const file = this.getFile(fileId)
+		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 

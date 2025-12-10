@@ -1,11 +1,15 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
-import { FAIRY_VARIANTS, PersistedFairyConfigs } from '@tldraw/fairy-shared'
+import { PersistedFairyConfigs, toAgentId } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyAgent } from '../../../fairy-agent/FairyAgent'
 import { FairyApp } from '../../FairyApp'
 import { FairyAppAgentsManager } from '../FairyAppAgentsManager'
-import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
+import {
+	createTestEditor,
+	createTestFairyApp,
+	getDefaultFairyConfig,
+} from './fairy-app-managers-test-shared'
 
 describe('FairyAppAgentsManager', () => {
 	let editor: Editor
@@ -31,7 +35,7 @@ describe('FairyAppAgentsManager', () => {
 
 	describe('getAgentById', () => {
 		it('should return undefined when agent does not exist', () => {
-			expect(manager.getAgentById('non-existent')).toBeUndefined()
+			expect(manager.getAgentById(toAgentId('non-existent'))).toBeUndefined()
 		})
 	})
 
@@ -99,19 +103,7 @@ describe('FairyAppAgentsManager', () => {
 
 			// Get the config that was created
 			const configs: PersistedFairyConfigs = {
-				[firstAgentId]: {
-					name: 'Test',
-					outfit: {
-						body: Object.keys(FAIRY_VARIANTS.body)[0] as any,
-						hat: Object.keys(FAIRY_VARIANTS.hat)[0] as any,
-						wings: Object.keys(FAIRY_VARIANTS.wings)[0] as any,
-					},
-					sign: {
-						sun: 'aries',
-						moon: 'aries',
-						rising: 'aries',
-					},
-				},
+				[firstAgentId]: getDefaultFairyConfig(),
 			}
 
 			// Second sync with same config should keep the agent
@@ -153,13 +145,13 @@ describe('FairyAppAgentsManager', () => {
 
 	describe('markAgentLoaded and isAgentLoaded', () => {
 		it('should track loaded agents', () => {
-			const agentId = 'test-agent-id'
+			const testAgentId = toAgentId('test-agent-id')
 
-			expect(manager.isAgentLoaded(agentId)).toBe(false)
+			expect(manager.isAgentLoaded(testAgentId)).toBe(false)
 
-			manager.markAgentLoaded(agentId)
+			manager.markAgentLoaded(testAgentId)
 
-			expect(manager.isAgentLoaded(agentId)).toBe(true)
+			expect(manager.isAgentLoaded(testAgentId)).toBe(true)
 		})
 	})
 
@@ -178,6 +170,28 @@ describe('FairyAppAgentsManager', () => {
 
 			expect(disposeSpy).toHaveBeenCalled()
 			expect(manager.getAgents()).toEqual([])
+		})
+	})
+
+	describe('resetAgentState', () => {
+		it('should reset agent state without disposing agents', () => {
+			const options = {
+				onError: vi.fn(),
+				getToken: vi.fn().mockResolvedValue('token'),
+			}
+
+			manager.syncAgentsWithConfigs({}, options)
+			const agents = manager.getAgents()
+			expect(agents).toHaveLength(1)
+
+			const agentId = agents[0]!.id
+			const resetSpy = vi.spyOn(agents[0]!, 'reset')
+
+			manager.resetAllAgents()
+
+			expect(resetSpy).toHaveBeenCalled()
+			expect(manager.getAgents()).toHaveLength(1)
+			expect(manager.getAgentById(agentId)).toBe(agents[0])
 		})
 	})
 

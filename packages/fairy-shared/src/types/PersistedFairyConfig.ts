@@ -1,5 +1,6 @@
+import { AgentId } from '../schema/id-schemas'
 import { FairyConfig } from './FairyConfig'
 
 export interface PersistedFairyConfigs {
-	[fairyId: string]: FairyConfig
+	[fairyId: AgentId]: FairyConfig
 }

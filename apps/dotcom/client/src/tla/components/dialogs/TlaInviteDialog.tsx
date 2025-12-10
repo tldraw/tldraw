@@ -1,7 +1,6 @@
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import {
-	TldrawUiButton,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -9,7 +8,7 @@ import {
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { defineMessages, F } from '../../utils/i18n'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import styles from './TlaInviteDialog.module.css'
 
 const messages = defineMessages({
 	inviteDialogTitle: {
@@ -29,52 +28,40 @@ export function TlaInviteDialog({
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
+			<TldrawUiDialogHeader className={styles.dialogHeader}>
 				<TldrawUiDialogTitle>
 					<span />
 				</TldrawUiDialogTitle>
-				<div style={{ flex: 1 }} />
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody
-				style={{
-					textAlign: 'center',
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					gap: '16px',
-				}}
-			>
+			<TldrawUiDialogBody className={styles.dialogBody}>
 				<img
-					width={36}
-					height={36}
+					className={styles.icon}
 					src="/tldraw-white-on-black.svg"
 					loading="lazy"
 					role="presentation"
 				/>
-
-				<div style={{ fontSize: '16px' }}>
+				<div className={styles.message}>
 					<F {...messages.inviteDialogTitle} /> {inviteInfo.groupName}
 				</div>
 
-				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-					<TlaCtaButton
-						disabled={isAccepting}
-						onClick={async () => {
-							if (!app) return
-							setIsAccepting(true)
-							await app.acceptGroupInvite(inviteInfo.inviteSecret).finally(() => {
-								setIsAccepting(false)
-							})
-							onClose()
-						}}
-					>
-						<F defaultMessage="Accept and join group" />
-					</TlaCtaButton>
-					<TldrawUiButton type="normal" onClick={() => onClose()}>
-						<F defaultMessage="No thanks" />
-					</TldrawUiButton>
-				</div>
+				<button
+					className={styles.acceptButton}
+					disabled={isAccepting}
+					onClick={async () => {
+						if (!app) return
+						setIsAccepting(true)
+						await app.acceptGroupInvite(inviteInfo.inviteSecret).finally(() => {
+							setIsAccepting(false)
+						})
+						onClose()
+					}}
+				>
+					<F defaultMessage="Accept and join group" />
+				</button>
+				<button className={styles.declineButton} onClick={onClose}>
+					<F defaultMessage="No thanks" />
+				</button>
 			</TldrawUiDialogBody>
 		</>
 	)
