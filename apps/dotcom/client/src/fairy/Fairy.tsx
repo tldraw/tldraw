@@ -350,6 +350,16 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
 		editor,
 	])
+	const isMoving = useValue(
+		'is moving',
+		() => {
+			const { velocity } = agent.getEntity()
+			return velocity.x !== 0 && velocity.y !== 0
+		},
+		[agent]
+	)
+	const isPoofing = useValue('is poofing', () => agent.getEntity().gesture === 'poof', [agent])
+	const isActive = useValue('is active', () => agent.getEntity().pose !== 'idle', [agent])
 	const isGenerating = useValue('is generating', () => agent.requests.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
@@ -389,9 +399,11 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 						'fairy-container__not-selected': !isSelected,
 						'fairy-container__generating': isGenerating,
 						'fairy-container__not-generating': !isGenerating,
-						'fairy-container__in-throw-tool': isInThrowTool,
+						'fairy-container__throwing': isInThrowTool || isMoving,
+						'fairy-container__poofing': isPoofing,
 						'fairy-container__grabbable': isFairyGrabbable,
 						'fairy-container__not-grabbable': !isFairyGrabbable,
+						'fairy-container__active': isActive,
 					})}
 				>
 					<FairySprite

@@ -202,15 +202,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				agent.interrupt({ mode: 'standing-by', input: null })
 			})
 
-			// Summon all fairies to the orchestrator
-			// Leader (orchestrator) at center
-			leaderAgent.position.summon()
-
-			// Followers positioned around the orchestrator
+			// Move followers to the leader
+			const leaderPosition = leaderAgent.getEntity().position
+			const leaderPageId = leaderAgent.getEntity().currentPageId
 			followerAgents.forEach((agent, index) => {
-				// Position followers in a horizontal line, offset from the orchestrator
-				const offset = { x: (index + 1) * 120, y: 0 }
-				agent.position.summon(offset)
+				const offset = (index + 1) * 120
+				const position = { x: leaderPosition.x + offset, y: leaderPosition.y }
+				agent.position.moveTo(position)
+				agent.updateEntity((f) => ({ ...f, flipX: true, currentPageId: leaderPageId }))
 			})
 
 			// Send the prompt to the leader
