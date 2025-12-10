@@ -1,18 +1,12 @@
+import { DurableObjectSqliteSyncWrapper, SqlLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 import {
-	DEFAULT_INITIAL_SNAPSHOT,
-	InMemorySyncStorage,
-	RoomSnapshot,
-	TLSocketRoom,
-} from '@tldraw/sync-core'
-import {
-	TLRecord,
 	createTLSchema,
 	// defaultBindingSchemas,
 	defaultShapeSchemas,
+	TLRecord,
 } from '@tldraw/tlschema'
 import { DurableObject } from 'cloudflare:workers'
-import { AutoRouter, IRequest, error } from 'itty-router'
-import throttle from 'lodash.throttle'
+import { AutoRouter, error, IRequest } from 'itty-router'
 
 // add custom shapes and bindings here if needed:
 const schema = createTLSchema({
@@ -20,53 +14,36 @@ const schema = createTLSchema({
 	// bindings: { ...defaultBindingSchemas },
 })
 
-// each whiteboard room is hosted in a DurableObject:
+// Each whiteboard room is hosted in a Durable Object.
 // https://developers.cloudflare.com/durable-objects/
-
-// there's only ever one durable object instance per room. it keeps all the room state in memory and
-// handles websocket connections. periodically, it persists the room state to the R2 bucket.
+//
+// There's only ever one durable object instance per room. Room state is
+// persisted automatically to SQLite via ctx.storage.
 export class TldrawDurableObject extends DurableObject {
-	private r2: R2Bucket
-	// the room ID will be missing while the room is being initialized
-	private roomId: string | null = null
-	// when we load the room from the R2 bucket, we keep it here. it's a promise so we only ever
-	// load it once.
-	private roomPromise: Promise<TLSocketRoom<TLRecord, void>> | null = null
+	private room: TLSocketRoom<TLRecord, void>
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env)
-		this.r2 = env.TLDRAW_BUCKET
+		// Create SQLite-backed storage - persists automatically to Durable Object storage
+		const sqlWrapper = new DurableObjectSqliteSyncWrapper(ctx.storage)
+		const storage = new SqlLiteSyncStorage<TLRecord>(sqlWrapper)
 
-		ctx.blockConcurrencyWhile(async () => {
-			this.roomId = ((await this.ctx.storage.get('roomId')) ?? null) as string | null
-		})
+		// Create the room that handles sync protocol
+		this.room = new TLSocketRoom<TLRecord, void>({ schema, storage })
 	}
 
-	private readonly router = AutoRouter({
-		catch: (e) => {
-			console.log(e)
-			return error(e)
-		},
-	})
-		// when we get a connection request, we stash the room id if needed and handle the connection
-		.get('/api/connect/:roomId', async (request) => {
-			if (!this.roomId) {
-				await this.ctx.blockConcurrencyWhile(async () => {
-					await this.ctx.storage.put('roomId', request.params.roomId)
-					this.roomId = request.params.roomId
-				})
-			}
-			return this.handleConnect(request)
-		})
+	private readonly router = AutoRouter({ catch: (e) => error(e) }).get(
+		'/api/connect/:roomId',
+		(request) => this.handleConnect(request)
+	)
 
-	// `fetch` is the entry point for all requests to the Durable Object
+	// Entry point for all requests to the Durable Object
 	fetch(request: Request): Response | Promise<Response> {
 		return this.router.fetch(request)
 	}
 
-	// what happens when someone tries to connect to this room?
+	// Handle new WebSocket connection requests
 	async handleConnect(request: IRequest) {
-		// extract query params from request
 		const sessionId = request.query.sessionId as string
 		if (!sessionId) return error(400, 'Missing sessionId')
 
@@ -74,57 +51,9 @@ export class TldrawDurableObject extends DurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		// load the room, or retrieve it if it's already loaded
-		const room = await this.getRoom()
+		// Connect to the room
+		this.room.handleSocketConnect({ sessionId, socket: serverWebSocket })
 
-		// connect the client to the room
-		room.handleSocketConnect({ sessionId, socket: serverWebSocket })
-
-		// return the websocket connection to the client
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
-
-	getRoom() {
-		const roomId = this.roomId
-		if (!roomId) throw new Error('Missing roomId')
-
-		if (!this.roomPromise) {
-			this.roomPromise = (async () => {
-				// fetch the room from R2
-				const roomFromBucket = await this.r2.get(`rooms/${roomId}`)
-
-				// if it doesn't exist, we'll just create a new empty room
-				const initialSnapshot = roomFromBucket
-					? ((await roomFromBucket.json()) as RoomSnapshot)
-					: DEFAULT_INITIAL_SNAPSHOT
-
-				// create the storage layer that holds the document state
-				const storage = new InMemorySyncStorage<TLRecord>({
-					snapshot: initialSnapshot,
-					onChange: () => {
-						this.schedulePersistToR2()
-					},
-				})
-
-				// create a new TLSocketRoom. This handles all the sync protocol & websocket connections.
-				// it's up to us to persist the room state to R2 when needed though.
-				return new TLSocketRoom<TLRecord, void>({
-					schema,
-					storage,
-				})
-			})()
-		}
-
-		return this.roomPromise
-	}
-
-	// we throttle persistance so it only happens every 10 seconds
-	schedulePersistToR2 = throttle(async () => {
-		if (!this.roomPromise || !this.roomId) return
-		const room = await this.getRoom()
-
-		// convert the room to JSON and upload it to R2
-		const snapshot = JSON.stringify(room.storage.getSnapshot?.())
-		await this.r2.put(`rooms/${this.roomId}`, snapshot)
-	}, 10_000)
 }
