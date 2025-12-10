@@ -202,14 +202,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				agent.interrupt({ mode: 'standing-by', input: null })
 			})
 
-			// Followers positioned around the orchestrator
+			// Move followers to the leader
 			const leaderPosition = leaderAgent.getEntity().position
+			const leaderPageId = leaderAgent.getEntity().currentPageId
 			followerAgents.forEach((agent, index) => {
-				// Position followers in a horizontal line, offset from the orchestrator
 				const offset = (index + 1) * 120
 				const position = { x: leaderPosition.x + offset, y: leaderPosition.y }
 				agent.position.moveTo(position)
-				agent.updateEntity((f) => ({ ...f, flipX: true }))
+				agent.updateEntity((f) => ({ ...f, flipX: true, currentPageId: leaderPageId }))
 			})
 
 			// Send the prompt to the leader
