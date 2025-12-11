@@ -5,7 +5,10 @@
 	background: #f8f9fa;
 	border-left: 2px solid #e0e0e0;
 	overflow-y: auto;
-	font-family: system-ui, -apple-system, sans-serif;
+	font-family:
+		system-ui,
+		-apple-system,
+		sans-serif;
 }
 
 @media (max-width: 768px) {
@@ -44,8 +47,8 @@
 }
 
 .input-value {
-	font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
-		monospace;
+	font-family:
+		'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 	font-size: 13px;
 	color: #1a1a1a;
 	line-height: 1.5;
