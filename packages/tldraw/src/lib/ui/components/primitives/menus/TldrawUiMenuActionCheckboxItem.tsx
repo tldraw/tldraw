@@ -17,5 +17,5 @@ export function TldrawUiMenuActionCheckboxItem({
 	const actions = useActions()
 	const action = actions[actionId]
 	if (!action) return null
-	return <TldrawUiMenuCheckboxItem {...action} {...rest} />
+	return <TldrawUiMenuCheckboxItem {...(action as TLUiMenuCheckboxItemProps)} {...rest} />
 }

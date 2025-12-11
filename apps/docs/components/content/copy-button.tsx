@@ -7,7 +7,7 @@ export function CopyButton({
 	copy,
 	className,
 }: {
-	copy: string | RefObject<HTMLElement>
+	copy: string | RefObject<HTMLElement | null>
 	className?: string
 }) {
 	const [copied, setCopied] = useState<boolean>(false)

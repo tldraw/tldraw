@@ -63,7 +63,7 @@ function ContextualToolbarInner({
 	)
 	const camera = useValue('camera', () => editor.getCamera(), [editor])
 	const isInCropTool = useValue('editor path', () => editor.isIn('select.crop.'), [editor])
-	const previousSelectionBounds = useRef<Box | undefined>()
+	const previousSelectionBounds = useRef<Box | undefined>(undefined)
 	const handleManipulatingEnd = useCallback(() => {
 		editor.setCroppingShape(null)
 		editor.setCurrentTool('select.idle')
