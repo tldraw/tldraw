@@ -523,6 +523,7 @@ describe('InMemorySyncStorage', () => {
 			})
 
 			it('throws when callback returns a promise', () => {
+				const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 				const storage = new InMemorySyncStorage<TLRecord>({
 					snapshot: makeSnapshot(defaultRecords),
 				})
@@ -530,6 +531,7 @@ describe('InMemorySyncStorage', () => {
 				expect(() => {
 					storage.transaction(() => Promise.resolve() as any)
 				}).toThrow('Transaction must return a value, not a promise')
+				consoleSpy.mockRestore()
 			})
 		})
 	})
@@ -1151,6 +1153,7 @@ describe('InMemorySyncStorage', () => {
 		})
 
 		it('throws when snapshot has no schema', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			const storage = new InMemorySyncStorage<TLRecord>({
 				snapshot: makeSnapshot(defaultRecords),
 			})
@@ -1165,6 +1168,7 @@ describe('InMemorySyncStorage', () => {
 					loadSnapshotIntoStorage(txn, tlSchema, invalidSnapshot)
 				})
 			}).toThrow('Schema is required')
+			consoleSpy.mockRestore()
 		})
 	})
 
@@ -1216,6 +1220,7 @@ describe('InMemorySyncStorage', () => {
 	describe('Edge cases', () => {
 		describe('Transaction error handling', () => {
 			it('does not increment clock if transaction throws', () => {
+				const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 				const storage = new InMemorySyncStorage<TLRecord>({
 					snapshot: makeSnapshot(defaultRecords, { documentClock: 10 }),
 				})
@@ -1228,9 +1233,11 @@ describe('InMemorySyncStorage', () => {
 
 				// Clock should not have changed
 				expect(storage.getClock()).toBe(10)
+				consoleSpy.mockRestore()
 			})
 
 			it('rolls back changes if transaction throws after a write', () => {
+				const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 				const storage = new InMemorySyncStorage<TLRecord>({
 					snapshot: makeSnapshot(defaultRecords, { documentClock: 10 }),
 				})
@@ -1252,6 +1259,7 @@ describe('InMemorySyncStorage', () => {
 				expect(storage.documents.has(newPage.id)).toBe(false)
 				// Clock should not have changed
 				expect(storage.getClock()).toBe(10)
+				consoleSpy.mockRestore()
 			})
 		})
 
@@ -1287,6 +1295,7 @@ describe('InMemorySyncStorage', () => {
 
 		describe('Set with mismatched ID', () => {
 			it('throws when key does not match record.id', () => {
+				const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 				const storage = new InMemorySyncStorage<TLRecord>({
 					snapshot: makeSnapshot(defaultRecords),
 				})
@@ -1303,6 +1312,7 @@ describe('InMemorySyncStorage', () => {
 						txn.set('different:key', page)
 					})
 				}).toThrow('Record id mismatch: key does not match record.id')
+				consoleSpy.mockRestore()
 			})
 
 			it('succeeds when key matches record.id', () => {
