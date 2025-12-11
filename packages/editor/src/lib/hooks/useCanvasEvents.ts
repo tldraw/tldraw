@@ -17,8 +17,6 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 
 				if (e.button === RIGHT_MOUSE_BUTTON) {
-					// If right-click-to-drag is enabled, dispatch pointer_down instead of right_click
-					// so that the panning logic in Editor kicks in
 					if (editor.user.getIsRightClickToDrag()) {
 						setPointerCapture(e.currentTarget, e)
 						editor.dispatch({
@@ -142,7 +140,8 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
-				if (editor.user.getIsRightClickToDrag()) {
+				// prevent context menu if no shape is selected and right-click-to-drag is enabled
+				if (editor.user.getIsRightClickToDrag() && editor.getSelectedShapeIds().length == 0) {
 					preventDefault(e)
 				}
 			}

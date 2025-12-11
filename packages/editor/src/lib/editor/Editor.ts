@@ -10585,12 +10585,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.inputs.isPanning = true
 							clearTimeout(this._longPressTimeout)
 						} else if (info.button === RIGHT_MOUSE_BUTTON && this.user.getIsRightClickToDrag()) {
-							// Right mouse pan activates panning if the preference is enabled
+							// Right mouse pan activates panning if the preference is enabled and nothing is selected
 							if (!this.inputs.isPanning) {
 								this._prevCursor = this.getInstanceState().cursor.type
 							}
 							this.inputs.isPanning = true
-							// this._isRightClickPanning = true
+							this._isRightClickPanning = true
 							clearTimeout(this._longPressTimeout)
 						}
 
