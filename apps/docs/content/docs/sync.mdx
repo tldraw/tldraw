@@ -142,15 +142,15 @@ const storage = new InMemorySyncStorage({
 const room = new TLSocketRoom({ storage })
 ```
 
-#### SqlLiteSyncStorage (recommended for persistence)
+#### SQLiteSyncStorage (recommended for persistence)
 
-[`SqlLiteSyncStorage`](?) stores document state in SQLite, providing automatic persistence that survives process restarts. This is the recommended approach for production deployments.
+[`SQLiteSyncStorage`](?) stores document state in SQLite, providing automatic persistence that survives process restarts. This is the recommended approach for production deployments.
 
 **For Cloudflare Durable Objects:**
 
 ```tsx
 import { DurableObject } from 'cloudflare:workers'
-import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper, TLSocketRoom } from '@tldraw/sync-core'
+import { SQLiteSyncStorage, DurableObjectSqliteSyncWrapper, TLSocketRoom } from '@tldraw/sync-core'
 
 export class TLSyncDurableObject extends DurableObject {
 	private room: TLSocketRoom
@@ -158,7 +158,7 @@ export class TLSyncDurableObject extends DurableObject {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env)
 		const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
-		const storage = new SqlLiteSyncStorage({ sql })
+		const storage = new SQLiteSyncStorage({ sql })
 		this.room = new TLSocketRoom({ storage })
 	}
 }
@@ -168,16 +168,16 @@ export class TLSyncDurableObject extends DurableObject {
 
 ```tsx
 import Database from 'better-sqlite3' // replace with 'node:sqlite' if using
-import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
+import { SQLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
 
 const db = new Database('rooms.db')
 const sql = new NodeSqliteWrapper(db)
-const storage = new SqlLiteSyncStorage({ sql })
+const storage = new SQLiteSyncStorage({ sql })
 const room = new TLSocketRoom({ storage })
 ```
 
 <Callout type="info">
-	`SqlLiteSyncStorage` automatically creates and manages its database tables. You can use the
+	`SQLiteSyncStorage` automatically creates and manages its database tables. You can use the
 	`tablePrefix` option to avoid conflicts if you're sharing a database with other data.
 </Callout>
 
@@ -297,20 +297,20 @@ clients on different versions won't be able to collaborate without errors.
 
 If you have been using some other solution for data sync, you can migrate your existing data to the tldraw sync format.
 
-Both [`InMemorySyncStorage`](?) and [`SqlLiteSyncStorage`](?) support loading [`TLStoreSnapshot`](?) snapshots, so you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
+Both [`InMemorySyncStorage`](?) and [`SQLiteSyncStorage`](?) support loading [`TLStoreSnapshot`](?) snapshots, so you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
 
-**Example with SqlLiteSyncStorage (recommended):**
+**Example with SQLiteSyncStorage (recommended):**
 
 ```tsx
-import { SqlLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
+import { SQLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
 import Database from 'better-sqlite3'
 
 function loadOrMakeRoom(roomId: string, db: Database.Database) {
 	const sql = new NodeSqliteWrapper(db, { tablePrefix: `room_${roomId}_` })
 
 	// Check if we already have data in SQLite
-	if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
-		const storage = new SqlLiteSyncStorage({ sql })
+	if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
+		const storage = new SQLiteSyncStorage({ sql })
 		return new TLSocketRoom({ storage })
 	}
 
@@ -318,13 +318,13 @@ function loadOrMakeRoom(roomId: string, db: Database.Database) {
 	const legacyData = loadRoomDataFromLegacyStore(roomId)
 	if (legacyData) {
 		const snapshot = convertOldDataToSnapshot(legacyData)
-		const storage = new SqlLiteSyncStorage({ sql, snapshot })
+		const storage = new SQLiteSyncStorage({ sql, snapshot })
 		deleteLegacyRoomData(roomId)
 		return new TLSocketRoom({ storage })
 	}
 
 	// No data - create a new empty room
-	return new TLSocketRoom({ storage: new SqlLiteSyncStorage({ sql }) })
+	return new TLSocketRoom({ storage: new SQLiteSyncStorage({ sql }) })
 }
 ```
 
@@ -394,7 +394,7 @@ Rename your existing class (e.g. `TldrawDurableObject` → `TldrawDurableObjectS
 import {
 	DurableObjectSqliteSyncWrapper,
 	RoomSnapshot,
-	SqlLiteSyncStorage,
+	SQLiteSyncStorage,
 	TLSocketRoom,
 } from '@tldraw/sync-core'
 import { TLRecord, createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema'
@@ -426,8 +426,8 @@ export class TldrawDurableObjectSqlite {
 		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
 
 		// If SQLite already has data, use it directly
-		if (SqlLiteSyncStorage.hasBeenInitialized(sql)) {
-			const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
+		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
+			const storage = new SQLiteSyncStorage<TLRecord>({ sql })
 			return new TLSocketRoom<TLRecord, void>({ schema, storage })
 		}
 
@@ -436,7 +436,7 @@ export class TldrawDurableObjectSqlite {
 			const r2Object = await this.env.TLDRAW_BUCKET.get(`rooms/${this.roomId}`)
 			if (r2Object) {
 				const snapshot = (await r2Object.json()) as RoomSnapshot
-				const storage = new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
+				const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot })
 
 				// Optionally delete the R2 object after successful migration
 				// await this.env.TLDRAW_BUCKET.delete(`rooms/${this.roomId}`)
@@ -446,7 +446,7 @@ export class TldrawDurableObjectSqlite {
 		}
 
 		// No existing data - create fresh room
-		const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql })
 		return new TLSocketRoom<TLRecord, void>({ schema, storage })
 	}
 }

@@ -57,7 +57,7 @@ export interface TLSyncSqliteStatement<
 }
 
 /**
- * Configuration for SqlLiteSyncStorage.
+ * Configuration for SQLiteSyncStorage.
  * @public
  */
 export interface TLSyncSqliteWrapperConfig {
@@ -147,32 +147,32 @@ export function migrateSqliteSyncStorage(
  * @example
  * ```ts
  * // With Cloudflare Durable Objects
- * import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
+ * import { SQLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
  *
  * const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
- * const storage = new SqlLiteSyncStorage({ sql })
+ * const storage = new SQLiteSyncStorage({ sql })
  * ```
  *
  * @example
  * ```ts
  * // With Node.js sqlite (Node 22.5+)
  * import { DatabaseSync } from 'node:sqlite'
- * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
+ * import { SQLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new DatabaseSync('sync-state.db')
  * const sql = new NodeSqliteWrapper(db)
- * const storage = new SqlLiteSyncStorage({ sql })
+ * const storage = new SQLiteSyncStorage({ sql })
  * ```
  *
  * @example
  * ```ts
  * // Initialize with an existing snapshot
- * const storage = new SqlLiteSyncStorage({ sql, snapshot: existingSnapshot })
+ * const storage = new SQLiteSyncStorage({ sql, snapshot: existingSnapshot })
  * ```
  *
  * @public
  */
-export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
+export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
 	/**
 	 * Check if the storage has been initialized (has data in the clock table).
 	 * Useful for determining whether to load from an external source on first access.
@@ -201,7 +201,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 				.prepare<{ documentClock: number }>(`SELECT documentClock FROM ${prefix}metadata LIMIT 1`)
 				.all()[0]
 			// documentClock exists but could be 0, so we check if the storage is initialized
-			if (row && SqlLiteSyncStorage.hasBeenInitialized(storage)) {
+			if (row && SQLiteSyncStorage.hasBeenInitialized(storage)) {
 				return row.documentClock
 			}
 			return null
@@ -307,7 +307,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 		}
 
 		// Check if we already have data
-		const hasData = SqlLiteSyncStorage.hasBeenInitialized(sql)
+		const hasData = SQLiteSyncStorage.hasBeenInitialized(sql)
 
 		if (snapshot || !hasData) {
 			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot ?? DEFAULT_INITIAL_SNAPSHOT)
@@ -357,7 +357,7 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 		const clockBefore = this.getClock()
 		const trackChanges = opts?.emitChanges === 'always'
 		return this.sql.transaction(() => {
-			const txn = new SqlLiteSyncStorageTransaction<R>(this, this.stmts)
+			const txn = new SQLiteSyncStorageTransaction<R>(this, this.stmts)
 			let result: T
 			let changes: TLSyncForwardDiff<R> | undefined
 			try {
@@ -456,21 +456,19 @@ export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorag
 }
 
 /**
- * Transaction implementation for SqlLiteSyncStorage.
+ * Transaction implementation for SQLiteSyncStorage.
  * Provides access to documents, tombstones, and metadata within a transaction.
  *
  * @internal
  */
-class SqlLiteSyncStorageTransaction<R extends UnknownRecord>
-	implements TLSyncStorageTransaction<R>
-{
+class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncStorageTransaction<R> {
 	private _clock: number
 	private _closed = false
 	private _didIncrementClock: boolean = false
 
 	constructor(
-		private storage: SqlLiteSyncStorage<R>,
-		private stmts: SqlLiteSyncStorage<R>['stmts']
+		private storage: SQLiteSyncStorage<R>,
+		private stmts: SQLiteSyncStorage<R>['stmts']
 	) {
 		this._clock = this.storage.getClock()
 	}

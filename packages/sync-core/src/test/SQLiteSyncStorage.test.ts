@@ -10,7 +10,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { vi } from 'vitest'
 import { MAX_TOMBSTONES, TOMBSTONE_PRUNE_BUFFER_SIZE } from '../lib/InMemorySyncStorage'
 import { NodeSqliteWrapper } from '../lib/NodeSqliteWrapper'
-import { SqlLiteSyncStorage } from '../lib/SqlLiteSyncStorage'
+import { SQLiteSyncStorage } from '../lib/SQLiteSyncStorage'
 import { RoomSnapshot } from '../lib/TLSyncRoom'
 
 const tlSchema = createTLSchema()
@@ -50,58 +50,58 @@ function createWrapper(config?: { tablePrefix?: string }) {
 
 function getStorage(snapshot: RoomSnapshot, wrapperConfig?: { tablePrefix?: string }) {
 	const sql = createWrapper(wrapperConfig)
-	return new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
+	return new SQLiteSyncStorage<TLRecord>({ sql, snapshot })
 }
 
-describe('SqlLiteSyncStorage', () => {
+describe('SQLiteSyncStorage', () => {
 	describe('Static methods', () => {
 		describe('hasBeenInitialized', () => {
 			it('returns false for empty database', () => {
 				const sql = createWrapper()
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
 			})
 
 			it('returns true after storage is initialized', () => {
 				const sql = createWrapper()
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 
 			it('respects table prefix', () => {
 				const sql = createWrapper({ tablePrefix: 'test_' })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 		})
 
 		describe('getDocumentClock', () => {
 			it('returns null for empty database', () => {
 				const sql = createWrapper()
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(null)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(null)
 			})
 
 			it('returns 0 for newly initialized storage with default snapshot', () => {
 				const sql = createWrapper()
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(0)
 			})
 
 			it('returns the documentClock value from snapshot', () => {
 				const sql = createWrapper()
 				const snapshot = makeSnapshot(defaultRecords)
 				snapshot.documentClock = 42
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(42)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot })
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(42)
 			})
 
 			it('returns updated clock after transactions', () => {
 				const sql = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>({
+				const storage = new SQLiteSyncStorage<TLRecord>({
 					sql,
 					snapshot: makeSnapshot(defaultRecords),
 				})
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(0)
 
 				const newPage = PageRecordType.create({
 					id: PageRecordType.createId('test_page'),
@@ -111,14 +111,14 @@ describe('SqlLiteSyncStorage', () => {
 				storage.transaction((txn) => {
 					txn.set(newPage.id, newPage)
 				})
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(1)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(1)
 			})
 
 			it('respects table prefix', () => {
 				const sql = createWrapper({ tablePrefix: 'test_' })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(null)
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(null)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(0)
 			})
 		})
 	})
@@ -215,14 +215,14 @@ describe('SqlLiteSyncStorage', () => {
 			const sql = createWrapper()
 
 			// First initialization
-			new SqlLiteSyncStorage<TLRecord>({
+			new SQLiteSyncStorage<TLRecord>({
 				sql,
 				snapshot: makeSnapshot(defaultRecords, { documentClock: 10 }),
 			})
 
 			// Second initialization with different data
 			const newRecords = [DocumentRecordType.create({ id: TLDOCUMENT_ID })]
-			const storage2 = new SqlLiteSyncStorage<TLRecord>({
+			const storage2 = new SQLiteSyncStorage<TLRecord>({
 				sql,
 				snapshot: makeSnapshot(newRecords, { documentClock: 20 }),
 			})
@@ -703,7 +703,7 @@ describe('SqlLiteSyncStorage', () => {
 		it('accepts onChange callback in constructor', async () => {
 			const listener = vi.fn()
 			const sql = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>({
+			const storage = new SQLiteSyncStorage<TLRecord>({
 				sql,
 				snapshot: makeSnapshot(defaultRecords),
 				onChange: listener,
