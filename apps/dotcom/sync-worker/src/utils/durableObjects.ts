@@ -1,5 +1,5 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
-import { TLFileDurableObject } from '../TLDrawDurableObject'
+import { TLFileDurableObject } from '../TLFileDurableObject'
 import { TLLoggerDurableObject } from '../TLLoggerDurableObject'
 import type { TLPostgresReplicator } from '../TLPostgresReplicator'
 import { TLStatsDurableObject } from '../TLStatsDurableObject'
