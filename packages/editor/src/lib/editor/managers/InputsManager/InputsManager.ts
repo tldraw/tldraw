@@ -288,7 +288,7 @@ export class InputsManager {
 		return this._isDragging.get()
 	}
 	/**
-	 * Soon to be deprecated, uise `getIsDragging()` instead.
+	 * Soon to be deprecated, use `getIsDragging()` instead.
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get isDragging() {
