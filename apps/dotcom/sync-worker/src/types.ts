@@ -2,7 +2,7 @@
 
 import { Queue } from '@cloudflare/workers-types'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import type { TLFileDurableObject } from './TLFileDurableObject'
+import type { TLFileDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
