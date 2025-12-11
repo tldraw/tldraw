@@ -23,7 +23,7 @@ import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	InMemorySyncStorage,
 	RoomSnapshot,
-	SqlLiteSyncStorage,
+	SQLiteSyncStorage,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
@@ -924,8 +924,8 @@ export class TLDrawDurableObject extends DurableObject {
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
 						assert(
-							storage instanceof InMemorySyncStorage || storage instanceof SqlLiteSyncStorage,
-							'storage must be an InMemorySyncStorage or SqlLiteSyncStorage'
+							storage instanceof InMemorySyncStorage || storage instanceof SQLiteSyncStorage,
+							'storage must be an InMemorySyncStorage or SQLiteSyncStorage'
 						)
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return

@@ -301,7 +301,7 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 }
 
 // @public
-export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
+export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
     constructor({ sql, snapshot, onChange, }: {
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
