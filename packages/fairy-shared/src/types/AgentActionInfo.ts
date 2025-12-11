@@ -40,4 +40,10 @@ export interface AgentActionInfo {
 	 * Null to keep the current pose.
 	 */
 	pose: FairyPose | null
+
+	/**
+	 * Optional IRC-style message for the live feed.
+	 * More conversational than description. Falls back to description if not set.
+	 */
+	ircMessage?: string | null
 }

@@ -1,4 +1,5 @@
 import {
+	AgentRequest,
 	FairyModeDefinition,
 	FairyWaitCondition,
 	FairyWaitEvent,
@@ -109,28 +110,17 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * already be removed by the notification system before calling this method.
 	 * If the agent is currently generating, the message will be scheduled.
 	 * Otherwise, it will be prompted immediately.
+	 * @param request - A partial agent request to send when the wait condition is fulfilled.
 	 * @returns Promise that resolves when the prompt completes (if prompted)
 	 */
-	async notifyWaitConditionFulfilled({
-		agentFacingMessage,
-		userFacingMessage,
-	}: {
-		agentFacingMessage: string
-		userFacingMessage: string | null
-	}): Promise<void> {
+	async notifyWaitConditionFulfilled(request: Partial<AgentRequest>): Promise<void> {
 		const { agent } = this
+		// Ensure source is set to 'other-agent' for wait condition notifications
+		const requestWithSource: Partial<AgentRequest> = { ...request, source: 'other-agent' }
 		if (agent.requests.isGenerating()) {
-			agent.schedule({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
+			agent.schedule(requestWithSource)
 		} else {
-			await agent.prompt({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
+			await agent.prompt(requestWithSource)
 		}
 	}
 

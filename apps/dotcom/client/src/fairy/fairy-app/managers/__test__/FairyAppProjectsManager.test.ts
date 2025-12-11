@@ -49,6 +49,7 @@ describe('FairyAppProjectsManager', () => {
 					color: 'blue',
 					members: [],
 					plan: 'Test plan',
+					softDeleted: false,
 				},
 			]
 
@@ -67,6 +68,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			manager.addProject(project)
@@ -170,6 +172,7 @@ describe('FairyAppProjectsManager', () => {
 					{ id: agentId2, role: 'drone' },
 				],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			const orchestrator = manager.getProjectOrchestrator(project)
@@ -188,6 +191,7 @@ describe('FairyAppProjectsManager', () => {
 					{ id: agentId2, role: 'drone' },
 				],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			const orchestrator = manager.getProjectOrchestrator(project)
@@ -205,6 +209,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			manager.addProject(project)
@@ -223,6 +228,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			manager.addProject(project)
@@ -243,6 +249,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			})
 
 			manager.addProject({
@@ -252,6 +259,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'red',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			})
 
 			expect(manager.getProjects()).toHaveLength(2)
@@ -271,6 +279,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			manager.addProject(project)
@@ -298,6 +307,275 @@ describe('FairyAppProjectsManager', () => {
 			manager.deleteProjectAndAssociatedTasks(projectId1)
 
 			expect(manager.getProjects()).toHaveLength(0)
+			expect(fairyApp.tasks.getTasks()).toHaveLength(0)
+		})
+	})
+
+	describe('softDeleteProjectAndAssociatedTasks', () => {
+		it('should mark a project as soft deleted', () => {
+			const project: FairyProject = {
+				id: projectId1,
+				title: 'Test Project',
+				description: 'Test description',
+				color: 'blue',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project)
+
+			expect(manager.getProjectById(projectId1)?.softDeleted).toBe(false)
+
+			manager.softDeleteProjectAndAssociatedTasks(projectId1)
+
+			expect(manager.getProjectById(projectId1, true)?.softDeleted).toBe(true)
+		})
+
+		it('should filter out soft-deleted projects from getProjects() by default', () => {
+			const project1: FairyProject = {
+				id: projectId1,
+				title: 'Active Project',
+				description: 'Test description',
+				color: 'blue',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			const project2: FairyProject = {
+				id: projectId2,
+				title: 'Soft Deleted Project',
+				description: 'Test description',
+				color: 'red',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project1)
+			manager.addProject(project2)
+
+			expect(manager.getProjects()).toHaveLength(2)
+
+			manager.softDeleteProjectAndAssociatedTasks(projectId2)
+
+			// Should filter out soft-deleted project by default
+			const projects = manager.getProjects()
+			expect(projects).toHaveLength(1)
+			expect(projects[0]?.id).toBe(projectId1)
+
+			// Should include soft-deleted projects when explicitly requested
+			const allProjects = manager.getProjects(true)
+			expect(allProjects).toHaveLength(2)
+			expect(allProjects.find((p) => p.id === projectId2)?.softDeleted).toBe(true)
+		})
+
+		it('should filter out soft-deleted projects from getProjectById() by default', () => {
+			const project: FairyProject = {
+				id: projectId1,
+				title: 'Test Project',
+				description: 'Test description',
+				color: 'blue',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project)
+
+			expect(manager.getProjectById(projectId1)).toBeDefined()
+
+			manager.softDeleteProjectAndAssociatedTasks(projectId1)
+
+			// Should return undefined for soft-deleted project by default
+			expect(manager.getProjectById(projectId1)).toBeUndefined()
+
+			// Should return project when explicitly including soft-deleted
+			const softDeletedProject = manager.getProjectById(projectId1, true)
+			expect(softDeletedProject).toBeDefined()
+			expect(softDeletedProject?.softDeleted).toBe(true)
+		})
+
+		it('should filter out soft-deleted projects from getProjectByAgentId() by default', () => {
+			const project: FairyProject = {
+				id: projectId1,
+				title: 'Test Project',
+				description: 'Test description',
+				color: 'blue',
+				members: [{ id: agentId1, role: 'orchestrator' }],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project)
+
+			expect(manager.getProjectByAgentId(agentId1)).toBeDefined()
+
+			manager.softDeleteProjectAndAssociatedTasks(projectId1)
+
+			// Should return undefined for soft-deleted project by default
+			expect(manager.getProjectByAgentId(agentId1)).toBeUndefined()
+
+			// Should return project when explicitly including soft-deleted
+			const softDeletedProject = manager.getProjectByAgentId(agentId1, true)
+			expect(softDeletedProject).toBeDefined()
+			expect(softDeletedProject?.softDeleted).toBe(true)
+		})
+	})
+
+	describe('hardDeleteSoftDeletedProjects', () => {
+		it('should hard delete all soft-deleted projects and their tasks', () => {
+			const project1: FairyProject = {
+				id: projectId1,
+				title: 'Active Project',
+				description: 'Test description',
+				color: 'blue',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			const project2: FairyProject = {
+				id: projectId2,
+				title: 'Soft Deleted Project',
+				description: 'Test description',
+				color: 'red',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project1)
+			manager.addProject(project2)
+
+			// Create tasks for both projects
+			fairyApp.tasks.createTask({
+				id: taskId1,
+				title: 'Task 1',
+				text: 'Test',
+				status: 'todo',
+				projectId: projectId1,
+				assignedTo: null,
+			})
+
+			fairyApp.tasks.createTask({
+				id: taskId2,
+				title: 'Task 2',
+				text: 'Test',
+				status: 'todo',
+				projectId: projectId2,
+				assignedTo: null,
+			})
+
+			expect(manager.getProjects()).toHaveLength(2)
+			expect(fairyApp.tasks.getTasks()).toHaveLength(2)
+
+			// Soft delete project2
+			manager.softDeleteProjectAndAssociatedTasks(projectId2)
+
+			// Project2 should still exist but be soft-deleted
+			expect(manager.getProjects(true)).toHaveLength(2)
+			expect(manager.getProjects()).toHaveLength(1) // Filtered out by default
+			expect(fairyApp.tasks.getTasks()).toHaveLength(2) // Tasks still exist
+
+			// Hard delete soft-deleted projects
+			manager.hardDeleteSoftDeletedProjects()
+
+			// Project2 and its task should be completely removed
+			expect(manager.getProjects()).toHaveLength(1)
+			expect(manager.getProjects(true)).toHaveLength(1)
+			expect(fairyApp.tasks.getTasks()).toHaveLength(1)
+			expect(fairyApp.tasks.getTasks()[0]?.projectId).toBe(projectId1)
+		})
+
+		it('should not delete active projects', () => {
+			const project: FairyProject = {
+				id: projectId1,
+				title: 'Active Project',
+				description: 'Test description',
+				color: 'blue',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project)
+
+			fairyApp.tasks.createTask({
+				id: taskId1,
+				title: 'Task 1',
+				text: 'Test',
+				status: 'todo',
+				projectId: projectId1,
+				assignedTo: null,
+			})
+
+			expect(manager.getProjects()).toHaveLength(1)
+			expect(fairyApp.tasks.getTasks()).toHaveLength(1)
+
+			// Hard delete should not affect active projects
+			manager.hardDeleteSoftDeletedProjects()
+
+			expect(manager.getProjects()).toHaveLength(1)
+			expect(fairyApp.tasks.getTasks()).toHaveLength(1)
+		})
+
+		it('should handle multiple soft-deleted projects', () => {
+			const project1: FairyProject = {
+				id: projectId1,
+				title: 'Soft Deleted Project 1',
+				description: 'Test description',
+				color: 'blue',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			const project2: FairyProject = {
+				id: projectId2,
+				title: 'Soft Deleted Project 2',
+				description: 'Test description',
+				color: 'red',
+				members: [],
+				plan: 'Test plan',
+				softDeleted: false,
+			}
+
+			manager.addProject(project1)
+			manager.addProject(project2)
+
+			fairyApp.tasks.createTask({
+				id: taskId1,
+				title: 'Task 1',
+				text: 'Test',
+				status: 'todo',
+				projectId: projectId1,
+				assignedTo: null,
+			})
+
+			fairyApp.tasks.createTask({
+				id: taskId2,
+				title: 'Task 2',
+				text: 'Test',
+				status: 'todo',
+				projectId: projectId2,
+				assignedTo: null,
+			})
+
+			// Soft delete both projects
+			manager.softDeleteProjectAndAssociatedTasks(projectId1)
+			manager.softDeleteProjectAndAssociatedTasks(projectId2)
+
+			expect(manager.getProjects()).toHaveLength(0)
+			expect(manager.getProjects(true)).toHaveLength(2)
+			expect(fairyApp.tasks.getTasks()).toHaveLength(2)
+
+			// Hard delete all soft-deleted projects
+			manager.hardDeleteSoftDeletedProjects()
+
+			expect(manager.getProjects()).toHaveLength(0)
+			expect(manager.getProjects(true)).toHaveLength(0)
 			expect(fairyApp.tasks.getTasks()).toHaveLength(0)
 		})
 	})
@@ -345,6 +623,7 @@ describe('FairyAppProjectsManager', () => {
 					{ id: agent2.id, role: 'drone' },
 				],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			manager.addProject(project)
@@ -376,6 +655,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [{ id: agent1.id, role: 'orchestrator' }],
 				plan: 'Test plan',
+				softDeleted: false,
 			}
 
 			manager.addProject(project)
@@ -433,6 +713,7 @@ describe('FairyAppProjectsManager', () => {
 					{ id: agents[1]!.id, role: 'drone' },
 				],
 				plan: 'Test plan',
+				softDeleted: false,
 			})
 
 			manager.addProject({
@@ -445,6 +726,7 @@ describe('FairyAppProjectsManager', () => {
 					{ id: agents[1]!.id, role: 'drone' },
 				],
 				plan: 'Test plan',
+				softDeleted: false,
 			})
 
 			const interruptSpy0 = vi.spyOn(agents[0]!, 'interrupt')
@@ -496,6 +778,7 @@ describe('FairyAppProjectsManager', () => {
 				color: 'blue',
 				members: [],
 				plan: 'Test plan',
+				softDeleted: false,
 			})
 
 			expect(manager.getProjects()).toHaveLength(1)

@@ -56,6 +56,21 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		},
 	},
 	['one-shotting']: {
+		onEnter(agent, fromMode) {
+			// When entering one-shotting mode from idling, clear created shapes tracking
+			// This handles the case where a user prompt starts while in idling mode,
+			// which transitions to one-shotting before one-shotting.onPromptStart is called
+			if (fromMode === 'idling') {
+				agent.lints.clearCreatedShapes()
+			}
+		},
+		onPromptStart(agent, request) {
+			// one-shotting fairies get lints on shapes created over the course of the prompt, new user prompts reset this
+			// This handles cases where a prompt starts while already in one-shotting mode (e.g., continuation, interrupt)
+			if (request.source === 'user') {
+				agent.lints.clearCreatedShapes()
+			}
+		},
 		onPromptEnd(agent) {
 			const todoList = agent.todos.getTodos()
 			const incompleteTodoItems = todoList.filter((item) => item.status !== 'done')
@@ -63,9 +78,19 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				agent.schedule(
 					"Continue until all your todo items are marked as done. If you've completed the work, feel free to mark them as done, otherwise keep going."
 				)
-			} else {
-				agent.mode.setMode('idling')
+				return
 			}
+
+			if (agent.lints.hasUnsurfacedLints(agent.lints.getCreatedShapes())) {
+				agent.schedule({
+					agentMessages: [
+						'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed.', // these will show up in CanvasLintsPartUtil, where they will be makred as surfaced
+					],
+				})
+				return
+			}
+
+			agent.mode.setMode('idling')
 		},
 		onPromptCancel(agent) {
 			agent.mode.setMode('one-shotting-pausing')

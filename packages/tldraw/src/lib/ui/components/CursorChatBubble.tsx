@@ -46,7 +46,7 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 	return chatMessage.trim() ? <NotEditingChatMessage chatMessage={chatMessage} /> : null
 })
 
-function usePositionBubble(ref: RefObject<HTMLInputElement>) {
+function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {

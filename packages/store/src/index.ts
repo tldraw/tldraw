@@ -19,6 +19,8 @@ export {
 	type MigrationResult,
 	type MigrationSequence,
 	type StandaloneDependsOn,
+	type SynchronousRecordStorage,
+	type SynchronousStorage,
 } from './lib/migrate'
 export {
 	createEmptyRecordsDiff,

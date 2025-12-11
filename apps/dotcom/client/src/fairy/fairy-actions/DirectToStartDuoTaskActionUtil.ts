@@ -30,6 +30,10 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 		return createAgentActionInfo({
 			icon: 'comment',
 			description: text,
+			ircMessage:
+				action.complete && task?.title
+					? `${otherFairyFirstName}, do this task: ${task.title}`
+					: null,
 			canGroup: () => false,
 			pose: 'reviewing', // todo: bullhorn
 		})
