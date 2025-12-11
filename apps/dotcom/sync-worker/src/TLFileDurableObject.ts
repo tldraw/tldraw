@@ -1,8 +1,4 @@
-import {
-	DurableObjectSqliteSyncWrapper,
-	SqlLiteSyncStorage,
-	TLSyncStorage,
-} from '@tldraw/sync-core'
+import { DurableObjectSqliteSyncWrapper, SQLiteSyncStorage, TLSyncStorage } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { TLDrawDurableObject } from './TLDrawDurableObject'
 import { getFeatureFlag } from './utils/featureFlags'
@@ -20,7 +16,7 @@ export class TLFileDurableObject extends TLDrawDurableObject {
 		}
 
 		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
-		const sqliteClock = SqlLiteSyncStorage.getDocumentClock(sql)
+		const sqliteClock = SQLiteSyncStorage.getDocumentClock(sql)
 
 		// If SQLite has been initialized, we need to check if R2 has fresher data.
 		// This can happen if the sqlite_file_storage flag was toggled OFF then back ON,
@@ -33,18 +29,18 @@ export class TLFileDurableObject extends TLDrawDurableObject {
 			if (lastR2Clock > sqliteClock) {
 				// R2 has fresher data, reinitialize SQLite from R2
 				const result = await this.loadFromDatabase(slug)
-				const storage = new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
+				const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
 				this.setRoomStorageUsedPercentage(result.roomSizeMB)
 				return storage
 			}
 
 			// SQLite is up-to-date or fresher, use it directly
-			return new SqlLiteSyncStorage<TLRecord>({ sql })
+			return new SQLiteSyncStorage<TLRecord>({ sql })
 		}
 
 		// SQLite not initialized yet, load from R2 and initialize
 		const result = await this.loadFromDatabase(slug)
-		const storage = new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)

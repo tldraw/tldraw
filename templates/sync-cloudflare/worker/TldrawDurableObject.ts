@@ -1,4 +1,4 @@
-import { DurableObjectSqliteSyncWrapper, SqlLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+import { DurableObjectSqliteSyncWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 import {
 	createTLSchema,
 	// defaultBindingSchemas,
@@ -26,7 +26,7 @@ export class TldrawDurableObject extends DurableObject {
 		super(ctx, env)
 		// Create SQLite-backed storage - persists automatically to Durable Object storage
 		const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
-		const storage = new SqlLiteSyncStorage<TLRecord>({ sql })
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql })
 
 		// Create the room that handles sync protocol
 		this.room = new TLSocketRoom<TLRecord, void>({ schema, storage })
