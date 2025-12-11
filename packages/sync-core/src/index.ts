@@ -33,14 +33,14 @@ export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export {
-	SqlLiteSyncStorage,
+	SQLiteSyncStorage,
 	type TLSqliteInputValue,
 	type TLSqliteOutputValue,
 	type TLSqliteRow,
 	type TLSyncSqliteStatement,
 	type TLSyncSqliteWrapper,
 	type TLSyncSqliteWrapperConfig,
-} from './lib/SqlLiteSyncStorage'
+} from './lib/SQLiteSyncStorage'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
 export {
 	TLSocketRoom,

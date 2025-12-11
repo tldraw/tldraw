@@ -4,7 +4,7 @@ import {
 	type TLSyncSqliteStatement,
 	type TLSyncSqliteWrapper,
 	type TLSyncSqliteWrapperConfig,
-} from './SqlLiteSyncStorage'
+} from './SQLiteSyncStorage'
 
 /**
  * Minimal interface for a synchronous SQLite database.
@@ -33,29 +33,29 @@ export interface SyncSqliteDatabase {
  * A wrapper around synchronous SQLite databases that implements TLSyncSqliteWrapper.
  * Works with both `node:sqlite` DatabaseSync (Node.js 22.5+) and `better-sqlite3` Database.
  *
- * Use this wrapper with SqlLiteSyncStorage to persist tldraw sync state to a SQLite database
+ * Use this wrapper with SQLiteSyncStorage to persist tldraw sync state to a SQLite database
  * in Node.js environments.
  *
  * @example
  * ```ts
  * // With node:sqlite (Node.js 22.5+)
  * import { DatabaseSync } from 'node:sqlite'
- * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
+ * import { SQLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new DatabaseSync(':memory:')
  * const sql = new NodeSqliteWrapper(db)
- * const storage = new SqlLiteSyncStorage({ sql })
+ * const storage = new SQLiteSyncStorage({ sql })
  * ```
  *
  * @example
  * ```ts
  * // With better-sqlite3
  * import Database from 'better-sqlite3'
- * import { SqlLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
+ * import { SQLiteSyncStorage, NodeSqliteWrapper } from '@tldraw/sync-core'
  *
  * const db = new Database(':memory:')
  * const sql = new NodeSqliteWrapper(db)
- * const storage = new SqlLiteSyncStorage({ sql })
+ * const storage = new SQLiteSyncStorage({ sql })
  * ```
  *
  * @example

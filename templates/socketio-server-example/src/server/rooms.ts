@@ -1,4 +1,4 @@
-import { NodeSqliteWrapper, SqlLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+import { NodeSqliteWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 import Database from 'better-sqlite3'
 import { mkdirSync } from 'fs'
 import { join } from 'path'
@@ -28,7 +28,7 @@ export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
 	// Open the database - file is created if it doesn't exist
 	const db = new Database(join(DIR, `${roomId}.db`))
 	const sql = new NodeSqliteWrapper(db)
-	const storage = new SqlLiteSyncStorage({ sql })
+	const storage = new SQLiteSyncStorage({ sql })
 
 	const room = new TLSocketRoom({
 		storage,
