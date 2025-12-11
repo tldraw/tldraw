@@ -4334,7 +4334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:7.32.2":
+"@microsoft/api-extractor-model@npm:7.32.2, @microsoft/api-extractor-model@npm:^7.30.2":
   version: 7.32.2
   resolution: "@microsoft/api-extractor-model@npm:7.32.2"
   dependencies:
@@ -4342,17 +4342,6 @@ __metadata:
     "@microsoft/tsdoc-config": "npm:~0.18.0"
     "@rushstack/node-core-library": "npm:5.19.1"
   checksum: 10/89760055c7d3074cd903e3694c411eafa8704f048781bb2db0f0ba6e6a9a1bb12a722419ddd99141562cc8d13c98e2deee6eba118853eed630918705b223107b
-  languageName: node
-  linkType: hard
-
-"@microsoft/api-extractor-model@npm:^7.30.2":
-  version: 7.30.2
-  resolution: "@microsoft/api-extractor-model@npm:7.30.2"
-  dependencies:
-    "@microsoft/tsdoc": "npm:~0.15.1"
-    "@microsoft/tsdoc-config": "npm:~0.17.1"
-    "@rushstack/node-core-library": "npm:5.10.2"
-  checksum: 10/7fef77c6a00528fe202f05e5c5ff83500b589cae3f0a9b17d9afe23b739df0c89edd84e0b7ef226396d4b1576e1c183aa59408d9c139248499f2d3bf58faad5e
   languageName: node
   linkType: hard
 
@@ -4377,18 +4366,6 @@ __metadata:
   bin:
     api-extractor: bin/api-extractor
   checksum: 10/56b7e9338ad18cf3dc6aaefd679b90117c9d5498dee5c621e868a5fe5002656e62d08267525eb880221d4588afcf6d680604249a9c2fb5faaba8f9c87be16b3e
-  languageName: node
-  linkType: hard
-
-"@microsoft/tsdoc-config@npm:~0.17.1":
-  version: 0.17.1
-  resolution: "@microsoft/tsdoc-config@npm:0.17.1"
-  dependencies:
-    "@microsoft/tsdoc": "npm:0.15.1"
-    ajv: "npm:~8.12.0"
-    jju: "npm:~1.4.0"
-    resolve: "npm:~1.22.2"
-  checksum: 10/19f57b752413916c7ad14466650f48ba1acaf674411b6a44065e93f762d391e501cb553eeb8ae3834f1f1f064ddc83a26bdbd8026c9b2c0c194fe90818078eb9
   languageName: node
   linkType: hard
 
@@ -7516,27 +7493,6 @@ __metadata:
   version: 1.1.0
   resolution: "@rtsao/scc@npm:1.1.0"
   checksum: 10/17d04adf404e04c1e61391ed97bca5117d4c2767a76ae3e879390d6dec7b317fcae68afbf9e98badee075d0b64fa60f287729c4942021b4d19cd01db77385c01
-  languageName: node
-  linkType: hard
-
-"@rushstack/node-core-library@npm:5.10.2":
-  version: 5.10.2
-  resolution: "@rushstack/node-core-library@npm:5.10.2"
-  dependencies:
-    ajv: "npm:~8.13.0"
-    ajv-draft-04: "npm:~1.0.0"
-    ajv-formats: "npm:~3.0.1"
-    fs-extra: "npm:~7.0.1"
-    import-lazy: "npm:~4.0.0"
-    jju: "npm:~1.4.0"
-    resolve: "npm:~1.22.1"
-    semver: "npm:~7.5.4"
-  peerDependencies:
-    "@types/node": "*"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/3ea6776dc69f59e26566e041f21e11c5af306802cd9dc6364fe76a06341e62c01511160b0fe6156db824bb6c21c7a73f5e4e33c380cf8d2b4756c34d3241c6f8
   languageName: node
   linkType: hard
 
@@ -17501,17 +17457,6 @@ __metadata:
     jsonfile: "npm:^6.0.1"
     universalify: "npm:^2.0.0"
   checksum: 10/08600da1b49552ed23dfac598c8fc909c66776dd130fea54fbcad22e330f7fcc13488bb995f6bc9ce5651aa35b65702faf616fe76370ee56f1aade55da982dca
-  languageName: node
-  linkType: hard
-
-"fs-extra@npm:~7.0.1":
-  version: 7.0.1
-  resolution: "fs-extra@npm:7.0.1"
-  dependencies:
-    graceful-fs: "npm:^4.1.2"
-    jsonfile: "npm:^4.0.0"
-    universalify: "npm:^0.1.0"
-  checksum: 10/3fc6e56ba2f07c00d452163f27f21a7076b72ef7da8a50fef004336d59ef4c34deda11d10ecd73fd8fbcf20e4f575f52857293090b3c9f8741d4e0598be30fea
   languageName: node
   linkType: hard
 
