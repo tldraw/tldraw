@@ -61,7 +61,7 @@ function RemoteFairy({ userId }: { userId: string }) {
 			if (!fairyPresenceValidator.isValid(fairy)) {
 				return null
 			}
-			return fairyPresenceValidator.validate(fairy)
+			return fairy as FairyPresence
 		})
 		.filter(
 			(fairyPresence): fairyPresence is FairyPresence =>
