@@ -553,7 +553,7 @@ export type TLSocketStatusChangeEvent = {
 export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void;
 
 // @public
-export type TLSqliteInputValue = bigint | null | number | string;
+export type TLSqliteInputValue = bigint | null | number | string | Uint8Array;
 
 // @public
 export type TLSqliteOutputValue = bigint | null | number | string | Uint8Array;
