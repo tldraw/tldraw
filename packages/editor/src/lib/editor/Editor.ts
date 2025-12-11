@@ -10124,6 +10124,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _prevCursor: TLCursorType = 'default'
 
 	/** @internal */
+	private _isRightClickPanning = false
+
+	/** @internal */
 	private _shiftKeyTimeout = -1 as any
 
 	/** @internal */
@@ -10581,6 +10584,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.isPanning = true
 							clearTimeout(this._longPressTimeout)
+						} else if (info.button === RIGHT_MOUSE_BUTTON && this.user.getIsRightClickToDrag()) {
+							// Right mouse pan activates panning if the preference is enabled
+							if (!this.inputs.isPanning) {
+								this._prevCursor = this.getInstanceState().cursor.type
+							}
+							this.inputs.isPanning = true
+							// this._isRightClickPanning = true
+							clearTimeout(this._longPressTimeout)
 						}
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
@@ -10647,10 +10658,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (inputs.isPanning) {
+							// // Check if we were right-click panning before clearing the flag
+							// const wasRightClickPanning = this._isRightClickPanning
+
 							if (!inputs.keys.has('Space')) {
 								inputs.isPanning = false
 								inputs.isSpacebarPanning = false
 							}
+
+							// // Clear right-click panning flag
+							// if (info.button === RIGHT_MOUSE_BUTTON) {
+							// 	this._isRightClickPanning = false
+							// }
+
 							const slideDirection = this.inputs.pointerVelocity
 							const slideSpeed = Math.min(2, slideDirection.len())
 
@@ -10659,18 +10679,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 									this.setCursor({ type: 'grab', rotation: 0 })
 									break
 								}
-								case MIDDLE_MOUSE_BUTTON: {
+								case MIDDLE_MOUSE_BUTTON:
+								case RIGHT_MOUSE_BUTTON: {
 									if (this.inputs.keys.has(' ')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
 										this.setCursor({ type: this._prevCursor, rotation: 0 })
 									}
+									break
 								}
 							}
 
 							if (slideSpeed > 0) {
 								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
 							}
+
+							// // If we were right-click panning, don't dispatch any event to state chart
+							// // This prevents the context menu from opening
+							// if (wasRightClickPanning) {
+							// 	return
+							// }
 						} else {
 							if (info.button === STYLUS_ERASER_BUTTON) {
 								// If we were erasing with a stylus button, restore the tool we were using before we started erasing

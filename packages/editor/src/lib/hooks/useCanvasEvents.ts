@@ -129,6 +129,13 @@ export function useCanvasEvents() {
 				e.stopPropagation()
 			}
 
+			function onContextMenu(e: React.MouseEvent) {
+				// Prevent the context menu from opening when right-click-to-drag is enabled
+				if (editor.user.getIsRightClickToDrag()) {
+					preventDefault(e)
+				}
+			}
+
 			return {
 				onPointerDown,
 				onPointerUp,
@@ -139,6 +146,7 @@ export function useCanvasEvents() {
 				onTouchStart,
 				onTouchEnd,
 				onClick,
+				onContextMenu,
 			}
 		},
 		[editor]

@@ -26,6 +26,7 @@ export interface TLUserPreferences {
 	isPasteAtCursorMode?: boolean | null
 	enhancedA11yMode?: boolean | null
 	inputMode?: 'trackpad' | 'mouse' | null
+	isRightClickToDrag?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -56,6 +57,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	isPasteAtCursorMode: T.boolean.nullable().optional(),
 	enhancedA11yMode: T.boolean.nullable().optional(),
 	inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
+	isRightClickToDrag: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -71,6 +73,7 @@ const Versions = {
 	AddShowUiLabels: 10,
 	AddPointerPeripheral: 11,
 	RenameShowUiLabelsToEnhancedA11yMode: 12,
+	AddRightClickToDrag: 13,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -119,6 +122,10 @@ function migrateSnapshot(data: { version: number; user: any }) {
 
 	if (data.version < Versions.AddPointerPeripheral) {
 		data.user.inputMode = null
+	}
+
+	if (data.version < Versions.AddRightClickToDrag) {
+		data.user.isRightClickToDrag = false
 	}
 
 	// finally
@@ -171,6 +178,7 @@ export const defaultUserPreferences = Object.freeze({
 	enhancedA11yMode: false,
 	colorScheme: 'light',
 	inputMode: null,
+	isRightClickToDrag: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

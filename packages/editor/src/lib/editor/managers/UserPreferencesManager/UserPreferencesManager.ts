@@ -131,4 +131,11 @@ export class UserPreferencesManager {
 	@computed getInputMode() {
 		return this.user.userPreferences.get().inputMode ?? defaultUserPreferences.inputMode
 	}
+
+	@computed getIsRightClickToDrag() {
+		return (
+			this.user.userPreferences.get().isRightClickToDrag ??
+			defaultUserPreferences.isRightClickToDrag
+		)
+	}
 }
