@@ -11,7 +11,7 @@
 	"main": "./src/server/server.ts",
 	"scripts": {
 		"dev": "concurrently -n server,client -c red,blue \"yarn dev-server\" \"yarn dev-client\"",
-		"dev-server": "yarn run -T tsx watch ./src/server/server.node.ts",
+		"dev-server": "yarn run -T tsx watch ./src/server/server.ts",
 		"dev-client": "vite dev",
 		"test-ci": "echo 'No tests yet'",
 		"test": "yarn run -T vitest run --passWithNoTests",
