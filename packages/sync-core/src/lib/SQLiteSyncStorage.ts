@@ -25,7 +25,7 @@ import {
  * These are the types that can be passed as bindings to prepared statements.
  * @public
  */
-export type TLSqliteInputValue = null | number | bigint | string
+export type TLSqliteInputValue = null | number | bigint | string | Uint8Array
 
 /**
  * Possible output value types returned from SQLite queries.
@@ -107,7 +107,7 @@ export function migrateSqliteSyncStorage(
 		storage.exec(`
 			CREATE TABLE ${documentsTable} (
 				id TEXT PRIMARY KEY,
-				state TEXT NOT NULL,
+				state BLOB NOT NULL,
 				lastChangedClock INTEGER NOT NULL
 			);
 
@@ -128,13 +128,48 @@ export function migrateSqliteSyncStorage(
 				schema TEXT NOT NULL
 			);
 			
-			INSERT INTO ${metadataTable} (migrationVersion, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (1, 0, 0, '')
+			INSERT INTO ${metadataTable} (migrationVersion, documentClock, tombstoneHistoryStartsAtClock, schema) VALUES (2, 0, 0, '')
+		`)
+		// Skip migration 2 since we created the table with BLOB already
+		migrationVersion++
+	}
+
+	if (migrationVersion === 1) {
+		// Migration 2: Convert state column from TEXT to BLOB
+		// SQLite doesn't support ALTER COLUMN, so we need to recreate the table
+		migrationVersion++
+		storage.exec(`
+			CREATE TABLE ${documentsTable}_new (
+				id TEXT PRIMARY KEY,
+				state BLOB NOT NULL,
+				lastChangedClock INTEGER NOT NULL
+			);
+			
+			INSERT INTO ${documentsTable}_new (id, state, lastChangedClock)
+			SELECT id, CAST(state AS BLOB), lastChangedClock FROM ${documentsTable};
+			
+			DROP TABLE ${documentsTable};
+			
+			ALTER TABLE ${documentsTable}_new RENAME TO ${documentsTable};
+			
+			CREATE INDEX idx_${documentsTable}_lastChangedClock ON ${documentsTable}(lastChangedClock);
 		`)
 	}
 
 	// add more migrations here if and when needed
 
 	storage.exec(`UPDATE ${metadataTable} SET migrationVersion = ${migrationVersion}`)
+}
+
+const textEncoder = new TextEncoder()
+const textDecoder = new TextDecoder()
+
+function encodeState(state: unknown): Uint8Array {
+	return textEncoder.encode(JSON.stringify(state))
+}
+
+function decodeState<T>(state: Uint8Array): T {
+	return JSON.parse(textDecoder.decode(state))
 }
 
 /**
@@ -251,29 +286,30 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 			),
 
 			// Documents
-			getDocument: this.sql.prepare<{ state: string }, [id: string]>(
+			getDocument: this.sql.prepare<{ state: Uint8Array }, [id: string]>(
 				`SELECT state FROM ${documentsTable} WHERE id = ?`
 			),
-			insertDocument: this.sql.prepare<void, [id: string, state: string, lastChangedClock: number]>(
-				`INSERT OR REPLACE INTO ${documentsTable} (id, state, lastChangedClock) VALUES (?, ?, ?)`
-			),
+			insertDocument: this.sql.prepare<
+				void,
+				[id: string, state: Uint8Array, lastChangedClock: number]
+			>(`INSERT OR REPLACE INTO ${documentsTable} (id, state, lastChangedClock) VALUES (?, ?, ?)`),
 			deleteDocument: this.sql.prepare<void, [id: string]>(
 				`DELETE FROM ${documentsTable} WHERE id = ?`
 			),
 			documentExists: this.sql.prepare<{ id: string }, [id: string]>(
 				`SELECT id FROM ${documentsTable} WHERE id = ?`
 			),
-			iterateDocuments: this.sql.prepare<{ state: string; lastChangedClock: number }>(
+			iterateDocuments: this.sql.prepare<{ state: Uint8Array; lastChangedClock: number }>(
 				`SELECT state, lastChangedClock FROM ${documentsTable}`
 			),
-			iterateDocumentEntries: this.sql.prepare<{ id: string; state: string }>(
+			iterateDocumentEntries: this.sql.prepare<{ id: string; state: Uint8Array }>(
 				`SELECT id, state FROM ${documentsTable}`
 			),
 			iterateDocumentKeys: this.sql.prepare<{ id: string }>(`SELECT id FROM ${documentsTable}`),
-			iterateDocumentValues: this.sql.prepare<{ state: string }>(
+			iterateDocumentValues: this.sql.prepare<{ state: Uint8Array }>(
 				`SELECT state FROM ${documentsTable}`
 			),
-			getDocumentsChangedSince: this.sql.prepare<{ state: string }, [sinceClock: number]>(
+			getDocumentsChangedSince: this.sql.prepare<{ state: Uint8Array }, [sinceClock: number]>(
 				`SELECT state FROM ${documentsTable} WHERE lastChangedClock > ?`
 			),
 
@@ -323,7 +359,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 
 			// Insert documents
 			for (const doc of snapshot.documents) {
-				this.stmts.insertDocument.run(doc.state.id, JSON.stringify(doc.state), doc.lastChangedClock)
+				this.stmts.insertDocument.run(doc.state.id, encodeState(doc.state), doc.lastChangedClock)
 			}
 
 			// Insert tombstones
@@ -444,7 +480,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 	}
 	private *_iterateDocuments(): IterableIterator<{ state: R; lastChangedClock: number }> {
 		for (const row of this.stmts.iterateDocuments.iterate()) {
-			yield { state: JSON.parse(row.state) as R, lastChangedClock: row.lastChangedClock }
+			yield { state: decodeState<R>(row.state), lastChangedClock: row.lastChangedClock }
 		}
 	}
 
@@ -499,7 +535,7 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		this.assertNotClosed()
 		const row = this.stmts.getDocument.all(id)[0]
 		if (!row) return undefined
-		return JSON.parse(row.state) as R
+		return decodeState<R>(row.state)
 	}
 
 	set(id: string, record: R): void {
@@ -508,7 +544,7 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		const clock = this.getNextClock()
 		// Automatically clear tombstone if it exists
 		this.stmts.deleteTombstone.run(id)
-		this.stmts.insertDocument.run(id, JSON.stringify(record), clock)
+		this.stmts.insertDocument.run(id, encodeState(record), clock)
 	}
 
 	delete(id: string): void {
@@ -526,7 +562,7 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		this.assertNotClosed()
 		for (const row of this.stmts.iterateDocumentEntries.iterate()) {
 			this.assertNotClosed()
-			yield [row.id, JSON.parse(row.state) as R]
+			yield [row.id, decodeState<R>(row.state)]
 		}
 	}
 
@@ -542,7 +578,7 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		this.assertNotClosed()
 		for (const row of this.stmts.iterateDocumentValues.iterate()) {
 			this.assertNotClosed()
-			yield JSON.parse(row.state) as R
+			yield decodeState<R>(row.state)
 		}
 	}
 
@@ -570,13 +606,13 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		if (wipeAll) {
 			// If wipeAll, include all documents
 			for (const row of this.stmts.iterateDocumentValues.iterate()) {
-				const state = JSON.parse(row.state) as R
+				const state = decodeState<R>(row.state)
 				diff.puts[state.id] = state
 			}
 		} else {
 			// Get documents changed since clock
 			for (const row of this.stmts.getDocumentsChangedSince.iterate(sinceClock)) {
-				const state = JSON.parse(row.state) as R
+				const state = decodeState<R>(row.state)
 				diff.puts[state.id] = state
 			}
 		}

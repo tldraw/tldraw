@@ -1214,6 +1214,7 @@ describe('Loading snapshot during active session', () => {
 
 describe('Invalid record handling', () => {
 	it('rejects session when push contains record with unknown type', () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
 		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
@@ -1255,6 +1256,7 @@ describe('Invalid record handling', () => {
 		// Session should be rejected/removed
 		const session = room.sessions.get(sessionId)
 		expect(session?.state === 'connected').toBe(false)
+		consoleSpy.mockRestore()
 	})
 })
 
