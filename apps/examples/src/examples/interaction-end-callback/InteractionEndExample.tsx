@@ -10,7 +10,7 @@ class QuickShapeTool extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const shapeId = createShapeId()
 
 		this.editor.createShape({

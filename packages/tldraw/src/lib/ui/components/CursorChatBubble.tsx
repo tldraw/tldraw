@@ -53,7 +53,7 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 		const elm = ref.current
 		if (!elm) return
 
-		const { x, y } = editor.inputs.currentScreenPoint
+		const { x, y } = editor.inputs.getCurrentScreenPoint()
 		ref.current?.style.setProperty('transform', `translate(${x}px, ${y}px)`)
 
 		// Positioning the chat bubble

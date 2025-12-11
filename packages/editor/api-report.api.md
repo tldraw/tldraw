@@ -5,6 +5,7 @@
 ```ts
 
 import { Atom } from '@tldraw/state';
+import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -722,6 +723,7 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
@@ -793,6 +795,8 @@ export class EdgeScrollManager {
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
+    // (undocumented)
+    getIsEdgeScrolling(): boolean;
     updateEdgeScrolling(elapsed: number): void;
 }
 
@@ -864,26 +868,26 @@ export class Editor extends EventEmitter<TLEventMap> {
             collaboratorCount: number;
             editingShape: TLShape | undefined;
             inputs: {
-                buttons: Set<number>;
-                keys: Set<string>;
-                originScreenPoint: Vec;
-                originPagePoint: Vec;
-                currentScreenPoint: Vec;
-                currentPagePoint: Vec;
-                previousScreenPoint: Vec;
-                previousPagePoint: Vec;
-                pointerVelocity: Vec;
                 altKey: boolean;
+                buttons: number[];
                 ctrlKey: boolean;
-                isPen: boolean;
-                metaKey: boolean;
-                shiftKey: boolean;
+                currentPagePoint: VecModel;
+                currentScreenPoint: VecModel;
                 isDragging: boolean;
                 isEditing: boolean;
                 isPanning: boolean;
+                isPen: boolean;
                 isPinching: boolean;
                 isPointing: boolean;
                 isSpacebarPanning: boolean;
+                keys: string[];
+                metaKey: boolean;
+                originPagePoint: VecModel;
+                originScreenPoint: VecModel;
+                pointerVelocity: VecModel;
+                previousPagePoint: VecModel;
+                previousScreenPoint: VecModel;
+                shiftKey: boolean;
             };
             instanceState: TLInstance;
             pageState: TLInstancePageState;
@@ -1335,28 +1339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     protected readonly history: HistoryManager<TLRecord>;
     // (undocumented)
     readonly id: string;
-    inputs: {
-        buttons: Set<number>;
-        keys: Set<string>;
-        originScreenPoint: Vec;
-        originPagePoint: Vec;
-        currentScreenPoint: Vec;
-        currentPagePoint: Vec;
-        previousScreenPoint: Vec;
-        previousPagePoint: Vec;
-        pointerVelocity: Vec;
-        altKey: boolean;
-        ctrlKey: boolean;
-        isPen: boolean;
-        metaKey: boolean;
-        shiftKey: boolean;
-        isDragging: boolean;
-        isEditing: boolean;
-        isPanning: boolean;
-        isPinching: boolean;
-        isPointing: boolean;
-        isSpacebarPanning: boolean;
-    };
+    readonly inputs: InputsManager;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isDisposed: boolean;
@@ -2050,6 +2033,131 @@ export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
+
+// @public (undocumented)
+export class InputsManager {
+    constructor(editor: Editor);
+    // @deprecated (undocumented)
+    get accelKey(): boolean;
+    // @deprecated (undocumented)
+    get altKey(): boolean;
+    set altKey(altKey: boolean);
+    readonly buttons: AtomSet<number>;
+    // @deprecated (undocumented)
+    get ctrlKey(): boolean;
+    set ctrlKey(ctrlKey: boolean);
+    // @deprecated (undocumented)
+    get currentPagePoint(): Vec;
+    // @deprecated (undocumented)
+    get currentScreenPoint(): Vec;
+    getAccelKey(): boolean;
+    getAltKey(): boolean;
+    getCtrlKey(): boolean;
+    getCurrentPagePoint(): Vec;
+    getCurrentScreenPoint(): Vec;
+    getIsDragging(): boolean;
+    getIsEditing(): boolean;
+    getIsPanning(): boolean;
+    getIsPen(): boolean;
+    getIsPinching(): boolean;
+    getIsPointing(): boolean;
+    getIsSpacebarPanning(): boolean;
+    getMetaKey(): boolean;
+    getOriginPagePoint(): Vec;
+    getOriginScreenPoint(): Vec;
+    getPointerVelocity(): Vec;
+    getPreviousPagePoint(): Vec;
+    getPreviousScreenPoint(): Vec;
+    getShiftKey(): boolean;
+    get isDragging(): boolean;
+    set isDragging(isDragging: boolean);
+    // @deprecated (undocumented)
+    get isEditing(): boolean;
+    set isEditing(isEditing: boolean);
+    // @deprecated (undocumented)
+    get isPanning(): boolean;
+    set isPanning(isPanning: boolean);
+    // @deprecated (undocumented)
+    get isPen(): boolean;
+    set isPen(isPen: boolean);
+    // @deprecated (undocumented)
+    get isPinching(): boolean;
+    set isPinching(isPinching: boolean);
+    // @deprecated (undocumented)
+    get isPointing(): boolean;
+    set isPointing(isPointing: boolean);
+    // @deprecated (undocumented)
+    get isSpacebarPanning(): boolean;
+    set isSpacebarPanning(isSpacebarPanning: boolean);
+    readonly keys: AtomSet<string>;
+    // @deprecated (undocumented)
+    get metaKey(): boolean;
+    set metaKey(metaKey: boolean);
+    // @deprecated (undocumented)
+    get originPagePoint(): Vec;
+    // @deprecated (undocumented)
+    get originScreenPoint(): Vec;
+    // @deprecated (undocumented)
+    get pointerVelocity(): Vec;
+    // @deprecated (undocumented)
+    get previousPagePoint(): Vec;
+    // @deprecated (undocumented)
+    get previousScreenPoint(): Vec;
+    // @internal (undocumented)
+    setAltKey(altKey: boolean): void;
+    // @internal (undocumented)
+    setCtrlKey(ctrlKey: boolean): void;
+    // (undocumented)
+    setIsDragging(isDragging: boolean): void;
+    // (undocumented)
+    setIsEditing(isEditing: boolean): void;
+    // @internal (undocumented)
+    setIsPanning(isPanning: boolean): void;
+    // (undocumented)
+    setIsPen(isPen: boolean): void;
+    // @internal (undocumented)
+    setIsPinching(isPinching: boolean): void;
+    // @internal (undocumented)
+    setIsPointing(isPointing: boolean): void;
+    // @internal (undocumented)
+    setIsSpacebarPanning(isSpacebarPanning: boolean): void;
+    // @internal (undocumented)
+    setMetaKey(metaKey: boolean): void;
+    // @internal
+    setPointerVelocity(pointerVelocity: Vec): void;
+    // @internal (undocumented)
+    setShiftKey(shiftKey: boolean): void;
+    // @deprecated (undocumented)
+    get shiftKey(): boolean;
+    set shiftKey(shiftKey: boolean);
+    // (undocumented)
+    toJson(): {
+        altKey: boolean;
+        buttons: number[];
+        ctrlKey: boolean;
+        currentPagePoint: VecModel;
+        currentScreenPoint: VecModel;
+        isDragging: boolean;
+        isEditing: boolean;
+        isPanning: boolean;
+        isPen: boolean;
+        isPinching: boolean;
+        isPointing: boolean;
+        isSpacebarPanning: boolean;
+        keys: string[];
+        metaKey: boolean;
+        originPagePoint: VecModel;
+        originScreenPoint: VecModel;
+        pointerVelocity: VecModel;
+        previousPagePoint: VecModel;
+        previousScreenPoint: VecModel;
+        shiftKey: boolean;
+    };
+    // @internal
+    updateFromEvent(info: TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
+    // @internal
+    updatePointerVelocity(elapsed: number): void;
+}
 
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
@@ -2955,6 +3063,25 @@ export class TextManager {
     }[];
 }
 
+// @internal (undocumented)
+export class TickManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    cancelRaf?: (() => void) | null;
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    isPaused: boolean;
+    // (undocumented)
+    now: number;
+    // (undocumented)
+    start(): void;
+    // (undocumented)
+    tick(): void;
+}
+
 // @public
 export type TiptapEditor = Editor_2;
 
@@ -3360,6 +3487,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;

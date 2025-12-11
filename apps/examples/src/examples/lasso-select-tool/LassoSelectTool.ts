@@ -60,7 +60,7 @@ export class LassoingState extends StateNode {
 	private addPointToLasso() {
 		const { inputs } = this.editor
 
-		const { x, y, z } = inputs.currentPagePoint.toFixed()
+		const { x, y, z } = inputs.getCurrentPagePoint().toFixed()
 		const newPoint = { x, y, z }
 
 		this.points.set([...this.points.get(), newPoint])

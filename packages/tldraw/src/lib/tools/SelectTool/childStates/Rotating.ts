@@ -163,9 +163,8 @@ export class Rotating extends StateNode {
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
-		const {
-			inputs: { shiftKey, currentPagePoint },
-		} = this.editor
+		const shiftKey = this.editor.inputs.getShiftKey()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const { initialCursorAngle, initialShapesRotation, initialPageCenter } = this.snapshot
 
 		// The delta is the difference between the current angle and the initial angle
