@@ -24,7 +24,9 @@
 	font-size: 12px;
 	text-align: center;
 	padding-right: var(--tl-space-4);
-	height: 20px;
+	min-height: 20px;
+	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 .acceptButton {
