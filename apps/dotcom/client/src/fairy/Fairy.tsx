@@ -358,6 +358,8 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 		},
 		[agent]
 	)
+	const isPoofing = useValue('is poofing', () => agent.getEntity().gesture === 'poof', [agent])
+	const isActive = useValue('is active', () => agent.getEntity().pose !== 'idle', [agent])
 	const isGenerating = useValue('is generating', () => agent.requests.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
@@ -398,8 +400,10 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 						'fairy-container__generating': isGenerating,
 						'fairy-container__not-generating': !isGenerating,
 						'fairy-container__throwing': isInThrowTool || isMoving,
+						'fairy-container__poofing': isPoofing,
 						'fairy-container__grabbable': isFairyGrabbable,
 						'fairy-container__not-grabbable': !isFairyGrabbable,
+						'fairy-container__active': isActive,
 					})}
 				>
 					<FairySprite
