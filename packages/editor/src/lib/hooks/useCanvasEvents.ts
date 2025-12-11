@@ -17,12 +17,24 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 
 				if (e.button === RIGHT_MOUSE_BUTTON) {
-					editor.dispatch({
-						type: 'pointer',
-						target: 'canvas',
-						name: 'right_click',
-						...getPointerInfo(editor, e),
-					})
+					// If right-click-to-drag is enabled, dispatch pointer_down instead of right_click
+					// so that the panning logic in Editor kicks in
+					if (editor.user.getIsRightClickToDrag()) {
+						setPointerCapture(e.currentTarget, e)
+						editor.dispatch({
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_down',
+							...getPointerInfo(editor, e),
+						})
+					} else {
+						editor.dispatch({
+							type: 'pointer',
+							target: 'canvas',
+							name: 'right_click',
+							...getPointerInfo(editor, e),
+						})
+					}
 					return
 				}
 
@@ -130,7 +142,6 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
-				// Prevent the context menu from opening when right-click-to-drag is enabled
 				if (editor.user.getIsRightClickToDrag()) {
 					preventDefault(e)
 				}
