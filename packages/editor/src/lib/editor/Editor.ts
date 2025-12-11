@@ -10636,15 +10636,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Remove the key from the keys set
 						inputs.keys.delete(info.code)
 
-						// If we've lifted the space key,
-						if (info.code === 'Space') {
-							if (this.inputs.buttons.has(MIDDLE_MOUSE_BUTTON)) {
-								// If we're still middle dragging, continue panning
-							} else {
-								// otherwise, stop panning
-								this.inputs.setIsPanning(false)
-								this.inputs.setIsSpacebarPanning(false)
-								this.setCursor({ type: this._prevCursor, rotation: 0 })
+						if (this.options.spacebarPanning) {
+							// If we've lifted the space key,
+							if (info.code === 'Space') {
+								if (this.inputs.buttons.has(MIDDLE_MOUSE_BUTTON)) {
+									// If we're still middle dragging, continue panning
+								} else {
+									// otherwise, stop panning
+									this.inputs.setIsPanning(false)
+									this.inputs.setIsSpacebarPanning(false)
+									this.setCursor({ type: this._prevCursor, rotation: 0 })
+								}
 							}
 						}
 						break
