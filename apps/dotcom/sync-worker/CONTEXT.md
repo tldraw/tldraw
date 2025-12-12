@@ -10,12 +10,12 @@ The `sync-worker` (also known as `@tldraw/dotcom-worker`) is the core multiplaye
 
 The sync-worker consists of several specialized Durable Objects and services:
 
-#### TLDrawDurableObject - room management
+#### TLFileDurableObject - room management
 
-The primary collaboration engine that manages individual drawing rooms:
+The primary collaboration engine that manages individual drawing rooms with SQLite-backed storage:
 
 ```typescript
-export class TLDrawDurableObject extends DurableObject {
+export class TLFileDurableObject extends DurableObject {
 	private _room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
 
 	// Handles WebSocket connections and real-time synchronization
@@ -522,7 +522,7 @@ All environments use the same Durable Object setup:
 ```toml
 [durable_objects]
 bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+  { name = "TLDR_DOC", class_name = "TLFileDurableObject" },
   { name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
   { name = "TL_USER", class_name = "TLUserDurableObject" },
   { name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
@@ -656,7 +656,7 @@ Multiple layers of caching for optimal performance:
 
 ```typescript
 // Cache frequently accessed data in DO memory
-class TLDrawDurableObject {
+class TLFileDurableObject {
 	private _fileRecordCache: TlaFile | null = null
 
 	async getAppFileRecord(): Promise<TlaFile | null> {

@@ -15,14 +15,10 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			enabled: defaultEnabled,
 			description: 'When OFF: hides purchase button (respects in-flight webhooks)',
 		},
-		sqlite_file_storage: {
-			enabled: defaultEnabled,
-			description: 'When ON: uses SQLite storage for TLFileDurableObject instead of in-memory',
-		},
 	}
 }
 
-const ALL_FLAGS: FeatureFlagKey[] = ['fairies', 'fairies_purchase', 'sqlite_file_storage']
+const ALL_FLAGS: FeatureFlagKey[] = ['fairies', 'fairies_purchase']
 
 /**
  * Get feature flag value from KV store
