@@ -6,7 +6,7 @@ import {
 	convertSimpleIdToTldrawId,
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
-import { TLDrawShapeSegment, Vec, VecModel, float16ArrayToBase64, last } from 'tldraw'
+import { TLDrawShapeSegment, Vec, VecModel, b64, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -89,9 +89,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			y: point.y - minY,
 			z: 0.75,
 		}))
-		const nums = segmentPoints.flatMap((p) => [p.x, p.y, p.z])
-		const float16Array = new Float16Array(nums)
-		const base64Points = float16ArrayToBase64(float16Array)
+		const base64Points = b64.encodePoints(segmentPoints)
 
 		const segments: TLDrawShapeSegment[] = [
 			{

@@ -18,10 +18,10 @@ import {
 	VecLike,
 	VecModel,
 	ZERO_INDEX_KEY,
+	b64,
 	compact,
 	createBindingId,
 	createShapeId,
-	float16ArrayToBase64,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
@@ -156,9 +156,7 @@ export async function putExcalidrawContent(
 					y,
 					z,
 				}))
-				const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-				const float16Array = new Float16Array(nums)
-				const base64Points = float16ArrayToBase64(float16Array)
+				const base64Points = b64.encodePoints(points)
 
 				tldrawContent.shapes.push({
 					...base,

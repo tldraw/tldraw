@@ -6,25 +6,10 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	Vec,
-	base64ToFloat16Array,
+	b64,
 	modulate,
 } from '@tldraw/editor'
 import { StrokeOptions } from '../shared/freehand/types'
-
-// Re-export all b64 helpers for backwards compatibility
-export {
-	appendPointToB64,
-	createB64FromPoints,
-	createB64FromSinglePoint,
-	createSegmentFromPoints,
-	createSegmentFromTwoPoints,
-	getDistanceBetweenB64Points,
-	getDistanceFromLastPoint,
-	getFirstPointFromB64,
-	getLastPointFromB64,
-	getPointAtIndexFromB64,
-	replaceLastPointInB64,
-} from './b64-helpers'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 
@@ -117,16 +102,6 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
-/** @internal */
-export function b64PointsToVecs(b64Points: string) {
-	const points = base64ToFloat16Array(b64Points)
-	const result: Vec[] = []
-	for (let i = 0; i < points.length; i += 3) {
-		result.push(new Vec(points[i], points[i + 1], points[i + 2]))
-	}
-	return result
-}
-
 /** @public */
 export function getPointsFromDrawSegment(
 	segment: TLDrawShapeSegment,
@@ -134,7 +109,7 @@ export function getPointsFromDrawSegment(
 	scaleY = 1,
 	points: Vec[] = []
 ) {
-	const _points = b64PointsToVecs(segment.points)
+	const _points = b64.decodePoints(segment.points)
 
 	// Apply scale factors (used for lazy resize and flipping)
 	if (scaleX !== 1 || scaleY !== 1) {
@@ -145,7 +120,7 @@ export function getPointsFromDrawSegment(
 	}
 
 	if (segment.type === 'free' || _points.length < 2 * 8) {
-		points.push(..._points.map(Vec.Cast))
+		points.push(..._points.map(Vec.From))
 	} else {
 		const pointsToInterpolate = Math.max(4, Math.floor(Vec.Dist(_points[0], _points[1]) / 16))
 		points.push(...Vec.PointsBetween(_points[0], _points[1], pointsToInterpolate))
@@ -163,26 +138,6 @@ export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX
 	}
 
 	return points
-}
-
-/** @internal */
-export function forEachMutablePoint(
-	cb: (point: Vec, prevPoint: Vec | null) => void,
-	segments: TLDrawShapeSegment[]
-) {
-	const vec = new Vec()
-	const prevVec = new Vec()
-	for (let j = 0; j < segments.length; j++) {
-		const segment = segments[j]
-		const points = base64ToFloat16Array(segment.points)
-		for (let i = 0; i < points.length; i += 3) {
-			vec.x = points[i]
-			vec.y = points[i + 1]
-			vec.z = points[i + 2]
-			cb(vec, j === 0 && i === 0 ? null : prevVec)
-			prevVec.setTo(vec)
-		}
-	}
 }
 
 export function getDrawShapeStrokeDashArray(

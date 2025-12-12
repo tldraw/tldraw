@@ -1,5 +1,5 @@
 import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
-import { base64ToFloat16Array, compressLegacySegments } from '@tldraw/editor'
+import { b64, compressLegacySegments } from '@tldraw/editor'
 
 /**
  * Helper function to convert draw shape points from VecModel[] to base64 string.
@@ -13,7 +13,7 @@ import { base64ToFloat16Array, compressLegacySegments } from '@tldraw/editor'
  * @public
  */
 export function pointsToBase64(points: VecModel[]): string {
-	return compressLegacySegments([{ type: 'free', points }])[0].points
+	return b64.encodePoints(points)
 }
 
 /**
@@ -29,16 +29,7 @@ export function pointsToBase64(points: VecModel[]): string {
  * @public
  */
 export function base64ToPoints(base64: string): VecModel[] {
-	const float16Array = base64ToFloat16Array(base64)
-	const points: VecModel[] = []
-	for (let i = 0; i < float16Array.length; i += 3) {
-		points.push({
-			x: float16Array[i],
-			y: float16Array[i + 1],
-			z: float16Array[i + 2],
-		})
-	}
-	return points
+	return b64.decodePoints(base64)
 }
 
 /**

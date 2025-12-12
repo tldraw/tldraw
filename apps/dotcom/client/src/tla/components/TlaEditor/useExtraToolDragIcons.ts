@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import {
-	createB64FromPoints,
+	b64,
 	DefaultSizeStyle,
 	onDragFromToolbarToCreateShape,
 	TLUiOverrides,
@@ -23,7 +23,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: createB64FromPoints(scalePoints(POINTER_POINTS, SCALES[sizeStyle])),
+											points: b64.encodePoints(scalePoints(POINTER_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -46,7 +46,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: createB64FromPoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
+											points: b64.encodePoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -69,7 +69,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: createB64FromPoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
+											points: b64.encodePoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,

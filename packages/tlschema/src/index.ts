@@ -191,11 +191,9 @@ export {
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
-	base64ToFloat16Array,
 	compressLegacySegments,
 	drawShapeMigrations,
 	drawShapeProps,
-	float16ArrayToBase64,
 	type TLDrawShape,
 	type TLDrawShapeProps,
 	type TLDrawShapeSegment,
@@ -316,3 +314,14 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export {
+	b64 as b64,
+	base64ToUint16Array,
+	decodePointAt,
+	decodePoints,
+	encodePoint,
+	encodePoints,
+	float16AtIndex,
+	getFirstPointFromB64,
+} from './misc/b64'

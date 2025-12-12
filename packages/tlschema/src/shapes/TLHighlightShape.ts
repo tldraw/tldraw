@@ -1,15 +1,11 @@
 import { T } from '@tldraw/validate'
+import { b64 } from '../misc/b64'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
-import {
-	base64ToFloat16Array,
-	DrawShapeSegment,
-	float16ArrayToBase64,
-	TLDrawShapeSegment,
-} from './TLDrawShape'
+import { DrawShapeSegment, TLDrawShapeSegment } from './TLDrawShape'
 
 /**
  * Properties for a highlight shape. Highlight shapes represent highlighting strokes made with
@@ -145,25 +141,16 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				props.segments = props.segments.map((segment: any) => ({
 					...segment,
-					points: float16ArrayToBase64(
-						new Float16Array(segment.points.flatMap((p: any) => [p.x, p.y, p.z]))
-					),
+					points: b64.encodePoints(segment.points),
 				}))
 				props.scaleX = 1
 				props.scaleY = 1
 			},
 			down: (props) => {
-				props.segments = props.segments.map((segment: any) => {
-					const float16Array = base64ToFloat16Array(segment.points)
-					const points: { x: number; y: number; z: number }[] = []
-					for (let i = 0; i < float16Array.length; i += 3) {
-						points.push({ x: float16Array[i], y: float16Array[i + 1], z: float16Array[i + 2] })
-					}
-					return {
-						...segment,
-						points,
-					}
-				})
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64.decodePoints(segment.points),
+				}))
 				delete props.scaleX
 				delete props.scaleY
 			},

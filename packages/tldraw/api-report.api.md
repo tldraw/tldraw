@@ -568,9 +568,6 @@ export interface CopyAsOptions extends TLImageExportOptions {
 // @public (undocumented)
 export function CopyMenuItem(): JSX.Element;
 
-// @internal (undocumented)
-export function createB64FromPoints(points: VecLike[]): string;
-
 // @public
 export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
     center?: {

@@ -17,10 +17,10 @@ import {
 	TLShapeId,
 	Vec,
 	VecModel,
+	b64,
 	clamp,
 	createShapeId,
 	fetch,
-	float16ArrayToBase64,
 	structuredClone,
 	toRichText,
 } from '@tldraw/editor'
@@ -372,9 +372,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							}
 
 							const points = v1Shape.points.map(getV2Point)
-							const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-							const float16Array = new Float16Array(nums)
-							const base64Points = float16ArrayToBase64(float16Array)
+							const base64Points = b64.encodePoints(points)
 
 							editor.createShapes([
 								{

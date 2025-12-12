@@ -1,21 +1,6 @@
 /* eslint-disable react/no-string-refs, local/no-internal-imports */
-import { degreesToRadians, float16ArrayToBase64, TLShapeCrop, toRichText, VecModel } from 'tldraw'
+import { b64, degreesToRadians, TLShapeCrop, toRichText, VecModel } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
-
-/**
- * Helper function to convert draw shape points from VecModel[] to base64 string.
- * This is useful for tests that create draw shapes with the legacy array format.
- *
- * @example
- * ```ts
- * const segments = [{ type: 'free', points: pointsToBase64([{x: 0, y: 0, z: 0.5}]) }]
- * ```
- */
-function pointsToBase64(points: VecModel[]): string {
-	const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-	const float16Array = new Float16Array(nums)
-	return float16ArrayToBase64(float16Array)
-}
 
 const convexPoints: VecModel[] = [
 	{ x: 0, y: 0, z: 0.5 },
@@ -240,7 +225,7 @@ export const convexDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: pointsToBase64(convexPoints),
+				points: b64.encodePoints(convexPoints),
 			},
 		]}
 	/>
@@ -260,7 +245,7 @@ export const heyDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: pointsToBase64([
+				points: b64.encodePoints([
 					{ x: 0, y: 0, z: 0.5 },
 					{ x: 0.12, y: 0, z: 0.5 },
 					{ x: 0.91, y: -0.18, z: 0.5 },

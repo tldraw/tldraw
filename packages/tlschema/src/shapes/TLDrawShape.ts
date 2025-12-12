@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import assert from 'assert'
+import { b64 } from '../misc/b64'
 import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -17,7 +17,7 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLDrawShapeSegment {
 	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
-	/** Base64-encoded Float16Array of points (x, y, z triplets) */
+	/** Base64-encoded points (x, y, z triplets stored as Float16) */
 	points: string
 }
 
@@ -193,109 +193,24 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.Base64,
 			up: (props) => {
-				props.segments = props.segments.map((segment: any) => {
-					const nums = segment.points.flatMap((p: VecModel) => [p.x, p.y, p.z ?? 0.5])
-					const float16Array = new Float16Array(nums)
-					const base64 = float16ArrayToBase64(float16Array)
-					return {
-						...segment,
-						points: base64,
-					}
-				})
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64.encodePoints(segment.points),
+				}))
 				props.scaleX = 1
 				props.scaleY = 1
 			},
 			down: (props) => {
-				props.segments = props.segments.map((segment: any) => {
-					const float16Array = base64ToFloat16Array(segment.points)
-					const points: VecModel[] = []
-					for (let i = 0; i < float16Array.length; i += 3) {
-						points.push({ x: float16Array[i], y: float16Array[i + 1], z: float16Array[i + 2] })
-					}
-					return {
-						...segment,
-						points,
-					}
-				})
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64.decodePoints(segment.points),
+				}))
 				delete props.scaleX
 				delete props.scaleY
 			},
 		},
 	],
 })
-
-/**
- * Convert a Float16Array to a base64 string for compact storage.
- *
- * @public
- */
-export function float16ArrayToBase64(float16Array: Float16Array) {
-	// Convert Float16Array to Uint8Array by accessing the underlying buffer
-	const uint8Array = new Uint8Array(
-		float16Array.buffer,
-		float16Array.byteOffset,
-		float16Array.byteLength
-	)
-
-	// Base64 alphabet
-	const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-	let result = ''
-
-	// Process bytes in groups of 3
-	for (let i = 0; i < uint8Array.length; i += 3) {
-		// Get up to 3 bytes
-		const byte1 = uint8Array[i]
-		const byte2 = i + 1 < uint8Array.length ? uint8Array[i + 1] : 0
-		const byte3 = i + 2 < uint8Array.length ? uint8Array[i + 2] : 0
-
-		// Convert 3 bytes (24 bits) to 4 base64 characters (6 bits each)
-		const bitmap = (byte1 << 16) | (byte2 << 8) | byte3
-
-		result += base64Chars[(bitmap >> 18) & 63]
-		result += base64Chars[(bitmap >> 12) & 63]
-		result += i + 1 < uint8Array.length ? base64Chars[(bitmap >> 6) & 63] : '='
-		result += i + 2 < uint8Array.length ? base64Chars[bitmap & 63] : '='
-	}
-
-	return result
-}
-
-/**
- * Convert a base64 string back to a Float16Array.
- *
- * @public
- */
-export function base64ToFloat16Array(base64: string): Float16Array {
-	assert(base64.length % 8 === 0 && !base64.endsWith('='), 'Base64 string must be a multiple of 8')
-	// Base64 alphabet (same as in float16ArrayToBase64)
-	const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-
-	// Calculate exact number of bytes (4 base64 chars = 3 bytes)
-	const numBytes = Math.floor((base64.length * 3) / 4)
-
-	// Pre-allocate the exact size we need
-	const bytes = new Uint8Array(numBytes)
-	let byteIndex = 0
-
-	// Process in groups of 4 base64 characters
-	for (let i = 0; i < base64.length; i += 4) {
-		// Get 4 base64 characters (24 bits)
-		const char1 = base64Chars.indexOf(base64[i] || 'A')
-		const char2 = base64Chars.indexOf(base64[i + 1] || 'A')
-		const char3 = base64Chars.indexOf(base64[i + 2] || 'A')
-		const char4 = base64Chars.indexOf(base64[i + 3] || 'A')
-
-		// Convert back to 3 bytes
-		const bitmap = (char1 << 18) | (char2 << 12) | (char3 << 6) | char4
-
-		bytes[byteIndex++] = (bitmap >> 16) & 255
-		if (i + 1 < base64.length) bytes[byteIndex++] = (bitmap >> 8) & 255
-		if (i + 2 < base64.length) bytes[byteIndex++] = bitmap & 255
-	}
-
-	// Create Float16Array from the buffer
-	return new Float16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2)
-}
 
 /**
  * Compress legacy draw shape segments by converting VecModel[] points to base64 format.
@@ -309,13 +224,8 @@ export function compressLegacySegments(
 		points: VecModel[]
 	}[]
 ): TLDrawShapeSegment[] {
-	return segments.map((segment: any) => {
-		const nums = segment.points.flatMap((p: VecModel) => [p.x, p.y, p.z ?? 0.5])
-		const float16Array = new Float16Array(nums)
-		const base64 = float16ArrayToBase64(float16Array)
-		return {
-			...segment,
-			points: base64,
-		}
-	})
+	return segments.map((segment) => ({
+		...segment,
+		points: b64.encodePoints(segment.points),
+	}))
 }
