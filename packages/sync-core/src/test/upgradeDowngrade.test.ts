@@ -671,6 +671,14 @@ describe('when the client is too old', () => {
 })
 
 describe('migration failure during push (TLSyncError handling)', () => {
+	let consoleSpy: ReturnType<typeof vi.spyOn>
+	beforeEach(() => {
+		consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+	})
+	afterEach(() => {
+		consoleSpy.mockRestore()
+	})
+
 	// Create a schema where migrations will fail during push
 	const UserVersionsWithFailure = createMigrationIds('com.tldraw.user.failure', {
 		AddNickname: 1,

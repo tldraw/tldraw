@@ -307,8 +307,8 @@ export async function defaultHandleExternalSvgTextContent(
 ) {
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
@@ -345,8 +345,8 @@ export function defaultHandleExternalEmbedContent<T>(
 ) {
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const { width, height } = embed as { width: number; height: number }
@@ -388,8 +388,8 @@ export async function defaultHandleExternalFileContent(
 
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const pagePoint = new Vec(position.x, position.y)
@@ -446,8 +446,8 @@ export async function defaultHandleExternalTextContent(
 ) {
 	const p =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
@@ -568,8 +568,8 @@ export async function defaultHandleExternalUrlContent(
 
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	// Use the new function to create the bookmark

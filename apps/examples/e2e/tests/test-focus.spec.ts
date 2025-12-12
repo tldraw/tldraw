@@ -256,4 +256,37 @@ test.describe('Focus', () => {
 
 		await page.mouse.up()
 	})
+
+	test('selects all text when clicking on blurred text input in editing mode', async ({ page }) => {
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForSelector('.tl-canvas')
+
+		// Create geo shape and enter edit mode
+		await page.keyboard.press('r')
+		await page.mouse.click(200, 200)
+		await page.mouse.click(400, 400)
+		await page.mouse.dblclick(300, 300)
+
+		// Wait for contenteditable to be focused before typing
+		await page.waitForFunction(
+			() => document.activeElement === document.querySelector('.tl-shape [contenteditable]')
+		)
+
+		// Type text
+		await page.keyboard.type('test', { delay: 10 })
+
+		// Verify initial text
+		const contenteditable = page.locator('.tl-shape [contenteditable]')
+		await expect(contenteditable).toHaveText('test')
+
+		// Blur input while staying in editing mode by clicking on the text label (but not the input itself)
+		await page.mouse.click(200, 230)
+		await page.waitForTimeout(100)
+
+		await page.waitForFunction(() => document.getSelection()?.toString() === 'test')
+
+		expect(
+			await page.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
+		).toBe(true)
+	})
 })

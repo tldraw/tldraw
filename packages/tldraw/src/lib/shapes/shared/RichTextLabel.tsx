@@ -97,7 +97,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		'isDragging',
 		() => {
 			editor.getInstanceState()
-			isDragging.current = editor.inputs.isDragging
+			isDragging.current = editor.inputs.getIsDragging()
 		},
 		[editor]
 	)

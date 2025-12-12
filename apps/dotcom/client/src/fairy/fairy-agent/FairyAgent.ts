@@ -50,6 +50,7 @@ import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
 import { FairyAgentChatOriginManager } from './managers/FairyAgentChatOriginManager'
 import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
+import { FairyAgentLintManager } from './managers/FairyAgentLintManager'
 import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
 import { FairyAgentPositionManager } from './managers/FairyAgentPositionManager'
 import { FairyAgentRequestManager } from './managers/FairyAgentRequestManager'
@@ -124,6 +125,9 @@ export class FairyAgent {
 	/** The wait manager associated with this agent. */
 	waits: FairyAgentWaitManager
 
+	/** The lint manager associated with this agent. */
+	lints: FairyAgentLintManager
+
 	/** The fairy entity associated with this agent. */
 	private $fairyEntity: Atom<FairyEntity>
 
@@ -170,9 +174,10 @@ export class FairyAgent {
 
 	/**
 	 * Get the current project that the agent is working on.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProject(): FairyProject | null {
-		return this.fairyApp.projects.getProjectByAgentId(this.id) ?? null
+	getProject(includeSoftDeleted: boolean = false): FairyProject | null {
+		return this.fairyApp.projects.getProjectByAgentId(this.id, includeSoftDeleted) ?? null
 	}
 
 	getEntity(): FairyEntity {
@@ -196,6 +201,14 @@ export class FairyAgent {
 	 */
 	getTasks(): FairyTask[] {
 		return this.fairyApp.tasks.getTasksByAgentId(this.id)
+	}
+
+	/**
+	 * Clear all tasks assigned to the agent.
+	 */
+	clearTasks() {
+		const tasks = this.getTasks()
+		tasks.forEach((task) => this.fairyApp.tasks.deleteTask(task.id))
 	}
 
 	/**
@@ -238,6 +251,7 @@ export class FairyAgent {
 		this.usage = new FairyAgentUsageTracker(this)
 		this.userAction = new FairyAgentUserActionTracker(this)
 		this.waits = new FairyAgentWaitManager(this)
+		this.lints = new FairyAgentLintManager(this)
 
 		const spawnPoint = this.position.findFairySpawnPoint()
 
@@ -350,7 +364,7 @@ export class FairyAgent {
 	}) {
 		if (state.fairyEntity) {
 			// Clear gestures first to clean up any active timeouts and gesture stack
-			this.gesture.clear()
+			this.gesture.reset()
 
 			this.$fairyEntity.update((entity) => {
 				return {
@@ -407,66 +421,6 @@ export class FairyAgent {
 	 */
 	getPromptPartUtil(type: PromptPart['type']) {
 		return this.promptPartUtils[type]
-	}
-
-	/**
-	 * Get a full agent request from a user input by filling out any missing
-	 * values with defaults.
-	 * @param input - A partial agent request or a string message.
-	 */
-	getFullRequestFromInput(input: AgentInput): AgentRequest {
-		const request = this.getPartialRequestFromInput(input)
-
-		const activeRequest = this.requests.getActiveRequest()
-
-		return {
-			agentMessages: request.agentMessages ?? [],
-			source: request.source ?? 'user',
-			data: request.data ?? [],
-			userMessages: request.userMessages ?? [],
-			bounds:
-				request.bounds ??
-				activeRequest?.bounds ??
-				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
-		} satisfies AgentRequest
-	}
-
-	/**
-	 * Convert an input into a partial request.
-	 * This involves handling the various ways that the input can be provided.
-	 *
-	 * @example
-	 * ```tsx
-	 * agent.prompt('Draw a cat')
-	 * agent.prompt(['Draw a cat', 'Draw a dog'])
-	 * agent.prompt({ messages: 'Draw a cat' })
-	 * agent.prompt({ message: 'Draw a cat' })
-	 * ```
-	 *
-	 * @param input - The input to get the request partial from.
-	 * @returns The request partial.
-	 */
-	private getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
-		// eg: agent.prompt('Draw a cat')
-		if (typeof input === 'string') {
-			return { agentMessages: [input] }
-		}
-
-		// eg: agent.prompt(['Draw a cat', 'Draw a dog'])
-		if (Array.isArray(input)) {
-			return { agentMessages: input }
-		}
-
-		// eg: agent.prompt({ message: 'Draw a cat' })
-		if ('message' in input && typeof input.message === 'string') {
-			return {
-				...input,
-				agentMessages: [input.message],
-				userMessages: [input.message],
-			}
-		}
-
-		return input
 	}
 
 	/**
@@ -532,7 +486,7 @@ export class FairyAgent {
 			)
 		}
 
-		const request = this.getFullRequestFromInput(input)
+		const request = this.requests.getFullRequestFromInput(input)
 		const startingNode = FAIRY_MODE_CHART[this.mode.getMode()]
 		startingNode.onPromptStart?.(this, request)
 
@@ -668,7 +622,7 @@ export class FairyAgent {
 		}
 
 		// If there's already a scheduled request, append to it
-		const newRequest = this.getPartialRequestFromInput(input)
+		const newRequest = this.requests.getPartialRequestFromInput(input)
 		this._schedule({
 			// Append to properties where possible
 			agentMessages: [...scheduledRequest.agentMessages, ...(newRequest.agentMessages ?? [])],
@@ -728,7 +682,7 @@ export class FairyAgent {
 		}
 
 		const activeRequest = this.requests.getActiveRequest()
-		const partialRequest = this.getPartialRequestFromInput(input)
+		const partialRequest = this.requests.getPartialRequestFromInput(input)
 		const request: AgentRequest = {
 			agentMessages: partialRequest.agentMessages ?? [],
 			bounds:
@@ -857,25 +811,28 @@ export class FairyAgent {
 	reset() {
 		this.cancel()
 		this.promptStartTime = null
-		this.todos.deleteAll()
+		this.todos.reset()
 		this.userAction.clearHistory()
 
-		// Remove solo tasks assigned to this agent
-		const soloTasks = this.fairyApp.tasks
-			.getTasks()
-			.filter((task) => task.assignedTo === this.id && task.projectId === null)
-		soloTasks.forEach((task) => this.fairyApp.tasks.deleteTask(task.id))
+		// Delete all tasks assigned to this agent
+		this.clearTasks()
 
 		this.mode.setMode('idling')
 
-		this.chat.clear()
+		this.chat.reset()
 		this.chatOrigin.reset()
 
 		// clear any waiting conditions
-		this.waits.clear()
+		this.waits.reset()
+
+		// Reset the request manager
+		this.requests.reset()
 
 		// Reset cumulative usage tracking when starting a new chat
-		this.usage.resetCumulativeUsage()
+		this.usage.reset()
+
+		// Reset lint tracking when starting a new chat
+		this.lints.reset()
 	}
 
 	/**
@@ -995,6 +952,8 @@ export class FairyAgent {
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
 								incompleteDiff = null
+								// Track shapes created by this complete action for lint detection
+								agent.lints.trackShapesFromDiff(diff)
 							} else {
 								incompleteDiff = diff
 							}

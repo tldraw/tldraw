@@ -67,6 +67,7 @@ export function getFairyProject(project: Partial<FairyProject> = {}): FairyProje
 		color: 'blue',
 		members: [],
 		plan: 'Test plan',
+		softDeleted: false,
 		...project,
 	}
 }

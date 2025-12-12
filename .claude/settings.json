@@ -5,7 +5,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "cd \"$(git rev-parse --show-toplevel)\" && git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs yarn run -T prettier --write 2>/dev/null || true"
+						"command": "git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write"
 					}
 				]
 			}

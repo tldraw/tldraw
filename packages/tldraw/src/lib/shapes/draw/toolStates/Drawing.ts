@@ -61,14 +61,15 @@ export class Drawing extends StateNode {
 	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
 		this.info = info
-		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
+		this.lastRecordedPoint = this.editor.inputs.getCurrentPagePoint().clone()
 		this.startShape()
 	}
 
 	override onPointerMove() {
 		const { inputs } = this.editor
+		const isPen = inputs.getIsPen()
 
-		if (this.isPen && !inputs.isPen) {
+		if (this.isPen && !isPen) {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
@@ -81,11 +82,9 @@ export class Drawing extends StateNode {
 
 		if (this.isPenOrStylus) {
 			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
-			if (
-				Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
-				1 / this.editor.getZoomLevel()
-			) {
-				this.lastRecordedPoint = inputs.currentPagePoint.clone()
+			const currentPagePoint = inputs.getCurrentPagePoint()
+			if (Vec.Dist(currentPagePoint, this.lastRecordedPoint) >= 1 / this.editor.getZoomLevel()) {
+				this.lastRecordedPoint = currentPagePoint.clone()
 				this.mergeNextPoint = false
 			} else {
 				this.mergeNextPoint = true
@@ -103,7 +102,7 @@ export class Drawing extends StateNode {
 				case 'free': {
 					// We've just entered straight mode, go to straight mode
 					this.segmentMode = 'starting_straight'
-					this.pagePointWhereNextSegmentChanged = this.editor.inputs.currentPagePoint.clone()
+					this.pagePointWhereNextSegmentChanged = this.editor.inputs.getCurrentPagePoint().clone()
 					break
 				}
 				case 'starting_free': {
@@ -122,7 +121,7 @@ export class Drawing extends StateNode {
 				case 'straight': {
 					// We've just exited straight mode, go back to free mode
 					this.segmentMode = 'starting_free'
-					this.pagePointWhereNextSegmentChanged = this.editor.inputs.currentPagePoint.clone()
+					this.pagePointWhereNextSegmentChanged = this.editor.inputs.getCurrentPagePoint().clone()
 					break
 				}
 				case 'starting_straight': {
@@ -138,7 +137,7 @@ export class Drawing extends StateNode {
 
 	override onExit() {
 		this.editor.snaps.clearIndicators()
-		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
+		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.getCurrentPagePoint().clone()
 	}
 
 	canClose() {
@@ -163,9 +162,9 @@ export class Drawing extends StateNode {
 	}
 
 	private startShape() {
-		const {
-			inputs: { originPagePoint, isPen },
-		} = this.editor
+		const inputs = this.editor.inputs
+		const originPagePoint = inputs.getOriginPagePoint()
+		const isPen = inputs.getIsPen()
 
 		this.markId = this.editor.markHistoryStoppingPoint('draw start')
 
@@ -181,7 +180,7 @@ export class Drawing extends StateNode {
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
-		this.segmentMode = this.editor.inputs.shiftKey ? 'straight' : 'free'
+		this.segmentMode = this.editor.inputs.getShiftKey() ? 'straight' : 'free'
 
 		this.didJustShiftClickToExtendPreviousShapeLine = false
 
@@ -293,8 +292,9 @@ export class Drawing extends StateNode {
 
 		const { segments } = shape.props
 
-		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
-		const pressure = this.isPenOrStylus ? +(inputs.currentPagePoint.z! * 1.25).toFixed(2) : 0.5
+		const currentPagePoint = inputs.getCurrentPagePoint()
+		const { x, y, z } = this.editor.getPointInShapeSpace(shape, currentPagePoint).toFixed()
+		const pressure = this.isPenOrStylus ? +(currentPagePoint.z! * 1.25).toFixed(2) : 0.5
 		const newPoint = { x, y, z: pressure }
 
 		switch (this.segmentMode) {
@@ -306,7 +306,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -379,7 +379,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -446,7 +446,9 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 
 				const { pagePointWhereCurrentSegmentChanged } = this
-				const { ctrlKey, currentPagePoint } = this.editor.inputs
+				const inputs = this.editor.inputs
+				const ctrlKey = inputs.getCtrlKey()
+				const currentPagePoint = inputs.getCurrentPagePoint()
 
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
@@ -455,7 +457,7 @@ export class Drawing extends StateNode {
 				let shouldSnapToAngle = false
 
 				if (this.didJustShiftClickToExtendPreviousShapeLine) {
-					if (this.editor.inputs.isDragging) {
+					if (this.editor.inputs.getIsDragging()) {
 						// If we've just shift clicked to extend a line, only snap once we've started dragging
 						shouldSnapToAngle = !ctrlKey
 						this.didJustShiftClickToExtendPreviousShapeLine = false
@@ -544,7 +546,7 @@ export class Drawing extends StateNode {
 							angleDiff
 						)
 					} else {
-						pagePoint = currentPagePoint
+						pagePoint = currentPagePoint.clone()
 					}
 
 					newPoint = this.editor.getPointInShapeSpace(shape, pagePoint).toFixed().toJson()
@@ -645,11 +647,12 @@ export class Drawing extends StateNode {
 					const props = this.editor.getShape<DrawableShape>(id)!.props
 
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
+					const currentPagePoint = inputs.getCurrentPagePoint()
 					this.editor.createShape({
 						id: newShapeId,
 						type: this.shapeType,
-						x: toFixed(inputs.currentPagePoint.x),
-						y: toFixed(inputs.currentPagePoint.y),
+						x: toFixed(currentPagePoint.x),
+						y: toFixed(currentPagePoint.y),
 						props: {
 							isPen: this.isPenOrStylus,
 							scale: props.scale,
@@ -674,7 +677,7 @@ export class Drawing extends StateNode {
 
 					this.initialShape = structuredClone(shape)
 					this.mergeNextPoint = false
-					this.lastRecordedPoint = inputs.currentPagePoint.clone()
+					this.lastRecordedPoint = currentPagePoint.clone()
 					this.currentLineLength = 0
 				}
 
@@ -708,7 +711,7 @@ export class Drawing extends StateNode {
 	}
 
 	override onInterrupt() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			return
 		}
 

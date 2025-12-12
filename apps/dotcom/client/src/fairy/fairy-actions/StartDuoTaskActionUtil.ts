@@ -13,6 +13,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 			description: action.complete
 				? `Started task${task?.title ? `: ${task.title}` : ''}`
 				: 'Starting task...',
+			ircMessage: action.complete && task?.title ? `I'm starting on: ${task.title}` : null,
 			pose: 'reading',
 			canGroup: () => false,
 		})
