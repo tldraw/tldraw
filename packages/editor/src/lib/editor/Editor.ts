@@ -153,7 +153,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import { ShapeUtil, TLEditStartInfo, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -2285,6 +2285,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Whether the shape can be edited.
+	 *
+	 * @param shape - The shape (or shape id) to check if it can be edited.
+	 * @param info - The info about the edit start.
+	 *
+	 * @public
+	 * @returns true if the shape can be edited, false otherwise.
+	 */
+	canEditShape<T extends TLShape | TLShapeId>(shape: T | null, info?: TLEditStartInfo): shape is T {
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		if (!id) return false // no shape
+		if (id === this.getEditingShapeId()) return false // already editing this shape
+		const _shape = this.getShape(id)
+		if (!_shape) return false // no shape
+		const util = this.getShapeUtil(_shape)
+		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
+		if (!util.canEdit(_shape, _info)) return false // shape is not editable
+		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
+		return true // shape is editable
+	}
+
+	/**
 	 * Set the current editing shape.
 	 *
 	 * @example
@@ -2299,44 +2322,59 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		this.setRichTextEditor(null)
-		const prevEditingShapeId = this.getEditingShapeId()
-		if (id !== prevEditingShapeId) {
-			if (id) {
-				const shape = this.getShape(id)
-				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
-					this.run(
-						() => {
-							this._updateCurrentPageState({ editingShapeId: id })
-							if (prevEditingShapeId) {
-								const prevEditingShape = this.getShape(prevEditingShapeId)
-								if (prevEditingShape) {
-									this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-								}
-							}
-							this.getShapeUtil(shape).onEditStart?.(shape)
-						},
-						{ history: 'ignore' }
-					)
-					return this
-				}
-			}
 
-			// Either we just set the editing id to null, or the shape was missing or not editable
+		if (!id) {
+			// setting the editing shape to null
 			this.run(
 				() => {
-					this._updateCurrentPageState({ editingShapeId: null })
-					this._currentRichTextEditor.set(null)
+					// Clean up the previous editing shape
+					const prevEditingShapeId = this.getEditingShapeId()
 					if (prevEditingShapeId) {
 						const prevEditingShape = this.getShape(prevEditingShapeId)
 						if (prevEditingShape) {
 							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
 						}
 					}
+
+					// Clean up the editing shape state and rich text editor
+					this._updateCurrentPageState({ editingShapeId: null })
+					this._currentRichTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
+
+			return this
 		}
+
+		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
+		if (!this.canEditShape(id)) return this
+
+		// id was provided and the next editing shape is editable, so set the rich text editor to null
+		this.run(
+			() => {
+				// Clean up the previous editing shape
+				const prevEditingShapeId = this.getEditingShapeId()
+				if (prevEditingShapeId) {
+					const prevEditingShape = this.getShape(prevEditingShapeId)
+					if (prevEditingShape) {
+						this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+					}
+				}
+
+				// Clean up the editing shape state and rich text editor
+				this._updateCurrentPageState({ editingShapeId: null })
+				this._currentRichTextEditor.set(null)
+
+				// Set the new editing shape
+				this.select(id)
+				this._updateCurrentPageState({ editingShapeId: id })
+
+				const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
+				this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
+			},
+			{ history: 'ignore' }
+		)
+
 		return this
 	}
 
