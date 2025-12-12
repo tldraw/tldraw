@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { b64Vecs } from '../misc/b64'
+import { b64Vecs } from '../misc/b64Vecs'
 import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'

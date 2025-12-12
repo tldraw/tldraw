@@ -315,4 +315,4 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
 
-export { b64Vecs } from './misc/b64'
+export { b64Vecs } from './misc/b64Vecs'
