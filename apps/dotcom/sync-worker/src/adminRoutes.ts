@@ -10,6 +10,7 @@ import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+import { deleteWhatsNewEntry, getWhatsNewEntries, setWhatsNewEntry } from './utils/whatsNew'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -497,6 +498,35 @@ export const adminRoutes = createRouter<Environment>()
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
 		return await returnFileSnapshot(env, fileSlug, false)
+	})
+	.get('/app/admin/whats-new', async (_req, env) => {
+		const entries = await getWhatsNewEntries(env)
+		return json(entries)
+	})
+	.post('/app/admin/whats-new', async (req, env) => {
+		const body: any = await req.json()
+
+		if (!body.version || !body.title || !body.date) {
+			return new Response('version, title, and date are required', { status: 400 })
+		}
+
+		if (!body.items && !body.description) {
+			return new Response('Must have either items or description', { status: 400 })
+		}
+
+		if (body.items && body.description) {
+			return new Response('Cannot have both items and description', { status: 400 })
+		}
+
+		await setWhatsNewEntry(env, body)
+		return json({ success: true })
+	})
+	.delete('/app/admin/whats-new/:version', async (req, env) => {
+		const version = req.params.version
+		assert(typeof version === 'string', 'version is required')
+
+		await deleteWhatsNewEntry(env, version)
+		return json({ success: true })
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
