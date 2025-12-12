@@ -542,7 +542,6 @@
 .editingSection {
 	margin: 16px 0;
 	padding: 16px;
-	background-color: var(--tla-color-low);
 	border-radius: var(--tla-radius-2);
 	max-width: 1400px;
 }
@@ -553,9 +552,9 @@
 
 .entryCard {
 	padding: 16px;
-	background-color: var(--tla-color-low);
 	border-radius: var(--tla-radius-2);
 	margin-top: 12px;
+	border: 1px solid var(--tla-color-border);
 }
 
 .entryHeader {
