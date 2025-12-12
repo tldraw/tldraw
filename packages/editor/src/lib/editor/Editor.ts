@@ -2350,8 +2350,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// id was provided and the next editing shape is editable, so set the rich text editor to null
 		this.run(
 			() => {
-				this.setRichTextEditor(null)
-
 				// Clean up the previous editing shape
 				const prevEditingShapeId = this.getEditingShapeId()
 				if (prevEditingShapeId) {

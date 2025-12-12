@@ -18,7 +18,7 @@ import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { startEditingShapeWithLabel } from '../selectHelpers'
+import { startEditingShapeWithRichText } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -557,7 +557,7 @@ export class Idle extends StateNode {
 	) {
 		if (!this.editor.canEditShape(shape)) return
 		this.editor.markHistoryStoppingPoint('editing shape')
-		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
+		startEditingShapeWithRichText(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
 	}
 
