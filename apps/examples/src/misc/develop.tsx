@@ -108,9 +108,6 @@ export default function Develop() {
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
-					// window.poop = () => {
-					// 	persistToByteStream(editor.store as any)
-					// }
 
 					Object.defineProperty(window, '$s', {
 						get: function () {
