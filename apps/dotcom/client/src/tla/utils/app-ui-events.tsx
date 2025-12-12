@@ -26,6 +26,7 @@ export type TLAppUiEventSource =
 	| 'fairy-canvas'
 	| 'fairy-sidebar'
 	| 'fairy-chat'
+	| 'whats-new-dialog'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -109,6 +110,9 @@ export interface TLAppUiEventMap {
 	'fairy-panic': { fairyId: string }
 	// Fairy events - teaser
 	'click-fairy-teaser': null
+	// What's New events
+	'open-whats-new-dialog': null
+	'view-whats-new-version': { version: string }
 }
 
 /** @public */
