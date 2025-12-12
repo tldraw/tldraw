@@ -15,6 +15,47 @@
 	background-color: var(--tla-color-panel);
 }
 
+.tabBar {
+	display: flex;
+	gap: 4px;
+	padding: 0 32px;
+	background-color: var(--tla-color-panel);
+	border-bottom: 1px solid var(--tla-color-border);
+	overflow-x: auto;
+}
+
+.tabButton {
+	padding: 12px 20px;
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	color: var(--tla-color-text-3);
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: all 0.15s ease;
+}
+
+.tabButton:hover {
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-low);
+}
+
+.tabButtonActive {
+	padding: 12px 20px;
+	background: none;
+	border: none;
+	border-bottom: 2px solid var(--tla-color-primary);
+	color: var(--tla-color-text-1);
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
 .adminContent {
 	flex: 1;
 	padding: 24px 32px;
