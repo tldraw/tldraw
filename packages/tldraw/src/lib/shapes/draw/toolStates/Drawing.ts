@@ -21,7 +21,6 @@ import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
 import {
-	b64PointsToVecs,
 	createB64FromPoints,
 	forEachMutablePoint,
 	getFirstPointFromB64,
@@ -55,6 +54,9 @@ export class Drawing extends StateNode {
 	lastRecordedPoint = {} as Vec
 	mergeNextPoint = false
 	currentLineLength = 0
+
+	// Cache for current segment's points to avoid repeated b64 decode/encode
+	currentSegmentPoints: Vec[] = []
 
 	markId = null as null | string
 
@@ -249,6 +251,10 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
 
+		// Initialize the segment points cache
+		const initialPoint = new Vec(0, 0, +pressure.toFixed(2))
+		this.currentSegmentPoints = [initialPoint]
+
 		// Allow this to trigger the max shapes reached alert
 		this.editor.createShape({
 			id,
@@ -261,7 +267,7 @@ export class Drawing extends StateNode {
 				segments: [
 					{
 						type: this.segmentMode,
-						points: createB64FromPoints([{ x: 0, y: 0, z: +pressure.toFixed(2) }]),
+						points: createB64FromPoints([initialPoint]),
 					},
 				],
 			},
@@ -403,15 +409,15 @@ export class Drawing extends StateNode {
 
 					// Create the new free segment and interpolate the points between where the last line
 					// ended and where the pointer is now
+					const interpolatedPoints = Vec.PointsBetween(prevPoint, newPoint, 6).map(
+						(p) => new Vec(toFixed(p.x), toFixed(p.y), toFixed(p.z))
+					)
+					// Initialize cache for the new free segment
+					this.currentSegmentPoints = interpolatedPoints
+
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						points: createB64FromPoints(
-							Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => ({
-								x: toFixed(p.x),
-								y: toFixed(p.y),
-								z: toFixed(p.z),
-							}))
-						),
+						points: createB64FromPoints(interpolatedPoints),
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
@@ -591,29 +597,28 @@ export class Drawing extends StateNode {
 				break
 			}
 			case 'free': {
-				const newSegments = segments.slice()
-				const newSegment = newSegments[newSegments.length - 1]
-				const newPoints = b64PointsToVecs(newSegment.points)
+				// Use cached points instead of decoding from b64 on every update
+				const cachedPoints = this.currentSegmentPoints
 
-				if (newPoints.length && this.mergeNextPoint) {
-					const lastPoint = newPoints[newPoints.length - 1]
-					newPoints[newPoints.length - 1] = Vec.Cast({
-						x: newPoint.x,
-						y: newPoint.y,
-						z: lastPoint.z ? Math.max(lastPoint.z, newPoint.z) : newPoint.z,
-					})
+				if (cachedPoints.length && this.mergeNextPoint) {
+					const lastPoint = cachedPoints[cachedPoints.length - 1]
+					lastPoint.x = newPoint.x
+					lastPoint.y = newPoint.y
+					lastPoint.z = lastPoint.z ? Math.max(lastPoint.z, newPoint.z) : newPoint.z
 					// Note: we could recompute the line length here, but it's not really necessary
 					// this.currentLineLength = this.getLineLength(newSegments)
 				} else {
-					this.currentLineLength += newPoints.length
-						? Vec.Dist(newPoints[newPoints.length - 1], Vec.Cast(newPoint))
+					this.currentLineLength += cachedPoints.length
+						? Vec.Dist(cachedPoints[cachedPoints.length - 1], newPoint)
 						: 0
-					newPoints.push(Vec.Cast(newPoint))
+					cachedPoints.push(new Vec(newPoint.x, newPoint.y, newPoint.z))
 				}
 
+				const newSegments = segments.slice()
+				const newSegment = newSegments[newSegments.length - 1]
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
-					points: createB64FromPoints(newPoints),
+					points: createB64FromPoints(cachedPoints),
 				}
 
 				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
@@ -639,7 +644,7 @@ export class Drawing extends StateNode {
 				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > this.util.options.maxPointsPerShape) {
+				if (cachedPoints.length > this.util.options.maxPointsPerShape) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const newShapeId = createShapeId()
@@ -648,6 +653,11 @@ export class Drawing extends StateNode {
 
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
 					const currentPagePoint = inputs.getCurrentPagePoint()
+
+					// Reset cache for the new shape's segment
+					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5)
+					this.currentSegmentPoints = [initialPoint]
+
 					this.editor.createShape({
 						id: newShapeId,
 						type: this.shapeType,
@@ -659,9 +669,7 @@ export class Drawing extends StateNode {
 							segments: [
 								{
 									type: 'free',
-									points: createB64FromPoints([
-										{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 },
-									]),
+									points: createB64FromPoints([initialPoint]),
 								},
 							],
 						},
