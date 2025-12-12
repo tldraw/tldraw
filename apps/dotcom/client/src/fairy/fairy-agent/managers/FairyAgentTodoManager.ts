@@ -82,13 +82,6 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Delete all personal todo items.
-	 */
-	deleteAll() {
-		this.$personalTodoList.set([])
-	}
-
-	/**
 	 * Remove all completed todo items from the todo list.
 	 */
 	flush() {
