@@ -1,5 +1,7 @@
 Reimplement the current branch on a new branch with a clean, narrative-quality git commit history suitable for reviewer comprehension.
 
+**New Branch Name**. Decide on the new branch name. The name should be $ARGUMENTS or, if this is not provided, it should be `{source_branch_name}-clean`.
+
 ### Steps
 
 1. **Validate the source branch**
@@ -12,7 +14,7 @@ Reimplement the current branch on a new branch with a clean, narrative-quality g
    - Form a clear understanding of the final intended state.
 
 3. **Create the clean branch**
-   - Create a new branch off of main named `{branch_name}-clean`.
+   - Create a new branch off of main using the New Branch Name.
 
 4. **Plan the commit storyline**
    - Break the implementation down into a sequence of self-contained steps.
