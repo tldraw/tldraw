@@ -7,6 +7,14 @@
 	min-height: 320px;
 }
 
+.loadingContainer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	width: 100%;
+}
+
 .title {
 	font-size: 20px;
 	font-weight: 600;

@@ -2,8 +2,9 @@ import type { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import type { Environment } from '../types'
 
 const ENTRIES_KEY = 'whats-new:entries'
+const MAX_ENTRIES = 5
 
-export async function getWhatsNewEntries(env: Environment): Promise<WhatsNewEntry[]> {
+async function getAllEntries(env: Environment): Promise<WhatsNewEntry[]> {
 	const data = await env.WHATS_NEW.get(ENTRIES_KEY)
 	if (!data) {
 		return []
@@ -11,8 +12,13 @@ export async function getWhatsNewEntries(env: Environment): Promise<WhatsNewEntr
 	return JSON.parse(data)
 }
 
+export async function getWhatsNewEntries(env: Environment): Promise<WhatsNewEntry[]> {
+	const entries = await getAllEntries(env)
+	return entries.slice(0, MAX_ENTRIES)
+}
+
 export async function setWhatsNewEntry(env: Environment, entry: WhatsNewEntry): Promise<void> {
-	const entries = await getWhatsNewEntries(env)
+	const entries = await getAllEntries(env)
 	const existingIndex = entries.findIndex((e) => e.version === entry.version)
 
 	if (existingIndex >= 0) {
@@ -27,7 +33,7 @@ export async function setWhatsNewEntry(env: Environment, entry: WhatsNewEntry): 
 }
 
 export async function deleteWhatsNewEntry(env: Environment, version: string): Promise<void> {
-	const entries = await getWhatsNewEntries(env)
+	const entries = await getAllEntries(env)
 	const filtered = entries.filter((e) => e.version !== version)
 
 	await env.WHATS_NEW.put(ENTRIES_KEY, JSON.stringify(filtered))

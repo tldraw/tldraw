@@ -14,14 +14,14 @@ import {
 } from 'tldraw'
 import { isDevelopmentEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
+import { useWhatsNew } from '../../../hooks/useWhatsNew'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
-	markWhatsNewAsSeen,
 	toggleFairies,
 	toggleFairiesDebug,
 	useAreFairiesDebugEnabled,
 	useAreFairiesEnabled,
-	useHasNewWhatsNewContent,
 } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { TlaWhatsNewDialog } from '../../dialogs/TlaWhatsNewDialog'
@@ -44,13 +44,20 @@ const messages = defineMessages({
 export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const whatsNewLbl = useMsg(messages.whatsNew)
 	const user = useValue('auth', () => app.getUser(), [app])
-	const hasNewWhatsNew = useHasNewWhatsNewContent()
+	const { entries } = useWhatsNew()
+
+	const latestVersion = entries[0]?.version
+	const hasNewWhatsNew = latestVersion && user?.whatsNewSeenVersion !== latestVersion
 
 	const handleWhatsNewClick = () => {
-		markWhatsNewAsSeen()
+		trackEvent('open-whats-new-dialog', { source: 'sidebar' })
+		if (latestVersion) {
+			app.z.mutate.user.updateWhatsNewSeenVersion({ version: latestVersion })
+		}
 		addDialog({ component: TlaWhatsNewDialog })
 	}
 
