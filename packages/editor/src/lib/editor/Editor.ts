@@ -7767,8 +7767,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
-			let { rotation } = Mat.Decompose(options.initialPageTransform)
-			rotation -= 2 * rotation
+			// We need to compute the new local rotation that will result in the negated page rotation.
+			// For a shape with local rotation `localRot` and parent page rotation `parentRot`:
+			// - pageRot = parentRot + localRot
+			// - newPageRot = -pageRot (we want to negate the page rotation)
+			// - newPageRot = parentRot + newLocalRot (parent hasn't changed)
+			// - Therefore: newLocalRot = -pageRot - parentRot = -(parentRot + localRot) - parentRot = -localRot - 2*parentRot
+			const parentRotation = this.getShapeParentTransform(id).rotation()
+			const rotation = -options.initialShape.rotation - 2 * parentRotation
 			this.updateShapes([{ id, type, rotation }])
 		}
 
@@ -7788,9 +7794,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		// now calculate how far away the shape is from where it needs to be
-		const pageBounds = this.getShapePageBounds(id)!
 		const pageTransform = this.getShapePageTransform(id)!
-		const currentPageCenter = pageBounds.center
+		// We need to use the local bounds center transformed to page space, not the axis-aligned
+		// page bounds center. This is because the page bounds are axis-aligned and their center
+		// changes when the rotation changes, but we want to use the same reference point as
+		// preScaleShapePageCenter (which used initialBounds.center transformed by the page transform).
+		const currentLocalBounds = this.getShapeGeometry(id).bounds
+		const currentPageCenter = Mat.applyToPoint(pageTransform, currentLocalBounds.center)
 		const shapePageTransformOrigin = pageTransform.point()
 		if (!currentPageCenter || !shapePageTransformOrigin) return this
 		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
