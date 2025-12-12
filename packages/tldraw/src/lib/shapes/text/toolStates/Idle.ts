@@ -28,16 +28,14 @@ export class Idle extends StateNode {
 	override onKeyDown(info: TLKeyboardEventInfo) {
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			// If the only selected shape is editable, start editing it
-			if (this.editor.canEditShape(onlySelectedShape, { type: 'press_enter' })) {
-				this.editor.setCurrentTool('select')
-				this.editor.setEditingShape(onlySelectedShape.id)
-				this.editor.root.getCurrent()?.transition('editing_shape', {
-					...info,
-					target: 'shape',
-					shape: onlySelectedShape,
-				})
-			}
+			if (!this.editor.canEditShape(onlySelectedShape)) return
+			this.editor.setCurrentTool('select')
+			this.editor.setEditingShape(onlySelectedShape.id)
+			this.editor.root.getCurrent()?.transition('editing_shape', {
+				...info,
+				target: 'shape',
+				shape: onlySelectedShape,
+			})
 		}
 	}
 

@@ -315,7 +315,7 @@ export class Idle extends StateNode {
 					}
 				}
 
-				if (this.editor.canCropShape(shape)) {
+				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
 					// crop image etc on double click
 					this.editor.markHistoryStoppingPoint('select and crop')
 					this.editor.select(info.shape?.id)

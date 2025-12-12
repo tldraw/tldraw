@@ -841,6 +841,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     cancelDoubleClick(): void;
     canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
     canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
+    canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
+    canEditShape<T extends TLShape | TLShapeId>(shape: null | T, info?: TLEditStartInfo): shape is T;
+    canRedo(): boolean;
+    canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
@@ -1191,7 +1195,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
+    // (undocumented)
     getCanRedo(): boolean;
+    // (undocumented)
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
@@ -2728,18 +2734,19 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
-    canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean;
+    canBeLaidOut(shape: Shape, info: TLShapeUtilCanBeLaidOutOpts): boolean;
     canBind(_opts: TLShapeUtilCanBindOpts): boolean;
-    canCrop(_shape: Shape): boolean;
-    canCull(_shape: Shape): boolean;
-    canEdit(_shape: Shape): boolean;
-    canEditInReadonly(_shape: Shape): boolean;
-    canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
-    canResize(_shape: Shape): boolean;
-    canResizeChildren(_shape: Shape): boolean;
-    canScroll(_shape: Shape): boolean;
-    canSnap(_shape: Shape): boolean;
-    canTabTo(_shape: Shape): boolean;
+    canCrop(shape: Shape): boolean;
+    canCull(shape: Shape): boolean;
+    canEdit(shape: Shape, info: TLEditStartInfo): boolean;
+    canEditInReadonly(shape: Shape): boolean;
+    canEditWhileLocked(shape: Shape): boolean;
+    canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
+    canResize(shape: Shape): boolean;
+    canResizeChildren(shape: Shape): boolean;
+    canScroll(shape: Shape): boolean;
+    canSnap(shape: Shape): boolean;
+    canTabTo(shape: Shape): boolean;
     abstract component(shape: Shape): any;
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
@@ -2749,26 +2756,26 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): Box | number;
     // (undocumented)
-    getAriaDescriptor(_shape: Shape): string | undefined;
-    getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
+    getAriaDescriptor(shape: Shape): string | undefined;
+    getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getClipPath?(shape: Shape): undefined | Vec[];
     abstract getDefaultProps(): Shape['props'];
     getFontFaces(shape: Shape): TLFontFace[];
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
-    getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     // (undocumented)
-    getText(_shape: Shape): string | undefined;
-    hideInMinimap?(_shape: Shape): boolean;
-    hideResizeHandles(_shape: Shape): boolean;
-    hideRotateHandle(_shape: Shape): boolean;
-    hideSelectionBoundsBg(_shape: Shape): boolean;
-    hideSelectionBoundsFg(_shape: Shape): boolean;
+    getText(shape: Shape): string | undefined;
+    hideInMinimap?(shape: Shape): boolean;
+    hideResizeHandles(shape: Shape): boolean;
+    hideRotateHandle(shape: Shape): boolean;
+    hideSelectionBoundsBg(shape: Shape): boolean;
+    hideSelectionBoundsFg(shape: Shape): boolean;
     abstract indicator(shape: Shape): any;
-    isAspectRatioLocked(_shape: Shape): boolean;
-    isExportBoundsContainer(_shape: Shape): boolean;
+    isAspectRatioLocked(shape: Shape): boolean;
+    isExportBoundsContainer(shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
@@ -2806,7 +2813,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     options: {};
     static props?: RecordProps<TLUnknownShape>;
     // @internal
-    providesBackgroundForChildren(_shape: Shape): boolean;
+    providesBackgroundForChildren(shape: Shape): boolean;
     shouldClipChild?(child: TLShape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
@@ -3608,6 +3615,12 @@ export interface TLEditorSnapshot {
     document: TLStoreSnapshot;
     // (undocumented)
     session: TLSessionStateSnapshot;
+}
+
+// @public (undocumented)
+export interface TLEditStartInfo {
+    // (undocumented)
+    type: 'click-header' | 'click' | 'double-click-corner' | 'double-click-edge' | 'double-click' | 'press_enter' | 'unknown';
 }
 
 // @public (undocumented)

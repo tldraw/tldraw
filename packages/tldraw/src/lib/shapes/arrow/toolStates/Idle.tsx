@@ -1,4 +1,5 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
@@ -41,15 +42,8 @@ export class Idle extends StateNode {
 		this.update()
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			// If the only selected shape is editable, start editing it
-			if (this.editor.canEditShape(onlySelectedShape, { type: 'press_enter' })) {
-				this.editor.setCurrentTool('select')
-				this.editor.setEditingShape(onlySelectedShape.id)
-				this.editor.root.getCurrent()?.transition('editing_shape', {
-					...info,
-					target: 'shape',
-					shape: onlySelectedShape,
-				})
+			if (this.editor.canEditShape(onlySelectedShape)) {
+				startEditingShapeWithRichText(this.editor, onlySelectedShape, true)
 			}
 		}
 	}

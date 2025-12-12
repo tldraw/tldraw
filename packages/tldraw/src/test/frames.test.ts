@@ -639,9 +639,13 @@ describe('frame shapes', () => {
 
 		editor.setCurrentTool('select')
 
+		// Not with enter key
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
+		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
 
+		// Just with header click (tests against header's geometry)
+		editor.click(105, 95)
 		expect(editor.getCurrentPageState().editingShapeId).toBe(frameId)
 	})
 
