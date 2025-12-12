@@ -22,6 +22,7 @@ import {
 	fetch,
 	structuredClone,
 	toRichText,
+	vecsToBase64,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 
@@ -370,6 +371,9 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								break
 							}
 
+							const points = v1Shape.points.map(getV2Point)
+							const base64Points = vecsToBase64(points)
+
 							editor.createShapes([
 								{
 									...inCommon,
@@ -381,7 +385,10 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										dash: getV2Dash(v1Shape.style.dash),
 										isPen: false,
 										isComplete: v1Shape.isComplete,
-										segments: [{ type: 'free', points: v1Shape.points.map(getV2Point) }],
+										segments: [{ type: 'free', points: base64Points }],
+										scale: 1,
+										scaleX: 1,
+										scaleY: 1,
 									},
 								},
 							])

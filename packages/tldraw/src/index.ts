@@ -2,6 +2,11 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export {
+	createB64FromPoints,
+	getPointsFromDrawSegment,
+	getPointsFromDrawSegments,
+} from './lib/shapes/draw/getPath'
+export {
 	PathBuilder,
 	PathBuilderGeometry2d,
 	type BasePathBuilderOpts,

@@ -30,7 +30,6 @@
 	"types": "./.tsbuild/index.d.ts",
 	"exports": {
 		".": "./src/index.ts",
-		"./src/test/test-jsx": "./src/test/test-jsx.tsx",
 		"./*.css": "./*.css"
 	},
 	"type": "module",

@@ -24,6 +24,7 @@ import {
 	getIndices,
 	isShapeId,
 	toRichText,
+	vecsToBase64,
 } from '@tldraw/editor'
 
 /**
@@ -149,6 +150,13 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'freedraw': {
+				const points = element.points.map(([x, y, z = 0.5]: number[]) => ({
+					x,
+					y,
+					z,
+				}))
+				const base64Points = vecsToBase64(points)
+
 				tldrawContent.shapes.push({
 					...base,
 					type: 'draw',
@@ -160,11 +168,7 @@ export async function putExcalidrawContent(
 						segments: [
 							{
 								type: 'free',
-								points: element.points.map(([x, y, z = 0.5]: number[]) => ({
-									x,
-									y,
-									z,
-								})),
+								points: base64Points,
 							},
 						],
 					},

@@ -19,6 +19,9 @@ import {
 } from '@tldraw/editor'
 import React, { Fragment } from 'react'
 
+// Re-export test helpers from their new location
+export { base64ToPoints, createDrawSegments, pointsToBase64 } from '../lib/utils/test-helpers'
+
 const shapeTypeSymbol = Symbol('shapeJsx')
 const assetTypeSymbol = Symbol('assetJsx')
 const bindingTypeSymbol = Symbol('bindingJsx')

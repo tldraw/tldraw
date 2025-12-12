@@ -730,20 +730,11 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "isComplete": false,
       "isPen": false,
       "scale": 1,
+      "scaleX": 1,
+      "scaleY": 1,
       "segments": [
         {
-          "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
-          ],
+          "points": "AAAAAAA4jgaOBgA4",
           "type": "free",
         },
       ],
@@ -770,20 +761,11 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "isComplete": false,
       "isPen": false,
       "scale": 1,
+      "scaleX": 1,
+      "scaleY": 1,
       "segments": [
         {
-          "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
-          ],
+          "points": "AAAAAAA4jgaOBgA4",
           "type": "free",
         },
       ],
@@ -1393,20 +1375,11 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "isComplete": false,
       "isPen": false,
       "scale": 1,
+      "scaleX": 1,
+      "scaleY": 1,
       "segments": [
         {
-          "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
-          ],
+          "points": "AAAAAAA4jgaOBgA4",
           "type": "free",
         },
       ],
@@ -1433,20 +1406,11 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "isComplete": false,
       "isPen": false,
       "scale": 1,
+      "scaleX": 1,
+      "scaleY": 1,
       "segments": [
         {
-          "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
-          ],
+          "points": "AAAAAAA4jgaOBgA4",
           "type": "free",
         },
       ],

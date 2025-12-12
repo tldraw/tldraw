@@ -1,4 +1,4 @@
-import { createShapeId, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
+import { compressLegacySegments, createShapeId, Vec, VecModel } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
@@ -100,7 +100,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			return
 		}
 
-		const segments: TLDrawShapeSegment[] = [
+		const segments = compressLegacySegments([
 			{
 				type: 'free',
 				points: points.map((point) => ({
@@ -109,7 +109,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 					z: 0.75,
 				})),
 			},
-		]
+		])
 
 		this.agent.editor.createShape({
 			id: createShapeId(),

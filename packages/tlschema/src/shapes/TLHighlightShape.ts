@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { vecsToBase64 } from '../misc/base64'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -36,6 +37,10 @@ export interface TLHighlightShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the highlight shape for display */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
+	scaleX: number
+	/** Vertical scale factor for lazy resize */
+	scaleY: number
 }
 
 /**
@@ -91,10 +96,13 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	isComplete: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	scaleX: T.nonZeroNumber,
+	scaleY: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
+	Base64: 2,
 })
 
 /**
@@ -120,6 +128,17 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.Base64,
+			up: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: vecsToBase64(segment.points),
+				}))
+				props.scaleX = 1
+				props.scaleY = 1
 			},
 		},
 	],

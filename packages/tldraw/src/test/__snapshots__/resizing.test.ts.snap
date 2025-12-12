@@ -16,20 +16,11 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "isComplete": false,
     "isPen": false,
     "scale": 1,
+    "scaleX": 1.1,
+    "scaleY": 1.1,
     "segments": [
       {
-        "points": [
-          {
-            "x": 0,
-            "y": 0,
-            "z": 0.5,
-          },
-          {
-            "x": 110,
-            "y": 110,
-            "z": 0.5,
-          },
-        ],
+        "points": "AAAAAAA4QFZAVgA4",
         "type": "free",
       },
     ],

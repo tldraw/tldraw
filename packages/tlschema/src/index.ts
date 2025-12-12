@@ -61,6 +61,7 @@ export {
 	type SchemaPropsInfo,
 	type TLSchema,
 } from './createTLSchema'
+export { base64ToVecs, vecsToBase64 } from './misc/base64'
 export {
 	boxModelValidator,
 	vecModelValidator,
@@ -191,6 +192,7 @@ export {
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
+	compressLegacySegments,
 	drawShapeMigrations,
 	drawShapeProps,
 	type TLDrawShape,
