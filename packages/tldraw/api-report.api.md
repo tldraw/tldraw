@@ -1187,7 +1187,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
         props: {
-            segments: TLDrawShapeSegment[];
+            scaleX: number;
+            scaleY: number;
         };
     };
     // (undocumented)
@@ -1801,6 +1802,12 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boole
 // @public (undocumented)
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
+// @public (undocumented)
+export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
+
+// @public (undocumented)
+export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX?: number, scaleY?: number): Vec[];
+
 // @public
 export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
 
@@ -1904,7 +1911,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
         props: {
-            segments: TLDrawShapeSegment[];
+            scaleX: number;
+            scaleY: number;
         };
     };
     // (undocumented)

@@ -8,7 +8,6 @@ import {
 	SvgExportContext,
 	TLDrawShape,
 	TLDrawShapeProps,
-	TLDrawShapeSegment,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
@@ -18,7 +17,6 @@ import {
 	last,
 	lerp,
 	rng,
-	toFixed,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -31,7 +29,11 @@ import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
+import {
+	getDrawShapeStrokeDashArray,
+	getFreehandOptions,
+	getPointsFromDrawSegments,
+} from './getPath'
 
 /** @public */
 export interface DrawShapeOptions {
@@ -73,11 +75,17 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			isClosed: false,
 			isPen: false,
 			scale: 1,
+			scaleX: 1,
+			scaleY: 1,
 		}
 	}
 
 	getGeometry(shape: TLDrawShape) {
-		const points = getPointsFromSegments(shape.props.segments)
+		const points = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
 
 		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -131,7 +139,11 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	indicator(shape: TLDrawShape) {
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -182,24 +194,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
 		const { scaleX, scaleY } = info
 
-		const newSegments: TLDrawShapeSegment[] = []
-
-		for (const segment of shape.props.segments) {
-			newSegments.push({
-				...segment,
-				points: segment.points.map(({ x, y, z }) => {
-					return {
-						x: toFixed(scaleX * x),
-						y: toFixed(scaleY * y),
-						z,
-					}
-				}),
-			})
-		}
-
 		return {
 			props: {
-				segments: newSegments,
+				scaleX: scaleX * shape.props.scaleX,
+				scaleY: scaleY * shape.props.scaleY,
 			},
 		}
 	}
@@ -236,7 +234,11 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const theme = useDefaultColorTheme()
 	const editor = useEditor()
 
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
