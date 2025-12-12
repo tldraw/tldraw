@@ -1,5 +1,4 @@
 import { round } from 'lodash'
-import { useEffect, useState } from 'react'
 import {
 	createComputedCache,
 	Editor,
@@ -22,6 +21,7 @@ import {
 	track,
 	uniqueId,
 	useEditor,
+	useValue,
 	Vec,
 	VecModel,
 	vecModelValidator,
@@ -908,34 +908,8 @@ export const GlobShape = track(function GlobShape({
 	const editor = useEditor()
 	const zoomLevel = editor.getZoomLevel()
 
-	const [fillGlob, setFillGlob] = useState(false)
-
-	// a small hack because editor inputs are not reactive, we need to use a keyboard event to fill the glob
-	// when space is pressed, fill the glob
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
-				setFillGlob(true)
-			}
-		}
-
-		const handleKeyUp = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
-				setFillGlob(false)
-			}
-		}
-
-		const container = editor.getContainer()
-		const doc = container.ownerDocument
-
-		doc.addEventListener('keydown', handleKeyDown)
-		doc.addEventListener('keyup', handleKeyUp)
-
-		return () => {
-			doc.removeEventListener('keydown', handleKeyDown)
-			doc.removeEventListener('keyup', handleKeyUp)
-		}
-	})
+	// Use reactive inputs to track if space key is pressed
+	const fillGlob = useValue('space key pressed', () => editor.inputs.keys.has('Space'), [editor])
 
 	const globPoints = getGlobInfo(editor, shape)
 	if (!globPoints) return null
