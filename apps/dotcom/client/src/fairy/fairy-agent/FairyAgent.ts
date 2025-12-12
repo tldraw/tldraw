@@ -265,21 +265,27 @@ export class FairyAgent {
 			velocity: { x: 0, y: 0 },
 		})
 
+		// Generate a stable default config for agents without user fairy configs (e.g., shape-bound agents)
+		// This is generated once in the constructor so it doesn't change on every render
+		const defaultConfig: FairyConfig = {
+			name: getRandomFairyName(),
+			outfit: { body: 'plain', hat: 'top', wings: 'plain' },
+			hat: getRandomFairyHat(),
+			hatColor: getRandomFairyHatColor(),
+			legLength: getRandomLegLength(),
+			version: 2,
+		}
+
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
 			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
 
 			if (!userFairies) {
-				return {
-					name: getRandomFairyName(),
-					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
-					hat: getRandomFairyHat(),
-					hatColor: getRandomFairyHatColor(),
-					legLength: getRandomLegLength(),
-					version: 2,
-				} satisfies FairyConfig
+				return defaultConfig
 			}
 
-			return JSON.parse(userFairies)[id] as FairyConfig
+			// Return the user's config if it exists, otherwise use default
+			const parsedFairies = JSON.parse(userFairies)
+			return parsedFairies[id] ?? defaultConfig
 		})
 
 		this.onError = onError

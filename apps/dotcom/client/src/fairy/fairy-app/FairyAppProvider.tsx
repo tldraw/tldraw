@@ -104,6 +104,13 @@ export const FairyAppProvider = memo(function ({
 		}
 	}, [editor, app, isReadOnly])
 
+	// Set token getter and error handler on fairyApp
+	useEffect(() => {
+		if (!fairyApp) return
+		fairyApp.setGetToken(getToken)
+		fairyApp.setOnError(handleError)
+	}, [fairyApp, getToken, handleError])
+
 	// Sync agents with fairy configs
 	useEffect(() => {
 		if (!fairyApp || isReadOnly) return

@@ -12,6 +12,7 @@ import { buildOrchestratingModePromptSection } from './sections/orchestration-mo
 import { buildRulesPromptSection } from './sections/rules-section'
 import { buildSoloingModePromptSection } from './sections/soloing-mode'
 import { buildWorkingModePromptSection } from './sections/working-mode'
+import { buildZoneActiveModePromptSection } from './sections/zone-active-mode'
 
 /**
  * Build a system prompt from all of the prompt parts.
@@ -68,6 +69,9 @@ function buildModePromptSection(flags: SystemPromptFlags) {
 	}
 	if (flags.isDuoOrchestrating) {
 		return buildDuoOrchestratingModePromptSection(flags)
+	}
+	if (flags.isZoneActive) {
+		return buildZoneActiveModePromptSection(flags)
 	}
 	throw new Error(`Unknown mode`)
 }

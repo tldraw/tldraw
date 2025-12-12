@@ -110,6 +110,29 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			stopPromptTimer(agent)
 		},
 	},
+	['zone-idling']: {
+		onPromptStart(agent) {
+			startPromptTimer(agent)
+			agent.mode.setMode('zone-active')
+		},
+		onEnter(agent) {
+			agent.todos.deleteAll()
+			agent.userAction.clearHistory()
+			stopPromptTimer(agent)
+		},
+	},
+	['zone-active']: {
+		onPromptEnd(agent) {
+			agent.mode.setMode('zone-idling')
+		},
+		onPromptCancel(agent) {
+			agent.mode.setMode('zone-idling')
+		},
+		onExit(agent) {
+			agent.userAction.clearHistory()
+			agent.todos.deleteAll()
+		},
+	},
 	soloing: {
 		onPromptEnd(agent) {
 			// Continue if there are outstanding tasks
