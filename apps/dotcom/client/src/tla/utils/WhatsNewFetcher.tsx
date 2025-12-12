@@ -37,9 +37,10 @@ export function WhatsNewFetcher() {
 					return
 				}
 				const data = await response.json()
-				if (mounted && data.entries) {
-					whatsNewEntriesAtom.set(data.entries)
-					setInLocalStorage(STORAGE_KEY, JSON.stringify(data.entries))
+				// API returns array directly, not wrapped in object
+				if (mounted && Array.isArray(data)) {
+					whatsNewEntriesAtom.set(data)
+					setInLocalStorage(STORAGE_KEY, JSON.stringify(data))
 					whatsNewLoadedAtom.set(true)
 				}
 			} catch (error) {

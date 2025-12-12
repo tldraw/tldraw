@@ -475,3 +475,95 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* What's New */
+.whatsNewForm {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.formField {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.formField label {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tla-color-text-2);
+}
+
+.radioGroup {
+	display: flex;
+	gap: 16px;
+}
+
+.radioGroup label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.bulletList {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bulletItem {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.formActions {
+	display: flex;
+	gap: 12px;
+	margin-top: 8px;
+}
+
+.editingSection {
+	margin: 16px 0;
+	padding: 16px;
+	background-color: var(--tla-color-low);
+	border-radius: var(--tla-radius-2);
+}
+
+.entriesList {
+	margin-top: 24px;
+}
+
+.entryCard {
+	padding: 16px;
+	background-color: var(--tla-color-low);
+	border-radius: var(--tla-radius-2);
+	margin-top: 12px;
+}
+
+.entryHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 12px;
+}
+
+.entryActions {
+	display: flex;
+	gap: 8px;
+}
+
+.entryItems {
+	margin: 8px 0 0 20px;
+	padding: 0;
+	list-style: disc;
+}
+
+.entryItems li {
+	margin: 4px 0;
+	color: var(--tla-color-text-2);
+}
