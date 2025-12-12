@@ -5,6 +5,7 @@ import {
 	FairyProject,
 	FairyProjectRole,
 	LipsIcon,
+	toProjectId,
 } from '@tldraw/fairy-shared'
 import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Editor, uniqueId, useValue } from 'tldraw'
@@ -148,14 +149,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			}
 
 			// Clear chat history for all agents before starting new project
-			leaderAgent.chat.clear()
+			leaderAgent.chat.reset()
 			followerAgents.forEach((agent) => {
-				agent.chat.clear()
+				agent.chat.reset()
 			})
 
 			const newProjectId = uniqueId(5)
 			const newProject: FairyProject = {
-				id: newProjectId,
+				id: toProjectId(newProjectId),
 				title: '',
 				description: '',
 				color: '',
@@ -167,6 +168,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
 				],
 				plan: '',
+				softDeleted: false,
 			}
 
 			trackEvent('fairy-start-project', {
@@ -177,6 +179,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			if (fairyApp) {
+				fairyApp.projects.hardDeleteSoftDeletedProjects()
 				fairyApp.projects.addProject(newProject)
 
 				// Select all fairies in the newly created project
@@ -199,15 +202,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				agent.interrupt({ mode: 'standing-by', input: null })
 			})
 
-			// Summon all fairies to the orchestrator
-			// Leader (orchestrator) at center
-			leaderAgent.position.summon()
-
-			// Followers positioned around the orchestrator
+			// Move followers to the leader
+			const leaderPosition = leaderAgent.getEntity().position
+			const leaderPageId = leaderAgent.getEntity().currentPageId
 			followerAgents.forEach((agent, index) => {
-				// Position followers in a horizontal line, offset from the orchestrator
-				const offset = { x: (index + 1) * 120, y: 0 }
-				agent.position.summon(offset)
+				const offset = (index + 1) * 120
+				const position = { x: leaderPosition.x + offset, y: leaderPosition.y }
+				agent.position.moveTo(position)
+				agent.updateEntity((f) => ({ ...f, flipX: true, currentPageId: leaderPageId }))
 			})
 
 			// Send the prompt to the leader

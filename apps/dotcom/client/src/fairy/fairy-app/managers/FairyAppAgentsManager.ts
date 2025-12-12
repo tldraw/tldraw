@@ -1,9 +1,11 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import {
+	AgentId,
 	FAIRY_VARIANTS,
 	FairyConfig,
 	FairyVariantType,
 	PersistedFairyConfigs,
+	toAgentId,
 } from '@tldraw/fairy-shared'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -29,7 +31,7 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	/**
 	 * Track which agents have been loaded to avoid reloading existing agents.
 	 */
-	private loadedAgentIds: Set<string> = new Set()
+	private loadedAgentIds: Set<AgentId> = new Set()
 
 	/**
 	 * Get the current list of agents.
@@ -41,7 +43,7 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	/**
 	 * Get an agent by ID.
 	 */
-	getAgentById(id: string): FairyAgent | undefined {
+	getAgentById(id: AgentId): FairyAgent | undefined {
 		return this.$agents.get().find((agent) => agent.id === id)
 	}
 
@@ -59,7 +61,7 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			getToken(): Promise<string | undefined>
 		}
 	) {
-		const configIds = Object.keys(fairyConfigs)
+		const configIds = Object.keys(fairyConfigs) as AgentId[]
 		const existingAgents = this.$agents.get()
 		const existingIds = new Set(existingAgents.map((a) => a.id))
 
@@ -108,7 +110,7 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	 * Create a new fairy configuration and add it to the user's settings.
 	 * Returns the ID of the new fairy.
 	 */
-	createNewFairyConfig(): string {
+	createNewFairyConfig() {
 		const randomOutfit = {
 			body: Object.keys(FAIRY_VARIANTS.body)[
 				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
@@ -121,7 +123,7 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			] as FairyVariantType<'wings'>,
 		}
 
-		const id = uniqueId()
+		const id = toAgentId(uniqueId())
 
 		const config: FairyConfig = {
 			name: getRandomFairyName(),
@@ -162,14 +164,14 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	/**
 	 * Mark an agent as loaded (state restored from persistence).
 	 */
-	markAgentLoaded(agentId: string) {
+	markAgentLoaded(agentId: AgentId) {
 		this.loadedAgentIds.add(agentId)
 	}
 
 	/**
 	 * Check if an agent has already been loaded.
 	 */
-	isAgentLoaded(agentId: string): boolean {
+	isAgentLoaded(agentId: AgentId): boolean {
 		return this.loadedAgentIds.has(agentId)
 	}
 

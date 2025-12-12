@@ -1,5 +1,5 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
-import { PersistedFairyConfigs } from '@tldraw/fairy-shared'
+import { PersistedFairyConfigs, toAgentId } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyAgent } from '../../../fairy-agent/FairyAgent'
@@ -35,7 +35,7 @@ describe('FairyAppAgentsManager', () => {
 
 	describe('getAgentById', () => {
 		it('should return undefined when agent does not exist', () => {
-			expect(manager.getAgentById('non-existent')).toBeUndefined()
+			expect(manager.getAgentById(toAgentId('non-existent'))).toBeUndefined()
 		})
 	})
 
@@ -145,13 +145,13 @@ describe('FairyAppAgentsManager', () => {
 
 	describe('markAgentLoaded and isAgentLoaded', () => {
 		it('should track loaded agents', () => {
-			const agentId = 'test-agent-id'
+			const testAgentId = toAgentId('test-agent-id')
 
-			expect(manager.isAgentLoaded(agentId)).toBe(false)
+			expect(manager.isAgentLoaded(testAgentId)).toBe(false)
 
-			manager.markAgentLoaded(agentId)
+			manager.markAgentLoaded(testAgentId)
 
-			expect(manager.isAgentLoaded(agentId)).toBe(true)
+			expect(manager.isAgentLoaded(testAgentId)).toBe(true)
 		})
 	})
 

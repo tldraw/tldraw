@@ -1,4 +1,11 @@
-import { FairyProject, FairyProjectMember, FairyProjectRole } from '@tldraw/fairy-shared'
+import {
+	AgentId,
+	FairyProject,
+	FairyProjectMember,
+	FairyProjectRole,
+	ProjectId,
+	toProjectId,
+} from '@tldraw/fairy-shared'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
@@ -17,9 +24,14 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 
 	/**
 	 * Get all projects.
+	 * @param includeSoftDeleted - If true, returns projects even if they're soft deleted. Defaults to false.
 	 */
-	getProjects(): FairyProject[] {
-		return this.$projects.get()
+	getProjects(includeSoftDeleted: boolean = false): FairyProject[] {
+		const projects = this.$projects.get()
+		if (includeSoftDeleted) {
+			return projects
+		}
+		return projects.filter((p) => p.softDeleted !== true)
 	}
 
 	/**
@@ -44,22 +56,39 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 
 	/**
 	 * Get a project by ID.
+	 * @param id - The ID of the project to get.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProjectById(id: string): FairyProject | undefined {
-		return this.$projects.get().find((p) => p.id === id)
+	getProjectById(id: ProjectId, includeSoftDeleted: boolean = false): FairyProject | undefined {
+		const project = this.$projects.get().find((p) => p.id === id)
+		if (!project) return undefined
+		if (!includeSoftDeleted && project.softDeleted === true) {
+			return undefined
+		}
+		return project
 	}
 
 	/**
 	 * Get a project that an agent is a member of.
+	 * @param agentId - The ID of the agent to get the project for.
+	 * @param includeSoftDeleted - If true, returns the project even if it's soft deleted. Defaults to false.
 	 */
-	getProjectByAgentId(agentId: string): FairyProject | undefined {
-		return this.$projects.get().find((p) => p.members.some((m) => m.id === agentId))
+	getProjectByAgentId(
+		agentId: AgentId,
+		includeSoftDeleted: boolean = false
+	): FairyProject | undefined {
+		const project = this.$projects.get().find((p) => p.members.some((m) => m.id === agentId))
+		if (!project) return undefined
+		if (!includeSoftDeleted && project.softDeleted === true) {
+			return undefined
+		}
+		return project
 	}
 
 	/**
 	 * Get an agent's role within their project.
 	 */
-	getRoleByAgentId(agentId: string): FairyProjectRole | undefined {
+	getRoleByAgentId(agentId: AgentId): FairyProjectRole | undefined {
 		const project = this.getProjectByAgentId(agentId)
 		if (!project) return undefined
 		return project.members.find((m) => m.id === agentId)?.role
@@ -77,7 +106,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Update a project's properties.
 	 */
-	updateProject(projectId: string, updates: Partial<FairyProject>) {
+	updateProject(projectId: ProjectId, updates: Partial<FairyProject>) {
 		this.$projects.update((projects) =>
 			projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p))
 		)
@@ -86,7 +115,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Delete a project.
 	 */
-	deleteProject(projectId: string) {
+	deleteProject(projectId: ProjectId) {
 		this.$projects.update((projects) => projects.filter((p) => p.id !== projectId))
 	}
 
@@ -100,11 +129,40 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Delete a project and all associated tasks.
 	 */
-	deleteProjectAndAssociatedTasks(projectId: string) {
+	deleteProjectAndAssociatedTasks(projectId: ProjectId) {
 		this.fairyApp.tasks.getTasksByProjectId(projectId).forEach((task) => {
 			this.fairyApp.tasks.deleteTask(task.id)
 		})
 		this.deleteProject(projectId)
+	}
+
+	/**
+	 * Soft delete a project and all associated tasks (mark as soft deleted instead of removing).
+	 */
+	softDeleteProjectAndAssociatedTasks(projectId: ProjectId) {
+		// Mark project as soft deleted
+		this.updateProject(projectId, { softDeleted: true })
+		// Tasks don't need soft delete flag - they'll be filtered by checking if their project is soft deleted
+	}
+
+	/**
+	 * Hard delete all soft deleted projects and their associated tasks.
+	 */
+	hardDeleteSoftDeletedProjects() {
+		const projects = this.$projects.get()
+		const softDeletedProjects = projects.filter((p) => p.softDeleted === true)
+
+		softDeletedProjects.forEach((project) => {
+			// Delete associated tasks (directly filter tasks since getTasksByProjectId filters out soft-deleted projects)
+			this.fairyApp.tasks
+				.getTasks()
+				.filter((task) => task.projectId === project.id)
+				.forEach((task) => {
+					this.fairyApp.tasks.deleteTask(task.id)
+				})
+			// Delete the project
+			this.deleteProject(project.id)
+		})
 	}
 
 	/**
@@ -165,7 +223,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Disband a project, interrupting all agents and cleaning up.
 	 */
-	disbandProject(projectId: string) {
+	disbandProject(projectId: ProjectId) {
 		const project = this.getProjectById(projectId)
 		if (!project || project.members.length <= 1) return
 
@@ -198,7 +256,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Resume a project after a page reload or interruption.
 	 */
-	resumeProject(projectId: string) {
+	resumeProject(projectId: ProjectId) {
 		this.rectifyFairyModesUponBadState(projectId)
 
 		const project = this.getProjectById(projectId)
@@ -436,7 +494,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Rectify fairy modes when in bad state (e.g., after reload).
 	 */
-	private rectifyFairyModesUponBadState(projectId: string) {
+	private rectifyFairyModesUponBadState(projectId: ProjectId) {
 		const project = this.getProjectById(projectId)
 		if (!project) return
 
@@ -459,18 +517,19 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	/**
 	 * Add an agent to a dummy project (for debug purposes).
 	 */
-	addAgentToDummyProject(agentId: string) {
+	addAgentToDummyProject(agentId: AgentId) {
 		this.$projects.update((projects) => {
 			const dummyProject = projects.find((p) => p.id === 'dummy')
 
 			if (!dummyProject) {
 				const newProject: FairyProject = {
-					id: 'dummy',
+					id: toProjectId('dummy'),
 					title: 'Dummy Project',
 					description: 'A dummy project for testing',
 					color: 'violet',
 					members: [{ id: agentId, role: 'orchestrator' }],
 					plan: 'idk!!',
+					softDeleted: false,
 				}
 				return [...projects, newProject]
 			} else {

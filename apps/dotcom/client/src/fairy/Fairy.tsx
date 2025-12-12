@@ -96,7 +96,7 @@ function setFairiesToThrowTool(editor: ReturnType<typeof useEditor>, fairies: Fa
 }
 
 function useFairyPointerInteraction(
-	ref: React.RefObject<HTMLDivElement>,
+	ref: React.RefObject<HTMLDivElement | null>,
 	agent: FairyAgent,
 	editor: ReturnType<typeof useEditor>,
 	isFairyGrabbable: boolean,
@@ -130,7 +130,7 @@ function useFairyPointerInteraction(
 
 		function startDraggingWithCurrentState(currentState: FairyPressedState) {
 			cancelLongPressTimer()
-			agent.gesture.clear()
+			agent.gesture.reset()
 			interactionState.current = {
 				status: 'dragging',
 				pointerId: currentState.pointerId,
@@ -146,7 +146,7 @@ function useFairyPointerInteraction(
 		}
 
 		function handleCapturedPointerMove(e: PointerEvent) {
-			// Flush pointer move events immediately to update editor.inputs.currentPagePoint
+			// Flush pointer move events immediately to update editor.inputs.getCurrentPagePoint()
 			// Using _flushEventForTick instead of dispatch because dispatch queues pointer_move
 			// events for the next tick, which causes stale coordinates on mobile
 			const currentState = interactionState.current
@@ -164,7 +164,7 @@ function useFairyPointerInteraction(
 			const currentState = interactionState.current
 			if (currentState.status !== 'pressed') return
 
-			if (editor.inputs.isDragging) {
+			if (editor.inputs.getIsDragging()) {
 				startDraggingWithCurrentState(currentState)
 			}
 		}
@@ -174,7 +174,7 @@ function useFairyPointerInteraction(
 			cancelLongPressTimer()
 
 			// Clear panicking gesture if it was set
-			agent.gesture.clear()
+			agent.gesture.reset()
 
 			if (currentState.status === 'idle') {
 				cleanupPointerListeners()
@@ -221,7 +221,7 @@ function useFairyPointerInteraction(
 		}
 
 		const handleFairyPointerDown = (e: PointerEvent) => {
-			// Flush pointer event immediately to update editor.inputs.currentPagePoint
+			// Flush pointer event immediately to update editor.inputs.getCurrentPagePoint()
 			// Using _flushEventForTick instead of dispatch because dispatch queues pointer_move
 			// events for the next tick, which causes stale coordinates on mobile
 			editor._flushEventForTick({
@@ -246,12 +246,13 @@ function useFairyPointerInteraction(
 				document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 				document.body.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
 
-				editor.inputs.isPointing = true
-				editor.inputs.isDragging = false
-				editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
+				editor.inputs.setIsPointing(true)
+				editor.inputs.setIsDragging(false)
+				// hack: set origin page point to current page point to ensure correct positioning on mobile
+				editor.inputs.getOriginPagePoint().setTo(editor.inputs.getCurrentPagePoint())
 
 				// Listen for pointer move events on the captured element
-				// This is necessary on mobile to ensure editor.inputs.currentPagePoint is updated
+				// This is necessary on mobile to ensure editor.inputs.getCurrentPagePoint() is updated
 				elm.addEventListener('pointermove', handleCapturedPointerMove)
 
 				const fairyAgents = agent.fairyApp.agents.getAgents()
@@ -286,7 +287,7 @@ function useFairyPointerInteraction(
 				longPressTimerRef.current = setTimeout(() => {
 					const currentState = interactionState.current
 					// Only trigger panicking if still pressed and not dragging
-					if (currentState.status === 'pressed' && !editor.inputs.isDragging) {
+					if (currentState.status === 'pressed' && !editor.inputs.getIsDragging()) {
 						trackEvent('fairy-panic', { source: 'fairy-canvas', fairyId: agent.id })
 						agent.gesture.push('panicking')
 					}
@@ -350,6 +351,16 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
 		editor,
 	])
+	const isMoving = useValue(
+		'is moving',
+		() => {
+			const { velocity } = agent.getEntity()
+			return velocity.x !== 0 && velocity.y !== 0
+		},
+		[agent]
+	)
+	const isPoofing = useValue('is poofing', () => agent.getEntity().gesture === 'poof', [agent])
+	const isActive = useValue('is active', () => agent.getEntity().pose !== 'idle', [agent])
 	const isGenerating = useValue('is generating', () => agent.requests.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
@@ -389,9 +400,11 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 						'fairy-container__not-selected': !isSelected,
 						'fairy-container__generating': isGenerating,
 						'fairy-container__not-generating': !isGenerating,
-						'fairy-container__in-throw-tool': isInThrowTool,
+						'fairy-container__throwing': isInThrowTool || isMoving,
+						'fairy-container__poofing': isPoofing,
 						'fairy-container__grabbable': isFairyGrabbable,
 						'fairy-container__not-grabbable': !isFairyGrabbable,
+						'fairy-container__active': isActive,
 					})}
 				>
 					<FairySprite

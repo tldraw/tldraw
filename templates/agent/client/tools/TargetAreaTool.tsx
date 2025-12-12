@@ -46,13 +46,13 @@ class TargetAreaPointing extends StateNode {
 	private initialPagePoint: VecModel | undefined = undefined
 
 	override onEnter() {
-		this.initialScreenPoint = this.editor.inputs.currentScreenPoint.clone()
-		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
+		this.initialScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
+		this.initialPagePoint = this.editor.inputs.getCurrentPagePoint().clone()
 	}
 
 	override onPointerMove() {
 		if (!this.initialScreenPoint) return
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { initialPagePoint: this.initialPagePoint })
 		}
 	}
@@ -62,7 +62,7 @@ class TargetAreaPointing extends StateNode {
 		for (const agent of agents) {
 			agent.addToContext({
 				type: 'point',
-				point: this.editor.inputs.currentPagePoint.clone(),
+				point: this.editor.inputs.getCurrentPagePoint().clone(),
 				source: 'user',
 			})
 		}
@@ -104,7 +104,7 @@ class TargetAreaDragging extends StateNode {
 
 	updateBounds() {
 		if (!this.initialPagePoint) return
-		const currentPagePoint = this.editor.inputs.currentPagePoint
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const x = Math.min(this.initialPagePoint.x, currentPagePoint.x)
 		const y = Math.min(this.initialPagePoint.y, currentPagePoint.y)
 		const w = Math.abs(currentPagePoint.x - this.initialPagePoint.x)

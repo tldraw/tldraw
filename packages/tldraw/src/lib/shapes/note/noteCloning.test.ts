@@ -30,7 +30,7 @@ function testCloneHandles(x: number, y: number, rotation: number) {
 		const handleInPageSpace = editor.getShapePageTransform(shape).applyToPoint(handle)
 		editor.select(shape.id)
 		editor.pointerMove(handleInPageSpace.x, handleInPageSpace.y)
-		expect(editor.inputs.currentPagePoint).toMatchObject({
+		expect(editor.inputs.getCurrentPagePoint()).toMatchObject({
 			x: handleInPageSpace.x,
 			y: handleInPageSpace.y,
 		})
@@ -99,6 +99,7 @@ function testDragCloneHandles(x: number, y: number, rotation: number) {
 		editor.expectToBeIn('select.pointing_handle')
 
 		editor.pointerMove(handleInPageSpace.x + 30, handleInPageSpace.y + 30)
+		editor.forceTick()
 
 		editor.expectToBeIn('select.translating')
 
@@ -205,6 +206,7 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 	editor.expectToBeIn('select.pointing_handle')
 
 	editor.pointerMove(handle.x + 30, handle.y + 30)
+	editor.forceTick()
 
 	const newShape = editor.getLastCreatedShape()
 

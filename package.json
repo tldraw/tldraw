@@ -81,7 +81,7 @@
 		"npm": ">=7.0.0",
 		"node": "^20.0.0"
 	},
-	"packageManager": "yarn@4.7.0+sha256.293632d8a095d8ea4786eb2c5798c83c37544abed17ed31186a3ec4549a07c06",
+	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache --log-level=warn"
@@ -93,14 +93,14 @@
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.19.0",
 		"@lingual/i18n-check": "^0.5.5",
-		"@microsoft/api-extractor": "^7.49.1",
+		"@microsoft/api-extractor": "^7.55.2",
 		"@next/eslint-plugin-next": "^15.1.6",
 		"@swc/core": "^1.10.11",
 		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
 		"@types/node": "^22.15.31",
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@types/semver": "^7.5.8",
 		"@typescript-eslint/eslint-plugin": "^8.21.0",
 		"@typescript-eslint/parser": "^8.21.0",
@@ -135,7 +135,6 @@
 		"it slows down installs quite a bit though, so we replace it with an empty package."
 	],
 	"resolutions": {
-		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
 		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",

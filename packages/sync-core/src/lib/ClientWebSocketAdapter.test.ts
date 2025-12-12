@@ -41,13 +41,16 @@ describe(ClientWebSocketAdapter, () => {
 		connectedServerSocket = socket
 	})
 
+	let consoleWarnSpy: ReturnType<typeof vi.spyOn>
 	beforeEach(() => {
+		consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
 		wsServer = new WebSocketServer({ port: 2233 })
 		wsServer.on('connection', connectMock as any)
 	})
 
 	afterEach(() => {
+		consoleWarnSpy.mockRestore()
 		adapter.close()
 		wsServer.close()
 		connectMock.mockClear()

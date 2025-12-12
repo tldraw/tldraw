@@ -1,4 +1,4 @@
-import { FairyConfig, FairyProject } from '@tldraw/fairy-shared'
+import { FairyConfig, FairyProject, toProjectId } from '@tldraw/fairy-shared'
 import {
 	createTLStore,
 	defaultAddFontsFromNode,
@@ -61,12 +61,13 @@ export function getDefaultFairyConfig(config: Partial<FairyConfig> = {}): FairyC
 
 export function getFairyProject(project: Partial<FairyProject> = {}): FairyProject {
 	return {
-		id: 'project-1',
+		id: toProjectId('project-1'),
 		title: 'Test Project',
 		description: 'Test description',
 		color: 'blue',
 		members: [],
 		plan: 'Test plan',
+		softDeleted: false,
 		...project,
 	}
 }

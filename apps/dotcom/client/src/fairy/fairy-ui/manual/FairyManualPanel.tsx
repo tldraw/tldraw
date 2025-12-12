@@ -19,7 +19,7 @@ export function FairyManualPanel() {
 
 	// Restore scroll position for each tab on mount
 	useEffect(() => {
-		const restoreScroll = (ref: RefObject<HTMLDivElement>, tabId: string) => {
+		const restoreScroll = (ref: RefObject<HTMLDivElement | null>, tabId: string) => {
 			const savedPosition = getFromLocalStorage(`${SCROLL_POSITION_KEY_PREFIX}-${tabId}`)
 			if (savedPosition && ref.current) {
 				ref.current.scrollTop = parseInt(savedPosition, 10)
@@ -49,7 +49,7 @@ export function FairyManualPanel() {
 	}, [fairyManualActiveTab])
 
 	// Save scroll position on scroll for a specific tab
-	const createScrollHandler = (ref: RefObject<HTMLDivElement>, tabId: string) => () => {
+	const createScrollHandler = (ref: RefObject<HTMLDivElement | null>, tabId: string) => () => {
 		if (ref.current) {
 			setInLocalStorage(`${SCROLL_POSITION_KEY_PREFIX}-${tabId}`, ref.current.scrollTop.toString())
 		}

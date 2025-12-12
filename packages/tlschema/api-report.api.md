@@ -57,6 +57,7 @@ export const arrowShapeVersions: {
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
     readonly AddRichText: "com.tldraw.shape.arrow/7";
+    readonly AddRichTextAttrs: "com.tldraw.shape.arrow/8";
     readonly AddScale: "com.tldraw.shape.arrow/5";
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };

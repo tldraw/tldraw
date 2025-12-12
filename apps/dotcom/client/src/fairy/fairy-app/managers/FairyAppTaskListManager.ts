@@ -1,4 +1,11 @@
-import { createAgentTask, FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
+import {
+	AgentId,
+	createAgentTask,
+	FairyTask,
+	FairyTaskStatus,
+	ProjectId,
+	TaskId,
+} from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
@@ -32,7 +39,7 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 	/**
 	 * Create a new task.
 	 */
-	createTask(newPartialTask: Partial<FairyTask> & { id: string }) {
+	createTask(newPartialTask: Partial<FairyTask> & { id: TaskId }) {
 		this.$tasks.update((tasks) => {
 			const task = createAgentTask({
 				title: newPartialTask.title || '',
@@ -50,28 +57,28 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 	/**
 	 * Delete a task by ID.
 	 */
-	deleteTask(id: string) {
+	deleteTask(id: TaskId) {
 		this.$tasks.update((tasks) => tasks.filter((t) => t.id !== id))
 	}
 
 	/**
 	 * Get a task by ID.
 	 */
-	getTaskById(id: string): FairyTask | undefined {
+	getTaskById(id: TaskId): FairyTask | undefined {
 		return this.$tasks.get().find((t) => t.id === id)
 	}
 
 	/**
 	 * Set a task's status.
 	 */
-	setTaskStatus(id: string, status: FairyTaskStatus) {
+	setTaskStatus(id: TaskId, status: FairyTaskStatus) {
 		this.$tasks.update((tasks) => tasks.map((t) => (t.id === id ? { ...t, status } : t)))
 	}
 
 	/**
 	 * Set a task's status and notify waiting agents if completed.
 	 */
-	setTaskStatusAndNotify(id: string, status: FairyTaskStatus) {
+	setTaskStatusAndNotify(id: TaskId, status: FairyTaskStatus) {
 		this.setTaskStatus(id, status)
 		// Notify waiting agents if task is done
 		if (status === 'done') {
@@ -84,26 +91,38 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 
 	/**
 	 * Get tasks for a specific project.
+	 * Filters out tasks from soft deleted projects.
 	 */
-	getTasksByProjectId(projectId: string): FairyTask[] {
+	getTasksByProjectId(projectId: ProjectId | null): FairyTask[] {
+		if (projectId === null) {
+			return this.$tasks.get().filter((t) => t.projectId === null)
+		}
+		// Check if the project is soft deleted
+		const project = this.fairyApp.projects.getProjectById(projectId)
+		if (!project) {
+			// Project doesn't exist or is soft deleted, return empty array
+			return []
+		}
 		return this.$tasks.get().filter((t) => t.projectId === projectId)
 	}
 
 	/**
 	 * Get tasks assigned to a specific agent.
 	 */
-	getTasksByAgentId(agentId: string): FairyTask[] {
+	getTasksByAgentId(agentId: AgentId | null): FairyTask[] {
 		return this.$tasks.get().filter((t) => t.assignedTo === agentId)
 	}
 
 	/**
 	 * Assign a fairy to a task.
 	 */
-	assignFairyToTask(taskId: string, fairyId: string, agents: FairyAgent[]) {
-		const agent = agents.find((a) => a.id === fairyId)
-		if (fairyId !== '' && !agent) return
+	assignFairyToTask(taskId: TaskId, fairyId: AgentId | null, agents: FairyAgent[]) {
+		if (fairyId !== null) {
+			const agent = agents.find((a) => a.id === fairyId)
+			if (!agent) return
+		}
 		this.$tasks.update((tasks) =>
-			tasks.map((t) => (t.id === taskId ? { ...t, assignedTo: fairyId || null } : t))
+			tasks.map((t) => (t.id === taskId ? { ...t, assignedTo: fairyId } : t))
 		)
 	}
 

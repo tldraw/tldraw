@@ -64,14 +64,6 @@ export class FairyAgentUsageTracker extends BaseFairyAgentManager {
 	 * Clears all cumulative usage data.
 	 */
 	reset(): void {
-		this.resetCumulativeUsage()
-	}
-
-	/**
-	 * Reset the cumulative usage tracking for this fairy agent.
-	 * Useful when starting a new chat session.
-	 */
-	resetCumulativeUsage() {
 		this.cumulativeUsage = {
 			byModel: {} as Record<
 				AgentModelName,

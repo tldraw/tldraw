@@ -74,10 +74,10 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const center = this.agent.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.agent.editor.getCurrentPageId()
+		this.agent.gesture.push('poof', 400)
 		this.agent.updateEntity((f) =>
 			f ? { ...f, position, currentPageId, velocity: { x: 0, y: 0 } } : f
 		)
-		this.agent.gesture.push('poof', 400)
 	}
 
 	/**
@@ -202,6 +202,11 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	}
 
 	/**
+	 * How much the velocity gets multiplied by each second.
+	 */
+	DAMPING_FACTOR = 0.85 as const
+
+	/**
 	 * Apply the fairy's velocity to the its position for a given time delta.
 	 * @param delta - The time delta to apply the velocity for.
 	 * @returns void
@@ -213,7 +218,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 
 		if (speed < 0.003) {
 			if (this.agent.gesture.hasGestureInStack('soaring')) {
-				this.agent.gesture.clear()
+				this.agent.gesture.reset()
 			}
 			if (speed !== 0) {
 				this.agent.updateEntity((entity) => {
@@ -227,7 +232,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		} else if (!this.agent.gesture.hasGestureInStack('soaring') && speed > 0.2) {
 			this.agent.gesture.push('soaring')
 		}
-		const dampingFactor = 0.85
+		const dampingFactor = this.DAMPING_FACTOR
 		const scaledDampingFactor = dampingFactor * Math.max(0, 1 - delta / 1000)
 		const newVelocity = Vec.Mul(velocity, scaledDampingFactor)
 

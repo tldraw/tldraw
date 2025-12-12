@@ -1,11 +1,14 @@
 import {
+	AgentId,
 	AgentModeTransitionEvent,
 	FairyModeDefinition,
 	FairyTask,
 	TaskCompletedEvent,
+	TaskId,
 	type FairyWaitCondition,
 	type FairyWaitEvent,
 } from '@tldraw/fairy-shared'
+import { BoxModel } from 'tldraw'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
 /**
@@ -23,10 +26,15 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 		event,
 		getAgentFacingMessage,
 		getUserFacingMessage,
+		getBounds,
 	}: {
 		event: FairyWaitEvent
-		getAgentFacingMessage(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
-		getUserFacingMessage?(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
+		getAgentFacingMessage(agentId: AgentId, condition: FairyWaitCondition<FairyWaitEvent>): string
+		getUserFacingMessage?(agentId: AgentId, condition: FairyWaitCondition<FairyWaitEvent>): string
+		getBounds?(
+			agentId: AgentId,
+			condition: FairyWaitCondition<FairyWaitEvent>
+		): BoxModel | undefined
 	}) {
 		const eventType = event.type
 		const agents = this.fairyApp.agents.getAgents()
@@ -46,12 +54,14 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 
 				// Wake up the agent with a notification message
 				const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
-				const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition) ?? null
+				const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition)
+				const bounds = getBounds?.(agent.id, matchingCondition)
 				// Fire and forget - we don't want to block on multiple agents
 				agent.waits
 					.notifyWaitConditionFulfilled({
-						agentFacingMessage,
-						userFacingMessage,
+						agentMessages: [agentFacingMessage],
+						userMessages: userFacingMessage ? [userFacingMessage] : undefined,
+						bounds,
 					})
 					.catch((error) => {
 						console.error('Error notifying wait condition fulfilled:', error)
@@ -69,16 +79,32 @@ ID:${task.id}
 Title: "${task.title}"
 Description: "${task.text}"`
 
+		let bounds: BoxModel | undefined
+		if (
+			task.x !== undefined &&
+			task.y !== undefined &&
+			task.w !== undefined &&
+			task.h !== undefined
+		) {
+			bounds = {
+				x: task.x,
+				y: task.y,
+				w: task.w,
+				h: task.h,
+			}
+		}
+
 		this.notifyWaitingAgents({
 			event: { type: 'task-completed', task },
 			getAgentFacingMessage: () => agentFacingMessage,
+			getBounds: bounds ? () => bounds : undefined,
 		})
 	}
 
 	/**
 	 * Create a wait condition for waiting on a specific task completion.
 	 */
-	createTaskWaitCondition(taskId: string): FairyWaitCondition<TaskCompletedEvent> {
+	createTaskWaitCondition(taskId: TaskId): FairyWaitCondition<TaskCompletedEvent> {
 		return {
 			eventType: 'task-completed',
 			matcher: (event) => event.task.id === taskId,
@@ -89,7 +115,7 @@ Description: "${task.text}"`
 	/**
 	 * Notify all agents waiting for a mode transition event.
 	 */
-	notifyAgentModeTransition(agentId: string, mode: FairyModeDefinition['type']) {
+	notifyAgentModeTransition(agentId: AgentId, mode: FairyModeDefinition['type']) {
 		this.notifyWaitingAgents({
 			event: { type: 'agent-mode-transition', agentId, mode },
 			getAgentFacingMessage: () => `Agent ${agentId} has transitioned to mode ${mode}.`,
@@ -100,7 +126,7 @@ Description: "${task.text}"`
 	 * Create a wait condition for waiting on a specific mode transition.
 	 */
 	createAgentModeTransitionWaitCondition(
-		agentId: string,
+		agentId: AgentId,
 		mode: FairyModeDefinition['type']
 	): FairyWaitCondition<AgentModeTransitionEvent> {
 		return {
