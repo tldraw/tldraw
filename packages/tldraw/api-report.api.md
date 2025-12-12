@@ -1798,7 +1798,7 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boole
 export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
-export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX?: number, scaleY?: number, points?: Vec[]): Vec[];
+export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
 
 // @public (undocumented)
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX?: number, scaleY?: number): Vec[];

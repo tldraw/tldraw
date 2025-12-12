@@ -61,7 +61,7 @@ export function CustomRenderer() {
 				if (editor.isShapeOfType(shape, 'draw')) {
 					// Draw a freehand shape
 					for (const segment of shape.props.segments) {
-						const points = getPointsFromDrawSegment(segment)
+						const points = getPointsFromDrawSegment(segment, shape.props.scaleX, shape.props.scaleY)
 						ctx.moveTo(points[0].x, points[0].y)
 						if (segment.type === 'straight') {
 							ctx.lineTo(points[1].x, points[1].y)

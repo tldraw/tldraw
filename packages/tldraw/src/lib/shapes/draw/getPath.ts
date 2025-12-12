@@ -105,8 +105,8 @@ export function getFreehandOptions(
 /** @public */
 export function getPointsFromDrawSegment(
 	segment: TLDrawShapeSegment,
-	scaleX = 1,
-	scaleY = 1,
+	scaleX: number,
+	scaleY: number,
 	points: Vec[] = []
 ) {
 	const _points = b64Vecs.decodePoints(segment.points)

@@ -692,9 +692,9 @@ export class Drawing extends StateNode {
 	private getLineLength(segments: TLDrawShapeSegment[]) {
 		let length = 0
 
-		for (let j = 0; j < segments.length - 1; j++) {
+		for (let j = 0; j < segments.length; j++) {
 			const points = b64Vecs.decodePoints(segments[j].points)
-			for (let i = 0; i < points.length; i++) {
+			for (let i = 0; i < points.length - 1; i++) {
 				length += Vec.Dist2(points[i], points[i + 1])
 			}
 		}
