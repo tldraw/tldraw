@@ -53,7 +53,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * @returns true if the agent has any wait conditions
 	 */
 	isWaiting() {
-		return this.$waitingFor.get().length > 0
+		return this.getWaitingFor().length > 0
 	}
 
 	/**
@@ -97,31 +97,17 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Clear all wait conditions for this agent.
-	 * @returns void
-	 */
-	clear() {
-		this.$waitingFor.set([])
-	}
-
-	/**
 	 * Wake up the agent from waiting with a notification message.
 	 * Note: This does NOT remove wait conditions - the matched conditions should
 	 * already be removed by the notification system before calling this method.
 	 * If the agent is currently generating, the message will be scheduled.
 	 * Otherwise, it will be prompted immediately.
 	 * @param request - A partial agent request to send when the wait condition is fulfilled.
-	 * @returns Promise that resolves when the prompt completes (if prompted)
 	 */
 	async notifyWaitConditionFulfilled(request: Partial<AgentRequest>): Promise<void> {
-		const { agent } = this
 		// Ensure source is set to 'other-agent' for wait condition notifications
 		const requestWithSource: Partial<AgentRequest> = { ...request, source: 'other-agent' }
-		if (agent.requests.isGenerating()) {
-			agent.schedule(requestWithSource)
-		} else {
-			await agent.prompt(requestWithSource)
-		}
+		this.agent.schedule(requestWithSource)
 	}
 
 	/**
@@ -130,7 +116,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * @returns An array of serialized wait conditions.
 	 */
 	serializeState(): SerializedWaitCondition[] {
-		return this.$waitingFor.get().map((condition) => ({
+		return this.getWaitingFor().map((condition) => ({
 			eventType: condition.eventType,
 			id: condition.id,
 			metadata: condition.metadata,
