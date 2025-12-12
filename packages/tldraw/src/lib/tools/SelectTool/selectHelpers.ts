@@ -11,8 +11,8 @@ export function hasRichText(
  * This will enter the editing state for the shape and optionally select all the text.
  *
  * @param editor - The editor instance.
- * @param shape - The shape to start editing. This shape must have a richText property.
- * @param selectAll - Whether to select all the text in the shape.
+ * @param shape - The shape to start editing. This shape must have a richText property with a TLRichText value.
+ * @param selectAll - Whether to select all the text in the shape once editing begins.
  *
  *  @example
  *  ```ts
@@ -26,7 +26,6 @@ export function startEditingShapeWithRichText(editor: Editor, shape: TLShape, se
 	}
 	// Finish this shape and start editing the next one
 	editor.setEditingShape(shape)
-	editor.select(shape)
 	editor.setCurrentTool('select.editing_shape', {
 		target: 'shape',
 		shape: shape,
