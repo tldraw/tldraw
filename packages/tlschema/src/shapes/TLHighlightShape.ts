@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { b64Vecs } from '../misc/b64Vecs'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -36,6 +37,10 @@ export interface TLHighlightShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the highlight shape for display */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
+	scaleX: number
+	/** Vertical scale factor for lazy resize */
+	scaleY: number
 }
 
 /**
@@ -84,6 +89,12 @@ export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
  * const validatedProps = validator.validate(someHighlightProps)
  * ```
  */
+// Validator for scaleX/scaleY that allows negative values (for flipping) but not zero
+const nonZeroNumberAllowNegative = T.number.check((value) => {
+	if (value === 0) throw new Error('Expected a non-zero number, got 0')
+})
+
+/** @public */
 export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
@@ -91,10 +102,13 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	isComplete: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	scaleX: nonZeroNumberAllowNegative,
+	scaleY: nonZeroNumberAllowNegative,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
+	Base64: 2,
 })
 
 /**
@@ -120,6 +134,25 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.Base64,
+			up: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64Vecs.encodePoints(segment.points),
+				}))
+				props.scaleX = 1
+				props.scaleY = 1
+			},
+			down: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64Vecs.decodePoints(segment.points),
+				}))
+				delete props.scaleX
+				delete props.scaleY
 			},
 		},
 	],
