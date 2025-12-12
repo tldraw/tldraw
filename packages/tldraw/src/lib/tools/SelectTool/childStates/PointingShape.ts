@@ -145,19 +145,18 @@ export class PointingShape extends StateNode {
 									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
 									textLabel.hitTestPoint(pointInShapeSpace)
 								) {
+									if (!this.editor.canEditShape(selectingShape, { type: 'click' })) {
+										return
+									}
+
 									this.editor.run(() => {
 										this.editor.markHistoryStoppingPoint('editing on pointer up')
 										this.editor.select(selectingShape.id)
-
-										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.getIsReadonly()) {
-											if (!util.canEditInReadonly(selectingShape)) {
-												return
-											}
-										}
-
 										this.editor.setEditingShape(selectingShape.id)
-										this.editor.setCurrentTool('select.editing_shape')
+										this.editor.setCurrentTool('select.editing_shape', {
+											target: 'shape',
+											shape: selectingShape,
+										})
 
 										if (this.isDoubleClick) {
 											this.editor.emit('select-all-text', { shapeId: selectingShape.id })
