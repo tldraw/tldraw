@@ -20,9 +20,9 @@ import {
 	clamp,
 	createShapeId,
 	fetch,
-	float16ArrayToBase64,
 	structuredClone,
 	toRichText,
+	vecsToBase64,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 
@@ -372,9 +372,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							}
 
 							const points = v1Shape.points.map(getV2Point)
-							const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-							const float16Array = new Float16Array(nums)
-							const base64Points = float16ArrayToBase64(float16Array)
+							const base64Points = vecsToBase64(points)
 
 							editor.createShapes([
 								{

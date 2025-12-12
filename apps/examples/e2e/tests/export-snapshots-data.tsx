@@ -1,6 +1,5 @@
 /* eslint-disable react/no-string-refs, local/no-internal-imports */
-import { Float16Array } from '@petamoriken/float16'
-import { degreesToRadians, float16ArrayToBase64, TLShapeCrop, toRichText, VecModel } from 'tldraw'
+import { degreesToRadians, TLShapeCrop, toRichText, vecsToBase64, VecModel } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
 
 /**
@@ -13,9 +12,7 @@ import { TL } from 'tldraw/src/test/test-jsx'
  * ```
  */
 function pointsToBase64(points: VecModel[]): string {
-	const nums = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-	const float16Array = new Float16Array(nums)
-	return float16ArrayToBase64(float16Array)
+	return vecsToBase64(points)
 }
 
 const convexPoints: VecModel[] = [

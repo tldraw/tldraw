@@ -1,4 +1,5 @@
 import {
+	base64ToVecs,
 	EASINGS,
 	PI,
 	SIN,
@@ -7,9 +8,8 @@ import {
 	TLDrawShapeSegment,
 	Vec,
 	VecLike,
-	base64ToFloat16Array,
-	float16ArrayToBase64,
 	modulate,
+	vecsToBase64,
 } from '@tldraw/editor'
 import { StrokeOptions } from '../shared/freehand/types'
 
@@ -105,16 +105,8 @@ export function getFreehandOptions(
 }
 
 /** @internal */
-export function b64PointsToVecs(b64Points: string) {
-	const points = base64ToFloat16Array(b64Points)
-	const result: Vec[] = []
-	for (let i = 0; i < points.length; i += 3) {
-		const x = points[i]
-		const y = points[i + 1]
-		const z = points[i + 2]
-		result.push(Vec.Cast({ x, y, z }))
-	}
-	return result
+export function b64PointsToVecs(b64Points: string): Vec[] {
+	return base64ToVecs(b64Points).map(Vec.Cast)
 }
 
 /** @public */
@@ -151,11 +143,12 @@ export function forEachMutablePoint(
 	const prevVec = new Vec()
 	for (let j = 0; j < segments.length; j++) {
 		const segment = segments[j]
-		const points = base64ToFloat16Array(segment.points)
-		for (let i = 0; i < points.length; i += 3) {
-			vec.x = points[i]
-			vec.y = points[i + 1]
-			vec.z = points[i + 2]
+		const points = base64ToVecs(segment.points)
+		for (let i = 0; i < points.length; i++) {
+			const p = points[i]
+			vec.x = p.x
+			vec.y = p.y
+			vec.z = p.z ?? 0.5
 			cb(vec, j === 0 && i === 0 ? null : prevVec)
 			prevVec.setTo(vec)
 		}
@@ -194,13 +187,12 @@ export function getPointAtIndexFromB64(b64Points: string, index: number): Vec | 
 
 /** @internal */
 export function createB64FromPoints(points: VecLike[]): string {
-	const flatPoints = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-	return float16ArrayToBase64(new Float16Array(flatPoints))
+	return vecsToBase64(points)
 }
 
 /** @internal */
 export function createB64FromSinglePoint(point: VecLike): string {
-	return float16ArrayToBase64(new Float16Array([point.x, point.y, point.z ?? 0.5]))
+	return vecsToBase64([point])
 }
 
 /** @internal */
