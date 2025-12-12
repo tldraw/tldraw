@@ -28,7 +28,7 @@ export function WhatsNewFetcher() {
 
 		async function fetchWhatsNew() {
 			try {
-				const response = await fetch('/api/app/whats-new')
+				const response = await fetch('/api/app/whats-new?limit=1')
 				if (!response.ok) {
 					console.error("Failed to fetch What's New:", response.statusText)
 					if (mounted) {

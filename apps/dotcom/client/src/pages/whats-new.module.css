@@ -90,8 +90,8 @@
 	border-bottom: 1px solid var(--tl-color-muted-1);
 	padding-bottom: 32px;
 	display: grid;
-	grid-template-columns: 100px 1fr;
-	gap: 24px;
+	grid-template-columns: 200px 1fr;
+	gap: 20px;
 }
 
 .entry:last-child {
@@ -101,12 +101,14 @@
 
 .entryMeta {
 	padding-top: 2px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .date {
 	font-size: 12px;
 	color: var(--tl-color-text-3);
-	text-align: right;
 }
 
 .entryMain {

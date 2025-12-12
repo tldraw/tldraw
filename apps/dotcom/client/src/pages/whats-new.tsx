@@ -44,6 +44,7 @@ export function Component() {
 									return (
 										<div key={entry.version} className={styles.entry}>
 											<div className={styles.entryMeta}>
+												<h2 className={styles.entryTitle}>{entry.title}</h2>
 												<span className={styles.date}>
 													{date.toLocaleDateString('en-US', {
 														month: 'short',
@@ -52,9 +53,6 @@ export function Component() {
 												</span>
 											</div>
 											<div className={styles.entryMain}>
-												<div className={styles.entryHeader}>
-													<h2 className={styles.entryTitle}>{entry.title}</h2>
-												</div>
 												<div className={styles.entryContent}>
 													<Markdown>{entry.description}</Markdown>
 												</div>

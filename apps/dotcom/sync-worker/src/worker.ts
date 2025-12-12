@@ -140,8 +140,11 @@ const router = createRouter<Environment>()
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.post('/app/fairy-invite/redeem', redeemFairyInvite)
-	.get('/app/whats-new', async (_, env) => {
-		const entries = await getWhatsNewEntries(env)
+	.get('/app/whats-new', async (req, env) => {
+		const url = new URL(req.url)
+		const limitParam = url.searchParams.get('limit')
+		const limit = limitParam ? parseInt(limitParam, 10) : undefined
+		const entries = await getWhatsNewEntries(env, limit)
 		return json(entries)
 	})
 	.all('/app/__test__/*', testRoutes.fetch)
