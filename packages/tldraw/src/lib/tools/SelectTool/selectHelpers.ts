@@ -1,18 +1,22 @@
-import { Editor, ExtractShapeByProps, TLRichText, TLShape } from '@tldraw/editor'
+import { Editor, ExtractShapeByProps, richTextValidator, TLRichText, TLShape } from '@tldraw/editor'
 
 /** @internal */
 export function hasRichText(
 	shape: TLShape
 ): shape is ExtractShapeByProps<{ richText: TLRichText }> {
-	return 'richText' in shape.props
+	return 'richText' in shape.props && richTextValidator.isValid(shape.props.richText)
 }
 /**
  * Start editing a shape that has rich text, such as text, note, geo, or arrow shapes.
  * This will enter the editing state for the shape and optionally select all the text.
  *
+ * @param editor - The editor instance.
+ * @param shape - The shape to start editing. This shape must have a richText property.
+ * @param selectAll - Whether to select all the text in the shape.
+ *
  *  @example
  *  ```ts
- *  startEditingShapeWithLabel(editor, myTextShape, true)
+ *  startEditingShapeWithRichText(editor, myTextShape, true)
  *  ```
  *  @public
  */
