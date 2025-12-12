@@ -1,5 +1,12 @@
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { PORTRAIT_BREAKPOINT, useBreakpoint, useDialogs, useEditor, useValue } from 'tldraw'
+import {
+	PORTRAIT_BREAKPOINT,
+	uniqueId,
+	useBreakpoint,
+	useDialogs,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import '../../tla/styles/fairy.css'
 import { useMsg } from '../../tla/utils/i18n'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
@@ -113,6 +120,20 @@ export function FairyHUD() {
 		return
 	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog, agents])
 
+	const createFungalNetwork = useCallback(() => {
+		if (!fairyApp) return
+		const { x, y } = editor.screenToPage(editor.getViewportScreenCenter())
+		fairyApp.fungalNetworks.addNetwork({
+			id: uniqueId(),
+			x: x - 225, // Center it (width 450)
+			y: y - 225, // Center it (height 450)
+			w: 450,
+			h: 450,
+			prompt: 'Describe what you see',
+			triggerOn: ['enter'],
+		})
+	}, [fairyApp, editor])
+
 	return (
 		<>
 			<div
@@ -205,6 +226,25 @@ export function FairyHUD() {
 						</div>
 					)}
 					<div className="fairy-buttons-container">
+						<button
+							className="fairy-toggle-button"
+							onClick={createFungalNetwork}
+							title="Create Fungal Network"
+							style={{
+								pointerEvents: 'all',
+								border: 'none',
+								background: 'var(--tl-color-panel)',
+								borderRadius: '50%',
+								boxShadow: 'var(--tl-shadow-2)',
+								marginBottom: '8px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								fontSize: '20px',
+							}}
+						>
+							🍄
+						</button>
 						<FairyListSidebar
 							agents={agents}
 							panelState={panelState}

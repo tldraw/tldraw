@@ -1,6 +1,6 @@
 import { Box, BoxModel, JsonValue } from 'tldraw'
 import { BlurryShape } from '../format/BlurryShape'
-import { FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
+import { FocusedShape, FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
 import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentModelName } from '../models'
@@ -46,6 +46,25 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 	type: 'blurryShapes',
 	priority: -70,
 	buildContent(part: BlurryShapesPart) {
+		const { shapes } = part
+		if (!shapes || shapes.length === 0) {
+			return ['There are no shapes in your view at the moment.']
+		}
+
+		return [`These are the shapes you can currently see: ${JSON.stringify(shapes)}`]
+	},
+}
+
+// FocusShapesPart
+export interface FocusShapesPart {
+	type: 'focusShapes'
+	shapes: FocusedShape[]
+}
+
+export const FocusShapesPartDefinition: PromptPartDefinition<FocusShapesPart> = {
+	type: 'focusShapes',
+	priority: -70,
+	buildContent(part: FocusShapesPart) {
 		const { shapes } = part
 		if (!shapes || shapes.length === 0) {
 			return ['There are no shapes in your view at the moment.']
@@ -642,5 +661,46 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 		}
 
 		return messages
+	},
+}
+
+// OtherZonesPart
+export interface OtherZonesPart {
+	type: 'otherZones'
+	zones: Array<{
+		id: string
+		x: number
+		y: number
+		w: number
+		h: number
+		prompt: string
+		triggerOn: ('enter' | 'leave')[]
+	}>
+}
+
+export const OtherZonesPartDefinition: PromptPartDefinition<OtherZonesPart> = {
+	type: 'otherZones',
+	priority: 90,
+	buildContent({ zones }: OtherZonesPart) {
+		if (!zones || zones.length === 0) {
+			return ['There are no other zones on the canvas.']
+		}
+
+		const zoneDescriptions = zones.map((zone) => {
+			const triggerText =
+				zone.triggerOn.length === 0
+					? 'never'
+					: zone.triggerOn.length === 2
+						? 'enter and leave'
+						: zone.triggerOn[0] === 'enter'
+							? 'enter'
+							: 'leave'
+			return `Zone at (x: ${zone.x}, y: ${zone.y}, w: ${zone.w}, h: ${zone.h}), triggers on ${triggerText}, instructions: "${zone.prompt}"`
+		})
+
+		return [
+			'Other zones on the canvas (areas monitored by other zone agents):',
+			...zoneDescriptions,
+		]
 	},
 }

@@ -54,10 +54,12 @@ import { CurrentProjectDronePartUtil } from './CurrentProjectDronePartUtil'
 import { CurrentProjectOrchestratorPartUtil } from './CurrentProjectOrchestratorPartUtil'
 import { DataPartUtil } from './DataPartUtil'
 import { DebugPartUtil } from './DebugPartUtil'
+import { FocusShapesPartUtil } from './FocusShapesPartUtil'
 import { MessagesPartUtil } from './MessagesPartUtil'
 import { ModelNamePartUtil } from './ModelNamePartUtil'
 import { ModePartUtil } from './ModePartUtil'
 import { OtherFairiesPartUtil } from './OtherFairiesPartUtil'
+import { OtherZonesPartUtil } from './OtherZonesPartUtil'
 import { PagesPartUtil } from './PagesPartUtil'
 import { PeripheralShapesPartUtil } from './PeripheralShapesPartUtil'
 import { PersonalTodoListPartUtil } from './PersonalTodoListPartUtil'
@@ -161,6 +163,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Shapes
 	BlurryShapesPartUtil,
+	FocusShapesPartUtil,
 	PeripheralShapesPartUtil,
 	SelectedShapesPartUtil,
 	CanvasLintsPartUtil,
@@ -178,6 +181,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Fairy-specific
 	OtherFairiesPartUtil,
+	OtherZonesPartUtil,
 	SignPartUtil,
 	ModePartUtil,
 	CurrentProjectDronePartUtil,

@@ -76,6 +76,11 @@ const FairyHUD = lazy(() =>
 const Fairies = lazy(() =>
 	import('../../../fairy/fairy-canvas-ui/Fairies').then((m) => ({ default: m.Fairies }))
 )
+const FungalNetworks = lazy(() =>
+	import('../../../fairy/fungal-network/FungalNetworks').then((m) => ({
+		default: m.FungalNetworks,
+	}))
+)
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/fairy-canvas-ui/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
@@ -339,6 +344,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			areFairiesEnabled
 		return {
 			...components,
+			OnTheCanvas: () => {
+				if (!shouldShowFairyUI || !hoistedFairyApp || !canControlFairies) return null
+				return (
+					<Suspense fallback={<div />}>
+						<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+							<FungalNetworks />
+						</FairyAppContextProvider>
+					</Suspense>
+				)
+			},
 			Overlays: () => {
 				return (
 					<>

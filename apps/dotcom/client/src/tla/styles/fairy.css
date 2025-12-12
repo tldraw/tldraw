@@ -2286,3 +2286,313 @@
 .fairy-configure-leg-row .tlui-slider__range {
 	background-color: var(--tl-color-text-2);
 }
+
+/* Fungal Network Shape */
+.fungal-network-container {
+	pointer-events: none;
+	border: 2px dashed #4caf50;
+	border-radius: 8px;
+	z-index: var(--tl-layer-canvas-background);
+}
+
+.fungal-network-toolbar-wrapper {
+	position: absolute;
+	pointer-events: all;
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+	align-items: center;
+	z-index: 9999;
+}
+
+.fungal-network-drag-handle {
+	width: 24px;
+	height: 24px;
+	background: var(--tl-color-fairy-green);
+	cursor: grab;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	border-radius: var(--tl-radius-2);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: rgba(46, 125, 50, 0.8);
+}
+
+.fungal-network-toolbar {
+	flex: 1;
+	width: 100%;
+	height: 32px;
+	min-height: 32px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 8px;
+	font-size: 12px;
+	box-sizing: border-box;
+	border-radius: var(--tl-radius-2);
+}
+
+.fungal-network-toolbar-closed {
+	padding: 4px;
+}
+
+.fungal-network-select {
+	padding: 2px 4px;
+	border-radius: 4px;
+	border: 1px solid #a5d6a7;
+	background: white;
+	font-size: 11px;
+	max-width: 100px;
+}
+
+.fungal-network-trigger-select {
+	padding: 2px 4px;
+	border-radius: 4px;
+	border: 1px solid #a5d6a7;
+	background: white;
+	font-size: 11px;
+}
+
+.fungal-network-prompt-input {
+	flex: 1;
+	width: 0; /* Allows flex to work properly */
+	padding: 2px 6px;
+	border-radius: 4px;
+	border: 1px solid #a5d6a7;
+	background: white;
+	font-size: 11px;
+	min-width: 0;
+}
+
+.fungal-network-status-indicator {
+	color: #2e7d32;
+	font-size: 10px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.fungal-network-close-button {
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	font-size: 16px;
+	color: #2e7d32;
+}
+
+.fungal-network-delete-button {
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	font-size: 14px;
+	margin-left: 4px;
+	color: red;
+}
+
+.fungal-network-open-button {
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	font-size: 20px;
+}
+
+.fungal-network-config-button {
+	border: none;
+	background: rgba(255, 255, 255, 0.9);
+	cursor: pointer;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	flex-shrink: 0;
+	color: rgba(46, 125, 50, 0.8);
+	transition: background-color 0.15s ease;
+}
+
+.fungal-network-config-button:hover {
+	background: rgba(255, 255, 255, 1);
+}
+
+/* Fungal Network Config Dialog */
+.fungal-network-config-dialog-body {
+	max-width: 400px;
+}
+
+.fungal-network-config-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.fungal-network-config-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fungal-network-config-label {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.fungal-network-config-row {
+	display: flex;
+	gap: 8px;
+}
+
+.fungal-network-config-field {
+	flex: 1;
+}
+
+.fungal-network-config-field-label {
+	font-size: 11px;
+	color: var(--tl-color-text-2);
+}
+
+.fungal-network-config-input {
+	width: 100%;
+	padding: 4px 8px;
+	border-radius: 4px;
+	border: 1px solid var(--tl-color-border);
+	font-size: 12px;
+}
+
+.fungal-network-config-select {
+	width: 100%;
+	padding: 6px 8px;
+	border-radius: 4px;
+	border: 1px solid var(--tl-color-border);
+	font-size: 12px;
+}
+
+.fungal-network-config-trigger-options {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fungal-network-config-checkbox-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	font-size: 12px;
+	user-select: none;
+}
+
+.fungal-network-config-checkbox-label:hover {
+	color: var(--tl-color-text);
+}
+
+.fungal-network-config-checkbox {
+	cursor: pointer;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+}
+
+.fungal-network-config-textarea {
+	width: 100%;
+	padding: 6px 8px;
+	border-radius: 4px;
+	border: 1px solid var(--tl-color-border);
+	font-size: 12px;
+	resize: vertical;
+	font-family: inherit;
+}
+
+.fungal-network-spinner-container {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+}
+
+.fungal-network-frame-area {
+	flex: 1;
+	pointer-events: none;
+}
+
+.fungal-network-messages {
+	background: rgba(76, 175, 80, 0.1);
+	border: 1px solid rgba(76, 175, 80, 0.3);
+	border-radius: 6px;
+	padding: 8px;
+	margin: 4px 8px;
+	max-height: 120px;
+	overflow-y: auto;
+	font-size: 12px;
+	line-height: 1.4;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.fungal-network-message {
+	color: #1b5e20;
+	background: rgba(255, 255, 255, 0.7);
+	padding: 6px 10px;
+	border-radius: 4px;
+	border-left: 3px solid #4caf50;
+}
+
+.fungal-network-message.streaming {
+	opacity: 0.7;
+	border-left-color: #81c784;
+}
+
+.fungal-network-message.streaming::after {
+	content: '▌';
+	animation: blink 1s infinite;
+}
+
+@keyframes blink {
+	0%, 50% { opacity: 1; }
+	51%, 100% { opacity: 0; }
+}
+
+.tla-theme__dark .fungal-network-select,
+.tla-theme__dark .fungal-network-trigger-select,
+.tla-theme__dark .fungal-network-prompt-input {
+	background: var(--tl-color-panel);
+	border-color: var(--tl-color-divider);
+	color: var(--tl-color-text);
+}
+
+.tla-theme__dark .fungal-network-status-indicator {
+	color: var(--tl-color-fairy-green);
+}
+
+.tla-theme__dark .fungal-network-messages {
+	background: rgba(76, 175, 80, 0.15);
+	border-color: rgba(76, 175, 80, 0.4);
+}
+
+.tla-theme__dark .fungal-network-message {
+	color: #a5d6a7;
+	background: rgba(0, 0, 0, 0.3);
+}
+
+/* Fungal Network Generating State - Marching ants animation */
+.fungal-network-container--generating {
+	position: relative;
+	border-color: transparent;
+}
+
+.fungal-network-marching-ants-border rect {
+	animation: fungal-network-marching-ants 0.8s linear infinite;
+}
+
+@keyframes fungal-network-marching-ants {
+	0% {
+		stroke-dashoffset: 0;
+	}
+	100% {
+		stroke-dashoffset: 10px;
+	}
+}
+
+.tla-theme__dark .fungal-network-marching-ants-border rect {
+	stroke: #81c784;
+}

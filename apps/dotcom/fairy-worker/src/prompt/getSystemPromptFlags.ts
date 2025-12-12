@@ -13,6 +13,7 @@ export function getSystemPromptFlags(
 			mode === 'working-drone' || mode === 'working-solo' || mode === 'working-orchestrator',
 		isOrchestrating: mode === 'orchestrating-active',
 		isDuoOrchestrating: mode === 'duo-orchestrating-active',
+		isZoneActive: mode === 'zone-active',
 
 		// Communication
 		hasMessage: actions.includes('message'),

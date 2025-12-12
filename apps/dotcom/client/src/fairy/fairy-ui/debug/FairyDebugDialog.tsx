@@ -72,6 +72,14 @@ export function FairyDebugDialog({
 	onClose(): void
 	initialTabId?: string
 }) {
+	const fairyApp = useFairyApp()
+	const zoneAgents = useValue(
+		'zone-agents',
+		() => (fairyApp ? fairyApp.agents.getShapeBoundAgents() : []),
+		[fairyApp]
+	)
+	const allAgents = [...agents, ...zoneAgents]
+
 	const [selectedTabId, setSelectedTabId] = useState<string>(initialTabId ?? 'home')
 	const [fairyDebugInspectorType, setFairyDebugInspectorType] =
 		useState<FairyDebugInspectorType>('config')
@@ -81,7 +89,7 @@ export function FairyDebugDialog({
 	const isHomeTab = selectedTabId === 'home'
 	const selectedAgent = isHomeTab
 		? null
-		: agents.find((agent) => agent.id === selectedTabId) || agents[0]
+		: allAgents.find((agent) => agent.id === selectedTabId) || allAgents[0]
 
 	return (
 		<>
@@ -111,6 +119,24 @@ export function FairyDebugDialog({
 							onClick={() => setSelectedTabId(agent.id)}
 						>
 							{config.name || agent.id}
+						</TldrawUiButton>
+					)
+				})}
+				{zoneAgents.map((agent) => {
+					const config = agent.getConfig()
+					const network = fairyApp?.fungalNetworks.getNetwork(agent.id)
+					const label = network?.prompt
+						? `Zone: ${network.prompt.substring(0, 20)}...`
+						: `Zone: ${agent.id}`
+					return (
+						<TldrawUiButton
+							key={agent.id}
+							type="low"
+							isActive={selectedTabId === agent.id}
+							title={label}
+							onClick={() => setSelectedTabId(agent.id)}
+						>
+							{label}
 						</TldrawUiButton>
 					)
 				})}

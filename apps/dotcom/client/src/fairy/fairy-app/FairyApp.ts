@@ -3,10 +3,13 @@ import { Atom, atom, Editor } from 'tldraw'
 import { TldrawApp } from '../../tla/app/TldrawApp'
 import { FairyAppAgentsManager } from './managers/FairyAppAgentsManager'
 import { FairyAppFollowingManager } from './managers/FairyAppFollowingManager'
+import { FairyAppFungalNetworksManager } from './managers/FairyAppFungalNetworksManager'
 import { FairyAppPersistenceManager } from './managers/FairyAppPersistenceManager'
 import { FairyAppProjectsManager } from './managers/FairyAppProjectsManager'
 import { FairyAppTaskListManager } from './managers/FairyAppTaskListManager'
 import { FairyAppWaitManager } from './managers/FairyAppWaitManager'
+
+export type { FungalNetworkState } from './managers/FairyAppFungalNetworksManager'
 
 /**
  * The FairyApp class manages the fairy system for a given editor instance.
@@ -48,6 +51,11 @@ export class FairyApp {
 	 */
 	waits: FairyAppWaitManager
 
+	/**
+	 * Manager for fungal network overlays.
+	 */
+	fungalNetworks: FairyAppFungalNetworksManager
+
 	// --- Global fairy state ---
 
 	/**
@@ -73,12 +81,23 @@ export class FairyApp {
 	 */
 	private $isFeedDialogOpen: Atom<boolean> = atom('fairyAppIsFeedDialogOpen', false)
 
+	/**
+	 * Function to get authentication token, set by FairyAppProvider.
+	 */
+	private _getToken: (() => Promise<string | undefined>) | null = null
+
+	/**
+	 * Error handler, set by FairyAppProvider.
+	 */
+	private _onError: ((e: any) => void) | null = null
+
 	constructor(
 		public editor: Editor,
 		public tldrawApp: TldrawApp
 	) {
 		this.agents = new FairyAppAgentsManager(this)
 		this.following = new FairyAppFollowingManager(this)
+		this.fungalNetworks = new FairyAppFungalNetworksManager(this)
 		this.persistence = new FairyAppPersistenceManager(this)
 		this.projects = new FairyAppProjectsManager(this)
 		this.tasks = new FairyAppTaskListManager(this)
@@ -86,6 +105,9 @@ export class FairyApp {
 
 		editor.on('crash', () => this.dispose())
 		editor.on('dispose', () => this.dispose())
+
+		// Attach fairyApp to editor so shapes can access it
+		;(editor as any).fairyApp = this
 	}
 
 	/**
@@ -96,11 +118,11 @@ export class FairyApp {
 		// Stop auto-save
 		this.persistence.dispose()
 
-		// Not sure if we need to dispose the rest...
-		// this.agents.disposeAll()
-		// this.following.dispose()
-		// this.tasks.dispose()
-		// this.waits.dispose()
+		// Dispose agents manager (cleans up store listener and shape-bound agents)
+		this.agents.dispose()
+
+		// Clean up editor reference
+		delete (this.editor as any).fairyApp
 	}
 
 	getIsApplyingAction(): boolean {
@@ -133,6 +155,37 @@ export class FairyApp {
 
 	setIsFeedDialogOpen(value: boolean): void {
 		this.$isFeedDialogOpen.set(value)
+	}
+
+	/**
+	 * Set the token getter function. Called by FairyAppProvider.
+	 */
+	setGetToken(getToken: () => Promise<string | undefined>): void {
+		this._getToken = getToken
+	}
+
+	/**
+	 * Get the token getter function.
+	 */
+	getToken(): Promise<string | undefined> {
+		if (!this._getToken) {
+			return Promise.resolve(undefined)
+		}
+		return this._getToken()
+	}
+
+	/**
+	 * Set the error handler. Called by FairyAppProvider.
+	 */
+	setOnError(onError: (e: any) => void): void {
+		this._onError = onError
+	}
+
+	/**
+	 * Get the error handler.
+	 */
+	getOnError(): (e: any) => void {
+		return this._onError ?? ((e) => console.error('FairyApp error:', e))
 	}
 
 	resetEverything() {

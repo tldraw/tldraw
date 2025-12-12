@@ -34,6 +34,12 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	private loadedAgentIds: Set<AgentId> = new Set()
 
 	/**
+	 * Map of shape-bound agents that aren't tied to user fairy configs.
+	 * Key is the shape ID, value is the agent.
+	 */
+	private $shapeBoundAgents: Atom<Map<string, FairyAgent>> = atom('shapeBoundAgents', new Map())
+
+	/**
 	 * Get the current list of agents.
 	 */
 	getAgents(): FairyAgent[] {
@@ -45,6 +51,80 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	 */
 	getAgentById(id: AgentId): FairyAgent | undefined {
 		return this.$agents.get().find((agent) => agent.id === id)
+	}
+
+	/**
+	 * Create a shape-bound agent that isn't tied to user fairy configs.
+	 * This is used for shapes like FungalNetwork that want their own dedicated agent.
+	 *
+	 * @param shapeId - The ID of the shape to bind the agent to
+	 * @param options - Options for agent creation
+	 * @returns The created or existing agent
+	 */
+	createShapeBoundAgent(
+		shapeId: string,
+		options: {
+			onError(e: any): void
+			getToken(): Promise<string | undefined>
+		}
+	): FairyAgent {
+		const existing = this.$shapeBoundAgents.get().get(shapeId)
+		if (existing) return existing
+
+		const id = toAgentId(shapeId) // Use the network ID directly as it's already unique and we want it stable
+		const agent = new FairyAgent({
+			id,
+			fairyApp: this.fairyApp,
+			editor: this.fairyApp.editor,
+			onError: options.onError,
+			getToken: options.getToken,
+		})
+
+		this.$shapeBoundAgents.update((map) => {
+			const newMap = new Map(map)
+			newMap.set(shapeId, agent)
+			return newMap
+		})
+
+		agent.mode.setMode('zone-idling')
+
+		return agent
+	}
+
+	/**
+	 * Get a shape-bound agent by shape ID.
+	 *
+	 * @param shapeId - The ID of the shape
+	 * @returns The agent if it exists, undefined otherwise
+	 */
+	getShapeBoundAgent(shapeId: string): FairyAgent | undefined {
+		return this.$shapeBoundAgents.get().get(shapeId)
+	}
+
+	/**
+	 * Get all shape-bound agents (zone agents).
+	 *
+	 * @returns Array of all shape-bound agents
+	 */
+	getShapeBoundAgents(): FairyAgent[] {
+		return Array.from(this.$shapeBoundAgents.get().values())
+	}
+
+	/**
+	 * Dispose a shape-bound agent when the shape is deleted.
+	 *
+	 * @param shapeId - The ID of the shape whose agent should be disposed
+	 */
+	disposeShapeBoundAgent(shapeId: string): void {
+		const agent = this.$shapeBoundAgents.get().get(shapeId)
+		if (agent) {
+			agent.dispose()
+			this.$shapeBoundAgents.update((map) => {
+				const newMap = new Map(map)
+				newMap.delete(shapeId)
+				return newMap
+			})
+		}
 	}
 
 	/**
@@ -199,12 +279,24 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 		agents.forEach((agent) => agent.dispose())
 		this.$agents.set([])
 		this.loadedAgentIds.clear()
+
+		// Also dispose shape-bound agents
+		const shapeBoundAgents = this.$shapeBoundAgents.get()
+		shapeBoundAgents.forEach((agent) => agent.dispose())
+		this.$shapeBoundAgents.set(new Map())
 	}
 
 	/**
 	 * Reset the manager to its initial state.
 	 */
 	reset() {
+		this.disposeAll()
+	}
+
+	/**
+	 * Dispose of the manager and clean up listeners.
+	 */
+	dispose() {
 		this.disposeAll()
 	}
 }
