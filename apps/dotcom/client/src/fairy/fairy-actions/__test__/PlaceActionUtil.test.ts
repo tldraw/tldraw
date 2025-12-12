@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -25,8 +25,8 @@ describe('PlaceActionUtil', () => {
 		it('should return action as-is if not complete', () => {
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -48,8 +48,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'nonexistent',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('nonexistent'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -71,8 +71,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('nonexistent'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -96,8 +96,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -111,8 +111,8 @@ describe('PlaceActionUtil', () => {
 			const sanitized = placeUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized).not.toBeNull()
-			expect(sanitized?.shapeId).toBe('shape1')
-			expect(sanitized?.referenceShapeId).toBe('shape2')
+			expect(sanitized?.shapeId).toBe(toSimpleShapeId('shape1'))
+			expect(sanitized?.referenceShapeId).toBe(toSimpleShapeId('shape2'))
 		})
 	})
 
@@ -125,8 +125,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -149,8 +149,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'nonexistent',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('nonexistent'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -171,8 +171,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('nonexistent'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -198,8 +198,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'start',
 				alignOffset: 0,
@@ -224,8 +224,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -250,8 +250,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'end',
 				alignOffset: 0,
@@ -277,8 +277,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'bottom',
 				align: 'start',
 				alignOffset: 0,
@@ -303,8 +303,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'bottom',
 				align: 'center',
 				alignOffset: 0,
@@ -329,8 +329,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'bottom',
 				align: 'end',
 				alignOffset: 0,
@@ -356,8 +356,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'left',
 				align: 'start',
 				alignOffset: 0,
@@ -382,8 +382,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'left',
 				align: 'center',
 				alignOffset: 0,
@@ -408,8 +408,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'left',
 				align: 'end',
 				alignOffset: 0,
@@ -435,8 +435,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'right',
 				align: 'start',
 				alignOffset: 0,
@@ -461,8 +461,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'right',
 				align: 'center',
 				alignOffset: 0,
@@ -487,8 +487,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'right',
 				align: 'end',
 				alignOffset: 0,
@@ -514,8 +514,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -539,8 +539,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'start',
 				alignOffset: 20,
@@ -564,8 +564,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'top',
 				align: 'center',
 				alignOffset: 0,
@@ -591,8 +591,8 @@ describe('PlaceActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'place',
-				shapeId: 'shape1',
-				referenceShapeId: 'shape2',
+				shapeId: toSimpleShapeId('shape1'),
+				referenceShapeId: toSimpleShapeId('shape2'),
 				side: 'invalid' as any,
 				align: 'invalid' as any,
 				alignOffset: 0,

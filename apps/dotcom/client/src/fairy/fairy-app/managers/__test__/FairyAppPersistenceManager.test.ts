@@ -1,4 +1,4 @@
-import { PersistedFairyState } from '@tldraw/fairy-shared'
+import { PersistedFairyState, toProjectId, toTaskId } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
@@ -77,7 +77,7 @@ describe('FairyAppPersistenceManager', () => {
 				},
 				fairyTaskList: [
 					{
-						id: 'task-1',
+						id: toTaskId('task-1'),
 						title: 'Test Task',
 						text: 'Test description',
 						status: 'todo',
@@ -101,7 +101,7 @@ describe('FairyAppPersistenceManager', () => {
 				agents: {},
 				fairyTaskList: [
 					{
-						id: 'task-1',
+						id: toTaskId('task-1'),
 						title: 'Test Task',
 						text: 'Test description',
 						status: 'todo',
@@ -120,7 +120,7 @@ describe('FairyAppPersistenceManager', () => {
 				agents: {},
 				fairyTaskList: [
 					{
-						id: 'task-2',
+						id: toTaskId('task-2'),
 						title: 'Another Task',
 						text: 'Another description',
 						status: 'todo',
@@ -135,7 +135,7 @@ describe('FairyAppPersistenceManager', () => {
 
 			// Should still have only the first task
 			expect(fairyApp.tasks.getTasks()).toHaveLength(1)
-			expect(fairyApp.tasks.getTasks()[0]!.id).toBe('task-1')
+			expect(fairyApp.tasks.getTasks()[0]!.id).toBe(toTaskId('task-1'))
 		})
 
 		it('should handle errors during state loading', () => {
@@ -187,7 +187,7 @@ describe('FairyAppPersistenceManager', () => {
 		it('should serialize the current fairy state', () => {
 			// Add some tasks and projects
 			fairyApp.tasks.createTask({
-				id: 'task-1',
+				id: toTaskId('task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'todo',
@@ -203,13 +203,13 @@ describe('FairyAppPersistenceManager', () => {
 				agents: {},
 				fairyTaskList: [
 					expect.objectContaining({
-						id: 'task-1',
+						id: toTaskId('task-1'),
 						title: 'Test Task',
 					}),
 				],
 				projects: [
 					expect.objectContaining({
-						id: 'project-1',
+						id: toProjectId('project-1'),
 						title: 'Test Project',
 					}),
 				],
@@ -267,7 +267,7 @@ describe('FairyAppPersistenceManager', () => {
 
 			// Make a change that should trigger auto-save
 			fairyApp.tasks.createTask({
-				id: 'task-1',
+				id: toTaskId('task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'todo',
@@ -299,7 +299,7 @@ describe('FairyAppPersistenceManager', () => {
 
 			// Make a change during loading
 			fairyApp.tasks.createTask({
-				id: 'task-1',
+				id: toTaskId('task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'todo',
@@ -325,7 +325,7 @@ describe('FairyAppPersistenceManager', () => {
 
 			// Make a change after stopping
 			fairyApp.tasks.createTask({
-				id: 'task-1',
+				id: toTaskId('task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'todo',
@@ -346,7 +346,7 @@ describe('FairyAppPersistenceManager', () => {
 				agents: {},
 				fairyTaskList: [
 					{
-						id: 'task-1',
+						id: toTaskId('task-1'),
 						title: 'Test Task',
 						text: 'Test description',
 						status: 'todo',
@@ -395,7 +395,7 @@ describe('FairyAppPersistenceManager', () => {
 
 			// Make a change after disposing
 			fairyApp.tasks.createTask({
-				id: 'task-1',
+				id: toTaskId('task-1'),
 				title: 'Test Task',
 				text: 'Test description',
 				status: 'todo',

@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.2.0",
+	"version": "4.2.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -69,19 +69,21 @@
 		"radix-ui": "^1.4.2"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.5.0",
-		"@testing-library/react": "^15.0.7",
+		"@testing-library/dom": "^10.0.0",
+		"@testing-library/react": "^16.0.0",
 		"@types/classnames": "^2.3.4",
 		"@types/lz-string": "^1.5.0",
-		"@types/react": "^18.3.18",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"chokidar-cli": "^3.0.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",
 		"vitest": "^3.2.4"
 	}

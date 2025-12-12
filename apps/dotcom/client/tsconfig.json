@@ -13,6 +13,7 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"jsx": "preserve",
+		"jsxImportSource": "react",
 		"incremental": true,
 		"downlevelIteration": true,
 		"plugins": [{ "name": "next" }],

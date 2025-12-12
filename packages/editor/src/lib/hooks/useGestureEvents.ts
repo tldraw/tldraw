@@ -75,7 +75,7 @@ const isWheelEndEvent = (time: number) => {
 	return false
 }
 
-export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
+export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 	const editor = useEditor()
 
 	const events = React.useMemo(() => {
@@ -105,7 +105,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 					const util = editor.getShapeUtil(shape)
 					if (util.canScroll(shape)) {
 						const bounds = editor.getShapePageBounds(editingShapeId)
-						if (bounds?.containsPoint(editor.inputs.currentPagePoint)) {
+						if (bounds?.containsPoint(editor.inputs.getCurrentPagePoint())) {
 							return
 						}
 					}

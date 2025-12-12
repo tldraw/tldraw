@@ -16,6 +16,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuSubmenu,
 	ViewSubmenu,
 	useDialogs,
 	useEditor,
@@ -28,7 +29,7 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
@@ -44,6 +45,7 @@ import styles from './top.module.css'
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
+	file: { defaultMessage: 'File' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
 	untitledProject: { defaultMessage: 'Untitled file' },
@@ -158,6 +160,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = useMsg(messages.pageMenu)
+	const fileSubmenuMsg = useMsg(messages.file)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -240,6 +243,14 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
+					<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
+						<FileItems
+							source="file-header"
+							fileId={fileId}
+							onRenameAction={handleRenameAction}
+							groupId={null}
+						/>
+					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />

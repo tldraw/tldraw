@@ -360,7 +360,7 @@ export function onDragFromToolbarToCreateShape(
 	info: TLPointerEventInfo,
 	opts: OnDragFromToolbarToCreateShapesOpts
 ) {
-	const { x, y } = editor.inputs.currentPagePoint
+	const { x, y } = editor.inputs.getCurrentPagePoint()
 
 	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
 	editor.setCurrentTool('select.translating')

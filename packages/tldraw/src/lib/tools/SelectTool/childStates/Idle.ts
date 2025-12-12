@@ -67,11 +67,8 @@ export class Idle extends StateNode {
 				}
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const {
-					inputs: { currentPagePoint },
-				} = this.editor
-
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -104,7 +101,7 @@ export class Idle extends StateNode {
 			}
 			case 'handle': {
 				if (this.editor.getIsReadonly()) break
-				if (this.editor.inputs.altKey) {
+				if (this.editor.inputs.getAltKey()) {
 					this.parent.transition('pointing_shape', info)
 				} else {
 					// If we're holding ctrl key, we might select it, or start brushing...
@@ -170,7 +167,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
+		if (this.editor.inputs.getShiftKey() || info.phase !== 'up') return
 
 		// We don't want to double click while toggling shapes
 		if (info.ctrlKey || info.shiftKey) return
@@ -186,11 +183,12 @@ export class Idle extends StateNode {
 				// of the shape yet because that also creates text shapes, and can produce
 				// unexpected results when working "inside of" a hollow shape.
 
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
-						: (this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+						: (this.editor.getSelectedShapeAtPoint(currentPagePoint) ??
+							this.editor.getShapeAtPoint(currentPagePoint, {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 							}))
@@ -231,7 +229,7 @@ export class Idle extends StateNode {
 					return
 				}
 
-				if (!this.editor.inputs.shiftKey) {
+				if (!this.editor.inputs.getShiftKey()) {
 					this.handleDoubleClickOnCanvas(info)
 				}
 				break
@@ -349,7 +347,7 @@ export class Idle extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+						: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
@@ -369,9 +367,7 @@ export class Idle extends StateNode {
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const {
-					inputs: { currentPagePoint },
-				} = this.editor
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -581,7 +577,7 @@ export class Idle extends StateNode {
 
 		const id = createShapeId()
 
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
 
 		// Allow this to trigger the max shapes reached alert
 		this.editor.createShapes([
