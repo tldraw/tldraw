@@ -287,7 +287,7 @@ export const DocumentRecordType: RecordType<TLDocument, never>;
 // @public
 export const drawShapeMigrations: TLPropsMigrations;
 
-// @public
+// @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public
@@ -383,7 +383,7 @@ export const groupShapeProps: RecordProps<TLGroupShape>;
 // @public
 export const highlightShapeMigrations: TLPropsMigrations;
 
-// @public
+// @public (undocumented)
 export const highlightShapeProps: RecordProps<TLHighlightShape>;
 
 // @public

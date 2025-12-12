@@ -131,7 +131,11 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const strokeWidth = getStrokeWidth(shape)
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
 
 		let strokePath
 		if (strokePoints.length < 2) {
@@ -180,8 +184,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 		return {
 			props: {
-				scaleX: scaleX * shape.props.scaleX,
-				scaleY: scaleY * shape.props.scaleY,
+				scaleX: Math.abs(scaleX * shape.props.scaleX),
+				scaleY: Math.abs(scaleY * shape.props.scaleY),
 			},
 		}
 	}
@@ -218,7 +222,11 @@ function getHighlightStrokePoints(
 	strokeWidth: number,
 	forceSolid: boolean
 ) {
-	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = strokeWidth
@@ -257,7 +265,11 @@ function HighlightRenderer({
 }) {
 	const theme = useDefaultColorTheme()
 
-	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 
 	let sw = strokeWidth
 	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {

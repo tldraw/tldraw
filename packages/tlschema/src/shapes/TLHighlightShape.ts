@@ -4,7 +4,12 @@ import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
-import { DrawShapeSegment, float16ArrayToBase64, TLDrawShapeSegment } from './TLDrawShape'
+import {
+	base64ToFloat16Array,
+	DrawShapeSegment,
+	float16ArrayToBase64,
+	TLDrawShapeSegment,
+} from './TLDrawShape'
 
 /**
  * Properties for a highlight shape. Highlight shapes represent highlighting strokes made with
@@ -88,6 +93,12 @@ export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
  * const validatedProps = validator.validate(someHighlightProps)
  * ```
  */
+// Validator for scaleX/scaleY that allows negative values (for flipping) but not zero
+const nonZeroNumberAllowNegative = T.number.check((value) => {
+	if (value === 0) throw new Error('Expected a non-zero number, got 0')
+})
+
+/** @public */
 export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
@@ -95,8 +106,8 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	isComplete: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
-	scaleX: T.nonZeroNumber,
-	scaleY: T.nonZeroNumber,
+	scaleX: nonZeroNumberAllowNegative,
+	scaleY: nonZeroNumberAllowNegative,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {
@@ -140,6 +151,21 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 				}))
 				props.scaleX = 1
 				props.scaleY = 1
+			},
+			down: (props) => {
+				props.segments = props.segments.map((segment: any) => {
+					const float16Array = base64ToFloat16Array(segment.points)
+					const points: { x: number; y: number; z: number }[] = []
+					for (let i = 0; i < float16Array.length; i += 3) {
+						points.push({ x: float16Array[i], y: float16Array[i + 1], z: float16Array[i + 2] })
+					}
+					return {
+						...segment,
+						points,
+					}
+				})
+				delete props.scaleX
+				delete props.scaleY
 			},
 		},
 	],

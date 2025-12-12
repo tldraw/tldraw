@@ -115,6 +115,12 @@ export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
  * const isValid = drawShapeProps.color.isValid(props.color)
  * ```
  */
+// Validator for scaleX/scaleY that allows negative values (for flipping) but not zero
+const nonZeroNumberAllowNegative = T.number.check((value) => {
+	if (value === 0) throw new Error('Expected a non-zero number, got 0')
+})
+
+/** @public */
 export const drawShapeProps: RecordProps<TLDrawShape> = {
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -125,8 +131,8 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isClosed: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
-	scaleX: T.nonZeroNumber,
-	scaleY: T.nonZeroNumber,
+	scaleX: nonZeroNumberAllowNegative,
+	scaleY: nonZeroNumberAllowNegative,
 }
 
 const Versions = createShapePropsMigrationIds('draw', {
@@ -198,6 +204,21 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				})
 				props.scaleX = 1
 				props.scaleY = 1
+			},
+			down: (props) => {
+				props.segments = props.segments.map((segment: any) => {
+					const float16Array = base64ToFloat16Array(segment.points)
+					const points: VecModel[] = []
+					for (let i = 0; i < float16Array.length; i += 3) {
+						points.push({ x: float16Array[i], y: float16Array[i + 1], z: float16Array[i + 2] })
+					}
+					return {
+						...segment,
+						points,
+					}
+				})
+				delete props.scaleX
+				delete props.scaleY
 			},
 		},
 	],

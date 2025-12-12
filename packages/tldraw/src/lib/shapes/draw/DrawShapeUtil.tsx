@@ -81,7 +81,11 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	getGeometry(shape: TLDrawShape) {
-		const points = getPointsFromDrawSegments(shape.props.segments)
+		const points = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
 
 		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -135,7 +139,11 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	indicator(shape: TLDrawShape) {
-		const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -226,7 +234,11 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const theme = useDefaultColorTheme()
 	const editor = useEditor()
 
-	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 

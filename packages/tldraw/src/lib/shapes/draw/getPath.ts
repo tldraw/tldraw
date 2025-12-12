@@ -118,8 +118,21 @@ export function b64PointsToVecs(b64Points: string) {
 }
 
 /** @public */
-export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, points: Vec[] = []) {
+export function getPointsFromDrawSegment(
+	segment: TLDrawShapeSegment,
+	scaleX = 1,
+	scaleY = 1,
+	points: Vec[] = []
+) {
 	const _points = b64PointsToVecs(segment.points)
+
+	// Apply scale factors (used for lazy resize and flipping)
+	if (scaleX !== 1 || scaleY !== 1) {
+		for (const point of _points) {
+			point.x *= scaleX
+			point.y *= scaleY
+		}
+	}
 
 	if (segment.type === 'free' || _points.length < 2 * 8) {
 		points.push(..._points.map(Vec.Cast))
@@ -132,11 +145,11 @@ export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, points: Ve
 }
 
 /** @public */
-export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[]) {
+export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX = 1, scaleY = 1) {
 	const points: Vec[] = []
 
 	for (const segment of segments) {
-		getPointsFromDrawSegment(segment, points)
+		getPointsFromDrawSegment(segment, scaleX, scaleY, points)
 	}
 
 	return points
