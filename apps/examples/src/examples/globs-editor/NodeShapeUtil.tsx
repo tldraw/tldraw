@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
 	Circle2d,
 	Editor,
@@ -152,34 +151,10 @@ function NodeComponent({
 	const { radius } = shape.props
 	const dashArray = `${3 / zoom} ${3 / zoom}`
 
-	const [isSpacePressed, setIsSpacePressed] = useState(false)
-
-	// a small hack because editor inputs are not reactive, we need to use a keyboard event to fill the node
-	// when space is pressed, fill the node
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
-				setIsSpacePressed(true)
-			}
-		}
-
-		const handleKeyUp = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
-				setIsSpacePressed(false)
-			}
-		}
-
-		const container = editor.getContainer()
-		const doc = container.ownerDocument
-
-		doc.addEventListener('keydown', handleKeyDown)
-		doc.addEventListener('keyup', handleKeyUp)
-
-		return () => {
-			doc.removeEventListener('keydown', handleKeyDown)
-			doc.removeEventListener('keyup', handleKeyUp)
-		}
-	}, [editor])
+	// Use reactive inputs to track if space key is pressed
+	const isSpacePressed = useValue('space key pressed', () => editor.inputs.keys.has('Space'), [
+		editor,
+	])
 
 	const fillNode = isSingleNode && isSpacePressed
 	if (!isSingleNode && isSpacePressed) return null
