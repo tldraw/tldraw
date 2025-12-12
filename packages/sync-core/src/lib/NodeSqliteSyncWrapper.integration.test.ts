@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { RecordId, StoreSchema } from 'tldraw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { NodeSqliteWrapper } from './NodeSqliteWrapper'
-import { migrateSqliteSyncStorage, SqlLiteSyncStorage } from './SqlLiteSyncStorage'
+import { migrateSqliteSyncStorage, SQLiteSyncStorage } from './SQLiteSyncStorage'
 import { RoomSnapshot } from './TLSyncRoom'
 
 // Simple record type for testing
@@ -15,7 +15,7 @@ interface TestRecord {
 
 type ID = RecordId<TestRecord>
 
-// SqlLiteSyncStorage uses multi-statement DDL in constructor which node:sqlite
+// SQLiteSyncStorage uses multi-statement DDL in constructor which node:sqlite
 // doesn't support (prepare() only handles one statement). We need to initialize
 // the tables separately before creating the storage.
 function initializeTables(db: DatabaseSync) {
@@ -28,17 +28,17 @@ const defaultSnapshot: RoomSnapshot = {
 	schema: StoreSchema.create({}).serialize(),
 }
 
-describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
+describe('NodeSqliteSyncWrapper + SQLiteSyncStorage integration', () => {
 	let db: DatabaseSync
 	let sql: NodeSqliteWrapper
-	let storage: SqlLiteSyncStorage<TestRecord>
+	let storage: SQLiteSyncStorage<TestRecord>
 
 	beforeEach(() => {
 		db = new DatabaseSync(':memory:')
 		initializeTables(db)
 		sql = new NodeSqliteWrapper(db)
 		// Pass undefined snapshot since we already initialized the tables
-		storage = new SqlLiteSyncStorage<TestRecord>({
+		storage = new SQLiteSyncStorage<TestRecord>({
 			sql,
 			snapshot: defaultSnapshot,
 		})
@@ -258,13 +258,13 @@ describe('NodeSqliteSyncWrapper + SqlLiteSyncStorage integration', () => {
 
 	describe('hasBeenInitialized', () => {
 		it('returns true for initialized storage', () => {
-			expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
+			expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 		})
 
 		it('returns false for uninitialized storage', () => {
 			const freshDb = new DatabaseSync(':memory:')
 			const freshWrapper = new NodeSqliteWrapper(freshDb)
-			expect(SqlLiteSyncStorage.hasBeenInitialized(freshWrapper)).toBe(false)
+			expect(SQLiteSyncStorage.hasBeenInitialized(freshWrapper)).toBe(false)
 		})
 	})
 })

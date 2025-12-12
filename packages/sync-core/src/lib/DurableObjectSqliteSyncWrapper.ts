@@ -4,7 +4,7 @@ import {
 	type TLSyncSqliteStatement,
 	type TLSyncSqliteWrapper,
 	type TLSyncSqliteWrapperConfig,
-} from './SqlLiteSyncStorage'
+} from './SQLiteSyncStorage'
 
 /**
  * Mimics a prepared statement interface for Durable Objects SQLite.
@@ -41,22 +41,22 @@ class DurableObjectStatement<
 /**
  * A wrapper around Cloudflare Durable Object's SqlStorage that implements TLSyncSqliteWrapper.
  *
- * Use this wrapper with SqlLiteSyncStorage to persist tldraw sync state using
+ * Use this wrapper with SQLiteSyncStorage to persist tldraw sync state using
  * Cloudflare Durable Object's built-in SQLite storage. This provides automatic
  * persistence that survives Durable Object hibernation and restarts.
  *
  * @example
  * ```ts
- * import { SqlLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
+ * import { SQLiteSyncStorage, DurableObjectSqliteSyncWrapper } from '@tldraw/sync-core'
  *
  * // In your Durable Object class:
  * class MyDurableObject extends DurableObject {
- *   private storage: SqlLiteSyncStorage
+ *   private storage: SQLiteSyncStorage
  *
  *   constructor(ctx: DurableObjectState, env: Env) {
  *     super(ctx, env)
  *     const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
- *     this.storage = new SqlLiteSyncStorage({ sql })
+ *     this.storage = new SQLiteSyncStorage({ sql })
  *   }
  * }
  * ```

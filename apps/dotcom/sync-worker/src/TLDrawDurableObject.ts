@@ -23,7 +23,7 @@ import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	InMemorySyncStorage,
 	RoomSnapshot,
-	SqlLiteSyncStorage,
+	SQLiteSyncStorage,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
@@ -72,7 +72,7 @@ interface DocumentInfo {
 	deleted: boolean
 }
 
-const ROOM_NOT_FOUND = Symbol('room_not_found')
+export const ROOM_NOT_FOUND = Symbol('room_not_found')
 
 interface SessionMeta {
 	storeId: string
@@ -424,7 +424,7 @@ export class TLDrawDurableObject extends DurableObject {
 					return this._fileRecordCache
 				},
 				{
-					attempts: 10,
+					attempts: 20,
 					waitDuration: 100,
 				}
 			)
@@ -924,8 +924,8 @@ export class TLDrawDurableObject extends DurableObject {
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
 						assert(
-							storage instanceof InMemorySyncStorage || storage instanceof SqlLiteSyncStorage,
-							'storage must be an InMemorySyncStorage or SqlLiteSyncStorage'
+							storage instanceof InMemorySyncStorage || storage instanceof SQLiteSyncStorage,
+							'storage must be an InMemorySyncStorage or SQLiteSyncStorage'
 						)
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
@@ -1128,7 +1128,7 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	private reportError(e: unknown) {
+	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)
