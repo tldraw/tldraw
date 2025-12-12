@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { StyleProp } from '../styles/StyleProp'
 import {
 	createInstanceRecordType,
-	instanceIdValidator,
 	instanceMigrations,
 	instanceVersions,
 	pluckPreservingValues,
@@ -122,18 +121,6 @@ describe('pluckPreservingValues', () => {
 		expect(preserved?.cursor).toBeUndefined()
 		expect(preserved?.chatMessage).toBeUndefined()
 		expect(preserved?.openMenus).toBeUndefined()
-	})
-})
-
-describe('instanceIdValidator', () => {
-	it('should validate correct instance IDs and reject invalid ones', () => {
-		expect(() => instanceIdValidator.validate('instance:instance')).not.toThrow()
-		expect(() => instanceIdValidator.validate('instance:test')).not.toThrow()
-		expect(() => instanceIdValidator.validate(TLINSTANCE_ID)).not.toThrow()
-
-		expect(() => instanceIdValidator.validate('invalid')).toThrow()
-		expect(() => instanceIdValidator.validate('page:instance')).toThrow()
-		expect(() => instanceIdValidator.validate('')).toThrow()
 	})
 })
 

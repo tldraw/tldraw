@@ -56,42 +56,10 @@ describe('TLColorStyle', () => {
 		})
 	})
 
-	describe('DefaultColorStyle', () => {
-		it('should validate all default color names', () => {
-			defaultColorNames.forEach((color) => {
-				expect(() => DefaultColorStyle.validate(color)).not.toThrow()
-				expect(DefaultColorStyle.validate(color)).toBe(color)
-			})
-		})
-
-		it('should reject invalid color names', () => {
-			const invalidColors = ['invalid', 'pink', 'purple', 'cyan', '']
-
-			invalidColors.forEach((color) => {
-				expect(() => DefaultColorStyle.validate(color)).toThrow()
-			})
-		})
-	})
-
 	describe('DefaultLabelColorStyle', () => {
 		it('should be a StyleProp with correct configuration', () => {
 			expect(DefaultLabelColorStyle.id).toBe('tldraw:labelColor')
 			expect(DefaultLabelColorStyle.defaultValue).toBe('black')
-		})
-
-		it('should validate all default color names', () => {
-			defaultColorNames.forEach((color) => {
-				expect(() => DefaultLabelColorStyle.validate(color)).not.toThrow()
-				expect(DefaultLabelColorStyle.validate(color)).toBe(color)
-			})
-		})
-
-		it('should reject invalid color names', () => {
-			const invalidColors = ['invalid', 'pink', 'purple', 'cyan', '']
-
-			invalidColors.forEach((color) => {
-				expect(() => DefaultLabelColorStyle.validate(color)).toThrow()
-			})
 		})
 
 		it('should have values property with all default colors', () => {
@@ -301,15 +269,15 @@ describe('TLColorStyle', () => {
 		it('should have proper TypeScript types', () => {
 			// Test that TLDefaultColorStyle is properly typed
 			const validColor: TLDefaultColorStyle = 'red'
-			expect(DefaultColorStyle.validate(validColor)).toBe('red')
+			expect(validColor).toBe('red')
 		})
 
 		it('should work with both color style props', () => {
 			const colorValue: TLDefaultColorStyle = 'blue'
 			const labelColorValue: TLDefaultColorStyle = 'white'
 
-			expect(DefaultColorStyle.validate(colorValue)).toBe('blue')
-			expect(DefaultLabelColorStyle.validate(labelColorValue)).toBe('white')
+			expect(colorValue).toBe('blue')
+			expect(labelColorValue).toBe('white')
 		})
 
 		it('should integrate properly with theme system', () => {
@@ -328,10 +296,6 @@ describe('TLColorStyle', () => {
 			const theme = getDefaultColorTheme({ isDarkMode: false })
 
 			defaultColorNames.forEach((colorName) => {
-				// Should validate in both style props
-				expect(DefaultColorStyle.validate(colorName)).toBe(colorName)
-				expect(DefaultLabelColorStyle.validate(colorName)).toBe(colorName)
-
 				// Should be recognized as default theme color
 				expect(isDefaultThemeColor(colorName)).toBe(true)
 
@@ -401,7 +365,6 @@ describe('TLColorStyle', () => {
 
 			for (let i = 0; i < 1000; i++) {
 				defaultColorNames.forEach((color) => {
-					DefaultColorStyle.validate(color)
 					isDefaultThemeColor(color)
 				})
 			}

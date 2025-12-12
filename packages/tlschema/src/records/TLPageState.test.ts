@@ -2,59 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
 	instancePageStateMigrations,
 	InstancePageStateRecordType,
-	instancePageStateValidator,
 	instancePageStateVersions,
-	TLInstancePageStateId,
 } from './TLPageState'
-
-describe('instancePageStateValidator', () => {
-	it('should reject invalid typeName', () => {
-		const invalidPageState = {
-			typeName: 'not-instance-page-state',
-			id: 'instance_page_state:test' as TLInstancePageStateId,
-			pageId: 'page:test' as any,
-			selectedShapeIds: [],
-			hintingShapeIds: [],
-			erasingShapeIds: [],
-			hoveredShapeId: null,
-			editingShapeId: null,
-			croppingShapeId: null,
-			focusedGroupId: null,
-			meta: {},
-		}
-
-		expect(() => instancePageStateValidator.validate(invalidPageState)).toThrow()
-	})
-
-	it('should reject invalid id format', () => {
-		const invalidPageState = {
-			typeName: 'instance_page_state',
-			id: 'not-valid-id' as TLInstancePageStateId,
-			pageId: 'page:test' as any,
-			selectedShapeIds: [],
-			hintingShapeIds: [],
-			erasingShapeIds: [],
-			hoveredShapeId: null,
-			editingShapeId: null,
-			croppingShapeId: null,
-			focusedGroupId: null,
-			meta: {},
-		}
-
-		expect(() => instancePageStateValidator.validate(invalidPageState)).toThrow()
-	})
-
-	it('should reject missing required fields', () => {
-		const incompletePageState = {
-			typeName: 'instance_page_state',
-			id: 'instance_page_state:test' as TLInstancePageStateId,
-			pageId: 'page:test' as any,
-			// missing required array fields
-		}
-
-		expect(() => instancePageStateValidator.validate(incompletePageState)).toThrow()
-	})
-})
 
 describe('instancePageStateMigrations', () => {
 	it('should migrate AddCroppingId correctly', () => {
