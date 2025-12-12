@@ -117,6 +117,22 @@ export type AcceptInviteResponseBody =
 			message: string
 	  }
 
+export type WhatsNewEntry =
+	| {
+			schemaVersion: number
+			version: string
+			title: string
+			date: string
+			items: string[]
+	  }
+	| {
+			schemaVersion: number
+			version: string
+			title: string
+			date: string
+			description: string
+	  }
+
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]

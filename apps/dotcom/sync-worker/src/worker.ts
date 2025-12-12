@@ -52,6 +52,7 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getWhatsNewEntries } from './utils/whatsNew'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -139,6 +140,10 @@ const router = createRouter<Environment>()
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.post('/app/fairy-invite/redeem', redeemFairyInvite)
+	.get('/app/whats-new', async (_, env) => {
+		const entries = await getWhatsNewEntries(env)
+		return json(entries)
+	})
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
