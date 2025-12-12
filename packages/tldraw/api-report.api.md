@@ -97,6 +97,7 @@ import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
+import { TLEditStartInfo } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
@@ -1342,6 +1343,8 @@ export interface EmbedDefinition {
     // (undocumented)
     readonly backgroundColor?: string;
     // (undocumented)
+    readonly canEditWhileLocked?: boolean;
+    // (undocumented)
     readonly doesResize: boolean;
     // (undocumented)
     readonly embedOnPaste?: boolean;
@@ -1397,6 +1400,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     canEdit(): boolean;
     // (undocumented)
     canEditInReadonly(): boolean;
+    // (undocumented)
+    canEditWhileLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     canResize(shape: TLEmbedShape): boolean;
     // (undocumented)
@@ -1539,7 +1544,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLFrameShape, info: TLEditStartInfo): boolean;
     // (undocumented)
     canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
@@ -2711,6 +2716,9 @@ export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX.Element;
 
 // @public (undocumented)
 export function StackMenuItems(): JSX.Element;
+
+// @public
+export function startEditingShapeWithRichText(editor: Editor, shape: TLShape, selectAll?: boolean): void;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;

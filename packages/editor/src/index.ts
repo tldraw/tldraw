@@ -180,6 +180,7 @@ export {
 	type TLDragShapesOutInfo,
 	type TLDragShapesOverInfo,
 	type TLDropShapesOverInfo,
+	type TLEditStartInfo,
 	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
