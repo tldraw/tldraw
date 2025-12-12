@@ -3,15 +3,14 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	useDialogs,
 } from 'tldraw'
 import { useWhatsNew } from '../../hooks/useWhatsNew'
+import { F } from '../../utils/i18n'
 import { WhatsNewDialogContent } from '../WhatsNewDialogContent'
 import styles from './TlaWhatsNewDialog.module.css'
 
 export function TlaWhatsNewDialog() {
 	const { entries } = useWhatsNew()
-	const { clearDialogs } = useDialogs()
 
 	const latestEntry = entries[0]
 
@@ -25,7 +24,9 @@ export function TlaWhatsNewDialog() {
 					<TldrawUiDialogCloseButton />
 				</TldrawUiDialogHeader>
 				<TldrawUiDialogBody className={styles.dialogBody}>
-					<div>No updates available</div>
+					<div>
+						<F defaultMessage="No updates available" />
+					</div>
 				</TldrawUiDialogBody>
 			</>
 		)
@@ -40,7 +41,7 @@ export function TlaWhatsNewDialog() {
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody>
-				<WhatsNewDialogContent entry={latestEntry} onLinkClick={clearDialogs} />
+				<WhatsNewDialogContent entry={latestEntry} />
 			</TldrawUiDialogBody>
 		</>
 	)

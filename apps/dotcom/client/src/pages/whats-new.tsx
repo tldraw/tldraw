@@ -12,7 +12,7 @@ export async function loader() {
 		if (!res.ok) throw new Error('Failed to load updates')
 		const data = await res.json()
 		return { entries: Array.isArray(data) ? data : [], error: null }
-	} catch (err) {
+	} catch (_err) {
 		return { entries: [], error: 'Failed to load updates' }
 	}
 }
@@ -23,7 +23,7 @@ export function Component() {
 	return (
 		<>
 			<Helmet>
-				<title>What's new - tldraw</title>
+				<title>What&apos;s new - tldraw</title>
 			</Helmet>
 			<div className={styles.container}>
 				<div className={styles.content}>
@@ -32,7 +32,7 @@ export function Component() {
 					</Link>
 					<div className={styles.whatsNewWrapper}>
 						<div className={styles.logo} />
-						<h1 className={styles.pageTitle}>What's new</h1>
+						<h1 className={styles.pageTitle}>What&apos;s new</h1>
 						{error ? (
 							<div className={styles.error}>{error}</div>
 						) : entries.length === 0 ? (

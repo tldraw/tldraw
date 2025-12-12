@@ -1,15 +1,17 @@
 import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import Markdown from 'react-markdown'
 import { Link } from 'react-router-dom'
+import { useDialogs } from 'tldraw'
 import { routes } from '../../routeDefs'
+import { F } from '../utils/i18n'
 import styles from './dialogs/TlaWhatsNewDialog.module.css'
 
 interface WhatsNewDialogContentProps {
 	entry: WhatsNewEntry
-	onLinkClick?: () => void
 }
 
-export function WhatsNewDialogContent({ entry, onLinkClick }: WhatsNewDialogContentProps) {
+export function WhatsNewDialogContent({ entry }: WhatsNewDialogContentProps) {
+	const { clearDialogs } = useDialogs()
 	const date = new Date(entry.date)
 
 	return (
@@ -25,8 +27,8 @@ export function WhatsNewDialogContent({ entry, onLinkClick }: WhatsNewDialogCont
 				<Markdown>{entry.description}</Markdown>
 			</div>
 			<div className={styles.footer}>
-				<Link to={routes.whatsNew()} className={styles.moreLink} onClick={onLinkClick}>
-					See all updates
+				<Link to={routes.whatsNew()} className={styles.moreLink} onClick={clearDialogs}>
+					<F defaultMessage="See all updates" />
 				</Link>
 			</div>
 		</div>

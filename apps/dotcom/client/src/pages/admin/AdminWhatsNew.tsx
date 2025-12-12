@@ -16,12 +16,10 @@ function WhatsNewEntryForm({
 	onCancel,
 }: {
 	entry: WhatsNewEntryDraft
-	onSave: (entry: WhatsNewEntry) => void
-	onCancel: () => void
+	onSave(entry: WhatsNewEntry): void
+	onCancel(): void
 }) {
 	const [formData, setFormData] = useState<WhatsNewEntryDraft>(entry)
-
-	const date = formData.date ? new Date(formData.date) : new Date()
 
 	return (
 		<form
@@ -244,7 +242,7 @@ export function AdminWhatsNew() {
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 
 			<p className="tla-text_ui__small">
-				Manage What's New content that appears in the user settings menu.
+				Manage What&apos;s New content that appears in the user settings menu.
 			</p>
 
 			{!editingEntry && (
