@@ -5603,6 +5603,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@petamoriken/float16@npm:^3.9.3":
+  version: 3.9.3
+  resolution: "@petamoriken/float16@npm:3.9.3"
+  checksum: 10/8d8a3a2b79fce45bcf00e9612e46531d261fb55edc655205415ae4629c8dc2bb21a02811250e2af1f6000e6d7ebc868b3d15a16db4a7719e95b9de589ec05f48
+  languageName: node
+  linkType: hard
+
 "@pierre/storage@npm:^0.1.1":
   version: 0.1.2
   resolution: "@pierre/storage@npm:0.1.2"
@@ -9697,6 +9704,7 @@ __metadata:
     "@lingual/i18n-check": "npm:^0.5.5"
     "@microsoft/api-extractor": "npm:^7.55.2"
     "@next/eslint-plugin-next": "npm:^15.1.6"
+    "@petamoriken/float16": "npm:^3.9.3"
     "@sentry/cli": "npm:^2.41.1"
     "@swc/core": "npm:^1.10.11"
     "@types/aws-lambda": "npm:8.10.148"
@@ -16589,6 +16597,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
+    "@petamoriken/float16": "npm:^3.9.3"
     "@playwright/test": "npm:^1.50.0"
     "@tiptap/core": "npm:^3.6.2"
     "@tiptap/extension-font-family": "npm:^3.6.2"
@@ -28231,6 +28240,7 @@ __metadata:
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
     "@peculiar/webcrypto": "npm:^1.5.0"
+    "@petamoriken/float16": "npm:^3.9.3"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"
     "@tiptap/core": "npm:^3.6.2"

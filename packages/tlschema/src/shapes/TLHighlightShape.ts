@@ -132,7 +132,6 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.Base64,
 			up: (props) => {
-				console.log(props)
 				props.segments = props.segments.map((segment: any) => ({
 					...segment,
 					points: float16ArrayToBase64(
