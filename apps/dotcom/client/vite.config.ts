@@ -1,12 +1,40 @@
 import react from '@vitejs/plugin-react-swc'
 import { config } from 'dotenv'
+import path from 'path'
 import { fileURLToPath } from 'url'
-import { defineConfig } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 config({
 	path: './.env.local',
 })
+
+/**
+ * Plugin to enable SPA fallback for vite preview.
+ * In dev mode, Vite handles SPA routing automatically.
+ * In preview mode, we need to rewrite page-like URLs to /index.html
+ * so the static file server (sirv) serves the SPA entry point.
+ */
+function spaFallbackPlugin(): Plugin {
+	return {
+		name: 'spa-fallback',
+		configurePreviewServer(server) {
+			// This runs BEFORE the static file server (sirv) is added
+			server.middlewares.use((req, res, next) => {
+				const url = req.url || '/'
+				const pathname = url.split('?')[0]
+				const ext = path.extname(pathname)
+
+				// If this looks like a page request (no file extension, not an api call),
+				// rewrite to index.html so sirv serves the SPA
+				if (!pathname.startsWith('/api') && !ext) {
+					req.url = '/index.html' + (url.includes('?') ? url.substring(url.indexOf('?')) : '')
+				}
+				next()
+			})
+		},
+	}
+}
 
 export function getMultiplayerServerURL() {
 	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http')
@@ -30,6 +58,7 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
+		spaFallbackPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react({
 			tsDecorators: true,
@@ -109,6 +138,14 @@ export default defineConfig((env) => ({
 		},
 		watch: {
 			ignored: ['**/playwright-report/**', '**/test-results/**'],
+		},
+	},
+	preview: {
+		proxy: {
+			'/api': {
+				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				rewrite: (path) => path.replace(/^\/api/, ''),
+			},
 		},
 	},
 	css: {
