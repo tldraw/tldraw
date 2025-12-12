@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { getColorValue, getDefaultColorTheme, useEditor } from 'tldraw'
+import { getColorValue, getDefaultColorTheme, getPointsFromDrawSegment, useEditor } from 'tldraw'
 
 export function CustomRenderer() {
 	const editor = useEditor()
@@ -61,11 +61,12 @@ export function CustomRenderer() {
 				if (editor.isShapeOfType(shape, 'draw')) {
 					// Draw a freehand shape
 					for (const segment of shape.props.segments) {
-						ctx.moveTo(segment.points[0].x, segment.points[0].y)
+						const points = getPointsFromDrawSegment(segment, shape.props.scaleX, shape.props.scaleY)
+						ctx.moveTo(points[0].x, points[0].y)
 						if (segment.type === 'straight') {
-							ctx.lineTo(segment.points[1].x, segment.points[1].y)
+							ctx.lineTo(points[1].x, points[1].y)
 						} else {
-							for (const point of segment.points.slice(1)) {
+							for (const point of points.slice(1)) {
 								ctx.lineTo(point.x, point.y)
 							}
 						}

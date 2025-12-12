@@ -16,7 +16,7 @@ import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
-import { drawShapeVersions } from './shapes/TLDrawShape'
+import { compressLegacySegments, drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
 import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
@@ -2239,6 +2239,128 @@ describe('TLVideoAsset AddAutoplay', () => {
 	test('down works as expected', () => {
 		expect(up({ props: {} })).toEqual({ props: { autoplay: true } })
 		expect(down({ props: { autoplay: true } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scaleX, scaleY, and new base64 format to draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.Base64)
+
+	test('up works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+					{ x: 20, y: 20, z: 0.7 },
+				],
+			},
+			{
+				type: 'straight',
+				points: [
+					{ x: 20, y: 20, z: 0.7 },
+					{ x: 30, y: 30, z: 0.8 },
+				],
+			},
+		]
+		expect(
+			up({
+				props: {
+					segments: legacySegments,
+				},
+			})
+		).toEqual({
+			props: {
+				scaleX: 1,
+				scaleY: 1,
+				segments: compressLegacySegments(legacySegments as any),
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const compressed = compressLegacySegments(legacySegments as any)
+		const result = down({
+			props: {
+				scaleX: 1,
+				scaleY: 1,
+				segments: compressed,
+			},
+		})
+		expect(result.props.scaleX).toBeUndefined()
+		expect(result.props.scaleY).toBeUndefined()
+		expect(Array.isArray(result.props.segments[0].points)).toBe(true)
+		expect(result.props.segments[0].points.length).toBe(2)
+	})
+})
+
+describe('Add scaleX, scaleY, and new base64 format to highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.Base64)
+
+	test('up works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+					{ x: 20, y: 20, z: 0.7 },
+				],
+			},
+			{
+				type: 'straight',
+				points: [
+					{ x: 20, y: 20, z: 0.7 },
+					{ x: 30, y: 30, z: 0.8 },
+				],
+			},
+		]
+		expect(
+			up({
+				props: {
+					segments: legacySegments,
+				},
+			})
+		).toEqual({
+			props: {
+				scaleX: 1,
+				scaleY: 1,
+				segments: compressLegacySegments(legacySegments as any),
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const compressed = compressLegacySegments(legacySegments as any)
+		const result = down({
+			props: {
+				scaleX: 1,
+				scaleY: 1,
+				segments: compressed,
+			},
+		})
+		expect(result.props.scaleX).toBeUndefined()
+		expect(result.props.scaleY).toBeUndefined()
+		expect(Array.isArray(result.props.segments[0].points)).toBe(true)
+		expect(result.props.segments[0].points.length).toBe(2)
 	})
 })
 

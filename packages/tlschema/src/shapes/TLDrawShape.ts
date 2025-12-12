@@ -1,5 +1,6 @@
 import { T } from '@tldraw/validate'
-import { VecModel, vecModelValidator } from '../misc/geometry-types'
+import { b64Vecs } from '../misc/b64Vecs'
+import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -16,26 +17,18 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLDrawShapeSegment {
 	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
-	/** Array of points defining the segment path with x, y coordinates and pressure (z) */
-	points: VecModel[]
+	/** Base64-encoded points (x, y, z triplets stored as Float16) */
+	points: string
 }
 
 /**
  * Validator for draw shape segments ensuring proper structure and data types.
  *
  * @public
- * @example
- * ```ts
- * const segment: TLDrawShapeSegment = {
- *   type: 'free',
- *   points: [{ x: 0, y: 0, z: 0.5 }, { x: 10, y: 10, z: 0.7 }]
- * }
- * const isValid = DrawShapeSegment.isValid(segment)
- * ```
  */
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
-	points: T.arrayOf(vecModelValidator),
+	points: T.string,
 })
 
 /**
@@ -62,6 +55,10 @@ export interface TLDrawShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the drawing */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
+	scaleX: number
+	/** Vertical scale factor for lazy resize */
+	scaleY: number
 }
 
 /**
@@ -118,6 +115,12 @@ export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
  * const isValid = drawShapeProps.color.isValid(props.color)
  * ```
  */
+// Validator for scaleX/scaleY that allows negative values (for flipping) but not zero
+const nonZeroNumberAllowNegative = T.number.check((value) => {
+	if (value === 0) throw new Error('Expected a non-zero number, got 0')
+})
+
+/** @public */
 export const drawShapeProps: RecordProps<TLDrawShape> = {
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -128,11 +131,14 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isClosed: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	scaleX: nonZeroNumberAllowNegative,
+	scaleY: nonZeroNumberAllowNegative,
 }
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
 	AddScale: 2,
+	Base64: 3,
 })
 
 /**
@@ -184,5 +190,42 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				delete props.scale
 			},
 		},
+		{
+			id: Versions.Base64,
+			up: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64Vecs.encodePoints(segment.points),
+				}))
+				props.scaleX = 1
+				props.scaleY = 1
+			},
+			down: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					points: b64Vecs.decodePoints(segment.points),
+				}))
+				delete props.scaleX
+				delete props.scaleY
+			},
+		},
 	],
 })
+
+/**
+ * Compress legacy draw shape segments by converting VecModel[] points to base64 format.
+ * This function is useful for converting old draw shape data to the new compressed format.
+ *
+ * @public
+ */
+export function compressLegacySegments(
+	segments: {
+		type: 'free' | 'straight'
+		points: VecModel[]
+	}[]
+): TLDrawShapeSegment[] {
+	return segments.map((segment) => ({
+		...segment,
+		points: b64Vecs.encodePoints(segment.points),
+	}))
+}

@@ -6,7 +6,7 @@ import {
 	convertSimpleIdToTldrawId,
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
-import { TLDrawShapeSegment, Vec, VecModel, last } from 'tldraw'
+import { TLDrawShapeSegment, Vec, VecModel, b64Vecs, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -84,14 +84,17 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			return
 		}
 
+		const segmentPoints = points.map((point) => ({
+			x: point.x - minX,
+			y: point.y - minY,
+			z: 0.75,
+		}))
+		const base64Points = b64Vecs.encodePoints(segmentPoints)
+
 		const segments: TLDrawShapeSegment[] = [
 			{
 				type: 'free',
-				points: points.map((point) => ({
-					x: point.x - minX,
-					y: point.y - minY,
-					z: 0.75,
-				})),
+				points: base64Points,
 			},
 		]
 

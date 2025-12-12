@@ -652,6 +652,7 @@ it('Restores flipped shape positions when shape is rotated', () => {
 
 it('Restores flipped shape positions with draw shapes when shape is rotated', () => {
 	editor
+		.cancel()
 		.setCurrentTool('draw')
 		.pointerDown(0, 0)
 		.pointerMove(-100, -100)
