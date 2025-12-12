@@ -2717,6 +2717,9 @@ export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX.Element;
 // @public (undocumented)
 export function StackMenuItems(): JSX.Element;
 
+// @public
+export function startEditingShapeWithRichText(editor: Editor, shape: TLShape, selectAll?: boolean): void;
+
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;
 

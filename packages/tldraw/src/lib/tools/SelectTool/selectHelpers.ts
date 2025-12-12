@@ -14,10 +14,6 @@ export function hasRichText(
  * @param shape - The shape to start editing. This shape must have a richText property with a TLRichText value.
  * @param selectAll - Whether to select all the text in the shape once editing begins.
  *
- *  @example
- *  ```ts
- *  startEditingShapeWithRichText(editor, myTextShape, true)
- *  ```
  *  @public
  */
 export function startEditingShapeWithRichText(editor: Editor, shape: TLShape, selectAll = false) {
