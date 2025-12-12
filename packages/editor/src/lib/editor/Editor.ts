@@ -1095,8 +1095,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCanUndo(): boolean {
+	@computed canUndo(): boolean {
 		return this.history.getNumUndos() > 0
+	}
+
+	getCanUndo() {
+		return this.canUndo()
 	}
 
 	/**
@@ -1116,18 +1120,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	clearHistory() {
-		this.history.clear()
-		return this
-	}
-
 	/**
 	 * Whether the editor can redo.
 	 *
 	 * @public
 	 */
-	@computed getCanRedo(): boolean {
+	@computed canRedo(): boolean {
 		return this.history.getNumRedos() > 0
+	}
+
+	getCanRedo() {
+		return this.canRedo()
+	}
+
+	clearHistory() {
+		this.history.clear()
+		return this
 	}
 
 	/**

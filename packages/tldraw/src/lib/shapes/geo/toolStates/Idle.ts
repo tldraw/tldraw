@@ -1,5 +1,5 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
-import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
+import { hasRichText, startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -13,10 +13,15 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
+		const { editor } = this
 		if (info.key === 'Enter') {
-			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			if (this.editor.canEditShape(onlySelectedShape)) {
-				startEditingShapeWithRichText(this.editor, onlySelectedShape, true)
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (editor.canEditShape(onlySelectedShape)) {
+				if (hasRichText(onlySelectedShape)) {
+					startEditingShapeWithRichText(editor, onlySelectedShape, true)
+				} else {
+					editor.setEditingShape(onlySelectedShape)
+				}
 			}
 		}
 	}
