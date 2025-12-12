@@ -184,8 +184,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 		return {
 			props: {
-				scaleX: Math.abs(scaleX * shape.props.scaleX),
-				scaleY: Math.abs(scaleY * shape.props.scaleY),
+				scaleX: scaleX * shape.props.scaleX,
+				scaleY: scaleY * shape.props.scaleY,
 			},
 		}
 	}
