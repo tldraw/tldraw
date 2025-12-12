@@ -72,7 +72,7 @@ interface DocumentInfo {
 	deleted: boolean
 }
 
-const ROOM_NOT_FOUND = Symbol('room_not_found')
+export const ROOM_NOT_FOUND = Symbol('room_not_found')
 
 interface SessionMeta {
 	storeId: string
@@ -424,7 +424,7 @@ export class TLDrawDurableObject extends DurableObject {
 					return this._fileRecordCache
 				},
 				{
-					attempts: 10,
+					attempts: 20,
 					waitDuration: 100,
 				}
 			)
@@ -1128,7 +1128,7 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	private reportError(e: unknown) {
+	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)
