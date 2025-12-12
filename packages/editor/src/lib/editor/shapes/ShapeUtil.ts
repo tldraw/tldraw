@@ -945,5 +945,5 @@ export interface TLHandleDragInfo<T extends TLShape> {
 
 /** @public */
 export interface TLEditStartInfo {
-	type: 'enter' | 'click' | 'double-click' | 'double-click-edge' | 'click-header' | 'unknown'
+	type: 'press_enter' | 'click' | 'double-click' | 'double-click-edge' | 'click-header' | 'unknown'
 }

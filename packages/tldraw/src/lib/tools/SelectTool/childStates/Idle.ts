@@ -18,7 +18,7 @@ import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { startEditingShapeWithRichText } from '../selectHelpers'
+import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -521,7 +521,10 @@ export class Idle extends StateNode {
 
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				if (onlySelectedShape && this.editor.canEditShape(onlySelectedShape)) {
+				if (
+					onlySelectedShape &&
+					this.editor.canEditShape(onlySelectedShape, { type: 'press_enter' })
+				) {
 					this.startEditingShape(
 						onlySelectedShape,
 						{
@@ -555,9 +558,13 @@ export class Idle extends StateNode {
 		info: TLClickEventInfo | TLKeyboardEventInfo,
 		shouldSelectAll?: boolean
 	) {
-		if (!this.editor.canEditShape(shape)) return
+		const { editor } = this
 		this.editor.markHistoryStoppingPoint('editing shape')
-		startEditingShapeWithRichText(this.editor, shape, shouldSelectAll)
+		if (hasRichText(shape)) {
+			startEditingShapeWithRichText(editor, shape, shouldSelectAll)
+		} else {
+			editor.setEditingShape(shape)
+		}
 		this.parent.transition('editing_shape', info)
 	}
 
