@@ -3,15 +3,16 @@ Reimplement the current branch on a new branch with a clean, narrative-quality g
 ### Steps
 
 1. **Validate the source branch**
+   - The current branch is the source branch.
    - Ensure the current branch has no merge conflicts, uncommitted changes, or other issues.
    - Confirm it is up to date with `main`.
 
 2. **Analyze the diff**
-   - Study all changes between the current branch and `main`.
+   - Study all changes between the current source branch and `main`.
    - Form a clear understanding of the final intended state.
 
 3. **Create the clean branch**
-   - Create a new branch named `{branch_name}-clean` from the current branch.
+   - Create a new branch off of main named `{branch_name}-clean`.
 
 4. **Plan the commit storyline**
    - Break the implementation down into a sequence of self-contained steps.
