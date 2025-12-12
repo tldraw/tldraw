@@ -1,9 +1,9 @@
 import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
-import Markdown from 'react-markdown'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { WhatsNewDialogContent } from '../../tla/components/WhatsNewDialogContent'
+import { WhatsNewPageEntry } from '../../tla/components/WhatsNewPageEntry'
 import styles from '../admin.module.css'
 
 type WhatsNewEntryDraft = Omit<WhatsNewEntry, 'schemaVersion'> & {
@@ -132,22 +132,19 @@ function WhatsNewEntryForm({
 						/>
 					</div>
 
-					{/* Page preview */}
+					{/* Page preview - uses the same component as the actual page */}
 					<div className={styles.whatsNewPreview}>
 						<div className={styles.whatsNewPreviewLabel}>Page preview</div>
-						<div className={styles.whatsNewPreviewPage}>
-							<div className={styles.whatsNewPreviewPageMeta}>
-								<h2 className={styles.whatsNewPreviewPageTitle}>{formData.title || 'Untitled'}</h2>
-								<span className={styles.whatsNewPreviewDate}>
-									{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-								</span>
-							</div>
-							<div className={styles.whatsNewPreviewContent}>
-								<Markdown>
-									{formData.fullDescription || formData.description || '*No content*'}
-								</Markdown>
-							</div>
-						</div>
+						<WhatsNewPageEntry
+							entry={{
+								schemaVersion: 1,
+								version: formData.version || '1.0',
+								title: formData.title || 'Untitled',
+								date: formData.date,
+								description: formData.description || '*No content*',
+								fullDescription: formData.fullDescription,
+							}}
+						/>
 					</div>
 				</div>
 			</div>

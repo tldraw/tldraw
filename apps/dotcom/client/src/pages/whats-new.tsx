@@ -1,8 +1,8 @@
 import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import { Helmet } from 'react-helmet-async'
-import Markdown from 'react-markdown'
 import { Link, useLoaderData } from 'react-router-dom'
 import { fetch } from 'tldraw'
+import { WhatsNewPageEntry } from '../tla/components/WhatsNewPageEntry'
 import { F } from '../tla/utils/i18n'
 import styles from './whats-new.module.css'
 
@@ -39,29 +39,9 @@ export function Component() {
 							<div className={styles.empty}>No updates yet</div>
 						) : (
 							<div className={styles.entriesList}>
-								{entries.map((entry) => {
-									const date = new Date(entry.date)
-									// Use long description if available, otherwise fallback to short description
-									const displayDescription = entry.fullDescription || entry.description
-									return (
-										<div key={entry.version} className={styles.entry}>
-											<div className={styles.entryMeta}>
-												<h2 className={styles.entryTitle}>{entry.title}</h2>
-												<span className={styles.date}>
-													{date.toLocaleDateString('en-US', {
-														month: 'short',
-														year: 'numeric',
-													})}
-												</span>
-											</div>
-											<div className={styles.entryMain}>
-												<div className={styles.entryContent}>
-													<Markdown>{displayDescription}</Markdown>
-												</div>
-											</div>
-										</div>
-									)
-								})}
+								{entries.map((entry) => (
+									<WhatsNewPageEntry key={entry.version} entry={entry} />
+								))}
 							</div>
 						)}
 					</div>

@@ -707,23 +707,3 @@
 .whatsNewPreviewContent :global(a:hover) {
 	text-decoration: underline;
 }
-
-.whatsNewPreviewPage {
-	display: grid;
-	grid-template-columns: 200px 1fr;
-	gap: 20px;
-}
-
-.whatsNewPreviewPageMeta {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	padding-top: 2px;
-}
-
-.whatsNewPreviewPageTitle {
-	font-size: 20px;
-	font-weight: 600;
-	margin: 0;
-	color: var(--tla-color-text-1);
-}
