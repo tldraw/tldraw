@@ -68,14 +68,14 @@ export class FairyAgentRequestManager extends BaseFairyAgentManager {
 	 * Clear the scheduled request without affecting the active request.
 	 */
 	clearScheduledRequest() {
-		this.$scheduledRequest.set(null)
+		this.setScheduledRequest(null)
 	}
 
 	/**
 	 * Clear the active request without affecting the scheduled request.
 	 */
 	clearActiveRequest() {
-		this.$activeRequest.set(null)
+		this.setActiveRequest(null)
 	}
 
 	/**
@@ -84,7 +84,7 @@ export class FairyAgentRequestManager extends BaseFairyAgentManager {
 	 */
 	getFullRequestFromInput(input: AgentInput): AgentRequest {
 		const request = this.getPartialRequestFromInput(input)
-		const activeRequest = this.$activeRequest.get()
+		const activeRequest = this.getActiveRequest()
 
 		return {
 			agentMessages: request.agentMessages ?? [],
@@ -103,9 +103,8 @@ export class FairyAgentRequestManager extends BaseFairyAgentManager {
 	 * This involves handling the various ways that the input can be provided.
 	 * @param input - The input to convert (string, array, or object).
 	 * @returns A partial request object.
-	 * @private
 	 */
-	private getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
+	getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
 		// eg: agent.prompt('Draw a cat')
 		if (typeof input === 'string') {
 			return { agentMessages: [input] }
