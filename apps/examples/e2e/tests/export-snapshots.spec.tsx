@@ -1,4 +1,5 @@
 /* eslint-disable local/no-at-internal, local/no-internal-imports, react/no-string-refs */
+// Float16Array polyfill must be loaded before any imports that might use it
 import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'

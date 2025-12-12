@@ -1,4 +1,4 @@
-import { TLDrawShapeSegment, Vec, VecLike, float16ArrayToBase64 } from '@tldraw/editor'
+import { TLDrawShapeSegment, Vec, VecLike } from '@tldraw/editor'
 
 // Each point = 3 Float16s = 6 bytes = 8 base64 chars
 const POINT_B64_LENGTH = 8
@@ -48,6 +48,32 @@ function decodePointAt(b64Points: string, charOffset: number): Vec {
 	const zBits = ((bitmap2 >> 8) & 0xff) | ((bitmap2 << 8) & 0xff00)
 
 	return new Vec(float16BitsToNumber(xBits), float16BitsToNumber(yBits), float16BitsToNumber(zBits))
+}
+
+/** Convert a Uint16Array (containing Float16 bits) to base64 */
+function uint16ArrayToBase64(uint16Array: Uint16Array): string {
+	const uint8Array = new Uint8Array(
+		uint16Array.buffer,
+		uint16Array.byteOffset,
+		uint16Array.byteLength
+	)
+	let result = ''
+
+	// Process bytes in groups of 3 -> 4 base64 chars
+	for (let i = 0; i < uint8Array.length; i += 3) {
+		const byte1 = uint8Array[i]
+		const byte2 = uint8Array[i + 1] // Always exists for our use case (multiple of 6 bytes)
+		const byte3 = uint8Array[i + 2]
+
+		const bitmap = (byte1 << 16) | (byte2 << 8) | byte3
+		result +=
+			BASE64_CHARS[(bitmap >> 18) & 63] +
+			BASE64_CHARS[(bitmap >> 12) & 63] +
+			BASE64_CHARS[(bitmap >> 6) & 63] +
+			BASE64_CHARS[bitmap & 63]
+	}
+
+	return result
 }
 
 /** Convert Float16 bits to a number - optimized with lookup tables */
@@ -148,8 +174,14 @@ export function getPointAtIndexFromB64(b64Points: string, index: number): Vec | 
 
 /** @internal */
 export function createB64FromPoints(points: VecLike[]): string {
-	const flatPoints = points.flatMap((p) => [p.x, p.y, p.z ?? 0.5])
-	return float16ArrayToBase64(new Float16Array(flatPoints))
+	const uint16s = new Uint16Array(points.length * 3)
+	for (let i = 0; i < points.length; i++) {
+		const p = points[i]
+		uint16s[i * 3] = numberToFloat16Bits(p.x)
+		uint16s[i * 3 + 1] = numberToFloat16Bits(p.y)
+		uint16s[i * 3 + 2] = numberToFloat16Bits(p.z ?? 0.5)
+	}
+	return uint16ArrayToBase64(uint16s)
 }
 
 /** @internal */
