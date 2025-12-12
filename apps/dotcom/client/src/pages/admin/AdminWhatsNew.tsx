@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Markdown from 'react-markdown'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
+import { WhatsNewDialogContent } from '../../tla/components/WhatsNewDialogContent'
 import styles from '../admin.module.css'
 
 type WhatsNewEntryDraft = Omit<WhatsNewEntry, 'schemaVersion'> & {
@@ -72,19 +73,37 @@ function WhatsNewEntryForm({
 						/>
 					</div>
 
+					{/* Short description shown in the What's New dialog popup */}
 					<div className={styles.formField}>
-						<label htmlFor="description">Description:</label>
+						<label htmlFor="description">Short description:</label>
 						<div className={styles.markdownHelper}>
-							Supports **bold**, *italic*, [links](url), lists, and `code`
+							Shown in dialog popup. Supports **bold**, *italic*, [links](url), lists, and `code`
 						</div>
 						<textarea
 							id="description"
 							value={formData.description}
 							onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-							placeholder="Description"
-							rows={15}
+							placeholder="Brief summary for dialog"
+							rows={8}
 							className={styles.searchInput}
 							required
+						/>
+					</div>
+
+					{/* Long description shown on the /whats-new page (optional) */}
+					<div className={styles.formField}>
+						<label htmlFor="fullDescription">Long description:</label>
+						<div className={styles.markdownHelper}>
+							Optional. Shown on /whats-new page with more space. If empty, short description is
+							used.
+						</div>
+						<textarea
+							id="fullDescription"
+							value={formData.fullDescription || ''}
+							onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
+							placeholder="Detailed description for /whats-new page (optional)"
+							rows={15}
+							className={styles.searchInput}
 						/>
 					</div>
 
@@ -98,16 +117,37 @@ function WhatsNewEntryForm({
 					</div>
 				</div>
 
-				<div className={styles.whatsNewPreview}>
-					<div className={styles.whatsNewPreviewLabel}>Preview</div>
-					<div className={styles.whatsNewPreviewTitle}>
-						{formData.title || 'Untitled'}
-						<span className={styles.whatsNewPreviewDate}>
-							{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-						</span>
+				<div className={styles.whatsNewPreviews}>
+					{/* Dialog preview - uses the same component as the actual dialog */}
+					<div className={`${styles.whatsNewPreview} ${styles.whatsNewPreviewDialog}`}>
+						<div className={styles.whatsNewPreviewLabel}>Dialog preview</div>
+						<WhatsNewDialogContent
+							entry={{
+								schemaVersion: 1,
+								version: formData.version || '1.0',
+								title: formData.title || 'Untitled',
+								date: formData.date,
+								description: formData.description || '*No content*',
+							}}
+						/>
 					</div>
-					<div className={styles.whatsNewPreviewContent}>
-						<Markdown>{formData.description || '*No content*'}</Markdown>
+
+					{/* Page preview */}
+					<div className={styles.whatsNewPreview}>
+						<div className={styles.whatsNewPreviewLabel}>Page preview</div>
+						<div className={styles.whatsNewPreviewPage}>
+							<div className={styles.whatsNewPreviewPageMeta}>
+								<h2 className={styles.whatsNewPreviewPageTitle}>{formData.title || 'Untitled'}</h2>
+								<span className={styles.whatsNewPreviewDate}>
+									{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+								</span>
+							</div>
+							<div className={styles.whatsNewPreviewContent}>
+								<Markdown>
+									{formData.fullDescription || formData.description || '*No content*'}
+								</Markdown>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

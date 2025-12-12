@@ -583,17 +583,24 @@
 /* What's New Form Layout */
 .whatsNewFormLayout {
 	display: grid;
-	grid-template-columns: 1fr 500px;
+	grid-template-columns: 400px 1fr;
 	gap: 48px;
 	align-items: start;
-	max-width: 1400px;
+	width: 1200px;
 }
 
 .whatsNewFormFields {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-	width: 500px;
+}
+
+.whatsNewPreviews {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	position: sticky;
+	top: 20px;
 }
 
 .whatsNewPreview {
@@ -601,8 +608,15 @@
 	border-radius: var(--tla-radius-3);
 	padding: 24px;
 	background-color: var(--tla-color-panel);
-	position: sticky;
-	top: 20px;
+}
+
+.whatsNewPreviewDialog {
+	width: 460px;
+	padding: 0;
+}
+
+.whatsNewPreviewDialog .whatsNewPreviewLabel {
+	padding: 24px 24px 0 24px;
 }
 
 .whatsNewPreviewLabel {
@@ -635,6 +649,12 @@
 	font-size: 14px;
 	color: var(--tla-color-text-1);
 	line-height: 1.6;
+}
+
+.whatsNewPreviewDivider {
+	height: 1px;
+	background-color: var(--tla-color-divider);
+	margin: 20px 0;
 }
 
 .markdownHelper {
@@ -686,4 +706,24 @@
 
 .whatsNewPreviewContent :global(a:hover) {
 	text-decoration: underline;
+}
+
+.whatsNewPreviewPage {
+	display: grid;
+	grid-template-columns: 200px 1fr;
+	gap: 20px;
+}
+
+.whatsNewPreviewPageMeta {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding-top: 2px;
+}
+
+.whatsNewPreviewPageTitle {
+	font-size: 20px;
+	font-weight: 600;
+	margin: 0;
+	color: var(--tla-color-text-1);
 }

@@ -41,6 +41,8 @@ export function Component() {
 							<div className={styles.entriesList}>
 								{entries.map((entry) => {
 									const date = new Date(entry.date)
+									// Use long description if available, otherwise fallback to short description
+									const displayDescription = entry.fullDescription || entry.description
 									return (
 										<div key={entry.version} className={styles.entry}>
 											<div className={styles.entryMeta}>
@@ -54,7 +56,7 @@ export function Component() {
 											</div>
 											<div className={styles.entryMain}>
 												<div className={styles.entryContent}>
-													<Markdown>{entry.description}</Markdown>
+													<Markdown>{displayDescription}</Markdown>
 												</div>
 											</div>
 										</div>

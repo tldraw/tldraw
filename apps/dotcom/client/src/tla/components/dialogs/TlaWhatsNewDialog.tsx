@@ -1,5 +1,3 @@
-import Markdown from 'react-markdown'
-import { Link } from 'react-router-dom'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -7,8 +5,8 @@ import {
 	TldrawUiDialogTitle,
 	useDialogs,
 } from 'tldraw'
-import { routes } from '../../../routeDefs'
 import { useWhatsNew } from '../../hooks/useWhatsNew'
+import { WhatsNewDialogContent } from '../WhatsNewDialogContent'
 import styles from './TlaWhatsNewDialog.module.css'
 
 export function TlaWhatsNewDialog() {
@@ -33,8 +31,6 @@ export function TlaWhatsNewDialog() {
 		)
 	}
 
-	const date = new Date(latestEntry.date)
-
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -43,21 +39,8 @@ export function TlaWhatsNewDialog() {
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.dialogBody}>
-				<div className={styles.title}>
-					{latestEntry.title}
-					<span className={styles.date}>
-						{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-					</span>
-				</div>
-				<div className={styles.description}>
-					<Markdown>{latestEntry.description}</Markdown>
-				</div>
-				<div className={styles.footer}>
-					<Link to={routes.whatsNew()} className={styles.moreLink} onClick={clearDialogs}>
-						See all updates
-					</Link>
-				</div>
+			<TldrawUiDialogBody>
+				<WhatsNewDialogContent entry={latestEntry} onLinkClick={clearDialogs} />
 			</TldrawUiDialogBody>
 		</>
 	)

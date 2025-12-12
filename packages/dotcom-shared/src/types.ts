@@ -122,7 +122,10 @@ export interface WhatsNewEntry {
 	version: string
 	title: string
 	date: string
+	/** Short description shown in the What's New dialog popup */
 	description: string
+	/** Optional long description shown on /whats-new page. Falls back to description if not provided. */
+	fullDescription?: string
 }
 
 export interface ZStoreData {

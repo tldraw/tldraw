@@ -510,6 +510,7 @@ export const adminRoutes = createRouter<Environment>()
 			return new Response('version, title, and date are required', { status: 400 })
 		}
 
+		// Validate required short description (shown in dialog)
 		if (
 			!body.description ||
 			typeof body.description !== 'string' ||
@@ -517,6 +518,8 @@ export const adminRoutes = createRouter<Environment>()
 		) {
 			return new Response('description is required and must be a non-empty string', { status: 400 })
 		}
+
+		// fullDescription is optional (shown on /whats-new page, falls back to description if not provided)
 
 		await setWhatsNewEntry(env, body)
 		return json({ success: true })
