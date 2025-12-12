@@ -16,7 +16,9 @@ import {
 	TLShapeId,
 	Vec,
 	VecLike,
+	VecModel,
 	ZERO_INDEX_KEY,
+	b64Vecs,
 	compact,
 	createBindingId,
 	createShapeId,
@@ -149,6 +151,13 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'freedraw': {
+				const points: VecModel[] = element.points.map(([x, y, z = 0.5]: number[]) => ({
+					x,
+					y,
+					z,
+				}))
+				const base64Points = b64Vecs.encodePoints(points)
+
 				tldrawContent.shapes.push({
 					...base,
 					type: 'draw',
@@ -160,11 +169,7 @@ export async function putExcalidrawContent(
 						segments: [
 							{
 								type: 'free',
-								points: element.points.map(([x, y, z = 0.5]: number[]) => ({
-									x,
-									y,
-									z,
-								})),
+								points: base64Points,
 							},
 						],
 					},
