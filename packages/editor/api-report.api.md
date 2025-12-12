@@ -3616,7 +3616,7 @@ export interface TLEditorSnapshot {
 // @public (undocumented)
 export interface TLEditStartInfo {
     // (undocumented)
-    type: 'click-header' | 'click' | 'double-click-edge' | 'double-click' | 'press_enter' | 'unknown';
+    type: 'click-header' | 'click' | 'double-click-corner' | 'double-click-edge' | 'double-click' | 'press_enter' | 'unknown';
 }
 
 // @public (undocumented)

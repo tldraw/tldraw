@@ -235,20 +235,39 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
-				if (this.editor.getIsReadonly()) break
-
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (onlySelectedShape) {
 					const util = this.editor.getShapeUtil(onlySelectedShape)
-
-					// Test edges for an onDoubleClickEdge handler
-					if (
+					const isEdge =
 						info.handle === 'right' ||
 						info.handle === 'left' ||
 						info.handle === 'top' ||
 						info.handle === 'bottom'
-					) {
+					const isCorner =
+						info.handle === 'top_left' ||
+						info.handle === 'top_right' ||
+						info.handle === 'bottom_right' ||
+						info.handle === 'bottom_left'
+
+					if (this.editor.getIsReadonly()) {
+						// includes readonly check
+						if (
+							this.editor.canEditShape(onlySelectedShape, {
+								type: isCorner
+									? 'double-click-corner'
+									: isEdge
+										? 'double-click-edge'
+										: 'double-click',
+							})
+						) {
+							this.startEditingShape(onlySelectedShape, info, true /* select all */)
+						}
+						break
+					}
+
+					// Test edges for an onDoubleClickEdge handler
+					if (isEdge) {
 						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click edge')
@@ -258,12 +277,7 @@ export class Idle extends StateNode {
 						}
 					}
 
-					if (
-						info.handle === 'top_left' ||
-						info.handle === 'top_right' ||
-						info.handle === 'bottom_right' ||
-						info.handle === 'bottom_left'
-					) {
+					if (isCorner) {
 						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
 						if (change) {
 							this.editor.markHistoryStoppingPoint('double click corner')
