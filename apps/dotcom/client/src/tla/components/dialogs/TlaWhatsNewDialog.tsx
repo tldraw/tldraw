@@ -9,7 +9,6 @@ import {
 } from 'tldraw'
 import { useWhatsNew } from '../../hooks/useWhatsNew'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './TlaWhatsNewDialog.module.css'
 
 export function TlaWhatsNewDialog() {
@@ -46,7 +45,7 @@ export function TlaWhatsNewDialog() {
 		return () => window.removeEventListener('keydown', handleKeyDown)
 	}, [entries.length, currentIndex, navigateToVersion])
 
-	if (!isLoaded || !currentVersion) {
+	if (!currentVersion) {
 		return (
 			<>
 				<TldrawUiDialogHeader>
@@ -56,9 +55,7 @@ export function TlaWhatsNewDialog() {
 					<TldrawUiDialogCloseButton />
 				</TldrawUiDialogHeader>
 				<TldrawUiDialogBody className={styles.dialogBody}>
-					<div className={styles.loadingContainer}>
-						<TlaIcon className="tla-spinner" icon="spinner" />
-					</div>
+					<div>No updates available</div>
 				</TldrawUiDialogBody>
 			</>
 		)

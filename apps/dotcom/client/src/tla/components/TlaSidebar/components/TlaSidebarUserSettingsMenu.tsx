@@ -90,17 +90,19 @@ export function TlaUserSettingsMenu() {
 					<TldrawUiMenuGroup id="files">
 						<ImportFileActionItem />
 					</TldrawUiMenuGroup>
-					<TldrawUiMenuGroup
-						id="whats-new"
-						className={hasNewWhatsNew ? styles.whatsNewMenuGroup : undefined}
-					>
-						<TldrawUiMenuItem
+					{entries.length > 0 && (
+						<TldrawUiMenuGroup
 							id="whats-new"
-							label={whatsNewLbl}
-							onSelect={handleWhatsNewClick}
-							readonlyOk
-						/>
-					</TldrawUiMenuGroup>
+							className={hasNewWhatsNew ? styles.whatsNewMenuGroup : undefined}
+						>
+							<TldrawUiMenuItem
+								id="whats-new"
+								label={whatsNewLbl}
+								onSelect={handleWhatsNewClick}
+								readonlyOk
+							/>
+						</TldrawUiMenuGroup>
+					)}
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
 						<LanguageMenu />
