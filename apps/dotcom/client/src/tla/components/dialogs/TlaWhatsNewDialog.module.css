@@ -65,6 +65,49 @@
 	width: 100%;
 }
 
+.description :global(p) {
+	margin: 0 0 12px 0;
+}
+
+.description :global(p:last-child) {
+	margin-bottom: 0;
+}
+
+.description :global(ul),
+.description :global(ol) {
+	margin: 0 0 12px 0;
+	padding-left: 20px;
+}
+
+.description :global(li) {
+	margin-bottom: 6px;
+}
+
+.description :global(strong) {
+	font-weight: 600;
+}
+
+.description :global(em) {
+	font-style: italic;
+}
+
+.description :global(code) {
+	background: var(--tl-color-muted-2);
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-family: monospace;
+	font-size: 13px;
+}
+
+.description :global(a) {
+	color: #2d7ff9;
+	text-decoration: none;
+}
+
+.description :global(a:hover) {
+	text-decoration: underline;
+}
+
 .navigation {
 	display: flex;
 	align-items: center;

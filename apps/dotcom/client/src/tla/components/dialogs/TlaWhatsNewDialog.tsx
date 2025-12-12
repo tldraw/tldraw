@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import Markdown from 'react-markdown'
 import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -78,17 +79,9 @@ export function TlaWhatsNewDialog() {
 						{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
 					</span>
 				</div>
-				{'items' in currentVersion ? (
-					<ul className={styles.list}>
-						{currentVersion.items.map((item, i) => (
-							<li key={i} className={styles.item}>
-								{item}
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className={styles.description}>{currentVersion.description}</div>
-				)}
+				<div className={styles.description}>
+					<Markdown>{currentVersion.description}</Markdown>
+				</div>
 				{entries.length > 1 && (
 					<div className={styles.navigation}>
 						<TldrawUiButton

@@ -1,16 +1,13 @@
 import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
+import Markdown from 'react-markdown'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import styles from '../admin.module.css'
 
-type WhatsNewEntryDraft =
-	| (Omit<Extract<WhatsNewEntry, { items: string[] }>, 'schemaVersion'> & {
-			schemaVersion?: number
-	  })
-	| (Omit<Extract<WhatsNewEntry, { description: string }>, 'schemaVersion'> & {
-			schemaVersion?: number
-	  })
+type WhatsNewEntryDraft = Omit<WhatsNewEntry, 'schemaVersion'> & {
+	schemaVersion?: number
+}
 
 function WhatsNewEntryForm({
 	entry,
@@ -22,7 +19,8 @@ function WhatsNewEntryForm({
 	onCancel: () => void
 }) {
 	const [formData, setFormData] = useState<WhatsNewEntryDraft>(entry)
-	const [useItems, setUseItems] = useState('items' in entry && !!entry.items)
+
+	const date = formData.date ? new Date(formData.date) : new Date()
 
 	return (
 		<form
@@ -32,156 +30,86 @@ function WhatsNewEntryForm({
 			}}
 			className={styles.whatsNewForm}
 		>
-			<div className={styles.formField}>
-				<label htmlFor="version">Version (e.g., 1.0):</label>
-				<input
-					id="version"
-					type="text"
-					placeholder="1.0"
-					value={formData.version}
-					onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-					className={styles.searchInput}
-					required
-				/>
-			</div>
-
-			<div className={styles.formField}>
-				<label htmlFor="title">Title:</label>
-				<input
-					id="title"
-					type="text"
-					placeholder="Feature title"
-					value={formData.title}
-					onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-					className={styles.searchInput}
-					required
-				/>
-			</div>
-
-			<div className={styles.formField}>
-				<label htmlFor="date">Date:</label>
-				<input
-					id="date"
-					type="date"
-					value={formData.date.split('T')[0]}
-					onChange={(e) =>
-						setFormData({ ...formData, date: new Date(e.target.value).toISOString() })
-					}
-					className={styles.searchInput}
-					required
-				/>
-			</div>
-
-			<div className={styles.formField}>
-				<label>Content type:</label>
-				<div className={styles.radioGroup}>
-					<label>
+			<div className={styles.whatsNewFormLayout}>
+				<div className={styles.whatsNewFormFields}>
+					<div className={styles.formField}>
+						<label htmlFor="version">Version (e.g., 1.0):</label>
 						<input
-							type="radio"
-							checked={useItems}
-							onChange={() => {
-								setUseItems(true)
-								setFormData({
-									version: formData.version,
-									title: formData.title,
-									date: formData.date,
-									items: [''],
-								})
-							}}
+							id="version"
+							type="text"
+							placeholder="1.0"
+							value={formData.version}
+							onChange={(e) => setFormData({ ...formData, version: e.target.value })}
+							className={styles.searchInput}
+							required
 						/>
-						Bullet points
-					</label>
-					<label>
-						<input
-							type="radio"
-							checked={!useItems}
-							onChange={() => {
-								setUseItems(false)
-								setFormData({
-									version: formData.version,
-									title: formData.title,
-									date: formData.date,
-									description: '',
-								})
-							}}
-						/>
-						Description
-					</label>
-				</div>
-			</div>
+					</div>
 
-			{useItems ? (
-				<div className={styles.formField}>
-					<label>Bullet points:</label>
-					<div className={styles.bulletList}>
-						{'items' in formData &&
-							formData.items.map((item, i) => (
-								<div key={i} className={styles.bulletItem}>
-									<input
-										type="text"
-										value={item}
-										onChange={(e) => {
-											if ('items' in formData) {
-												const newItems = [...formData.items]
-												newItems[i] = e.target.value
-												setFormData({ ...formData, items: newItems })
-											}
-										}}
-										className={styles.searchInput}
-									/>
-									<TlaButton
-										type="button"
-										onClick={() => {
-											if ('items' in formData) {
-												const newItems = formData.items.filter((_, idx) => idx !== i)
-												setFormData({ ...formData, items: newItems })
-											}
-										}}
-										variant="warning"
-										className={styles.deleteButton}
-									>
-										Remove
-									</TlaButton>
-								</div>
-							))}
-						<TlaButton
-							type="button"
-							onClick={() => {
-								if ('items' in formData) {
-									setFormData({ ...formData, items: [...formData.items, ''] })
-								}
-							}}
-							variant="secondary"
-						>
-							Add Item
+					<div className={styles.formField}>
+						<label htmlFor="title">Title:</label>
+						<input
+							id="title"
+							type="text"
+							placeholder="Feature title"
+							value={formData.title}
+							onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+							className={styles.searchInput}
+							required
+						/>
+					</div>
+
+					<div className={styles.formField}>
+						<label htmlFor="date">Date:</label>
+						<input
+							id="date"
+							type="date"
+							value={formData.date.split('T')[0]}
+							onChange={(e) =>
+								setFormData({ ...formData, date: new Date(e.target.value).toISOString() })
+							}
+							className={styles.searchInput}
+							required
+						/>
+					</div>
+
+					<div className={styles.formField}>
+						<label htmlFor="description">Description:</label>
+						<div className={styles.markdownHelper}>
+							Supports **bold**, *italic*, [links](url), lists, and `code`
+						</div>
+						<textarea
+							id="description"
+							value={formData.description}
+							onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+							placeholder="Description"
+							rows={15}
+							className={styles.searchInput}
+							required
+						/>
+					</div>
+
+					<div className={styles.formActions}>
+						<TlaButton type="submit" variant="primary">
+							Save
+						</TlaButton>
+						<TlaButton type="button" onClick={onCancel} variant="secondary">
+							Cancel
 						</TlaButton>
 					</div>
 				</div>
-			) : (
-				<div className={styles.formField}>
-					<label htmlFor="description">Description:</label>
-					<textarea
-						id="description"
-						value={'description' in formData ? formData.description : ''}
-						onChange={(e) => {
-							if ('description' in formData) {
-								setFormData({ ...formData, description: e.target.value })
-							}
-						}}
-						placeholder="Description"
-						rows={5}
-						className={styles.searchInput}
-					/>
-				</div>
-			)}
 
-			<div className={styles.formActions}>
-				<TlaButton type="submit" variant="primary">
-					Save
-				</TlaButton>
-				<TlaButton type="button" onClick={onCancel} variant="secondary">
-					Cancel
-				</TlaButton>
+				<div className={styles.whatsNewPreview}>
+					<div className={styles.whatsNewPreviewLabel}>Preview</div>
+					<div className={styles.whatsNewPreviewTitle}>
+						{formData.title || 'Untitled'}
+						<span className={styles.whatsNewPreviewDate}>
+							{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+						</span>
+					</div>
+					<div className={styles.whatsNewPreviewContent}>
+						<Markdown>{formData.description || '*No content*'}</Markdown>
+					</div>
+				</div>
 			</div>
 		</form>
 	)
@@ -289,7 +217,7 @@ export function AdminWhatsNew() {
 							version: '',
 							title: '',
 							date: new Date().toISOString(),
-							items: [''],
+							description: '',
 						})
 					}
 					variant="primary"
@@ -346,16 +274,7 @@ export function AdminWhatsNew() {
 										</TlaButton>
 									</div>
 								</div>
-								{'items' in entry && entry.items && (
-									<ul className={styles.entryItems}>
-										{entry.items.map((item, i) => (
-											<li key={i}>{item}</li>
-										))}
-									</ul>
-								)}
-								{'description' in entry && entry.description && (
-									<p className="tla-text_ui__small">{entry.description}</p>
-								)}
+								<p className="tla-text_ui__small">{entry.description}</p>
 							</div>
 						))
 					)}

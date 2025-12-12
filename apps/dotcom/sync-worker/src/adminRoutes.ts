@@ -510,12 +510,12 @@ export const adminRoutes = createRouter<Environment>()
 			return new Response('version, title, and date are required', { status: 400 })
 		}
 
-		if (!body.items && !body.description) {
-			return new Response('Must have either items or description', { status: 400 })
-		}
-
-		if (body.items && body.description) {
-			return new Response('Cannot have both items and description', { status: 400 })
+		if (
+			!body.description ||
+			typeof body.description !== 'string' ||
+			body.description.trim() === ''
+		) {
+			return new Response('description is required and must be a non-empty string', { status: 400 })
 		}
 
 		await setWhatsNewEntry(env, body)

@@ -94,6 +94,13 @@
 	border-color: var(--tla-color-primary);
 }
 
+.searchInput:is(textarea) {
+	height: auto;
+	padding: 12px;
+	resize: vertical;
+	line-height: 1.5;
+}
+
 .errorMessage {
 	color: var(--tla-color-warning);
 	font-size: 12px;
@@ -490,6 +497,11 @@
 	gap: 8px;
 }
 
+.formField input,
+.formField textarea {
+	width: 100%;
+}
+
 .formField label {
 	font-size: 12px;
 	font-weight: 500;
@@ -532,6 +544,7 @@
 	padding: 16px;
 	background-color: var(--tla-color-low);
 	border-radius: var(--tla-radius-2);
+	max-width: 1400px;
 }
 
 .entriesList {
@@ -566,4 +579,112 @@
 .entryItems li {
 	margin: 4px 0;
 	color: var(--tla-color-text-2);
+}
+
+/* What's New Form Layout */
+.whatsNewFormLayout {
+	display: grid;
+	grid-template-columns: 1fr 500px;
+	gap: 48px;
+	align-items: start;
+	max-width: 1400px;
+}
+
+.whatsNewFormFields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 500px;
+}
+
+.whatsNewPreview {
+	border: 2px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-3);
+	padding: 24px;
+	background-color: var(--tla-color-panel);
+	position: sticky;
+	top: 20px;
+}
+
+.whatsNewPreviewLabel {
+	font-size: 14px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--tla-color-primary);
+	margin-bottom: 16px;
+}
+
+.whatsNewPreviewTitle {
+	font-size: 20px;
+	font-weight: 600;
+	margin-bottom: 20px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	color: var(--tla-color-text-1);
+}
+
+.whatsNewPreviewDate {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--tla-color-text-3);
+}
+
+.whatsNewPreviewContent {
+	font-size: 14px;
+	color: var(--tla-color-text-1);
+	line-height: 1.6;
+}
+
+.markdownHelper {
+	font-size: 11px;
+	color: var(--tla-color-text-3);
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+/* Markdown styles for preview */
+.whatsNewPreviewContent :global(p) {
+	margin: 0 0 12px 0;
+}
+
+.whatsNewPreviewContent :global(p:last-child) {
+	margin-bottom: 0;
+}
+
+.whatsNewPreviewContent :global(ul),
+.whatsNewPreviewContent :global(ol) {
+	margin: 0 0 12px 0;
+	padding-left: 20px;
+}
+
+.whatsNewPreviewContent :global(li) {
+	margin-bottom: 6px;
+}
+
+.whatsNewPreviewContent :global(strong) {
+	font-weight: 600;
+}
+
+.whatsNewPreviewContent :global(em) {
+	font-style: italic;
+}
+
+.whatsNewPreviewContent :global(code) {
+	background: var(--tla-color-low);
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-family: monospace;
+	font-size: 13px;
+}
+
+.whatsNewPreviewContent :global(a) {
+	color: var(--tla-color-primary);
+	text-decoration: none;
+}
+
+.whatsNewPreviewContent :global(a:hover) {
+	text-decoration: underline;
 }
