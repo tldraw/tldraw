@@ -637,3 +637,35 @@ it('Updates the image shape flip properties when flipped', () => {
 	editor.flipShapes(editor.getSelectedShapeIds(), 'vertical')
 	expect(editor.getLastCreatedShape<TLImageShape>().props.flipY).toBe(true)
 })
+
+it('Restores flipped shape positions when shape is rotated', () => {
+	editor.selectAll().rotateSelection(PI / 2.5)
+	const before = editor.getSelectedShapes()
+	editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+	editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+	const after = editor.getSelectedShapes()
+	expect(after.length).toBe(before.length)
+	for (let i = 0; i < before.length; i++) {
+		expect(after[i]).toCloselyMatchObject(before[i])
+	}
+})
+
+it('Restores flipped shape positions with draw shapes when shape is rotated', () => {
+	editor
+		.setCurrentTool('draw')
+		.pointerDown(0, 0)
+		.pointerMove(-100, -100)
+		.pointerMove(0, -100)
+		.pointerMove(100, 100)
+		.pointerUp()
+
+	editor.selectAll().rotateSelection(PI / 2.5)
+	const before = editor.getSelectedShapes()
+	editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+	editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+	const after = editor.getSelectedShapes()
+	expect(after.length).toBe(before.length)
+	for (let i = 0; i < before.length; i++) {
+		expect(after[i]).toCloselyMatchObject(before[i])
+	}
+})
