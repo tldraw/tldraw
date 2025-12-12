@@ -190,7 +190,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	canSnap(_shape: Shape): boolean {
+	canSnap(shape: Shape): boolean {
 		return true
 	}
 
@@ -200,7 +200,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	canTabTo(_shape: Shape): boolean {
+	canTabTo(shape: Shape): boolean {
 		return true
 	}
 
@@ -209,7 +209,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canScroll(_shape: Shape): boolean {
+	canScroll(shape: Shape): boolean {
 		return false
 	}
 
@@ -227,7 +227,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canEdit(_shape: Shape): boolean {
+	canEdit(shape: Shape, info: TLEditStartInfo): boolean {
 		return false
 	}
 
@@ -236,7 +236,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canResize(_shape: Shape): boolean {
+	canResize(shape: Shape): boolean {
 		return true
 	}
 
@@ -245,7 +245,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canResizeChildren(_shape: Shape): boolean {
+	canResizeChildren(shape: Shape): boolean {
 		return true
 	}
 
@@ -254,7 +254,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canEditInReadonly(_shape: Shape): boolean {
+	canEditInReadonly(shape: Shape): boolean {
 		return false
 	}
 
@@ -263,7 +263,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canCrop(_shape: Shape): boolean {
+	canCrop(shape: Shape): boolean {
 		return false
 	}
 
@@ -276,7 +276,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean {
+	canBeLaidOut(shape: Shape, info: TLShapeUtilCanBeLaidOutOpts): boolean {
 		return true
 	}
 
@@ -287,7 +287,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @param shape - The shape.
 	 */
-	canCull(_shape: Shape): boolean {
+	canCull(shape: Shape): boolean {
 		return true
 	}
 
@@ -300,7 +300,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @internal
 	 */
-	providesBackgroundForChildren(_shape: Shape): boolean {
+	providesBackgroundForChildren(shape: Shape): boolean {
 		return false
 	}
 
@@ -333,14 +333,14 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @returns boolean indicating if this shape should hide in the minimap
 	 * @public
 	 */
-	hideInMinimap?(_shape: Shape): boolean
+	hideInMinimap?(shape: Shape): boolean
 
 	/**
 	 * Whether the shape should hide its resize handles when selected.
 	 *
 	 * @public
 	 */
-	hideResizeHandles(_shape: Shape): boolean {
+	hideResizeHandles(shape: Shape): boolean {
 		return false
 	}
 
@@ -349,7 +349,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	hideRotateHandle(_shape: Shape): boolean {
+	hideRotateHandle(shape: Shape): boolean {
 		return false
 	}
 
@@ -358,7 +358,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsBg(_shape: Shape): boolean {
+	hideSelectionBoundsBg(shape: Shape): boolean {
 		return false
 	}
 
@@ -367,7 +367,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsFg(_shape: Shape): boolean {
+	hideSelectionBoundsFg(shape: Shape): boolean {
 		return false
 	}
 
@@ -376,7 +376,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	isAspectRatioLocked(_shape: Shape): boolean {
+	isAspectRatioLocked(shape: Shape): boolean {
 		return false
 	}
 
@@ -387,10 +387,10 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * useful in cases like annotating on top of an image, where you usually want to avoid extra
 	 * padding around the image if you don't need it.
 	 *
-	 * @param _shape - The shape to check
+	 * @param shape - The shape to check
 	 * @returns True if this shape should be treated as an export bounds container
 	 */
-	isExportBoundsContainer(_shape: Shape): boolean {
+	isExportBoundsContainer(shape: Shape): boolean {
 		return false
 	}
 
@@ -439,7 +439,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']) {
 		return false
 	}
 
@@ -487,7 +487,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
 	 * {@link BoundsSnapGeometry} for details.
 	 */
-	getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry {
+	getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry {
 		return {}
 	}
 
@@ -495,15 +495,15 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry}
 	 * for details.
 	 */
-	getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry {
+	getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
 		return {}
 	}
 
-	getText(_shape: Shape): string | undefined {
+	getText(shape: Shape): string | undefined {
 		return undefined
 	}
 
-	getAriaDescriptor(_shape: Shape): string | undefined {
+	getAriaDescriptor(shape: Shape): string | undefined {
 		return undefined
 	}
 
@@ -930,4 +930,18 @@ export interface TLHandleDragInfo<T extends TLShape> {
 	isPrecise: boolean
 	isCreatingShape: boolean
 	initial?: T | undefined
+}
+
+/* --------------------------------- Editing -------------------------------- */
+
+/** @public */
+export interface TLEditStartInfo {
+	type:
+		| 'press_enter'
+		| 'click'
+		| 'double-click'
+		| 'double-click-edge'
+		| 'double-click-corner'
+		| 'click-header'
+		| 'unknown'
 }
