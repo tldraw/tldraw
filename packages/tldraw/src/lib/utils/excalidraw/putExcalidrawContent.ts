@@ -1,4 +1,3 @@
-import { Float16Array } from '@petamoriken/float16'
 import {
 	AssetRecordType,
 	Box,

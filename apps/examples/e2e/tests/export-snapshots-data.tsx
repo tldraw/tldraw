@@ -1,5 +1,4 @@
 /* eslint-disable react/no-string-refs, local/no-internal-imports */
-import { Float16Array } from '@petamoriken/float16'
 import { degreesToRadians, float16ArrayToBase64, TLShapeCrop, toRichText, VecModel } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
 

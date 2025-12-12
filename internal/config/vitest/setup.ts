@@ -58,13 +58,6 @@ if (typeof CSS.supports === 'undefined') {
 	CSS.supports = () => false
 }
 
-// Float16Array polyfill for tests (Float16Array was added in Node.js 20.10.0)
-if (typeof globalThis.Float16Array === 'undefined') {
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	const { Float16Array } = require('@petamoriken/float16')
-	globalThis.Float16Array = Float16Array as any
-}
-
 function convertNumbersInObject(obj: any, roundToNearest: number): any {
 	if (!obj) return obj
 	if (Array.isArray(obj)) {
@@ -109,7 +102,6 @@ expect.extend({
 
 		const message = pass
 			? () =>
-					// eslint-disable-next-line prefer-template
 					matcherHint(matcherName, undefined, undefined, options) +
 					'\n\n' +
 					`Expected: not ${printExpected(expected)}` +
@@ -117,7 +109,6 @@ expect.extend({
 						? `\nReceived:     ${printReceived(actual)}`
 						: '')
 			: () =>
-					// eslint-disable-next-line prefer-template
 					matcherHint(matcherName, undefined, undefined, options) +
 					'\n\n' +
 					printDiffOrStringify(

@@ -1,4 +1,3 @@
-import { Float16Array } from '@petamoriken/float16'
 import {
 	BrowserContext,
 	Locator,
@@ -15,10 +14,6 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
-	if (!globalThis.Float16Array) {
-		globalThis.Float16Array = Float16Array
-	}
-
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 	await setupPage(page)
 }
