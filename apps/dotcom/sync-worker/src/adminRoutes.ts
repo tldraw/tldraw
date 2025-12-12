@@ -592,35 +592,91 @@ async function performUserDeletion(
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
 
-	// First, get all files owned by this user
-	const userFiles = await pg
-		.selectFrom('file')
-		.where('ownerId', '=', userRow.id)
-		.selectAll()
+	// Step 1: Find all groups the user is the only owner of
+	// This includes their home group (group.id = user.id) and any other groups they solely own
+	sendProgress?.('groups', 'Finding groups to delete...')
+
+	// Get all groups where this user is an owner
+	const userOwnedGroupMemberships = await pg
+		.selectFrom('group_user')
+		.where('userId', '=', userRow.id)
+		.where('role', '=', 'owner')
+		.select('groupId')
 		.execute()
 
-	sendProgress?.('files', `Found ${userFiles.length} files to delete`, {
-		fileCount: userFiles.length,
+	const groupsToDelete: string[] = []
+
+	for (const membership of userOwnedGroupMemberships) {
+		// Check if this user is the only owner of this group
+		const ownerCount = await pg
+			.selectFrom('group_user')
+			.where('groupId', '=', membership.groupId)
+			.where('role', '=', 'owner')
+			.select((eb) => eb.fn.countAll().as('count'))
+			.executeTakeFirst()
+
+		if (ownerCount && Number(ownerCount.count) === 1) {
+			groupsToDelete.push(membership.groupId)
+		}
+	}
+
+	sendProgress?.('groups', `Found ${groupsToDelete.length} groups to delete`, {
+		groupCount: groupsToDelete.length,
+		groupIds: groupsToDelete,
 	})
 
-	// Hard delete all user's files
-	for (let i = 0; i < userFiles.length; i++) {
-		const file = userFiles[i]
-		sendProgress?.('files', `Deleting file ${i + 1}/${userFiles.length}: ${file.name}`, {
-			fileId: file.id,
-		})
+	// Step 2: Soft delete groups (the cleanup_deleted_group_trigger will soft delete their files)
+	if (groupsToDelete.length > 0) {
+		sendProgress?.('groups', 'Soft deleting groups...')
+		await pg.updateTable('group').set('isDeleted', true).where('id', 'in', groupsToDelete).execute()
+	}
+
+	// Step 3: Get all files to hard delete
+	const filesToDelete = new Map<string, TlaFile>()
+
+	if (groupsToDelete.length > 0) {
+		const groupFiles = await pg
+			.selectFrom('file')
+			.where('owningGroupId', 'in', groupsToDelete)
+			.selectAll()
+			.execute()
+		for (const file of groupFiles) {
+			filesToDelete.set(file.id, file)
+		}
+	}
+
+	sendProgress?.('files', `Found ${filesToDelete.size} files to delete`, {
+		fileCount: filesToDelete.size,
+	})
+
+	// Allow time for soft deletes to propagate
+	if (groupsToDelete.length > 0 || filesToDelete.size > 0) {
+		await sleep(3000)
+	}
+
+	// Now hard delete all files
+	for (const file of filesToDelete.values()) {
+		sendProgress?.('files', `Hard deleting file '${file.name}' (${file.id})`)
 		await hardDeleteAppFile({ pg, file, env })
 	}
 
 	sendProgress?.('database', 'Cleaning up database records...')
 
-	// Clean up tables that don't have CASCADE delete constraints and delete user in a transaction
+	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
 		// Clean up tables that don't have CASCADE delete constraints
 		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
 
 		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
+
+		// Remove user from all groups they're a member of (including ones they don't solely own)
+		await tx.deleteFrom('group_user').where('userId', '=', userRow.id).execute()
+
+		// Hard delete the groups (this will cascade delete group_user and group_file entries)
+		if (groupsToDelete.length > 0) {
+			await tx.deleteFrom('group').where('id', 'in', groupsToDelete).execute()
+		}
 
 		// Delete the user row (this will cascade delete any remaining related records)
 		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()

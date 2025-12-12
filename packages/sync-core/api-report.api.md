@@ -301,7 +301,7 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 }
 
 // @public
-export class SqlLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
+export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
     constructor({ sql, snapshot, onChange, }: {
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
@@ -553,7 +553,7 @@ export type TLSocketStatusChangeEvent = {
 export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void;
 
 // @public
-export type TLSqliteInputValue = bigint | null | number | string;
+export type TLSqliteInputValue = bigint | null | number | string | Uint8Array;
 
 // @public
 export type TLSqliteOutputValue = bigint | null | number | string | Uint8Array;

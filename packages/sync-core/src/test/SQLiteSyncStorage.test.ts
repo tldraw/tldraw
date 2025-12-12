@@ -10,7 +10,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { vi } from 'vitest'
 import { MAX_TOMBSTONES, TOMBSTONE_PRUNE_BUFFER_SIZE } from '../lib/InMemorySyncStorage'
 import { NodeSqliteWrapper } from '../lib/NodeSqliteWrapper'
-import { SqlLiteSyncStorage } from '../lib/SqlLiteSyncStorage'
+import { SQLiteSyncStorage } from '../lib/SQLiteSyncStorage'
 import { RoomSnapshot } from '../lib/TLSyncRoom'
 
 const tlSchema = createTLSchema()
@@ -50,58 +50,58 @@ function createWrapper(config?: { tablePrefix?: string }) {
 
 function getStorage(snapshot: RoomSnapshot, wrapperConfig?: { tablePrefix?: string }) {
 	const sql = createWrapper(wrapperConfig)
-	return new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
+	return new SQLiteSyncStorage<TLRecord>({ sql, snapshot })
 }
 
-describe('SqlLiteSyncStorage', () => {
+describe('SQLiteSyncStorage', () => {
 	describe('Static methods', () => {
 		describe('hasBeenInitialized', () => {
 			it('returns false for empty database', () => {
 				const sql = createWrapper()
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
 			})
 
 			it('returns true after storage is initialized', () => {
 				const sql = createWrapper()
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 
 			it('respects table prefix', () => {
 				const sql = createWrapper({ tablePrefix: 'test_' })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(false)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.hasBeenInitialized(sql)).toBe(true)
 			})
 		})
 
 		describe('getDocumentClock', () => {
 			it('returns null for empty database', () => {
 				const sql = createWrapper()
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(null)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(null)
 			})
 
 			it('returns 0 for newly initialized storage with default snapshot', () => {
 				const sql = createWrapper()
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(0)
 			})
 
 			it('returns the documentClock value from snapshot', () => {
 				const sql = createWrapper()
 				const snapshot = makeSnapshot(defaultRecords)
 				snapshot.documentClock = 42
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(42)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot })
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(42)
 			})
 
 			it('returns updated clock after transactions', () => {
 				const sql = createWrapper()
-				const storage = new SqlLiteSyncStorage<TLRecord>({
+				const storage = new SQLiteSyncStorage<TLRecord>({
 					sql,
 					snapshot: makeSnapshot(defaultRecords),
 				})
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(0)
 
 				const newPage = PageRecordType.create({
 					id: PageRecordType.createId('test_page'),
@@ -111,14 +111,14 @@ describe('SqlLiteSyncStorage', () => {
 				storage.transaction((txn) => {
 					txn.set(newPage.id, newPage)
 				})
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(1)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(1)
 			})
 
 			it('respects table prefix', () => {
 				const sql = createWrapper({ tablePrefix: 'test_' })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(null)
-				new SqlLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
-				expect(SqlLiteSyncStorage.getDocumentClock(sql)).toBe(0)
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(null)
+				new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+				expect(SQLiteSyncStorage.getDocumentClock(sql)).toBe(0)
 			})
 		})
 	})
@@ -215,14 +215,14 @@ describe('SqlLiteSyncStorage', () => {
 			const sql = createWrapper()
 
 			// First initialization
-			new SqlLiteSyncStorage<TLRecord>({
+			new SQLiteSyncStorage<TLRecord>({
 				sql,
 				snapshot: makeSnapshot(defaultRecords, { documentClock: 10 }),
 			})
 
 			// Second initialization with different data
 			const newRecords = [DocumentRecordType.create({ id: TLDOCUMENT_ID })]
-			const storage2 = new SqlLiteSyncStorage<TLRecord>({
+			const storage2 = new SQLiteSyncStorage<TLRecord>({
 				sql,
 				snapshot: makeSnapshot(newRecords, { documentClock: 20 }),
 			})
@@ -703,7 +703,7 @@ describe('SqlLiteSyncStorage', () => {
 		it('accepts onChange callback in constructor', async () => {
 			const listener = vi.fn()
 			const sql = createWrapper()
-			const storage = new SqlLiteSyncStorage<TLRecord>({
+			const storage = new SQLiteSyncStorage<TLRecord>({
 				sql,
 				snapshot: makeSnapshot(defaultRecords),
 				onChange: listener,
@@ -1279,6 +1279,100 @@ describe('SqlLiteSyncStorage', () => {
 			const snapshot = storage.getSnapshot()
 			// Should not prune at exactly the threshold
 			expect(Object.keys(snapshot.tombstones!).length).toBe(MAX_TOMBSTONES)
+		})
+	})
+
+	describe('Migration from TEXT to BLOB', () => {
+		it('migrates existing TEXT data to BLOB format', () => {
+			// Simulate a database created with the old schema (migration version 1, TEXT column)
+			const db = new DatabaseSync(':memory:')
+
+			// Create old schema with TEXT column (migration version 1)
+			db.exec(`
+				CREATE TABLE documents (
+					id TEXT PRIMARY KEY,
+					state TEXT NOT NULL,
+					lastChangedClock INTEGER NOT NULL
+				);
+				CREATE INDEX idx_documents_lastChangedClock ON documents(lastChangedClock);
+				CREATE TABLE tombstones (
+					id TEXT PRIMARY KEY,
+					clock INTEGER NOT NULL
+				);
+				CREATE INDEX idx_tombstones_clock ON tombstones(clock);
+				CREATE TABLE metadata (
+					migrationVersion INTEGER NOT NULL,
+					documentClock INTEGER NOT NULL,
+					tombstoneHistoryStartsAtClock INTEGER NOT NULL,
+					schema TEXT NOT NULL
+				);
+				INSERT INTO metadata (migrationVersion, documentClock, tombstoneHistoryStartsAtClock, schema)
+				VALUES (1, 5, 0, '${JSON.stringify(tlSchema.serialize()).replace(/'/g, "''")}');
+			`)
+
+			// Insert documents using the old TEXT format
+			const doc1 = DocumentRecordType.create({ id: TLDOCUMENT_ID })
+			const page1 = PageRecordType.create({
+				id: PageRecordType.createId('migrated_page'),
+				name: 'Migrated Page',
+				index: ZERO_INDEX_KEY,
+			})
+
+			const insertStmt = db.prepare(
+				'INSERT INTO documents (id, state, lastChangedClock) VALUES (?, ?, ?)'
+			)
+			insertStmt.run(doc1.id, JSON.stringify(doc1), 1)
+			insertStmt.run(page1.id, JSON.stringify(page1), 2)
+
+			// Add a tombstone
+			db.exec("INSERT INTO tombstones (id, clock) VALUES ('shape:deleted', 3)")
+
+			// Now create SQLiteSyncStorage which should trigger the migration
+			const sql = new NodeSqliteWrapper(db)
+			const storage = new SQLiteSyncStorage<TLRecord>({ sql })
+
+			// Verify data is accessible after migration
+			const snapshot = storage.getSnapshot()
+			expect(snapshot.documents.length).toBe(2)
+			expect(snapshot.documentClock).toBe(5)
+			expect(snapshot.tombstones?.['shape:deleted']).toBe(3)
+
+			// Verify we can read specific records
+			storage.transaction((txn) => {
+				const doc = txn.get(TLDOCUMENT_ID)
+				expect(doc).toBeDefined()
+				expect(doc?.id).toBe(TLDOCUMENT_ID)
+
+				const page = txn.get(page1.id)
+				expect(page).toBeDefined()
+				expect((page as any)?.name).toBe('Migrated Page')
+			})
+
+			// Verify we can still write new records
+			const newPage = PageRecordType.create({
+				id: PageRecordType.createId('new_after_migration'),
+				name: 'New After Migration',
+				index: 'a2' as IndexKey,
+			})
+
+			storage.transaction((txn) => {
+				txn.set(newPage.id, newPage)
+			})
+
+			const snapshotAfter = storage.getSnapshot()
+			expect(snapshotAfter.documents.length).toBe(3)
+			expect(snapshotAfter.documents.find((d) => d.state.id === newPage.id)).toBeDefined()
+		})
+
+		it('preserves migration version 2 for fresh databases', () => {
+			const sql = createWrapper()
+			new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeSnapshot(defaultRecords) })
+
+			// Check the migration version is 2
+			const row = sql
+				.prepare<{ migrationVersion: number }>('SELECT migrationVersion FROM metadata')
+				.all()[0]
+			expect(row?.migrationVersion).toBe(2)
 		})
 	})
 })
