@@ -1063,6 +1063,12 @@
       "value": "."
     }
   ],
+  "9b7c522932": [
+    {
+      "type": 0,
+      "value": "No updates available"
+    }
+  ],
   "9bef626805": [
     {
       "type": 0,
@@ -1741,6 +1747,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f3fabbf3c5": [
+    {
+      "type": 0,
+      "value": "See all updates"
     }
   ],
   "f4f70727dc": [
