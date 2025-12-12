@@ -76,6 +76,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override canEditInReadonly() {
 		return true
 	}
+	override canEditWhileLocked(shape: TLEmbedShape) {
+		const result = this.getEmbedDefinition(shape.props.url)
+		if (!result) return true
+		return result.definition.canEditWhileLocked ?? true
+	}
 
 	override getDefaultProps(): TLEmbedShape['props'] {
 		return {
