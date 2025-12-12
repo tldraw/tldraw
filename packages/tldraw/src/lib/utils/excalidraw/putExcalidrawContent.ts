@@ -18,7 +18,7 @@ import {
 	VecLike,
 	VecModel,
 	ZERO_INDEX_KEY,
-	b64,
+	b64Vecs,
 	compact,
 	createBindingId,
 	createShapeId,
@@ -156,7 +156,7 @@ export async function putExcalidrawContent(
 					y,
 					z,
 				}))
-				const base64Points = b64.encodePoints(points)
+				const base64Points = b64Vecs.encodePoints(points)
 
 				tldrawContent.shapes.push({
 					...base,

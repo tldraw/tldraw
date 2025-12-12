@@ -6,7 +6,7 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	Vec,
-	b64,
+	b64Vecs,
 	modulate,
 } from '@tldraw/editor'
 import { StrokeOptions } from '../shared/freehand/types'
@@ -109,7 +109,7 @@ export function getPointsFromDrawSegment(
 	scaleY = 1,
 	points: Vec[] = []
 ) {
-	const _points = b64.decodePoints(segment.points)
+	const _points = b64Vecs.decodePoints(segment.points)
 
 	// Apply scale factors (used for lazy resize and flipping)
 	if (scaleX !== 1 || scaleY !== 1) {

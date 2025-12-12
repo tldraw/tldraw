@@ -315,13 +315,4 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
 
-export {
-	b64 as b64,
-	base64ToUint16Array,
-	decodePointAt,
-	decodePoints,
-	encodePoint,
-	encodePoints,
-	float16AtIndex,
-	getFirstPointFromB64,
-} from './misc/b64'
+export { b64Vecs } from './misc/b64'

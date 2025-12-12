@@ -74,20 +74,15 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 export const assetValidator: T.Validator<TLAsset>;
 
 // @public
-export const b64: {
-    getPointAtIndexFromB64(b64Points: string, index: number): null | VecModel;
-    getLastPointFromB64(b64Points: string): null | VecModel;
-    base64ToUint16Array: typeof base64ToUint16Array;
-    decodePointAt: typeof decodePointAt;
-    decodePoints: typeof decodePoints;
-    encodePoint: typeof encodePoint;
-    encodePoints: typeof encodePoints;
-    float16AtIndex: typeof float16AtIndex;
-    getFirstPointFromB64: typeof getFirstPointFromB64;
-};
-
-// @public
-export function base64ToUint16Array(base64: string): Uint16Array;
+export class b64Vecs {
+    static decodeFirstPoint(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string): null | VecModel;
+    // @internal
+    static decodePointAt(b64Points: string, charOffset: number): VecModel;
+    static decodePoints(base64: string): VecModel[];
+    static encodePoint(x: number, y: number, z: number): string;
+    static encodePoints(points: VecModel[]): string;
+}
 
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
@@ -185,12 +180,6 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
     migrations?: readonly MigrationSequence[];
     shapes?: Record<string, SchemaPropsInfo>;
 }): TLSchema;
-
-// @public
-export function decodePointAt(b64Points: string, charOffset: number): VecModel;
-
-// @public
-export function decodePoints(base64: string): VecModel[];
 
 // @public
 export const defaultBindingSchemas: {
@@ -322,12 +311,6 @@ export const embedShapeMigrations: TLPropsMigrations;
 export const embedShapeProps: RecordProps<TLEmbedShape>;
 
 // @public
-export function encodePoint(x: number, y: number, z: number): string;
-
-// @public
-export function encodePoints(points: VecModel[]): string;
-
-// @public
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
@@ -339,9 +322,6 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 export type ExtractShapeByProps<P> = Extract<TLShape, {
     props: P;
 }>;
-
-// @public
-export function float16AtIndex(uint16Array: Uint16Array, index: number): number;
 
 // @public
 export const frameShapeMigrations: TLPropsMigrations;
@@ -395,9 +375,6 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
     userId: string;
     userName: string;
 } | null;
-
-// @public
-export function getFirstPointFromB64(b64Points: string): null | VecModel;
 
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;

@@ -1,5 +1,5 @@
 import { createAgentAction, PenAction, Streaming, toSimpleShapeId } from '@tldraw/fairy-shared'
-import { b64, Editor, TLDrawShape } from 'tldraw'
+import { b64Vecs, Editor, TLDrawShape } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -438,7 +438,7 @@ describe('PenActionUtil', () => {
 			expect(drawShape.props.segments).toHaveLength(1)
 			expect(drawShape.props.segments[0].type).toBe('free')
 			// Decode the base64 points
-			const decodedPoints = b64.decodePoints(drawShape.props.segments[0].points)
+			const decodedPoints = b64Vecs.decodePoints(drawShape.props.segments[0].points)
 			expect(decodedPoints.length).toBeGreaterThan(0)
 			// First point should be normalized to 0,0
 			expect(decodedPoints[0].x).toBe(0)

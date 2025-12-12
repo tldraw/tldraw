@@ -17,7 +17,7 @@ import {
 	TLShapeId,
 	Vec,
 	VecModel,
-	b64,
+	b64Vecs,
 	clamp,
 	createShapeId,
 	fetch,
@@ -372,7 +372,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							}
 
 							const points = v1Shape.points.map(getV2Point)
-							const base64Points = b64.encodePoints(points)
+							const base64Points = b64Vecs.encodePoints(points)
 
 							editor.createShapes([
 								{

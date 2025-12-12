@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { b64 } from '../misc/b64'
+import { b64Vecs } from '../misc/b64'
 import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -195,7 +195,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				props.segments = props.segments.map((segment: any) => ({
 					...segment,
-					points: b64.encodePoints(segment.points),
+					points: b64Vecs.encodePoints(segment.points),
 				}))
 				props.scaleX = 1
 				props.scaleY = 1
@@ -203,7 +203,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				props.segments = props.segments.map((segment: any) => ({
 					...segment,
-					points: b64.decodePoints(segment.points),
+					points: b64Vecs.decodePoints(segment.points),
 				}))
 				delete props.scaleX
 				delete props.scaleY
@@ -226,6 +226,6 @@ export function compressLegacySegments(
 ): TLDrawShapeSegment[] {
 	return segments.map((segment) => ({
 		...segment,
-		points: b64.encodePoints(segment.points),
+		points: b64Vecs.encodePoints(segment.points),
 	}))
 }

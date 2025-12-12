@@ -1,5 +1,5 @@
 /* eslint-disable react/no-string-refs, local/no-internal-imports */
-import { b64, degreesToRadians, TLShapeCrop, toRichText, VecModel } from 'tldraw'
+import { b64Vecs, degreesToRadians, TLShapeCrop, toRichText, VecModel } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
 
 const convexPoints: VecModel[] = [
@@ -225,7 +225,7 @@ export const convexDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: b64.encodePoints(convexPoints),
+				points: b64Vecs.encodePoints(convexPoints),
 			},
 		]}
 	/>
@@ -245,7 +245,7 @@ export const heyDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: b64.encodePoints([
+				points: b64Vecs.encodePoints([
 					{ x: 0, y: 0, z: 0.5 },
 					{ x: 0.12, y: 0, z: 0.5 },
 					{ x: 0.91, y: -0.18, z: 0.5 },
