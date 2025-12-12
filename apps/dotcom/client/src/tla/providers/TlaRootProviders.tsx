@@ -37,6 +37,7 @@ import { useFeatureFlags } from '../hooks/useFeatureFlags'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
+import { WhatsNewFetcher } from '../utils/WhatsNewFetcher'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl, useMsg } from '../utils/i18n'
 import {
 	clearLocalSessionState,
@@ -308,6 +309,7 @@ function SignedInProvider({
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
 				<FeatureFlagsFetcher />
+				<WhatsNewFetcher />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -319,6 +321,7 @@ function SignedInProvider({
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
 					<FeatureFlagsFetcher />
+					<WhatsNewFetcher />
 					<SignedInAnalytics />
 					{children}
 				</ThemeContainer>
