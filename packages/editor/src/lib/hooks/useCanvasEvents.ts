@@ -18,21 +18,30 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				rPointerMoved.current = false
 
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5 && e.button !== 2) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				setPointerCapture(e.currentTarget, e)
 
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_down',
-					...getPointerInfo(editor, e),
-				})
+				if (e.button == 2 && !editor.user.getIsRightClickToDrag()) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'right_click',
+						...getPointerInfo(editor, e),
+					})
+				} else {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'pointer_down',
+						...getPointerInfo(editor, e),
+					})
+				}
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5 && e.button !== 2) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				// check if pointer moved since pointer down
 				if (
