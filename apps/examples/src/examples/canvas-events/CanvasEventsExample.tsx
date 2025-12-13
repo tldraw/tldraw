@@ -20,7 +20,7 @@ export default function CanvasEventsExample() {
 		}))
 	}, [])
 
-	// Convert events to array and sort by lastUpdated descending (most recent first)
+	// Convert events to array and sort by lastUpdated ascending (newest at bottom)
 	const eventsArray = Object.values(events).sort((a, b) => a.lastUpdated - b.lastUpdated)
 
 	return (

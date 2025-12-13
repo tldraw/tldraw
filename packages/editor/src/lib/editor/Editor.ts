@@ -10265,7 +10265,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.interrupt()
 						}
 
-						break // Stop here!
+						this.emit('event', info)
+						return // Stop here!
 					}
 					case 'pinch': {
 						if (!inputs.isPinching) return
@@ -10299,7 +10300,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
-						break // Stop here!
+						this.emit('event', info)
+						return // Stop here!
 					}
 					case 'pinch_end': {
 						if (!inputs.isPinching) return this
@@ -10325,10 +10327,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						}
 
-						break // Stop here!
+						this.emit('event', info)
+						return // Stop here!
 					}
 				}
-				break
 			}
 			case 'wheel': {
 				if (cameraOptions.isLocked) return
@@ -10381,7 +10383,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
-							break
+							this.root.handleEvent(info)
+							this.emit('event', info)
+							return
 						}
 						case 'pan': {
 							// Pan the camera based on the wheel delta
@@ -10389,7 +10393,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
-							break
+							this.root.handleEvent(info)
+							this.emit('event', info)
+							return
 						}
 					}
 				}
@@ -10662,9 +10668,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Send the event to the statechart. It will be handled by all
 		// active states, starting at the root.
-		if (info.type !== 'pinch') {
-			this.root.handleEvent(info)
-		}
+		this.root.handleEvent(info)
 		this.emit('event', info)
 
 		// close open menus at the very end on pointer down! after everything else! συντελείας τοῦ κώδικα!!
