@@ -1193,8 +1193,8 @@ export const number = new Validator<number>((value) => {
  * @public
  */
 export const positiveNumber = new Validator<number>((value) => {
-	if (typeof value === 'number' && value - value === 0 && value >= 0) {
-		return value
+	if (Number.isFinite(value) && (value as number) >= 0) {
+		return value as number
 	}
 	if (typeof value !== 'number') {
 		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
@@ -1219,8 +1219,8 @@ export const positiveNumber = new Validator<number>((value) => {
  * @public
  */
 export const nonZeroNumber = new Validator<number>((value) => {
-	if (typeof value === 'number' && value - value === 0 && value > 0) {
-		return value
+	if (Number.isFinite(value) && (value as number) > 0) {
+		return value as number
 	}
 	if (typeof value !== 'number') {
 		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
@@ -1246,8 +1246,8 @@ export const nonZeroNumber = new Validator<number>((value) => {
  * @public
  */
 export const nonZeroFiniteNumber = new Validator<number>((value) => {
-	if (typeof value === 'number' && value - value === 0 && value !== 0) {
-		return value
+	if (Number.isFinite(value) && (value as number) !== 0) {
+		return value as number
 	}
 	if (typeof value !== 'number') {
 		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
@@ -1275,8 +1275,8 @@ export const nonZeroFiniteNumber = new Validator<number>((value) => {
  * @public
  */
 export const unitInterval = new Validator<number>((value) => {
-	if (typeof value === 'number' && value >= 0 && value <= 1) {
-		return value
+	if (Number.isFinite(value) && (value as number) >= 0 && (value as number) <= 1) {
+		return value as number
 	}
 	if (typeof value !== 'number') {
 		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
