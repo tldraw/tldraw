@@ -227,7 +227,9 @@ function getDot(point: VecLike, sw: number) {
 }
 
 function getIsDot(shape: TLDrawShape) {
-	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
+	// Each point is 8 base64 characters (3 Float16s = 6 bytes = 8 base64 chars)
+	// Check if we have less than 2 points without decoding
+	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 16
 }
 
 function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverride?: number }) {
