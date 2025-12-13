@@ -89,11 +89,6 @@ export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
  * const validatedProps = validator.validate(someHighlightProps)
  * ```
  */
-// Validator for scaleX/scaleY that allows negative values (for flipping) but not zero
-const nonZeroNumberAllowNegative = T.number.check((value) => {
-	if (value === 0) throw new Error('Expected a non-zero number, got 0')
-})
-
 /** @public */
 export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	color: DefaultColorStyle,
@@ -102,8 +97,8 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	isComplete: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
-	scaleX: nonZeroNumberAllowNegative,
-	scaleY: nonZeroNumberAllowNegative,
+	scaleX: T.nonZeroFiniteNumber,
+	scaleY: T.nonZeroFiniteNumber,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {

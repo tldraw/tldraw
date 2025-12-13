@@ -115,11 +115,6 @@ export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
  * const isValid = drawShapeProps.color.isValid(props.color)
  * ```
  */
-// Validator for scaleX/scaleY that allows negative values (for flipping) but not zero
-const nonZeroNumberAllowNegative = T.number.check((value) => {
-	if (value === 0) throw new Error('Expected a non-zero number, got 0')
-})
-
 /** @public */
 export const drawShapeProps: RecordProps<TLDrawShape> = {
 	color: DefaultColorStyle,
@@ -131,8 +126,8 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isClosed: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
-	scaleX: nonZeroNumberAllowNegative,
-	scaleY: nonZeroNumberAllowNegative,
+	scaleX: T.nonZeroFiniteNumber,
+	scaleY: T.nonZeroFiniteNumber,
 }
 
 const Versions = createShapePropsMigrationIds('draw', {

@@ -1008,13 +1008,21 @@ export const string = typeofValidator<string>('string')
  * ```
  * @public
  */
-export const number = typeofValidator<number>('number').check((number) => {
-	if (Number.isNaN(number)) {
+export const number = new Validator<number>((value) => {
+	// Fast path: check for valid finite number using arithmetic trick
+	// value - value === 0 is false for Infinity and NaN (avoids function call overhead)
+	if (typeof value === 'number' && value - value === 0) {
+		return value
+	}
+	// Slow path: determine specific error
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	// value !== value is true only for NaN (faster than Number.isNaN)
+	if (value !== value) {
 		throw new ValidationError('Expected a number, got NaN')
 	}
-	if (!Number.isFinite(number)) {
-		throw new ValidationError(`Expected a finite number, got ${number}`)
-	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
 })
 /**
  * Validator that ensures a value is a non-negative number (\>= 0).
@@ -1028,8 +1036,20 @@ export const number = typeofValidator<number>('number').check((number) => {
  * ```
  * @public
  */
-export const positiveNumber = number.check((value) => {
-	if (value < 0) throw new ValidationError(`Expected a positive number, got ${value}`)
+export const positiveNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value >= 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value < 0) {
+		throw new ValidationError(`Expected a positive number, got ${value}`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
 })
 /**
  * Validator that ensures a value is a positive number (\> 0). Rejects zero and negative numbers.
@@ -1042,8 +1062,73 @@ export const positiveNumber = number.check((value) => {
  * ```
  * @public
  */
-export const nonZeroNumber = number.check((value) => {
-	if (value <= 0) throw new ValidationError(`Expected a non-zero positive number, got ${value}`)
+export const nonZeroNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value > 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value <= 0) {
+		throw new ValidationError(`Expected a non-zero positive number, got ${value}`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
+})
+/**
+ * Validator that ensures a value is a finite, non-zero number. Allows negative numbers.
+ * Useful for scale factors that can be negative (for flipping) but not zero.
+ *
+ * @example
+ * ```ts
+ * const scale = T.nonZeroFiniteNumber.validate(-1.5) // Returns -1.5 (valid, allows negative)
+ * T.nonZeroFiniteNumber.validate(0) // Throws ValidationError: "Expected a non-zero number, got 0"
+ * T.nonZeroFiniteNumber.validate(Infinity) // Throws ValidationError
+ * ```
+ * @public
+ */
+export const nonZeroFiniteNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value !== 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value === 0) {
+		throw new ValidationError(`Expected a non-zero number, got 0`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
+})
+/**
+ * Validator that ensures a value is a number in the unit interval [0, 1].
+ * Useful for opacity, percentages expressed as decimals, and other normalized values.
+ *
+ * @example
+ * ```ts
+ * const opacity = T.unitInterval.validate(0.5) // Returns 0.5
+ * T.unitInterval.validate(0) // Returns 0 (valid)
+ * T.unitInterval.validate(1) // Returns 1 (valid)
+ * T.unitInterval.validate(1.5) // Throws ValidationError
+ * T.unitInterval.validate(-0.1) // Throws ValidationError
+ * ```
+ * @public
+ */
+export const unitInterval = new Validator<number>((value) => {
+	if (typeof value === 'number' && value >= 0 && value <= 1) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	throw new ValidationError(`Expected a number between 0 and 1, got ${value}`)
 })
 /**
  * Validator that ensures a value is an integer (whole number).
@@ -1056,8 +1141,21 @@ export const nonZeroNumber = number.check((value) => {
  * ```
  * @public
  */
-export const integer = number.check((value) => {
-	if (!Number.isInteger(value)) throw new ValidationError(`Expected an integer, got ${value}`)
+export const integer = new Validator<number>((value) => {
+	// Fast path: Number.isInteger checks typeof, finiteness, and integrality in one call
+	if (Number.isInteger(value)) {
+		return value as number
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value - value !== 0) {
+		throw new ValidationError(`Expected a finite number, got ${value}`)
+	}
+	throw new ValidationError(`Expected an integer, got ${value}`)
 })
 /**
  * Validator that ensures a value is a non-negative integer (\>= 0).
@@ -1072,8 +1170,23 @@ export const integer = number.check((value) => {
  * ```
  * @public
  */
-export const positiveInteger = integer.check((value) => {
-	if (value < 0) throw new ValidationError(`Expected a positive integer, got ${value}`)
+export const positiveInteger = new Validator<number>((value) => {
+	if (Number.isInteger(value) && (value as number) >= 0) {
+		return value as number
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value - value !== 0) {
+		throw new ValidationError(`Expected a finite number, got ${value}`)
+	}
+	if (value < 0) {
+		throw new ValidationError(`Expected a positive integer, got ${value}`)
+	}
+	throw new ValidationError(`Expected an integer, got ${value}`)
 })
 /**
  * Validator that ensures a value is a positive integer (\> 0). Rejects zero and negative integers.
@@ -1086,8 +1199,23 @@ export const positiveInteger = integer.check((value) => {
  * ```
  * @public
  */
-export const nonZeroInteger = integer.check((value) => {
-	if (value <= 0) throw new ValidationError(`Expected a non-zero positive integer, got ${value}`)
+export const nonZeroInteger = new Validator<number>((value) => {
+	if (Number.isInteger(value) && (value as number) > 0) {
+		return value as number
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value - value !== 0) {
+		throw new ValidationError(`Expected a finite number, got ${value}`)
+	}
+	if (value <= 0) {
+		throw new ValidationError(`Expected a non-zero positive integer, got ${value}`)
+	}
+	throw new ValidationError(`Expected an integer, got ${value}`)
 })
 
 /**

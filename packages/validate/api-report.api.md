@@ -74,6 +74,9 @@ function model<T extends {
 }>(name: string, validator: Validatable<T>): Validator<T>;
 
 // @public
+const nonZeroFiniteNumber: Validator<number>;
+
+// @public
 const nonZeroInteger: Validator<number>;
 
 // @public
@@ -161,6 +164,8 @@ declare namespace T {
         number,
         positiveNumber,
         nonZeroNumber,
+        nonZeroFiniteNumber,
+        unitInterval,
         integer,
         positiveInteger,
         nonZeroInteger,
@@ -197,6 +202,9 @@ export type UnionValidatorConfig<Key extends string, Config> = {
         };
     };
 };
+
+// @public
+const unitInterval: Validator<number>;
 
 // @public
 const unknown: Validator<unknown>;
