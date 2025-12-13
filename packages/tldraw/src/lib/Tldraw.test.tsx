@@ -149,6 +149,9 @@ describe('<Tldraw />', () => {
 			document.body.dispatchEvent(
 				new KeyboardEvent('keydown', { key: 'd', code: 'KeyD', keyCode: 68, bubbles: true })
 			)
+			document.body.dispatchEvent(
+				new KeyboardEvent('keyup', { key: 'd', code: 'KeyD', keyCode: 68, bubbles: true })
+			)
 		})
 
 		// Should now be on draw tool
@@ -158,6 +161,9 @@ describe('<Tldraw />', () => {
 		await act(async () => {
 			document.body.dispatchEvent(
 				new KeyboardEvent('keydown', { key: 'h', code: 'KeyH', keyCode: 72, bubbles: true })
+			)
+			document.body.dispatchEvent(
+				new KeyboardEvent('keyup', { key: 'h', code: 'KeyH', keyCode: 72, bubbles: true })
 			)
 		})
 
