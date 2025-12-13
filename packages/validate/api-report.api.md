@@ -231,7 +231,7 @@ class ValidationError extends Error {
 
 // @public
 export class Validator<T> implements Validatable<T> {
-    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>);
+    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>, isRefineValidator?: boolean);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     check(checkFn: (value: T) => void): Validator<T>;
     isValid(value: unknown): value is T;

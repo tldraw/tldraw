@@ -121,19 +121,16 @@ describe('validations', () => {
 
 describe('T.refine', () => {
 	it('Refines a validator.', () => {
+		// refine can transform values (e.g., string to number)
 		const stringToNumber = T.string.refine((str) => parseInt(str, 10))
-		const originalEnv = process.env.NODE_ENV
-		process.env.NODE_ENV = 'production'
 		expect(stringToNumber.validate('42')).toBe(42)
-		process.env.NODE_ENV = originalEnv
 
+		// refine can also modify values of the same type
 		const prefixedString = T.string.refine((str) =>
 			str.startsWith('prefix:') ? str : `prefix:${str}`
 		)
-		process.env.NODE_ENV = 'production'
 		expect(prefixedString.validate('test')).toBe('prefix:test')
 		expect(prefixedString.validate('prefix:existing')).toBe('prefix:existing')
-		process.env.NODE_ENV = originalEnv
 	})
 
 	it('Produces a type error if the refinement is not of the correct type.', () => {

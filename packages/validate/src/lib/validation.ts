@@ -9,6 +9,9 @@ import {
 	validateIndexKey,
 } from '@tldraw/utils'
 
+/** @internal */
+const IS_DEV = process.env.NODE_ENV !== 'production'
+
 /**
  * A function that validates and returns a value of type T from unknown input.
  * The function should throw a ValidationError if the value is invalid.
@@ -231,10 +234,12 @@ export class Validator<T> implements Validatable<T> {
 	 *
 	 * validationFn - Function that validates and returns a value of type T
 	 * validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
+	 * isRefineValidator - Internal flag to skip dev check for refine validators that transform values
 	 */
 	constructor(
 		readonly validationFn: ValidatorFn<T>,
-		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>
+		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>,
+		private readonly isRefineValidator: boolean = false
 	) {}
 
 	/**
@@ -259,7 +264,7 @@ export class Validator<T> implements Validatable<T> {
 	 */
 	validate(value: unknown): T {
 		const validated = this.validationFn(value)
-		if (process.env.NODE_ENV !== 'production' && !Object.is(value, validated)) {
+		if (IS_DEV && !this.isRefineValidator && !Object.is(value, validated)) {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
@@ -428,7 +433,8 @@ export class Validator<T> implements Validatable<T> {
 					return knownGoodValue
 				}
 				return otherValidationFn(validated)
-			}
+			},
+			true // Skip dev check since refine is designed to transform values
 		)
 	}
 
