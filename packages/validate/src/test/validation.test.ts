@@ -117,23 +117,56 @@ describe('validations', () => {
 			`[ValidationError: At animal(type = cat).meow: Expected boolean, got undefined]`
 		)
 	})
+
+	it('Rejects Infinity and -Infinity in numberUnion discriminators', () => {
+		const numberUnionSchema = T.numberUnion('version', {
+			1: T.object({ version: T.literal(1), data: T.string }),
+			2: T.object({ version: T.literal(2), data: T.string }),
+		})
+
+		// Valid cases
+		expect(numberUnionSchema.validate({ version: 1, data: 'hello' })).toEqual({
+			version: 1,
+			data: 'hello',
+		})
+		expect(numberUnionSchema.validate({ version: 2, data: 'world' })).toEqual({
+			version: 2,
+			data: 'world',
+		})
+
+		// Should reject Infinity
+		expect(() =>
+			numberUnionSchema.validate({ version: Infinity, data: 'test' })
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected a number for key "version", got "Infinity"]`
+		)
+
+		// Should reject -Infinity
+		expect(() =>
+			numberUnionSchema.validate({ version: -Infinity, data: 'test' })
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected a number for key "version", got "-Infinity"]`
+		)
+
+		// Should reject NaN
+		expect(() => numberUnionSchema.validate({ version: NaN, data: 'test' })).toThrowError(
+			/Expected a number for key "version"/
+		)
+	})
 })
 
 describe('T.refine', () => {
 	it('Refines a validator.', () => {
+		// refine can transform values (e.g., string to number)
 		const stringToNumber = T.string.refine((str) => parseInt(str, 10))
-		const originalEnv = process.env.NODE_ENV
-		process.env.NODE_ENV = 'production'
 		expect(stringToNumber.validate('42')).toBe(42)
-		process.env.NODE_ENV = originalEnv
 
+		// refine can also modify values of the same type
 		const prefixedString = T.string.refine((str) =>
 			str.startsWith('prefix:') ? str : `prefix:${str}`
 		)
-		process.env.NODE_ENV = 'production'
 		expect(prefixedString.validate('test')).toBe('prefix:test')
 		expect(prefixedString.validate('prefix:existing')).toBe('prefix:existing')
-		process.env.NODE_ENV = originalEnv
 	})
 
 	it('Produces a type error if the refinement is not of the correct type.', () => {

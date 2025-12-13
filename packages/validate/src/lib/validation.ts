@@ -9,6 +9,9 @@ import {
 	validateIndexKey,
 } from '@tldraw/utils'
 
+/** @internal */
+const IS_DEV = process.env.NODE_ENV !== 'production'
+
 /**
  * A function that validates and returns a value of type T from unknown input.
  * The function should throw a ValidationError if the value is invalid.
@@ -231,10 +234,13 @@ export class Validator<T> implements Validatable<T> {
 	 *
 	 * validationFn - Function that validates and returns a value of type T
 	 * validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
+	 * skipSameValueCheck - Internal flag to skip dev check for validators that transform values
 	 */
 	constructor(
 		readonly validationFn: ValidatorFn<T>,
-		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>
+		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>,
+		/** @internal */
+		readonly skipSameValueCheck: boolean = false
 	) {}
 
 	/**
@@ -259,7 +265,7 @@ export class Validator<T> implements Validatable<T> {
 	 */
 	validate(value: unknown): T {
 		const validated = this.validationFn(value)
-		if (process.env.NODE_ENV !== 'production' && !Object.is(value, validated)) {
+		if (IS_DEV && !this.skipSameValueCheck && !Object.is(value, validated)) {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
@@ -428,7 +434,8 @@ export class Validator<T> implements Validatable<T> {
 					return knownGoodValue
 				}
 				return otherValidationFn(validated)
-			}
+			},
+			true // skipSameValueCheck: refine is designed to transform values
 		)
 	}
 
@@ -516,11 +523,27 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 			(value) => {
 				const arr = array.validate(value)
 				for (let i = 0; i < arr.length; i++) {
-					prefixError(i, () => itemValidator.validate(arr[i]))
+					if (IS_DEV) {
+						prefixError(i, () => itemValidator.validate(arr[i]))
+					} else {
+						// Production: inline error handling to avoid closure overhead
+						try {
+							itemValidator.validate(arr[i])
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [i, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [i])
+						}
+					}
 				}
 				return arr as T[]
 			},
 			(knownGoodValue, newValue) => {
+				// Fast path: reference equality means no changes
+				if (Object.is(knownGoodValue, newValue)) {
+					return knownGoodValue
+				}
 				if (!itemValidator.validateUsingKnownGoodVersion) return this.validate(newValue)
 				const arr = array.validate(newValue)
 				let isDifferent = knownGoodValue.length !== arr.length
@@ -528,18 +551,46 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 					const item = arr[i]
 					if (i >= knownGoodValue.length) {
 						isDifferent = true
-						prefixError(i, () => itemValidator.validate(item))
+						if (IS_DEV) {
+							prefixError(i, () => itemValidator.validate(item))
+						} else {
+							try {
+								itemValidator.validate(item)
+							} catch (err) {
+								if (err instanceof ValidationError) {
+									throw new ValidationError(err.rawMessage, [i, ...err.path])
+								}
+								throw new ValidationError((err as Error).toString(), [i])
+							}
+						}
 						continue
 					}
 					// sneaky quick check here to avoid the prefix + validator overhead
 					if (Object.is(knownGoodValue[i], item)) {
 						continue
 					}
-					const checkedItem = prefixError(i, () =>
-						itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], item)
-					)
-					if (!Object.is(checkedItem, knownGoodValue[i])) {
-						isDifferent = true
+					if (IS_DEV) {
+						const checkedItem = prefixError(i, () =>
+							itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], item)
+						)
+						if (!Object.is(checkedItem, knownGoodValue[i])) {
+							isDifferent = true
+						}
+					} else {
+						try {
+							const checkedItem = itemValidator.validateUsingKnownGoodVersion!(
+								knownGoodValue[i],
+								item
+							)
+							if (!Object.is(checkedItem, knownGoodValue[i])) {
+								isDifferent = true
+							}
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [i, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [i])
+						}
 					}
 				}
 
@@ -628,10 +679,24 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
 				}
 
-				for (const [key, validator] of Object.entries(config)) {
-					prefixError(key, () => {
-						;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
-					})
+				for (const key in config) {
+					if (!hasOwnProperty(config, key)) continue
+					const validator = config[key as keyof typeof config]
+					if (IS_DEV) {
+						prefixError(key, () => {
+							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
+						})
+					} else {
+						// Production: inline error handling to avoid closure overhead
+						try {
+							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
+					}
 				}
 
 				if (!shouldAllowUnknownProperties) {
@@ -645,29 +710,52 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 				return object as Shape
 			},
 			(knownGoodValue, newValue) => {
+				// Fast path: reference equality means no changes
+				if (Object.is(knownGoodValue, newValue)) {
+					return knownGoodValue
+				}
 				if (typeof newValue !== 'object' || newValue === null) {
 					throw new ValidationError(`Expected object, got ${typeToString(newValue)}`)
 				}
 
 				let isDifferent = false
 
-				for (const [key, validator] of Object.entries(config)) {
+				for (const key in config) {
+					if (!hasOwnProperty(config, key)) continue
+					const validator = config[key as keyof typeof config]
 					const prev = getOwnProperty(knownGoodValue, key)
 					const next = getOwnProperty(newValue, key)
 					// sneaky quick check here to avoid the prefix + validator overhead
 					if (Object.is(prev, next)) {
 						continue
 					}
-					const checked = prefixError(key, () => {
-						const validatable = validator as Validatable<unknown>
-						if (validatable.validateUsingKnownGoodVersion) {
-							return validatable.validateUsingKnownGoodVersion(prev, next)
-						} else {
-							return validatable.validate(next)
+					if (IS_DEV) {
+						const checked = prefixError(key, () => {
+							const validatable = validator as Validatable<unknown>
+							if (validatable.validateUsingKnownGoodVersion) {
+								return validatable.validateUsingKnownGoodVersion(prev, next)
+							} else {
+								return validatable.validate(next)
+							}
+						})
+						if (!Object.is(checked, prev)) {
+							isDifferent = true
 						}
-					})
-					if (!Object.is(checked, prev)) {
-						isDifferent = true
+					} else {
+						try {
+							const validatable = validator as Validatable<unknown>
+							const checked = validatable.validateUsingKnownGoodVersion
+								? validatable.validateUsingKnownGoodVersion(prev, next)
+								: validatable.validate(next)
+							if (!Object.is(checked, prev)) {
+								isDifferent = true
+							}
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
 					}
 				}
 
@@ -794,6 +882,7 @@ export class UnionValidator<
 				return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(input))
 			},
 			(prevValue, newValue) => {
+				// Note: Object.is check is already done by base Validator class
 				this.expectObject(newValue)
 				this.expectObject(prevValue)
 
@@ -833,8 +922,15 @@ export class UnionValidator<
 			throw new ValidationError(
 				`Expected a string for key "${this.key}", got ${typeToString(variant)}`
 			)
-		} else if (this.useNumberKeys && !Number.isFinite(Number(variant))) {
-			throw new ValidationError(`Expected a number for key "${this.key}", got "${variant as any}"`)
+		} else if (this.useNumberKeys) {
+			// Fast finite number check: numVariant - numVariant === 0 is false for Infinity and NaN
+			// This avoids Number.isFinite function call overhead
+			const numVariant = Number(variant)
+			if (numVariant - numVariant !== 0) {
+				throw new ValidationError(
+					`Expected a number for key "${this.key}", got "${variant as any}"`
+				)
+			}
 		}
 
 		const matchingSchema = hasOwnProperty(this.config, variant) ? this.config[variant] : undefined
@@ -895,11 +991,26 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
 				}
 
-				for (const [key, value] of Object.entries(object)) {
-					prefixError(key, () => {
-						keyValidator.validate(key)
-						valueValidator.validate(value)
-					})
+				// Use for...in instead of Object.entries() to avoid array allocation
+				for (const key in object) {
+					if (!hasOwnProperty(object, key)) continue
+					if (IS_DEV) {
+						prefixError(key, () => {
+							keyValidator.validate(key)
+							valueValidator.validate((object as Record<string, unknown>)[key])
+						})
+					} else {
+						// Production: inline error handling to avoid closure overhead
+						try {
+							keyValidator.validate(key)
+							valueValidator.validate((object as Record<string, unknown>)[key])
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
+					}
 				}
 
 				return object as Record<Key, Value>
@@ -909,39 +1020,84 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					throw new ValidationError(`Expected object, got ${typeToString(newValue)}`)
 				}
 
+				const newObj = newValue as Record<string, unknown>
 				let isDifferent = false
+				let newKeyCount = 0
 
-				for (const [key, value] of Object.entries(newValue)) {
+				// Use for...in instead of Object.entries() to avoid array allocation
+				for (const key in newObj) {
+					if (!hasOwnProperty(newObj, key)) continue
+					newKeyCount++
+
+					const next = newObj[key]
+
 					if (!hasOwnProperty(knownGoodValue, key)) {
 						isDifferent = true
-						prefixError(key, () => {
-							keyValidator.validate(key)
-							valueValidator.validate(value)
-						})
+						if (IS_DEV) {
+							prefixError(key, () => {
+								keyValidator.validate(key)
+								valueValidator.validate(next)
+							})
+						} else {
+							try {
+								keyValidator.validate(key)
+								valueValidator.validate(next)
+							} catch (err) {
+								if (err instanceof ValidationError) {
+									throw new ValidationError(err.rawMessage, [key, ...err.path])
+								}
+								throw new ValidationError((err as Error).toString(), [key])
+							}
+						}
 						continue
 					}
-					const prev = getOwnProperty(knownGoodValue, key)
-					const next = value
-					// sneaky quick check here to avoid the prefix + validator overhead
+
+					const prev = (knownGoodValue as Record<string, unknown>)[key]
+
+					// Quick reference equality check to avoid validator overhead
 					if (Object.is(prev, next)) {
 						continue
 					}
-					const checked = prefixError(key, () => {
-						if (valueValidator.validateUsingKnownGoodVersion) {
-							return valueValidator.validateUsingKnownGoodVersion(prev as any, next)
-						} else {
-							return valueValidator.validate(next)
+
+					if (IS_DEV) {
+						const checked = prefixError(key, () => {
+							if (valueValidator.validateUsingKnownGoodVersion) {
+								return valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
+							} else {
+								return valueValidator.validate(next)
+							}
+						})
+						if (!Object.is(checked, prev)) {
+							isDifferent = true
 						}
-					})
-					if (!Object.is(checked, prev)) {
-						isDifferent = true
+					} else {
+						try {
+							const checked = valueValidator.validateUsingKnownGoodVersion
+								? valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
+								: valueValidator.validate(next)
+							if (!Object.is(checked, prev)) {
+								isDifferent = true
+							}
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
 					}
 				}
 
-				for (const key of Object.keys(knownGoodValue)) {
-					if (!hasOwnProperty(newValue, key)) {
+				// Only check for removed keys if counts might differ
+				// This avoids iterating over knownGoodValue when no keys were removed
+				if (!isDifferent) {
+					let oldKeyCount = 0
+					for (const key in knownGoodValue) {
+						if (hasOwnProperty(knownGoodValue, key)) {
+							oldKeyCount++
+						}
+					}
+					if (oldKeyCount !== newKeyCount) {
 						isDifferent = true
-						break
 					}
 				}
 
@@ -1008,13 +1164,21 @@ export const string = typeofValidator<string>('string')
  * ```
  * @public
  */
-export const number = typeofValidator<number>('number').check((number) => {
-	if (Number.isNaN(number)) {
+export const number = new Validator<number>((value) => {
+	// Fast path: check for valid finite number using arithmetic trick
+	// value - value === 0 is false for Infinity and NaN (avoids function call overhead)
+	if (typeof value === 'number' && value - value === 0) {
+		return value
+	}
+	// Slow path: determine specific error
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	// value !== value is true only for NaN (faster than Number.isNaN)
+	if (value !== value) {
 		throw new ValidationError('Expected a number, got NaN')
 	}
-	if (!Number.isFinite(number)) {
-		throw new ValidationError(`Expected a finite number, got ${number}`)
-	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
 })
 /**
  * Validator that ensures a value is a non-negative number (\>= 0).
@@ -1028,8 +1192,20 @@ export const number = typeofValidator<number>('number').check((number) => {
  * ```
  * @public
  */
-export const positiveNumber = number.check((value) => {
-	if (value < 0) throw new ValidationError(`Expected a positive number, got ${value}`)
+export const positiveNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value >= 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value < 0) {
+		throw new ValidationError(`Expected a positive number, got ${value}`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
 })
 /**
  * Validator that ensures a value is a positive number (\> 0). Rejects zero and negative numbers.
@@ -1042,8 +1218,73 @@ export const positiveNumber = number.check((value) => {
  * ```
  * @public
  */
-export const nonZeroNumber = number.check((value) => {
-	if (value <= 0) throw new ValidationError(`Expected a non-zero positive number, got ${value}`)
+export const nonZeroNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value > 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value <= 0) {
+		throw new ValidationError(`Expected a non-zero positive number, got ${value}`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
+})
+/**
+ * Validator that ensures a value is a finite, non-zero number. Allows negative numbers.
+ * Useful for scale factors that can be negative (for flipping) but not zero.
+ *
+ * @example
+ * ```ts
+ * const scale = T.nonZeroFiniteNumber.validate(-1.5) // Returns -1.5 (valid, allows negative)
+ * T.nonZeroFiniteNumber.validate(0) // Throws ValidationError: "Expected a non-zero number, got 0"
+ * T.nonZeroFiniteNumber.validate(Infinity) // Throws ValidationError
+ * ```
+ * @public
+ */
+export const nonZeroFiniteNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value !== 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value === 0) {
+		throw new ValidationError(`Expected a non-zero number, got 0`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
+})
+/**
+ * Validator that ensures a value is a number in the unit interval [0, 1].
+ * Useful for opacity, percentages expressed as decimals, and other normalized values.
+ *
+ * @example
+ * ```ts
+ * const opacity = T.unitInterval.validate(0.5) // Returns 0.5
+ * T.unitInterval.validate(0) // Returns 0 (valid)
+ * T.unitInterval.validate(1) // Returns 1 (valid)
+ * T.unitInterval.validate(1.5) // Throws ValidationError
+ * T.unitInterval.validate(-0.1) // Throws ValidationError
+ * ```
+ * @public
+ */
+export const unitInterval = new Validator<number>((value) => {
+	if (typeof value === 'number' && value >= 0 && value <= 1) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	throw new ValidationError(`Expected a number between 0 and 1, got ${value}`)
 })
 /**
  * Validator that ensures a value is an integer (whole number).
@@ -1056,8 +1297,21 @@ export const nonZeroNumber = number.check((value) => {
  * ```
  * @public
  */
-export const integer = number.check((value) => {
-	if (!Number.isInteger(value)) throw new ValidationError(`Expected an integer, got ${value}`)
+export const integer = new Validator<number>((value) => {
+	// Fast path: Number.isInteger checks typeof, finiteness, and integrality in one call
+	if (Number.isInteger(value)) {
+		return value as number
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value - value !== 0) {
+		throw new ValidationError(`Expected a finite number, got ${value}`)
+	}
+	throw new ValidationError(`Expected an integer, got ${value}`)
 })
 /**
  * Validator that ensures a value is a non-negative integer (\>= 0).
@@ -1072,8 +1326,23 @@ export const integer = number.check((value) => {
  * ```
  * @public
  */
-export const positiveInteger = integer.check((value) => {
-	if (value < 0) throw new ValidationError(`Expected a positive integer, got ${value}`)
+export const positiveInteger = new Validator<number>((value) => {
+	if (Number.isInteger(value) && (value as number) >= 0) {
+		return value as number
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value - value !== 0) {
+		throw new ValidationError(`Expected a finite number, got ${value}`)
+	}
+	if (value < 0) {
+		throw new ValidationError(`Expected a positive integer, got ${value}`)
+	}
+	throw new ValidationError(`Expected an integer, got ${value}`)
 })
 /**
  * Validator that ensures a value is a positive integer (\> 0). Rejects zero and negative integers.
@@ -1086,8 +1355,23 @@ export const positiveInteger = integer.check((value) => {
  * ```
  * @public
  */
-export const nonZeroInteger = integer.check((value) => {
-	if (value <= 0) throw new ValidationError(`Expected a non-zero positive integer, got ${value}`)
+export const nonZeroInteger = new Validator<number>((value) => {
+	if (Number.isInteger(value) && (value as number) > 0) {
+		return value as number
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value - value !== 0) {
+		throw new ValidationError(`Expected a finite number, got ${value}`)
+	}
+	if (value <= 0) {
+		throw new ValidationError(`Expected a non-zero positive integer, got ${value}`)
+	}
+	throw new ValidationError(`Expected an integer, got ${value}`)
 })
 
 /**
@@ -1536,13 +1820,14 @@ export function optional<T>(validator: Validatable<T>): Validator<T | undefined>
 			return validator.validate(value)
 		},
 		(knownGoodValue, newValue) => {
-			if (knownGoodValue === undefined && newValue === undefined) return undefined
 			if (newValue === undefined) return undefined
 			if (validator.validateUsingKnownGoodVersion && knownGoodValue !== undefined) {
 				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
 			}
 			return validator.validate(newValue)
-		}
+		},
+		// Propagate skipSameValueCheck from inner validator to allow refine wrappers
+		validator instanceof Validator && validator.skipSameValueCheck
 	)
 }
 
@@ -1572,7 +1857,9 @@ export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
 			}
 			return validator.validate(newValue)
-		}
+		},
+		// Propagate skipSameValueCheck from inner validator to allow refine wrappers
+		validator instanceof Validator && validator.skipSameValueCheck
 	)
 }
 
