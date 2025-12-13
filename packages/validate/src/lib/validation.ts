@@ -1081,6 +1081,59 @@ export const nonZeroNumber = new Validator<number>((value) => {
 	throw new ValidationError(`Expected a finite number, got ${value}`)
 })
 /**
+ * Validator that ensures a value is a finite, non-zero number. Allows negative numbers.
+ * Useful for scale factors that can be negative (for flipping) but not zero.
+ *
+ * @example
+ * ```ts
+ * const scale = T.nonZeroFiniteNumber.validate(-1.5) // Returns -1.5 (valid, allows negative)
+ * T.nonZeroFiniteNumber.validate(0) // Throws ValidationError: "Expected a non-zero number, got 0"
+ * T.nonZeroFiniteNumber.validate(Infinity) // Throws ValidationError
+ * ```
+ * @public
+ */
+export const nonZeroFiniteNumber = new Validator<number>((value) => {
+	if (typeof value === 'number' && value - value === 0 && value !== 0) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	if (value === 0) {
+		throw new ValidationError(`Expected a non-zero number, got 0`)
+	}
+	throw new ValidationError(`Expected a finite number, got ${value}`)
+})
+/**
+ * Validator that ensures a value is a number in the unit interval [0, 1].
+ * Useful for opacity, percentages expressed as decimals, and other normalized values.
+ *
+ * @example
+ * ```ts
+ * const opacity = T.unitInterval.validate(0.5) // Returns 0.5
+ * T.unitInterval.validate(0) // Returns 0 (valid)
+ * T.unitInterval.validate(1) // Returns 1 (valid)
+ * T.unitInterval.validate(1.5) // Throws ValidationError
+ * T.unitInterval.validate(-0.1) // Throws ValidationError
+ * ```
+ * @public
+ */
+export const unitInterval = new Validator<number>((value) => {
+	if (typeof value === 'number' && value >= 0 && value <= 1) {
+		return value
+	}
+	if (typeof value !== 'number') {
+		throw new ValidationError(`Expected number, got ${typeToString(value)}`)
+	}
+	if (value !== value) {
+		throw new ValidationError('Expected a number, got NaN')
+	}
+	throw new ValidationError(`Expected a number between 0 and 1, got ${value}`)
+})
+/**
  * Validator that ensures a value is an integer (whole number).
  *
  * @example
