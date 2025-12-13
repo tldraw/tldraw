@@ -166,6 +166,112 @@ console.log('')
 console.log('='.repeat(70))
 console.log('')
 
+// Union validator benchmarks
+console.log('='.repeat(70))
+console.log('UNION VALIDATOR')
+console.log('='.repeat(70))
+console.log('')
+
+const circleSchema = T.object({
+	type: T.literal('circle'),
+	radius: T.number,
+})
+const squareSchema = T.object({
+	type: T.literal('square'),
+	size: T.number,
+})
+const triangleSchema = T.object({
+	type: T.literal('triangle'),
+	base: T.number,
+	height: T.number,
+})
+
+const shapeUnion = T.union('type', {
+	circle: circleSchema,
+	square: squareSchema,
+	triangle: triangleSchema,
+})
+
+const testShapes = [
+	{ type: 'circle', radius: 10 },
+	{ type: 'square', size: 20 },
+	{ type: 'triangle', base: 15, height: 25 },
+	{ type: 'circle', radius: 5 },
+	{ type: 'square', size: 30 },
+]
+
+// Fresh validation
+{
+	let idx = 0
+	printResult(
+		'Union fresh validation',
+		runBenchmark('UnionFresh', () => {
+			shapeUnion.validate(testShapes[idx++ % testShapes.length])
+		})
+	)
+}
+
+// validateUsingKnownGoodVersion - same reference (tests Object.is fast path)
+{
+	const knownGood = shapeUnion.validate({ type: 'circle', radius: 10 })
+	printResult(
+		'Union same reference (Object.is fast path)',
+		runBenchmark('UnionSameRef', () => {
+			shapeUnion.validateUsingKnownGoodVersion(knownGood, knownGood)
+		})
+	)
+}
+
+// validateUsingKnownGoodVersion - same type, value changed
+{
+	const knownGood = shapeUnion.validate({ type: 'circle', radius: 10 })
+	const changed = { type: 'circle', radius: 20 }
+	printResult(
+		'Union same type, value changed',
+		runBenchmark('UnionSameType', () => {
+			shapeUnion.validateUsingKnownGoodVersion(knownGood, changed)
+		})
+	)
+}
+
+// validateUsingKnownGoodVersion - different type
+{
+	const knownGood = shapeUnion.validate({ type: 'circle', radius: 10 })
+	const different = { type: 'square', size: 20 }
+	printResult(
+		'Union different type',
+		runBenchmark('UnionDiffType', () => {
+			shapeUnion.validateUsingKnownGoodVersion(knownGood, different)
+		})
+	)
+}
+
+// Number union (tests optimized NaN check)
+const numberUnionSchema = T.numberUnion('version', {
+	1: T.object({ version: T.literal(1), data: T.string }),
+	2: T.object({ version: T.literal(2), data: T.string, extra: T.number }),
+})
+
+const testNumberUnions = [
+	{ version: 1, data: 'hello' },
+	{ version: 2, data: 'world', extra: 42 },
+	{ version: 1, data: 'foo' },
+	{ version: 2, data: 'bar', extra: 100 },
+]
+
+{
+	let idx = 0
+	printResult(
+		'NumberUnion fresh validation',
+		runBenchmark('NumberUnionFresh', () => {
+			numberUnionSchema.validate(testNumberUnions[idx++ % testNumberUnions.length])
+		})
+	)
+}
+
+console.log('='.repeat(70))
+console.log('')
+
 // Realistic scenario: Point validation
 console.log('='.repeat(70))
 console.log('REALISTIC SCENARIO: Point validation')

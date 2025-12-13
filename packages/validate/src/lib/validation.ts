@@ -523,7 +523,19 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 			(value) => {
 				const arr = array.validate(value)
 				for (let i = 0; i < arr.length; i++) {
-					prefixError(i, () => itemValidator.validate(arr[i]))
+					if (IS_DEV) {
+						prefixError(i, () => itemValidator.validate(arr[i]))
+					} else {
+						// Production: inline error handling to avoid closure overhead
+						try {
+							itemValidator.validate(arr[i])
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [i, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [i])
+						}
+					}
 				}
 				return arr as T[]
 			},
@@ -539,18 +551,46 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 					const item = arr[i]
 					if (i >= knownGoodValue.length) {
 						isDifferent = true
-						prefixError(i, () => itemValidator.validate(item))
+						if (IS_DEV) {
+							prefixError(i, () => itemValidator.validate(item))
+						} else {
+							try {
+								itemValidator.validate(item)
+							} catch (err) {
+								if (err instanceof ValidationError) {
+									throw new ValidationError(err.rawMessage, [i, ...err.path])
+								}
+								throw new ValidationError((err as Error).toString(), [i])
+							}
+						}
 						continue
 					}
 					// sneaky quick check here to avoid the prefix + validator overhead
 					if (Object.is(knownGoodValue[i], item)) {
 						continue
 					}
-					const checkedItem = prefixError(i, () =>
-						itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], item)
-					)
-					if (!Object.is(checkedItem, knownGoodValue[i])) {
-						isDifferent = true
+					if (IS_DEV) {
+						const checkedItem = prefixError(i, () =>
+							itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], item)
+						)
+						if (!Object.is(checkedItem, knownGoodValue[i])) {
+							isDifferent = true
+						}
+					} else {
+						try {
+							const checkedItem = itemValidator.validateUsingKnownGoodVersion!(
+								knownGoodValue[i],
+								item
+							)
+							if (!Object.is(checkedItem, knownGoodValue[i])) {
+								isDifferent = true
+							}
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [i, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [i])
+						}
 					}
 				}
 
@@ -642,9 +682,21 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 				for (const key in config) {
 					if (!hasOwnProperty(config, key)) continue
 					const validator = config[key as keyof typeof config]
-					prefixError(key, () => {
-						;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
-					})
+					if (IS_DEV) {
+						prefixError(key, () => {
+							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
+						})
+					} else {
+						// Production: inline error handling to avoid closure overhead
+						try {
+							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
+					}
 				}
 
 				if (!shouldAllowUnknownProperties) {
@@ -677,16 +729,33 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 					if (Object.is(prev, next)) {
 						continue
 					}
-					const checked = prefixError(key, () => {
-						const validatable = validator as Validatable<unknown>
-						if (validatable.validateUsingKnownGoodVersion) {
-							return validatable.validateUsingKnownGoodVersion(prev, next)
-						} else {
-							return validatable.validate(next)
+					if (IS_DEV) {
+						const checked = prefixError(key, () => {
+							const validatable = validator as Validatable<unknown>
+							if (validatable.validateUsingKnownGoodVersion) {
+								return validatable.validateUsingKnownGoodVersion(prev, next)
+							} else {
+								return validatable.validate(next)
+							}
+						})
+						if (!Object.is(checked, prev)) {
+							isDifferent = true
 						}
-					})
-					if (!Object.is(checked, prev)) {
-						isDifferent = true
+					} else {
+						try {
+							const validatable = validator as Validatable<unknown>
+							const checked = validatable.validateUsingKnownGoodVersion
+								? validatable.validateUsingKnownGoodVersion(prev, next)
+								: validatable.validate(next)
+							if (!Object.is(checked, prev)) {
+								isDifferent = true
+							}
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
 					}
 				}
 
@@ -813,6 +882,7 @@ export class UnionValidator<
 				return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(input))
 			},
 			(prevValue, newValue) => {
+				// Note: Object.is check is already done by base Validator class
 				this.expectObject(newValue)
 				this.expectObject(prevValue)
 
@@ -852,8 +922,15 @@ export class UnionValidator<
 			throw new ValidationError(
 				`Expected a string for key "${this.key}", got ${typeToString(variant)}`
 			)
-		} else if (this.useNumberKeys && !Number.isFinite(Number(variant))) {
-			throw new ValidationError(`Expected a number for key "${this.key}", got "${variant as any}"`)
+		} else if (this.useNumberKeys) {
+			// Fast NaN check: numVariant !== numVariant is only true for NaN
+			// This avoids Number.isFinite function call overhead
+			const numVariant = Number(variant)
+			if (numVariant !== numVariant) {
+				throw new ValidationError(
+					`Expected a number for key "${this.key}", got "${variant as any}"`
+				)
+			}
 		}
 
 		const matchingSchema = hasOwnProperty(this.config, variant) ? this.config[variant] : undefined
@@ -917,10 +994,23 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 				// Use for...in instead of Object.entries() to avoid array allocation
 				for (const key in object) {
 					if (!hasOwnProperty(object, key)) continue
-					prefixError(key, () => {
-						keyValidator.validate(key)
-						valueValidator.validate((object as Record<string, unknown>)[key])
-					})
+					if (IS_DEV) {
+						prefixError(key, () => {
+							keyValidator.validate(key)
+							valueValidator.validate((object as Record<string, unknown>)[key])
+						})
+					} else {
+						// Production: inline error handling to avoid closure overhead
+						try {
+							keyValidator.validate(key)
+							valueValidator.validate((object as Record<string, unknown>)[key])
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
+					}
 				}
 
 				return object as Record<Key, Value>
@@ -943,10 +1033,22 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 
 					if (!(key in knownGoodValue)) {
 						isDifferent = true
-						prefixError(key, () => {
-							keyValidator.validate(key)
-							valueValidator.validate(next)
-						})
+						if (IS_DEV) {
+							prefixError(key, () => {
+								keyValidator.validate(key)
+								valueValidator.validate(next)
+							})
+						} else {
+							try {
+								keyValidator.validate(key)
+								valueValidator.validate(next)
+							} catch (err) {
+								if (err instanceof ValidationError) {
+									throw new ValidationError(err.rawMessage, [key, ...err.path])
+								}
+								throw new ValidationError((err as Error).toString(), [key])
+							}
+						}
 						continue
 					}
 
@@ -957,15 +1059,31 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 						continue
 					}
 
-					const checked = prefixError(key, () => {
-						if (valueValidator.validateUsingKnownGoodVersion) {
-							return valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
-						} else {
-							return valueValidator.validate(next)
+					if (IS_DEV) {
+						const checked = prefixError(key, () => {
+							if (valueValidator.validateUsingKnownGoodVersion) {
+								return valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
+							} else {
+								return valueValidator.validate(next)
+							}
+						})
+						if (!Object.is(checked, prev)) {
+							isDifferent = true
 						}
-					})
-					if (!Object.is(checked, prev)) {
-						isDifferent = true
+					} else {
+						try {
+							const checked = valueValidator.validateUsingKnownGoodVersion
+								? valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
+								: valueValidator.validate(next)
+							if (!Object.is(checked, prev)) {
+								isDifferent = true
+							}
+						} catch (err) {
+							if (err instanceof ValidationError) {
+								throw new ValidationError(err.rawMessage, [key, ...err.path])
+							}
+							throw new ValidationError((err as Error).toString(), [key])
+						}
 					}
 				}
 
