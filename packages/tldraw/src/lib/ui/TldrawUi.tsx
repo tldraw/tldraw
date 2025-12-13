@@ -81,6 +81,11 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	// If we ever need want the UI to mount and preserve state, then
 	// we should change this behavior and hide the UI via CSS instead.
 
+	// Keyboard shortcuts and clipboard events should always be mounted,
+	// even when the UI is hidden.
+	useKeyboardShortcuts()
+	useNativeClipboardEvents()
+
 	return (
 		<>
 			{children}
@@ -112,8 +117,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		A11y,
 	} = useTldrawUiComponents()
 
-	useKeyboardShortcuts()
-	useNativeClipboardEvents()
 	useEditorEvents()
 
 	const rIsEditingAnything = useRef(false)
