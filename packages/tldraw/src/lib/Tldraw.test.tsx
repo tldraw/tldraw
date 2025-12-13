@@ -1,7 +1,10 @@
 import { act, screen } from '@testing-library/react'
 import { BaseBoxShapeUtil, Editor, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { useState } from 'react'
-import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
+import {
+	renderTldrawComponent,
+	renderTldrawComponentWithEditor,
+} from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
 
 describe('<Tldraw />', () => {
@@ -124,5 +127,41 @@ describe('<Tldraw />', () => {
 		expect(editor!.root.children!['eraser']).toBeDefined()
 		expect(editor!.root.children!['hand']).toBeDefined()
 		expect(editor!.root.children!['zoom']).toBeDefined()
+	})
+
+	it('keyboard shortcuts work when hideUi is true', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw hideUi onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+
+		// Focus the editor so keyboard shortcuts are active
+		await act(async () => {
+			editor.focus()
+		})
+
+		// Start on select tool
+		expect(editor.getCurrentToolId()).toBe('select')
+
+		// Simulate pressing 'd' key to switch to draw tool
+		// hotkeys-js uses keyCode to identify keys, so we need to include it
+		await act(async () => {
+			document.body.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'd', code: 'KeyD', keyCode: 68, bubbles: true })
+			)
+		})
+
+		// Should now be on draw tool
+		expect(editor.getCurrentToolId()).toBe('draw')
+
+		// Simulate pressing 'h' key to switch to hand tool
+		await act(async () => {
+			document.body.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'h', code: 'KeyH', keyCode: 72, bubbles: true })
+			)
+		})
+
+		// Should now be on hand tool
+		expect(editor.getCurrentToolId()).toBe('hand')
 	})
 })
