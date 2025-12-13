@@ -231,13 +231,16 @@ class ValidationError extends Error {
 
 // @public
 export class Validator<T> implements Validatable<T> {
-    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>, isRefineValidator?: boolean);
+    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>,
+    skipSameValueCheck?: boolean);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     check(checkFn: (value: T) => void): Validator<T>;
     isValid(value: unknown): value is T;
     nullable(): Validator<null | T>;
     optional(): Validator<T | undefined>;
     refine<U>(otherValidationFn: (value: T) => U): Validator<U>;
+    // @internal (undocumented)
+    readonly skipSameValueCheck: boolean;
     validate(value: unknown): T;
     validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T;
     // (undocumented)

@@ -234,12 +234,13 @@ export class Validator<T> implements Validatable<T> {
 	 *
 	 * validationFn - Function that validates and returns a value of type T
 	 * validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
-	 * isRefineValidator - Internal flag to skip dev check for refine validators that transform values
+	 * skipSameValueCheck - Internal flag to skip dev check for validators that transform values
 	 */
 	constructor(
 		readonly validationFn: ValidatorFn<T>,
 		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>,
-		private readonly isRefineValidator: boolean = false
+		/** @internal */
+		readonly skipSameValueCheck: boolean = false
 	) {}
 
 	/**
@@ -264,7 +265,7 @@ export class Validator<T> implements Validatable<T> {
 	 */
 	validate(value: unknown): T {
 		const validated = this.validationFn(value)
-		if (IS_DEV && !this.isRefineValidator && !Object.is(value, validated)) {
+		if (IS_DEV && !this.skipSameValueCheck && !Object.is(value, validated)) {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
@@ -434,7 +435,7 @@ export class Validator<T> implements Validatable<T> {
 				}
 				return otherValidationFn(validated)
 			},
-			true // Skip dev check since refine is designed to transform values
+			true // skipSameValueCheck: refine is designed to transform values
 		)
 	}
 
@@ -527,6 +528,10 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 				return arr as T[]
 			},
 			(knownGoodValue, newValue) => {
+				// Fast path: reference equality means no changes
+				if (Object.is(knownGoodValue, newValue)) {
+					return knownGoodValue
+				}
 				if (!itemValidator.validateUsingKnownGoodVersion) return this.validate(newValue)
 				const arr = array.validate(newValue)
 				let isDifferent = knownGoodValue.length !== arr.length
@@ -634,7 +639,9 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
 				}
 
-				for (const [key, validator] of Object.entries(config)) {
+				for (const key in config) {
+					if (!hasOwnProperty(config, key)) continue
+					const validator = config[key as keyof typeof config]
 					prefixError(key, () => {
 						;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
 					})
@@ -651,13 +658,19 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 				return object as Shape
 			},
 			(knownGoodValue, newValue) => {
+				// Fast path: reference equality means no changes
+				if (Object.is(knownGoodValue, newValue)) {
+					return knownGoodValue
+				}
 				if (typeof newValue !== 'object' || newValue === null) {
 					throw new ValidationError(`Expected object, got ${typeToString(newValue)}`)
 				}
 
 				let isDifferent = false
 
-				for (const [key, validator] of Object.entries(config)) {
+				for (const key in config) {
+					if (!hasOwnProperty(config, key)) continue
+					const validator = config[key as keyof typeof config]
 					const prev = getOwnProperty(knownGoodValue, key)
 					const next = getOwnProperty(newValue, key)
 					// sneaky quick check here to avoid the prefix + validator overhead
@@ -1689,13 +1702,14 @@ export function optional<T>(validator: Validatable<T>): Validator<T | undefined>
 			return validator.validate(value)
 		},
 		(knownGoodValue, newValue) => {
-			if (knownGoodValue === undefined && newValue === undefined) return undefined
 			if (newValue === undefined) return undefined
 			if (validator.validateUsingKnownGoodVersion && knownGoodValue !== undefined) {
 				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
 			}
 			return validator.validate(newValue)
-		}
+		},
+		// Propagate skipSameValueCheck from inner validator to allow refine wrappers
+		validator instanceof Validator && validator.skipSameValueCheck
 	)
 }
 
@@ -1725,7 +1739,9 @@ export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
 			}
 			return validator.validate(newValue)
-		}
+		},
+		// Propagate skipSameValueCheck from inner validator to allow refine wrappers
+		validator instanceof Validator && validator.skipSameValueCheck
 	)
 }
 
