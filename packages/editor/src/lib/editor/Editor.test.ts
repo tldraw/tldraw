@@ -923,3 +923,143 @@ describe('replaceExternalContent', () => {
 		expect(mockHandler).toHaveBeenCalledWith(info)
 	})
 })
+
+describe('dispatch event emission', () => {
+	let testEditor: Editor
+
+	beforeEach(() => {
+		testEditor = new Editor({
+			shapeUtils: [CustomShape],
+			bindingUtils: [],
+			tools: [],
+			store: createTLStore({ shapeUtils: [CustomShape], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+		// Ensure camera is unlocked so events are processed
+		testEditor.setCameraOptions({ isLocked: false })
+	})
+
+	it('emits wheel events through the event emitter', () => {
+		const eventHandler = vi.fn()
+		testEditor.on('event', eventHandler)
+
+		const wheelEvent = {
+			type: 'wheel' as const,
+			name: 'wheel' as const,
+			delta: { x: 0, y: 10, z: 0 },
+			point: { x: 100, y: 100, z: 1 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+
+		testEditor.dispatch(wheelEvent)
+		// Wheel events are batched for the next tick, so emit a tick to flush them
+		testEditor.emit('tick', 16)
+
+		expect(eventHandler).toHaveBeenCalledWith(wheelEvent)
+	})
+
+	it('emits pinch_start events through the event emitter', () => {
+		const eventHandler = vi.fn()
+		testEditor.on('event', eventHandler)
+
+		const pinchStartEvent = {
+			type: 'pinch' as const,
+			name: 'pinch_start' as const,
+			point: { x: 100, y: 100, z: 1 },
+			delta: { x: 0, y: 0, z: 0 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+
+		testEditor.dispatch(pinchStartEvent)
+		// Pinch events are batched for the next tick, so emit a tick to flush them
+		testEditor.emit('tick', 16)
+
+		expect(eventHandler).toHaveBeenCalledWith(pinchStartEvent)
+	})
+
+	it('emits pinch events through the event emitter', () => {
+		const eventHandler = vi.fn()
+		testEditor.on('event', eventHandler)
+
+		// First dispatch pinch_start to set isPinching
+		const pinchStartEvent = {
+			type: 'pinch' as const,
+			name: 'pinch_start' as const,
+			point: { x: 100, y: 100, z: 1 },
+			delta: { x: 0, y: 0, z: 0 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+		testEditor.dispatch(pinchStartEvent)
+		testEditor.emit('tick', 16)
+
+		eventHandler.mockClear()
+
+		const pinchEvent = {
+			type: 'pinch' as const,
+			name: 'pinch' as const,
+			point: { x: 100, y: 100, z: 1.5 },
+			delta: { x: 10, y: 10, z: 0 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+
+		testEditor.dispatch(pinchEvent)
+		testEditor.emit('tick', 16)
+
+		expect(eventHandler).toHaveBeenCalledWith(pinchEvent)
+	})
+
+	it('emits pinch_end events through the event emitter', () => {
+		const eventHandler = vi.fn()
+		testEditor.on('event', eventHandler)
+
+		// First dispatch pinch_start to set isPinching
+		const pinchStartEvent = {
+			type: 'pinch' as const,
+			name: 'pinch_start' as const,
+			point: { x: 100, y: 100, z: 1 },
+			delta: { x: 0, y: 0, z: 0 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+		testEditor.dispatch(pinchStartEvent)
+		testEditor.emit('tick', 16)
+
+		eventHandler.mockClear()
+
+		const pinchEndEvent = {
+			type: 'pinch' as const,
+			name: 'pinch_end' as const,
+			point: { x: 100, y: 100, z: 1.5 },
+			delta: { x: 0, y: 0, z: 0 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+
+		testEditor.dispatch(pinchEndEvent)
+		testEditor.emit('tick', 16)
+
+		expect(eventHandler).toHaveBeenCalledWith(pinchEndEvent)
+	})
+})
