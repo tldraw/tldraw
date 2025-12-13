@@ -10350,6 +10350,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.interrupt()
 						}
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 					case 'pinch': {
@@ -10384,6 +10385,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 					case 'pinch_end': {
@@ -10410,6 +10412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						}
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 				}
@@ -10465,6 +10468,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.root.handleEvent(info)
+							this.emit('event', info)
 							return
 						}
 						case 'pan': {
@@ -10473,6 +10478,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.root.handleEvent(info)
+							this.emit('event', info)
 							return
 						}
 					}
