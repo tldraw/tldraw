@@ -325,3 +325,55 @@ const drawPropsValidator = T.object({
 }
 
 console.log('='.repeat(70))
+console.log('')
+
+// Factory method caching benchmarks
+console.log('='.repeat(70))
+console.log('FACTORY METHOD CACHING')
+console.log('='.repeat(70))
+console.log('')
+
+// Test repeated .nullable() calls on same validator
+{
+	printResult(
+		'T.string.nullable() repeated calls',
+		runBenchmark('NullableRepeated', () => {
+			T.string.nullable()
+		})
+	)
+}
+
+// Test repeated .optional() calls on same validator
+{
+	printResult(
+		'T.string.optional() repeated calls',
+		runBenchmark('OptionalRepeated', () => {
+			T.string.optional()
+		})
+	)
+}
+
+// Test chained .nullable().optional() calls
+{
+	printResult(
+		'T.number.nullable().optional() chain',
+		runBenchmark('NullableOptionalChain', () => {
+			T.number.nullable().optional()
+		})
+	)
+}
+
+// Realistic: validate with nullable field
+{
+	const nullableStringValidator = T.string.nullable()
+	const testValues = ['hello', null, 'world', null, 'test']
+	let idx = 0
+	printResult(
+		'Validate with cached nullable',
+		runBenchmark('ValidateCachedNullable', () => {
+			nullableStringValidator.validate(testValues[idx++ % testValues.length])
+		})
+	)
+}
+
+console.log('='.repeat(70))
