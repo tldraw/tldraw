@@ -229,7 +229,7 @@ console.log('')
 
 // Scenario 5: Key removed
 {
-	const { width, ...rest } = smallDict
+	const { width: _, ...rest } = smallDict
 	const knownGood = stringToNumberDict.validate(smallDict)
 	printResult(
 		'Small dict - key removed',
