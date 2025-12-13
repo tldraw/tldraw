@@ -1,6 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useEffect, useMemo } from 'react'
-import { RIGHT_MOUSE_BUTTON } from '../constants'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { tlenv } from '../globals/environment'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
@@ -11,12 +10,17 @@ export function useCanvasEvents() {
 	const ownerDocument = editor.getContainer().ownerDocument
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
+	// Track if pointer has moved during drag
+	const pointerMovedRef = useRef(true)
+
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 
-				if (e.button === RIGHT_MOUSE_BUTTON) {
+				// to drag on right click if the option is enabled
+				pointerMovedRef.current = true
+				if (e.button == 2) {
 					if (editor.user.getIsRightClickToDrag()) {
 						setPointerCapture(e.currentTarget, e)
 						editor.dispatch({
@@ -50,7 +54,24 @@ export function useCanvasEvents() {
 
 			function onPointerUp(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 5 && e.button !== 2) return
+
+				// check if pointer moved since pointer down
+				if (
+					e.button == 2 &&
+					editor.inputs.currentScreenPoint.x === editor.inputs.originScreenPoint.x &&
+					editor.inputs.currentScreenPoint.y === editor.inputs.originScreenPoint.y
+				) {
+					pointerMovedRef.current = false
+					const contextMenuEvent = new MouseEvent('contextmenu', {
+						bubbles: true,
+						cancelable: true,
+						clientX: e.clientX,
+						clientY: e.clientY,
+						button: 2,
+					})
+					e.currentTarget.dispatchEvent(contextMenuEvent)
+				}
 
 				releasePointerCapture(e.currentTarget, e)
 
@@ -140,8 +161,7 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
-				// prevent context menu if no shape is selected and right-click-to-drag is enabled
-				if (editor.user.getIsRightClickToDrag() && editor.getSelectedShapeIds().length == 0) {
+				if (editor.user.getIsRightClickToDrag() && pointerMovedRef.current) {
 					preventDefault(e)
 				}
 			}
