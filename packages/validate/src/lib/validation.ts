@@ -679,7 +679,6 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
 				}
 
-				// Use for...in instead of Object.entries() to avoid array allocation
 				for (const key in config) {
 					if (!hasOwnProperty(config, key)) continue
 					const validator = config[key as keyof typeof config]
@@ -721,7 +720,6 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 				let isDifferent = false
 
-				// Use for...in instead of Object.entries() to avoid array allocation
 				for (const key in config) {
 					if (!hasOwnProperty(config, key)) continue
 					const validator = config[key as keyof typeof config]
