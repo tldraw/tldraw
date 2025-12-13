@@ -10,37 +10,15 @@ export function useCanvasEvents() {
 	const ownerDocument = editor.getContainer().ownerDocument
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
-	// Track if pointer has moved during drag
-	const pointerMovedRef = useRef(true)
+	const rPointerMoved = useRef(false)
 
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
+				rPointerMoved.current = false
 
-				// to drag on right click if the option is enabled
-				pointerMovedRef.current = true
-				if (e.button == 2) {
-					if (editor.user.getIsRightClickToDrag()) {
-						setPointerCapture(e.currentTarget, e)
-						editor.dispatch({
-							type: 'pointer',
-							target: 'canvas',
-							name: 'pointer_down',
-							...getPointerInfo(editor, e),
-						})
-					} else {
-						editor.dispatch({
-							type: 'pointer',
-							target: 'canvas',
-							name: 'right_click',
-							...getPointerInfo(editor, e),
-						})
-					}
-					return
-				}
-
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 5 && e.button !== 2) return
 
 				setPointerCapture(e.currentTarget, e)
 
@@ -62,13 +40,11 @@ export function useCanvasEvents() {
 					editor.inputs.currentScreenPoint.x === editor.inputs.originScreenPoint.x &&
 					editor.inputs.currentScreenPoint.y === editor.inputs.originScreenPoint.y
 				) {
-					pointerMovedRef.current = false
+					rPointerMoved.current = true
 					const contextMenuEvent = new MouseEvent('contextmenu', {
 						bubbles: true,
-						cancelable: true,
 						clientX: e.clientX,
 						clientY: e.clientY,
-						button: 2,
 					})
 					e.currentTarget.dispatchEvent(contextMenuEvent)
 				}
@@ -161,7 +137,7 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
-				if (editor.user.getIsRightClickToDrag() && pointerMovedRef.current) {
+				if (editor.user.getIsRightClickToDrag() && !rPointerMoved.current) {
 					preventDefault(e)
 				}
 			}
