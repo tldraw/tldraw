@@ -1,0 +1,62 @@
+/* Lightbox overlay container */
+.lightbox-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.lightbox-overlay--open {
+	pointer-events: auto;
+	opacity: 1;
+}
+
+/* Dark backdrop */
+.lightbox-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(2px);
+}
+
+/* Image container */
+.lightbox-content {
+	position: relative;
+	z-index: 1;
+	transform: scale(0.9);
+	opacity: 0;
+	transition:
+		transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+		opacity 0.3s ease;
+}
+
+.lightbox-content--open {
+	transform: scale(1);
+	opacity: 1;
+}
+
+/* The image itself */
+.lightbox-image {
+	display: block;
+	max-width: 100%;
+	max-height: 100%;
+	border-radius: 8px;
+	box-shadow:
+		0 25px 50px -12px rgba(0, 0, 0, 0.5),
+		0 0 0 1px rgba(255, 255, 255, 0.1);
+	object-fit: contain;
+}
+
+.lightbox-close:hover {
+	background: rgba(255, 255, 255, 0.25);
+	transform: scale(1.1);
+}
+
+.lightbox-close:active {
+	transform: scale(0.95);
+}
