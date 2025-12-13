@@ -1167,8 +1167,8 @@ export const string = typeofValidator<string>('string')
 export const number = new Validator<number>((value) => {
 	// Fast path: check for valid finite number using arithmetic trick
 	// value - value === 0 is false for Infinity and NaN (avoids function call overhead)
-	if (typeof value === 'number' && value - value === 0) {
-		return value
+	if (Number.isFinite(value)) {
+		return value as number
 	}
 	// Slow path: determine specific error
 	if (typeof value !== 'number') {
