@@ -901,10 +901,12 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
 				}
 
-				for (const [key, value] of Object.entries(object)) {
+				// Use for...in instead of Object.entries() to avoid array allocation
+				for (const key in object) {
+					if (!hasOwnProperty(object, key)) continue
 					prefixError(key, () => {
 						keyValidator.validate(key)
-						valueValidator.validate(value)
+						valueValidator.validate((object as Record<string, unknown>)[key])
 					})
 				}
 
@@ -915,26 +917,36 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					throw new ValidationError(`Expected object, got ${typeToString(newValue)}`)
 				}
 
+				const newObj = newValue as Record<string, unknown>
 				let isDifferent = false
+				let newKeyCount = 0
 
-				for (const [key, value] of Object.entries(newValue)) {
-					if (!hasOwnProperty(knownGoodValue, key)) {
+				// Use for...in instead of Object.entries() to avoid array allocation
+				for (const key in newObj) {
+					if (!hasOwnProperty(newObj, key)) continue
+					newKeyCount++
+
+					const next = newObj[key]
+
+					if (!(key in knownGoodValue)) {
 						isDifferent = true
 						prefixError(key, () => {
 							keyValidator.validate(key)
-							valueValidator.validate(value)
+							valueValidator.validate(next)
 						})
 						continue
 					}
-					const prev = getOwnProperty(knownGoodValue, key)
-					const next = value
-					// sneaky quick check here to avoid the prefix + validator overhead
+
+					const prev = (knownGoodValue as Record<string, unknown>)[key]
+
+					// Quick reference equality check to avoid validator overhead
 					if (Object.is(prev, next)) {
 						continue
 					}
+
 					const checked = prefixError(key, () => {
 						if (valueValidator.validateUsingKnownGoodVersion) {
-							return valueValidator.validateUsingKnownGoodVersion(prev as any, next)
+							return valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
 						} else {
 							return valueValidator.validate(next)
 						}
@@ -944,10 +956,17 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 					}
 				}
 
-				for (const key of Object.keys(knownGoodValue)) {
-					if (!hasOwnProperty(newValue, key)) {
+				// Only check for removed keys if counts might differ
+				// This avoids iterating over knownGoodValue when no keys were removed
+				if (!isDifferent) {
+					let oldKeyCount = 0
+					for (const key in knownGoodValue) {
+						if (hasOwnProperty(knownGoodValue, key)) {
+							oldKeyCount++
+						}
+					}
+					if (oldKeyCount !== newKeyCount) {
 						isDifferent = true
-						break
 					}
 				}
 
