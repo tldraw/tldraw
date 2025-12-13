@@ -117,6 +117,42 @@ describe('validations', () => {
 			`[ValidationError: At animal(type = cat).meow: Expected boolean, got undefined]`
 		)
 	})
+
+	it('Rejects Infinity and -Infinity in numberUnion discriminators', () => {
+		const numberUnionSchema = T.numberUnion('version', {
+			1: T.object({ version: T.literal(1), data: T.string }),
+			2: T.object({ version: T.literal(2), data: T.string }),
+		})
+
+		// Valid cases
+		expect(numberUnionSchema.validate({ version: 1, data: 'hello' })).toEqual({
+			version: 1,
+			data: 'hello',
+		})
+		expect(numberUnionSchema.validate({ version: 2, data: 'world' })).toEqual({
+			version: 2,
+			data: 'world',
+		})
+
+		// Should reject Infinity
+		expect(() =>
+			numberUnionSchema.validate({ version: Infinity, data: 'test' })
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected a number for key "version", got "Infinity"]`
+		)
+
+		// Should reject -Infinity
+		expect(() =>
+			numberUnionSchema.validate({ version: -Infinity, data: 'test' })
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected a number for key "version", got "-Infinity"]`
+		)
+
+		// Should reject NaN
+		expect(() => numberUnionSchema.validate({ version: NaN, data: 'test' })).toThrowError(
+			/Expected a number for key "version"/
+		)
+	})
 })
 
 describe('T.refine', () => {

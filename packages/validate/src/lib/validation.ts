@@ -923,10 +923,10 @@ export class UnionValidator<
 				`Expected a string for key "${this.key}", got ${typeToString(variant)}`
 			)
 		} else if (this.useNumberKeys) {
-			// Fast NaN check: numVariant !== numVariant is only true for NaN
+			// Fast finite number check: numVariant - numVariant === 0 is false for Infinity and NaN
 			// This avoids Number.isFinite function call overhead
 			const numVariant = Number(variant)
-			if (numVariant !== numVariant) {
+			if (numVariant - numVariant !== 0) {
 				throw new ValidationError(
 					`Expected a number for key "${this.key}", got "${variant as any}"`
 				)
@@ -1031,7 +1031,7 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 
 					const next = newObj[key]
 
-					if (!(key in knownGoodValue)) {
+					if (!hasOwnProperty(knownGoodValue, key)) {
 						isDifferent = true
 						if (IS_DEV) {
 							prefixError(key, () => {
