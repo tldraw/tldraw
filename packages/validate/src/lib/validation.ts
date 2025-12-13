@@ -234,10 +234,13 @@ export class Validator<T> implements Validatable<T> {
 	 *
 	 * validationFn - Function that validates and returns a value of type T
 	 * validateUsingKnownGoodVersionFn - Optional performance-optimized validation function
+	 * skipSameValueCheck - Internal flag to skip dev check for validators that transform values
 	 */
 	constructor(
 		readonly validationFn: ValidatorFn<T>,
-		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>
+		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>,
+		/** @internal */
+		readonly skipSameValueCheck: boolean = false
 	) {}
 
 	/**
@@ -262,7 +265,7 @@ export class Validator<T> implements Validatable<T> {
 	 */
 	validate(value: unknown): T {
 		const validated = this.validationFn(value)
-		if (process.env.NODE_ENV !== 'production' && !Object.is(value, validated)) {
+		if (IS_DEV && !this.skipSameValueCheck && !Object.is(value, validated)) {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
@@ -431,7 +434,8 @@ export class Validator<T> implements Validatable<T> {
 					return knownGoodValue
 				}
 				return otherValidationFn(validated)
-			}
+			},
+			true // skipSameValueCheck: refine is designed to transform values
 		)
 	}
 
@@ -1818,13 +1822,14 @@ export function optional<T>(validator: Validatable<T>): Validator<T | undefined>
 			return validator.validate(value)
 		},
 		(knownGoodValue, newValue) => {
-			if (knownGoodValue === undefined && newValue === undefined) return undefined
 			if (newValue === undefined) return undefined
 			if (validator.validateUsingKnownGoodVersion && knownGoodValue !== undefined) {
 				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
 			}
 			return validator.validate(newValue)
-		}
+		},
+		// Propagate skipSameValueCheck from inner validator to allow refine wrappers
+		validator instanceof Validator && validator.skipSameValueCheck
 	)
 }
 
@@ -1854,7 +1859,9 @@ export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
 			}
 			return validator.validate(newValue)
-		}
+		},
+		// Propagate skipSameValueCheck from inner validator to allow refine wrappers
+		validator instanceof Validator && validator.skipSameValueCheck
 	)
 }
 
