@@ -131,7 +131,7 @@ function numberToFloat16Bits(value: number): number {
 
 	// Find exponent and mantissa
 	const exp = Math.floor(Math.log2(value))
-	const expBiased = exp + 15
+	let expBiased = exp + 15
 
 	if (expBiased >= 31) {
 		// Overflow to infinity
@@ -145,8 +145,19 @@ function numberToFloat16Bits(value: number): number {
 
 	// Normal number
 	const mantissa = value / Math.pow(2, exp) - 1
-	const frac = Math.round(mantissa * 1024)
-	return (sign << 15) | (expBiased << 10) | (frac & 0x3ff)
+	let frac = Math.round(mantissa * 1024)
+
+	// Handle rounding overflow: if frac rounds to 1024, increment exponent
+	if (frac >= 1024) {
+		frac = 0
+		expBiased++
+		if (expBiased >= 31) {
+			// Overflow to infinity
+			return (sign << 15) | 0x7c00
+		}
+	}
+
+	return (sign << 15) | (expBiased << 10) | frac
 }
 
 /**
