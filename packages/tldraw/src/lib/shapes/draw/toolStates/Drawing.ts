@@ -18,6 +18,7 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
+import { getPointsFromSegments } from '../getPath'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
@@ -731,6 +732,116 @@ export class Drawing extends StateNode {
 		this.editor.updateShapes([
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
+
+		// Try a lightweight recognition for circles/ellipses and replace with a `geo` ellipse when confident.
+		try {
+			const drawShape = this.editor.getShape(initialShape.id)
+			if (drawShape && drawShape.type === 'draw') {
+				const transform = this.editor.getShapePageTransform(initialShape.id)
+				if (transform) {
+					const ptsLocal = getPointsFromSegments((drawShape as any).props.segments)
+					const pts = ptsLocal.map((p: any) => Mat.applyToPoint(transform, p))
+					if (pts.length >= 6) {
+						// centroid-based circle/ellipse test
+						let cx = 0,
+							cy = 0
+						for (const p of pts) {
+							cx += p.x
+							cy += p.y
+						}
+						cx /= pts.length
+						cy /= pts.length
+
+						const radii = pts.map((p: any) => Math.hypot(p.x - cx, p.y - cy))
+						const meanR = radii.reduce((a: number, b: number) => a + b, 0) / radii.length
+						let sd = 0
+						for (const r of radii) sd += (r - meanR) * (r - meanR)
+						sd = Math.sqrt(sd / radii.length)
+
+						if (meanR > 8 && sd / meanR < 0.18) {
+                            const minX = Math.min(...pts.map((p: any) => p.x))
+                            const minY = Math.min(...pts.map((p: any) => p.y))
+                            const maxX = Math.max(...pts.map((p: any) => p.x))
+                            const maxY = Math.max(...pts.map((p: any) => p.y))
+    const w = maxX - minX || 1
+    const h = maxY - minY || 1
+
+    // Copy style props from the original draw shape when possible
+    const color = (drawShape as any).props?.color ?? 'black'
+    const size = (drawShape as any).props?.size ?? 'm'
+    const dash = (drawShape as any).props?.dash ?? (drawShape as any).props?.style ?? 'solid'
+    const fill = (drawShape as any).props?.fill ?? 'none'
+
+    const newId = createShapeId()
+
+    const createGeo = () =>
+        this.editor.createShape({
+            id: newId,
+            type: 'geo',
+            x: toFixed(minX),
+            y: toFixed(minY),
+            props: {
+                geo: 'ellipse',
+                w: toFixed(w),
+                h: toFixed(h),
+                color,
+                size,
+                fill,
+                dash,
+            },
+        })
+
+    // If we can create a new shape directly, do it and delete the original.
+    if (this.editor.canCreateShapes([newId])) {
+        this.editor.run(() => {
+            this.editor.markHistoryStoppingPoint('autodraw replace')
+            createGeo()
+            // remove the original stroke
+            this.editor.deleteShape(initialShape.id)
+        })
+        this.parent.transition('idle')
+        return
+    }
+
+    // At max shapes: try a safe swap (delete original, then create new).
+    // If creation fails, attempt to restore the original draw shape.
+    this.editor.run(() => {
+        this.editor.markHistoryStoppingPoint('autodraw replace')
+
+        const savedDrawProps = (drawShape as any).props
+        // delete original to free a slot
+        this.editor.deleteShape(initialShape.id)
+
+        try {
+            createGeo()
+        } catch (e) {
+            // Attempt to restore original if create failed
+            try {
+                const restoreId = createShapeId()
+                if (this.editor.canCreateShapes([restoreId])) {
+                    this.editor.createShape({
+                        id: restoreId,
+                        type: 'draw',
+                        x: toFixed(minX),
+                        y: toFixed(minY),
+                        props: savedDrawProps,
+                    })
+                }
+            } catch (e2) {
+                // swallow — best-effort restoration
+            }
+        }
+    })
+
+                            this.parent.transition('idle')
+                            return
+                        }
+					}
+				}
+			}
+		} catch (e) {
+			// ignore recognition errors
+		}
 
 		this.parent.transition('idle')
 	}
