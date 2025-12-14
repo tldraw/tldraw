@@ -1444,6 +1444,32 @@ describe('Add rich text', () => {
 	}
 })
 
+describe('Add rich text attrs', () => {
+	const migrations = [
+		['text shape', getTestMigration(textShapeVersions.AddRichTextAttrs)],
+		['geo shape', getTestMigration(geoShapeVersions.AddRichTextAttrs)],
+		['note shape', getTestMigration(noteShapeVersions.AddRichTextAttrs)],
+		['arrow shape', getTestMigration(arrowShapeVersions.AddRichTextAttrs)],
+	] as const
+
+	for (const [shapeName, { up, down }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { richText: toRichText('hello, world') } }
+			const shapeWithAttrs = {
+				props: { richText: { ...toRichText('hello, world'), attrs: { test: 'value' } } },
+			}
+
+			// Up migration should be a noop
+			expect(up(shape)).toEqual(shape)
+			expect(up(shapeWithAttrs)).toEqual(shapeWithAttrs)
+
+			// Down migration should remove attrs
+			expect(down(shapeWithAttrs)).toEqual(shape)
+			expect(down(shape)).toEqual(shape)
+		})
+	}
+})
+
 describe('Make urls valid for all the assets', () => {
 	const migrations = [
 		['bookmark asset', getTestMigration(bookmarkAssetVersions.MakeUrlsValid)],

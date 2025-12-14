@@ -277,6 +277,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddScale: 5,
 	AddElbow: 6,
 	AddRichText: 7,
+	AddRichTextAttrs: 8,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -445,6 +446,18 @@ export const arrowShapeMigrations = createMigrationSequence({
 			// down: (props) => {
 			// 	delete props.richText
 			// },
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddRichTextAttrs,
+			up: (_props) => {
+				// noop - attrs is optional so old records are valid
+			},
+			down: (props) => {
+				// Remove attrs from richText when migrating down
+				if (props.richText && 'attrs' in props.richText) {
+					delete props.richText.attrs
+				}
+			},
 		}),
 	],
 })

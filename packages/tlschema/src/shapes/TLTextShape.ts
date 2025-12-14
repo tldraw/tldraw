@@ -104,6 +104,7 @@ const Versions = createShapePropsMigrationIds('text', {
 	RemoveJustify: 1,
 	AddTextAlign: 2,
 	AddRichText: 3,
+	AddRichTextAttrs: 4,
 })
 
 /**
@@ -116,8 +117,8 @@ const Versions = createShapePropsMigrationIds('text', {
  * import { textShapeVersions } from '@tldraw/tlschema'
  *
  * // Check if shape data needs migration
- * if (shapeVersion < textShapeVersions.AddRichText) {
- *   // Apply rich text migration
+ * if (shapeVersion < textShapeVersions.AddRichTextAttrs) {
+ *   // Apply rich text attrs migration
  * }
  * ```
  */
@@ -131,6 +132,7 @@ export { Versions as textShapeVersions }
  * - RemoveJustify: Replaced 'justify' alignment with 'start'
  * - AddTextAlign: Migrated from 'align' to 'textAlign' property
  * - AddRichText: Converted plain text to rich text format
+ * - AddRichTextAttrs: Added support for attrs property on richText
  *
  * @public
  */
@@ -166,6 +168,18 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 			// down: (props) => {
 			// 	delete props.richText
 			// },
+		},
+		{
+			id: Versions.AddRichTextAttrs,
+			up: (_props) => {
+				// noop - attrs is optional so old records are valid
+			},
+			down: (props) => {
+				// Remove attrs from richText when migrating down
+				if (props.richText && 'attrs' in props.richText) {
+					delete props.richText.attrs
+				}
+			},
 		},
 	],
 })
