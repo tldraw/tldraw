@@ -332,7 +332,6 @@ export class FairyClusteredHorizontalBarChart {
 
 		this.mousemoveHandler = (e: MouseEvent) => {
 			const rect = this.svg.getBoundingClientRect()
-			const offsetX = this.margins.left + this.paddings.left
 			const offsetY = this.margins.top + this.paddings.top
 			const relY = e.clientY - rect.top - offsetY
 

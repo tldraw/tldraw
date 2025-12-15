@@ -167,7 +167,7 @@ export function normalize(x: number): [number, number] {
  */
 export function getChartRangeIntervals(max: number, min = 0): number[] {
 	let upperBound = Math.ceil(max)
-	let lowerBound = Math.floor(min)
+	const lowerBound = Math.floor(min)
 	let range = upperBound - lowerBound
 	let noOfParts = range
 	let partSize = 1

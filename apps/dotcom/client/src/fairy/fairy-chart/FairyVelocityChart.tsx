@@ -19,7 +19,6 @@ export function FairyVelocityChart({ orchestratorAgent, agents }: FairyVelocityC
 	const fairyApp = useFairyApp()
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyLineChart | null>(null)
-	const lastProjectIdRef = useRef<string | null>(null)
 
 	// Get project to filter agents
 	const project = useValue(
