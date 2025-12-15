@@ -6,12 +6,7 @@ import { HAT_COLOR_HEX } from '../fairy-shared-constants'
 import { ChartErrorBoundary } from './ChartErrorBoundary'
 import { FairyChartContainer } from './FairyChartContainer'
 import { FairyHorizontalBarChart } from './FairyHorizontalBarChart'
-import {
-	countCompletedActions,
-	filterProjectAgents,
-	getFirstName,
-	isDuoProject,
-} from './fairy-chart-helpers'
+import { countCompletedActions, filterProjectAgents, getFirstName } from './fairy-chart-helpers'
 
 interface FairyActionsChartProps {
 	orchestratorAgent: FairyAgent | null
@@ -36,16 +31,13 @@ export function FairyActionsChart({ orchestratorAgent, agents }: FairyActionsCha
 		[orchestratorAgent]
 	)
 
-	// Check if this is a duo project (orchestrator acts in duo mode)
-	const isDuo = useValue('is-duo-project', () => isDuoProject(project), [project])
-
 	// Count completed actions per fairy from their chat history
 	const actionCounts = useValue(
 		'action-counts',
 		(): FairyActionCount[] => {
 			if (!project) return []
 
-			const projectAgents = filterProjectAgents(agents, project, orchestratorAgent, isDuo)
+			const projectAgents = filterProjectAgents(agents, project)
 
 			const counts = projectAgents.flatMap((agent) => {
 				const config = agent.getConfig()
@@ -64,7 +56,7 @@ export function FairyActionsChart({ orchestratorAgent, agents }: FairyActionsCha
 			// Sort by count descending (leaderboard style)
 			return counts.sort((a, b) => b.count - a.count)
 		},
-		[project, agents, orchestratorAgent, isDuo]
+		[project, agents]
 	)
 
 	// Convert to chart data format with per-bar colors

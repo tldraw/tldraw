@@ -5,12 +5,7 @@ import { AgentActionCategory, CATEGORY_COLORS } from '../fairy-shared-constants'
 import { ChartErrorBoundary } from './ChartErrorBoundary'
 import { FairyChartContainer } from './FairyChartContainer'
 import { FairyClusteredHorizontalBarChart } from './FairyClusteredHorizontalBarChart'
-import {
-	countActionsByCategory,
-	filterProjectAgents,
-	getFirstName,
-	isDuoProject,
-} from './fairy-chart-helpers'
+import { countActionsByCategory, filterProjectAgents, getFirstName } from './fairy-chart-helpers'
 
 interface FairyActionsByTypeChartProps {
 	orchestratorAgent: FairyAgent | null
@@ -37,16 +32,13 @@ export function FairyActionsByTypeChart({
 		[orchestratorAgent]
 	)
 
-	// Check if this is a duo project (orchestrator acts in duo mode)
-	const isDuo = useValue('is-duo-project', () => isDuoProject(project), [project])
-
 	// Count actions by category per fairy
 	const actionTypeCounts = useValue(
 		'action-type-counts',
 		(): FairyActionTypeCounts[] => {
 			if (!project) return []
 
-			const projectAgents = filterProjectAgents(agents, project, orchestratorAgent, isDuo)
+			const projectAgents = filterProjectAgents(agents, project)
 
 			const counts = projectAgents.flatMap((agent) => {
 				const config = agent.getConfig()
@@ -74,7 +66,7 @@ export function FairyActionsByTypeChart({
 				return totalB - totalA
 			})
 		},
-		[project, agents, orchestratorAgent, isDuo]
+		[project, agents]
 	)
 
 	// Get all unique categories across all fairies, sorted by total usage

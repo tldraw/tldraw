@@ -96,9 +96,7 @@ export function isDuoProject(project: { members: Array<{ role: string }> } | nul
  */
 export function filterProjectAgents(
 	agents: FairyAgent[],
-	project: { members: Array<{ id: string }> } | null,
-	orchestratorAgent: FairyAgent | null,
-	isDuo: boolean
+	project: { members: Array<{ id: string }> } | null
 ): FairyAgent[] {
 	if (!project) return []
 
