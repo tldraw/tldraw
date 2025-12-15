@@ -55,7 +55,7 @@ export function CenteredTopPanelContainer({
 		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 
 		// Squeeze the title if the right panel is too wide on small screens
-		if (rightPanel.offsetWidth > stylePanelWidth && breakpoint <= 6) {
+		if (rightWidth > stylePanelWidth && breakpoint <= 6) {
 			element.style.setProperty('max-width', maxWidthProperty - squeezeAmount + 'px')
 		} else {
 			element.style.setProperty('max-width', maxWidthProperty + 'px')
