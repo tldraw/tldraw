@@ -23,7 +23,7 @@ const TLDRAW_TO_FOCUS_FILLS: Record<TLDefaultFillStyle, FocusFill> = {
 }
 
 export function convertFocusFillToTldrawFill(fill: FocusFill): TLDefaultFillStyle {
-	return FOCUS_TO_TLDRAW_FILLS[fill]
+	return FOCUS_TO_TLDRAW_FILLS[fill] ?? 'none'
 }
 
 export function convertTldrawFillToFocusFill(fill: TLDefaultFillStyle): FocusFill {
