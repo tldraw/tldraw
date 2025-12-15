@@ -664,6 +664,19 @@
 	font-style: italic;
 }
 
+.autoShowBadge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--tla-color-primary);
+	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-2);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
 /* Markdown styles for preview */
 .whatsNewPreviewContent :global(p) {
 	margin: 0 0 12px 0;

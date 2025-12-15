@@ -126,6 +126,8 @@ export interface WhatsNewEntry {
 	description: string
 	/** Optional long description shown on /whats-new page. Falls back to description if not provided. */
 	fullDescription?: string
+	/** Priority level: "regular" for normal updates, "important" for updates that auto-show to all users */
+	priority?: 'regular' | 'important'
 }
 
 export interface ZStoreData {

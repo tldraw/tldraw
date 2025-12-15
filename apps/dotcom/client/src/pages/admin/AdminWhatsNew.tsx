@@ -10,6 +10,18 @@ type WhatsNewEntryDraft = Omit<WhatsNewEntry, 'schemaVersion'> & {
 	schemaVersion?: number
 }
 
+function getNextMajorVersion(entries: WhatsNewEntry[]): string {
+	if (entries.length === 0) return '1.0'
+
+	// Find the highest version number
+	const versions = entries.map((e) => {
+		const match = e.version.match(/^(\d+)/)
+		return match ? parseInt(match[1], 10) : 0
+	})
+	const maxVersion = Math.max(...versions)
+	return `${maxVersion + 1}.0`
+}
+
 function WhatsNewEntryForm({
 	entry,
 	onSave,
@@ -32,7 +44,7 @@ function WhatsNewEntryForm({
 			<div className={styles.whatsNewFormLayout}>
 				<div className={styles.whatsNewFormFields}>
 					<div className={styles.formField}>
-						<label htmlFor="version">Version (e.g., 1.0):</label>
+						<label htmlFor="version">Version:</label>
 						<input
 							id="version"
 							type="text"
@@ -105,6 +117,24 @@ function WhatsNewEntryForm({
 						/>
 					</div>
 
+					<div className={styles.formField}>
+						<label htmlFor="priority">Priority:</label>
+						<div className={styles.markdownHelper}>
+							Important: auto-shows dialog to all users. Regular: only shown in menu.
+						</div>
+						<select
+							id="priority"
+							value={formData.priority || 'regular'}
+							onChange={(e) =>
+								setFormData({ ...formData, priority: e.target.value as 'regular' | 'important' })
+							}
+							className={styles.searchInput}
+						>
+							<option value="regular">Regular</option>
+							<option value="important">Important</option>
+						</select>
+					</div>
+
 					<div className={styles.formActions}>
 						<TlaButton type="submit" variant="primary">
 							Save
@@ -169,7 +199,12 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 				return
 			}
 			const data = await res.json()
-			setEntries(Array.isArray(data) ? data : [])
+			// API returns array directly, not wrapped in object
+			// Sort by version in descending order
+			const sorted = Array.isArray(data)
+				? data.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))
+				: []
+			setEntries(sorted)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to load entries')
 		}
@@ -244,10 +279,11 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 				<TlaButton
 					onClick={() =>
 						setEditingEntry({
-							version: '',
+							version: getNextMajorVersion(entries),
 							title: '',
 							date: new Date().toISOString(),
 							description: '',
+							priority: 'regular',
 						})
 					}
 					variant="primary"
@@ -278,9 +314,14 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 						<div key={entry.version} className={styles.entryCard}>
 							<div className={styles.entryHeader}>
 								<div>
-									<h5 className="tla-text_ui__medium">
-										{entry.version} - {entry.title}
-									</h5>
+									<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+										<h5 className="tla-text_ui__medium">
+											{entry.version} - {entry.title}
+										</h5>
+										{entry.priority === 'important' && (
+											<span className={styles.autoShowBadge}>IMPORTANT</span>
+										)}
+									</div>
 									<p className="tla-text_ui__small">
 										{new Date(entry.date).toLocaleDateString('en-US', {
 											month: 'short',
