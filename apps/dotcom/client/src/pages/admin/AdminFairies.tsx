@@ -5,25 +5,28 @@ import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { useApp } from '../../tla/hooks/useAppState'
 import styles from '../admin.module.css'
 
-export function AdminFairies() {
+export interface FairyInvite {
+	id: string
+	fairyLimit: number
+	maxUses: number
+	currentUses: number
+	createdAt: number
+	description: string | null
+	redeemedBy: string[]
+}
+
+interface AdminFairiesProps {
+	initialInvites: FairyInvite[]
+}
+
+export function AdminFairies({ initialInvites }: AdminFairiesProps) {
 	const app = useApp()
 	const user = useValue('user', () => app.getUser(), [app])
-	const [invites, setInvites] = useState<
-		Array<{
-			id: string
-			fairyLimit: number
-			maxUses: number
-			currentUses: number
-			createdAt: number
-			description: string | null
-			redeemedBy: string[]
-		}>
-	>([])
+	const [invites, setInvites] = useState<FairyInvite[]>(initialInvites)
 	const [maxUses, setMaxUses] = useState(1)
 	const [inviteDescription, setInviteDescription] = useState('')
 	const [accessEmail, setAccessEmail] = useState('')
 	const [isCreating, setIsCreating] = useState(false)
-	const [isLoading, setIsLoading] = useState(false)
 	const [isEnabling, setIsEnabling] = useState(false)
 	const [isRemovingForMe, setIsRemovingForMe] = useState(false)
 	const [isGranting, setIsGranting] = useState(false)
@@ -36,7 +39,6 @@ export function AdminFairies() {
 	const [isSettingLimit, setIsSettingLimit] = useState(false)
 
 	const loadInvites = useCallback(async () => {
-		setIsLoading(true)
 		setError(null)
 		try {
 			const res = await fetch('/api/app/admin/fairy-invites')
@@ -47,14 +49,8 @@ export function AdminFairies() {
 			setInvites(await res.json())
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to load invites')
-		} finally {
-			setIsLoading(false)
 		}
 	}, [])
-
-	useEffect(() => {
-		loadInvites()
-	}, [loadInvites])
 
 	const createInvite = useCallback(async () => {
 		if (maxUses < 0) {
@@ -414,9 +410,7 @@ export function AdminFairies() {
 
 				{isTableExpanded && (
 					<>
-						{isLoading ? (
-							<p className="tla-text_ui__small">Loading invites...</p>
-						) : invites.length === 0 ? (
+						{invites.length === 0 ? (
 							<p className="tla-text_ui__small">No invites yet</p>
 						) : (
 							<table className={styles.invitesTable}>

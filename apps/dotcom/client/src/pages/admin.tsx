@@ -1,13 +1,14 @@
+import { FeatureFlagValue, WhatsNewEntry } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLoaderData } from 'react-router-dom'
+import { fetch, getFromLocalStorage, setInLocalStorage } from 'tldraw'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
-import { AdminBatchMigration } from './admin/AdminBatchMigration'
 import { AdminDangerZone } from './admin/AdminDangerZone'
-import { AdminFairies } from './admin/AdminFairies'
+import { AdminFairies, FairyInvite } from './admin/AdminFairies'
 import { AdminFeatureFlags } from './admin/AdminFeatureFlags'
 import { AdminFileOperations } from './admin/AdminFileOperations'
-import { AdminUserManagement } from './admin/AdminUserManagement'
+import { AdminUserManagement, ReplicatorData } from './admin/AdminUserManagement'
 import { AdminWhatsNew } from './admin/AdminWhatsNew'
 
 type AdminTab =
@@ -16,12 +17,49 @@ type AdminTab =
 	| 'feature-flags'
 	| 'whats-new'
 	| 'file-operations'
-	| 'batch-migration'
 	| 'danger-zone'
+
+const ADMIN_TAB_KEY = 'tldraw_admin_active_tab'
+
+function getStoredTab(): AdminTab {
+	const stored = getFromLocalStorage(ADMIN_TAB_KEY)
+	return (stored as AdminTab) || 'user-management'
+}
+
+interface AdminLoaderData {
+	featureFlags: Record<string, FeatureFlagValue>
+	whatsNewEntries: WhatsNewEntry[]
+	fairyInvites: FairyInvite[]
+	replicatorData: ReplicatorData
+}
+
+export async function loader(): Promise<AdminLoaderData> {
+	const [featureFlagsRes, whatsNewRes, fairyInvitesRes, replicatorRes] = await Promise.all([
+		fetch('/api/app/admin/feature-flags'),
+		fetch('/api/app/admin/whats-new'),
+		fetch('/api/app/admin/fairy-invites'),
+		fetch('/api/app/admin/replicator'),
+	])
+
+	const [featureFlags, whatsNewEntries, fairyInvites, replicatorData] = await Promise.all([
+		featureFlagsRes.ok ? featureFlagsRes.json() : {},
+		whatsNewRes.ok ? whatsNewRes.json() : [],
+		fairyInvitesRes.ok ? fairyInvitesRes.json() : [],
+		replicatorRes.ok ? replicatorRes.json() : null,
+	])
+
+	return {
+		featureFlags,
+		whatsNewEntries: Array.isArray(whatsNewEntries) ? whatsNewEntries : [],
+		fairyInvites: Array.isArray(fairyInvites) ? fairyInvites : [],
+		replicatorData,
+	}
+}
 
 export function Component() {
 	const user = useTldrawUser()
-	const [activeTab, setActiveTab] = useState<AdminTab>('user-management')
+	const data = useLoaderData() as AdminLoaderData
+	const [activeTab, setActiveTab] = useState<AdminTab>(getStoredTab())
 
 	if (!user?.isTldraw) {
 		return <Navigate to="/" replace />
@@ -33,7 +71,6 @@ export function Component() {
 		{ id: 'feature-flags', label: 'Feature flags' },
 		{ id: 'whats-new', label: "What's new" },
 		{ id: 'file-operations', label: 'File operations' },
-		{ id: 'batch-migration', label: 'Batch migration' },
 		{ id: 'danger-zone', label: 'Danger zone' },
 	]
 
@@ -48,7 +85,10 @@ export function Component() {
 					<button
 						key={tab.id}
 						className={activeTab === tab.id ? styles.tabButtonActive : styles.tabButton}
-						onClick={() => setActiveTab(tab.id)}
+						onClick={() => {
+							setActiveTab(tab.id)
+							setInLocalStorage(ADMIN_TAB_KEY, tab.id)
+						}}
 					>
 						{tab.label}
 					</button>
@@ -56,12 +96,13 @@ export function Component() {
 			</div>
 
 			<main className={styles.adminContent}>
-				{activeTab === 'user-management' && <AdminUserManagement />}
-				{activeTab === 'fairies' && <AdminFairies />}
-				{activeTab === 'feature-flags' && <AdminFeatureFlags />}
-				{activeTab === 'whats-new' && <AdminWhatsNew />}
+				{activeTab === 'user-management' && (
+					<AdminUserManagement initialReplicatorData={data.replicatorData} />
+				)}
+				{activeTab === 'fairies' && <AdminFairies initialInvites={data.fairyInvites} />}
+				{activeTab === 'feature-flags' && <AdminFeatureFlags initialFlags={data.featureFlags} />}
+				{activeTab === 'whats-new' && <AdminWhatsNew initialEntries={data.whatsNewEntries} />}
 				{activeTab === 'file-operations' && <AdminFileOperations />}
-				{activeTab === 'batch-migration' && <AdminBatchMigration />}
 				{activeTab === 'danger-zone' && <AdminDangerZone />}
 			</main>
 		</div>

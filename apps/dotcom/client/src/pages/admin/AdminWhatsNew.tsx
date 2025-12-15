@@ -150,15 +150,17 @@ function WhatsNewEntryForm({
 	)
 }
 
-export function AdminWhatsNew() {
-	const [entries, setEntries] = useState<WhatsNewEntry[]>([])
-	const [isLoading, setIsLoading] = useState(false)
+interface AdminWhatsNewProps {
+	initialEntries: WhatsNewEntry[]
+}
+
+export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
+	const [entries, setEntries] = useState<WhatsNewEntry[]>(initialEntries)
 	const [error, setError] = useState<string | null>(null)
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 	const [editingEntry, setEditingEntry] = useState<WhatsNewEntryDraft | null>(null)
 
 	const loadEntries = useCallback(async () => {
-		setIsLoading(true)
 		setError(null)
 		try {
 			const res = await fetch('/api/app/admin/whats-new')
@@ -167,18 +169,11 @@ export function AdminWhatsNew() {
 				return
 			}
 			const data = await res.json()
-			// API returns array directly, not wrapped in object
 			setEntries(Array.isArray(data) ? data : [])
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to load entries')
-		} finally {
-			setIsLoading(false)
 		}
 	}, [])
-
-	useEffect(() => {
-		loadEntries()
-	}, [loadEntries])
 
 	useEffect(() => {
 		if (successMessage) {
@@ -274,47 +269,43 @@ export function AdminWhatsNew() {
 				</div>
 			)}
 
-			{isLoading ? (
-				<p className="tla-text_ui__small">Loading...</p>
-			) : (
-				<div className={styles.entriesList}>
-					<h4 className="tla-text_ui__medium">Existing Entries</h4>
-					{!entries || entries.length === 0 ? (
-						<p className="tla-text_ui__small">No entries yet</p>
-					) : (
-						entries.map((entry) => (
-							<div key={entry.version} className={styles.entryCard}>
-								<div className={styles.entryHeader}>
-									<div>
-										<h5 className="tla-text_ui__medium">
-											{entry.version} - {entry.title}
-										</h5>
-										<p className="tla-text_ui__small">
-											{new Date(entry.date).toLocaleDateString('en-US', {
-												month: 'short',
-												year: 'numeric',
-											})}
-										</p>
-									</div>
-									<div className={styles.entryActions}>
-										<TlaButton onClick={() => setEditingEntry(entry)} variant="secondary">
-											Edit
-										</TlaButton>
-										<TlaButton
-											onClick={() => deleteEntry(entry.version)}
-											variant="warning"
-											className={styles.deleteButton}
-										>
-											Delete
-										</TlaButton>
-									</div>
+			<div className={styles.entriesList}>
+				<h4 className="tla-text_ui__medium">Existing Entries</h4>
+				{!entries || entries.length === 0 ? (
+					<p className="tla-text_ui__small">No entries yet</p>
+				) : (
+					entries.map((entry) => (
+						<div key={entry.version} className={styles.entryCard}>
+							<div className={styles.entryHeader}>
+								<div>
+									<h5 className="tla-text_ui__medium">
+										{entry.version} - {entry.title}
+									</h5>
+									<p className="tla-text_ui__small">
+										{new Date(entry.date).toLocaleDateString('en-US', {
+											month: 'short',
+											year: 'numeric',
+										})}
+									</p>
 								</div>
-								<p className="tla-text_ui__small">{entry.description}</p>
+								<div className={styles.entryActions}>
+									<TlaButton onClick={() => setEditingEntry(entry)} variant="secondary">
+										Edit
+									</TlaButton>
+									<TlaButton
+										onClick={() => deleteEntry(entry.version)}
+										variant="warning"
+										className={styles.deleteButton}
+									>
+										Delete
+									</TlaButton>
+								</div>
 							</div>
-						))
-					)}
-				</div>
-			)}
+							<p className="tla-text_ui__small">{entry.description}</p>
+						</div>
+					))
+				)}
+			</div>
 		</div>
 	)
 }

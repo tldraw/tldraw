@@ -143,10 +143,16 @@ function MigrateUserToGroups({
 	)
 }
 
-export function AdminUserManagement() {
+export type ReplicatorData = any
+
+interface AdminUserManagementProps {
+	initialReplicatorData: ReplicatorData
+}
+
+export function AdminUserManagement({ initialReplicatorData }: AdminUserManagementProps) {
 	const [data, setData] = useState<any>(null)
 	const [error, setError] = useState(null as string | null)
-	const [replicatorData, setReplicatorData] = useState(null)
+	const [replicatorData] = useState<any>(initialReplicatorData)
 	const [isRebooting, setIsRebooting] = useState(false)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -194,21 +200,6 @@ export function AdminUserManagement() {
 			setIsRebooting(false)
 		}
 	}, [loadData])
-
-	useEffect(() => {
-		fetch('/api/app/admin/replicator')
-			.then(async (res) => {
-				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
-					return
-				}
-				setError(null)
-				setReplicatorData(await res.json())
-			})
-			.catch((e) => {
-				setError(e.message)
-			})
-	}, [])
 
 	useEffect(() => {
 		if (successMessage) {
