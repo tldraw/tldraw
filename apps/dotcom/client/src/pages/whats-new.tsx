@@ -2,7 +2,7 @@ import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLoaderData } from 'react-router-dom'
 import { fetch } from 'tldraw'
-import { WhatsNewPageEntry } from '../tla/components/WhatsNewPageEntry'
+import { TlaWhatsNewPageEntry } from '../tla/components/TlaWhatsNew/TlaWhatsNewPageEntry'
 import { F } from '../tla/utils/i18n'
 import styles from './whats-new.module.css'
 
@@ -40,7 +40,7 @@ export function Component() {
 						) : (
 							<div className={styles.entriesList}>
 								{entries.map((entry) => (
-									<WhatsNewPageEntry key={entry.version} entry={entry} />
+									<TlaWhatsNewPageEntry key={entry.version} entry={entry} />
 								))}
 							</div>
 						)}

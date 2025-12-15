@@ -2,8 +2,8 @@ import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
-import { WhatsNewDialogContent } from '../../tla/components/WhatsNewDialogContent'
-import { WhatsNewPageEntry } from '../../tla/components/WhatsNewPageEntry'
+import { TlaWhatsNewDialogContent } from '../../tla/components/TlaWhatsNew/TlaWhatsNewDialogContent'
+import { TlaWhatsNewPageEntry } from '../../tla/components/TlaWhatsNew/TlaWhatsNewPageEntry'
 import styles from '../admin.module.css'
 
 type WhatsNewEntryDraft = Omit<WhatsNewEntry, 'schemaVersion'> & {
@@ -149,7 +149,7 @@ function WhatsNewEntryForm({
 					{/* Dialog preview - uses the same component as the actual dialog */}
 					<div className={`${styles.whatsNewPreview} ${styles.whatsNewPreviewDialog}`}>
 						<div className={styles.whatsNewPreviewLabel}>Dialog preview</div>
-						<WhatsNewDialogContent
+						<TlaWhatsNewDialogContent
 							entry={{
 								schemaVersion: 1,
 								version: formData.version || '1.0',
@@ -163,7 +163,7 @@ function WhatsNewEntryForm({
 					{/* Page preview - uses the same component as the actual page */}
 					<div className={styles.whatsNewPreview}>
 						<div className={styles.whatsNewPreviewLabel}>Page preview</div>
-						<WhatsNewPageEntry
+						<TlaWhatsNewPageEntry
 							entry={{
 								schemaVersion: 1,
 								version: formData.version || '1.0',

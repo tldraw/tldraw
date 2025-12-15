@@ -2,15 +2,15 @@ import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import Markdown from 'react-markdown'
 import { Link } from 'react-router-dom'
 import { useDialogs } from 'tldraw'
-import { routes } from '../../routeDefs'
-import { F } from '../utils/i18n'
-import styles from './dialogs/TlaWhatsNewDialog.module.css'
+import { routes } from '../../../routeDefs'
+import { F } from '../../utils/i18n'
+import styles from '../dialogs/TlaWhatsNewDialog.module.css'
 
-interface WhatsNewDialogContentProps {
+interface TlaWhatsNewDialogContentProps {
 	entry: WhatsNewEntry
 }
 
-export function WhatsNewDialogContent({ entry }: WhatsNewDialogContentProps) {
+export function TlaWhatsNewDialogContent({ entry }: TlaWhatsNewDialogContentProps) {
 	const { clearDialogs } = useDialogs()
 	const date = new Date(entry.date)
 

@@ -22,7 +22,7 @@ export const whatsNewEntriesAtom: Atom<WhatsNewEntry[]> = atom('whatsNewEntries'
 
 export const whatsNewLoadedAtom: Atom<boolean> = atom('whatsNewLoaded', false)
 
-export function WhatsNewFetcher() {
+export function TlaWhatsNewFetcher() {
 	useEffect(() => {
 		let mounted = true
 

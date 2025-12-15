@@ -31,6 +31,7 @@ import { FairyInviteHandler } from '../components/FairyInviteHandler'
 import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaWhatsNewFetcher } from '../components/TlaWhatsNew/TlaWhatsNewFetcher'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import { useWhatsNew } from '../hooks/useWhatsNew'
@@ -44,7 +45,6 @@ import {
 	updateLocalSessionState,
 	useAreFairiesEnabled,
 } from '../utils/local-session-state'
-import { WhatsNewFetcher } from '../utils/WhatsNewFetcher'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -280,7 +280,7 @@ function SignedInProvider({
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
 				<FeatureFlagsFetcher />
-				<WhatsNewFetcher />
+				<TlaWhatsNewFetcher />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -292,7 +292,7 @@ function SignedInProvider({
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
 					<FeatureFlagsFetcher />
-					<WhatsNewFetcher />
+					<TlaWhatsNewFetcher />
 					<SignedInAnalytics />
 					{children}
 				</ThemeContainer>

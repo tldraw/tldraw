@@ -6,7 +6,7 @@ import {
 } from 'tldraw'
 import { useWhatsNew } from '../../hooks/useWhatsNew'
 import { F } from '../../utils/i18n'
-import { WhatsNewDialogContent } from '../WhatsNewDialogContent'
+import { TlaWhatsNewDialogContent } from '../TlaWhatsNew/TlaWhatsNewDialogContent'
 import styles from './TlaWhatsNewDialog.module.css'
 
 export function TlaWhatsNewDialog() {
@@ -41,7 +41,7 @@ export function TlaWhatsNewDialog() {
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody>
-				<WhatsNewDialogContent entry={latestEntry} />
+				<TlaWhatsNewDialogContent entry={latestEntry} />
 			</TldrawUiDialogBody>
 		</>
 	)
