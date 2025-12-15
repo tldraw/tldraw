@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Viedä"
   },
-  "00b177e080": {
-    "translation": "Hyväksy kutsu"
-  },
   "03b3e13197": {
     "translation": "Vedä tiedosto tämän sivun sivupalkkiin. Tai valitse käyttäjävalikosta vaihtoehto Tuo tiedosto."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Virheellinen pyyntö."
   },
+  "77f0abf1aa": {
+    "translation": "Sinut on kutsuttu <strong>tldraw-keijuihin</strong>"
+  },
   "7827371d1a": {
     "translation": "Tämä anonyymi tldraw-moninpelitiedosto on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Avaa tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Sinut on kutsuttu liittymään tldraw-keijuihin!"
   },
   "7cb5f8b4a5": {
     "translation": "Unohtaa"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Poista valinta"
+  },
+  "9489b2f82a": {
+    "translation": "Olet jo tämän ryhmän jäsen"
   },
   "94966d9074": {
     "translation": "Lähetä"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Välttämättömät evästeet"
   },
+  "c54a624f46": {
+    "translation": "Hyväksy kutsu"
+  },
   "c6155aaecc": {
     "translation": "Ryhmän nimi"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Virheellinen tldraw-tiedoston URL-osoite"
   },
-  "de290d52ef": {
-    "translation": "Valitse oikealta keiju, jonka kanssa keskustella"
-  },
   "df6ff49394": {
     "translation": "Keijut ovat <strong>väliaikainen</strong> ominaisuus. Kaikki keijut poistetaan sovelluksesta 1. tammikuuta 2026. Ehkä ne palaavat jonain päivänä. Ostoksesi oikeuttaa keijujen käyttöoikeuteen vain joulukuussa 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Käyttäjäasetukset"
+  },
+  "f1206f9fad": {
+    "translation": "Määritä"
   },
   "f2569594b2": {
     "translation": "Käytämme näitä evästeitä tiedostojesi ja asetuksiesi tallentamiseen."

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exportar"
   },
-  "00b177e080": {
-    "translation": "Aceptar invitación"
-  },
   "03b3e13197": {
     "translation": "Arrastre el archivo hasta la barra lateral de esta página o seleccione la opción \"Importar archivo\" del menú de usuario."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Solicitud no válida."
   },
+  "77f0abf1aa": {
+    "translation": "Te han invitado a <strong>tldraw hadas</strong>"
+  },
   "7827371d1a": {
     "translation": "Este archivo tldraw multijugador anónimo ahora es de solo lectura. Para continuar editándolo, inicia sesión y cópialo a tus archivos."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Abrir tldraw"
-  },
-  "7cb471f815": {
-    "translation": "¡Has sido invitado a unirte a tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Olvidar"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Deseleccionar"
+  },
+  "9489b2f82a": {
+    "translation": "Ya eres miembro de este grupo"
   },
   "94966d9074": {
     "translation": "Enviar"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookies esenciales"
   },
+  "c54a624f46": {
+    "translation": "Aceptar invitación"
+  },
   "c6155aaecc": {
     "translation": "Nombre del grupo"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL de archivo tldraw no válida"
   },
-  "de290d52ef": {
-    "translation": "Selecciona un hada de la derecha para charlar con ella."
-  },
   "df6ff49394": {
     "translation": "Las hadas son una función <strong>temporal</strong>. El 1 de enero de 2026, todas las hadas serán eliminadas de la aplicación. Quizás regresen algún día. Tu compra te da acceso a las hadas solo durante diciembre de 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Configuración de usuario"
+  },
+  "f1206f9fad": {
+    "translation": "Configurar"
   },
   "f2569594b2": {
     "translation": "Utilizamos estas cookies para guardar sus archivos y configuraciones."

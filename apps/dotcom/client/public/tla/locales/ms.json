@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Eksport"
   },
-  "00b177e080": {
-    "translation": "Terima jemputan"
-  },
   "03b3e13197": {
     "translation": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Permintaan tidak sah."
   },
+  "77f0abf1aa": {
+    "translation": "Anda telah dijemput untuk <strong>tldraw peri</strong>"
+  },
   "7827371d1a": {
     "translation": "Fail berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Buka tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Anda telah dijemput untuk menyertai pari-pari tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "lupa"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Nyahpilih"
+  },
+  "9489b2f82a": {
+    "translation": "Anda sudah pun menjadi ahli kumpulan ini"
   },
   "94966d9074": {
     "translation": "Hantar"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Kuki penting"
   },
+  "c54a624f46": {
+    "translation": "Terima jemputan"
+  },
   "c6155aaecc": {
     "translation": "Nama kumpulan"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL fail tldraw tidak sah"
   },
-  "de290d52ef": {
-    "translation": "Pilih dongeng di sebelah kanan untuk berbual"
-  },
   "df6ff49394": {
     "translation": "Peri ialah ciri <strong>sementara</strong>. Pada 1 Januari 2026, semua peri akan dialih keluar daripada aplikasi. Mungkin mereka akan kembali lagi suatu hari nanti. Pembelian anda adalah untuk akses kepada pari-pari untuk Disember 2025 sahaja."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Tetapan pengguna"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurasikan"
   },
   "f2569594b2": {
     "translation": "Kami menggunakan kuki ini untuk menyimpan fail dan tetapan anda."

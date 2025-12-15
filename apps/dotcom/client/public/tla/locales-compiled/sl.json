@@ -5,12 +5,6 @@
       "value": "Izvozi"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Sprejmi povabilo"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -751,6 +745,22 @@
       "value": "Neveljavna zahteva."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili k "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "risanju vil"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -791,12 +801,6 @@
     {
       "type": 0,
       "value": "Odpri tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Povabljeni ste, da se pridružite tldraw fairies!"
     }
   ],
   "7cb5f8b4a5": [
@@ -983,6 +987,12 @@
     {
       "type": 0,
       "value": "Prekliči izbor"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Ste že član te skupine"
     }
   ],
   "94966d9074": [
@@ -1361,6 +1371,12 @@
       "value": "Bistveni piškotki"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Sprejmi povabilo"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1539,12 +1555,6 @@
       "value": "Neveljaven URL datoteke tldraw"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Izberite vilo na desni, s katero se želite pogovarjati"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1715,6 +1725,12 @@
     {
       "type": 0,
       "value": "Uporabniške nastavitve"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Konfiguriraj"
     }
   ],
   "f2569594b2": [
