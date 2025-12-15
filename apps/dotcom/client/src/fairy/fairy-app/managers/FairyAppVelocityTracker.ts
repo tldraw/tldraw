@@ -46,9 +46,9 @@ export interface VelocityDataPoint {
 export class FairyAppVelocityTracker {
 	private dataPoints: Atom<VelocityDataPoint[]>
 	private intervalId: number | null = null
-	private readonly MAX_DATA_POINTS = 60 // Keep last 60 data points
 	private readonly SAMPLE_INTERVAL_MS = 1000 // Sample every 1 second
 	private lastPositions: Map<string, { x: number; y: number }> = new Map()
+	private currentProjectId: string | null = null
 
 	constructor(private _fairyApp: FairyApp) {
 		this.dataPoints = atom('fairyAppVelocityData', [])
@@ -116,18 +116,20 @@ export class FairyAppVelocityTracker {
 		const currentData = this.dataPoints.get()
 		const newData = [...currentData, dataPoint]
 
-		// Keep only the last MAX_DATA_POINTS
-		if (newData.length > this.MAX_DATA_POINTS) {
-			newData.shift()
-		}
-
+		// Keep full history - no truncation
 		this.dataPoints.set(newData)
 	}
 
 	/**
 	 * Start tracking movement for specific agents
 	 */
-	startTracking(getAgents: () => FairyAgent[]): void {
+	startTracking(getAgents: () => FairyAgent[], projectId?: string): void {
+		// Clear data if tracking a different project
+		if (projectId && projectId !== this.currentProjectId) {
+			this.clearData()
+			this.currentProjectId = projectId
+		}
+
 		// Clear any existing interval
 		this.stopTracking()
 		// Clear last positions when starting fresh

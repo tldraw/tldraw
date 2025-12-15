@@ -67,6 +67,8 @@ export class FairyBarChart {
 	private tooltip!: HTMLElement
 	private tooltipShown = false
 	private resizeHandler: () => void
+	private mousemoveHandler: ((e: MouseEvent) => void) | null = null
+	private mouseleaveHandler: (() => void) | null = null
 
 	constructor(container: HTMLElement, options: ChartOptions) {
 		this.container = container
@@ -313,7 +315,15 @@ export class FairyBarChart {
 	private setupTooltipEvents(): void {
 		if (!this.options.showTooltip) return
 
-		const mousemoveHandler = (e: MouseEvent) => {
+		// Remove existing handlers if any
+		if (this.mousemoveHandler) {
+			this.container.removeEventListener('mousemove', this.mousemoveHandler)
+		}
+		if (this.mouseleaveHandler) {
+			this.container.removeEventListener('mouseleave', this.mouseleaveHandler)
+		}
+
+		this.mousemoveHandler = (e: MouseEvent) => {
 			const rect = this.svg.getBoundingClientRect()
 			const offsetX = this.margins.left + this.paddings.left
 			const offsetY = this.margins.top + this.paddings.top
@@ -327,12 +337,12 @@ export class FairyBarChart {
 			}
 		}
 
-		const mouseleaveHandler = () => {
+		this.mouseleaveHandler = () => {
 			this.hideTooltip()
 		}
 
-		this.container.addEventListener('mousemove', mousemoveHandler)
-		this.container.addEventListener('mouseleave', mouseleaveHandler)
+		this.container.addEventListener('mousemove', this.mousemoveHandler)
+		this.container.addEventListener('mouseleave', this.mouseleaveHandler)
 	}
 
 	private showTooltipAt(relX: number): void {
@@ -419,6 +429,15 @@ export class FairyBarChart {
 
 	public destroy(): void {
 		window.removeEventListener('resize', this.resizeHandler)
+		// Remove tooltip event listeners
+		if (this.mousemoveHandler) {
+			this.container.removeEventListener('mousemove', this.mousemoveHandler)
+			this.mousemoveHandler = null
+		}
+		if (this.mouseleaveHandler) {
+			this.container.removeEventListener('mouseleave', this.mouseleaveHandler)
+			this.mouseleaveHandler = null
+		}
 		this.container.innerHTML = ''
 	}
 }
