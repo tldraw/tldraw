@@ -87,53 +87,40 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getGeometry(shape: TLGeoShape) {
-		const w = Math.max(1, shape.props.w)
-		const h = Math.max(1, shape.props.h + shape.props.growY)
-
+		const { props } = shape
+		const { scale } = props
 		const path = getGeoShapePath(shape)
-		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
-		// unscaled w and h
-		const unscaledW = w / shape.props.scale
-		const unscaledH = h / shape.props.scale
-		const unscaledminWidth = Math.min(100, unscaledW / 2)
-		const unscaledMinHeight = Math.min(
-			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
-			unscaledH / 2
-		)
+		const pathGeometry = path.toGeometry()
 
-		const unscaledLabelWidth = Math.min(
+		const scaledW = Math.max(1, props.w)
+		const scaledH = Math.max(1, props.h + props.growY)
+		const unscaledW = scaledW / scale
+		const unscaledH = scaledH / scale
+
+		const isEmptyLabel = isEmptyRichText(props.richText)
+		const unscaledLabelSize = isEmptyLabel
+			? EMPTY_LABEL_SIZE
+			: getUnscaledLabelSize(this.editor, shape)
+
+		const labelBounds = getLabelBounds(
 			unscaledW,
-			Math.max(unscaledlabelSize.w, Math.min(unscaledminWidth, Math.max(1, unscaledW - 8)))
-		)
-		const unscaledLabelHeight = Math.min(
 			unscaledH,
-			Math.max(unscaledlabelSize.h, Math.min(unscaledMinHeight, Math.max(1, unscaledH - 8)))
+			unscaledLabelSize,
+			props.size,
+			props.align,
+			props.verticalAlign,
+			scale
 		)
-
-		// todo: use centroid for label position
 
 		return new Group2d({
 			children: [
-				path.toGeometry(),
+				pathGeometry,
 				new Rectangle2d({
-					x:
-						shape.props.align === 'start'
-							? 0
-							: shape.props.align === 'end'
-								? (unscaledW - unscaledLabelWidth) * shape.props.scale
-								: ((unscaledW - unscaledLabelWidth) / 2) * shape.props.scale,
-					y:
-						shape.props.verticalAlign === 'start'
-							? 0
-							: shape.props.verticalAlign === 'end'
-								? (unscaledH - unscaledLabelHeight) * shape.props.scale
-								: ((unscaledH - unscaledLabelHeight) / 2) * shape.props.scale,
-					width: unscaledLabelWidth * shape.props.scale,
-					height: unscaledLabelHeight * shape.props.scale,
+					...labelBounds,
 					isFilled: true,
 					isLabel: true,
 					excludeFromShapeBounds: true,
-					isEmptyLabel: isEmptyRichText(shape.props.richText),
+					isEmptyLabel: isEmptyLabel,
 				}),
 			],
 		})
@@ -309,13 +296,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		shape: TLGeoShape,
 		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
 	) {
-		const unscaledInitialW = initialShape.props.w / initialShape.props.scale
-		const unscaledInitialH = initialShape.props.h / initialShape.props.scale
-		const unscaledGrowY = initialShape.props.growY / initialShape.props.scale
+		const unscaledInitial = getUnscaledGeoProps(initialShape.props)
 		// use the w/h from props here instead of the initialBounds here,
 		// since cloud shapes calculated bounds can differ from the props w/h.
-		let unscaledW = unscaledInitialW * scaleX
-		let unscaledH = (unscaledInitialH + unscaledGrowY) * scaleY
+		let unscaledW = unscaledInitial.w * scaleX
+		let unscaledH = (unscaledInitial.h + unscaledInitial.growY) * scaleY
 		let overShrinkX = 0
 		let overShrinkY = 0
 
@@ -378,141 +363,82 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override onBeforeCreate(shape: TLGeoShape) {
-		if (isEmptyRichText(shape.props.richText)) {
-			if (shape.props.growY) {
-				// No text / some growY, set growY to 0
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						growY: 0,
-					},
-				}
-			} else {
-				// No text / no growY, nothing to change
-				return
-			}
+		const { props } = shape
+
+		// No text - ensure growY is 0
+		if (isEmptyRichText(props.richText)) {
+			return props.growY !== 0 ? { ...shape, props: { ...props, growY: 0 } } : undefined
 		}
 
-		const unscaledPrevHeight = shape.props.h / shape.props.scale
-		const unscaledNextHeight = getUnscaledLabelSize(this.editor, shape).h
+		// Has text - calculate growY needed to fit label
+		const unscaledShapeH = props.h / props.scale
+		const unscaledLabelH = getUnscaledLabelSize(this.editor, shape).h
+		const unscaledGrowY = calculateGrowY(unscaledShapeH, unscaledLabelH, props.growY / props.scale)
 
-		let growY: number | null = null
-
-		if (unscaledNextHeight > unscaledPrevHeight) {
-			growY = unscaledNextHeight - unscaledPrevHeight
-		} else {
-			if (shape.props.growY) {
-				growY = 0
-			}
-		}
-
-		if (growY !== null) {
+		if (unscaledGrowY !== null) {
 			return {
 				...shape,
-				props: {
-					...shape.props,
-					// scale the growY
-					growY: growY * shape.props.scale,
-				},
+				props: { ...props, growY: unscaledGrowY * props.scale },
 			}
 		}
 	}
 
 	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
-		// No change to text, font, or size, no need to update update
+		const { props: prevProps } = prev
+		const { props: nextProps } = next
+
+		// No change to text, font, or size - no update needed
 		if (
-			isEqual(prev.props.richText, next.props.richText) &&
-			prev.props.font === next.props.font &&
-			prev.props.size === next.props.size
+			isEqual(prevProps.richText, nextProps.richText) &&
+			prevProps.font === nextProps.font &&
+			prevProps.size === nextProps.size
 		) {
 			return
 		}
 
-		// If we got rid of the text, cancel out any growY from the prev text
-		const wasEmpty = isEmptyRichText(prev.props.richText)
-		const isEmpty = isEmptyRichText(next.props.richText)
+		const wasEmpty = isEmptyRichText(prevProps.richText)
+		const isEmpty = isEmptyRichText(nextProps.richText)
+
+		// Text was removed - reset growY
 		if (!wasEmpty && isEmpty) {
+			return nextProps.growY !== 0 ? { ...next, props: { ...nextProps, growY: 0 } } : undefined
+		}
+
+		const unscaledPrev = getUnscaledGeoProps(prevProps)
+		const unscaledLabelSize = getUnscaledLabelSize(this.editor, next)
+		const { scale } = nextProps
+
+		// Text was added for the first time - expand shape to fit (if wasEmpty and now there's text...
+		// It might be just whitespace but it is faster to assume that it is NOT just whitespace and expand
+		// the shape in either case (a label with just spaces text will be less performant but that's acceptable)
+		if (wasEmpty && !isEmpty) {
+			const expanded = expandShapeForFirstLabel(unscaledPrev.w, unscaledPrev.h, unscaledLabelSize)
 			return {
 				...next,
 				props: {
-					...next.props,
+					...nextProps,
+					w: expanded.w * scale,
+					h: expanded.h * scale,
 					growY: 0,
 				},
 			}
 		}
 
-		// Get the prev width and height in unscaled values
-		const unscaledPrevWidth = prev.props.w / prev.props.scale
-		const unscaledPrevHeight = prev.props.h / prev.props.scale
-		const unscaledPrevGrowY = prev.props.growY / prev.props.scale
+		// Text was modified - adjust dimensions to fit new label
+		const unscaledNextW = next.props.w / scale
+		const needsWidthExpand = unscaledLabelSize.w > unscaledNextW
+		const unscaledGrowY = calculateGrowY(unscaledPrev.h, unscaledLabelSize.h, unscaledPrev.growY)
 
-		// Get the next width and height in unscaled values
-		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
-
-		// When entering the first character in a label (not pasting in multiple characters...)
-		if (wasEmpty && !isEmpty && renderPlaintextFromRichText(this.editor, next.props.richText)) {
-			let unscaledW = Math.max(unscaledPrevWidth, unscaledNextLabelSize.w)
-			let unscaledH = Math.max(unscaledPrevHeight, unscaledNextLabelSize.h)
-
-			const min = MIN_SIZE_WITH_LABEL
-
-			// If both the width and height were less than the minimum size, make the shape square
-			if (unscaledPrevWidth < min && unscaledPrevHeight < min) {
-				unscaledW = Math.max(unscaledW, min)
-				unscaledH = Math.max(unscaledH, min)
-				unscaledW = Math.max(unscaledW, unscaledH)
-				unscaledH = Math.max(unscaledW, unscaledH)
-			}
-
-			// Don't set a growY—at least, not until we've implemented a growX property
+		if (unscaledGrowY !== null || needsWidthExpand) {
 			return {
 				...next,
 				props: {
-					...next.props,
-					// Scale the results
-					w: unscaledW * next.props.scale,
-					h: unscaledH * next.props.scale,
-					growY: 0,
+					...nextProps,
+					growY: (unscaledGrowY ?? unscaledPrev.growY) * scale,
+					w: Math.max(unscaledNextW, unscaledLabelSize.w) * scale,
 				},
 			}
 		}
-
-		let growY: number | null = null
-
-		if (unscaledNextLabelSize.h > unscaledPrevHeight) {
-			growY = unscaledNextLabelSize.h - unscaledPrevHeight
-		} else {
-			if (unscaledPrevGrowY) {
-				growY = 0
-			}
-		}
-
-		if (growY !== null) {
-			const unscaledNextWidth = next.props.w / next.props.scale
-			return {
-				...next,
-				props: {
-					...next.props,
-					// Scale the results
-					growY: growY * next.props.scale,
-					w: Math.max(unscaledNextWidth, unscaledNextLabelSize.w) * next.props.scale,
-				},
-			}
-		}
-
-		if (unscaledNextLabelSize.w > unscaledPrevWidth) {
-			return {
-				...next,
-				props: {
-					...next.props,
-					// Scale the results
-					w: unscaledNextLabelSize.w * next.props.scale,
-				},
-			}
-		}
-
-		// otherwise, no update needed
 	}
 
 	override onDoubleClick(shape: TLGeoShape) {
@@ -556,18 +482,135 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 // imperfect but good enough, should be the width of the W in the font / size combo
-const minWidths = {
+const MIN_WIDTHS = Object.freeze({
 	s: 12,
 	m: 14,
 	l: 16,
 	xl: 20,
-}
+})
 
-const extraPaddings = {
+const EXTRA_PADDINGS = Object.freeze({
 	s: 2,
 	m: 3.5,
 	l: 5,
 	xl: 10,
+})
+
+const EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
+
+// Margin between label edge and shape edge (in unscaled units)
+const LABEL_EDGE_MARGIN = 8
+
+/** Calculate label bounds for hit testing */
+function getLabelBounds(
+	unscaledShapeW: number,
+	unscaledShapeH: number,
+	unscaledLabelSize: { w: number; h: number },
+	size: TLGeoShapeProps['size'],
+	align: TLGeoShapeProps['align'],
+	verticalAlign: TLGeoShapeProps['verticalAlign'],
+	scale: number
+): { x: number; y: number; width: number; height: number } {
+	// Calculate minimum label dimensions based on font size and shape size
+	const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
+	const unscaledMinHeight = Math.min(
+		LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+		unscaledShapeH / 2
+	)
+
+	// Label dimensions: at least the measured size, but constrained to shape bounds
+	const unscaledLabelW = Math.min(
+		unscaledShapeW,
+		Math.max(
+			unscaledLabelSize.w,
+			Math.min(unscaledMinWidth, Math.max(1, unscaledShapeW - LABEL_EDGE_MARGIN))
+		)
+	)
+	const unscaledLabelH = Math.min(
+		unscaledShapeH,
+		Math.max(
+			unscaledLabelSize.h,
+			Math.min(unscaledMinHeight, Math.max(1, unscaledShapeH - LABEL_EDGE_MARGIN))
+		)
+	)
+
+	// Calculate position based on alignment
+	const unscaledX =
+		align === 'start'
+			? 0
+			: align === 'end'
+				? unscaledShapeW - unscaledLabelW
+				: (unscaledShapeW - unscaledLabelW) / 2
+
+	const unscaledY =
+		verticalAlign === 'start'
+			? 0
+			: verticalAlign === 'end'
+				? unscaledShapeH - unscaledLabelH
+				: (unscaledShapeH - unscaledLabelH) / 2
+
+	return {
+		x: unscaledX * scale,
+		y: unscaledY * scale,
+		width: unscaledLabelW * scale,
+		height: unscaledLabelH * scale,
+	}
+}
+
+/** Get the unscaled dimensions from a geo shape's props */
+function getUnscaledGeoProps(props: TLGeoShapeProps) {
+	const { w, h, growY, scale } = props
+	return {
+		w: w / scale,
+		h: h / scale,
+		growY: growY / scale,
+	}
+}
+
+/**
+ * Calculate the growY needed to fit a label within a shape.
+ * Returns null if no change is needed, otherwise returns the new unscaled growY value.
+ */
+function calculateGrowY(
+	unscaledShapeH: number,
+	unscaledLabelH: number,
+	unscaledCurrentGrowY: number
+): number | null {
+	if (unscaledLabelH > unscaledShapeH) {
+		// Label is taller than shape - need to grow
+		return unscaledLabelH - unscaledShapeH
+	}
+	if (unscaledCurrentGrowY > 0) {
+		// Label fits and we have existing growY - reset it
+		return 0
+	}
+	// No change needed
+	return null
+}
+
+/**
+ * Calculate expanded dimensions when adding a label to a shape for the first time.
+ * Ensures the shape meets minimum size requirements and is square if originally small.
+ */
+function expandShapeForFirstLabel(
+	unscaledW: number,
+	unscaledH: number,
+	unscaledLabelSize: { w: number; h: number }
+): { w: number; h: number } {
+	let w = Math.max(unscaledW, unscaledLabelSize.w)
+	let h = Math.max(unscaledH, unscaledLabelSize.h)
+
+	// If shape was smaller than min size in both dimensions, make it square
+	if (unscaledW < MIN_SIZE_WITH_LABEL && unscaledH < MIN_SIZE_WITH_LABEL) {
+		w = Math.max(w, MIN_SIZE_WITH_LABEL)
+		h = Math.max(h, MIN_SIZE_WITH_LABEL)
+		// Make square by using the larger dimension
+		const maxDim = Math.max(w, h)
+		w = maxDim
+		h = maxDim
+	}
+
+	return { w, h }
 }
 
 const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
@@ -583,7 +626,7 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
 
-	const minWidth = minWidths[size]
+	const minWidth = MIN_WIDTHS[size]
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const textSize = editor.textMeasure.measureHtml(html, {
@@ -595,7 +638,7 @@ function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 			// Guard because a DOM nodes can't be less 0
 			0,
 			// A 'w' width that we're setting as the min-width
-			Math.ceil(minWidth + extraPaddings[size]),
+			Math.ceil(minWidth + EXTRA_PADDINGS[size]),
 			// The actual text size
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),
