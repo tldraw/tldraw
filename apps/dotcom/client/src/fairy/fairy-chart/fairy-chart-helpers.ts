@@ -92,7 +92,7 @@ export function isDuoProject(project: { members: Array<{ role: string }> } | nul
 }
 
 /**
- * Filter agents to project members, optionally excluding orchestrator in non-duo mode
+ * Filter agents to project members (always include all members)
  */
 export function filterProjectAgents(
 	agents: FairyAgent[],
@@ -105,13 +105,6 @@ export function filterProjectAgents(
 	return agents.filter((agent) => {
 		// Must be a project member
 		const isMember = project.members.some((m) => m.id === agent.id)
-		if (!isMember) return false
-
-		// In non-duo mode, exclude the orchestrator (they don't move/act directly)
-		if (!isDuo && orchestratorAgent && agent.id === orchestratorAgent.id) {
-			return false
-		}
-
-		return true
+		return isMember
 	})
 }

@@ -46,45 +46,31 @@ export function FairyVelocityChart({ orchestratorAgent, agents }: FairyVelocityC
 		[fairyApp]
 	)
 
-	// Check if this is a duo project (orchestrator moves in duo mode)
-	const isDuoProject = useValue(
-		'is-duo-project',
-		() => {
-			if (!project) return false
-			return project.members.some((member) => member.role === 'duo-orchestrator')
-		},
-		[project]
-	)
-
 	// Start/stop tracking based on project existence
 	useEffect(() => {
-		if (!fairyApp?.velocityTracker || !project) {
+		if (!fairyApp?.velocityTracker) {
 			return
 		}
 
-		// Start tracking with project agents
+		// Stop tracking if no project (project ended)
+		if (!project) {
+			fairyApp.velocityTracker.stopTracking()
+			return
+		}
+
+		// Start tracking with project agents, passing project ID for automatic reset
+		// Note: tracking continues even when dialog closes, so we capture full history
 		fairyApp.velocityTracker.startTracking(() => {
 			const currentProject = orchestratorAgent?.getProject(true)
 			if (!currentProject) return []
 
-			// Filter to project members, and exclude orchestrator if not duo mode
+			// Filter to project members (always include all members)
 			return agents.filter((agent) => {
 				const isMember = currentProject.members.some((m) => m.id === agent.id)
-				if (!isMember) return false
-
-				// In non-duo mode, exclude the orchestrator (they don't move)
-				if (!isDuoProject && orchestratorAgent && agent.id === orchestratorAgent.id) {
-					return false
-				}
-
-				return true
+				return isMember
 			})
-		})
-
-		return () => {
-			fairyApp.velocityTracker?.stopTracking()
-		}
-	}, [fairyApp, project, agents, orchestratorAgent, isDuoProject])
+		}, project.id)
+	}, [fairyApp, project, agents, orchestratorAgent])
 
 	// Build per-fairy datasets from velocity data (cumulative)
 	const chartData = useMemo((): ChartData & { maxCumulativeValue?: number } => {
