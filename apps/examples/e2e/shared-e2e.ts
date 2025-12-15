@@ -48,6 +48,8 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 		editor.user.updateUserPreferences({ animationSpeed: 0 })
 	})
 	await page.mouse.move(50, 50)
+	// Ensure the container has focus for keyboard events
+	await page.locator('.tl-container').focus()
 }
 
 /**
@@ -63,6 +65,8 @@ export async function hardResetEditor(page: Page) {
 		editor.resetZoom()
 	})
 	await page.mouse.move(50, 50)
+	// Ensure the container has focus for keyboard events
+	await page.locator('.tl-container').focus()
 }
 
 /**
@@ -82,6 +86,8 @@ export async function hardResetWithShapes(page: Page) {
 		editor.setCurrentTool('select')
 	})
 	await page.mouse.move(50, 50)
+	// Ensure the container has focus for keyboard events
+	await page.locator('.tl-container').focus()
 }
 
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {

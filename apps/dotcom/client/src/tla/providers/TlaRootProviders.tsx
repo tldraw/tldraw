@@ -13,9 +13,7 @@ import {
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
-	deleteFromSessionStorage,
 	fetch,
-	getFromSessionStorage,
 	runtime,
 	setRuntimeOverrides,
 	useDialogs,
@@ -26,25 +24,25 @@ import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
+import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
+import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
+import { FairyInviteHandler } from '../components/FairyInviteHandler'
+import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
-import { TlaFairyInviteDialog } from '../components/dialogs/TlaFairyInviteDialog'
-import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
-import { useFairyAccess } from '../hooks/useFairyAccess'
-import { useFeatureFlags } from '../hooks/useFeatureFlags'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
-import { WhatsNewFetcher } from '../utils/WhatsNewFetcher'
-import { IntlProvider, defineMessages, setupCreateIntl, useIntl, useMsg } from '../utils/i18n'
+import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
 	updateLocalSessionState,
 	useAreFairiesEnabled,
 } from '../utils/local-session-state'
+import { WhatsNewFetcher } from '../utils/WhatsNewFetcher'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -174,6 +172,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
 					<FairyInviteHandler />
+					<GroupInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -185,72 +184,6 @@ function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
-	return null
-}
-
-const fairyInviteMessages = defineMessages({
-	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
-})
-
-function FairyInviteHandler() {
-	const auth = useAuth()
-	const dialogs = useDialogs()
-	const { addToast } = useToasts()
-	const { flags, isLoaded } = useFeatureFlags()
-	const hasFairyAccess = useFairyAccess()
-	const alreadyHasAccessMsg = useMsg(fairyInviteMessages.alreadyHasAccess)
-
-	const { user } = useClerkUser()
-
-	useEffect(() => {
-		if (!auth.isLoaded) return
-		if (!auth.isSignedIn || !auth.userId) return
-		if (!isLoaded) return // Wait for flags to load before processing
-		if (
-			user &&
-			!user.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
-			!user.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
-		) {
-			return
-		}
-
-		const storedToken = getFromSessionStorage('fairy-invite-token')
-
-		if (storedToken) {
-			deleteFromSessionStorage('fairy-invite-token')
-
-			// Show toast if user already has access
-			if (hasFairyAccess) {
-				addToast({
-					id: 'fairy-invite-already-has-access',
-					title: alreadyHasAccessMsg,
-				})
-				return
-			}
-
-			// Only show dialog if fairies are enabled
-			if (flags.fairies.enabled) {
-				dialogs.addDialog({
-					component: ({ onClose }) => (
-						<TlaFairyInviteDialog fairyInviteToken={storedToken} onClose={onClose} />
-					),
-				})
-			}
-			// If flags are disabled, token is cleaned up but dialog is not shown
-		}
-	}, [
-		auth.isLoaded,
-		auth.userId,
-		auth.isSignedIn,
-		dialogs,
-		flags.fairies.enabled,
-		isLoaded,
-		hasFairyAccess,
-		addToast,
-		alreadyHasAccessMsg,
-		user,
-	])
-
 	return null
 }
 
@@ -343,11 +276,7 @@ function LegalTermsAcceptance() {
 	useEffect(() => {
 		function maybeShowDialog() {
 			const currentUser = userRef.current
-			if (
-				currentUser &&
-				!currentUser.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
-				!currentUser.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
-			) {
+			if (hasNotAcceptedLegal(currentUser)) {
 				addDialog({
 					component: TlaLegalAcceptance,
 					onClose: () => {

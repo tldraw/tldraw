@@ -9,6 +9,7 @@ import {
 	TLClickEventInfo,
 	TLDragShapesOutInfo,
 	TLDragShapesOverInfo,
+	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLResizeInfo,
@@ -88,8 +89,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return withOptions
 	}
 
-	override canEdit() {
-		return true
+	override canEdit(shape: TLFrameShape, info: TLEditStartInfo) {
+		return info.type === 'click-header' || info.type === 'unknown'
 	}
 
 	override canResize() {

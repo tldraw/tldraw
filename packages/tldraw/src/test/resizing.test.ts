@@ -20,6 +20,7 @@ import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'
+import { createDrawSegments } from './test-jsx'
 
 vi.useFakeTimers()
 
@@ -904,15 +905,12 @@ describe('When resizing a shape with children', () => {
 					x: 100,
 					y: 100,
 					props: {
-						segments: [
-							{
-								type: 'free',
-								points: [
-									{ x: 0, y: 0, z: 0.5 },
-									{ x: 100, y: 100, z: 0.5 },
-								],
-							},
-						],
+						segments: createDrawSegments([
+							[
+								{ x: 0, y: 0, z: 0.5 },
+								{ x: 100, y: 100, z: 0.5 },
+							],
+						]),
 					},
 				},
 			])

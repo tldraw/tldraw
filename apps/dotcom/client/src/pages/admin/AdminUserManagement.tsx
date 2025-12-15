@@ -77,7 +77,7 @@ function MigrateUserToGroups({
 	onSuccessMessage,
 	didMigrate,
 }: {
-	inputRef: RefObject<HTMLInputElement>
+	inputRef: RefObject<HTMLInputElement | null>
 	onSuccess(): void
 	onError(error: string): void
 	onSuccessMessage(message: string): void

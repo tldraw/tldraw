@@ -50,7 +50,12 @@ const schemaWithoutValidator = StoreSchema.create<Book | Presence>({
 })
 
 const disposables: Array<() => void> = []
+let consoleSpy: ReturnType<typeof vi.spyOn>
+beforeEach(() => {
+	consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+})
 afterEach(() => {
+	consoleSpy.mockRestore()
 	for (const dispose of disposables) {
 		dispose()
 	}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { setInSessionStorage, useDialogs } from 'tldraw'
+import { useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../tla/components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../tla/hooks/useFairyAccess'
 import { useFeatureFlags } from '../tla/hooks/useFeatureFlags'
@@ -8,6 +8,7 @@ import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import '../tla/styles/fairy.css'
 import { F } from '../tla/utils/i18n'
+import { setRedirect } from '../tla/utils/redirect'
 import { PricingContent } from './PricingContent'
 import styles from './pricing.module.css'
 
@@ -76,8 +77,10 @@ export function Component() {
 
 		if (!user) {
 			// Store redirect path for after sign-in
-			setInSessionStorage('redirect-to', '/pricing?checkout=true')
-			addDialog({ component: TlaSignInDialog })
+			setRedirect('/pricing?checkout=true')
+			addDialog({
+				component: (props) => <TlaSignInDialog {...props} skipRedirect />,
+			})
 			return
 		}
 

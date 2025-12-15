@@ -246,7 +246,7 @@ export interface PaddleCustomData {
 	email?: string
 }
 
-export type FeatureFlagKey = 'fairies' | 'fairies_purchase'
+export type FeatureFlagKey = 'fairies' | 'fairies_purchase' | 'sqlite_file_storage'
 
 export interface FeatureFlagValue {
 	enabled: boolean

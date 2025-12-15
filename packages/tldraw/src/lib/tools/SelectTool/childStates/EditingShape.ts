@@ -66,7 +66,7 @@ export class EditingShape extends StateNode {
 	override onPointerMove(info: TLPointerEventInfo) {
 		// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
 		// and if they are, we need to transition to translating instead.
-		if (this.hitLabelOnShapeForPointerUp && this.editor.inputs.isDragging) {
+		if (this.hitLabelOnShapeForPointerUp && this.editor.inputs.getIsDragging()) {
 			if (this.editor.getIsReadonly()) return
 			if (this.hitLabelOnShapeForPointerUp.isLocked) return
 
@@ -144,7 +144,7 @@ export class EditingShape extends StateNode {
 				if (textLabel && !isEmptyTextShape) {
 					const pointInShapeSpace = this.editor.getPointInShapeSpace(
 						selectingShape,
-						this.editor.inputs.currentPagePoint
+						this.editor.inputs.getCurrentPagePoint()
 					)
 					if (
 						textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
@@ -189,6 +189,16 @@ export class EditingShape extends StateNode {
 	}
 
 	override onPointerUp(info: TLPointerEventInfo) {
+		if (this.didPointerDownOnEditingShape) {
+			this.didPointerDownOnEditingShape = false
+			if (!this.isTextInputFocused()) {
+				// We clicked on the text label, which blured the input.
+				// We want to stay in edit mode and select all the text.
+				this.editor.getRichTextEditor()?.commands.focus('all')
+				return
+			}
+		}
+
 		// If we're not dragging, and it's a hit to the label, begin editing the shape.
 		const hitShape = this.hitLabelOnShapeForPointerUp
 		if (!hitShape) return

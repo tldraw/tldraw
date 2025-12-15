@@ -8,6 +8,7 @@ import {
 	TLPageId,
 } from '@tldraw/tlschema'
 import { assert, IndexKey, objectMapEntries, throttle } from '@tldraw/utils'
+import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
 	TLSyncForwardDiff,
@@ -24,6 +25,64 @@ import {
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
 /** @internal */
 export const MAX_TOMBSTONES = 5000
+
+/**
+ * Result of computing which tombstones to prune.
+ * @internal
+ */
+export interface TombstonePruneResult {
+	/** The new value for tombstoneHistoryStartsAtClock */
+	newTombstoneHistoryStartsAtClock: number
+	/** IDs of tombstones to delete */
+	idsToDelete: string[]
+}
+
+/**
+ * Computes which tombstones should be pruned, avoiding partial history for any clock value.
+ * Returns null if no pruning is needed (tombstone count <= maxTombstones).
+ *
+ * @param tombstones - Array of tombstones sorted by clock ascending (oldest first)
+ * @param documentClock - Current document clock (used as fallback if all tombstones are deleted)
+ * @param maxTombstones - Maximum number of tombstones to keep (default: MAX_TOMBSTONES)
+ * @param pruneBufferSize - Extra tombstones to prune beyond the threshold (default: TOMBSTONE_PRUNE_BUFFER_SIZE)
+ * @returns Pruning result or null if no pruning needed
+ *
+ * @internal
+ */
+export function computeTombstonePruning({
+	tombstones,
+	documentClock,
+	maxTombstones = MAX_TOMBSTONES,
+	pruneBufferSize = TOMBSTONE_PRUNE_BUFFER_SIZE,
+}: {
+	tombstones: Array<{ id: string; clock: number }>
+	documentClock: number
+	maxTombstones?: number
+	pruneBufferSize?: number
+}): TombstonePruneResult | null {
+	if (tombstones.length <= maxTombstones) {
+		return null
+	}
+
+	// Determine how many to delete, avoiding partial history for a clock value
+	let cutoff = pruneBufferSize + tombstones.length - maxTombstones
+	while (
+		cutoff < tombstones.length &&
+		tombstones[cutoff - 1]?.clock === tombstones[cutoff]?.clock
+	) {
+		cutoff++
+	}
+
+	// Set history start to the oldest remaining tombstone's clock
+	// (or documentClock if we're deleting everything)
+	const oldestRemaining = tombstones[cutoff]
+	const newTombstoneHistoryStartsAtClock = oldestRemaining?.clock ?? documentClock
+
+	// Collect the oldest tombstones to delete (first cutoff entries)
+	const idsToDelete = tombstones.slice(0, cutoff).map((t) => t.id)
+
+	return { newTombstoneHistoryStartsAtClock, idsToDelete }
+}
 
 /**
  * Default initial snapshot for a new room.
@@ -67,21 +126,9 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	/** @internal */
 	tombstoneHistoryStartsAtClock: Atom<number>
 
-	private listeners = new Set<(arg: TLSyncStorageOnChangeCallbackProps) => unknown>()
+	private notifier = new MicrotaskNotifier<[TLSyncStorageOnChangeCallbackProps]>()
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void {
-		let didDelete = false
-		// we put the callback registration in a microtask because the callback is invoked
-		// in a microtask, and so this makes sure the callback is invoked after all the updates
-		// that happened in the current callstack before this onChange registration have been processed.
-		queueMicrotask(() => {
-			if (didDelete) return
-			this.listeners.add(callback)
-		})
-		return () => {
-			if (didDelete) return
-			didDelete = true
-			this.listeners.delete(callback)
-		}
+		return this.notifier.register(callback)
 	}
 
 	constructor({
@@ -166,20 +213,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		const clockAfter = this.documentClock.get()
 		const didChange = clockAfter > clockBefore
 		if (didChange) {
-			// todo: batch these updates
-			queueMicrotask(() => {
-				const props: TLSyncStorageOnChangeCallbackProps = {
-					id: opts?.id,
-					documentClock: clockAfter,
-				}
-				for (const listener of this.listeners) {
-					try {
-						listener(props)
-					} catch (error) {
-						console.error('Error in onChange callback', error)
-					}
-				}
-			})
+			this.notifier.notify({ id: opts?.id, documentClock: clockAfter })
 		}
 		// InMemorySyncStorage applies changes verbatim, so we only emit changes
 		// when 'always' is specified (not for 'when-different')
@@ -194,23 +228,19 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	pruneTombstones = throttle(
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
-				const tombstones = Array.from(this.tombstones)
-				// sort entries in ascending order by clock (oldest first)
-				tombstones.sort((a, b) => a[1] - b[1])
-				// determine how many to delete, avoiding partial history for a clock value
-				let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE + this.tombstones.size - MAX_TOMBSTONES
-				while (cutoff < tombstones.length && tombstones[cutoff - 1][1] === tombstones[cutoff][1]) {
-					cutoff++
+				// Convert to array and sort by clock ascending (oldest first)
+				const tombstones = Array.from(this.tombstones.entries())
+					.map(([id, clock]) => ({ id, clock }))
+					.sort((a, b) => a.clock - b.clock)
+
+				const result = computeTombstonePruning({
+					tombstones,
+					documentClock: this.documentClock.get(),
+				})
+				if (result) {
+					this.tombstoneHistoryStartsAtClock.set(result.newTombstoneHistoryStartsAtClock)
+					this.tombstones.deleteMany(result.idsToDelete)
 				}
-
-				// Set history start to the oldest remaining tombstone's clock
-				// (or documentClock if we're deleting everything)
-				const oldestRemaining = tombstones[cutoff]
-				this.tombstoneHistoryStartsAtClock.set(oldestRemaining?.[1] ?? this.documentClock.get())
-
-				// Delete the oldest tombstones (first cutoff entries)
-				const toDelete = tombstones.slice(0, cutoff)
-				this.tombstones.deleteMany(toDelete.map(([id]) => id))
 			}
 		},
 		1000,

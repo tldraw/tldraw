@@ -36,6 +36,7 @@ interface FairyHUDHeaderProps {
 	allAgents: FairyAgent[]
 	isMobile: boolean
 	onToggleManual?(): void
+	onToggleFeed?(): void
 }
 
 export function FairyHUDHeader({
@@ -46,6 +47,7 @@ export function FairyHUDHeader({
 	selectedFairies,
 	allAgents,
 	onToggleManual,
+	onToggleFeed,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -236,7 +238,16 @@ export function FairyHUDHeader({
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
+
 			<div className="tlui-row">
+				{panelState === 'fairy-project' && (
+					<TldrawUiTooltip content="Live feed" side="top">
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
+							<TldrawUiButtonIcon icon="comment" small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
+				)}
+
 				{showSelectAllButton ? (
 					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>

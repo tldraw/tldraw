@@ -24,11 +24,13 @@ bindings = [
 ]
 
 # Durable objects require migrations to create/modify/delete them
+# Using new_sqlite_classes for SQLite-backed storage
 [[migrations]]
 tag = "v1"
-new_classes = ["TldrawDurableObject"]
+new_sqlite_classes = ["TldrawDurableObject"]
 
-# We store rooms and asset uploads in an R2 bucket
+# We store asset uploads (images, videos) in an R2 bucket.
+# Room data is stored in Durable Object SQLite storage.
 [[r2_buckets]]
 binding = 'TLDRAW_BUCKET'
 bucket_name = 'multiplayer-template'

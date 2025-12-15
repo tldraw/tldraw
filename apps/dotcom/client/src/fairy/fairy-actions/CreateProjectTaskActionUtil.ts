@@ -12,6 +12,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 			description: action.complete
 				? `Planned task: ${action.title}`
 				: `Planning task${action.title ? `: ${action.title}` : ''}${action.text ? `\n\n${action.text}` : ''}`,
+			ircMessage: action.complete ? `I created a task: ${action.title}` : null,
 			pose: 'writing',
 		})
 	}

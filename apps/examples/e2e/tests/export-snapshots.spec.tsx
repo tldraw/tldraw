@@ -18,7 +18,7 @@ import {
 	mockUniqueId,
 	toRichText,
 } from 'tldraw'
-import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
+import { TL, createDrawSegments, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import test, { ApiFixture } from '../fixtures/fixtures'
 import { hardResetEditor, setup } from '../shared-e2e'
@@ -95,37 +95,28 @@ const snapshots: Snapshots = {
 					<TL.draw
 						fill={fill}
 						color="light-violet"
-						segments={[
-							{ type: 'straight', points: [{ x: 0, y: 0 }] },
-							{
-								type: 'straight',
-								points: [
+						segments={createDrawSegments(
+							[
+								[{ x: 0, y: 0 }],
+								[
 									{ x: 0, y: 0 },
 									{ x: 100, y: 0 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 100, y: 0 },
 									{ x: 0, y: 100 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 0, y: 100 },
 									{ x: 100, y: 100 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 100, y: 100 },
 									{ x: 0, y: 0 },
 								],
-							},
-						]}
+							],
+							'straight'
+						)}
 						isClosed
 						isComplete
 					/>

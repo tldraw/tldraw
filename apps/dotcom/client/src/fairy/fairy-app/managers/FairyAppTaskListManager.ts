@@ -91,8 +91,18 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 
 	/**
 	 * Get tasks for a specific project.
+	 * Filters out tasks from soft deleted projects.
 	 */
 	getTasksByProjectId(projectId: ProjectId | null): FairyTask[] {
+		if (projectId === null) {
+			return this.$tasks.get().filter((t) => t.projectId === null)
+		}
+		// Check if the project is soft deleted
+		const project = this.fairyApp.projects.getProjectById(projectId)
+		if (!project) {
+			// Project doesn't exist or is soft deleted, return empty array
+			return []
+		}
 		return this.$tasks.get().filter((t) => t.projectId === projectId)
 	}
 

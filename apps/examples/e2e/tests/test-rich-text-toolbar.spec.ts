@@ -200,6 +200,7 @@ test.describe('Rich text behaviour', () => {
 		await expect(richTextToolbar.container).toHaveCount(0)
 
 		await page.mouse.click(150, 150) // select the shape
+		await page.locator('.tl-container').first().focus() // explicitly focus the container
 		await page.keyboard.press('Enter') // to start editing the shape
 
 		// bar should be visible (all of the text should be selected)
@@ -222,6 +223,7 @@ test.describe('Rich text behaviour', () => {
 
 		// select it and start editing it again
 		await page.mouse.click(150, 150)
+		await page.locator('.tl-container').first().focus() // explicitly focus the container
 		await page.keyboard.press('Enter')
 
 		// bar should be visible (all of the text should be selected)
