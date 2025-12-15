@@ -65,51 +65,17 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	/**
 	 * Track shapes created from a diff.
 	 * Should be called after each action is applied.
-	 * Also clears surfaced lint keys for any shapes that were modified/removed.
 	 */
 	trackShapesFromDiff(diff: RecordsDiff<TLRecord>): void {
-		const modifiedShapeIds = new Set<TLShapeId>()
-
 		for (const [id, record] of Object.entries(diff.added)) {
 			if (record.typeName === 'shape') {
 				this.createdShapeIds.add(id as TLShapeId)
 			}
 		}
 
-		// Track updated shapes
-		for (const id of Object.keys(diff.updated)) {
-			modifiedShapeIds.add(id as TLShapeId)
-		}
-
 		// Track removed shapes and remove from created set
 		for (const id of Object.keys(diff.removed)) {
 			this.createdShapeIds.delete(id as TLShapeId)
-			modifiedShapeIds.add(id as TLShapeId)
-		}
-
-		// Clear surfaced lint keys for any lints involving modified shapes
-		if (modifiedShapeIds.size > 0) {
-			this.clearSurfacedLintsForShapes(modifiedShapeIds)
-		}
-	}
-
-	/**
-	 * Clear surfaced status for any lints that involve the given shapes.
-	 * This allows lints to be re-surfaced if a shape was modified but the lint still exists.
-	 */
-	private clearSurfacedLintsForShapes(shapeIds: Set<TLShapeId>): void {
-		// Convert TLShapeId to simple string for comparison
-		const simpleShapeIds = new Set(
-			Array.from(shapeIds).map((id) => convertTldrawIdToSimpleId(id) as string)
-		)
-
-		// Remove any surfaced lint keys that involve the modified shapes
-		for (const key of this.surfacedLintKeys) {
-			const [, shapeIdsPart] = key.split(':')
-			const lintShapeIds = shapeIdsPart.split(',')
-			if (lintShapeIds.some((id) => simpleShapeIds.has(id))) {
-				this.surfacedLintKeys.delete(key)
-			}
 		}
 	}
 
