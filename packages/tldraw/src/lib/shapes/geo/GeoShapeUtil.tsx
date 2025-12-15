@@ -15,6 +15,7 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
+	WeakCache,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -318,31 +319,24 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let overShrinkX = 0
 		let overShrinkY = 0
 
-		const min = MIN_SIZE_WITH_LABEL
-
 		if (!isEmptyRichText(shape.props.richText)) {
-			let newW = Math.max(Math.abs(unscaledW), min)
-			let newH = Math.max(Math.abs(unscaledH), min)
+			// Use initialShape for label measurement to hit the cache.
+			// Creating a temp shape with new dimensions would break WeakCache and cause
+			// expensive measurements on every resize frame.
+			const unscaledLabelSize = getUnscaledLabelSize(this.editor, initialShape)
 
-			if (newW < min && newH === min) newW = min
-			if (newW === min && newH < min) newH = min
+			const absUnscaledW = Math.abs(unscaledW)
+			const absUnscaledH = Math.abs(unscaledH)
 
-			const unscaledLabelSize = getUnscaledLabelSize(this.editor, {
-				...shape,
-				props: {
-					...shape.props,
-					w: newW * shape.props.scale,
-					h: newH * shape.props.scale,
-				},
-			})
+			// Constrain to label size (primary constraint) and min size with label (secondary)
+			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w, MIN_SIZE_WITH_LABEL)
+			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h, MIN_SIZE_WITH_LABEL)
 
-			const nextW = Math.max(Math.abs(unscaledW), unscaledLabelSize.w) * Math.sign(unscaledW)
-			const nextH = Math.max(Math.abs(unscaledH), unscaledLabelSize.h) * Math.sign(unscaledH)
-			overShrinkX = Math.abs(nextW) - Math.abs(unscaledW)
-			overShrinkY = Math.abs(nextH) - Math.abs(unscaledH)
+			overShrinkX = constrainedW - absUnscaledW
+			overShrinkY = constrainedH - absUnscaledH
 
-			unscaledW = nextW
-			unscaledH = nextH
+			unscaledW = constrainedW * Math.sign(unscaledW || 1)
+			unscaledH = constrainedH * Math.sign(unscaledH || 1)
 		}
 
 		const scaledW = unscaledW * shape.props.scale
@@ -576,14 +570,19 @@ const extraPaddings = {
 	xl: 10,
 }
 
+const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
+
+// Returns cached label size for the shape. Don't call with empty rich text.
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
+	return labelSizesForGeo.get(shape, () => {
+		return measureUnscaledLabelSize(editor, shape)
+	})
+}
+
+// This is the expensive part of the code so we want to avoid calling it if we can
+function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
 
-	if (!richText || isEmptyRichText(richText)) {
-		return { w: 0, h: 0 }
-	}
-
-	// way too expensive to be recomputing on every update
 	const minWidth = minWidths[size]
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
