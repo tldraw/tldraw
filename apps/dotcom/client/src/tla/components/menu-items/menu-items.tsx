@@ -17,12 +17,14 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useWhatsNew } from '../../hooks/useWhatsNew'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { clearLocalSessionState } from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
+import { TlaWhatsNewDialog } from '../dialogs/TlaWhatsNewDialog'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
@@ -33,6 +35,7 @@ const messages = defineMessages({
 	dotdev: { defaultMessage: 'Try the tldraw SDK' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
+	whatsNew: { defaultMessage: "What's new" },
 	legalSummary: { defaultMessage: 'Legal summary' },
 	terms: { defaultMessage: 'Terms of service' },
 	privacy: { defaultMessage: 'Privacy policy' },
@@ -106,6 +109,43 @@ export function UserManualMenuItem() {
 				openAndTrack('https://tldraw.notion.site/support')
 			}}
 		/>
+	)
+}
+
+export function WhatsNewMenuGroup() {
+	const app = useMaybeApp()
+	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
+	const user = useValue('auth', () => app?.getUser(), [app])
+	const { entries } = useWhatsNew()
+	const whatsNewLabel = useMsg(messages.whatsNew)
+
+	const latestVersion = entries[0]?.version
+	const hasNewContent = latestVersion && user?.whatsNewSeenVersion !== latestVersion
+
+	const handleWhatsNewClick = useCallback(() => {
+		trackEvent('open-whats-new-dialog', { source: 'sidebar' })
+		if (latestVersion && app) {
+			app.z.mutate.user.updateWhatsNewSeenVersion({ version: latestVersion })
+		}
+		addDialog({ component: TlaWhatsNewDialog })
+	}, [trackEvent, latestVersion, app, addDialog])
+
+	if (entries.length === 0 || !user || !app) return null
+
+	return (
+		<TldrawUiMenuGroup
+			id="whats-new"
+			className={hasNewContent ? 'whats-new-has-update' : undefined}
+		>
+			<TldrawUiMenuItem
+				id="whats-new"
+				label={whatsNewLabel}
+				iconLeft="info-circle"
+				readonlyOk
+				onSelect={handleWhatsNewClick}
+			/>
+		</TldrawUiMenuGroup>
 	)
 }
 

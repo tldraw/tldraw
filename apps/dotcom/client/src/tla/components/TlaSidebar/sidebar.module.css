@@ -1049,3 +1049,15 @@
 [data-no-animation='true'] * {
 	animation-duration: 0s !important;
 }
+
+/* What's new indicator */
+:global(.whats-new-has-update .tlui-button__label)::after {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background-color: #2d7ff9;
+	border-radius: 50%;
+	margin-left: 6px;
+	vertical-align: middle;
+}
