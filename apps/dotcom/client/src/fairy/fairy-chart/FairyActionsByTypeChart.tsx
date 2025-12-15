@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
-import { CATEGORY_COLORS } from '../fairy-shared-constants'
+import { AgentActionCategory, CATEGORY_COLORS } from '../fairy-shared-constants'
 import { ChartErrorBoundary } from './ChartErrorBoundary'
 import { FairyChartContainer } from './FairyChartContainer'
 import { FairyClusteredHorizontalBarChart } from './FairyClusteredHorizontalBarChart'
@@ -20,7 +20,7 @@ interface FairyActionsByTypeChartProps {
 interface FairyActionTypeCounts {
 	id: string
 	name: string
-	categoryCounts: Record<string, number>
+	categoryCounts: Record<AgentActionCategory, number>
 }
 
 export function FairyActionsByTypeChart({
@@ -78,11 +78,12 @@ export function FairyActionsByTypeChart({
 	)
 
 	// Get all unique categories across all fairies, sorted by total usage
-	const allCategories = useMemo(() => {
-		const categoryTotals: Record<string, number> = {}
+	const allCategories: AgentActionCategory[] = useMemo(() => {
+		const categoryTotals: Partial<Record<AgentActionCategory, number>> = {}
 
 		for (const fairy of actionTypeCounts) {
-			for (const [category, count] of Object.entries(fairy.categoryCounts)) {
+			for (const [_category, count] of Object.entries(fairy.categoryCounts)) {
+				const category = _category as AgentActionCategory
 				categoryTotals[category] = (categoryTotals[category] || 0) + count
 			}
 		}
@@ -93,7 +94,7 @@ export function FairyActionsByTypeChart({
 				if (b[1] !== a[1]) return b[1] - a[1]
 				return a[0].localeCompare(b[0])
 			})
-			.map(([category]) => category)
+			.map(([category]) => category as AgentActionCategory)
 		// Show all 3 categories (or fewer if not all are present)
 	}, [actionTypeCounts])
 

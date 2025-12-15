@@ -2,7 +2,7 @@
  * Shared constants for fairy charts and activity monitoring
  */
 
-import { FairyHatColor } from '@tldraw/fairy-shared'
+import { AgentAction, FairyHatColor } from '@tldraw/fairy-shared'
 
 // ============================================================================
 // COLOR MAPPINGS
@@ -26,15 +26,25 @@ export const HAT_COLOR_HEX: Record<FairyHatColor, string> = {
 	periwinkle: '#818cf8',
 }
 
+export const ACTION_CATEGORY_KEYS = [
+	'Creating',
+	'Editing',
+	'Planning',
+	'Communicating',
+	'Other',
+] as const
+export type AgentActionCategory = (typeof ACTION_CATEGORY_KEYS)[number]
+
 /**
  * Map action type categories to colors
  */
-export const CATEGORY_COLORS: Record<string, string> = {
-	Canvas: '#5f27cd',
-	Communication: '#00d2d3',
-	Project: '#ff9f43',
+export const CATEGORY_COLORS = {
+	Creating: '#5f27cd',
+	Editing: '#ee5a6f',
+	Planning: '#00d2d3',
+	Communicating: '#ff9f43',
 	Other: '#888888',
-}
+} as const satisfies Record<AgentActionCategory, string>
 
 // ============================================================================
 // ACTION TYPE CATEGORIZATION
@@ -48,64 +58,66 @@ export const CATEGORY_COLORS: Record<string, string> = {
  * - Communication: Messaging, thinking, and planning actions
  * - Project: Project/task management and navigation actions
  */
-export const ACTION_TYPE_CATEGORIES: Record<string, string> = {
-	// Canvas - all shape/canvas manipulation
-	create: 'Canvas',
-	update: 'Canvas',
-	delete: 'Canvas',
-	label: 'Canvas',
-	move: 'Canvas',
-	place: 'Canvas',
-	offset: 'Canvas',
-	align: 'Canvas',
-	distribute: 'Canvas',
-	stack: 'Canvas',
-	'bring-to-front': 'Canvas',
-	'send-to-back': 'Canvas',
-	resize: 'Canvas',
-	rotate: 'Canvas',
-	pen: 'Canvas',
+export const ACTION_TYPE_CATEGORIES: Record<AgentAction['_type'], AgentActionCategory> = {
+	create: 'Creating',
+	pen: 'Creating',
+	'create-page': 'Creating',
 
-	// Communication - messaging, thinking, planning
-	message: 'Communication',
-	think: 'Communication',
-	review: 'Communication',
-	'upsert-personal-todo-item': 'Communication',
-	'delete-personal-todo-items': 'Communication',
+	update: 'Editing',
+	delete: 'Editing',
+	label: 'Editing',
+	move: 'Editing',
+	place: 'Editing',
+	offset: 'Editing',
+	align: 'Editing',
+	distribute: 'Editing',
+	stack: 'Editing',
+	'bring-to-front': 'Editing',
+	'send-to-back': 'Editing',
+	resize: 'Editing',
+	rotate: 'Editing',
 
-	// Project - project/task management and navigation
-	'start-project': 'Project',
-	'start-duo-project': 'Project',
-	'end-project': 'Project',
-	'end-duo-project': 'Project',
-	'abort-project': 'Project',
-	'abort-duo-project': 'Project',
-	'create-project-task': 'Project',
-	'create-duo-task': 'Project',
-	'create-task': 'Project',
-	'delete-project-task': 'Project',
-	'direct-to-start-project-task': 'Project',
-	'direct-to-start-duo-task': 'Project',
-	'start-task': 'Project',
-	'start-duo-task': 'Project',
-	'mark-my-task-done': 'Project',
-	'mark-task-done': 'Project',
-	'mark-duo-task-done': 'Project',
-	'await-tasks-completion': 'Project',
-	'await-duo-tasks-completion': 'Project',
-	'activate-agent': 'Project',
-	'enter-orchestration-mode': 'Project',
-	'claim-todo-item': 'Project',
-	'move-position': 'Project',
-	'fly-to-bounds': 'Project',
-	'change-page': 'Project',
-	'create-page': 'Project',
+	think: 'Planning',
+	review: 'Planning',
+	'move-position': 'Planning',
+	'fly-to-bounds': 'Planning',
+	'change-page': 'Planning',
+	'start-project': 'Planning',
+	'start-duo-project': 'Planning',
+
+	'create-project-task': 'Planning',
+	'create-duo-task': 'Planning',
+	'create-task': 'Planning',
+	'delete-project-task': 'Planning',
+	'delete-personal-todo-items': 'Planning',
+	'start-task': 'Planning',
+	'start-duo-task': 'Planning',
+
+	'await-tasks-completion': 'Planning',
+	'await-duo-tasks-completion': 'Planning',
+
+	message: 'Communicating',
+	'upsert-personal-todo-item': 'Communicating',
+	'end-project': 'Communicating',
+	'end-duo-project': 'Communicating',
+	'abort-project': 'Communicating',
+	'abort-duo-project': 'Communicating',
+
+	'direct-to-start-project-task': 'Communicating',
+	'direct-to-start-duo-task': 'Communicating',
+	'mark-my-task-done': 'Communicating',
+	'mark-task-done': 'Communicating',
+	'mark-duo-task-done': 'Communicating',
+	'activate-agent': 'Communicating',
+	'claim-todo-item': 'Communicating',
+
+	unknown: 'Other',
 }
 
 /**
  * Get the category for an action type, defaulting to 'Other' if unknown
  */
-export function getActionCategory(actionType: string): string {
+export function getActionCategory(actionType: AgentAction['_type']): AgentActionCategory {
 	return ACTION_TYPE_CATEGORIES[actionType] || 'Other'
 }
 
