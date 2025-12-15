@@ -1,10 +1,15 @@
 import { FairyHatColor } from '@tldraw/fairy-shared'
-import { memo, useLayoutEffect, useRef } from 'react'
-import { useValue } from 'tldraw'
+import { memo, useLayoutEffect, useRef, useState } from 'react'
+import { TldrawUiButton, TldrawUiButtonIcon, useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { FairyActionsByTypeChart } from '../../fairy-chart/FairyActionsByTypeChart'
+import { FairyActionsChart } from '../../fairy-chart/FairyActionsChart'
+import { FairyVelocityChart } from '../../fairy-chart/FairyVelocityChart'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
+
+type ChartType = 'velocity' | 'actions' | 'actions-by-type'
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -49,6 +54,7 @@ export function shouldShowInFeed(
 export interface FairyFeedViewItem {
 	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
+	showActivityMonitor?: boolean
 }
 
 interface FeedItem {
@@ -60,6 +66,83 @@ interface FeedItem {
 	timestamp: number
 	description: string
 	isOrchestrator?: boolean
+}
+
+const CHART_ORDER: ChartType[] = ['velocity', 'actions', 'actions-by-type']
+
+/** Chart carousel component for switching between different chart views */
+function ChartCarousel({
+	orchestratorAgent,
+	agents,
+}: {
+	orchestratorAgent: FairyAgent | null
+	agents: FairyAgent[]
+}) {
+	const [activeChart, setActiveChart] = useState<ChartType>('velocity')
+
+	const cycle = (direction: 1 | -1) => {
+		setActiveChart((prev) => {
+			const currentIndex = CHART_ORDER.indexOf(prev)
+			const nextIndex = (currentIndex + direction + CHART_ORDER.length) % CHART_ORDER.length
+			return CHART_ORDER[nextIndex]
+		})
+	}
+
+	// Keep both charts mounted to preserve velocity tracking state,
+	// Use visibility instead of display to preserve dimensions and avoid re-render delay
+	return (
+		<div className="fairy-chart-carousel">
+			<div className="fairy-chart-carousel-chevron-container">
+				<TldrawUiButton
+					type="icon"
+					className="fairy-chart-carousel-chevron fairy-chart-carousel-chevron-left"
+					onClick={() => cycle(-1)}
+					title="Previous chart"
+				>
+					<TldrawUiButtonIcon icon="chevron-left" small />
+				</TldrawUiButton>
+			</div>
+			<div className="fairy-chart-carousel-content">
+				<div
+					style={{
+						visibility: activeChart === 'velocity' ? 'visible' : 'hidden',
+						position: activeChart === 'velocity' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyVelocityChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'actions' ? 'visible' : 'hidden',
+						position: activeChart === 'actions' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyActionsChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'actions-by-type' ? 'visible' : 'hidden',
+						position: activeChart === 'actions-by-type' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyActionsByTypeChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+			</div>
+			<div className="fairy-chart-carousel-chevron-container">
+				<TldrawUiButton
+					type="icon"
+					className="fairy-chart-carousel-chevron fairy-chart-carousel-chevron-right"
+					onClick={() => cycle(1)}
+					title="Next chart"
+				>
+					<TldrawUiButtonIcon icon="chevron-right" small />
+				</TldrawUiButton>
+			</div>
+		</div>
+	)
 }
 
 const FairyFeedIRCLine = memo(
@@ -93,7 +176,11 @@ const FairyFeedIRCLine = memo(
 	}
 )
 
-export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) {
+export function FairyFeedView({
+	orchestratorAgent,
+	agents,
+	showActivityMonitor = false,
+}: FairyFeedViewItem) {
 	const fairyApp = useFairyApp()
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -150,18 +237,28 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 
 	if (feedItems.length === 0) {
 		return (
-			<div className="fairy-feed-view-empty">
-				<p>Planning project...</p>
-			</div>
+			<>
+				{showActivityMonitor && (
+					<ChartCarousel orchestratorAgent={orchestratorAgent} agents={agents} />
+				)}
+				<div className="fairy-feed-view-empty">
+					<p>Planning project...</p>
+				</div>
+			</>
 		)
 	}
 
 	return (
-		<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
-			{feedItems.map((item) => (
-				<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />
-			))}
-		</div>
+		<>
+			{showActivityMonitor && (
+				<ChartCarousel orchestratorAgent={orchestratorAgent} agents={agents} />
+			)}
+			<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
+				{feedItems.map((item) => (
+					<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />
+				))}
+			</div>
+		</>
 	)
 }
 

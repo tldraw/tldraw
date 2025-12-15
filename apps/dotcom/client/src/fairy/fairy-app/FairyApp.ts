@@ -6,6 +6,7 @@ import { FairyAppFollowingManager } from './managers/FairyAppFollowingManager'
 import { FairyAppPersistenceManager } from './managers/FairyAppPersistenceManager'
 import { FairyAppProjectsManager } from './managers/FairyAppProjectsManager'
 import { FairyAppTaskListManager } from './managers/FairyAppTaskListManager'
+import { FairyAppVelocityTracker } from './managers/FairyAppVelocityTracker'
 import { FairyAppWaitManager } from './managers/FairyAppWaitManager'
 
 /**
@@ -48,6 +49,11 @@ export class FairyApp {
 	 */
 	waits: FairyAppWaitManager
 
+	/**
+	 * Manager for tracking fairy velocity over time.
+	 */
+	velocityTracker: FairyAppVelocityTracker
+
 	// --- Global fairy state ---
 
 	/**
@@ -83,6 +89,7 @@ export class FairyApp {
 		this.projects = new FairyAppProjectsManager(this)
 		this.tasks = new FairyAppTaskListManager(this)
 		this.waits = new FairyAppWaitManager(this)
+		this.velocityTracker = new FairyAppVelocityTracker(this)
 
 		editor.on('crash', () => this.dispose())
 		editor.on('dispose', () => this.dispose())
@@ -95,6 +102,8 @@ export class FairyApp {
 		this.projects.disbandAllProjects()
 		// Stop auto-save
 		this.persistence.dispose()
+		// Stop velocity tracking
+		this.velocityTracker.dispose()
 
 		// Not sure if we need to dispose the rest...
 		// this.agents.disposeAll()

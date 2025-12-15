@@ -1,8 +1,13 @@
+import { ActivityIcon } from '@tldraw/fairy-shared'
+import { useState } from 'react'
 import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	TldrawUiTooltip,
 	useValue,
 } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -14,6 +19,8 @@ interface FairyFeedDialogProps {
 }
 
 export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogProps) {
+	const [showActivityMonitor, setShowActivityMonitor] = useState(false)
+
 	const projectName = useValue(
 		'project-name',
 		() => {
@@ -34,10 +41,25 @@ export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogPr
 		<div className="fairy-feed-dialog">
 			<TldrawUiDialogHeader className="fairy-feed-dialog-header">
 				<TldrawUiDialogTitle>{projectName}</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
+				<div className="fairy-feed-dialog-header-actions">
+					<TldrawUiTooltip content="Activity Monitor" side="bottom">
+						<TldrawUiButton
+							type="icon"
+							className="fairy-feed-dialog-action-button"
+							onClick={() => setShowActivityMonitor(!showActivityMonitor)}
+						>
+							<TldrawUiButtonIcon icon={<ActivityIcon />} small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
+					<TldrawUiDialogCloseButton />
+				</div>
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="fairy-feed-dialog-body">
-				<FairyFeedView orchestratorAgent={orchestratorAgent} agents={agents} />
+				<FairyFeedView
+					orchestratorAgent={orchestratorAgent}
+					agents={agents}
+					showActivityMonitor={showActivityMonitor}
+				/>
 			</TldrawUiDialogBody>
 		</div>
 	)
