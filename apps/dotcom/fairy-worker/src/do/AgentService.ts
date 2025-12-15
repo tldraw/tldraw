@@ -72,14 +72,12 @@ export class AgentService {
 			)
 
 			if (!recordRes.ok) {
-				let errorDetails: string
 				try {
 					const errorData = (await recordRes.json()) as { error: string }
-					errorDetails = errorData.error
+					console.error('Failed to record usage:', errorData.error)
 				} catch {
-					errorDetails = await recordRes.text()
+					console.error('Failed to parse usage recording error response')
 				}
-				console.error('Failed to record usage:', errorDetails)
 			}
 		} catch (recordError) {
 			console.error('Exception recording usage:', recordError)
