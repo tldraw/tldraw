@@ -3,6 +3,7 @@ import Markdown from 'react-markdown'
 import { Link } from 'react-router-dom'
 import { useDialogs } from 'tldraw'
 import { routes } from '../../../routeDefs'
+import { parseDateOnly } from '../../utils/dates'
 import { F } from '../../utils/i18n'
 import styles from '../dialogs/TlaWhatsNewDialog.module.css'
 
@@ -12,7 +13,7 @@ interface TlaWhatsNewDialogContentProps {
 
 export function TlaWhatsNewDialogContent({ entry }: TlaWhatsNewDialogContentProps) {
 	const { clearDialogs } = useDialogs()
-	const date = new Date(entry.date)
+	const date = parseDateOnly(entry.date)
 
 	return (
 		<div className={styles.dialogContent}>

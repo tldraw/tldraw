@@ -1,13 +1,14 @@
 import { WhatsNewEntry } from '@tldraw/dotcom-shared'
 import Markdown from 'react-markdown'
 import styles from '../../../pages/whats-new.module.css'
+import { parseDateOnly } from '../../utils/dates'
 
 interface TlaWhatsNewPageEntryProps {
 	entry: WhatsNewEntry
 }
 
 export function TlaWhatsNewPageEntry({ entry }: TlaWhatsNewPageEntryProps) {
-	const date = new Date(entry.date)
+	const date = parseDateOnly(entry.date)
 	// Use long description if available, otherwise fallback to short description
 	const displayDescription = entry.fullDescription || entry.description
 

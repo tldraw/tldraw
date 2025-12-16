@@ -4,6 +4,7 @@ import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { TlaWhatsNewDialogContent } from '../../tla/components/TlaWhatsNew/TlaWhatsNewDialogContent'
 import { TlaWhatsNewPageEntry } from '../../tla/components/TlaWhatsNew/TlaWhatsNewPageEntry'
+import { parseDateOnly } from '../../tla/utils/dates'
 import styles from '../admin.module.css'
 
 function WhatsNewImageGallery({
@@ -516,15 +517,18 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 
 			{!editingEntry && (
 				<TlaButton
-					onClick={() =>
+					onClick={() => {
+						const today = new Date()
+						// Store as UTC midnight ISO string
+						const dateOnly = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 						setEditingEntry({
 							version: getNextMajorVersion(entries),
 							title: '',
-							date: new Date().toISOString(),
+							date: new Date(dateOnly).toISOString(),
 							description: '',
 							priority: 'regular',
 						})
-					}
+					}}
 					variant="primary"
 				>
 					Add New Entry
@@ -563,7 +567,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 										)}
 									</div>
 									<p className="tla-text_ui__small">
-										{new Date(entry.date).toLocaleDateString('en-US', {
+										{parseDateOnly(entry.date).toLocaleDateString('en-US', {
 											month: 'short',
 											year: 'numeric',
 										})}
