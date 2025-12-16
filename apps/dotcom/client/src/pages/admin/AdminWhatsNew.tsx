@@ -1,4 +1,4 @@
-import { WhatsNewEntry } from '@tldraw/dotcom-shared'
+import { WhatsNewDeleteImageResponse, WhatsNewEntry, WhatsNewImage } from '@tldraw/dotcom-shared'
 import React, { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
@@ -18,7 +18,7 @@ function WhatsNewImageGallery({
 	onLoadImages,
 	onDeleteImage,
 }: {
-	imageList: Array<{ name: string; objectName: string; url: string; uploaded?: Date }>
+	imageList: WhatsNewImage[]
 	loadingImages: boolean
 	onLoadImages(): void
 	onDeleteImage(objectName: string): void
@@ -149,7 +149,7 @@ function WhatsNewEntryForm({
 
 		if (!res.ok) throw new Error(await res.text())
 
-		const { url } = await res.json()
+		const { url } = (await res.json()) as { url: string }
 		return url
 	}
 
@@ -223,12 +223,12 @@ function WhatsNewEntryForm({
 						/>
 					</div>
 
-					{/* Short description shown in the What's New dialog popup */}
+					{/* Short description shown in dialog and as fallback on page */}
 					<div className={styles.formField}>
 						<label htmlFor="description">Short description:</label>
 						<div className={styles.markdownHelper}>
-							Shown in dialog popup. Supports **bold**, *italic*, [links](url), lists, `code`, and
-							images: ![alt](url)
+							Shown in dialog popup and as fallback on /whats-new page. Supports **bold**, *italic*,
+							[links](url), lists, `code`, and images: ![alt](url)
 						</div>
 						<textarea
 							id="description"
@@ -241,12 +241,12 @@ function WhatsNewEntryForm({
 						/>
 					</div>
 
-					{/* Long description shown on the /whats-new page (optional) */}
+					{/* Long description for /whats-new page; falls back to short if empty */}
 					<div className={styles.formField}>
 						<label htmlFor="fullDescription">Long description:</label>
 						<div className={styles.markdownHelper}>
-							Optional. Shown on /whats-new page with more space. If empty, short description is
-							used. Supports markdown including images.
+							Optional. Shown on /whats-new page. If empty, the short description above is used.
+							Supports markdown including images.
 						</div>
 						<textarea
 							id="fullDescription"
@@ -364,9 +364,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 	const [error, setError] = useState<string | null>(null)
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 	const [editingEntry, setEditingEntry] = useState<WhatsNewEntryDraft | null>(null)
-	const [imageList, setImageList] = useState<
-		Array<{ name: string; objectName: string; url: string; uploaded?: Date }>
-	>([])
+	const [imageList, setImageList] = useState<WhatsNewImage[]>([])
 	const [loadingImages, setLoadingImages] = useState(false)
 
 	const loadEntries = useCallback(async () => {
@@ -377,10 +375,8 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 				setError(`${res.statusText}: ${await res.text()}`)
 				return
 			}
-			const data = await res.json()
-			// API returns array directly, not wrapped in object
-			// Backend already sorts by date descending, but we ensure consistency here
-			// Sort by date in descending order (newest first) to match what users see
+			const data = (await res.json()) as WhatsNewEntry[]
+			// Backend sorts by date descending, we re-sort client-side for consistency
 			const sorted = Array.isArray(data)
 				? data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 				: []
@@ -395,7 +391,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 		try {
 			const res = await fetch('/api/app/admin/whats-new/list-images')
 			if (!res.ok) throw new Error('Failed to load images')
-			const data = await res.json()
+			const data = (await res.json()) as WhatsNewImage[]
 			setImageList(data)
 		} catch (err) {
 			console.error('Failed to fetch images:', err)
@@ -414,16 +410,16 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 				body: JSON.stringify({ objectName }),
 			})
 
-			const result = await res.json()
+			const result = (await res.json()) as WhatsNewDeleteImageResponse
 
-			if (!res.ok || !result.success) {
+			if (!result.success) {
 				if (result.usedIn && result.usedIn.length > 0) {
 					const usageList = result.usedIn.join('\n• ')
 					alert(
 						`Cannot delete image - it's still being used in:\n\n• ${usageList}\n\nRemove the image from these entries before deleting.`
 					)
 				} else {
-					alert(`Failed to delete image: ${result.error || 'Unknown error'}`)
+					alert(`Failed to delete image: ${result.error}`)
 				}
 				return
 			}

@@ -500,113 +500,142 @@ export const adminRoutes = createRouter<Environment>()
 		return await returnFileSnapshot(env, fileSlug, false)
 	})
 	.get('/app/admin/whats-new', async (_req, env) => {
-		const entries = await getWhatsNewEntries(env)
-		return json(entries)
+		try {
+			const entries = await getWhatsNewEntries(env)
+			return json(entries)
+		} catch {
+			return json([])
+		}
 	})
 	.post('/app/admin/whats-new', async (req, env) => {
-		const body: any = await req.json()
+		try {
+			const body: any = await req.json()
 
-		if (!body.version || !body.title || !body.date) {
-			return new Response('version, title, and date are required', { status: 400 })
+			if (!body.version || !body.title || !body.date) {
+				return new Response('version, title, and date are required', { status: 400 })
+			}
+
+			// Validate required short description (shown in dialog)
+			if (
+				!body.description ||
+				typeof body.description !== 'string' ||
+				body.description.trim() === ''
+			) {
+				return new Response('description is required and must be a non-empty string', {
+					status: 400,
+				})
+			}
+
+			// fullDescription is optional (shown on /whats-new page, falls back to description if not provided)
+
+			await setWhatsNewEntry(env, body)
+			return json({ success: true })
+		} catch (err) {
+			if (err instanceof StatusError) throw err
+			throw new StatusError(500, 'Failed to save entry')
 		}
-
-		// Validate required short description (shown in dialog)
-		if (
-			!body.description ||
-			typeof body.description !== 'string' ||
-			body.description.trim() === ''
-		) {
-			return new Response('description is required and must be a non-empty string', { status: 400 })
-		}
-
-		// fullDescription is optional (shown on /whats-new page, falls back to description if not provided)
-
-		await setWhatsNewEntry(env, body)
-		return json({ success: true })
 	})
 	.delete('/app/admin/whats-new/delete-image', async (req, env) => {
-		const body: any = await req.json()
-		const { objectName } = body
+		try {
+			const body: any = await req.json()
+			const { objectName } = body
 
-		if (typeof objectName !== 'string' || !objectName) {
-			throw new StatusError(400, 'objectName is required')
-		}
-
-		// Ensure it's in the whats-new folder for safety
-		if (!objectName.startsWith('whats-new/')) {
-			throw new StatusError(400, 'Can only delete images from whats-new folder')
-		}
-
-		// Check if image is being used in any what's new entry
-		const entries = await getWhatsNewEntries(env)
-		const imageUrl = `/api/app/uploads/${objectName}`
-		const usedIn: string[] = []
-
-		for (const entry of entries) {
-			if (entry.description.includes(imageUrl)) {
-				usedIn.push(`${entry.version} - ${entry.title} (description)`)
+			if (typeof objectName !== 'string' || !objectName) {
+				throw new StatusError(400, 'objectName is required')
 			}
-			if (entry.fullDescription && entry.fullDescription.includes(imageUrl)) {
-				usedIn.push(`${entry.version} - ${entry.title} (full description)`)
+
+			// Ensure it's in the whats-new folder for safety
+			if (!objectName.startsWith('whats-new/')) {
+				throw new StatusError(400, 'Can only delete images from whats-new folder')
 			}
+
+			// Check if image is being used in any what's new entry
+			const entries = await getWhatsNewEntries(env)
+			const imageUrl = `/api/app/uploads/${objectName}`
+			const usedIn: string[] = []
+
+			for (const entry of entries) {
+				if (entry.description.includes(imageUrl)) {
+					usedIn.push(`${entry.version} - ${entry.title} (description)`)
+				}
+				if (entry.fullDescription && entry.fullDescription.includes(imageUrl)) {
+					usedIn.push(`${entry.version} - ${entry.title} (full description)`)
+				}
+			}
+
+			if (usedIn.length > 0) {
+				return json(
+					{
+						success: false,
+						error: 'Image is still being used',
+						usedIn,
+					},
+					{ status: 400 }
+				)
+			}
+
+			await env.UPLOADS.delete(objectName)
+
+			return json({ success: true })
+		} catch (err) {
+			if (err instanceof StatusError) throw err
+			throw new StatusError(500, 'Failed to delete image')
 		}
-
-		if (usedIn.length > 0) {
-			return json(
-				{
-					success: false,
-					error: 'Image is still being used',
-					usedIn,
-				},
-				{ status: 400 }
-			)
-		}
-
-		await env.UPLOADS.delete(objectName)
-
-		return json({ success: true })
 	})
 	.delete('/app/admin/whats-new/:version', async (req, env) => {
-		const version = req.params.version
-		assert(typeof version === 'string', 'version is required')
+		try {
+			const version = req.params.version
+			assert(typeof version === 'string', 'version is required')
 
-		await deleteWhatsNewEntry(env, version)
-		return json({ success: true })
+			await deleteWhatsNewEntry(env, version)
+			return json({ success: true })
+		} catch (err) {
+			if (err instanceof StatusError) throw err
+			throw new StatusError(500, 'Failed to delete entry')
+		}
 	})
 	.post('/app/admin/whats-new/upload-image', async (req, env) => {
-		const contentType = req.headers.get('Content-Type') || 'image/png'
-		const extension = contentType.split('/')[1]?.split(';')[0] || 'png'
-		const objectName = `whats-new/${uniqueId()}.${extension}`
+		try {
+			const contentType = req.headers.get('Content-Type') || 'image/png'
+			const extension = contentType.split('/')[1]?.split(';')[0] || 'png'
+			const objectName = `whats-new/${uniqueId()}.${extension}`
 
-		const result = await handleUserAssetUpload({
-			objectName,
-			bucket: env.UPLOADS,
-			body: req.body,
-			headers: req.headers,
-		})
+			const result = await handleUserAssetUpload({
+				objectName,
+				bucket: env.UPLOADS,
+				body: req.body,
+				headers: req.headers,
+			})
 
-		if (result.status !== 200) {
-			return result
+			if (result.status !== 200) {
+				return result
+			}
+
+			const url = `/api/app/uploads/${objectName}`
+			return json({ url })
+		} catch {
+			throw new StatusError(500, 'Failed to upload image')
 		}
-
-		const url = `/api/app/uploads/${objectName}`
-		return json({ url })
 	})
 	.get('/app/admin/whats-new/list-images', async (_req, env) => {
-		const listed = await env.UPLOADS.list({ prefix: 'whats-new/' })
+		try {
+			const listed = await env.UPLOADS.list({ prefix: 'whats-new/' })
 
-		return json(
-			listed.objects.map((obj) => {
-				const url = `/api/app/uploads/${obj.key}`
-				return {
-					name: obj.key.replace('whats-new/', ''),
-					objectName: obj.key,
-					url,
-					size: obj.size,
-					uploaded: obj.uploaded,
-				}
-			})
-		)
+			return json(
+				listed.objects.map((obj) => {
+					const url = `/api/app/uploads/${obj.key}`
+					return {
+						name: obj.key.replace('whats-new/', ''),
+						objectName: obj.key,
+						url,
+						size: obj.size,
+						uploaded: obj.uploaded,
+					}
+				})
+			)
+		} catch {
+			throw new StatusError(500, 'Failed to list images')
+		}
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {

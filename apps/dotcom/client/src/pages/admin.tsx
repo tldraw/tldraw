@@ -34,25 +34,35 @@ interface AdminLoaderData {
 }
 
 export async function loader(): Promise<AdminLoaderData> {
-	const [featureFlagsRes, whatsNewRes, fairyInvitesRes, replicatorRes] = await Promise.all([
-		fetch('/api/app/admin/feature-flags'),
-		fetch('/api/app/admin/whats-new'),
-		fetch('/api/app/admin/fairy-invites'),
-		fetch('/api/app/admin/replicator'),
-	])
+	try {
+		const [featureFlagsRes, whatsNewRes, fairyInvitesRes, replicatorRes] = await Promise.all([
+			fetch('/api/app/admin/feature-flags'),
+			fetch('/api/app/admin/whats-new'),
+			fetch('/api/app/admin/fairy-invites'),
+			fetch('/api/app/admin/replicator'),
+		])
 
-	const [featureFlags, whatsNewEntries, fairyInvites, replicatorData] = await Promise.all([
-		featureFlagsRes.ok ? featureFlagsRes.json() : {},
-		whatsNewRes.ok ? whatsNewRes.json() : [],
-		fairyInvitesRes.ok ? fairyInvitesRes.json() : [],
-		replicatorRes.ok ? replicatorRes.json() : null,
-	])
+		const [featureFlags, whatsNewEntries, fairyInvites, replicatorData] = await Promise.all([
+			featureFlagsRes.ok ? featureFlagsRes.json() : {},
+			whatsNewRes.ok ? whatsNewRes.json() : [],
+			fairyInvitesRes.ok ? fairyInvitesRes.json() : [],
+			replicatorRes.ok ? replicatorRes.json() : null,
+		])
 
-	return {
-		featureFlags,
-		whatsNewEntries: Array.isArray(whatsNewEntries) ? whatsNewEntries : [],
-		fairyInvites: Array.isArray(fairyInvites) ? fairyInvites : [],
-		replicatorData,
+		return {
+			featureFlags: featureFlags as Record<string, FeatureFlagValue>,
+			whatsNewEntries: Array.isArray(whatsNewEntries) ? whatsNewEntries : [],
+			fairyInvites: Array.isArray(fairyInvites) ? fairyInvites : [],
+			replicatorData: replicatorData as ReplicatorData,
+		}
+	} catch (err) {
+		console.error('Admin loader failed:', err)
+		return {
+			featureFlags: {},
+			whatsNewEntries: [],
+			fairyInvites: [],
+			replicatorData: null as any,
+		}
 	}
 }
 

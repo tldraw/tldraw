@@ -130,6 +130,18 @@ export interface WhatsNewEntry {
 	priority?: 'regular' | 'important'
 }
 
+export interface WhatsNewImage {
+	name: string
+	objectName: string
+	url: string
+	size: number
+	uploaded: Date
+}
+
+export type WhatsNewDeleteImageResponse =
+	| { success: true }
+	| { success: false; error: string; usedIn?: string[] }
+
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]

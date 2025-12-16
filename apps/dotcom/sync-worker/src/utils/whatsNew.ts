@@ -8,7 +8,12 @@ async function getAllEntries(env: Environment): Promise<WhatsNewEntry[]> {
 	if (!data) {
 		return []
 	}
-	return JSON.parse(data)
+	try {
+		return JSON.parse(data)
+	} catch {
+		// Return empty array if data is corrupted
+		return []
+	}
 }
 
 export async function getWhatsNewEntries(
