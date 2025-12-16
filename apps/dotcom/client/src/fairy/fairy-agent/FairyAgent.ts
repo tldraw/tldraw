@@ -929,17 +929,17 @@ export class FairyAgent {
 								return
 							}
 
-							// helpers the agent's action
-							const transformedAction = actionUtil.sanitizeAction(action, helpers)
-							if (!transformedAction) {
-								incompleteDiff = null
-								return
-							}
-
 							// If there was a diff from an incomplete action, revert it so that we can reapply the action
 							if (incompleteDiff) {
 								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
 								editor.store.applyDiff(inversePrevDiff)
+								incompleteDiff = null
+							}
+
+							// Sanitize the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, helpers)
+							if (!transformedAction) {
+								return
 							}
 
 							// Apply the action to the app and editor

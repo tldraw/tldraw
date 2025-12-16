@@ -34,11 +34,16 @@ import {
 import { convertFocusFillToTldrawFill } from './FocusFill'
 import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
 
+export interface FocusedShapeResult<T extends TLShape = TLShape> {
+	shape: T | null
+	bindings: TLBindingCreate[]
+}
+
 export function convertPartialFocusedShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedShapePartial,
 	{ defaultShape, complete }: { defaultShape: Partial<TLShape>; complete: boolean }
-): { shape: TLShape | null; bindings?: TLBindingCreate[] } {
+): FocusedShapeResult {
 	// Support partial text shapes
 	switch (focusedShape._type) {
 		case 'text': {
@@ -47,7 +52,7 @@ export function convertPartialFocusedShapeToTldrawShape(
 	}
 
 	// Expect complete shapes for all other types
-	if (!complete) return { shape: null }
+	if (!complete) return { shape: null, bindings: [] }
 	return convertFocusedShapeToTldrawShape(editor, focusedShape as FocusedShape, { defaultShape })
 }
 
@@ -62,7 +67,7 @@ export function convertFocusedShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape | null; bindings?: TLBindingCreate[] } {
+): FocusedShapeResult {
 	switch (focusedShape._type) {
 		case 'text': {
 			return convertTextShapeToTldrawShape(editor, focusedShape, { defaultShape })
@@ -158,7 +163,7 @@ function convertTextShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedShapePartial,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLTextShape | null } {
+): FocusedShapeResult<TLTextShape> {
 	const shapeId = focusedShape.shapeId
 		? convertSimpleIdToTldrawId(focusedShape.shapeId)
 		: createShapeId()
@@ -178,7 +183,7 @@ function convertTextShapeToTldrawShape(
 	const _y = 'y' in focusedShape ? focusedShape.y : undefined
 
 	if (text === undefined || _x === undefined || _y === undefined) {
-		return { shape: null }
+		return { shape: null, bindings: [] }
 	}
 
 	if (fontSize) {
@@ -313,6 +318,7 @@ function convertTextShapeToTldrawShape(
 
 	return {
 		shape: positionedShape,
+		bindings: [],
 	}
 }
 
@@ -320,7 +326,7 @@ function convertLineShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedLineShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLLineShape } {
+): FocusedShapeResult<TLLineShape> {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultLineShape = defaultShape as TLLineShape
 
@@ -332,6 +338,7 @@ function convertLineShapeToTldrawShape(
 	const minY = Math.min(y1, y2)
 
 	return {
+		bindings: [],
 		shape: {
 			id: shapeId,
 			type: 'line',
@@ -375,7 +382,7 @@ function convertArrowShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedArrowShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLArrowShape; bindings?: TLBindingCreate[] } {
+): FocusedShapeResult<TLArrowShape> {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultArrowShape = defaultShape as TLArrowShape
 
@@ -479,7 +486,7 @@ function convertArrowShapeToTldrawShape(
 
 	return {
 		shape,
-		bindings: bindings.length > 0 ? bindings : undefined,
+		bindings,
 	}
 }
 
@@ -487,7 +494,7 @@ function convertGeoShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedGeoShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLGeoShape } {
+): FocusedShapeResult<TLGeoShape> {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const shapeType = convertSimpleGeoTypeToTldrawGeoGeoType(focusedShape._type)
 	const defaultGeoShape = defaultShape as TLGeoShape
@@ -513,6 +520,7 @@ function convertGeoShapeToTldrawShape(
 	}
 
 	return {
+		bindings: [],
 		shape: {
 			id: shapeId,
 			type: 'geo',
@@ -552,7 +560,7 @@ function convertNoteShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedNoteShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLNoteShape } {
+): FocusedShapeResult<TLNoteShape> {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 
 	const defaultNoteShape = defaultShape as TLNoteShape
@@ -568,6 +576,7 @@ function convertNoteShapeToTldrawShape(
 	}
 
 	return {
+		bindings: [],
 		shape: {
 			id: shapeId,
 			type: 'note',
@@ -603,7 +612,7 @@ function convertDrawShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedDrawShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLDrawShape | null } {
+): FocusedShapeResult<TLDrawShape> {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultDrawShape = defaultShape as TLDrawShape
 
@@ -620,10 +629,11 @@ function convertDrawShapeToTldrawShape(
 	const segments = defaultDrawShape.props?.segments
 
 	if (!segments || segments.length === 0) {
-		return { shape: null }
+		return { shape: null, bindings: [] }
 	}
 
 	return {
+		bindings: [],
 		shape: {
 			id: shapeId,
 			type: 'draw',
@@ -659,10 +669,11 @@ function convertUnknownShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedUnknownShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): FocusedShapeResult {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 
 	return {
+		bindings: [],
 		shape: {
 			id: shapeId,
 			type: defaultShape.type ?? 'geo',
