@@ -1,5 +1,4 @@
 import { round } from 'lodash'
-import { useEffect, useState } from 'react'
 import {
 	createComputedCache,
 	Editor,
@@ -22,6 +21,7 @@ import {
 	track,
 	uniqueId,
 	useEditor,
+	useValue,
 	Vec,
 	VecModel,
 	vecModelValidator,
@@ -423,8 +423,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const isSnapMode = this.editor.user.getIsSnapMode()
 				if (
 					snapPoint &&
-					!this.editor.inputs.metaKey &&
-					(isSnapMode ? !this.editor.inputs.ctrlKey : this.editor.inputs.ctrlKey)
+					!this.editor.inputs.getMetaKey() &&
+					(isSnapMode ? !this.editor.inputs.getCtrlKey() : this.editor.inputs.getCtrlKey())
 				) {
 					this.editor.snaps.setIndicators(snapPoint.indicators)
 
@@ -464,7 +464,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 
 				// drag both d handles at the same time
-				if (this.editor.inputs.metaKey) {
+				if (this.editor.inputs.getMetaKey()) {
 					const delta = Vec.Sub(handle, initialEdge.d)
 
 					return {
@@ -509,7 +509,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
 
 				// drag ALL the tension handles
-				if (this.editor.inputs.metaKey && this.editor.inputs.shiftKey) {
+				if (this.editor.inputs.getMetaKey() && this.editor.inputs.getShiftKey()) {
 					return {
 						...shape,
 						props: {
@@ -532,7 +532,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 
 				// drag opposite tension handles at the same time
-				if (this.editor.inputs.metaKey) {
+				if (this.editor.inputs.getMetaKey()) {
 					return {
 						...shape,
 						props: {
@@ -572,7 +572,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
 
 				// drag ALL the tension handles
-				if (this.editor.inputs.metaKey && this.editor.inputs.shiftKey) {
+				if (this.editor.inputs.getMetaKey() && this.editor.inputs.getShiftKey()) {
 					return {
 						...shape,
 						props: {
@@ -595,7 +595,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 
 				// drag opposite tension handles at the same time
-				if (this.editor.inputs.metaKey) {
+				if (this.editor.inputs.getMetaKey()) {
 					return {
 						...shape,
 						props: {
@@ -908,34 +908,8 @@ export const GlobShape = track(function GlobShape({
 	const editor = useEditor()
 	const zoomLevel = editor.getZoomLevel()
 
-	const [fillGlob, setFillGlob] = useState(false)
-
-	// a small hack because editor inputs are not reactive, we need to use a keyboard event to fill the glob
-	// when space is pressed, fill the glob
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
-				setFillGlob(true)
-			}
-		}
-
-		const handleKeyUp = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
-				setFillGlob(false)
-			}
-		}
-
-		const container = editor.getContainer()
-		const doc = container.ownerDocument
-
-		doc.addEventListener('keydown', handleKeyDown)
-		doc.addEventListener('keyup', handleKeyUp)
-
-		return () => {
-			doc.removeEventListener('keydown', handleKeyDown)
-			doc.removeEventListener('keyup', handleKeyUp)
-		}
-	})
+	// Use reactive inputs to track if space key is pressed
+	const fillGlob = useValue('space key pressed', () => editor.inputs.keys.has('Space'), [editor])
 
 	const globPoints = getGlobInfo(editor, shape)
 	if (!globPoints) return null

@@ -15,7 +15,7 @@ export function ChatInput({
 }: {
 	agent: TldrawAgent
 	handleSubmit: FormEventHandler<HTMLFormElement>
-	inputRef: React.RefObject<HTMLTextAreaElement>
+	inputRef: React.RefObject<HTMLTextAreaElement | null>
 }) {
 	const { editor } = agent
 	const [inputValue, setInputValue] = useState('')

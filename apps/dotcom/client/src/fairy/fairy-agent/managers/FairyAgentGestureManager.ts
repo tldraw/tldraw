@@ -111,16 +111,4 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 			this.timeoutIds.set(id, timeoutId)
 		}
 	}
-
-	/**
-	 * Clears all gestures from the stack and removes any active gesture from the fairy entity.
-	 * This will cause the fairy to revert to its base pose.
-	 * @returns void
-	 */
-	clear() {
-		this.clearAllTimeouts()
-		const { agent } = this
-		this.stack = []
-		agent.updateEntity((fairy) => ({ ...fairy, gesture: null }))
-	}
 }

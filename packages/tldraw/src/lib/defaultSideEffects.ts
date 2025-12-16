@@ -34,10 +34,15 @@ export function registerDefaultSideEffects(editor: Editor) {
 								editor.getInstanceState().isToolLocked
 							) {
 								editor.setCurrentTool('select.editing_shape', {
+									target: 'shape',
+									shape: shape,
 									isCreatingTextWhileToolLocked: true,
 								})
 							} else {
-								editor.setCurrentTool('select.editing_shape')
+								editor.setCurrentTool('select.editing_shape', {
+									target: 'shape',
+									shape: shape,
+								})
 							}
 						}
 					} else if (prev.editingShapeId && !next.editingShapeId) {

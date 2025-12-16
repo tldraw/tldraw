@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "00b177e080": {
-    "translation": "Acceptă invitația"
-  },
   "03b3e13197": {
     "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
   },
+  "77f0abf1aa": {
+    "translation": "Ai fost invitat la <strong>tldraw zâne</strong>"
+  },
   "7827371d1a": {
     "translation": "Acest fișier multiplayer anonim tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să vă conectați și să îl copiați în fișierele dvs."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Deschideți tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Ai fost invitat să te alături zânelor tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Uita"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Deselectați"
+  },
+  "9489b2f82a": {
+    "translation": "Ești deja membru al acestui grup"
   },
   "94966d9074": {
     "translation": "Trimite"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookie-uri esențiale"
   },
+  "c54a624f46": {
+    "translation": "Acceptă invitația"
+  },
   "c6155aaecc": {
     "translation": "Numele grupului"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Adresă URL fișier tldraw nevalidă"
   },
-  "de290d52ef": {
-    "translation": "Selectează o zână din dreapta cu care să vorbești"
-  },
   "df6ff49394": {
     "translation": "Zânele sunt o funcție <strong>temporară</strong>. Pe 1 ianuarie 2026, toate zânele vor fi eliminate din aplicație. Poate că vor reveni într-o zi. Achiziția dvs. este pentru acces la zâne doar pentru decembrie 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Setări utilizator"
+  },
+  "f1206f9fad": {
+    "translation": "Configurați"
   },
   "f2569594b2": {
     "translation": "Folosim aceste cookie-uri pentru a salva fișierele și setările dumneavoastră."

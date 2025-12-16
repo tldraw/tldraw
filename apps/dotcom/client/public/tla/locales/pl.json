@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Eksportuj"
   },
-  "00b177e080": {
-    "translation": "Zaakceptuj zaproszenie"
-  },
   "03b3e13197": {
     "translation": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Nieprawidłowe żądanie."
   },
+  "77f0abf1aa": {
+    "translation": "Zostałeś zaproszony do <strong>rysowania wróżek</strong>"
+  },
   "7827371d1a": {
     "translation": "Ten anonimowy plik tldraw do gry wieloosobowej jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Otwórz tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Zostałeś zaproszony do dołączenia do wróżek tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Zapomnij"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Odznacz"
+  },
+  "9489b2f82a": {
+    "translation": "Jesteś już członkiem tej grupy"
   },
   "94966d9074": {
     "translation": "Wysłać"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Niezbędne pliki cookie"
   },
+  "c54a624f46": {
+    "translation": "Zaakceptuj zaproszenie"
+  },
   "c6155aaecc": {
     "translation": "Nazwa grupy"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Nieprawidłowy adres URL pliku tldraw"
   },
-  "de290d52ef": {
-    "translation": "Wybierz wróżkę po prawej stronie, z którą chcesz porozmawiać"
-  },
   "df6ff49394": {
     "translation": "Wróżki to funkcja <strong>tymczasowa</strong>. 1 stycznia 2026 roku wszystkie wróżki zostaną usunięte z aplikacji. Być może kiedyś powrócą. Zakup uprawnia do dostępu do wróżek tylko do grudnia 2025 roku."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Ustawienia użytkownika"
+  },
+  "f1206f9fad": {
+    "translation": "Konfiguruj"
   },
   "f2569594b2": {
     "translation": "Używamy tych plików cookie, aby zapisać Twoje pliki i ustawienia."

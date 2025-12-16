@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exportera"
   },
-  "00b177e080": {
-    "translation": "Acceptera inbjudan"
-  },
   "03b3e13197": {
     "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet 'Importera fil' från användarmenyn."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Ogiltig begäran."
   },
+  "77f0abf1aa": {
+    "translation": "Du har blivit inbjuden till att <strong>draw älvor</strong>"
+  },
   "7827371d1a": {
     "translation": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Öppna tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Du har blivit inbjuden att gå med i tldraw-feer!"
   },
   "7cb5f8b4a5": {
     "translation": "Glöm"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Välja bort"
+  },
+  "9489b2f82a": {
+    "translation": "Du är redan medlem i den här gruppen"
   },
   "94966d9074": {
     "translation": "Skicka"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Viktiga cookies"
   },
+  "c54a624f46": {
+    "translation": "Acceptera inbjudan"
+  },
   "c6155aaecc": {
     "translation": "Gruppnamn"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Ogiltig URL för tldraw-fil"
   },
-  "de290d52ef": {
-    "translation": "Välj en älva till höger att chatta med"
-  },
   "df6ff49394": {
     "translation": "Älvor är en <strong>tillfällig</strong> funktion. Den 1 januari 2026 kommer alla älvor att tas bort från appen. De kanske återvänder någon dag. Ditt köp gäller endast åtkomst till älvor i december 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Användarinställningar"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurera"
   },
   "f2569594b2": {
     "translation": "Vi använder dessa cookies för att spara dina filer och inställningar."

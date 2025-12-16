@@ -162,6 +162,14 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('getTasksByProjectId', () => {
 		it('should return tasks for a specific project', () => {
+			// Create projects first (required since getTasksByProjectId checks if project exists)
+			fairyApp.projects.addProject({
+				...getFairyProject({ id: toProjectId('project-1') }),
+			})
+			fairyApp.projects.addProject({
+				...getFairyProject({ id: toProjectId('project-2') }),
+			})
+
 			manager.createTask({
 				id: toTaskId('task-1'),
 				title: 'Task 1',

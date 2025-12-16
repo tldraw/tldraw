@@ -83,6 +83,9 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 		})
 
 		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
+		await discord.message(
+			`📝 Created hotfix PR: https://github.com/tldraw/tldraw/pull/${createdPr.data.number}`
+		)
 		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
 
 		// Maximum wait time: 15 minutes total (action timeout is 20 mins, we need buffer for Discord notification)

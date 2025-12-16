@@ -117,10 +117,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
-
-		shouldBeExact: (editor: Editor) => editor.inputs.altKey,
-		shouldIgnoreTargets: (editor: Editor) => editor.inputs.ctrlKey,
-
+		shouldBeExact(editor: Editor) {
+			return editor.inputs.getAltKey()
+		},
+		shouldIgnoreTargets(editor: Editor) {
+			return editor.inputs.getCtrlKey()
+		},
 		showTextOutline: true,
 	}
 

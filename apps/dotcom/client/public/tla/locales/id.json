@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Ekspor"
   },
-  "00b177e080": {
-    "translation": "Terima undangan"
-  },
   "03b3e13197": {
     "translation": "Seret file ke bilah samping di halaman ini atau pilih opsi 'Impor file' dari menu pengguna."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Permintaan tidak valid."
   },
+  "77f0abf1aa": {
+    "translation": "Anda telah diundang untuk <strong>menggambar peri</strong>"
+  },
   "7827371d1a": {
     "translation": "Berkas multipemain tldraw anonim ini sekarang hanya-baca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Buka tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Anda telah diundang untuk bergabung dengan tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Abaikan"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Batalkan pilihan"
+  },
+  "9489b2f82a": {
+    "translation": "Anda sudah menjadi anggota grup ini"
   },
   "94966d9074": {
     "translation": "Mengirim"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookie penting"
   },
+  "c54a624f46": {
+    "translation": "Terima undangan"
+  },
   "c6155aaecc": {
     "translation": "Nama grup"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL file tldraw tidak valid"
   },
-  "de290d52ef": {
-    "translation": "Pilih peri di sebelah kanan untuk mengobrol"
-  },
   "df6ff49394": {
     "translation": "Peri adalah fitur <strong>sementara</strong>. Pada 1 Januari 2026, semua peri akan dihapus dari aplikasi. Mungkin mereka akan kembali lagi suatu hari nanti. Pembelian Anda hanya untuk akses ke peri selama Desember 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Pengaturan pengguna"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurasi"
   },
   "f2569594b2": {
     "translation": "Kami menggunakan cookie ini untuk menyimpan berkas dan pengaturan Anda."

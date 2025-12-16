@@ -58,14 +58,6 @@ export class FairyAgentChatManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Clear all chat history.
-	 * Removes all items from the chat history.
-	 */
-	clear() {
-		this.$chatHistory.set([])
-	}
-
-	/**
 	 * Update chat history items in place using an updater function.
 	 * This is used for operations like marking actions as accepted/rejected,
 	 * modifying existing items, or filtering the history.

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exportar"
   },
-  "00b177e080": {
-    "translation": "Aceitar convite"
-  },
   "03b3e13197": {
     "translation": "Arraste o ficheiro para a barra lateral nesta página. Ou selecione a opção \"Importar ficheiro\" no menu de utilizador."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Pedido inválido."
   },
+  "77f0abf1aa": {
+    "translation": "Você foi convidado(a) para <strong>tldraw fadas</strong>."
+  },
   "7827371d1a": {
     "translation": "Este arquivo multiplayer anônimo do tldraw agora é somente leitura. Para continuar editando, faça login e copie-o para seus arquivos."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Abra o tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Você foi convidado(a) a se juntar às fadas do tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Esquecer"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Desmarcar"
+  },
+  "9489b2f82a": {
+    "translation": "Você já é membro deste grupo."
   },
   "94966d9074": {
     "translation": "Enviar"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookies essenciais"
   },
+  "c54a624f46": {
+    "translation": "Aceitar convite"
+  },
   "c6155aaecc": {
     "translation": "Nome do grupo"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL de arquivo tldraw inválida"
   },
-  "de290d52ef": {
-    "translation": "Selecione uma fada à direita para conversar."
-  },
   "df6ff49394": {
     "translation": "As fadas são um recurso <strong>temporário</strong>. Em 1º de janeiro de 2026, todas as fadas serão removidas do aplicativo. Talvez elas retornem algum dia. Sua compra dá acesso às fadas apenas em dezembro de 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Configurações do usuário"
+  },
+  "f1206f9fad": {
+    "translation": "Configurar"
   },
   "f2569594b2": {
     "translation": "Usamos esses cookies para salvar seus arquivos e configurações."

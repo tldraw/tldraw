@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Dhoofinta"
   },
-  "00b177e080": {
-    "translation": "Aqbal martiqaadka"
-  },
   "03b3e13197": {
     "translation": "Ku jiid faylka dhinaca bar-side ee boggan. Ama ka dooro 'Faylka Import' ee liiska isticmaalaha."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Codsi aan sax ahayn"
   },
+  "77f0abf1aa": {
+    "translation": "Waxaa lagugu martiqaaday<strong>tldraw fairies</strong>"
+  },
   "7827371d1a": {
     "translation": "Faylka ciyaartoy badan oo tldraw aan la garanayn hadda waa akhrin-kaliya. Si aad u sii waddo tafatirka, fadlan soo gal oo koobi ka geli faylashaada."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Fur tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Waxaa lagugu martiqaaday inaad ku biirto tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Iska ilow"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Ha dooran"
+  },
+  "9489b2f82a": {
+    "translation": "Horay ayaad xubin uga ahayd kooxdan"
   },
   "94966d9074": {
     "translation": "Dir"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Kukiyada muhiimka ah"
   },
+  "c54a624f46": {
+    "translation": "Aqbal martiqaadka"
+  },
   "c6155aaecc": {
     "translation": "Magaca kooxda"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL faylka tldraw aan sax ahayn"
   },
-  "de290d52ef": {
-    "translation": "Dooro cirfiid dhanka midigta ah si aad ula sheekeysato"
-  },
   "df6ff49394": {
     "translation": "Carwada waa muuqaal<strong>ku meel gaadh ah</strong>. Janaayo 1st, 2026, dhammaan carwooyinka waa laga saari doonaa codsiga. Waxaa laga yaabaa inay mar kale soo noqdaan mar kale maalin. Iibkaagu waxa loogu talagalay gelitaanka carwada Diisambar 2025 oo keliya."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Dejinta isticmaalaha"
+  },
+  "f1206f9fad": {
+    "translation": "Habee"
   },
   "f2569594b2": {
     "translation": "Waxaan u isticmaalnaa cookies-kan si aan u kaydiyo faylashaada iyo dejintaada."

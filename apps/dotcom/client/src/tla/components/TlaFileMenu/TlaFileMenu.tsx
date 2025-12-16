@@ -207,12 +207,15 @@ export function FileItems({
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
-				<TldrawUiMenuItem
-					label={duplicateMsg}
-					id="duplicate"
-					readonlyOk
-					onSelect={handleDuplicateClick}
-				/>
+				{/* todo: requires a non-trivial refactor, quick fix is to just remove this menu item, it's available elsewhere */}
+				{source !== 'file-header' && (
+					<TldrawUiMenuItem
+						label={duplicateMsg}
+						id="duplicate"
+						readonlyOk
+						onSelect={handleDuplicateClick}
+					/>
+				)}
 				{!source.startsWith('sidebar') ||
 					(isActive && (
 						// TODO: make a /download/:fileId endpoint so we can download any file

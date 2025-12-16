@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Xuất"
   },
-  "00b177e080": {
-    "translation": "Chấp nhận lời mời"
-  },
   "03b3e13197": {
     "translation": "Kéo tệp vào thanh bên ở trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu người dùng."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
   },
+  "77f0abf1aa": {
+    "translation": "Bạn đã được mời <strong>vẽ tiên</strong>"
+  },
   "7827371d1a": {
     "translation": "Tệp tldraw nhiều người chơi ẩn danh này hiện ở chế độ chỉ đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Mở tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Bạn đã được mời tham gia tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Quên"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Bỏ chọn"
+  },
+  "9489b2f82a": {
+    "translation": "Bạn đã là thành viên của nhóm này"
   },
   "94966d9074": {
     "translation": "Gửi"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookie thiết yếu"
   },
+  "c54a624f46": {
+    "translation": "Chấp nhận lời mời"
+  },
   "c6155aaecc": {
     "translation": "Tên nhóm"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL tệp tldraw không hợp lệ"
   },
-  "de290d52ef": {
-    "translation": "Chọn một nàng tiên bên phải để trò chuyện"
-  },
   "df6ff49394": {
     "translation": "Tiên là một tính năng <strong>tạm thời</strong>. Vào ngày 1 tháng 1 năm 2026, tất cả tiên sẽ bị xóa khỏi ứng dụng. Có thể chúng sẽ quay trở lại vào một ngày nào đó. Giao dịch mua của bạn chỉ dành cho quyền truy cập vào tiên trong tháng 12 năm 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Cài đặt người dùng"
+  },
+  "f1206f9fad": {
+    "translation": "Cấu hình"
   },
   "f2569594b2": {
     "translation": "Chúng tôi sử dụng các cookie này để lưu tệp và cài đặt của bạn."

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Izvozi"
   },
-  "00b177e080": {
-    "translation": "Sprejmi povabilo"
-  },
   "03b3e13197": {
     "translation": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Neveljavna zahteva."
   },
+  "77f0abf1aa": {
+    "translation": "Povabljeni ste bili k <strong>risanju vil</strong>"
+  },
   "7827371d1a": {
     "translation": "Ta anonimna datoteka za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Odpri tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Povabljeni ste, da se pridružite tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Pozabi"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Prekliči izbor"
+  },
+  "9489b2f82a": {
+    "translation": "Ste že član te skupine"
   },
   "94966d9074": {
     "translation": "Pošlji"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Bistveni piškotki"
   },
+  "c54a624f46": {
+    "translation": "Sprejmi povabilo"
+  },
   "c6155aaecc": {
     "translation": "Ime skupine"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Neveljaven URL datoteke tldraw"
   },
-  "de290d52ef": {
-    "translation": "Izberite vilo na desni, s katero se želite pogovarjati"
-  },
   "df6ff49394": {
     "translation": "Vile so <strong>začasna</strong> funkcija. 1. januarja 2026 bodo vse vile odstranjene iz aplikacije. Morda se bodo nekega dne spet vrnile. Vaš nakup velja samo za dostop do vil v decembru 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Uporabniške nastavitve"
+  },
+  "f1206f9fad": {
+    "translation": "Konfiguriraj"
   },
   "f2569594b2": {
     "translation": "Te piškotke uporabljamo za shranjevanje vaših datotek in nastavitev."
