@@ -6,6 +6,7 @@ import { FairyAppFollowingManager } from './managers/FairyAppFollowingManager'
 import { FairyAppPersistenceManager } from './managers/FairyAppPersistenceManager'
 import { FairyAppProjectsManager } from './managers/FairyAppProjectsManager'
 import { FairyAppTaskListManager } from './managers/FairyAppTaskListManager'
+import { FairyAppTokenConsumptionTracker } from './managers/FairyAppTokenConsumptionTracker'
 import { FairyAppVelocityTracker } from './managers/FairyAppVelocityTracker'
 import { FairyAppWaitManager } from './managers/FairyAppWaitManager'
 
@@ -54,6 +55,11 @@ export class FairyApp {
 	 */
 	velocityTracker: FairyAppVelocityTracker
 
+	/**
+	 * Manager for tracking fairy token consumption over time.
+	 */
+	tokenConsumptionTracker: FairyAppTokenConsumptionTracker
+
 	// --- Global fairy state ---
 
 	/**
@@ -90,6 +96,7 @@ export class FairyApp {
 		this.tasks = new FairyAppTaskListManager(this)
 		this.waits = new FairyAppWaitManager(this)
 		this.velocityTracker = new FairyAppVelocityTracker(this)
+		this.tokenConsumptionTracker = new FairyAppTokenConsumptionTracker(this)
 
 		editor.on('crash', () => this.dispose())
 		editor.on('dispose', () => this.dispose())
@@ -104,6 +111,8 @@ export class FairyApp {
 		this.persistence.dispose()
 		// Stop velocity tracking
 		this.velocityTracker.dispose()
+		// Stop token consumption tracking
+		this.tokenConsumptionTracker.dispose()
 
 		// Not sure if we need to dispose the rest...
 		// this.agents.disposeAll()

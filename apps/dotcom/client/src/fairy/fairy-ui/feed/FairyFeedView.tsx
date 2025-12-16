@@ -5,11 +5,12 @@ import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyActionsByTypeChart } from '../../fairy-chart/FairyActionsByTypeChart'
 import { FairyActionsChart } from '../../fairy-chart/FairyActionsChart'
+import { FairyTokenConsumptionChart } from '../../fairy-chart/FairyTokenConsumptionChart'
 import { FairyVelocityChart } from '../../fairy-chart/FairyVelocityChart'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
 
-type ChartType = 'velocity' | 'actions' | 'actions-by-type'
+type ChartType = 'velocity' | 'token-consumption' | 'actions' | 'actions-by-type'
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -68,7 +69,7 @@ interface FeedItem {
 	isOrchestrator?: boolean
 }
 
-const CHART_ORDER: ChartType[] = ['velocity', 'actions', 'actions-by-type']
+const CHART_ORDER: ChartType[] = ['velocity', 'token-consumption', 'actions', 'actions-by-type']
 
 /** Chart carousel component for switching between different chart views */
 function ChartCarousel({
@@ -111,6 +112,15 @@ function ChartCarousel({
 					}}
 				>
 					<FairyVelocityChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'token-consumption' ? 'visible' : 'hidden',
+						position: activeChart === 'token-consumption' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyTokenConsumptionChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				</div>
 				<div
 					style={{

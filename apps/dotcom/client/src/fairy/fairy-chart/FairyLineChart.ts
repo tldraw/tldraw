@@ -11,6 +11,7 @@ import {
 	createSVGElement,
 	deepClone,
 	floatTwo,
+	formatThousands,
 	getClosestInArray,
 	getZeroIndex,
 	makePath,
@@ -181,7 +182,7 @@ export class FairyLineChart {
 				group.appendChild(line)
 			}
 
-			const label = makeText('y-axis-label', -6, pos, round(this.yAxis.labels[i]).toString(), {
+			const label = makeText('y-axis-label', -6, pos, formatThousands(this.yAxis.labels[i]), {
 				fontSize: 10,
 				fill: '#666',
 				textAnchor: 'end',
@@ -383,7 +384,7 @@ export class FairyLineChart {
         <div style="display: flex; align-items: center; margin-top: 4px;">
           <div style="width: 10px; height: 10px; background: ${color}; border-radius: 2px; margin-right: 6px;"></div>
           <span style="margin-right: 6px;">${dataset.name}:</span>
-          <strong>${value}</strong>
+          <strong>${formatThousands(value)}</strong>
         </div>
       `
 		})

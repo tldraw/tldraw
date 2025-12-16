@@ -21,6 +21,23 @@ export function round(d: number): number {
 }
 
 /**
+ * Format a number in thousands (e.g., 3000 -> "3k", 2500 -> "2.5k")
+ */
+export function formatThousands(value: number): string {
+	if (value >= 1000) {
+		const thousands = value / 1000
+		// If it's a whole number, show without decimals (e.g., 3k)
+		if (thousands % 1 === 0) {
+			return `${thousands}k`
+		}
+		// Otherwise, show one decimal place (e.g., 2.5k)
+		return `${thousands.toFixed(1)}k`
+	}
+	// For values less than 1000, return as-is
+	return round(value).toString()
+}
+
+/**
  * Check if a value is a valid number
  */
 export function isValidNumber(candidate: any, nonNegative = false): boolean {

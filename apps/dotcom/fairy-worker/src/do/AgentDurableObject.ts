@@ -135,17 +135,33 @@ export class AgentDurableObject extends DurableObject<Environment> {
 				const prompt = (await request.json()) as AgentPrompt
 
 				// Pass userId and userStub for usage recording in onFinish
-				for await (const action of this.service.streamActions(prompt, signal, userId, userStub)) {
+				for await (const event of this.service.streamActions(prompt, signal, userId, userStub)) {
 					if (signal.aborted) break
-					response.actions.push(action)
-					const data = `data: ${JSON.stringify(action)}\n\n`
-					try {
-						await writer.write(encoder.encode(data))
-						await writer.ready
-					} catch (writeError) {
-						// Writer was aborted or closed, break out of loop
-						if (signal.aborted) break
-						throw writeError
+
+					// Handle both action events and usage events
+					if ('_type' in event && event._type === 'usage') {
+						// Stream usage event to client
+						const data = `data: ${JSON.stringify(event)}\n\n`
+						try {
+							await writer.write(encoder.encode(data))
+							await writer.ready
+						} catch (writeError) {
+							if (signal.aborted) break
+							throw writeError
+						}
+					} else {
+						// Stream action to client
+						const action = event as Streaming<AgentAction>
+						response.actions.push(action)
+						const data = `data: ${JSON.stringify(action)}\n\n`
+						try {
+							await writer.write(encoder.encode(data))
+							await writer.ready
+						} catch (writeError) {
+							// Writer was aborted or closed, break out of loop
+							if (signal.aborted) break
+							throw writeError
+						}
 					}
 				}
 				if (!signal.aborted) {
