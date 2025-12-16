@@ -6,13 +6,25 @@ import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyActionRateChart } from '../../fairy-chart/FairyActionRateChart'
 import { FairyActionsByTypeChart } from '../../fairy-chart/FairyActionsByTypeChart'
 import { FairyActionsChart } from '../../fairy-chart/FairyActionsChart'
+import { FairyCategoryHeatmapChart } from '../../fairy-chart/FairyCategoryHeatmapChart'
 import { FairyCostSummaryChart } from '../../fairy-chart/FairyCostSummaryChart'
+import { FairyTextOutputChart } from '../../fairy-chart/FairyTextOutputChart'
+import { FairyThinkingTimeChart } from '../../fairy-chart/FairyThinkingTimeChart'
 import { FairyTokenConsumptionChart } from '../../fairy-chart/FairyTokenConsumptionChart'
 import { FairyVelocityChart } from '../../fairy-chart/FairyVelocityChart'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
 
-type ChartType = 'velocity' | 'action-rate' | 'token-consumption' | 'cost' | 'actions' | 'actions-by-type'
+type ChartType =
+	| 'velocity'
+	| 'action-rate'
+	| 'text-output'
+	| 'thinking-time'
+	| 'token-consumption'
+	| 'cost'
+	| 'actions'
+	| 'actions-by-type'
+	| 'category-heatmap'
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -71,7 +83,17 @@ interface FeedItem {
 	isOrchestrator?: boolean
 }
 
-const CHART_ORDER: ChartType[] = ['velocity', 'action-rate', 'token-consumption', 'cost', 'actions', 'actions-by-type']
+const CHART_ORDER: ChartType[] = [
+	'velocity',
+	'action-rate',
+	'text-output',
+	'thinking-time',
+	'token-consumption',
+	'cost',
+	'actions',
+	'actions-by-type',
+	'category-heatmap',
+]
 
 /** Chart carousel component for switching between different chart views */
 function ChartCarousel({
@@ -126,6 +148,24 @@ function ChartCarousel({
 				</div>
 				<div
 					style={{
+						visibility: activeChart === 'text-output' ? 'visible' : 'hidden',
+						position: activeChart === 'text-output' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyTextOutputChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'thinking-time' ? 'visible' : 'hidden',
+						position: activeChart === 'thinking-time' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyThinkingTimeChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
 						visibility: activeChart === 'token-consumption' ? 'visible' : 'hidden',
 						position: activeChart === 'token-consumption' ? 'relative' : 'absolute',
 						width: '100%',
@@ -159,6 +199,15 @@ function ChartCarousel({
 					}}
 				>
 					<FairyActionsByTypeChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'category-heatmap' ? 'visible' : 'hidden',
+						position: activeChart === 'category-heatmap' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyCategoryHeatmapChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				</div>
 			</div>
 			<div className="fairy-chart-carousel-chevron-container">

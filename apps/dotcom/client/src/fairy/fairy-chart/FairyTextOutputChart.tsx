@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
+import type {
+	FairyTextData,
+	TextOutputDataPoint,
+} from '../fairy-app/managers/FairyAppTextOutputTracker'
 import { Y_AXIS_PADDING_MULTIPLIER } from '../fairy-shared-constants'
 import { ChartErrorBoundary } from './ChartErrorBoundary'
 import { FairyChartContainer } from './FairyChartContainer'
@@ -10,12 +14,12 @@ import { shouldRecreateChart } from './fairy-chart-helpers'
 import type { ChartData, Dataset } from './fairy-chart-types'
 import { useProjectChangeDetection } from './useProjectChangeDetection'
 
-interface FairyActionRateChartProps {
+interface FairyTextOutputChartProps {
 	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
 }
 
-export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionRateChartProps) {
+export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOutputChartProps) {
 	const fairyApp = useFairyApp()
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyLineChart | null>(null)
@@ -36,44 +40,44 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 	})
 
-	// Get action rate data from tracker (subscribe to atom changes)
-	const actionRateData = useValue(
-		'action-rate-data',
+	// Get text output data from tracker (subscribe to atom changes)
+	const textOutputData = useValue(
+		'text-output-data',
 		() => {
-			if (!fairyApp?.actionRateTracker) return []
-			return fairyApp.actionRateTracker.getDataPointsAtom().get()
+			if (!fairyApp?.textOutputTracker) return []
+			return fairyApp.textOutputTracker.getDataPointsAtom().get()
 		},
 		[fairyApp]
 	)
 
 	// Start/stop tracking based on project existence
 	useEffect(() => {
-		if (!fairyApp?.actionRateTracker) {
+		if (!fairyApp?.textOutputTracker) {
 			return
 		}
 
 		// Stop tracking if no project (project ended)
 		if (!project) {
-			fairyApp.actionRateTracker.stopTracking()
+			fairyApp.textOutputTracker.stopTracking()
 			return
 		}
 
 		// Start tracking with project agents, passing project ID for automatic reset
-		fairyApp.actionRateTracker.startTracking(() => {
+		fairyApp.textOutputTracker.startTracking(() => {
 			const currentProject = orchestratorAgent?.getProject(true)
 			if (!currentProject) return []
 
 			// Filter to project members (always include all members)
 			return agents.filter((agent) => {
-				const isMember = currentProject.members.some((m) => m.id === agent.id)
+				const isMember = currentProject.members.some((m: { id: string }) => m.id === agent.id)
 				return isMember
 			})
 		}, project.id)
 	}, [fairyApp, project, agents, orchestratorAgent])
 
-	// Build per-fairy datasets from action rate data with rolling window average
+	// Build per-fairy datasets from text output data with rolling window average
 	const chartData = useMemo((): ChartData & { maxValue?: number } => {
-		if (actionRateData.length === 0) {
+		if (textOutputData.length === 0) {
 			return { labels: [], datasets: [], maxValue: 0 }
 		}
 
@@ -83,10 +87,10 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		const fairyMap = new Map<string, { name: string; color: string; values: number[] }>()
 
 		// Initialize fairy map
-		for (const dataPoint of actionRateData) {
+		for (const dataPoint of textOutputData) {
 			for (const fairy of dataPoint.fairies) {
 				if (!fairyMap.has(fairy.id)) {
-					const color = fairyApp?.actionRateTracker?.getHatColorHex(fairy.hatColor) ?? '#888888'
+					const color = fairyApp?.textOutputTracker?.getHatColorHex(fairy.hatColor) ?? '#888888'
 					fairyMap.set(fairy.id, {
 						name: fairy.name,
 						color,
@@ -96,23 +100,25 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 			}
 		}
 
-		// Calculate rolling average actions per minute for each data point
-		actionRateData.forEach((dataPoint, index) => {
+		// Calculate rolling average chars per minute for each data point
+		textOutputData.forEach((dataPoint: TextOutputDataPoint, index: number) => {
 			// Determine window start (60 seconds before current point)
 			const windowStartTime = dataPoint.timestamp - ROLLING_WINDOW_SECONDS * 1000
-			const windowStartIndex = actionRateData.findIndex((dp) => dp.timestamp >= windowStartTime)
+			const windowStartIndex = textOutputData.findIndex(
+				(dp: TextOutputDataPoint) => dp.timestamp >= windowStartTime
+			)
 			const startIndex = windowStartIndex >= 0 ? windowStartIndex : 0
 
-			// Calculate actions per minute for each fairy at this point
+			// Calculate chars per minute for each fairy at this point
 			for (const [fairyId, fairyInfo] of fairyMap) {
-				let totalActions = 0
+				let totalChars = 0
 
-				// Sum actions in the window for this fairy
+				// Sum chars in the window for this fairy
 				for (let i = startIndex; i <= index; i++) {
-					const dp = actionRateData[i]
-					const fairyInDp = dp.fairies.find((f) => f.id === fairyId)
+					const dp = textOutputData[i]
+					const fairyInDp = dp.fairies.find((f: FairyTextData) => f.id === fairyId)
 					if (fairyInDp) {
-						totalActions += fairyInDp.actionsDelta
+						totalChars += fairyInDp.charsDelta
 					}
 				}
 
@@ -120,10 +126,9 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 				const windowDuration = index - startIndex + 1 // Number of samples
 				const actualWindowSeconds = Math.min(windowDuration, ROLLING_WINDOW_SECONDS)
 
-				// Convert to actions per minute
-				const actionsPerMinute =
-					actualWindowSeconds > 0 ? (totalActions / actualWindowSeconds) * 60 : 0
-				fairyInfo.values.push(actionsPerMinute)
+				// Convert to chars per minute
+				const charsPerMinute = actualWindowSeconds > 0 ? (totalChars / actualWindowSeconds) * 60 : 0
+				fairyInfo.values.push(charsPerMinute)
 			}
 		})
 
@@ -143,10 +148,10 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 
 		// Simple labels - empty strings
-		const labels = actionRateData.map(() => '')
+		const labels = textOutputData.map(() => '')
 
 		return { labels, datasets, maxValue }
-	}, [actionRateData, fairyApp])
+	}, [textOutputData, fairyApp])
 
 	// Track previous maxYValue to detect when we need to recreate chart
 	const prevMaxYValueRef = useRef<number | undefined>(undefined)
@@ -211,9 +216,9 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 	return (
 		<ChartErrorBoundary>
 			<FairyChartContainer
-				title="Action Rate (actions/min)"
-				isEmpty={actionRateData.length === 0}
-				emptyMessage="Waiting for fairy actions..."
+				title="Text Output (chars/min)"
+				isEmpty={textOutputData.length === 0}
+				emptyMessage="Waiting for text output..."
 			>
 				<div ref={chartContainerRef} className="fairy-activity-chart" />
 			</FairyChartContainer>

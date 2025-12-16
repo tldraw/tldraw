@@ -1,4 +1,4 @@
-import type { FairyHatColor } from '@tldraw/fairy-shared'
+import type { FairyHatColor, ThinkAction } from '@tldraw/fairy-shared'
 import { useEffect, useMemo, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
@@ -8,19 +8,38 @@ import { FairyChartContainer } from './FairyChartContainer'
 import { FairyHorizontalBarChart } from './FairyHorizontalBarChart'
 import { filterProjectAgents, getFirstName } from './fairy-chart-helpers'
 
-interface FairyCostSummaryChartProps {
+interface FairyThinkingTimeChartProps {
 	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
 }
 
-interface FairyCostData {
+interface FairyThinkingData {
 	id: string
 	name: string
 	hatColor: FairyHatColor
-	cost: number
+	thinkingTimeSeconds: number
 }
 
-export function FairyCostSummaryChart({ orchestratorAgent, agents }: FairyCostSummaryChartProps) {
+/**
+ * Get total thinking time (in seconds) from a fairy's chat history
+ */
+function getThinkingTime(agent: FairyAgent): number {
+	const history = agent.chat.getHistory()
+	let totalMs = 0
+
+	for (const item of history) {
+		if (item.type === 'action' && item.action._type === 'think' && item.action.complete) {
+			const thinkAction = item.action as ThinkAction & { time?: number }
+			if (thinkAction.time) {
+				totalMs += thinkAction.time
+			}
+		}
+	}
+
+	return Math.round(totalMs / 1000)
+}
+
+export function FairyThinkingTimeChart({ orchestratorAgent, agents }: FairyThinkingTimeChartProps) {
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyHorizontalBarChart | null>(null)
 
@@ -31,59 +50,61 @@ export function FairyCostSummaryChart({ orchestratorAgent, agents }: FairyCostSu
 		[orchestratorAgent]
 	)
 
-	// Get cumulative cost per fairy from their usage trackers
-	const costData = useValue(
-		'cost-data',
-		(): FairyCostData[] => {
+	// Get thinking time per fairy from their chat history
+	const thinkingData = useValue(
+		'thinking-time',
+		(): FairyThinkingData[] => {
 			if (!project) return []
 
 			const projectAgents = filterProjectAgents(agents, project)
 
-			const costs = projectAgents.flatMap((agent) => {
+			const data = projectAgents.flatMap((agent) => {
 				const config = agent.getConfig()
 				if (!config) return []
-
-				const { totalCost } = agent.usage.getCumulativeCost()
 
 				return [
 					{
 						id: agent.id,
 						name: getFirstName(config.name),
 						hatColor: config.hatColor,
-						cost: totalCost,
+						thinkingTimeSeconds: getThinkingTime(agent),
 					},
 				]
 			})
 
-			// Sort by cost descending (leaderboard style)
-			return costs.sort((a, b) => b.cost - a.cost)
+			// Sort by thinking time descending
+			return data.sort((a, b) => b.thinkingTimeSeconds - a.thinkingTimeSeconds)
 		},
 		[project, agents]
 	)
 
 	// Convert to chart data format with per-bar colors
 	const chartData = useMemo(() => {
-		if (costData.length === 0) {
+		if (thinkingData.length === 0) {
 			return { labels: [], datasets: [], barColors: [] }
 		}
 
 		return {
-			labels: costData.map((fairy) => fairy.name),
+			labels: thinkingData.map((fairy: FairyThinkingData) => fairy.name),
 			datasets: [
 				{
-					name: 'Cost',
-					// Convert to cents for better readability of small values
-					values: costData.map((fairy) => Math.round(fairy.cost * 100) / 100),
+					name: 'Thinking Time',
+					values: thinkingData.map((fairy: FairyThinkingData) => fairy.thinkingTimeSeconds),
 				},
 			],
-			barColors: costData.map((fairy) => HAT_COLOR_HEX[fairy.hatColor] ?? '#888888'),
+			barColors: thinkingData.map(
+				(fairy: FairyThinkingData) => HAT_COLOR_HEX[fairy.hatColor] ?? '#888888'
+			),
 		}
-	}, [costData])
+	}, [thinkingData])
 
-	// Calculate total cost for display
-	const totalCost = useMemo(() => {
-		return costData.reduce((sum, fairy) => sum + fairy.cost, 0)
-	}, [costData])
+	// Calculate total thinking time for display
+	const totalThinkingTime = useMemo(() => {
+		return thinkingData.reduce(
+			(sum: number, fairy: FairyThinkingData) => sum + fairy.thinkingTimeSeconds,
+			0
+		)
+	}, [thinkingData])
 
 	// Track previous bar count to detect when we need to recreate chart
 	const prevBarCountRef = useRef<number>(0)
@@ -92,8 +113,10 @@ export function FairyCostSummaryChart({ orchestratorAgent, agents }: FairyCostSu
 	useEffect(() => {
 		if (!chartContainerRef.current) return
 
-		// Need at least one fairy with cost to show chart
-		const hasData = costData.length > 0 && costData.some((f) => f.cost > 0)
+		// Need at least one fairy with thinking time to show chart
+		const hasData =
+			thinkingData.length > 0 &&
+			thinkingData.some((f: FairyThinkingData) => f.thinkingTimeSeconds > 0)
 		if (!hasData) {
 			if (chartInstanceRef.current) {
 				chartInstanceRef.current.destroy()
@@ -127,7 +150,7 @@ export function FairyCostSummaryChart({ orchestratorAgent, agents }: FairyCostSu
 			{ labels: chartData.labels, datasets: chartData.datasets },
 			chartData.barColors
 		)
-	}, [chartData, costData])
+	}, [chartData, thinkingData])
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -145,18 +168,18 @@ export function FairyCostSummaryChart({ orchestratorAgent, agents }: FairyCostSu
 	}
 
 	// Check if there's any activity
-	const hasActivity = costData.some((fairy) => fairy.cost > 0)
-	const isEmpty = costData.length === 0 || !hasActivity
+	const hasActivity = thinkingData.some((fairy: FairyThinkingData) => fairy.thinkingTimeSeconds > 0)
+	const isEmpty = thinkingData.length === 0 || !hasActivity
 
-	// Format total cost for title
-	const formattedTotal = totalCost > 0 ? ` — Total: $${totalCost.toFixed(2)}` : ''
+	// Format total for title
+	const formattedTotal = totalThinkingTime > 0 ? ` — Total: ${totalThinkingTime}s` : ''
 
 	return (
 		<ChartErrorBoundary>
 			<FairyChartContainer
-				title={`Cost (USD)${formattedTotal}`}
+				title={`Thinking Time (seconds)${formattedTotal}`}
 				isEmpty={isEmpty}
-				emptyMessage="Waiting for API usage..."
+				emptyMessage="Waiting for fairy thinking..."
 			>
 				<div ref={chartContainerRef} className="fairy-activity-chart" />
 			</FairyChartContainer>

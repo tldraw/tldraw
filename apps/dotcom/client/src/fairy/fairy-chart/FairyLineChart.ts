@@ -16,7 +16,6 @@ import {
 	getZeroIndex,
 	makePath,
 	makeText,
-	round,
 	scale,
 	truncateString,
 } from './fairy-chart-utils'
