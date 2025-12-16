@@ -31,6 +31,10 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	moveTo(position: VecModel) {
+		if (Vec.Equals(this.agent.getEntity().position, position)) {
+			// avoid moving and reseting flipX if the position is the same
+			return
+		}
 		this.agent.updateEntity((fairy) => {
 			return {
 				...fairy,
