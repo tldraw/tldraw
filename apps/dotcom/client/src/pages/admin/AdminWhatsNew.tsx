@@ -394,9 +394,10 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 			}
 			const data = await res.json()
 			// API returns array directly, not wrapped in object
-			// Sort by version in descending order
+			// Backend already sorts by date descending, but we ensure consistency here
+			// Sort by date in descending order (newest first) to match what users see
 			const sorted = Array.isArray(data)
-				? data.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))
+				? data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 				: []
 			setEntries(sorted)
 		} catch (err) {

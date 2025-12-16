@@ -38,5 +38,8 @@ export async function deleteWhatsNewEntry(env: Environment, version: string): Pr
 	const entries = await getAllEntries(env)
 	const filtered = entries.filter((e) => e.version !== version)
 
+	// Ensure entries remain sorted by date (descending)
+	filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
 	await env.WHATS_NEW.put(ENTRIES_KEY, JSON.stringify(filtered))
 }
