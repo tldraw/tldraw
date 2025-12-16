@@ -537,6 +537,31 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, 'Can only delete images from whats-new folder')
 		}
 
+		// Check if image is being used in any what's new entry
+		const entries = await getWhatsNewEntries(env)
+		const imageUrl = `/api/app/uploads/${objectName}`
+		const usedIn: string[] = []
+
+		for (const entry of entries) {
+			if (entry.description.includes(imageUrl)) {
+				usedIn.push(`${entry.version} - ${entry.title} (description)`)
+			}
+			if (entry.fullDescription && entry.fullDescription.includes(imageUrl)) {
+				usedIn.push(`${entry.version} - ${entry.title} (full description)`)
+			}
+		}
+
+		if (usedIn.length > 0) {
+			return json(
+				{
+					success: false,
+					error: 'Image is still being used',
+					usedIn,
+				},
+				{ status: 400 }
+			)
+		}
+
 		await env.UPLOADS.delete(objectName)
 
 		return json({ success: true })

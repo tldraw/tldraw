@@ -446,9 +446,19 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ objectName }),
 			})
-			if (!res.ok) {
-				const errorText = await res.text()
-				throw new Error(`Failed to delete image: ${res.status} ${errorText}`)
+
+			const result = await res.json()
+
+			if (!res.ok || !result.success) {
+				if (result.usedIn && result.usedIn.length > 0) {
+					const usageList = result.usedIn.join('\n• ')
+					alert(
+						`Cannot delete image - it's still being used in:\n\n• ${usageList}\n\nRemove the image from these entries before deleting.`
+					)
+				} else {
+					alert(`Failed to delete image: ${result.error || 'Unknown error'}`)
+				}
+				return
 			}
 
 			// Remove from local state
