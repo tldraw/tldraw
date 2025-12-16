@@ -31,20 +31,16 @@ export function TlaWhatsNewFetcher() {
 				const response = await fetch('/api/app/whats-new?limit=1')
 				if (!response.ok) {
 					console.error("Failed to fetch What's New:", response.statusText)
-					if (mounted) {
-						whatsNewLoadedAtom.set(true)
-					}
 					return
 				}
 				const data = await response.json()
-				// API returns array directly, not wrapped in object
 				if (mounted && Array.isArray(data)) {
 					whatsNewEntriesAtom.set(data)
 					setInLocalStorage(STORAGE_KEY, JSON.stringify(data))
-					whatsNewLoadedAtom.set(true)
 				}
 			} catch (error) {
 				console.error("Error fetching What's New:", error)
+			} finally {
 				if (mounted) {
 					whatsNewLoadedAtom.set(true)
 				}

@@ -1,11 +1,16 @@
 import { WhatsNewEntry } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { TlaWhatsNewDialogContent } from '../../tla/components/TlaWhatsNew/TlaWhatsNewDialogContent'
 import { TlaWhatsNewPageEntry } from '../../tla/components/TlaWhatsNew/TlaWhatsNewPageEntry'
 import { parseDateOnly } from '../../tla/utils/dates'
 import styles from '../admin.module.css'
+
+function copyImageMarkdownToClipboard(url: string): void {
+	const markdown = `![description](${url})`
+	navigator.clipboard.writeText(markdown)
+}
 
 function WhatsNewImageGallery({
 	imageList,
@@ -20,11 +25,6 @@ function WhatsNewImageGallery({
 }) {
 	const [viewingImageUrl, setViewingImageUrl] = useState<string | null>(null)
 
-	const copyMarkdownToClipboard = (url: string) => {
-		const markdown = `![description](${url})`
-		navigator.clipboard.writeText(markdown)
-	}
-
 	// Sort by upload date descending
 	const sortedImageList = [...imageList].sort((a, b) => {
 		if (!a.uploaded || !b.uploaded) return 0
@@ -36,21 +36,13 @@ function WhatsNewImageGallery({
 			<h4 className="tla-text_ui__medium">Image gallery</h4>
 			<p className="tla-text_ui__small">All uploaded What&apos;s New images</p>
 
-			{imageList.length === 0 && !loadingImages && (
+			{loadingImages ? (
+				<p className="tla-text_ui__small">Loading images...</p>
+			) : imageList.length === 0 ? (
 				<TlaButton type="button" variant="primary" onClick={onLoadImages}>
 					Load images
 				</TlaButton>
-			)}
-
-			{loadingImages && <p className="tla-text_ui__small">Loading images...</p>}
-
-			{!loadingImages && imageList.length > 0 && sortedImageList.length === 0 && (
-				<p className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
-					No images uploaded yet
-				</p>
-			)}
-
-			{sortedImageList.length > 0 && (
+			) : sortedImageList.length > 0 ? (
 				<div className={styles.imageGalleryContainer}>
 					{sortedImageList.map((image) => (
 						<div key={image.url} className={styles.imageGalleryItem}>
@@ -80,7 +72,7 @@ function WhatsNewImageGallery({
 								<TlaButton
 									type="button"
 									variant="secondary"
-									onClick={() => copyMarkdownToClipboard(image.url)}
+									onClick={() => copyImageMarkdownToClipboard(image.url)}
 									style={{ fontSize: '12px', padding: '6px 12px' }}
 								>
 									Copy markdown
@@ -98,7 +90,7 @@ function WhatsNewImageGallery({
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 
 			{viewingImageUrl && (
 				<div className={styles.imageViewerBackdrop} onClick={() => setViewingImageUrl(null)}>
@@ -161,7 +153,7 @@ function WhatsNewEntryForm({
 		return url
 	}
 
-	const handleFileSelect = async (e: any) => {
+	const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
 
@@ -178,13 +170,6 @@ function WhatsNewEntryForm({
 			setUploading(false)
 			// Reset input to allow uploading the same file again
 			e.target.value = ''
-		}
-	}
-
-	const copyMarkdownToClipboard = () => {
-		if (lastUploadedUrl) {
-			const markdown = `![description](${lastUploadedUrl})`
-			navigator.clipboard.writeText(markdown)
 		}
 	}
 
@@ -317,7 +302,7 @@ function WhatsNewEntryForm({
 								type="button"
 								variant="secondary"
 								disabled={!lastUploadedUrl}
-								onClick={() => copyMarkdownToClipboard()}
+								onClick={() => lastUploadedUrl && copyImageMarkdownToClipboard(lastUploadedUrl)}
 							>
 								Copy markdown
 							</TlaButton>
@@ -389,7 +374,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 		try {
 			const res = await fetch('/api/app/admin/whats-new')
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(`${res.statusText}: ${await res.text()}`)
 				return
 			}
 			const data = await res.json()
@@ -469,7 +454,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 					body: JSON.stringify(entry),
 				})
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					setError(`${res.statusText}: ${await res.text()}`)
 					return
 				}
 				await loadEntries()
@@ -495,7 +480,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 					method: 'DELETE',
 				})
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					setError(`${res.statusText}: ${await res.text()}`)
 					return
 				}
 				await loadEntries()
@@ -519,9 +504,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 			{!editingEntry && (
 				<TlaButton
 					onClick={() => {
-						const today = new Date()
-						// Store as UTC midnight ISO string
-						const dateOnly = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+						const dateOnly = new Date().toISOString().split('T')[0]
 						setEditingEntry({
 							version: getNextMajorVersion(entries),
 							title: '',
