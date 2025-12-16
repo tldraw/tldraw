@@ -43,7 +43,6 @@ export interface TldrawAppSessionState {
 	fairiesEnabled?: boolean
 	fairiesDebugEnabled?: boolean
 	hasManualBeenOpened?: boolean
-	whatsNewSeenVersion?: string
 }
 
 let prev: TldrawAppSessionState = {
@@ -192,30 +191,5 @@ export function useHasManualBeenOpened() {
 export function markManualAsOpened() {
 	updateLocalSessionState(() => {
 		return { hasManualBeenOpened: true }
-	})
-}
-
-/**
- * Current version for What's New dialog.
- * Bump this when adding new content to TlaWhatsNewDialog.tsx
- */
-const WHATS_NEW_CURRENT_VERSION = '1.0'
-
-export function getWhatsNewSeenVersion() {
-	return localSessionState.get().whatsNewSeenVersion
-}
-
-export function hasNewWhatsNewContent() {
-	const seenVersion = getWhatsNewSeenVersion()
-	return !seenVersion || seenVersion !== WHATS_NEW_CURRENT_VERSION
-}
-
-export function useHasNewWhatsNewContent() {
-	return useValue('hasNewWhatsNewContent', hasNewWhatsNewContent, [])
-}
-
-export function markWhatsNewAsSeen() {
-	updateLocalSessionState(() => {
-		return { whatsNewSeenVersion: WHATS_NEW_CURRENT_VERSION }
 	})
 }
