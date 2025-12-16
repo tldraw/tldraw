@@ -5,12 +5,6 @@
       "value": "Exportar"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Aceitar convite"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -751,6 +745,26 @@
       "value": "Solicitação inválida."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Você foi convidado(a) para "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tldraw fadas"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -791,12 +805,6 @@
     {
       "type": 0,
       "value": "Abra o tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Você foi convidado(a) a se juntar às fadas do tldraw!"
     }
   ],
   "7cb5f8b4a5": [
@@ -983,6 +991,12 @@
     {
       "type": 0,
       "value": "Desmarcar"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Você já é membro deste grupo."
     }
   ],
   "94966d9074": [
@@ -1353,6 +1367,12 @@
       "value": "Cookies essenciais"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Aceitar convite"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1531,12 +1551,6 @@
       "value": "URL de arquivo tldraw inválida"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Selecione uma fada à direita para conversar."
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1707,6 +1721,12 @@
     {
       "type": 0,
       "value": "Configurações do usuário"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configurar"
     }
   ],
   "f2569594b2": [

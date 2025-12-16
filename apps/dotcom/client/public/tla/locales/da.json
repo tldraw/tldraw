@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Eksportere"
   },
-  "00b177e080": {
-    "translation": "Accepter invitationen"
-  },
   "03b3e13197": {
     "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
   },
+  "77f0abf1aa": {
+    "translation": "Du er blevet inviteret til at <strong>tldraw feer</strong>"
+  },
   "7827371d1a": {
     "translation": "Denne anonyme tldraw multiplayer-fil er nu skrivebeskyttet. For at fortsætte med at redigere, skal du logge ind og kopiere den til dine filer."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Åbn tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Du er blevet inviteret til at blive en del af tldraw-feer!"
   },
   "7cb5f8b4a5": {
     "translation": "Glemme"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Fravælg"
+  },
+  "9489b2f82a": {
+    "translation": "Du er allerede medlem af denne gruppe"
   },
   "94966d9074": {
     "translation": "Sende"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Vigtige cookies"
   },
+  "c54a624f46": {
+    "translation": "Accepter invitation"
+  },
   "c6155aaecc": {
     "translation": "Gruppenavn"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Ugyldig URL til tldraw-fil"
   },
-  "de290d52ef": {
-    "translation": "Vælg en fe til højre at chatte med"
-  },
   "df6ff49394": {
     "translation": "Feer er en <strong>midlertidig</strong> funktion. Den 1. januar 2026 fjernes alle feer fra applikationen. Måske vender de tilbage igen en dag. Dit køb gælder kun adgang til feer i december 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Brugerindstillinger"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurér"
   },
   "f2569594b2": {
     "translation": "Vi bruger disse cookies til at gemme dine filer og indstillinger."

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exporteren"
   },
-  "00b177e080": {
-    "translation": "Uitnodiging accepteren"
-  },
   "03b3e13197": {
     "translation": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het gebruikersmenu."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
   },
+  "77f0abf1aa": {
+    "translation": "Je bent uitgenodigd om <strong>tldraw feeën</strong> te tekenen"
+  },
   "7827371d1a": {
     "translation": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je het naar je bestanden."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Open tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Je bent uitgenodigd om je aan te sluiten bij tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Vergeten"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Deselect"
+  },
+  "9489b2f82a": {
+    "translation": "Je bent al lid van deze groep"
   },
   "94966d9074": {
     "translation": "Versturen"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Essentiële cookies"
   },
+  "c54a624f46": {
+    "translation": "Uitnodiging accepteren"
+  },
   "c6155aaecc": {
     "translation": "Groepsnaam"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Ongeldige tldraw-bestands-URL"
   },
-  "de290d52ef": {
-    "translation": "Selecteer een fee aan de rechterkant om mee te chatten"
-  },
   "df6ff49394": {
     "translation": "Feeën zijn een <strong>tijdelijke</strong> functie. Op 1 januari 2026 worden alle feeën uit de app verwijderd. Misschien komen ze ooit nog eens terug. Uw aankoop is alleen voor toegang tot feeën in december 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Gebruikersinstellingen"
+  },
+  "f1206f9fad": {
+    "translation": "Configure"
   },
   "f2569594b2": {
     "translation": "Wij gebruiken deze cookies om uw bestanden en instellingen op te slaan."

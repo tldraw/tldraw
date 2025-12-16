@@ -5,12 +5,6 @@
       "value": "Eksportuj"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Zaakceptuj zaproszenie"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -751,6 +745,22 @@
       "value": "Nieprawidłowe żądanie."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Zostałeś zaproszony do "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "rysowania wróżek"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -791,12 +801,6 @@
     {
       "type": 0,
       "value": "Otwórz tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Zostałeś zaproszony do dołączenia do wróżek tldraw!"
     }
   ],
   "7cb5f8b4a5": [
@@ -983,6 +987,12 @@
     {
       "type": 0,
       "value": "Odznacz"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Jesteś już członkiem tej grupy"
     }
   ],
   "94966d9074": [
@@ -1361,6 +1371,12 @@
       "value": "Niezbędne pliki cookie"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Zaakceptuj zaproszenie"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1539,12 +1555,6 @@
       "value": "Nieprawidłowy adres URL pliku tldraw"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Wybierz wróżkę po prawej stronie, z którą chcesz porozmawiać"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1715,6 +1725,12 @@
     {
       "type": 0,
       "value": "Ustawienia użytkownika"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Konfiguruj"
     }
   ],
   "f2569594b2": [

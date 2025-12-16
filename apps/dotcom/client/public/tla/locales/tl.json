@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "I-export"
   },
-  "00b177e080": {
-    "translation": "Tanggapin ang imbitasyon"
-  },
   "03b3e13197": {
     "translation": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Di-wastong kahilingan."
   },
+  "77f0abf1aa": {
+    "translation": "Inimbitahan ka sa <strong>tldraw fairies</strong>"
+  },
   "7827371d1a": {
     "translation": "Read-only na ngayon ang hindi kilalang tldraw multiplayer file na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Buksan ang tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Inimbitahan ka na sumali sa tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Kalimutan"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Alisin sa pagkakapili"
+  },
+  "9489b2f82a": {
+    "translation": "Miyembro ka na ng grupong ito"
   },
   "94966d9074": {
     "translation": "Ipadala"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Mahahalagang cookies"
   },
+  "c54a624f46": {
+    "translation": "Tanggapin ang imbitasyon"
+  },
   "c6155aaecc": {
     "translation": "Pangalan ng grupo"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Di-wastong tldraw file URL"
   },
-  "de290d52ef": {
-    "translation": "Pumili ng isang diwata sa kanan na makaka-chat"
-  },
   "df6ff49394": {
     "translation": "Ang mga engkanto ay isang <strong>pansamantalang</strong> na tampok. Sa ika-1 ng Enero, 2026, ang lahat ng mga engkanto ay aalisin sa aplikasyon. Baka balang araw babalik din sila. Ang iyong pagbili ay para sa pag-access sa mga engkanto para sa Disyembre 2025 lamang."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Mga setting ng user"
+  },
+  "f1206f9fad": {
+    "translation": "I-configure"
   },
   "f2569594b2": {
     "translation": "Ginagamit namin ang cookies na ito para i-save ang iyong mga file at setting."
