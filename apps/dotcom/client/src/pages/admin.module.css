@@ -720,3 +720,81 @@
 .whatsNewPreviewContent :global(a:hover) {
 	text-decoration: underline;
 }
+
+/* Image Gallery */
+.imageGalleryContainer {
+	margin-top: 12px;
+	max-height: 600px;
+	overflow-y: auto;
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+	background-color: var(--tla-color-contrast);
+}
+
+.imageGalleryItem {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px;
+	border-bottom: 1px solid var(--tla-color-border);
+}
+
+.imageGalleryItem:last-child {
+	border-bottom: none;
+}
+
+.imageGalleryThumbnailWrapper {
+	position: relative;
+	flex-shrink: 0;
+	overflow: visible;
+}
+
+.imageGalleryThumbnail {
+	width: 80px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.imageViewerBackdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	cursor: pointer;
+}
+
+.imageViewerImage {
+	max-width: 90vw;
+	max-height: 90vh;
+	object-fit: contain;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+	cursor: default;
+}
+
+.imageGalleryInfo {
+	flex: 1;
+	min-width: 0;
+	font-size: 12px;
+	color: var(--tla-color-text-3);
+}
+
+.imageGalleryName {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.imageGalleryActions {
+	display: flex;
+	gap: 8px;
+	flex-shrink: 0;
+}

@@ -12,100 +12,75 @@ function WhatsNewImageGallery({
 	onLoadImages,
 	onDeleteImage,
 }: {
-	imageList: Array<{ name: string; objectName: string; url: string }>
+	imageList: Array<{ name: string; objectName: string; url: string; uploaded?: Date }>
 	loadingImages: boolean
 	onLoadImages: () => void
 	onDeleteImage: (objectName: string) => void
 }) {
-	const [showImageList, setShowImageList] = useState(false)
-
-	const handleToggleImageList = () => {
-		if (!showImageList && imageList.length === 0) {
-			onLoadImages()
-		}
-		setShowImageList(!showImageList)
-	}
+	const [viewingImageUrl, setViewingImageUrl] = useState<string | null>(null)
 
 	const copyMarkdownToClipboard = (url: string) => {
 		const markdown = `![description](${url})`
 		navigator.clipboard.writeText(markdown)
 	}
 
+	// Sort by upload date descending
+	const sortedImageList = [...imageList].sort((a, b) => {
+		if (!a.uploaded || !b.uploaded) return 0
+		return new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime()
+	})
+
 	return (
 		<div className={styles.fileOperation}>
 			<h4 className="tla-text_ui__medium">Image gallery</h4>
 			<p className="tla-text_ui__small">All uploaded What&apos;s New images</p>
 
-			<button
-				type="button"
-				onClick={handleToggleImageList}
-				style={{
-					background: 'none',
-					border: 'none',
-					padding: '8px 0',
-					color: 'var(--tla-color-text-2)',
-					fontSize: '12px',
-					cursor: 'pointer',
-					display: 'flex',
-					alignItems: 'center',
-					gap: '6px',
-					fontWeight: 500,
-				}}
-			>
-				<span
-					style={{
-						transform: showImageList ? 'rotate(90deg)' : 'rotate(0deg)',
-						transition: 'transform 0.2s',
-					}}
-				>
-					▸
-				</span>
-				{loadingImages
-					? 'Loading images...'
-					: showImageList
-						? `Hide images (${imageList.length})`
-						: 'Show images'}
-			</button>
+			{imageList.length === 0 && !loadingImages && (
+				<TlaButton type="button" variant="primary" onClick={onLoadImages}>
+					Load images
+				</TlaButton>
+			)}
 
-			{showImageList && imageList.length > 0 && (
-				<div
-					style={{
-						marginTop: '12px',
-						display: 'grid',
-						gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-						gap: '16px',
-						maxHeight: '600px',
-						overflowY: 'auto',
-						padding: '16px',
-						border: '1px solid var(--tla-color-border)',
-						borderRadius: 'var(--tla-radius-2)',
-						backgroundColor: 'var(--tla-color-contrast)',
-					}}
-				>
-					{imageList.map((image) => (
-						<div
-							key={image.url}
-							style={{
-								display: 'flex',
-								flexDirection: 'column',
-								gap: '8px',
-							}}
-						>
-							<img
-								src={image.url}
-								alt={image.name}
-								style={{
-									width: '100%',
-									height: 'auto',
-									borderRadius: '4px',
-								}}
-							/>
-							<div style={{ display: 'flex', gap: '4px' }}>
+			{loadingImages && <p className="tla-text_ui__small">Loading images...</p>}
+
+			{!loadingImages && imageList.length > 0 && sortedImageList.length === 0 && (
+				<p className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
+					No images uploaded yet
+				</p>
+			)}
+
+			{sortedImageList.length > 0 && (
+				<div className={styles.imageGalleryContainer}>
+					{sortedImageList.map((image) => (
+						<div key={image.url} className={styles.imageGalleryItem}>
+							<div className={styles.imageGalleryThumbnailWrapper}>
+								<img
+									src={image.url}
+									alt={image.name}
+									className={styles.imageGalleryThumbnail}
+									onClick={() => setViewingImageUrl(image.url)}
+								/>
+							</div>
+							<div className={styles.imageGalleryInfo}>
+								<div className={styles.imageGalleryName}>{image.name}</div>
+								{image.uploaded && (
+									<div>
+										{new Date(image.uploaded).toLocaleDateString('en-US', {
+											month: 'short',
+											day: 'numeric',
+											year: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit',
+										})}
+									</div>
+								)}
+							</div>
+							<div className={styles.imageGalleryActions}>
 								<TlaButton
 									type="button"
 									variant="secondary"
 									onClick={() => copyMarkdownToClipboard(image.url)}
-									style={{ fontSize: '11px', padding: '6px 8px', flex: 1 }}
+									style={{ fontSize: '12px', padding: '6px 12px' }}
 								>
 									Copy markdown
 								</TlaButton>
@@ -114,7 +89,7 @@ function WhatsNewImageGallery({
 									variant="warning"
 									onClick={() => onDeleteImage(image.objectName)}
 									className={styles.deleteButton}
-									style={{ fontSize: '11px', padding: '6px 8px' }}
+									style={{ fontSize: '12px', padding: '6px 12px' }}
 								>
 									Delete
 								</TlaButton>
@@ -124,10 +99,15 @@ function WhatsNewImageGallery({
 				</div>
 			)}
 
-			{showImageList && imageList.length === 0 && !loadingImages && (
-				<p className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
-					No images uploaded yet
-				</p>
+			{viewingImageUrl && (
+				<div className={styles.imageViewerBackdrop} onClick={() => setViewingImageUrl(null)}>
+					<img
+						src={viewingImageUrl}
+						alt="Full size preview"
+						className={styles.imageViewerImage}
+						onClick={(e) => e.stopPropagation()}
+					/>
+				</div>
 			)}
 		</div>
 	)
@@ -399,7 +379,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 	const [editingEntry, setEditingEntry] = useState<WhatsNewEntryDraft | null>(null)
 	const [imageList, setImageList] = useState<
-		Array<{ name: string; objectName: string; url: string }>
+		Array<{ name: string; objectName: string; url: string; uploaded?: Date }>
 	>([])
 	const [loadingImages, setLoadingImages] = useState(false)
 
