@@ -1,4 +1,4 @@
-import { preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { ExtractShapeByProps, preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -31,7 +31,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 
 	const handleComplete = () => {
 		trackEvent('set-alt-text', { source })
-		const shape = editor.getShape<TLShape & { props: { altText: string } }>(shapeId)
+		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
 		if (!shape) return
 		editor.updateShapes([
 			{

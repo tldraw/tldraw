@@ -8,9 +8,6 @@
   "043973ec1f": {
     "translation": "Har du fortfarande problem? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "Öppna tldraw."
-  },
   "06b9281e39": {
     "translation": "Auto"
   },
@@ -23,8 +20,11 @@
   "08bd40c754": {
     "translation": "Konto"
   },
-  "08d2d725a9": {
-    "translation": "Skapa ett gratis konto för att spara ditt arbete, samarbeta i realtid och mer."
+  "0a91f7fa87": {
+    "translation": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+  },
+  "0ab1ef22a3": {
+    "translation": "Prata med gruppen…"
   },
   "0b27918290": {
     "translation": "Fil"
@@ -32,14 +32,17 @@
   "0b9a4cde72": {
     "translation": "Arkivmenyn"
   },
-  "0beb3ca97b": {
-    "translation": "tldraw är en gratis och omedelbar virtuell whiteboardtavla."
+  "0befa10111": {
+    "translation": "Älvor"
   },
   "0d1f2bb523": {
     "translation": "Skicka feedback"
   },
   "110a4b01be": {
     "translation": "Publicera"
+  },
+  "11a755d598": {
+    "translation": "Stopp"
   },
   "129b9e34ea": {
     "translation": "Lämna gruppen"
@@ -68,11 +71,11 @@
   "1dd1c5fb7f": {
     "translation": "Idag"
   },
-  "20976e7bec": {
-    "translation": "Rummet är fullt"
+  "23f879f41a": {
+    "translation": "Din veckogräns för användning av älvor har nåtts. Den återställs i början av nästa vecka."
   },
-  "21bfb2dc2e": {
-    "translation": "Det här rummet närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
+  "243924bfd5": {
+    "translation": "Sova"
   },
   "2445e5e347": {
     "translation": "Skapa grupp"
@@ -80,14 +83,23 @@
   "250ddea65c": {
     "translation": "Om tldraw"
   },
+  "269097080b": {
+    "translation": "Dina älvor väntar"
+  },
+  "275173253d": {
+    "translation": "Kalla fram alla"
+  },
+  "284d5cd0dd": {
+    "translation": "Modell:"
+  },
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
   },
   "2c3ef76333": {
     "translation": "Mina filer"
   },
-  "2deec2cb74": {
-    "translation": "Det här rummet har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+  "30cd34258a": {
+    "translation": "En fladdrande mängd <b>älvor</b> har kommit till tldraw under december månad. För att undersöka saken närmare, hitta fen och klicka på den."
   },
   "31246941ad": {
     "translation": "Du måste logga in för att se den här filen."
@@ -95,14 +107,38 @@
   "31418ce4ad": {
     "translation": "i18n: Markering saknas"
   },
+  "3209f407ed": {
+    "translation": "tre älvor"
+  },
   "32210b37e4": {
     "translation": "Lägg till länk"
+  },
+  "324a0f3182": {
+    "translation": "Tillbaka till tldraw"
   },
   "335defdafe": {
     "translation": "Försök att uppdatera sidan."
   },
+  "34140869c6": {
+    "translation": "Ett fladdrande av älvor kommer till tldraw under december månad. Vänligen återkom den 1 december."
+  },
   "344a7f427f": {
     "translation": "Redigeringsverktyg"
+  },
+  "34abfe7a0d": {
+    "translation": "Sov alla"
+  },
+  "34e34c43ec": {
+    "translation": "Hantera"
+  },
+  "3596c1b1f7": {
+    "translation": "Sluta följa"
+  },
+  "3903aab323": {
+    "translation": "Följa"
+  },
+  "3b6c2b4caa": {
+    "translation": "Användarvillkor"
   },
   "3bc7d6ea2f": {
     "translation": "Fortsätt med e-post"
@@ -122,8 +158,17 @@
   "44db318ee5": {
     "translation": "Få hjälp med Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Féer</strong> har kommit för att dra i december månad."
+  },
   "46137245cd": {
     "translation": "Tack för att du hjälper oss att förbättra tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Inga älvor valda"
+  },
+  "477df802ca": {
+    "translation": "För att fortsätta redigera, kopiera filen till dina filer."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -140,6 +185,9 @@
   "49ee308734": {
     "translation": "Namn"
   },
+  "4c41e0bd95": {
+    "translation": "Markera alla"
+  },
   "4d0d3ddec9": {
     "translation": "Den här webbplatsen använder cookies för att appen ska fungera och för att samla in analyser."
   },
@@ -148,6 +196,9 @@
   },
   "4da5988a2e": {
     "translation": "Radera grupp…"
+  },
+  "4dab36ac83": {
+    "translation": "Fler alternativ"
   },
   "4e6fbf032b": {
     "translation": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
@@ -158,11 +209,11 @@
   "517bb809d9": {
     "translation": "Sidmenyn"
   },
+  "542248f0ba": {
+    "translation": "Den här filen är nu skrivskyddad"
+  },
   "54286b1d01": {
     "translation": "Medarbetargräns har nåtts"
-  },
-  "54d240fa41": {
-    "translation": "Vänligen sakta ner."
   },
   "554a05155c": {
     "translation": "Har du fortfarande problem? <a>Rapportera ett problem</a>"
@@ -176,17 +227,14 @@
   "56c34c6410": {
     "translation": "Sekretesspolicy"
   },
+  "5a2ccdc00a": {
+    "translation": "Det gick inte att lösa in inbjudningskoden"
+  },
   "5a86b22fa0": {
     "translation": "Dra filer hit, <create>skapa en fil</create> eller <invite>kopiera inbjudningslänken</invite> för att komma igång."
   },
   "5a95a425f7": {
     "translation": "Dela"
-  },
-  "5bb6cf3b53": {
-    "translation": "Rummet blir stort"
-  },
-  "5bcc12ace8": {
-    "translation": "Det här rummet är nu skrivskyddat"
   },
   "5bec508475": {
     "translation": "Gammal webbläsare upptäckt. Uppdatera din webbläsare för att använda den här appen."
@@ -197,6 +245,9 @@
   "5d26ae7550": {
     "translation": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
   },
+  "5ea8bb44be": {
+    "translation": "Du har blivit inbjuden att gå med i gruppen:"
+  },
   "5f3c333678": {
     "translation": "Feedback har skickats"
   },
@@ -206,11 +257,17 @@
   "61057a0c84": {
     "translation": "Senare"
   },
+  "61daf2e53d": {
+    "translation": "Prata med {name}…"
+  },
   "625fd29749": {
     "translation": "Äldre"
   },
   "639bae9ac6": {
     "translation": "du"
+  },
+  "6602bbeb29": {
+    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Något gick fel"
@@ -218,11 +275,20 @@
   "6637a98151": {
     "translation": "En ny version av tldraw är tillgänglig. Ladda om sidan för att fortsätta."
   },
-  "68257bb646": {
-    "translation": "Du har blivit inbjuden till gruppen <br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "Ange din e-postadress"
+  },
+  "688761c83e": {
+    "translation": "Vakna"
+  },
+  "68d390535e": {
+    "translation": "Ange ditt meddelande"
+  },
+  "6910bbdc82": {
+    "translation": "Féens namn"
+  },
+  "695c3e899d": {
+    "translation": "Felsök älvor"
   },
   "6a26f54883": {
     "translation": "Hjälp"
@@ -263,8 +329,17 @@
   "764671e008": {
     "translation": "Chatta med oss ​​på Discord"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw är en gratis whiteboardtavla online. Skapa ett konto för att spara dina filer och arbeta med dina vänner."
+  },
   "777f9e90cf": {
     "translation": "Ogiltig begäran."
+  },
+  "77f0abf1aa": {
+    "translation": "Du har blivit inbjuden till att <strong>draw älvor</strong>"
+  },
+  "7827371d1a": {
+    "translation": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
   },
   "78e9815992": {
     "translation": "Förstod"
@@ -272,11 +347,17 @@
   "797799f35e": {
     "translation": "Skicka ett problem på GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "En älva är en liten kille som kan arbeta med dig på duken. Älvor kan arbeta ensamma eller i team. Det finns ingen gräns för vad en älva kan göra. Ingen vet var de kommer ifrån."
+  },
   "7b1329f5ca": {
     "translation": "Användarmanual"
   },
   "7be10fc592": {
     "translation": "Återställ version"
+  },
+  "7c0747a5df": {
+    "translation": "Öppna tldraw"
   },
   "7cb5f8b4a5": {
     "translation": "Glöm"
@@ -296,6 +377,12 @@
   "815e116a2e": {
     "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta! Fyll i det här formuläret så återkommer vi via e-post om det behövs. Du kan också <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
   },
+  "81aa2078d1": {
+    "translation": "Rensa alla"
+  },
+  "83218ac34c": {
+    "translation": "Välkomna"
+  },
   "85a082de1b": {
     "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
   },
@@ -305,17 +392,29 @@
   "86c66437fd": {
     "translation": "Byt namn på filen"
   },
+  "8726ef8909": {
+    "translation": "Hård återställning"
+  },
+  "88e83b88c5": {
+    "translation": "Köp älvpaket"
+  },
   "8ad4303b83": {
     "translation": "Nej tack"
   },
-  "8b1946f965": {
-    "translation": "För att fortsätta redigera, kopiera rummet till dina filer."
+  "8be569f100": {
+    "translation": "engångsbetalning"
   },
   "8c2d3d730c": {
     "translation": "Kontrollera din e-post för en verifieringskod."
   },
+  "8cf04a9734": {
+    "translation": "Hem"
+  },
   "8eb2c00e96": {
     "translation": "Delas med dig"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Om"
   },
   "8ff3d0a705": {
     "translation": "Begränsad hastighet"
@@ -331,6 +430,15 @@
   },
   "930390d222": {
     "translation": "Kopierad inbjudningslänk"
+  },
+  "94186070ef": {
+    "translation": "Välja bort"
+  },
+  "9489b2f82a": {
+    "translation": "Du är redan medlem i den här gruppen"
+  },
+  "94966d9074": {
+    "translation": "Skicka"
   },
   "95aacd4d4a": {
     "translation": "Logga in med Google"
@@ -350,14 +458,14 @@
   "9914a0ce04": {
     "translation": "Ljus"
   },
+  "9953e9946b": {
+    "translation": "Felsökningsvy"
+  },
   "9b33f5c63c": {
     "translation": "Fick du ingen kod? <resend>Skicka igen</resend>."
   },
   "9bef626805": {
     "translation": "Ta bort fil"
-  },
-  "9c258b8f88": {
-    "translation": "Detta anonyma tldraw-multiplayerrum är nu skrivskyddat. För att fortsätta redigera, vänligen logga in och kopiera det till dina filer."
   },
   "9ceb927baa": {
     "translation": "Publicera den här filen"
@@ -383,11 +491,17 @@
   "a239905023": {
     "translation": "Exportera bild"
   },
+  "a286d9991c": {
+    "translation": "Ansluta sig till"
+  },
   "a3debabee7": {
     "translation": "Cookiepolicy"
   },
   "a4d3b161ce": {
     "translation": "Överlämna"
+  },
+  "a603905470": {
+    "translation": "Felsök"
   },
   "a6cc403d56": {
     "translation": "Alla som har länken"
@@ -395,11 +509,17 @@
   "a768caa988": {
     "translation": "Analytics"
   },
+  "a8873770ab": {
+    "translation": "Filen blir stor"
+  },
+  "a8de4c27a8": {
+    "translation": "Veckogränsen för feer nådd"
+  },
+  "a917baaf14": {
+    "translation": "Ny chatt"
+  },
   "a9ded1e5ce": {
     "translation": "Bakgrund"
-  },
-  "aa916767cf": {
-    "translation": "Logga in för att acceptera inbjudan"
   },
   "ab0df9ba36": {
     "translation": "Filgränsen har nåtts"
@@ -410,6 +530,12 @@
   },
   "b028909917": {
     "translation": "Gästanvändare"
+  },
+  "b2c3c2e30c": {
+    "translation": "Filen är full"
+  },
+  "b34a671e2c": {
+    "translation": "Loggsvarstid"
   },
   "b357b524e7": {
     "translation": "E-postadress"
@@ -438,6 +564,9 @@
   "bc88b0e89e": {
     "translation": "Delas av {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zooma till älva"
+  },
   "c2276c9127": {
     "translation": "Läs mer om delning."
   },
@@ -447,11 +576,23 @@
   "c303bd1095": {
     "translation": "Det gick inte att publicera filen."
   },
+  "c3bf447eab": {
+    "translation": "Öppna"
+  },
+  "c3eb5c3b90": {
+    "translation": "Jag förstår"
+  },
   "c4b39a1cc3": {
     "translation": "Viktiga cookies"
   },
+  "c54a624f46": {
+    "translation": "Acceptera inbjudan"
+  },
   "c6155aaecc": {
     "translation": "Gruppnamn"
+  },
+  "c64518704c": {
+    "translation": "Användande"
   },
   "c655b27b1e": {
     "translation": "i18n: Lång sträng"
@@ -474,11 +615,20 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Den här filen närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
+  },
+  "ce1424d44b": {
+    "translation": "Du har redan tillgång till älvor!"
+  },
   "cea291e45e": {
     "translation": "Läs mer om publicering."
   },
   "d3d2e61733": {
     "translation": "Stäng"
+  },
+  "d46632fe1f": {
+    "translation": "För många förfrågningar. Var vänlig och sakta ner."
   },
   "d4bbf74f3e": {
     "translation": "Aktivera sidofältet"
@@ -498,17 +648,29 @@
   "d9100f3e10": {
     "translation": "Gå hit för att se innehållet"
   },
+  "d9bfb9789a": {
+    "translation": "Aktivera älvor"
+  },
   "d9e35d0f55": {
     "translation": "Du har nått det maximala antalet grupper. Du måste ta bort gamla grupper innan du skapar nya."
   },
   "dbbebf3c03": {
     "translation": "Endast inbjudan"
   },
+  "dc30bc0c79": {
+    "translation": "Rensa"
+  },
   "dcdaa754fe": {
     "translation": "Ogiltig URL för tldraw-fil"
   },
+  "df6ff49394": {
+    "translation": "Älvor är en <strong>tillfällig</strong> funktion. Den 1 januari 2026 kommer alla älvor att tas bort från appen. De kanske återvänder någon dag. Ditt köp gäller endast åtkomst till älvor i december 2025."
+  },
   "dfdb78a4e4": {
     "translation": "Appfelsökningsflaggor"
+  },
+  "e062622261": {
+    "translation": "Välja"
   },
   "e0c88179b3": {
     "translation": "Bjud in medlemmar"
@@ -524,6 +686,9 @@
   },
   "e404559826": {
     "translation": "Användarvillkor"
+  },
+  "e43ec38a93": {
+    "translation": "Gå till"
   },
   "e81c4e4f2b": {
     "translation": "eller"
@@ -552,11 +717,17 @@
   "ede55d955f": {
     "translation": "Läs vår <a>cookiepolicy</a> för att lära dig mer."
   },
+  "eee6f05922": {
+    "translation": "Upplösa"
+  },
   "ef53538ae4": {
     "translation": "Medlemmar"
   },
   "ef7de3f485": {
     "translation": "vald"
+  },
+  "efde983742": {
+    "translation": "Kalla"
   },
   "f09b16bc5f": {
     "translation": "Vi använder cookies för att hålla dig inloggad, för att synkronisera dina filer och för att samla in analyser som hjälper oss att förbättra tldraw."
@@ -564,14 +735,14 @@
   "f0e8bff6f9": {
     "translation": "Användarinställningar"
   },
+  "f1206f9fad": {
+    "translation": "Konfigurera"
+  },
   "f2569594b2": {
     "translation": "Vi använder dessa cookies för att spara dina filer och inställningar."
   },
   "f2a6c498fb": {
     "translation": "Radera"
-  },
-  "f43fb62093": {
-    "translation": "Tillbaka till tldraw."
   },
   "f4f70727dc": {
     "translation": "Inställningar"

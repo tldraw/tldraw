@@ -19,7 +19,6 @@ import {
 	TLTextShapeProps,
 	TLUrlExternalAsset,
 	TLVideoAsset,
-	TLVideoShape,
 	Vec,
 	VecLike,
 	assert,
@@ -206,7 +205,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			newY = result.y
 		}
 
-		editor.updateShapes<TLImageShape>([
+		editor.updateShapes([
 			{
 				id: imageShape.id,
 				type: imageShape.type,
@@ -221,7 +220,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			},
 		])
 	} else if (shape.type === 'video') {
-		editor.updateShapes<TLVideoShape>([
+		editor.updateShapes([
 			{
 				id: shape.id,
 				type: shape.type,
@@ -308,8 +307,8 @@ export async function defaultHandleExternalSvgTextContent(
 ) {
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
@@ -346,8 +345,8 @@ export function defaultHandleExternalEmbedContent<T>(
 ) {
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const { width, height } = embed as { width: number; height: number }
@@ -389,8 +388,8 @@ export async function defaultHandleExternalFileContent(
 
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const pagePoint = new Vec(position.x, position.y)
@@ -447,8 +446,8 @@ export async function defaultHandleExternalTextContent(
 ) {
 	const p =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
@@ -531,7 +530,7 @@ export async function defaultHandleExternalTextContent(
 	const shapeId = createShapeId()
 
 	// Allow this to trigger the max shapes reached alert
-	editor.createShapes<TLTextShape>([
+	editor.createShapes([
 		{
 			id: shapeId,
 			type: 'text',
@@ -569,8 +568,8 @@ export async function defaultHandleExternalUrlContent(
 
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	// Use the new function to create the bookmark

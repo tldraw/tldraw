@@ -41,7 +41,6 @@ const messages = defineMessages({
 	copyLink: { defaultMessage: 'Copy link' },
 	delete: { defaultMessage: 'Delete' },
 	duplicate: { defaultMessage: 'Duplicate' },
-	file: { defaultMessage: 'File' },
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
@@ -75,20 +74,15 @@ export function TlaFileMenu({
 	trigger: ReactNode
 }) {
 	const id = useId()
+	const fileItemsWhenNoChildren = (
+		<FileItems source={source} fileId={fileId} onRenameAction={onRenameAction} groupId={groupId} />
+	)
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-					<FileItemsWrapper showAsSubMenu={!!children}>
-						<FileItems
-							source={source}
-							fileId={fileId}
-							onRenameAction={onRenameAction}
-							groupId={groupId}
-						/>
-					</FileItemsWrapper>
-					{children}
+					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
@@ -213,12 +207,15 @@ export function FileItems({
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
-				<TldrawUiMenuItem
-					label={duplicateMsg}
-					id="duplicate"
-					readonlyOk
-					onSelect={handleDuplicateClick}
-				/>
+				{/* todo: requires a non-trivial refactor, quick fix is to just remove this menu item, it's available elsewhere */}
+				{source !== 'file-header' && (
+					<TldrawUiMenuItem
+						label={duplicateMsg}
+						id="duplicate"
+						readonlyOk
+						onSelect={handleDuplicateClick}
+					/>
+				)}
 				{!source.startsWith('sidebar') ||
 					(isActive && (
 						// TODO: make a /download/:fileId endpoint so we can download any file
@@ -325,24 +322,4 @@ export function FileItems({
 			</TldrawUiMenuGroup>
 		</Fragment>
 	)
-}
-
-export function FileItemsWrapper({
-	showAsSubMenu,
-	children,
-}: {
-	showAsSubMenu: boolean
-	children: ReactNode
-}) {
-	const fileSubmenuMsg = useMsg(messages.file)
-
-	if (showAsSubMenu) {
-		return (
-			<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
-				{children}
-			</TldrawUiMenuSubmenu>
-		)
-	}
-
-	return children
 }

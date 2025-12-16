@@ -10,7 +10,6 @@ import {
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TLArrowBinding,
 	TLArrowShape,
 	TLContent,
 	TLEditorOptions,
@@ -260,7 +259,7 @@ export class TestEditor extends Editor {
 
 	paste(point?: VecLike) {
 		if (this.clipboard !== null) {
-			const p = this.inputs.shiftKey ? this.inputs.currentPagePoint : point
+			const p = this.inputs.getShiftKey() ? this.inputs.getCurrentPagePoint() : point
 
 			this.markHistoryStoppingPoint('pasting')
 			this.putContentOntoCurrentPage(this.clipboard, {
@@ -350,8 +349,8 @@ export class TestEditor extends Editor {
 	}
 
 	protected getPointerEventInfo(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: Partial<TLPointerEventInfo> | TLShapeId,
 		modifiers?: EventModifiers
 	) {
@@ -364,11 +363,11 @@ export class TestEditor extends Editor {
 			name: 'pointer_down',
 			type: 'pointer',
 			pointerId: 1,
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
-			accelKey: isAccelKey({ ...this.inputs, ...modifiers }),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: isAccelKey({ ...this.inputs.toJson(), ...modifiers }),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,
@@ -427,8 +426,8 @@ export class TestEditor extends Editor {
 	}
 
 	pointerMove(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -440,8 +439,8 @@ export class TestEditor extends Editor {
 	}
 
 	pointerDown(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -453,8 +452,8 @@ export class TestEditor extends Editor {
 	}
 
 	pointerUp(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -466,8 +465,8 @@ export class TestEditor extends Editor {
 	}
 
 	click(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -477,8 +476,8 @@ export class TestEditor extends Editor {
 	}
 
 	rightClick(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -496,8 +495,8 @@ export class TestEditor extends Editor {
 	}
 
 	doubleClick(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -537,10 +536,10 @@ export class TestEditor extends Editor {
 	keyUp(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({
 			...this.getKeyboardEventInfo(key, 'key_up', {
-				shiftKey: this.inputs.shiftKey && key !== 'Shift',
-				ctrlKey: this.inputs.ctrlKey && !(key === 'Control' || key === 'Meta'),
-				altKey: this.inputs.altKey && key !== 'Alt',
-				metaKey: this.inputs.metaKey && key !== 'Meta',
+				shiftKey: this.inputs.getShiftKey() && key !== 'Shift',
+				ctrlKey: this.inputs.getCtrlKey() && !(key === 'Control' || key === 'Meta'),
+				altKey: this.inputs.getAltKey() && key !== 'Alt',
+				metaKey: this.inputs.getMetaKey() && key !== 'Meta',
 				...options,
 			}),
 		}).forceTick()
@@ -548,14 +547,15 @@ export class TestEditor extends Editor {
 	}
 
 	wheel(dx: number, dy: number, options = {} as Partial<Omit<TLWheelEventInfo, 'delta'>>) {
+		const currentScreenPoint = this.inputs.getCurrentScreenPoint()
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
-			point: new Vec(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			point: new Vec(currentScreenPoint.x, currentScreenPoint.y),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			delta: { x: dx, y: dy },
@@ -574,8 +574,8 @@ export class TestEditor extends Editor {
 	}
 
 	pinchStart(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		z: number,
 		dx: number,
 		dy: number,
@@ -585,10 +585,10 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_start',
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
@@ -598,8 +598,8 @@ export class TestEditor extends Editor {
 	}
 
 	pinchTo(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		z: number,
 		dx: number,
 		dy: number,
@@ -609,10 +609,10 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_start',
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
@@ -622,8 +622,8 @@ export class TestEditor extends Editor {
 	}
 
 	pinchEnd(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		z: number,
 		dx: number,
 		dy: number,
@@ -633,10 +633,10 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_end',
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
@@ -790,9 +790,7 @@ export class TestEditor extends Editor {
 	}
 
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
+		const ids = new Set(this.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
 		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 }

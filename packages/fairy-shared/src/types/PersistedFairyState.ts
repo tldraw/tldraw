@@ -2,8 +2,17 @@ import { VecModel } from '@tldraw/tlschema'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { FairyEntity } from './FairyEntity'
 import { FairyProject } from './FairyProject'
-import { FairyTask } from './FairyTask'
-import { TodoItem } from './TodoItem'
+import { FairyTask, FairyTodoItem } from './FairyTask'
+
+/**
+ * Serialized representation of a wait condition (without the matcher function).
+ * Used for persistence.
+ */
+export interface SerializedWaitCondition {
+	eventType: string
+	id: string
+	metadata?: Record<string, any>
+}
 
 /**
  * The persisted state for a single fairy agent.
@@ -12,7 +21,8 @@ export interface PersistedFairyAgentState {
 	fairyEntity: FairyEntity
 	chatHistory: ChatHistoryItem[]
 	chatOrigin: VecModel
-	todoList: TodoItem[]
+	personalTodoList: FairyTodoItem[]
+	waitingFor?: SerializedWaitCondition[]
 }
 
 /**
@@ -21,7 +31,6 @@ export interface PersistedFairyAgentState {
  */
 export interface PersistedFairyState {
 	agents: Record<string, PersistedFairyAgentState>
-	sharedTodoList: FairyTask[]
-	showCanvasTodos: boolean
+	fairyTaskList: FairyTask[]
 	projects: FairyProject[]
 }

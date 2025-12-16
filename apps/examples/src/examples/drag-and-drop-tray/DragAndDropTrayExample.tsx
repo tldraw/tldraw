@@ -102,10 +102,9 @@ const DragAndDropTray = () => {
 					editor.markHistoryStoppingPoint('create shape from tray')
 
 					editor.createShape({
-						type: current.item.shapeType,
+						...current.item.shapeBase,
 						x: pagePoint.x - 50, // center on cursor at 100x100
 						y: pagePoint.y - 50,
-						props: current.item.shapeProps,
 					})
 
 					dragState.set({

@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Otevřete tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -51,10 +45,16 @@
       "value": "Účet"
     }
   ],
-  "08d2d725a9": [
+  "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Vytvořte si bezplatný účet pro ukládání své práce, spolupráci v reálném čase a další."
+      "value": "Tento soubor dosáhl limitu velikosti a změny se již nemusí uložit. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Promluvte si se skupinou…"
     }
   ],
   "0b27918290": [
@@ -69,10 +69,10 @@
       "value": "Nabídka Soubor"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw je bezplatná a okamžitá virtuální bílá tabule."
+      "value": "Víly"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +85,12 @@
     {
       "type": 0,
       "value": "Publikovat"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Zastávka"
     }
   ],
   "129b9e34ea": [
@@ -141,16 +147,16 @@
       "value": "Dnes"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Místnost je plná"
+      "value": "Váš týdenní limit pro využití víl byl dosažen. Na začátku příštího týdne bude resetován."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Tato místnost se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
+      "value": "Spát"
     }
   ],
   "2445e5e347": [
@@ -165,6 +171,24 @@
       "value": "O tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tvoje víly čekají"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Přivolat všechny"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +201,24 @@
       "value": "Moje soubory"
     }
   ],
-  "2deec2cb74": [
+  "30cd34258a": [
     {
       "type": 0,
-      "value": "Tato místnost dosáhla limitu velikosti a změny se již nemusí ukládat. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
+      "value": "V prosinci se do tldraw sjela skupinka "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "víl"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": ". Chcete-li se o tom dozvědět více, najděte vílu a klikněte na ni."
     }
   ],
   "31246941ad": [
@@ -195,10 +233,22 @@
       "value": "i18n: Zvýraznění chybí"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tři víly"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Přidat odkaz"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Zpět na tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +257,46 @@
       "value": "Zkuste prosím obnovit stránku."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "V prosinci se do tldraw blíží vílí chaos. Zkuste to prosím znovu 1. prosince."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Spát všichni"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Spravovat"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Přestat sledovat"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Následovat"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Podmínky služby"
     }
   ],
   "3bc7d6ea2f": [
@@ -249,10 +335,38 @@
       "value": "Získejte pomoc na Discordu"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Víly"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " přišly kreslit v prosinci."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Nebyly vybrány žádné víly"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Chcete-li pokračovat v úpravách, zkopírujte soubor do svých souborů."
     }
   ],
   "47839e47a5": [
@@ -285,6 +399,12 @@
       "value": "Jméno"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Vybrat vše"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -301,6 +421,12 @@
     {
       "type": 0,
       "value": "Smazat skupinu…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Více možností"
     }
   ],
   "4e6fbf032b": [
@@ -321,16 +447,16 @@
       "value": "Nabídka stránek"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Tento soubor je nyní pouze pro čtení."
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Bylo dosaženo limitu spolupracovníků"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Prosím zpomalte."
     }
   ],
   "554a05155c": [
@@ -365,6 +491,12 @@
     {
       "type": 0,
       "value": "Zásady ochrany osobních údajů"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Uplatnění pozvánkového kódu se nezdařilo"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +539,6 @@
       "value": "Podíl"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Místnost se zvětšuje"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Tato místnost je nyní pouze pro čtení"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +555,12 @@
     {
       "type": 0,
       "value": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Byli jste pozváni do skupiny:"
     }
   ],
   "5f3c333678": [
@@ -455,6 +581,20 @@
       "value": "Později"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Promluvte si s "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -465,6 +605,12 @@
     {
       "type": 0,
       "value": "Vy"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Průvodce"
     }
   ],
   "6609dd239e": [
@@ -479,28 +625,34 @@
       "value": "K dispozici je nová verze tldraw. Chcete-li pokračovat, znovu načtěte stránku."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Byli jste pozváni do skupiny "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Zadejte svou e-mailovou adresu"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Probudit"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Zadejte svou zprávu"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Jméno víly"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Ladění víl"
     }
   ],
   "6a26f54883": [
@@ -581,10 +733,38 @@
       "value": "Načtěte znovu"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw je bezplatná online bílá tabule. Vytvořte si účet pro ukládání souborů a spolupráci s přáteli."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Neplatný požadavek."
+    }
+  ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Byli jste pozváni k "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "kreslení víl"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Tento anonymní soubor pro více hráčů ve hře tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte jej do svých souborů."
     }
   ],
   "78e9815992": [
@@ -599,6 +779,12 @@
       "value": "Odešlete problém na GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Víla je malý chlapík, který s vámi může pracovat na plátně. Víly mohou pracovat samy nebo v týmu. Neexistují žádná omezení toho, co víla dokáže. Nikdo neví, odkud se vzaly."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -609,6 +795,12 @@
     {
       "type": 0,
       "value": "Obnovit verzi"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Otevřít tldraw"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +867,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Vymazat vše"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Vítejte"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -701,16 +905,28 @@
       "value": "Přejmenovat soubor"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Tvrdý reset"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Zakoupit balíček víl"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Ne, děkuji."
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Chcete-li pokračovat v úpravách, zkopírujte prosím místnost do svých souborů."
+      "value": "jednorázová platba"
     }
   ],
   "8c2d3d730c": [
@@ -719,10 +935,22 @@
       "value": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Domov"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Sdíleno s vámi"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "O"
     }
   ],
   "8ff3d0a705": [
@@ -753,6 +981,24 @@
     {
       "type": 0,
       "value": "Zkopírován odkaz na pozvánku"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Zrušit výběr"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Již jste členem této skupiny"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Poslat"
     }
   ],
   "95aacd4d4a": [
@@ -791,6 +1037,12 @@
       "value": "Světlo"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Zobrazení ladění"
+    }
+  ],
   "9b33f5c63c": [
     {
       "type": 0,
@@ -815,12 +1067,6 @@
     {
       "type": 0,
       "value": "Smazat soubor"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Tato anonymní multiplayerová místnost tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte ji do svých souborů."
     }
   ],
   "9ceb927baa": [
@@ -871,6 +1117,12 @@
       "value": "Export obrázku"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Připojit se"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -881,6 +1133,12 @@
     {
       "type": 0,
       "value": "Předložit"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Ladit"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1153,28 @@
       "value": "Analytics"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Soubor se zvětšuje"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Dosažen týdenní limit víl"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nový chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Pozadí"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Přihlaste se pro přijetí pozvánky"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1199,18 @@
     {
       "type": 0,
       "value": "Hostující uživatel"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Soubor je plný"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Doba odezvy protokolu"
     }
   ],
   "b357b524e7": [
@@ -1033,6 +1315,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Přiblížit na vílu"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1065,16 +1353,40 @@
       "value": "Soubor nelze publikovat."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "OTEVŘENO"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Rozumím"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Základní soubory cookie"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Přijmout pozvání"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Název skupiny"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Používání"
     }
   ],
   "c655b27b1e": [
@@ -1119,6 +1431,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Tento soubor se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Už máš přístup k vílám!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1129,6 +1453,12 @@
     {
       "type": 0,
       "value": "Blízko"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Příliš mnoho požadavků. Prosím, zpomalte."
     }
   ],
   "d4bbf74f3e": [
@@ -1195,6 +1525,12 @@
       "value": "Přejděte sem a podívejte se na obsah"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Povolit víly"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1207,16 +1543,48 @@
       "value": "Pouze na pozvání"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Jasný"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Neplatná adresa URL souboru tldraw"
     }
   ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Víly jsou "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "dočasnou"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funkcí. 1. ledna 2026 budou všechny víly z aplikace odstraněny. Možná se někdy vrátí. Váš nákup je pouze pro přístup k vílám v prosinci 2025."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Příznaky ladění aplikace"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Vybrat"
     }
   ],
   "e0c88179b3": [
@@ -1247,6 +1615,12 @@
     {
       "type": 0,
       "value": "Podmínky služby"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Jdi na"
     }
   ],
   "e81c4e4f2b": [
@@ -1317,6 +1691,12 @@
       "value": " a dozvíte se více."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Rozpustit"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1327,6 +1707,12 @@
     {
       "type": 0,
       "value": "vybraný"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Přivolat"
     }
   ],
   "f09b16bc5f": [
@@ -1341,6 +1727,12 @@
       "value": "Uživatelská nastavení"
     }
   ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Konfigurovat"
+    }
+  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1351,12 +1743,6 @@
     {
       "type": 0,
       "value": "Vymazat"
-    }
-  ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Zpět k tldraw."
     }
   ],
   "f4f70727dc": [

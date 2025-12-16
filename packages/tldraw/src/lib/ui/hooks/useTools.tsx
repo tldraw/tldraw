@@ -4,7 +4,6 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	getIndicesBetween,
-	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	toRichText,
@@ -195,7 +194,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const [start, end] = getIndicesBetween(null, null, 2)
-							editor.createShape<TLLineShape>({
+							editor.createShape({
 								id,
 								type: 'line',
 								props: {
@@ -361,7 +360,7 @@ export function onDragFromToolbarToCreateShape(
 	info: TLPointerEventInfo,
 	opts: OnDragFromToolbarToCreateShapesOpts
 ) {
-	const { x, y } = editor.inputs.currentPagePoint
+	const { x, y } = editor.inputs.getCurrentPagePoint()
 
 	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
 	editor.setCurrentTool('select.translating')

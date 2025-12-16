@@ -12,16 +12,12 @@ import {
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultSizeStyle,
 	TLDefaultTextAlignStyle,
-	TLDrawShape,
 	TLGeoShape,
-	TLImageShape,
-	TLNoteShape,
 	TLPageId,
 	TLShapeId,
-	TLTextShape,
-	TLVideoShape,
 	Vec,
 	VecModel,
+	b64Vecs,
 	clamp,
 	createShapeId,
 	fetch,
@@ -187,7 +183,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 					switch (v1Shape.type) {
 						case TLV1ShapeType.Sticky: {
-							editor.createShapes<TLNoteShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'note',
@@ -203,7 +199,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Rectangle: {
-							editor.createShapes<TLGeoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'geo',
@@ -225,7 +221,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes<TLGeoShape>([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -259,7 +255,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Triangle: {
-							editor.createShapes<TLGeoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'geo',
@@ -280,7 +276,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes<TLGeoShape>([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -314,7 +310,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Ellipse: {
-							editor.createShapes<TLGeoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'geo',
@@ -335,7 +331,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 
 							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
-							editor.updateShapes<TLGeoShape>([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -375,7 +371,10 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								break
 							}
 
-							editor.createShapes<TLDrawShape>([
+							const points = v1Shape.points.map(getV2Point)
+							const base64Points = b64Vecs.encodePoints(points)
+
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'draw',
@@ -386,7 +385,10 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										dash: getV2Dash(v1Shape.style.dash),
 										isPen: false,
 										isComplete: v1Shape.isComplete,
-										segments: [{ type: 'free', points: v1Shape.points.map(getV2Point) }],
+										segments: [{ type: 'free', points: base64Points }],
+										scale: 1,
+										scaleX: 1,
+										scaleY: 1,
 									},
 								},
 							])
@@ -400,7 +402,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							const v2Bend = (dist * -v1Bend) / 2
 
 							// Could also be a line... but we'll use it as an arrow anyway
-							editor.createShapes<TLArrowShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'arrow',
@@ -429,7 +431,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 							break
 						}
 						case TLV1ShapeType.Text: {
-							editor.createShapes<TLTextShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'text',
@@ -453,7 +455,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								return
 							}
 
-							editor.createShapes<TLImageShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'image',
@@ -474,7 +476,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								return
 							}
 
-							editor.createShapes<TLVideoShape>([
+							editor.createShapes([
 								{
 									...inCommon,
 									type: 'video',
@@ -523,7 +525,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 					const util = editor.getShapeUtil<TLArrowShape>('arrow')
 
 					// dumb but necessary
-					editor.inputs.ctrlKey = false
+					editor.inputs.setCtrlKey(false)
 
 					for (const handleId of ['start', 'end'] as const) {
 						const bindingId = v1Shape.handles[handleId].bindingId

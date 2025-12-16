@@ -2,7 +2,8 @@
 export const DOT_DEV_COOKIE_POLICY_URL = 'https://tldraw.notion.site/devcookiepolicy'
 
 // All analytics use the same cookie to store consent.
-export const CONSENT_COOKIE_NAME = 'allowTracking'
+export const LEGACY_CONSENT_COOKIE_NAME = 'allowTracking'
+export const CONSENT_COOKIE_NAME = 'trackingConsent'
 export const CONSENT_CHANGED_EVENT = 'tl-analytics-consent-changed'
 
 // All analytics are fed into the same HubSpot project.
@@ -21,3 +22,8 @@ export const POSTHOG_UI_HOST = 'https://eu.i.posthog.com'
 
 // Google Tag Manager configuration.
 export const GTM_SCRIPT_ID = 'gtm-script-loader'
+
+// Kick2 analytics configuration.
+export const KICK2_SCRIPT_ID = 'kick2-script-loader'
+export const KICK2_SCRIPT_URL =
+	'https://knock2-backend-2ba4792164c3.herokuapp.com/install/tldraw_dev'

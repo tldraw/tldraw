@@ -5,9 +5,9 @@ import {
 	HTMLContainer,
 	RecordProps,
 	ShapeUtil,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
+	TLShape,
 	Tldraw,
 	Vec,
 	VecLike,
@@ -17,20 +17,26 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+const Y_SHAPE_TYPE = 'y-shape'
+
 // [1]
-type YShape = TLBaseShape<
-	'y-shape',
-	{
-		center: VecLike
-		armTop: VecLike
-		armLeft: VecLike
-		armRight: VecLike
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[Y_SHAPE_TYPE]: {
+			center: VecLike
+			armTop: VecLike
+			armLeft: VecLike
+			armRight: VecLike
+		}
 	}
->
+}
 
 // [2]
+type YShape = TLShape<typeof Y_SHAPE_TYPE>
+
+// [3]
 class YShapeUtil extends ShapeUtil<YShape> {
-	static override type = 'y-shape' as const
+	static override type = Y_SHAPE_TYPE
 	static override props: RecordProps<YShape> = {
 		center: vecModelValidator,
 		armTop: vecModelValidator,
@@ -67,7 +73,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 		return true
 	}
 
-	// [3]
+	// [4]
 	getGeometry(shape: YShape): Geometry2d {
 		const { center, armTop, armLeft, armRight } = shape.props
 		const c = Vec.From(center)
@@ -84,7 +90,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 		})
 	}
 
-	// [4]
+	// [5]
 	override getHandles(shape: YShape): TLHandle[] {
 		const indices = [ZERO_INDEX_KEY, ...getIndicesAbove(ZERO_INDEX_KEY, 3)]
 
@@ -102,7 +108,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 				x: shape.props.armTop.x,
 				y: shape.props.armTop.y,
 				index: indices[1],
-				// [5]
+				// [6]
 				snapReferenceHandleId: 'center',
 			},
 			{
@@ -111,7 +117,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 				x: shape.props.armLeft.x,
 				y: shape.props.armLeft.y,
 				index: indices[2],
-				// [6]
+				// [7]
 				snapReferenceHandleId: 'center',
 			},
 			{
@@ -120,7 +126,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 				x: shape.props.armRight.x,
 				y: shape.props.armRight.y,
 				index: indices[3],
-				// [7]
+				// [8]
 				snapReferenceHandleId: 'center',
 			},
 		]
@@ -137,7 +143,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 		}
 	}
 
-	// [8]
+	// [9]
 	component(shape: YShape) {
 		const { center, armTop, armLeft, armRight } = shape.props
 
@@ -198,7 +204,7 @@ export default function CustomRelativeSnappingYShapeExample() {
 					const centerY = viewportPageBounds.center.y
 
 					editor.createShape({
-						type: 'y-shape',
+						type: Y_SHAPE_TYPE,
 						x: centerX - 100,
 						y: centerY - 100,
 					})
@@ -223,24 +229,31 @@ The shape has three arms radiating from a center junction point:
 - armRight (bottom-right arm endpoint)
 
 [1]
-Define the shape type with four points representing a Y-shaped connector.
+First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
+This tells TypeScript about the shape type with four points representing a Y-shaped connector.
 
 [2]
-The shape util with validators for each point.
+Define the shape type using TLShape with the shape's type as a type argument.
 
 [3]
-Use Group2d geometry containing three line segments from center to each arm.
+The shape util with validators for each point.
 
 [4]
-Four handles in array order: [center, armTop, armLeft, armRight]
+Use Group2d geometry containing three line segments from center to each arm.
 
 [5]
-With `snapReferenceHandleId: 'center'`, when you shift+drag armTop, it will snap to the center point.
+Four handles in array order: [center, armTop, armLeft, armRight]
 
 [6]
-Similarly, armLeft would snap relative to the center point.
+With `snapReferenceHandleId: 'center'`, when you shift+drag armTop, it will snap to the center point.
 
 [7]
+Similarly, armLeft would snap relative to the center point.
+
+[8]
 And armRight would snap to the center point.
+
+[9]
+The component method defines how our shape renders.
 
 */

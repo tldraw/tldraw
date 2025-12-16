@@ -26,7 +26,7 @@ export function Pre(props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTM
 			>
 				{props.children}
 			</pre>
-			<CopyButton copy={container} name={'code-block'} />
+			<CopyButton copy={container} />
 		</div>
 	)
 }

@@ -16,9 +16,7 @@ export class PointingShape extends StateNode {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
-		const {
-			inputs: { currentPagePoint },
-		} = this.editor
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const { shiftKey, altKey, accelKey } = info
 
 		this.hitShape = info.shape
@@ -66,9 +64,7 @@ export class PointingShape extends StateNode {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const zoomLevel = this.editor.getZoomLevel()
-		const {
-			inputs: { currentPagePoint },
-		} = this.editor
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const additiveSelectionKey = info.shiftKey || info.accelKey
 
@@ -153,13 +149,7 @@ export class PointingShape extends StateNode {
 										this.editor.markHistoryStoppingPoint('editing on pointer up')
 										this.editor.select(selectingShape.id)
 
-										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.getIsReadonly()) {
-											if (!util.canEditInReadonly(selectingShape)) {
-												return
-											}
-										}
-
+										if (!this.editor.canEditShape(selectingShape)) return
 										this.editor.setEditingShape(selectingShape.id)
 										this.editor.setCurrentTool('select.editing_shape')
 
@@ -210,7 +200,7 @@ export class PointingShape extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			if (isOverArrowLabel(this.editor, this.hitShape)) {
 				// We're moving the label on a shape.
 				this.parent.transition('pointing_arrow_label', { ...info, shape: this.hitShape })

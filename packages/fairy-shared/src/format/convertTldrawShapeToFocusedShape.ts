@@ -8,6 +8,7 @@ import {
 	TLDrawShape,
 	TLGeoShape,
 	TLGeoShapeGeoStyle,
+	TLImageShape,
 	TLLineShape,
 	TLNoteShape,
 	TLShape,
@@ -15,6 +16,8 @@ import {
 	TLTextShape,
 	Vec,
 } from '@tldraw/editor'
+import { toSimpleShapeId } from '..'
+import { SimpleShapeId } from '../schema/id-schemas'
 import { convertTldrawFillToFocusFill } from './FocusFill'
 import { convertTldrawFontSizeToFocusFontSize } from './FocusFontSize'
 import {
@@ -22,6 +25,7 @@ import {
 	FocusedDrawShape,
 	FocusedGeoShape,
 	FocusedGeoType,
+	FocusedImageShape,
 	FocusedLineShape,
 	FocusedNoteShape,
 	FocusedShape,
@@ -47,6 +51,8 @@ export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape)
 			return convertNoteShapeToFocused(editor, shape as TLNoteShape)
 		case 'draw':
 			return convertDrawShapeToFocused(editor, shape as TLDrawShape)
+		case 'image':
+			return convertImageShapeToFocused(editor, shape as TLImageShape)
 		default:
 			return convertUnknownShapeToFocused(editor, shape)
 	}
@@ -62,8 +68,10 @@ export function convertTldrawShapeToFocusedType(shape: TLShape): FocusedShape['_
 		case 'line':
 		case 'arrow':
 		case 'note':
-		case 'draw':
+		case 'image':
 			return shape.type
+		case 'draw':
+			return 'pen'
 		default:
 			return 'unknown'
 	}
@@ -92,13 +100,13 @@ const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, FocusedGeoType> = {
 	'arrow-down': 'fat-arrow-down',
 } as const
 
-export function convertTldrawIdToSimpleId(id: TLShapeId): string {
-	return id.slice('shape:'.length)
+export function convertTldrawIdToSimpleId(id: TLShapeId): SimpleShapeId {
+	return toSimpleShapeId(id.slice(6))
 }
 
 function convertDrawShapeToFocused(editor: Editor, shape: TLDrawShape): FocusedDrawShape {
 	return {
-		_type: 'draw',
+		_type: 'pen',
 		color: shape.props.color,
 		fill: convertTldrawFillToFocusFill(shape.props.fill),
 		note: (shape.meta.note as string) ?? '',
@@ -140,6 +148,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		anchor,
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeToFocusFontSize(textSize, shape.props.scale),
+		maxWidth: shape.props.autoSize ? null : shape.props.w,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
@@ -213,11 +222,11 @@ function convertArrowShapeToFocused(editor: Editor, shape: TLArrowShape): Focuse
 		_type: 'arrow',
 		bend: shape.props.bend * -1,
 		color: shape.props.color,
-		fromId: startBinding?.toId ?? null,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: (shape.meta.text as string) ?? '',
-		toId: endBinding?.toId ?? null,
+		fromId: startBinding ? convertTldrawIdToSimpleId(startBinding.toId) : null,
+		toId: endBinding ? convertTldrawIdToSimpleId(endBinding.toId) : null,
 		x1: shape.props.start.x + bounds.x,
 		x2: shape.props.end.x + bounds.x,
 		y1: shape.props.start.y + bounds.y,
@@ -235,6 +244,20 @@ function convertNoteShapeToFocused(editor: Editor, shape: TLNoteShape): FocusedN
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
+		x: bounds.x,
+		y: bounds.y,
+	}
+}
+
+function convertImageShapeToFocused(editor: Editor, shape: TLImageShape): FocusedImageShape {
+	const bounds = getSimpleBounds(editor, shape)
+	return {
+		_type: 'image',
+		altText: shape.props.altText,
+		h: shape.props.h,
+		note: (shape.meta.note as string) ?? '',
+		shapeId: convertTldrawIdToSimpleId(shape.id),
+		w: shape.props.w,
 		x: bounds.x,
 		y: bounds.y,
 	}
@@ -269,10 +292,8 @@ export function getDummyBounds(editor: Editor, shape: TLShape): Box {
 			() => {
 				const dummyId = createShapeId()
 				editor.createShape({
+					...shape,
 					id: dummyId,
-					type: shape.type,
-					props: shape.props,
-					meta: shape.meta,
 				})
 				dummyBounds = editor.getShapePageBounds(dummyId)
 			},

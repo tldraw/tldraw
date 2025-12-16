@@ -84,7 +84,9 @@ export function rng(seed = '') {
  * @example
  *
  * ```ts
- * const A = modulate(0, [0, 1], [0, 100])
+ * const A = modulate(0, [0, 1], [0, 100]) // 0
+ * const B = modulate(0.5, [0, 1], [0, 100]) // 50
+ * const C = modulate(1, [0, 1], [0, 100]) // 100
  * ```
  *
  * @param value - The interpolation value.

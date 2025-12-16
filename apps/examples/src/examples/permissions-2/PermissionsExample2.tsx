@@ -81,7 +81,7 @@ export default function PermissionsExample() {
 
 					// [5]
 					// Create the constrained rectangle
-					editor.createShape<TLGeoShape>({
+					editor.createShape({
 						type: 'geo',
 						x: 250,
 						y: 200,

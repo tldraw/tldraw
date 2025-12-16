@@ -1,12 +1,4 @@
-import {
-	Editor,
-	StateNode,
-	TLArrowShape,
-	TLHandle,
-	TLNoteShape,
-	TLPointerEventInfo,
-	Vec,
-} from '@tldraw/editor'
+import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
 import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
@@ -14,7 +6,7 @@ import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
 } from '../../../shapes/note/noteHelpers'
-import { startEditingShapeWithLabel } from '../selectHelpers'
+import { startEditingShapeWithRichText } from '../selectHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -29,7 +21,7 @@ export class PointingHandle extends StateNode {
 		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBindings = getArrowBindings(this.editor, shape)
 			const currentBinding = initialBindings[info.handle.id as 'start' | 'end']
 			const oppositeBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
@@ -58,11 +50,11 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
-		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
+				startEditingShapeWithRichText(editor, nextNote, true /* selectAll */)
 				return
 			}
 		}
@@ -72,7 +64,7 @@ export class PointingHandle extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		const { editor } = this
-		if (editor.inputs.isDragging) {
+		if (editor.inputs.getIsDragging()) {
 			if (this.didCtrlOnEnter) {
 				this.parent.transition('brushing', info)
 			} else {
@@ -90,12 +82,12 @@ export class PointingHandle extends StateNode {
 		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
-		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+		if (editor.isShapeOfType(shape, 'note')) {
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
-					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
+					.getPointInParentSpace(nextNote, editor.inputs.getOriginPagePoint())
 					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale), nextNote.rotation))
 				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
@@ -111,7 +103,7 @@ export class PointingHandle extends StateNode {
 						isCreating: true,
 						onCreate: () => {
 							// When we're done, start editing it
-							startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
+							startEditingShapeWithRichText(editor, nextNote, true /* selectAll */)
 						},
 					})
 				return

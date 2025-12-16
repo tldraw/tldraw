@@ -1,11 +1,13 @@
 import {
 	Box,
+	ExtractShapeByProps,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
 import { TextHelpers } from './TextHelpers'
@@ -15,7 +17,7 @@ import { useEditablePlainText } from './useEditablePlainText'
 /** @public */
 export interface PlainTextLabelProps {
 	shapeId: TLShapeId
-	type: string
+	type: ExtractShapeByProps<{ text: string }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number
@@ -33,6 +35,7 @@ export interface PlainTextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -60,6 +63,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	style,
 	textWidth,
 	textHeight,
+	showTextOutline = true,
 }: PlainTextLabelProps) {
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
@@ -108,7 +112,13 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 					height: textHeight ? Math.ceil(textHeight) : undefined,
 				}}
 			>
-				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
+				<div
+					className={classNames(
+						`${cssPrefix} tl-text tl-text-content`,
+						showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+					)}
+					dir="auto"
+				>
 					{finalPlainText.split('\n').map((lineOfText, index) => (
 						<div key={index} dir="auto">
 							{lineOfText}

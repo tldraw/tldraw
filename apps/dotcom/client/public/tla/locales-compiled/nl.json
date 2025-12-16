@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Open tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -51,10 +45,16 @@
       "value": "Rekening"
     }
   ],
-  "08d2d725a9": [
+  "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Maak een gratis account aan om uw werk op te slaan, in realtime samen te werken en meer."
+      "value": "Dit bestand heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Spreek tot de groep…"
     }
   ],
   "0b27918290": [
@@ -69,10 +69,10 @@
       "value": "Bestandsmenu"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw is een gratis en direct beschikbaar virtueel whiteboard."
+      "value": "Feeën"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +85,12 @@
     {
       "type": 0,
       "value": "Publiceren"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -141,16 +147,16 @@
       "value": "Vandaag"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Kamer is vol"
+      "value": "Je wekelijkse fee-gebruikslimiet is bereikt. Deze wordt begin volgende week gereset."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
+      "value": "Slaap"
     }
   ],
   "2445e5e347": [
@@ -165,6 +171,24 @@
       "value": "Over tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Je feeën wachten"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Roep iedereen op"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +201,24 @@
       "value": "Mijn bestanden"
     }
   ],
-  "2deec2cb74": [
+  "30cd34258a": [
     {
       "type": 0,
-      "value": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
+      "value": "Een heleboel "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "feeën"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " zijn naar tldraw gekomen voor de maand december. Om verder te kijken, zoek de fee en klik erop."
     }
   ],
   "31246941ad": [
@@ -195,10 +233,22 @@
       "value": "i18n: Markering ontbreekt"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "drie feeën"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Link toevoegen"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Terug naar tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +257,46 @@
       "value": "Probeer de pagina te vernieuwen."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Een wervelwind van feeën komt naar tldraw voor de maand december. Kom op 1 december terug."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Slaap allemaal"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Beheren"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Ontvolgen"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Volgen"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Servicevoorwaarden"
     }
   ],
   "3bc7d6ea2f": [
@@ -249,10 +335,38 @@
       "value": "Krijg hulp op Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Feeën"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " zijn gekomen om te tekenen voor de maand december."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Geen feeën geselecteerd"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Om door te kunnen gaan met bewerken, kopieer het bestand naar uw bestanden."
     }
   ],
   "47839e47a5": [
@@ -285,6 +399,12 @@
       "value": "Naam"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Selecteer alles"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -301,6 +421,12 @@
     {
       "type": 0,
       "value": "Groep verwijderen…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Meer opties"
     }
   ],
   "4e6fbf032b": [
@@ -321,16 +447,16 @@
       "value": "Paginamenu"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Dit bestand is nu alleen-lezen"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Limiet voor bijdragers bereikt"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Doe rustig aan."
     }
   ],
   "554a05155c": [
@@ -365,6 +491,12 @@
     {
       "type": 0,
       "value": "Privacybeleid"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Het is niet gelukt om de uitnodigingscode in te wisselen"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +539,6 @@
       "value": "Deel"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Kamer wordt groot"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Deze kamer is nu alleen-lezen"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +555,12 @@
     {
       "type": 0,
       "value": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "U bent uitgenodigd om deel te nemen aan de groep:"
     }
   ],
   "5f3c333678": [
@@ -455,6 +581,20 @@
       "value": "Later"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Praat met "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -465,6 +605,12 @@
     {
       "type": 0,
       "value": "Jij"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Gids"
     }
   ],
   "6609dd239e": [
@@ -479,28 +625,34 @@
       "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Je bent uitgenodigd voor groep "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Voer uw e-mailadres in"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Wakker worden"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Voer uw bericht in"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Naam van de fee"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Debug feeën"
     }
   ],
   "6a26f54883": [
@@ -581,10 +733,42 @@
       "value": "Gelieve opnieuw te laden"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw is een gratis online whiteboard. Maak een account aan om je bestanden op te slaan en met je vrienden te werken."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Ongeldig verzoek."
+    }
+  ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Je bent uitgenodigd om "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tldraw feeën"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " te tekenen"
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je het naar je bestanden."
     }
   ],
   "78e9815992": [
@@ -599,6 +783,12 @@
       "value": "Een probleem melden op GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Een fee is een klein mannetje dat met je aan het doek kan werken. Feeën kunnen alleen werken of in teamverband. Er zijn geen grenzen aan wat een fee kan doen. Niemand weet waar ze vandaan komen."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -609,6 +799,12 @@
     {
       "type": 0,
       "value": "Versie herstellen"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Open tldraw"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +871,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Alles wissen"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Welkom"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -697,16 +905,28 @@
       "value": "Bestand hernoemen"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Harde reset"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Koop Fairy Bundle"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Nee bedankt"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+      "value": "eenmalige betaling"
     }
   ],
   "8c2d3d730c": [
@@ -715,10 +935,22 @@
       "value": "Controleer uw e-mail voor een verificatiecode."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Thuis"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Gedeeld met jou"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Over"
     }
   ],
   "8ff3d0a705": [
@@ -749,6 +981,24 @@
     {
       "type": 0,
       "value": "Gekopieerde uitnodigingslink"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Deselect"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Je bent al lid van deze groep"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Versturen"
     }
   ],
   "95aacd4d4a": [
@@ -787,6 +1037,12 @@
       "value": "Licht"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Debugweergave"
+    }
+  ],
   "9b33f5c63c": [
     {
       "type": 0,
@@ -811,12 +1067,6 @@
     {
       "type": 0,
       "value": "Bestand verwijderen"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Deze anonieme tldraw-multiplayerroom is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je de room naar je bestanden."
     }
   ],
   "9ceb927baa": [
@@ -867,6 +1117,12 @@
       "value": "Afbeelding exporteren"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Meedoen"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -877,6 +1133,12 @@
     {
       "type": 0,
       "value": "Verzenden"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Foutopsporing"
     }
   ],
   "a6cc403d56": [
@@ -891,16 +1153,28 @@
       "value": "Analyse"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Het bestand wordt groot"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Wekelijkse fee-limiet bereikt"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nieuwe chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Achtergrond"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Meld u aan om de uitnodiging te accepteren"
     }
   ],
   "ab0df9ba36": [
@@ -925,6 +1199,18 @@
     {
       "type": 0,
       "value": "Gastgebruiker"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Bestand is vol"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Logreactietijd"
     }
   ],
   "b357b524e7": [
@@ -1021,6 +1307,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom naar fee"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1053,16 +1345,40 @@
       "value": "Het bestand kan niet worden gepubliceerd."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Open"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Ik begrijp"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Essentiële cookies"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Uitnodiging accepteren"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Groepsnaam"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Gebruik"
     }
   ],
   "c655b27b1e": [
@@ -1107,6 +1423,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Dit bestand nadert de maximale bestandsgrootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Je hebt al feeëntoegang!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1117,6 +1445,12 @@
     {
       "type": 0,
       "value": "Sluiten"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Te veel verzoeken. Doe het rustig aan."
     }
   ],
   "d4bbf74f3e": [
@@ -1183,6 +1517,12 @@
       "value": "Ga hierheen om de inhoud te bekijken"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Feeën inschakelen"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1195,16 +1535,48 @@
       "value": "Alleen op uitnodiging"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Duidelijk"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Ongeldige tldraw-bestands-URL"
     }
   ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Feeën zijn een "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tijdelijke"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " functie. Op 1 januari 2026 worden alle feeën uit de app verwijderd. Misschien komen ze ooit nog eens terug. Uw aankoop is alleen voor toegang tot feeën in december 2025."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "App-debug vlaggen"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Selecteer"
     }
   ],
   "e0c88179b3": [
@@ -1235,6 +1607,12 @@
     {
       "type": 0,
       "value": "Servicevoorwaarden"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Ga naar"
     }
   ],
   "e81c4e4f2b": [
@@ -1305,6 +1683,12 @@
       "value": " voor meer informatie."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Ontbinden"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1315,6 +1699,12 @@
     {
       "type": 0,
       "value": "gekozen"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Oproepen"
     }
   ],
   "f09b16bc5f": [
@@ -1329,6 +1719,12 @@
       "value": "Gebruikersinstellingen"
     }
   ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configure"
+    }
+  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1339,12 +1735,6 @@
     {
       "type": 0,
       "value": "Verwijderen"
-    }
-  ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Terug naar tldraw."
     }
   ],
   "f4f70727dc": [

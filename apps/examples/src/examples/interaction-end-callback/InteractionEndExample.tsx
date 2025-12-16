@@ -1,4 +1,4 @@
-import { StateNode, TLGeoShape, TLPointerEventInfo, Tldraw, createShapeId } from 'tldraw'
+import { StateNode, TLPointerEventInfo, Tldraw, createShapeId } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -10,10 +10,10 @@ class QuickShapeTool extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const shapeId = createShapeId()
 
-		this.editor.createShape<TLGeoShape>({
+		this.editor.createShape({
 			id: shapeId,
 			type: 'geo',
 			x: currentPagePoint.x - 50,
@@ -32,7 +32,7 @@ class QuickShapeTool extends StateNode {
 			// [3]
 			onInteractionEnd: () => {
 				// Change fill to semi-transparent after dragging
-				this.editor.updateShape<TLGeoShape>({
+				this.editor.updateShape({
 					id: shapeId,
 					type: 'geo',
 					props: { fill: 'pattern' },

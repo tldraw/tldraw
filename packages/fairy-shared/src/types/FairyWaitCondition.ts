@@ -1,4 +1,5 @@
 import { FairyModeDefinition } from '../schema/FairyModeDefinition'
+import { AgentId } from '../schema/id-schemas'
 import type { FairyTask } from './FairyTask'
 
 export type FairyWaitEvent = TaskCompletedEvent | AgentModeTransitionEvent
@@ -14,14 +15,9 @@ export interface TaskCompletedEvent {
 // not really implemented in FairyWaitNotifications yet
 export interface AgentModeTransitionEvent {
 	type: 'agent-mode-transition'
-	agentId: string
+	agentId: AgentId
 	mode: FairyModeDefinition['type']
 }
-
-/**
- * The type of event being waited for.
- */
-export type FairyWaitEventType = FairyWaitEvent['type']
 
 /**
  * A condition that an agent is waiting for.
@@ -39,6 +35,12 @@ export interface FairyWaitCondition<T extends FairyWaitEvent> {
 	 * @returns true if the event matches this condition
 	 */
 	matcher(event: T): boolean
+
+	/**
+	 * Unique identifier for this condition.
+	 * Used for deduplication - conditions with the same id and eventType are considered duplicates.
+	 */
+	id: string
 
 	/**
 	 * Optional metadata associated with this wait condition.

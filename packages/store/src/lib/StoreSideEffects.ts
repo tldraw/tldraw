@@ -493,7 +493,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 * ```ts
 	 * editor.sideEffects.registerAfterCreateHandler('page', (page, source) => {
 	 *     // Automatically create a shape when a page is created
-	 *     editor.createShape<TLTextShape>({
+	 *     editor.createShape({
 	 *         id: createShapeId(),
 	 *         type: 'text',
 	 *         props: { richText: toRichText(page.name) },

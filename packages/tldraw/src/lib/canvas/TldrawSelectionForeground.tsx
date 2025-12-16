@@ -2,11 +2,7 @@ import {
 	Box,
 	HALF_PI,
 	RotateCorner,
-	TLEmbedShape,
-	TLImageShape,
 	TLSelectionForegroundProps,
-	TLTextShape,
-	TLVideoShape,
 	getCursor,
 	tlenv,
 	toDomPrecision,
@@ -67,7 +63,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 
 	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
-	const zoom = editor.getZoomLevel()
+	const zoom = editor.getEfficientZoomLevel()
 	const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 	const width = expandedBounds.width
@@ -109,10 +105,10 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
 			onlyShape &&
-			editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
+			editor.isShapeOfType(onlyShape, 'text'))
 
 	if (onlyShape && shouldDisplayBox) {
-		if (tlenv.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+		if (tlenv.isFirefox && editor.isShapeOfType(onlyShape, 'embed')) {
 			shouldDisplayBox = false
 		}
 	}
@@ -194,12 +190,11 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		shouldDisplayControls &&
 		isCoarsePointer &&
 		onlyShape &&
-		editor.isShapeOfType<TLTextShape>(onlyShape, 'text') &&
+		editor.isShapeOfType(onlyShape, 'text') &&
 		textHandleHeight * zoom >= 4
 	const isMediaShape =
 		onlyShape &&
-		(editor.isShapeOfType<TLImageShape>(onlyShape, 'image') ||
-			editor.isShapeOfType<TLVideoShape>(onlyShape, 'video'))
+		(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
 
 	return (
 		<svg
@@ -537,7 +532,7 @@ export const MobileRotateHandle = function RotateHandle({
 	const events = useSelectionEvents('mobile_rotate')
 
 	const editor = useEditor()
-	const zoom = useValue('zoom level', () => editor.getZoomLevel(), [editor])
+	const zoom = useValue('zoom level', () => editor.getEfficientZoomLevel(), [editor])
 	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
 	const msg = useTranslation()
 	return (

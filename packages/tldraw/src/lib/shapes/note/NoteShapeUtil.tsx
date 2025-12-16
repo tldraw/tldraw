@@ -32,7 +32,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
-import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
@@ -50,6 +50,7 @@ import {
 } from '../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -158,7 +159,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer
 		if (isCoarsePointer) return []
 
-		const zoom = this.editor.getZoomLevel()
+		const zoom = this.editor.getEfficientZoomLevel()
 		if (zoom * scale < 0.25) return []
 
 		const nh = getNoteHeight(shape)
@@ -268,14 +269,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			[this.editor]
 		)
 
-		// todo: consider hiding shadows on dark mode if they're invisible anyway
-
-		const hideShadows = useValue('zoom', () => this.editor.getZoomLevel() < 0.35 / scale, [
-			scale,
-			this.editor,
-		])
-
 		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
+
+		// Shadows are hidden when zoomed out far enough or in dark mode
+		let hideShadows = useEfficientZoomThreshold(scale * 0.25)
+		if (isDarkMode) hideShadows = true
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -318,6 +316,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 							padding={LABEL_PADDING * scale}
 							hasCustomTabBehavior
+							showTextOutline={false}
 							onKeyDown={handleKeyDown}
 						/>
 					)}
@@ -537,7 +536,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
+					startEditingShapeWithRichText(editor, newNote, true /* selectAll */)
 				}
 			}
 		},

@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Fur tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -51,10 +45,16 @@
       "value": "Xisaab"
     }
   ],
-  "08d2d725a9": [
+  "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Abuur akoon bilaasha si aad u badbaadiso shaqadaada, wax wada qabsato wakhtiga dhabta ah, iyo in ka badan."
+      "value": "Faylkan waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "La hadal kooxda..."
     }
   ],
   "0b27918290": [
@@ -69,10 +69,10 @@
       "value": "Liiska faylka"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw waa sabuur cad oo bilaash ah oo degdeg ah."
+      "value": "Carwooyinka"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +85,12 @@
     {
       "type": 0,
       "value": "Daabac"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Jooji"
     }
   ],
   "129b9e34ea": [
@@ -141,16 +147,16 @@
       "value": "Maanta"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Qolku waa buuxaa"
+      "value": "Xadka isticmaalka cirfiidka toddobaadlaha ah waa la gaarey. Waxay dib u bilaabi doontaa bilawga usbuuca soo socda."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Qolkan waxa uu ku soo dhawaanayaa cabbirkiisa. Tixgeli inaad tirtirto qaar ka mid ah nuxurka ama bilawdo fayl cusub."
+      "value": "Hurdo"
     }
   ],
   "2445e5e347": [
@@ -165,6 +171,24 @@
       "value": "Ku saabsan tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Carwadaada ayaa sugaya"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Isku yeedh dhammaan"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Qaabka:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +201,24 @@
       "value": "Galalkayga"
     }
   ],
-  "2deec2cb74": [
+  "30cd34258a": [
     {
       "type": 0,
-      "value": "Qolkaani waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
+      "value": "Fuuqbaxa "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "cirifyada"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " ayaa u yimid inay soo baxaan bisha Diisambar. Si aad u sii baarto, raadi cirfiidka oo guji."
     }
   ],
   "31246941ad": [
@@ -195,10 +233,22 @@
       "value": "i18n: Iftiimin Maqan"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "saddex carwooyin"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Kudar xiriiriyaha"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Ku laabo tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +257,46 @@
       "value": "Fadlan isku day inaad dib u cusbooneysiiso bogga"
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Bandhig faneedyo ayaa soo socda si ay u soo baxaan bisha Disembar. Fadlan dib u eeg December 1deeda."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Tafatire"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Seexo dhamaantood"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Maamul"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Lasoco"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Raac"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Shuruudaha Adeegga"
     }
   ],
   "3bc7d6ea2f": [
@@ -249,10 +335,38 @@
       "value": "Caawimo ka hel Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Fairies"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "ayaa u yimi bishii December."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Waad ku mahadsan tahay inaad naga caawisay horumarinta tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Ma jiro carwo la doortay"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Si aad u sii waddo tafatirka fadlan ku koobbi faylka faylashaada."
     }
   ],
   "47839e47a5": [
@@ -285,6 +399,12 @@
       "value": "Magaca"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Dhammaan dooro"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -301,6 +421,12 @@
     {
       "type": 0,
       "value": "Tirtir kooxda…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Ikhtiyaar badan"
     }
   ],
   "4e6fbf032b": [
@@ -321,16 +447,16 @@
       "value": "Liiska bogga"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Faylkan hadda waa akhris-kaliya"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Xadka wada shaqayntu waa la gaadhay"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Fadlan hoos u dhig"
     }
   ],
   "554a05155c": [
@@ -365,6 +491,12 @@
     {
       "type": 0,
       "value": "Siyaasada gaarka ah"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Ku guuldarraystay inuu soo furto summada martiqaadka"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +539,6 @@
       "value": "La wadaag"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Qolku wuu weynaadaa"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Qolkan hadda waa akhris-kaliya"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +555,12 @@
     {
       "type": 0,
       "value": "Waanu ku guuldareysanay inaan soo rarno qayb ka mid ah macluumaadka aad abuurtay ka hor inta aanad soo galin"
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Waxaa lagugu martiqaaday inaad ku biirto kooxda:"
     }
   ],
   "5f3c333678": [
@@ -455,6 +581,20 @@
       "value": "Ka dib"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "La hadal "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -465,6 +605,12 @@
     {
       "type": 0,
       "value": "adiga"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Hagaha"
     }
   ],
   "6609dd239e": [
@@ -479,28 +625,34 @@
       "value": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Waxaa lagugu martiqaaday kooxda "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Geli ciwaanka iimaylkaaga"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Toos"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Geli fariintaada"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Magaca cirfiidka"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Ciribtirka carwada"
     }
   ],
   "6a26f54883": [
@@ -581,10 +733,38 @@
       "value": "Fadlan dib u soo deji"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw waa sabuur cad oo online ah oo bilaash ah. Samee akoon si aad u kaydsato faylashaada oo ula shaqeyso asxaabtaada."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Codsi aan sax ahayn"
+    }
+  ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Waxaa lagugu martiqaaday"
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tldraw fairies"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Faylka ciyaartoy badan oo tldraw aan la garanayn hadda waa akhrin-kaliya. Si aad u sii waddo tafatirka, fadlan soo gal oo koobi ka geli faylashaada."
     }
   ],
   "78e9815992": [
@@ -599,6 +779,12 @@
       "value": "Ku soo gudbi arrin GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Sheekadu waa nin yar oo kaala shaqayn kara shiraaca. Carwada waxay u shaqayn kartaa kali ama koox ahaan. Ma jiro wax xad ah oo ay samayn karto cirfiidku. Qofna ma garanayo meesha ay ka yimaadeen."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -609,6 +795,12 @@
     {
       "type": 0,
       "value": "Soo celi nooca"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Fur tldraw"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +867,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Nadiifi dhammaan"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Soo dhawoow"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -701,16 +905,28 @@
       "value": "Magaca beddelo faylka"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Dib u dejin adag"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Iibso xidhmo cirfiid ah"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Maya mahadsanid"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Si aad u sii waddo tafatirka fadlan ku koobi qolka faylashaada."
+      "value": "hal mar lacag bixin"
     }
   ],
   "8c2d3d730c": [
@@ -719,10 +935,22 @@
       "value": "Hubi iimaylkaga koodka xaqiijinta"
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Guriga"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "kula wadaagay"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Ku saabsan"
     }
   ],
   "8ff3d0a705": [
@@ -753,6 +981,24 @@
     {
       "type": 0,
       "value": "Xiriirinta martiqaadka oo la guuriyay"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Ha dooran"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Horay ayaad xubin uga ahayd kooxdan"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Dir"
     }
   ],
   "95aacd4d4a": [
@@ -791,6 +1037,12 @@
       "value": "Iftiin"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Aragtida qaladka"
+    }
+  ],
   "9b33f5c63c": [
     {
       "type": 0,
@@ -815,12 +1067,6 @@
     {
       "type": 0,
       "value": "Tirtir faylka"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Qolkan ciyaartoy badan oo tldraw ah oo qarsoodi ah hadda waa akhris-kaliya. Si aad u sii waddo tafatirka, fadlan soo gal oo koobi ka geli faylashaada."
     }
   ],
   "9ceb927baa": [
@@ -871,6 +1117,12 @@
       "value": "Dhoofinta sawirka"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Ku biir"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -881,6 +1133,12 @@
     {
       "type": 0,
       "value": "Gudbi"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Ciribtirka"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1153,28 @@
       "value": "Falanqaynta"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Faylku wuu weynaaday"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Xadka carwada toddobaadlaha ayaa la gaarey"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Sheeko cusub"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Asalkii hore"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Saxeex si aad u aqbasho martiqaadka"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1199,18 @@
     {
       "type": 0,
       "value": "Isticmaalaha martida"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Faylku wuu buuxaa"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Log waqtiga jawaabta"
     }
   ],
   "b357b524e7": [
@@ -1025,6 +1307,12 @@
       "value": "ownerName"
     }
   ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "U soo dhawoow cirfiid"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1057,16 +1345,40 @@
       "value": "Aan awoodin in la daabaco faylka"
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Furan"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "waan fahmay"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Kukiyada muhiimka ah"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Aqbal martiqaadka"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Magaca kooxda"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Isticmaalka"
     }
   ],
   "c655b27b1e": [
@@ -1111,6 +1423,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Faylkaani waxa uu ku soo dhawaanayaa cabbirkiisa. Tixgeli inaad tirtirto qaar ka mid ah nuxurka ama bilawdo fayl cusub."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Waxaad hore u leedahay marin u helida cirfiidka!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1121,6 +1445,12 @@
     {
       "type": 0,
       "value": "Xir"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Codsiyo badan Fadlan hoos u dhig"
     }
   ],
   "d4bbf74f3e": [
@@ -1187,6 +1517,12 @@
       "value": "Tag halkan si aad u aragto waxa ku jira"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Daar carwada"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1199,16 +1535,48 @@
       "value": "martiqaad kaliya"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Cad"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "URL faylka tldraw aan sax ahayn"
     }
   ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Carwada waa muuqaal"
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "ku meel gaadh ah"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Janaayo 1st, 2026, dhammaan carwooyinka waa laga saari doonaa codsiga. Waxaa laga yaabaa inay mar kale soo noqdaan mar kale maalin. Iibkaagu waxa loogu talagalay gelitaanka carwada Diisambar 2025 oo keliya."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Calaamadaha cilladaha abka"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Dooro"
     }
   ],
   "e0c88179b3": [
@@ -1239,6 +1607,12 @@
     {
       "type": 0,
       "value": "Shuruudaha adeegga"
+    }
+  ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Tag"
     }
   ],
   "e81c4e4f2b": [
@@ -1305,6 +1679,12 @@
       "value": "a"
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Kala dir"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1315,6 +1695,12 @@
     {
       "type": 0,
       "value": "la doortay"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "U yeedhid"
     }
   ],
   "f09b16bc5f": [
@@ -1329,6 +1715,12 @@
       "value": "Dejinta isticmaalaha"
     }
   ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Habee"
+    }
+  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1339,12 +1731,6 @@
     {
       "type": 0,
       "value": "Tirtir"
-    }
-  ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Ku laabo tldraw."
     }
   ],
   "f4f70727dc": [
