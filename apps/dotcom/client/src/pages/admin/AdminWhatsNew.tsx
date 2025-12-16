@@ -6,6 +6,133 @@ import { TlaWhatsNewDialogContent } from '../../tla/components/TlaWhatsNew/TlaWh
 import { TlaWhatsNewPageEntry } from '../../tla/components/TlaWhatsNew/TlaWhatsNewPageEntry'
 import styles from '../admin.module.css'
 
+function WhatsNewImageGallery({
+	imageList,
+	loadingImages,
+	onLoadImages,
+	onDeleteImage,
+}: {
+	imageList: Array<{ name: string; objectName: string; url: string }>
+	loadingImages: boolean
+	onLoadImages: () => void
+	onDeleteImage: (objectName: string) => void
+}) {
+	const [showImageList, setShowImageList] = useState(false)
+
+	const handleToggleImageList = () => {
+		if (!showImageList && imageList.length === 0) {
+			onLoadImages()
+		}
+		setShowImageList(!showImageList)
+	}
+
+	const copyMarkdownToClipboard = (url: string) => {
+		const markdown = `![description](${url})`
+		navigator.clipboard.writeText(markdown)
+	}
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">Image gallery</h4>
+			<p className="tla-text_ui__small">All uploaded What&apos;s New images</p>
+
+			<button
+				type="button"
+				onClick={handleToggleImageList}
+				style={{
+					background: 'none',
+					border: 'none',
+					padding: '8px 0',
+					color: 'var(--tla-color-text-2)',
+					fontSize: '12px',
+					cursor: 'pointer',
+					display: 'flex',
+					alignItems: 'center',
+					gap: '6px',
+					fontWeight: 500,
+				}}
+			>
+				<span
+					style={{
+						transform: showImageList ? 'rotate(90deg)' : 'rotate(0deg)',
+						transition: 'transform 0.2s',
+					}}
+				>
+					▸
+				</span>
+				{loadingImages
+					? 'Loading images...'
+					: showImageList
+						? `Hide images (${imageList.length})`
+						: 'Show images'}
+			</button>
+
+			{showImageList && imageList.length > 0 && (
+				<div
+					style={{
+						marginTop: '12px',
+						display: 'grid',
+						gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+						gap: '16px',
+						maxHeight: '600px',
+						overflowY: 'auto',
+						padding: '16px',
+						border: '1px solid var(--tla-color-border)',
+						borderRadius: 'var(--tla-radius-2)',
+						backgroundColor: 'var(--tla-color-contrast)',
+					}}
+				>
+					{imageList.map((image) => (
+						<div
+							key={image.url}
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								gap: '8px',
+							}}
+						>
+							<img
+								src={image.url}
+								alt={image.name}
+								style={{
+									width: '100%',
+									height: 'auto',
+									borderRadius: '4px',
+								}}
+							/>
+							<div style={{ display: 'flex', gap: '4px' }}>
+								<TlaButton
+									type="button"
+									variant="secondary"
+									onClick={() => copyMarkdownToClipboard(image.url)}
+									style={{ fontSize: '11px', padding: '6px 8px', flex: 1 }}
+								>
+									Copy markdown
+								</TlaButton>
+								<TlaButton
+									type="button"
+									variant="warning"
+									onClick={() => onDeleteImage(image.objectName)}
+									className={styles.deleteButton}
+									style={{ fontSize: '11px', padding: '6px 8px' }}
+								>
+									Delete
+								</TlaButton>
+							</div>
+						</div>
+					))}
+				</div>
+			)}
+
+			{showImageList && imageList.length === 0 && !loadingImages && (
+				<p className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
+					No images uploaded yet
+				</p>
+			)}
+		</div>
+	)
+}
+
 type WhatsNewEntryDraft = Omit<WhatsNewEntry, 'schemaVersion'> & {
 	schemaVersion?: number
 }
@@ -26,12 +153,59 @@ function WhatsNewEntryForm({
 	entry,
 	onSave,
 	onCancel,
+	onImageUploaded,
 }: {
 	entry: WhatsNewEntryDraft
 	onSave(entry: WhatsNewEntry): void
 	onCancel(): void
+	onImageUploaded?: () => void
 }) {
 	const [formData, setFormData] = useState<WhatsNewEntryDraft>(entry)
+	const [lastUploadedUrl, setLastUploadedUrl] = useState<string | null>(null)
+	const [uploading, setUploading] = useState(false)
+	const [uploadError, setUploadError] = useState<string | null>(null)
+
+	const uploadImage = async (file: File): Promise<string> => {
+		const res = await fetch('/api/app/admin/whats-new/upload-image', {
+			method: 'POST',
+			body: file,
+			headers: {
+				'Content-Type': file.type,
+			},
+		})
+
+		if (!res.ok) throw new Error(await res.text())
+
+		const { url } = await res.json()
+		return url
+	}
+
+	const handleFileSelect = async (e: any) => {
+		const file = e.target.files?.[0]
+		if (!file) return
+
+		setUploading(true)
+		setUploadError(null)
+
+		try {
+			const url = await uploadImage(file)
+			setLastUploadedUrl(url)
+			onImageUploaded?.()
+		} catch (err) {
+			setUploadError(err instanceof Error ? err.message : 'Upload failed')
+		} finally {
+			setUploading(false)
+			// Reset input to allow uploading the same file again
+			e.target.value = ''
+		}
+	}
+
+	const copyMarkdownToClipboard = () => {
+		if (lastUploadedUrl) {
+			const markdown = `![description](${lastUploadedUrl})`
+			navigator.clipboard.writeText(markdown)
+		}
+	}
 
 	return (
 		<form
@@ -87,7 +261,8 @@ function WhatsNewEntryForm({
 					<div className={styles.formField}>
 						<label htmlFor="description">Short description:</label>
 						<div className={styles.markdownHelper}>
-							Shown in dialog popup. Supports **bold**, *italic*, [links](url), lists, and `code`
+							Shown in dialog popup. Supports **bold**, *italic*, [links](url), lists, `code`, and
+							images: ![alt](url)
 						</div>
 						<textarea
 							id="description"
@@ -105,7 +280,7 @@ function WhatsNewEntryForm({
 						<label htmlFor="fullDescription">Long description:</label>
 						<div className={styles.markdownHelper}>
 							Optional. Shown on /whats-new page with more space. If empty, short description is
-							used.
+							used. Supports markdown including images.
 						</div>
 						<textarea
 							id="fullDescription"
@@ -133,6 +308,40 @@ function WhatsNewEntryForm({
 							<option value="regular">Regular</option>
 							<option value="important">Important</option>
 						</select>
+					</div>
+
+					<div className={styles.formField}>
+						<label>Upload image:</label>
+						<div className={styles.markdownHelper}>
+							Upload image, copy markdown code, paste into description
+						</div>
+						<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+							<input
+								type="file"
+								accept="image/*"
+								onChange={handleFileSelect}
+								disabled={uploading}
+								style={{ display: 'none' }}
+								id="image-upload"
+							/>
+							<TlaButton
+								type="button"
+								variant="secondary"
+								disabled={uploading}
+								onClick={() => document.getElementById('image-upload')?.click()}
+							>
+								{uploading ? 'Uploading...' : 'Upload image'}
+							</TlaButton>
+							<TlaButton
+								type="button"
+								variant="secondary"
+								disabled={!lastUploadedUrl}
+								onClick={() => copyMarkdownToClipboard()}
+							>
+								Copy markdown
+							</TlaButton>
+						</div>
+						{uploadError && <div className={styles.errorMessage}>{uploadError}</div>}
 					</div>
 
 					<div className={styles.formActions}>
@@ -189,6 +398,10 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 	const [error, setError] = useState<string | null>(null)
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 	const [editingEntry, setEditingEntry] = useState<WhatsNewEntryDraft | null>(null)
+	const [imageList, setImageList] = useState<
+		Array<{ name: string; objectName: string; url: string }>
+	>([])
+	const [loadingImages, setLoadingImages] = useState(false)
 
 	const loadEntries = useCallback(async () => {
 		setError(null)
@@ -207,6 +420,42 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 			setEntries(sorted)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to load entries')
+		}
+	}, [])
+
+	const loadImageList = useCallback(async () => {
+		setLoadingImages(true)
+		try {
+			const res = await fetch('/api/app/admin/whats-new/list-images')
+			if (!res.ok) throw new Error('Failed to load images')
+			const data = await res.json()
+			setImageList(data)
+		} catch (err) {
+			console.error('Failed to fetch images:', err)
+		} finally {
+			setLoadingImages(false)
+		}
+	}, [])
+
+	const deleteImage = useCallback(async (objectName: string) => {
+		if (!window.confirm('Delete this image?')) return
+
+		try {
+			const res = await fetch('/api/app/admin/whats-new/delete-image', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ objectName }),
+			})
+			if (!res.ok) {
+				const errorText = await res.text()
+				throw new Error(`Failed to delete image: ${res.status} ${errorText}`)
+			}
+
+			// Remove from local state
+			setImageList((prev) => prev.filter((img) => img.objectName !== objectName))
+		} catch (err) {
+			console.error('Failed to delete image:', err)
+			alert('Failed to delete image')
 		}
 	}, [])
 
@@ -301,6 +550,7 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 						entry={editingEntry}
 						onSave={saveEntry}
 						onCancel={() => setEditingEntry(null)}
+						onImageUploaded={loadImageList}
 					/>
 				</div>
 			)}
@@ -347,6 +597,13 @@ export function AdminWhatsNew({ initialEntries }: AdminWhatsNewProps) {
 					))
 				)}
 			</div>
+
+			<WhatsNewImageGallery
+				imageList={imageList}
+				loadingImages={loadingImages}
+				onLoadImages={loadImageList}
+				onDeleteImage={deleteImage}
+			/>
 		</div>
 	)
 }

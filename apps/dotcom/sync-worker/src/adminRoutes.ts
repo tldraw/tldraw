@@ -1,6 +1,6 @@
 import { FeatureFlagKey, MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
-import { createRouter } from '@tldraw/worker-shared'
+import { createRouter, handleUserAssetUpload } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
 import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
@@ -524,12 +524,64 @@ export const adminRoutes = createRouter<Environment>()
 		await setWhatsNewEntry(env, body)
 		return json({ success: true })
 	})
+	.delete('/app/admin/whats-new/delete-image', async (req, env) => {
+		const body: any = await req.json()
+		const { objectName } = body
+
+		if (typeof objectName !== 'string' || !objectName) {
+			throw new StatusError(400, 'objectName is required')
+		}
+
+		// Ensure it's in the whats-new folder for safety
+		if (!objectName.startsWith('whats-new/')) {
+			throw new StatusError(400, 'Can only delete images from whats-new folder')
+		}
+
+		await env.UPLOADS.delete(objectName)
+
+		return json({ success: true })
+	})
 	.delete('/app/admin/whats-new/:version', async (req, env) => {
 		const version = req.params.version
 		assert(typeof version === 'string', 'version is required')
 
 		await deleteWhatsNewEntry(env, version)
 		return json({ success: true })
+	})
+	.post('/app/admin/whats-new/upload-image', async (req, env) => {
+		const contentType = req.headers.get('Content-Type') || 'image/png'
+		const extension = contentType.split('/')[1]?.split(';')[0] || 'png'
+		const objectName = `whats-new/${uniqueId()}.${extension}`
+
+		const result = await handleUserAssetUpload({
+			objectName,
+			bucket: env.UPLOADS,
+			body: req.body,
+			headers: req.headers,
+		})
+
+		if (result.status !== 200) {
+			return result
+		}
+
+		const url = `/api/app/uploads/${objectName}`
+		return json({ url })
+	})
+	.get('/app/admin/whats-new/list-images', async (_req, env) => {
+		const listed = await env.UPLOADS.list({ prefix: 'whats-new/' })
+
+		return json(
+			listed.objects.map((obj) => {
+				const url = `/api/app/uploads/${obj.key}`
+				return {
+					name: obj.key.replace('whats-new/', ''),
+					objectName: obj.key,
+					url,
+					size: obj.size,
+					uploaded: obj.uploaded,
+				}
+			})
+		)
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {

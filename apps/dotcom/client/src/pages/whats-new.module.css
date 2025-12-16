@@ -208,6 +208,13 @@
 	text-decoration: underline;
 }
 
+.entryContent :global(img) {
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
+	margin: 16px 0;
+}
+
 @media (max-width: 768px) {
 	.container {
 		padding: 16px;

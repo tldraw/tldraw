@@ -129,7 +129,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/publish/:roomId', getPublishedFile)
-	.get('/app/uploads/:objectName', async (request, env, ctx) => {
+	.get('/app/uploads/:objectName+', async (request, env, ctx) => {
 		return handleUserAssetGet({
 			request,
 			bucket: env.UPLOADS,

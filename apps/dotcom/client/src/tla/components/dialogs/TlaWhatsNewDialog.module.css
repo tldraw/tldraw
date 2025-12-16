@@ -135,6 +135,14 @@
 	text-decoration: underline;
 }
 
+.description :global(img) {
+	max-width: 100%;
+	height: auto;
+	border-radius: 4px;
+	margin: 12px auto;
+	display: block;
+}
+
 .footer {
 	display: flex;
 	align-items: center;
