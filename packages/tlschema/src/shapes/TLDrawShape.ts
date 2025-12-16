@@ -188,17 +188,26 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.Base64,
 			up: (props) => {
-				props.segments = props.segments.map((segment: any) => ({
-					...segment,
-					points: b64Vecs.encodePoints(segment.points),
-				}))
-				props.scaleX = 1
-				props.scaleY = 1
+				props.segments = props.segments.map((segment: any) => {
+					return {
+						...segment,
+						// Only encode if points is an array (not already base64 string)
+						points:
+							typeof segment.points === 'string'
+								? segment.points
+								: b64Vecs.encodePoints(segment.points),
+					}
+				})
+				props.scaleX = props.scaleX ?? 1
+				props.scaleY = props.scaleY ?? 1
 			},
 			down: (props) => {
 				props.segments = props.segments.map((segment: any) => ({
 					...segment,
-					points: b64Vecs.decodePoints(segment.points),
+					// Only decode if points is a string (not already VecModel[])
+					points: Array.isArray(segment.points)
+						? segment.points
+						: b64Vecs.decodePoints(segment.points),
 				}))
 				delete props.scaleX
 				delete props.scaleY
