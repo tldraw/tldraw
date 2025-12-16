@@ -3,7 +3,7 @@ import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
@@ -26,15 +26,14 @@ import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/a
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
-import { TlaWhatsNewDialog } from '../components/dialogs/TlaWhatsNewDialog'
 import { FairyInviteHandler } from '../components/FairyInviteHandler'
 import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaWhatsNewAutoShowHandler } from '../components/TlaWhatsNew/TlaWhatsNewAutoShowHandler'
 import { TlaWhatsNewFetcher } from '../components/TlaWhatsNew/TlaWhatsNewFetcher'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
-import { useWhatsNew } from '../hooks/useWhatsNew'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
@@ -175,7 +174,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<PutToastsInApp />
 					<FairyInviteHandler />
 					<GroupInviteHandler />
-					<WhatsNewAutoShowHandler />
+					<TlaWhatsNewAutoShowHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -187,41 +186,6 @@ function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
-	return null
-}
-
-function WhatsNewAutoShowHandler() {
-	const app = useMaybeApp()
-	const { addDialog } = useDialogs()
-	const { entries, isLoaded } = useWhatsNew()
-	const location = useLocation()
-
-	useEffect(() => {
-		if (!isLoaded || !app) {
-			return
-		}
-
-		// Only auto-show on file routes (/f/)
-		if (!location.pathname.startsWith('/f/')) {
-			return
-		}
-
-		const latestEntry = entries[0]
-
-		if (!latestEntry || latestEntry.priority !== 'important') {
-			return
-		}
-
-		const user = app.getUser()
-
-		// Only show if user hasn't seen this version yet
-		if (user && user.whatsNewSeenVersion !== latestEntry.version) {
-			addDialog({ component: TlaWhatsNewDialog })
-			// Mark as seen immediately
-			app.z.mutate.user.updateWhatsNewSeenVersion({ version: latestEntry.version })
-		}
-	}, [isLoaded, entries, app, addDialog, location.pathname])
-
 	return null
 }
 
