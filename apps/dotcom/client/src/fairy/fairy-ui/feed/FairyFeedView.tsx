@@ -3,14 +3,16 @@ import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { TldrawUiButton, TldrawUiButtonIcon, useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { FairyActionRateChart } from '../../fairy-chart/FairyActionRateChart'
 import { FairyActionsByTypeChart } from '../../fairy-chart/FairyActionsByTypeChart'
 import { FairyActionsChart } from '../../fairy-chart/FairyActionsChart'
+import { FairyCostSummaryChart } from '../../fairy-chart/FairyCostSummaryChart'
 import { FairyTokenConsumptionChart } from '../../fairy-chart/FairyTokenConsumptionChart'
 import { FairyVelocityChart } from '../../fairy-chart/FairyVelocityChart'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
 
-type ChartType = 'velocity' | 'token-consumption' | 'actions' | 'actions-by-type'
+type ChartType = 'velocity' | 'action-rate' | 'token-consumption' | 'cost' | 'actions' | 'actions-by-type'
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -69,7 +71,7 @@ interface FeedItem {
 	isOrchestrator?: boolean
 }
 
-const CHART_ORDER: ChartType[] = ['velocity', 'token-consumption', 'actions', 'actions-by-type']
+const CHART_ORDER: ChartType[] = ['velocity', 'action-rate', 'token-consumption', 'cost', 'actions', 'actions-by-type']
 
 /** Chart carousel component for switching between different chart views */
 function ChartCarousel({
@@ -115,12 +117,30 @@ function ChartCarousel({
 				</div>
 				<div
 					style={{
+						visibility: activeChart === 'action-rate' ? 'visible' : 'hidden',
+						position: activeChart === 'action-rate' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
 						visibility: activeChart === 'token-consumption' ? 'visible' : 'hidden',
 						position: activeChart === 'token-consumption' ? 'relative' : 'absolute',
 						width: '100%',
 					}}
 				>
 					<FairyTokenConsumptionChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'cost' ? 'visible' : 'hidden',
+						position: activeChart === 'cost' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyCostSummaryChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				</div>
 				<div
 					style={{
