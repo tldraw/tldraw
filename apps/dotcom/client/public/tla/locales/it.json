@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Esporta"
   },
-  "00b177e080": {
-    "translation": "Accetta l'invito"
-  },
   "03b3e13197": {
     "translation": "Trascina il file nella barra laterale su questa pagina. Oppure seleziona l'opzione \"Importa file\" dal menu utente."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Richiesta non valida."
   },
+  "77f0abf1aa": {
+    "translation": "Sei stato invitato a <strong>tldraw fairies</strong>"
+  },
   "7827371d1a": {
     "translation": "Questo file multigiocatore tldraw anonimo è ora di sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Apri tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Sei stato invitato a unirti alle fate di tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Dimentica"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Deseleziona"
+  },
+  "9489b2f82a": {
+    "translation": "Sei già un membro di questo gruppo"
   },
   "94966d9074": {
     "translation": "Inviare"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookie essenziali"
   },
+  "c54a624f46": {
+    "translation": "Accetta l'invito"
+  },
   "c6155aaecc": {
     "translation": "Nome del gruppo"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL del file tldraw non valido"
   },
-  "de290d52ef": {
-    "translation": "Seleziona una fata sulla destra per chattare con"
-  },
   "df6ff49394": {
     "translation": "Le fate sono una funzionalità <strong>temporanea</strong>. Il 1° gennaio 2026, tutte le fate saranno rimosse dall'applicazione. Forse torneranno un giorno. Il tuo acquisto è valido solo per l'accesso alle fate per dicembre 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Impostazioni utente"
+  },
+  "f1206f9fad": {
+    "translation": "Configurare"
   },
   "f2569594b2": {
     "translation": "Utilizziamo questi cookie per salvare i tuoi file e le tue impostazioni."

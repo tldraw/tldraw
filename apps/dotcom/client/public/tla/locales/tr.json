@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Dışa aktar"
   },
-  "00b177e080": {
-    "translation": "Daveti kabul et"
-  },
   "03b3e13197": {
     "translation": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Geçersiz istek"
   },
+  "77f0abf1aa": {
+    "translation": "<strong>tldraw fairies</strong>'e davet edildiniz"
+  },
   "7827371d1a": {
     "translation": "Bu anonim tldraw çok oyunculu dosyası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyayı dosyalarınıza kopyalayın."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "tldraw'ı açın"
-  },
-  "7cb471f815": {
-    "translation": "tldraw fairies'e katılmaya davet edildiniz!"
   },
   "7cb5f8b4a5": {
     "translation": "Unut"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Seçimi kaldır"
+  },
+  "9489b2f82a": {
+    "translation": "Zaten bu grubun üyesisiniz"
   },
   "94966d9074": {
     "translation": "Göndermek"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Temel çerezler"
   },
+  "c54a624f46": {
+    "translation": "Daveti kabul et"
+  },
   "c6155aaecc": {
     "translation": "Grup adı"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Geçersiz tldraw dosya URL'si"
   },
-  "de290d52ef": {
-    "translation": "Sohbet etmek için sağdaki periyi seçin"
-  },
   "df6ff49394": {
     "translation": "Periler <strong>geçici</strong> bir özelliktir. 1 Ocak 2026'da tüm periler uygulamadan kaldırılacak. Belki bir gün tekrar geri dönerler. Satın aldığınız ürün, yalnızca Aralık 2025'te perilere erişim içindir."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Kullanıcı ayarları"
+  },
+  "f1206f9fad": {
+    "translation": "Yapılandır"
   },
   "f2569594b2": {
     "translation": "Bu çerezleri dosyalarınızı ve ayarlarınızı kaydetmek için kullanıyoruz."

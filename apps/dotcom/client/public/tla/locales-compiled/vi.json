@@ -5,12 +5,6 @@
       "value": "Xuất"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Chấp nhận lời mời"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -751,6 +745,22 @@
       "value": "Yêu cầu không hợp lệ."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Bạn đã được mời "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "vẽ tiên"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -791,12 +801,6 @@
     {
       "type": 0,
       "value": "Mở tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Bạn đã được mời tham gia tldraw fairies!"
     }
   ],
   "7cb5f8b4a5": [
@@ -983,6 +987,12 @@
     {
       "type": 0,
       "value": "Bỏ chọn"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Bạn đã là thành viên của nhóm này"
     }
   ],
   "94966d9074": [
@@ -1345,6 +1355,12 @@
       "value": "Cookie thiết yếu"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Chấp nhận lời mời"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1523,12 +1539,6 @@
       "value": "URL tệp tldraw không hợp lệ"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Chọn một nàng tiên bên phải để trò chuyện"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1699,6 +1709,12 @@
     {
       "type": 0,
       "value": "Cài đặt người dùng"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Cấu hình"
     }
   ],
   "f2569594b2": [

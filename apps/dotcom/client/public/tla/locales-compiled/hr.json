@@ -5,12 +5,6 @@
       "value": "Izvoz"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Prihvati pozivnicu"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -542,7 +536,7 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Udio"
+      "value": "Dijeli"
     }
   ],
   "5bec508475": [
@@ -751,6 +745,22 @@
       "value": "Neispravan zahtjev."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Pozvani ste na "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "crtanje vila"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -791,12 +801,6 @@
     {
       "type": 0,
       "value": "Otvori tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Pozvani ste da se pridružite tldraw vilama!"
     }
   ],
   "7cb5f8b4a5": [
@@ -983,6 +987,12 @@
     {
       "type": 0,
       "value": "Poništi odabir"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Već ste član ove grupe"
     }
   ],
   "94966d9074": [
@@ -1357,6 +1367,12 @@
       "value": "Osnovni kolačići"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Prihvati poziv"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1535,12 +1551,6 @@
       "value": "Nevažeći URL datoteke tldraw"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Odaberite vilu s desne strane za razgovor"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1711,6 +1721,12 @@
     {
       "type": 0,
       "value": "Korisničke postavke"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Konfigurirati"
     }
   ],
   "f2569594b2": [
