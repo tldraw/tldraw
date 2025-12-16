@@ -2,6 +2,7 @@ import { AgentModelName, DEFAULT_MODEL_NAME } from '@tldraw/fairy-shared'
 import { Atom, atom, Editor } from 'tldraw'
 import { TldrawApp } from '../../tla/app/TldrawApp'
 import { FairyAppActionRateTracker } from './managers/FairyAppActionRateTracker'
+import { FairyAppActiveTimeTracker } from './managers/FairyAppActiveTimeTracker'
 import { FairyAppAgentsManager } from './managers/FairyAppAgentsManager'
 import { FairyAppFollowingManager } from './managers/FairyAppFollowingManager'
 import { FairyAppPersistenceManager } from './managers/FairyAppPersistenceManager'
@@ -72,6 +73,11 @@ export class FairyApp {
 	 */
 	textOutputTracker: FairyAppTextOutputTracker
 
+	/**
+	 * Manager for tracking fairy active time percentage and concurrent activity.
+	 */
+	activeTimeTracker: FairyAppActiveTimeTracker
+
 	// --- Global fairy state ---
 
 	/**
@@ -111,6 +117,7 @@ export class FairyApp {
 		this.tokenConsumptionTracker = new FairyAppTokenConsumptionTracker(this)
 		this.actionRateTracker = new FairyAppActionRateTracker(this)
 		this.textOutputTracker = new FairyAppTextOutputTracker(this)
+		this.activeTimeTracker = new FairyAppActiveTimeTracker(this)
 
 		editor.on('crash', () => this.dispose())
 		editor.on('dispose', () => this.dispose())
@@ -131,6 +138,8 @@ export class FairyApp {
 		this.actionRateTracker.dispose()
 		// Stop text output tracking
 		this.textOutputTracker.dispose()
+		// Stop active time tracking
+		this.activeTimeTracker.dispose()
 
 		// Not sure if we need to dispose the rest...
 		// this.agents.disposeAll()

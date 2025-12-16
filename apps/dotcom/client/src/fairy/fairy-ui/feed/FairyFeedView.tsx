@@ -6,8 +6,11 @@ import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyActionRateChart } from '../../fairy-chart/FairyActionRateChart'
 import { FairyActionsByTypeChart } from '../../fairy-chart/FairyActionsByTypeChart'
 import { FairyActionsChart } from '../../fairy-chart/FairyActionsChart'
+import { FairyActiveTimeChart } from '../../fairy-chart/FairyActiveTimeChart'
 import { FairyCategoryHeatmapChart } from '../../fairy-chart/FairyCategoryHeatmapChart'
+import { FairyConcurrentActiveChart } from '../../fairy-chart/FairyConcurrentActiveChart'
 import { FairyCostSummaryChart } from '../../fairy-chart/FairyCostSummaryChart'
+import { FairyInterActionGapChart } from '../../fairy-chart/FairyInterActionGapChart'
 import { FairyTextOutputChart } from '../../fairy-chart/FairyTextOutputChart'
 import { FairyThinkingTimeChart } from '../../fairy-chart/FairyThinkingTimeChart'
 import { FairyTokenConsumptionChart } from '../../fairy-chart/FairyTokenConsumptionChart'
@@ -25,6 +28,9 @@ type ChartType =
 	| 'actions'
 	| 'actions-by-type'
 	| 'category-heatmap'
+	| 'active-time'
+	| 'concurrent-active'
+	| 'inter-action-gap'
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -84,15 +90,18 @@ interface FeedItem {
 }
 
 const CHART_ORDER: ChartType[] = [
-	'velocity',
+	// 'velocity',
 	'action-rate',
+	'active-time',
+	// 'concurrent-active',
+	// 'inter-action-gap',
 	'text-output',
 	'thinking-time',
 	'token-consumption',
-	'cost',
+	// 'cost',
 	'actions',
-	'actions-by-type',
-	'category-heatmap',
+	// 'actions-by-type',
+	// 'category-heatmap',
 ]
 
 /** Chart carousel component for switching between different chart views */
@@ -208,6 +217,33 @@ function ChartCarousel({
 					}}
 				>
 					<FairyCategoryHeatmapChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'active-time' ? 'visible' : 'hidden',
+						position: activeChart === 'active-time' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyActiveTimeChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'concurrent-active' ? 'visible' : 'hidden',
+						position: activeChart === 'concurrent-active' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyConcurrentActiveChart orchestratorAgent={orchestratorAgent} agents={agents} />
+				</div>
+				<div
+					style={{
+						visibility: activeChart === 'inter-action-gap' ? 'visible' : 'hidden',
+						position: activeChart === 'inter-action-gap' ? 'relative' : 'absolute',
+						width: '100%',
+					}}
+				>
+					<FairyInterActionGapChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				</div>
 			</div>
 			<div className="fairy-chart-carousel-chevron-container">

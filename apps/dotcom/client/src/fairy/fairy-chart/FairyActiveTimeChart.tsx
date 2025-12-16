@@ -2,11 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
-import type {
-	FairyTextData,
-	TextOutputDataPoint,
-} from '../fairy-app/managers/FairyAppTextOutputTracker'
-import { Y_AXIS_PADDING_MULTIPLIER } from '../fairy-shared-constants'
+import type { ActiveTimeDataPoint, FairyActiveData } from '../fairy-app/managers/FairyAppActiveTimeTracker'
 import { ChartErrorBoundary } from './ChartErrorBoundary'
 import { FairyChartContainer } from './FairyChartContainer'
 import { FairyLineChart } from './FairyLineChart'
@@ -14,16 +10,12 @@ import { shouldRecreateChart } from './fairy-chart-helpers'
 import type { ChartData, Dataset } from './fairy-chart-types'
 import { useProjectChangeDetection } from './useProjectChangeDetection'
 
-interface FairyTextOutputChartProps {
+interface FairyActiveTimeChartProps {
 	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
 }
 
-// Rough estimate: ~4 characters per token for typical English text
-// This gives a real-time proxy for token velocity without waiting for server usage data
-const CHARS_PER_TOKEN_ESTIMATE = 4
-
-export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOutputChartProps) {
+export function FairyActiveTimeChart({ orchestratorAgent, agents }: FairyActiveTimeChartProps) {
 	const fairyApp = useFairyApp()
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyLineChart | null>(null)
@@ -37,51 +29,50 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 
 	// Reset chart data when project changes
 	useProjectChangeDetection(project, fairyApp, () => {
-		// Destroy existing chart instance so it gets recreated fresh
 		if (chartInstanceRef.current) {
 			chartInstanceRef.current.destroy()
 			chartInstanceRef.current = null
 		}
 	})
 
-	// Get text output data from tracker (subscribe to atom changes)
-	const textOutputData = useValue(
-		'text-output-data',
+	// Get active time data from tracker (subscribe to atom changes)
+	const activeTimeData = useValue(
+		'active-time-data',
 		() => {
-			if (!fairyApp?.textOutputTracker) return []
-			return fairyApp.textOutputTracker.getDataPointsAtom().get()
+			if (!fairyApp?.activeTimeTracker) return []
+			return fairyApp.activeTimeTracker.getDataPointsAtom().get()
 		},
 		[fairyApp]
 	)
 
 	// Start/stop tracking based on project existence
 	useEffect(() => {
-		if (!fairyApp?.textOutputTracker) {
+		if (!fairyApp?.activeTimeTracker) {
 			return
 		}
 
 		// Stop tracking if no project (project ended)
 		if (!project) {
-			fairyApp.textOutputTracker.stopTracking()
+			fairyApp.activeTimeTracker.stopTracking()
 			return
 		}
 
 		// Start tracking with project agents, passing project ID for automatic reset
-		fairyApp.textOutputTracker.startTracking(() => {
+		fairyApp.activeTimeTracker.startTracking(() => {
 			const currentProject = orchestratorAgent?.getProject(true)
 			if (!currentProject) return []
 
-			// Filter to project members (always include all members)
+			// Filter to project members
 			return agents.filter((agent) => {
-				const isMember = currentProject.members.some((m: { id: string }) => m.id === agent.id)
+				const isMember = currentProject.members.some((m) => m.id === agent.id)
 				return isMember
 			})
 		}, project.id)
 	}, [fairyApp, project, agents, orchestratorAgent])
 
-	// Build per-fairy datasets from text output data with rolling window average
+	// Build per-fairy datasets showing rolling active time percentage
 	const chartData = useMemo((): ChartData & { maxValue?: number } => {
-		if (textOutputData.length === 0) {
+		if (activeTimeData.length === 0) {
 			return { labels: [], datasets: [], maxValue: 0 }
 		}
 
@@ -91,10 +82,10 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 		const fairyMap = new Map<string, { name: string; color: string; values: number[] }>()
 
 		// Initialize fairy map
-		for (const dataPoint of textOutputData) {
+		for (const dataPoint of activeTimeData) {
 			for (const fairy of dataPoint.fairies) {
 				if (!fairyMap.has(fairy.id)) {
-					const color = fairyApp?.textOutputTracker?.getHatColorHex(fairy.hatColor) ?? '#888888'
+					const color = fairyApp?.activeTimeTracker?.getHatColorHex(fairy.hatColor) ?? '#888888'
 					fairyMap.set(fairy.id, {
 						name: fairy.name,
 						color,
@@ -104,47 +95,40 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 			}
 		}
 
-		// Calculate rolling average estimated tokens per minute for each data point
-		textOutputData.forEach((dataPoint: TextOutputDataPoint, index: number) => {
+		// Calculate rolling active percentage for each data point
+		activeTimeData.forEach((dataPoint: ActiveTimeDataPoint, index: number) => {
 			// Determine window start (60 seconds before current point)
 			const windowStartTime = dataPoint.timestamp - ROLLING_WINDOW_SECONDS * 1000
-			const windowStartIndex = textOutputData.findIndex(
-				(dp: TextOutputDataPoint) => dp.timestamp >= windowStartTime
+			const windowStartIndex = activeTimeData.findIndex(
+				(dp: ActiveTimeDataPoint) => dp.timestamp >= windowStartTime
 			)
 			const startIndex = windowStartIndex >= 0 ? windowStartIndex : 0
 
-			// Calculate estimated tokens per minute for each fairy at this point
+			// Calculate active percentage for each fairy at this point
 			for (const [fairyId, fairyInfo] of fairyMap) {
-				let totalChars = 0
+				let activeSamples = 0
+				let totalSamples = 0
 
-				// Sum chars in the window for this fairy
+				// Count active samples in the window for this fairy
 				for (let i = startIndex; i <= index; i++) {
-					const dp = textOutputData[i]
-					const fairyInDp = dp.fairies.find((f: FairyTextData) => f.id === fairyId)
+					const dp = activeTimeData[i]
+					const fairyInDp = dp.fairies.find((f: FairyActiveData) => f.id === fairyId)
 					if (fairyInDp) {
-						totalChars += fairyInDp.charsDelta
+						totalSamples++
+						if (fairyInDp.isActive) activeSamples++
 					}
 				}
 
-				// Convert chars to estimated tokens
-				const estimatedTokens = totalChars / CHARS_PER_TOKEN_ESTIMATE
-
-				// Calculate window duration
-				const windowDuration = index - startIndex + 1 // Number of samples
-				const actualWindowSeconds = Math.min(windowDuration, ROLLING_WINDOW_SECONDS)
-
-				// Convert to estimated tokens per minute
-				const tokensPerMinute =
-					actualWindowSeconds > 0 ? (estimatedTokens / actualWindowSeconds) * 60 : 0
-				fairyInfo.values.push(tokensPerMinute)
+				// Calculate percentage
+				const activePercent = totalSamples > 0 ? (activeSamples / totalSamples) * 100 : 0
+				fairyInfo.values.push(activePercent)
 			}
 		})
 
-		// Build datasets with rate values
+		// Build datasets
 		const datasets: Dataset[] = []
 		let maxValue = 0
 		for (const [, data] of fairyMap) {
-			// Track the maximum value for y-axis scaling
 			const maxInDataset = Math.max(...data.values)
 			maxValue = Math.max(maxValue, maxInDataset)
 
@@ -155,11 +139,10 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 			})
 		}
 
-		// Simple labels - empty strings
-		const labels = textOutputData.map(() => '')
+		const labels = activeTimeData.map(() => '')
 
 		return { labels, datasets, maxValue }
-	}, [textOutputData, fairyApp])
+	}, [activeTimeData, fairyApp])
 
 	// Track previous maxYValue to detect when we need to recreate chart
 	const prevMaxYValueRef = useRef<number | undefined>(undefined)
@@ -168,21 +151,16 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 	useEffect(() => {
 		if (!chartContainerRef.current || chartData.datasets.length === 0) return
 
-		// Calculate maxYValue dynamically based on rate values, with padding
-		// Adds Y_AXIS_PADDING_MULTIPLIER (20%) to prevent lines from touching the top
-		const maxYValue = chartData.maxValue
-			? Math.ceil(chartData.maxValue * Y_AXIS_PADDING_MULTIPLIER)
-			: undefined
+		// Max is always 100% for percentage chart
+		const maxYValue = 100
 
 		// Only recreate chart if maxYValue increased significantly
-		// Uses CHART_RECREATION_THRESHOLD (25%) to prevent infinite loops from tiny fluctuations
 		const existingChart = chartInstanceRef.current
 		if (shouldRecreateChart(existingChart, maxYValue, prevMaxYValueRef.current)) {
 			existingChart!.destroy()
 			chartInstanceRef.current = null
 		}
 
-		// Update prevMaxYValueRef only when we recreate or on first render
 		if (!chartInstanceRef.current || prevMaxYValueRef.current === undefined) {
 			prevMaxYValueRef.current = maxYValue
 		}
@@ -203,7 +181,6 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 			return
 		}
 
-		// Update chart with new data
 		chartInstanceRef.current.update(chartData)
 	}, [chartData])
 
@@ -224,12 +201,13 @@ export function FairyTextOutputChart({ orchestratorAgent, agents }: FairyTextOut
 	return (
 		<ChartErrorBoundary>
 			<FairyChartContainer
-				title="Est. Token Output (tokens/min)"
-				isEmpty={textOutputData.length === 0}
-				emptyMessage="Waiting for text output..."
+				title="Active Time (%)"
+				isEmpty={activeTimeData.length === 0}
+				emptyMessage="Waiting for fairy activity..."
 			>
 				<div ref={chartContainerRef} className="fairy-activity-chart" />
 			</FairyChartContainer>
 		</ChartErrorBoundary>
 	)
 }
+
