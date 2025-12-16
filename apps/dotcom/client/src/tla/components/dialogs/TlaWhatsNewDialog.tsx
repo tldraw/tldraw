@@ -24,7 +24,7 @@ export function TlaWhatsNewDialog() {
 					<TldrawUiDialogCloseButton />
 				</TldrawUiDialogHeader>
 				<TldrawUiDialogBody className={styles.dialogBody}>
-					<div>
+					<div className={styles.dialogContent}>
 						<F defaultMessage="No updates available" />
 					</div>
 				</TldrawUiDialogBody>
@@ -40,7 +40,7 @@ export function TlaWhatsNewDialog() {
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody>
+			<TldrawUiDialogBody className={styles.dialogBody}>
 				<TlaWhatsNewDialogContent entry={latestEntry} />
 			</TldrawUiDialogBody>
 		</>

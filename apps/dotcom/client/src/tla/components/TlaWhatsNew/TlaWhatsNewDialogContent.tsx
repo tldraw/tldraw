@@ -15,7 +15,7 @@ export function TlaWhatsNewDialogContent({ entry }: TlaWhatsNewDialogContentProp
 	const date = new Date(entry.date)
 
 	return (
-		<div className={styles.dialogBody}>
+		<div className={styles.dialogContent}>
 			<div className={styles.title}>
 				{entry.title}
 				<span className={styles.date}>

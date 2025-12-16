@@ -7,6 +7,27 @@
 	min-height: 320px;
 }
 
+.dialogContent {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-height: 60vh;
+	overflow-y: auto;
+	width: 100%;
+}
+
+@media (max-width: 767px) {
+	.dialogBody {
+		width: 100%;
+		max-width: calc(100vw - 32px);
+		padding: 16px;
+	}
+
+	.dialogContent {
+		max-height: 75vh;
+	}
+}
+
 .loadingContainer {
 	display: flex;
 	align-items: center;

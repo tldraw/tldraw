@@ -240,5 +240,11 @@
 
 	.entry {
 		padding-bottom: 24px;
+		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+
+	.entryMeta {
+		padding-top: 0;
 	}
 }
