@@ -15,8 +15,8 @@ function WhatsNewImageGallery({
 }: {
 	imageList: Array<{ name: string; objectName: string; url: string; uploaded?: Date }>
 	loadingImages: boolean
-	onLoadImages: () => void
-	onDeleteImage: (objectName: string) => void
+	onLoadImages(): void
+	onDeleteImage(objectName: string): void
 }) {
 	const [viewingImageUrl, setViewingImageUrl] = useState<string | null>(null)
 
@@ -139,7 +139,7 @@ function WhatsNewEntryForm({
 	entry: WhatsNewEntryDraft
 	onSave(entry: WhatsNewEntry): void
 	onCancel(): void
-	onImageUploaded?: () => void
+	onImageUploaded?(): void
 }) {
 	const [formData, setFormData] = useState<WhatsNewEntryDraft>(entry)
 	const [lastUploadedUrl, setLastUploadedUrl] = useState<string | null>(null)
