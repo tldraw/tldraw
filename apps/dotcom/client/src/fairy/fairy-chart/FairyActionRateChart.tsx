@@ -59,7 +59,7 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 
 	// Build per-fairy datasets from action rate data with rolling window average
 	const chartData = useMemo((): ChartData & { maxValue?: number } => {
-		if (filteredData.length === 0) {
+		if (filteredData.length === 0 || !fairyApp?.actionRateTracker) {
 			return { labels: [], datasets: [], maxValue: 0 }
 		}
 
@@ -68,11 +68,11 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 		// Get all unique fairy IDs across all data points
 		const fairyMap = new Map<string, { name: string; color: string; values: number[] }>()
 
-		// Initialize fairy map
+		// Initialize fairy map with colors from tracker
 		for (const dataPoint of filteredData) {
 			for (const fairy of dataPoint.fairies) {
 				if (!fairyMap.has(fairy.id)) {
-					const color = fairyApp?.actionRateTracker?.getHatColorHex(fairy.hatColor) ?? '#888888'
+					const color = fairyApp.actionRateTracker.getHatColorHex(fairy.hatColor)
 					fairyMap.set(fairy.id, {
 						name: fairy.name,
 						color,
@@ -82,14 +82,14 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 			}
 		}
 
-		// Calculate rolling average actions per minute for each data point
+		// Calculate rolling average actions per minute for each historical data point
 		filteredData.forEach((dataPoint, index) => {
 			// Determine window start (60 seconds before current point)
 			const windowStartTime = dataPoint.timestamp - ROLLING_WINDOW_SECONDS * 1000
 			const windowStartIndex = filteredData.findIndex((dp) => dp.timestamp >= windowStartTime)
 			const startIndex = windowStartIndex >= 0 ? windowStartIndex : 0
 
-			// Calculate actions per minute for each fairy at this point
+			// Calculate actions per minute for each fairy at this historical point
 			for (const [fairyId, fairyInfo] of fairyMap) {
 				let totalActions = 0
 
@@ -104,7 +104,7 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 
 				// Calculate actual elapsed time in the window using timestamps
 				const actualWindowMs = dataPoint.timestamp - filteredData[startIndex].timestamp
-				const actualWindowSeconds = Math.max(actualWindowMs / 1000, 1) // At least 1 second to avoid division issues
+				const actualWindowSeconds = Math.max(actualWindowMs / 1000, 1)
 
 				// Convert to actions per minute
 				const actionsPerMinute = (totalActions / actualWindowSeconds) * 60
@@ -116,8 +116,7 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 		const datasets: Dataset[] = []
 		let maxValue = 0
 		for (const [, data] of fairyMap) {
-			// Track the maximum value for y-axis scaling
-			const maxInDataset = Math.max(...data.values)
+			const maxInDataset = Math.max(...data.values, 0)
 			maxValue = Math.max(maxValue, maxInDataset)
 
 			datasets.push({
@@ -135,6 +134,16 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 
 	// Track previous maxYValue and timeRange to detect when we need to recreate chart
 	const prevMaxYValueRef = useRef<number | undefined>(undefined)
+
+	// Destroy chart when data becomes empty (container div is unmounted by FairyChartContainer)
+	// This prevents stale chart instance from rendering to a removed DOM element
+	useEffect(() => {
+		if (actionRateData.length === 0 && chartInstanceRef.current) {
+			chartInstanceRef.current.destroy()
+			chartInstanceRef.current = null
+			prevMaxYValueRef.current = undefined
+		}
+	}, [actionRateData.length])
 
 	// Initialize and update chart
 	useEffect(() => {
@@ -166,7 +175,7 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 				height: 180,
 				dotSize: 3,
 				showDots: false,
-				showLegend: true,
+				showLegend: false,
 				showTooltip: false,
 				showGridLines: false,
 				showXAxisLabels: false,
@@ -192,7 +201,7 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 	return (
 		<ChartErrorBoundary>
 			<FairyChartContainer
-				title="Activity"
+				title=""
 				isEmpty={actionRateData.length === 0}
 				emptyMessage="Waiting for fairy actions..."
 			>

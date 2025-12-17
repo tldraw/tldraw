@@ -1,4 +1,4 @@
-import { FairyHatColor } from '@tldraw/fairy-shared'
+import { AgentId, FairyHatColor } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { countCompletedActions } from '../../fairy-chart/fairy-chart-helpers'
@@ -51,7 +51,7 @@ export class FairyAppActionRateTracker {
 	private readonly SAMPLE_INTERVAL_MS = 1000 // Sample every 1 second
 	private readonly REAL_TIME_WINDOW_MS = 10 * 60 * 1000 // Keep last 10 minutes for real-time display
 	private readonly ROLLING_WINDOW_SECONDS = 60 // 60-second rolling window for rate calculation
-	private lastActionCounts: Map<string, number> = new Map()
+	private lastActionCounts: Map<AgentId, number> = new Map()
 	private currentProjectId: string | null = null
 
 	constructor(private _fairyApp: FairyApp) {
@@ -145,6 +145,21 @@ export class FairyAppActionRateTracker {
 		newData = newData.filter((dp) => dp.timestamp >= cutoffTime)
 
 		this.dataPoints.set(newData)
+
+		// Cleanup lastActionCounts for agents no longer being tracked
+		this.cleanupStaleActionCounts(agents)
+	}
+
+	/**
+	 * Remove action count entries for agents that no longer exist
+	 */
+	private cleanupStaleActionCounts(currentAgents: FairyAgent[]): void {
+		const currentAgentIds = new Set(currentAgents.map((a) => a.id))
+		for (const id of this.lastActionCounts.keys()) {
+			if (!currentAgentIds.has(id)) {
+				this.lastActionCounts.delete(id)
+			}
+		}
 	}
 
 	/**
@@ -164,9 +179,13 @@ export class FairyAppActionRateTracker {
 
 		// Start sampling
 		this.intervalId = window.setInterval(() => {
-			const agents = getAgents()
-			if (agents.length > 0) {
-				this.sampleActionRate(agents)
+			try {
+				const agents = getAgents()
+				if (agents.length > 0) {
+					this.sampleActionRate(agents)
+				}
+			} catch (error) {
+				console.error('Error sampling action rate:', error)
 			}
 		}, this.SAMPLE_INTERVAL_MS)
 	}

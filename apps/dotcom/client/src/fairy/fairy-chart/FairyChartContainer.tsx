@@ -27,27 +27,23 @@ export function FairyChartContainer({
 	headerActions,
 	children,
 }: FairyChartContainerProps) {
-	if (isEmpty) {
-		return (
-			<div className="fairy-activity-chart-container">
-				<div className="fairy-activity-chart-header">
-					<div className="fairy-activity-chart-title">{title}</div>
-					{headerActions && <div className="fairy-activity-chart-actions">{headerActions}</div>}
-				</div>
-				<div className="fairy-activity-chart-empty">
-					<p>{emptyMessage}</p>
-				</div>
-			</div>
-		)
-	}
+	const header = (
+		<div className="fairy-activity-chart-header">
+			<div className="fairy-activity-chart-title">{title}</div>
+			{headerActions && <div className="fairy-activity-chart-actions">{headerActions}</div>}
+		</div>
+	)
 
 	return (
 		<div className="fairy-activity-chart-container">
-			<div className="fairy-activity-chart-header">
-				<div className="fairy-activity-chart-title">{title}</div>
-				{headerActions && <div className="fairy-activity-chart-actions">{headerActions}</div>}
-			</div>
-			{children}
+			{header}
+			{isEmpty ? (
+				<div className="fairy-activity-chart-empty">
+					<p>{emptyMessage}</p>
+				</div>
+			) : (
+				children
+			)}
 		</div>
 	)
 }
