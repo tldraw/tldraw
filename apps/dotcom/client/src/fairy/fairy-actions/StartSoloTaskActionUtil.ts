@@ -34,9 +34,6 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 
 		this.agent.fairyApp.tasks.setTaskStatus(action.taskId, 'in-progress')
 
-		const currentBounds = this.agent.requests.getActiveRequest()?.bounds
-		if (!currentBounds) return
-
 		this.agent.interrupt({
 			mode: 'working-solo',
 			input: {
@@ -44,10 +41,10 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 					`You just decided to start working on a task.\nID: "${task.id}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
 				],
 				bounds: {
-					x: task.x ?? currentBounds.x,
-					y: task.y ?? currentBounds.y,
-					w: task.w ?? currentBounds.w,
-					h: task.h ?? currentBounds.h,
+					x: task.x,
+					y: task.y,
+					w: task.w,
+					h: task.h,
 				},
 			},
 		})

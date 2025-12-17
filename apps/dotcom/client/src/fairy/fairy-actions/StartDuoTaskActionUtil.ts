@@ -49,9 +49,6 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 
 		this.agent.fairyApp.tasks.setTaskStatus(action.taskId, 'in-progress')
 
-		const currentBounds = this.agent.requests.getActiveRequest()?.bounds
-		if (!currentBounds) return
-
 		this.agent.interrupt({
 			mode: 'working-orchestrator',
 			input: {
@@ -59,10 +56,10 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 					`You just decided to start working on a task.\nID: "${task.id}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
 				],
 				bounds: {
-					x: task.x ?? currentBounds.x,
-					y: task.y ?? currentBounds.y,
-					w: task.w ?? currentBounds.w,
-					h: task.h ?? currentBounds.h,
+					x: task.x,
+					y: task.y,
+					w: task.w,
+					h: task.h,
 				},
 			},
 		})
