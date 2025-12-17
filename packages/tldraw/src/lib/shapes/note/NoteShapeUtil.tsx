@@ -536,7 +536,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					startEditingShapeWithRichText(editor, newNote, true /* selectAll */)
+					startEditingShapeWithRichText(editor, newNote, { selectAll: true })
 				}
 			}
 		},
