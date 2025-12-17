@@ -159,9 +159,11 @@ export function FairyHUDHeader({
 
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
-		allAgents.forEach((agent) => {
-			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
-		})
+		allAgents
+			.filter((agent) => !agent.mode.isSleeping())
+			.forEach((agent) => {
+				agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
+			})
 	}, [allAgents, trackEvent])
 
 	if (panelState === 'manual') {
