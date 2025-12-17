@@ -207,7 +207,7 @@
 	color: var(--tl-analytics-text);
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.tl-analytics-dialog__close::after {
 		content: '';
 		position: absolute;

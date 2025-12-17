@@ -69,7 +69,7 @@
 	border-radius: 100%;
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.menuInfoTrigger:not(:disabled):hover {
 		z-index: 1;
 		color: var(--tla-color-text-1);
@@ -185,7 +185,7 @@ div:has(> .menuSelectContent) {
 	padding-left: 19px; /* 15px of icon + 4px gap */
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.menuSelectOption:hover {
 		z-index: 2;
 	}
@@ -226,7 +226,7 @@ div:has(> .menuSelectContent) {
 	opacity: 1;
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.menuSelectTrigger:not([data-disabled='true']):hover::after {
 		opacity: 1;
 	}
@@ -305,7 +305,7 @@ div:has(> .menuSelectContent) {
 	outline: 2px solid var(--tl-color-focus);
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='false'] {
 		background-color: var(--tla-color-inactive-hover);
 	}
@@ -374,7 +374,7 @@ div:has(> .menuSelectContent) {
 	border-radius: 10px;
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.menuTabsTab:not(:disabled):hover {
 		color: var(--tla-color-text-1);
 	}

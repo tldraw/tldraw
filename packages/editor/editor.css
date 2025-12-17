@@ -1140,14 +1140,12 @@ input,
 	fill: none;
 }
 
-@media (pointer: coarse) {
-	.tl-handle__bg:active {
-		fill: var(--tl-color-selection-fill);
-	}
+.tl-container[data-coarse='true'] .tl-handle__bg:active {
+	fill: var(--tl-color-selection-fill);
+}
 
-	.tl-handle__create {
-		opacity: 1;
-	}
+.tl-container[data-coarse='true'] .tl-handle__create {
+	opacity: 1;
 }
 
 .tl-rotate-corner:not(:hover),
@@ -1762,7 +1760,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 /* --------------------- Hovers --------------------- */
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.tl-handle__create:hover {
 		opacity: 1;
 	}

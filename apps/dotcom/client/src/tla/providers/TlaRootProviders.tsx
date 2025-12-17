@@ -14,8 +14,10 @@ import {
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
+	react,
 	runtime,
 	setRuntimeOverrides,
+	tlenvReactive,
 	useDialogs,
 	useToasts,
 	useValue,
@@ -91,6 +93,15 @@ export function Component() {
 		[]
 	)
 	const areFairiesEnabled = useAreFairiesEnabled()
+
+	// Set the data-coarse attribute on the container based on the pointer type
+	useEffect(() => {
+		if (!container) return
+		return react('coarsePointer', () => {
+			container.setAttribute('data-coarse', String(tlenvReactive.get().isCoarsePointer))
+		})
+	}, [container])
+
 	return (
 		<div
 			ref={setContainer}

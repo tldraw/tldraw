@@ -354,7 +354,7 @@ a {
 	color: var(--tl-color-selected-contrast);
 }
 
-@media (pointer: coarse) {
+@media (hover: hover) {
 	.tlui-share-zone__button:hover {
 		color: var(--tl-color-selected-contrast);
 	}
