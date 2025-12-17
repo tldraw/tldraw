@@ -158,9 +158,7 @@ export class AgentService {
 				content: '{"actions": [{"_type":',
 			})
 
-			// -1 means dynamic budget
-			// 128 is minimum for 2.5 pro - we're not sure if this is too low
-			const geminiThinkingBudget = modelId === 'gemini-3-pro-preview' ? 256 : 0
+			const geminiThinkingLevel = 'minimal'
 
 			const gptThinkingBudget = modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
@@ -175,7 +173,7 @@ export class AgentService {
 						thinking: { type: 'disabled' },
 					} satisfies AnthropicProviderOptions,
 					google: {
-						thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+						thinkingConfig: { thinkingLevel: geminiThinkingLevel },
 					} satisfies GoogleGenerativeAIProviderOptions,
 					openai: {
 						reasoningEffort: gptThinkingBudget,
