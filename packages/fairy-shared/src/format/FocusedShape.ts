@@ -40,11 +40,11 @@ export const FocusedGeoShapeSchema = z.object({
 	h: z.number(),
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
-	text: z.string().optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
 	x: z.number(),
 	y: z.number(),
+	text: z.string().optional(),
 })
 
 export type FocusedGeoShape = z.infer<typeof FocusedGeoShapeSchema>
@@ -67,9 +67,9 @@ export const FocusedNoteShapeSchema = z.object({
 	color: FocusColorSchema,
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
-	text: z.string().optional(),
 	x: z.number(),
 	y: z.number(),
+	text: z.string().optional(),
 })
 
 export type FocusedNoteShape = z.infer<typeof FocusedNoteShapeSchema>
@@ -115,13 +115,13 @@ export const FocusedArrowShapeSchema = z.object({
 	fromId: SimpleShapeIdSchema.nullable(),
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
-	text: z.string().optional(),
 	toId: SimpleShapeIdSchema.nullable(),
 	x1: z.number(),
 	x2: z.number(),
 	y1: z.number(),
 	y2: z.number(),
 	bend: z.number().optional(),
+	text: z.string().optional(),
 })
 
 export type FocusedArrowShape = z.infer<typeof FocusedArrowShapeSchema>
@@ -194,21 +194,18 @@ const FOCUSED_CREATABLE_SHAPES_SCHEMAS = [
 
 export const FocusedShapeSchema = z.union(FOCUSED_SHAPES_SCHEMAS)
 export const FocusedCreatableShapeSchema = z.union(FOCUSED_CREATABLE_SHAPES_SCHEMAS)
-export const FocusedTextShapePartialSchema = FocusedTextShapeSchema.partial()
 export const FocusedShapePartialSchema = z.union(
 	FOCUSED_SHAPES_SCHEMAS.map((schema) => schema.partial())
 )
+export const FocusedTextShapePartialSchema = FocusedTextShapeSchema.partial()
+export const FocusedGeoShapePartialSchema = FocusedGeoShapeSchema.partial()
 export type FocusedShape = z.infer<typeof FocusedShapeSchema>
 export type FocusedCreatableShape = z.infer<typeof FocusedCreatableShapeSchema> & {
 	shapeId: SimpleShapeId
 }
-export type FocusedShapePartial = z.infer<typeof FocusedShapePartialSchema> & {
-	shapeId?: SimpleShapeId
-}
-export type FocusedTextShapePartial = z.infer<typeof FocusedTextShapePartialSchema> & {
-	shapeId?: SimpleShapeId
-}
-
+export type FocusedShapePartial = z.infer<typeof FocusedShapePartialSchema>
+export type FocusedTextShapePartial = z.infer<typeof FocusedTextShapePartialSchema>
+export type FocusedGeoShapePartial = z.infer<typeof FocusedGeoShapePartialSchema>
 /**
  * Extract all shape type names from the schema
  */
