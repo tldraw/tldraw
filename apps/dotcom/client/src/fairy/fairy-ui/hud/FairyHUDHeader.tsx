@@ -37,6 +37,8 @@ interface FairyHUDHeaderProps {
 	isMobile: boolean
 	onToggleManual?(): void
 	onToggleFeed?(): void
+	hasUnseenFeedItems?: boolean
+	isFeedDialogOpen?: boolean
 }
 
 export function FairyHUDHeader({
@@ -48,6 +50,8 @@ export function FairyHUDHeader({
 	allAgents,
 	onToggleManual,
 	onToggleFeed,
+	hasUnseenFeedItems,
+	isFeedDialogOpen,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -116,6 +120,21 @@ export function FairyHUDHeader({
 		[allAgents, selectedFairies, fairyApp]
 	)
 
+	const awakeFairies = useValue(
+		'awake-fairies',
+		() => allAgents.filter((agent) => !agent.mode.isSleeping()),
+		[allAgents]
+	)
+
+	const allAwakeFairiesSelected = useValue(
+		'all-awake-fairies-selected',
+		() => {
+			const selectedIds = new Set(selectedFairies.map((f) => f.id))
+			return awakeFairies.every((agent) => selectedIds.has(agent.id))
+		},
+		[awakeFairies, selectedFairies]
+	)
+
 	const getDisplayName = () => {
 		if (!isProjectStarted || !project) {
 			return fairyConfig?.name
@@ -159,9 +178,12 @@ export function FairyHUDHeader({
 
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
-		allAgents.forEach((agent) => {
-			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
-		})
+
+		allAgents
+			.filter((agent) => !agent.mode.isSleeping())
+			.forEach((agent) => {
+				agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
+			})
 	}, [allAgents, trackEvent])
 
 	if (panelState === 'manual') {
@@ -231,9 +253,14 @@ export function FairyHUDHeader({
 
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
-	// Show select all button when there are unselected fairies without active projects
+	// Show select all button when there are unselected fairies without active projects,
+	// more than one fairy is awake, and not all awake fairies are already selected
 	const showSelectAllButton =
-		hasUnselectedFairiesWithoutActiveProjects && !project && !hasChatHistory // && isMobile
+		hasUnselectedFairiesWithoutActiveProjects &&
+		!project &&
+		!hasChatHistory &&
+		awakeFairies.length > 1 &&
+		!allAwakeFairiesSelected
 
 	return (
 		<div className="fairy-toolbar-header">
@@ -242,7 +269,12 @@ export function FairyHUDHeader({
 			<div className="tlui-row">
 				{panelState === 'fairy-project' && (
 					<TldrawUiTooltip content="Live feed" side="top">
-						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
+						<TldrawUiButton
+							type="icon"
+							className="fairy-toolbar-button fairy-feed-button"
+							onClick={onToggleFeed}
+							data-has-unseen={hasUnseenFeedItems && !isFeedDialogOpen}
+						>
 							<TldrawUiButtonIcon icon="comment" small />
 						</TldrawUiButton>
 					</TldrawUiTooltip>
