@@ -1,7 +1,11 @@
 import z from 'zod'
 import { FocusColorSchema, ProjectColorSchema } from '../format/FocusColor'
 import { FocusFillSchema } from '../format/FocusFill'
-import { FocusedCreatableShapeSchema, FocusedShapeSchema } from '../format/FocusedShape'
+import {
+	FocusedCreatableShapeSchema,
+	FocusedShapeSchema,
+	FocusedTextAnchorSchema,
+} from '../format/FocusedShape'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { AgentIdSchema, SimpleShapeIdSchema, TaskIdSchema, TodoIdSchema } from './id-schemas'
 
@@ -206,6 +210,7 @@ export const MoveActionSchema = z
 		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
+		anchor: FocusedTextAnchorSchema,
 	})
 	.meta({ title: 'Move', description: 'The agent moves a shape to a new position.' })
 
