@@ -52,7 +52,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 
 		const result = shape?._type
 			? convertPartialFocusedShapeToTldrawShape(editor, shape, {
-					defaultShape: getDefaultShape(shape._type),
+					defaultShape: getDefaultShape(shape._type, action.complete),
 					complete: action.complete,
 				})
 			: { shape: null }
@@ -86,11 +86,12 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 }
 
-function getDefaultShape(shapeType: FocusedShape['_type']): Partial<TLShape> {
+function getDefaultShape(shapeType: FocusedShape['_type'], complete: boolean): Partial<TLShape> {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
-	return isGeo
+	const defaultShape = isGeo
 		? SHAPE_DEFAULTS.geo
 		: (SHAPE_DEFAULTS[shapeType as keyof typeof SHAPE_DEFAULTS] ?? SHAPE_DEFAULTS.unknown)
+	return complete ? defaultShape : { ...defaultShape, isLocked: true }
 }
 
 const SHARED_DEFAULTS = {
