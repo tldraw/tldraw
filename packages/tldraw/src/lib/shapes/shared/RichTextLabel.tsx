@@ -13,6 +13,7 @@ import {
 	preventDefault,
 	useEditor,
 	useReactor,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
@@ -86,6 +87,12 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}, [editor, richText])
 
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
 	useReactor(
 		'isDragging',
 		() => {
@@ -102,7 +109,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			// This mousedown prevent default is to let dragging when over a link work.
 			preventDefault(e)
 
-			if (editor.getCurrentToolId() !== 'select') return
+			if (!selectToolActive) return
 			const link = e.target.closest('a')?.getAttribute('href') ?? ''
 			// We don't get the mouseup event later because we preventDefault
 			// so we have to do it manually.
@@ -159,6 +166,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 					{richText && (
 						<div
 							className="tl-rich-text"
+							data-is-select-tool-active={selectToolActive}
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
