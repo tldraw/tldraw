@@ -91,20 +91,8 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],
 			source: 'other-agent',
 		}
-		if (
-			task.x !== undefined &&
-			task.y !== undefined &&
-			task.w !== undefined &&
-			task.h !== undefined
-		) {
-			otherFairyInput.bounds = {
-				x: task.x,
-				y: task.y,
-				w: task.w,
-				h: task.h,
-			}
-			otherFairy.position.moveTo(Box.From(otherFairyInput.bounds).center)
-		}
+		otherFairyInput.bounds = { x: task.x, y: task.y, w: task.w, h: task.h }
+		otherFairy.position.moveTo(Box.From(otherFairyInput.bounds).center)
 
 		otherFairy.interrupt({ mode: 'working-drone', input: otherFairyInput })
 	}

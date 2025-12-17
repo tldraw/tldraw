@@ -1273,6 +1273,7 @@ tldraw? probably.
 	position: relative;
 	background: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-2);
+	contain: layout style paint;
 }
 
 .tlui-main-toolbar--horizontal .tlui-main-toolbar__mobile-style-panel {
