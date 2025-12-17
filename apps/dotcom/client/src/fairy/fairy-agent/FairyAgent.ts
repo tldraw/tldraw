@@ -932,6 +932,7 @@ export class FairyAgent {
 							// If there was a diff from an incomplete action, revert it so that we can reapply the action
 							if (incompleteDiff) {
 								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+								agent.lints.trackShapesFromDiff(inversePrevDiff)
 								editor.store.applyDiff(inversePrevDiff)
 								incompleteDiff = null
 							}
