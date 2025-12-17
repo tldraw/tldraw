@@ -1809,6 +1809,12 @@ export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: nu
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX?: number, scaleY?: number): Vec[];
 
 // @public
+export function getStroke(points: VecLike[], options?: StrokeOptions): Vec[];
+
+// @public
+export function getStrokeOutlinePoints(strokePoints: StrokePoint[], options?: StrokeOptions): Vec[];
+
+// @public
 export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
 
 // @public
@@ -2712,6 +2718,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @public (undocumented)
+export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
 // @public (undocumented)
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
