@@ -807,7 +807,7 @@ fairyApp.projects.disbandProject(projectId)
 fairyApp.projects.resumeProject(projectId)
 
 // Task management
-fairyApp.tasks.createTask({ id, title, projectId })
+fairyApp.tasks.createTask({ id, title, projectId, x: 0, y: 0, w: 0, h: 0 })
 fairyApp.tasks.setTaskStatusAndNotify(taskId, 'done')
 ```
 

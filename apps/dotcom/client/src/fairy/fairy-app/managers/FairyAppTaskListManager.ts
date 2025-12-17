@@ -33,22 +33,46 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 	 * Set all tasks (used during state loading).
 	 */
 	setTasks(tasks: FairyTask[]) {
-		this.$tasks.set(tasks)
+		// Normalize bounds for backwards compatibility with older persisted tasks
+		this.$tasks.set(
+			tasks.map((task) => ({
+				...task,
+				x: task.x ?? 0,
+				y: task.y ?? 0,
+				w: task.w ?? 0,
+				h: task.h ?? 0,
+			}))
+		)
 	}
 
 	/**
 	 * Create a new task.
 	 */
-	createTask(newPartialTask: Partial<FairyTask> & { id: TaskId }) {
+	createTask(
+		newTask: Partial<FairyTask> & {
+			id: TaskId
+			title: string
+			x: number
+			y: number
+			w: number
+			h: number
+		}
+	) {
 		this.$tasks.update((tasks) => {
+			const { id, title, x, y, w, h, ...rest } = newTask
 			const task = createAgentTask({
-				title: newPartialTask.title || '',
+				id,
+				title,
 				text: '',
 				projectId: null,
 				assignedTo: null,
 				status: 'todo',
 				pageId: undefined,
-				...newPartialTask,
+				x,
+				y,
+				w,
+				h,
+				...rest,
 			})
 			return [...tasks, task]
 		})
