@@ -193,6 +193,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	MakeUrlsValid: 8,
 	AddScale: 9,
 	AddRichText: 10,
+	AddRichTextAttrs: 11,
 })
 
 /**
@@ -205,7 +206,7 @@ export { geoShapeVersions as geoShapeVersions }
 /**
  * Migration sequence for geo shape properties across different schema versions.
  * Handles evolution of geo shapes including URL support, label colors, alignment changes,
- * and the transition from plain text to rich text.
+ * the transition from plain text to rich text, and support for attrs property on richText.
  *
  * @public
  */
@@ -304,6 +305,18 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			// down: (props) => {
 			// 	delete props.richText
 			// },
+		},
+		{
+			id: geoShapeVersions.AddRichTextAttrs,
+			up: (_props) => {
+				// noop - attrs is optional so old records are valid
+			},
+			down: (props) => {
+				// Remove attrs from richText when migrating down
+				if (props.richText && 'attrs' in props.richText) {
+					delete props.richText.attrs
+				}
+			},
 		},
 	],
 })
