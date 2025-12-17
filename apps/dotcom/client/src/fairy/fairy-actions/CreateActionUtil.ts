@@ -22,14 +22,14 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 
 	override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return action
-
 		const { shape } = action
 
 		if (!shape) return null
 
 		// Ensure the created shape has a unique ID
-		shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
+		if (shape.shapeId) {
+			shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
+		}
 
 		// If the shape is an arrow, ensure the from and to IDs are real shapes
 		if (shape._type === 'arrow') {
