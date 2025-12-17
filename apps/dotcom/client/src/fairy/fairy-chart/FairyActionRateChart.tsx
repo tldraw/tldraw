@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { TldrawUiButton, useValue } from 'tldraw'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { throttle, TldrawUiButton, useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
 import { Y_AXIS_PADDING_MULTIPLIER } from '../fairy-shared-constants'
@@ -21,6 +21,27 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyLineChart | null>(null)
 	const [timeRange, setTimeRange] = useState<TimeRange>('10m')
+	const [updateTrigger, forceUpdate] = useReducer((x) => x + 1, 0)
+
+	// Update time window once per second to ensure accurate time slicing
+	useEffect(() => {
+		const updateTime = throttle(() => {
+			forceUpdate()
+		}, 1000) // Update every 1 second
+
+		// Use RAF loop to trigger the throttled function
+		let rafId: number
+		const loop = () => {
+			updateTime()
+			rafId = requestAnimationFrame(loop)
+		}
+		rafId = requestAnimationFrame(loop)
+
+		return () => {
+			cancelAnimationFrame(rafId)
+			updateTime.cancel()
+		}
+	}, [])
 
 	// Get action rate data from tracker (subscribe to atom changes)
 	const actionRateData = useValue(
@@ -63,7 +84,7 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 
 		const cutoffTime = now - timeRangeMs
 		return actionRateData.filter((dataPoint) => dataPoint.timestamp >= cutoffTime)
-	}, [actionRateData, timeRange])
+	}, [actionRateData, timeRange, updateTrigger])
 
 	// Build per-fairy datasets from action rate data with rolling window average
 	const chartData = useMemo((): ChartData & { maxValue?: number } => {

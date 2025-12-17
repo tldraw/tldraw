@@ -59,7 +59,7 @@ export class FairyLineChart {
 	private chartHeight = 0
 	private chartWidth = 0
 	private margins = { top: 10, bottom: 10, left: 20, right: 20 }
-	private paddings = { top: 20, bottom: 40, left: 50, right: 10 }
+	private paddings = { top: 20, bottom: 40, left: 10, right: 10 }
 	private yAxis!: {
 		labels: number[]
 		positions: number[]
@@ -435,7 +435,6 @@ export class FairyLineChart {
 		}) as SVGGElement
 
 		// Render components
-		this.renderYAxis(mainGroup)
 		this.renderXAxis(mainGroup)
 		this.renderLines(mainGroup)
 		this.renderLegend(mainGroup)

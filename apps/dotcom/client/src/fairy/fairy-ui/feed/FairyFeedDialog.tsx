@@ -18,7 +18,7 @@ interface FairyFeedDialogProps {
 }
 
 export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogProps) {
-	const [showActivityMonitor, setShowActivityMonitor] = useState(false)
+	// const [showActivityMonitor, setShowActivityMonitor] = useState(false)
 
 	const title = 'Activity Feed'
 
@@ -26,7 +26,7 @@ export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogPr
 		<div className="fairy-feed-dialog">
 			<TldrawUiDialogHeader className="fairy-feed-dialog-header">
 				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
-				<div className="fairy-feed-dialog-header-actions">
+				{/* <div className="fairy-feed-dialog-header-actions">
 					<TldrawUiTooltip content="Activity Monitor" side="bottom">
 						<TldrawUiButton
 							type="icon"
@@ -37,13 +37,13 @@ export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogPr
 						</TldrawUiButton>
 					</TldrawUiTooltip>
 					<TldrawUiDialogCloseButton />
-				</div>
+				</div> */}
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="fairy-feed-dialog-body">
 				<FairyFeedView
 					orchestratorAgent={orchestratorAgent}
 					agents={agents}
-					showActivityMonitor={showActivityMonitor}
+					// showActivityMonitor={showActivityMonitor}
 				/>
 			</TldrawUiDialogBody>
 		</div>

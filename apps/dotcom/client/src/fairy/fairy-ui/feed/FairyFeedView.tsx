@@ -151,9 +151,7 @@ export function FairyFeedView({
 	if (feedItems.length === 0) {
 		return (
 			<>
-				{showActivityMonitor && (
-					<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				)}
+				<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				<div className="fairy-feed-view-empty">
 					<p>No fairy activity yet...</p>
 				</div>
@@ -163,9 +161,7 @@ export function FairyFeedView({
 
 	return (
 		<>
-			{showActivityMonitor && (
-				<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
-			)}
+			<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
 			<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
 				{feedItems.map((item) => (
 					<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />

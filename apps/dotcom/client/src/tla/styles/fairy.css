@@ -1260,7 +1260,7 @@
 
 .fairy-activity-chart {
 	height: 180px;
-	border: 1px solid black;
+	border-bottom: 1px solid var(--tl-color-divider);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -1275,7 +1275,7 @@
 	min-height: 180px;
 	color: var(--color-text-3);
 	font-size: 12px;
-	border: 1px solid black;
+	border-bottom: 1px solid var(--tl-color-divider);
 	padding: 0 16px;
 }
 
