@@ -11,6 +11,7 @@ import {
 	getArrowBodyGeometry,
 	getArrowLabelDefaultPosition,
 } from '../../../shapes/arrow/arrowLabel'
+import { startEditingShapeWithRichText } from '../selectHelpers'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -138,9 +139,7 @@ export class PointingArrowLabel extends StateNode {
 		if (this.didDrag || !this.wasAlreadySelected) {
 			this.complete()
 		} else if (this.editor.canEditShape(shape)) {
-			// Go into edit mode.
-			this.editor.setEditingShape(shape.id)
-			this.editor.setCurrentTool('select.editing_shape')
+			startEditingShapeWithRichText(this.editor, shape.id)
 		}
 	}
 
