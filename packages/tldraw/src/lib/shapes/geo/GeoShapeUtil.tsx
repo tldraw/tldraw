@@ -399,8 +399,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const wasEmpty = isEmptyRichText(prevProps.richText)
 		const isEmpty = isEmptyRichText(nextProps.richText)
 
+		// If label is empty and used to be empty, skip label measurement and dimension adjustment
+		if (wasEmpty && isEmpty) {
+			return
+		}
+
 		// Text was removed - reset growY
-		if (!wasEmpty && isEmpty) {
+		if (isEmpty) {
 			return nextProps.growY !== 0 ? { ...next, props: { ...nextProps, growY: 0 } } : undefined
 		}
 
