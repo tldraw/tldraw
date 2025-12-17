@@ -4,6 +4,7 @@ import {
 	Streaming,
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
+import { Box } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -101,6 +102,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 				w: task.w,
 				h: task.h,
 			}
+			otherFairy.position.moveTo(Box.From(otherFairyInput.bounds).center)
 		}
 
 		otherFairy.interrupt({
