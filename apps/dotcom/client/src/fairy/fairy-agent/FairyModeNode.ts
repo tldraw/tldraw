@@ -45,7 +45,8 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			if (fromMode === 'sleeping') {
 				agent.position.moveToSpawnPoint()
 			}
-			agent.todos.deleteAll()
+			agent.waits.reset()
+			agent.todos.reset()
 			agent.userAction.clearHistory()
 			stopPromptTimer(agent)
 		},
@@ -98,7 +99,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onExit(agent, toMode) {
 			if (toMode !== 'one-shotting-pausing') {
 				agent.userAction.clearHistory()
-				agent.todos.deleteAll()
+				agent.todos.reset()
 			}
 		},
 	},
@@ -135,11 +136,11 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['working-drone']: {
 		onEnter(agent) {
 			agent.userAction.clearHistory()
-			agent.todos.deleteAll()
+			agent.todos.reset()
 		},
 		onExit(agent) {
 			agent.userAction.clearHistory()
-			agent.todos.deleteAll()
+			agent.todos.reset()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
@@ -312,11 +313,11 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['working-orchestrator']: {
 		onEnter(agent) {
 			agent.userAction.clearHistory()
-			agent.todos.deleteAll()
+			agent.todos.reset()
 		},
 		onExit(agent) {
 			agent.userAction.clearHistory()
-			agent.todos.deleteAll()
+			agent.todos.reset()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete

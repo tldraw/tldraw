@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "00b177e080": {
-    "translation": "Meghívás elfogadása"
-  },
   "03b3e13197": {
     "translation": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Érvénytelen kérés."
   },
+  "77f0abf1aa": {
+    "translation": "Meghívtak a <strong>tündérek rajzolására</strong>"
+  },
   "7827371d1a": {
     "translation": "Ez a névtelen tldraw többjátékos fájl mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Nyissa meg a tldraw-t"
-  },
-  "7cb471f815": {
-    "translation": "Meghívtak, hogy csatlakozz a tldraw tündérekhez!"
   },
   "7cb5f8b4a5": {
     "translation": "Felejtsd el"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Kijelölés törlése"
+  },
+  "9489b2f82a": {
+    "translation": "Már tagja vagy ennek a csoportnak"
   },
   "94966d9074": {
     "translation": "Elküld"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Alapvető sütik"
   },
+  "c54a624f46": {
+    "translation": "Meghívás elfogadása"
+  },
   "c6155aaecc": {
     "translation": "Csoport neve"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Érvénytelen tldraw fájl URL"
   },
-  "de290d52ef": {
-    "translation": "Válassz ki egy tündért a jobb oldalon, akivel csevegni szeretnél"
-  },
   "df6ff49394": {
     "translation": "A tündérek <strong>ideiglenes</strong> funkciót jelentenek. 2026. január 1-jén az összes tündér eltávolításra kerül az alkalmazásból. Talán egy napon újra visszatérnek. A vásárlásoddal csak 2025 decemberében férhetsz hozzá a tündérekhez."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Felhasználói beállítások"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurálás"
   },
   "f2569594b2": {
     "translation": "Ezeket a sütiket a fájljaid és beállításaidat mentjük."

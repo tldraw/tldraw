@@ -3,6 +3,37 @@
 	<head>
 		<meta charset="UTF-8" />
 
+		<!-- Theme detection script - must run before any CSS to prevent flash -->
+		<script>
+			;(function () {
+				try {
+					const stored = localStorage.getItem('tldrawapp_session_3')
+					if (stored) {
+						const parsed = JSON.parse(stored)
+						if (parsed && parsed.theme === 'dark') {
+							document.documentElement.classList.add('tldraw-preload-dark')
+							// Update theme-color meta tag for dark mode
+							document.addEventListener('DOMContentLoaded', function () {
+								const meta = document.querySelector('meta[name="theme-color"]')
+								if (meta) meta.setAttribute('content', '#000000')
+							})
+						}
+					}
+				} catch (e) {
+					// Ignore localStorage errors
+				}
+			})()
+		</script>
+		<style>
+			/* Pre-render background to prevent flash of white */
+			html {
+				background-color: hsl(0, 0%, 99%);
+			}
+			html.tldraw-preload-dark {
+				background-color: hsl(0, 0%, 5%);
+			}
+		</style>
+
 		<link rel="manifest" href="/manifest.webmanifest" />
 		<meta
 			name="keywords"

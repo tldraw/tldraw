@@ -102,7 +102,6 @@ expect.extend({
 
 		const message = pass
 			? () =>
-					// eslint-disable-next-line prefer-template
 					matcherHint(matcherName, undefined, undefined, options) +
 					'\n\n' +
 					`Expected: not ${printExpected(expected)}` +
@@ -110,7 +109,6 @@ expect.extend({
 						? `\nReceived:     ${printReceived(actual)}`
 						: '')
 			: () =>
-					// eslint-disable-next-line prefer-template
 					matcherHint(matcherName, undefined, undefined, options) +
 					'\n\n' +
 					printDiffOrStringify(

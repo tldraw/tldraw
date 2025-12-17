@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exportieren"
   },
-  "00b177e080": {
-    "translation": "Einladung annehmen"
-  },
   "03b3e13197": {
     "translation": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Ungültige Anfrage."
   },
+  "77f0abf1aa": {
+    "translation": "Du wurdest eingeladen, <strong>Feen zu zeichnen</strong>"
+  },
   "7827371d1a": {
     "translation": "Diese anonyme tldraw-Multiplayer-Datei ist jetzt schreibgeschützt. Um die Bearbeitung fortzusetzen, melden Sie sich bitte an und kopieren Sie die Datei in Ihren Ordner."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Öffne tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Du wurdest eingeladen, den tldraw-Feen beizutreten!"
   },
   "7cb5f8b4a5": {
     "translation": "Vergessen"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Auswahl aufheben"
+  },
+  "9489b2f82a": {
+    "translation": "Sie sind bereits Mitglied dieser Gruppe"
   },
   "94966d9074": {
     "translation": "Schicken"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Notwendige Cookies"
   },
+  "c54a624f46": {
+    "translation": "Einladung annehmen"
+  },
   "c6155aaecc": {
     "translation": "Gruppenname"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Ungültige tldraw-Datei-URL"
   },
-  "de290d52ef": {
-    "translation": "Wähle eine Fee auf der rechten Seite aus, um mit ihr zu chatten."
-  },
   "df6ff49394": {
     "translation": "Feen sind ein <strong>vorübergehendes</strong> Feature. Am 1. Januar 2026 werden alle Feen aus der App entfernt. Vielleicht kehren sie ja eines Tages zurück. Mit Ihrem Kauf erhalten Sie nur im Dezember 2025 Zugriff auf die Feen."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Benutzereinstellungen"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurieren"
   },
   "f2569594b2": {
     "translation": "Wir verwenden diese Cookies, um Ihre Dateien und Einstellungen zu speichern."

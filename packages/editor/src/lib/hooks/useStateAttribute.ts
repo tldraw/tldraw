@@ -9,7 +9,10 @@ export function useStateAttribute() {
 	// editor mounting and this attribute being applied, because styles may depend on it:
 	useLayoutEffect(() => {
 		return react('stateAttribute', () => {
-			editor.getContainer().setAttribute('data-state', editor.getPath())
+			const container = editor.getContainer()
+			const instanceState = editor.getInstanceState()
+			container.setAttribute('data-state', editor.getPath())
+			container.setAttribute('data-coarse', String(instanceState.isCoarsePointer))
 		})
 	}, [editor])
 }

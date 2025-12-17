@@ -8,7 +8,7 @@ import {
 	type FairyWaitCondition,
 	type FairyWaitEvent,
 } from '@tldraw/fairy-shared'
-import { BoxModel } from 'tldraw'
+import { Box, BoxModel } from 'tldraw'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
 /**
@@ -50,13 +50,18 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 				const remainingConditions = waitingConditions.filter(
 					(condition) => condition !== matchingCondition
 				)
-				agent.waits.waitForAll(remainingConditions)
+				agent.waits.setWaitingFor(remainingConditions)
 
 				// Wake up the agent with a notification message
 				const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
 				const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition)
 				const bounds = getBounds?.(agent.id, matchingCondition)
 				// Fire and forget - we don't want to block on multiple agents
+
+				if (bounds) {
+					agent.position.moveTo(Box.From(bounds).center)
+				}
+
 				agent.waits
 					.notifyWaitConditionFulfilled({
 						agentMessages: [agentFacingMessage],
@@ -79,25 +84,12 @@ ID:${task.id}
 Title: "${task.title}"
 Description: "${task.text}"`
 
-		let bounds: BoxModel | undefined
-		if (
-			task.x !== undefined &&
-			task.y !== undefined &&
-			task.w !== undefined &&
-			task.h !== undefined
-		) {
-			bounds = {
-				x: task.x,
-				y: task.y,
-				w: task.w,
-				h: task.h,
-			}
-		}
+		const bounds: BoxModel = { x: task.x, y: task.y, w: task.w, h: task.h }
 
 		this.notifyWaitingAgents({
 			event: { type: 'task-completed', task },
 			getAgentFacingMessage: () => agentFacingMessage,
-			getBounds: bounds ? () => bounds : undefined,
+			getBounds: () => bounds,
 		})
 	}
 

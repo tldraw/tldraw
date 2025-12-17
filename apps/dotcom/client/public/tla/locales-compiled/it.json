@@ -5,12 +5,6 @@
       "value": "Esporta"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Accetta l'invito"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -755,6 +749,22 @@
       "value": "Richiesta non valida."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Sei stato invitato a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tldraw fairies"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -795,12 +805,6 @@
     {
       "type": 0,
       "value": "Apri tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Sei stato invitato a unirti alle fate di tldraw!"
     }
   ],
   "7cb5f8b4a5": [
@@ -987,6 +991,12 @@
     {
       "type": 0,
       "value": "Deseleziona"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Sei già un membro di questo gruppo"
     }
   ],
   "94966d9074": [
@@ -1357,6 +1367,12 @@
       "value": "Cookie essenziali"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Accetta l'invito"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1535,12 +1551,6 @@
       "value": "URL del file tldraw non valido"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Seleziona una fata sulla destra per chattare con"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1711,6 +1721,12 @@
     {
       "type": 0,
       "value": "Impostazioni utente"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configurare"
     }
   ],
   "f2569594b2": [

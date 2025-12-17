@@ -6,6 +6,7 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	Vec,
+	b64Vecs,
 	modulate,
 } from '@tldraw/editor'
 import { StrokeOptions } from '../shared/freehand/types'
@@ -101,19 +102,39 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
-export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
+/** @public */
+export function getPointsFromDrawSegment(
+	segment: TLDrawShapeSegment,
+	scaleX: number,
+	scaleY: number,
+	points: Vec[] = []
+) {
+	const _points = b64Vecs.decodePoints(segment.points)
+
+	// Apply scale factors (used for lazy resize and flipping)
+	if (scaleX !== 1 || scaleY !== 1) {
+		for (const point of _points) {
+			point.x *= scaleX
+			point.y *= scaleY
+		}
+	}
+
+	if (segment.type === 'free' || _points.length < 2) {
+		points.push(..._points.map(Vec.From))
+	} else {
+		const pointsToInterpolate = Math.max(4, Math.floor(Vec.Dist(_points[0], _points[1]) / 16))
+		points.push(...Vec.PointsBetween(_points[0], _points[1], pointsToInterpolate))
+	}
+
+	return points
+}
+
+/** @public */
+export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX = 1, scaleY = 1) {
 	const points: Vec[] = []
 
 	for (const segment of segments) {
-		if (segment.type === 'free' || segment.points.length < 2) {
-			points.push(...segment.points.map(Vec.Cast))
-		} else {
-			const pointsToInterpolate = Math.max(
-				4,
-				Math.floor(Vec.Dist(segment.points[0], segment.points[1]) / 16)
-			)
-			points.push(...Vec.PointsBetween(segment.points[0], segment.points[1], pointsToInterpolate))
-		}
+		getPointsFromDrawSegment(segment, scaleX, scaleY, points)
 	}
 
 	return points

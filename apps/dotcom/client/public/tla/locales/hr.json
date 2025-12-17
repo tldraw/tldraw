@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Izvoz"
   },
-  "00b177e080": {
-    "translation": "Prihvati pozivnicu"
-  },
   "03b3e13197": {
     "translation": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz korisničkog izbornika."
   },
@@ -237,7 +234,7 @@
     "translation": "Povucite datoteke ovdje, <create>izradite datoteku</create> ili <invite>kopirajte poveznicu za poziv</invite> da biste započeli."
   },
   "5a95a425f7": {
-    "translation": "Udio"
+    "translation": "Dijeli"
   },
   "5bec508475": {
     "translation": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Neispravan zahtjev."
   },
+  "77f0abf1aa": {
+    "translation": "Pozvani ste na <strong>crtanje vila</strong>"
+  },
   "7827371d1a": {
     "translation": "Ova anonimna tldraw datoteka za više igrača sada je samo za čitanje. Za nastavak uređivanja prijavite se i kopirajte je u svoje datoteke."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Otvori tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Pozvani ste da se pridružite tldraw vilama!"
   },
   "7cb5f8b4a5": {
     "translation": "Zaboraviti"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Poništi odabir"
+  },
+  "9489b2f82a": {
+    "translation": "Već ste član ove grupe"
   },
   "94966d9074": {
     "translation": "Poslati"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Osnovni kolačići"
   },
+  "c54a624f46": {
+    "translation": "Prihvati poziv"
+  },
   "c6155aaecc": {
     "translation": "Naziv grupe"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Nevažeći URL datoteke tldraw"
   },
-  "de290d52ef": {
-    "translation": "Odaberite vilu s desne strane za razgovor"
-  },
   "df6ff49394": {
     "translation": "Vile su <strong>privremena</strong> značajka. 1. siječnja 2026. sve vile bit će uklonjene iz aplikacije. Možda će se jednog dana ponovno vratiti. Vaša kupnja je za pristup vilama samo za prosinac 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Korisničke postavke"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurirati"
   },
   "f2569594b2": {
     "translation": "Ove kolačiće koristimo za spremanje vaših datoteka i postavki."

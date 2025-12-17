@@ -10,6 +10,7 @@ const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
 const EMBED_DEFINITIONS = [
 	{
 		hostnames: ['beta.tldraw.com', 'tldraw.com', 'localhost:3000'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
@@ -20,6 +21,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['figma.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/embed\/?$/)) {
@@ -33,6 +35,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['google.*'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (!urlObj) return
@@ -48,6 +51,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['val.town'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			// e.g. extract "steveruizok/mathFact" from https://www.val.town/v/steveruizok/mathFact
@@ -60,6 +64,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['codesandbox.io'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			const matches = urlObj && urlObj.pathname.match(/\/embed\/([^/]+)\/?/)
@@ -71,6 +76,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['codepen.io'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const CODEPEN_EMBED_REGEXP = /https:\/\/codepen.io\/([^/]+)\/embed\/([^/]+)/
 			const matches = url.match(CODEPEN_EMBED_REGEXP)
@@ -83,6 +89,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['scratch.mit.edu'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const SCRATCH_EMBED_REGEXP = /https:\/\/scratch.mit.edu\/projects\/embed\/([^/]+)/
 			const matches = url.match(SCRATCH_EMBED_REGEXP)
@@ -95,6 +102,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['*.youtube.com', 'youtube.com', 'youtu.be'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (!urlObj) return
@@ -111,6 +119,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['calendar.google.*'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			const srcQs = urlObj?.searchParams.get('src')
@@ -129,6 +138,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['docs.google.*'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 
@@ -145,6 +155,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['gist.github.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([^/]+)/)) {
@@ -156,6 +167,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['replit.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (
@@ -171,6 +183,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['felt.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/embed\/map\//)) {
@@ -182,6 +195,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['open.spotify.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/embed\/(artist|album)\//)) {
@@ -192,6 +206,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['vimeo.com', 'player.vimeo.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.hostname === 'player.vimeo.com') {
@@ -205,6 +220,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['observablehq.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/embed\/@([^/]+)\/([^/]+)\/?$/)) {
@@ -219,6 +235,7 @@ const EMBED_DEFINITIONS = [
 	},
 	{
 		hostnames: ['desmos.com'],
+		canEditWhileLocked: true,
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)
 			if (

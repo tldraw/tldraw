@@ -191,6 +191,7 @@ export {
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
+	compressLegacySegments,
 	drawShapeMigrations,
 	drawShapeProps,
 	type TLDrawShape,
@@ -313,3 +314,5 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export { b64Vecs } from './misc/b64Vecs'

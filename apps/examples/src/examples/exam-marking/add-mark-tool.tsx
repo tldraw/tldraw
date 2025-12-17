@@ -11,10 +11,11 @@ export class MarkingTool extends StateNode {
 	}
 
 	override onPointerUp() {
+		const pagePoint = this.editor.inputs.getCurrentPagePoint()
 		this.editor.createShape({
 			type: 'exam-mark',
-			x: this.editor.inputs.currentPagePoint.x - EXAM_MARK_WIDTH / 2,
-			y: this.editor.inputs.currentPagePoint.y - EXAM_MARK_HEIGHT / 2,
+			x: pagePoint.x - EXAM_MARK_WIDTH / 2,
+			y: pagePoint.y - EXAM_MARK_HEIGHT / 2,
 		})
 
 		if (!this.editor.getInstanceState().isToolLocked) {

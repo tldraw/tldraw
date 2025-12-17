@@ -53,7 +53,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * @returns true if the agent has any wait conditions
 	 */
 	isWaiting() {
-		return this.$waitingFor.get().length > 0
+		return this.getWaitingFor().length > 0
 	}
 
 	/**
@@ -85,23 +85,13 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Add multiple wait conditions to the agent at once.
-	 * Unlike `waitFor`, this method does not check for duplicates.
-	 * @param conditions - An array of wait conditions to add.
+	 * Set the wait conditions array directly, replacing all existing conditions.
+	 * This is useful when you need to update multiple conditions atomically.
+	 * @param conditions - The new array of wait conditions.
 	 * @returns void
 	 */
-	waitForAll(conditions: FairyWaitCondition<FairyWaitEvent>[]) {
-		this.$waitingFor.update((existing) => {
-			return [...existing, ...conditions]
-		})
-	}
-
-	/**
-	 * Clear all wait conditions for this agent.
-	 * @returns void
-	 */
-	clear() {
-		this.$waitingFor.set([])
+	setWaitingFor(conditions: FairyWaitCondition<FairyWaitEvent>[]) {
+		this.$waitingFor.set(conditions)
 	}
 
 	/**
@@ -111,17 +101,11 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * If the agent is currently generating, the message will be scheduled.
 	 * Otherwise, it will be prompted immediately.
 	 * @param request - A partial agent request to send when the wait condition is fulfilled.
-	 * @returns Promise that resolves when the prompt completes (if prompted)
 	 */
 	async notifyWaitConditionFulfilled(request: Partial<AgentRequest>): Promise<void> {
-		const { agent } = this
 		// Ensure source is set to 'other-agent' for wait condition notifications
 		const requestWithSource: Partial<AgentRequest> = { ...request, source: 'other-agent' }
-		if (agent.requests.isGenerating()) {
-			agent.schedule(requestWithSource)
-		} else {
-			await agent.prompt(requestWithSource)
-		}
+		this.agent.schedule(requestWithSource)
 	}
 
 	/**
@@ -130,7 +114,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * @returns An array of serialized wait conditions.
 	 */
 	serializeState(): SerializedWaitCondition[] {
-		return this.$waitingFor.get().map((condition) => ({
+		return this.getWaitingFor().map((condition) => ({
 			eventType: condition.eventType,
 			id: condition.id,
 			metadata: condition.metadata,

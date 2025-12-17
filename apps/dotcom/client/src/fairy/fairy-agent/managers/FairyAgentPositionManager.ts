@@ -31,10 +31,16 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	moveTo(position: VecModel) {
+		const roundedCandidatePosition = AgentHelpers.RoundVec(position)
+		const roundedCurrentPosition = AgentHelpers.RoundVec(this.agent.getEntity().position)
+		if (Vec.Equals(roundedCurrentPosition, roundedCandidatePosition)) {
+			// avoid moving and reseting flipX if the position is the same
+			return
+		}
 		this.agent.updateEntity((fairy) => {
 			return {
 				...fairy,
-				position: AgentHelpers.RoundVec(position),
+				position: roundedCandidatePosition,
 				velocity: { x: 0, y: 0 },
 				flipX: false,
 			}
@@ -218,7 +224,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 
 		if (speed < 0.003) {
 			if (this.agent.gesture.hasGestureInStack('soaring')) {
-				this.agent.gesture.clear()
+				this.agent.gesture.reset()
 			}
 			if (speed !== 0) {
 				this.agent.updateEntity((entity) => {

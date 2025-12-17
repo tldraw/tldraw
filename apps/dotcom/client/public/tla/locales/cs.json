@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Vývozní"
   },
-  "00b177e080": {
-    "translation": "Přijmout pozvání"
-  },
   "03b3e13197": {
     "translation": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
   },
+  "77f0abf1aa": {
+    "translation": "Byli jste pozváni k <strong>kreslení víl</strong>"
+  },
   "7827371d1a": {
     "translation": "Tento anonymní soubor pro více hráčů ve hře tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte jej do svých souborů."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Otevřít tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Byli jste pozváni, abyste se připojili k vílám tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Zapomenout"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Zrušit výběr"
+  },
+  "9489b2f82a": {
+    "translation": "Již jste členem této skupiny"
   },
   "94966d9074": {
     "translation": "Poslat"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Základní soubory cookie"
   },
+  "c54a624f46": {
+    "translation": "Přijmout pozvání"
+  },
   "c6155aaecc": {
     "translation": "Název skupiny"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Neplatná adresa URL souboru tldraw"
   },
-  "de290d52ef": {
-    "translation": "Vyberte si vílu vpravo, se kterou si chcete popovídat."
-  },
   "df6ff49394": {
     "translation": "Víly jsou <strong>dočasnou</strong> funkcí. 1. ledna 2026 budou všechny víly z aplikace odstraněny. Možná se někdy vrátí. Váš nákup je pouze pro přístup k vílám v prosinci 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Uživatelská nastavení"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurovat"
   },
   "f2569594b2": {
     "translation": "Tyto soubory cookie používáme k ukládání vašich souborů a nastavení."

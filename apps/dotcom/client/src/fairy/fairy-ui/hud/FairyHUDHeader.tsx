@@ -1,3 +1,4 @@
+import { ActivityIcon } from '@tldraw/fairy-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiButton,
@@ -116,6 +117,21 @@ export function FairyHUDHeader({
 		[allAgents, selectedFairies, fairyApp]
 	)
 
+	const awakeFairies = useValue(
+		'awake-fairies',
+		() => allAgents.filter((agent) => !agent.mode.isSleeping()),
+		[allAgents]
+	)
+
+	const allAwakeFairiesSelected = useValue(
+		'all-awake-fairies-selected',
+		() => {
+			const selectedIds = new Set(selectedFairies.map((f) => f.id))
+			return awakeFairies.every((agent) => selectedIds.has(agent.id))
+		},
+		[awakeFairies, selectedFairies]
+	)
+
 	const getDisplayName = () => {
 		if (!isProjectStarted || !project) {
 			return fairyConfig?.name
@@ -159,9 +175,11 @@ export function FairyHUDHeader({
 
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
-		allAgents.forEach((agent) => {
-			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
-		})
+		allAgents
+			.filter((agent) => !agent.mode.isSleeping())
+			.forEach((agent) => {
+				agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
+			})
 	}, [allAgents, trackEvent])
 
 	if (panelState === 'manual') {
@@ -231,23 +249,20 @@ export function FairyHUDHeader({
 
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
-	// Show select all button when there are unselected fairies without active projects
+	// Show select all button when there are unselected fairies without active projects,
+	// more than one fairy is awake, and not all awake fairies are already selected
 	const showSelectAllButton =
-		hasUnselectedFairiesWithoutActiveProjects && !project && !hasChatHistory // && isMobile
+		hasUnselectedFairiesWithoutActiveProjects &&
+		!project &&
+		!hasChatHistory &&
+		awakeFairies.length > 1 &&
+		!allAwakeFairiesSelected
 
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
 
 			<div className="tlui-row">
-				{panelState === 'fairy-project' && (
-					<TldrawUiTooltip content="Live feed" side="top">
-						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
-							<TldrawUiButtonIcon icon="comment" small />
-						</TldrawUiButton>
-					</TldrawUiTooltip>
-				)}
-
 				{showSelectAllButton ? (
 					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
@@ -259,6 +274,17 @@ export function FairyHUDHeader({
 					hasChatHistory &&
 					!isProjectStarted && <ResetChatHistoryButton agent={onlySelectedFairy} />
 				)}
+
+				{(panelState === 'fairy-solo' ||
+					panelState === 'fairy-multi' ||
+					panelState === 'fairy-project') && (
+					<TldrawUiTooltip content="Activity feed" side="top">
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
+							<TldrawUiButtonIcon icon={<ActivityIcon />} small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
+				)}
+
 				{<FairyMenuButton menuPopoverOpen={menuPopoverOpen}>{dropdownContent}</FairyMenuButton>}
 			</div>
 		</div>
