@@ -1,4 +1,4 @@
-import { TLExportType, TLRichText, TLShapeId } from 'tldraw'
+import { TLExportType, TLRichText, TLShapeId, b64Vecs } from 'tldraw'
 
 export interface EndToEndApi {
 	exportAsSvg(): void
@@ -6,4 +6,5 @@ export interface EndToEndApi {
 	createShapeId(): TLShapeId
 	toRichText(text: string): TLRichText
 	markAllArrowBindings(): void
+	b64Vecs: typeof b64Vecs
 }
