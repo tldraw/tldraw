@@ -168,7 +168,7 @@ describe('CreateActionUtil', () => {
 	})
 
 	describe('applyAction', () => {
-		it('should not apply incomplete actions', () => {
+		it('should apply incomplete actions for geo shapes', () => {
 			const action = createAgentAction({
 				_type: 'create',
 				shape: {
@@ -181,6 +181,56 @@ describe('CreateActionUtil', () => {
 					color: 'black',
 					fill: 'none',
 					note: '',
+				},
+				intent: 'test',
+				complete: false,
+				time: 0,
+			})
+
+			const createShapeSpy = vi.spyOn(editor, 'createShape')
+			const helpers = new AgentHelpers(agent)
+			createUtil.applyAction(action, helpers)
+
+			expect(createShapeSpy).toHaveBeenCalledOnce()
+			const shape = editor.getCurrentPageShapes()[0]
+			expect(shape.isLocked).toBe(true)
+		})
+
+		it('should apply incomplete actions for text shapes', () => {
+			const action = createAgentAction({
+				_type: 'create',
+				shape: {
+					_type: 'text',
+					shapeId: toSimpleShapeId('shape1'),
+					text: 'test',
+					anchor: 'center',
+					color: 'black',
+					maxWidth: null,
+					note: '',
+					x: 0,
+					y: 0,
+				},
+				intent: 'test',
+				complete: false,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			createUtil.applyAction(action, helpers)
+			const shape = editor.getCurrentPageShapes()[0]
+			expect(shape.isLocked).toBe(true)
+		})
+
+		it('should not apply incomplete actions for non-geo and non-text shapes', () => {
+			const action = createAgentAction({
+				_type: 'create',
+				shape: {
+					_type: 'note',
+					shapeId: toSimpleShapeId('shape1'),
+					color: 'black',
+					note: 'test',
+					x: 0,
+					y: 0,
 				},
 				intent: 'test',
 				complete: false,
