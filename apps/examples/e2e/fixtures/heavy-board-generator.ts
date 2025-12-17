@@ -137,7 +137,7 @@ export class HeavyBoardGenerator {
 
 							// Access b64Vecs from the window.tldrawApi object
 							const tldrawApi = (window as any).tldrawApi
-							const b64Vecs = tldrawApi.b64Vecs
+							const b64VecsEncodePoints = tldrawApi.b64VecsEncodePoints
 
 							shape = {
 								id: `shape:${i}`,
@@ -148,7 +148,7 @@ export class HeavyBoardGenerator {
 									segments: [
 										{
 											type: 'free',
-											points: b64Vecs.encodePoints(points),
+											points: b64VecsEncodePoints(points),
 										},
 									],
 									color: random.choice(['black', 'blue', 'green', 'red']),
