@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { throttle, TldrawUiButton, useValue } from 'tldraw'
+import { useEffect, useMemo, useRef } from 'react'
+import { useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
 import { Y_AXIS_PADDING_MULTIPLIER } from '../fairy-shared-constants'
@@ -10,38 +10,15 @@ import { shouldRecreateChart } from './fairy-chart-helpers'
 import type { ChartData, Dataset } from './fairy-chart-types'
 
 interface FairyActionRateChartProps {
-	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
 }
 
-type TimeRange = '1m' | '5m' | '10m'
+const TIME_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 
-export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionRateChartProps) {
+export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 	const fairyApp = useFairyApp()
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyLineChart | null>(null)
-	const [timeRange, setTimeRange] = useState<TimeRange>('10m')
-	const [updateTrigger, forceUpdate] = useReducer((x) => x + 1, 0)
-
-	// Update time window once per second to ensure accurate time slicing
-	useEffect(() => {
-		const updateTime = throttle(() => {
-			forceUpdate()
-		}, 1000) // Update every 1 second
-
-		// Use RAF loop to trigger the throttled function
-		let rafId: number
-		const loop = () => {
-			updateTime()
-			rafId = requestAnimationFrame(loop)
-		}
-		rafId = requestAnimationFrame(loop)
-
-		return () => {
-			cancelAnimationFrame(rafId)
-			updateTime.cancel()
-		}
-	}, [])
 
 	// Get action rate data from tracker (subscribe to atom changes)
 	const actionRateData = useValue(
@@ -71,20 +48,14 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 	}, [fairyApp, agents])
 
-	// Filter data based on selected time range
+	// Filter data to the time window
 	const filteredData = useMemo(() => {
 		if (actionRateData.length === 0) return []
 
 		const now = Date.now()
-		const timeRangeMs = {
-			'1m': 1 * 60 * 1000,
-			'5m': 5 * 60 * 1000,
-			'10m': 10 * 60 * 1000,
-		}[timeRange]
-
-		const cutoffTime = now - timeRangeMs
+		const cutoffTime = now - TIME_WINDOW_MS
 		return actionRateData.filter((dataPoint) => dataPoint.timestamp >= cutoffTime)
-	}, [actionRateData, timeRange, updateTrigger])
+	}, [actionRateData])
 
 	// Build per-fairy datasets from action rate data with rolling window average
 	const chartData = useMemo((): ChartData & { maxValue?: number } => {
@@ -131,13 +102,12 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 					}
 				}
 
-				// Calculate window duration
-				const windowDuration = index - startIndex + 1 // Number of samples
-				const actualWindowSeconds = Math.min(windowDuration, ROLLING_WINDOW_SECONDS)
+				// Calculate actual elapsed time in the window using timestamps
+				const actualWindowMs = dataPoint.timestamp - filteredData[startIndex].timestamp
+				const actualWindowSeconds = Math.max(actualWindowMs / 1000, 1) // At least 1 second to avoid division issues
 
 				// Convert to actions per minute
-				const actionsPerMinute =
-					actualWindowSeconds > 0 ? (totalActions / actualWindowSeconds) * 60 : 0
+				const actionsPerMinute = (totalActions / actualWindowSeconds) * 60
 				fairyInfo.values.push(actionsPerMinute)
 			}
 		})
@@ -163,9 +133,8 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		return { labels, datasets, maxValue }
 	}, [filteredData, fairyApp])
 
-	// Track previous maxYValue and timeRange to detect when we need to recreate chart
+	// Track previous maxYValue to detect when we need to recreate chart
 	const prevMaxYValueRef = useRef<number | undefined>(undefined)
-	const prevTimeRangeRef = useRef<TimeRange>(timeRange)
 
 	// Initialize and update chart
 	useEffect(() => {
@@ -177,19 +146,12 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 			? Math.ceil(chartData.maxValue * Y_AXIS_PADDING_MULTIPLIER)
 			: undefined
 
-		// Recreate chart if time range changed or maxYValue increased significantly
-		const existingChart = chartInstanceRef.current
-		const timeRangeChanged = prevTimeRangeRef.current !== timeRange
-
-		if (
-			timeRangeChanged ||
-			shouldRecreateChart(existingChart, maxYValue, prevMaxYValueRef.current)
-		) {
-			if (existingChart) {
-				existingChart.destroy()
+		// Recreate chart if maxYValue increased significantly
+		if (shouldRecreateChart(chartInstanceRef.current, maxYValue, prevMaxYValueRef.current)) {
+			if (chartInstanceRef.current) {
+				chartInstanceRef.current.destroy()
 				chartInstanceRef.current = null
 			}
-			prevTimeRangeRef.current = timeRange
 		}
 
 		// Update prevMaxYValueRef only when we recreate or on first render
@@ -215,7 +177,7 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 
 		// Update chart with new data
 		chartInstanceRef.current.update(chartData)
-	}, [chartData, timeRange])
+	}, [chartData])
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -227,29 +189,12 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 	}, [])
 
-	// Time range selector UI
-	const timeRangeSelector = (
-		<div className="fairy-chart-time-range-selector">
-			{(['1m', '5m', '10m'] as TimeRange[]).map((range) => (
-				<TldrawUiButton
-					key={range}
-					type={timeRange === range ? 'primary' : 'normal'}
-					className="fairy-chart-time-range-button"
-					onClick={() => setTimeRange(range)}
-				>
-					{range}
-				</TldrawUiButton>
-			))}
-		</div>
-	)
-
 	return (
 		<ChartErrorBoundary>
 			<FairyChartContainer
 				title="Activity"
 				isEmpty={actionRateData.length === 0}
 				emptyMessage="Waiting for fairy actions..."
-				headerActions={timeRangeSelector}
 			>
 				<div ref={chartContainerRef} className="fairy-activity-chart" />
 			</FairyChartContainer>

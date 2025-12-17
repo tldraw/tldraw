@@ -95,11 +95,7 @@ const FairyFeedIRCLine = memo(
 	}
 )
 
-export function FairyFeedView({
-	orchestratorAgent,
-	agents,
-	showActivityMonitor = false,
-}: FairyFeedViewItem) {
+export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) {
 	const fairyApp = useFairyApp()
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -151,7 +147,6 @@ export function FairyFeedView({
 	if (feedItems.length === 0) {
 		return (
 			<>
-				<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				<div className="fairy-feed-view-empty">
 					<p>No fairy activity yet...</p>
 				</div>
@@ -161,7 +156,7 @@ export function FairyFeedView({
 
 	return (
 		<>
-			<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
+			<FairyActionRateChart agents={agents} />
 			<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
 				{feedItems.map((item) => (
 					<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />
