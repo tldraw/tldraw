@@ -49,7 +49,7 @@ export class FairyLineChart {
 	private chartHeight = 0
 	private chartWidth = 0
 	private margins = { top: 10, bottom: 10, left: 20, right: 20 }
-	private paddings = { top: 20, bottom: 10, left: 10, right: 10 }
+	private paddings = { top: 20, bottom: 10, left: 0, right: 0 }
 	private yAxis!: {
 		labels: number[]
 		positions: number[]
