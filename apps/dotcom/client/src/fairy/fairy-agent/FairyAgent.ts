@@ -568,9 +568,6 @@ export class FairyAgent {
 	async request(input: AgentInput) {
 		const request = this.requests.getFullRequestFromInput(input)
 
-		// Move the fairy to request bounds (this means that the fairy will always be their bounds if their bounds are set programmatically somewhere else)
-		this.position.moveTo(Box.From(request.bounds).center)
-
 		// Interrupt any currently active request
 		if (this.requests.getActiveRequest() !== null) {
 			this.cancel()
