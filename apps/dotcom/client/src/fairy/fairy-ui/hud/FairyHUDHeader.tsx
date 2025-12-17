@@ -263,18 +263,6 @@ export function FairyHUDHeader({
 			{centerContent}
 
 			<div className="tlui-row">
-				{panelState === 'fairy-project' && (
-					<TldrawUiTooltip content="Live feed" side="top">
-						<TldrawUiButton
-							type="icon"
-							className="fairy-toolbar-button fairy-feed-button"
-							onClick={onToggleFeed}
-						>
-							<TldrawUiButtonIcon icon="comment" small />
-						</TldrawUiButton>
-					</TldrawUiTooltip>
-				)}
-
 				{showSelectAllButton ? (
 					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
