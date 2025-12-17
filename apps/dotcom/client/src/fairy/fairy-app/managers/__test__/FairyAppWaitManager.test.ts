@@ -59,7 +59,7 @@ describe('FairyAppWaitManager', () => {
 			const getWaitingForSpy = vi
 				.spyOn(agent.waits, 'getWaitingFor')
 				.mockReturnValue([waitCondition])
-			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
+			const setWaitingForSpy = vi.spyOn(agent.waits, 'setWaitingFor')
 			const notifySpy = vi
 				.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
 				.mockResolvedValue(undefined)
@@ -71,7 +71,7 @@ describe('FairyAppWaitManager', () => {
 			})
 
 			expect(getWaitingForSpy).toHaveBeenCalled()
-			expect(waitForAllSpy).toHaveBeenCalledWith([])
+			expect(setWaitingForSpy).toHaveBeenCalledWith([])
 			expect(notifySpy).toHaveBeenCalledWith({
 				agentMessages: ['Test message'],
 				userMessages: ['User message'],
@@ -105,7 +105,7 @@ describe('FairyAppWaitManager', () => {
 			}
 
 			vi.spyOn(agent.waits, 'getWaitingFor').mockReturnValue([waitCondition])
-			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
+			const setWaitingForSpy = vi.spyOn(agent.waits, 'setWaitingFor')
 			const notifySpy = vi.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
 
 			manager.notifyWaitingAgents({
@@ -113,7 +113,7 @@ describe('FairyAppWaitManager', () => {
 				getAgentFacingMessage: () => 'Test message',
 			})
 
-			expect(waitForAllSpy).not.toHaveBeenCalled()
+			expect(setWaitingForSpy).not.toHaveBeenCalled()
 			expect(notifySpy).not.toHaveBeenCalled()
 		})
 
