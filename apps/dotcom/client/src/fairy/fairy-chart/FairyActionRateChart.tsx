@@ -133,7 +133,7 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 		return { labels, datasets, maxValue }
 	}, [filteredData, fairyApp])
 
-	// Track previous maxYValue to detect when we need to recreate chart
+	// Track previous maxYValue and timeRange to detect when we need to recreate chart
 	const prevMaxYValueRef = useRef<number | undefined>(undefined)
 
 	// Initialize and update chart
