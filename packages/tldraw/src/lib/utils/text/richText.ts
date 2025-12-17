@@ -1,6 +1,7 @@
 import {
 	Extension,
 	Extensions,
+	extensions,
 	generateHTML,
 	generateJSON,
 	generateText,
@@ -19,7 +20,6 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
-import { TextDirection } from './textDirection'
 
 /** @public */
 export const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -59,7 +59,11 @@ export const tipTapDefaultExtensions: Extensions = [
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
-	TextDirection,
+
+	// N.B. We disable the text direction core extension in RichTextArea,
+	// but we add it back in again here in our own extensions list so that
+	// people can omit/override it if they want to.
+	extensions.TextDirection.configure({ direction: 'auto' }),
 ]
 
 // todo: bust this if the editor changes, too
@@ -88,7 +92,6 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
- *
  * @public
  */
 export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText) {
@@ -111,7 +114,6 @@ export function isEmptyRichText(richText: TLRichText) {
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
- *
  * @public
  */
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
@@ -130,7 +132,6 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
  * Renders JSONContent from html.
  * @param editor - The editor instance.
  * @param richText - The rich text content.
- *
  *
  * @public
  */
