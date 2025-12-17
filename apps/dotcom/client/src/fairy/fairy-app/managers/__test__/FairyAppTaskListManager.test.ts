@@ -41,6 +41,10 @@ describe('FairyAppTaskListManager', () => {
 					status: 'todo',
 					projectId: null,
 					assignedTo: null,
+					x: 0,
+					y: 0,
+					w: 0,
+					h: 0,
 				},
 			]
 
@@ -52,7 +56,7 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('createTask', () => {
 		it('should create a new task with defaults', () => {
-			manager.createTask({ id: toTaskId('task-1') })
+			manager.createTask({ id: toTaskId('task-1'), title: '', x: 0, y: 0, w: 0, h: 0 })
 
 			const tasks = manager.getTasks()
 			expect(tasks).toHaveLength(1)
@@ -63,6 +67,10 @@ describe('FairyAppTaskListManager', () => {
 				status: 'todo',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 		})
 
@@ -74,6 +82,10 @@ describe('FairyAppTaskListManager', () => {
 				status: 'in-progress',
 				projectId: toProjectId('project-1'),
 				assignedTo: toAgentId('agent-1'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			const task = manager.getTaskById(toTaskId('task-1'))
@@ -90,7 +102,7 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('deleteTask', () => {
 		it('should delete a task by ID', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1' })
+			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1', x: 0, y: 0, w: 0, h: 0 })
 			expect(manager.getTasks()).toHaveLength(1)
 
 			manager.deleteTask(toTaskId('task-1'))
@@ -101,7 +113,14 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('getTaskById', () => {
 		it('should return a task by ID', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task' })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			const task = manager.getTaskById(toTaskId('task-1'))
 
@@ -117,7 +136,14 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('setTaskStatus', () => {
 		it('should set a task status', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task' })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			manager.setTaskStatus(toTaskId('task-1'), 'in-progress')
 
@@ -125,8 +151,8 @@ describe('FairyAppTaskListManager', () => {
 		})
 
 		it('should not affect other tasks', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1' })
-			manager.createTask({ id: toTaskId('task-2'), title: 'Task 2' })
+			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1', x: 0, y: 0, w: 0, h: 0 })
+			manager.createTask({ id: toTaskId('task-2'), title: 'Task 2', x: 0, y: 0, w: 0, h: 0 })
 
 			manager.setTaskStatus(toTaskId('task-1'), 'done')
 
@@ -137,7 +163,14 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('setTaskStatusAndNotify', () => {
 		it('should set task status and notify waiting agents when done', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task' })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			const notifyTaskCompletedSpy = vi.spyOn(fairyApp.waits, 'notifyTaskCompleted')
 
@@ -150,7 +183,14 @@ describe('FairyAppTaskListManager', () => {
 		})
 
 		it('should not notify when status is not done', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task' })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			const notifyTaskCompletedSpy = vi.spyOn(fairyApp.waits, 'notifyTaskCompleted')
 
@@ -174,16 +214,28 @@ describe('FairyAppTaskListManager', () => {
 				id: toTaskId('task-1'),
 				title: 'Task 1',
 				projectId: toProjectId('project-1'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 			manager.createTask({
 				id: toTaskId('task-2'),
 				title: 'Task 2',
 				projectId: toProjectId('project-1'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 			manager.createTask({
 				id: toTaskId('task-3'),
 				title: 'Task 3',
 				projectId: toProjectId('project-2'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			const projectTasks = manager.getTasksByProjectId(toProjectId('project-1'))
@@ -203,16 +255,28 @@ describe('FairyAppTaskListManager', () => {
 				id: toTaskId('task-1'),
 				title: 'Task 1',
 				assignedTo: toAgentId('agent-1'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 			manager.createTask({
 				id: toTaskId('task-2'),
 				title: 'Task 2',
 				assignedTo: toAgentId('agent-1'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 			manager.createTask({
 				id: toTaskId('task-3'),
 				title: 'Task 3',
 				assignedTo: toAgentId('agent-2'),
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			const agentTasks = manager.getTasksByAgentId(toAgentId('agent-1'))
@@ -237,7 +301,14 @@ describe('FairyAppTaskListManager', () => {
 			const agents = fairyApp.agents.getAgents()
 			const agentIdValue = agents[0]!.id
 
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task' })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			manager.assignFairyToTask(toTaskId('task-1'), agentIdValue, agents)
 
@@ -254,7 +325,15 @@ describe('FairyAppTaskListManager', () => {
 			const agents = fairyApp.agents.getAgents()
 			const agentIdValue = agents[0]!.id
 
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task', assignedTo: agentIdValue })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				assignedTo: agentIdValue,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			manager.assignFairyToTask(toTaskId('task-1'), null, agents)
 
@@ -270,7 +349,14 @@ describe('FairyAppTaskListManager', () => {
 			fairyApp.agents.syncAgentsWithConfigs({}, options)
 			const agents = fairyApp.agents.getAgents()
 
-			manager.createTask({ id: toTaskId('task-1'), title: 'Test Task' })
+			manager.createTask({
+				id: toTaskId('task-1'),
+				title: 'Test Task',
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
+			})
 
 			manager.assignFairyToTask(toTaskId('task-1'), toAgentId('non-existent'), agents)
 
@@ -280,8 +366,8 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('clearTasksAndProjects', () => {
 		it('should clear all tasks and projects', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1' })
-			manager.createTask({ id: toTaskId('task-2'), title: 'Task 2' })
+			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1', x: 0, y: 0, w: 0, h: 0 })
+			manager.createTask({ id: toTaskId('task-2'), title: 'Task 2', x: 0, y: 0, w: 0, h: 0 })
 
 			fairyApp.projects.addProject(getFairyProject())
 
@@ -297,8 +383,8 @@ describe('FairyAppTaskListManager', () => {
 
 	describe('reset', () => {
 		it('should reset the manager', () => {
-			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1' })
-			manager.createTask({ id: toTaskId('task-2'), title: 'Task 2' })
+			manager.createTask({ id: toTaskId('task-1'), title: 'Task 1', x: 0, y: 0, w: 0, h: 0 })
+			manager.createTask({ id: toTaskId('task-2'), title: 'Task 2', x: 0, y: 0, w: 0, h: 0 })
 
 			expect(manager.getTasks()).toHaveLength(2)
 
