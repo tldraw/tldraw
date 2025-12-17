@@ -107,11 +107,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 		return {
 			agents: agents.reduce(
 				(acc, agent) => {
-					const agentState = agent.serializeState()
-					// Strip diff field from chat history before sending
-					if (agentState.chatHistory) {
-						agentState.chatHistory = agentState.chatHistory.map(stripDiffFromChatItem)
-					}
+					const agentState = stripUnneededFieldsFromAgentState(agent.serializeState())
 					acc[agent.id] = agentState
 					return acc
 				},
@@ -213,8 +209,8 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 					// Skip if already sent
 					if (sent.has(item.id)) return
 
-					// Strip diff field from action items before sending
-					allMessagesToAppend.push(stripDiffFromChatItem(item))
+					// Strip unneeded fields before sending
+					allMessagesToAppend.push(stripUnneededFieldsFromChatItem(item))
 					sent.add(item.id)
 				})
 			})
@@ -277,12 +273,27 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 }
 
 /**
- * Strip the diff field from chat history items before persisting.
+ * Strip unneeded fields from chat history items before persisting.
  */
-function stripDiffFromChatItem(item: ChatHistoryItem): ChatHistoryItem {
+function stripUnneededFieldsFromChatItem(item: ChatHistoryItem): ChatHistoryItem {
 	if (item.type === 'action') {
 		const { diff: _diff, ...rest } = item
 		return rest as ChatHistoryItem
 	}
 	return item
+}
+
+/**
+ * Strip unneeded fields from agent state before persisting.
+ */
+function stripUnneededFieldsFromAgentState(
+	agentState: PersistedFairyAgentState
+): PersistedFairyAgentState {
+	// Strip waitingFor to reduce size
+	const { waitingFor: _waitingFor, ...rest } = agentState
+	// Strip diff from chat history items
+	if (rest.chatHistory) {
+		rest.chatHistory = rest.chatHistory.map(stripUnneededFieldsFromChatItem)
+	}
+	return rest
 }
