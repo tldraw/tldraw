@@ -41,7 +41,7 @@
 	font-size: 14px;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.homeButton:hover {
 		color: var(--tl-color-text-1);
 		background-color: var(--tl-color-hover);

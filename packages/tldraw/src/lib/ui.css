@@ -102,7 +102,7 @@
 	opacity: 1;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-button[aria-expanded='true'][data-direction='left']:not(:hover)::after {
 		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
@@ -133,7 +133,7 @@
 	opacity: 0;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-button__low:hover::after {
 		opacity: 1;
 	}
@@ -150,7 +150,7 @@
 	text-shadow: none;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-button__primary:not(:disabled, :focus-visible):hover {
 		color: var(--tl-color-primary);
 	}
@@ -619,7 +619,7 @@
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
 		opacity: 1;
 		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
@@ -697,7 +697,7 @@
 	opacity: 1;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-menu-zone *[data-state='open']:not(:hover)::after {
 		background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
@@ -765,7 +765,7 @@
 	opacity: 1;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
@@ -797,7 +797,7 @@
 	padding-right: calc(40px - 12px);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-page-menu__item__button > span {
 		padding-right: 0px;
 	}
@@ -899,7 +899,7 @@
 	opacity: 1;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
 		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
@@ -920,7 +920,7 @@
 	margin-right: 4px;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
 		opacity: 0;
 	}
@@ -1081,7 +1081,7 @@ tldraw? probably.
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-style-panel .tlui-button[aria-expanded='true'] {
 		background: none;
 	}
@@ -1337,7 +1337,7 @@ tldraw? probably.
 	margin-bottom: 2px;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-main-toolbar--horizontal *[data-state='open']:not(:hover)::after {
 		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
@@ -1867,7 +1867,7 @@ tldraw? probably.
 	opacity: 1;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-people-menu__avatars-button:hover .tlui-people-menu__avatar {
 		border-color: var(--tl-color-low);
 	}
@@ -2012,7 +2012,7 @@ tldraw? probably.
 	opacity: 1;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tlui-people-menu__item__follow {
 		opacity: 0;
 	}

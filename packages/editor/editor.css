@@ -1762,7 +1762,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 /* --------------------- Hovers --------------------- */
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.tl-handle__create:hover {
 		opacity: 1;
 	}

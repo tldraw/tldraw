@@ -121,7 +121,7 @@
 	display: none;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.hoverable:hover::after {
 		visibility: visible;
 	}
@@ -174,7 +174,7 @@
 	outline: 2px solid var(--tl-color-focus);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebarToggle:hover {
 		z-index: 100;
 	}
@@ -281,7 +281,7 @@
 	outline-offset: -4px;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebar:hover .sidebarCreateFileButton:hover::after {
 		visibility: visible;
 	}
@@ -348,7 +348,7 @@
 	color: var(--tla-color-text-3);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebarUserSettingsTrigger:hover {
 		color: var(--tla-color-text-1);
 	}
@@ -397,7 +397,7 @@
 	background-color: transparent;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.helpMenuTrigger:hover::after {
 		background-color: var(--tla-color-hover-1);
 	}
@@ -566,7 +566,7 @@
 	outline-offset: -4px;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebarFileListItemMenuTrigger {
 		display: none;
 	}
@@ -737,7 +737,7 @@
 	height: 12px;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebarDotDevLink:hover a div {
 		transform: translate(80px, 0px) rotate(180deg);
 		transition: transform 6s ease-in-out 1s;
@@ -867,7 +867,7 @@
 	color: var(--tla-color-text-1);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebarGroupItemTitle:hover,
 	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemTitle {
 		color: var(--tla-color-text-1);
@@ -911,7 +911,7 @@
 	transition: opacity 0.15s ease-in-out;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.sidebarGroupItem:has(.sidebarGroupItemHeader:hover) .sidebarGroupItemButtons,
 	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons,
 	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemButtons {

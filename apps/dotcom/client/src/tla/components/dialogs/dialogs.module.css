@@ -138,7 +138,7 @@
 	}
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.cookieAcceptButton:hover {
 		color: var(--tla-color-contrast);
 		background-color: var(--tla-color-text-1);

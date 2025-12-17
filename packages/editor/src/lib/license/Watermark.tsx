@@ -210,7 +210,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	display: none;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.${className} > button {
 		pointer-events: none;
 	}

@@ -159,7 +159,7 @@ button.topLeftInputNameWidthSetter {
 	cursor: pointer;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.topLeftInputWrapperEditable:hover:not(:focus-within)::after {
 		background-color: var(--tl-color-muted-2);
 	}
@@ -202,7 +202,7 @@ button.topLeftInputNameWidthSetter {
 	border-radius: var(--tl-radius-2);
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.topLeftMainMenuTrigger:hover {
 		color: var(--tla-color-text-1);
 	}
@@ -302,7 +302,7 @@ button.topLeftInputNameWidthSetter {
 	visibility: visible;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.topRightAnonShareButton:hover::after {
 		visibility: visible;
 	}

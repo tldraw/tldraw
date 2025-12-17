@@ -318,7 +318,7 @@
 	}
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.fairy-plus-button:hover .fairy-plus-button-circle {
 		fill: var(--tl-color-fairy-select-bg);
 	}

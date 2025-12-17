@@ -341,7 +341,7 @@ body {
 }
 
 /* Hide remove button by default on hover-capable devices */
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.input-image-remove {
 		opacity: 0;
 	}

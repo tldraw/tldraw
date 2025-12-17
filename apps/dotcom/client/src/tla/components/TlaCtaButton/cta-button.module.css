@@ -78,7 +78,7 @@
 	pointer-events: none;
 }
 
-@media (hover: hover) {
+@media (pointer: coarse) {
 	.ctaButton:not(:disabled):hover::before {
 		background-color: var(--tla-color-cta-hover);
 	}
