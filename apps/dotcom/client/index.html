@@ -7,14 +7,14 @@
 		<script>
 			;(function () {
 				try {
-					var stored = localStorage.getItem('tldrawapp_session_3')
+					const stored = localStorage.getItem('tldrawapp_session_3')
 					if (stored) {
-						var parsed = JSON.parse(stored)
+						const parsed = JSON.parse(stored)
 						if (parsed && parsed.theme === 'dark') {
 							document.documentElement.classList.add('tldraw-preload-dark')
 							// Update theme-color meta tag for dark mode
 							document.addEventListener('DOMContentLoaded', function () {
-								var meta = document.querySelector('meta[name="theme-color"]')
+								const meta = document.querySelector('meta[name="theme-color"]')
 								if (meta) meta.setAttribute('content', '#000000')
 							})
 						}
