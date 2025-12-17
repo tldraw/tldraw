@@ -100,6 +100,7 @@ import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEditStartInfo } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
+import { TLEventInfo } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLFileExternalAsset } from '@tldraw/editor';
 import { TLFontFace } from '@tldraw/editor';
@@ -2726,7 +2727,10 @@ export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX.Element;
 export function StackMenuItems(): JSX.Element;
 
 // @public
-export function startEditingShapeWithRichText(editor: Editor, shape: TLShape, selectAll?: boolean): void;
+export function startEditingShapeWithRichText(editor: Editor, shapeOrId: TLShape | TLShapeId, options?: {
+    info?: TLEventInfo;
+    selectAll?: boolean;
+}): void;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;

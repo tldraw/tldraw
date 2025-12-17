@@ -9,6 +9,7 @@ import {
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 
+import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,
@@ -61,8 +62,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId,
 				onCreate: () => {
-					this.editor.setEditingShape(this.shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
+					startEditingShapeWithRichText(this.editor, this.shape.id)
 				},
 			})
 		}
@@ -88,12 +88,7 @@ export class Pointing extends StateNode {
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
 		} else {
-			this.editor.setEditingShape(this.shape.id)
-			this.editor.setCurrentTool('select.editing_shape', {
-				...this.info,
-				target: 'shape',
-				shape: this.shape,
-			})
+			startEditingShapeWithRichText(this.editor, this.shape.id, { info: this.info })
 		}
 	}
 
