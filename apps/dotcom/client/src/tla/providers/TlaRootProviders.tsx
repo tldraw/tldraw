@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -95,7 +95,9 @@ export function Component() {
 	const areFairiesEnabled = useAreFairiesEnabled()
 
 	// Set the data-coarse attribute on the container based on the pointer type
-	useEffect(() => {
+	// we use a layout effect because we don't want there to be any perceptible delay between the
+	// container mounting and this attribute being applied, because styles may depend on it:
+	useLayoutEffect(() => {
 		if (!container) return
 		return react('coarsePointer', () => {
 			container.setAttribute('data-coarse', String(tlenvReactive.get().isCoarsePointer))
