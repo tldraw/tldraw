@@ -34,6 +34,11 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	private autoSaveCleanupFns: (() => void)[] = []
 
 	/**
+	 * Track which message IDs have been sent to the database per agent.
+	 */
+	private sentMessageIds = new Map<string, Set<string>>()
+
+	/**
 	 * Check if state is currently being loaded.
 	 */
 	getIsLoadingState(): boolean {
@@ -159,6 +164,77 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 
 		// Store the flush function for cleanup
 		this.autoSaveCleanupFns.push(() => updateFairyState.flush())
+
+		// Start watching chat messages for append-only persistence
+		this.startChatMessageAppending(fileId)
+	}
+
+	/**
+	 * Start watching chat history and append complete messages to database.
+	 *
+	 * @param fileId - The file ID to append messages to
+	 */
+	private startChatMessageAppending(fileId: string) {
+		const agents = this.fairyApp.agents.getAgents()
+
+		// Initialize sent message IDs for all agents
+		agents.forEach((agent) => {
+			const chatHistory = agent.chat.getHistory()
+			const sent = new Set<string>()
+
+			chatHistory.forEach((item) => {
+				// Skip legacy messages without IDs
+				if (!item.id) return
+
+				// Mark all messages as sent initially
+				sent.add(item.id)
+			})
+
+			this.sentMessageIds.set(agent.id, sent)
+		})
+
+		const appendMessages = throttle(() => {
+			// Don't append if we're currently loading state
+			if (this.isLoadingState) return
+
+			const allMessagesToAppend: ChatHistoryItem[] = []
+
+			agents.forEach((agent) => {
+				const chatHistory = agent.chat.getHistory()
+				const sent = this.sentMessageIds.get(agent.id) || new Set()
+
+				chatHistory.forEach((item) => {
+					// Skip legacy messages without IDs
+					if (!item.id) return
+
+					// Skip incomplete actions
+					if (item.type === 'action' && !item.action.complete) return
+
+					// Skip if already sent
+					if (sent.has(item.id)) return
+
+					// Strip diff field from action items before sending
+					allMessagesToAppend.push(stripDiffFromChatItem(item))
+					sent.add(item.id)
+				})
+			})
+
+			if (allMessagesToAppend.length > 0) {
+				this.fairyApp.tldrawApp.appendFairyChatMessages(fileId, allMessagesToAppend)
+			}
+		}, 2000) // Append maximum every 2 seconds
+
+		// Watch each agent's chat history
+		agents.forEach((agent) => {
+			const cleanup = react(`${agent.id} chat message appending`, () => {
+				agent.chat.getHistory()
+				appendMessages()
+			})
+			this.autoSaveCleanupFns.push(cleanup)
+		})
+
+		// Store the flush function for cleanup
+		this.autoSaveCleanupFns.push(() => appendMessages.flush())
 	}
 
 	/**
@@ -167,6 +243,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	stopAutoSave() {
 		this.autoSaveCleanupFns.forEach((cleanup) => cleanup())
 		this.autoSaveCleanupFns = []
+		this.sentMessageIds.clear()
 	}
 
 	/**
@@ -186,6 +263,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 		this.stopAutoSave()
 		this.resetLoadingFlags()
 		this.isLoadingState = false
+		this.sentMessageIds.clear()
 	}
 
 	/**
