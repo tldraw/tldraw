@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react'
-import { useValue } from 'tldraw'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { TldrawUiButton, useValue } from 'tldraw'
 import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
 import { Y_AXIS_PADDING_MULTIPLIER } from '../fairy-shared-constants'
@@ -8,33 +8,19 @@ import { FairyChartContainer } from './FairyChartContainer'
 import { FairyLineChart } from './FairyLineChart'
 import { shouldRecreateChart } from './fairy-chart-helpers'
 import type { ChartData, Dataset } from './fairy-chart-types'
-import { useProjectChangeDetection } from './useProjectChangeDetection'
 
 interface FairyActionRateChartProps {
 	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
 }
 
+type TimeRange = '1m' | '5m' | '10m'
+
 export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionRateChartProps) {
 	const fairyApp = useFairyApp()
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const chartInstanceRef = useRef<FairyLineChart | null>(null)
-
-	// Get project to filter agents
-	const project = useValue(
-		'project',
-		() => orchestratorAgent && orchestratorAgent.getProject(true),
-		[orchestratorAgent]
-	)
-
-	// Reset chart data when project changes
-	useProjectChangeDetection(project, fairyApp, () => {
-		// Destroy existing chart instance so it gets recreated fresh
-		if (chartInstanceRef.current) {
-			chartInstanceRef.current.destroy()
-			chartInstanceRef.current = null
-		}
-	})
+	const [timeRange, setTimeRange] = useState<TimeRange>('10m')
 
 	// Get action rate data from tracker (subscribe to atom changes)
 	const actionRateData = useValue(
@@ -46,34 +32,42 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		[fairyApp]
 	)
 
-	// Start/stop tracking based on project existence
+	// Start/stop tracking all agents globally (when chart mounts/unmounts)
 	useEffect(() => {
 		if (!fairyApp?.actionRateTracker) {
 			return
 		}
 
-		// Stop tracking if no project (project ended)
-		if (!project) {
+		// Start tracking all agents globally when chart mounts (dialog opens)
+		fairyApp.actionRateTracker.startTracking(
+			() => agents, // Track all agents
+			undefined // No project ID (global mode)
+		)
+
+		// Stop tracking when chart unmounts (dialog closes)
+		return () => {
 			fairyApp.actionRateTracker.stopTracking()
-			return
 		}
+	}, [fairyApp, agents])
 
-		// Start tracking with project agents, passing project ID for automatic reset
-		fairyApp.actionRateTracker.startTracking(() => {
-			const currentProject = orchestratorAgent?.getProject(true)
-			if (!currentProject) return []
+	// Filter data based on selected time range
+	const filteredData = useMemo(() => {
+		if (actionRateData.length === 0) return []
 
-			// Filter to project members (always include all members)
-			return agents.filter((agent) => {
-				const isMember = currentProject.members.some((m) => m.id === agent.id)
-				return isMember
-			})
-		}, project.id)
-	}, [fairyApp, project, agents, orchestratorAgent])
+		const now = Date.now()
+		const timeRangeMs = {
+			'1m': 1 * 60 * 1000,
+			'5m': 5 * 60 * 1000,
+			'10m': 10 * 60 * 1000,
+		}[timeRange]
+
+		const cutoffTime = now - timeRangeMs
+		return actionRateData.filter((dataPoint) => dataPoint.timestamp >= cutoffTime)
+	}, [actionRateData, timeRange])
 
 	// Build per-fairy datasets from action rate data with rolling window average
 	const chartData = useMemo((): ChartData & { maxValue?: number } => {
-		if (actionRateData.length === 0) {
+		if (filteredData.length === 0) {
 			return { labels: [], datasets: [], maxValue: 0 }
 		}
 
@@ -83,7 +77,7 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		const fairyMap = new Map<string, { name: string; color: string; values: number[] }>()
 
 		// Initialize fairy map
-		for (const dataPoint of actionRateData) {
+		for (const dataPoint of filteredData) {
 			for (const fairy of dataPoint.fairies) {
 				if (!fairyMap.has(fairy.id)) {
 					const color = fairyApp?.actionRateTracker?.getHatColorHex(fairy.hatColor) ?? '#888888'
@@ -97,10 +91,10 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 
 		// Calculate rolling average actions per minute for each data point
-		actionRateData.forEach((dataPoint, index) => {
+		filteredData.forEach((dataPoint, index) => {
 			// Determine window start (60 seconds before current point)
 			const windowStartTime = dataPoint.timestamp - ROLLING_WINDOW_SECONDS * 1000
-			const windowStartIndex = actionRateData.findIndex((dp) => dp.timestamp >= windowStartTime)
+			const windowStartIndex = filteredData.findIndex((dp) => dp.timestamp >= windowStartTime)
 			const startIndex = windowStartIndex >= 0 ? windowStartIndex : 0
 
 			// Calculate actions per minute for each fairy at this point
@@ -109,7 +103,7 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 
 				// Sum actions in the window for this fairy
 				for (let i = startIndex; i <= index; i++) {
-					const dp = actionRateData[i]
+					const dp = filteredData[i]
 					const fairyInDp = dp.fairies.find((f) => f.id === fairyId)
 					if (fairyInDp) {
 						totalActions += fairyInDp.actionsDelta
@@ -143,13 +137,14 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 
 		// Simple labels - empty strings
-		const labels = actionRateData.map(() => '')
+		const labels = filteredData.map(() => '')
 
 		return { labels, datasets, maxValue }
-	}, [actionRateData, fairyApp])
+	}, [filteredData, fairyApp])
 
-	// Track previous maxYValue to detect when we need to recreate chart
+	// Track previous maxYValue and timeRange to detect when we need to recreate chart
 	const prevMaxYValueRef = useRef<number | undefined>(undefined)
+	const prevTimeRangeRef = useRef<TimeRange>(timeRange)
 
 	// Initialize and update chart
 	useEffect(() => {
@@ -161,12 +156,19 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 			? Math.ceil(chartData.maxValue * Y_AXIS_PADDING_MULTIPLIER)
 			: undefined
 
-		// Only recreate chart if maxYValue increased significantly
-		// Uses CHART_RECREATION_THRESHOLD (25%) to prevent infinite loops from tiny fluctuations
+		// Recreate chart if time range changed or maxYValue increased significantly
 		const existingChart = chartInstanceRef.current
-		if (shouldRecreateChart(existingChart, maxYValue, prevMaxYValueRef.current)) {
-			existingChart!.destroy()
-			chartInstanceRef.current = null
+		const timeRangeChanged = prevTimeRangeRef.current !== timeRange
+
+		if (
+			timeRangeChanged ||
+			shouldRecreateChart(existingChart, maxYValue, prevMaxYValueRef.current)
+		) {
+			if (existingChart) {
+				existingChart.destroy()
+				chartInstanceRef.current = null
+			}
+			prevTimeRangeRef.current = timeRange
 		}
 
 		// Update prevMaxYValueRef only when we recreate or on first render
@@ -192,7 +194,7 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 
 		// Update chart with new data
 		chartInstanceRef.current.update(chartData)
-	}, [chartData])
+	}, [chartData, timeRange])
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -204,16 +206,29 @@ export function FairyActionRateChart({ orchestratorAgent, agents }: FairyActionR
 		}
 	}, [])
 
-	if (!project) {
-		return null
-	}
+	// Time range selector UI
+	const timeRangeSelector = (
+		<div className="fairy-chart-time-range-selector">
+			{(['1m', '5m', '10m'] as TimeRange[]).map((range) => (
+				<TldrawUiButton
+					key={range}
+					type={timeRange === range ? 'primary' : 'normal'}
+					className="fairy-chart-time-range-button"
+					onClick={() => setTimeRange(range)}
+				>
+					{range}
+				</TldrawUiButton>
+			))}
+		</div>
+	)
 
 	return (
 		<ChartErrorBoundary>
 			<FairyChartContainer
-				title="Action Rate (actions/min)"
+				title="Activity"
 				isEmpty={actionRateData.length === 0}
 				emptyMessage="Waiting for fairy actions..."
+				headerActions={timeRangeSelector}
 			>
 				<div ref={chartContainerRef} className="fairy-activity-chart" />
 			</FairyChartContainer>

@@ -1246,6 +1246,18 @@
 	margin-bottom: 8px;
 }
 
+.fairy-activity-chart-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.fairy-chart-time-range-selector {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .fairy-activity-chart {
 	height: 180px;
 	border: 1px solid black;

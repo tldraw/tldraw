@@ -2,15 +2,11 @@ import { AgentModelName, DEFAULT_MODEL_NAME } from '@tldraw/fairy-shared'
 import { Atom, atom, Editor } from 'tldraw'
 import { TldrawApp } from '../../tla/app/TldrawApp'
 import { FairyAppActionRateTracker } from './managers/FairyAppActionRateTracker'
-import { FairyAppActiveTimeTracker } from './managers/FairyAppActiveTimeTracker'
 import { FairyAppAgentsManager } from './managers/FairyAppAgentsManager'
 import { FairyAppFollowingManager } from './managers/FairyAppFollowingManager'
 import { FairyAppPersistenceManager } from './managers/FairyAppPersistenceManager'
 import { FairyAppProjectsManager } from './managers/FairyAppProjectsManager'
 import { FairyAppTaskListManager } from './managers/FairyAppTaskListManager'
-import { FairyAppTextOutputTracker } from './managers/FairyAppTextOutputTracker'
-import { FairyAppTokenConsumptionTracker } from './managers/FairyAppTokenConsumptionTracker'
-import { FairyAppVelocityTracker } from './managers/FairyAppVelocityTracker'
 import { FairyAppWaitManager } from './managers/FairyAppWaitManager'
 
 /**
@@ -54,29 +50,9 @@ export class FairyApp {
 	waits: FairyAppWaitManager
 
 	/**
-	 * Manager for tracking fairy velocity over time.
-	 */
-	velocityTracker: FairyAppVelocityTracker
-
-	/**
-	 * Manager for tracking fairy token consumption over time.
-	 */
-	tokenConsumptionTracker: FairyAppTokenConsumptionTracker
-
-	/**
 	 * Manager for tracking fairy action rate over time.
 	 */
 	actionRateTracker: FairyAppActionRateTracker
-
-	/**
-	 * Manager for tracking fairy text output over time.
-	 */
-	textOutputTracker: FairyAppTextOutputTracker
-
-	/**
-	 * Manager for tracking fairy active time percentage and concurrent activity.
-	 */
-	activeTimeTracker: FairyAppActiveTimeTracker
 
 	// --- Global fairy state ---
 
@@ -113,11 +89,7 @@ export class FairyApp {
 		this.projects = new FairyAppProjectsManager(this)
 		this.tasks = new FairyAppTaskListManager(this)
 		this.waits = new FairyAppWaitManager(this)
-		this.velocityTracker = new FairyAppVelocityTracker(this)
-		this.tokenConsumptionTracker = new FairyAppTokenConsumptionTracker(this)
 		this.actionRateTracker = new FairyAppActionRateTracker(this)
-		this.textOutputTracker = new FairyAppTextOutputTracker(this)
-		this.activeTimeTracker = new FairyAppActiveTimeTracker(this)
 
 		editor.on('crash', () => this.dispose())
 		editor.on('dispose', () => this.dispose())
@@ -130,16 +102,8 @@ export class FairyApp {
 		this.projects.disbandAllProjects()
 		// Stop auto-save
 		this.persistence.dispose()
-		// Stop velocity tracking
-		this.velocityTracker.dispose()
-		// Stop token consumption tracking
-		this.tokenConsumptionTracker.dispose()
 		// Stop action rate tracking
 		this.actionRateTracker.dispose()
-		// Stop text output tracking
-		this.textOutputTracker.dispose()
-		// Stop active time tracking
-		this.activeTimeTracker.dispose()
 
 		// Not sure if we need to dispose the rest...
 		// this.agents.disposeAll()

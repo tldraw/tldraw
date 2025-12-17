@@ -5,8 +5,6 @@
 import { AgentAction } from '@tldraw/fairy-shared'
 import type { FairyAgent } from '../fairy-agent/FairyAgent'
 import { CHART_RECREATION_THRESHOLD, getActionCategory } from '../fairy-shared-constants'
-import type { FairyClusteredHorizontalBarChart } from './FairyClusteredHorizontalBarChart'
-import type { FairyHorizontalBarChart } from './FairyHorizontalBarChart'
 import type { FairyLineChart } from './FairyLineChart'
 
 // ============================================================================
@@ -20,7 +18,7 @@ import type { FairyLineChart } from './FairyLineChart'
  * while still updating when values grow
  */
 export function shouldRecreateChart(
-	existingChart: FairyLineChart | FairyHorizontalBarChart | FairyClusteredHorizontalBarChart | null,
+	existingChart: FairyLineChart | null,
 	currentMax: number | undefined,
 	previousMax: number | undefined,
 	threshold: number = CHART_RECREATION_THRESHOLD

@@ -1,36 +1,11 @@
 import { FairyHatColor } from '@tldraw/fairy-shared'
-import { memo, useLayoutEffect, useRef, useState } from 'react'
-import { TldrawUiButton, TldrawUiButtonIcon, useValue } from 'tldraw'
+import { memo, useLayoutEffect, useRef } from 'react'
+import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyActionRateChart } from '../../fairy-chart/FairyActionRateChart'
-import { FairyActionsByTypeChart } from '../../fairy-chart/FairyActionsByTypeChart'
-import { FairyActionsChart } from '../../fairy-chart/FairyActionsChart'
-import { FairyActiveTimeChart } from '../../fairy-chart/FairyActiveTimeChart'
-import { FairyCategoryHeatmapChart } from '../../fairy-chart/FairyCategoryHeatmapChart'
-import { FairyConcurrentActiveChart } from '../../fairy-chart/FairyConcurrentActiveChart'
-import { FairyCostSummaryChart } from '../../fairy-chart/FairyCostSummaryChart'
-import { FairyInterActionGapChart } from '../../fairy-chart/FairyInterActionGapChart'
-import { FairyTextOutputChart } from '../../fairy-chart/FairyTextOutputChart'
-import { FairyThinkingTimeChart } from '../../fairy-chart/FairyThinkingTimeChart'
-import { FairyTokenConsumptionChart } from '../../fairy-chart/FairyTokenConsumptionChart'
-import { FairyVelocityChart } from '../../fairy-chart/FairyVelocityChart'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
-
-type ChartType =
-	| 'velocity'
-	| 'action-rate'
-	| 'text-output'
-	| 'thinking-time'
-	| 'token-consumption'
-	| 'cost'
-	| 'actions'
-	| 'actions-by-type'
-	| 'category-heatmap'
-	| 'active-time'
-	| 'concurrent-active'
-	| 'inter-action-gap'
 
 // Whitelist of action types shown in the feed
 const FEED_ACTION_WHITELIST = new Set([
@@ -89,177 +64,6 @@ interface FeedItem {
 	isOrchestrator?: boolean
 }
 
-const CHART_ORDER: ChartType[] = [
-	// 'velocity',
-	'action-rate',
-	'active-time',
-	// 'concurrent-active',
-	// 'inter-action-gap',
-	'text-output',
-	'thinking-time',
-	'token-consumption',
-	// 'cost',
-	'actions',
-	// 'actions-by-type',
-	// 'category-heatmap',
-]
-
-/** Chart carousel component for switching between different chart views */
-function ChartCarousel({
-	orchestratorAgent,
-	agents,
-}: {
-	orchestratorAgent: FairyAgent | null
-	agents: FairyAgent[]
-}) {
-	const [activeChart, setActiveChart] = useState<ChartType>('velocity')
-
-	const cycle = (direction: 1 | -1) => {
-		setActiveChart((prev) => {
-			const currentIndex = CHART_ORDER.indexOf(prev)
-			const nextIndex = (currentIndex + direction + CHART_ORDER.length) % CHART_ORDER.length
-			return CHART_ORDER[nextIndex]
-		})
-	}
-
-	// Keep both charts mounted to preserve velocity tracking state,
-	// Use visibility instead of display to preserve dimensions and avoid re-render delay
-	return (
-		<div className="fairy-chart-carousel">
-			<div className="fairy-chart-carousel-chevron-container">
-				<TldrawUiButton
-					type="icon"
-					className="fairy-chart-carousel-chevron fairy-chart-carousel-chevron-left"
-					onClick={() => cycle(-1)}
-					title="Previous chart"
-				>
-					<TldrawUiButtonIcon icon="chevron-left" small />
-				</TldrawUiButton>
-			</div>
-			<div className="fairy-chart-carousel-content">
-				<div
-					style={{
-						visibility: activeChart === 'velocity' ? 'visible' : 'hidden',
-						position: activeChart === 'velocity' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyVelocityChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'action-rate' ? 'visible' : 'hidden',
-						position: activeChart === 'action-rate' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'text-output' ? 'visible' : 'hidden',
-						position: activeChart === 'text-output' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyTextOutputChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'thinking-time' ? 'visible' : 'hidden',
-						position: activeChart === 'thinking-time' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyThinkingTimeChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'token-consumption' ? 'visible' : 'hidden',
-						position: activeChart === 'token-consumption' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyTokenConsumptionChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'cost' ? 'visible' : 'hidden',
-						position: activeChart === 'cost' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyCostSummaryChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'actions' ? 'visible' : 'hidden',
-						position: activeChart === 'actions' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyActionsChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'actions-by-type' ? 'visible' : 'hidden',
-						position: activeChart === 'actions-by-type' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyActionsByTypeChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'category-heatmap' ? 'visible' : 'hidden',
-						position: activeChart === 'category-heatmap' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyCategoryHeatmapChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'active-time' ? 'visible' : 'hidden',
-						position: activeChart === 'active-time' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyActiveTimeChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'concurrent-active' ? 'visible' : 'hidden',
-						position: activeChart === 'concurrent-active' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyConcurrentActiveChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-				<div
-					style={{
-						visibility: activeChart === 'inter-action-gap' ? 'visible' : 'hidden',
-						position: activeChart === 'inter-action-gap' ? 'relative' : 'absolute',
-						width: '100%',
-					}}
-				>
-					<FairyInterActionGapChart orchestratorAgent={orchestratorAgent} agents={agents} />
-				</div>
-			</div>
-			<div className="fairy-chart-carousel-chevron-container">
-				<TldrawUiButton
-					type="icon"
-					className="fairy-chart-carousel-chevron fairy-chart-carousel-chevron-right"
-					onClick={() => cycle(1)}
-					title="Next chart"
-				>
-					<TldrawUiButtonIcon icon="chevron-right" small />
-				</TldrawUiButton>
-			</div>
-		</div>
-	)
-}
-
 const FairyFeedIRCLine = memo(
 	({ agentName, hatColor, agentId, timestamp, description, isOrchestrator = false }: FeedItem) => {
 		return (
@@ -301,21 +105,15 @@ export function FairyFeedView({
 	const previousScrollDistanceFromBottomRef = useRef(0)
 	const previousItemCountRef = useRef(0)
 
-	const project = useValue(
-		'project',
-		() => orchestratorAgent && orchestratorAgent.getProject(true), // Include soft-deleted projects
-		[orchestratorAgent]
-	)
-
 	const feedItems = useValue(
 		'feed-items',
 		() => {
-			if (!project || !fairyApp) return []
-
-			const projectAgents = agents.filter((agent) => project.members.some((m) => m.id === agent.id))
-			return buildFeedItems(projectAgents, orchestratorAgent)
+			if (!fairyApp) return []
+			const allItems = buildFeedItems(agents, orchestratorAgent)
+			// Keep only last 1000 items for UI performance
+			return allItems.slice(-1000)
 		},
-		[project, fairyApp, agents, orchestratorAgent]
+		[fairyApp, agents, orchestratorAgent]
 	)
 
 	// Small threshold to account for sub-pixel rounding when determining if user is "at bottom"
@@ -354,10 +152,10 @@ export function FairyFeedView({
 		return (
 			<>
 				{showActivityMonitor && (
-					<ChartCarousel orchestratorAgent={orchestratorAgent} agents={agents} />
+					<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
 				)}
 				<div className="fairy-feed-view-empty">
-					<p>Planning project...</p>
+					<p>No fairy activity yet...</p>
 				</div>
 			</>
 		)
@@ -366,7 +164,7 @@ export function FairyFeedView({
 	return (
 		<>
 			{showActivityMonitor && (
-				<ChartCarousel orchestratorAgent={orchestratorAgent} agents={agents} />
+				<FairyActionRateChart orchestratorAgent={orchestratorAgent} agents={agents} />
 			)}
 			<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
 				{feedItems.map((item) => (

@@ -240,8 +240,10 @@ export function FairyHUDHeader({
 			{centerContent}
 
 			<div className="tlui-row">
-				{panelState === 'fairy-project' && (
-					<TldrawUiTooltip content="Live feed" side="top">
+				{(panelState === 'fairy-solo' ||
+					panelState === 'fairy-multi' ||
+					panelState === 'fairy-project') && (
+					<TldrawUiTooltip content="Activity feed" side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
 							<TldrawUiButtonIcon icon="comment" small />
 						</TldrawUiButton>

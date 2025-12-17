@@ -14,6 +14,8 @@ interface FairyChartContainerProps {
 	isEmpty: boolean
 	/** Custom message to show when empty (default: "Waiting for data...") */
 	emptyMessage?: string
+	/** Optional actions to display alongside the title */
+	headerActions?: ReactNode
 	/** Chart content (rendered when not empty) */
 	children: ReactNode
 }
@@ -22,12 +24,16 @@ export function FairyChartContainer({
 	title,
 	isEmpty,
 	emptyMessage = 'Waiting for data...',
+	headerActions,
 	children,
 }: FairyChartContainerProps) {
 	if (isEmpty) {
 		return (
 			<div className="fairy-activity-chart-container">
-				<div className="fairy-activity-chart-title">{title}</div>
+				<div className="fairy-activity-chart-header">
+					<div className="fairy-activity-chart-title">{title}</div>
+					{headerActions && <div className="fairy-activity-chart-actions">{headerActions}</div>}
+				</div>
 				<div className="fairy-activity-chart-empty">
 					<p>{emptyMessage}</p>
 				</div>
@@ -37,7 +43,10 @@ export function FairyChartContainer({
 
 	return (
 		<div className="fairy-activity-chart-container">
-			<div className="fairy-activity-chart-title">{title}</div>
+			<div className="fairy-activity-chart-header">
+				<div className="fairy-activity-chart-title">{title}</div>
+				{headerActions && <div className="fairy-activity-chart-actions">{headerActions}</div>}
+			</div>
 			{children}
 		</div>
 	)
