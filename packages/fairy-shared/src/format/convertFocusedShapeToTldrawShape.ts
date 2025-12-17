@@ -37,6 +37,9 @@ import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
 export interface FocusedShapeResult<T extends TLShape = TLShape> {
 	shape: T | null
 	bindings: TLBindingCreate[]
+
+	/** The position to move the agent to, or null for no movement */
+	position: VecLike | null
 }
 
 export function convertPartialFocusedShapeToTldrawShape(
@@ -52,7 +55,7 @@ export function convertPartialFocusedShapeToTldrawShape(
 	}
 
 	// Expect complete shapes for all other types
-	if (!complete) return { shape: null, bindings: [] }
+	if (!complete) return { shape: null, bindings: [], position: null }
 	return convertFocusedShapeToTldrawShape(editor, focusedShape as FocusedShape, { defaultShape })
 }
 
@@ -183,7 +186,7 @@ function convertTextShapeToTldrawShape(
 	const _y = 'y' in focusedShape ? focusedShape.y : undefined
 
 	if (text === undefined || _x === undefined || _y === undefined) {
-		return { shape: null, bindings: [] }
+		return { shape: null, bindings: [], position: null }
 	}
 
 	if (fontSize) {
@@ -319,6 +322,7 @@ function convertTextShapeToTldrawShape(
 	return {
 		shape: positionedShape,
 		bindings: [],
+		position: position,
 	}
 }
 
@@ -339,6 +343,7 @@ function convertLineShapeToTldrawShape(
 
 	return {
 		bindings: [],
+		position: { x: x2 - minX, y: y2 - minY },
 		shape: {
 			id: shapeId,
 			type: 'line',
@@ -485,6 +490,7 @@ function convertArrowShapeToTldrawShape(
 	}
 
 	return {
+		position: { x: x2 - minX, y: y2 - minY },
 		shape,
 		bindings,
 	}
@@ -519,14 +525,20 @@ function convertGeoShapeToTldrawShape(
 		fill = convertFocusFillToTldrawFill('none')
 	}
 
+	const position = {
+		x: focusedShape.x ?? defaultGeoShape.x ?? 0,
+		y: focusedShape.y ?? defaultGeoShape.y ?? 0,
+	}
+
 	return {
 		bindings: [],
+		position,
 		shape: {
 			id: shapeId,
 			type: 'geo',
 			typeName: 'shape',
-			x: focusedShape.x ?? defaultGeoShape.x ?? 0,
-			y: focusedShape.y ?? defaultGeoShape.y ?? 0,
+			x: position.x,
+			y: position.y,
 			rotation: defaultGeoShape.rotation ?? 0,
 			index: defaultGeoShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultGeoShape.parentId ?? editor.getCurrentPageId(),
@@ -575,14 +587,20 @@ function convertNoteShapeToTldrawShape(
 		richText = toRichText('')
 	}
 
+	const position = {
+		x: focusedShape.x ?? defaultNoteShape.x ?? 0,
+		y: focusedShape.y ?? defaultNoteShape.y ?? 0,
+	}
+
 	return {
 		bindings: [],
+		position,
 		shape: {
 			id: shapeId,
 			type: 'note',
 			typeName: 'shape',
-			x: focusedShape.x ?? defaultNoteShape.x ?? 0,
-			y: focusedShape.y ?? defaultNoteShape.y ?? 0,
+			x: position.x,
+			y: position.y,
 			rotation: defaultNoteShape.rotation ?? 0,
 			index: defaultNoteShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultNoteShape.parentId ?? editor.getCurrentPageId(),
@@ -629,11 +647,12 @@ function convertDrawShapeToTldrawShape(
 	const segments = defaultDrawShape.props?.segments
 
 	if (!segments || segments.length === 0) {
-		return { shape: null, bindings: [] }
+		return { shape: null, bindings: [], position: null }
 	}
 
 	return {
 		bindings: [],
+		position: { x: defaultDrawShape.x ?? 0, y: defaultDrawShape.y ?? 0 },
 		shape: {
 			id: shapeId,
 			type: 'draw',
@@ -671,15 +690,19 @@ function convertUnknownShapeToTldrawShape(
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): FocusedShapeResult {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
-
+	const position = {
+		x: focusedShape.x ?? defaultShape.x ?? 0,
+		y: focusedShape.y ?? defaultShape.y ?? 0,
+	}
 	return {
 		bindings: [],
+		position,
 		shape: {
 			id: shapeId,
 			type: defaultShape.type ?? 'geo',
 			typeName: 'shape',
-			x: focusedShape.x ?? defaultShape.x ?? 0,
-			y: focusedShape.y ?? defaultShape.y ?? 0,
+			x: position.x,
+			y: position.y,
 			rotation: defaultShape.rotation ?? 0,
 			index: defaultShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
