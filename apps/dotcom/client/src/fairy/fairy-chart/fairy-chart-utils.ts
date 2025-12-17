@@ -13,24 +13,6 @@ export function floatTwo(d: number): number {
 	return parseFloat(d.toFixed(2))
 }
 
-/**
- * Round a number using exponential notation trick
- */
-export function round(d: number): number {
-	return Number(Math.round(Number(d + 'e4')) + 'e-4')
-}
-
-/**
- * Check if a value is a valid number
- */
-export function isValidNumber(candidate: any, nonNegative = false): boolean {
-	if (Number.isNaN(candidate)) return false
-	if (candidate === undefined) return false
-	if (!Number.isFinite(candidate)) return false
-	if (nonNegative && candidate < 0) return false
-	return true
-}
-
 // ============================================================================
 // OBJECT UTILITIES
 // ============================================================================
@@ -48,29 +30,9 @@ export function deepClone<T>(obj: T): T {
 	return cloned
 }
 
-/**
- * Truncate a string to a maximum length with ellipsis
- */
-export function truncateString(txt: string, len: number): string {
-	if (!txt) return ''
-	if (txt.length > len) return txt.slice(0, len - 3) + '...'
-	return txt
-}
-
 // ============================================================================
 // SVG CREATION FUNCTIONS
 // ============================================================================
-
-/**
- * Options for creating text elements
- */
-export interface MakeTextOptions {
-	fontSize?: number
-	dy?: number
-	dx?: number
-	fill?: string
-	textAnchor?: 'start' | 'middle' | 'end'
-}
 
 /**
  * Create an SVG element with the given tag and attributes
@@ -92,39 +54,6 @@ export function createSVGElement(tag: string, attrs: Record<string, any>): SVGEl
 		}
 	}
 	return element
-}
-
-/**
- * Create an SVG text element with common styling options
- */
-export function makeText(
-	className: string,
-	x: number,
-	y: number,
-	content: string,
-	options: MakeTextOptions = {}
-): SVGTextElement {
-	const fontSize = options.fontSize || 10
-	const dy = options.dy !== undefined ? options.dy : fontSize / 2
-	const fill = options.fill || '#666666'
-	const textAnchor = options.textAnchor || 'start'
-
-	const attrs: Record<string, any> = {
-		className,
-		x,
-		y,
-		dy: dy + 'px',
-		'font-size': fontSize + 'px',
-		fill,
-		'text-anchor': textAnchor,
-		innerHTML: content,
-	}
-
-	if (options.dx !== undefined) {
-		attrs.dx = options.dx + 'px'
-	}
-
-	return createSVGElement('text', attrs) as SVGTextElement
 }
 
 /**
@@ -151,7 +80,7 @@ export function makePath(
 /**
  * Normalize a number to mantissa and exponent
  */
-export function normalize(x: number): [number, number] {
+function normalize(x: number): [number, number] {
 	if (x === 0) return [0, 0]
 	if (isNaN(x)) return [-6755399441055744, 972]
 	const sig = x > 0 ? 1 : -1
@@ -165,7 +94,7 @@ export function normalize(x: number): [number, number] {
 /**
  * Calculate chart intervals for a given range
  */
-export function getChartRangeIntervals(max: number, min = 0): number[] {
+function getChartRangeIntervals(max: number, min = 0): number[] {
 	let upperBound = Math.ceil(max)
 	const lowerBound = Math.floor(min)
 	let range = upperBound - lowerBound
@@ -201,7 +130,7 @@ export function getChartRangeIntervals(max: number, min = 0): number[] {
 /**
  * Calculate normalized chart intervals
  */
-export function getChartIntervals(maxValue: number, minValue = 0): number[] {
+function getChartIntervals(maxValue: number, minValue = 0): number[] {
 	const [normalMaxValue, exponent] = normalize(maxValue)
 	const normalMinValue = minValue ? minValue / Math.pow(10, exponent) : 0
 	const normalMaxFixed = parseFloat(normalMaxValue.toFixed(6))
@@ -278,13 +207,4 @@ export function getZeroIndex(yPts: number[]): number {
  */
 export function scale(val: number, yAxis: { zeroLine: number; scaleMultiplier: number }): number {
 	return floatTwo(yAxis.zeroLine - val * yAxis.scaleMultiplier)
-}
-
-/**
- * Get the index of the closest value in an array
- */
-export function getClosestInArray(goal: number, arr: number[]): number {
-	return arr.indexOf(
-		arr.reduce((prev, curr) => (Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev))
-	)
 }

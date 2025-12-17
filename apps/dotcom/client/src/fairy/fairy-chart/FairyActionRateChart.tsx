@@ -173,12 +173,6 @@ export function FairyActionRateChart({ agents }: FairyActionRateChartProps) {
 			chartInstanceRef.current = new FairyLineChart(chartContainerRef.current, {
 				data: chartData,
 				height: 180,
-				dotSize: 3,
-				showDots: false,
-				showLegend: false,
-				showTooltip: false,
-				showGridLines: false,
-				showXAxisLabels: false,
 				maxYValue,
 			})
 			return
