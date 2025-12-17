@@ -167,10 +167,8 @@
 }
 
 /* Use 16px font on touch devices to prevent iOS auto-zoom on focus */
-@media (pointer: coarse) {
-	.fairy-input__field {
-		font-size: 16px;
-	}
+.tla[data-coarse='true'] .fairy-input__field {
+	font-size: 16px;
 }
 
 .fairy-input__field::placeholder {
@@ -312,10 +310,8 @@
 	fill: var(--tl-color-fairy-select-fg);
 }
 
-@media (pointer: coarse) {
-	.fairy-plus-button {
-		display: none;
-	}
+.tla[data-coarse='true'] .fairy-plus-button {
+	display: none;
 }
 
 @media (hover: hover) {
@@ -1600,10 +1596,8 @@
 }
 
 /* Use 16px font on touch devices to prevent iOS auto-zoom on focus */
-@media (pointer: coarse) {
-	.fairy-group-chat-input__field {
-		font-size: 16px;
-	}
+.tla[data-coarse='true'] .fairy-group-chat-input__field {
+	font-size: 16px;
 }
 
 .fairy-group-chat-input__submit:hover:not(:disabled) .fairy-lips-icon {

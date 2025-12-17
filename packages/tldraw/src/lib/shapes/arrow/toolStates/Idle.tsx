@@ -43,7 +43,7 @@ export class Idle extends StateNode {
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			if (this.editor.canEditShape(onlySelectedShape)) {
-				startEditingShapeWithRichText(this.editor, onlySelectedShape, true)
+				startEditingShapeWithRichText(this.editor, onlySelectedShape, { selectAll: true })
 			}
 		}
 	}
