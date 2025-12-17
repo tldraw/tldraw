@@ -933,7 +933,6 @@ input,
 	text-decoration: underline;
 }
 
-/* todo: restore the data-is-select-tool-active attribute */
 .tl-rich-text[data-is-select-tool-active='false'] a {
 	cursor: inherit;
 }
