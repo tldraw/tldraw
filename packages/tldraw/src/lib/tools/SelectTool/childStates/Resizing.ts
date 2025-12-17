@@ -40,6 +40,9 @@ export class Resizing extends StateNode {
 	// A switch to detect when the user is holding ctrl
 	private didHoldCommand = false
 
+	// A switch to detect when the user is holding the 'f' key for proportional children resize
+	private didHoldProportionalKey = false
+
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
 	// so if the user drags x: +50, y: +50 after mouseDown, the shape will be w: 51, h: 51, which is too many pixels, alas
 	// so we allow passing a further offset into this state to negate such issues
@@ -52,6 +55,7 @@ export class Resizing extends StateNode {
 
 		this.info = info
 		this.didHoldCommand = false
+		this.didHoldProportionalKey = false
 
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -425,6 +429,107 @@ export class Resizing extends StateNode {
 				}
 			}
 		}
+
+		// If the user is holding 'f' key and the shape is a frame, resize children proportionally
+		// with the same aspect ratio as the frame itself
+		const isHoldingProportionalKey = this.editor.inputs.keys.has('KeyF')
+
+		if (isHoldingProportionalKey) {
+			this.didHoldProportionalKey = true
+
+			for (const { id, children, childSnapshots } of frames) {
+				if (!children.length) continue
+				const initialSnapshot = shapeSnapshots.get(id)
+				if (!initialSnapshot) continue
+
+				const initial = initialSnapshot.shape
+				const current = this.editor.getShape(id)
+				if (!(initial && current)) continue
+
+				// Get initial and current frame dimensions
+				const initialBounds = initialSnapshot.bounds
+				const currentGeometry = this.editor.getShapeGeometry(current)
+				if (!currentGeometry) continue
+				const currentBounds = currentGeometry.bounds
+
+				// Calculate the scale factors for the frame
+				const scaleX = currentBounds.w / initialBounds.w
+				const scaleY = currentBounds.h / initialBounds.h
+
+				if (scaleX === 1 && scaleY === 1) continue
+
+				// Calculate the frame's position delta (in frame-local space)
+				const dx = current.x - initial.x
+				const dy = current.y - initial.y
+				const delta = new Vec(dx, dy).rot(-initial.rotation)
+
+				for (const child of children) {
+					const childSnapshot = childSnapshots.get(child.id)
+					if (!childSnapshot) continue
+
+					// Scale the child's position relative to the frame origin
+					const newX = child.x * scaleX - delta.x
+					const newY = child.y * scaleY - delta.y
+
+					// Resize the child shape proportionally using initial snapshot data
+					this.editor.resizeShape(child.id, new Vec(scaleX, scaleY), {
+						initialShape: childSnapshot.shape,
+						initialBounds: childSnapshot.bounds,
+						initialPageTransform: childSnapshot.pageTransform,
+						dragHandle: this.info.handle as SelectionCorner | SelectionEdge,
+						mode: 'scale_shape',
+						scaleOrigin: this.editor.getShapePageTransform(current)!.point(),
+						isAspectRatioLocked: false,
+						scaleAxisRotation: initial.rotation,
+						skipStartAndEndCallbacks: true,
+					})
+
+					// Update the child's position
+					this.editor.updateShape({
+						id: child.id,
+						type: child.type,
+						x: newX,
+						y: newY,
+					})
+				}
+			}
+		} else if (this.didHoldProportionalKey) {
+			// If we're no longer holding the proportional key, reset children to original state
+			this.didHoldProportionalKey = false
+
+			for (const { id, children, childSnapshots } of frames) {
+				if (!children.length) continue
+				const initialSnapshot = shapeSnapshots.get(id)
+				if (!initialSnapshot) continue
+				const initial = initialSnapshot.shape
+
+				for (const child of children) {
+					const childSnapshot = childSnapshots.get(child.id)
+					if (!childSnapshot) continue
+
+					// Reset to original size by resizing with scale (1, 1)
+					this.editor.resizeShape(child.id, new Vec(1, 1), {
+						initialShape: childSnapshot.shape,
+						initialBounds: childSnapshot.bounds,
+						initialPageTransform: childSnapshot.pageTransform,
+						dragHandle: this.info.handle as SelectionCorner | SelectionEdge,
+						mode: 'scale_shape',
+						scaleOrigin: childSnapshot.pageTransform.point(),
+						isAspectRatioLocked: false,
+						scaleAxisRotation: initial.rotation,
+						skipStartAndEndCallbacks: true,
+					})
+
+					// Reset to original position from snapshot
+					this.editor.updateShape({
+						id: child.id,
+						type: child.type,
+						x: child.x,
+						y: child.y,
+					})
+				}
+			}
+		}
 	}
 
 	// ---
@@ -500,7 +605,11 @@ export class Resizing extends StateNode {
 			}
 		>()
 
-		const frames: { id: TLShapeId; children: TLShape[] }[] = []
+		const frames: {
+			id: TLShapeId
+			children: TLShape[]
+			childSnapshots: Map<TLShapeId, { shape: TLShape; bounds: Box; pageTransform: Mat }>
+		}[] = []
 
 		const populateResizingShapes = (shapeId: TLShapeId): false | undefined => {
 			const shape = editor.getShape(shapeId)
@@ -527,11 +636,24 @@ export class Resizing extends StateNode {
 			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
 			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
 			if (editor.isShapeOfType(shape, 'frame')) {
+				const children = compact(
+					editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+				)
+				const childSnapshots = new Map<
+					TLShapeId,
+					{ shape: TLShape; bounds: Box; pageTransform: Mat }
+				>()
+				for (const child of children) {
+					childSnapshots.set(child.id, {
+						shape: child,
+						bounds: editor.getShapeGeometry(child).bounds,
+						pageTransform: editor.getShapePageTransform(child)!,
+					})
+				}
 				frames.push({
 					id: shape.id,
-					children: compact(
-						editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
-					),
+					children,
+					childSnapshots,
 				})
 			}
 
