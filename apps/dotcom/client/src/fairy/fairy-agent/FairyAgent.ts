@@ -4,7 +4,6 @@ import {
 	AgentInput,
 	AgentPrompt,
 	AgentRequest,
-	AgentUsageEvent,
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ChatHistoryPromptItem,
@@ -717,7 +716,7 @@ export class FairyAgent {
 	}: {
 		prompt: BaseAgentPrompt
 		signal: AbortSignal
-	}): AsyncGenerator<Streaming<AgentAction> | AgentUsageEvent> {
+	}): AsyncGenerator<Streaming<AgentAction>> {
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
 		}
@@ -756,11 +755,11 @@ export class FairyAgent {
 				if (done) break
 
 				buffer += decoder.decode(value, { stream: true })
-				const events = buffer.split('\n\n')
-				buffer = events.pop() || ''
+				const actions = buffer.split('\n\n')
+				buffer = actions.pop() || ''
 
-				for (const event of events) {
-					const match = event.match(/^data: (.+)$/m)
+				for (const action of actions) {
+					const match = action.match(/^data: (.+)$/m)
 					if (match) {
 						try {
 							const data = JSON.parse(match[1])
@@ -770,15 +769,8 @@ export class FairyAgent {
 								throw new Error(data.error)
 							}
 
-							// Check if this is a usage event
-							if ('_type' in data && data._type === 'usage') {
-								const usageEvent: AgentUsageEvent = data
-								yield usageEvent
-							} else {
-								// Regular action event
-								const agentAction: Streaming<AgentAction> = data
-								yield agentAction
-							}
+							const agentAction: Streaming<AgentAction> = data
+							yield agentAction
 						} catch (err: any) {
 							throw new Error(err.message)
 						}
@@ -924,25 +916,8 @@ export class FairyAgent {
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
 			const actionPromises: Promise<void>[] = []
 			try {
-				for await (const event of agent._streamActions({ prompt, signal })) {
+				for await (const action of agent._streamActions({ prompt, signal })) {
 					if (cancelled) break
-
-					// Check if this is a usage event
-					if ('_type' in event && event._type === 'usage') {
-						const usageEvent = event as AgentUsageEvent
-						// Convert AI SDK usage format to Anthropic format for recordUsage
-						agent.usage.recordUsage(
-							{
-								input_tokens: usageEvent.promptTokens,
-								output_tokens: usageEvent.completionTokens,
-							},
-							prompt
-						)
-						continue
-					}
-
-					// Handle regular action event
-					const action = event as Streaming<AgentAction>
 
 					editor.run(
 						() => {

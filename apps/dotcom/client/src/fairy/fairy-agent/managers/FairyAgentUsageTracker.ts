@@ -91,62 +91,6 @@ export class FairyAgentUsageTracker extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Record token usage from an API response.
-	 * Updates the cumulative usage tracking with tokens consumed in this request.
-	 */
-	recordUsage(
-		usage: {
-			input_tokens?: number
-			output_tokens?: number
-			cache_creation_input_tokens?: number
-			cache_read_input_tokens?: number
-		},
-		prompt: AgentPrompt
-	): void {
-		const modelName = this.getModelNameFromPrompt(prompt)
-
-		// Extract token counts from usage
-		const inputTokens = usage.input_tokens || 0
-		const outputTokens = usage.output_tokens || 0
-		const cacheCreationTokens = usage.cache_creation_input_tokens || 0
-		const cacheReadTokens = usage.cache_read_input_tokens || 0
-
-		// Total prompt tokens includes both regular input and cache tokens
-		const promptTokens = inputTokens + cacheCreationTokens
-		const cachedInputTokens = cacheReadTokens
-		const completionTokens = outputTokens
-
-		// Initialize model entry if it doesn't exist
-		if (!this.cumulativeUsage.byModel[modelName]) {
-			this.cumulativeUsage.byModel[modelName] = {
-				tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-				tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-			}
-		}
-
-		// Determine which tier to use based on cumulative prompt tokens
-		const currentTier1Tokens = this.cumulativeUsage.byModel[modelName].tier1.promptTokens
-		const tier = currentTier1Tokens + promptTokens <= 200_000 ? 'tier1' : 'tier2'
-
-		// Add tokens to the appropriate tier
-		this.cumulativeUsage.byModel[modelName][tier].promptTokens += promptTokens
-		this.cumulativeUsage.byModel[modelName][tier].cachedInputTokens += cachedInputTokens
-		this.cumulativeUsage.byModel[modelName][tier].completionTokens += completionTokens
-
-		// Update total tokens
-		this.cumulativeUsage.totalTokens += promptTokens + cachedInputTokens + completionTokens
-
-		// DEBUG: Log token recording
-		console.log('[UsageTracker] Recorded usage for', modelName, ':', {
-			inputTokens,
-			outputTokens,
-			cacheCreationTokens,
-			cacheReadTokens,
-			newTotal: this.cumulativeUsage.totalTokens,
-		})
-	}
-
-	/**
 	 * Get the current cumulative cost for this fairy agent.
 	 * Calculates costs based on model-specific pricing, accounting for cached input tokens.
 	 * @returns An object with input cost, output cost, and total cost in USD.

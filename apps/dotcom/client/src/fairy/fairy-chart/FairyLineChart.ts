@@ -11,7 +11,6 @@ import {
 	createSVGElement,
 	deepClone,
 	floatTwo,
-	formatThousands,
 	getClosestInArray,
 	getZeroIndex,
 	makePath,
@@ -163,32 +162,6 @@ export class FairyLineChart {
 				overflow: 'visible',
 			},
 		}) as SVGSVGElement
-	}
-
-	private renderYAxis(group: SVGGElement): void {
-		this.yAxis.positions.forEach((pos, i) => {
-			if (this.options.showGridLines) {
-				const line = createSVGElement('line', {
-					x1: 0,
-					x2: this.chartWidth,
-					y1: pos,
-					y2: pos,
-					styles: {
-						stroke: '#E2E6E9',
-						'stroke-width': '1',
-					},
-				})
-				group.appendChild(line)
-			}
-
-			const label = makeText('y-axis-label', -6, pos, formatThousands(this.yAxis.labels[i]), {
-				fontSize: 10,
-				fill: '#666',
-				textAnchor: 'end',
-				dy: 3,
-			})
-			group.appendChild(label)
-		})
 	}
 
 	private renderXAxis(group: SVGGElement): void {
@@ -383,7 +356,7 @@ export class FairyLineChart {
         <div style="display: flex; align-items: center; margin-top: 4px;">
           <div style="width: 10px; height: 10px; background: ${color}; border-radius: 2px; margin-right: 6px;"></div>
           <span style="margin-right: 6px;">${dataset.name}:</span>
-          <strong>${formatThousands(value)}</strong>
+          <strong>${value}</strong>
         </div>
       `
 		})

@@ -9,7 +9,6 @@ import {
 	AgentAction,
 	AgentModelName,
 	AgentPrompt,
-	AgentUsageEvent,
 	DebugPart,
 	Streaming,
 } from '@tldraw/fairy-shared'
@@ -25,12 +24,6 @@ import {
 	getGenerationCostFromUsageAndMetaData,
 	isAgentModelName,
 } from './models'
-
-interface CapturedUsageData {
-	totalTokens: number
-	promptTokens: number
-	completionTokens: number
-}
 
 export class AgentService {
 	private readonly env: Environment
@@ -96,10 +89,7 @@ export class AgentService {
 		signal: AbortSignal | undefined,
 		userId: string,
 		userStub: ReturnType<Environment['TL_USER']['get']>
-	): AsyncGenerator<Streaming<AgentAction> | AgentUsageEvent> {
-		// Variable to capture usage data from the onFinish callback
-		let usageData: CapturedUsageData | undefined = undefined
-
+	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const modelName = getModelName(prompt, this.env)
 			const model = this.getModel(modelName)
@@ -199,16 +189,6 @@ export class AgentService {
 					throw e
 				},
 				onFinish: async (e) => {
-					// Capture usage data for later
-					if (e.usage) {
-						const inputTokens = e.usage.inputTokens ?? 0
-						const outputTokens = e.usage.outputTokens ?? 0
-						usageData = {
-							totalTokens: inputTokens + outputTokens,
-							promptTokens: inputTokens,
-							completionTokens: outputTokens,
-						}
-					}
 					await this.handleFinish(modelId, e.usage, e.providerMetadata, userStub, userId)
 				},
 			})
@@ -277,17 +257,6 @@ export class AgentService {
 
 			// Await usage to ensure onFinish callback completes
 			await result.usage
-
-			// After all actions are complete, yield the usage event if we have usage data
-			if (usageData !== undefined) {
-				const { totalTokens, promptTokens, completionTokens } = usageData
-				yield {
-					_type: 'usage',
-					totalTokens,
-					promptTokens,
-					completionTokens,
-				} as AgentUsageEvent
-			}
 		} catch (error: any) {
 			// Check if it was aborted
 			if (signal?.aborted || error?.name === 'AbortError') {
