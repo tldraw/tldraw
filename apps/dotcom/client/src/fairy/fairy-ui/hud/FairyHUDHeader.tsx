@@ -1,3 +1,4 @@
+import { ActivityIcon } from '@tldraw/fairy-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiButton,
@@ -262,18 +263,6 @@ export function FairyHUDHeader({
 			{centerContent}
 
 			<div className="tlui-row">
-				{panelState === 'fairy-project' && (
-					<TldrawUiTooltip content="Live feed" side="top">
-						<TldrawUiButton
-							type="icon"
-							className="fairy-toolbar-button fairy-feed-button"
-							onClick={onToggleFeed}
-						>
-							<TldrawUiButtonIcon icon="comment" small />
-						</TldrawUiButton>
-					</TldrawUiTooltip>
-				)}
-
 				{showSelectAllButton ? (
 					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
@@ -285,6 +274,17 @@ export function FairyHUDHeader({
 					hasChatHistory &&
 					!isProjectStarted && <ResetChatHistoryButton agent={onlySelectedFairy} />
 				)}
+
+				{(panelState === 'fairy-solo' ||
+					panelState === 'fairy-multi' ||
+					panelState === 'fairy-project') && (
+					<TldrawUiTooltip content="Activity feed" side="top">
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFeed}>
+							<TldrawUiButtonIcon icon={<ActivityIcon />} small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
+				)}
+
 				{<FairyMenuButton menuPopoverOpen={menuPopoverOpen}>{dropdownContent}</FairyMenuButton>}
 			</div>
 		</div>
