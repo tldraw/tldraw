@@ -32,7 +32,7 @@ test.describe('Performance Tests', () => {
 	test.setTimeout(120000) // Increase timeout
 	test.describe.configure({ mode: 'serial' }) // Run tests in series to avoid resource conflicts
 
-	test.skip('Baseline FPS Performance - Desktop', async ({
+	test('Baseline FPS Performance - Desktop', async ({
 		page,
 		context,
 		request,
@@ -88,13 +88,7 @@ test.describe('Performance Tests', () => {
 		})
 	})
 
-	test.skip('Shape Rotation Performance', async ({
-		page,
-		context,
-		request,
-		browserName,
-		isMobile,
-	}) => {
+	test('Shape Rotation Performance', async ({ page, context, request, browserName, isMobile }) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -103,20 +97,14 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testShapeRotation())
 	})
 
-	test.skip('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
+	test('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
 		testOutput(await perfSuite.testShapeDragging())
 	})
 
-	test.skip('Shape Resizing Performance', async ({
-		page,
-		context,
-		request,
-		browserName,
-		isMobile,
-	}) => {
+	test('Shape Resizing Performance', async ({ page, context, request, browserName, isMobile }) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -125,13 +113,7 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testShapeResizing())
 	})
 
-	test.skip('Canvas Panning Performance', async ({
-		page,
-		context,
-		request,
-		browserName,
-		isMobile,
-	}) => {
+	test('Canvas Panning Performance', async ({ page, context, request, browserName, isMobile }) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -140,13 +122,7 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testCanvasPanning())
 	})
 
-	test.skip('Canvas Zooming Performance', async ({
-		page,
-		context,
-		request,
-		browserName,
-		isMobile,
-	}) => {
+	test('Canvas Zooming Performance', async ({ page, context, request, browserName, isMobile }) => {
 		if (isMobile) return
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -156,7 +132,7 @@ test.describe('Performance Tests', () => {
 	})
 })
 
-test.skip('Baseline Management', () => {
+test('Baseline Management', () => {
 	test('Establish All Performance Baselines', async ({ page, context, request, browserName }) => {
 		test.setTimeout(120000) // 2 minutes for establishing all baselines
 
