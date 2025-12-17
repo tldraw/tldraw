@@ -50,7 +50,7 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 				const remainingConditions = waitingConditions.filter(
 					(condition) => condition !== matchingCondition
 				)
-				agent.waits.waitForAll(remainingConditions)
+				agent.waits.setWaitingFor(remainingConditions)
 
 				// Wake up the agent with a notification message
 				const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
