@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import {
+	AssetRecordType,
 	atom,
 	StateNode,
 	TLComponents,
@@ -53,7 +54,6 @@ function LightboxOverlay() {
 
 	if (!isOpen || !imageUrl) return null
 
-	// Calculate the size to fill most of the viewport while maintaining aspect ratio
 	const viewport = editor.getViewportScreenBounds()
 	const maxWidth = viewport.width * 0.85
 	const maxHeight = viewport.height * 0.85
@@ -101,7 +101,40 @@ export default function LightboxImageExample() {
 				persistenceKey="lightbox-image-example"
 				components={components}
 				onMount={(editor) => {
-					// [6]
+					// put image on the canvas
+					const assetId = AssetRecordType.createId()
+					const imageWidth = 1048
+					const imageHeight = 1600
+
+					editor.createAssets([
+						{
+							id: assetId,
+							type: 'image',
+							typeName: 'asset',
+							props: {
+								name: 'goldfinch.png',
+								src: '/goldfinch.png',
+								w: imageWidth,
+								h: imageHeight,
+								mimeType: 'image/png',
+								isAnimated: false,
+							},
+							meta: {},
+						},
+					])
+
+					editor.createShape({
+						type: 'image',
+						x: (window.innerWidth - imageWidth) / 2,
+						y: (window.innerHeight - imageHeight) / 2,
+						props: {
+							assetId,
+							w: imageWidth,
+							h: imageHeight,
+						},
+					})
+
+					// set up lightbox click behavior
 					type PointingShapeState = StateNode & {
 						hitShape: TLImageShape
 						onPointerUp(info: TLPointerEventInfo): void
@@ -111,42 +144,32 @@ export default function LightboxImageExample() {
 						editor.getStateDescendant<PointingShapeState>('select.pointing_shape')
 					if (!pointingShapeState) return
 
-					// Store the original handler
 					const originalOnPointerUp = pointingShapeState.onPointerUp.bind(pointingShapeState)
 
-					// [7]
-					pointingShapeState.onPointerUp = async function (info: TLPointerEventInfo) {
+					pointingShapeState.onPointerUp = function (info: TLPointerEventInfo) {
 						const hitShape = this.hitShape
 
-						// Check if we clicked on an image shape
 						if (hitShape && editor.isShapeOfType<TLImageShape>(hitShape, 'image')) {
 							const assetId = hitShape.props.assetId
 
 							if (assetId) {
-								// Resolve the asset URL
-								const url = await editor.resolveAssetUrl(assetId, {
-									screenScale: 1,
-								})
+								const asset = editor.getAsset(assetId)
 
-								if (url) {
-									// Calculate aspect ratio from shape dimensions
+								if (asset && asset.type === 'image' && asset.props.src) {
 									const aspectRatio = hitShape.props.w / hitShape.props.h
 
-									// Open lightbox with the image
 									setLightboxState({
 										isOpen: true,
-										imageUrl: url,
+										imageUrl: asset.props.src,
 										aspectRatio,
 									})
 
-									// Transition back to idle without selecting the shape
 									this.parent.transition('idle', info)
 									return
 								}
 							}
 						}
 
-						// Fall back to original behavior for non-image shapes
 						originalOnPointerUp(info)
 					}
 				}}
