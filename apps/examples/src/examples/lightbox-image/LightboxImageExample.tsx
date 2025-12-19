@@ -1,7 +1,8 @@
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import {
 	AssetRecordType,
 	atom,
+	Editor,
 	StateNode,
 	TLComponents,
 	Tldraw,
@@ -35,24 +36,15 @@ function LightboxOverlay() {
 	const editor = useEditor()
 	const { isOpen, imageUrl, aspectRatio } = useValue(lightboxState$)
 
-	const handleClose = useCallback(() => {
-		setLightboxState({ isOpen: false })
-	}, [])
+	const handleClose = () => setLightboxState({ isOpen: false })
 
 	useEffect(() => {
 		if (!isOpen) return
+		window.addEventListener('keydown', handleClose)
+		return () => window.removeEventListener('keydown', handleClose)
+	}, [isOpen])
 
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				handleClose()
-			}
-		}
-
-		window.addEventListener('keydown', handleKeyDown)
-		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [isOpen, handleClose])
-
-	if (!isOpen || !imageUrl) return null
+	if (!imageUrl) return null
 
 	const viewport = editor.getViewportScreenBounds()
 	const maxWidth = viewport.width * 0.85
@@ -90,6 +82,45 @@ function LightboxOverlay() {
 	)
 }
 
+// [1]
+function createDemoImage(editor: Editor) {
+	const existingImages = editor.getCurrentPageShapes().filter((shape) => shape.type === 'image')
+
+	if (!existingImages) {
+		const assetId = AssetRecordType.createId()
+		const imageWidth = 1048
+		const imageHeight = 1600
+
+		editor.createAssets([
+			{
+				id: assetId,
+				type: 'image',
+				typeName: 'asset',
+				props: {
+					name: 'goldfinch.png',
+					src: '/goldfinch.png',
+					w: imageWidth,
+					h: imageHeight,
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+				meta: {},
+			},
+		])
+
+		editor.createShape({
+			type: 'image',
+			x: (window.innerWidth - imageWidth) / 2,
+			y: (window.innerHeight - imageHeight) / 2,
+			props: {
+				assetId,
+				w: imageWidth,
+				h: imageHeight,
+			},
+		})
+	}
+}
+
 const components: TLComponents = {
 	InFrontOfTheCanvas: LightboxOverlay,
 }
@@ -101,40 +132,8 @@ export default function LightboxImageExample() {
 				persistenceKey="lightbox-image-example"
 				components={components}
 				onMount={(editor) => {
-					// put image on the canvas
-					const assetId = AssetRecordType.createId()
-					const imageWidth = 1048
-					const imageHeight = 1600
+					createDemoImage(editor)
 
-					editor.createAssets([
-						{
-							id: assetId,
-							type: 'image',
-							typeName: 'asset',
-							props: {
-								name: 'goldfinch.png',
-								src: '/goldfinch.png',
-								w: imageWidth,
-								h: imageHeight,
-								mimeType: 'image/png',
-								isAnimated: false,
-							},
-							meta: {},
-						},
-					])
-
-					editor.createShape({
-						type: 'image',
-						x: (window.innerWidth - imageWidth) / 2,
-						y: (window.innerHeight - imageHeight) / 2,
-						props: {
-							assetId,
-							w: imageWidth,
-							h: imageHeight,
-						},
-					})
-
-					// set up lightbox click behavior
 					type PointingShapeState = StateNode & {
 						hitShape: TLImageShape
 						onPointerUp(info: TLPointerEventInfo): void
@@ -182,4 +181,7 @@ export default function LightboxImageExample() {
 This example demonstrates the creation of a lightbox overlay for images.
 When you click on an image shape, instead of selecting it, we show a
 full-screen lightbox view of the image.
+
+[1] This is from the "Create an image shape" example: https://tldraw.dev/examples/local-images
+
 */
