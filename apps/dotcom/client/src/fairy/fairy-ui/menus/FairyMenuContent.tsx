@@ -209,7 +209,7 @@ export function FairyMenuContent({
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
 		allAgents
-			.filter((agent) => !agent.getProject())
+			.filter((agent) => !agent.getProject() && !agent.mode.isSleeping())
 			.forEach((agent: FairyAgent) => {
 				agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 			})

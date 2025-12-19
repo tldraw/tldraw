@@ -708,7 +708,7 @@ input,
 	resize: none;
 	border: none;
 	user-select: none;
-	contain: style paint;
+	contain: layout style paint;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;
@@ -1140,14 +1140,12 @@ input,
 	fill: none;
 }
 
-@media (pointer: coarse) {
-	.tl-handle__bg:active {
-		fill: var(--tl-color-selection-fill);
-	}
+.tl-container[data-coarse='true'] .tl-handle__bg:active {
+	fill: var(--tl-color-selection-fill);
+}
 
-	.tl-handle__create {
-		opacity: 1;
-	}
+.tl-container[data-coarse='true'] .tl-handle__create {
+	opacity: 1;
 }
 
 .tl-rotate-corner:not(:hover),

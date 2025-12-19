@@ -1,5 +1,6 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHoveredShapeId'
+import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -30,12 +31,7 @@ export class Idle extends StateNode {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			if (!this.editor.canEditShape(onlySelectedShape)) return
 			this.editor.setCurrentTool('select')
-			this.editor.setEditingShape(onlySelectedShape.id)
-			this.editor.root.getCurrent()?.transition('editing_shape', {
-				...info,
-				target: 'shape',
-				shape: onlySelectedShape,
-			})
+			startEditingShapeWithRichText(this.editor, onlySelectedShape.id, { info })
 		}
 	}
 

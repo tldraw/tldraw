@@ -105,14 +105,8 @@ export function hasUnseenFeedItems(
 	orchestratorAgent: FairyAgent | null,
 	lastSeenFeedTimestamp: number
 ): boolean {
-	if (!orchestratorAgent) return false
-	const project = orchestratorAgent.getProject()
-	if (!project) return false
-
-	// Check if any agent has actions newer than lastSeenFeedTimestamp
-	// Use the same filtering logic as FairyFeedView to avoid false positives
+	// Check all agents for unseen items (global mode)
 	for (const agent of agents) {
-		if (!project.members.some((m) => m.id === agent.id)) continue
 		const history = agent.chat.getHistory()
 		for (const item of history) {
 			if (item.type === 'action' && item.action.complete) {

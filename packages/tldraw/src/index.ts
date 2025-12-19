@@ -178,7 +178,10 @@ export {
 	type TLDefaultFont,
 	type TLDefaultFonts,
 } from './lib/shapes/shared/defaultFonts'
+export { getStroke } from './lib/shapes/shared/freehand/getStroke'
+export { getStrokeOutlinePoints } from './lib/shapes/shared/freehand/getStrokeOutlinePoints'
 export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
+export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
@@ -688,7 +691,6 @@ export {
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
-export { TextDirection } from './lib/utils/text/textDirection'
 export {
 	buildFromV1Document,
 	TLV1AlignStyle,

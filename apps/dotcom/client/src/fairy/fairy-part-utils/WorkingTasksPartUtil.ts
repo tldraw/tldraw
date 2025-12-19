@@ -12,15 +12,12 @@ export class WorkingTasksPartUtil extends PromptPartUtil<WorkingTasksPart> {
 				(task: FairyTask) => task.assignedTo === this.agent.id && task.status === 'in-progress'
 			)
 			.map((task: FairyTask) => {
-				const transformedTaskBounds =
-					task.x !== undefined &&
-					task.y !== undefined &&
-					task.w !== undefined &&
-					task.h !== undefined
-						? helpers.applyOffsetToBox({ x: task.x, y: task.y, w: task.w, h: task.h })
-						: task.x !== undefined && task.y !== undefined
-							? helpers.applyOffsetToVec({ x: task.x, y: task.y })
-							: { x: task.x, y: task.y, w: task.w, h: task.h }
+				const transformedTaskBounds = helpers.applyOffsetToBox({
+					x: task.x,
+					y: task.y,
+					w: task.w,
+					h: task.h,
+				})
 
 				return {
 					...task,
