@@ -57,6 +57,7 @@ export const arrowShapeVersions: {
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
     readonly AddRichText: "com.tldraw.shape.arrow/7";
+    readonly AddRichTextAttrs: "com.tldraw.shape.arrow/8";
     readonly AddScale: "com.tldraw.shape.arrow/5";
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };
@@ -72,6 +73,17 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @public
 export const assetValidator: T.Validator<TLAsset>;
+
+// @public
+export class b64Vecs {
+    static decodeFirstPoint(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string): null | VecModel;
+    // @internal
+    static decodePointAt(b64Points: string, charOffset: number): VecModel;
+    static decodePoints(base64: string): VecModel[];
+    static encodePoint(x: number, y: number, z: number): string;
+    static encodePoints(points: VecModel[]): string;
+}
 
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
@@ -102,6 +114,12 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public
+export function compressLegacySegments(segments: {
+    points: VecModel[];
+    type: 'free' | 'straight';
+}[]): TLDrawShapeSegment[];
 
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
@@ -278,7 +296,7 @@ export const DocumentRecordType: RecordType<TLDocument, never>;
 // @public
 export const drawShapeMigrations: TLPropsMigrations;
 
-// @public
+// @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public
@@ -371,7 +389,7 @@ export const groupShapeProps: RecordProps<TLGroupShape>;
 // @public
 export const highlightShapeMigrations: TLPropsMigrations;
 
-// @public
+// @public (undocumented)
 export const highlightShapeProps: RecordProps<TLHighlightShape>;
 
 // @public
@@ -607,6 +625,7 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
+    attrs?: any;
     content: unknown[];
     type: string;
 }>;
@@ -1000,13 +1019,15 @@ export interface TLDrawShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
+    scaleX: number;
+    scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
 }
 
 // @public
 export interface TLDrawShapeSegment {
-    points: VecModel[];
+    points: string;
     type: 'free' | 'straight';
 }
 
@@ -1097,6 +1118,8 @@ export interface TLHighlightShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
+    scaleX: number;
+    scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
 }

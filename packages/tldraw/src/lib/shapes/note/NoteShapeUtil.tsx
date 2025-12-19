@@ -32,7 +32,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
-import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
@@ -536,7 +536,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
+					startEditingShapeWithRichText(editor, newNote, { selectAll: true })
 				}
 			}
 		},

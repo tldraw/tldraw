@@ -74,6 +74,9 @@ function model<T extends {
 }>(name: string, validator: Validatable<T>): Validator<T>;
 
 // @public
+const nonZeroFiniteNumber: Validator<number>;
+
+// @public
 const nonZeroInteger: Validator<number>;
 
 // @public
@@ -161,6 +164,8 @@ declare namespace T {
         number,
         positiveNumber,
         nonZeroNumber,
+        nonZeroFiniteNumber,
+        unitInterval,
         integer,
         positiveInteger,
         nonZeroInteger,
@@ -199,6 +204,9 @@ export type UnionValidatorConfig<Key extends string, Config> = {
 };
 
 // @public
+const unitInterval: Validator<number>;
+
+// @public
 const unknown: Validator<unknown>;
 
 // @public
@@ -223,13 +231,16 @@ class ValidationError extends Error {
 
 // @public
 export class Validator<T> implements Validatable<T> {
-    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>);
+    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T>,
+    skipSameValueCheck?: boolean);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     check(checkFn: (value: T) => void): Validator<T>;
     isValid(value: unknown): value is T;
     nullable(): Validator<null | T>;
     optional(): Validator<T | undefined>;
     refine<U>(otherValidationFn: (value: T) => U): Validator<U>;
+    // @internal (undocumented)
+    readonly skipSameValueCheck: boolean;
     validate(value: unknown): T;
     validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T;
     // (undocumented)

@@ -4,14 +4,13 @@ export interface FairyTask {
 	id: TaskId
 	title: string
 	text: string
-	// description: string,
 	projectId: ProjectId | null
 	assignedTo: AgentId | null
 	status: FairyTaskStatus
-	x?: number
-	y?: number
-	w?: number
-	h?: number
+	x: number
+	y: number
+	w: number
+	h: number
 	pageId?: string
 }
 

@@ -5,12 +5,6 @@
       "value": "Exporter"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Accepter l'invitation"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -755,6 +749,22 @@
       "value": "Demande invalide."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Vous avez été invité à "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "dessiner des fées"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -795,12 +805,6 @@
     {
       "type": 0,
       "value": "Ouvrir tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Vous avez été invité(e) à rejoindre les fées de tldraw !"
     }
   ],
   "7cb5f8b4a5": [
@@ -987,6 +991,12 @@
     {
       "type": 0,
       "value": "Désélectionner"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Vous êtes déjà membre de ce groupe"
     }
   ],
   "94966d9074": [
@@ -1357,6 +1367,12 @@
       "value": "Cookies essentiels"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Accepter l'invitation"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1535,12 +1551,6 @@
       "value": "URL de fichier tldraw invalide"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Sélectionnez une fée à droite pour discuter avec elle."
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1711,6 +1721,12 @@
     {
       "type": 0,
       "value": "Paramètres utilisateur"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configure"
     }
   ],
   "f2569594b2": [

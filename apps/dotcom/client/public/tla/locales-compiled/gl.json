@@ -5,12 +5,6 @@
       "value": "Exportar"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Aceptar a invitación"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -755,6 +749,22 @@
       "value": "Solicitude non válida."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Convidáronte a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "debuxar fadas"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -795,12 +805,6 @@
     {
       "type": 0,
       "value": "Abrir tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Convidáronte a unirte a tldraw fairies!"
     }
   ],
   "7cb5f8b4a5": [
@@ -987,6 +991,12 @@
     {
       "type": 0,
       "value": "Deseleccionar"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Xa es membro deste grupo"
     }
   ],
   "94966d9074": [
@@ -1357,6 +1367,12 @@
       "value": "Galletas esenciais"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Aceptar a invitación"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1535,12 +1551,6 @@
       "value": "URL de ficheiro tldraw non válida"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Selecciona unha fada á dereita para conversar con ela"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1711,6 +1721,12 @@
     {
       "type": 0,
       "value": "Configuración do usuario"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configurar"
     }
   ],
   "f2569594b2": [

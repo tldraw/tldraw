@@ -73,7 +73,7 @@ export class DraggingHandle extends StateNode {
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
+		this.initialPagePoint = this.editor.inputs.getOriginPagePoint().clone()
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
@@ -284,10 +284,12 @@ export class DraggingHandle extends StateNode {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const isSnapMode = this.editor.user.getIsSnapMode()
-		const {
-			snaps,
-			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
-		} = editor
+		const { snaps } = editor
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const shiftKey = editor.inputs.getShiftKey()
+		const ctrlKey = editor.inputs.getCtrlKey()
+		const altKey = editor.inputs.getAltKey()
+		const pointerVelocity = editor.inputs.getPointerVelocity()
 
 		const initial = this.info.shape
 

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Eksport"
   },
-  "00b177e080": {
-    "translation": "Godta invitasjonen"
-  },
   "03b3e13197": {
     "translation": "Dra filen inn i sidefeltet på denne siden. Eller velg \"Importer fil\" fra brukermenyen."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Ugyldig forespørsel."
   },
+  "77f0abf1aa": {
+    "translation": "Du har blitt invitert til å <strong>tldraw feer</strong>"
+  },
   "7827371d1a": {
     "translation": "Denne anonyme tldraw-flerspillerfilen er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier den til filene dine."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Åpne tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Du har blitt invitert til å bli med i tldraw-feer!"
   },
   "7cb5f8b4a5": {
     "translation": "Glemme"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Opphev valget"
+  },
+  "9489b2f82a": {
+    "translation": "Du er allerede medlem av denne gruppen"
   },
   "94966d9074": {
     "translation": "Sende"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Viktige informasjonskapsler"
   },
+  "c54a624f46": {
+    "translation": "Godta invitasjonen"
+  },
   "c6155aaecc": {
     "translation": "Gruppenavn"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "Ugyldig URL-adresse for tldraw-filen"
   },
-  "de290d52ef": {
-    "translation": "Velg en fe til høyre å chatte med"
-  },
   "df6ff49394": {
     "translation": "Feer er en <strong>midlertidig</strong> funksjon. 1. januar 2026 vil alle feer bli fjernet fra applikasjonen. Kanskje de kommer tilbake igjen en dag. Kjøpet ditt gjelder kun tilgang til feer i desember 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Brukerinnstillinger"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurer"
   },
   "f2569594b2": {
     "translation": "Vi bruker disse informasjonskapslene for å lagre filene og innstillingene dine."

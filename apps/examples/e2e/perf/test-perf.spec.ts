@@ -32,7 +32,7 @@ test.describe('Performance Tests', () => {
 	test.setTimeout(120000) // Increase timeout
 	test.describe.configure({ mode: 'serial' }) // Run tests in series to avoid resource conflicts
 
-	test.skip('Baseline FPS Performance - Desktop', async ({
+	test('Baseline FPS Performance - Desktop', async ({
 		page,
 		context,
 		request,
@@ -132,7 +132,7 @@ test.describe('Performance Tests', () => {
 	})
 })
 
-test.skip('Baseline Management', () => {
+test('Baseline Management', () => {
 	test('Establish All Performance Baselines', async ({ page, context, request, browserName }) => {
 		test.setTimeout(120000) // 2 minutes for establishing all baselines
 

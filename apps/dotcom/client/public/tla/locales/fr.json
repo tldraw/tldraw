@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exporter"
   },
-  "00b177e080": {
-    "translation": "Accepter l'invitation"
-  },
   "03b3e13197": {
     "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Demande invalide."
   },
+  "77f0abf1aa": {
+    "translation": "Vous avez été invité à <strong>dessiner des fées</strong>"
+  },
   "7827371d1a": {
     "translation": "Ce fichier tldraw multijoueur anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Ouvrir tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Vous avez été invité(e) à rejoindre les fées de tldraw !"
   },
   "7cb5f8b4a5": {
     "translation": "Oublier"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Désélectionner"
+  },
+  "9489b2f82a": {
+    "translation": "Vous êtes déjà membre de ce groupe"
   },
   "94966d9074": {
     "translation": "Envoyer"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Cookies essentiels"
   },
+  "c54a624f46": {
+    "translation": "Accepter l'invitation"
+  },
   "c6155aaecc": {
     "translation": "Nom du groupe"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL de fichier tldraw invalide"
   },
-  "de290d52ef": {
-    "translation": "Sélectionnez une fée à droite pour discuter avec elle."
-  },
   "df6ff49394": {
     "translation": "Les fées sont une fonctionnalité <strong>temporaire</strong>. Le 1er janvier 2026, elles seront retirées de l'application. Elles reviendront peut-être un jour. Votre achat vous donne accès aux fées uniquement pour le mois de décembre 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Paramètres utilisateur"
+  },
+  "f1206f9fad": {
+    "translation": "Configure"
   },
   "f2569594b2": {
     "translation": "Nous utilisons ces cookies pour enregistrer vos fichiers et vos paramètres."

@@ -148,12 +148,6 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				mode: isDuo ? 'duo-orchestrating-active' : 'orchestrating-active',
 			}
 
-			// Clear chat history for all agents before starting new project
-			leaderAgent.chat.clear()
-			followerAgents.forEach((agent) => {
-				agent.chat.clear()
-			})
-
 			const newProjectId = uniqueId(5)
 			const newProject: FairyProject = {
 				id: toProjectId(newProjectId),

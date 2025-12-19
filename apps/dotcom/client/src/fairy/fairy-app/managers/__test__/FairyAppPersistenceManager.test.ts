@@ -83,6 +83,10 @@ describe('FairyAppPersistenceManager', () => {
 						status: 'todo',
 						projectId: null,
 						assignedTo: null,
+						x: 0,
+						y: 0,
+						w: 0,
+						h: 0,
 					},
 				],
 				projects: [getFairyProject()],
@@ -107,6 +111,10 @@ describe('FairyAppPersistenceManager', () => {
 						status: 'todo',
 						projectId: null,
 						assignedTo: null,
+						x: 0,
+						y: 0,
+						w: 0,
+						h: 0,
 					},
 				],
 				projects: [],
@@ -126,6 +134,10 @@ describe('FairyAppPersistenceManager', () => {
 						status: 'todo',
 						projectId: null,
 						assignedTo: null,
+						x: 0,
+						y: 0,
+						w: 0,
+						h: 0,
 					},
 				],
 				projects: [],
@@ -193,6 +205,10 @@ describe('FairyAppPersistenceManager', () => {
 				status: 'todo',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			fairyApp.projects.addProject(getFairyProject())
@@ -273,6 +289,10 @@ describe('FairyAppPersistenceManager', () => {
 				status: 'todo',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			// Wait for throttled update
@@ -305,6 +325,10 @@ describe('FairyAppPersistenceManager', () => {
 				status: 'todo',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			// Wait a bit for any potential throttled saves
@@ -331,6 +355,10 @@ describe('FairyAppPersistenceManager', () => {
 				status: 'todo',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			// Should not save after stopping
@@ -352,6 +380,10 @@ describe('FairyAppPersistenceManager', () => {
 						status: 'todo',
 						projectId: null,
 						assignedTo: null,
+						x: 0,
+						y: 0,
+						w: 0,
+						h: 0,
 					},
 				],
 				projects: [],
@@ -401,6 +433,10 @@ describe('FairyAppPersistenceManager', () => {
 				status: 'todo',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			// Should not save after disposing

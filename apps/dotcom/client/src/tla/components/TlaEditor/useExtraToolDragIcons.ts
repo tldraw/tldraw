@@ -1,5 +1,11 @@
 import { useMemo } from 'react'
-import { DefaultSizeStyle, onDragFromToolbarToCreateShape, TLUiOverrides, VecModel } from 'tldraw'
+import {
+	b64Vecs,
+	DefaultSizeStyle,
+	onDragFromToolbarToCreateShape,
+	TLUiOverrides,
+	VecModel,
+} from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
 
 export function useExtraDragIconOverrides() {
@@ -17,7 +23,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: scalePoints(POINTER_POINTS, SCALES[sizeStyle]),
+											points: b64Vecs.encodePoints(scalePoints(POINTER_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -40,7 +46,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: scalePoints(HAND_POINTS, SCALES[sizeStyle]),
+											points: b64Vecs.encodePoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -63,7 +69,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: scalePoints(DRAW_POINTS, SCALES[sizeStyle]),
+											points: b64Vecs.encodePoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,

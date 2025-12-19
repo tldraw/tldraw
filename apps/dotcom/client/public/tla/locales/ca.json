@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Exporta"
   },
-  "00b177e080": {
-    "translation": "Accepta la invitació"
-  },
   "03b3e13197": {
     "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Sol·licitud no vàlida."
   },
+  "77f0abf1aa": {
+    "translation": "T'han convidat a <strong>dibuixar fades</strong>"
+  },
   "7827371d1a": {
     "translation": "Aquest fitxer multijugador anònim de tldraw ara és de només lectura. Per continuar editant-lo, inicia la sessió i copia'l als teus fitxers."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Obre tldraw"
-  },
-  "7cb471f815": {
-    "translation": "Has estat convidat a unir-te a tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Oblida't"
@@ -436,6 +433,9 @@
   },
   "94186070ef": {
     "translation": "Desselecciona"
+  },
+  "9489b2f82a": {
+    "translation": "Ja ets membre d'aquest grup"
   },
   "94966d9074": {
     "translation": "Enviar"
@@ -585,6 +585,9 @@
   "c4b39a1cc3": {
     "translation": "Galetes essencials"
   },
+  "c54a624f46": {
+    "translation": "Accepta la invitació"
+  },
   "c6155aaecc": {
     "translation": "Nom del grup"
   },
@@ -660,9 +663,6 @@
   "dcdaa754fe": {
     "translation": "URL de fitxer tldraw no vàlida"
   },
-  "de290d52ef": {
-    "translation": "Selecciona una fada a la dreta per xatejar-hi"
-  },
   "df6ff49394": {
     "translation": "Les fades són una funció <strong>temporal</strong>. L'1 de gener de 2026, totes les fades s'eliminaran de l'aplicació. Potser algun dia tornaran a aparèixer. La teva compra és per accedir a les fades només durant el desembre de 2025."
   },
@@ -734,6 +734,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Configuració de l'usuari"
+  },
+  "f1206f9fad": {
+    "translation": "Configura"
   },
   "f2569594b2": {
     "translation": "Fem servir aquestes galetes per desar els vostres fitxers i la configuració."

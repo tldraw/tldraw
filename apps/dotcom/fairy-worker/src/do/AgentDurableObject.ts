@@ -34,20 +34,22 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		)
 
 		if (!checkRes.ok) {
-			let errorDetails: string
 			try {
 				const errorData = (await checkRes.json()) as { error: string }
-				errorDetails = errorData.error
-			} catch {
-				errorDetails = await checkRes.text()
+				console.error('Rate limit check failed:', errorData.error)
+				return new Response(
+					JSON.stringify({
+						error: errorData.error,
+					}),
+					{ status: checkRes.status, headers: { 'Content-Type': 'application/json' } }
+				)
+			} catch (parseError) {
+				console.error('Failed to parse rate limit error response:', parseError)
+				return new Response(JSON.stringify({ error: 'Rate limit check failed' }), {
+					status: 503,
+					headers: { 'Content-Type': 'application/json' },
+				})
 			}
-			console.error('Rate limit check failed:', errorDetails)
-			return new Response(
-				JSON.stringify({
-					error: errorDetails,
-				}),
-				{ status: checkRes.status, headers: { 'Content-Type': 'application/json' } }
-			)
 		}
 
 		return null

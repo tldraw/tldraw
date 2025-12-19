@@ -61,6 +61,7 @@ export * from './schema/FairyModeDefinition'
 export * from './schema/FairySchema'
 
 // Icons
+export * from './icons/ActivityIcon'
 export * from './icons/AgentIcon'
 export * from './icons/AtIcon'
 export * from './icons/BrainIcon'

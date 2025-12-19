@@ -5,12 +5,6 @@
       "value": "Viedä"
     }
   ],
-  "00b177e080": [
-    {
-      "type": 0,
-      "value": "Hyväksy kutsu"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -751,6 +745,22 @@
       "value": "Virheellinen pyyntö."
     }
   ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Sinut on kutsuttu "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tldraw-keijuihin"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -791,12 +801,6 @@
     {
       "type": 0,
       "value": "Avaa tldraw"
-    }
-  ],
-  "7cb471f815": [
-    {
-      "type": 0,
-      "value": "Sinut on kutsuttu liittymään tldraw-keijuihin!"
     }
   ],
   "7cb5f8b4a5": [
@@ -983,6 +987,12 @@
     {
       "type": 0,
       "value": "Poista valinta"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Olet jo tämän ryhmän jäsen"
     }
   ],
   "94966d9074": [
@@ -1353,6 +1363,12 @@
       "value": "Välttämättömät evästeet"
     }
   ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Hyväksy kutsu"
+    }
+  ],
   "c6155aaecc": [
     {
       "type": 0,
@@ -1531,12 +1547,6 @@
       "value": "Virheellinen tldraw-tiedoston URL-osoite"
     }
   ],
-  "de290d52ef": [
-    {
-      "type": 0,
-      "value": "Valitse oikealta keiju, jonka kanssa keskustella"
-    }
-  ],
   "df6ff49394": [
     {
       "type": 0,
@@ -1707,6 +1717,12 @@
     {
       "type": 0,
       "value": "Käyttäjäasetukset"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Määritä"
     }
   ],
   "f2569594b2": [

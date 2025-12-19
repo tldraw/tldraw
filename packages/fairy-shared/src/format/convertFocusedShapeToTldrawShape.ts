@@ -476,7 +476,7 @@ function convertGeoShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertFocusFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill) ?? 'none'
 	} else if (defaultGeoShape.props?.fill) {
 		fill = defaultGeoShape.props.fill
 	} else {
@@ -581,7 +581,7 @@ function convertDrawShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertFocusFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill) ?? 'none'
 	} else if (defaultDrawShape.props?.fill) {
 		fill = defaultDrawShape.props.fill
 	} else {
@@ -614,6 +614,8 @@ function convertDrawShapeToTldrawShape(
 				isClosed: defaultDrawShape.props?.isClosed ?? false,
 				isPen: defaultDrawShape.props?.isPen ?? false,
 				scale: defaultDrawShape.props?.scale ?? 1,
+				scaleX: defaultDrawShape.props?.scaleX ?? 1,
+				scaleY: defaultDrawShape.props?.scaleY ?? 1,
 				color: asColor(focusedShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill,
 			},
