@@ -1,7 +1,7 @@
 ---
 title: Store and records
 created_at: 12/17/2024
-updated_at: 12/17/2024
+updated_at: 12/19/2025
 keywords:
   - store
   - records
@@ -10,32 +10,46 @@ keywords:
   - queries
 ---
 
-The Store is tldraw's client-side database for managing document records. It provides reactive queries, atomic transactions, change history, and persistence capabilities that power the editor's state management.
-
 ## Overview
 
-The `@tldraw/store` package implements a reactive, type-safe store that:
+The Store (in `@tldraw/store`) is tldraw's client-side database for document data. A record is a typed object with an `id` and `typeName` stored in the Store; record types are defined in `@tldraw/tlschema`. The Store provides reactive queries, atomic transactions, change history, and persistence that power the editor's state.
 
-- Holds all document records (shapes, pages, bindings, etc.)
-- Provides reactive queries that update automatically
-- Tracks change history for undo/redo
-- Supports atomic transactions
-- Integrates with persistence and sync systems
+It is responsible for:
 
-## Record types
+- Holding document, session, and presence records
+- Validating writes against record type validators
+- Emitting change events for undo/redo and sync
+- Serializing snapshots for persistence
 
-### Base record structure
+## Key components
 
-All records share a common base:
+### Store
+
+The Store holds the current set of records and exposes an API for reading and writing them. It tracks changes as transactions and provides change events that downstream systems (history, sync, UI) can subscribe to.
+
+### Records and record types
+
+Every record shares a small base shape; record types extend this with their own properties and validators:
 
 ```typescript
+import { createRecordType } from '@tldraw/store'
+
 interface BaseRecord {
 	id: string // Unique identifier with prefix
 	typeName: string // Record type name
 }
-```
 
-### Core record types
+const TodoRecord = createRecordType<Todo>('todo', {
+	validator: todoValidator,
+	scope: 'document',
+})
+
+const todo = TodoRecord.create({
+	id: TodoRecord.createId('1'),
+	title: 'Ship',
+	completed: false,
+})
+```
 
 tldraw uses several record types defined in `@tldraw/tlschema`:
 
@@ -51,211 +65,53 @@ tldraw uses several record types defined in `@tldraw/tlschema`:
 | `TLPointer`  | Pointer state         | `pointer:`  |
 | `TLPresence` | User presence         | `presence:` |
 
-### ID types
+IDs are branded strings with prefixes like `shape:` or `page:`. Use the helper functions in `@tldraw/tlschema` to create them and keep types consistent.
 
-IDs are branded strings for type safety:
+### Schema and validation
 
-```typescript
-import { createShapeId } from '@tldraw/tlschema'
+The Store uses a schema to define record types, validators, and migrations. Every write is validated against the record type's validator, and persisted snapshots include schema versions so migrations can run on load and sync. See [Migrations](./migrations.md) for how schema versions evolve.
 
-const shapeId = createShapeId('abc') // 'shape:abc'
+## Data flow
 
-// Type-safe lookup
-const shape = store.get(shapeId) // Type: TLShape | undefined
-```
+### Operations and transactions
 
-## Store operations
-
-### Creating records
+Writes happen through `put`, `update`, and `remove`. The Store groups writes into transactions, which drives the undo/redo history. Use atomic blocks to combine multiple writes into a single history entry, and merge remote changes without adding to history.
 
 ```typescript
-import { RecordId, createRecordType } from '@tldraw/store'
+store.put([todo])
 
-// Define a record type
-const TodoRecord = createRecordType<Todo>('todo', {
-	validator: todoValidator,
-	scope: 'document',
-})
-
-// Add to store
-store.put([
-	TodoRecord.create({
-		id: TodoRecord.createId('1'),
-		title: 'Learn tldraw',
-		completed: false,
-	}),
-])
-```
-
-### Reading records
-
-```typescript
-// Get by ID
-const shape = store.get(shapeId)
-
-// Check existence
-store.has(shapeId) // boolean
-
-// Get all of a type
-const shapes = store.allRecords().filter((r) => r.typeName === 'shape')
-```
-
-### Updating records
-
-```typescript
-// Full replacement
-store.put([{ ...shape, x: 100 }])
-
-// Partial update
 store.update(shapeId, (shape) => ({
 	...shape,
-	props: { ...shape.props, color: 'red' },
+	x: shape.x + 10,
 }))
+
+store.atomic(() => {
+	store.put([newShape])
+	store.remove([oldShapeId])
+})
 ```
 
-### Deleting records
+### Reactive queries
+
+The Store emits change events that can be observed to keep derived data in sync:
 
 ```typescript
-// Single delete
-store.remove([shapeId])
-
-// Batch delete
-store.remove([shape1Id, shape2Id, shape3Id])
-```
-
-## Reactive queries
-
-The Store provides reactive queries that automatically update when relevant data changes.
-
-### Basic queries
-
-```typescript
-// Listen to specific record
-const dispose = store.listen((change) => {
+store.listen((change) => {
 	if (change.changes.updated[shapeId]) {
 		console.log('Shape updated:', change.changes.updated[shapeId])
 	}
 })
-
-// Listen to all changes
-store.listen((change) => {
-	console.log('Added:', Object.keys(change.changes.added))
-	console.log('Updated:', Object.keys(change.changes.updated))
-	console.log('Removed:', Object.keys(change.changes.removed))
-})
 ```
 
-### Computed queries
+For derived data, use computed signals from the reactive state system. See [Reactive state](./reactive-state.md) for the signal model.
 
-Use signals for reactive derived data:
+### Change tracking and history
 
-```typescript
-import { computed } from '@tldraw/state'
+Each change event includes a `source` (`user`, `remote`, or `system`) and a set of `added`, `updated`, and `removed` records. The history system uses this metadata to decide what should be undoable and what should be ignored (for example, remote changes).
 
-const selectedShapes = computed('selectedShapes', () => {
-	const ids = editor.getSelectedShapeIds()
-	return ids.map((id) => store.get(id)).filter(Boolean)
-})
-```
+### Scopes
 
-### History queries
-
-```typescript
-// Get recent changes
-const epoch = getGlobalEpoch()
-// ... time passes, changes made ...
-const history = store.extractingChanges(() => {
-	return store.serialize()
-})
-```
-
-## Transactions
-
-### Atomic operations
-
-```typescript
-store.atomic(() => {
-	store.put([newShape])
-	store.update(existingShapeId, (s) => ({ ...s, x: s.x + 10 }))
-	store.remove([oldShapeId])
-})
-// All changes applied atomically, history records single entry
-```
-
-### Mark and squash
-
-```typescript
-// Mark starting point
-const mark = store.mark('operation-start')
-
-// Make multiple changes
-store.put([shape1])
-store.put([shape2])
-store.update(shape3, ...)
-
-// Squash all changes since mark into single history entry
-store.squashToMark(mark)
-```
-
-### Merge remote changes
-
-For sync, apply remote changes without triggering undo:
-
-```typescript
-store.mergeRemoteChanges(() => {
-	store.put([remoteShape])
-	store.remove([deletedShapeId])
-})
-```
-
-## Change tracking
-
-### Store listener
-
-```typescript
-interface StoreChange<R extends BaseRecord> {
-	source: 'user' | 'remote' | 'system'
-	changes: {
-		added: { [id: string]: R }
-		updated: { [id: string]: [before: R, after: R] }
-		removed: { [id: string]: R }
-	}
-}
-
-store.listen(
-	(change) => {
-		switch (change.source) {
-			case 'user':
-				// User action, add to undo stack
-				break
-			case 'remote':
-				// From sync, don't add to undo
-				break
-			case 'system':
-				// Internal update
-				break
-		}
-	},
-	{ source: 'all' }
-)
-```
-
-### History events
-
-```typescript
-store.listen(
-	(change) => {
-		for (const [id, record] of Object.entries(change.changes.added)) {
-			analytics.track('record_created', { type: record.typeName })
-		}
-	},
-	{ source: 'user', scope: 'document' }
-)
-```
-
-## Scopes
-
-Records belong to different scopes:
+Records belong to scopes that control visibility and persistence:
 
 | Scope      | Purpose                 | Example                 |
 | ---------- | ----------------------- | ----------------------- |
@@ -263,150 +119,33 @@ Records belong to different scopes:
 | `session`  | Per-user session state  | Camera, selection       |
 | `presence` | Real-time user state    | Cursors, user info      |
 
-```typescript
-// Only listen to document changes
-store.listen(handler, { scope: 'document' })
+You can filter listeners by scope (for example, `store.listen(handler, { scope: 'document' })`).
 
-// Only listen to session changes
-store.listen(handler, { scope: 'session' })
-```
+### Persistence and migrations
 
-## Persistence
-
-### Serialization
+Snapshots serialize records by scope and include schema versions. When a snapshot or record crosses a version boundary, the schema migrates it to the current version using the migration system.
 
 ```typescript
-// Serialize entire store
-const snapshot = store.serialize()
+const snapshot = store.serialize({ scope: 'document' })
+const migrated = store.schema.migrateSnapshot(snapshot)
 
-// Serialize specific scope
-const documentSnapshot = store.serialize({ scope: 'document' })
-
-// JSON-safe output
-JSON.stringify(snapshot)
+store.deserialize(migrated)
 ```
 
-### Deserialization
+## Extension points
 
-```typescript
-// Load into empty store
-store.deserialize(snapshot)
+You can extend the Store by:
 
-// Merge into existing store
-store.deserializeAndMerge(snapshot)
-```
+- Defining custom record types with validators
+- Adding migrations as record types evolve
+- Building derived data with computed signals or indices
+- Subclassing the Store to expose convenience methods
 
-### Schema compatibility
+See [@tldraw/store](../packages/store.md) for the extension APIs.
 
-```typescript
-import { createTLStore, defaultShapeSchemas } from '@tldraw/tldraw'
+## Usage with the Editor
 
-const store = createTLStore({
-	shapeUtils: [...defaultShapeSchemas],
-})
-
-// Check schema version
-store.schema.schemaVersion // number
-
-// Migrate old snapshots
-const migrated = store.schema.migrateSnapshot(oldSnapshot)
-```
-
-## Schema and validation
-
-### Record type definitions
-
-```typescript
-import { createRecordType, T } from '@tldraw/store'
-
-const TaskRecord = createRecordType<Task>('task', {
-	validator: T.object({
-		id: T.string,
-		typeName: T.literal('task'),
-		title: T.string,
-		completed: T.boolean,
-		dueDate: T.number.nullable(),
-	}),
-	scope: 'document',
-})
-```
-
-### Validation on write
-
-```typescript
-// Throws ValidationError if invalid
-store.put([invalidRecord])
-
-// Check validity
-try {
-	TaskRecord.validator.validate(data)
-} catch (e) {
-	console.error('Invalid task:', e.message)
-}
-```
-
-## Derived data
-
-### Store-level computed
-
-```typescript
-class MyStore extends Store<MyRecords> {
-	@computed getActiveTasks() {
-		return this.allRecords()
-			.filter((r): r is Task => r.typeName === 'task')
-			.filter((t) => !t.completed)
-	}
-
-	@computed getTasksByDueDate() {
-		return this.getActiveTasks().sort((a, b) => (a.dueDate ?? Infinity) - (b.dueDate ?? Infinity))
-	}
-}
-```
-
-### Index utilities
-
-```typescript
-// Create lookup index
-const shapesByPage = new Map<string, Set<string>>()
-
-store.listen((change) => {
-	for (const [id, shape] of Object.entries(change.changes.added)) {
-		if (shape.typeName === 'shape') {
-			const pageShapes = shapesByPage.get(shape.parentId) ?? new Set()
-			pageShapes.add(id)
-			shapesByPage.set(shape.parentId, pageShapes)
-		}
-	}
-	// Handle updates and removals...
-})
-```
-
-## Usage with Editor
-
-The Editor wraps the Store with higher-level methods:
-
-```typescript
-// Editor provides typed methods
-editor.createShape({
-	type: 'geo',
-	x: 100,
-	y: 100,
-	props: { geo: 'rectangle', w: 200, h: 100 },
-})
-
-// Under the hood
-store.put([
-	ShapeRecord.create({
-		id: createShapeId(),
-		type: 'geo',
-		x: 100,
-		y: 100,
-		parentId: currentPageId,
-		index: getNextIndex(),
-		props: { geo: 'rectangle', w: 200, h: 100 },
-	}),
-])
-```
+The Editor wraps the Store with higher-level APIs for shapes, input, and rendering. Prefer Editor methods for user-facing changes, but remember the Store remains the source of truth for persisted data.
 
 ## Key files
 

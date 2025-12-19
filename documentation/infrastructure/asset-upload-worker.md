@@ -1,7 +1,7 @@
 ---
 title: Asset upload worker
 created_at: 12/17/2024
-updated_at: 12/17/2024
+updated_at: 12/19/2025
 keywords:
   - assets
   - upload
@@ -10,54 +10,20 @@ keywords:
   - r2
 ---
 
-Cloudflare Worker for handling user asset uploads and serving images for tldraw.com. It provides asset storage and retrieval via Cloudflare R2.
-
 ## Overview
 
-A lightweight worker that:
+The asset upload worker handles file uploads and asset delivery for tldraw.com. It stores uploads in Cloudflare R2, serves them with edge caching, and supports range requests for large files.
 
-- Uploads images to Cloudflare R2
-- Serves assets with edge caching
-- Handles range requests for large files
-- Prevents duplicate uploads
+## Key components
 
-## Tech stack
+### Router and handlers
 
-- **Runtime**: Cloudflare Workers
-- **Storage**: Cloudflare R2
-- **Router**: itty-router
-- **Shared logic**: @tldraw/worker-shared
-
-## API endpoints
-
-### Upload asset
-
-```
-POST /uploads/:objectName
-```
-
-- Stores asset in R2 bucket
-- Returns object metadata and ETag
-- Returns 409 if object already exists
-- Preserves HTTP metadata (content-type)
-
-### Retrieve asset
-
-```
-GET /uploads/:objectName
-```
-
-- Serves from R2 with caching
-- Supports HTTP range requests
-- Handles conditional requests (If-None-Match)
-- Returns 404 if not found
-
-## Implementation
+The worker uses shared handlers to upload and fetch objects from the R2 bucket:
 
 ```typescript
 export default class Worker extends WorkerEntrypoint<Environment> {
 	readonly router = createRouter<Environment>()
-		.all('*', preflight) // CORS
+		.all('*', preflight)
 		.get('/uploads/:objectName', async (request, env, ctx) => {
 			return handleUserAssetGet({
 				request,
@@ -78,107 +44,44 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 ```
 
-## Environment configuration
+### R2 storage
 
-### Development
+Uploads are stored in an R2 bucket bound as `UPLOADS`. Preview environments use a separate bucket.
 
-```toml
-[env.dev]
-name = "tldraw-assets-dev"
-r2_buckets = [{ binding = "UPLOADS", bucket_name = "uploads-preview" }]
-```
+## Data flow
 
-### Production
+1. Client uploads a file to `POST /uploads/:objectName`.
+2. The worker writes the object to R2 with metadata.
+3. Client requests the asset via `GET /uploads/:objectName`.
+4. The worker serves the asset with cache headers and range support.
 
-```toml
-[env.production]
-name = "tldraw-assets"
-r2_buckets = [{ binding = "UPLOADS", bucket_name = "uploads" }]
-route = { pattern = "assets.tldraw.xyz", custom_domain = true }
-```
+## API endpoints
 
-## Storage
+- `POST /uploads/:objectName` - Upload a file, returns metadata and ETag.
+- `GET /uploads/:objectName` - Retrieve a file with caching and range support.
 
-### R2 buckets
+## Operational notes
 
-| Bucket            | Purpose             |
-| ----------------- | ------------------- |
-| `uploads-preview` | Dev/preview/staging |
-| `uploads`         | Production only     |
+- Uses CORS for cross-origin access.
+- No auth at the worker layer; object names must be unguessable.
+- Cloudflare Workers limit upload size (25 MB default).
 
-### Caching strategy
-
-- Cloudflare Cache API for GET requests
-- Cache keys include full URL with headers
-- ETag headers for validation
-- Range support for streaming
-
-## Request flow
-
-```
-Client → Cloudflare Edge → Worker → R2 Storage
-   ↑                                    ↓
-   ←────── Cache Layer ←─────────────←──
-```
-
-## Usage
-
-### Client integration
-
-```typescript
-// Upload
-const response = await fetch(`${WORKER_URL}/uploads/${objectName}`, {
-	method: 'POST',
-	body: file,
-	headers: { 'Content-Type': file.type },
-})
-
-// Retrieve
-const imageUrl = `${WORKER_URL}/uploads/${objectName}`
-```
-
-### tldraw.com integration
-
-- Image import to canvas
-- Temporary session asset storage
-- Edge-cached delivery globally
-
-## Security
-
-- CORS enabled for cross-origin requests
-- No authentication (relies on object name secrecy)
-- Upload limits via Cloudflare Worker limits (25MB)
-
-## Development
+## Development workflow
 
 ```bash
-yarn dev   # Start local worker (port 8788)
-yarn test  # Run tests
+yarn dev
+
+yarn test
 ```
-
-Local assets persist to `tmp-assets/` directory.
-
-## Monitoring
-
-- Cloudflare Dashboard for metrics
-- Sentry for error tracking
-- Analytics Engine for telemetry
-
-## Limitations
-
-- 25MB request body size
-- No server-side file type validation
-- Assets persist indefinitely (no cleanup)
-- Object names must be unique
 
 ## Key files
 
-- `src/worker.ts` - Main worker entry
-- `src/types.ts` - Environment interface
-- `wrangler.toml` - Deployment config
+- apps/dotcom/asset-upload-worker/src/worker.ts - Worker entry and routes
+- apps/dotcom/asset-upload-worker/src/types.ts - Environment types
+- apps/dotcom/asset-upload-worker/wrangler.toml - Deployment configuration
 
 ## Related
 
-- [Sync worker](./sync-worker.md)
 - [Image resize worker](./image-resize-worker.md)
+- [Sync worker](./sync-worker.md)
 - [@tldraw/worker-shared](../packages/worker-shared.md)

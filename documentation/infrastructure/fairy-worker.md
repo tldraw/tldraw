@@ -1,7 +1,7 @@
 ---
 title: Fairy worker
 created_at: 12/17/2024
-updated_at: 12/17/2024
+updated_at: 12/19/2025
 keywords:
   - fairy
   - ai
@@ -10,54 +10,26 @@ keywords:
   - worker
 ---
 
-The fairy-worker is a Cloudflare Worker that provides AI agent interaction capabilities for tldraw, enabling intelligent canvas assistants.
-
 ## Overview
 
-Fairies are visual AI agents with sprite avatars that can:
+The fairy worker provides AI agent streaming for tldraw.com. Each session is backed by a Durable Object that streams actions to the client using Server-Sent Events (SSE).
 
-- Interact with the tldraw canvas
-- Perform automated drawing tasks
-- Collaborate with users and other fairies
-- Respond to natural language requests
+## Key components
 
-## Architecture
+### Worker entry and routing
 
-### Worker entry point
-
-```typescript
-export default class extends WorkerEntrypoint<Environment> {
-	override fetch(request: Request): Promise<Response> {
-		return router.fetch(request, this.env, this.ctx)
-	}
-}
-```
+The worker routes `/stream` requests to an Agent Durable Object keyed by session.
 
 ### Agent Durable Object
 
-Manages individual AI agent sessions:
+The Durable Object manages model calls, conversation context, and action streaming for a single agent session.
+
+### Streaming responses
+
+Responses are sent as SSE to enable progressive updates:
 
 ```typescript
-export class AgentDurableObject extends DurableObject {
-	async fetch(request: Request): Promise<Response> {
-		// Handle agent requests with streaming responses
-		// Process tldraw action streams
-		// Manage agent state and context
-	}
-}
-```
-
-## Request flow
-
-1. Client sends POST request to `/stream`
-2. Worker routes to `AgentDurableObject` using session ID
-3. Durable Object processes request and streams responses
-4. Responses formatted as Server-Sent Events (SSE)
-
-## Streaming responses
-
-```typescript
-return new Response(responseBody, {
+return new Response(body, {
 	headers: {
 		'Content-Type': 'text/event-stream',
 		'Cache-Control': 'no-cache, no-transform',
@@ -67,173 +39,33 @@ return new Response(responseBody, {
 })
 ```
 
-## Environment configuration
+## Data flow
 
-```typescript
-export interface Environment {
-	AGENT_DURABLE_OBJECT: DurableObjectNamespace
-	OPENAI_API_KEY: string
-	ANTHROPIC_API_KEY: string
-	GOOGLE_API_KEY: string
-	FAIRY_MODEL: string
-	CLERK_SECRET_KEY: string
-	CLERK_PUBLISHABLE_KEY: string
-}
-```
+1. Client posts to `/stream` with conversation state and canvas context.
+2. The worker routes the request to an Agent Durable Object.
+3. The agent streams actions and messages over SSE.
+4. The client applies streamed actions to the editor.
 
-## Deployment
-
-```toml
-# wrangler.toml
-name = "fairydraw"
-main = "src/worker.ts"
-
-[dev]
-port = 8789
-
-[env.staging]
-route = { pattern = "staging-fairy.tldraw.xyz", custom_domain = true }
-
-[env.production]
-route = { pattern = "fairy.tldraw.xyz", custom_domain = true }
-
-[durable_objects]
-bindings = [
-  { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
-]
-```
-
-## Client integration
-
-```typescript
-const agentUrl =
-	process.env.NODE_ENV === 'production'
-		? 'https://fairy.tldraw.xyz/stream'
-		: 'http://localhost:8789/stream'
-
-const response = await fetch(agentUrl, {
-	method: 'POST',
-	headers: { 'Content-Type': 'application/json' },
-	body: JSON.stringify({
-		messages: conversationHistory,
-		canvasState: editor.store.serialize(),
-	}),
-})
-
-// Handle streaming responses
-const reader = response.body.getReader()
-for await (const chunk of readStream(reader)) {
-	applyAgentAction(chunk)
-}
-```
-
-## Fairy system
-
-The client-side fairy system uses a two-level architecture:
-
-### FairyApp (application level)
-
-Central coordinator managing:
-
-- Global fairy state
-- Agent lifecycle
-- Projects and tasks
-- State persistence
-
-### FairyAgent (agent level)
-
-Individual fairy behavior:
-
-- Mode state machine
-- Chat history
-- Canvas actions
-- Position management
-
-## Agent modes
-
-Fairies operate in different modes:
-
-**Basic modes**
-
-- `sleeping` - Dormant state
-- `idling` - Default awake state
-- `soloing` - Working independently
-- `standing-by` - Passive waiting
-
-**Orchestration modes**
-
-- `orchestrating-active` - Coordinating a project
-- `orchestrating-waiting` - Waiting for drones
-- `duo-orchestrating-active` - Leading duo project
-
-## Actions system
-
-Actions are operations fairies perform on the canvas:
-
-```typescript
-class CreateActionUtil extends AgentActionUtil<CreateAction> {
-	static override type = 'create' as const
-
-	applyAction(action, helpers) {
-		this.editor.createShape(action.shape)
-	}
-}
-```
-
-**Available actions**
-
-- Canvas: create, update, delete, move, resize, rotate
-- Organization: align, distribute, stack, place
-- Drawing: pen strokes
-- Navigation: change page, fly to bounds
-- Tasks: create/complete solo tasks, manage projects
-
-## Prompt parts
-
-Context provided to the AI model:
-
-- `SelectedShapesPartUtil` - Selected shapes
-- `PeripheralShapesPartUtil` - Nearby shapes
-- `ChatHistoryPartUtil` - Conversation history
-- `UserViewportBoundsPartUtil` - User's visible area
-
-## Development
+## Development workflow
 
 ```bash
-# Start local development
-yarn dev  # Runs on localhost:8789
+yarn dev
 
-# Run tests
 yarn test
 
-# Type checking
 yarn typecheck
 ```
 
-## Service endpoints
-
-| Environment | URL                                       |
-| ----------- | ----------------------------------------- |
-| Development | `http://localhost:8789/stream`            |
-| Staging     | `https://staging-fairy.tldraw.xyz/stream` |
-| Production  | `https://fairy.tldraw.xyz/stream`         |
-
-## Key features
-
-- **Multi-provider AI**: OpenAI, Anthropic, Google support
-- **Edge deployment**: Global Cloudflare network
-- **Session isolation**: Per-user Durable Objects
-- **Streaming**: Real-time progressive responses
-- **Canvas awareness**: Understands drawing context
-
 ## Key files
 
-- `apps/dotcom/fairy-worker/` - Worker implementation
-- `apps/dotcom/client/src/fairy/` - Client-side fairy system
-- `packages/fairy-shared/` - Shared fairy utilities
+- apps/dotcom/fairy-worker/src/worker.ts - Worker entry and routing
+- apps/dotcom/fairy-worker/src/do/AgentDurableObject.ts - Agent session logic
+- apps/dotcom/fairy-worker/src/routes/stream-actions.ts - Streaming route handler
+- apps/dotcom/fairy-worker/src/prompt/ - Prompt assembly
+- apps/dotcom/fairy-worker/wrangler.toml - Deployment configuration
 
 ## Related
 
-- [tldraw.com client](../apps/dotcom-client.md) - Frontend integration
-- [Sync worker](./sync-worker.md) - Room synchronization
-- [AI template](../templates/ai.md) - AI integration template
+- [tldraw.com client](../apps/dotcom-client.md)
+- [Sync worker](./sync-worker.md)
+- [AI template](../templates/ai.md)

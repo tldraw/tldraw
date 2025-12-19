@@ -1,7 +1,7 @@
 ---
 title: Documentation site
 created_at: 12/17/2024
-updated_at: 12/17/2024
+updated_at: 12/19/2025
 keywords:
   - docs
   - documentation
@@ -9,164 +9,60 @@ keywords:
   - next.js
 ---
 
-The documentation site for the tldraw SDK, hosted at [tldraw.dev](https://tldraw.dev). It combines human-written guides with auto-generated API documentation in a searchable, navigable interface.
-
 ## Overview
 
-A Next.js 15 application that generates comprehensive documentation for the tldraw ecosystem:
-
-- Human-written guides and tutorials
-- Auto-generated API reference from TypeScript source
-- Full-text search via Algolia
-- Dark/light theme support
-
-## Tech stack
-
-- **Framework**: Next.js 15 with App Router
-- **Content**: MDX for guides, auto-generated from TypeScript
-- **Database**: SQLite for content storage and indexing
-- **Styling**: Tailwind CSS
-- **Search**: Algolia for full-text search
-- **Themes**: next-themes for dark/light mode
-
-## Directory structure
-
-```
-apps/docs/
-├── app/                 # Next.js App Router pages
-│   ├── (docs)/         # Documentation routes
-│   ├── (marketing)/    # Marketing pages
-│   ├── blog/           # Blog functionality
-│   └── search/         # Search implementation
-├── content/            # All documentation content
-│   ├── docs/           # Human-written guides
-│   ├── reference/      # Auto-generated API docs
-│   ├── blog/           # Blog posts
-│   ├── getting-started/# Onboarding content
-│   └── sections.json   # Content organization
-├── components/         # React components
-├── scripts/            # Build and content generation
-└── utils/              # Shared utilities
-```
-
-## Content system
-
-### Sections
-
-Content is organized into sections defined in `sections.json`:
-
-| Section           | Purpose                 |
-| ----------------- | ----------------------- |
-| `getting-started` | Quick start guides      |
-| `docs`            | Core SDK documentation  |
-| `community`       | Contributing guides     |
-| `reference`       | Auto-generated API docs |
-| `blog`            | News and updates        |
-| `legal`           | Terms and policies      |
-
-### Frontmatter
-
-```yaml
-title: 'Article Title'
-description: 'SEO and search description'
-status: 'published' # or "draft"
-author: 'author_key'
-date: 'MM/DD/YYYY'
-order: 1
-category: 'category_name'
-keywords: ['tag1', 'tag2']
-hero: 'image_path'
-```
-
-## Build process
-
-### Development
-
-```bash
-yarn dev-docs        # Start development server
-yarn watch-content   # Content file watcher only
-```
-
-### Content generation
-
-```bash
-yarn refresh-everything  # Full regeneration
-yarn refresh-content     # Content only
-yarn refresh-api         # API docs only
-```
-
-### Pipeline
-
-1. **API source fetching**: Pull TypeScript definitions from packages
-2. **API documentation**: Process via API Extractor to generate markdown
-3. **Content processing**: Process MDX files, populate SQLite
-4. **Search indexing**: Update Algolia search index
-
-## API reference generation
-
-### Source processing
-
-Uses Microsoft API Extractor to process TypeScript:
-
-- Extracts public APIs from built packages
-- Generates structured documentation data
-- Maintains type information and relationships
-
-### Package coverage
-
-- `@tldraw/editor` - Core editor engine
-- `tldraw` - Complete SDK with UI
-- `@tldraw/store` - Reactive database
-- `@tldraw/state` - Signals library
-- `@tldraw/sync` - Multiplayer functionality
-- `@tldraw/tlschema` - Type definitions
-- `@tldraw/validate` - Validation utilities
+The documentation site at [tldraw.dev](https://tldraw.dev) hosts the SDK guides, reference docs, and blog content. It is a Next.js 15 app that combines human-written MDX with auto-generated API reference and a searchable index.
 
 ## Key components
 
-### Content rendering
+### Content system
 
-- **MDX processing**: `next-mdx-remote-client` for MDX
-- **Code highlighting**: Shiki syntax highlighting
-- **Link handling**: Custom components for internal/external links
+Guides live as MDX in `apps/docs/content`, organized by `sections.json`. The site reads frontmatter to build navigation and metadata.
+
+```yaml
+title: Article title
+description: Short summary for search
+status: published
+author: author_key
+date: MM/DD/YYYY
+order: 1
+category: getting-started
+```
+
+### API reference generation
+
+API reference pages are generated from TypeScript build outputs via API Extractor and converted to markdown during the refresh pipeline.
 
 ### Search
 
-- **Algolia**: Full-text search across all content
-- **InstantSearch**: Real-time search UI
-- **Faceted search**: Filter by type, section, tags
+Algolia indexes the processed content so the site can provide full-text search and filtering.
 
-### Navigation
+## Data flow
 
-- **Dynamic sidebar**: Generated from content structure
-- **Breadcrumbs**: Contextual navigation
-- **Section organization**: Hierarchical browsing
+1. MDX and API source files are processed into structured content.
+2. Content is stored in SQLite for fast queries.
+3. Algolia indexing runs to publish search results.
+4. Next.js renders pages from the processed content.
 
 ## Development workflow
 
-### Writing documentation
+```bash
+yarn dev-docs
 
-1. Create/edit MDX files in `/content`
-2. Add proper frontmatter with required fields
-3. File watcher auto-rebuilds during development
-4. Test locally before committing
+yarn refresh-content
 
-### Updating API docs
-
-1. Make changes to TypeScript source
-2. Run `yarn refresh-api`
-3. Verify generated content
-4. Update search indices
+yarn refresh-api
+```
 
 ## Key files
 
-- `next.config.js` - Next.js configuration
-- `tailwind.config.js` - Styling configuration
-- `content/sections.json` - Content organization
-- `content/authors.json` - Author metadata
-- `scripts/refresh-content.ts` - Content processing
-- `scripts/create-api-markdown.ts` - API doc generation
-- `scripts/update-algolia-index.ts` - Search indexing
+- apps/docs/next.config.js - Next.js configuration
+- apps/docs/tailwind.config.js - Styling configuration
+- apps/docs/content/sections.json - Content organization
+- apps/docs/content/authors.json - Author metadata
+- apps/docs/scripts/refresh-content.ts - Content processing
+- apps/docs/scripts/create-api-markdown.ts - API doc generation
+- apps/docs/scripts/update-algolia-index.ts - Search indexing
 
 ## Related
 

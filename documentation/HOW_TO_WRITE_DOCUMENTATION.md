@@ -24,8 +24,8 @@ Every document starts with YAML frontmatter:
 ```yaml
 ---
 title: Document title in sentence case
-created_at: MM/DD/YY
-updated_at: MM/DD/YY
+created_at: MM/DD/YYYY
+updated_at: MM/DD/YYYY
 keywords:
   - keyword
   - keyword
@@ -40,7 +40,8 @@ Most documents should follow this structure:
 ```markdown
 ## Overview
 
-[1-2 paragraphs explaining what this is and why it matters]
+[1-2 paragraphs: What problem does this solve? What does it enable?
+Don't explain how it works yet—just establish why it exists.]
 
 ## [Main content sections]
 
@@ -64,6 +65,13 @@ Adjust sections based on document type:
 | Guides            | Overview, Prerequisites, Steps, Examples, Troubleshooting, Related           |
 | Reference docs    | Overview, organized reference content, Related                               |
 
+Additional expectations for architecture docs:
+
+- Start with `## Overview` (never begin with a `###` heading)
+- Define tldraw-specific terms on first use or link to the canonical doc
+- Include a small number of high-signal snippets (aim for 1–2 per major section)
+- Avoid example overload (rarely more than 2 snippets per section)
+
 ### Section depth
 
 - Use `##` for main sections
@@ -72,6 +80,8 @@ Adjust sections based on document type:
 - If you need more depth, consider splitting into multiple documents
 
 ## Writing style
+
+An ideal article feels like a concise internal engineering note: it orients the reader quickly, stays concrete, uses small code snippets to ground key ideas, and avoids fluff. The reader should finish with a clear mental model and know where to look next.
 
 ### Tone
 
@@ -184,13 +194,18 @@ automatically be updated as a result.
 
 ### When to include code
 
-Include code examples when:
+Include code when:
 
 - Showing how to use an API
-- Demonstrating a pattern
-- Clarifying something that's hard to explain in prose
+- Demonstrating a pattern that's hard to describe in prose
+- The exact syntax matters and could be gotten wrong
 
-Don't include code just to fill space or repeat what's already clear from the text.
+Skip code when:
+
+- The prose already makes it clear
+- You're just showing "what it looks like" without teaching anything
+- The pattern was already shown earlier in the document
+- Type signatures or API docs already cover it
 
 ### Code block format
 
@@ -204,14 +219,30 @@ const shape = editor.getShape(shapeId)
 
 Use `typescript` for most tldraw code, `tsx` when showing React components, `bash` for terminal commands.
 
+### Balancing prose and code
+
+Prose explains _why_ and _when_. Code shows _how_. Don't duplicate information across both.
+
+- If the code is self-explanatory, keep surrounding prose minimal
+- If prose fully explains something, you may not need code at all
+- One good example beats three similar ones
+- Include at least one snippet when introducing a new core API or data structure
+
+**Good:** A sentence explaining the concept, then code showing it once.
+
+**Avoid:** Explaining in prose, showing code, then re-explaining what the code did.
+
 ### Example size
 
-Keep examples focused and minimal. Show only what's necessary to illustrate the point.
+Show only what's necessary. Trim aggressively.
+
+- Omit imports unless they're the point
+- Use `// ...` to skip irrelevant sections
+- Remove boilerplate that distracts from the concept
 
 **Good:**
 
 ```typescript
-// Create a shape programmatically
 editor.createShape({
 	type: 'geo',
 	x: 100,
@@ -220,7 +251,7 @@ editor.createShape({
 })
 ```
 
-**Avoid:** Including 50 lines of boilerplate when 5 lines make the point.
+**Avoid:** 50 lines of setup for a 5-line concept.
 
 ### Annotating examples
 
@@ -254,7 +285,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ### Real vs. simplified examples
 
-Use real code patterns from the codebase when possible. If you simplify, note that you've done so:
+Use real code patterns from the codebase when possible. If you simplify, note that you've done so and point to the real file:
 
 ```typescript
 // Simplified for clarity - see ArrowShapeUtil.tsx for full implementation
@@ -278,7 +309,7 @@ When referencing source files, use the path from the repository root:
 The main editor implementation is in `packages/editor/src/lib/editor/Editor.ts`.
 ```
 
-For key files sections, list paths without backticks:
+For key files sections, use a bullet list and list paths without backticks:
 
 ```markdown
 ## Key files
@@ -437,11 +468,11 @@ These documents may be read by AI agents exploring the codebase. To help them:
 Before considering a document complete:
 
 - [ ] Frontmatter includes title in sentence case
-- [ ] Frontmatter includes create_at date for new articles
+- [ ] Frontmatter includes created_at date for new articles
 - [ ] Frontmatter includes updated_at date for new or updated articles
-- [ ] Overview section explains what and why
+- [ ] Overview section states the problem before explaining mechanism
 - [ ] All headings use sentence case
-- [ ] Code examples specify language and are minimal
+- [ ] Code examples are minimal and don't duplicate prose
 - [ ] Internal links use relative paths
 - [ ] File references use repository-root paths
 - [ ] Technical terms are defined on first use

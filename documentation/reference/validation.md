@@ -1,0 +1,148 @@
+---
+title: Validation
+created_at: 12/19/2025
+updated_at: 12/19/2025
+keywords:
+  - validation
+  - validators
+  - schema
+  - records
+  - errors
+---
+
+## Overview
+
+Validation in tldraw is handled by `@tldraw/validate` and applied across schemas, record types, and shape props. Validators enforce runtime type safety and provide structured errors when data is malformed.
+
+## Where validation runs
+
+- Shape and binding props via `RecordProps`
+- Record types in the Store via `createRecordType` and `StoreSchema`
+- Worker request parsing via `parseRequestBody` and `parseRequestQuery`
+
+## Core validators
+
+Use `T` validators to describe data shapes and validate unknown input:
+
+```typescript
+import { T } from '@tldraw/validate'
+
+const userValidator = T.object({
+	id: T.string,
+	name: T.string.optional(),
+	age: T.number.optional(),
+})
+
+const user = userValidator.validate(input)
+```
+
+## Validator catalog
+
+### Primitives
+
+- `T.unknown`, `T.any`
+- `T.string`, `T.number`, `T.boolean`, `T.bigint`
+
+### Numbers
+
+- `T.positiveNumber`, `T.nonZeroNumber`, `T.nonZeroFiniteNumber`
+- `T.unitInterval`, `T.integer`, `T.positiveInteger`, `T.nonZeroInteger`
+
+### Collections and objects
+
+- `T.array`, `T.arrayOf`, `T.object`, `T.unknownObject`
+- `T.dict`, `T.jsonDict`, `T.jsonValue`
+
+### Unions and enums
+
+- `T.literal`, `T.literalEnum`, `T.setEnum`
+- `T.union`, `T.or`
+
+### URLs and identifiers
+
+- `T.linkUrl`, `T.srcUrl`, `T.httpUrl`, `T.indexKey`
+
+### Modifiers and helpers
+
+- `validator.optional()`, `validator.nullable()`
+- `T.optional(...)`, `T.nullable(...)`
+- `validator.refine(...)`, `validator.check(...)`
+- `T.model(...)`
+
+## Common validator patterns
+
+```typescript
+import { T, ValidationError } from '@tldraw/validate'
+
+const configValidator = T.object({
+	id: T.string,
+	mode: T.literalEnum('view', 'edit'),
+	tags: T.arrayOf(T.string).optional(),
+	meta: T.object({ note: T.string }).nullable(),
+})
+
+const evenNumber = T.number.check('even', (value) => {
+	if (value % 2 !== 0) throw new ValidationError('Expected even number')
+})
+```
+
+## Record props validation
+
+Shapes and bindings use `RecordProps` to validate their `props` at runtime. This keeps stored data consistent with the schema.
+
+```typescript
+import { ShapeUtil, type RecordProps, T, DefaultColorStyle } from 'tldraw'
+
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override props: RecordProps<MyShape> = {
+		color: DefaultColorStyle,
+		text: T.string,
+	}
+}
+```
+
+## Store validation and recovery
+
+The Store validates records on write. You can provide `onValidationFailure` to recover or sanitize data:
+
+```typescript
+import { StoreSchema, createRecordType } from '@tldraw/store'
+
+const Book = createRecordType<Book>('book', { scope: 'document' })
+
+const schema = StoreSchema.create(
+	{ book: Book },
+	{
+		onValidationFailure: (failure) => failure.record,
+	}
+)
+```
+
+## Validation lifecycle
+
+1. A record is created or updated.
+2. The record type validator runs.
+3. If validation fails, `onValidationFailure` receives the record, phase, and error.
+4. The handler can return a corrected record or throw.
+
+## Error handling
+
+Validation errors include a message and a path into the failing value. Use them to log or correct bad input before it reaches the Store.
+
+## Gotchas
+
+- Validators should be pure and must not mutate input values.
+- If you use `onValidationFailure`, return a valid record or rethrow to abort the write.
+
+## Key files
+
+- packages/validate/src/lib/validation.ts - Validators and ValidationError
+- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - Shape props validation
+- packages/store/src/lib/StoreSchema.ts - Store validation and recovery
+- packages/worker-shared/src/handleRequest.ts - Request body/query validation
+
+## Related
+
+- [@tldraw/validate](../packages/validate.md)
+- [Store and records](../architecture/store-records.md)
+- [Migrations](../architecture/migrations.md)

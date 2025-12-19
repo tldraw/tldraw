@@ -1,7 +1,7 @@
 ---
 title: tldraw.com client
 created_at: 12/17/2024
-updated_at: 12/17/2024
+updated_at: 12/19/2025
 keywords:
   - dotcom
   - client
@@ -9,190 +9,69 @@ keywords:
   - tldraw.com
 ---
 
-The frontend React application for tldraw.com - the official tldraw web application providing real-time collaboration, file management, and the full tldraw editor experience.
-
 ## Overview
 
-A modern React SPA built with Vite that powers tldraw.com:
+The tldraw.com client is the React application that powers the public web app. It is a Vite SPA that integrates authentication, file management, and real-time collaboration on top of the tldraw SDK.
 
-- Real-time collaborative editing
-- File management with cloud sync
-- User authentication and accounts
-- Full tldraw SDK integration
+## Key components
 
-## Tech stack
+### App shell and routing
 
-- **Framework**: React 18 with TypeScript
-- **Build tool**: Vite with SWC
-- **Router**: React Router v6
-- **Authentication**: Clerk
-- **Collaboration**: @tldraw/sync
-- **Database**: @rocicorp/zero for client-side sync
-- **Styling**: CSS Modules
-- **Internationalization**: FormatJS
-- **Monitoring**: Sentry, PostHog
+Routes map to file views, publishing flows, and legacy rooms. Route handling lives in the client router and page components under `src/pages` and `src/tla/pages`.
 
-## Architecture
+### TLA file system
 
-```
-src/
-├── components/         # Shared UI components
-├── pages/             # Route components
-├── tla/               # TLA (tldraw app) features
-│   ├── app/           # Core TLA functionality
-│   ├── components/    # TLA-specific components
-│   ├── hooks/         # Business logic hooks
-│   ├── pages/         # TLA route pages
-│   ├── providers/     # Context providers
-│   └── utils/         # TLA utilities
-├── hooks/             # Global React hooks
-└── utils/             # Shared utilities
-```
+The tldraw app (TLA) layer handles file metadata, local persistence, cloud sync, and sharing. It integrates with the sync backend and asset pipelines.
 
-## Core features
+### Collaboration and presence
+
+Multiplayer uses `@tldraw/sync` to keep document state in sync and to publish presence (cursors and selections) to other collaborators.
 
 ### Authentication
 
-- Clerk integration for sign-in/sign-up
-- Social login (Google, GitHub, etc.)
-- Protected routes
-- Session management
+Clerk provides session management and protects routes that require signed-in users.
 
-### Real-time collaboration
+## Data flow
 
-- WebSocket-based synchronization
-- Live cursors and presence
-- Conflict resolution
-- Multi-user editing
+1. The client authenticates the user and loads their workspace.
+2. A file route resolves metadata and initializes a Store.
+3. The sync client hydrates state and begins diff-based updates.
+4. Editor UI renders on top of the Store and listens for changes.
 
-### File management (TLA)
-
-- Local files with IndexedDB
-- Cloud sync with server
-- Version history
-- Public sharing
-- Import/export
-
-### Editor integration
-
-- Full tldraw SDK
-- Asset upload and storage
-- Responsive UI
-- Keyboard shortcuts
-
-## Routes
-
-```typescript
-/                    # Root/landing page
-/new                # Create new file
-/f/:fileId          # File editor
-/f/:fileId/h        # File history
-/f/:fileId/h/:vsId  # History snapshot
-/publish            # Publishing flow
-
-// Legacy routes
-/r/:roomId          # Legacy room
-/ro/:roomId         # Legacy readonly
-```
-
-## Development
-
-### Commands
+## Development workflow
 
 ```bash
-yarn dev         # Start development server
-yarn build       # Production build
-yarn build-i18n  # Extract and compile translations
-yarn e2e         # End-to-end tests
-yarn test        # Unit tests
+yarn dev
+
+yarn build
+
+yarn e2e
 ```
 
-### Environment setup
+Environment variables are required for local development:
 
 ```bash
-# .env file required
 VITE_CLERK_PUBLISHABLE_KEY=...
 VITE_SENTRY_DSN=...
 ```
 
-## Data management
+## Routes
 
-### Client-side storage
-
-- **IndexedDB**: Local file persistence
-- **Zero database**: Real-time sync with server
-- **Asset caching**: Uploaded images
-- **Settings**: User preferences
-
-### Backend integration
-
-- **Sync worker**: Real-time collaboration
-- **Asset upload worker**: File uploads
-- **Image resize worker**: Image processing
-- **Zero server**: Data persistence
-
-## Internationalization
-
-```bash
-yarn i18n:extract  # Extract translatable strings
-yarn i18n:compile  # Compile for runtime
 ```
-
-- ICU message format support
-- Multiple language infrastructure
-- Lokalise integration
-
-## Testing
-
-### End-to-end
-
-- Playwright for browser automation
-- @clerk/testing for auth flows
-- Multiple environment support
-
-### Unit tests
-
-- Vitest test runner
-- Component and hook testing
-- Coverage reports
-
-## Performance
-
-### Bundle optimization
-
-- Route-level code splitting
-- Asset optimization
-- Tree shaking
-- Gzip/Brotli compression
-
-### Runtime
-
-- Lazy loading components
-- React.memo optimization
-- Service worker caching
-- CDN asset delivery
-
-## Security
-
-- JWT token authentication
-- HTTPS only
-- CSRF protection
-- XSS prevention
-- Asset validation
-
-## Deployment
-
-- Vercel hosting
-- CDN integration
-- Automatic SSL
-- Source maps for debugging
+/                  # Landing page
+/new               # Create new file
+/f/:fileId         # File editor
+/f/:fileId/h       # File history
+/f/:fileId/h/:vsId # History snapshot
+/publish           # Publishing flow
+```
 
 ## Key files
 
-- `vite.config.ts` - Build configuration
-- `src/main.tsx` - Entry point
-- `src/routes.tsx` - Route definitions
-- `src/tla/` - File management system
+- apps/dotcom-client/vite.config.ts - Build configuration
+- apps/dotcom-client/src/main.tsx - Entry point
+- apps/dotcom-client/src/routes.tsx - Route definitions
+- apps/dotcom-client/src/tla/ - File management system
 
 ## Related
 

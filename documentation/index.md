@@ -1,7 +1,7 @@
 ---
 title: Documentation
 created_at: 12/17/2025
-updated_at: 12/17/2025
+updated_at: 12/19/2025
 keywords:
   - documentation
   - entry
@@ -98,4 +98,5 @@ Welcome to the documentation for the tldraw monorepo. This repository contains t
 
 - [Commands reference](./reference/commands.md) - Complete list of yarn commands for development, testing, and building
 - [API conventions](./reference/api-conventions.md) - Naming patterns, TypeScript conventions, and code style
+- [Validation](./reference/validation.md) - How validators are defined and applied across schemas and records
 - [Glossary](./reference/glossary.md) - Key terms and concepts used throughout the codebase
