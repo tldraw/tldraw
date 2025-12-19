@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/tldraw"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/tldraw'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - tldraw
   - sdk
@@ -43,11 +43,11 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function App() {
-  return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      <Tldraw />
-    </div>
-  )
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
 }
 ```
 
@@ -59,21 +59,21 @@ Use the `onMount` callback or `useEditor` hook:
 
 ```tsx
 // Via onMount
-<Tldraw
-  onMount={(editor) => {
-    // Editor is ready
-    editor.createShape({ type: 'geo', x: 100, y: 100 })
-  }}
+;<Tldraw
+	onMount={(editor) => {
+		// Editor is ready
+		editor.createShape({ type: 'geo', x: 100, y: 100 })
+	}}
 />
 
 // Via hook (inside Tldraw children)
 function MyComponent() {
-  const editor = useEditor()
-  return <button onClick={() => editor.zoomIn()}>Zoom In</button>
+	const editor = useEditor()
+	return <button onClick={() => editor.zoomIn()}>Zoom In</button>
 }
 
-<Tldraw>
-  <MyComponent />
+;<Tldraw>
+	<MyComponent />
 </Tldraw>
 ```
 
@@ -81,76 +81,76 @@ function MyComponent() {
 
 The SDK includes these shape types:
 
-| Shape | Description |
-|-------|-------------|
-| `geo` | Rectangles, ellipses, triangles, and other geometric shapes |
-| `draw` | Freehand drawing strokes |
-| `text` | Text labels |
-| `arrow` | Arrows with bindings to other shapes |
-| `note` | Sticky notes with text |
-| `frame` | Container frames for grouping |
-| `line` | Multi-point lines |
-| `highlight` | Highlighter strokes |
-| `image` | Uploaded or pasted images |
-| `video` | Video files |
-| `embed` | YouTube, Figma, and other embeds |
-| `bookmark` | URL bookmarks with previews |
+| Shape       | Description                                                 |
+| ----------- | ----------------------------------------------------------- |
+| `geo`       | Rectangles, ellipses, triangles, and other geometric shapes |
+| `draw`      | Freehand drawing strokes                                    |
+| `text`      | Text labels                                                 |
+| `arrow`     | Arrows with bindings to other shapes                        |
+| `note`      | Sticky notes with text                                      |
+| `frame`     | Container frames for grouping                               |
+| `line`      | Multi-point lines                                           |
+| `highlight` | Highlighter strokes                                         |
+| `image`     | Uploaded or pasted images                                   |
+| `video`     | Video files                                                 |
+| `embed`     | YouTube, Figma, and other embeds                            |
+| `bookmark`  | URL bookmarks with previews                                 |
 
 ### Creating shapes programmatically
 
 ```typescript
 // Create a rectangle
 editor.createShape({
-  type: 'geo',
-  x: 100,
-  y: 100,
-  props: {
-    w: 200,
-    h: 100,
-    geo: 'rectangle',
-    color: 'blue',
-    fill: 'solid',
-  },
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: {
+		w: 200,
+		h: 100,
+		geo: 'rectangle',
+		color: 'blue',
+		fill: 'solid',
+	},
 })
 
 // Create a text label
 editor.createShape({
-  type: 'text',
-  x: 100,
-  y: 300,
-  props: {
-    text: 'Hello world',
-    size: 'l',
-    font: 'sans',
-  },
+	type: 'text',
+	x: 100,
+	y: 300,
+	props: {
+		text: 'Hello world',
+		size: 'l',
+		font: 'sans',
+	},
 })
 
 // Create an arrow
 editor.createShape({
-  type: 'arrow',
-  x: 100,
-  y: 400,
-  props: {
-    start: { x: 0, y: 0 },
-    end: { x: 200, y: 100 },
-  },
+	type: 'arrow',
+	x: 100,
+	y: 400,
+	props: {
+		start: { x: 0, y: 0 },
+		end: { x: 200, y: 100 },
+	},
 })
 ```
 
 ## Default tools
 
-| Tool | Description | Shortcut |
-|------|-------------|----------|
-| `select` | Select and manipulate shapes | V |
-| `hand` | Pan the canvas | H |
-| `draw` | Freehand drawing | D |
-| `eraser` | Erase shapes | E |
-| `arrow` | Draw arrows | A |
-| `text` | Add text labels | T |
-| `note` | Add sticky notes | N |
-| `laser` | Temporary pointer for presentations | K |
-| `frame` | Create frames | F |
-| `geo` | Draw geometric shapes | R (rectangle), O (ellipse) |
+| Tool     | Description                         | Shortcut                   |
+| -------- | ----------------------------------- | -------------------------- |
+| `select` | Select and manipulate shapes        | V                          |
+| `hand`   | Pan the canvas                      | H                          |
+| `draw`   | Freehand drawing                    | D                          |
+| `eraser` | Erase shapes                        | E                          |
+| `arrow`  | Draw arrows                         | A                          |
+| `text`   | Add text labels                     | T                          |
+| `note`   | Add sticky notes                    | N                          |
+| `laser`  | Temporary pointer for presentations | K                          |
+| `frame`  | Create frames                       | F                          |
+| `geo`    | Draw geometric shapes               | R (rectangle), O (ellipse) |
 
 ### Switching tools
 
@@ -183,11 +183,11 @@ The Tldraw component includes a complete UI:
 
 ```tsx
 <Tldraw
-  hideUi={false}              // Hide all UI
-  components={{
-    Toolbar: null,            // Hide specific components
-    StylePanel: null,
-  }}
+	hideUi={false} // Hide all UI
+	components={{
+		Toolbar: null, // Hide specific components
+		StylePanel: null,
+	}}
 />
 ```
 
@@ -197,11 +197,11 @@ Override any UI component:
 
 ```tsx
 <Tldraw
-  components={{
-    Toolbar: MyCustomToolbar,
-    StylePanel: MyCustomStylePanel,
-    MainMenu: MyCustomMenu,
-  }}
+	components={{
+		Toolbar: MyCustomToolbar,
+		StylePanel: MyCustomStylePanel,
+		MainMenu: MyCustomMenu,
+	}}
 />
 ```
 
@@ -221,27 +221,27 @@ type CardShape = TLBaseShape<'card', { title: string }>
 
 // Create ShapeUtil
 class CardShapeUtil extends ShapeUtil<CardShape> {
-  static override type = 'card' as const
+	static override type = 'card' as const
 
-  getDefaultProps() {
-    return { title: 'New Card' }
-  }
+	getDefaultProps() {
+		return { title: 'New Card' }
+	}
 
-  getGeometry(shape: CardShape) {
-    return new Rectangle2d({ width: 200, height: 100, isFilled: true })
-  }
+	getGeometry(shape: CardShape) {
+		return new Rectangle2d({ width: 200, height: 100, isFilled: true })
+	}
 
-  component(shape: CardShape) {
-    return <div className="card">{shape.props.title}</div>
-  }
+	component(shape: CardShape) {
+		return <div className="card">{shape.props.title}</div>
+	}
 
-  indicator(shape: CardShape) {
-    return <rect width={200} height={100} />
-  }
+	indicator(shape: CardShape) {
+		return <rect width={200} height={100} />
+	}
 }
 
 // Register with Tldraw
-<Tldraw shapeUtils={[CardShapeUtil]} />
+;<Tldraw shapeUtils={[CardShapeUtil]} />
 ```
 
 ### Adding custom tools
@@ -250,34 +250,34 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 import { Tldraw, StateNode } from 'tldraw'
 
 class StampTool extends StateNode {
-  static override id = 'stamp'
+	static override id = 'stamp'
 
-  onPointerDown() {
-    const point = this.editor.inputs.currentPagePoint
-    this.editor.createShape({
-      type: 'card',
-      x: point.x - 100,
-      y: point.y - 50,
-    })
-  }
+	onPointerDown() {
+		const point = this.editor.inputs.currentPagePoint
+		this.editor.createShape({
+			type: 'card',
+			x: point.x - 100,
+			y: point.y - 50,
+		})
+	}
 }
 
-<Tldraw
-  tools={[StampTool]}
-  overrides={{
-    tools(editor, tools) {
-      tools.stamp = {
-        id: 'stamp',
-        icon: 'star',
-        label: 'Stamp',
-        kbd: 's',
-        onSelect() {
-          editor.setCurrentTool('stamp')
-        },
-      }
-      return tools
-    },
-  }}
+;<Tldraw
+	tools={[StampTool]}
+	overrides={{
+		tools(editor, tools) {
+			tools.stamp = {
+				id: 'stamp',
+				icon: 'star',
+				label: 'Stamp',
+				kbd: 's',
+				onSelect() {
+					editor.setCurrentTool('stamp')
+				},
+			}
+			return tools
+		},
+	}}
 />
 ```
 
@@ -287,21 +287,21 @@ Customize built-in actions:
 
 ```tsx
 <Tldraw
-  overrides={{
-    actions(editor, actions) {
-      // Modify existing action
-      const originalDelete = actions['delete']
-      actions['delete'] = {
-        ...originalDelete,
-        onSelect() {
-          if (confirm('Delete shapes?')) {
-            originalDelete.onSelect()
-          }
-        },
-      }
-      return actions
-    },
-  }}
+	overrides={{
+		actions(editor, actions) {
+			// Modify existing action
+			const originalDelete = actions['delete']
+			actions['delete'] = {
+				...originalDelete,
+				onSelect() {
+					if (confirm('Delete shapes?')) {
+						originalDelete.onSelect()
+					}
+				},
+			}
+			return actions
+		},
+	}}
 />
 ```
 
@@ -311,30 +311,31 @@ Every UI component can be replaced:
 
 ```tsx
 <Tldraw
-  components={{
-    // Canvas components
-    Background: MyBackground,
-    Grid: MyGrid,
-    Cursor: MyCursor,
+	components={{
+		// Canvas components
+		Background: MyBackground,
+		Grid: MyGrid,
+		Cursor: MyCursor,
 
-    // UI components
-    Toolbar: MyToolbar,
-    StylePanel: MyStylePanel,
-    MainMenu: MyMainMenu,
-    PageMenu: MyPageMenu,
-    NavigationPanel: MyNavPanel,
-    ZoomMenu: MyZoomMenu,
+		// UI components
+		Toolbar: MyToolbar,
+		StylePanel: MyStylePanel,
+		MainMenu: MyMainMenu,
+		PageMenu: MyPageMenu,
+		NavigationPanel: MyNavPanel,
+		ZoomMenu: MyZoomMenu,
 
-    // Set to null to hide
-    Minimap: null,
-    HelpMenu: null,
-  }}
+		// Set to null to hide
+		Minimap: null,
+		HelpMenu: null,
+	}}
 />
 ```
 
 ### Available component overrides
 
 **Canvas overlays:**
+
 - `Background` - Canvas background
 - `Grid` - Dot/line grid
 - `Cursor` - Mouse cursor
@@ -344,6 +345,7 @@ Every UI component can be replaced:
 - `ShapeIndicators` - Shape hover/selection indicators
 
 **UI panels:**
+
 - `Toolbar` - Bottom toolbar
 - `StylePanel` - Right-side style controls
 - `MainMenu` - Top-left menu
@@ -387,17 +389,17 @@ Paste URLs to create bookmark shapes with previews:
 
 ```typescript
 editor.registerExternalAssetHandler('url', async ({ url }) => {
-  const metadata = await fetchMetadata(url)
-  return {
-    id: AssetRecordType.createId(),
-    type: 'bookmark',
-    props: {
-      src: url,
-      title: metadata.title,
-      description: metadata.description,
-      image: metadata.image,
-    },
-  }
+	const metadata = await fetchMetadata(url)
+	return {
+		id: AssetRecordType.createId(),
+		type: 'bookmark',
+		props: {
+			src: url,
+			title: metadata.title,
+			description: metadata.description,
+			image: metadata.image,
+		},
+	}
 })
 ```
 
@@ -423,19 +425,22 @@ Handle persistence yourself:
 
 ```tsx
 <Tldraw
-  onMount={(editor) => {
-    // Load initial data
-    const saved = loadFromServer()
-    if (saved) {
-      editor.store.loadSnapshot(saved)
-    }
+	onMount={(editor) => {
+		// Load initial data
+		const saved = loadFromServer()
+		if (saved) {
+			editor.store.loadSnapshot(saved)
+		}
 
-    // Save on changes
-    editor.store.listen(() => {
-      const snapshot = editor.store.getSnapshot()
-      saveToServer(snapshot)
-    }, { scope: 'document' })
-  }}
+		// Save on changes
+		editor.store.listen(
+			() => {
+				const snapshot = editor.store.getSnapshot()
+				saveToServer(snapshot)
+			},
+			{ scope: 'document' }
+		)
+	}}
 />
 ```
 
@@ -448,9 +453,9 @@ import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 
 function App() {
-  const store = useSyncDemo({ roomId: 'my-room' })
+	const store = useSyncDemo({ roomId: 'my-room' })
 
-  return <Tldraw store={store} />
+	return <Tldraw store={store} />
 }
 ```
 
@@ -458,25 +463,25 @@ See the [@tldraw/sync](./sync.md) documentation for details.
 
 ## Configuration options
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `store` | `TLStore` | External store (for sync) |
-| `persistenceKey` | `string` | Key for local persistence |
-| `initialState` | `string` | Initial tool to select |
-| `autoFocus` | `boolean` | Focus editor on mount |
-| `hideUi` | `boolean` | Hide all UI |
-| `inferDarkMode` | `boolean` | Match system dark mode |
-| `acceptedImageMimeTypes` | `string[]` | Allowed image types |
-| `acceptedVideoMimeTypes` | `string[]` | Allowed video types |
-| `maxImageDimension` | `number` | Max image size |
-| `maxAssetSize` | `number` | Max file size |
+| Prop                     | Type       | Description               |
+| ------------------------ | ---------- | ------------------------- |
+| `store`                  | `TLStore`  | External store (for sync) |
+| `persistenceKey`         | `string`   | Key for local persistence |
+| `initialState`           | `string`   | Initial tool to select    |
+| `autoFocus`              | `boolean`  | Focus editor on mount     |
+| `hideUi`                 | `boolean`  | Hide all UI               |
+| `inferDarkMode`          | `boolean`  | Match system dark mode    |
+| `acceptedImageMimeTypes` | `string[]` | Allowed image types       |
+| `acceptedVideoMimeTypes` | `string[]` | Allowed video types       |
+| `maxImageDimension`      | `number`   | Max image size            |
+| `maxAssetSize`           | `number`   | Max file size             |
 
 ## Styling and theming
 
 ### Dark mode
 
 ```tsx
-<Tldraw inferDarkMode />  // Follow system preference
+;<Tldraw inferDarkMode /> // Follow system preference
 
 // Or set explicitly
 editor.user.updateUserPreferences({ colorScheme: 'dark' })
@@ -488,13 +493,13 @@ Override CSS custom properties:
 
 ```css
 .tl-theme__light {
-  --color-background: #f5f5f5;
-  --color-text: #1a1a1a;
+	--color-background: #f5f5f5;
+	--color-text: #1a1a1a;
 }
 
 .tl-theme__dark {
-  --color-background: #1a1a1a;
-  --color-text: #f5f5f5;
+	--color-background: #1a1a1a;
+	--color-text: #f5f5f5;
 }
 ```
 

@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/dotcom-shared"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/dotcom-shared'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - dotcom
   - shared
@@ -30,55 +30,55 @@ The schema uses Rocicorp Zero for real-time collaboration.
 
 ```typescript
 const user = table('user')
-  .columns({
-    id: string(),
-    name: string(),
-    email: string(),
-    avatar: string(),
-    color: string(),
-    // Export preferences
-    exportFormat: string(),
-    exportTheme: string(),
-    exportBackground: boolean(),
-    exportPadding: boolean(),
-    // Timestamps
-    createdAt: number(),
-    updatedAt: number(),
-    // User preferences (optional)
-    locale: string().optional(),
-    animationSpeed: number().optional(),
-    colorScheme: string().optional(),
-    isSnapMode: boolean().optional(),
-    // ... more preferences
-  })
-  .primaryKey('id')
+	.columns({
+		id: string(),
+		name: string(),
+		email: string(),
+		avatar: string(),
+		color: string(),
+		// Export preferences
+		exportFormat: string(),
+		exportTheme: string(),
+		exportBackground: boolean(),
+		exportPadding: boolean(),
+		// Timestamps
+		createdAt: number(),
+		updatedAt: number(),
+		// User preferences (optional)
+		locale: string().optional(),
+		animationSpeed: number().optional(),
+		colorScheme: string().optional(),
+		isSnapMode: boolean().optional(),
+		// ... more preferences
+	})
+	.primaryKey('id')
 ```
 
 ### Files table
 
 ```typescript
 const file = table('file')
-  .columns({
-    id: string(),
-    name: string(),
-    ownerId: string(),
-    ownerName: string(),
-    ownerAvatar: string(),
-    thumbnail: string(),
-    // Sharing
-    shared: boolean(),
-    sharedLinkType: string(),
-    // Publishing
-    published: boolean(),
-    lastPublished: number(),
-    publishedSlug: string(),
-    // Metadata
-    createdAt: number(),
-    updatedAt: number(),
-    isEmpty: boolean(),
-    isDeleted: boolean(),
-  })
-  .primaryKey('id', 'ownerId', 'publishedSlug')
+	.columns({
+		id: string(),
+		name: string(),
+		ownerId: string(),
+		ownerName: string(),
+		ownerAvatar: string(),
+		thumbnail: string(),
+		// Sharing
+		shared: boolean(),
+		sharedLinkType: string(),
+		// Publishing
+		published: boolean(),
+		lastPublished: number(),
+		publishedSlug: string(),
+		// Metadata
+		createdAt: number(),
+		updatedAt: number(),
+		isEmpty: boolean(),
+		isDeleted: boolean(),
+	})
+	.primaryKey('id', 'ownerId', 'publishedSlug')
 ```
 
 ### File state table
@@ -87,33 +87,33 @@ Tracks per-user interaction with files:
 
 ```typescript
 const file_state = table('file_state')
-  .columns({
-    userId: string(),
-    fileId: string(),
-    firstVisitAt: number().optional(),
-    lastEditAt: number().optional(),
-    lastSessionState: string().optional(),
-    lastVisitAt: number().optional(),
-    isFileOwner: boolean().optional(),
-    isPinned: boolean().optional(),
-  })
-  .primaryKey('userId', 'fileId')
+	.columns({
+		userId: string(),
+		fileId: string(),
+		firstVisitAt: number().optional(),
+		lastEditAt: number().optional(),
+		lastSessionState: string().optional(),
+		lastVisitAt: number().optional(),
+		isFileOwner: boolean().optional(),
+		isPinned: boolean().optional(),
+	})
+	.primaryKey('userId', 'fileId')
 ```
 
 ### Relationships
 
 ```typescript
 const fileRelationships = relationships(file, ({ one, many }) => ({
-  owner: one({
-    sourceField: ['ownerId'],
-    destField: ['id'],
-    destSchema: user,
-  }),
-  states: many({
-    sourceField: ['id'],
-    destField: ['fileId'],
-    destSchema: file_state,
-  }),
+	owner: one({
+		sourceField: ['ownerId'],
+		destField: ['id'],
+		destSchema: user,
+	}),
+	states: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
 }))
 ```
 
@@ -125,28 +125,30 @@ The `OptimisticAppStore` handles real-time UI updates with optimistic mutations.
 
 ```typescript
 class OptimisticAppStore {
-  // Committed server state
-  private _gold_store = atom('zero store', null as null | ZStoreData)
+	// Committed server state
+	private _gold_store = atom('zero store', null as null | ZStoreData)
 
-  // Pending optimistic changes
-  private _optimisticStore = atom<Array<{
-    updates: ZRowUpdate[]
-    mutationId: string
-  }>>('optimistic store', [])
+	// Pending optimistic changes
+	private _optimisticStore = atom<
+		Array<{
+			updates: ZRowUpdate[]
+			mutationId: string
+		}>
+	>('optimistic store', [])
 
-  // Combined view (committed + optimistic)
-  private store = computed('store', () => {
-    const gold = this._gold_store.get()
-    if (!gold) return null
+	// Combined view (committed + optimistic)
+	private store = computed('store', () => {
+		const gold = this._gold_store.get()
+		if (!gold) return null
 
-    let data = gold
-    for (const changes of this._optimisticStore.get()) {
-      for (const update of changes.updates) {
-        data = this.applyUpdate(data, update)
-      }
-    }
-    return data
-  })
+		let data = gold
+		for (const changes of this._optimisticStore.get()) {
+			for (const update of changes.updates) {
+				data = this.applyUpdate(data, update)
+			}
+		}
+		return data
+	})
 }
 ```
 
@@ -172,25 +174,24 @@ Role-based access control using Zero's permission expressions:
 
 ```typescript
 const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
-  // Users can only access their own user record
-  const allowIfIsUser = (authData, { cmp }) =>
-    cmp('id', '=', authData.sub!)
+	// Users can only access their own user record
+	const allowIfIsUser = (authData, { cmp }) => cmp('id', '=', authData.sub!)
 
-  // File access: owner OR (shared file with file_state record)
-  const userCanAccessFile = (authData, { exists, and, cmp, or }) =>
-    or(
-      cmp('ownerId', '=', authData.sub!),
-      and(
-        cmp('shared', '=', true),
-        exists('states', (q) => q.where('userId', '=', authData.sub!))
-      )
-    )
+	// File access: owner OR (shared file with file_state record)
+	const userCanAccessFile = (authData, { exists, and, cmp, or }) =>
+		or(
+			cmp('ownerId', '=', authData.sub!),
+			and(
+				cmp('shared', '=', true),
+				exists('states', (q) => q.where('userId', '=', authData.sub!))
+			)
+		)
 
-  return {
-    user: { row: { select: [allowIfIsUser] } },
-    file: { row: { select: [userCanAccessFile] } },
-    file_state: { row: { select: [allowIfIsUserIdMatches] } },
-  }
+	return {
+		user: { row: { select: [allowIfIsUser] } },
+		file: { row: { select: [userCanAccessFile] } },
+		file_state: { row: { select: [allowIfIsUserIdMatches] } },
+	}
 })
 ```
 
@@ -251,15 +252,15 @@ file: {
 
 ```typescript
 const immutableColumns = {
-  user: new Set(['email', 'createdAt', 'updatedAt', 'avatar']),
-  file: new Set(['ownerName', 'ownerAvatar', 'createSource', 'updatedAt']),
-  file_state: new Set(['firstVisitAt', 'isFileOwner']),
+	user: new Set(['email', 'createdAt', 'updatedAt', 'avatar']),
+	file: new Set(['ownerName', 'ownerAvatar', 'createSource', 'updatedAt']),
+	file_state: new Set(['firstVisitAt', 'isFileOwner']),
 }
 
 function disallowImmutableMutations(data, columns) {
-  for (const column of columns) {
-    assert(!data[column], ZErrorCode.forbidden)
-  }
+	for (const column of columns) {
+		assert(!data[column], ZErrorCode.forbidden)
+	}
 }
 ```
 
@@ -269,26 +270,24 @@ function disallowImmutableMutations(data, columns) {
 
 ```typescript
 interface CreateRoomRequestBody {
-  origin: string
-  snapshot: Snapshot
+	origin: string
+	snapshot: Snapshot
 }
 
 type CreateSnapshotResponseBody =
-  | { error: false; roomId: string }
-  | { error: true; message: string }
+	| { error: false; roomId: string }
+	| { error: true; message: string }
 ```
 
 ### File operations
 
 ```typescript
 interface CreateFilesRequestBody {
-  origin: string
-  snapshots: Snapshot[]
+	origin: string
+	snapshots: Snapshot[]
 }
 
-type CreateFilesResponseBody =
-  | { error: false; slugs: string[] }
-  | { error: true; message: string }
+type CreateFilesResponseBody = { error: false; slugs: string[] } | { error: true; message: string }
 ```
 
 ### WebSocket protocol
@@ -296,17 +295,17 @@ type CreateFilesResponseBody =
 ```typescript
 // Server → Client
 type ZServerSentPacket =
-  | { type: 'initial_data'; initialData: ZStoreData }
-  | { type: 'update'; update: ZRowUpdate }
-  | { type: 'commit'; mutationIds: string[] }
-  | { type: 'reject'; mutationId: string; errorCode: ZErrorCode }
+	| { type: 'initial_data'; initialData: ZStoreData }
+	| { type: 'update'; update: ZRowUpdate }
+	| { type: 'commit'; mutationIds: string[] }
+	| { type: 'reject'; mutationId: string; errorCode: ZErrorCode }
 
 // Client → Server
 interface ZClientSentMessage {
-  type: 'mutator'
-  mutationId: string
-  name: string
-  props: object
+	type: 'mutator'
+	mutationId: string
+	name: string
+	props: object
 }
 ```
 
@@ -316,41 +315,41 @@ URL routing patterns for different room types:
 
 ```typescript
 const ROOM_OPEN_MODE = {
-  READ_ONLY: 'readonly',
-  READ_ONLY_LEGACY: 'readonly-legacy',
-  READ_WRITE: 'read-write',
+	READ_ONLY: 'readonly',
+	READ_ONLY_LEGACY: 'readonly-legacy',
+	READ_WRITE: 'read-write',
 }
 
 // URL prefixes
-const READ_ONLY_PREFIX = 'ro'     // /ro/abc123
-const ROOM_PREFIX = 'r'          // /r/abc123
-const SNAPSHOT_PREFIX = 's'      // /s/abc123
-const FILE_PREFIX = 'f'          // /f/abc123
-const PUBLISH_PREFIX = 'p'       // /p/abc123
+const READ_ONLY_PREFIX = 'ro' // /ro/abc123
+const ROOM_PREFIX = 'r' // /r/abc123
+const SNAPSHOT_PREFIX = 's' // /s/abc123
+const FILE_PREFIX = 'f' // /f/abc123
+const PUBLISH_PREFIX = 'p' // /p/abc123
 ```
 
 ## Constants and limits
 
 ```typescript
-const MAX_NUMBER_OF_FILES = 200      // Per-user file limit
-const ROOM_SIZE_LIMIT_MB = 25        // Maximum room data size
-const Z_PROTOCOL_VERSION = 2         // Current protocol version
-const MIN_Z_PROTOCOL_VERSION = 2     // Minimum supported version
+const MAX_NUMBER_OF_FILES = 200 // Per-user file limit
+const ROOM_SIZE_LIMIT_MB = 25 // Maximum room data size
+const Z_PROTOCOL_VERSION = 2 // Current protocol version
+const MIN_Z_PROTOCOL_VERSION = 2 // Minimum supported version
 ```
 
 ## Error codes
 
 ```typescript
 const ZErrorCode = stringEnum(
-  'publish_failed',
-  'unpublish_failed',
-  'republish_failed',
-  'unknown_error',
-  'client_too_old',
-  'forbidden',
-  'bad_request',
-  'rate_limit_exceeded',
-  'max_files_reached'
+	'publish_failed',
+	'unpublish_failed',
+	'republish_failed',
+	'unknown_error',
+	'client_too_old',
+	'forbidden',
+	'bad_request',
+	'rate_limit_exceeded',
+	'max_files_reached'
 )
 ```
 
@@ -360,18 +359,18 @@ Synchronized user settings:
 
 ```typescript
 const UserPreferencesKeys = [
-  'locale',
-  'animationSpeed',
-  'areKeyboardShortcutsEnabled',
-  'edgeScrollSpeed',
-  'colorScheme',
-  'isSnapMode',
-  'isWrapMode',
-  'isDynamicSizeMode',
-  'isPasteAtCursorMode',
-  'enhancedA11yMode',
-  'name',
-  'color',
+	'locale',
+	'animationSpeed',
+	'areKeyboardShortcutsEnabled',
+	'edgeScrollSpeed',
+	'colorScheme',
+	'isSnapMode',
+	'isWrapMode',
+	'isDynamicSizeMode',
+	'isPasteAtCursorMode',
+	'enhancedA11yMode',
+	'name',
+	'color',
 ] as const
 ```
 

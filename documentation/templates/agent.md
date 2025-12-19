@@ -1,7 +1,7 @@
 ---
 title: Agent template
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - agent
   - ai
@@ -75,22 +75,22 @@ Cloudflare Worker processing agent requests:
 ```typescript
 // worker.ts
 export default {
-  async fetch(request: Request, env: Env) {
-    const { messages, canvasState } = await request.json()
+	async fetch(request: Request, env: Env) {
+		const { messages, canvasState } = await request.json()
 
-    const systemPrompt = buildSystemPrompt(canvasState)
+		const systemPrompt = buildSystemPrompt(canvasState)
 
-    const response = await streamAgent({
-      model: env.AGENT_MODEL,
-      systemPrompt,
-      messages,
-      tools: canvasTools,
-    })
+		const response = await streamAgent({
+			model: env.AGENT_MODEL,
+			systemPrompt,
+			messages,
+			tools: canvasTools,
+		})
 
-    return new Response(response.body, {
-      headers: { 'Content-Type': 'text/event-stream' },
-    })
-  },
+		return new Response(response.body, {
+			headers: { 'Content-Type': 'text/event-stream' },
+		})
+	},
 }
 ```
 
@@ -102,19 +102,19 @@ The agent can perform various canvas operations:
 
 ```typescript
 const createAction = {
-  type: 'create',
-  shape: {
-    type: 'geo',
-    x: 100,
-    y: 100,
-    props: {
-      geo: 'rectangle',
-      w: 200,
-      h: 100,
-      fill: 'solid',
-      color: 'blue',
-    },
-  },
+	type: 'create',
+	shape: {
+		type: 'geo',
+		x: 100,
+		y: 100,
+		props: {
+			geo: 'rectangle',
+			w: 200,
+			h: 100,
+			fill: 'solid',
+			color: 'blue',
+		},
+	},
 }
 ```
 
@@ -122,12 +122,12 @@ const createAction = {
 
 ```typescript
 const updateAction = {
-  type: 'update',
-  shapeId: 'shape:abc123',
-  props: {
-    color: 'red',
-    w: 300,
-  },
+	type: 'update',
+	shapeId: 'shape:abc123',
+	props: {
+		color: 'red',
+		w: 300,
+	},
 }
 ```
 
@@ -135,8 +135,8 @@ const updateAction = {
 
 ```typescript
 const deleteAction = {
-  type: 'delete',
-  shapeIds: ['shape:abc123', 'shape:def456'],
+	type: 'delete',
+	shapeIds: ['shape:abc123', 'shape:def456'],
 }
 ```
 
@@ -144,12 +144,12 @@ const deleteAction = {
 
 ```typescript
 const drawAction = {
-  type: 'draw',
-  points: [
-    { x: 0, y: 0 },
-    { x: 50, y: 25 },
-    { x: 100, y: 0 },
-  ],
+	type: 'draw',
+	points: [
+		{ x: 0, y: 0 },
+		{ x: 50, y: 25 },
+		{ x: 100, y: 0 },
+	],
 }
 ```
 
@@ -159,35 +159,35 @@ Apply agent actions to the editor:
 
 ```typescript
 function applyAction(editor: Editor, action: AgentAction) {
-  switch (action.type) {
-    case 'create':
-      editor.createShape({
-        id: createShapeId(),
-        ...action.shape,
-      })
-      break
+	switch (action.type) {
+		case 'create':
+			editor.createShape({
+				id: createShapeId(),
+				...action.shape,
+			})
+			break
 
-    case 'update':
-      editor.updateShape({
-        id: action.shapeId,
-        ...action.props,
-      })
-      break
+		case 'update':
+			editor.updateShape({
+				id: action.shapeId,
+				...action.props,
+			})
+			break
 
-    case 'delete':
-      editor.deleteShapes(action.shapeIds)
-      break
+		case 'delete':
+			editor.deleteShapes(action.shapeIds)
+			break
 
-    case 'draw':
-      editor.createShape({
-        id: createShapeId(),
-        type: 'draw',
-        props: {
-          segments: [{ type: 'free', points: action.points }],
-        },
-      })
-      break
-  }
+		case 'draw':
+			editor.createShape({
+				id: createShapeId(),
+				type: 'draw',
+				props: {
+					segments: [{ type: 'free', points: action.points }],
+				},
+			})
+			break
+	}
 }
 ```
 
@@ -227,7 +227,7 @@ Build context-aware prompts:
 
 ```typescript
 function buildSystemPrompt(canvasState: TLShape[]) {
-  return `You are an AI assistant that can draw on a canvas.
+	return `You are an AI assistant that can draw on a canvas.
 
 Current canvas contains ${canvasState.length} shapes:
 ${describeShapes(canvasState)}
@@ -248,22 +248,22 @@ Handle streaming responses with partial actions:
 
 ```typescript
 async function* readStream(response: Response) {
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
+	const reader = response.body.getReader()
+	const decoder = new TextDecoder()
+	let buffer = ''
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) break
 
-    buffer += decoder.decode(value)
+		buffer += decoder.decode(value)
 
-    // Parse complete actions from buffer
-    const actions = parseActions(buffer)
-    for (const action of actions) {
-      yield action
-    }
-  }
+		// Parse complete actions from buffer
+		const actions = parseActions(buffer)
+		for (const action of actions) {
+			yield action
+		}
+	}
 }
 ```
 
@@ -275,19 +275,19 @@ Define agent tools using Zod schemas:
 import { z } from 'zod'
 
 const createShapeTool = {
-  name: 'createShape',
-  description: 'Create a new shape on the canvas',
-  parameters: z.object({
-    type: z.enum(['geo', 'text', 'arrow']),
-    x: z.number(),
-    y: z.number(),
-    props: z.object({
-      geo: z.enum(['rectangle', 'ellipse', 'star']).optional(),
-      text: z.string().optional(),
-      w: z.number().optional(),
-      h: z.number().optional(),
-    }),
-  }),
+	name: 'createShape',
+	description: 'Create a new shape on the canvas',
+	parameters: z.object({
+		type: z.enum(['geo', 'text', 'arrow']),
+		x: z.number(),
+		y: z.number(),
+		props: z.object({
+			geo: z.enum(['rectangle', 'ellipse', 'star']).optional(),
+			text: z.string().optional(),
+			w: z.number().optional(),
+			h: z.number().optional(),
+		}),
+	}),
 }
 ```
 

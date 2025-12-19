@@ -1,7 +1,7 @@
 ---
 title: Image resize worker
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - images
   - resize
@@ -32,12 +32,12 @@ GET /:origin/:path+?w=<width>&q=<quality>
 
 **Parameters:**
 
-| Param | Description | Example |
-|-------|-------------|---------|
-| `origin` | Source domain | `assets.tldraw.com` |
-| `path` | Asset path | `uploads/abc123.png` |
-| `w` | Width in pixels | `600` |
-| `q` | Quality (1-100) | `80` |
+| Param    | Description     | Example              |
+| -------- | --------------- | -------------------- |
+| `origin` | Source domain   | `assets.tldraw.com`  |
+| `path`   | Asset path      | `uploads/abc123.png` |
+| `w`      | Width in pixels | `600`                |
+| `q`      | Quality (1-100) | `80`                 |
 
 **Example:**
 
@@ -52,45 +52,45 @@ Automatically selects optimal format based on browser support:
 ```typescript
 const accept = request.headers.get('Accept') ?? ''
 const format = accept.includes('image/avif')
-  ? 'avif'  // Best compression
-  : accept.includes('image/webp')
-    ? 'webp'  // Good compression
-    : null    // Original format
+	? 'avif' // Best compression
+	: accept.includes('image/webp')
+		? 'webp' // Good compression
+		: null // Original format
 ```
 
 ## Implementation
 
 ```typescript
 export default class Worker extends WorkerEntrypoint<Environment> {
-  readonly router = createRouter().get('/:origin/:path+', async (request) => {
-    const { origin, path } = request.params
-    const query = parseRequestQuery(request, queryValidator)
+	readonly router = createRouter().get('/:origin/:path+', async (request) => {
+		const { origin, path } = request.params
+		const query = parseRequestQuery(request, queryValidator)
 
-    // Validate origin
-    if (!this.isValidOrigin(origin)) return notFound()
+		// Validate origin
+		if (!this.isValidOrigin(origin)) return notFound()
 
-    // Build cache key
-    const cacheKey = buildCacheKey(origin, path, query, format)
-    const cached = await caches.default.match(cacheKey)
-    if (cached) return handleCachedResponse(cached, request)
+		// Build cache key
+		const cacheKey = buildCacheKey(origin, path, query, format)
+		const cached = await caches.default.match(cacheKey)
+		if (cached) return handleCachedResponse(cached, request)
 
-    // Apply transformations
-    const imageOptions = {
-      fit: 'scale-down',
-      width: query.w ? Number(query.w) : undefined,
-      quality: query.q ? Number(query.q) : undefined,
-      format: format || undefined,
-    }
+		// Apply transformations
+		const imageOptions = {
+			fit: 'scale-down',
+			width: query.w ? Number(query.w) : undefined,
+			quality: query.q ? Number(query.q) : undefined,
+			format: format || undefined,
+		}
 
-    const response = await fetch(url, { cf: { image: imageOptions } })
+		const response = await fetch(url, { cf: { image: imageOptions } })
 
-    // Cache successful responses
-    if (response.status === 200) {
-      this.ctx.waitUntil(caches.default.put(cacheKey, response.clone()))
-    }
+		// Cache successful responses
+		if (response.status === 200) {
+			this.ctx.waitUntil(caches.default.put(cacheKey, response.clone()))
+		}
 
-    return response
-  })
+		return response
+	})
 }
 ```
 
@@ -119,8 +119,8 @@ For internal tldraw services:
 
 ```typescript
 if (useServiceBinding(this.env, origin)) {
-  const req = new Request(url, { cf: { image: imageOptions } })
-  return await this.env.SYNC_WORKER.fetch(req)
+	const req = new Request(url, { cf: { image: imageOptions } })
+	return await this.env.SYNC_WORKER.fetch(req)
 }
 ```
 
@@ -140,7 +140,7 @@ return await fetch(url, { cf: { image: imageOptions } })
 const cacheKey = new URL(passthroughUrl)
 cacheKey.searchParams.set('format', format ?? 'original')
 for (const [key, value] of Object.entries(query)) {
-  cacheKey.searchParams.set(key, value)
+	cacheKey.searchParams.set(key, value)
 }
 ```
 
@@ -151,12 +151,12 @@ const ifNoneMatch = request.headers.get('If-None-Match')
 const etag = cachedResponse.headers.get('etag')
 
 if (ifNoneMatch && etag) {
-  const parsedEtag = parseEtag(etag)
-  for (const tag of ifNoneMatch.split(', ')) {
-    if (parseEtag(tag) === parsedEtag) {
-      return new Response(null, { status: 304 })
-    }
-  }
+	const parsedEtag = parseEtag(etag)
+	for (const tag of ifNoneMatch.split(', ')) {
+		if (parseEtag(tag) === parsedEtag) {
+			return new Response(null, { status: 304 })
+		}
+	}
 }
 ```
 

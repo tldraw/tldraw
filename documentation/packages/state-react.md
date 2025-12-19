@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/state-react"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/state-react'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - react
   - state
@@ -80,8 +80,8 @@ With lazy initialization:
 
 ```typescript
 function ExpensiveComponent() {
-  const $data = useAtom('data', () => computeExpensiveDefault())
-  // ...
+	const $data = useAtom('data', () => computeExpensiveDefault())
+	// ...
 }
 ```
 
@@ -145,15 +145,19 @@ Runs reactive effects immediately without throttling:
 import { useQuickReactor } from '@tldraw/state-react'
 
 function DataSync() {
-  const editor = useEditor()
+	const editor = useEditor()
 
-  // Immediate execution when dependencies change
-  useQuickReactor('syncData', () => {
-    const selection = editor.getSelectedShapeIds()
-    sendToServer(selection)
-  }, [editor])
+	// Immediate execution when dependencies change
+	useQuickReactor(
+		'syncData',
+		() => {
+			const selection = editor.getSelectedShapeIds()
+			sendToServer(selection)
+		},
+		[editor]
+	)
 
-  return null
+	return null
 }
 ```
 
@@ -272,22 +276,23 @@ const DataSyncComponent = track(function DataSync() {
 
 ### When to use each hook
 
-| Hook | Use case | Performance |
-|------|----------|-------------|
-| `useValue` | Simple signal subscriptions | Optimal for frequently changing values |
-| `useReactor` | Visual updates, animations | Throttled to 60fps |
-| `useQuickReactor` | Critical state sync | Immediate, higher CPU |
-| `useStateTracking` | Complex render logic | Fine-grained control |
+| Hook               | Use case                    | Performance                            |
+| ------------------ | --------------------------- | -------------------------------------- |
+| `useValue`         | Simple signal subscriptions | Optimal for frequently changing values |
+| `useReactor`       | Visual updates, animations  | Throttled to 60fps                     |
+| `useQuickReactor`  | Critical state sync         | Immediate, higher CPU                  |
+| `useStateTracking` | Complex render logic        | Fine-grained control                   |
 
 ### Optimization tips
 
 1. **Use the `$` prefix convention** for signals (`$count`, `$user`)
 
 2. **Batch related changes** to minimize renders:
+
    ```typescript
    transact(() => {
-     $firstName.set('Alice')
-     $lastName.set('Smith')
+   	$firstName.set('Alice')
+   	$lastName.set('Smith')
    })
    ```
 
@@ -307,9 +312,13 @@ The package handles cleanup automatically:
 
 ```typescript
 // Cleanup happens automatically
-useReactor('effect', () => {
-  // ...
-}, [deps])
+useReactor(
+	'effect',
+	() => {
+		// ...
+	},
+	[deps]
+)
 // Disposed when component unmounts or deps change
 ```
 

@@ -24,8 +24,8 @@ Every document starts with YAML frontmatter:
 ```yaml
 ---
 title: Document title in sentence case
-created_at: DD/MM/YY
-updated_at: DD/MM/YY
+created_at: MM/DD/YY
+updated_at: MM/DD/YY
 keywords:
   - keyword
   - keyword

@@ -1,7 +1,7 @@
 ---
 title: Asset upload worker
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - assets
   - upload
@@ -56,25 +56,25 @@ GET /uploads/:objectName
 
 ```typescript
 export default class Worker extends WorkerEntrypoint<Environment> {
-  readonly router = createRouter<Environment>()
-    .all('*', preflight)                    // CORS
-    .get('/uploads/:objectName', async (request, env, ctx) => {
-      return handleUserAssetGet({
-        request,
-        bucket: env.UPLOADS,
-        objectName: request.params.objectName,
-        context: ctx,
-      })
-    })
-    .post('/uploads/:objectName', async (request, env) => {
-      return handleUserAssetUpload({
-        objectName: request.params.objectName,
-        bucket: env.UPLOADS,
-        body: request.body,
-        headers: request.headers,
-      })
-    })
-    .all('*', notFound)
+	readonly router = createRouter<Environment>()
+		.all('*', preflight) // CORS
+		.get('/uploads/:objectName', async (request, env, ctx) => {
+			return handleUserAssetGet({
+				request,
+				bucket: env.UPLOADS,
+				objectName: request.params.objectName,
+				context: ctx,
+			})
+		})
+		.post('/uploads/:objectName', async (request, env) => {
+			return handleUserAssetUpload({
+				objectName: request.params.objectName,
+				bucket: env.UPLOADS,
+				body: request.body,
+				headers: request.headers,
+			})
+		})
+		.all('*', notFound)
 }
 ```
 
@@ -101,10 +101,10 @@ route = { pattern = "assets.tldraw.xyz", custom_domain = true }
 
 ### R2 buckets
 
-| Bucket | Purpose |
-|--------|---------|
+| Bucket            | Purpose             |
+| ----------------- | ------------------- |
 | `uploads-preview` | Dev/preview/staging |
-| `uploads` | Production only |
+| `uploads`         | Production only     |
 
 ### Caching strategy
 
@@ -128,9 +128,9 @@ Client → Cloudflare Edge → Worker → R2 Storage
 ```typescript
 // Upload
 const response = await fetch(`${WORKER_URL}/uploads/${objectName}`, {
-  method: 'POST',
-  body: file,
-  headers: { 'Content-Type': file.type },
+	method: 'POST',
+	body: file,
+	headers: { 'Content-Type': file.type },
 })
 
 // Retrieve

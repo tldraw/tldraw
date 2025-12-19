@@ -1,7 +1,7 @@
 ---
 title: Custom bindings
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - bindings
   - relationships
@@ -27,26 +27,29 @@ When bound shapes move, the binding system automatically updates related shapes.
 import { BindingUtil, TLBaseBinding, RecordProps, T } from 'tldraw'
 
 // Define binding type
-type StickerBinding = TLBaseBinding<'sticker', {
-  anchor: { x: number; y: number }
-}>
+type StickerBinding = TLBaseBinding<
+	'sticker',
+	{
+		anchor: { x: number; y: number }
+	}
+>
 
 // Create binding util
 class StickerBindingUtil extends BindingUtil<StickerBinding> {
-  static override type = 'sticker' as const
+	static override type = 'sticker' as const
 
-  static override props: RecordProps<StickerBinding> = {
-    anchor: T.object({
-      x: T.number,
-      y: T.number,
-    }),
-  }
+	static override props: RecordProps<StickerBinding> = {
+		anchor: T.object({
+			x: T.number,
+			y: T.number,
+		}),
+	}
 
-  override getDefaultProps() {
-    return {
-      anchor: { x: 0.5, y: 0.5 },
-    }
-  }
+	override getDefaultProps() {
+		return {
+			anchor: { x: 0.5, y: 0.5 },
+		}
+	}
 }
 ```
 
@@ -58,36 +61,36 @@ Bindings have callbacks for different events:
 
 ```typescript
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  // Called before binding is created
-  override onBeforeCreate({ binding }: BindingOnCreateOptions<MyBinding>) {
-    // Return modified binding or undefined
-    return binding
-  }
+	// Called before binding is created
+	override onBeforeCreate({ binding }: BindingOnCreateOptions<MyBinding>) {
+		// Return modified binding or undefined
+		return binding
+	}
 
-  // Called after binding is created
-  override onAfterCreate({ binding }: BindingOnCreateOptions<MyBinding>) {
-    // Perform side effects
-  }
+	// Called after binding is created
+	override onAfterCreate({ binding }: BindingOnCreateOptions<MyBinding>) {
+		// Perform side effects
+	}
 
-  // Called before binding changes
-  override onBeforeChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<MyBinding>) {
-    return bindingAfter
-  }
+	// Called before binding changes
+	override onBeforeChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<MyBinding>) {
+		return bindingAfter
+	}
 
-  // Called after binding changes
-  override onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<MyBinding>) {
-    // Perform side effects
-  }
+	// Called after binding changes
+	override onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<MyBinding>) {
+		// Perform side effects
+	}
 
-  // Called before binding is deleted
-  override onBeforeDelete({ binding }: BindingOnDeleteOptions<MyBinding>) {
-    // Can prevent deletion by returning false
-  }
+	// Called before binding is deleted
+	override onBeforeDelete({ binding }: BindingOnDeleteOptions<MyBinding>) {
+		// Can prevent deletion by returning false
+	}
 
-  // Called after binding is deleted
-  override onAfterDelete({ binding }: BindingOnDeleteOptions<MyBinding>) {
-    // Cleanup
-  }
+	// Called after binding is deleted
+	override onAfterDelete({ binding }: BindingOnDeleteOptions<MyBinding>) {
+		// Cleanup
+	}
 }
 ```
 
@@ -97,39 +100,39 @@ React to bound shapes moving:
 
 ```typescript
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  // Called when the "from" shape changes
-  override onAfterChangeFromShape({
-    binding,
-    shapeBefore,
-    shapeAfter,
-  }: BindingOnShapeChangeOptions<MyBinding>) {
-    // Update based on from shape moving
-  }
+	// Called when the "from" shape changes
+	override onAfterChangeFromShape({
+		binding,
+		shapeBefore,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<MyBinding>) {
+		// Update based on from shape moving
+	}
 
-  // Called when the "to" shape changes
-  override onAfterChangeToShape({
-    binding,
-    shapeBefore,
-    shapeAfter,
-  }: BindingOnShapeChangeOptions<MyBinding>) {
-    // Update the "from" shape to follow the "to" shape
-    const fromShape = this.editor.getShape(binding.fromId)
-    if (!fromShape) return
+	// Called when the "to" shape changes
+	override onAfterChangeToShape({
+		binding,
+		shapeBefore,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<MyBinding>) {
+		// Update the "from" shape to follow the "to" shape
+		const fromShape = this.editor.getShape(binding.fromId)
+		if (!fromShape) return
 
-    const toShape = shapeAfter
-    const anchor = binding.props.anchor
+		const toShape = shapeAfter
+		const anchor = binding.props.anchor
 
-    // Calculate new position
-    const newX = toShape.x + toShape.props.w * anchor.x
-    const newY = toShape.y + toShape.props.h * anchor.y
+		// Calculate new position
+		const newX = toShape.x + toShape.props.w * anchor.x
+		const newY = toShape.y + toShape.props.h * anchor.y
 
-    this.editor.updateShape({
-      id: fromShape.id,
-      type: fromShape.type,
-      x: newX,
-      y: newY,
-    })
-  }
+		this.editor.updateShape({
+			id: fromShape.id,
+			type: fromShape.type,
+			x: newX,
+			y: newY,
+		})
+	}
 }
 ```
 
@@ -139,32 +142,32 @@ Handle shapes being separated (delete, copy, duplicate):
 
 ```typescript
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  // Called when "from" shape is isolated (deleted/copied without binding)
-  override onBeforeIsolateFromShape({
-    binding,
-    removedShape,
-  }: BindingOnShapeIsolateOptions<MyBinding>) {
-    // Update shape to maintain consistency after binding removed
-  }
+	// Called when "from" shape is isolated (deleted/copied without binding)
+	override onBeforeIsolateFromShape({
+		binding,
+		removedShape,
+	}: BindingOnShapeIsolateOptions<MyBinding>) {
+		// Update shape to maintain consistency after binding removed
+	}
 
-  // Called when "to" shape is isolated
-  override onBeforeIsolateToShape({
-    binding,
-    removedShape,
-  }: BindingOnShapeIsolateOptions<MyBinding>) {
-    // E.g., for arrows: store the endpoint position before binding removed
-    const fromShape = this.editor.getShape(binding.fromId)
-    if (!fromShape) return
+	// Called when "to" shape is isolated
+	override onBeforeIsolateToShape({
+		binding,
+		removedShape,
+	}: BindingOnShapeIsolateOptions<MyBinding>) {
+		// E.g., for arrows: store the endpoint position before binding removed
+		const fromShape = this.editor.getShape(binding.fromId)
+		if (!fromShape) return
 
-    // Update arrow to have explicit endpoint instead of binding
-    this.editor.updateShape({
-      id: fromShape.id,
-      type: fromShape.type,
-      props: {
-        end: { type: 'point', x: removedShape.x, y: removedShape.y },
-      },
-    })
-  }
+		// Update arrow to have explicit endpoint instead of binding
+		this.editor.updateShape({
+			id: fromShape.id,
+			type: fromShape.type,
+			props: {
+				end: { type: 'point', x: removedShape.x, y: removedShape.y },
+			},
+		})
+	}
 }
 ```
 
@@ -174,13 +177,10 @@ Handle bound shapes being deleted:
 
 ```typescript
 class StickerBindingUtil extends BindingUtil<StickerBinding> {
-  // Called when "to" shape is deleted - delete the sticker too
-  override onBeforeDeleteToShape({
-    binding,
-    shape,
-  }: BindingOnShapeDeleteOptions<StickerBinding>) {
-    this.editor.deleteShape(binding.fromId)
-  }
+	// Called when "to" shape is deleted - delete the sticker too
+	override onBeforeDeleteToShape({ binding, shape }: BindingOnShapeDeleteOptions<StickerBinding>) {
+		this.editor.deleteShape(binding.fromId)
+	}
 }
 ```
 
@@ -203,13 +203,13 @@ const editor = useEditor()
 
 // Create a binding
 editor.createBinding({
-  id: createBindingId(),
-  type: 'sticker',
-  fromId: stickerShapeId,
-  toId: targetShapeId,
-  props: {
-    anchor: { x: 0.5, y: 0.5 },
-  },
+	id: createBindingId(),
+	type: 'sticker',
+	fromId: stickerShapeId,
+	toId: targetShapeId,
+	props: {
+		anchor: { x: 0.5, y: 0.5 },
+	},
 })
 
 // Delete bindings
@@ -225,72 +225,68 @@ const bindingsTo = editor.getBindingsToShape(shapeId, 'sticker')
 Complete example of a sticker that attaches to shapes:
 
 ```typescript
-import {
-  BindingUtil,
-  TLBaseBinding,
-  RecordProps,
-  T,
-  createBindingId,
-  createShapeId,
-} from 'tldraw'
+import { BindingUtil, TLBaseBinding, RecordProps, T, createBindingId, createShapeId } from 'tldraw'
 
-type StickerBinding = TLBaseBinding<'sticker', {
-  anchor: { x: number; y: number }
-}>
+type StickerBinding = TLBaseBinding<
+	'sticker',
+	{
+		anchor: { x: number; y: number }
+	}
+>
 
 class StickerBindingUtil extends BindingUtil<StickerBinding> {
-  static override type = 'sticker' as const
+	static override type = 'sticker' as const
 
-  static override props: RecordProps<StickerBinding> = {
-    anchor: T.object({ x: T.number, y: T.number }),
-  }
+	static override props: RecordProps<StickerBinding> = {
+		anchor: T.object({ x: T.number, y: T.number }),
+	}
 
-  override getDefaultProps() {
-    return { anchor: { x: 0.5, y: 0.5 } }
-  }
+	override getDefaultProps() {
+		return { anchor: { x: 0.5, y: 0.5 } }
+	}
 
-  // Move sticker when target shape moves
-  override onAfterChangeToShape({
-    binding,
-    shapeAfter,
-  }: BindingOnShapeChangeOptions<StickerBinding>) {
-    const sticker = this.editor.getShape(binding.fromId)
-    if (!sticker) return
+	// Move sticker when target shape moves
+	override onAfterChangeToShape({
+		binding,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<StickerBinding>) {
+		const sticker = this.editor.getShape(binding.fromId)
+		if (!sticker) return
 
-    const bounds = this.editor.getShapeGeometry(shapeAfter).bounds
-    const newX = shapeAfter.x + bounds.w * binding.props.anchor.x
-    const newY = shapeAfter.y + bounds.h * binding.props.anchor.y
+		const bounds = this.editor.getShapeGeometry(shapeAfter).bounds
+		const newX = shapeAfter.x + bounds.w * binding.props.anchor.x
+		const newY = shapeAfter.y + bounds.h * binding.props.anchor.y
 
-    this.editor.updateShape({
-      id: sticker.id,
-      type: sticker.type,
-      x: newX - 25, // Center the sticker
-      y: newY - 25,
-    })
-  }
+		this.editor.updateShape({
+			id: sticker.id,
+			type: sticker.type,
+			x: newX - 25, // Center the sticker
+			y: newY - 25,
+		})
+	}
 
-  // Delete sticker when target is deleted
-  override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>) {
-    this.editor.deleteShape(binding.fromId)
-  }
+	// Delete sticker when target is deleted
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>) {
+		this.editor.deleteShape(binding.fromId)
+	}
 }
 
 // Usage: Attach sticker to a shape
 function attachSticker(editor: Editor, stickerId: TLShapeId, targetId: TLShapeId) {
-  const target = editor.getShape(targetId)
-  if (!target) return
+	const target = editor.getShape(targetId)
+	if (!target) return
 
-  const bounds = editor.getShapeGeometry(target).bounds
+	const bounds = editor.getShapeGeometry(target).bounds
 
-  editor.createBinding({
-    id: createBindingId(),
-    type: 'sticker',
-    fromId: stickerId,
-    toId: targetId,
-    props: {
-      anchor: { x: 0.5, y: 0 }, // Top center
-    },
-  })
+	editor.createBinding({
+		id: createBindingId(),
+		type: 'sticker',
+		fromId: stickerId,
+		toId: targetId,
+		props: {
+			anchor: { x: 0.5, y: 0 }, // Top center
+		},
+	})
 }
 ```
 

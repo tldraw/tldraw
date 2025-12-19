@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/tlschema"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/tlschema'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - schema
   - types
@@ -40,27 +40,27 @@ At the core of tlschema is the `TLRecord` union type, which encompasses all reco
 
 ```typescript
 type TLRecord =
-  | TLAsset       // Images, videos, bookmarks
-  | TLBinding     // Connections between shapes
-  | TLCamera      // Viewport state per page
-  | TLDocument    // Root document metadata
-  | TLInstance    // User instance state
-  | TLInstancePageState  // Per-page user state
-  | TLPage        // Document pages
-  | TLShape       // All shape types
-  | TLInstancePresence   // Real-time presence
-  | TLPointer     // Mouse/touch state
+	| TLAsset // Images, videos, bookmarks
+	| TLBinding // Connections between shapes
+	| TLCamera // Viewport state per page
+	| TLDocument // Root document metadata
+	| TLInstance // User instance state
+	| TLInstancePageState // Per-page user state
+	| TLPage // Document pages
+	| TLShape // All shape types
+	| TLInstancePresence // Real-time presence
+	| TLPointer // Mouse/touch state
 ```
 
 ### Record scopes
 
 Records are organized into scopes that determine their sync and persistence behavior:
 
-| Scope | Synced | Persisted | Examples |
-|-------|--------|-----------|----------|
-| `document` | Yes | Yes | Shapes, assets, pages, bindings |
-| `session` | No | Maybe | User preferences, instance state |
-| `presence` | Yes | No | Cursors, selections, active users |
+| Scope      | Synced | Persisted | Examples                          |
+| ---------- | ------ | --------- | --------------------------------- |
+| `document` | Yes    | Yes       | Shapes, assets, pages, bindings   |
+| `session`  | No     | Maybe     | User preferences, instance state  |
+| `presence` | Yes    | No        | Cursors, selections, active users |
 
 Document-scoped records form the core document data. Session-scoped records track per-user state. Presence records enable real-time collaboration without persistence.
 
@@ -77,24 +77,24 @@ const schema = createTLSchema()
 
 // Create schema with custom shapes
 const customSchema = createTLSchema({
-  shapes: {
-    ...defaultShapeSchemas,
-    myShape: {
-      props: myShapeProps,
-      migrations: myShapeMigrations,
-    },
-  },
-  bindings: defaultBindingSchemas,
+	shapes: {
+		...defaultShapeSchemas,
+		myShape: {
+			props: myShapeProps,
+			migrations: myShapeMigrations,
+		},
+	},
+	bindings: defaultBindingSchemas,
 })
 
 // Use with a store
 const store = new Store({
-  schema: customSchema,
-  props: {
-    defaultName: 'My Drawing',
-    assets: myAssetStore,
-    onMount: (editor) => console.log('Mounted'),
-  },
+	schema: customSchema,
+	props: {
+		defaultName: 'My Drawing',
+		assets: myAssetStore,
+		onMount: (editor) => console.log('Mounted'),
+	},
 })
 ```
 
@@ -113,24 +113,24 @@ All shapes extend `TLBaseShape`, which defines common properties:
 
 ```typescript
 interface TLBaseShape<Type extends string, Props extends object> {
-  id: TLShapeId
-  typeName: 'shape'
-  type: Type
+	id: TLShapeId
+	typeName: 'shape'
+	type: Type
 
-  // Transform properties
-  x: number
-  y: number
-  rotation: number
+	// Transform properties
+	x: number
+	y: number
+	rotation: number
 
-  // Organization properties
-  index: IndexKey        // Fractional index for ordering
-  parentId: TLParentId   // Page or parent shape
-  isLocked: boolean
-  opacity: TLOpacityType
+	// Organization properties
+	index: IndexKey // Fractional index for ordering
+	parentId: TLParentId // Page or parent shape
+	isLocked: boolean
+	opacity: TLOpacityType
 
-  // Custom data
-  props: Props          // Shape-specific properties
-  meta: JsonObject      // User-defined metadata
+	// Custom data
+	props: Props // Shape-specific properties
+	meta: JsonObject // User-defined metadata
 }
 ```
 
@@ -148,46 +148,46 @@ import { T } from '@tldraw/validate'
 interface TLCustomShape extends TLBaseShape<'custom', TLCustomShapeProps> {}
 
 interface TLCustomShapeProps {
-  // Use existing style props
-  color: TLDefaultColorStyle
-  size: TLDefaultSizeStyle
+	// Use existing style props
+	color: TLDefaultColorStyle
+	size: TLDefaultSizeStyle
 
-  // Add custom properties
-  width: number
-  height: number
-  label: string
+	// Add custom properties
+	width: number
+	height: number
+	label: string
 }
 
 // 2. Create props validator
 const customShapeProps: RecordProps<TLCustomShape> = {
-  color: DefaultColorStyle,
-  size: DefaultSizeStyle,
-  width: T.number,
-  height: T.number,
-  label: T.string,
+	color: DefaultColorStyle,
+	size: DefaultSizeStyle,
+	width: T.number,
+	height: T.number,
+	label: T.string,
 }
 
 // 3. Define migrations
 const customShapeMigrations = createShapePropsMigrationSequence({
-  sequenceId: 'com.myapp.shape.custom',
-  sequence: [
-    {
-      id: 'com.myapp.shape.custom/1.0.0',
-      up: (props) => ({ ...props, label: '' }),
-      down: ({ label, ...props }) => props,
-    },
-  ],
+	sequenceId: 'com.myapp.shape.custom',
+	sequence: [
+		{
+			id: 'com.myapp.shape.custom/1.0.0',
+			up: (props) => ({ ...props, label: '' }),
+			down: ({ label, ...props }) => props,
+		},
+	],
 })
 
 // 4. Register in schema
 const schema = createTLSchema({
-  shapes: {
-    ...defaultShapeSchemas,
-    custom: {
-      props: customShapeProps,
-      migrations: customShapeMigrations,
-    },
-  },
+	shapes: {
+		...defaultShapeSchemas,
+		custom: {
+			props: customShapeProps,
+			migrations: customShapeMigrations,
+		},
+	},
 })
 ```
 
@@ -195,21 +195,21 @@ const schema = createTLSchema({
 
 The package includes schemas for all built-in shapes:
 
-| Shape type | Purpose | Key properties |
-|-----------|---------|---------------|
-| `arrow` | Directional lines with bindings | `start`, `end`, `bend`, bindings |
-| `bookmark` | Website preview cards | `url`, `title`, `description`, `favicon` |
-| `draw` | Freehand drawing paths | `segments`, `isClosed`, `isComplete` |
-| `embed` | External content embeds | `url`, `w`, `h` |
-| `frame` | Container for organizing shapes | `w`, `h`, `name` |
-| `geo` | Geometric shapes | `geo` type, `w`, `h`, `richText` |
-| `group` | Logical shape grouping | Minimal props |
-| `highlight` | Highlighter strokes | `segments`, `color`, `size` |
-| `image` | Raster images | `assetId`, `w`, `h`, `crop` |
-| `line` | Multi-point lines | `points`, `spline` type |
-| `note` | Sticky notes | `color`, `size`, `richText` |
-| `text` | Rich text | `richText`, `w`, auto-size |
-| `video` | Video players | `assetId`, `w`, `h` |
+| Shape type  | Purpose                         | Key properties                           |
+| ----------- | ------------------------------- | ---------------------------------------- |
+| `arrow`     | Directional lines with bindings | `start`, `end`, `bend`, bindings         |
+| `bookmark`  | Website preview cards           | `url`, `title`, `description`, `favicon` |
+| `draw`      | Freehand drawing paths          | `segments`, `isClosed`, `isComplete`     |
+| `embed`     | External content embeds         | `url`, `w`, `h`                          |
+| `frame`     | Container for organizing shapes | `w`, `h`, `name`                         |
+| `geo`       | Geometric shapes                | `geo` type, `w`, `h`, `richText`         |
+| `group`     | Logical shape grouping          | Minimal props                            |
+| `highlight` | Highlighter strokes             | `segments`, `color`, `size`              |
+| `image`     | Raster images                   | `assetId`, `w`, `h`, `crop`              |
+| `line`      | Multi-point lines               | `points`, `spline` type                  |
+| `note`      | Sticky notes                    | `color`, `size`, `richText`              |
+| `text`      | Rich text                       | `richText`, `w`, auto-size               |
+| `video`     | Video players                   | `assetId`, `w`, `h`                      |
 
 Each shape type is fully configured in `defaultShapeSchemas` with its props and migrations.
 
@@ -225,14 +225,14 @@ import { T } from '@tldraw/validate'
 
 // Define a free-form style property
 const MyLineWidthProp = StyleProp.define('myapp:lineWidth', {
-  defaultValue: 1,
-  type: T.number,
+	defaultValue: 1,
+	type: T.number,
 })
 
 // Define an enum-based style property
 const MySizeProp = StyleProp.defineEnum('myapp:size', {
-  defaultValue: 'medium',
-  values: ['small', 'medium', 'large'],
+	defaultValue: 'medium',
+	values: ['small', 'medium', 'large'],
 })
 ```
 
@@ -249,21 +249,21 @@ The package provides a complete set of default styles:
 
 ```typescript
 // Color styles with theme support
-DefaultColorStyle        // Shape colors
-DefaultLabelColorStyle   // Text label colors
+DefaultColorStyle // Shape colors
+DefaultLabelColorStyle // Text label colors
 
 // Visual styles
-DefaultDashStyle         // 'solid' | 'dashed' | 'dotted' | 'draw'
-DefaultFillStyle         // 'none' | 'solid' | 'semi' | 'pattern'
-DefaultSizeStyle         // 's' | 'm' | 'l' | 'xl'
-DefaultFontStyle         // 'draw' | 'sans' | 'serif' | 'mono'
+DefaultDashStyle // 'solid' | 'dashed' | 'dotted' | 'draw'
+DefaultFillStyle // 'none' | 'solid' | 'semi' | 'pattern'
+DefaultSizeStyle // 's' | 'm' | 'l' | 'xl'
+DefaultFontStyle // 'draw' | 'sans' | 'serif' | 'mono'
 
 // Alignment styles
-DefaultHorizontalAlignStyle  // 'start' | 'middle' | 'end'
-DefaultVerticalAlignStyle    // 'start' | 'middle' | 'end'
+DefaultHorizontalAlignStyle // 'start' | 'middle' | 'end'
+DefaultVerticalAlignStyle // 'start' | 'middle' | 'end'
 
 // Shape-specific styles
-GeoShapeGeoStyle        // Geometric shape variants
+GeoShapeGeoStyle // Geometric shape variants
 ArrowShapeArrowheadStyle // Arrow head types
 ```
 
@@ -274,11 +274,11 @@ Colors adapt to light and dark themes through `TLDefaultColorTheme`:
 ```typescript
 // Color values change based on theme
 const theme: TLDefaultColorTheme = {
-  id: 'light',
-  text: 'black',
-  background: 'white',
-  solid: '#1d4ed8',    // Adapts in dark mode
-  // ... more theme colors
+	id: 'light',
+	text: 'black',
+	background: 'white',
+	solid: '#1d4ed8', // Adapts in dark mode
+	// ... more theme colors
 }
 ```
 
@@ -293,38 +293,38 @@ Three asset types handle media content:
 ```typescript
 // Image assets
 interface TLImageAsset {
-  type: 'image'
-  props: {
-    src: string           // Image URL
-    w: number             // Native width
-    h: number             // Native height
-    mimeType: string      // e.g., 'image/png'
-    isAnimated: boolean   // For GIFs
-  }
+	type: 'image'
+	props: {
+		src: string // Image URL
+		w: number // Native width
+		h: number // Native height
+		mimeType: string // e.g., 'image/png'
+		isAnimated: boolean // For GIFs
+	}
 }
 
 // Video assets
 interface TLVideoAsset {
-  type: 'video'
-  props: {
-    src: string           // Video URL
-    w: number             // Native width
-    h: number             // Native height
-    mimeType: string      // e.g., 'video/mp4'
-    thumbnailSrc?: string // Preview thumbnail
-  }
+	type: 'video'
+	props: {
+		src: string // Video URL
+		w: number // Native width
+		h: number // Native height
+		mimeType: string // e.g., 'video/mp4'
+		thumbnailSrc?: string // Preview thumbnail
+	}
 }
 
 // Bookmark assets
 interface TLBookmarkAsset {
-  type: 'bookmark'
-  props: {
-    src: string           // Page URL
-    title?: string        // Page title
-    description?: string  // Meta description
-    image?: string        // Preview image
-    favicon?: string      // Site favicon
-  }
+	type: 'bookmark'
+	props: {
+		src: string // Page URL
+		title?: string // Page title
+		description?: string // Meta description
+		image?: string // Preview image
+		favicon?: string // Site favicon
+	}
 }
 ```
 
@@ -334,21 +334,18 @@ The `TLAssetStore` interface defines how assets are stored and retrieved:
 
 ```typescript
 interface TLAssetStore {
-  // Upload an asset file
-  upload(
-    asset: TLAsset,
-    file: File,
-    abortSignal?: AbortSignal
-  ): Promise<{ src: string; meta?: JsonObject }>
+	// Upload an asset file
+	upload(
+		asset: TLAsset,
+		file: File,
+		abortSignal?: AbortSignal
+	): Promise<{ src: string; meta?: JsonObject }>
 
-  // Resolve asset URL for rendering
-  resolve?(
-    asset: TLAsset,
-    ctx: TLAssetContext
-  ): Promise<string | null> | string | null
+	// Resolve asset URL for rendering
+	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
 
-  // Clean up removed assets
-  remove?(assetIds: TLAssetId[]): Promise<void>
+	// Clean up removed assets
+	remove?(assetIds: TLAssetId[]): Promise<void>
 }
 ```
 
@@ -356,27 +353,27 @@ Example implementation:
 
 ```typescript
 const assetStore: TLAssetStore = {
-  async upload(asset, file) {
-    // Upload to S3, convert to data URL, etc.
-    const url = await uploadToStorage(file)
-    return { src: url }
-  },
+	async upload(asset, file) {
+		// Upload to S3, convert to data URL, etc.
+		const url = await uploadToStorage(file)
+		return { src: url }
+	},
 
-  async resolve(asset, context) {
-    // Optimize based on context
-    if (context.networkEffectiveType === 'slow-2g') {
-      return `${asset.props.src}?quality=low`
-    }
-    if (context.dpr > 1) {
-      return `${asset.props.src}@2x`
-    }
-    return asset.props.src
-  },
+	async resolve(asset, context) {
+		// Optimize based on context
+		if (context.networkEffectiveType === 'slow-2g') {
+			return `${asset.props.src}?quality=low`
+		}
+		if (context.dpr > 1) {
+			return `${asset.props.src}@2x`
+		}
+		return asset.props.src
+	},
 
-  async remove(assetIds) {
-    // Clean up storage
-    await deleteFromStorage(assetIds)
-  },
+	async remove(assetIds) {
+		// Clean up storage
+		await deleteFromStorage(assetIds)
+	},
 }
 ```
 
@@ -395,16 +392,16 @@ Bindings represent relationships between shapes. The primary use case is arrows 
 
 ```typescript
 interface TLBaseBinding<Type extends string, Props extends object> {
-  id: TLBindingId
-  typeName: 'binding'
-  type: Type
+	id: TLBindingId
+	typeName: 'binding'
+	type: Type
 
-  // Connected shapes
-  fromId: TLShapeId
-  toId: TLShapeId
+	// Connected shapes
+	fromId: TLShapeId
+	toId: TLShapeId
 
-  props: Props
-  meta: JsonObject
+	props: Props
+	meta: JsonObject
 }
 ```
 
@@ -414,10 +411,10 @@ Arrow bindings connect arrow shapes to other shapes with precise positioning:
 
 ```typescript
 interface TLArrowBindingProps {
-  terminal: 'start' | 'end'      // Which arrow end is bound
-  normalizedAnchor: VecModel     // Position on target shape (0-1)
-  isExact: boolean               // Precise vs approximate positioning
-  isPrecise: boolean             // Show binding indicator
+	terminal: 'start' | 'end' // Which arrow end is bound
+	normalizedAnchor: VecModel // Position on target shape (0-1)
+	isExact: boolean // Precise vs approximate positioning
+	isPrecise: boolean // Show binding indicator
 }
 ```
 
@@ -431,24 +428,24 @@ Create custom bindings following the same pattern as shapes:
 interface TLCustomBinding extends TLBaseBinding<'custom', TLCustomBindingProps> {}
 
 interface TLCustomBindingProps {
-  strength: number
-  bidirectional: boolean
+	strength: number
+	bidirectional: boolean
 }
 
 const customBindingProps: RecordProps<TLCustomBinding> = {
-  strength: T.number,
-  bidirectional: T.boolean,
+	strength: T.number,
+	bidirectional: T.boolean,
 }
 
 // Register in schema
 const schema = createTLSchema({
-  bindings: {
-    ...defaultBindingSchemas,
-    custom: {
-      props: customBindingProps,
-      migrations: customBindingMigrations,
-    },
-  },
+	bindings: {
+		...defaultBindingSchemas,
+		custom: {
+			props: customBindingProps,
+			migrations: customBindingMigrations,
+		},
+	},
 })
 ```
 
@@ -476,8 +473,8 @@ T.optional(T.string)
 
 // Custom validators
 T.string.refine((s) => {
-  if (s.length > 100) throw new Error('Too long')
-  return s
+	if (s.length > 100) throw new Error('Too long')
+	return s
 })
 ```
 
@@ -489,9 +486,9 @@ Use `createShapeValidator()` to validate complete shape records:
 import { createShapeValidator } from '@tldraw/tlschema'
 
 const validator = createShapeValidator('custom', {
-  width: T.number,
-  height: T.number,
-  color: T.string,
+	width: T.number,
+	height: T.number,
+	color: T.string,
 })
 
 // Validates the entire shape including base properties
@@ -506,13 +503,17 @@ For complex types like rich text or geometry, define custom validators:
 import { T } from '@tldraw/validate'
 
 const richTextValidator = T.object({
-  type: T.literal('richText'),
-  text: T.string,
-  format: T.optional(T.array(T.object({
-    type: T.string,
-    start: T.number,
-    end: T.number,
-  }))),
+	type: T.literal('richText'),
+	text: T.string,
+	format: T.optional(
+		T.array(
+			T.object({
+				type: T.string,
+				start: T.number,
+				end: T.number,
+			})
+		)
+	),
 })
 ```
 
@@ -535,27 +536,31 @@ Three levels of migrations work together:
 ```typescript
 // 1. Store-level migrations (structural changes)
 const storeMigrations = createMigrationSequence({
-  sequenceId: 'com.tldraw.store',
-  recordType: 'store',
-  sequence: [/* migrations */],
+	sequenceId: 'com.tldraw.store',
+	recordType: 'store',
+	sequence: [
+		/* migrations */
+	],
 })
 
 // 2. Record-level migrations (record structure)
 const recordMigrations = createMigrationSequence({
-  sequenceId: 'com.tldraw.shape',
-  recordType: 'shape',
-  sequence: [/* migrations */],
+	sequenceId: 'com.tldraw.shape',
+	recordType: 'shape',
+	sequence: [
+		/* migrations */
+	],
 })
 
 // 3. Props migrations (shape/binding properties)
 const propsMigrations: TLPropsMigrations = {
-  sequence: [
-    {
-      id: 'com.myapp.shape.custom/1.0.0',
-      up: (props) => ({ ...props, newProp: 'default' }),
-      down: ({ newProp, ...props }) => props,
-    },
-  ],
+	sequence: [
+		{
+			id: 'com.myapp.shape.custom/1.0.0',
+			up: (props) => ({ ...props, newProp: 'default' }),
+			down: ({ newProp, ...props }) => props,
+		},
+	],
 }
 ```
 
@@ -565,32 +570,32 @@ Each migration has an ID, `up` function, and optional `down` function:
 
 ```typescript
 const addColorMigration = {
-  id: 'com.myapp.shape.custom/1.0.0',
+	id: 'com.myapp.shape.custom/1.0.0',
 
-  // Upgrade: add new property
-  up: (props) => {
-    return { ...props, color: 'black' }
-  },
+	// Upgrade: add new property
+	up: (props) => {
+		return { ...props, color: 'black' }
+	},
 
-  // Downgrade: remove property
-  down: (props) => {
-    const { color, ...rest } = props
-    return rest
-  },
+	// Downgrade: remove property
+	down: (props) => {
+		const { color, ...rest } = props
+		return rest
+	},
 }
 
 const renamePropertyMigration = {
-  id: 'com.myapp.shape.custom/1.1.0',
+	id: 'com.myapp.shape.custom/1.1.0',
 
-  up: (props) => {
-    const { oldName, ...rest } = props
-    return { ...rest, newName: oldName }
-  },
+	up: (props) => {
+		const { oldName, ...rest } = props
+		return { ...rest, newName: oldName }
+	},
 
-  down: (props) => {
-    const { newName, ...rest } = props
-    return { ...rest, oldName: newName }
-  },
+	down: (props) => {
+		const { newName, ...rest } = props
+		return { ...rest, oldName: newName }
+	},
 }
 ```
 
@@ -605,21 +610,21 @@ const renamePropertyMigration = {
 ```typescript
 // Good: Handle optional properties
 up: (props) => ({
-  ...props,
-  newProp: props.oldProp ?? 'default',
+	...props,
+	newProp: props.oldProp ?? 'default',
 })
 
 // Good: Compute derived values
 up: (props) => ({
-  ...props,
-  area: props.width * props.height,
+	...props,
+	area: props.width * props.height,
 })
 
 // Avoid: Complex transformations that might fail
 up: (props) => ({
-  ...props,
-  // Fragile if structure changes
-  parsed: JSON.parse(props.serialized),
+	...props,
+	// Fragile if structure changes
+	parsed: JSON.parse(props.serialized),
 })
 ```
 
@@ -647,15 +652,15 @@ import { createTLSchema } from '@tldraw/tlschema'
 const schema = createTLSchema()
 
 const store = new Store({
-  schema,
-  props: {
-    defaultName: 'Untitled',
-    assets: assetStore,
-    onMount: (editor) => {
-      console.log('Editor mounted')
-      return () => console.log('Editor unmounted')
-    },
-  },
+	schema,
+	props: {
+		defaultName: 'Untitled',
+		assets: assetStore,
+		onMount: (editor) => {
+			console.log('Editor mounted')
+			return () => console.log('Editor unmounted')
+		},
+	},
 })
 ```
 
@@ -665,20 +670,20 @@ const store = new Store({
 
 ```typescript
 interface TLStoreProps {
-  // Default name for new documents
-  defaultName: string
+	// Default name for new documents
+	defaultName: string
 
-  // Asset storage implementation
-  assets: Required<TLAssetStore>
+	// Asset storage implementation
+	assets: Required<TLAssetStore>
 
-  // Called when editor mounts
-  onMount(editor: unknown): void | (() => void)
+	// Called when editor mounts
+	onMount(editor: unknown): void | (() => void)
 
-  // Optional collaboration config
-  collaboration?: {
-    status: Signal<'online' | 'offline'> | null
-    mode?: Signal<'readonly' | 'readwrite'> | null
-  }
+	// Optional collaboration config
+	collaboration?: {
+		status: Signal<'online' | 'offline'> | null
+		mode?: Signal<'readonly' | 'readwrite'> | null
+	}
 }
 ```
 
@@ -702,14 +707,14 @@ The `onValidationFailure` handler manages invalid records:
 // During store initialization, allow existing invalid data
 // During updates, throw errors for invalid data
 function onValidationFailure({ error, phase, record }) {
-  if (phase === 'initialize') {
-    // Allow loading old buggy data
-    console.warn('Invalid record during init:', record)
-    return record
-  }
+	if (phase === 'initialize') {
+		// Allow loading old buggy data
+		console.warn('Invalid record during init:', record)
+		return record
+	}
 
-  // Throw for new invalid data
-  throw error
+	// Throw for new invalid data
+	throw error
 }
 ```
 
@@ -744,8 +749,8 @@ const serialized: TLSerializedStore = store.serialize()
 
 // Send over network
 await fetch('/api/save', {
-  method: 'POST',
-  body: JSON.stringify(serialized),
+	method: 'POST',
+	body: JSON.stringify(serialized),
 })
 
 // Deserialize on other end

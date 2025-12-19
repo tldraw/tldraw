@@ -1,7 +1,7 @@
 ---
 title: Multiplayer architecture
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - multiplayer
   - collaboration
@@ -98,15 +98,15 @@ The sync client manages the connection lifecycle:
 
 ```typescript
 class TLSyncClient<R extends UnknownRecord> {
-  // Connection state (reactive)
-  status: Signal<TLPersistentClientSocketStatus>
+	// Connection state (reactive)
+	status: Signal<TLPersistentClientSocketStatus>
 
-  // The synchronized store
-  store: Store<R>
+	// The synchronized store
+	store: Store<R>
 
-  // Connection management
-  connect(): void
-  disconnect(): void
+	// Connection management
+	connect(): void
+	disconnect(): void
 }
 ```
 
@@ -122,20 +122,20 @@ initial → connecting → online ⟷ offline → error
 
 **Client → Server:**
 
-| Message | Purpose |
-|---------|---------|
+| Message   | Purpose                                   |
+| --------- | ----------------------------------------- |
 | `connect` | Initial handshake with schema information |
-| `push` | Send local changes to server |
-| `ping` | Keepalive heartbeat |
+| `push`    | Send local changes to server              |
+| `ping`    | Keepalive heartbeat                       |
 
 **Server → Client:**
 
-| Message | Purpose |
-|---------|---------|
-| `connect` | Confirm connection with initial state |
-| `data` | Broadcast state changes |
-| `pong` | Respond to keepalive |
-| `incompatibility_error` | Schema mismatch detected |
+| Message                 | Purpose                               |
+| ----------------------- | ------------------------------------- |
+| `connect`               | Confirm connection with initial state |
+| `data`                  | Broadcast state changes               |
+| `pong`                  | Respond to keepalive                  |
+| `incompatibility_error` | Schema mismatch detected              |
 
 ### Diff format
 
@@ -143,10 +143,10 @@ Changes are transmitted as compact diffs:
 
 ```typescript
 interface NetworkDiff<R extends UnknownRecord> {
-  [recordId: string]:
-    | [RecordOpType.Put, R]        // Full record
-    | [RecordOpType.Patch, ObjectDiff]  // Partial update
-    | [RecordOpType.Remove]        // Deletion
+	[recordId: string]:
+		| [RecordOpType.Put, R] // Full record
+		| [RecordOpType.Patch, ObjectDiff] // Partial update
+		| [RecordOpType.Remove] // Deletion
 }
 ```
 
@@ -182,26 +182,26 @@ The sync-worker uses Cloudflare Durable Objects for stateful room management:
 
 ```typescript
 class TLDrawDurableObject extends DurableObject {
-  private _room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
+	private _room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
 
-  async onRequest(req: IRequest, openMode: RoomOpenMode) {
-    // Create WebSocket pair
-    const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
+	async onRequest(req: IRequest, openMode: RoomOpenMode) {
+		// Create WebSocket pair
+		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 
-    // Validate authentication
-    const auth = await getAuth(req, this.env)
+		// Validate authentication
+		const auth = await getAuth(req, this.env)
 
-    // Connect to room
-    const room = await this.getRoom()
-    room.handleSocketConnect({
-      sessionId,
-      socket: serverWebSocket,
-      meta: { userId: auth?.userId },
-      isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
-    })
+		// Connect to room
+		const room = await this.getRoom()
+		room.handleSocketConnect({
+			sessionId,
+			socket: serverWebSocket,
+			meta: { userId: auth?.userId },
+			isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
+		})
 
-    return new Response(null, { status: 101, webSocket: clientWebSocket })
-  }
+		return new Response(null, { status: 101, webSocket: clientWebSocket })
+	}
 }
 ```
 
@@ -209,20 +209,20 @@ class TLDrawDurableObject extends DurableObject {
 
 ```typescript
 class TLSocketRoom<R extends UnknownRecord, Meta> {
-  // Session tracking
-  sessions: Map<string, RoomSession<R, Meta>>
+	// Session tracking
+	sessions: Map<string, RoomSession<R, Meta>>
 
-  // Room state
-  store: Store<R>
+	// Room state
+	store: Store<R>
 
-  // Lifecycle methods
-  handleSocketConnect(config: SessionConfig): void
-  handleSocketMessage(sessionId: string, message: any): void
-  closeSession(sessionId: string, reason?: string): void
+	// Lifecycle methods
+	handleSocketConnect(config: SessionConfig): void
+	handleSocketMessage(sessionId: string, message: any): void
+	closeSession(sessionId: string, reason?: string): void
 
-  // State access
-  getCurrentSnapshot(): RoomSnapshot<R>
-  getCurrentDocumentClock(): number
+	// State access
+	getCurrentSnapshot(): RoomSnapshot<R>
+	getCurrentDocumentClock(): number
 }
 ```
 
@@ -264,19 +264,19 @@ Sessions track connected clients:
 
 ```typescript
 interface RoomSession<R, Meta> {
-  sessionId: string
-  presenceId: string | null
-  socket: TLRoomSocket<R>
-  meta: Meta
-  isReadonly: boolean
-  lastInteractionTime: number
-  state: RoomSessionState
+	sessionId: string
+	presenceId: string | null
+	socket: TLRoomSocket<R>
+	meta: Meta
+	isReadonly: boolean
+	lastInteractionTime: number
+	state: RoomSessionState
 }
 
 enum RoomSessionState {
-  AwaitingConnectMessage,  // Initial connection
-  Connected,               // Active session
-  AwaitingRemoval,         // Cleanup in progress
+	AwaitingConnectMessage, // Initial connection
+	Connected, // Active session
+	AwaitingRemoval, // Cleanup in progress
 }
 ```
 
@@ -316,8 +316,8 @@ Each change has a logical clock timestamp for ordering:
 
 ```typescript
 interface DocumentClock {
-  epoch: number       // Global epoch counter
-  timestamp: number   // Server timestamp
+	epoch: number // Global epoch counter
+	timestamp: number // Server timestamp
 }
 ```
 
@@ -327,11 +327,11 @@ Real-time presence shows other users' cursors and selections:
 
 ```typescript
 interface TLPresence {
-  id: string
-  cursor: { x: number; y: number } | null
-  selection: string[]  // Selected shape IDs
-  userName: string
-  color: string
+	id: string
+	cursor: { x: number; y: number } | null
+	selection: string[] // Selected shape IDs
+	userName: string
+	color: string
 }
 ```
 
@@ -347,9 +347,9 @@ Presence is:
 
 ```typescript
 enum ROOM_OPEN_MODE {
-  READ_WRITE = 'read-write',
-  READ_ONLY = 'readonly',
-  READ_ONLY_LEGACY = 'readonly-legacy',
+	READ_WRITE = 'read-write',
+	READ_ONLY = 'readonly',
+	READ_ONLY_LEGACY = 'readonly-legacy',
 }
 ```
 
@@ -358,12 +358,12 @@ enum ROOM_OPEN_MODE {
 ```typescript
 // Check access on connection
 if (file.ownerId !== auth?.userId) {
-  if (!file.shared) {
-    return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-  }
-  if (file.sharedLinkType === 'view') {
-    openMode = ROOM_OPEN_MODE.READ_ONLY
-  }
+	if (!file.shared) {
+		return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+	}
+	if (file.sharedLinkType === 'view') {
+		openMode = ROOM_OPEN_MODE.READ_ONLY
+	}
 }
 ```
 
@@ -372,7 +372,7 @@ if (file.ownerId !== auth?.userId) {
 ```typescript
 const rateLimited = await isRateLimited(this.env, userId)
 if (rateLimited) {
-  return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+	return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 }
 ```
 
@@ -382,13 +382,13 @@ if (rateLimited) {
 
 ```typescript
 enum TLSyncErrorCloseEventReason {
-  NOT_FOUND = 'not_found',
-  FORBIDDEN = 'forbidden',
-  NOT_AUTHENTICATED = 'not_authenticated',
-  RATE_LIMITED = 'rate_limited',
-  CLIENT_TOO_OLD = 'clientTooOld',
-  SERVER_TOO_OLD = 'serverTooOld',
-  ROOM_FULL = 'room_full',
+	NOT_FOUND = 'not_found',
+	FORBIDDEN = 'forbidden',
+	NOT_AUTHENTICATED = 'not_authenticated',
+	RATE_LIMITED = 'rate_limited',
+	CLIENT_TOO_OLD = 'clientTooOld',
+	SERVER_TOO_OLD = 'serverTooOld',
+	ROOM_FULL = 'room_full',
 }
 ```
 
@@ -421,7 +421,7 @@ socket.send(batch)
 const MAX_CONNECTIONS = 50
 
 if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
-  return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
+	return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 }
 ```
 

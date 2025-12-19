@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/worker-shared"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/worker-shared'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - worker
   - cloudflare
@@ -34,8 +34,8 @@ const router: ApiRouter<Env, ExecutionContext> = createRouter()
 router.get('/api/health', () => Response.json({ ok: true }))
 
 router.post('/api/upload/:id', async (request, env, ctx) => {
-  const { id } = request.params
-  // Handle upload
+	const { id } = request.params
+	// Handle upload
 })
 ```
 
@@ -43,19 +43,19 @@ router.post('/api/upload/:id', async (request, env, ctx) => {
 
 ```typescript
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    return handleApiRequest({
-      router,
-      request,
-      env,
-      ctx,
-      after: (response) => {
-        // Add CORS headers, logging, etc.
-        response.headers.set('access-control-allow-origin', '*')
-        return response
-      }
-    })
-  }
+	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+		return handleApiRequest({
+			router,
+			request,
+			env,
+			ctx,
+			after: (response) => {
+				// Add CORS headers, logging, etc.
+				response.headers.set('access-control-allow-origin', '*')
+				return response
+			},
+		})
+	},
 }
 ```
 
@@ -66,24 +66,24 @@ import { parseRequestQuery, parseRequestBody } from '@tldraw/worker-shared'
 import { T } from '@tldraw/validate'
 
 const queryValidator = T.object({
-  page: T.string.optional(),
-  limit: T.positiveInteger.optional(),
+	page: T.string.optional(),
+	limit: T.positiveInteger.optional(),
 })
 
 router.get('/api/items', async (request, env) => {
-  // Throws 400 if validation fails
-  const { page, limit } = parseRequestQuery(request, queryValidator)
-  // ...
+	// Throws 400 if validation fails
+	const { page, limit } = parseRequestQuery(request, queryValidator)
+	// ...
 })
 
 const bodyValidator = T.object({
-  name: T.string,
-  data: T.jsonValue,
+	name: T.string,
+	data: T.jsonValue,
 })
 
 router.post('/api/items', async (request, env) => {
-  const body = await parseRequestBody(request, bodyValidator)
-  // ...
+	const body = await parseRequestBody(request, bodyValidator)
+	// ...
 })
 ```
 
@@ -95,12 +95,12 @@ router.post('/api/items', async (request, env) => {
 import { handleUserAssetUpload } from '@tldraw/worker-shared'
 
 router.put('/api/assets/:id', async (request, env, ctx) => {
-  return handleUserAssetUpload({
-    objectName: request.params.id,
-    bucket: env.ASSETS_BUCKET,
-    body: request.body,
-    headers: request.headers,
-  })
+	return handleUserAssetUpload({
+		objectName: request.params.id,
+		bucket: env.ASSETS_BUCKET,
+		body: request.body,
+		headers: request.headers,
+	})
 })
 ```
 
@@ -116,12 +116,12 @@ Features:
 import { handleUserAssetGet } from '@tldraw/worker-shared'
 
 router.get('/api/assets/:id', async (request, env, ctx) => {
-  return handleUserAssetGet({
-    request,
-    bucket: env.ASSETS_BUCKET,
-    objectName: request.params.id,
-    context: ctx,
-  })
+	return handleUserAssetGet({
+		request,
+		bucket: env.ASSETS_BUCKET,
+		objectName: request.params.id,
+		context: ctx,
+	})
 })
 ```
 
@@ -141,13 +141,13 @@ Features:
 import { handleExtractBookmarkMetadataRequest } from '@tldraw/worker-shared'
 
 router.get('/api/bookmark', async (request, env, ctx) => {
-  return handleExtractBookmarkMetadataRequest({
-    request,
-    uploadImage: async (headers, body, objectName) => {
-      await env.ASSETS_BUCKET.put(objectName, body, { httpMetadata: headers })
-      return `https://assets.tldraw.com/${objectName}`
-    }
-  })
+	return handleExtractBookmarkMetadataRequest({
+		request,
+		uploadImage: async (headers, body, objectName) => {
+			await env.ASSETS_BUCKET.put(objectName, body, { httpMetadata: headers })
+			return `https://assets.tldraw.com/${objectName}`
+		},
+	})
 })
 ```
 
@@ -177,12 +177,12 @@ await trySaveImage('favicon', metadata, id, 64, uploadImage)
 import { createSentry } from '@tldraw/worker-shared'
 
 router.get('/api/risky', async (request, env, ctx) => {
-  try {
-    return await riskyOperation()
-  } catch (error) {
-    createSentry(ctx, env, request)?.captureException(error)
-    return Response.json({ error: 'Internal error' }, { status: 500 })
-  }
+	try {
+		return await riskyOperation()
+	} catch (error) {
+		createSentry(ctx, env, request)?.captureException(error)
+		return Response.json({ error: 'Internal error' }, { status: 500 })
+	}
 })
 ```
 
@@ -190,10 +190,10 @@ router.get('/api/risky', async (request, env, ctx) => {
 
 ```typescript
 interface SentryEnvironment {
-  readonly SENTRY_DSN?: string
-  readonly TLDRAW_ENV?: string
-  readonly WORKER_NAME?: string
-  readonly CF_VERSION_METADATA?: WorkerVersionMetadata
+	readonly SENTRY_DSN?: string
+	readonly TLDRAW_ENV?: string
+	readonly WORKER_NAME?: string
+	readonly CF_VERSION_METADATA?: WorkerVersionMetadata
 }
 ```
 
@@ -207,14 +207,14 @@ Sentry is automatically disabled in development environments.
 import { requiredEnv } from '@tldraw/worker-shared'
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    // Throws if any required variable is missing
-    const { SENTRY_DSN, API_KEY } = requiredEnv(env, {
-      SENTRY_DSN: true,
-      API_KEY: true,
-    })
-    // TypeScript guarantees these are non-null
-  }
+	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+		// Throws if any required variable is missing
+		const { SENTRY_DSN, API_KEY } = requiredEnv(env, {
+			SENTRY_DSN: true,
+			API_KEY: true,
+		})
+		// TypeScript guarantees these are non-null
+	},
 }
 ```
 
@@ -222,11 +222,11 @@ export default {
 
 ```typescript
 interface WorkerEnv {
-  SENTRY_DSN?: string
-  TLDRAW_ENV?: string
-  WORKER_NAME?: string
-  CF_VERSION_METADATA?: WorkerVersionMetadata
-  ASSETS_BUCKET?: R2Bucket
+	SENTRY_DSN?: string
+	TLDRAW_ENV?: string
+	WORKER_NAME?: string
+	CF_VERSION_METADATA?: WorkerVersionMetadata
+	ASSETS_BUCKET?: R2Bucket
 }
 ```
 
@@ -236,22 +236,22 @@ interface WorkerEnv {
 import { notFound, forbidden, StatusError } from '@tldraw/worker-shared'
 
 router.get('/api/item/:id', async (request, env) => {
-  const item = await getItem(request.params.id)
+	const item = await getItem(request.params.id)
 
-  if (!item) {
-    return notFound() // 404 with JSON body
-  }
+	if (!item) {
+		return notFound() // 404 with JSON body
+	}
 
-  if (!canAccess(item)) {
-    return forbidden() // 403 with JSON body
-  }
+	if (!canAccess(item)) {
+		return forbidden() // 403 with JSON body
+	}
 
-  // Custom status error
-  if (tooManyRequests) {
-    throw new StatusError(429, 'Rate limit exceeded')
-  }
+	// Custom status error
+	if (tooManyRequests) {
+		throw new StatusError(429, 'Rate limit exceeded')
+	}
 
-  return Response.json(item)
+	return Response.json(item)
 })
 ```
 
@@ -261,19 +261,19 @@ router.get('/api/item/:id', async (request, env) => {
 
 ```typescript
 interface Env {
-  ASSETS_BUCKET: R2Bucket
-  UPLOADS_BUCKET: R2Bucket
+	ASSETS_BUCKET: R2Bucket
+	UPLOADS_BUCKET: R2Bucket
 }
 
 // Upload to R2
 await bucket.put(objectName, body, {
-  httpMetadata: headers,
+	httpMetadata: headers,
 })
 
 // Get from R2 with conditional/range support
 const object = await bucket.get(objectName, {
-  range: request.headers,
-  onlyIf: request.headers,
+	range: request.headers,
+	onlyIf: request.headers,
 })
 ```
 
@@ -298,13 +298,13 @@ return response
 
 ```typescript
 const optimized = await fetch(imageUrl, {
-  cf: {
-    image: {
-      width: 600,
-      fit: 'scale-down',
-      quality: 80,
-    }
-  }
+	cf: {
+		image: {
+			width: 600,
+			fit: 'scale-down',
+			quality: 80,
+		},
+	},
 })
 ```
 
@@ -314,60 +314,60 @@ const optimized = await fetch(imageUrl, {
 
 ```typescript
 import {
-  createRouter,
-  handleApiRequest,
-  handleUserAssetUpload,
-  handleUserAssetGet,
-  handleExtractBookmarkMetadataRequest,
-  createSentry,
-  requiredEnv,
+	createRouter,
+	handleApiRequest,
+	handleUserAssetUpload,
+	handleUserAssetGet,
+	handleExtractBookmarkMetadataRequest,
+	createSentry,
+	requiredEnv,
 } from '@tldraw/worker-shared'
 
 interface Env {
-  ASSETS_BUCKET: R2Bucket
-  SENTRY_DSN?: string
-  TLDRAW_ENV?: string
-  WORKER_NAME?: string
-  CF_VERSION_METADATA?: WorkerVersionMetadata
+	ASSETS_BUCKET: R2Bucket
+	SENTRY_DSN?: string
+	TLDRAW_ENV?: string
+	WORKER_NAME?: string
+	CF_VERSION_METADATA?: WorkerVersionMetadata
 }
 
 const router = createRouter<Env, ExecutionContext>()
 
 router.put('/api/assets/:id', async (request, env) => {
-  return handleUserAssetUpload({
-    objectName: request.params.id,
-    bucket: env.ASSETS_BUCKET,
-    body: request.body,
-    headers: request.headers,
-  })
+	return handleUserAssetUpload({
+		objectName: request.params.id,
+		bucket: env.ASSETS_BUCKET,
+		body: request.body,
+		headers: request.headers,
+	})
 })
 
 router.get('/api/assets/:id', async (request, env, ctx) => {
-  return handleUserAssetGet({
-    request,
-    bucket: env.ASSETS_BUCKET,
-    objectName: request.params.id,
-    context: ctx,
-  })
+	return handleUserAssetGet({
+		request,
+		bucket: env.ASSETS_BUCKET,
+		objectName: request.params.id,
+		context: ctx,
+	})
 })
 
 router.get('/api/bookmark', async (request, env, ctx) => {
-  return handleExtractBookmarkMetadataRequest({ request })
+	return handleExtractBookmarkMetadataRequest({ request })
 })
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    return handleApiRequest({
-      router,
-      request,
-      env,
-      ctx,
-      after: (response) => {
-        response.headers.set('access-control-allow-origin', '*')
-        return response
-      }
-    })
-  }
+	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+		return handleApiRequest({
+			router,
+			request,
+			env,
+			ctx,
+			after: (response) => {
+				response.headers.set('access-control-allow-origin', '*')
+				return response
+			},
+		})
+	},
 }
 ```
 

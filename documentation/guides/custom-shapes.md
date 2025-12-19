@@ -1,7 +1,7 @@
 ---
 title: Custom shapes
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - custom
   - shapes
@@ -27,13 +27,16 @@ Every shape starts with a type definition:
 ```typescript
 import { TLBaseShape, TLDefaultColorStyle } from '@tldraw/tldraw'
 
-type CardShape = TLBaseShape<'card', {
-  w: number
-  h: number
-  color: TLDefaultColorStyle
-  title: string
-  description: string
-}>
+type CardShape = TLBaseShape<
+	'card',
+	{
+		w: number
+		h: number
+		color: TLDefaultColorStyle
+		title: string
+		description: string
+	}
+>
 ```
 
 The `TLBaseShape` generic takes:
@@ -253,19 +256,15 @@ onEditEnd(shape: CardShape) {
 Use built-in style props for consistency:
 
 ```typescript
-import {
-  DefaultColorStyle,
-  DefaultSizeStyle,
-  StyleProp,
-} from '@tldraw/tldraw'
+import { DefaultColorStyle, DefaultSizeStyle, StyleProp } from '@tldraw/tldraw'
 
 class StyledShapeUtil extends ShapeUtil<MyShape> {
-  static override props = {
-    w: T.number,
-    h: T.number,
-    color: DefaultColorStyle,
-    size: DefaultSizeStyle,
-  }
+	static override props = {
+		w: T.number,
+		h: T.number,
+		color: DefaultColorStyle,
+		size: DefaultSizeStyle,
+	}
 }
 ```
 
@@ -275,13 +274,13 @@ class StyledShapeUtil extends ShapeUtil<MyShape> {
 const editor = useEditor()
 
 editor.createShape({
-  type: 'card',
-  x: 100,
-  y: 100,
-  props: {
-    title: 'My Card',
-    description: 'A custom shape',
-  },
+	type: 'card',
+	x: 100,
+	y: 100,
+	props: {
+		title: 'My Card',
+		description: 'A custom shape',
+	},
 })
 ```
 

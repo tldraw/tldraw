@@ -1,7 +1,7 @@
 ---
 title: Vite template
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - vite
   - template
@@ -136,7 +136,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
 export default defineConfig({
-  plugins: [react()],
+	plugins: [react()],
 })
 ```
 

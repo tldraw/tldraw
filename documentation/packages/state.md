@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/state"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/state'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - state
   - reactive
@@ -60,11 +60,11 @@ console.log(doubled.get()) // 6
 
 All signals share a common interface with these key methods:
 
-| Method | Purpose |
-|--------|---------|
-| `get()` | Read the current value and establish dependency |
-| `__unsafe__getWithoutCapture()` | Read without creating dependency |
-| `getDiffSince(epoch)` | Get incremental changes since a point in time |
+| Method                          | Purpose                                         |
+| ------------------------------- | ----------------------------------------------- |
+| `get()`                         | Read the current value and establish dependency |
+| `__unsafe__getWithoutCapture()` | Read without creating dependency                |
+| `getDiffSince(epoch)`           | Get incremental changes since a point in time   |
 
 ### Atoms
 
@@ -83,7 +83,7 @@ Update atoms directly:
 name.set('Bob')
 
 // Functional update
-age.update(current => current + 1)
+age.update((current) => current + 1)
 ```
 
 #### Custom equality
@@ -91,9 +91,13 @@ age.update(current => current + 1)
 By default, atoms use strict equality (`===`) and `Object.is` to detect changes. For complex objects, provide custom comparison:
 
 ```typescript
-const user = atom('user', { id: 1, name: 'Alice' }, {
-  isEqual: (a, b) => a.id === b.id && a.name === b.name
-})
+const user = atom(
+	'user',
+	{ id: 1, name: 'Alice' },
+	{
+		isEqual: (a, b) => a.id === b.id && a.name === b.name,
+	}
+)
 
 // These two sets are treated as equal - no update propagated
 user.set({ id: 1, name: 'Alice' })
@@ -106,13 +110,13 @@ Atoms can track their change history for features like undo/redo or synchronizat
 
 ```typescript
 const shapes = atom('shapes', [], {
-  historyLength: 100, // Keep last 100 changes
-  computeDiff: (prev, next) => {
-    return {
-      added: next.filter(s => !prev.includes(s)),
-      removed: prev.filter(s => !next.includes(s))
-    }
-  }
+	historyLength: 100, // Keep last 100 changes
+	computeDiff: (prev, next) => {
+		return {
+			added: next.filter((s) => !prev.includes(s)),
+			removed: prev.filter((s) => !next.includes(s)),
+		}
+	},
 })
 
 const oldEpoch = getGlobalEpoch()
@@ -132,7 +136,7 @@ const firstName = atom('firstName', 'Alice')
 const lastName = atom('lastName', 'Smith')
 
 const fullName = computed('fullName', () => {
-  return `${firstName.get()} ${lastName.get()}`
+	return `${firstName.get()} ${lastName.get()}`
 })
 
 console.log(fullName.get()) // 'Alice Smith'
@@ -146,8 +150,8 @@ Computed values are evaluated lazily—they only run when accessed:
 
 ```typescript
 const expensive = computed('expensive', () => {
-  console.log('Computing...')
-  return performExpensiveCalculation()
+	console.log('Computing...')
+	return performExpensiveCalculation()
 })
 
 // Nothing logged yet - not computed until accessed
@@ -162,13 +166,13 @@ For expensive computations, use the previous value to perform incremental update
 const items = atom('items', [])
 
 const processed = computed('processed', (prevValue) => {
-  if (isUninitialized(prevValue)) {
-    // First run - do full computation
-    return expensiveProcess(items.get())
-  }
+	if (isUninitialized(prevValue)) {
+		// First run - do full computation
+		return expensiveProcess(items.get())
+	}
 
-  // Subsequent runs - incremental update
-  return incrementalUpdate(prevValue, items.get())
+	// Subsequent runs - incremental update
+	return incrementalUpdate(prevValue, items.get())
 })
 ```
 
@@ -184,13 +188,13 @@ import { withDiff } from '@tldraw/state'
 const count = atom('count', 0)
 
 const doubled = computed('doubled', (prevValue) => {
-  const nextValue = count.get() * 2
+	const nextValue = count.get() * 2
 
-  if (isUninitialized(prevValue)) {
-    return nextValue
-  }
+	if (isUninitialized(prevValue)) {
+		return nextValue
+	}
 
-  return withDiff(nextValue, nextValue - prevValue)
+	return withDiff(nextValue, nextValue - prevValue)
 })
 ```
 
@@ -203,11 +207,11 @@ const a = atom('a', 1)
 const b = atom('b', 2)
 
 const sum = computed('sum', () => {
-  return a.get() + b.get() // Both a and b tracked as dependencies
+	return a.get() + b.get() // Both a and b tracked as dependencies
 })
 
 const tripled = computed('tripled', () => {
-  return sum.get() * 3 // sum tracked as dependency
+	return sum.get() * 3 // sum tracked as dependency
 })
 ```
 
@@ -228,13 +232,13 @@ const metadata = atom('metadata', { version: 1 })
 const data = atom('data', [])
 
 const processed = computed('processed', () => {
-  // Create dependency on data - recompute when data changes
-  const items = data.get()
+	// Create dependency on data - recompute when data changes
+	const items = data.get()
 
-  // Read metadata without dependency - don't recompute when metadata changes
-  const version = metadata.__unsafe__getWithoutCapture()
+	// Read metadata without dependency - don't recompute when metadata changes
+	const version = metadata.__unsafe__getWithoutCapture()
 
-  return processItems(items, version)
+	return processItems(items, version)
 })
 ```
 
@@ -244,8 +248,8 @@ You can also use the `unsafe__withoutCapture` helper function:
 import { unsafe__withoutCapture } from '@tldraw/state'
 
 const value = unsafe__withoutCapture(() => {
-  // Any .get() calls here won't create dependencies
-  return someSignal.get()
+	// Any .get() calls here won't create dependencies
+	return someSignal.get()
 })
 ```
 
@@ -260,8 +264,8 @@ const firstName = atom('firstName', 'Alice')
 const lastName = atom('lastName', 'Smith')
 
 const fullName = computed('fullName', () => {
-  console.log('Computing full name')
-  return `${firstName.get()} ${lastName.get()}`
+	console.log('Computing full name')
+	return `${firstName.get()} ${lastName.get()}`
 })
 
 // Without transaction - fullName computes twice
@@ -270,8 +274,8 @@ lastName.set('Jones')
 
 // With transaction - fullName computes once
 transact(() => {
-  firstName.set('Charlie')
-  lastName.set('Brown')
+	firstName.set('Charlie')
+	lastName.set('Brown')
 })
 ```
 
@@ -281,13 +285,13 @@ Transactions can be nested, and each can be rolled back independently:
 
 ```typescript
 transact(() => {
-  count.set(5)
+	count.set(5)
 
-  transact(() => {
-    count.set(10)
-  })
+	transact(() => {
+		count.set(10)
+	})
 
-  // count is now 10
+	// count is now 10
 })
 ```
 
@@ -297,12 +301,12 @@ Transactions automatically roll back on exceptions:
 
 ```typescript
 try {
-  transact(() => {
-    count.set(100)
-    throw new Error('Something went wrong')
-  })
+	transact(() => {
+		count.set(100)
+		throw new Error('Something went wrong')
+	})
 } catch (error) {
-  // count rolled back to its previous value
+	// count rolled back to its previous value
 }
 ```
 
@@ -310,11 +314,11 @@ You can also manually trigger a rollback:
 
 ```typescript
 transact((rollback) => {
-  makeChanges()
+	makeChanges()
 
-  if (shouldAbort) {
-    rollback()
-  }
+	if (shouldAbort) {
+		rollback()
+	}
 })
 ```
 
@@ -329,7 +333,7 @@ const count = atom('count', 0)
 
 // Create an effect
 const stop = react('logger', () => {
-  console.log('Count is:', count.get())
+	console.log('Count is:', count.get())
 })
 // Immediately logs: 'Count is: 0'
 
@@ -348,7 +352,7 @@ Use `reactor()` for more control over when effects run:
 import { reactor } from '@tldraw/state'
 
 const r = reactor('manual', () => {
-  console.log('Count:', count.get())
+	console.log('Count:', count.get())
 })
 
 // Start the reactor
@@ -366,13 +370,17 @@ r.stop()
 Batch effects using custom scheduling. This is useful for coordinating with animation frames or other timing:
 
 ```typescript
-const stop = react('dom-update', () => {
-  updateDOM(state.get())
-}, {
-  scheduleEffect: (execute) => {
-    requestAnimationFrame(execute)
-  }
-})
+const stop = react(
+	'dom-update',
+	() => {
+		updateDOM(state.get())
+	},
+	{
+		scheduleEffect: (execute) => {
+			requestAnimationFrame(execute)
+		},
+	}
+)
 ```
 
 ## Epochs and change detection
@@ -422,8 +430,8 @@ Several strategies minimize unnecessary work:
 
 ```typescript
 const expensive = computed('expensive', () => {
-  // This only runs when someone calls expensive.get()
-  return doExpensiveWork()
+	// This only runs when someone calls expensive.get()
+	return doExpensiveWork()
 })
 ```
 
@@ -437,11 +445,11 @@ const b = atom('b', 2)
 const c = atom('c', true)
 
 const result = computed('result', () => {
-  if (c.get()) {
-    return a.get()
-  } else {
-    return b.get()
-  }
+	if (c.get()) {
+		return a.get()
+	} else {
+		return b.get()
+	}
 })
 
 result.get() // Depends on c and a
@@ -456,29 +464,33 @@ result.get() // Now depends on c and b (a dependency removed automatically)
 
 ```typescript
 const hotPath = computed('hotPath', () => {
-  // Critical dependency
-  const important = importantData.get()
+	// Critical dependency
+	const important = importantData.get()
 
-  // Read metadata without overhead
-  const meta = metadataAtom.__unsafe__getWithoutCapture()
+	// Read metadata without overhead
+	const meta = metadataAtom.__unsafe__getWithoutCapture()
 
-  return process(important, meta)
+	return process(important, meta)
 })
 ```
 
 **Custom equality**: Prevent unnecessary updates with specialized comparison:
 
 ```typescript
-const position = atom('position', { x: 0, y: 0 }, {
-  isEqual: (a, b) => a.x === b.x && a.y === b.y
-})
+const position = atom(
+	'position',
+	{ x: 0, y: 0 },
+	{
+		isEqual: (a, b) => a.x === b.x && a.y === b.y,
+	}
+)
 ```
 
 **Effect batching**: Schedule effects efficiently:
 
 ```typescript
 react('render', updateView, {
-  scheduleEffect: (execute) => requestAnimationFrame(execute)
+	scheduleEffect: (execute) => requestAnimationFrame(execute),
 })
 ```
 
@@ -492,20 +504,20 @@ Create computed signals for derived data instead of duplicating state:
 const todos = atom('todos', [])
 
 const completedTodos = computed('completed', () => {
-  return todos.get().filter(todo => todo.completed)
+	return todos.get().filter((todo) => todo.completed)
 })
 
 const activeTodos = computed('active', () => {
-  return todos.get().filter(todo => !todo.completed)
+	return todos.get().filter((todo) => !todo.completed)
 })
 
 const stats = computed('stats', () => {
-  const all = todos.get()
-  return {
-    total: all.length,
-    completed: completedTodos.get().length,
-    active: activeTodos.get().length
-  }
+	const all = todos.get()
+	return {
+		total: all.length,
+		completed: completedTodos.get().length,
+		active: activeTodos.get().length,
+	}
 })
 ```
 
@@ -516,17 +528,21 @@ Use effects to synchronize with external systems:
 ```typescript
 // Sync to localStorage
 react('persist', () => {
-  const data = appState.get()
-  localStorage.setItem('app-state', JSON.stringify(data))
+	const data = appState.get()
+	localStorage.setItem('app-state', JSON.stringify(data))
 })
 
 // Sync to server
-react('save', () => {
-  const data = documentState.get()
-  saveToServer(data)
-}, {
-  scheduleEffect: debounce // Debounce network requests
-})
+react(
+	'save',
+	() => {
+		const data = documentState.get()
+		saveToServer(data)
+	},
+	{
+		scheduleEffect: debounce, // Debounce network requests
+	}
+)
 ```
 
 ### Class-based computed properties
@@ -537,17 +553,17 @@ Use the `@computed` decorator for class properties:
 import { atom, computed as computedDecorator } from '@tldraw/state'
 
 class Counter {
-  count = atom('count', 0)
+	count = atom('count', 0)
 
-  @computedDecorator
-  get doubled() {
-    return this.count.get() * 2
-  }
+	@computedDecorator
+	get doubled() {
+		return this.count.get() * 2
+	}
 
-  @computedDecorator
-  get tripled() {
-    return this.count.get() * 3
-  }
+	@computedDecorator
+	get tripled() {
+		return this.count.get() * 3
+	}
 }
 
 const counter = new Counter()
@@ -562,31 +578,31 @@ Handle expensive computations incrementally:
 
 ```typescript
 interface ProcessedData {
-  items: Item[]
-  index: Map<string, Item>
+	items: Item[]
+	index: Map<string, Item>
 }
 
 const items = atom('items', [])
 
 const processed = computed('processed', (prev): ProcessedData => {
-  const currentItems = items.get()
+	const currentItems = items.get()
 
-  if (isUninitialized(prev)) {
-    // Initial computation
-    const index = new Map()
-    currentItems.forEach(item => index.set(item.id, item))
-    return { items: currentItems, index }
-  }
+	if (isUninitialized(prev)) {
+		// Initial computation
+		const index = new Map()
+		currentItems.forEach((item) => index.set(item.id, item))
+		return { items: currentItems, index }
+	}
 
-  // Incremental update - only rebuild what changed
-  const newIndex = new Map(prev.index)
-  currentItems.forEach(item => {
-    if (!newIndex.has(item.id)) {
-      newIndex.set(item.id, item)
-    }
-  })
+	// Incremental update - only rebuild what changed
+	const newIndex = new Map(prev.index)
+	currentItems.forEach((item) => {
+		if (!newIndex.has(item.id)) {
+			newIndex.set(item.id, item)
+		}
+	})
 
-  return { items: currentItems, index: newIndex }
+	return { items: currentItems, index: newIndex }
 })
 ```
 
@@ -620,6 +636,7 @@ const myComputed = computed('myComputed', () => {
 ```
 
 This prints a hierarchical tree showing:
+
 - Which signals changed
 - What triggered the computation
 - The full dependency chain

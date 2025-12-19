@@ -1,7 +1,7 @@
 ---
 title: Examples app
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - examples
   - development
@@ -69,18 +69,18 @@ yarn e2e-perf
 
 Examples are organized into ten categories, each focusing on a specific aspect of the SDK:
 
-| Category | Description |
-|----------|-------------|
-| **Getting started** | Basic usage patterns and initial setup |
-| **Configuration** | Editor setup, options, and initialization |
-| **Editor API** | Core editor methods and programmatic control |
-| **UI & theming** | User interface customization and styling |
-| **Page layout** | Canvas arrangement and viewport control |
-| **Events & effects** | Event handling, callbacks, and side effects |
-| **Shapes & tools** | Custom shapes and interactive tools |
-| **Collaboration** | Multi-user features and real-time sync |
-| **Data & assets** | Data management, persistence, and asset handling |
-| **Use cases** | Complete application scenarios and integrations |
+| Category             | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| **Getting started**  | Basic usage patterns and initial setup           |
+| **Configuration**    | Editor setup, options, and initialization        |
+| **Editor API**       | Core editor methods and programmatic control     |
+| **UI & theming**     | User interface customization and styling         |
+| **Page layout**      | Canvas arrangement and viewport control          |
+| **Events & effects** | Event handling, callbacks, and side effects      |
+| **Shapes & tools**   | Custom shapes and interactive tools              |
+| **Collaboration**    | Multi-user features and real-time sync           |
+| **Data & assets**    | Data management, persistence, and asset handling |
+| **Use cases**        | Complete application scenarios and integrations  |
 
 Each category groups related examples by priority, with the most fundamental examples appearing first.
 
@@ -135,15 +135,15 @@ You can create custom shapes in tldraw by creating a shape util
 and passing it to the Tldraw component.
 ```
 
-| Field | Description |
-|-------|-------------|
-| `title` | Example name in sentence case |
-| `component` | Relative path to the main component file |
-| `category` | Category ID (must match one of the ten categories) |
-| `priority` | Sort order within category (lower numbers appear first) |
-| `keywords` | Array of search terms for discoverability |
-| `hide` | Optional boolean to hide from the examples list |
-| `multiplayer` | Optional boolean indicating collaboration features |
+| Field         | Description                                             |
+| ------------- | ------------------------------------------------------- |
+| `title`       | Example name in sentence case                           |
+| `component`   | Relative path to the main component file                |
+| `category`    | Category ID (must match one of the ten categories)      |
+| `priority`    | Sort order within category (lower numbers appear first) |
+| `keywords`    | Array of search terms for discoverability               |
+| `hide`        | Optional boolean to hide from the examples list         |
+| `multiplayer` | Optional boolean indicating collaboration features      |
 
 The README content is split by `---` into two sections:
 
@@ -232,9 +232,7 @@ Examples include:
 The examples app uses Vite's `import.meta.glob` to automatically discover all example README files:
 
 ```typescript
-const examples = Object.values(
-  import.meta.glob('./examples/*/README.md', { eager: true })
-)
+const examples = Object.values(import.meta.glob('./examples/*/README.md', { eager: true }))
 ```
 
 A custom Vite plugin (`exampleReadmePlugin`) processes each README.md file:

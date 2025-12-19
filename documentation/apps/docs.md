@@ -1,7 +1,7 @@
 ---
 title: Documentation site
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - docs
   - documentation
@@ -55,27 +55,27 @@ apps/docs/
 
 Content is organized into sections defined in `sections.json`:
 
-| Section | Purpose |
-|---------|---------|
-| `getting-started` | Quick start guides |
-| `docs` | Core SDK documentation |
-| `community` | Contributing guides |
-| `reference` | Auto-generated API docs |
-| `blog` | News and updates |
-| `legal` | Terms and policies |
+| Section           | Purpose                 |
+| ----------------- | ----------------------- |
+| `getting-started` | Quick start guides      |
+| `docs`            | Core SDK documentation  |
+| `community`       | Contributing guides     |
+| `reference`       | Auto-generated API docs |
+| `blog`            | News and updates        |
+| `legal`           | Terms and policies      |
 
 ### Frontmatter
 
 ```yaml
-title: "Article Title"
-description: "SEO and search description"
-status: "published"  # or "draft"
-author: "author_key"
-date: "MM/DD/YYYY"
+title: 'Article Title'
+description: 'SEO and search description'
+status: 'published' # or "draft"
+author: 'author_key'
+date: 'MM/DD/YYYY'
 order: 1
-category: "category_name"
-keywords: ["tag1", "tag2"]
-hero: "image_path"
+category: 'category_name'
+keywords: ['tag1', 'tag2']
+hero: 'image_path'
 ```
 
 ## Build process

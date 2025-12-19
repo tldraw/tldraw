@@ -1,7 +1,7 @@
 ---
 title: Workflow template
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - workflow
   - flowchart
@@ -51,8 +51,8 @@ class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 ```typescript
 class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
-  static override type = 'connection' as const
-  // Renders bezier curves between connected ports
+	static override type = 'connection' as const
+	// Renders bezier curves between connected ports
 }
 ```
 
@@ -62,15 +62,15 @@ class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 
 ```typescript
 class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
-  static override type = 'connection' as const
+	static override type = 'connection' as const
 
-  override onAfterChangeFromShape() {
-    // Update connection when source node moves
-  }
+	override onAfterChangeFromShape() {
+		// Update connection when source node moves
+	}
 
-  override onAfterChangeToShape() {
-    // Update connection when target node moves
-  }
+	override onAfterChangeToShape() {
+		// Update connection when target node moves
+	}
 }
 ```
 
@@ -78,39 +78,39 @@ class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 
 Built-in mathematical operation nodes:
 
-| Node | Description | Inputs | Output |
-|------|-------------|--------|--------|
-| SliderNode | User input via slider | None | Number |
-| AddNode | Addition | A, B | A + B |
-| SubtractNode | Subtraction | A, B | A - B |
-| MultiplyNode | Multiplication | A, B | A × B |
-| DivideNode | Division | A, B | A ÷ B |
-| ConditionalNode | Conditional logic | Condition, A, B | A or B |
+| Node            | Description           | Inputs          | Output |
+| --------------- | --------------------- | --------------- | ------ |
+| SliderNode      | User input via slider | None            | Number |
+| AddNode         | Addition              | A, B            | A + B  |
+| SubtractNode    | Subtraction           | A, B            | A - B  |
+| MultiplyNode    | Multiplication        | A, B            | A × B  |
+| DivideNode      | Division              | A, B            | A ÷ B  |
+| ConditionalNode | Conditional logic     | Condition, A, B | A or B |
 
 ### Creating new node types
 
 ```typescript
 // src/nodes/types/MyNode.tsx
 export const MyNode: NodeDefinition = {
-  type: 'myNode',
-  label: 'My Node',
-  icon: MyIcon,
-  getPorts: () => ({
-    inputs: [{ id: 'input', label: 'In', type: 'number' }],
-    outputs: [{ id: 'output', label: 'Out', type: 'number' }],
-  }),
-  Component: ({ shape }) => {
-    // Render node UI
-  },
-  computeOutput: (inputs) => {
-    return { output: inputs.input * 2 }
-  },
+	type: 'myNode',
+	label: 'My Node',
+	icon: MyIcon,
+	getPorts: () => ({
+		inputs: [{ id: 'input', label: 'In', type: 'number' }],
+		outputs: [{ id: 'output', label: 'Out', type: 'number' }],
+	}),
+	Component: ({ shape }) => {
+		// Render node UI
+	},
+	computeOutput: (inputs) => {
+		return { output: inputs.input * 2 }
+	},
 }
 
 // Register in nodeTypes.tsx
 export const nodeTypes = {
-  // ...existing nodes
-  myNode: MyNode,
+	// ...existing nodes
+	myNode: MyNode,
 }
 ```
 
@@ -120,20 +120,20 @@ Ports define connection points on nodes:
 
 ```typescript
 interface Port {
-  id: string
-  label: string
-  type: 'number' | 'boolean' | 'any'
-  position: 'top' | 'bottom' | 'left' | 'right'
+	id: string
+	label: string
+	type: 'number' | 'boolean' | 'any'
+	position: 'top' | 'bottom' | 'left' | 'right'
 }
 
 // Port interactions
 class PointingPort extends StateNode {
-  onPointerDown(info) {
-    // Start connection from port
-  }
-  onPointerUp(info) {
-    // Complete connection to target port
-  }
+	onPointerDown(info) {
+		// Start connection from port
+	}
+	onPointerUp(info) {
+		// Complete connection to target port
+	}
 }
 ```
 
@@ -144,13 +144,13 @@ The workflow execution engine evaluates connected nodes:
 ```typescript
 // src/execution/ExecutionGraph.tsx
 function executeGraph(nodes: NodeShape[], connections: ConnectionShape[]) {
-  const sorted = topologicalSort(nodes, connections)
+	const sorted = topologicalSort(nodes, connections)
 
-  for (const node of sorted) {
-    const inputs = gatherInputs(node, connections)
-    const outputs = nodeTypes[node.props.nodeType].computeOutput(inputs)
-    // Update node display with results
-  }
+	for (const node of sorted) {
+		const inputs = gatherInputs(node, connections)
+		const outputs = nodeTypes[node.props.nodeType].computeOutput(inputs)
+		// Update node display with results
+	}
 }
 ```
 

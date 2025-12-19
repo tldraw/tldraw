@@ -1,7 +1,7 @@
 ---
 title: Branching chat template
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - chat
   - ai
@@ -50,7 +50,7 @@ class NodeShapeUtil extends ShapeUtil<NodeShape> {
 ```typescript
 // ConnectionShapeUtil.tsx
 class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
-  // Bezier curves connecting message nodes
+	// Bezier curves connecting message nodes
 }
 ```
 
@@ -61,15 +61,15 @@ class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 ```typescript
 // worker/worker.ts
 export default {
-  async fetch(request: Request, env: Env) {
-    const url = new URL(request.url)
+	async fetch(request: Request, env: Env) {
+		const url = new URL(request.url)
 
-    if (url.pathname === '/stream') {
-      return handleStream(request, env)
-    }
+		if (url.pathname === '/stream') {
+			return handleStream(request, env)
+		}
 
-    return new Response('Not found', { status: 404 })
-  },
+		return new Response('Not found', { status: 404 })
+	},
 }
 ```
 
@@ -121,35 +121,35 @@ When sending a message, trace back through connected nodes:
 
 ```typescript
 function buildConversationHistory(node: NodeShape): Message[] {
-  const history: Message[] = []
-  const visited = new Set<string>()
+	const history: Message[] = []
+	const visited = new Set<string>()
 
-  function traverse(currentNode: NodeShape) {
-    if (visited.has(currentNode.id)) return
-    visited.add(currentNode.id)
+	function traverse(currentNode: NodeShape) {
+		if (visited.has(currentNode.id)) return
+		visited.add(currentNode.id)
 
-    // Find parent nodes via input connections
-    const parentConnections = getInputConnections(currentNode)
-    parentConnections.forEach(conn => {
-      const parentNode = getNode(conn.fromNodeId)
-      traverse(parentNode)
-    })
+		// Find parent nodes via input connections
+		const parentConnections = getInputConnections(currentNode)
+		parentConnections.forEach((conn) => {
+			const parentNode = getNode(conn.fromNodeId)
+			traverse(parentNode)
+		})
 
-    // Add this node's messages to history
-    history.push({
-      role: 'user',
-      content: currentNode.props.userInput,
-    })
-    if (currentNode.props.assistantResponse) {
-      history.push({
-        role: 'assistant',
-        content: currentNode.props.assistantResponse,
-      })
-    }
-  }
+		// Add this node's messages to history
+		history.push({
+			role: 'user',
+			content: currentNode.props.userInput,
+		})
+		if (currentNode.props.assistantResponse) {
+			history.push({
+				role: 'assistant',
+				content: currentNode.props.assistantResponse,
+			})
+		}
+	}
 
-  traverse(node)
-  return history
+	traverse(node)
+	return history
 }
 ```
 
@@ -170,27 +170,27 @@ Create multiple branches from a single message:
 ```typescript
 // worker/worker.ts
 async function handleStream(request: Request, env: Env) {
-  const { history, message } = await request.json()
+	const { history, message } = await request.json()
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [...history, { role: 'user', content: message }],
-    stream: true,
-  })
+	const response = await openai.chat.completions.create({
+		model: 'gpt-4',
+		messages: [...history, { role: 'user', content: message }],
+		stream: true,
+	})
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of response) {
-        const text = chunk.choices[0]?.delta?.content || ''
-        controller.enqueue(new TextEncoder().encode(text))
-      }
-      controller.close()
-    },
-  })
+	const stream = new ReadableStream({
+		async start(controller) {
+			for await (const chunk of response) {
+				const text = chunk.choices[0]?.delta?.content || ''
+				controller.enqueue(new TextEncoder().encode(text))
+			}
+			controller.close()
+		},
+	})
 
-  return new Response(stream, {
-    headers: { 'Content-Type': 'text/event-stream' },
-  })
+	return new Response(stream, {
+		headers: { 'Content-Type': 'text/event-stream' },
+	})
 }
 ```
 
@@ -198,14 +198,14 @@ async function handleStream(request: Request, env: Env) {
 
 ```typescript
 async function* readStream(response: Response) {
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
+	const reader = response.body.getReader()
+	const decoder = new TextDecoder()
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    yield decoder.decode(value)
-  }
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) break
+		yield decoder.decode(value)
+	}
 }
 ```
 
@@ -296,8 +296,8 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
 const response = await client.messages.stream({
-  model: 'claude-3-opus-20240229',
-  messages: history,
+	model: 'claude-3-opus-20240229',
+	messages: history,
 })
 ```
 
@@ -305,10 +305,10 @@ const response = await client.messages.stream({
 
 ```css
 .message-node {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	background: white;
+	border-radius: 8px;
+	padding: 16px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 ```
 

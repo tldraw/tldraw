@@ -1,7 +1,7 @@
 ---
 title: Testing
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - testing
   - vitest
@@ -24,13 +24,13 @@ import { describe, it, expect } from 'vitest'
 import { Editor, createTLStore } from 'tldraw'
 
 describe('MyComponent', () => {
-  it('should do something', () => {
-    const store = createTLStore()
-    const editor = new Editor({ store })
+	it('should do something', () => {
+		const store = createTLStore()
+		const editor = new Editor({ store })
 
-    // Test logic
-    expect(editor.getCurrentPageShapes()).toHaveLength(0)
-  })
+		// Test logic
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+	})
 })
 ```
 
@@ -62,22 +62,22 @@ For integration tests, use the test utilities:
 import { TestEditor } from '@tldraw/tldraw/src/test/TestEditor'
 
 describe('Editor integration', () => {
-  let editor: TestEditor
+	let editor: TestEditor
 
-  beforeEach(() => {
-    editor = new TestEditor()
-  })
+	beforeEach(() => {
+		editor = new TestEditor()
+	})
 
-  it('should create shapes', () => {
-    editor.createShape({ type: 'geo', x: 100, y: 100 })
-    expect(editor.getCurrentPageShapes()).toHaveLength(1)
-  })
+	it('should create shapes', () => {
+		editor.createShape({ type: 'geo', x: 100, y: 100 })
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+	})
 
-  it('should select shapes', () => {
-    const id = editor.createShape({ type: 'geo', x: 100, y: 100 })
-    editor.select(id)
-    expect(editor.getSelectedShapeIds()).toContain(id)
-  })
+	it('should select shapes', () => {
+		const id = editor.createShape({ type: 'geo', x: 100, y: 100 })
+		editor.select(id)
+		expect(editor.getSelectedShapeIds()).toContain(id)
+	})
 })
 ```
 
@@ -88,24 +88,24 @@ import { TestEditor } from '@tldraw/tldraw/src/test/TestEditor'
 import { MyShapeUtil } from './MyShapeUtil'
 
 describe('MyShapeUtil', () => {
-  let editor: TestEditor
+	let editor: TestEditor
 
-  beforeEach(() => {
-    editor = new TestEditor({
-      shapeUtils: [MyShapeUtil],
-    })
-  })
+	beforeEach(() => {
+		editor = new TestEditor({
+			shapeUtils: [MyShapeUtil],
+		})
+	})
 
-  it('should create my shape', () => {
-    editor.createShape({
-      type: 'my-shape',
-      props: { text: 'Hello' },
-    })
+	it('should create my shape', () => {
+		editor.createShape({
+			type: 'my-shape',
+			props: { text: 'Hello' },
+		})
 
-    const shapes = editor.getCurrentPageShapes()
-    expect(shapes[0].type).toBe('my-shape')
-    expect(shapes[0].props.text).toBe('Hello')
-  })
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes[0].type).toBe('my-shape')
+		expect(shapes[0].props.text).toBe('Hello')
+	})
 })
 ```
 
@@ -113,30 +113,30 @@ describe('MyShapeUtil', () => {
 
 ```typescript
 it('should draw with the draw tool', () => {
-  editor.setCurrentTool('draw')
+	editor.setCurrentTool('draw')
 
-  // Simulate pointer down
-  editor.pointerDown(100, 100)
+	// Simulate pointer down
+	editor.pointerDown(100, 100)
 
-  // Simulate pointer move
-  editor.pointerMove(150, 150)
-  editor.pointerMove(200, 100)
+	// Simulate pointer move
+	editor.pointerMove(150, 150)
+	editor.pointerMove(200, 100)
 
-  // Simulate pointer up
-  editor.pointerUp()
+	// Simulate pointer up
+	editor.pointerUp()
 
-  const shapes = editor.getCurrentPageShapes()
-  expect(shapes[0].type).toBe('draw')
+	const shapes = editor.getCurrentPageShapes()
+	expect(shapes[0].type).toBe('draw')
 })
 
 it('should handle keyboard shortcuts', () => {
-  editor.createShape({ type: 'geo', x: 100, y: 100 })
-  editor.selectAll()
+	editor.createShape({ type: 'geo', x: 100, y: 100 })
+	editor.selectAll()
 
-  // Simulate delete key
-  editor.keyDown('Delete')
+	// Simulate delete key
+	editor.keyDown('Delete')
 
-  expect(editor.getCurrentPageShapes()).toHaveLength(0)
+	expect(editor.getCurrentPageShapes()).toHaveLength(0)
 })
 ```
 
@@ -151,14 +151,14 @@ E2E tests are located in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`.
 import { test, expect } from '@playwright/test'
 
 test('should load the editor', async ({ page }) => {
-  await page.goto('http://localhost:5420/examples/basic')
+	await page.goto('http://localhost:5420/examples/basic')
 
-  // Wait for editor to load
-  await page.waitForSelector('.tldraw__editor')
+	// Wait for editor to load
+	await page.waitForSelector('.tldraw__editor')
 
-  // Check that canvas is visible
-  const canvas = page.locator('.tl-canvas')
-  await expect(canvas).toBeVisible()
+	// Check that canvas is visible
+	const canvas = page.locator('.tl-canvas')
+	await expect(canvas).toBeVisible()
 })
 ```
 
@@ -182,20 +182,20 @@ yarn e2e tests/example.spec.ts
 
 ```typescript
 test('should create a rectangle', async ({ page }) => {
-  await page.goto('http://localhost:5420/examples/basic')
+	await page.goto('http://localhost:5420/examples/basic')
 
-  // Click the rectangle tool
-  await page.click('[data-testid="tools.rectangle"]')
+	// Click the rectangle tool
+	await page.click('[data-testid="tools.rectangle"]')
 
-  // Draw a rectangle
-  const canvas = page.locator('.tl-canvas')
-  await canvas.click({ position: { x: 100, y: 100 } })
-  await page.mouse.down()
-  await page.mouse.move(300, 200)
-  await page.mouse.up()
+	// Draw a rectangle
+	const canvas = page.locator('.tl-canvas')
+	await canvas.click({ position: { x: 100, y: 100 } })
+	await page.mouse.down()
+	await page.mouse.move(300, 200)
+	await page.mouse.up()
 
-  // Verify shape created
-  // ...
+	// Verify shape created
+	// ...
 })
 ```
 
@@ -205,31 +205,31 @@ test('should create a rectangle', async ({ page }) => {
 import { test, expect, Page } from '@playwright/test'
 
 class TldrawPage {
-  constructor(public readonly page: Page) {}
+	constructor(public readonly page: Page) {}
 
-  async goto(example: string) {
-    await this.page.goto(`http://localhost:5420/examples/${example}`)
-    await this.page.waitForSelector('.tldraw__editor')
-  }
+	async goto(example: string) {
+		await this.page.goto(`http://localhost:5420/examples/${example}`)
+		await this.page.waitForSelector('.tldraw__editor')
+	}
 
-  async selectTool(tool: string) {
-    await this.page.click(`[data-testid="tools.${tool}"]`)
-  }
+	async selectTool(tool: string) {
+		await this.page.click(`[data-testid="tools.${tool}"]`)
+	}
 
-  async draw(from: { x: number; y: number }, to: { x: number; y: number }) {
-    const canvas = this.page.locator('.tl-canvas')
-    await canvas.click({ position: from })
-    await this.page.mouse.down()
-    await this.page.mouse.move(to.x, to.y)
-    await this.page.mouse.up()
-  }
+	async draw(from: { x: number; y: number }, to: { x: number; y: number }) {
+		const canvas = this.page.locator('.tl-canvas')
+		await canvas.click({ position: from })
+		await this.page.mouse.down()
+		await this.page.mouse.move(to.x, to.y)
+		await this.page.mouse.up()
+	}
 }
 
 test('drawing test', async ({ page }) => {
-  const tldraw = new TldrawPage(page)
-  await tldraw.goto('basic')
-  await tldraw.selectTool('draw')
-  await tldraw.draw({ x: 100, y: 100 }, { x: 200, y: 200 })
+	const tldraw = new TldrawPage(page)
+	await tldraw.goto('basic')
+	await tldraw.selectTool('draw')
+	await tldraw.draw({ x: 100, y: 100 }, { x: 200, y: 200 })
 })
 ```
 
@@ -240,12 +240,12 @@ test('drawing test', async ({ page }) => {
 ```typescript
 // Each test should start fresh
 beforeEach(() => {
-  editor = new TestEditor()
+	editor = new TestEditor()
 })
 
 // Don't rely on state from previous tests
 afterEach(() => {
-  editor.dispose()
+	editor.dispose()
 })
 ```
 
@@ -253,13 +253,13 @@ afterEach(() => {
 
 ```typescript
 it('should handle async operations', async () => {
-  editor.createShape({ type: 'image', props: { src: 'test.png' } })
+	editor.createShape({ type: 'image', props: { src: 'test.png' } })
 
-  // Wait for image to load
-  await editor.waitForAssetToLoad()
+	// Wait for image to load
+	await editor.waitForAssetToLoad()
 
-  const shape = editor.getCurrentPageShapes()[0]
-  expect(shape.props.w).toBeGreaterThan(0)
+	const shape = editor.getCurrentPageShapes()[0]
+	expect(shape.props.w).toBeGreaterThan(0)
 })
 ```
 
@@ -267,11 +267,11 @@ it('should handle async operations', async () => {
 
 ```typescript
 it('should match snapshot', () => {
-  editor.createShape({ type: 'geo', x: 100, y: 100 })
-  editor.createShape({ type: 'text', x: 200, y: 100, props: { text: 'Hello' } })
+	editor.createShape({ type: 'geo', x: 100, y: 100 })
+	editor.createShape({ type: 'text', x: 200, y: 100, props: { text: 'Hello' } })
 
-  const snapshot = editor.store.getSnapshot()
-  expect(snapshot).toMatchSnapshot()
+	const snapshot = editor.store.getSnapshot()
+	expect(snapshot).toMatchSnapshot()
 })
 ```
 
@@ -279,16 +279,16 @@ it('should match snapshot', () => {
 
 ```typescript
 it('should track store changes', () => {
-  const changes: any[] = []
+	const changes: any[] = []
 
-  editor.store.listen((entry) => {
-    changes.push(entry)
-  })
+	editor.store.listen((entry) => {
+		changes.push(entry)
+	})
 
-  editor.createShape({ type: 'geo' })
+	editor.createShape({ type: 'geo' })
 
-  expect(changes).toHaveLength(1)
-  expect(changes[0].changes.added).toBeDefined()
+	expect(changes).toHaveLength(1)
+	expect(changes[0].changes.added).toBeDefined()
 })
 ```
 
@@ -298,17 +298,17 @@ it('should track store changes', () => {
 
 ```typescript
 it('should select shapes', () => {
-  const id1 = editor.createShape({ type: 'geo', x: 0, y: 0 })
-  const id2 = editor.createShape({ type: 'geo', x: 100, y: 0 })
+	const id1 = editor.createShape({ type: 'geo', x: 0, y: 0 })
+	const id2 = editor.createShape({ type: 'geo', x: 100, y: 0 })
 
-  editor.select(id1)
-  expect(editor.getSelectedShapeIds()).toEqual([id1])
+	editor.select(id1)
+	expect(editor.getSelectedShapeIds()).toEqual([id1])
 
-  editor.select(id1, id2)
-  expect(editor.getSelectedShapeIds()).toEqual([id1, id2])
+	editor.select(id1, id2)
+	expect(editor.getSelectedShapeIds()).toEqual([id1, id2])
 
-  editor.selectNone()
-  expect(editor.getSelectedShapeIds()).toEqual([])
+	editor.selectNone()
+	expect(editor.getSelectedShapeIds()).toEqual([])
 })
 ```
 
@@ -316,16 +316,16 @@ it('should select shapes', () => {
 
 ```typescript
 it('should support undo/redo', () => {
-  editor.mark('before-create')
-  editor.createShape({ type: 'geo' })
+	editor.mark('before-create')
+	editor.createShape({ type: 'geo' })
 
-  expect(editor.getCurrentPageShapes()).toHaveLength(1)
+	expect(editor.getCurrentPageShapes()).toHaveLength(1)
 
-  editor.undo()
-  expect(editor.getCurrentPageShapes()).toHaveLength(0)
+	editor.undo()
+	expect(editor.getCurrentPageShapes()).toHaveLength(0)
 
-  editor.redo()
-  expect(editor.getCurrentPageShapes()).toHaveLength(1)
+	editor.redo()
+	expect(editor.getCurrentPageShapes()).toHaveLength(1)
 })
 ```
 

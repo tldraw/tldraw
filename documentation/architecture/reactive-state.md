@@ -1,7 +1,7 @@
 ---
 title: Reactive state
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - state
   - signals
@@ -43,7 +43,7 @@ count.set(5)
 count.get() // 5
 
 // Update based on current value
-count.update(n => n + 1) // 6
+count.update((n) => n + 1) // 6
 ```
 
 Atoms are named for debugging. The name appears in dev tools and error messages.
@@ -59,7 +59,7 @@ const firstName = atom('firstName', 'Alice')
 const lastName = atom('lastName', 'Smith')
 
 const fullName = computed('fullName', () => {
-  return `${firstName.get()} ${lastName.get()}`
+	return `${firstName.get()} ${lastName.get()}`
 })
 
 fullName.get() // 'Alice Smith'
@@ -76,8 +76,8 @@ Computed values are lazy—they only compute when accessed:
 
 ```typescript
 const expensive = computed('expensive', () => {
-  console.log('Computing...')
-  return heavyCalculation()
+	console.log('Computing...')
+	return heavyCalculation()
 })
 
 // Nothing logged yet
@@ -97,11 +97,11 @@ const a = atom('a', 1)
 const b = atom('b', 2)
 
 const sum = computed('sum', () => {
-  return a.get() + b.get()  // Both tracked
+	return a.get() + b.get() // Both tracked
 })
 
 const tripled = computed('tripled', () => {
-  return sum.get() * 3      // sum tracked
+	return sum.get() * 3 // sum tracked
 })
 ```
 
@@ -123,11 +123,11 @@ const a = atom('a', 1)
 const b = atom('b', 2)
 
 const result = computed('result', () => {
-  if (useA.get()) {
-    return a.get()  // Depends on useA and a
-  } else {
-    return b.get()  // Depends on useA and b
-  }
+	if (useA.get()) {
+		return a.get() // Depends on useA and a
+	} else {
+		return b.get() // Depends on useA and b
+	}
 })
 
 result.get() // 1, depends on [useA, a]
@@ -135,7 +135,7 @@ result.get() // 1, depends on [useA, a]
 useA.set(false)
 result.get() // 2, now depends on [useA, b]
 
-a.set(100)   // No recomputation - a is no longer a dependency
+a.set(100) // No recomputation - a is no longer a dependency
 ```
 
 ### Reading without tracking
@@ -147,13 +147,13 @@ const metadata = atom('metadata', { version: 1 })
 const data = atom('data', [])
 
 const processed = computed('processed', () => {
-  // Track data changes
-  const items = data.get()
+	// Track data changes
+	const items = data.get()
 
-  // Don't track metadata changes
-  const version = metadata.__unsafe__getWithoutCapture()
+	// Don't track metadata changes
+	const version = metadata.__unsafe__getWithoutCapture()
 
-  return processItems(items, version)
+	return processItems(items, version)
 })
 ```
 
@@ -168,13 +168,13 @@ const firstName = atom('firstName', 'Alice')
 const lastName = atom('lastName', 'Smith')
 
 // Without transaction - multiple recomputations
-firstName.set('Bob')   // Triggers dependents
-lastName.set('Jones')  // Triggers dependents again
+firstName.set('Bob') // Triggers dependents
+lastName.set('Jones') // Triggers dependents again
 
 // With transaction - single recomputation
 transact(() => {
-  firstName.set('Charlie')
-  lastName.set('Brown')
+	firstName.set('Charlie')
+	lastName.set('Brown')
 })
 // Dependents computed once with final values
 ```
@@ -183,13 +183,13 @@ transact(() => {
 
 ```typescript
 transact(() => {
-  count.set(5)
+	count.set(5)
 
-  transact(() => {
-    count.set(10)  // Inner transaction
-  })
+	transact(() => {
+		count.set(10) // Inner transaction
+	})
 
-  // count is now 10
+	// count is now 10
 })
 ```
 
@@ -201,12 +201,12 @@ Transactions automatically roll back on exception:
 const count = atom('count', 0)
 
 try {
-  transact(() => {
-    count.set(100)
-    throw new Error('Abort')
-  })
+	transact(() => {
+		count.set(100)
+		throw new Error('Abort')
+	})
 } catch {
-  count.get() // Still 0 - rolled back
+	count.get() // Still 0 - rolled back
 }
 ```
 
@@ -214,11 +214,11 @@ Manual rollback:
 
 ```typescript
 transact((rollback) => {
-  makeChanges()
+	makeChanges()
 
-  if (shouldAbort) {
-    rollback()
-  }
+	if (shouldAbort) {
+		rollback()
+	}
 })
 ```
 
@@ -232,7 +232,7 @@ import { react } from '@tldraw/state'
 const count = atom('count', 0)
 
 const stop = react('logger', () => {
-  console.log('Count is:', count.get())
+	console.log('Count is:', count.get())
 })
 // Immediately logs: 'Count is: 0'
 
@@ -247,13 +247,17 @@ stop() // Clean up
 Schedule effects for specific timing:
 
 ```typescript
-const stop = react('dom-update', () => {
-  updateDOM(state.get())
-}, {
-  scheduleEffect: (execute) => {
-    requestAnimationFrame(execute)
-  }
-})
+const stop = react(
+	'dom-update',
+	() => {
+		updateDOM(state.get())
+	},
+	{
+		scheduleEffect: (execute) => {
+			requestAnimationFrame(execute)
+		},
+	}
+)
 ```
 
 ## Epochs and change detection
@@ -275,7 +279,7 @@ epoch2 > epoch1 // true - global epoch incremented
 Each signal tracks its last change epoch:
 
 ```typescript
-count.lastChangedEpoch  // When count last changed
+count.lastChangedEpoch // When count last changed
 ```
 
 Computed signals compare epochs to determine if recalculation is needed—much faster than deep comparison.
@@ -285,9 +289,13 @@ Computed signals compare epochs to determine if recalculation is needed—much f
 By default, atoms use strict equality (`===`). For objects, provide custom comparison:
 
 ```typescript
-const position = atom('position', { x: 0, y: 0 }, {
-  isEqual: (a, b) => a.x === b.x && a.y === b.y
-})
+const position = atom(
+	'position',
+	{ x: 0, y: 0 },
+	{
+		isEqual: (a, b) => a.x === b.x && a.y === b.y,
+	}
+)
 
 position.set({ x: 0, y: 0 }) // No update - equal
 position.set({ x: 1, y: 0 }) // Update triggered
@@ -299,11 +307,11 @@ Atoms can track change history:
 
 ```typescript
 const shapes = atom('shapes', [], {
-  historyLength: 100,
-  computeDiff: (prev, next) => ({
-    added: next.filter(s => !prev.includes(s)),
-    removed: prev.filter(s => !next.includes(s))
-  })
+	historyLength: 100,
+	computeDiff: (prev, next) => ({
+		added: next.filter((s) => !prev.includes(s)),
+		removed: prev.filter((s) => !next.includes(s)),
+	}),
 })
 
 const oldEpoch = getGlobalEpoch()
@@ -352,10 +360,14 @@ Run effects synchronized with React lifecycle:
 import { useReactor } from '@tldraw/state-react'
 
 function Visualizer() {
-  useReactor('render', () => {
-    // Runs when dependencies change, throttled to animation frame
-    updateCanvas(data.get())
-  }, [])
+	useReactor(
+		'render',
+		() => {
+			// Runs when dependencies change, throttled to animation frame
+			updateCanvas(data.get())
+		},
+		[]
+	)
 }
 ```
 
@@ -427,8 +439,8 @@ Understand why a computed is recalculating:
 import { whyAmIRunning } from '@tldraw/state'
 
 const myComputed = computed('myComputed', () => {
-  whyAmIRunning()  // Prints dependency tree
-  return calculate()
+	whyAmIRunning() // Prints dependency tree
+	return calculate()
 })
 ```
 

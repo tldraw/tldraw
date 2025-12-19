@@ -1,7 +1,7 @@
 ---
 title: UI components
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - ui
   - components
@@ -63,21 +63,21 @@ function App() {
 
 ### Available component slots
 
-| Component | Description |
-|-----------|-------------|
-| `TopPanel` | Top area with share, page menu |
-| `Toolbar` | Main tool selection |
-| `QuickActions` | Undo/redo buttons |
-| `ActionsMenu` | Actions dropdown |
-| `PageMenu` | Page navigation |
-| `StylePanel` | Color, fill, size pickers |
-| `NavigationPanel` | Zoom controls |
-| `HelpMenu` | Help and keyboard shortcuts |
-| `ContextMenu` | Right-click menu |
-| `KeyboardShortcutsDialog` | Shortcuts reference |
-| `MainMenu` | Main hamburger menu |
-| `Minimap` | Document overview |
-| `ZoomMenu` | Zoom level selector |
+| Component                 | Description                    |
+| ------------------------- | ------------------------------ |
+| `TopPanel`                | Top area with share, page menu |
+| `Toolbar`                 | Main tool selection            |
+| `QuickActions`            | Undo/redo buttons              |
+| `ActionsMenu`             | Actions dropdown               |
+| `PageMenu`                | Page navigation                |
+| `StylePanel`              | Color, fill, size pickers      |
+| `NavigationPanel`         | Zoom controls                  |
+| `HelpMenu`                | Help and keyboard shortcuts    |
+| `ContextMenu`             | Right-click menu               |
+| `KeyboardShortcutsDialog` | Shortcuts reference            |
+| `MainMenu`                | Main hamburger menu            |
+| `Minimap`                 | Document overview              |
+| `ZoomMenu`                | Zoom level selector            |
 
 ### Hiding components
 
@@ -313,8 +313,8 @@ function CustomColorPicker() {
 // Keyboard shortcuts dialog
 const dialogs = useDialogs()
 dialogs.addDialog({
-  id: 'keyboard-shortcuts',
-  component: KeyboardShortcutsDialog,
+	id: 'keyboard-shortcuts',
+	component: KeyboardShortcutsDialog,
 })
 ```
 
@@ -349,10 +349,10 @@ const toasts = useToasts()
 
 // Show a toast
 toasts.addToast({
-  id: uniqueId(),
-  title: 'Saved',
-  description: 'Your changes have been saved.',
-  severity: 'success', // 'info' | 'success' | 'warning' | 'error'
+	id: uniqueId(),
+	title: 'Saved',
+	description: 'Your changes have been saved.',
+	severity: 'success', // 'info' | 'success' | 'warning' | 'error'
 })
 ```
 
@@ -364,9 +364,9 @@ tldraw adapts UI to screen size:
 
 ```typescript
 const breakpoints = {
-  mobile: 0,      // < 640px
-  tablet: 640,    // 640-1024px
-  desktop: 1024,  // > 1024px
+	mobile: 0, // < 640px
+	tablet: 640, // 640-1024px
+	desktop: 1024, // > 1024px
 }
 ```
 
@@ -399,16 +399,16 @@ function ResponsiveToolbar() {
 
 ```css
 .tl-container {
-  /* Colors */
-  --tl-background: #f8f9fa;
-  --tl-foreground: #212529;
+	/* Colors */
+	--tl-background: #f8f9fa;
+	--tl-foreground: #212529;
 
-  /* UI sizing */
-  --tl-toolbar-height: 48px;
-  --tl-panel-padding: 8px;
+	/* UI sizing */
+	--tl-toolbar-height: 48px;
+	--tl-panel-padding: 8px;
 
-  /* Typography */
-  --tl-font-ui: 'Inter', sans-serif;
+	/* Typography */
+	--tl-font-ui: 'Inter', sans-serif;
 }
 ```
 
@@ -417,18 +417,18 @@ function ResponsiveToolbar() {
 ```css
 /* Toolbar */
 .tlui-toolbar {
-  background: var(--tl-background);
-  border-radius: 8px;
+	background: var(--tl-background);
+	border-radius: 8px;
 }
 
 /* Style panel */
 .tlui-style-panel {
-  min-width: 200px;
+	min-width: 200px;
 }
 
 /* Context menu */
 .tlui-context-menu {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 ```
 

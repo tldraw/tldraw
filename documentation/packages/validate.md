@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/validate"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/validate'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - validate
   - validation
@@ -37,7 +37,7 @@ import { T } from '@tldraw/validate'
 
 // Basic validation
 const name = T.string.validate('Alice') // Returns 'Alice' as string type
-const age = T.number.validate(25)        // Returns 25 as number type
+const age = T.number.validate(25) // Returns 25 as number type
 
 // Validation failure throws ValidationError
 T.string.validate(42) // Throws: Expected string, got a number
@@ -45,14 +45,14 @@ T.string.validate(42) // Throws: Expected string, got a number
 
 Every validator exposes these methods:
 
-| Method | Purpose |
-|--------|---------|
+| Method            | Purpose                                           |
+| ----------------- | ------------------------------------------------- |
 | `validate(value)` | Validate and return typed value, throw on failure |
-| `isValid(value)` | Type guard that returns boolean |
-| `optional()` | Accept undefined in addition to the base type |
-| `nullable()` | Accept null in addition to the base type |
-| `refine(fn)` | Add additional validation logic |
-| `check(fn)` | Add validation that throws rather than transforms |
+| `isValid(value)`  | Type guard that returns boolean                   |
+| `optional()`      | Accept undefined in addition to the base type     |
+| `nullable()`      | Accept null in addition to the base type          |
+| `refine(fn)`      | Add additional validation logic                   |
+| `check(fn)`       | Add validation that throws rather than transforms |
 
 ### ValidationError
 
@@ -62,13 +62,13 @@ When validation fails, a `ValidationError` provides detailed information about w
 import { ValidationError } from '@tldraw/validate'
 
 try {
-  validator.validate(invalidData)
+	validator.validate(invalidData)
 } catch (error) {
-  if (error instanceof ValidationError) {
-    console.log(error.message)    // "At users.0.email: Expected valid URL"
-    console.log(error.path)       // ['users', 0, 'email']
-    console.log(error.rawMessage) // "Expected valid URL"
-  }
+	if (error instanceof ValidationError) {
+		console.log(error.message) // "At users.0.email: Expected valid URL"
+		console.log(error.path) // ['users', 0, 'email']
+		console.log(error.rawMessage) // "Expected valid URL"
+	}
 }
 ```
 
@@ -82,12 +82,12 @@ The error path shows exactly where in nested structures validation failed.
 import { T } from '@tldraw/validate'
 
 // Core primitives
-T.string    // Validates strings
-T.number    // Validates finite, non-NaN numbers
-T.boolean   // Validates booleans
-T.bigint    // Validates bigints
-T.unknown   // Accepts any value (useful for pass-through)
-T.any       // Escape hatch when needed
+T.string // Validates strings
+T.number // Validates finite, non-NaN numbers
+T.boolean // Validates booleans
+T.bigint // Validates bigints
+T.unknown // Accepts any value (useful for pass-through)
+T.any // Escape hatch when needed
 ```
 
 ### Numeric validators
@@ -95,11 +95,11 @@ T.any       // Escape hatch when needed
 Specialized validators for common numeric constraints:
 
 ```typescript
-T.positiveNumber    // > 0
-T.nonZeroNumber     // >= 0 (misleading name, means non-negative)
-T.integer           // Whole numbers only
-T.positiveInteger   // Positive whole numbers
-T.nonZeroInteger    // Non-negative whole numbers
+T.positiveNumber // > 0
+T.nonZeroNumber // >= 0 (misleading name, means non-negative)
+T.integer // Whole numbers only
+T.positiveInteger // Positive whole numbers
+T.nonZeroInteger // Non-negative whole numbers
 ```
 
 ### URL validators
@@ -108,14 +108,14 @@ Safe URL validation prevents XSS and other injection attacks:
 
 ```typescript
 // For user-facing links (http, https, mailto)
-T.linkUrl.validate('https://example.com')  // OK
-T.linkUrl.validate('javascript:alert(1)')  // Throws - unsafe protocol
+T.linkUrl.validate('https://example.com') // OK
+T.linkUrl.validate('javascript:alert(1)') // Throws - unsafe protocol
 
 // For resource URLs (http, https, data, asset)
-T.srcUrl.validate('data:image/png;base64,...')  // OK
+T.srcUrl.validate('data:image/png;base64,...') // OK
 
 // Strict HTTP(S) only
-T.httpUrl.validate('https://api.example.com')  // OK
+T.httpUrl.validate('https://api.example.com') // OK
 ```
 
 ### Literals and enums
@@ -123,12 +123,12 @@ T.httpUrl.validate('https://api.example.com')  // OK
 ```typescript
 // Exact value matching
 const status = T.literal('active')
-status.validate('active')   // OK
+status.validate('active') // OK
 status.validate('inactive') // Throws
 
 // Multiple allowed values
 const direction = T.literalEnum('up', 'down', 'left', 'right')
-direction.validate('up')    // OK
+direction.validate('up') // OK
 direction.validate('north') // Throws
 
 // From a Set
@@ -144,14 +144,14 @@ Define the shape of objects with per-property validators:
 
 ```typescript
 const personValidator = T.object({
-  name: T.string,
-  age: T.positiveInteger,
-  email: T.linkUrl.optional(),
+	name: T.string,
+	age: T.positiveInteger,
+	email: T.linkUrl.optional(),
 })
 
 const person = personValidator.validate({
-  name: 'Alice',
-  age: 30,
+	name: 'Alice',
+	age: 30,
 })
 // Returns: { name: 'Alice', age: 30 } with full type inference
 ```
@@ -160,8 +160,8 @@ By default, object validators are strict and reject unknown properties. To allow
 
 ```typescript
 const flexibleValidator = T.object({
-  id: T.string,
-  name: T.string,
+	id: T.string,
+	name: T.string,
 }).allowUnknownProperties()
 ```
 
@@ -171,14 +171,14 @@ Compose validators by extending:
 
 ```typescript
 const baseShape = T.object({
-  id: T.string,
-  x: T.number,
-  y: T.number,
+	id: T.string,
+	x: T.number,
+	y: T.number,
 })
 
 const rectangleShape = baseShape.extend({
-  width: T.positiveNumber,
-  height: T.positiveNumber,
+	width: T.positiveNumber,
+	height: T.positiveNumber,
 })
 ```
 
@@ -192,8 +192,8 @@ T.array.validate([1, 'two', true]) // OK
 
 // Typed array contents
 const numbers = T.arrayOf(T.number)
-numbers.validate([1, 2, 3])        // OK
-numbers.validate([1, 'two', 3])    // Throws at index 1
+numbers.validate([1, 2, 3]) // OK
+numbers.validate([1, 'two', 3]) // Throws at index 1
 ```
 
 ### Array constraints
@@ -201,8 +201,8 @@ numbers.validate([1, 'two', 3])    // Throws at index 1
 ```typescript
 // Non-empty arrays
 const nonEmpty = T.arrayOf(T.string).nonEmpty()
-nonEmpty.validate(['a'])  // OK
-nonEmpty.validate([])     // Throws
+nonEmpty.validate(['a']) // OK
+nonEmpty.validate([]) // Throws
 
 // At least two items
 const twoOrMore = T.arrayOf(T.number).lengthGreaterThan1()
@@ -214,15 +214,15 @@ Discriminated unions validate based on a discriminant property:
 
 ```typescript
 const shapeValidator = T.union('type', {
-  rectangle: T.object({
-    type: T.literal('rectangle'),
-    width: T.number,
-    height: T.number,
-  }),
-  circle: T.object({
-    type: T.literal('circle'),
-    radius: T.number,
-  }),
+	rectangle: T.object({
+		type: T.literal('rectangle'),
+		width: T.number,
+		height: T.number,
+	}),
+	circle: T.object({
+		type: T.literal('circle'),
+		radius: T.number,
+	}),
 })
 
 shapeValidator.validate({ type: 'rectangle', width: 100, height: 50 }) // OK
@@ -232,12 +232,10 @@ shapeValidator.validate({ type: 'triangle', sides: 3 }) // Throws - unknown vari
 To handle unknown variants gracefully:
 
 ```typescript
-const flexibleShapeValidator = shapeValidator.validateUnknownVariants(
-  (value, variant) => {
-    // Return a default or transformed value for unknown variants
-    return { type: 'unknown', originalType: variant }
-  }
-)
+const flexibleShapeValidator = shapeValidator.validateUnknownVariants((value, variant) => {
+	// Return a default or transformed value for unknown variants
+	return { type: 'unknown', originalType: variant }
+})
 ```
 
 ## Dictionary validators
@@ -260,9 +258,9 @@ jsonDict.validate({ key: { nested: [1, 2, 3] } }) // OK
 
 ```typescript
 const config = T.object({
-  name: T.string,
-  description: T.string.optional(),  // string | undefined
-  icon: T.string.nullable(),         // string | null
+	name: T.string,
+	description: T.string.optional(), // string | undefined
+	icon: T.string.nullable(), // string | null
 })
 ```
 
@@ -272,13 +270,13 @@ Add custom validation logic while preserving the type:
 
 ```typescript
 const positiveEven = T.number.refine((n) => {
-  if (n <= 0) throw new Error('Must be positive')
-  if (n % 2 !== 0) throw new Error('Must be even')
-  return n
+	if (n <= 0) throw new Error('Must be positive')
+	if (n % 2 !== 0) throw new Error('Must be even')
+	return n
 })
 
-positiveEven.validate(4)  // OK, returns 4
-positiveEven.validate(3)  // Throws: Must be even
+positiveEven.validate(4) // OK, returns 4
+positiveEven.validate(3) // Throws: Must be even
 ```
 
 ### Checks
@@ -287,9 +285,9 @@ When you only need to validate without transforming:
 
 ```typescript
 const nonEmptyString = T.string.check((s) => {
-  if (s.length === 0) {
-    throw new Error('String cannot be empty')
-  }
+	if (s.length === 0) {
+		throw new Error('String cannot be empty')
+	}
 })
 ```
 
@@ -298,8 +296,8 @@ const nonEmptyString = T.string.check((s) => {
 ```typescript
 const stringOrNumber = T.or(T.string, T.number)
 stringOrNumber.validate('hello') // OK
-stringOrNumber.validate(42)      // OK
-stringOrNumber.validate(true)    // Throws
+stringOrNumber.validate(42) // OK
+stringOrNumber.validate(true) // Throws
 ```
 
 ## Performance optimization
@@ -310,11 +308,13 @@ The `validateUsingKnownGoodVersion` method provides significant performance bene
 
 ```typescript
 const validator = T.object({
-  id: T.string,
-  items: T.arrayOf(T.object({
-    name: T.string,
-    value: T.number,
-  })),
+	id: T.string,
+	items: T.arrayOf(
+		T.object({
+			name: T.string,
+			value: T.number,
+		})
+	),
 })
 
 // First validation - full check
@@ -336,8 +336,8 @@ For complex objects, provide custom equality to prevent unnecessary invalidation
 
 ```typescript
 const position = T.object({
-  x: T.number,
-  y: T.number,
+	x: T.number,
+	y: T.number,
 })
 ```
 
@@ -360,7 +360,7 @@ For fractional indexing systems used in ordering:
 ```typescript
 import { T } from '@tldraw/validate'
 
-T.indexKey.validate('a0')  // OK - valid index key
+T.indexKey.validate('a0') // OK - valid index key
 T.indexKey.validate('bad') // Throws - invalid format
 ```
 
@@ -369,11 +369,14 @@ T.indexKey.validate('bad') // Throws - invalid format
 Named entity validation with enhanced error reporting:
 
 ```typescript
-const userModel = T.model('User', T.object({
-  id: T.string,
-  name: T.string,
-  email: T.linkUrl,
-}))
+const userModel = T.model(
+	'User',
+	T.object({
+		id: T.string,
+		name: T.string,
+		email: T.linkUrl,
+	})
+)
 
 // Errors include the model name for context
 userModel.validate({ id: '1', name: 'Alice', email: 'invalid' })
@@ -387,14 +390,14 @@ userModel.validate({ id: '1', name: 'Alice', email: 'invalid' })
 ```typescript
 // From packages/tlschema
 export const imageShapeProps = {
-  w: T.nonZeroNumber,
-  h: T.nonZeroNumber,
-  playing: T.boolean,
-  url: T.linkUrl,
-  assetId: assetIdValidator.nullable(),
-  crop: ImageShapeCrop.nullable(),
-  flipX: T.boolean,
-  flipY: T.boolean,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	playing: T.boolean,
+	url: T.linkUrl,
+	assetId: assetIdValidator.nullable(),
+	crop: ImageShapeCrop.nullable(),
+	flipX: T.boolean,
+	flipY: T.boolean,
 }
 ```
 
@@ -402,8 +405,8 @@ export const imageShapeProps = {
 
 ```typescript
 const queryValidator = T.object({
-  w: T.string.optional(),
-  q: T.string.optional(),
+	w: T.string.optional(),
+	q: T.string.optional(),
 })
 
 const validatedQuery = queryValidator.validate(request.query)
@@ -413,9 +416,9 @@ const validatedQuery = queryValidator.validate(request.query)
 
 ```typescript
 const migrationValidator = T.object({
-  fromVersion: T.positiveInteger,
-  toVersion: T.positiveInteger,
-  data: T.jsonValue,
+	fromVersion: T.positiveInteger,
+	toVersion: T.positiveInteger,
+	data: T.jsonValue,
 })
 ```
 

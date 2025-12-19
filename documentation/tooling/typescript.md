@@ -1,7 +1,7 @@
 ---
 title: TypeScript configuration
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - typescript
   - tsconfig
@@ -19,12 +19,12 @@ The root config extends a base and references all packages:
 
 ```json
 {
-  "extends": "./config/tsconfig.base.json",
-  "references": [
-    { "path": "packages/editor" },
-    { "path": "packages/tldraw" },
-    { "path": "packages/store" }
-  ]
+	"extends": "./config/tsconfig.base.json",
+	"references": [
+		{ "path": "packages/editor" },
+		{ "path": "packages/tldraw" },
+		{ "path": "packages/store" }
+	]
 }
 ```
 
@@ -34,16 +34,13 @@ Each package has its own config:
 
 ```json
 {
-  "extends": "../../config/tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src"],
-  "references": [
-    { "path": "../store" },
-    { "path": "../tlschema" }
-  ]
+	"extends": "../../config/tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": "./src"
+	},
+	"include": ["src"],
+	"references": [{ "path": "../store" }, { "path": "../tlschema" }]
 }
 ```
 
@@ -53,19 +50,19 @@ Shared compiler options in `config/tsconfig.base.json`:
 
 ```json
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "incremental": true
-  }
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"composite": true,
+		"incremental": true
+	}
 }
 ```
 
@@ -101,9 +98,7 @@ Project references enable:
 
 ```json
 {
-  "references": [
-    { "path": "../store" }
-  ]
+	"references": [{ "path": "../store" }]
 }
 ```
 
@@ -123,15 +118,15 @@ tldraw uses strict TypeScript settings:
 
 ```json
 {
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true
-  }
+	"compilerOptions": {
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictPropertyInitialization": true,
+		"noImplicitThis": true,
+		"alwaysStrict": true
+	}
 }
 ```
 
@@ -141,11 +136,11 @@ Using bundler resolution for modern tooling:
 
 ```json
 {
-  "compilerOptions": {
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": false,
-    "resolveJsonModule": true
-  }
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": false,
+		"resolveJsonModule": true
+	}
 }
 ```
 
@@ -155,11 +150,11 @@ Generated `.d.ts` files for public APIs:
 
 ```json
 {
-  "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "declarationDir": "./dist"
-  }
+	"compilerOptions": {
+		"declaration": true,
+		"declarationMap": true,
+		"declarationDir": "./dist"
+	}
 }
 ```
 
@@ -191,12 +186,12 @@ For development convenience:
 
 ```json
 {
-  "compilerOptions": {
-    "paths": {
-      "@tldraw/editor": ["../editor/src"],
-      "@tldraw/store": ["../store/src"]
-    }
-  }
+	"compilerOptions": {
+		"paths": {
+			"@tldraw/editor": ["../editor/src"],
+			"@tldraw/store": ["../store/src"]
+		}
+	}
 }
 ```
 
@@ -206,10 +201,10 @@ React JSX transform settings:
 
 ```json
 {
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react"
-  }
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"jsxImportSource": "react"
+	}
 }
 ```
 
@@ -231,9 +226,7 @@ Ensure proper references in tsconfig:
 
 ```json
 {
-  "references": [
-    { "path": "../dependency-package" }
-  ]
+	"references": [{ "path": "../dependency-package" }]
 }
 ```
 

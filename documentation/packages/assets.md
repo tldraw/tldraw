@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/assets"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/assets'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - assets
   - icons
@@ -35,18 +35,18 @@ import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 const assets = getAssetUrlsByImport()
 
 // Access icons via fragment identifier
-const pointerIcon = assets.icons['tool-pointer']  // icon-sprite.svg#tool-pointer
+const pointerIcon = assets.icons['tool-pointer'] // icon-sprite.svg#tool-pointer
 const rectangleIcon = assets.icons['geo-rectangle']
 ```
 
 **Icon categories:**
 
-| Category | Examples |
-|----------|----------|
-| Tools | `tool-pointer`, `tool-pencil`, `tool-arrow`, `tool-text` |
+| Category | Examples                                                   |
+| -------- | ---------------------------------------------------------- |
+| Tools    | `tool-pointer`, `tool-pencil`, `tool-arrow`, `tool-text`   |
 | Geometry | `geo-rectangle`, `geo-ellipse`, `geo-triangle`, `geo-star` |
-| UI | `chevron-down`, `align-center`, `zoom-in`, `undo`, `redo` |
-| Actions | `duplicate`, `delete`, `lock`, `group`, `share` |
+| UI       | `chevron-down`, `align-center`, `zoom-in`, `undo`, `redo`  |
+| Actions  | `duplicate`, `delete`, `lock`, `group`, `share`            |
 
 ### Fonts
 
@@ -56,9 +56,9 @@ Complete font families with multiple weights and styles:
 const assets = getAssetUrlsByImport()
 
 // Sans-serif (IBM Plex Sans) - UI and interface text
-assets.fonts.tldraw_sans           // Medium weight
-assets.fonts.tldraw_sans_bold      // Bold weight
-assets.fonts.tldraw_sans_italic    // Medium italic
+assets.fonts.tldraw_sans // Medium weight
+assets.fonts.tldraw_sans_bold // Bold weight
+assets.fonts.tldraw_sans_italic // Medium italic
 assets.fonts.tldraw_sans_italic_bold
 
 // Serif (IBM Plex Serif) - formal text
@@ -91,8 +91,8 @@ import languages from '@tldraw/assets/translations/languages.json'
 
 // Translation files
 const assets = getAssetUrlsByImport()
-assets.translations.en     // English
-assets.translations.es     // Spanish
+assets.translations.en // English
+assets.translations.es // Spanish
 assets.translations['zh-cn'] // Simplified Chinese
 assets.translations['pt-br'] // Brazilian Portuguese
 ```
@@ -165,12 +165,12 @@ import { getAssetUrls } from '@tldraw/assets/selfHosted'
 
 // With base URL for CDN
 const assets = getAssetUrls({
-  baseUrl: 'https://cdn.example.com/tldraw-assets'
+	baseUrl: 'https://cdn.example.com/tldraw-assets',
 })
 
 // With custom URL transformer
 const assets = getAssetUrls((assetUrl) => {
-  return `https://assets.myapp.com/${assetUrl}?v=${BUILD_HASH}`
+	return `https://assets.myapp.com/${assetUrl}?v=${BUILD_HASH}`
 })
 ```
 
@@ -216,7 +216,7 @@ function App() {
 import { getAssetUrls } from '@tldraw/assets/selfHosted'
 
 const assetUrls = getAssetUrls({
-  baseUrl: process.env.CDN_URL || '/assets'
+	baseUrl: process.env.CDN_URL || '/assets',
 })
 ```
 
@@ -224,9 +224,9 @@ const assetUrls = getAssetUrls({
 
 ```typescript
 const assetUrls = getAssetUrls((assetUrl) => {
-  // Add cache-busting version
-  const version = process.env.BUILD_ID
-  return `https://assets.myapp.com/${assetUrl}?v=${version}`
+	// Add cache-busting version
+	const version = process.env.BUILD_ID
+	return `https://assets.myapp.com/${assetUrl}?v=${version}`
 })
 ```
 
@@ -258,10 +258,10 @@ Fonts use WOFF2 format for optimal compression:
 
 ```css
 @font-face {
-  font-family: 'tldraw-sans';
-  src: url('./fonts/IBMPlexSans-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
+	font-family: 'tldraw-sans';
+	src: url('./fonts/IBMPlexSans-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
 }
 ```
 
@@ -272,7 +272,7 @@ For production deployments:
 ```typescript
 // Long-term caching with version-based cache busting
 const assetUrls = getAssetUrls({
-  baseUrl: `https://cdn.example.com/assets/v${APP_VERSION}`
+	baseUrl: `https://cdn.example.com/assets/v${APP_VERSION}`,
 })
 ```
 
@@ -305,26 +305,26 @@ Full TypeScript support for asset URLs:
 
 ```typescript
 interface AssetUrls {
-  fonts: {
-    tldraw_sans: string
-    tldraw_sans_bold: string
-    // ... all font variants
-  }
-  icons: {
-    'tool-pointer': string
-    'geo-rectangle': string
-    // ... all icon names
-  }
-  translations: {
-    en: string
-    es: string
-    // ... all locale codes
-  }
-  embedIcons: {
-    youtube: string
-    figma: string
-    // ... all embed services
-  }
+	fonts: {
+		tldraw_sans: string
+		tldraw_sans_bold: string
+		// ... all font variants
+	}
+	icons: {
+		'tool-pointer': string
+		'geo-rectangle': string
+		// ... all icon names
+	}
+	translations: {
+		en: string
+		es: string
+		// ... all locale codes
+	}
+	embedIcons: {
+		youtube: string
+		figma: string
+		// ... all embed services
+	}
 }
 ```
 

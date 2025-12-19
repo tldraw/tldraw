@@ -1,7 +1,7 @@
 ---
 title: Glossary
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - glossary
   - terms
@@ -179,17 +179,17 @@ Frame-based update events for animations and continuous operations.
 
 ## Common abbreviations
 
-| Abbreviation | Meaning |
-|--------------|---------|
-| TL | tldraw (prefix for types) |
-| DO | Durable Object |
-| R2 | Cloudflare R2 storage |
-| SSE | Server-Sent Events |
-| CRDT | Conflict-free Replicated Data Type |
-| API | Application Programming Interface |
-| SDK | Software Development Kit |
-| UI | User Interface |
-| E2E | End-to-End (testing) |
+| Abbreviation | Meaning                            |
+| ------------ | ---------------------------------- |
+| TL           | tldraw (prefix for types)          |
+| DO           | Durable Object                     |
+| R2           | Cloudflare R2 storage              |
+| SSE          | Server-Sent Events                 |
+| CRDT         | Conflict-free Replicated Data Type |
+| API          | Application Programming Interface  |
+| SDK          | Software Development Kit           |
+| UI           | User Interface                     |
+| E2E          | End-to-End (testing)               |
 
 ## Related
 

@@ -1,7 +1,7 @@
 ---
 title: Architecture overview
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - architecture
   - sdk
@@ -56,7 +56,7 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function App() {
-  return <Tldraw />
+	return <Tldraw />
 }
 ```
 
@@ -77,12 +77,7 @@ import { TldrawEditor } from '@tldraw/editor'
 import '@tldraw/editor/editor.css'
 
 function App() {
-  return (
-    <TldrawEditor
-      shapeUtils={myCustomShapes}
-      tools={myCustomTools}
-    />
-  )
+	return <TldrawEditor shapeUtils={myCustomShapes} tools={myCustomTools} />
 }
 ```
 
@@ -110,13 +105,13 @@ Access the editor instance to interact with the canvas:
 
 ```typescript
 function MyComponent() {
-  const editor = useEditor()
+	const editor = useEditor()
 
-  // Create a shape
-  editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	// Create a shape
+	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
-  // Access state
-  const selectedShapes = editor.getSelectedShapes()
+	// Access state
+	const selectedShapes = editor.getSelectedShapes()
 }
 ```
 
@@ -141,23 +136,23 @@ The editor uses signals extensively. Most getter methods return reactive values 
 
 The **store** is a reactive database holding all document data as typed records:
 
-| Record type | Purpose |
-|-------------|---------|
-| `TLShape` | All shapes on the canvas |
-| `TLPage` | Document pages |
-| `TLAsset` | Images, videos, bookmarks |
-| `TLBinding` | Connections between shapes |
-| `TLCamera` | Viewport position per page |
-| `TLInstance` | Editor instance state |
+| Record type           | Purpose                      |
+| --------------------- | ---------------------------- |
+| `TLShape`             | All shapes on the canvas     |
+| `TLPage`              | Document pages               |
+| `TLAsset`             | Images, videos, bookmarks    |
+| `TLBinding`           | Connections between shapes   |
+| `TLCamera`            | Viewport position per page   |
+| `TLInstance`          | Editor instance state        |
 | `TLInstancePageState` | Per-page selection and focus |
 
 Records have **scopes** that determine sync and persistence behavior:
 
-| Scope | Synced | Persisted | Examples |
-|-------|--------|-----------|----------|
-| `document` | Yes | Yes | Shapes, pages, assets |
-| `session` | No | Maybe | User preferences |
-| `presence` | Yes | No | Cursors, selections |
+| Scope      | Synced | Persisted | Examples              |
+| ---------- | ------ | --------- | --------------------- |
+| `document` | Yes    | Yes       | Shapes, pages, assets |
+| `session`  | No     | Maybe     | User preferences      |
+| `presence` | Yes    | No        | Cursors, selections   |
 
 ### ShapeUtil: defining shapes
 
@@ -190,29 +185,29 @@ Tools are implemented as hierarchical state machines using `StateNode`:
 
 ```typescript
 class DrawTool extends StateNode {
-  static id = 'draw'
-  static children = () => [Idle, Drawing]
-  static initial = 'idle'
+	static id = 'draw'
+	static children = () => [Idle, Drawing]
+	static initial = 'idle'
 }
 
 class Idle extends StateNode {
-  static id = 'idle'
+	static id = 'idle'
 
-  onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition('drawing', info)
-  }
+	onPointerDown(info: TLPointerEventInfo) {
+		this.parent.transition('drawing', info)
+	}
 }
 
 class Drawing extends StateNode {
-  static id = 'drawing'
+	static id = 'drawing'
 
-  onPointerMove(info: TLPointerEventInfo) {
-    // Update the shape being drawn
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		// Update the shape being drawn
+	}
 
-  onPointerUp(info: TLPointerEventInfo) {
-    this.parent.transition('idle')
-  }
+	onPointerUp(info: TLPointerEventInfo) {
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -222,11 +217,11 @@ Bindings connect shapes together. The most common example is arrows binding to s
 
 ```typescript
 class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
-  static type = 'arrow' as const
+	static type = 'arrow' as const
 
-  onAfterChangeToShape({ binding, shapeAfter }) {
-    // Update arrow when bound shape moves
-  }
+	onAfterChangeToShape({ binding, shapeAfter }) {
+		// Update arrow when bound shape moves
+	}
 }
 ```
 
@@ -279,14 +274,14 @@ Components subscribe to reactive state. When records change, only affected compo
 
 The SDK provides several extension mechanisms:
 
-| Extension | Use case |
-|-----------|----------|
-| Custom shapes | New shape types via ShapeUtil |
-| Custom tools | New tools via StateNode |
-| Custom bindings | Shape relationships via BindingUtil |
-| UI overrides | Replace any UI component |
-| Side effects | React to store changes |
-| External content | Handle paste/drop/embed |
+| Extension        | Use case                            |
+| ---------------- | ----------------------------------- |
+| Custom shapes    | New shape types via ShapeUtil       |
+| Custom tools     | New tools via StateNode             |
+| Custom bindings  | Shape relationships via BindingUtil |
+| UI overrides     | Replace any UI component            |
+| Side effects     | React to store changes              |
+| External content | Handle paste/drop/embed             |
 
 ## Performance design
 

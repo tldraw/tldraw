@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/sync-core"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/sync-core'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - sync
   - collaboration
@@ -49,13 +49,13 @@ The sync system uses a server-authoritative model:
 
 ```typescript
 class TLSyncClient<R extends UnknownRecord> {
-  // Connection management
-  connect(): void
-  disconnect(): void
+	// Connection management
+	connect(): void
+	disconnect(): void
 
-  // Reactive state
-  status: Signal<TLPersistentClientSocketStatus>
-  store: Store<R>
+	// Reactive state
+	status: Signal<TLPersistentClientSocketStatus>
+	store: Store<R>
 }
 ```
 
@@ -63,15 +63,15 @@ class TLSyncClient<R extends UnknownRecord> {
 
 ```typescript
 class TLSyncRoom<R extends UnknownRecord, Meta> {
-  // Session tracking
-  sessions: Map<string, RoomSession<R, Meta>>
+	// Session tracking
+	sessions: Map<string, RoomSession<R, Meta>>
 
-  // State management
-  store: Store<R>
+	// State management
+	store: Store<R>
 
-  // Room lifecycle
-  getNumActiveConnections(): number
-  close(): void
+	// Room lifecycle
+	getNumActiveConnections(): number
+	close(): void
 }
 ```
 
@@ -83,20 +83,20 @@ The protocol defines specific message types for client-server communication:
 
 **Client → Server:**
 
-| Message | Purpose |
-|---------|---------|
+| Message            | Purpose                                    |
+| ------------------ | ------------------------------------------ |
 | `TLConnectRequest` | Initial connection with schema information |
-| `TLPushRequest` | State changes to apply |
-| `TLPingRequest` | Keepalive ping |
+| `TLPushRequest`    | State changes to apply                     |
+| `TLPingRequest`    | Keepalive ping                             |
 
 **Server → Client:**
 
-| Message | Purpose |
-|---------|---------|
-| `ConnectEvent` | Connection established with initial state |
-| `DataEvent` | State updates to apply |
-| `IncompatibilityError` | Schema or version mismatch |
-| `PongEvent` | Ping response |
+| Message                | Purpose                                   |
+| ---------------------- | ----------------------------------------- |
+| `ConnectEvent`         | Connection established with initial state |
+| `DataEvent`            | State updates to apply                    |
+| `IncompatibilityError` | Schema or version mismatch                |
+| `PongEvent`            | Ping response                             |
 
 ### Connection lifecycle
 
@@ -109,17 +109,17 @@ The protocol defines specific message types for client-server communication:
 ```typescript
 // Client connection flow
 const client = new TLSyncClient({
-  store,
-  socket: websocketAdapter,
-  onSyncError: (error) => console.error('Sync error:', error),
+	store,
+	socket: websocketAdapter,
+	onSyncError: (error) => console.error('Sync error:', error),
 })
 
 client.connect()
 
 // Monitor connection status
 react('connection-status', () => {
-  const status = client.status.get()
-  console.log('Status:', status)
+	const status = client.status.get()
+	console.log('Status:', status)
 })
 ```
 
@@ -131,13 +131,13 @@ The sync system uses compact, network-optimized change representations:
 
 ```typescript
 interface NetworkDiff<R extends UnknownRecord> {
-  [recordId: string]: RecordOp<R>
+	[recordId: string]: RecordOp<R>
 }
 
 type RecordOp<R> =
-  | [RecordOpType.Put, R]       // Add or replace record
-  | [RecordOpType.Patch, ObjectDiff]  // Partial update
-  | [RecordOpType.Remove]       // Delete record
+	| [RecordOpType.Put, R] // Add or replace record
+	| [RecordOpType.Patch, ObjectDiff] // Partial update
+	| [RecordOpType.Remove] // Delete record
 ```
 
 ### Object diffing
@@ -146,14 +146,14 @@ Fine-grained property-level changes minimize bandwidth:
 
 ```typescript
 interface ObjectDiff {
-  [key: string]: ValueOp
+	[key: string]: ValueOp
 }
 
 type ValueOp =
-  | [ValueOpType.Put, any]      // Set property value
-  | [ValueOpType.Patch, ObjectDiff]  // Nested object update
-  | [ValueOpType.Append, any]   // Array append
-  | [ValueOpType.Delete]        // Remove property
+	| [ValueOpType.Put, any] // Set property value
+	| [ValueOpType.Patch, ObjectDiff] // Nested object update
+	| [ValueOpType.Append, any] // Array append
+	| [ValueOpType.Delete] // Remove property
 ```
 
 Instead of sending entire records, only changed properties are transmitted:
@@ -177,27 +177,27 @@ Each connected client has a session tracking its state:
 
 ```typescript
 type RoomSession<R, Meta> = {
-  state: RoomSessionState
-  sessionId: string
-  presenceId: string | null
-  socket: TLRoomSocket<R>
-  meta: Meta  // Custom metadata (user info, permissions, etc.)
-  isReadonly: boolean
-  lastInteractionTime: number
+	state: RoomSessionState
+	sessionId: string
+	presenceId: string | null
+	socket: TLRoomSocket<R>
+	meta: Meta // Custom metadata (user info, permissions, etc.)
+	isReadonly: boolean
+	lastInteractionTime: number
 }
 
 enum RoomSessionState {
-  AwaitingConnectMessage,  // Initial connection pending
-  Connected,               // Fully synchronized
-  AwaitingRemoval,         // Disconnection in progress
+	AwaitingConnectMessage, // Initial connection pending
+	Connected, // Fully synchronized
+	AwaitingRemoval, // Disconnection in progress
 }
 ```
 
 ### Timeout constants
 
 ```typescript
-SESSION_START_WAIT_TIME = 10_000   // 10s to complete connection
-SESSION_IDLE_TIMEOUT = 20_000     // 20s before idle detection
+SESSION_START_WAIT_TIME = 10_000 // 10s to complete connection
+SESSION_IDLE_TIMEOUT = 20_000 // 20s before idle detection
 SESSION_REMOVAL_WAIT_TIME = 5_000 // 5s cleanup delay
 ```
 
@@ -209,16 +209,16 @@ Manages WebSocket connections with reliability features:
 
 ```typescript
 class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
-  // Connection state
-  status: Atom<TLPersistentClientSocketStatus>
+	// Connection state
+	status: Atom<TLPersistentClientSocketStatus>
 
-  // Reliability
-  restart(): void
-  sendMessage(msg: any): void
+	// Reliability
+	restart(): void
+	sendMessage(msg: any): void
 
-  // Events
-  onReceiveMessage: SubscribingFn<any>
-  onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>
+	// Events
+	onReceiveMessage: SubscribingFn<any>
+	onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>
 }
 ```
 
@@ -226,11 +226,11 @@ class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 
 ```typescript
 type TLPersistentClientSocketStatus =
-  | 'initial'      // Not yet connected
-  | 'connecting'   // Connection in progress
-  | 'online'       // Connected and synced
-  | 'offline'      // Disconnected, will retry
-  | 'error'        // Fatal error, won't retry
+	| 'initial' // Not yet connected
+	| 'connecting' // Connection in progress
+	| 'online' // Connected and synced
+	| 'offline' // Disconnected, will retry
+	| 'error' // Fatal error, won't retry
 ```
 
 ### ReconnectManager
@@ -284,11 +284,11 @@ Real-time presence shows other users' cursors and selections:
 ```typescript
 // Presence record structure
 interface TLPresence {
-  id: string
-  cursor: { x: number; y: number } | null
-  selection: string[]  // Selected shape IDs
-  userName: string
-  color: string
+	id: string
+	cursor: { x: number; y: number } | null
+	selection: string[] // Selected shape IDs
+	userName: string
+	color: string
 }
 ```
 
@@ -306,16 +306,16 @@ Specialized error types for synchronization issues:
 
 ```typescript
 class TLRemoteSyncError extends Error {
-  code: TLSyncErrorCloseEventCode
-  reason: TLSyncErrorCloseEventReason
+	code: TLSyncErrorCloseEventCode
+	reason: TLSyncErrorCloseEventReason
 }
 
 // Error reasons
 enum TLSyncErrorCloseEventReason {
-  NOT_FOUND = 'not_found',       // Room doesn't exist
-  FORBIDDEN = 'forbidden',       // Permission denied
-  CLIENT_TOO_OLD = 'clientTooOld', // Client needs upgrade
-  SERVER_TOO_OLD = 'serverTooOld', // Server needs upgrade
+	NOT_FOUND = 'not_found', // Room doesn't exist
+	FORBIDDEN = 'forbidden', // Permission denied
+	CLIENT_TOO_OLD = 'clientTooOld', // Client needs upgrade
+	SERVER_TOO_OLD = 'serverTooOld', // Server needs upgrade
 }
 ```
 
@@ -344,8 +344,8 @@ Large updates are split into manageable chunks:
 
 ```typescript
 function chunk<T>(items: T[], maxSize: number): T[][] {
-  // Split large arrays into smaller pieces
-  // Prevents overwhelming the network or parser
+	// Split large arrays into smaller pieces
+	// Prevents overwhelming the network or parser
 }
 ```
 
@@ -365,14 +365,14 @@ The sync system integrates directly with `@tldraw/store`:
 ```typescript
 // Changes from the store are captured and synced
 store.listen((event) => {
-  if (event.source === 'user') {
-    syncClient.push(event.changes)
-  }
+	if (event.source === 'user') {
+		syncClient.push(event.changes)
+	}
 })
 
 // Incoming changes are applied to the store
 syncClient.onData((changes) => {
-  store.mergeRemoteChanges(changes)
+	store.mergeRemoteChanges(changes)
 })
 ```
 

@@ -1,7 +1,7 @@
 ---
 title: Shape system
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - shapes
   - shapeutil
@@ -21,6 +21,7 @@ The shape system consists of three main components:
 3. **Geometry2d classes** - Mathematical representations used for hit testing, bounds, and collisions (from `@tldraw/editor`)
 
 This separation allows shapes to have:
+
 - Type-safe data structures with validation
 - Custom rendering logic (HTML, SVG, or both)
 - Precise geometric calculations for interactions
@@ -33,31 +34,35 @@ Every shape starts with a type definition that extends `TLBaseShape`:
 ```typescript
 import { TLBaseShape, TLDefaultColorStyle } from '@tldraw/tlschema'
 
-type MyShape = TLBaseShape<'myShape', {
-  w: number
-  h: number
-  color: TLDefaultColorStyle
-  text: string
-}>
+type MyShape = TLBaseShape<
+	'myShape',
+	{
+		w: number
+		h: number
+		color: TLDefaultColorStyle
+		text: string
+	}
+>
 ```
 
 The base shape provides standard properties that all shapes inherit:
 
-| Property | Type | Purpose |
-|----------|------|---------|
-| `id` | `TLShapeId` | Unique identifier |
-| `type` | `string` | Shape type name |
-| `x` | `number` | X position on page |
-| `y` | `number` | Y position on page |
-| `rotation` | `number` | Rotation in radians |
-| `index` | `IndexKey` | Z-order position |
-| `parentId` | `TLParentId` | Parent page or shape |
-| `isLocked` | `boolean` | Whether shape is locked |
-| `opacity` | `TLOpacityType` | Shape opacity (0-1) |
-| `meta` | `JsonObject` | User-defined metadata |
-| `props` | `object` | Shape-specific properties |
+| Property   | Type            | Purpose                   |
+| ---------- | --------------- | ------------------------- |
+| `id`       | `TLShapeId`     | Unique identifier         |
+| `type`     | `string`        | Shape type name           |
+| `x`        | `number`        | X position on page        |
+| `y`        | `number`        | Y position on page        |
+| `rotation` | `number`        | Rotation in radians       |
+| `index`    | `IndexKey`      | Z-order position          |
+| `parentId` | `TLParentId`    | Parent page or shape      |
+| `isLocked` | `boolean`       | Whether shape is locked   |
+| `opacity`  | `TLOpacityType` | Shape opacity (0-1)       |
+| `meta`     | `JsonObject`    | User-defined metadata     |
+| `props`    | `object`        | Shape-specific properties |
 
 Shape props can include:
+
 - **Style properties** - Shared across shapes (color, size, font, etc.)
 - **Regular properties** - Shape-specific (width, height, text, etc.)
 - **Complex properties** - Validated structures (rich text, URLs, etc.)
@@ -102,6 +107,7 @@ getGeometry(shape: MyShape) {
 ```
 
 Available geometry classes include:
+
 - `Rectangle2d` - Axis-aligned rectangles
 - `Circle2d` - Circles
 - `Ellipse2d` - Ellipses
@@ -134,6 +140,7 @@ component(shape: MyShape) {
 ```
 
 Components can use:
+
 - **HTMLContainer** - For HTML-based rendering (text, inputs, etc.)
 - **SVGContainer** - For SVG-based rendering (shapes, paths, etc.)
 - **Both** - Mix HTML and SVG (common for shapes with text labels)
@@ -172,6 +179,7 @@ canEdit(shape: MyShape, info: TLEditStartInfo): boolean {
 ```
 
 The `info` parameter provides context about how editing was initiated:
+
 - `'press_enter'` - User pressed Enter key
 - `'click'` - Single click
 - `'double-click'` - Double click on shape
@@ -294,6 +302,7 @@ toSvg(shape: MyShape, ctx: SvgExportContext): ReactElement {
 ```
 
 The `SvgExportContext` provides:
+
 - `addExportDef(def)` - Add SVG definitions (gradients, patterns, etc.)
 - Access to theme colors for export
 - Asset resolution utilities
@@ -364,6 +373,7 @@ onResizeCancel(initial: MyShape, current: MyShape): void {
 ```
 
 The `TLResizeInfo` object contains:
+
 - `newPoint` - New position after resize
 - `handle` - Which handle is being dragged
 - `mode` - Either `'scale_shape'` or `'resize_bounds'`
@@ -578,6 +588,7 @@ getHandles(shape: MyShape): TLHandle[] {
 ```
 
 Handle types:
+
 - `'vertex'` - Movable point
 - `'virtual'` - Helper point (not draggable)
 - `'create'` - Used during creation
@@ -713,11 +724,11 @@ Axis-aligned rectangles:
 
 ```typescript
 new Rectangle2d({
-  x: 0,         // Optional x offset
-  y: 0,         // Optional y offset
-  width: 100,
-  height: 50,
-  isFilled: true,
+	x: 0, // Optional x offset
+	y: 0, // Optional y offset
+	width: 100,
+	height: 50,
+	isFilled: true,
 })
 ```
 
@@ -727,10 +738,10 @@ Perfect circles:
 
 ```typescript
 new Circle2d({
-  x: 50,        // Center x
-  y: 50,        // Center y
-  radius: 25,
-  isFilled: true,
+	x: 50, // Center x
+	y: 50, // Center y
+	radius: 25,
+	isFilled: true,
 })
 ```
 
@@ -740,9 +751,9 @@ Ellipses:
 
 ```typescript
 new Ellipse2d({
-  width: 100,
-  height: 50,
-  isFilled: true,
+	width: 100,
+	height: 50,
+	isFilled: true,
 })
 ```
 
@@ -752,13 +763,13 @@ Custom closed polygons:
 
 ```typescript
 new Polygon2d({
-  points: [
-    { x: 0, y: 0 },
-    { x: 100, y: 0 },
-    { x: 100, y: 100 },
-    { x: 0, y: 100 },
-  ],
-  isFilled: true,
+	points: [
+		{ x: 0, y: 0 },
+		{ x: 100, y: 0 },
+		{ x: 100, y: 100 },
+		{ x: 0, y: 100 },
+	],
+	isFilled: true,
 })
 ```
 
@@ -768,11 +779,11 @@ Multi-point lines (not closed):
 
 ```typescript
 new Polyline2d({
-  points: [
-    { x: 0, y: 0 },
-    { x: 50, y: 50 },
-    { x: 100, y: 0 },
-  ],
+	points: [
+		{ x: 0, y: 0 },
+		{ x: 50, y: 50 },
+		{ x: 100, y: 0 },
+	],
 })
 ```
 
@@ -782,9 +793,9 @@ Rounded rectangles (pill shapes):
 
 ```typescript
 new Stadium2d({
-  width: 100,
-  height: 50,
-  isFilled: true,
+	width: 100,
+	height: 50,
+	isFilled: true,
 })
 ```
 
@@ -794,17 +805,17 @@ Composite geometry from multiple geometries:
 
 ```typescript
 new Group2d({
-  children: [
-    new Rectangle2d({ width: 100, height: 100, isFilled: true }),
-    new Rectangle2d({
-      x: 10,
-      y: 10,
-      width: 80,
-      height: 20,
-      isFilled: true,
-      isLabel: true,  // Mark as label area
-    }),
-  ],
+	children: [
+		new Rectangle2d({ width: 100, height: 100, isFilled: true }),
+		new Rectangle2d({
+			x: 10,
+			y: 10,
+			width: 80,
+			height: 20,
+			isFilled: true,
+			isLabel: true, // Mark as label area
+		}),
+	],
 })
 ```
 
@@ -816,8 +827,8 @@ Single line segment:
 
 ```typescript
 new Edge2d({
-  start: { x: 0, y: 0 },
-  end: { x: 100, y: 100 },
+	start: { x: 0, y: 0 },
+	end: { x: 100, y: 100 },
 })
 ```
 
@@ -837,6 +848,7 @@ All geometries accept these optional flags:
 ```
 
 These flags control:
+
 - Hit testing behavior
 - Bounds calculation
 - Visual debugging
@@ -854,13 +866,13 @@ Create the TypeScript interface in your schema:
 import { TLBaseShape, TLDefaultColorStyle } from '@tldraw/tlschema'
 
 export type MyShape = TLBaseShape<
-  'myShape',
-  {
-    w: number
-    h: number
-    color: TLDefaultColorStyle
-    text: string
-  }
+	'myShape',
+	{
+		w: number
+		h: number
+		color: TLDefaultColorStyle
+		text: string
+	}
 >
 ```
 
@@ -872,10 +884,10 @@ Create the props validation object:
 import { T, DefaultColorStyle } from '@tldraw/tlschema'
 
 export const myShapeProps = {
-  w: T.number,
-  h: T.number,
-  color: DefaultColorStyle,
-  text: T.string,
+	w: T.number,
+	h: T.number,
+	color: DefaultColorStyle,
+	text: T.string,
 }
 ```
 
@@ -887,9 +899,9 @@ Define the migration sequence:
 import { createShapePropsMigrationSequence } from '@tldraw/tlschema'
 
 export const myShapeMigrations = createShapePropsMigrationSequence({
-  sequence: [
-    // Migrations go here as schema evolves
-  ],
+	sequence: [
+		// Migrations go here as schema evolves
+	],
 })
 ```
 
@@ -1001,20 +1013,20 @@ Make the shape resizable:
 
 ```typescript
 export class MyShapeUtil extends ShapeUtil<MyShape> {
-  // ... previous methods ...
+	// ... previous methods ...
 
-  override canResize() {
-    return true
-  }
+	override canResize() {
+		return true
+	}
 
-  override onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
-    return {
-      props: {
-        w: Math.max(1, info.initialShape.props.w * info.scaleX),
-        h: Math.max(1, info.initialShape.props.h * info.scaleY),
-      },
-    }
-  }
+	override onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
+		return {
+			props: {
+				w: Math.max(1, info.initialShape.props.w * info.scaleX),
+				h: Math.max(1, info.initialShape.props.h * info.scaleY),
+			},
+		}
+	}
 }
 ```
 
@@ -1062,6 +1074,7 @@ The `@tldraw/tldraw` package includes a comprehensive set of default shapes:
 ### Basic shapes
 
 **Geo shapes** - Geometric primitives with text labels:
+
 - Rectangle, ellipse, triangle, diamond, pentagon, hexagon, octagon
 - Star, rhombus, trapezoid, cloud, heart
 - Arrow variants (up, down, left, right)
@@ -1069,23 +1082,27 @@ The `@tldraw/tldraw` package includes a comprehensive set of default shapes:
 - All support rich text labels, fills, and various styles
 
 **Text** - Rich text with formatting:
+
 - Multiple font families (draw, sans, serif, mono)
 - Text alignment and sizing
 - Auto-sizing and fixed-width modes
 - Inline styles (bold, italic, links)
 
 **Note** - Sticky note shapes:
+
 - Colored backgrounds
 - Auto-sizing text
 - Fixed aspect ratio
 
 **Frame** - Container shapes:
+
 - Can contain other shapes
 - Clipping support
 - Named frames with headers
 - Export boundary control
 
 **Group** - Shape grouping:
+
 - Logical grouping without visual container
 - Maintains relative positions
 - Supports nested groups
@@ -1093,17 +1110,20 @@ The `@tldraw/tldraw` package includes a comprehensive set of default shapes:
 ### Drawing shapes
 
 **Draw** - Freehand drawing:
+
 - Pressure-sensitive strokes
 - Stroke smoothing and simplification
 - Multiple dash styles
 - Variable size and color
 
 **Highlight** - Highlighter tool:
+
 - Semi-transparent strokes
 - Optimized for annotation
 - Appears behind other content
 
 **Line** - Multi-point lines:
+
 - Straight line segments
 - Multiple control points
 - Various stroke styles
@@ -1112,6 +1132,7 @@ The `@tldraw/tldraw` package includes a comprehensive set of default shapes:
 ### Complex shapes
 
 **Arrow** - Smart arrows with bindings:
+
 - Automatic binding to shapes
 - Start and end decorations (arrow, dot, diamond, bar)
 - Label support
@@ -1119,24 +1140,28 @@ The `@tldraw/tldraw` package includes a comprehensive set of default shapes:
 - Updates when connected shapes move
 
 **Embed** - Embedded web content:
+
 - YouTube, Figma, Google Maps, etc.
 - Live preview support
 - Configurable dimensions
 - URL validation
 
 **Bookmark** - Web page bookmarks:
+
 - Automatic metadata fetching (title, description, favicon)
 - Preview images
 - Link opening
 - Fallback states
 
 **Image** - Raster images:
+
 - PNG, JPEG, GIF, WebP support
 - Cropping support
 - Aspect ratio preservation
 - Asset management integration
 
 **Video** - Video playback:
+
 - MP4, WebM support
 - Playback controls
 - Thumbnail generation
@@ -1147,6 +1172,7 @@ The `@tldraw/tldraw` package includes a comprehensive set of default shapes:
 Many shapes extend base utilities:
 
 **BaseBoxShapeUtil** - For rectangular shapes:
+
 - Provides default geometry (Rectangle2d)
 - Standard resize behavior
 - Common handle snapping
@@ -1170,6 +1196,7 @@ getGeometry(shape: MyShape) {
 ```
 
 The caching happens at the geometry instance level, with computed properties for:
+
 - `vertices` - Calculated once and cached
 - `bounds` - Calculated from vertices
 - `area` - Calculated from vertices
@@ -1199,6 +1226,7 @@ component(shape: MyShape) {
 ```
 
 Best practices:
+
 - Use `useValue` for reactive editor state
 - Memoize expensive calculations
 - Avoid inline function definitions
@@ -1216,6 +1244,7 @@ override canCull(shape: MyShape): boolean {
 ```
 
 Culled shapes:
+
 - Remain in the DOM
 - Don't render visually
 - Still participate in hit testing
@@ -1224,6 +1253,7 @@ Culled shapes:
 ### Hit testing optimization
 
 The geometry system optimizes hit testing by:
+
 1. Checking bounds first (cheap)
 2. Only testing detailed geometry if within bounds
 3. Caching vertex calculations
@@ -1261,15 +1291,15 @@ Shape utilities are singleton instances. Avoid storing shape-specific state in t
 ```typescript
 // Bad: State in util
 class MyShapeUtil extends ShapeUtil<MyShape> {
-  private cache = new Map() // Leaks memory!
+	private cache = new Map() // Leaks memory!
 }
 
 // Good: State in editor or React state
 class MyShapeUtil extends ShapeUtil<MyShape> {
-  component(shape: MyShape) {
-    const [state, setState] = useState()
-    // Component-local state
-  }
+	component(shape: MyShape) {
+		const [state, setState] = useState()
+		// Component-local state
+	}
 }
 ```
 

@@ -1,7 +1,7 @@
 ---
 title: Sync worker
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - sync
   - worker
@@ -26,13 +26,13 @@ A distributed system that powers tldraw's collaboration features:
 
 ### Durable Objects
 
-| Object | Purpose |
-|--------|---------|
-| `TLDrawDurableObject` | Room management and real-time sync |
-| `TLUserDurableObject` | User data synchronization |
-| `TLPostgresReplicator` | Database change replication |
-| `TLLoggerDurableObject` | Centralized logging |
-| `TLStatsDurableObject` | Metrics collection |
+| Object                  | Purpose                            |
+| ----------------------- | ---------------------------------- |
+| `TLDrawDurableObject`   | Room management and real-time sync |
+| `TLUserDurableObject`   | User data synchronization          |
+| `TLPostgresReplicator`  | Database change replication        |
+| `TLLoggerDurableObject` | Centralized logging                |
+| `TLStatsDurableObject`  | Metrics collection                 |
 
 ### Request flow
 
@@ -48,23 +48,23 @@ Client → Cloudflare Edge → sync-worker → Durable Object
 
 ```typescript
 class TLDrawDurableObject extends DurableObject {
-  private _room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
+	private _room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
 
-  async onRequest(req: IRequest, openMode: RoomOpenMode) {
-    const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
+	async onRequest(req: IRequest, openMode: RoomOpenMode) {
+		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 
-    const auth = await getAuth(req, this.env)
-    const room = await this.getRoom()
+		const auth = await getAuth(req, this.env)
+		const room = await this.getRoom()
 
-    room.handleSocketConnect({
-      sessionId,
-      socket: serverWebSocket,
-      meta: { userId: auth?.userId },
-      isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
-    })
+		room.handleSocketConnect({
+			sessionId,
+			socket: serverWebSocket,
+			meta: { userId: auth?.userId },
+			isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
+		})
 
-    return new Response(null, { status: 101, webSocket: clientWebSocket })
-  }
+		return new Response(null, { status: 101, webSocket: clientWebSocket })
+	}
 }
 ```
 
@@ -89,11 +89,11 @@ class TLDrawDurableObject extends DurableObject {
 
 ### Storage layers
 
-| Layer | Purpose | Technology |
-|-------|---------|------------|
-| R2 | Room snapshots | Object storage |
-| PostgreSQL | File metadata | Relational database |
-| Durable Object | Session state | Edge storage |
+| Layer          | Purpose        | Technology          |
+| -------------- | -------------- | ------------------- |
+| R2             | Room snapshots | Object storage      |
+| PostgreSQL     | File metadata  | Relational database |
+| Durable Object | Session state  | Edge storage        |
 
 ### Persistence strategy
 
@@ -127,12 +127,12 @@ async persistToDatabase() {
 const auth = await getAuth(req, env)
 
 if (file.ownerId !== auth?.userId) {
-  if (!file.shared) {
-    return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-  }
-  if (file.sharedLinkType === 'view') {
-    openMode = ROOM_OPEN_MODE.READ_ONLY
-  }
+	if (!file.shared) {
+		return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+	}
+	if (file.sharedLinkType === 'view') {
+		openMode = ROOM_OPEN_MODE.READ_ONLY
+	}
 }
 ```
 
@@ -141,7 +141,7 @@ if (file.ownerId !== auth?.userId) {
 ```typescript
 const rateLimited = await isRateLimited(this.env, userId)
 if (rateLimited) {
-  return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+	return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 }
 ```
 
@@ -149,17 +149,17 @@ if (rateLimited) {
 
 ```typescript
 interface RoomSession<R, Meta> {
-  sessionId: string
-  presenceId: string | null
-  socket: TLRoomSocket<R>
-  meta: Meta
-  isReadonly: boolean
-  lastInteractionTime: number
+	sessionId: string
+	presenceId: string | null
+	socket: TLRoomSocket<R>
+	meta: Meta
+	isReadonly: boolean
+	lastInteractionTime: number
 }
 
 // Timeouts
-SESSION_START_WAIT_TIME = 10_000   // 10s handshake
-SESSION_IDLE_TIMEOUT = 20_000     // 20s idle
+SESSION_START_WAIT_TIME = 10_000 // 10s handshake
+SESSION_IDLE_TIMEOUT = 20_000 // 20s idle
 SESSION_REMOVAL_WAIT_TIME = 5_000 // 5s cleanup
 ```
 
@@ -196,10 +196,10 @@ bucket_name = "uploads"
 
 ```typescript
 const schema = {
-  tables: {
-    user: table('user').columns({ id, name, preferences }),
-    file: table('file').columns({ id, name, ownerId, shared }),
-  },
+	tables: {
+		user: table('user').columns({ id, name, preferences }),
+		file: table('file').columns({ id, name, ownerId, shared }),
+	},
 }
 
 // Server-side mutation processing
@@ -211,15 +211,15 @@ const result = await processor.process(createMutators(userId), req)
 
 ```typescript
 class TLPostgresReplicator extends DurableObject<Environment> {
-  async handleReplicationEvent(event: ReplicationEvent) {
-    for (const change of event.changes) {
-      const affectedUsers = extractAffectedUsers(change)
-      for (const userId of affectedUsers) {
-        const userDO = getUserDurableObject(this.env, userId)
-        await userDO.handleReplicationEvent(change)
-      }
-    }
-  }
+	async handleReplicationEvent(event: ReplicationEvent) {
+		for (const change of event.changes) {
+			const affectedUsers = extractAffectedUsers(change)
+			for (const userId of affectedUsers) {
+				const userDO = getUserDurableObject(this.env, userId)
+				await userDO.handleReplicationEvent(change)
+			}
+		}
+	}
 }
 ```
 
@@ -237,7 +237,7 @@ class TLPostgresReplicator extends DurableObject<Environment> {
 const MAX_CONNECTIONS = 50
 
 if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
-  return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
+	return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 }
 ```
 
@@ -249,10 +249,10 @@ if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
 const sentry = createSentry(this.ctx, this.env, request)
 
 try {
-  return await this.router.fetch(req)
+	return await this.router.fetch(req)
 } catch (err) {
-  sentry?.captureException(err)
-  return new Response('Error', { status: 500 })
+	sentry?.captureException(err)
+	return new Response('Error', { status: 500 })
 }
 ```
 

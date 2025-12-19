@@ -1,7 +1,7 @@
 ---
 title: Style system
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - styles
   - themes
@@ -26,64 +26,62 @@ Styles in tldraw are:
 ### Color style
 
 ```typescript
-const DefaultColorStyle: StyleProp<TLDefaultColorStyle> = StyleProp.define(
-  'tldraw:color',
-  {
-    defaultValue: 'black',
-    values: [
-      'black', 'grey', 'light-violet', 'violet', 'blue',
-      'light-blue', 'yellow', 'orange', 'green', 'light-green',
-      'light-red', 'red', 'white'
-    ]
-  }
-)
+const DefaultColorStyle: StyleProp<TLDefaultColorStyle> = StyleProp.define('tldraw:color', {
+	defaultValue: 'black',
+	values: [
+		'black',
+		'grey',
+		'light-violet',
+		'violet',
+		'blue',
+		'light-blue',
+		'yellow',
+		'orange',
+		'green',
+		'light-green',
+		'light-red',
+		'red',
+		'white',
+	],
+})
 ```
 
 ### Size style
 
 ```typescript
-const DefaultSizeStyle: StyleProp<TLDefaultSizeStyle> = StyleProp.define(
-  'tldraw:size',
-  {
-    defaultValue: 'm',
-    values: ['s', 'm', 'l', 'xl']
-  }
-)
+const DefaultSizeStyle: StyleProp<TLDefaultSizeStyle> = StyleProp.define('tldraw:size', {
+	defaultValue: 'm',
+	values: ['s', 'm', 'l', 'xl'],
+})
 ```
 
 ### Font style
 
 ```typescript
-const DefaultFontStyle: StyleProp<TLDefaultFontStyle> = StyleProp.define(
-  'tldraw:font',
-  {
-    defaultValue: 'draw',
-    values: ['draw', 'sans', 'serif', 'mono']
-  }
-)
+const DefaultFontStyle: StyleProp<TLDefaultFontStyle> = StyleProp.define('tldraw:font', {
+	defaultValue: 'draw',
+	values: ['draw', 'sans', 'serif', 'mono'],
+})
 ```
 
 ### Fill style
 
 ```typescript
-const DefaultFillStyle: StyleProp<TLDefaultFillStyle> = StyleProp.define(
-  'tldraw:fill',
-  {
-    defaultValue: 'none',
-    values: ['none', 'semi', 'solid', 'pattern']
-  }
-)
+const DefaultFillStyle: StyleProp<TLDefaultFillStyle> = StyleProp.define('tldraw:fill', {
+	defaultValue: 'none',
+	values: ['none', 'semi', 'solid', 'pattern'],
+})
 ```
 
 ### Other styles
 
-| Style | Values | Default |
-|-------|--------|---------|
-| `dash` | `draw`, `solid`, `dashed`, `dotted` | `draw` |
-| `horizontalAlign` | `start`, `middle`, `end` | `middle` |
-| `verticalAlign` | `start`, `middle`, `end` | `middle` |
-| `labelColor` | Same as color | `black` |
-| `spline` | `line`, `cubic` | `line` |
+| Style             | Values                              | Default  |
+| ----------------- | ----------------------------------- | -------- |
+| `dash`            | `draw`, `solid`, `dashed`, `dotted` | `draw`   |
+| `horizontalAlign` | `start`, `middle`, `end`            | `middle` |
+| `verticalAlign`   | `start`, `middle`, `end`            | `middle` |
+| `labelColor`      | Same as color                       | `black`  |
+| `spline`          | `line`, `cubic`                     | `line`   |
 
 ## Using styles
 
@@ -111,8 +109,8 @@ editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
 
 // Batch style changes
 editor.batch(() => {
-  editor.setStyleForSelectedShapes(DefaultColorStyle, 'green')
-  editor.setStyleForSelectedShapes(DefaultSizeStyle, 'l')
+	editor.setStyleForSelectedShapes(DefaultColorStyle, 'green')
+	editor.setStyleForSelectedShapes(DefaultSizeStyle, 'l')
 })
 ```
 
@@ -120,12 +118,12 @@ editor.batch(() => {
 
 ```typescript
 interface GeoShapeProps {
-  geo: TLDefaultGeoStyle
-  color: TLDefaultColorStyle
-  fill: TLDefaultFillStyle
-  dash: TLDefaultDashStyle
-  size: TLDefaultSizeStyle
-  // ... more
+	geo: TLDefaultGeoStyle
+	color: TLDefaultColorStyle
+	fill: TLDefaultFillStyle
+	dash: TLDefaultDashStyle
+	size: TLDefaultSizeStyle
+	// ... more
 }
 ```
 
@@ -137,15 +135,15 @@ Colors are defined in the theme and adapt to light/dark modes:
 
 ```typescript
 const defaultColorTheme = {
-  black: { solid: '#1d1d1d', semi: '#e8e8e8' },
-  blue: { solid: '#4263eb', semi: '#dce1f8' },
-  green: { solid: '#099268', semi: '#d3e9e2' },
-  grey: { solid: '#adb5bd', semi: '#eceef0' },
-  // ... more colors
+	black: { solid: '#1d1d1d', semi: '#e8e8e8' },
+	blue: { solid: '#4263eb', semi: '#dce1f8' },
+	green: { solid: '#099268', semi: '#d3e9e2' },
+	grey: { solid: '#adb5bd', semi: '#eceef0' },
+	// ... more colors
 
-  // Special colors
-  background: 'hsl(210, 20%, 98%)',
-  selection: { stroke: '#2f80ed', fill: 'rgba(47, 128, 237, 0.1)' },
+	// Special colors
+	background: 'hsl(210, 20%, 98%)',
+	selection: { stroke: '#2f80ed', fill: 'rgba(47, 128, 237, 0.1)' },
 }
 ```
 
@@ -153,12 +151,12 @@ const defaultColorTheme = {
 
 ```typescript
 const darkColorTheme = {
-  black: { solid: '#e8e8e8', semi: '#2c2c2c' },
-  blue: { solid: '#4dabf7', semi: '#1e3a5f' },
-  // ... inverted for dark mode
+	black: { solid: '#e8e8e8', semi: '#2c2c2c' },
+	blue: { solid: '#4dabf7', semi: '#1e3a5f' },
+	// ... inverted for dark mode
 
-  background: '#212529',
-  selection: { stroke: '#2f80ed', fill: 'rgba(47, 128, 237, 0.2)' },
+	background: '#212529',
+	selection: { stroke: '#2f80ed', fill: 'rgba(47, 128, 237, 0.2)' },
 }
 ```
 
@@ -166,11 +164,11 @@ const darkColorTheme = {
 
 ```typescript
 function useThemeColor(colorStyle: TLDefaultColorStyle) {
-  const editor = useEditor()
-  const isDarkMode = editor.user.getIsDarkMode()
+	const editor = useEditor()
+	const isDarkMode = editor.user.getIsDarkMode()
 
-  const theme = isDarkMode ? darkColorTheme : defaultColorTheme
-  return theme[colorStyle]
+	const theme = isDarkMode ? darkColorTheme : defaultColorTheme
+	return theme[colorStyle]
 }
 ```
 
@@ -182,8 +180,8 @@ function useThemeColor(colorStyle: TLDefaultColorStyle) {
 import { StyleProp } from '@tldraw/tldraw'
 
 const MyCustomStyle = StyleProp.define('myapp:custom', {
-  defaultValue: 'option1',
-  values: ['option1', 'option2', 'option3'],
+	defaultValue: 'option1',
+	values: ['option1', 'option2', 'option3'],
 })
 ```
 
@@ -284,7 +282,7 @@ const color = styles.get(DefaultColorStyle)
 
 // Check if style is relevant for selection
 if (styles.has(DefaultFillStyle)) {
-  // Show fill picker
+	// Show fill picker
 }
 ```
 
@@ -308,18 +306,18 @@ function ColorPicker({ style }: { style: StyleProp<string> }) {
 
 Default style shortcuts:
 
-| Key | Style | Value |
-|-----|-------|-------|
-| `d` | Color | black |
-| `l` | Color | light blue |
-| `g` | Color | green |
-| `o` | Color | orange |
-| `r` | Color | red |
-| `v` | Color | violet |
-| `1` | Size | small |
-| `2` | Size | medium |
-| `3` | Size | large |
-| `4` | Size | extra large |
+| Key | Style | Value       |
+| --- | ----- | ----------- |
+| `d` | Color | black       |
+| `l` | Color | light blue  |
+| `g` | Color | green       |
+| `o` | Color | orange      |
+| `r` | Color | red         |
+| `v` | Color | violet      |
+| `1` | Size  | small       |
+| `2` | Size  | medium      |
+| `3` | Size  | large       |
+| `4` | Size  | extra large |
 
 ## CSS custom properties
 
@@ -327,16 +325,16 @@ Styles are also available as CSS custom properties:
 
 ```css
 .tl-canvas {
-  --tl-color-black: #1d1d1d;
-  --tl-color-blue: #4263eb;
-  --tl-font-draw: 'Shantell Sans', cursive;
-  --tl-font-sans: 'IBM Plex Sans', sans-serif;
-  /* ... */
+	--tl-color-black: #1d1d1d;
+	--tl-color-blue: #4263eb;
+	--tl-font-draw: 'Shantell Sans', cursive;
+	--tl-font-sans: 'IBM Plex Sans', sans-serif;
+	/* ... */
 }
 
 .my-shape {
-  color: var(--tl-color-blue);
-  font-family: var(--tl-font-draw);
+	color: var(--tl-color-blue);
+	font-family: var(--tl-font-draw);
 }
 ```
 

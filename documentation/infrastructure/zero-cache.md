@@ -1,7 +1,7 @@
 ---
 title: Zero cache
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - zero
   - cache
@@ -121,9 +121,9 @@ Zero employs multiple conflict resolution strategies:
 
 ```typescript
 if (serverChange.timestamp > localChange.timestamp) {
-  applyServerChange(serverChange)
+	applyServerChange(serverChange)
 } else {
-  keepLocalChange(localChange)
+	keepLocalChange(localChange)
 }
 ```
 
@@ -139,21 +139,18 @@ Collections use add/remove semantics with guaranteed convergence.
 
 ```typescript
 const zero = new Zero({
-  server: 'https://zero-cache.tldraw.com',
-  auth: () => getAuthToken(),
-  schema: tldrawSchema,
+	server: 'https://zero-cache.tldraw.com',
+	auth: () => getAuthToken(),
+	schema: tldrawSchema,
 })
 
 // Query with real-time updates
-const files = await zero.query.file
-  .where('ownerId', userId)
-  .or('shared', true)
-  .run()
+const files = await zero.query.file.where('ownerId', userId).or('shared', true).run()
 
 // Optimistic mutations
 await zero.mutate.file.update({
-  id: fileId,
-  name: 'Updated Name',
+	id: fileId,
+	name: 'Updated Name',
 })
 ```
 
@@ -163,12 +160,12 @@ Database migrations are managed with transactional safety:
 
 ```typescript
 const migrate = async (summary: string[], dryRun: boolean) => {
-  await db.transaction().execute(async (tx) => {
-    for (const migration of migrations) {
-      const migrationSql = readFileSync(`./migrations/${migration}`, 'utf8')
-      await sql.raw(migrationSql).execute(tx)
-    }
-  })
+	await db.transaction().execute(async (tx) => {
+		for (const migration of migrations) {
+			const migrationSql = readFileSync(`./migrations/${migration}`, 'utf8')
+			await sql.raw(migrationSql).execute(tx)
+		}
+	})
 }
 ```
 

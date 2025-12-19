@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/create-tldraw"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/create-tldraw'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - cli
   - scaffolding
@@ -57,11 +57,11 @@ npx create-tldraw --help
 
 ### Command-line arguments
 
-| Argument | Alias | Description |
-|----------|-------|-------------|
-| `--template` | `-t` | Specify template name directly |
-| `--overwrite` | `-o` | Overwrite existing directory without prompting |
-| `--help` | `-h` | Show help information |
+| Argument      | Alias | Description                                    |
+| ------------- | ----- | ---------------------------------------------- |
+| `--template`  | `-t`  | Specify template name directly                 |
+| `--overwrite` | `-o`  | Overwrite existing directory without prompting |
+| `--help`      | `-h`  | Show help information                          |
 
 ## Available templates
 
@@ -186,8 +186,8 @@ The CLI automatically customizes the generated project:
 ```typescript
 // Template package.json is updated:
 packageJson.name = userProvidedName
-delete packageJson.author     // Remove template author
-delete packageJson.homepage   // Remove template homepage
+delete packageJson.author // Remove template author
+delete packageJson.homepage // Remove template homepage
 // License is preserved from template
 ```
 
@@ -282,26 +282,26 @@ Templates are defined in `templates.ts`:
 
 ```typescript
 const TEMPLATES = {
-  framework: [
-    {
-      repo: 'tldraw/vite-template',
-      name: 'Vite + tldraw',
-      description: 'The easiest way to get started with tldraw.',
-      category: 'framework',
-      order: 1,  // Display order
-    },
-    // Add new framework templates here
-  ],
-  app: [
-    {
-      repo: 'tldraw/tldraw-sync-cloudflare',
-      name: 'Multiplayer sync',
-      description: 'Self-hosted tldraw with realtime multiplayer.',
-      category: 'app',
-      order: 1,
-    },
-    // Add new app templates here
-  ],
+	framework: [
+		{
+			repo: 'tldraw/vite-template',
+			name: 'Vite + tldraw',
+			description: 'The easiest way to get started with tldraw.',
+			category: 'framework',
+			order: 1, // Display order
+		},
+		// Add new framework templates here
+	],
+	app: [
+		{
+			repo: 'tldraw/tldraw-sync-cloudflare',
+			name: 'Multiplayer sync',
+			description: 'Self-hosted tldraw with realtime multiplayer.',
+			category: 'app',
+			order: 1,
+		},
+		// Add new app templates here
+	],
 }
 ```
 

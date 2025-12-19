@@ -1,7 +1,7 @@
 ---
 title: UI customization
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - ui
   - customization
@@ -38,30 +38,30 @@ function App() {
 
 ### Available components
 
-| Component | Description |
-|-----------|-------------|
-| `Toolbar` | Main toolbar with tools |
-| `PageMenu` | Page switcher menu |
-| `MainMenu` | Hamburger menu |
-| `StylePanel` | Style editing panel |
+| Component         | Description                  |
+| ----------------- | ---------------------------- |
+| `Toolbar`         | Main toolbar with tools      |
+| `PageMenu`        | Page switcher menu           |
+| `MainMenu`        | Hamburger menu               |
+| `StylePanel`      | Style editing panel          |
 | `NavigationPanel` | Zoom and navigation controls |
-| `ActionsMenu` | Action dropdown menu |
-| `ContextMenu` | Right-click context menu |
-| `HelpMenu` | Help and keyboard shortcuts |
-| `DebugPanel` | Debug information |
-| `DebugMenu` | Debug menu |
+| `ActionsMenu`     | Action dropdown menu         |
+| `ContextMenu`     | Right-click context menu     |
+| `HelpMenu`        | Help and keyboard shortcuts  |
+| `DebugPanel`      | Debug information            |
+| `DebugMenu`       | Debug menu                   |
 
 ### Canvas overlays
 
-| Component | Description |
-|-----------|-------------|
-| `InFrontOfTheCanvas` | Renders above shapes |
-| `OnTheCanvas` | Renders at canvas level |
-| `Background` | Renders behind everything |
-| `Grid` | Grid pattern |
-| `Scribble` | Drawing preview |
-| `SnapIndicator` | Snap lines |
-| `Spinner` | Loading indicator |
+| Component            | Description               |
+| -------------------- | ------------------------- |
+| `InFrontOfTheCanvas` | Renders above shapes      |
+| `OnTheCanvas`        | Renders at canvas level   |
+| `Background`         | Renders behind everything |
+| `Grid`               | Grid pattern              |
+| `Scribble`           | Drawing preview           |
+| `SnapIndicator`      | Snap lines                |
+| `Spinner`            | Loading indicator         |
 
 ## Custom toolbar
 
@@ -236,11 +236,11 @@ Override tldraw's CSS variables:
 
 ```css
 .tldraw__editor {
-  --color-primary: #3b82f6;
-  --color-selected: #3b82f6;
-  --color-background: #ffffff;
-  --color-panel: #f8fafc;
-  --radius-2: 8px;
+	--color-primary: #3b82f6;
+	--color-selected: #3b82f6;
+	--color-background: #ffffff;
+	--color-panel: #f8fafc;
+	--radius-2: 8px;
 }
 ```
 
@@ -259,9 +259,9 @@ Override tldraw's CSS variables:
 ```css
 /* Dark theme overrides */
 .tldraw.tldraw--dark {
-  --color-background: #0f172a;
-  --color-panel: #1e293b;
-  --color-text: #f1f5f9;
+	--color-background: #0f172a;
+	--color-panel: #1e293b;
+	--color-text: #f1f5f9;
 }
 ```
 

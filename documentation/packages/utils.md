@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/utils"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/utils'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - utils
   - utilities
@@ -52,7 +52,7 @@ import { areArraysShallowEqual } from '@tldraw/utils'
 
 // Shallow equality check
 areArraysShallowEqual([1, 2, 3], [1, 2, 3]) // true
-areArraysShallowEqual([1, 2], [1, 2, 3])    // false
+areArraysShallowEqual([1, 2], [1, 2, 3]) // false
 ```
 
 ### Merging with defaults
@@ -61,11 +61,7 @@ areArraysShallowEqual([1, 2], [1, 2, 3])    // false
 import { mergeArraysAndReplaceDefaults } from '@tldraw/utils'
 
 // Merge arrays, replacing default items with custom ones by key
-const tools = mergeArraysAndReplaceDefaults(
-  'id',
-  customTools,
-  defaultTools
-)
+const tools = mergeArraysAndReplaceDefaults('id', customTools, defaultTools)
 ```
 
 ## Object utilities
@@ -77,8 +73,8 @@ import { objectMapKeys, objectMapValues, objectMapEntries } from '@tldraw/utils'
 
 const scores = { alice: 100, bob: 85 }
 
-objectMapKeys(scores)    // ['alice', 'bob'] with proper types
-objectMapValues(scores)  // [100, 85]
+objectMapKeys(scores) // ['alice', 'bob'] with proper types
+objectMapValues(scores) // [100, 85]
 objectMapEntries(scores) // [['alice', 100], ['bob', 85]]
 ```
 
@@ -107,20 +103,20 @@ Error handling without exceptions using a Result type:
 import { Result } from '@tldraw/utils'
 
 function parseConfig(input: string): Result<Config, ParseError> {
-  try {
-    return Result.ok(JSON.parse(input))
-  } catch (e) {
-    return Result.err(new ParseError(e.message))
-  }
+	try {
+		return Result.ok(JSON.parse(input))
+	} catch (e) {
+		return Result.err(new ParseError(e.message))
+	}
 }
 
 const result = parseConfig(input)
 if (result.ok) {
-  // result.value is typed as Config
-  useConfig(result.value)
+	// result.value is typed as Config
+	useConfig(result.value)
 } else {
-  // result.error is typed as ParseError
-  logError(result.error)
+	// result.error is typed as ParseError
+	logError(result.error)
 }
 ```
 
@@ -138,11 +134,14 @@ const name = assertExists(user.name, 'User must have a name')
 // Exhaustive switch checking
 type Shape = 'circle' | 'square'
 function getArea(shape: Shape): number {
-  switch (shape) {
-    case 'circle': return Math.PI * r * r
-    case 'square': return s * s
-    default: exhaustiveSwitchError(shape) // TypeScript error if cases missed
-  }
+	switch (shape) {
+		case 'circle':
+			return Math.PI * r * r
+		case 'square':
+			return s * s
+		default:
+			exhaustiveSwitchError(shape) // TypeScript error if cases missed
+	}
 }
 ```
 
@@ -166,12 +165,12 @@ Fractional indexing for stable item ordering:
 
 ```typescript
 import {
-  getIndexBetween,
-  getIndexAbove,
-  getIndexBelow,
-  getIndices,
-  sortByIndex,
-  ZERO_INDEX_KEY,
+	getIndexBetween,
+	getIndexAbove,
+	getIndexBelow,
+	getIndices,
+	sortByIndex,
+	ZERO_INDEX_KEY,
 } from '@tldraw/utils'
 
 // Generate index between two items
@@ -208,8 +207,8 @@ import { MediaHelpers } from '@tldraw/utils'
 const { w, h } = await MediaHelpers.getImageSize(file)
 
 // Check image type
-MediaHelpers.isImageType('image/png')        // true
-MediaHelpers.isStaticImageType('image/png')  // true
+MediaHelpers.isImageType('image/png') // true
+MediaHelpers.isStaticImageType('image/png') // true
 MediaHelpers.isAnimatedImageType('image/gif') // true
 MediaHelpers.isVectorImageType('image/svg+xml') // true
 
@@ -235,8 +234,8 @@ const video = await MediaHelpers.loadVideo(videoUrl)
 ```typescript
 // Safely use object URLs with automatic cleanup
 const result = MediaHelpers.usingObjectURL(blob, (url) => {
-  // Use url here
-  return processImage(url)
+	// Use url here
+	return processImage(url)
 })
 // URL is automatically revoked after callback
 ```
@@ -355,10 +354,10 @@ Safe browser storage operations with error handling:
 
 ```typescript
 import {
-  getFromLocalStorage,
-  setInLocalStorage,
-  deleteFromLocalStorage,
-  clearLocalStorage,
+	getFromLocalStorage,
+	setInLocalStorage,
+	deleteFromLocalStorage,
+	clearLocalStorage,
 } from '@tldraw/utils'
 
 // LocalStorage (persists across sessions)
@@ -400,8 +399,8 @@ import { isDefined, isNonNull, isNonNullish, structuredClone } from '@tldraw/uti
 
 // Type guards with proper type narrowing
 const items = [1, null, 2, undefined, 3]
-const defined = items.filter(isDefined)     // [1, null, 2, 3]
-const nonNull = items.filter(isNonNull)     // [1, 2, undefined, 3]
+const defined = items.filter(isDefined) // [1, null, 2, 3]
+const nonNull = items.filter(isNonNull) // [1, 2, undefined, 3]
 const nonNullish = items.filter(isNonNullish) // [1, 2, 3]
 
 // Deep clone with structured clone algorithm
@@ -430,13 +429,13 @@ Attach metadata to errors for debugging:
 import { annotateError, getErrorAnnotations } from '@tldraw/utils'
 
 try {
-  await riskyOperation()
+	await riskyOperation()
 } catch (error) {
-  annotateError(error, {
-    tags: { operation: { value: 'riskyOperation' } },
-    extras: { userId: currentUser.id },
-  })
-  throw error
+	annotateError(error, {
+		tags: { operation: { value: 'riskyOperation' } },
+		extras: { userId: currentUser.id },
+	})
+	throw error
 }
 
 // Later in error handling
@@ -470,7 +469,7 @@ import { safeParseUrl } from '@tldraw/utils'
 // Safe URL parsing (returns undefined instead of throwing)
 const url = safeParseUrl(userInput)
 if (url) {
-  console.log(url.hostname)
+	console.log(url.hostname)
 }
 ```
 

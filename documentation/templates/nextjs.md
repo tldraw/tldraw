@@ -1,7 +1,7 @@
 ---
 title: Next.js template
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - nextjs
   - template
@@ -81,8 +81,8 @@ tldraw requires client-side rendering. Wrap tldraw components with `'use client'
 import { Tldraw, useEditor } from 'tldraw'
 
 function EditorComponent() {
-  const editor = useEditor()
-  // ...
+	const editor = useEditor()
+	// ...
 }
 ```
 
@@ -156,7 +156,7 @@ export function TldrawClient({ initialData }) {
 ```javascript
 // next.config.mjs
 export default {
-  // No special configuration needed for tldraw
+	// No special configuration needed for tldraw
 }
 ```
 
@@ -195,14 +195,14 @@ Add tldraw-related API endpoints:
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  // Return document data
-  return NextResponse.json({ documents: [] })
+	// Return document data
+	return NextResponse.json({ documents: [] })
 }
 
 export async function POST(request: Request) {
-  const body = await request.json()
-  // Save document
-  return NextResponse.json({ success: true })
+	const body = await request.json()
+	// Save document
+	return NextResponse.json({ success: true })
 }
 ```
 

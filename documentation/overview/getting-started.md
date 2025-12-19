@@ -1,7 +1,7 @@
 ---
 title: Getting started
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - setup
   - development
@@ -57,12 +57,12 @@ Open http://localhost:5420 in your browser. You should see the examples app with
 
 ### Starting development servers
 
-| Command | What it starts | URL |
-|---------|---------------|-----|
-| `yarn dev` | Examples app | localhost:5420 |
-| `yarn dev-app` | tldraw.com client | localhost:3000 |
-| `yarn dev-docs` | Documentation site | localhost:3001 |
-| `yarn dev-vscode` | VSCode extension | - |
+| Command           | What it starts     | URL            |
+| ----------------- | ------------------ | -------------- |
+| `yarn dev`        | Examples app       | localhost:5420 |
+| `yarn dev-app`    | tldraw.com client  | localhost:3000 |
+| `yarn dev-docs`   | Documentation site | localhost:3001 |
+| `yarn dev-vscode` | VSCode extension   | -              |
 
 The examples app (`yarn dev`) is the primary development environment. Use it to test SDK changes.
 

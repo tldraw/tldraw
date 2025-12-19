@@ -1,7 +1,7 @@
 ---
 title: Tool system
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - tools
   - state machines
@@ -42,27 +42,27 @@ Every tool extends `StateNode`, which implements a hierarchical finite state mac
 import { StateNode } from '@tldraw/editor'
 
 class MyTool extends StateNode {
-  static override id = 'myTool'
+	static override id = 'myTool'
 
-  onEnter() {
-    // Called when tool becomes active
-    this.editor.setCursor({ type: 'cross', rotation: 0 })
-  }
+	onEnter() {
+		// Called when tool becomes active
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
 
-  onExit() {
-    // Called when tool becomes inactive
-    this.editor.setCursor({ type: 'default', rotation: 0 })
-  }
+	onExit() {
+		// Called when tool becomes inactive
+		this.editor.setCursor({ type: 'default', rotation: 0 })
+	}
 
-  onPointerDown(info: TLPointerEventInfo) {
-    // Handle pointer down event
-    const { x, y } = this.editor.inputs.getCurrentPagePoint()
-    this.editor.createShape({
-      type: 'geo',
-      x,
-      y,
-    })
-  }
+	onPointerDown(info: TLPointerEventInfo) {
+		// Handle pointer down event
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		this.editor.createShape({
+			type: 'geo',
+			x,
+			y,
+		})
+	}
 }
 ```
 
@@ -70,13 +70,13 @@ class MyTool extends StateNode {
 
 StateNode classes define their configuration via static properties:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | `string` | Unique identifier for this state (required) |
-| `initial` | `string` | ID of the default child state (for branch nodes) |
-| `children` | `() => TLStateNodeConstructor[]` | Function returning child state classes |
-| `isLockable` | `boolean` | Whether this tool supports tool locking (default: true) |
-| `useCoalescedEvents` | `boolean` | Whether to use coalesced pointer events (default: false) |
+| Property             | Type                             | Description                                              |
+| -------------------- | -------------------------------- | -------------------------------------------------------- |
+| `id`                 | `string`                         | Unique identifier for this state (required)              |
+| `initial`            | `string`                         | ID of the default child state (for branch nodes)         |
+| `children`           | `() => TLStateNodeConstructor[]` | Function returning child state classes                   |
+| `isLockable`         | `boolean`                        | Whether this tool supports tool locking (default: true)  |
+| `useCoalescedEvents` | `boolean`                        | Whether to use coalesced pointer events (default: false) |
 
 ### State types
 
@@ -89,18 +89,18 @@ StateNode automatically determines its type based on configuration:
 ```typescript
 // Branch node with child states
 class DrawTool extends StateNode {
-  static override id = 'draw'
-  static override initial = 'idle'
-  static override children = () => [Idle, Drawing]
+	static override id = 'draw'
+	static override initial = 'idle'
+	static override children = () => [Idle, Drawing]
 }
 
 // Leaf node without children
 class Idle extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition('drawing', info)
-  }
+	onPointerDown(info: TLPointerEventInfo) {
+		this.parent.transition('drawing', info)
+	}
 }
 ```
 
@@ -117,9 +117,9 @@ this.parent.transition('crop.pointing_crop_handle', info)
 
 // Transition with custom data
 this.parent.transition('translating', {
-  ...info,
-  isCreating: true,
-  onCreate: () => console.log('Shape created!')
+	...info,
+	isCreating: true,
+	onCreate: () => console.log('Shape created!'),
 })
 ```
 
@@ -137,17 +137,17 @@ StateNode provides lifecycle hooks for managing state:
 
 ```typescript
 class MyState extends StateNode {
-  onEnter(info: any, from: string) {
-    // Called when entering this state
-    // info: data passed from transition()
-    // from: ID of the previous state
-  }
+	onEnter(info: any, from: string) {
+		// Called when entering this state
+		// info: data passed from transition()
+		// from: ID of the previous state
+	}
 
-  onExit(info: any, to: string) {
-    // Called when exiting this state
-    // info: data passed to transition()
-    // to: ID of the next state
-  }
+	onExit(info: any, to: string) {
+		// Called when exiting this state
+		// info: data passed to transition()
+		// to: ID of the next state
+	}
 }
 ```
 
@@ -168,39 +168,39 @@ Handle mouse and touch interactions:
 
 ```typescript
 class MyTool extends StateNode {
-  onPointerDown(info: TLPointerEventInfo) {
-    // Mouse/touch down
-    const { target, point, button, isPen } = info
+	onPointerDown(info: TLPointerEventInfo) {
+		// Mouse/touch down
+		const { target, point, button, isPen } = info
 
-    // target: 'canvas' | 'shape' | 'selection' | 'handle'
-    if (target === 'canvas') {
-      const pagePoint = this.editor.inputs.getCurrentPagePoint()
-      // Create shape at cursor position
-    }
-  }
+		// target: 'canvas' | 'shape' | 'selection' | 'handle'
+		if (target === 'canvas') {
+			const pagePoint = this.editor.inputs.getCurrentPagePoint()
+			// Create shape at cursor position
+		}
+	}
 
-  onPointerMove(info: TLPointerEventInfo) {
-    // Mouse/touch move
-    // Update preview, drag shape, etc.
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		// Mouse/touch move
+		// Update preview, drag shape, etc.
+	}
 
-  onPointerUp(info: TLPointerEventInfo) {
-    // Mouse/touch up
-    // Complete interaction
-  }
+	onPointerUp(info: TLPointerEventInfo) {
+		// Mouse/touch up
+		// Complete interaction
+	}
 
-  onLongPress(info: TLPointerEventInfo) {
-    // Long press (touch and hold)
-    // Show context menu, etc.
-  }
+	onLongPress(info: TLPointerEventInfo) {
+		// Long press (touch and hold)
+		// Show context menu, etc.
+	}
 
-  onRightClick(info: TLPointerEventInfo) {
-    // Right mouse button click
-  }
+	onRightClick(info: TLPointerEventInfo) {
+		// Right mouse button click
+	}
 
-  onMiddleClick(info: TLPointerEventInfo) {
-    // Middle mouse button click
-  }
+	onMiddleClick(info: TLPointerEventInfo) {
+		// Middle mouse button click
+	}
 }
 ```
 
@@ -223,20 +223,20 @@ Handle multi-click interactions:
 
 ```typescript
 class MyTool extends StateNode {
-  onDoubleClick(info: TLClickEventInfo) {
-    // Double click
-    if (info.phase === 'up') {
-      // Start editing shape, open dialog, etc.
-    }
-  }
+	onDoubleClick(info: TLClickEventInfo) {
+		// Double click
+		if (info.phase === 'up') {
+			// Start editing shape, open dialog, etc.
+		}
+	}
 
-  onTripleClick(info: TLClickEventInfo) {
-    // Triple click
-  }
+	onTripleClick(info: TLClickEventInfo) {
+		// Triple click
+	}
 
-  onQuadrupleClick(info: TLClickEventInfo) {
-    // Quadruple click
-  }
+	onQuadrupleClick(info: TLClickEventInfo) {
+		// Quadruple click
+	}
 }
 ```
 
@@ -252,23 +252,23 @@ Handle keyboard input:
 
 ```typescript
 class MyTool extends StateNode {
-  onKeyDown(info: TLKeyboardEventInfo) {
-    // Key pressed
-    const { key, code, shiftKey, altKey, ctrlKey } = info
+	onKeyDown(info: TLKeyboardEventInfo) {
+		// Key pressed
+		const { key, code, shiftKey, altKey, ctrlKey } = info
 
-    if (code === 'Escape') {
-      this.editor.selectNone()
-    }
-  }
+		if (code === 'Escape') {
+			this.editor.selectNone()
+		}
+	}
 
-  onKeyUp(info: TLKeyboardEventInfo) {
-    // Key released
-  }
+	onKeyUp(info: TLKeyboardEventInfo) {
+		// Key released
+	}
 
-  onKeyRepeat(info: TLKeyboardEventInfo) {
-    // Key held down (repeating)
-    // Ideal for arrow key nudging
-  }
+	onKeyRepeat(info: TLKeyboardEventInfo) {
+		// Key held down (repeating)
+		// Ideal for arrow key nudging
+	}
 }
 ```
 
@@ -286,28 +286,28 @@ Additional event handlers:
 
 ```typescript
 class MyTool extends StateNode {
-  onWheel(info: TLWheelEventInfo) {
-    // Mouse wheel / trackpad scroll
-    const { delta } = info
-  }
+	onWheel(info: TLWheelEventInfo) {
+		// Mouse wheel / trackpad scroll
+		const { delta } = info
+	}
 
-  onCancel(info: TLCancelEventInfo) {
-    // Escape key pressed or similar cancellation
-    this.parent.transition('idle')
-  }
+	onCancel(info: TLCancelEventInfo) {
+		// Escape key pressed or similar cancellation
+		this.parent.transition('idle')
+	}
 
-  onComplete(info: TLCompleteEventInfo) {
-    // Interaction completed (e.g., Enter key)
-  }
+	onComplete(info: TLCompleteEventInfo) {
+		// Interaction completed (e.g., Enter key)
+	}
 
-  onInterrupt(info: TLInterruptEventInfo) {
-    // Tool was interrupted (user switched to another tool)
-  }
+	onInterrupt(info: TLInterruptEventInfo) {
+		// Tool was interrupted (user switched to another tool)
+	}
 
-  onTick(info: TLTickEventInfo) {
-    // Animation frame (60fps when active)
-    const { elapsed } = info
-  }
+	onTick(info: TLTickEventInfo) {
+		// Animation frame (60fps when active)
+		const { elapsed } = info
+	}
 }
 ```
 
@@ -329,24 +329,24 @@ This allows:
 
 ```typescript
 class SelectTool extends StateNode {
-  static override id = 'select'
-  static override initial = 'idle'
-  static override children = () => [Idle, Translating]
+	static override id = 'select'
+	static override initial = 'idle'
+	static override children = () => [Idle, Translating]
 
-  // Handles event first, then passes to active child
-  onPointerDown(info: TLPointerEventInfo) {
-    // Common selection logic
-  }
+	// Handles event first, then passes to active child
+	onPointerDown(info: TLPointerEventInfo) {
+		// Common selection logic
+	}
 }
 
 class Idle extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  // Handles event only when Idle is active
-  onPointerDown(info: TLPointerEventInfo) {
-    // Start translation
-    this.parent.transition('translating', info)
-  }
+	// Handles event only when Idle is active
+	onPointerDown(info: TLPointerEventInfo) {
+		// Start translation
+		this.parent.transition('translating', info)
+	}
 }
 ```
 
@@ -410,11 +410,11 @@ Access all currently pressed keys:
 const keys = this.editor.inputs.keys
 
 if (keys.has('ArrowLeft')) {
-  // Arrow left is pressed
+	// Arrow left is pressed
 }
 
 if (keys.has('ShiftLeft')) {
-  // Left shift key is pressed (not the generic "shift")
+	// Left shift key is pressed (not the generic "shift")
 }
 ```
 
@@ -424,22 +424,22 @@ The `keys` set uses physical key codes, allowing differentiation between left an
 
 ```typescript
 class NudgeTool extends StateNode {
-  onKeyRepeat(info: TLKeyboardEventInfo) {
-    const { keys } = this.editor.inputs
+	onKeyRepeat(info: TLKeyboardEventInfo) {
+		const { keys } = this.editor.inputs
 
-    // Use physical shift key state for precise control
-    const shiftKey = keys.has('ShiftLeft') || keys.has('ShiftRight')
-    const step = shiftKey ? 10 : 1
+		// Use physical shift key state for precise control
+		const shiftKey = keys.has('ShiftLeft') || keys.has('ShiftRight')
+		const step = shiftKey ? 10 : 1
 
-    const delta = new Vec(0, 0)
-    if (keys.has('ArrowLeft')) delta.x -= step
-    if (keys.has('ArrowRight')) delta.x += step
-    if (keys.has('ArrowUp')) delta.y -= step
-    if (keys.has('ArrowDown')) delta.y += step
+		const delta = new Vec(0, 0)
+		if (keys.has('ArrowLeft')) delta.x -= step
+		if (keys.has('ArrowRight')) delta.x += step
+		if (keys.has('ArrowUp')) delta.y -= step
+		if (keys.has('ArrowDown')) delta.y += step
 
-    const selectedIds = this.editor.getSelectedShapeIds()
-    this.editor.nudgeShapes(selectedIds, delta)
-  }
+		const selectedIds = this.editor.getSelectedShapeIds()
+		this.editor.nudgeShapes(selectedIds, delta)
+	}
 }
 ```
 
@@ -451,47 +451,48 @@ Complex tools use child states to manage different phases of an interaction. Thi
 
 ```typescript
 class HandTool extends StateNode {
-  static override id = 'hand'
-  static override initial = 'idle'
-  static override children = () => [Idle, Pointing, Dragging]
+	static override id = 'hand'
+	static override initial = 'idle'
+	static override children = () => [Idle, Pointing, Dragging]
 }
 
 class Idle extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition('pointing', info)
-  }
+	onPointerDown(info: TLPointerEventInfo) {
+		this.parent.transition('pointing', info)
+	}
 }
 
 class Pointing extends StateNode {
-  static override id = 'pointing'
+	static override id = 'pointing'
 
-  onPointerMove(info: TLPointerEventInfo) {
-    // Start dragging if pointer moved enough
-    if (this.editor.inputs.getIsDragging()) {
-      this.parent.transition('dragging', info)
-    }
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		// Start dragging if pointer moved enough
+		if (this.editor.inputs.getIsDragging()) {
+			this.parent.transition('dragging', info)
+		}
+	}
 
-  onPointerUp() {
-    this.parent.transition('idle')
-  }
+	onPointerUp() {
+		this.parent.transition('idle')
+	}
 }
 
 class Dragging extends StateNode {
-  static override id = 'dragging'
+	static override id = 'dragging'
 
-  onPointerMove() {
-    // Pan the canvas
-    const delta = this.editor.inputs.getCurrentScreenPoint()
-      .sub(this.editor.inputs.getPreviousScreenPoint())
-    this.editor.pan(delta)
-  }
+	onPointerMove() {
+		// Pan the canvas
+		const delta = this.editor.inputs
+			.getCurrentScreenPoint()
+			.sub(this.editor.inputs.getPreviousScreenPoint())
+		this.editor.pan(delta)
+	}
 
-  onPointerUp() {
-    this.parent.transition('idle')
-  }
+	onPointerUp() {
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -501,15 +502,15 @@ States can nest arbitrarily deep:
 
 ```typescript
 class SelectTool extends StateNode {
-  static override id = 'select'
-  static override initial = 'idle'
-  static override children = () => [Idle, Crop, Translating]
+	static override id = 'select'
+	static override initial = 'idle'
+	static override children = () => [Idle, Crop, Translating]
 }
 
 class Crop extends StateNode {
-  static override id = 'crop'
-  static override initial = 'idle'
-  static override children = () => [CropIdle, Cropping, PointingCropHandle]
+	static override id = 'crop'
+	static override initial = 'idle'
+	static override children = () => [CropIdle, Cropping, PointingCropHandle]
 }
 
 // Transition to nested state
@@ -524,32 +525,32 @@ Pass data between states via the info parameter:
 
 ```typescript
 class PointingShape extends StateNode {
-  onPointerMove(info: TLPointerEventInfo) {
-    if (this.editor.inputs.getIsDragging()) {
-      this.parent.transition('translating', {
-        ...info,
-        isCreating: false,
-        onInteractionEnd: 'select',
-      })
-    }
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		if (this.editor.inputs.getIsDragging()) {
+			this.parent.transition('translating', {
+				...info,
+				isCreating: false,
+				onInteractionEnd: 'select',
+			})
+		}
+	}
 }
 
 class Translating extends StateNode {
-  info: any
+	info: any
 
-  onEnter(info: any) {
-    this.info = info
+	onEnter(info: any) {
+		this.info = info
 
-    if (info.isCreating) {
-      // Handle shape creation
-    }
+		if (info.isCreating) {
+			// Handle shape creation
+		}
 
-    if (info.onInteractionEnd) {
-      // Set tool mask for UI
-      this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-    }
-  }
+		if (info.onInteractionEnd) {
+			// Set tool mask for UI
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
+	}
 }
 ```
 
@@ -571,9 +572,9 @@ The root state sits at the top of the state hierarchy and contains all tools. To
 
 ```typescript
 class RootState extends StateNode {
-  static override id = 'root'
-  static override initial = ''
-  static override children = () => []
+	static override id = 'root'
+	static override initial = ''
+	static override children = () => []
 }
 ```
 
@@ -613,8 +614,8 @@ editor.setCurrentTool('hand')
 
 // Switch with custom data
 editor.setCurrentTool('draw', {
-  shapeType: 'geo',
-  style: { color: 'red' }
+	shapeType: 'geo',
+	style: { color: 'red' },
 })
 
 // Get current tool
@@ -630,22 +631,22 @@ Keyboard shortcuts typically switch tools:
 
 ```typescript
 class RootState extends StateNode {
-  onKeyDown(info: TLKeyboardEventInfo) {
-    switch (info.code) {
-      case 'KeyV': {
-        this.editor.setCurrentTool('select')
-        break
-      }
-      case 'KeyH': {
-        this.editor.setCurrentTool('hand')
-        break
-      }
-      case 'KeyD': {
-        this.editor.setCurrentTool('draw')
-        break
-      }
-    }
-  }
+	onKeyDown(info: TLKeyboardEventInfo) {
+		switch (info.code) {
+			case 'KeyV': {
+				this.editor.setCurrentTool('select')
+				break
+			}
+			case 'KeyH': {
+				this.editor.setCurrentTool('hand')
+				break
+			}
+			case 'KeyD': {
+				this.editor.setCurrentTool('draw')
+				break
+			}
+		}
+	}
 }
 ```
 
@@ -680,31 +681,31 @@ Create a tool that stamps a shape on click:
 import { StateNode, TLPointerEventInfo, createShapeId } from '@tldraw/editor'
 
 export class StampTool extends StateNode {
-  static override id = 'stamp'
+	static override id = 'stamp'
 
-  override onEnter() {
-    this.editor.setCursor({ type: 'cross', rotation: 0 })
-  }
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
 
-  override onPointerDown(info: TLPointerEventInfo) {
-    if (info.target !== 'canvas') return
+	override onPointerDown(info: TLPointerEventInfo) {
+		if (info.target !== 'canvas') return
 
-    const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
 
-    this.editor.markHistoryStoppingPoint('stamp shape')
-    this.editor.createShape({
-      id: createShapeId(),
-      type: 'geo',
-      x: x - 50,
-      y: y - 50,
-      props: {
-        w: 100,
-        h: 100,
-        geo: 'star',
-        color: 'blue',
-      },
-    })
-  }
+		this.editor.markHistoryStoppingPoint('stamp shape')
+		this.editor.createShape({
+			id: createShapeId(),
+			type: 'geo',
+			x: x - 50,
+			y: y - 50,
+			props: {
+				w: 100,
+				h: 100,
+				geo: 'star',
+				color: 'blue',
+			},
+		})
+	}
 }
 ```
 
@@ -723,91 +724,91 @@ Create a tool that draws shapes by clicking and dragging:
 
 ```typescript
 class GeoTool extends StateNode {
-  static override id = 'geo'
-  static override initial = 'idle'
-  static override children = () => [Idle, Pointing]
+	static override id = 'geo'
+	static override initial = 'idle'
+	static override children = () => [Idle, Pointing]
 }
 
 class Idle extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  override onEnter() {
-    this.editor.setCursor({ type: 'cross', rotation: 0 })
-  }
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
 
-  override onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition('pointing', info)
-  }
+	override onPointerDown(info: TLPointerEventInfo) {
+		this.parent.transition('pointing', info)
+	}
 }
 
 class Pointing extends StateNode {
-  static override id = 'pointing'
+	static override id = 'pointing'
 
-  shapeId = ''
-  markId = ''
+	shapeId = ''
+	markId = ''
 
-  override onEnter() {
-    const { x, y } = this.editor.inputs.getCurrentPagePoint()
+	override onEnter() {
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
 
-    this.markId = this.editor.markHistoryStoppingPoint('create geo')
-    this.shapeId = createShapeId()
+		this.markId = this.editor.markHistoryStoppingPoint('create geo')
+		this.shapeId = createShapeId()
 
-    this.editor.createShape({
-      id: this.shapeId,
-      type: 'geo',
-      x,
-      y,
-      props: { w: 1, h: 1, geo: 'rectangle' },
-    })
-  }
+		this.editor.createShape({
+			id: this.shapeId,
+			type: 'geo',
+			x,
+			y,
+			props: { w: 1, h: 1, geo: 'rectangle' },
+		})
+	}
 
-  override onPointerMove() {
-    const shape = this.editor.getShape(this.shapeId)
-    if (!shape) return
+	override onPointerMove() {
+		const shape = this.editor.getShape(this.shapeId)
+		if (!shape) return
 
-    const { x, y } = shape
-    const currentPoint = this.editor.inputs.getCurrentPagePoint()
-    const originPoint = this.editor.inputs.getOriginPagePoint()
+		const { x, y } = shape
+		const currentPoint = this.editor.inputs.getCurrentPagePoint()
+		const originPoint = this.editor.inputs.getOriginPagePoint()
 
-    const w = currentPoint.x - originPoint.x
-    const h = currentPoint.y - originPoint.y
+		const w = currentPoint.x - originPoint.x
+		const h = currentPoint.y - originPoint.y
 
-    this.editor.updateShape({
-      id: this.shapeId,
-      type: 'geo',
-      x: w < 0 ? currentPoint.x : x,
-      y: h < 0 ? currentPoint.y : y,
-      props: {
-        w: Math.abs(w),
-        h: Math.abs(h),
-      },
-    })
-  }
+		this.editor.updateShape({
+			id: this.shapeId,
+			type: 'geo',
+			x: w < 0 ? currentPoint.x : x,
+			y: h < 0 ? currentPoint.y : y,
+			props: {
+				w: Math.abs(w),
+				h: Math.abs(h),
+			},
+		})
+	}
 
-  override onPointerUp() {
-    const shape = this.editor.getShape(this.shapeId)
+	override onPointerUp() {
+		const shape = this.editor.getShape(this.shapeId)
 
-    if (!shape || (shape.props.w < 5 && shape.props.h < 5)) {
-      // Too small, delete it
-      this.editor.bailToMark(this.markId)
-    } else {
-      // Keep it and select it
-      this.editor.select(this.shapeId)
-    }
+		if (!shape || (shape.props.w < 5 && shape.props.h < 5)) {
+			// Too small, delete it
+			this.editor.bailToMark(this.markId)
+		} else {
+			// Keep it and select it
+			this.editor.select(this.shapeId)
+		}
 
-    // Return to idle (or stay if tool locked)
-    const isToolLocked = this.editor.getInstanceState().isToolLocked
-    if (isToolLocked && shape) {
-      this.parent.transition('idle')
-    } else {
-      this.editor.setCurrentTool('select')
-    }
-  }
+		// Return to idle (or stay if tool locked)
+		const isToolLocked = this.editor.getInstanceState().isToolLocked
+		if (isToolLocked && shape) {
+			this.parent.transition('idle')
+		} else {
+			this.editor.setCurrentTool('select')
+		}
+	}
 
-  override onCancel() {
-    this.editor.bailToMark(this.markId)
-    this.parent.transition('idle')
-  }
+	override onCancel() {
+		this.editor.bailToMark(this.markId)
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -827,8 +828,8 @@ For rectangular shapes, extend `BaseBoxShapeTool` to get standard box-drawing be
 import { BaseBoxShapeTool } from '@tldraw/editor'
 
 export class CardTool extends BaseBoxShapeTool {
-  static override id = 'card'
-  override shapeType = 'card' as const
+	static override id = 'card'
+	override shapeType = 'card' as const
 }
 ```
 
@@ -862,30 +863,30 @@ The SelectTool is the most complex default tool. It handles selection, translati
 
 ```typescript
 class SelectTool extends StateNode {
-  static override id = 'select'
-  static override initial = 'idle'
-  static override isLockable = false
+	static override id = 'select'
+	static override initial = 'idle'
+	static override isLockable = false
 
-  static override children = () => [
-    Idle,
-    PointingCanvas,
-    PointingShape,
-    PointingSelection,
-    PointingHandle,
-    PointingResizeHandle,
-    PointingRotateHandle,
-    PointingCropHandle,
-    PointingArrowLabel,
-    Brushing,
-    ScribbleBrushing,
-    Translating,
-    Resizing,
-    Rotating,
-    Crop,
-    Cropping,
-    EditingShape,
-    DraggingHandle,
-  ]
+	static override children = () => [
+		Idle,
+		PointingCanvas,
+		PointingShape,
+		PointingSelection,
+		PointingHandle,
+		PointingResizeHandle,
+		PointingRotateHandle,
+		PointingCropHandle,
+		PointingArrowLabel,
+		Brushing,
+		ScribbleBrushing,
+		Translating,
+		Resizing,
+		Rotating,
+		Crop,
+		Cropping,
+		EditingShape,
+		DraggingHandle,
+	]
 }
 ```
 
@@ -897,41 +898,40 @@ The Idle state routes pointer events to appropriate child states:
 
 ```typescript
 class Idle extends StateNode {
-  onPointerDown(info: TLPointerEventInfo) {
-    switch (info.target) {
-      case 'canvas': {
-        // Check if we actually hit a shape
-        const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-        if (hitShape) {
-          this.parent.transition('pointing_shape', info)
-        } else {
-          this.parent.transition('pointing_canvas', info)
-        }
-        break
-      }
+	onPointerDown(info: TLPointerEventInfo) {
+		switch (info.target) {
+			case 'canvas': {
+				// Check if we actually hit a shape
+				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
+				if (hitShape) {
+					this.parent.transition('pointing_shape', info)
+				} else {
+					this.parent.transition('pointing_canvas', info)
+				}
+				break
+			}
 
-      case 'shape': {
-        this.parent.transition('pointing_shape', info)
-        break
-      }
+			case 'shape': {
+				this.parent.transition('pointing_shape', info)
+				break
+			}
 
-      case 'handle': {
-        this.parent.transition('pointing_handle', info)
-        break
-      }
+			case 'handle': {
+				this.parent.transition('pointing_handle', info)
+				break
+			}
 
-      case 'selection': {
-        // Selection box edge/corner/rotate handle
-        if (info.handle === 'mobile_rotate' ||
-            info.handle === 'top_left_rotate') {
-          this.parent.transition('pointing_rotate_handle', info)
-        } else {
-          this.parent.transition('pointing_resize_handle', info)
-        }
-        break
-      }
-    }
-  }
+			case 'selection': {
+				// Selection box edge/corner/rotate handle
+				if (info.handle === 'mobile_rotate' || info.handle === 'top_left_rotate') {
+					this.parent.transition('pointing_rotate_handle', info)
+				} else {
+					this.parent.transition('pointing_resize_handle', info)
+				}
+				break
+			}
+		}
+	}
 }
 ```
 
@@ -941,30 +941,30 @@ class Idle extends StateNode {
 
 ```typescript
 class PointingShape extends StateNode {
-  onPointerMove(info: TLPointerEventInfo) {
-    if (this.editor.inputs.getIsDragging()) {
-      this.parent.transition('translating', info)
-    }
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		if (this.editor.inputs.getIsDragging()) {
+			this.parent.transition('translating', info)
+		}
+	}
 
-  onPointerUp(info: TLPointerEventInfo) {
-    // Just select the shape
-    selectOnPointerUp(this.editor, info)
-    this.parent.transition('idle')
-  }
+	onPointerUp(info: TLPointerEventInfo) {
+		// Just select the shape
+		selectOnPointerUp(this.editor, info)
+		this.parent.transition('idle')
+	}
 }
 
 class PointingCanvas extends StateNode {
-  onPointerMove(info: TLPointerEventInfo) {
-    if (this.editor.inputs.getIsDragging()) {
-      this.parent.transition('brushing', info)
-    }
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		if (this.editor.inputs.getIsDragging()) {
+			this.parent.transition('brushing', info)
+		}
+	}
 
-  onPointerUp() {
-    this.editor.selectNone()
-    this.parent.transition('idle')
-  }
+	onPointerUp() {
+		this.editor.selectNone()
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -1012,23 +1012,23 @@ Tool locking lets users stay in a tool after completing an interaction, enabling
 ```typescript
 // User toggles tool lock (typically with 'Q' key)
 editor.updateInstanceState({
-  isToolLocked: !editor.getInstanceState().isToolLocked
+	isToolLocked: !editor.getInstanceState().isToolLocked,
 })
 
 // In your tool
 class Pointing extends StateNode {
-  onPointerUp() {
-    const shape = this.editor.getShape(this.shapeId)
-    const isToolLocked = this.editor.getInstanceState().isToolLocked
+	onPointerUp() {
+		const shape = this.editor.getShape(this.shapeId)
+		const isToolLocked = this.editor.getInstanceState().isToolLocked
 
-    if (isToolLocked && shape) {
-      // Stay in tool, return to idle state
-      this.parent.transition('idle')
-    } else {
-      // Return to select tool
-      this.editor.setCurrentTool('select')
-    }
-  }
+		if (isToolLocked && shape) {
+			// Stay in tool, return to idle state
+			this.parent.transition('idle')
+		} else {
+			// Return to select tool
+			this.editor.setCurrentTool('select')
+		}
+	}
 }
 ```
 
@@ -1038,13 +1038,13 @@ Control whether a tool supports locking:
 
 ```typescript
 class MyTool extends StateNode {
-  static override id = 'myTool'
-  static override isLockable = true  // Default
+	static override id = 'myTool'
+	static override isLockable = true // Default
 }
 
 class SelectTool extends StateNode {
-  static override id = 'select'
-  static override isLockable = false  // Can't lock selection tool
+	static override id = 'select'
+	static override isLockable = false // Can't lock selection tool
 }
 ```
 

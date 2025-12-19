@@ -1,7 +1,7 @@
 ---
 title: Sync Cloudflare template
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - sync
   - multiplayer
@@ -72,45 +72,45 @@ function App() {
 import { TLSocketRoom } from '@tldraw/sync-core'
 
 export class TldrawRoom extends DurableObject {
-  private room: TLSocketRoom<TLRecord, void> | null = null
+	private room: TLSocketRoom<TLRecord, void> | null = null
 
-  async fetch(request: Request) {
-    const { 0: clientSocket, 1: serverSocket } = new WebSocketPair()
-    serverSocket.accept()
+	async fetch(request: Request) {
+		const { 0: clientSocket, 1: serverSocket } = new WebSocketPair()
+		serverSocket.accept()
 
-    const room = await this.getRoom()
-    room.handleSocketConnect({
-      sessionId: crypto.randomUUID(),
-      socket: serverSocket,
-    })
+		const room = await this.getRoom()
+		room.handleSocketConnect({
+			sessionId: crypto.randomUUID(),
+			socket: serverSocket,
+		})
 
-    return new Response(null, { status: 101, webSocket: clientSocket })
-  }
+		return new Response(null, { status: 101, webSocket: clientSocket })
+	}
 
-  async getRoom() {
-    if (!this.room) {
-      this.room = new TLSocketRoom({
-        // Configuration
-      })
-    }
-    return this.room
-  }
+	async getRoom() {
+		if (!this.room) {
+			this.room = new TLSocketRoom({
+				// Configuration
+			})
+		}
+		return this.room
+	}
 }
 
 export default {
-  async fetch(request: Request, env: Env) {
-    const url = new URL(request.url)
-    const match = url.pathname.match(/^\/room\/(.+)$/)
+	async fetch(request: Request, env: Env) {
+		const url = new URL(request.url)
+		const match = url.pathname.match(/^\/room\/(.+)$/)
 
-    if (match) {
-      const roomId = match[1]
-      const id = env.TLDRAW_ROOMS.idFromName(roomId)
-      const room = env.TLDRAW_ROOMS.get(id)
-      return room.fetch(request)
-    }
+		if (match) {
+			const roomId = match[1]
+			const id = env.TLDRAW_ROOMS.idFromName(roomId)
+			const room = env.TLDRAW_ROOMS.get(id)
+			return room.fetch(request)
+		}
 
-    return new Response('Not found', { status: 404 })
-  },
+		return new Response('Not found', { status: 404 })
+	},
 }
 ```
 
@@ -195,17 +195,17 @@ async getRoom() {
 
 ```typescript
 const store = useSync({
-  uri: `ws://localhost:5172/room/${roomId}`,
-  assets: {
-    upload: async (file) => {
-      const id = crypto.randomUUID()
-      await fetch(`/api/uploads/${id}`, {
-        method: 'POST',
-        body: file,
-      })
-      return { id, src: `/api/uploads/${id}` }
-    },
-  },
+	uri: `ws://localhost:5172/room/${roomId}`,
+	assets: {
+		upload: async (file) => {
+			const id = crypto.randomUUID()
+			await fetch(`/api/uploads/${id}`, {
+				method: 'POST',
+				body: file,
+			})
+			return { id, src: `/api/uploads/${id}` }
+		},
+	},
 })
 ```
 

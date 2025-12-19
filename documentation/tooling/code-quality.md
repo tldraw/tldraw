@@ -1,7 +1,7 @@
 ---
 title: Code quality
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - linting
   - eslint
@@ -30,17 +30,17 @@ ESLint config at `.eslintrc.js`:
 
 ```javascript
 module.exports = {
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-  ],
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'react', 'react-hooks'],
-  rules: {
-    // Custom rules
-  },
+	extends: [
+		'eslint:recommended',
+		'plugin:@typescript-eslint/recommended',
+		'plugin:react/recommended',
+		'plugin:react-hooks/recommended',
+	],
+	parser: '@typescript-eslint/parser',
+	plugins: ['@typescript-eslint', 'react', 'react-hooks'],
+	rules: {
+		// Custom rules
+	},
 }
 ```
 
@@ -80,12 +80,12 @@ Prettier config at `.prettierrc`:
 
 ```json
 {
-  "semi": false,
-  "singleQuote": true,
-  "trailingComma": "es5",
-  "tabWidth": 2,
-  "useTabs": true,
-  "printWidth": 100
+	"semi": false,
+	"singleQuote": true,
+	"trailingComma": "es5",
+	"tabWidth": 2,
+	"useTabs": true,
+	"printWidth": 100
 }
 ```
 
@@ -95,8 +95,8 @@ VS Code settings for auto-format:
 
 ```json
 {
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode"
 }
 ```
 
@@ -137,10 +137,10 @@ Husky runs checks before commits:
 
 ```json
 {
-  "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md}": ["prettier --write"]
-  }
+	"lint-staged": {
+		"*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+		"*.{json,md}": ["prettier --write"]
+	}
 }
 ```
 

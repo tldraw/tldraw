@@ -1,7 +1,7 @@
 ---
 title: Asset pipeline
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - assets
   - images
@@ -25,21 +25,21 @@ The asset pipeline manages:
 
 ```typescript
 interface TLAsset {
-  id: TLAssetId
-  typeName: 'asset'
-  type: 'image' | 'video' | 'bookmark'
-  props: TLImageAsset | TLVideoAsset | TLBookmarkAsset
-  meta: JsonObject
+	id: TLAssetId
+	typeName: 'asset'
+	type: 'image' | 'video' | 'bookmark'
+	props: TLImageAsset | TLVideoAsset | TLBookmarkAsset
+	meta: JsonObject
 }
 
 interface TLImageAsset {
-  name: string
-  src: string           // URL or data URI
-  w: number            // Original width
-  h: number            // Original height
-  mimeType: string | null
-  isAnimated: boolean
-  fileSize: number
+	name: string
+	src: string // URL or data URI
+	w: number // Original width
+	h: number // Original height
+	mimeType: string | null
+	isAnimated: boolean
+	fileSize: number
 }
 ```
 
@@ -49,11 +49,11 @@ The `TLAssetStore` interface defines how assets are uploaded and resolved:
 
 ```typescript
 interface TLAssetStore {
-  // Upload a file and return the asset data
-  upload: (asset: TLAsset, file: File) => Promise<TLAsset>
+	// Upload a file and return the asset data
+	upload: (asset: TLAsset, file: File) => Promise<TLAsset>
 
-  // Resolve an asset's source URL
-  resolve: (asset: TLAsset, context: TLAssetContext) => Promise<string | null>
+	// Resolve an asset's source URL
+	resolve: (asset: TLAsset, context: TLAssetContext) => Promise<string | null>
 }
 ```
 
@@ -61,27 +61,27 @@ interface TLAssetStore {
 
 ```typescript
 const assetStore: TLAssetStore = {
-  async upload(asset, file) {
-    // Upload to your storage
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: file,
-    })
-    const { url } = await response.json()
+	async upload(asset, file) {
+		// Upload to your storage
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: file,
+		})
+		const { url } = await response.json()
 
-    return {
-      ...asset,
-      props: {
-        ...asset.props,
-        src: url,
-      },
-    }
-  },
+		return {
+			...asset,
+			props: {
+				...asset.props,
+				src: url,
+			},
+		}
+	},
 
-  async resolve(asset, context) {
-    // Return the asset URL, potentially with transformations
-    return asset.props.src
-  },
+	async resolve(asset, context) {
+		// Return the asset URL, potentially with transformations
+		return asset.props.src
+	},
 }
 ```
 
@@ -89,34 +89,34 @@ const assetStore: TLAssetStore = {
 
 ```typescript
 const assetStore: TLAssetStore = {
-  async upload(asset, file) {
-    const formData = new FormData()
-    formData.append('file', file)
+	async upload(asset, file) {
+		const formData = new FormData()
+		formData.append('file', file)
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    })
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: formData,
+		})
 
-    const { id, originalUrl } = await response.json()
+		const { id, originalUrl } = await response.json()
 
-    return {
-      ...asset,
-      props: {
-        ...asset.props,
-        src: id, // Store ID, not full URL
-      },
-    }
-  },
+		return {
+			...asset,
+			props: {
+				...asset.props,
+				src: id, // Store ID, not full URL
+			},
+		}
+	},
 
-  async resolve(asset, context) {
-    const { screenScale } = context
+	async resolve(asset, context) {
+		const { screenScale } = context
 
-    // Request appropriately sized image
-    const width = Math.ceil(asset.props.w * screenScale)
+		// Request appropriately sized image
+		const width = Math.ceil(asset.props.w * screenScale)
 
-    return `/api/images/${asset.props.src}?w=${width}`
-  },
+		return `/api/images/${asset.props.src}?w=${width}`
+	},
 }
 ```
 
@@ -126,11 +126,11 @@ The resolve function receives context about the current display:
 
 ```typescript
 interface TLAssetContext {
-  screenScale: number      // Current zoom level
-  steppedScreenScale: number // Rounded scale for caching
-  dpr: number              // Device pixel ratio
-  networkEffectiveType: string | null
-  shouldResolveToOriginal: boolean
+	screenScale: number // Current zoom level
+	steppedScreenScale: number // Rounded scale for caching
+	dpr: number // Device pixel ratio
+	networkEffectiveType: string | null
+	shouldResolveToOriginal: boolean
 }
 ```
 
@@ -160,8 +160,8 @@ Or with `useSync`:
 
 ```typescript
 const store = useSync({
-  uri: 'ws://localhost:5172/room/123',
-  assets: assetStore,
+	uri: 'ws://localhost:5172/room/123',
+	assets: assetStore,
 })
 ```
 
@@ -198,37 +198,37 @@ Example with Cloudflare R2:
 ```typescript
 // Upload endpoint
 app.post('/api/upload', async (request, env) => {
-  const file = await request.blob()
-  const id = crypto.randomUUID()
+	const file = await request.blob()
+	const id = crypto.randomUUID()
 
-  await env.ASSETS_BUCKET.put(id, file, {
-    httpMetadata: {
-      contentType: request.headers.get('content-type'),
-    },
-  })
+	await env.ASSETS_BUCKET.put(id, file, {
+		httpMetadata: {
+			contentType: request.headers.get('content-type'),
+		},
+	})
 
-  return Response.json({ id })
+	return Response.json({ id })
 })
 
 // Asset store
 const assetStore: TLAssetStore = {
-  async upload(asset, file) {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: file,
-      headers: { 'content-type': file.type },
-    })
-    const { id } = await response.json()
+	async upload(asset, file) {
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: file,
+			headers: { 'content-type': file.type },
+		})
+		const { id } = await response.json()
 
-    return {
-      ...asset,
-      props: { ...asset.props, src: id },
-    }
-  },
+		return {
+			...asset,
+			props: { ...asset.props, src: id },
+		}
+	},
 
-  async resolve(asset) {
-    return `https://assets.example.com/${asset.props.src}`
-  },
+	async resolve(asset) {
+		return `https://assets.example.com/${asset.props.src}`
+	},
 }
 ```
 
@@ -269,28 +269,28 @@ Non-file assets like bookmarks:
 
 ```typescript
 interface TLBookmarkAsset {
-  title: string
-  description: string
-  image: string      // Preview image URL
-  favicon: string    // Site favicon URL
-  src: string        // Original URL
+	title: string
+	description: string
+	image: string // Preview image URL
+	favicon: string // Site favicon URL
+	src: string // Original URL
 }
 
 // Fetch metadata for URLs
 async function createBookmarkAsset(url: string) {
-  const metadata = await fetchUrlMetadata(url)
+	const metadata = await fetchUrlMetadata(url)
 
-  return {
-    id: createAssetId(),
-    type: 'bookmark',
-    props: {
-      title: metadata.title,
-      description: metadata.description,
-      image: metadata.image,
-      favicon: metadata.favicon,
-      src: url,
-    },
-  }
+	return {
+		id: createAssetId(),
+		type: 'bookmark',
+		props: {
+			title: metadata.title,
+			description: metadata.description,
+			image: metadata.image,
+			favicon: metadata.favicon,
+			src: url,
+		},
+	}
 }
 ```
 
@@ -298,32 +298,32 @@ async function createBookmarkAsset(url: string) {
 
 ```typescript
 const assetStore: TLAssetStore = {
-  async upload(asset, file) {
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: file,
-      })
+	async upload(asset, file) {
+		try {
+			const response = await fetch('/api/upload', {
+				method: 'POST',
+				body: file,
+			})
 
-      if (!response.ok) {
-        throw new Error('Upload failed')
-      }
+			if (!response.ok) {
+				throw new Error('Upload failed')
+			}
 
-      return { ...asset, props: { ...asset.props, src: await response.text() } }
-    } catch (error) {
-      // Return asset with error state or placeholder
-      console.error('Asset upload failed:', error)
-      throw error
-    }
-  },
+			return { ...asset, props: { ...asset.props, src: await response.text() } }
+		} catch (error) {
+			// Return asset with error state or placeholder
+			console.error('Asset upload failed:', error)
+			throw error
+		}
+	},
 
-  async resolve(asset) {
-    // Return fallback for missing assets
-    if (!asset.props.src) {
-      return '/placeholder.png'
-    }
-    return asset.props.src
-  },
+	async resolve(asset) {
+		// Return fallback for missing assets
+		if (!asset.props.src) {
+			return '/placeholder.png'
+		}
+		return asset.props.src
+	},
 }
 ```
 

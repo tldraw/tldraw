@@ -1,7 +1,7 @@
 ---
 title: Repository overview
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - overview
   - monorepo
@@ -38,32 +38,32 @@ tldraw/
 
 The `packages/` directory contains the core SDK libraries that get published to npm. These are the building blocks developers use when integrating tldraw:
 
-| Package | Purpose |
-|---------|---------|
-| `@tldraw/editor` | Core canvas engine without shapes or UI |
-| `@tldraw/tldraw` | Complete SDK with UI, shapes, and tools |
-| `@tldraw/store` | Reactive record database |
-| `@tldraw/state` | Signals-based state management |
-| `@tldraw/tlschema` | Type definitions and data migrations |
-| `@tldraw/sync` | Multiplayer collaboration hooks |
-| `@tldraw/sync-core` | Core sync infrastructure |
-| `@tldraw/validate` | Runtime validation library |
-| `@tldraw/utils` | Shared utilities |
-| `@tldraw/assets` | Icons, fonts, and translations |
+| Package             | Purpose                                 |
+| ------------------- | --------------------------------------- |
+| `@tldraw/editor`    | Core canvas engine without shapes or UI |
+| `@tldraw/tldraw`    | Complete SDK with UI, shapes, and tools |
+| `@tldraw/store`     | Reactive record database                |
+| `@tldraw/state`     | Signals-based state management          |
+| `@tldraw/tlschema`  | Type definitions and data migrations    |
+| `@tldraw/sync`      | Multiplayer collaboration hooks         |
+| `@tldraw/sync-core` | Core sync infrastructure                |
+| `@tldraw/validate`  | Runtime validation library              |
+| `@tldraw/utils`     | Shared utilities                        |
+| `@tldraw/assets`    | Icons, fonts, and translations          |
 
 ### apps/
 
 The `apps/` directory contains applications built with the SDK:
 
-| Application | Purpose |
-|-------------|---------|
-| `examples/` | SDK showcase with 130+ examples (primary dev environment) |
-| `docs/` | Documentation website (tldraw.dev) |
-| `dotcom/client/` | tldraw.com frontend application |
-| `dotcom/sync-worker/` | Multiplayer backend (Cloudflare Worker) |
-| `dotcom/asset-upload-worker/` | Asset upload service |
-| `dotcom/image-resize-worker/` | Image optimization service |
-| `vscode/` | VSCode extension for .tldr files |
+| Application                   | Purpose                                                   |
+| ----------------------------- | --------------------------------------------------------- |
+| `examples/`                   | SDK showcase with 130+ examples (primary dev environment) |
+| `docs/`                       | Documentation website (tldraw.dev)                        |
+| `dotcom/client/`              | tldraw.com frontend application                           |
+| `dotcom/sync-worker/`         | Multiplayer backend (Cloudflare Worker)                   |
+| `dotcom/asset-upload-worker/` | Asset upload service                                      |
+| `dotcom/image-resize-worker/` | Image optimization service                                |
+| `vscode/`                     | VSCode extension for .tldr files                          |
 
 ### templates/
 
@@ -123,12 +123,12 @@ Most developers use `@tldraw/tldraw` directly. The lower-level packages are for 
 
 The repository supports several development modes:
 
-| Command | What it starts |
-|---------|----------------|
-| `yarn dev` | Examples app at localhost:5420 |
-| `yarn dev-app` | tldraw.com client |
-| `yarn dev-docs` | Documentation site |
-| `yarn dev-vscode` | VSCode extension |
+| Command           | What it starts                 |
+| ----------------- | ------------------------------ |
+| `yarn dev`        | Examples app at localhost:5420 |
+| `yarn dev-app`    | tldraw.com client              |
+| `yarn dev-docs`   | Documentation site             |
+| `yarn dev-vscode` | VSCode extension               |
 
 The examples app (`yarn dev`) is the primary development environment. It provides a testbed for SDK changes with hot reloading.
 

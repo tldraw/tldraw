@@ -1,7 +1,7 @@
 ---
 title: LazyRepo build system
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - lazyrepo
   - build
@@ -44,38 +44,38 @@ Tasks run in dependency order based on workspace dependencies in package.json fi
 
 ```javascript
 module.exports = {
-  tasks: {
-    build: {
-      baseCommand: 'yarn run -T tsx scripts/build.ts',
-      cache: {
-        inputs: {
-          include: ['src/**/*', 'package.json', 'tsconfig.json'],
-          exclude: ['**/*.test.ts'],
-        },
-        outputs: ['dist/**/*', '.tsbuildinfo'],
-      },
-    },
-    typecheck: {
-      baseCommand: 'yarn run -T tsc --build',
-      cache: {
-        inputs: {
-          include: ['src/**/*', 'tsconfig.json'],
-        },
-        outputs: ['.tsbuildinfo'],
-      },
-    },
-  },
+	tasks: {
+		build: {
+			baseCommand: 'yarn run -T tsx scripts/build.ts',
+			cache: {
+				inputs: {
+					include: ['src/**/*', 'package.json', 'tsconfig.json'],
+					exclude: ['**/*.test.ts'],
+				},
+				outputs: ['dist/**/*', '.tsbuildinfo'],
+			},
+		},
+		typecheck: {
+			baseCommand: 'yarn run -T tsc --build',
+			cache: {
+				inputs: {
+					include: ['src/**/*', 'tsconfig.json'],
+				},
+				outputs: ['.tsbuildinfo'],
+			},
+		},
+	},
 }
 ```
 
 ### Task definition
 
-| Property | Description |
-|----------|-------------|
-| `baseCommand` | Shell command to run |
+| Property               | Description                |
+| ---------------------- | -------------------------- |
+| `baseCommand`          | Shell command to run       |
 | `cache.inputs.include` | Files that affect the task |
-| `cache.inputs.exclude` | Files to ignore |
-| `cache.outputs` | Files produced by the task |
+| `cache.inputs.exclude` | Files to ignore            |
+| `cache.outputs`        | Files produced by the task |
 
 ## Running tasks
 
@@ -152,10 +152,7 @@ LazyRepo works with TypeScript project references for incremental type checking:
 ```json
 // tsconfig.json
 {
-  "references": [
-    { "path": "../editor" },
-    { "path": "../store" }
-  ]
+	"references": [{ "path": "../editor" }, { "path": "../store" }]
 }
 ```
 

@@ -1,7 +1,7 @@
 ---
 title: Custom tools
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - custom
   - tools
@@ -27,23 +27,23 @@ Tools in tldraw are state machines built on `StateNode`. They:
 import { StateNode, TLPointerEventInfo, createShapeId } from '@tldraw/tldraw'
 
 class StampTool extends StateNode {
-  static override id = 'stamp'
+	static override id = 'stamp'
 
-  override onPointerDown(info: TLPointerEventInfo) {
-    const { currentPagePoint } = this.editor.inputs
+	override onPointerDown(info: TLPointerEventInfo) {
+		const { currentPagePoint } = this.editor.inputs
 
-    this.editor.createShape({
-      id: createShapeId(),
-      type: 'geo',
-      x: currentPagePoint.x - 25,
-      y: currentPagePoint.y - 25,
-      props: {
-        geo: 'star',
-        w: 50,
-        h: 50,
-      },
-    })
-  }
+		this.editor.createShape({
+			id: createShapeId(),
+			type: 'geo',
+			x: currentPagePoint.x - 25,
+			y: currentPagePoint.y - 25,
+			props: {
+				geo: 'star',
+				w: 50,
+				h: 50,
+			},
+		})
+	}
 }
 ```
 
@@ -65,18 +65,18 @@ function App() {
 
 ```typescript
 class MyTool extends StateNode {
-  // Mouse/touch down
-  override onPointerDown(info: TLPointerEventInfo) {}
+	// Mouse/touch down
+	override onPointerDown(info: TLPointerEventInfo) {}
 
-  // Mouse/touch move
-  override onPointerMove(info: TLPointerEventInfo) {}
+	// Mouse/touch move
+	override onPointerMove(info: TLPointerEventInfo) {}
 
-  // Mouse/touch up
-  override onPointerUp(info: TLPointerEventInfo) {}
+	// Mouse/touch up
+	override onPointerUp(info: TLPointerEventInfo) {}
 
-  // Enter/leave canvas
-  override onEnter(info: TLEnterEventHandler) {}
-  override onExit(info: TLExitEventHandler) {}
+	// Enter/leave canvas
+	override onEnter(info: TLEnterEventHandler) {}
+	override onExit(info: TLExitEventHandler) {}
 }
 ```
 
@@ -84,13 +84,13 @@ class MyTool extends StateNode {
 
 ```typescript
 class MyTool extends StateNode {
-  override onKeyDown(info: TLKeyboardEventInfo) {
-    if (info.key === 'Escape') {
-      this.editor.setCurrentTool('select')
-    }
-  }
+	override onKeyDown(info: TLKeyboardEventInfo) {
+		if (info.key === 'Escape') {
+			this.editor.setCurrentTool('select')
+		}
+	}
 
-  override onKeyUp(info: TLKeyboardEventInfo) {}
+	override onKeyUp(info: TLKeyboardEventInfo) {}
 }
 ```
 
@@ -98,14 +98,14 @@ class MyTool extends StateNode {
 
 ```typescript
 class MyTool extends StateNode {
-  // Frame tick (for animations)
-  override onTick(elapsed: number) {}
+	// Frame tick (for animations)
+	override onTick(elapsed: number) {}
 
-  // Cancel current action
-  override onCancel() {}
+	// Cancel current action
+	override onCancel() {}
 
-  // Complete current action
-  override onComplete() {}
+	// Complete current action
+	override onComplete() {}
 }
 ```
 
@@ -115,44 +115,44 @@ Complex tools use child states:
 
 ```typescript
 class DrawingTool extends StateNode {
-  static override id = 'drawing'
-  static override initial = 'idle'
-  static override children = () => [IdleState, DrawingState]
+	static override id = 'drawing'
+	static override initial = 'idle'
+	static override children = () => [IdleState, DrawingState]
 }
 
 class IdleState extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  override onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition('drawing', info)
-  }
+	override onPointerDown(info: TLPointerEventInfo) {
+		this.parent.transition('drawing', info)
+	}
 }
 
 class DrawingState extends StateNode {
-  static override id = 'drawing'
+	static override id = 'drawing'
 
-  private shapeId: TLShapeId | null = null
+	private shapeId: TLShapeId | null = null
 
-  override onEnter() {
-    const { currentPagePoint } = this.editor.inputs
-    this.shapeId = createShapeId()
+	override onEnter() {
+		const { currentPagePoint } = this.editor.inputs
+		this.shapeId = createShapeId()
 
-    this.editor.createShape({
-      id: this.shapeId,
-      type: 'draw',
-      x: currentPagePoint.x,
-      y: currentPagePoint.y,
-    })
-  }
+		this.editor.createShape({
+			id: this.shapeId,
+			type: 'draw',
+			x: currentPagePoint.x,
+			y: currentPagePoint.y,
+		})
+	}
 
-  override onPointerMove() {
-    // Update shape with new points
-  }
+	override onPointerMove() {
+		// Update shape with new points
+	}
 
-  override onPointerUp() {
-    this.shapeId = null
-    this.parent.transition('idle')
-  }
+	override onPointerUp() {
+		this.shapeId = null
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -164,7 +164,7 @@ Access current input state:
 const inputs = this.editor.inputs
 
 // Pointer position
-inputs.currentPagePoint  // { x, y } in page coordinates
+inputs.currentPagePoint // { x, y } in page coordinates
 inputs.currentScreenPoint // { x, y } in screen coordinates
 
 // Pointer state
@@ -184,64 +184,64 @@ inputs.previousPagePoint
 
 ```typescript
 class RectangleTool extends StateNode {
-  static override id = 'rectangle'
-  static override initial = 'idle'
-  static override children = () => [IdleState, CreatingState]
+	static override id = 'rectangle'
+	static override initial = 'idle'
+	static override children = () => [IdleState, CreatingState]
 }
 
 class IdleState extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  override onPointerDown() {
-    this.parent.transition('creating')
-  }
+	override onPointerDown() {
+		this.parent.transition('creating')
+	}
 }
 
 class CreatingState extends StateNode {
-  static override id = 'creating'
+	static override id = 'creating'
 
-  private shapeId: TLShapeId | null = null
-  private startPoint: Vec | null = null
+	private shapeId: TLShapeId | null = null
+	private startPoint: Vec | null = null
 
-  override onEnter() {
-    const { currentPagePoint } = this.editor.inputs
-    this.startPoint = currentPagePoint.clone()
-    this.shapeId = createShapeId()
+	override onEnter() {
+		const { currentPagePoint } = this.editor.inputs
+		this.startPoint = currentPagePoint.clone()
+		this.shapeId = createShapeId()
 
-    this.editor.createShape({
-      id: this.shapeId,
-      type: 'geo',
-      x: currentPagePoint.x,
-      y: currentPagePoint.y,
-      props: { w: 0, h: 0, geo: 'rectangle' },
-    })
-  }
+		this.editor.createShape({
+			id: this.shapeId,
+			type: 'geo',
+			x: currentPagePoint.x,
+			y: currentPagePoint.y,
+			props: { w: 0, h: 0, geo: 'rectangle' },
+		})
+	}
 
-  override onPointerMove() {
-    if (!this.shapeId || !this.startPoint) return
+	override onPointerMove() {
+		if (!this.shapeId || !this.startPoint) return
 
-    const { currentPagePoint } = this.editor.inputs
+		const { currentPagePoint } = this.editor.inputs
 
-    const w = currentPagePoint.x - this.startPoint.x
-    const h = currentPagePoint.y - this.startPoint.y
+		const w = currentPagePoint.x - this.startPoint.x
+		const h = currentPagePoint.y - this.startPoint.y
 
-    this.editor.updateShape({
-      id: this.shapeId,
-      type: 'geo',
-      x: w < 0 ? currentPagePoint.x : this.startPoint.x,
-      y: h < 0 ? currentPagePoint.y : this.startPoint.y,
-      props: {
-        w: Math.abs(w),
-        h: Math.abs(h),
-      },
-    })
-  }
+		this.editor.updateShape({
+			id: this.shapeId,
+			type: 'geo',
+			x: w < 0 ? currentPagePoint.x : this.startPoint.x,
+			y: h < 0 ? currentPagePoint.y : this.startPoint.y,
+			props: {
+				w: Math.abs(w),
+				h: Math.abs(h),
+			},
+		})
+	}
 
-  override onPointerUp() {
-    this.shapeId = null
-    this.startPoint = null
-    this.parent.transition('idle')
-  }
+	override onPointerUp() {
+		this.shapeId = null
+		this.startPoint = null
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -344,77 +344,77 @@ const overrides: TLUiOverrides = {
 
 ```typescript
 class LineTool extends StateNode {
-  static override id = 'line'
-  static override initial = 'idle'
-  static override children = () => [LineIdle, LineDrawing]
+	static override id = 'line'
+	static override initial = 'idle'
+	static override children = () => [LineIdle, LineDrawing]
 }
 
 class LineIdle extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  override onPointerDown() {
-    this.parent.transition('drawing')
-  }
+	override onPointerDown() {
+		this.parent.transition('drawing')
+	}
 }
 
 class LineDrawing extends StateNode {
-  static override id = 'drawing'
+	static override id = 'drawing'
 
-  private shapeId: TLShapeId | null = null
+	private shapeId: TLShapeId | null = null
 
-  override onEnter() {
-    const { currentPagePoint } = this.editor.inputs
-    this.shapeId = createShapeId()
+	override onEnter() {
+		const { currentPagePoint } = this.editor.inputs
+		this.shapeId = createShapeId()
 
-    this.editor.createShape({
-      id: this.shapeId,
-      type: 'line',
-      x: currentPagePoint.x,
-      y: currentPagePoint.y,
-      props: {
-        points: {
-          a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-          a2: { id: 'a2', index: 'a2', x: 0, y: 0 },
-        },
-      },
-    })
-  }
+		this.editor.createShape({
+			id: this.shapeId,
+			type: 'line',
+			x: currentPagePoint.x,
+			y: currentPagePoint.y,
+			props: {
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 0, y: 0 },
+				},
+			},
+		})
+	}
 
-  override onPointerMove() {
-    if (!this.shapeId) return
+	override onPointerMove() {
+		if (!this.shapeId) return
 
-    const shape = this.editor.getShape(this.shapeId)
-    if (!shape) return
+		const shape = this.editor.getShape(this.shapeId)
+		if (!shape) return
 
-    const { currentPagePoint } = this.editor.inputs
+		const { currentPagePoint } = this.editor.inputs
 
-    this.editor.updateShape({
-      id: this.shapeId,
-      type: 'line',
-      props: {
-        points: {
-          ...shape.props.points,
-          a2: {
-            ...shape.props.points.a2,
-            x: currentPagePoint.x - shape.x,
-            y: currentPagePoint.y - shape.y,
-          },
-        },
-      },
-    })
-  }
+		this.editor.updateShape({
+			id: this.shapeId,
+			type: 'line',
+			props: {
+				points: {
+					...shape.props.points,
+					a2: {
+						...shape.props.points.a2,
+						x: currentPagePoint.x - shape.x,
+						y: currentPagePoint.y - shape.y,
+					},
+				},
+			},
+		})
+	}
 
-  override onPointerUp() {
-    this.shapeId = null
-    this.parent.transition('idle')
-  }
+	override onPointerUp() {
+		this.shapeId = null
+		this.parent.transition('idle')
+	}
 
-  override onCancel() {
-    if (this.shapeId) {
-      this.editor.deleteShape(this.shapeId)
-    }
-    this.parent.transition('idle')
-  }
+	override onCancel() {
+		if (this.shapeId) {
+			this.editor.deleteShape(this.shapeId)
+		}
+		this.parent.transition('idle')
+	}
 }
 ```
 

@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/sync"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/sync'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - sync
   - multiplayer
@@ -46,16 +46,16 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function App() {
-  const store = useSyncDemo({
-    roomId: 'my-company-demo-room',
-    userInfo: {
-      id: 'user-1',
-      name: 'Alice',
-      color: '#ff0000'
-    }
-  })
+	const store = useSyncDemo({
+		roomId: 'my-company-demo-room',
+		userInfo: {
+			id: 'user-1',
+			name: 'Alice',
+			color: '#ff0000',
+		},
+	})
 
-  return <Tldraw store={store} />
+	return <Tldraw store={store} />
 }
 ```
 
@@ -82,25 +82,25 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function App() {
-  const store = useSync({
-    uri: 'wss://myserver.com/sync/room-123',
-    assets: myAssetStore,
-    userInfo: {
-      id: 'user-1',
-      name: 'Alice',
-      color: '#ff0000'
-    }
-  })
+	const store = useSync({
+		uri: 'wss://myserver.com/sync/room-123',
+		assets: myAssetStore,
+		userInfo: {
+			id: 'user-1',
+			name: 'Alice',
+			color: '#ff0000',
+		},
+	})
 
-  if (store.status === 'loading') {
-    return <div>Connecting to collaboration session...</div>
-  }
+	if (store.status === 'loading') {
+		return <div>Connecting to collaboration session...</div>
+	}
 
-  if (store.status === 'error') {
-    return <div>Connection failed: {store.error.message}</div>
-  }
+	if (store.status === 'error') {
+		return <div>Connection failed: {store.error.message}</div>
+	}
 
-  return <Tldraw store={store.store} />
+	return <Tldraw store={store.store} />
 }
 ```
 
@@ -108,11 +108,11 @@ function App() {
 
 The returned store progresses through these states:
 
-| Status | Description | Properties |
-|--------|-------------|------------|
-| `loading` | Establishing connection and syncing initial state | None |
-| `synced-remote` | Connected and actively synchronizing | `store`, `connectionStatus` |
-| `error` | Connection failed or sync error occurred | `error` |
+| Status          | Description                                       | Properties                  |
+| --------------- | ------------------------------------------------- | --------------------------- |
+| `loading`       | Establishing connection and syncing initial state | None                        |
+| `synced-remote` | Connected and actively synchronizing              | `store`, `connectionStatus` |
+| `error`         | Connection failed or sync error occurred          | `error`                     |
 
 The `synced-remote` state includes a `connectionStatus` property:
 
@@ -121,14 +121,12 @@ The `synced-remote` state includes a `connectionStatus` property:
 
 ```tsx
 if (store.status === 'synced-remote') {
-  return (
-    <>
-      {store.connectionStatus === 'offline' && (
-        <div>Reconnecting to server...</div>
-      )}
-      <Tldraw store={store.store} />
-    </>
-  )
+	return (
+		<>
+			{store.connectionStatus === 'offline' && <div>Reconnecting to server...</div>}
+			<Tldraw store={store.store} />
+		</>
+	)
 }
 ```
 
@@ -139,8 +137,8 @@ The `uri` parameter accepts either a static string or a function that returns a 
 ```tsx
 // Static URI
 const store = useSync({
-  uri: 'wss://myserver.com/sync/room-123',
-  assets: myAssetStore
+	uri: 'wss://myserver.com/sync/room-123',
+	assets: myAssetStore,
 })
 ```
 
@@ -150,11 +148,11 @@ Use a function when you need dynamic values like authentication tokens:
 
 ```tsx
 const store = useSync({
-  uri: async () => {
-    const token = await getAuthToken()
-    return `wss://myserver.com/sync/room-123?token=${token}`
-  },
-  assets: myAssetStore
+	uri: async () => {
+		const token = await getAuthToken()
+		return `wss://myserver.com/sync/room-123?token=${token}`
+	},
+	assets: myAssetStore,
 })
 ```
 
@@ -181,17 +179,17 @@ An asset store implements two methods:
 import { TLAssetStore } from 'tldraw'
 
 const myAssetStore: TLAssetStore = {
-  // Upload new assets
-  upload: async (asset, file) => {
-    const url = await uploadToCloudStorage(file)
-    return { src: url }
-  },
+	// Upload new assets
+	upload: async (asset, file) => {
+		const url = await uploadToCloudStorage(file)
+		return { src: url }
+	},
 
-  // Resolve asset URLs for display
-  resolve: (asset, context) => {
-    // Return optimized URL based on context
-    return getOptimizedUrl(asset.src, context)
-  }
+	// Resolve asset URLs for display
+	resolve: (asset, context) => {
+		// Return optimized URL based on context
+		return getOptimizedUrl(asset.src, context)
+	},
 }
 ```
 
@@ -201,19 +199,19 @@ The `upload` method receives the asset metadata and file blob:
 
 ```typescript
 upload: async (asset, file) => {
-  const formData = new FormData()
-  formData.append('file', file)
+	const formData = new FormData()
+	formData.append('file', file)
 
-  const response = await fetch('https://mycdn.com/upload', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
+	const response = await fetch('https://mycdn.com/upload', {
+		method: 'POST',
+		body: formData,
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	})
 
-  const { url } = await response.json()
-  return { src: url }
+	const { url } = await response.json()
+	return { src: url }
 }
 ```
 
@@ -223,15 +221,13 @@ The `resolve` method can return different URLs based on display context:
 
 ```typescript
 resolve: (asset, context) => {
-  if (asset.type !== 'image') return asset.props.src
+	if (asset.type !== 'image') return asset.props.src
 
-  // Optimize based on screen scale and DPI
-  const width = Math.ceil(
-    asset.props.w * context.steppedScreenScale * context.dpr
-  )
+	// Optimize based on screen scale and DPI
+	const width = Math.ceil(asset.props.w * context.steppedScreenScale * context.dpr)
 
-  // Return URL with optimization parameters
-  return `${asset.props.src}?w=${width}&q=80`
+	// Return URL with optimization parameters
+	return `${asset.props.src}?w=${width}&q=80`
 }
 ```
 
@@ -248,12 +244,13 @@ The demo server includes an asset store with automatic optimization:
 
 ```tsx
 const store = useSyncDemo({
-  roomId: 'my-room',
-  // Asset store is automatically provided
+	roomId: 'my-room',
+	// Asset store is automatically provided
 })
 ```
 
 Images are:
+
 - Uploaded to `https://demo.tldraw.xyz/uploads/`
 - Optimized through `https://images.tldraw.xyz`
 - Automatically resized based on display context
@@ -267,17 +264,18 @@ The presence system synchronizes user cursors, selections, and activity across c
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore,
-  userInfo: {
-    id: 'user-123',
-    name: 'Alice',
-    color: '#ff0000'
-  }
+	uri: wsUri,
+	assets: myAssetStore,
+	userInfo: {
+		id: 'user-123',
+		name: 'Alice',
+		color: '#ff0000',
+	},
 })
 ```
 
 The `userInfo` appears in other users' UI:
+
 - **name** - Displayed in cursor tooltip
 - **color** - Used for cursor and selection highlighting
 - **id** - Uniquely identifies the user (should be stable across sessions)
@@ -290,24 +288,24 @@ User information can be a reactive signal that updates automatically:
 import { atom } from '@tldraw/state'
 
 function App() {
-  const currentUser = atom('user', {
-    id: 'user-1',
-    name: 'Alice',
-    color: '#ff0000'
-  })
+	const currentUser = atom('user', {
+		id: 'user-1',
+		name: 'Alice',
+		color: '#ff0000',
+	})
 
-  const store = useSync({
-    uri: wsUri,
-    assets: myAssetStore,
-    userInfo: currentUser
-  })
+	const store = useSync({
+		uri: wsUri,
+		assets: myAssetStore,
+		userInfo: currentUser,
+	})
 
-  // Update user info - changes sync automatically
-  const handleNameChange = (newName: string) => {
-    currentUser.set({ ...currentUser.get(), name: newName })
-  }
+	// Update user info - changes sync automatically
+	const handleNameChange = (newName: string) => {
+		currentUser.set({ ...currentUser.get(), name: newName })
+	}
 
-  return <Tldraw store={store.store} />
+	return <Tldraw store={store.store} />
 }
 ```
 
@@ -317,23 +315,23 @@ Customize what presence information is synchronized:
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore,
-  userInfo: myUserInfo,
-  getUserPresence: (store, user) => {
-    // Return custom presence state
-    return {
-      userId: user.id,
-      userName: user.name,
-      cursor: getCurrentCursor(store),
-      selectedShapeIds: store.getSelectedShapeIds(),
-      brush: store.getBrush(),
-      // Add custom fields
-      currentTool: store.getCurrentToolId(),
-      isTyping: store.getIsInEditingMode(),
-      viewportBounds: store.getViewportPageBounds()
-    }
-  }
+	uri: wsUri,
+	assets: myAssetStore,
+	userInfo: myUserInfo,
+	getUserPresence: (store, user) => {
+		// Return custom presence state
+		return {
+			userId: user.id,
+			userName: user.name,
+			cursor: getCurrentCursor(store),
+			selectedShapeIds: store.getSelectedShapeIds(),
+			brush: store.getBrush(),
+			// Add custom fields
+			currentTool: store.getCurrentToolId(),
+			isTyping: store.getIsInEditingMode(),
+			viewportBounds: store.getViewportPageBounds(),
+		}
+	},
 })
 ```
 
@@ -356,30 +354,30 @@ The sync system provides comprehensive error handling with specific error types.
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore
+	uri: wsUri,
+	assets: myAssetStore,
 })
 
 if (store.status === 'error') {
-  const error = store.error
+	const error = store.error
 
-  // Check for specific sync errors
-  if (error instanceof TLRemoteSyncError) {
-    switch (error.reason) {
-      case TLSyncErrorCloseEventReason.NOT_FOUND:
-        return <div>Room not found</div>
-      case TLSyncErrorCloseEventReason.FORBIDDEN:
-        return <div>You don't have access to this room</div>
-      case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
-        return <div>Please log in to continue</div>
-      case TLSyncErrorCloseEventReason.RATE_LIMITED:
-        return <div>Too many requests. Please try again later.</div>
-      default:
-        return <div>Connection error: {error.message}</div>
-    }
-  }
+	// Check for specific sync errors
+	if (error instanceof TLRemoteSyncError) {
+		switch (error.reason) {
+			case TLSyncErrorCloseEventReason.NOT_FOUND:
+				return <div>Room not found</div>
+			case TLSyncErrorCloseEventReason.FORBIDDEN:
+				return <div>You don't have access to this room</div>
+			case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+				return <div>Please log in to continue</div>
+			case TLSyncErrorCloseEventReason.RATE_LIMITED:
+				return <div>Too many requests. Please try again later.</div>
+			default:
+				return <div>Connection error: {error.message}</div>
+		}
+	}
 
-  return <div>An error occurred: {error.message}</div>
+	return <div>An error occurred: {error.message}</div>
 }
 ```
 
@@ -387,14 +385,14 @@ if (store.status === 'error') {
 
 The following error codes are available from `TLSyncErrorCloseEventReason`:
 
-| Code | Description |
-|------|-------------|
-| `NOT_FOUND` | Room doesn't exist |
-| `FORBIDDEN` | User lacks permission to access room |
+| Code                | Description                              |
+| ------------------- | ---------------------------------------- |
+| `NOT_FOUND`         | Room doesn't exist                       |
+| `FORBIDDEN`         | User lacks permission to access room     |
 | `NOT_AUTHENTICATED` | Authentication required but not provided |
-| `RATE_LIMITED` | Too many requests from this client |
-| `CLIENT_TOO_OLD` | Client protocol version is outdated |
-| `SERVER_TOO_OLD` | Server protocol version is outdated |
+| `RATE_LIMITED`      | Too many requests from this client       |
+| `CLIENT_TOO_OLD`    | Client protocol version is outdated      |
+| `SERVER_TOO_OLD`    | Server protocol version is outdated      |
 
 ### Automatic reconnection
 
@@ -402,26 +400,24 @@ The sync client automatically attempts reconnection when the connection drops:
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore
+	uri: wsUri,
+	assets: myAssetStore,
 })
 
 // During reconnection, status stays 'synced-remote' but connectionStatus changes
 if (store.status === 'synced-remote') {
-  if (store.connectionStatus === 'offline') {
-    // Show reconnection indicator
-    return (
-      <>
-        <div className="reconnecting-banner">
-          Reconnecting to server...
-        </div>
-        <Tldraw store={store.store} />
-      </>
-    )
-  }
+	if (store.connectionStatus === 'offline') {
+		// Show reconnection indicator
+		return (
+			<>
+				<div className="reconnecting-banner">Reconnecting to server...</div>
+				<Tldraw store={store.store} />
+			</>
+		)
+	}
 
-  // Normal connected state
-  return <Tldraw store={store.store} />
+	// Normal connected state
+	return <Tldraw store={store.store} />
 }
 ```
 
@@ -435,15 +431,15 @@ Beyond standard shape and presence synchronization, you can send custom messages
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore,
-  onCustomMessageReceived: (data) => {
-    if (data.type === 'chat') {
-      displayChatMessage(data.message, data.userId)
-    } else if (data.type === 'notification') {
-      showNotification(data.text)
-    }
-  }
+	uri: wsUri,
+	assets: myAssetStore,
+	onCustomMessageReceived: (data) => {
+		if (data.type === 'chat') {
+			displayChatMessage(data.message, data.userId)
+		} else if (data.type === 'notification') {
+			showNotification(data.text)
+		}
+	},
 })
 ```
 
@@ -453,23 +449,23 @@ Access the sync client through the store to send messages:
 
 ```tsx
 function MyComponent() {
-  const editor = useEditor()
+	const editor = useEditor()
 
-  const sendChatMessage = (message: string) => {
-    // Get the sync client from the store
-    const syncClient = editor.store.syncClient
+	const sendChatMessage = (message: string) => {
+		// Get the sync client from the store
+		const syncClient = editor.store.syncClient
 
-    if (syncClient) {
-      syncClient.sendMessage({
-        type: 'chat',
-        message,
-        userId: myUserId,
-        timestamp: Date.now()
-      })
-    }
-  }
+		if (syncClient) {
+			syncClient.sendMessage({
+				type: 'chat',
+				message,
+				userId: myUserId,
+				timestamp: Date.now(),
+			})
+		}
+	}
 
-  return <ChatInput onSend={sendChatMessage} />
+	return <ChatInput onSend={sendChatMessage} />
 }
 ```
 
@@ -483,12 +479,12 @@ Once the store is synchronized, integrate it with the tldraw editor component.
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore
+	uri: wsUri,
+	assets: myAssetStore,
 })
 
 if (store.status === 'synced-remote') {
-  return <Tldraw store={store.store} />
+	return <Tldraw store={store.store} />
 }
 ```
 
@@ -500,28 +496,23 @@ Synchronize the `userInfo` with the tldraw user preferences for a consistent exp
 import { atom } from '@tldraw/state'
 
 function App() {
-  const userPreferences = atom('user-prefs', {
-    id: 'user-1',
-    name: 'Alice',
-    color: '#ff0000'
-  })
+	const userPreferences = atom('user-prefs', {
+		id: 'user-1',
+		name: 'Alice',
+		color: '#ff0000',
+	})
 
-  const store = useSync({
-    uri: wsUri,
-    assets: myAssetStore,
-    userInfo: userPreferences
-  })
+	const store = useSync({
+		uri: wsUri,
+		assets: myAssetStore,
+		userInfo: userPreferences,
+	})
 
-  if (store.status === 'synced-remote') {
-    return (
-      <Tldraw
-        store={store.store}
-        userPreferences={userPreferences}
-      />
-    )
-  }
+	if (store.status === 'synced-remote') {
+		return <Tldraw store={store.store} userPreferences={userPreferences} />
+	}
 
-  return <div>Loading...</div>
+	return <div>Loading...</div>
 }
 ```
 
@@ -533,19 +524,14 @@ The sync system works seamlessly with custom shapes and tools:
 
 ```tsx
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore,
-  shapeUtils: [MyCustomShapeUtil],
-  bindingUtils: [MyCustomBindingUtil]
+	uri: wsUri,
+	assets: myAssetStore,
+	shapeUtils: [MyCustomShapeUtil],
+	bindingUtils: [MyCustomBindingUtil],
 })
 
 if (store.status === 'synced-remote') {
-  return (
-    <Tldraw
-      store={store.store}
-      tools={[MyCustomTool]}
-    />
-  )
+	return <Tldraw store={store.store} tools={[MyCustomTool]} />
 }
 ```
 
@@ -561,14 +547,9 @@ If schemas don't match, the connection fails with an error:
 
 ```tsx
 if (store.status === 'error') {
-  if (store.error.reason === TLSyncErrorCloseEventReason.CLIENT_TOO_OLD) {
-    return (
-      <div>
-        Your client is out of date.
-        Please refresh the page to get the latest version.
-      </div>
-    )
-  }
+	if (store.error.reason === TLSyncErrorCloseEventReason.CLIENT_TOO_OLD) {
+		return <div>Your client is out of date. Please refresh the page to get the latest version.</div>
+	}
 }
 ```
 
@@ -580,28 +561,28 @@ Use the migration system to evolve your schema over time:
 import { createMigrationIds, createMigrationSequence } from '@tldraw/store'
 
 const versions = createMigrationIds('com.myapp.shape', {
-  AddNewField: 1,
-  RenameField: 2
+	AddNewField: 1,
+	RenameField: 2,
 })
 
 const migrations = createMigrationSequence({
-  sequenceId: 'com.myapp.shape',
-  sequence: [
-    {
-      id: versions.AddNewField,
-      scope: 'record',
-      filter: (r) => r.typeName === 'myShape',
-      up: (shape) => ({ ...shape, newField: 'default' })
-    }
-  ]
+	sequenceId: 'com.myapp.shape',
+	sequence: [
+		{
+			id: versions.AddNewField,
+			scope: 'record',
+			filter: (r) => r.typeName === 'myShape',
+			up: (shape) => ({ ...shape, newField: 'default' }),
+		},
+	],
 })
 
 const store = useSync({
-  uri: wsUri,
-  assets: myAssetStore,
-  shapeUtils: [MyShapeUtil],
-  // Migrations run automatically on load
-  migrations: [migrations]
+	uri: wsUri,
+	assets: myAssetStore,
+	shapeUtils: [MyShapeUtil],
+	// Migrations run automatically on load
+	migrations: [migrations],
 })
 ```
 
@@ -615,17 +596,13 @@ Create separate rooms for different documents:
 
 ```tsx
 function DocumentEditor({ documentId }: { documentId: string }) {
-  const store = useSync({
-    uri: `wss://myserver.com/sync/${documentId}`,
-    assets: myAssetStore,
-    roomId: documentId
-  })
+	const store = useSync({
+		uri: `wss://myserver.com/sync/${documentId}`,
+		assets: myAssetStore,
+		roomId: documentId,
+	})
 
-  return store.status === 'synced-remote' ? (
-    <Tldraw store={store.store} />
-  ) : (
-    <LoadingSpinner />
-  )
+	return store.status === 'synced-remote' ? <Tldraw store={store.store} /> : <LoadingSpinner />
 }
 ```
 
@@ -635,12 +612,12 @@ Refresh authentication tokens on reconnection:
 
 ```tsx
 const store = useSync({
-  uri: async () => {
-    // Refresh token before each connection
-    const token = await refreshAuthToken()
-    return `wss://myserver.com/sync/room-123?token=${token}`
-  },
-  assets: myAssetStore
+	uri: async () => {
+		// Refresh token before each connection
+		const token = await refreshAuthToken()
+		return `wss://myserver.com/sync/room-123?token=${token}`
+	},
+	assets: myAssetStore,
 })
 ```
 
@@ -650,17 +627,17 @@ The server can mark connections as read-only:
 
 ```tsx
 function ReadOnlyViewer() {
-  const store = useSync({
-    uri: 'wss://myserver.com/sync/room-123?readonly=true',
-    assets: myAssetStore
-  })
+	const store = useSync({
+		uri: 'wss://myserver.com/sync/room-123?readonly=true',
+		assets: myAssetStore,
+	})
 
-  if (store.status === 'synced-remote') {
-    // The store automatically enforces read-only based on server state
-    return <Tldraw store={store.store} />
-  }
+	if (store.status === 'synced-remote') {
+		// The store automatically enforces read-only based on server state
+		return <Tldraw store={store.store} />
+	}
 
-  return <div>Loading...</div>
+	return <div>Loading...</div>
 }
 ```
 
@@ -674,23 +651,21 @@ Combine multiplayer sync with local persistence:
 import { useLocalSyncClient } from 'tldraw'
 
 function App() {
-  // Set up local persistence
-  const localStore = useLocalSyncClient({
-    persistenceKey: 'my-document'
-  })
+	// Set up local persistence
+	const localStore = useLocalSyncClient({
+		persistenceKey: 'my-document',
+	})
 
-  // Add multiplayer sync
-  const syncedStore = useSync({
-    uri: wsUri,
-    assets: myAssetStore
-  })
+	// Add multiplayer sync
+	const syncedStore = useSync({
+		uri: wsUri,
+		assets: myAssetStore,
+	})
 
-  // Use synced store when available, fall back to local
-  const store = syncedStore.status === 'synced-remote'
-    ? syncedStore.store
-    : localStore
+	// Use synced store when available, fall back to local
+	const store = syncedStore.status === 'synced-remote' ? syncedStore.store : localStore
 
-  return <Tldraw store={store} />
+	return <Tldraw store={store} />
 }
 ```
 
@@ -713,25 +688,23 @@ Large assets can impact performance. The demo server asset store demonstrates be
 
 ```typescript
 resolve: (asset, context) => {
-  // Only optimize images above 1.5MB
-  if (asset.props.fileSize < 1024 * 1024 * 1.5) {
-    return asset.props.src
-  }
+	// Only optimize images above 1.5MB
+	if (asset.props.fileSize < 1024 * 1024 * 1.5) {
+		return asset.props.src
+	}
 
-  // Adjust quality for slow networks
-  const networkCompensation =
-    context.networkEffectiveType === '4g' ? 1 : 0.5
+	// Adjust quality for slow networks
+	const networkCompensation = context.networkEffectiveType === '4g' ? 1 : 0.5
 
-  // Calculate optimal width
-  const width = Math.ceil(
-    Math.min(
-      asset.props.w * context.steppedScreenScale *
-      networkCompensation * context.dpr,
-      asset.props.w
-    )
-  )
+	// Calculate optimal width
+	const width = Math.ceil(
+		Math.min(
+			asset.props.w * context.steppedScreenScale * networkCompensation * context.dpr,
+			asset.props.w
+		)
+	)
 
-  return `${imageWorkerUrl}?src=${asset.props.src}&w=${width}`
+	return `${imageWorkerUrl}?src=${asset.props.src}&w=${width}`
 }
 ```
 

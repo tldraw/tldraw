@@ -1,7 +1,7 @@
 ---
 title: VS Code extension
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - vscode
   - extension
@@ -95,10 +95,10 @@ yarn build   # Build editor bundle
 
 ### Keybindings
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl+=` | Zoom in |
-| `Cmd/Ctrl+-` | Zoom out |
+| Shortcut           | Action           |
+| ------------------ | ---------------- |
+| `Cmd/Ctrl+=`       | Zoom in          |
+| `Cmd/Ctrl+-`       | Zoom out         |
 | `Cmd/Ctrl+Shift+D` | Toggle dark mode |
 
 ### File associations
@@ -133,16 +133,16 @@ yarn build   # Build editor bundle
 
 ```typescript
 class TldrawEditorProvider implements vscode.CustomEditorProvider {
-  async openCustomDocument(uri: vscode.Uri) {
-    // Load .tldr file content
-    return new TldrawDocument(uri)
-  }
+	async openCustomDocument(uri: vscode.Uri) {
+		// Load .tldr file content
+		return new TldrawDocument(uri)
+	}
 
-  async resolveCustomEditor(document, webviewPanel) {
-    // Create webview with tldraw editor
-    const manager = new TldrawWebviewManager(webviewPanel, document)
-    manager.setup()
-  }
+	async resolveCustomEditor(document, webviewPanel) {
+		// Create webview with tldraw editor
+		const manager = new TldrawWebviewManager(webviewPanel, document)
+		manager.setup()
+	}
 }
 ```
 

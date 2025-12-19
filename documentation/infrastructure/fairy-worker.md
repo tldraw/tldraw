@@ -1,7 +1,7 @@
 ---
 title: Fairy worker
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - fairy
   - ai
@@ -27,9 +27,9 @@ Fairies are visual AI agents with sprite avatars that can:
 
 ```typescript
 export default class extends WorkerEntrypoint<Environment> {
-  override fetch(request: Request): Promise<Response> {
-    return router.fetch(request, this.env, this.ctx)
-  }
+	override fetch(request: Request): Promise<Response> {
+		return router.fetch(request, this.env, this.ctx)
+	}
 }
 ```
 
@@ -39,11 +39,11 @@ Manages individual AI agent sessions:
 
 ```typescript
 export class AgentDurableObject extends DurableObject {
-  async fetch(request: Request): Promise<Response> {
-    // Handle agent requests with streaming responses
-    // Process tldraw action streams
-    // Manage agent state and context
-  }
+	async fetch(request: Request): Promise<Response> {
+		// Handle agent requests with streaming responses
+		// Process tldraw action streams
+		// Manage agent state and context
+	}
 }
 ```
 
@@ -58,12 +58,12 @@ export class AgentDurableObject extends DurableObject {
 
 ```typescript
 return new Response(responseBody, {
-  headers: {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache, no-transform',
-    'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no',
-  },
+	headers: {
+		'Content-Type': 'text/event-stream',
+		'Cache-Control': 'no-cache, no-transform',
+		Connection: 'keep-alive',
+		'X-Accel-Buffering': 'no',
+	},
 })
 ```
 
@@ -71,13 +71,13 @@ return new Response(responseBody, {
 
 ```typescript
 export interface Environment {
-  AGENT_DURABLE_OBJECT: DurableObjectNamespace
-  OPENAI_API_KEY: string
-  ANTHROPIC_API_KEY: string
-  GOOGLE_API_KEY: string
-  FAIRY_MODEL: string
-  CLERK_SECRET_KEY: string
-  CLERK_PUBLISHABLE_KEY: string
+	AGENT_DURABLE_OBJECT: DurableObjectNamespace
+	OPENAI_API_KEY: string
+	ANTHROPIC_API_KEY: string
+	GOOGLE_API_KEY: string
+	FAIRY_MODEL: string
+	CLERK_SECRET_KEY: string
+	CLERK_PUBLISHABLE_KEY: string
 }
 ```
 
@@ -106,23 +106,24 @@ bindings = [
 ## Client integration
 
 ```typescript
-const agentUrl = process.env.NODE_ENV === 'production'
-  ? 'https://fairy.tldraw.xyz/stream'
-  : 'http://localhost:8789/stream'
+const agentUrl =
+	process.env.NODE_ENV === 'production'
+		? 'https://fairy.tldraw.xyz/stream'
+		: 'http://localhost:8789/stream'
 
 const response = await fetch(agentUrl, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    messages: conversationHistory,
-    canvasState: editor.store.serialize(),
-  }),
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		messages: conversationHistory,
+		canvasState: editor.store.serialize(),
+	}),
 })
 
 // Handle streaming responses
 const reader = response.body.getReader()
 for await (const chunk of readStream(reader)) {
-  applyAgentAction(chunk)
+	applyAgentAction(chunk)
 }
 ```
 
@@ -171,11 +172,11 @@ Actions are operations fairies perform on the canvas:
 
 ```typescript
 class CreateActionUtil extends AgentActionUtil<CreateAction> {
-  static override type = 'create' as const
+	static override type = 'create' as const
 
-  applyAction(action, helpers) {
-    this.editor.createShape(action.shape)
-  }
+	applyAction(action, helpers) {
+		this.editor.createShape(action.shape)
+	}
 }
 ```
 
@@ -211,11 +212,11 @@ yarn typecheck
 
 ## Service endpoints
 
-| Environment | URL |
-|-------------|-----|
-| Development | `http://localhost:8789/stream` |
-| Staging | `https://staging-fairy.tldraw.xyz/stream` |
-| Production | `https://fairy.tldraw.xyz/stream` |
+| Environment | URL                                       |
+| ----------- | ----------------------------------------- |
+| Development | `http://localhost:8789/stream`            |
+| Staging     | `https://staging-fairy.tldraw.xyz/stream` |
+| Production  | `https://fairy.tldraw.xyz/stream`         |
 
 ## Key features
 

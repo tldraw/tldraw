@@ -1,7 +1,7 @@
 ---
 title: Yarn workspaces
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - yarn
   - workspaces
@@ -26,13 +26,9 @@ Yarn workspaces allow multiple packages to share:
 
 ```json
 {
-  "name": "tldraw",
-  "workspaces": [
-    "packages/*",
-    "apps/*",
-    "templates/*"
-  ],
-  "packageManager": "yarn@4.x.x"
+	"name": "tldraw",
+	"workspaces": ["packages/*", "apps/*", "templates/*"],
+	"packageManager": "yarn@4.x.x"
 }
 ```
 
@@ -90,12 +86,12 @@ Reference local packages with `workspace:*`:
 
 ```json
 {
-  "name": "@tldraw/tldraw",
-  "dependencies": {
-    "@tldraw/editor": "workspace:*",
-    "@tldraw/store": "workspace:*",
-    "@tldraw/tlschema": "workspace:*"
-  }
+	"name": "@tldraw/tldraw",
+	"dependencies": {
+		"@tldraw/editor": "workspace:*",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*"
+	}
 }
 ```
 
@@ -133,13 +129,13 @@ Each workspace can define its own scripts:
 
 ```json
 {
-  "name": "@tldraw/editor",
-  "scripts": {
-    "build": "...",
-    "test": "vitest run",
-    "lint": "...",
-    "typecheck": "tsc --build"
-  }
+	"name": "@tldraw/editor",
+	"scripts": {
+		"build": "...",
+		"test": "vitest run",
+		"lint": "...",
+		"typecheck": "tsc --build"
+	}
 }
 ```
 

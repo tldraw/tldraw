@@ -1,7 +1,7 @@
 ---
 title: Store and records
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - store
   - records
@@ -30,8 +30,8 @@ All records share a common base:
 
 ```typescript
 interface BaseRecord {
-  id: string           // Unique identifier with prefix
-  typeName: string     // Record type name
+	id: string // Unique identifier with prefix
+	typeName: string // Record type name
 }
 ```
 
@@ -39,17 +39,17 @@ interface BaseRecord {
 
 tldraw uses several record types defined in `@tldraw/tlschema`:
 
-| Type | Purpose | ID Prefix |
-|------|---------|-----------|
-| `TLShape` | Shape data | `shape:` |
-| `TLPage` | Page container | `page:` |
-| `TLBinding` | Shape relationships | `binding:` |
-| `TLAsset` | External resources | `asset:` |
-| `TLCamera` | Viewport state | `camera:` |
-| `TLDocument` | Document metadata | `document:` |
+| Type         | Purpose               | ID Prefix   |
+| ------------ | --------------------- | ----------- |
+| `TLShape`    | Shape data            | `shape:`    |
+| `TLPage`     | Page container        | `page:`     |
+| `TLBinding`  | Shape relationships   | `binding:`  |
+| `TLAsset`    | External resources    | `asset:`    |
+| `TLCamera`   | Viewport state        | `camera:`   |
+| `TLDocument` | Document metadata     | `document:` |
 | `TLInstance` | Editor instance state | `instance:` |
-| `TLPointer` | Pointer state | `pointer:` |
-| `TLPresence` | User presence | `presence:` |
+| `TLPointer`  | Pointer state         | `pointer:`  |
+| `TLPresence` | User presence         | `presence:` |
 
 ### ID types
 
@@ -58,10 +58,10 @@ IDs are branded strings for type safety:
 ```typescript
 import { createShapeId } from '@tldraw/tlschema'
 
-const shapeId = createShapeId('abc')  // 'shape:abc'
+const shapeId = createShapeId('abc') // 'shape:abc'
 
 // Type-safe lookup
-const shape = store.get(shapeId)  // Type: TLShape | undefined
+const shape = store.get(shapeId) // Type: TLShape | undefined
 ```
 
 ## Store operations
@@ -73,17 +73,17 @@ import { RecordId, createRecordType } from '@tldraw/store'
 
 // Define a record type
 const TodoRecord = createRecordType<Todo>('todo', {
-  validator: todoValidator,
-  scope: 'document',
+	validator: todoValidator,
+	scope: 'document',
 })
 
 // Add to store
 store.put([
-  TodoRecord.create({
-    id: TodoRecord.createId('1'),
-    title: 'Learn tldraw',
-    completed: false,
-  })
+	TodoRecord.create({
+		id: TodoRecord.createId('1'),
+		title: 'Learn tldraw',
+		completed: false,
+	}),
 ])
 ```
 
@@ -97,7 +97,7 @@ const shape = store.get(shapeId)
 store.has(shapeId) // boolean
 
 // Get all of a type
-const shapes = store.allRecords().filter(r => r.typeName === 'shape')
+const shapes = store.allRecords().filter((r) => r.typeName === 'shape')
 ```
 
 ### Updating records
@@ -108,8 +108,8 @@ store.put([{ ...shape, x: 100 }])
 
 // Partial update
 store.update(shapeId, (shape) => ({
-  ...shape,
-  props: { ...shape.props, color: 'red' }
+	...shape,
+	props: { ...shape.props, color: 'red' },
 }))
 ```
 
@@ -132,16 +132,16 @@ The Store provides reactive queries that automatically update when relevant data
 ```typescript
 // Listen to specific record
 const dispose = store.listen((change) => {
-  if (change.changes.updated[shapeId]) {
-    console.log('Shape updated:', change.changes.updated[shapeId])
-  }
+	if (change.changes.updated[shapeId]) {
+		console.log('Shape updated:', change.changes.updated[shapeId])
+	}
 })
 
 // Listen to all changes
 store.listen((change) => {
-  console.log('Added:', Object.keys(change.changes.added))
-  console.log('Updated:', Object.keys(change.changes.updated))
-  console.log('Removed:', Object.keys(change.changes.removed))
+	console.log('Added:', Object.keys(change.changes.added))
+	console.log('Updated:', Object.keys(change.changes.updated))
+	console.log('Removed:', Object.keys(change.changes.removed))
 })
 ```
 
@@ -153,8 +153,8 @@ Use signals for reactive derived data:
 import { computed } from '@tldraw/state'
 
 const selectedShapes = computed('selectedShapes', () => {
-  const ids = editor.getSelectedShapeIds()
-  return ids.map(id => store.get(id)).filter(Boolean)
+	const ids = editor.getSelectedShapeIds()
+	return ids.map((id) => store.get(id)).filter(Boolean)
 })
 ```
 
@@ -165,7 +165,7 @@ const selectedShapes = computed('selectedShapes', () => {
 const epoch = getGlobalEpoch()
 // ... time passes, changes made ...
 const history = store.extractingChanges(() => {
-  return store.serialize()
+	return store.serialize()
 })
 ```
 
@@ -175,9 +175,9 @@ const history = store.extractingChanges(() => {
 
 ```typescript
 store.atomic(() => {
-  store.put([newShape])
-  store.update(existingShapeId, s => ({ ...s, x: s.x + 10 }))
-  store.remove([oldShapeId])
+	store.put([newShape])
+	store.update(existingShapeId, (s) => ({ ...s, x: s.x + 10 }))
+	store.remove([oldShapeId])
 })
 // All changes applied atomically, history records single entry
 ```
@@ -203,8 +203,8 @@ For sync, apply remote changes without triggering undo:
 
 ```typescript
 store.mergeRemoteChanges(() => {
-  store.put([remoteShape])
-  store.remove([deletedShapeId])
+	store.put([remoteShape])
+	store.remove([deletedShapeId])
 })
 ```
 
@@ -214,48 +214,54 @@ store.mergeRemoteChanges(() => {
 
 ```typescript
 interface StoreChange<R extends BaseRecord> {
-  source: 'user' | 'remote' | 'system'
-  changes: {
-    added: { [id: string]: R }
-    updated: { [id: string]: [before: R, after: R] }
-    removed: { [id: string]: R }
-  }
+	source: 'user' | 'remote' | 'system'
+	changes: {
+		added: { [id: string]: R }
+		updated: { [id: string]: [before: R, after: R] }
+		removed: { [id: string]: R }
+	}
 }
 
-store.listen((change) => {
-  switch (change.source) {
-    case 'user':
-      // User action, add to undo stack
-      break
-    case 'remote':
-      // From sync, don't add to undo
-      break
-    case 'system':
-      // Internal update
-      break
-  }
-}, { source: 'all' })
+store.listen(
+	(change) => {
+		switch (change.source) {
+			case 'user':
+				// User action, add to undo stack
+				break
+			case 'remote':
+				// From sync, don't add to undo
+				break
+			case 'system':
+				// Internal update
+				break
+		}
+	},
+	{ source: 'all' }
+)
 ```
 
 ### History events
 
 ```typescript
-store.listen((change) => {
-  for (const [id, record] of Object.entries(change.changes.added)) {
-    analytics.track('record_created', { type: record.typeName })
-  }
-}, { source: 'user', scope: 'document' })
+store.listen(
+	(change) => {
+		for (const [id, record] of Object.entries(change.changes.added)) {
+			analytics.track('record_created', { type: record.typeName })
+		}
+	},
+	{ source: 'user', scope: 'document' }
+)
 ```
 
 ## Scopes
 
 Records belong to different scopes:
 
-| Scope | Purpose | Example |
-|-------|---------|---------|
+| Scope      | Purpose                 | Example                 |
+| ---------- | ----------------------- | ----------------------- |
 | `document` | Shared across all users | Shapes, pages, bindings |
-| `session` | Per-user session state | Camera, selection |
-| `presence` | Real-time user state | Cursors, user info |
+| `session`  | Per-user session state  | Camera, selection       |
+| `presence` | Real-time user state    | Cursors, user info      |
 
 ```typescript
 // Only listen to document changes
@@ -296,7 +302,7 @@ store.deserializeAndMerge(snapshot)
 import { createTLStore, defaultShapeSchemas } from '@tldraw/tldraw'
 
 const store = createTLStore({
-  shapeUtils: [...defaultShapeSchemas],
+	shapeUtils: [...defaultShapeSchemas],
 })
 
 // Check schema version
@@ -314,14 +320,14 @@ const migrated = store.schema.migrateSnapshot(oldSnapshot)
 import { createRecordType, T } from '@tldraw/store'
 
 const TaskRecord = createRecordType<Task>('task', {
-  validator: T.object({
-    id: T.string,
-    typeName: T.literal('task'),
-    title: T.string,
-    completed: T.boolean,
-    dueDate: T.number.nullable(),
-  }),
-  scope: 'document',
+	validator: T.object({
+		id: T.string,
+		typeName: T.literal('task'),
+		title: T.string,
+		completed: T.boolean,
+		dueDate: T.number.nullable(),
+	}),
+	scope: 'document',
 })
 ```
 
@@ -333,9 +339,9 @@ store.put([invalidRecord])
 
 // Check validity
 try {
-  TaskRecord.validator.validate(data)
+	TaskRecord.validator.validate(data)
 } catch (e) {
-  console.error('Invalid task:', e.message)
+	console.error('Invalid task:', e.message)
 }
 ```
 
@@ -345,16 +351,15 @@ try {
 
 ```typescript
 class MyStore extends Store<MyRecords> {
-  @computed getActiveTasks() {
-    return this.allRecords()
-      .filter((r): r is Task => r.typeName === 'task')
-      .filter(t => !t.completed)
-  }
+	@computed getActiveTasks() {
+		return this.allRecords()
+			.filter((r): r is Task => r.typeName === 'task')
+			.filter((t) => !t.completed)
+	}
 
-  @computed getTasksByDueDate() {
-    return this.getActiveTasks()
-      .sort((a, b) => (a.dueDate ?? Infinity) - (b.dueDate ?? Infinity))
-  }
+	@computed getTasksByDueDate() {
+		return this.getActiveTasks().sort((a, b) => (a.dueDate ?? Infinity) - (b.dueDate ?? Infinity))
+	}
 }
 ```
 
@@ -365,14 +370,14 @@ class MyStore extends Store<MyRecords> {
 const shapesByPage = new Map<string, Set<string>>()
 
 store.listen((change) => {
-  for (const [id, shape] of Object.entries(change.changes.added)) {
-    if (shape.typeName === 'shape') {
-      const pageShapes = shapesByPage.get(shape.parentId) ?? new Set()
-      pageShapes.add(id)
-      shapesByPage.set(shape.parentId, pageShapes)
-    }
-  }
-  // Handle updates and removals...
+	for (const [id, shape] of Object.entries(change.changes.added)) {
+		if (shape.typeName === 'shape') {
+			const pageShapes = shapesByPage.get(shape.parentId) ?? new Set()
+			pageShapes.add(id)
+			shapesByPage.set(shape.parentId, pageShapes)
+		}
+	}
+	// Handle updates and removals...
 })
 ```
 
@@ -383,23 +388,23 @@ The Editor wraps the Store with higher-level methods:
 ```typescript
 // Editor provides typed methods
 editor.createShape({
-  type: 'geo',
-  x: 100,
-  y: 100,
-  props: { geo: 'rectangle', w: 200, h: 100 }
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: { geo: 'rectangle', w: 200, h: 100 },
 })
 
 // Under the hood
 store.put([
-  ShapeRecord.create({
-    id: createShapeId(),
-    type: 'geo',
-    x: 100,
-    y: 100,
-    parentId: currentPageId,
-    index: getNextIndex(),
-    props: { geo: 'rectangle', w: 200, h: 100 }
-  })
+	ShapeRecord.create({
+		id: createShapeId(),
+		type: 'geo',
+		x: 100,
+		y: 100,
+		parentId: currentPageId,
+		index: getNextIndex(),
+		props: { geo: 'rectangle', w: 200, h: 100 },
+	}),
 ])
 ```
 

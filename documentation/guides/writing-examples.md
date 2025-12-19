@@ -1,7 +1,7 @@
 ---
 title: Writing examples
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - examples
   - documentation
@@ -56,13 +56,13 @@ or code snippets that help users understand the implementation.
 
 ### Metadata fields
 
-| Field | Description |
-|-------|-------------|
-| `title` | Example title in sentence case |
-| `component` | Path to the example component |
-| `category` | Category ID for grouping |
-| `priority` | Display order within category |
-| `keywords` | Search terms (avoid obvious words like "tldraw") |
+| Field       | Description                                      |
+| ----------- | ------------------------------------------------ |
+| `title`     | Example title in sentence case                   |
+| `component` | Path to the example component                    |
+| `category`  | Category ID for grouping                         |
+| `priority`  | Display order within category                    |
+| `keywords`  | Search terms (avoid obvious words like "tldraw") |
 
 ### Categories
 
@@ -88,11 +88,11 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function MyExampleExample() {
-  return (
-    <div className="tldraw__editor">
-      <Tldraw />
-    </div>
-  )
+	return (
+		<div className="tldraw__editor">
+			<Tldraw />
+		</div>
+	)
 }
 ```
 
@@ -107,7 +107,7 @@ For full-page examples, use the `tldraw__editor` class:
 
 ```tsx
 <div className="tldraw__editor">
-  <Tldraw />
+	<Tldraw />
 </div>
 ```
 
@@ -115,10 +115,8 @@ For inset examples with other UI:
 
 ```tsx
 <div className="example-wrapper">
-  <Tldraw />
-  <div className="controls">
-    {/* Additional UI */}
-  </div>
+	<Tldraw />
+	<div className="controls">{/* Additional UI */}</div>
 </div>
 ```
 
@@ -132,16 +130,16 @@ import 'tldraw/tldraw.css'
 
 // [1]
 const components: TLComponents = {
-  PageMenu: null,
+	PageMenu: null,
 }
 
 export default function CustomComponentsExample() {
-  return (
-    <div className="tldraw__editor">
-      {/* [2] */}
-      <Tldraw components={components} />
-    </div>
-  )
+	return (
+		<div className="tldraw__editor">
+			{/* [2] */}
+			<Tldraw components={components} />
+		</div>
+	)
 }
 
 /*
@@ -168,13 +166,11 @@ Focused demonstrations of specific features:
 ```tsx
 // Good tight example - shows one thing
 export default function ToggleDarkModeExample() {
-  return (
-    <div className="tldraw__editor">
-      <Tldraw
-        user={{ isDarkMode: true }}
-      />
-    </div>
-  )
+	return (
+		<div className="tldraw__editor">
+			<Tldraw user={{ isDarkMode: true }} />
+		</div>
+	)
 }
 ```
 
@@ -190,14 +186,14 @@ Show complete user experiences:
 ```tsx
 // Good use-case example - complete feature
 export default function PDFEditorExample() {
-  const [pdf, setPdf] = useState<File | null>(null)
+	const [pdf, setPdf] = useState<File | null>(null)
 
-  return (
-    <div className="pdf-editor">
-      <FileUploader onUpload={setPdf} />
-      {pdf && <PDFCanvas file={pdf} />}
-    </div>
-  )
+	return (
+		<div className="pdf-editor">
+			<FileUploader onUpload={setPdf} />
+			{pdf && <PDFCanvas file={pdf} />}
+		</div>
+	)
 }
 ```
 

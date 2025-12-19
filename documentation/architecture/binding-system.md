@@ -1,7 +1,7 @@
 ---
 title: Binding system
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - bindings
   - bindingutil
@@ -21,6 +21,7 @@ The binding system consists of three main components:
 3. **Binding lifecycle hooks** - Methods that respond to binding and shape changes
 
 This separation allows bindings to:
+
 - Maintain type-safe relationships between shapes
 - Automatically update when connected shapes change
 - Handle creation, updates, and cleanup gracefully
@@ -34,24 +35,27 @@ Every binding starts with a type definition that extends `TLBaseBinding`:
 import { TLBaseBinding } from '@tldraw/tlschema'
 import { VecModel } from '@tldraw/tlschema'
 
-type MyBinding = TLBaseBinding<'myBinding', {
-  strength: number
-  color: string
-  enabled: boolean
-}>
+type MyBinding = TLBaseBinding<
+	'myBinding',
+	{
+		strength: number
+		color: string
+		enabled: boolean
+	}
+>
 ```
 
 The base binding provides standard properties that all bindings inherit:
 
-| Property | Type | Purpose |
-|----------|------|---------|
-| `id` | `TLBindingId` | Unique identifier |
-| `typeName` | `'binding'` | Record type name |
-| `type` | `string` | Binding type name |
-| `fromId` | `TLShapeId` | Source shape ID |
-| `toId` | `TLShapeId` | Target shape ID |
-| `props` | `object` | Binding-specific properties |
-| `meta` | `JsonObject` | User-defined metadata |
+| Property   | Type          | Purpose                     |
+| ---------- | ------------- | --------------------------- |
+| `id`       | `TLBindingId` | Unique identifier           |
+| `typeName` | `'binding'`   | Record type name            |
+| `type`     | `string`      | Binding type name           |
+| `fromId`   | `TLShapeId`   | Source shape ID             |
+| `toId`     | `TLShapeId`   | Target shape ID             |
+| `props`    | `object`      | Binding-specific properties |
+| `meta`     | `JsonObject`  | User-defined metadata       |
 
 The `fromId` and `toId` establish the directional relationship between shapes. For arrows, `fromId` is the arrow itself and `toId` is the shape it points to.
 
@@ -61,17 +65,18 @@ The arrow binding is the primary built-in binding type:
 
 ```typescript
 interface TLArrowBindingProps {
-  terminal: 'start' | 'end'
-  normalizedAnchor: VecModel
-  isExact: boolean
-  isPrecise: boolean
-  snap: ElbowArrowSnap
+	terminal: 'start' | 'end'
+	normalizedAnchor: VecModel
+	isExact: boolean
+	isPrecise: boolean
+	snap: ElbowArrowSnap
 }
 
 type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>
 ```
 
 Key properties:
+
 - **terminal** - Which end of the arrow is bound ('start' or 'end')
 - **normalizedAnchor** - Position on the target shape (0,0 = top-left, 1,1 = bottom-right)
 - **isExact** - Whether the arrow head enters the shape to point at the exact anchor
@@ -82,19 +87,19 @@ Creating an arrow binding:
 
 ```typescript
 const arrowBinding: TLArrowBinding = {
-  id: 'binding:abc123',
-  typeName: 'binding',
-  type: 'arrow',
-  fromId: 'shape:arrow1',     // The arrow shape
-  toId: 'shape:rectangle1',    // The target shape
-  props: {
-    terminal: 'end',
-    normalizedAnchor: { x: 0.5, y: 0.5 },
-    isExact: false,
-    isPrecise: true,
-    snap: 'edge'
-  },
-  meta: {}
+	id: 'binding:abc123',
+	typeName: 'binding',
+	type: 'arrow',
+	fromId: 'shape:arrow1', // The arrow shape
+	toId: 'shape:rectangle1', // The target shape
+	props: {
+		terminal: 'end',
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+		isExact: false,
+		isPrecise: true,
+		snap: 'edge',
+	},
+	meta: {},
 }
 ```
 
@@ -112,15 +117,15 @@ Returns the default property values for new bindings:
 
 ```typescript
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  static override type = 'myBinding' as const
+	static override type = 'myBinding' as const
 
-  getDefaultProps(): Partial<MyBinding['props']> {
-    return {
-      strength: 1.0,
-      color: 'black',
-      enabled: true,
-    }
-  }
+	getDefaultProps(): Partial<MyBinding['props']> {
+		return {
+			strength: 1.0,
+			color: 'black',
+			enabled: true,
+		}
+	}
 }
 ```
 
@@ -310,17 +315,17 @@ Called after any store operation involving this binding type completes. Useful f
 
 ```typescript
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  changedBindingIds = new Set<TLBindingId>()
+	changedBindingIds = new Set<TLBindingId>()
 
-  onOperationComplete() {
-    // Process all changed bindings in one batch
-    doSomethingWithChangedBindings(this.changedBindingIds)
-    this.changedBindingIds.clear()
-  }
+	onOperationComplete() {
+		// Process all changed bindings in one batch
+		doSomethingWithChangedBindings(this.changedBindingIds)
+		this.changedBindingIds.clear()
+	}
 
-  onAfterChange({ bindingAfter }: BindingOnChangeOptions<MyBinding>) {
-    this.changedBindingIds.add(bindingAfter.id)
-  }
+	onAfterChange({ bindingAfter }: BindingOnChangeOptions<MyBinding>) {
+		this.changedBindingIds.add(bindingAfter.id)
+	}
 }
 ```
 
@@ -332,59 +337,59 @@ The arrow binding implementation demonstrates how bindings work in practice.
 
 ```typescript
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
-  static override type = 'arrow'
-  static override props = arrowBindingProps
-  static override migrations = arrowBindingMigrations
+	static override type = 'arrow'
+	static override props = arrowBindingProps
+	static override migrations = arrowBindingMigrations
 
-  getDefaultProps(): Partial<TLArrowBindingProps> {
-    return {
-      isPrecise: false,
-      isExact: false,
-      normalizedAnchor: { x: 0.5, y: 0.5 },
-      snap: 'none',
-    }
-  }
+	getDefaultProps(): Partial<TLArrowBindingProps> {
+		return {
+			isPrecise: false,
+			isExact: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		}
+	}
 
-  // When binding is created or changed, update arrow
-  onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>) {
-    const arrow = this.editor.getShape(binding.fromId) as TLArrowShape
-    if (!arrow) return
-    arrowDidUpdate(this.editor, arrow)
-  }
+	// When binding is created or changed, update arrow
+	onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>) {
+		const arrow = this.editor.getShape(binding.fromId) as TLArrowShape
+		if (!arrow) return
+		arrowDidUpdate(this.editor, arrow)
+	}
 
-  onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>) {
-    const arrow = this.editor.getShape(bindingAfter.fromId) as TLArrowShape
-    if (!arrow) return
-    arrowDidUpdate(this.editor, arrow)
-  }
+	onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>) {
+		const arrow = this.editor.getShape(bindingAfter.fromId) as TLArrowShape
+		if (!arrow) return
+		arrowDidUpdate(this.editor, arrow)
+	}
 
-  // When bound shape changes, re-parent arrow if needed
-  onAfterChangeToShape({
-    binding,
-    shapeBefore,
-    shapeAfter,
-    reason,
-  }: BindingOnShapeChangeOptions<TLArrowBinding>) {
-    if (
-      reason !== 'ancestry' &&
-      shapeBefore.parentId === shapeAfter.parentId &&
-      shapeBefore.index === shapeAfter.index
-    ) {
-      return
-    }
-    reparentArrow(this.editor, binding.fromId)
-  }
+	// When bound shape changes, re-parent arrow if needed
+	onAfterChangeToShape({
+		binding,
+		shapeBefore,
+		shapeAfter,
+		reason,
+	}: BindingOnShapeChangeOptions<TLArrowBinding>) {
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
+		reparentArrow(this.editor, binding.fromId)
+	}
 
-  // When arrow is isolated, fix its terminal position
-  onBeforeIsolateFromShape({ binding }: BindingOnShapeIsolateOptions<TLArrowBinding>) {
-    const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
-    if (!arrow) return
-    updateArrowTerminal({
-      editor: this.editor,
-      arrow,
-      terminal: binding.props.terminal,
-    })
-  }
+	// When arrow is isolated, fix its terminal position
+	onBeforeIsolateFromShape({ binding }: BindingOnShapeIsolateOptions<TLArrowBinding>) {
+		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
+		if (!arrow) return
+		updateArrowTerminal({
+			editor: this.editor,
+			arrow,
+			terminal: binding.props.terminal,
+		})
+	}
 }
 ```
 
@@ -419,38 +424,38 @@ When arrows are translated, resized, or isolated, their terminal positions must 
 
 ```typescript
 function updateArrowTerminal({
-  editor,
-  arrow,
-  terminal,
-  unbind = false,
-  useHandle = false,
+	editor,
+	arrow,
+	terminal,
+	unbind = false,
+	useHandle = false,
 }: {
-  editor: Editor
-  arrow: TLArrowShape
-  terminal: 'start' | 'end'
-  unbind?: boolean
-  useHandle?: boolean
+	editor: Editor
+	arrow: TLArrowShape
+	terminal: 'start' | 'end'
+	unbind?: boolean
+	useHandle?: boolean
 }) {
-  const info = getArrowInfo(editor, arrow)
-  if (!info) throw new Error('expected arrow info')
+	const info = getArrowInfo(editor, arrow)
+	if (!info) throw new Error('expected arrow info')
 
-  const startPoint = useHandle ? info.start.handle : info.start.point
-  const endPoint = useHandle ? info.end.handle : info.end.point
-  const point = terminal === 'start' ? startPoint : endPoint
+	const startPoint = useHandle ? info.start.handle : info.start.point
+	const endPoint = useHandle ? info.end.handle : info.end.point
+	const point = terminal === 'start' ? startPoint : endPoint
 
-  // Update arrow terminal position
-  editor.updateShape({
-    id: arrow.id,
-    type: 'arrow',
-    props: {
-      [terminal]: { x: point.x, y: point.y },
-      bend: arrow.props.bend,
-    },
-  })
+	// Update arrow terminal position
+	editor.updateShape({
+		id: arrow.id,
+		type: 'arrow',
+		props: {
+			[terminal]: { x: point.x, y: point.y },
+			bend: arrow.props.bend,
+		},
+	})
 
-  if (unbind) {
-    removeArrowBinding(editor, arrow, terminal)
-  }
+	if (unbind) {
+		removeArrowBinding(editor, arrow, terminal)
+	}
 }
 ```
 
@@ -469,34 +474,34 @@ import { T } from '@tldraw/validate'
 import { RecordProps } from '../recordsWithProps'
 
 export interface TLMyBindingProps {
-  connectionType: 'strong' | 'weak'
-  label: string
+	connectionType: 'strong' | 'weak'
+	label: string
 }
 
 export const myBindingProps: RecordProps<TLMyBinding> = {
-  connectionType: T.literalEnum('strong', 'weak'),
-  label: T.string,
+	connectionType: T.literalEnum('strong', 'weak'),
+	label: T.string,
 }
 
 export type TLMyBinding = TLBaseBinding<'myBinding', TLMyBindingProps>
 
 // Define migrations
 export const myBindingVersions = createBindingPropsMigrationIds('myBinding', {
-  AddLabel: 1,
+	AddLabel: 1,
 })
 
 export const myBindingMigrations = createBindingPropsMigrationSequence({
-  sequence: [
-    {
-      id: myBindingVersions.AddLabel,
-      up: (props) => {
-        props.label = ''
-      },
-      down: (props) => {
-        delete props.label
-      },
-    },
-  ],
+	sequence: [
+		{
+			id: myBindingVersions.AddLabel,
+			up: (props) => {
+				props.label = ''
+			},
+			down: (props) => {
+				delete props.label
+			},
+		},
+	],
 })
 ```
 
@@ -508,52 +513,45 @@ import { BindingUtil, BindingOnChangeOptions } from '@tldraw/editor'
 import { TLMyBinding, TLMyBindingProps } from '@tldraw/tlschema'
 
 export class MyBindingUtil extends BindingUtil<TLMyBinding> {
-  static override type = 'myBinding' as const
-  static override props = myBindingProps
-  static override migrations = myBindingMigrations
+	static override type = 'myBinding' as const
+	static override props = myBindingProps
+	static override migrations = myBindingMigrations
 
-  getDefaultProps(): Partial<TLMyBindingProps> {
-    return {
-      connectionType: 'strong',
-      label: '',
-    }
-  }
+	getDefaultProps(): Partial<TLMyBindingProps> {
+		return {
+			connectionType: 'strong',
+			label: '',
+		}
+	}
 
-  onAfterCreate({ binding }: BindingOnCreateOptions<TLMyBinding>) {
-    // Update source shape when binding is created
-    const fromShape = this.editor.getShape(binding.fromId)
-    if (!fromShape) return
+	onAfterCreate({ binding }: BindingOnCreateOptions<TLMyBinding>) {
+		// Update source shape when binding is created
+		const fromShape = this.editor.getShape(binding.fromId)
+		if (!fromShape) return
 
-    // Add visual indicator or update shape state
-    this.editor.updateShape({
-      id: fromShape.id,
-      type: fromShape.type,
-      meta: {
-        ...fromShape.meta,
-        hasBinding: true,
-      },
-    })
-  }
+		// Add visual indicator or update shape state
+		this.editor.updateShape({
+			id: fromShape.id,
+			type: fromShape.type,
+			meta: {
+				...fromShape.meta,
+				hasBinding: true,
+			},
+		})
+	}
 
-  onAfterChangeToShape({
-    binding,
-    shapeAfter,
-  }: BindingOnShapeChangeOptions<TLMyBinding>) {
-    // Respond to target shape changes
-    const fromShape = this.editor.getShape(binding.fromId)
-    if (!fromShape) return
+	onAfterChangeToShape({ binding, shapeAfter }: BindingOnShapeChangeOptions<TLMyBinding>) {
+		// Respond to target shape changes
+		const fromShape = this.editor.getShape(binding.fromId)
+		if (!fromShape) return
 
-    // Update source shape based on target changes
-    this.updateConnection(fromShape, shapeAfter, binding)
-  }
+		// Update source shape based on target changes
+		this.updateConnection(fromShape, shapeAfter, binding)
+	}
 
-  private updateConnection(
-    fromShape: TLShape,
-    toShape: TLShape,
-    binding: TLMyBinding
-  ) {
-    // Custom logic to maintain binding consistency
-  }
+	private updateConnection(fromShape: TLShape, toShape: TLShape, binding: TLMyBinding) {
+		// Custom logic to maintain binding consistency
+	}
 }
 ```
 
@@ -564,8 +562,8 @@ export class MyBindingUtil extends BindingUtil<TLMyBinding> {
 import { MyBindingUtil } from './bindings/myBinding/MyBindingUtil'
 
 const editor = new Editor({
-  // ... other options
-  bindingUtils: [MyBindingUtil],
+	// ... other options
+	bindingUtils: [MyBindingUtil],
 })
 ```
 
@@ -617,10 +615,7 @@ Get bindings from the store:
 
 ```typescript
 // Get all bindings of a specific type
-const arrowBindings = editor.getBindingsFromShape<TLArrowBinding>(
-  shape,
-  'arrow'
-)
+const arrowBindings = editor.getBindingsFromShape<TLArrowBinding>(shape, 'arrow')
 
 // Get bindings involving a specific shape
 const allBindings = editor.getBindingsFromShape(shape)
@@ -634,16 +629,16 @@ const binding = editor.getBinding<TLArrowBinding>(bindingId)
 ```typescript
 // Create a new binding
 editor.createBinding({
-  type: 'arrow',
-  fromId: arrowShape.id,
-  toId: targetShape.id,
-  props: {
-    terminal: 'end',
-    normalizedAnchor: { x: 0.5, y: 0.5 },
-    isExact: false,
-    isPrecise: true,
-    snap: 'none',
-  },
+	type: 'arrow',
+	fromId: arrowShape.id,
+	toId: targetShape.id,
+	props: {
+		terminal: 'end',
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+		isExact: false,
+		isPrecise: true,
+		snap: 'none',
+	},
 })
 ```
 
@@ -652,12 +647,12 @@ editor.createBinding({
 ```typescript
 // Update binding props
 editor.updateBinding({
-  ...binding,
-  props: {
-    ...binding.props,
-    isPrecise: false,
-    normalizedAnchor: { x: 0.8, y: 0.5 },
-  },
+	...binding,
+	props: {
+		...binding.props,
+		isPrecise: false,
+		normalizedAnchor: { x: 0.8, y: 0.5 },
+	},
 })
 ```
 
@@ -682,10 +677,10 @@ Use transactions for multiple binding operations:
 
 ```typescript
 editor.batch(() => {
-  // Create multiple bindings
-  editor.createBinding(binding1)
-  editor.createBinding(binding2)
-  editor.createBinding(binding3)
+	// Create multiple bindings
+	editor.createBinding(binding1)
+	editor.createBinding(binding2)
+	editor.createBinding(binding3)
 })
 ```
 
@@ -723,14 +718,14 @@ Store computed values when possible:
 
 ```typescript
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  private cachedConnections = new WeakMap<TLBinding, ConnectionInfo>()
+	private cachedConnections = new WeakMap<TLBinding, ConnectionInfo>()
 
-  getConnectionInfo(binding: TLBinding): ConnectionInfo {
-    if (!this.cachedConnections.has(binding)) {
-      this.cachedConnections.set(binding, computeConnectionInfo(binding))
-    }
-    return this.cachedConnections.get(binding)!
-  }
+	getConnectionInfo(binding: TLBinding): ConnectionInfo {
+		if (!this.cachedConnections.has(binding)) {
+			this.cachedConnections.set(binding, computeConnectionInfo(binding))
+		}
+		return this.cachedConnections.get(binding)!
+	}
 }
 ```
 
@@ -764,25 +759,25 @@ onAfterChangeToShape({
 Create bindings in both directions for symmetric relationships:
 
 ```typescript
-function createBidirectionalBinding(
-  editor: Editor,
-  shape1: TLShape,
-  shape2: TLShape
-) {
-  editor.batch(() => {
-    editor.createBinding({
-      type: 'myBinding',
-      fromId: shape1.id,
-      toId: shape2.id,
-      props: { /* ... */ },
-    })
-    editor.createBinding({
-      type: 'myBinding',
-      fromId: shape2.id,
-      toId: shape1.id,
-      props: { /* ... */ },
-    })
-  })
+function createBidirectionalBinding(editor: Editor, shape1: TLShape, shape2: TLShape) {
+	editor.batch(() => {
+		editor.createBinding({
+			type: 'myBinding',
+			fromId: shape1.id,
+			toId: shape2.id,
+			props: {
+				/* ... */
+			},
+		})
+		editor.createBinding({
+			type: 'myBinding',
+			fromId: shape2.id,
+			toId: shape1.id,
+			props: {
+				/* ... */
+			},
+		})
+	})
 }
 ```
 

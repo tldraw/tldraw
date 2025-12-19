@@ -1,7 +1,7 @@
 ---
-title: "@tldraw/editor"
-created_at: 17/12/2024
-updated_at: 17/12/2024
+title: '@tldraw/editor'
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - editor
   - canvas
@@ -47,14 +47,14 @@ import { TldrawEditor } from '@tldraw/editor'
 import '@tldraw/editor/editor.css'
 
 function App() {
-  return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <TldrawEditor
-        shapeUtils={[]}  // Your custom shapes
-        tools={[]}       // Your custom tools
-      />
-    </div>
-  )
+	return (
+		<div style={{ width: '100vw', height: '100vh' }}>
+			<TldrawEditor
+				shapeUtils={[]} // Your custom shapes
+				tools={[]} // Your custom tools
+			/>
+		</div>
+	)
 }
 ```
 
@@ -68,33 +68,33 @@ The `Editor` class is the central orchestrator. It manages all editor state and 
 
 ```typescript
 function MyComponent() {
-  const editor = useEditor()
+	const editor = useEditor()
 
-  // Access state
-  const selectedShapes = editor.getSelectedShapes()
-  const camera = editor.getCamera()
+	// Access state
+	const selectedShapes = editor.getSelectedShapes()
+	const camera = editor.getCamera()
 
-  // Manipulate shapes
-  editor.createShape({ type: 'myShape', x: 0, y: 0, props: {} })
-  editor.updateShape({ id: shapeId, props: { color: 'red' } })
-  editor.deleteShapes([shapeId])
+	// Manipulate shapes
+	editor.createShape({ type: 'myShape', x: 0, y: 0, props: {} })
+	editor.updateShape({ id: shapeId, props: { color: 'red' } })
+	editor.deleteShapes([shapeId])
 
-  // Control the viewport
-  editor.zoomIn()
-  editor.centerOnPoint({ x: 500, y: 500 })
+	// Control the viewport
+	editor.zoomIn()
+	editor.centerOnPoint({ x: 500, y: 500 })
 }
 ```
 
 The Editor provides methods for:
 
-| Category | Examples |
-|----------|----------|
-| Shapes | `createShape`, `updateShape`, `deleteShapes`, `getShape` |
+| Category  | Examples                                                 |
+| --------- | -------------------------------------------------------- |
+| Shapes    | `createShape`, `updateShape`, `deleteShapes`, `getShape` |
 | Selection | `select`, `selectAll`, `selectNone`, `getSelectedShapes` |
-| Camera | `zoomIn`, `zoomOut`, `centerOnPoint`, `setCamera` |
-| History | `undo`, `redo`, `mark`, `bail` |
-| Tools | `setCurrentTool`, `getCurrentTool` |
-| Pages | `createPage`, `deletePage`, `setCurrentPage` |
+| Camera    | `zoomIn`, `zoomOut`, `centerOnPoint`, `setCamera`        |
+| History   | `undo`, `redo`, `mark`, `bail`                           |
+| Tools     | `setCurrentTool`, `getCurrentTool`                       |
+| Pages     | `createPage`, `deletePage`, `setCurrentPage`             |
 
 ### Store integration
 
@@ -105,12 +105,11 @@ const editor = useEditor()
 
 // Listen to changes
 editor.store.listen((entry) => {
-  console.log('Store changed:', entry)
+	console.log('Store changed:', entry)
 })
 
 // Access records directly
-const allShapes = editor.store.allRecords()
-  .filter(r => r.typeName === 'shape')
+const allShapes = editor.store.allRecords().filter((r) => r.typeName === 'shape')
 ```
 
 ### Component structure
@@ -182,33 +181,31 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ### Required ShapeUtil methods
 
-| Method | Purpose |
-|--------|---------|
-| `getDefaultProps()` | Default values for new shapes |
-| `getGeometry()` | Hit testing, bounds, and outline |
-| `component()` | React component for rendering |
-| `indicator()` | SVG for selection outline |
+| Method              | Purpose                          |
+| ------------------- | -------------------------------- |
+| `getDefaultProps()` | Default values for new shapes    |
+| `getGeometry()`     | Hit testing, bounds, and outline |
+| `component()`       | React component for rendering    |
+| `indicator()`       | SVG for selection outline        |
 
 ### Optional ShapeUtil methods
 
-| Method | Purpose |
-|--------|---------|
-| `onResize()` | Custom resize behavior |
-| `onRotate()` | Custom rotation behavior |
-| `onDoubleClick()` | Handle double-click |
-| `onEditEnd()` | Handle edit mode end |
-| `canEdit()` | Whether shape supports editing |
-| `canResize()` | Whether shape can be resized |
-| `canBind()` | Whether other shapes can bind to this |
+| Method            | Purpose                               |
+| ----------------- | ------------------------------------- |
+| `onResize()`      | Custom resize behavior                |
+| `onRotate()`      | Custom rotation behavior              |
+| `onDoubleClick()` | Handle double-click                   |
+| `onEditEnd()`     | Handle edit mode end                  |
+| `canEdit()`       | Whether shape supports editing        |
+| `canResize()`     | Whether shape can be resized          |
+| `canBind()`       | Whether other shapes can bind to this |
 
 ### Registering shapes
 
 Pass your ShapeUtils to the editor:
 
 ```tsx
-<TldrawEditor
-  shapeUtils={[MyShapeUtil]}
-/>
+<TldrawEditor shapeUtils={[MyShapeUtil]} />
 ```
 
 ## Defining tools with StateNode
@@ -219,20 +216,20 @@ Tools are implemented as hierarchical state machines using `StateNode`:
 import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
 
 class MyTool extends StateNode {
-  static override id = 'myTool'
+	static override id = 'myTool'
 
-  onEnter() {
-    this.editor.setCursor({ type: 'cross' })
-  }
+	onEnter() {
+		this.editor.setCursor({ type: 'cross' })
+	}
 
-  onPointerDown(info: TLPointerEventInfo) {
-    const { x, y } = this.editor.inputs.currentPagePoint
-    this.editor.createShape({
-      type: 'myShape',
-      x,
-      y,
-    })
-  }
+	onPointerDown(info: TLPointerEventInfo) {
+		const { x, y } = this.editor.inputs.currentPagePoint
+		this.editor.createShape({
+			type: 'myShape',
+			x,
+			y,
+		})
+	}
 }
 ```
 
@@ -242,29 +239,29 @@ Complex tools use child states for different interaction phases:
 
 ```typescript
 class DrawTool extends StateNode {
-  static override id = 'draw'
-  static override children = () => [IdleState, DrawingState]
-  static override initial = 'idle'
+	static override id = 'draw'
+	static override children = () => [IdleState, DrawingState]
+	static override initial = 'idle'
 }
 
 class IdleState extends StateNode {
-  static override id = 'idle'
+	static override id = 'idle'
 
-  onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition('drawing', info)
-  }
+	onPointerDown(info: TLPointerEventInfo) {
+		this.parent.transition('drawing', info)
+	}
 }
 
 class DrawingState extends StateNode {
-  static override id = 'drawing'
+	static override id = 'drawing'
 
-  onPointerMove(info: TLPointerEventInfo) {
-    // Update shape as user draws
-  }
+	onPointerMove(info: TLPointerEventInfo) {
+		// Update shape as user draws
+	}
 
-  onPointerUp(info: TLPointerEventInfo) {
-    this.parent.transition('idle')
-  }
+	onPointerUp(info: TLPointerEventInfo) {
+		this.parent.transition('idle')
+	}
 }
 ```
 
@@ -272,25 +269,25 @@ class DrawingState extends StateNode {
 
 StateNode supports these event handlers:
 
-| Handler | Trigger |
-|---------|---------|
-| `onEnter()` | State becomes active |
-| `onExit()` | State becomes inactive |
-| `onPointerDown()` | Mouse/touch down |
-| `onPointerMove()` | Mouse/touch move |
-| `onPointerUp()` | Mouse/touch up |
-| `onKeyDown()` | Key pressed |
-| `onKeyUp()` | Key released |
-| `onWheel()` | Mouse wheel |
-| `onDoubleClick()` | Double click |
-| `onCancel()` | Escape pressed |
+| Handler           | Trigger                |
+| ----------------- | ---------------------- |
+| `onEnter()`       | State becomes active   |
+| `onExit()`        | State becomes inactive |
+| `onPointerDown()` | Mouse/touch down       |
+| `onPointerMove()` | Mouse/touch move       |
+| `onPointerUp()`   | Mouse/touch up         |
+| `onKeyDown()`     | Key pressed            |
+| `onKeyUp()`       | Key released           |
+| `onWheel()`       | Mouse wheel            |
+| `onDoubleClick()` | Double click           |
+| `onCancel()`      | Escape pressed         |
 
 ### Registering tools
 
 ```tsx
 <TldrawEditor
-  tools={[MyTool, DrawTool]}
-  initialState="myTool"  // Start with this tool active
+	tools={[MyTool, DrawTool]}
+	initialState="myTool" // Start with this tool active
 />
 ```
 
@@ -301,30 +298,31 @@ Bindings create relationships between shapes. The most common use is arrows conn
 ```typescript
 import { BindingUtil, TLBaseBinding } from '@tldraw/editor'
 
-type MyBinding = TLBaseBinding<'myBinding', {
-  anchor: { x: number; y: number }
-}>
+type MyBinding = TLBaseBinding<
+	'myBinding',
+	{
+		anchor: { x: number; y: number }
+	}
+>
 
 class MyBindingUtil extends BindingUtil<MyBinding> {
-  static override type = 'myBinding' as const
+	static override type = 'myBinding' as const
 
-  getDefaultProps() {
-    return { anchor: { x: 0.5, y: 0.5 } }
-  }
+	getDefaultProps() {
+		return { anchor: { x: 0.5, y: 0.5 } }
+	}
 
-  onAfterChangeToShape({ binding }) {
-    // Called when the "to" shape changes
-    // Update the "from" shape to maintain the connection
-  }
+	onAfterChangeToShape({ binding }) {
+		// Called when the "to" shape changes
+		// Update the "from" shape to maintain the connection
+	}
 }
 ```
 
 Register bindings:
 
 ```tsx
-<TldrawEditor
-  bindingUtils={[MyBindingUtil]}
-/>
+<TldrawEditor bindingUtils={[MyBindingUtil]} />
 ```
 
 ## External content handling
@@ -333,51 +331,51 @@ The Editor provides a system for handling external content like pasted text, dro
 
 ### Content types
 
-| Type | Description |
-|------|-------------|
-| `text` | Plain text, HTML, or JSON |
-| `files` | Dropped or pasted files (images, videos, etc.) |
-| `url` | URLs that might be embeddable |
-| `svg-text` | SVG markup as text |
-| `embed` | Embeddable content (YouTube, etc.) |
-| `tldraw` | Native tldraw content |
-| `excalidraw` | Excalidraw format |
+| Type         | Description                                    |
+| ------------ | ---------------------------------------------- |
+| `text`       | Plain text, HTML, or JSON                      |
+| `files`      | Dropped or pasted files (images, videos, etc.) |
+| `url`        | URLs that might be embeddable                  |
+| `svg-text`   | SVG markup as text                             |
+| `embed`      | Embeddable content (YouTube, etc.)             |
+| `tldraw`     | Native tldraw content                          |
+| `excalidraw` | Excalidraw format                              |
 
 ### Registering handlers
 
 ```typescript
 // Handle dropped/pasted text
 editor.registerExternalContentHandler('text', async (content) => {
-  const { text, point } = content
-  editor.createShape({
-    type: 'text',
-    x: point?.x ?? 0,
-    y: point?.y ?? 0,
-    props: { text },
-  })
+	const { text, point } = content
+	editor.createShape({
+		type: 'text',
+		x: point?.x ?? 0,
+		y: point?.y ?? 0,
+		props: { text },
+	})
 })
 
 // Handle dropped files
 editor.registerExternalContentHandler('files', async (content) => {
-  const { files, point } = content
-  for (const file of files) {
-    if (file.type.startsWith('image/')) {
-      // Create image shape from file
-      const assetId = await editor.uploadAsset(file)
-      editor.createShape({
-        type: 'image',
-        x: point?.x ?? 0,
-        y: point?.y ?? 0,
-        props: { assetId },
-      })
-    }
-  }
+	const { files, point } = content
+	for (const file of files) {
+		if (file.type.startsWith('image/')) {
+			// Create image shape from file
+			const assetId = await editor.uploadAsset(file)
+			editor.createShape({
+				type: 'image',
+				x: point?.x ?? 0,
+				y: point?.y ?? 0,
+				props: { assetId },
+			})
+		}
+	}
 })
 
 // Handle URLs
 editor.registerExternalContentHandler('url', async (content) => {
-  const { url, point } = content
-  // Check if URL is embeddable, create embed or bookmark shape
+	const { url, point } = content
+	// Check if URL is embeddable, create embed or bookmark shape
 })
 ```
 
@@ -386,15 +384,15 @@ editor.registerExternalContentHandler('url', async (content) => {
 ```typescript
 // Programmatically handle external content
 await editor.putExternalContent({
-  type: 'text',
-  text: 'Hello world',
-  point: { x: 100, y: 100 },
+	type: 'text',
+	text: 'Hello world',
+	point: { x: 100, y: 100 },
 })
 
 await editor.putExternalContent({
-  type: 'files',
-  files: [myFile],
-  point: { x: 200, y: 200 },
+	type: 'files',
+	files: [myFile],
+	point: { x: 200, y: 200 },
 })
 ```
 
@@ -404,8 +402,8 @@ External content can include source information for traceability:
 
 ```typescript
 interface TLExternalContentSource {
-  type: 'tldraw' | 'excalidraw' | 'text' | 'error'
-  data: any
+	type: 'tldraw' | 'excalidraw' | 'text' | 'error'
+	data: any
 }
 ```
 
@@ -413,14 +411,14 @@ interface TLExternalContentSource {
 
 The Editor uses specialized managers for different concerns:
 
-| Manager | Purpose |
-|---------|---------|
-| `HistoryManager` | Undo/redo stack |
-| `SnapManager` | Snapping during interactions |
-| `FocusManager` | Keyboard focus handling |
-| `TextManager` | Text measurement and editing |
-| `TickManager` | Animation frame coordination |
-| `ScribbleManager` | Freehand brush effects |
+| Manager           | Purpose                      |
+| ----------------- | ---------------------------- |
+| `HistoryManager`  | Undo/redo stack              |
+| `SnapManager`     | Snapping during interactions |
+| `FocusManager`    | Keyboard focus handling      |
+| `TextManager`     | Text measurement and editing |
+| `TickManager`     | Animation frame coordination |
+| `ScribbleManager` | Freehand brush effects       |
 
 Access managers through the editor:
 
@@ -435,11 +433,11 @@ Override default components via the `components` prop:
 
 ```tsx
 <TldrawEditor
-  components={{
-    Cursor: MyCustomCursor,
-    Grid: MyCustomGrid,
-    Background: MyCustomBackground,
-  }}
+	components={{
+		Cursor: MyCustomCursor,
+		Grid: MyCustomGrid,
+		Background: MyCustomBackground,
+	}}
 />
 ```
 
@@ -468,9 +466,9 @@ The editor is optimized for performance:
 ```typescript
 // Batch multiple operations for efficiency
 editor.batch(() => {
-  editor.createShape(shape1)
-  editor.createShape(shape2)
-  editor.select(shape1.id, shape2.id)
+	editor.createShape(shape1)
+	editor.createShape(shape2)
+	editor.select(shape1.id, shape2.id)
 })
 ```
 

@@ -1,7 +1,7 @@
 ---
 title: API conventions
-created_at: 17/12/2024
-updated_at: 17/12/2024
+created_at: 12/17/2024
+updated_at: 12/17/2024
 keywords:
   - api
   - conventions
@@ -74,9 +74,9 @@ Use factory functions for type-safe IDs:
 ```typescript
 import { createShapeId, createPageId, createAssetId } from 'tldraw'
 
-const shapeId = createShapeId()        // shape:xxxx
-const pageId = createPageId()          // page:xxxx
-const assetId = createAssetId()        // asset:xxxx
+const shapeId = createShapeId() // shape:xxxx
+const pageId = createPageId() // page:xxxx
+const assetId = createAssetId() // asset:xxxx
 ```
 
 ### Class naming
@@ -112,8 +112,8 @@ const $doubled = computed('doubled', () => $count.get() * 2)
 
 // Prefix signal variables with $
 class MyManager {
-  readonly $isActive = atom('isActive', false)
-  readonly $items = atom<Item[]>('items', [])
+	readonly $isActive = atom('isActive', false)
+	readonly $items = atom<Item[]>('items', [])
 }
 ```
 
@@ -149,9 +149,9 @@ Group related changes for efficiency and single undo:
 
 ```typescript
 editor.batch(() => {
-  editor.createShape(shape1)
-  editor.createShape(shape2)
-  editor.select(shape1.id, shape2.id)
+	editor.createShape(shape1)
+	editor.createShape(shape2)
+	editor.select(shape1.id, shape2.id)
 })
 ```
 
@@ -172,9 +172,9 @@ editor.updateShape({ id, props: { w: newWidth } })
 ```typescript
 // 1. Define props interface
 interface MyShapeProps {
-  w: number
-  h: number
-  color: string
+	w: number
+	h: number
+	color: string
 }
 
 // 2. Define shape type using TLBaseShape
@@ -182,20 +182,20 @@ type MyShape = TLBaseShape<'myShape', MyShapeProps>
 
 // 3. Define migrations if props change over time
 const myShapeMigrations = createShapePropsMigrationSequence({
-  sequence: [
-    {
-      id: 'myShape/add-color',
-      up: (props) => ({ ...props, color: 'black' }),
-      down: ({ color, ...props }) => props,
-    },
-  ],
+	sequence: [
+		{
+			id: 'myShape/add-color',
+			up: (props) => ({ ...props, color: 'black' }),
+			down: ({ color, ...props }) => props,
+		},
+	],
 })
 
 // 4. Define props validation
 const myShapeProps: RecordProps<MyShape> = {
-  w: T.number,
-  h: T.number,
-  color: T.string,
+	w: T.number,
+	h: T.number,
+	color: T.string,
 }
 ```
 
@@ -253,15 +253,14 @@ MyClass.ts
 MyClass.test.ts
 
 // Integration tests in test directory
-src/test/
-  feature.test.ts
+src / test / feature.test.ts
 ```
 
 ## Documentation patterns
 
 ### JSDoc comments
 
-```typescript
+````typescript
 /**
  * Creates a new shape on the current page.
  *
@@ -281,14 +280,14 @@ src/test/
  * @public
  */
 createShape(shape: TLShapePartial): TLShape
-```
+````
 
 ### Visibility markers
 
 ```typescript
-/** @public */     // Part of public API
-/** @internal */   // Used across packages but not public
-/** @beta */       // Experimental, may change
+/** @public */ // Part of public API
+/** @internal */ // Used across packages but not public
+/** @beta */ // Experimental, may change
 ```
 
 ## Error handling
@@ -313,11 +312,11 @@ For operations that can fail:
 type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
 
 function parseJson(text: string): Result<unknown, Error> {
-  try {
-    return { ok: true, value: JSON.parse(text) }
-  } catch (e) {
-    return { ok: false, error: e as Error }
-  }
+	try {
+		return { ok: true, value: JSON.parse(text) }
+	} catch (e) {
+		return { ok: false, error: e as Error }
+	}
 }
 ```
 
@@ -328,12 +327,12 @@ function parseJson(text: string): Result<unknown, Error> {
 ```typescript
 // Use computed for derived values
 const $bounds = computed('bounds', () => {
-  return calculateBounds(this.editor.getSelectedShapes())
+	return calculateBounds(this.editor.getSelectedShapes())
 })
 
 // React memoization for components
 const MyComponent = memo(function MyComponent({ shape }) {
-  // ...
+	// ...
 })
 ```
 
@@ -342,16 +341,17 @@ const MyComponent = memo(function MyComponent({ shape }) {
 ```typescript
 // Bad - recalculates on every render
 function MyComponent() {
-  const shapes = editor.getCurrentPageShapes()
-  const filtered = shapes.filter(s => s.type === 'geo') // Every render
+	const shapes = editor.getCurrentPageShapes()
+	const filtered = shapes.filter((s) => s.type === 'geo') // Every render
 }
 
 // Good - use reactive queries
 function MyComponent() {
-  const geoShapes = useValue('geoShapes', () =>
-    editor.getCurrentPageShapes().filter(s => s.type === 'geo'),
-    [editor]
-  )
+	const geoShapes = useValue(
+		'geoShapes',
+		() => editor.getCurrentPageShapes().filter((s) => s.type === 'geo'),
+		[editor]
+	)
 }
 ```
 
