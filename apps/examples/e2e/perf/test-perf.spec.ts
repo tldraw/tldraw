@@ -132,7 +132,7 @@ test.describe('Performance Tests', () => {
 	})
 })
 
-test('Baseline Management', () => {
+test.describe('Baseline Management', () => {
 	test('Establish All Performance Baselines', async ({ page, context, request, browserName }) => {
 		test.setTimeout(120000) // 2 minutes for establishing all baselines
 
