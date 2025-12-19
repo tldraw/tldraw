@@ -3,6 +3,7 @@ import { memo, useLayoutEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { FairyActionRateChart } from '../../fairy-chart/FairyActionRateChart'
 import { getIRCNameForFairy } from '../../fairy-helpers/getIRCNameForFairy'
 import { buildFeedItems } from './feedUtils'
 
@@ -49,6 +50,7 @@ export function shouldShowInFeed(
 export interface FairyFeedViewItem {
 	orchestratorAgent: FairyAgent | null
 	agents: FairyAgent[]
+	showActivityMonitor?: boolean
 }
 
 interface FeedItem {
@@ -99,21 +101,15 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 	const previousScrollDistanceFromBottomRef = useRef(0)
 	const previousItemCountRef = useRef(0)
 
-	const project = useValue(
-		'project',
-		() => orchestratorAgent && orchestratorAgent.getProject(true), // Include soft-deleted projects
-		[orchestratorAgent]
-	)
-
 	const feedItems = useValue(
 		'feed-items',
 		() => {
-			if (!project || !fairyApp) return []
-
-			const projectAgents = agents.filter((agent) => project.members.some((m) => m.id === agent.id))
-			return buildFeedItems(projectAgents, orchestratorAgent)
+			if (!fairyApp) return []
+			const allItems = buildFeedItems(agents, orchestratorAgent)
+			// Keep only last 1000 items for UI performance
+			return allItems.slice(-1000)
 		},
-		[project, fairyApp, agents, orchestratorAgent]
+		[fairyApp, agents, orchestratorAgent]
 	)
 
 	// Small threshold to account for sub-pixel rounding when determining if user is "at bottom"
@@ -150,18 +146,23 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 
 	if (feedItems.length === 0) {
 		return (
-			<div className="fairy-feed-view-empty">
-				<p>Planning project...</p>
-			</div>
+			<>
+				<div className="fairy-feed-view-empty">
+					<p>No fairy activity yet...</p>
+				</div>
+			</>
 		)
 	}
 
 	return (
-		<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
-			{feedItems.map((item) => (
-				<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />
-			))}
-		</div>
+		<>
+			<FairyActionRateChart agents={agents} />
+			<div className="fairy-feed-view fairy-feed-irc" ref={historyRef} onScroll={handleScroll}>
+				{feedItems.map((item) => (
+					<FairyFeedIRCLine key={item.id} {...item} isOrchestrator={item.isOrchestrator} />
+				))}
+			</div>
+		</>
 	)
 }
 

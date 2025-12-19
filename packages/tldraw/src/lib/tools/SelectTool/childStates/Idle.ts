@@ -575,7 +575,7 @@ export class Idle extends StateNode {
 		const { editor } = this
 		this.editor.markHistoryStoppingPoint('editing shape')
 		if (hasRichText(shape)) {
-			startEditingShapeWithRichText(editor, shape, shouldSelectAll)
+			startEditingShapeWithRichText(editor, shape, { selectAll: shouldSelectAll })
 		} else {
 			editor.setEditingShape(shape)
 		}
@@ -619,9 +619,7 @@ export class Idle extends StateNode {
 
 		if (!this.editor.canEditShape(shape)) return
 
-		this.editor.setEditingShape(id)
-		this.editor.select(id)
-		this.parent.transition('editing_shape', info)
+		startEditingShapeWithRichText(this.editor, id, { info })
 	}
 
 	private nudgeSelectedShapes(ephemeral = false) {

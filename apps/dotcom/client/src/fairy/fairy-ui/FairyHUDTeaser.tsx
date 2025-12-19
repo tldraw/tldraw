@@ -34,6 +34,7 @@ import {
 } from '../../tla/utils/local-session-state'
 import { fairyMessages } from '../fairy-messages'
 import { FairySprite } from '../fairy-sprite/FairySprite'
+import { useMobilePositioning } from './hud/useMobilePositioning'
 import { FairyManualPanel } from './manual/FairyManualPanel'
 
 export function FairyHUDTeaser() {
@@ -42,7 +43,6 @@ export function FairyHUDTeaser() {
 	const trackEvent = useTldrawAppUiEvents()
 	const breakpoint = useBreakpoint()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
-	const [mobileMenuOffset, setMobileMenuOffset] = useState<number | null>(null)
 	const [isManualOpen, setIsManualOpen] = useState(false)
 
 	const isMobileStylePanelOpen = useValue(
@@ -55,6 +55,7 @@ export function FairyHUDTeaser() {
 	const { addDialog } = useDialogs()
 
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
+	const { mobileMenuOffset } = useMobilePositioning(isMobile)
 	const manualLabel = useMsg(fairyMessages.manual)
 	const hasManualBeenOpened = useHasManualBeenOpened()
 
@@ -99,31 +100,6 @@ export function FairyHUDTeaser() {
 			component: PricingDialog,
 		})
 	}, [isLoaded, flags.fairies.enabled, flags.fairies_purchase.enabled, trackEvent, addDialog])
-
-	// Position HUD above mobile style menu button on mobile
-	useEffect(() => {
-		if (!isMobile) {
-			setMobileMenuOffset(null)
-			return
-		}
-
-		const updatePosition = () => {
-			const mobileStyleButton = document.querySelector('[data-testid="mobile-styles.button"]')
-			if (mobileStyleButton) {
-				const buttonRect = mobileStyleButton.getBoundingClientRect()
-				const rightOffset = window.innerWidth - buttonRect.right
-				setMobileMenuOffset(rightOffset)
-				return
-			}
-			setMobileMenuOffset(null)
-		}
-
-		updatePosition()
-
-		window.addEventListener('resize', updatePosition)
-
-		return () => window.removeEventListener('resize', updatePosition)
-	}, [isMobile])
 
 	return (
 		<div

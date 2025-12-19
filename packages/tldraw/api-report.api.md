@@ -100,6 +100,7 @@ import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEditStartInfo } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEmbedShapeProps } from '@tldraw/editor';
+import { TLEventInfo } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLFileExternalAsset } from '@tldraw/editor';
 import { TLFontFace } from '@tldraw/editor';
@@ -1809,6 +1810,12 @@ export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: nu
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX?: number, scaleY?: number): Vec[];
 
 // @public
+export function getStroke(points: VecLike[], options?: StrokeOptions): Vec[];
+
+// @public
+export function getStrokeOutlinePoints(strokePoints: StrokePoint[], options?: StrokeOptions): Vec[];
+
+// @public
 export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
 
 // @public
@@ -2714,6 +2721,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @public (undocumented)
+export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
+
+// @public (undocumented)
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
     // (undocumented)
     style: 'solid';
@@ -2726,7 +2736,10 @@ export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX.Element;
 export function StackMenuItems(): JSX.Element;
 
 // @public
-export function startEditingShapeWithRichText(editor: Editor, shape: TLShape, selectAll?: boolean): void;
+export function startEditingShapeWithRichText(editor: Editor, shapeOrId: TLShape | TLShapeId, options?: {
+    info?: TLEventInfo;
+    selectAll?: boolean;
+}): void;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;
@@ -2982,9 +2995,6 @@ export interface TextAreaProps {
     // (undocumented)
     text?: string;
 }
-
-// @public (undocumented)
-export const TextDirection: Extension<any, any>;
 
 // @public (undocumented)
 export interface TextShapeOptions {

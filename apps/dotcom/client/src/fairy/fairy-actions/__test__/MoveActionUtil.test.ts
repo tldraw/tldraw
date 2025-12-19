@@ -31,6 +31,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -48,6 +49,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('nonexistent'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -68,6 +70,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: '100' as any,
 				y: '200' as any,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -89,6 +92,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 'invalid' as any,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -109,6 +113,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 'invalid' as any,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -126,6 +131,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: false,
 				time: 0,
@@ -149,6 +155,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: false,
 				time: 0,
@@ -174,6 +181,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'Move shape',
 				complete: true,
 				time: 0,
@@ -200,6 +208,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('nonexistent'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -223,6 +232,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -251,6 +261,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 200,
 				y: 200,
+				anchor: 'top-left',
 				intent: 'Move to 200, 200',
 				complete: true,
 				time: 0,
@@ -285,6 +296,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 150,
 				y: 150,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -313,6 +325,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 100,
 				y: 100,
+				anchor: 'top-left',
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -338,6 +351,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: -50,
 				y: -50,
+				anchor: 'top-left',
 				intent: 'Move to negative position',
 				complete: true,
 				time: 0,
@@ -367,6 +381,7 @@ describe('MoveActionUtil', () => {
 				shapeId: toSimpleShapeId('shape1'),
 				x: 0,
 				y: 0,
+				anchor: 'top-left',
 				intent: 'Move to origin',
 				complete: true,
 				time: 0,
@@ -381,6 +396,108 @@ describe('MoveActionUtil', () => {
 			expect(shapeAfter!.x).not.toBe(initialX)
 			expect(shapeAfter!.y).not.toBe(initialY)
 			expect(agent.position.moveTo).toHaveBeenCalled()
+		})
+
+		describe('anchor positioning', () => {
+			it('should position shape with top-left anchor', () => {
+				const id1 = createShapeId('shape1')
+				editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+				const action = createAgentAction({
+					_type: 'move',
+					shapeId: toSimpleShapeId('shape1'),
+					x: 200,
+					y: 200,
+					anchor: 'top-left',
+					intent: 'Move with top-left anchor',
+					complete: true,
+					time: 0,
+				})
+
+				const helpers = new AgentHelpers(agent)
+				moveUtil.applyAction(action, helpers)
+
+				const bounds = editor.getShapePageBounds(id1)
+				expect(bounds).toBeDefined()
+				// Top-left corner should be at (200, 200)
+				expect(Math.abs(bounds!.minX - 200)).toBeLessThan(1)
+				expect(Math.abs(bounds!.minY - 200)).toBeLessThan(1)
+			})
+
+			it('should position shape with center anchor', () => {
+				const id1 = createShapeId('shape1')
+				editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+				const action = createAgentAction({
+					_type: 'move',
+					shapeId: toSimpleShapeId('shape1'),
+					x: 200,
+					y: 200,
+					anchor: 'center',
+					intent: 'Move with center anchor',
+					complete: true,
+					time: 0,
+				})
+
+				const helpers = new AgentHelpers(agent)
+				moveUtil.applyAction(action, helpers)
+
+				const bounds = editor.getShapePageBounds(id1)
+				expect(bounds).toBeDefined()
+				// Center should be at (200, 200)
+				expect(Math.abs(bounds!.center.x - 200)).toBeLessThan(1)
+				expect(Math.abs(bounds!.center.y - 200)).toBeLessThan(1)
+			})
+
+			it('should position shape with bottom-right anchor', () => {
+				const id1 = createShapeId('shape1')
+				editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+				const action = createAgentAction({
+					_type: 'move',
+					shapeId: toSimpleShapeId('shape1'),
+					x: 200,
+					y: 200,
+					anchor: 'bottom-right',
+					intent: 'Move with bottom-right anchor',
+					complete: true,
+					time: 0,
+				})
+
+				const helpers = new AgentHelpers(agent)
+				moveUtil.applyAction(action, helpers)
+
+				const bounds = editor.getShapePageBounds(id1)
+				expect(bounds).toBeDefined()
+				// Bottom-right corner should be at (200, 200)
+				expect(Math.abs(bounds!.maxX - 200)).toBeLessThan(1)
+				expect(Math.abs(bounds!.maxY - 200)).toBeLessThan(1)
+			})
+
+			it('should position shape with top-center anchor', () => {
+				const id1 = createShapeId('shape1')
+				editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+				const action = createAgentAction({
+					_type: 'move',
+					shapeId: toSimpleShapeId('shape1'),
+					x: 200,
+					y: 200,
+					anchor: 'top-center',
+					intent: 'Move with top-center anchor',
+					complete: true,
+					time: 0,
+				})
+
+				const helpers = new AgentHelpers(agent)
+				moveUtil.applyAction(action, helpers)
+
+				const bounds = editor.getShapePageBounds(id1)
+				expect(bounds).toBeDefined()
+				// Top-center should be at (200, 200)
+				expect(Math.abs(bounds!.center.x - 200)).toBeLessThan(1)
+				expect(Math.abs(bounds!.minY - 200)).toBeLessThan(1)
+			})
 		})
 	})
 })

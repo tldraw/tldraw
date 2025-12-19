@@ -85,15 +85,13 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Add multiple wait conditions to the agent at once.
-	 * Unlike `waitFor`, this method does not check for duplicates.
-	 * @param conditions - An array of wait conditions to add.
+	 * Set the wait conditions array directly, replacing all existing conditions.
+	 * This is useful when you need to update multiple conditions atomically.
+	 * @param conditions - The new array of wait conditions.
 	 * @returns void
 	 */
-	waitForAll(conditions: FairyWaitCondition<FairyWaitEvent>[]) {
-		this.$waitingFor.update((existing) => {
-			return [...existing, ...conditions]
-		})
+	setWaitingFor(conditions: FairyWaitCondition<FairyWaitEvent>[]) {
+		this.$waitingFor.set(conditions)
 	}
 
 	/**

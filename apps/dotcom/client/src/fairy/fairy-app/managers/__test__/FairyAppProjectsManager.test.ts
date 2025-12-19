@@ -291,6 +291,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId1,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			fairyApp.tasks.createTask({
@@ -300,6 +304,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId1,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			expect(fairyApp.tasks.getTasks()).toHaveLength(2)
@@ -457,6 +465,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId1,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			fairyApp.tasks.createTask({
@@ -466,6 +478,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId2,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			expect(manager.getProjects()).toHaveLength(2)
@@ -509,6 +525,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId1,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			expect(manager.getProjects()).toHaveLength(1)
@@ -552,6 +572,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId1,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			fairyApp.tasks.createTask({
@@ -561,6 +585,10 @@ describe('FairyAppProjectsManager', () => {
 				status: 'todo',
 				projectId: projectId2,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			})
 
 			// Soft delete both projects
