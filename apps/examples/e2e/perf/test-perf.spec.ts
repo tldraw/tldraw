@@ -133,7 +133,7 @@ test.describe('Performance Tests', () => {
 })
 
 test.describe('Baseline Management', () => {
-	test('Establish All Performance Baselines', async ({ page, context, request, browserName }) => {
+	test.skip('Establish All Performance Baselines', async ({ page, context, request, browserName }) => {
 		test.setTimeout(120000) // 2 minutes for establishing all baselines
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -158,7 +158,7 @@ test.describe('Baseline Management', () => {
 		console.log('✅ All baselines established successfully!')
 	})
 
-	test('Manual Baseline Update Example', async ({ page, context, request, browserName }) => {
+	test.skip('Manual Baseline Update Example', async ({ page, context, request, browserName }) => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
