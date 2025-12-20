@@ -1,71 +1,165 @@
 # Runtime validation
 
-Some bugs don't crash immediately. A zero-width shape can exist happily in the store until you try to normalize a vector across it—then you get a divide-by-zero error in code that looks completely correct. The bug was introduced somewhere else entirely, possibly minutes ago, possibly by a different user in a multiplayer session.
+Your TypeScript types say width is a number. But runtime gives you `w: 0`, and three operations later your vector normalization divides by zero. The stack trace points at perfectly correct math code. The real bug? It was created five minutes ago, possibly by another user in a multiplayer session.
 
-We built `@tldraw/validate` to catch these problems early, at the boundary where data enters the system. But validation on every store update has to be fast.
+This is the fundamental problem of runtime validation: catching bad data at the boundary before it propagates into your system and causes mysterious failures far from the source. But when you're validating thousands of objects on every update, naive validation becomes a performance bottleneck.
 
-## The problem with delayed crashes
+## Why validation matters (and why it's expensive)
 
-Consider a shape with width and height. If somehow a shape ends up with `w: 0`:
+TypeScript's type system disappears at runtime. When data enters your application—from user input, network requests, browser storage, or multiplayer sync—you have no guarantee it matches your types. A missing field, a NaN where you expected a number, or a malicious `javascript:` URL can all slip through.
 
-1. It renders fine (just invisible)
-2. Selection works
-3. Dragging works
-4. Then someone tries to resize it proportionally, which normalizes the dimensions, and the app crashes
-
-The stack trace points to the resize code. But the resize code is correct—the bug was wherever that zero-width shape was created. Good luck finding it.
-
-This gets worse in multiplayer. The bad data might have been introduced by another user, synced to your client, and now your app crashes on their malformed shape.
-
-## Validation at the boundaries
-
-The solution is to validate data when it enters the store. Every shape, every asset, every page—validated against a schema before it's accepted. If a zero-width shape tries to enter, it's rejected immediately with a clear error pointing at the problem.
+Libraries like Zod solve this by validating data structures:
 
 ```typescript
-// packages/tlschema/src/shapes/TLGeoShape.ts
-export const geoShapeProps = {
-	w: T.nonZeroNumber,  // Must be > 0
-	h: T.nonZeroNumber,
-	// ...
+import { z } from 'zod'
+
+const shapeSchema = z.object({
+	x: z.number(),
+	y: z.number(),
+	w: z.number().positive(),
+	h: z.number().positive(),
+})
+
+const shape = shapeSchema.parse(untrustedData)
+```
+
+This works great for one-shot validation—API responses, form submissions, configuration files. But some applications have a different access pattern: validating the same large objects repeatedly as they change incrementally. A canvas editor might validate hundreds of shapes on every user action. A database client might re-validate cached records as updates stream in.
+
+In these scenarios, full validation on every update is wasteful. When a shape moves from `x: 100` to `x: 150`, why re-validate the entire object? Only the `x` field changed.
+
+## Incremental validation
+
+Most updates only change a small part of a data structure. If you have a previously validated version, you can skip re-validating unchanged parts by comparing references.
+
+```typescript
+interface Validator<T> {
+	validate(value: unknown): T
+	validateUsingKnownGoodVersion?(knownGood: T, newValue: unknown): T
 }
 ```
 
-The `T.nonZeroNumber` validator rejects zero, NaN, and Infinity. Similar validators exist for URLs (preventing `javascript:` XSS attacks), integers, and constrained ranges.
-
-## Making it fast
-
-Validation on every update sounds expensive. The key insight: most updates only change a small part of the data. If a shape moves from `x: 100` to `x: 150`, we don't need to re-validate the entire shape—just the changed property.
-
-The `validateUsingKnownGoodVersion` method implements this:
+The `validateUsingKnownGoodVersion` method takes a known-good value and the new value to validate. For objects, it only validates properties that changed:
 
 ```typescript
-validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T {
-	// Fast path: same reference means no changes
-	if (Object.is(knownGoodValue, newValue)) {
-		return knownGoodValue
+validateUsingKnownGoodVersion(knownGood, newValue) {
+  // Fast path: same reference means no changes
+  if (Object.is(knownGood, newValue)) {
+    return knownGood
+  }
+
+  let isDifferent = false
+  for (const key in config) {
+    const prev = knownGood[key]
+    const next = newValue[key]
+
+    // Skip validation for unchanged properties
+    if (Object.is(prev, next)) continue
+
+    // Only validate what changed
+    const validated = validator[key].validateUsingKnownGoodVersion(prev, next)
+    if (!Object.is(validated, prev)) {
+      isDifferent = true
+    }
+  }
+
+  return isDifferent ? newValue : knownGood
+}
+```
+
+This works recursively. An array validator only validates changed elements. A nested object validator only validates changed properties. Unchanged parts are reused without re-validation.
+
+The pattern applies to any tree-structured data. If you have:
+
+```typescript
+{
+  user: { name: "Alice", settings: { theme: "dark" } },
+  shapes: [shape1, shape2, shape3]
+}
+```
+
+And only `settings.theme` changes, incremental validation:
+
+1. Detects `user` changed (different reference)
+2. Detects `user.name` unchanged (same reference) → skip
+3. Detects `user.settings` changed (different reference)
+4. Validates `settings.theme` (it changed)
+5. Detects `shapes` unchanged (same reference) → skip entire array
+
+This is fast because reference equality checks (`Object.is`) are O(1), while deep validation is O(n) in the size of the structure.
+
+## Performance optimizations
+
+Beyond the core algorithm, several micro-optimizations add up:
+
+**Avoid closures in production**: Development uses a `prefixError` helper function that captures context for better error messages. Production inlines this code to avoid closure allocation overhead:
+
+```typescript
+if (IS_DEV) {
+	prefixError(key, () => validator.validate(value))
+} else {
+	try {
+		validator.validate(value)
+	} catch (err) {
+		if (err instanceof ValidationError) {
+			throw new ValidationError(err.rawMessage, [key, ...err.path])
+		}
+		throw err
 	}
-	// Only validate what changed
-	// ...
 }
 ```
 
-For arrays, this means only validating elements that changed. For objects, only validating properties that changed. Unchanged parts are reused without re-validation.
+**Efficient iteration**: Use `for...in` instead of `Object.entries()` to avoid allocating an array:
 
-Additional optimizations:
+```typescript
+// Slower: allocates array of [key, value] tuples
+for (const [key, value] of Object.entries(obj)) { ... }
 
-- **Reference equality checks**: Skip validation entirely for unchanged nested objects
-- **Avoiding closures in production**: Error handling is inlined to prevent allocation
-- **Efficient iteration**: `for...in` instead of `Object.entries()` to avoid array allocation
-- **Cached environment checks**: `NODE_ENV` is read once, not on every validation
+// Faster: no allocation
+for (const key in obj) {
+  if (!hasOwnProperty(obj, key)) continue
+  const value = obj[key]
+  ...
+}
+```
 
-## Why not Zod?
+**Cached environment checks**: Read `process.env.NODE_ENV` once at module load, not on every validation call.
 
-Zod is a good library, but it's designed for one-shot validation. Our access pattern is different: we validate the same large objects repeatedly, with small changes each time. The `validateUsingKnownGoodVersion` optimization is specific to this pattern and makes a significant performance difference.
+## Why not just use Zod?
 
-The package is also smaller and has no dependencies, which matters for a library that ships to users.
+Zod is excellent for most use cases. But it's designed for one-shot validation, not incremental validation of large, frequently-changing data structures. The `validateUsingKnownGoodVersion` pattern is specific to this access pattern and isn't something you'd want to add to a general-purpose validation library.
+
+There are other considerations too:
+
+- **Bundle size**: A specialized validator with zero dependencies is smaller than a general-purpose library
+- **Performance characteristics**: Optimizations for the incremental case don't help the one-shot case
+- **Type inference**: Complex generic types for incremental validation would complicate the API
+
+For applications that need incremental validation—real-time editors, databases with reactivity, state management with large objects—the pattern is worth implementing. For everything else, Zod is probably the better choice.
+
+## Validation as security
+
+Validation isn't just about preventing crashes—it's also a security boundary. Consider URL validators:
+
+```typescript
+const linkUrl = string.check((value) => {
+	if (value === '') return
+	const url = new URL(value)
+
+	if (!validLinkProtocols.has(url.protocol)) {
+		throw new ValidationError('Invalid protocol')
+	}
+})
+
+const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
+```
+
+This prevents XSS attacks via `javascript:` URLs. When user input flows into `href` attributes, validation ensures only safe protocols are allowed. Similar patterns protect against prototype pollution, SQL injection in query parameters, and other injection attacks.
+
+By validating at boundaries—when data enters from storage, network, or user input—you create a trust boundary where everything inside your application has known-good properties. This is more robust than trying to sanitize data at every use site.
 
 ## Key files
 
-- `packages/validate/src/lib/validation.ts` — Core validation implementation
-- `packages/tlschema/src/shapes/` — Shape validators using the library
-- `packages/store/src/lib/Store.ts` — Store integration with validators
+- `packages/validate/src/lib/validation.ts` — Core validation implementation with incremental validation
+- `packages/tlschema/src/shapes/` — Shape validators showing real-world usage
+- `packages/store/src/lib/Store.ts` — Store integration that validates on every update
+- `packages/store/src/lib/RecordType.ts` — Record type wrapper that uses `validateUsingKnownGoodVersion`

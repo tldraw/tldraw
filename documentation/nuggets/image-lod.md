@@ -34,17 +34,18 @@ Switching image resolutions while zooming causes visible popping as the browser 
 ```typescript
 // packages/tldraw/src/lib/shapes/shared/useImageOrVideoAsset.ts
 if (didAlreadyResolve.current) {
-  let tick = 0
+	let tick = 0
 
-  const resolveAssetAfterAWhile = () => {
-    tick++
-    if (tick > 500 / 16) {  // debounce for 500ms
-      resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
-      cancelDebounceFn?.()
-    }
-  }
+	const resolveAssetAfterAWhile = () => {
+		tick++
+		if (tick > 500 / 16) {
+			// debounce for 500ms
+			resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
+			cancelDebounceFn?.()
+		}
+	}
 
-  editor.on('tick', resolveAssetAfterAWhile)
+	editor.on('tick', resolveAssetAfterAWhile)
 }
 ```
 
@@ -54,7 +55,7 @@ The 500ms threshold represents a tradeoff: shorter delays give faster resolution
 
 ## Efficient zoom level for dense canvases
 
-On canvases with many shapes, recalculating image resolutions on every frame during camera movements becomes expensive. The `getEfficientZoomLevel()` method returns a debounced zoom value when the page contains more than 500 shapes:
+On canvases with many shapes, recalculating image resolutions on every frame during camera movements becomes expensive. The `getEfficientZoomLevel()` method returns a debounced zoom value when the page contains more than a configurable threshold of shapes:
 
 ```typescript
 // packages/editor/src/lib/editor/Editor.ts
@@ -69,7 +70,7 @@ On canvases with many shapes, recalculating image resolutions on every frame dur
 }
 ```
 
-The default `debouncedZoomThreshold` is 500 shapes. Below that threshold, image components react to every camera change. Above it, they use the debounced zoom level, preventing hundreds of components from recalculating resolution on every single frame.
+The default `debouncedZoomThreshold` is 500 shapes (defined in `packages/editor/src/lib/options.ts`). Below that threshold, image components react to every camera change. Above it, they use the debounced zoom level, preventing hundreds of components from recalculating resolution on every single frame.
 
 ## Resolution selection on the server
 
@@ -78,18 +79,16 @@ The client passes the stepped screen scale to the asset resolver, which construc
 ```typescript
 // apps/dotcom/client/src/utils/multiplayerAssetStore.ts
 const networkCompensation =
-  !context.networkEffectiveType || context.networkEffectiveType === '4g'
-    ? 1
-    : 0.5
+	!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
 const width = Math.ceil(
-  Math.min(
-    asset.props.w *
-      clamp(context.steppedScreenScale, 1/32, 1) *
-      networkCompensation *
-      context.dpr,
-    asset.props.w
-  )
+	Math.min(
+		asset.props.w *
+			clamp(context.steppedScreenScale, 1 / 32, 1) *
+			networkCompensation *
+			context.dpr,
+		asset.props.w
+	)
 )
 
 url.searchParams.set('w', width.toString())
@@ -110,10 +109,10 @@ The Cloudflare image worker serves modern formats when the browser supports them
 // apps/dotcom/image-resize-worker/src/worker.ts
 const accept = request.headers.get('Accept') ?? ''
 const format = accept.includes('image/avif')
-  ? ('avif' as const)
-  : accept.includes('image/webp')
-    ? ('webp' as const)
-    : null
+	? ('avif' as const)
+	: accept.includes('image/webp')
+		? ('webp' as const)
+		: null
 ```
 
 AVIF offers roughly 50% smaller files than JPEG at equivalent quality. Combined with resolution scaling based on zoom level, a zoomed-out canvas loads dramatically faster than naive full-resolution fetching.
@@ -122,11 +121,14 @@ AVIF offers roughly 50% smaller files than JPEG at equivalent quality. Combined 
 
 Not everything goes through the LOD system. The resolver returns the original URL for:
 
-- **Animated images**: GIFs and animated WebPs can't be resized without losing animation
-- **Vector formats**: SVGs scale infinitely without quality loss
-- **Exports**: When exporting or copying, the original resolution is always used
-- **Non-HTTP sources**: Data URLs and blob URLs bypass transformation
-- **Small files**: Images under 1.5MB aren't worth the transformation cost
+- **Local files**: Assets with `asset:` prefixed URLs (handled via `loadLocalFile()` on tldraw.com)
+- **Videos**: Video assets always use the original URL (only images are transformed)
+- **Non-HTTP sources**: Data URLs and blob URLs bypass transformation (checked via `!asset.props.src.startsWith('http')`)
+- **Exports**: When `context.shouldResolveToOriginal` is true, the original resolution is always used
+- **Animated images**: GIFs and animated WebPs can't be resized without losing animation (`MediaHelpers.isAnimatedImageType()`)
+- **Vector formats**: SVGs scale infinitely without quality loss (`MediaHelpers.isVectorImageType()`)
+- **External domains**: Only images hosted on tldraw-controlled domains (`.tldraw.com`, `.tldraw.xyz`, `.tldraw.dev`, `.workers.dev`) are transformed
+- **Small files**: Images under 1.5MB aren't worth the transformation cost, though they still get format optimization
 
 ## The result
 

@@ -89,7 +89,7 @@ To check if a computed value is stale, compare epochs:
 ```typescript
 function haveParentsChanged(child: Child): boolean {
 	for (let i = 0; i < child.parents.length; i++) {
-		if (child.parents[i].lastChangedEpoch > child.parentEpochs[i]) {
+		if (child.parents[i].lastChangedEpoch !== child.parentEpochs[i]) {
 			return true
 		}
 	}
@@ -223,7 +223,7 @@ We evaluated several reactive systems before building our own:
 
 **Preact signals** are lightweight but similarly lack the features we needed. Building on an existing solution would have meant wrapping it with enough custom logic that we'd effectively be maintaining a fork.
 
-We built `@tldraw/state` specifically for tldraw's requirements. We extracted it as a standalone library called signia, available for other projects that need similar performance characteristics.
+We built `@tldraw/state` specifically for tldraw's requirements. The library was originally developed as a standalone project called signia, but we incorporated it back into the tldraw monorepo where it lives as `@tldraw/state`.
 
 ## Key files
 

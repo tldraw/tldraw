@@ -1,180 +1,192 @@
-# Text measurement caching
+# Text measurement
 
-There's no JavaScript API for "how big would this text be?" The only way to measure text dimensions is to render it in the DOM and ask the browser. tldraw does this constantly—for text shapes, labels, notes, and anywhere else text appears. We've made it fast by reusing a single hidden element and carefully avoiding unnecessary work.
+Browsers don't tell you where text will break into lines—you have to render it and ask. For SVG export, tldraw needs to know the exact position of every word after the browser lays out wrapped text. The trick is measuring character-by-character using the DOM Range API, which most developers don't know exists.
 
-## The browser's text measurement problem
+## The problem with SVG text
 
-You can't calculate text dimensions mathematically. Fonts have complex kerning rules, ligatures, and variable-width characters. The same text renders differently across fonts, sizes, and operating systems. The browser is the only reliable authority on how text will actually lay out.
+When you export tldraw content to SVG, there's a fundamental mismatch: HTML has automatic text wrapping, but SVG doesn't. In HTML, you set a width and the browser handles line breaks, word spacing, and alignment. In SVG, you position each text element manually at exact coordinates.
 
-The naive approach creates a new element for each measurement:
+This means when exporting a text shape that wraps across multiple lines, we need to ask the browser: "After you wrap this text, where did each word end up?" There's no `getTextLayout()` API. The only way is to render the text in the DOM and somehow extract the position of each word.
+
+The naive approach is to measure words one at a time:
 
 ```typescript
 // Don't do this
-function measureText(text: string, styles: Record<string, string>) {
-  const div = document.createElement('div')
-  Object.assign(div.style, styles)
-  div.textContent = text
-  document.body.appendChild(div)
-  const rect = div.getBoundingClientRect()
-  div.remove()
-  return { width: rect.width, height: rect.height }
+function measureWords(text: string, width: number) {
+	const div = document.createElement('div')
+	div.style.width = width + 'px'
+	const positions = []
+
+	for (const word of text.split(' ')) {
+		div.textContent = word
+		document.body.appendChild(div)
+		positions.push(div.getBoundingClientRect())
+		div.remove()
+	}
+	return positions
 }
 ```
 
-This works, but it's expensive. Creating DOM nodes, applying styles, and triggering layout are all slow operations. In a typical editing session, tldraw measures text hundreds of times per second—every keystroke, every resize, every zoom level change.
+But this doesn't work. Measuring words in isolation tells you nothing about where they'll land when the browser wraps multi-word text. Word "three" might fit on the first line alone, but after words "one" and "two" it wraps to line two. You can't know without rendering the full paragraph.
 
-## A single hidden measurement element
+## Measuring characters with Range API
 
-Instead of creating elements on demand, we maintain a single persistent `<div>` just for measuring:
+The solution is an obscure browser API that most developers never use: `Range.getClientRects()`. Ranges are typically used for text selection, but they have a superpower—you can create a range spanning a single character and ask the browser where that character rendered:
+
+```typescript
+const range = new Range()
+const textNode = element.childNodes[0]
+
+// Measure character at index 5
+range.setStart(textNode, 5)
+range.setEnd(textNode, 6)
+const rect = range.getClientRects()[0]
+// rect tells you the exact x, y, width, height of that character
+```
+
+This works after the browser has laid out the text—line breaks, kerning, ligatures, all resolved. The character positions tell you everything about how the browser wrapped your text.
+
+Here's how tldraw walks through every character to build word spans:
 
 ```typescript
 // packages/editor/src/lib/editor/managers/TextManager/TextManager.ts
-constructor(public editor: Editor) {
-  const elm = document.createElement('div')
-  elm.classList.add('tl-text')
-  elm.classList.add('tl-text-measure')
-  elm.setAttribute('dir', 'auto')
-  elm.tabIndex = -1
-  this.editor.getContainer().appendChild(elm)
-  this.elm = elm
-}
-```
-
-The element is styled to be invisible but still participate in layout:
-
-```css
-.tl-text-measure {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  width: max-content;
-}
-```
-
-Using `visibility: hidden` instead of `display: none` is important—the element still takes up space and the browser still calculates its layout. We just hide it visually.
-
-## Property diffing to avoid reflows
-
-Every time you modify an element's style, the browser might need to recalculate layout (reflow). Reflows are expensive—they can block the main thread for milliseconds. The obvious optimization is to avoid unnecessary changes.
-
-When measuring text with different styles, we only update properties that actually changed:
-
-```typescript
-private setElementStyles(styles: Record<string, string | undefined>) {
-  const stylesToReinstate = {} as any
-  for (const key of objectMapKeys(styles)) {
-    if (typeof styles[key] === 'string') {
-      const oldValue = this.elm.style.getPropertyValue(key)
-      if (oldValue === styles[key]) continue  // Skip if unchanged
-      stylesToReinstate[key] = oldValue
-      this.elm.style.setProperty(key, styles[key])
-    }
-  }
-  return () => {
-    for (const key of objectMapKeys(stylesToReinstate)) {
-      this.elm.style.setProperty(key, stylesToReinstate[key])
-    }
-  }
-}
-```
-
-This returns a cleanup function that restores the original values. If you're measuring multiple text strings with the same font, subsequent measurements skip all the style updates entirely.
-
-## Measuring spans for SVG export
-
-DOM text and SVG text work differently. In the DOM, the browser handles word wrapping, line breaks, and spacing. SVG has no text wrapping—you position each text element manually. To export text to SVG, we need to know exactly where each word ends up after the browser lays it out.
-
-The `measureTextSpans` method extracts this information by measuring character by character:
-
-```typescript
 measureElementTextNodeSpans(element: HTMLElement) {
   const spans = []
   const range = new Range()
   let currentSpan = null
+  let prevCharTop = 0
+  let prevWasSpace = null
 
   for (const char of element.textContent) {
     range.setStart(textNode, idx)
     range.setEnd(textNode, idx + char.length)
-    const rects = range.getClientRects()
-    const rect = rects[rects.length - 1]
+    const rect = range.getClientRects()[range.getClientRects().length - 1]
 
-    const top = rect.top + offsetY
-    const isSpaceCharacter = /\s/.test(char)
+    const top = rect.top
+    const isSpace = /\s/.test(char)
 
-    if (isSpaceCharacter !== prevCharWasSpaceCharacter || top !== prevCharTop) {
-      // Word boundary or new line - start a new span
+    // Start a new span when we hit a word boundary or line break
+    if (isSpace !== prevWasSpace || top !== prevCharTop) {
       if (currentSpan) spans.push(currentSpan)
-      currentSpan = { box: { x: left, y: top, w: rect.width, h: rect.height }, text: char }
+      currentSpan = { box: { x: rect.left, y: top, w: rect.width, h: rect.height }, text: char }
     } else {
       // Extend the current span
-      currentSpan.box.w = right - currentSpan.box.x
+      currentSpan.box.w = rect.right - currentSpan.box.x
       currentSpan.text += char
     }
+
+    prevWasSpace = isSpace
+    prevCharTop = top
+    idx += char.length
   }
+
   return spans
 }
 ```
 
-This walks through each character, using `Range.getClientRects()` to find its exact position. Characters are grouped into spans at word boundaries or line breaks. The result is an array of positioned text chunks that can be rendered as individual SVG `<text>` elements.
+The algorithm groups characters into spans by detecting boundaries: when the top position changes (new line) or when we transition between space and non-space characters (word boundary). The result is an array of `{ text, box }` objects—exactly what you need to render as SVG `<text>` elements.
 
-## Text truncation with ellipsis
+## Why ellipsis truncation needs two passes
 
-When text overflows a fixed-width container, we sometimes want to truncate with an ellipsis. This requires a two-pass measurement: first measure how wide the ellipsis is, then measure the text with that much less space:
+When text overflows a container, you might want to show "Some long text that doesn't fi…" instead of just clipping. The obvious approach is to append "…" and measure:
+
+```typescript
+// Don't do this
+const textWithEllipsis = text + '…'
+const spans = measureTextSpans(textWithEllipsis, { width })
+```
+
+But this fails because **adding the ellipsis changes how the browser collapses whitespace**. If your text ends with spaces, the browser collapses them differently when followed by a visible character versus when they're at the end. The ellipsis character affects the layout of the text before it.
+
+The solution is to measure twice:
 
 ```typescript
 if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
-  // Measure the ellipsis
-  elm.textContent = '…'
-  const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
+	// First, measure how wide the ellipsis is
+	elm.textContent = '…'
+	const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
 
-  // Re-measure text with reduced width
-  elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
-  elm.textContent = normalizedText
-  const truncatedSpans = this.measureElementTextNodeSpans(elm, {
-    shouldTruncateToFirstLine: true,
-  }).spans
+	// Second, measure the text with that much less space available
+	elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
+	elm.textContent = normalizedText
+	const truncatedSpans = this.measureElementTextNodeSpans(elm, {
+		shouldTruncateToFirstLine: true,
+	}).spans
 
-  // Append the ellipsis
-  const lastSpan = truncatedSpans[truncatedSpans.length - 1]
-  truncatedSpans.push({
-    text: '…',
-    box: { x: lastSpan.box.x + lastSpan.box.w, y: lastSpan.box.y, w: ellipsisWidth, h: lastSpan.box.h }
-  })
-  return truncatedSpans
+	// Finally, manually append the ellipsis span
+	const lastSpan = truncatedSpans[truncatedSpans.length - 1]
+	truncatedSpans.push({
+		text: '…',
+		box: {
+			x: lastSpan.box.x + lastSpan.box.w,
+			y: lastSpan.box.y,
+			w: ellipsisWidth,
+			h: lastSpan.box.h,
+		},
+	})
+	return truncatedSpans
 }
 ```
 
-We can't just append "…" to the text before measuring—that would change how whitespace collapses and affect the layout. Instead we measure the space the ellipsis needs, constrain the text width accordingly, and add the ellipsis span manually.
+This guarantees the text measures correctly without the ellipsis interfering, then adds the ellipsis as a separate positioned span.
 
-## RTL and bidirectional text
+## Detecting RTL by looking backward
 
-Text direction complicates measurement. In right-to-left languages, characters flow from right to left, so extending a span means adjusting the left edge instead of the right:
+Right-to-left text (Arabic, Hebrew) flows backward, which means when you extend a span with a new character, you need to adjust the left edge instead of the right edge. But how do you detect if text is RTL?
+
+The element uses `dir="auto"` so the browser handles directionality, but that doesn't tell you which mode it chose. The solution is surprisingly simple—just check if the next character is to the left of the previous one:
 
 ```typescript
 const isRTL = left < prevCharLeftForRTLTest
 
 if (isRTL) {
-  currentSpan.box.x = left
-  currentSpan.box.w = currentSpan.box.w + rect.width
+	// RTL: new character extends to the left
+	currentSpan.box.x = left
+	currentSpan.box.w = currentSpan.box.w + rect.width
 } else {
-  currentSpan.box.w = right - currentSpan.box.x
+	// LTR: new character extends to the right
+	currentSpan.box.w = right - currentSpan.box.x
+}
+
+prevCharLeftForRTLTest = left
+```
+
+This works because in RTL text, successive characters march leftward instead of rightward. No need to parse the text or check Unicode ranges—the character positions tell you everything.
+
+## The reused measurement element
+
+The Range API is the surprising insight, but there's a predictable optimization too: instead of creating DOM elements on demand, tldraw maintains a single persistent `<div>` for all measurements:
+
+```typescript
+constructor(public editor: Editor) {
+  const elm = document.createElement('div')
+  elm.classList.add('tl-text-measure')
+  elm.setAttribute('dir', 'auto')
+  this.editor.getContainer().appendChild(elm)
+  this.elm = elm
 }
 ```
 
-The element uses `dir="auto"` to let the browser detect text direction automatically, and we track the direction during measurement to position spans correctly.
+Styled to be invisible but still participate in layout:
 
-## The tradeoff
+```css
+.tl-text-measure {
+	position: absolute;
+	opacity: 0;
+	visibility: hidden;
+}
+```
 
-This approach trades memory for speed. We keep a DOM element around permanently and track state between measurements. For an application that measures text constantly, the savings compound quickly. A single reused element with property diffing is dramatically faster than the naive create-measure-destroy cycle.
+Using `visibility: hidden` instead of `display: none` is critical—the browser still calculates layout, we just hide the result visually. The element also tracks which styles are currently set and only updates properties that changed, avoiding unnecessary reflows when measuring similar text repeatedly.
 
-The span measurement for SVG export is inherently slow—we're measuring every character individually. But it only runs during export, not during normal editing. Most text measurements use the simple `measureHtml` path, which just sets innerHTML and calls `getBoundingClientRect()`.
+## When this matters
+
+Most text measurements use the simple path: set `innerHTML`, call `getBoundingClientRect()`, done. The character-by-character span measurement is slow—hundreds of DOM calls per paragraph—but it only runs during SVG export, not during interactive editing.
+
+The Range API trick is the key insight: browsers expose character-level layout information, but most developers don't know this API exists. If you need to understand how text wrapped or position individual words, measuring characters with ranges is the only way.
 
 ## Key files
 
-- `packages/editor/src/lib/editor/managers/TextManager/TextManager.ts` — The `TextManager` class with all measurement methods
-- `packages/editor/editor.css` — The `.tl-text-measure` class hiding the measurement element
-- `packages/tldraw/src/lib/shapes/text/TextShapeUtil.tsx` — Text shape using `measureHtml` for sizing
-- `packages/tldraw/src/lib/shapes/shared/SvgTextLabel.tsx` — SVG export using `measureTextSpans`
+- `packages/editor/src/lib/editor/managers/TextManager/TextManager.ts` — `measureElementTextNodeSpans` using Range API
+- `packages/tldraw/src/lib/shapes/shared/SvgTextLabel.tsx` — SVG export using span measurement
+- `packages/editor/editor.css` — Hidden `.tl-text-measure` element styling

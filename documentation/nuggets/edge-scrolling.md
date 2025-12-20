@@ -1,16 +1,10 @@
 # Edge scrolling
 
-When you drag a shape toward the edge of the viewport, tldraw automatically scrolls the canvas to reveal more space. This sounds simple—just detect when the pointer is near an edge and move the camera—but getting it to feel good requires handling touch vs mouse input differently, preventing accidental triggers, and easing into the scroll smoothly.
+Your finger isn't a point. When you drag a shape with touch, the contact area is roughly 12 pixels wide—but the browser only reports the center point. This creates a problem: edge scrolling needs to trigger when your finger gets close to the viewport edge, but your finger might reach the edge 12 pixels before the reported contact point does.
 
-## The problem
+The solution is to treat touch pointers as having width. When calculating edge scroll proximity, tldraw extends the touch pointer position 12 pixels in each direction. A finger at 20 pixels from the edge is treated as potentially being at 8 pixels from the edge. Mouse pointers get no adjustment—they're single pixels and users expect pixel-perfect precision.
 
-Dragging without edge scrolling is frustrating. You grab a shape, move it toward where you want it, hit the viewport boundary, and have to stop, pan the canvas, then continue dragging. This breaks flow and requires multiple gestures for what should be a single action.
-
-But naive edge scrolling creates its own problems. If the canvas scrolls immediately when the pointer gets close to an edge, you'll trigger it accidentally any time you drag near the viewport boundary. And if the scroll starts at full speed, it feels jarring and is hard to control.
-
-## Pointer width matters
-
-Touch input is less precise than mouse input. When you drag with your finger, the "pointer" isn't a single pixel—it's the center of a contact area that's roughly 12 pixels wide. This means touch users trigger edge scrolling from further away than mouse users, because the effective edge of their pointer is further from the actual contact point.
+Without this adjustment, touch users would have to push their finger past the viewport edge to trigger scrolling—by which point they've likely already released the drag in frustration. The 12-pixel extension gives touch the forgiveness it needs, while mouse stays precise.
 
 ```typescript
 // packages/editor/src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.ts
@@ -19,18 +13,27 @@ const pMin = position - pw
 const pMax = position + pw
 ```
 
-For coarse pointers (touch, stylus on some devices), the pointer width extends 12 pixels in each direction. A finger at position 20 pixels from the edge is treated as if it might be at position 8 pixels from the edge. Fine pointers (mouse) have no width adjustment—the pointer position is exact.
+The proximity calculation uses both `pMin` and `pMax` to create an effective "pointer range." For touch, a contact point at x=20 creates a range from 8 to 32. If the edge scroll zone extends 8 pixels from the left edge (the default), then `pMin < 8` triggers scrolling. The touch user's finger is still 20 pixels away, but the system compensates for the invisible contact area.
 
-This asymmetry feels natural. Touch users expect more forgiveness because they can't see exactly where they're pointing. Mouse users expect precision.
+For mouse input, `pw` is zero. The pointer has no width. Position 8 triggers at 8, position 9 doesn't trigger at all. This is what mouse users expect—they can see the cursor and control it precisely.
 
-## The edge scroll zone
+## Two-phase acceleration
 
-Edge scrolling activates within a configurable distance from each viewport edge (default: 8 pixels). Within this zone, a "proximity factor" determines how aggressively the canvas scrolls:
+Edge scrolling has two timing phases that create surprisingly natural behavior. First, nothing happens. You enter the edge zone and the canvas stays still for 200ms. This delay prevents accidental triggers—you can drag near an edge without the canvas moving.
+
+After the delay, the second phase begins: a cubic ease-in over another 200ms. The scroll velocity ramps from zero to full speed following a t³ curve. This isn't just aesthetic—it gives users fine control. In the first 100ms after the delay ends, the scroll is still quite slow. You can make small adjustments. By 400ms total (200ms delay + 200ms ease), you're at full speed.
 
 ```typescript
-const min = insetStart ? 0 : dist
-const max = insetEnd ? dimension : dimension - dist
+const eased = EASINGS.easeInCubic(
+	Math.min(1, this._edgeScrollDuration / (edgeScrollDelay + edgeScrollEaseDuration))
+)
+```
 
+The cubic curve is key. A linear ramp (t) would hit 50% speed at the halfway point. But t³ hits only 12.5% speed at the halfway point (0.5³ = 0.125). This front-loads the slow phase where users need control, then accelerates hard in the second half.
+
+The result: 0-200ms (delay, no motion), 200-300ms (slow, ~1-12% speed), 300-400ms (accelerating, 12-100% speed), 400ms+ (full speed based on proximity).
+
+```typescript
 if (pMin < min) {
 	return Math.min(1, (min - pMin) / dist)
 } else if (pMax > max) {
@@ -39,64 +42,36 @@ if (pMin < min) {
 return 0
 ```
 
-The proximity factor ranges from 0 (just entered the zone) to 1 (at or past the viewport edge). The sign indicates direction: positive scrolls right/down, negative scrolls left/up.
+The proximity factor ranges from 0 (just entered the zone) to 1 (at or past the edge). At position 4 pixels from the edge (halfway into the 8-pixel zone), the factor is 0.5. At the edge itself, it's 1.0. Push past the edge and it stays capped at 1.0.
 
-The `insetStart` and `insetEnd` parameters handle cases where the canvas is embedded with UI elements on certain edges. If there's a toolbar at the top of the viewport, you might not want edge scrolling on that edge since the toolbar already "steals" that space.
+This combines multiplicatively with the easing factor. At 300ms into edge scrolling (100ms into the ease), you're at `eased = 0.125`. If you're 4 pixels from the edge, `proximity = 0.5`. Final velocity is `0.125 × 0.5 = 0.0625` (6.25% of max speed). If you move 2 pixels closer to the edge, proximity jumps to 0.75, velocity becomes 9.4%. You can modulate speed by adjusting your distance from the edge.
 
-## Delay before scrolling
+The `insetStart` and `insetEnd` parameters handle cases where UI elements cover the viewport edges. If there's a toolbar at the top, you can disable edge scrolling on that edge by passing `insetStart: true` for the Y axis.
 
-To prevent accidental triggers, edge scrolling doesn't start immediately. There's a 200ms delay after the pointer enters an edge zone before scrolling begins:
+## The 0.612 mystery
+
+Small screens get special treatment. If the viewport width or height is under 1000 pixels, scroll speed is multiplied by 0.612:
 
 ```typescript
-this._edgeScrollDuration += elapsed
-if (this._edgeScrollDuration > editor.options.edgeScrollDelay) {
-	// Now we can scroll
-}
+const screenSizeFactorX = screenBounds.w < 1000 ? 0.612 : 1
+const screenSizeFactorY = screenBounds.h < 1000 ? 0.612 : 1
 ```
 
-This delay is critical for usability. Without it, dragging a shape anywhere near the edge—even briefly—would scroll the canvas. The delay gives users time to complete their drag without interference.
+Why 0.612 specifically? This is the golden ratio's reciprocal (1/φ ≈ 0.618), or close to it. Whether this was intentional or empirical tuning that landed near a mathematical constant is unclear from the code. But the effect is practical: edge scrolling at full speed on a phone-sized screen is disorienting. The ~40% reduction makes it feel controlled.
 
-## Easing into the scroll
+The factor applies independently to each axis. A 800×1200 screen gets the reduction on width but not height. A 600×400 screen gets it on both.
 
-Even after the delay, scrolling doesn't jump to full speed. The implementation uses `easeInCubic` (t³) to ramp up over an additional 200ms:
-
-```typescript
-const eased = EASINGS.easeInCubic(
-	Math.min(1, this._edgeScrollDuration / (edgeScrollDelay + edgeScrollEaseDuration))
-)
-this.moveCameraWhenCloseToEdge({
-	x: proximityFactorX * eased,
-	y: proximityFactorY * eased,
-})
-```
-
-The cubic easing starts slow and accelerates. Combined with the proximity factor, this creates a smooth ramp:
-
-- **0-200ms**: Delay, no scrolling
-- **200-400ms**: Gradual acceleration (cubic curve)
-- **400ms+**: Full speed based on proximity factor
-
-Moving closer to the edge increases the proximity factor, making scrolling faster. Moving away reduces it. This gives users fine control—they can scroll slowly by hovering near the edge or quickly by pushing past it.
-
-## Speed adjustments
-
-The final scroll speed depends on several factors:
+Zoom level also affects speed:
 
 ```typescript
-const zoomLevel = editor.getZoomLevel()
-const pxSpeed = editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed
 const scrollDeltaX = (pxSpeed * proximityFactor.x * screenSizeFactorX) / zoomLevel
 ```
 
-**Zoom level**: At higher zoom levels, the same pixel movement covers less canvas distance. Dividing by zoom level keeps the perceived speed consistent regardless of zoom.
+At 2× zoom, the same pixel movement covers half the canvas distance. Dividing by zoom level keeps the perceived speed constant. You're looking at a zoomed area, so scrolling needs to move fewer canvas units to maintain the same visual rate of change.
 
-**Screen size**: Small screens (width or height under 1000 pixels) get a 0.612 multiplier. Edge scrolling at full speed on a phone would be disorienting.
+## When edge scrolling stops
 
-**User preference**: The `getEdgeScrollSpeed()` multiplier lets users adjust or disable edge scrolling entirely. Setting it to 0 disables the feature.
-
-## Conditions for scrolling
-
-Edge scrolling only happens under specific conditions:
+Edge scrolling only runs during drag operations. Three conditions must be met:
 
 ```typescript
 if (
@@ -107,20 +82,15 @@ if (
 	return
 ```
 
-- **Must be dragging**: No point scrolling the canvas if you're not moving something
-- **Not while panning**: If you're already panning with two fingers or middle mouse button, edge scroll would fight with your explicit pan gesture
-- **Camera not locked**: Some contexts (embedded views, constrained editors) lock the camera in place
+If you're not dragging, there's nothing to scroll for. If you're panning (two-finger touch or middle mouse button), that's an explicit camera movement gesture—edge scroll would fight it. If the camera is locked, the canvas can't move anyway.
 
-## Putting it together
+The edge scroll manager runs on every editor tick while these conditions are met. Each tick recalculates pointer position, proximity factors, and applies the appropriate velocity. Leave the edge zone and the timer resets. Re-enter and the 200ms delay starts fresh.
 
-The edge scroll manager runs on every editor tick during a drag operation. Each tick, it:
+## What makes this work
 
-1. Gets the current pointer position and type (coarse vs fine)
-2. Calculates proximity factors for X and Y edges, accounting for pointer width
-3. Updates the scroll duration timer
-4. If past the delay, applies easing and moves the camera
+The combination of pointer width compensation, two-phase acceleration, and proximity-based speed control creates edge scrolling that feels invisible when it works. Touch users don't notice that the system compensates for their imprecise input. Mouse users don't accidentally trigger it. The cubic ease-in prevents jarring transitions.
 
-The result feels natural: you can drag shapes off the edge of the viewport and the canvas follows smoothly, accelerating as you push further past the edge. Touch users get extra leeway. Accidental triggers are rare thanks to the delay.
+The implementation is straightforward—a few dozen lines of math—but getting the constants right (8-pixel zone, 200ms delay, 200ms ease, 12-pixel touch width, 0.612 small screen factor) required real-world testing. Change any one of these and the feel degrades noticeably.
 
 ## Key files
 

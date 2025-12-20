@@ -1,6 +1,6 @@
 # Nuggets quality report
 
-Generated: 12/20/2025
+Generated: 12/20/2025 (Round 8)
 
 This report evaluates all nugget articles in the `/documentation/nuggets` folder against the standards defined in [index.md](./index.md).
 
@@ -120,46 +120,46 @@ After evaluation, update this quality report:
 
 | Evaluated | Total files | Avg Readability | Avg Potential | Avg Accuracy |
 | --------- | ----------- | --------------- | ------------- | ------------ |
-| 32        | 32          | 8.9             | 7.8           | 9.3          |
+| 32        | 32          | 9.1             | 8.6           | 9.8          |
 
 ---
 
 ## Results
 
-| File                        | Readability | Potential | Accuracy | Notes |
-| --------------------------- | ----------- | --------- | -------- | ----- |
-| arc-arrows.md               | 9           | 8         | 9        | Strong handle vs body arc distinction. All claims verified. Could show failure mode of naive bezier approach. |
-| browser-canvas-size.md      | 9           | 9         | 10       | Model nugget. Probing technique and fast-path optimization are genuinely clever. Strong HN potential. |
-| brush-scribble-selection.md | 9           | 8         | 10       | Excellent. Clear progression from algorithms to optimizations. All code verified. Transferable insights. |
-| click-state-machine.md      | 9           | 8         | 10       | Excellent. Opens with anti-pattern, shows actual code. All timing values verified. Universal applicability. |
-| cross-tab-sync.md           | 9           | 8         | 10       | Strong. Data loss scenario grounds the reader. All timing values verified (350ms debounce, 10s retry). |
-| deep-links.md               | 8           | 5         | 9        | Clear writing but problem is straightforward. Lacks "harder than it looks" quality. More documentation than story. |
-| edge-scrolling.md           | 9           | 7         | 10       | Solid. Good pointer width insight. All code verified. Well-understood pattern limits HN novelty. |
-| elbow-arrows.md             | 8           | 6         | 10       | Accurate and detailed. Transform system is clever. Niche topic limits broader appeal. |
-| freehand-ink.md             | 9           | 8         | 10       | Excellent. Averaging algorithm well explained. All code verified. Generalizable SVG smoothing technique. |
-| hit-testing.md              | 9           | 8         | 9        | Strong. Distance-not-boolean insight well explained. Minor: describes pointInPolygon as ray casting but uses winding number. |
-| image-lod.md                | 8           | 7         | 7        | Good structure. Power-of-two optimization is clever. Accuracy issues: threshold is 500 not 300, code examples don't match source. |
-| incremental-bindings.md     | 8           | 7         | 9        | Solid epoch-based diff pattern. Copy-on-write is clever. Missing conclusion paragraph. Minor naming inconsistency. |
-| indexeddb-migrations.md     | 9           | 8         | 9        | Excellent. Two-layer versioning well explained. Cross-tab coordination is valuable insight. Minor code simplifications. |
-| inky-rng.md                 | 9           | 8         | 9        | Strong. Shape ID as seed is elegant. Xorshift well explained. Minor: code example omits onlyFilled param. |
-| jittered-indices.md         | 8           | 7         | 6        | Good structure. ACCURACY ISSUE: Collision rate claim (1 in 47k) is off by orders of magnitude (actual ~1 in 537M with 30 bits). |
-| perfect-dash-patterns.md    | 9           | 8         | 10       | Excellent. Clear failure-first approach. All code verified. Universal SVG/graphics problem with elegant solution. |
-| pinch-gesture.md            | 9           | 7         | 10       | Clear state machine explanation. All thresholds verified. Niche topic but performance rationale is valuable. |
-| png-scale.md                | 9           | 7         | 10       | Perfect accuracy. pHYs chunk and MIME type workaround well explained. Niche but useful for canvas devs. |
+| File                        | Readability | Potential | Accuracy | Notes                                                                                                                                                                                                                                 |
+| --------------------------- | ----------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| arc-arrows.md               | 9           | 9         | 10       | Improved. Now shows bezier failure mode (chaos from control point ambiguity). Constraint-driven design insight compelling. All geometric claims verified.                                                                             |
+| browser-canvas-size.md      | 9           | 9         | 10       | Model nugget. Probing technique and fast-path optimization are genuinely clever. Strong HN potential.                                                                                                                                 |
+| brush-scribble-selection.md | 9           | 8         | 10       | Excellent. Clear progression from algorithms to optimizations. All code verified. Transferable insights.                                                                                                                              |
+| click-state-machine.md      | 9           | 8         | 10       | Excellent. Opens with anti-pattern, shows actual code. All timing values verified. Universal applicability.                                                                                                                           |
+| cross-tab-sync.md           | 9           | 8         | 10       | Strong. Data loss scenario grounds the reader. All timing values verified (350ms debounce, 10s retry).                                                                                                                                |
+| deep-links.md               | 9           | 8         | 10       | Improved. Double-encoding insight is compelling. Strong narrative around human-readable URLs. All code verified against source.                                                                                                       |
+| edge-scrolling.md           | 9           | 9         | 10       | Improved. Finger width compensation hook is compelling. 0.612 mystery adds intrigue. Two-phase timing well explained. Strong HN potential.                                                                                            |
+| elbow-arrows.md             | 9           | 8         | 10       | Improved. Edge-based routing framed as general pattern. Coordinate transformation insight broadly applicable. A\* comparison is compelling.                                                                                           |
+| freehand-ink.md             | 9           | 8         | 10       | Excellent. Averaging algorithm well explained. All code verified. Generalizable SVG smoothing technique.                                                                                                                              |
+| hit-testing.md              | 9           | 8         | 9        | Strong. Distance-not-boolean insight well explained. Winding number algorithm now correctly described. Compelling for graphics programmers.                                                                                           |
+| image-lod.md                | 9           | 8         | 10       | Improved. All code verified. Transparently documents source code discrepancy (JSDoc says 300, default is 500). Skip conditions comprehensive. Strong practical value.                                                                 |
+| incremental-bindings.md     | 9           | 8         | 9        | Improved. Epoch-based diff pattern well explained, copy-on-write is clever. Added proper conclusion. Fixed naming inconsistency. Strong HN potential for incremental computation patterns.                                            |
+| indexeddb-migrations.md     | 9           | 8         | 9        | Excellent. Two-layer versioning well explained. Cross-tab coordination is valuable insight. Minor code simplifications.                                                                                                               |
+| inky-rng.md                 | 9           | 9         | 9        | Improved. Shape ID as seed is elegant. Xorshift tradeoffs well explained. onlyFilled param fixed. Strong broader applicability.                                                                                                       |
+| jittered-indices.md         | 9           | 9         | 10       | Improved. All file paths verified. Collision math correct. Unverifiable claims removed. Strong multiplayer insight with high HN potential.                                                                                            |
+| perfect-dash-patterns.md    | 9           | 8         | 10       | Excellent. Clear failure-first approach. All code verified. Universal SVG/graphics problem with elegant solution.                                                                                                                     |
+| pinch-gesture.md            | 9           | 8         | 10       | Improved. Wait-and-see pattern framed as universal gesture disambiguation technique. State machine diagram clear. All thresholds verified. Strong HN potential.                                                                       |
+| png-scale.md                | 9           | 8         | 10       | Restored. Binary section simplified. pHYs chunk and `web ` MIME workaround well explained. All code verified. Strong practical value for clipboard-heavy apps.                                                                        |
 | react-canvas.md             | 9           | 10        | 10       | Exemplary. Challenges "React is too slow" wisdom. Clear two-stage update pattern, signals integration, culling logic all verified against source. Strong narrative arc. Minor: conclusion could tie lessons together more explicitly. |
-| resize-handles.md           | 9           | 8         | 9        | Strong. SVG cursor embedding is clever. Coordinate transform insight well explained. Minor code simplifications. |
-| runtime-validation.md       | 8           | 7         | 9        | Good. Incremental validation pattern is key insight. Performance optimizations verified. Specialized topic. |
-| safari-hell.md              | 9           | 8         | 9        | Strong platform quirks documentation. All workarounds verified (font loading 250ms sleep, culled shape reflow, Apple Pencil double-tap). Honest about hacks. Slightly tldraw-specific, limiting broader appeal. |
-| scribble-animation.md       | 9           | 7         | 9        | Clear flow. Delay queue mechanism well explained. Minor: slice(-5) comment mismatch with "three" in source. |
-| shape-culling.md            | 9           | 7         | 9        | Good failure-first approach. Arrow binding implications interesting. display:none insight valuable. |
-| shape-font-loading.md       | 9           | 7         | 10       | Excellent. Microtask batching pattern broadly applicable. Reactive integration well explained. All code verified. |
-| signals.md                  | 9           | 9         | 9        | Strong technical writing. Epoch-based invalidation well explained, "why not existing solutions" adds credibility. All code verified. Minor: claims library extracted as "signia" but package is @tldraw/state. |
-| state-chart.md              | 9           | 8         | 9        | Strong. Boolean spaghetti opening is effective. XState comparison is insightful. Minor signature simplification. |
-| sync.md                     | 9           | 10        | 9        | Excellent. Challenges CRDT conventional wisdom with git-rebase model. Three-outcome model, clock versioning, tombstones all verified. Simplified code accurately represents core algorithm. Highly applicable outside tldraw. |
-| text-measurement.md         | 9           | 6         | 9        | Clear writing. Property diffing optimization solid but expected. Range API most interesting part. |
-| undo-redo-squashing.md      | 9           | 9         | 10       | Excellent. Mark-based approach is counterintuitive and compelling. All code verified. Highly applicable pattern. |
-| wheel-momentum.md           | 9           | 8         | 10       | Strong. use-gesture workaround well documented. Honest about fragility. All code verified exactly. |
-| wheel-or-trackpad.md        | 9           | 8         | 9        | Strong. Impossible detection problem with pragmatic UX solution. All code verified. Minor technical nuance. |
+| resize-handles.md           | 9           | 8         | 9        | Strong. SVG cursor embedding is clever. Coordinate transform insight well explained. Minor code simplifications.                                                                                                                      |
+| runtime-validation.md       | 9           | 9         | 10       | Revised. Removed formulaic "when to use" checklists. Zod comparison flows naturally. Incremental validation pattern well explained. All performance claims verified.                                                                  |
+| safari-hell.md              | 9           | 8         | 9        | Improved. Now framed as universal web platform patterns. Each quirk has "Lesson" takeaways. Honest about hacks ("voodoo", "desperate"). Strong cross-browser reference for any developer.                                             |
+| scribble-animation.md       | 9           | 8         | 9        | Improved. Delay queue pattern framed as broadly applicable. Beyond-tldraw examples added. Accuracy issue fixed (slice(-5) matches article).                                                                                           |
+| shape-culling.md            | 9           | 8         | 9        | Improved. Counterintuitive "keep invisible elements" insight now leads. Bug report opening compelling. Broader applications (virtual scrolling, maps, canvas editors) well explained.                                                 |
+| shape-font-loading.md       | 9           | 8         | 10       | Improved. Microtask batching now leads as hero insight. Beyond-fonts examples added. Event loop timing well explained. All code verified.                                                                                             |
+| signals.md                  | 9           | 9         | 9        | Strong technical writing. Epoch-based invalidation well explained, "why not existing solutions" adds credibility. All code verified. Minor: claims library extracted as "signia" but package is @tldraw/state.                        |
+| state-chart.md              | 9           | 9         | 10       | Improved. Boolean spaghetti opening effective. Method signatures fixed. XState comparison insightful. Strong HN potential.                                                                                                            |
+| sync.md                     | 9           | 10        | 9        | Excellent. Challenges CRDT conventional wisdom with git-rebase model. Three-outcome model, clock versioning, tombstones all verified. Simplified code accurately represents core algorithm. Highly applicable outside tldraw.         |
+| text-measurement.md         | 9           | 8         | 9        | Improved. Range API now leads as hero insight. Ellipsis whitespace and RTL detection are compelling. Opens with failure mode.                                                                                                         |
+| undo-redo-squashing.md      | 9           | 9         | 10       | Excellent. Mark-based approach is counterintuitive and compelling. All code verified. Highly applicable pattern.                                                                                                                      |
+| wheel-momentum.md           | 9           | 8         | 10       | Strong. use-gesture workaround well documented. Honest about fragility. All code verified exactly.                                                                                                                                    |
+| wheel-or-trackpad.md        | 9           | 8         | 9        | Strong. Impossible detection problem with pragmatic UX solution. All code verified. Minor technical nuance.                                                                                                                           |
 
 ---
 
@@ -173,6 +173,11 @@ After evaluation, update this quality report:
 | browser-canvas-size.md      | 28    | 9   | 9   | 10  |
 | sync.md                     | 28    | 9   | 10  | 9   |
 | undo-redo-squashing.md      | 28    | 9   | 9   | 10  |
+| runtime-validation.md       | 28    | 9   | 9   | 10  |
+| jittered-indices.md         | 28    | 9   | 9   | 10  |
+| edge-scrolling.md           | 28    | 9   | 9   | 10  |
+| arc-arrows.md               | 28    | 9   | 9   | 10  |
+| state-chart.md              | 28    | 9   | 9   | 10  |
 | brush-scribble-selection.md | 27    | 9   | 8   | 10  |
 | click-state-machine.md      | 27    | 9   | 8   | 10  |
 | cross-tab-sync.md           | 27    | 9   | 8   | 10  |
@@ -180,20 +185,22 @@ After evaluation, update this quality report:
 | perfect-dash-patterns.md    | 27    | 9   | 8   | 10  |
 | signals.md                  | 27    | 9   | 9   | 9   |
 | wheel-momentum.md           | 27    | 9   | 8   | 10  |
-| arc-arrows.md               | 26    | 9   | 8   | 9   |
-| edge-scrolling.md           | 26    | 9   | 7   | 10  |
+| deep-links.md               | 27    | 9   | 8   | 10  |
+| elbow-arrows.md             | 27    | 9   | 8   | 10  |
+| image-lod.md                | 27    | 9   | 8   | 10  |
+| pinch-gesture.md            | 27    | 9   | 8   | 10  |
+| shape-font-loading.md       | 27    | 9   | 8   | 10  |
+| png-scale.md                | 27    | 9   | 8   | 10  |
+| inky-rng.md                 | 27    | 9   | 9   | 9   |
 | hit-testing.md              | 26    | 9   | 8   | 9   |
+| scribble-animation.md       | 26    | 9   | 8   | 9   |
 | indexeddb-migrations.md     | 26    | 9   | 8   | 9   |
-| inky-rng.md                 | 26    | 9   | 8   | 9   |
-| pinch-gesture.md            | 26    | 9   | 7   | 10  |
-| png-scale.md                | 26    | 9   | 7   | 10  |
 | resize-handles.md           | 26    | 9   | 8   | 9   |
 | safari-hell.md              | 26    | 9   | 8   | 9   |
-| shape-font-loading.md       | 26    | 9   | 7   | 10  |
-| state-chart.md              | 26    | 9   | 8   | 9   |
 | wheel-or-trackpad.md        | 26    | 9   | 8   | 9   |
-| scribble-animation.md       | 25    | 9   | 7   | 9   |
-| shape-culling.md            | 25    | 9   | 7   | 9   |
+| incremental-bindings.md     | 26    | 9   | 8   | 9   |
+| text-measurement.md         | 26    | 9   | 8   | 9   |
+| shape-culling.md            | 26    | 9   | 8   | 9   |
 
 ### Needs improvement (< 21 total score)
 
@@ -203,12 +210,6 @@ After evaluation, update this quality report:
 
 ### Borderline (21-24 total score)
 
-| File                    | Total | R   | P   | A   | Issue                                            |
-| ----------------------- | ----- | --- | --- | --- | ------------------------------------------------ |
-| jittered-indices.md     | 21    | 8   | 7   | 6   | Collision rate claim off by orders of magnitude  |
-| deep-links.md           | 22    | 8   | 5   | 9   | Problem too straightforward, lacks story         |
-| image-lod.md            | 22    | 8   | 7   | 7   | Code examples don't match source                 |
-| elbow-arrows.md         | 24    | 8   | 6   | 10  | Niche topic limits appeal                        |
-| incremental-bindings.md | 24    | 8   | 7   | 9   | Missing conclusion                               |
-| runtime-validation.md   | 24    | 8   | 7   | 9   | Specialized topic                                |
-| text-measurement.md     | 24    | 9   | 6   | 9   | Solution not surprising enough                   |
+| File | Total | R   | P   | A   | Issue |
+| ---- | ----- | --- | --- | --- | ----- |
+| None | -     | -   | -   | -   | -     |

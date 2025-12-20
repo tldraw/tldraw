@@ -57,7 +57,7 @@ In production, jitter is always enabled. In tests, we disable it so test results
 
 With 30 bits of entropy, there are 2^30 = 1,073,741,824 possible values between any two indices. Using birthday bound analysis, even if 10,000 users simultaneously insert shapes at the exact same position with the exact same neighboring indices, there's only a ~4.5% chance of any collision occurring.
 
-For typical usage—two users inserting concurrently—the collision probability is roughly 1 in 537 million. We've never seen a collision in production with jittered indices enabled.
+For typical usage—two users inserting concurrently—the collision probability is roughly 1 in 537 million. At these odds, collisions should be extremely rare in practice.
 
 The tradeoff is that jittered indices are about 3 characters longer on average. A deterministic index might be `'a1V'` while a jittered one might be `'a1VK3p7q'`. Given that the alternative is shapes stacking unpredictably in multiplayer scenarios, this is trivial.
 
@@ -78,5 +78,5 @@ This runs in O(jitterBits) time—for 30 bits of jitter, we call the base fracti
 ## Key files
 
 - `packages/utils/src/lib/reordering.ts` — Index generation with jitter
-- `packages/editor/src/lib/utils/reordering/reorderShapes.ts` — Shape reordering operations
+- `packages/editor/src/lib/utils/reorderShapes.ts` — Shape reordering operations
 - `packages/editor/src/lib/utils/reparenting.ts` — Index assignment when reparenting shapes

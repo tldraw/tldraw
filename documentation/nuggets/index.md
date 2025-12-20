@@ -32,15 +32,49 @@ Not every implementation detail deserves an article. The best nuggets share thes
 - You can't articulate why someone outside tldraw would care
 - The solution is the obvious one and it worked
 
+## Article types
+
+Not all nuggets follow the same structure. Choose the approach that fits your topic:
+
+**Problem → Solution**: "When building X, we ran into this problem. The obvious approach doesn't work because... Here's what we do instead." Best for counterintuitive implementations where the failure mode is the interesting part.
+
+- Examples: jittered-indices, arc-arrows, click-state-machine, shape-culling
+
+**How it works**: "Here's how X works under the hood." More explanatory than narrative. The interest is in the mechanism itself, not a specific problem it solves. These don't need a dramatic opening—just start with what it is.
+
+- Examples: sync, signals, react-canvas, hit-testing
+
+**Platform quirk**: "Browsers do this unexpected thing. Here's the workaround." Documents behavior developers won't anticipate until they hit it.
+
+- Examples: safari-hell, browser-canvas-size, wheel-or-trackpad
+
+The "show the failure mode first" advice applies most to problem→solution articles. For "how it works" articles, a quieter opening like "here's an interesting thing about how we do X" works fine.
+
 ## Writing approach
 
-**Show the failure mode first**. Before explaining the click state machine, show the boolean spaghetti you'd write without it. Before explaining seeded randomness, show shapes flickering on every render. This grounds the reader in why the problem matters.
+**Ground the reader first**. For problem→solution articles, show what goes wrong. For "how it works" articles, establish context. Don't dive into code before the reader knows why they should care.
 
 **Code examples should illustrate insights, not just show implementation**. The averaging trick in freehand curves deserves a code block because it's the core insight. The full SVG path building doesn't—that's just plumbing.
 
 **Be honest about tradeoffs**. "The memory cost is worth it" or "this is a hack and we know it" (Safari's 250ms sleep). Don't pretend every solution is elegant.
 
 **Link to source files at the bottom** so readers can explore further.
+
+## What to avoid
+
+These patterns make articles feel templated or artificial:
+
+**Announcing insights**. Don't write "The key insight is..." or "The insight here is...". Just explain it. If it's genuinely insightful, the reader will recognize it.
+
+**Formulaic section headers**. Headers like "**The tradeoff:**" or "**The result:**" as standalone transitions feel like AI organizing thoughts. Prefer natural prose or descriptive headers that tell you what the section contains.
+
+**Promotional language**. Avoid "This is powerful for...", "This pattern is particularly valuable for...", or similar phrases that read like marketing copy.
+
+**Forced broader applicability**. Not every nugget needs a "when to use this elsewhere" section. Some articles are interesting because of the specific problem, not a general pattern. If the broader applicability feels strained, leave it out.
+
+**Checklists of when to use / when not to use**. These often read like boilerplate. If the article is clear, readers can judge applicability themselves.
+
+**Conclusions that just summarize**. The conclusion should add perspective—a reflection, an honest assessment, or connection to something larger. Don't just repeat what you said.
 
 ## Structure
 

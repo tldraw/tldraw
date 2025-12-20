@@ -1,6 +1,8 @@
 # Arc arrows
 
-Arc arrows look beautiful—smooth curves that feel natural connecting shapes on a canvas. But beauty isn't the main reason we use them. Arc arrows are stable. They preserve the user's intent even as bound shapes move, resize, or rotate. The curve you drew stays recognizably the same curve.
+Draw an arrow with a gentle curve between two rectangles. Now drag one rectangle across the canvas. What should happen to the curve? The obvious answer—use a bezier curve with control points—creates chaos. As shapes move, bezier control points can drift independently, producing S-curves where you drew a clean arc, or loops where you wanted a simple bend. The curve you drew becomes unrecognizable.
+
+Arc arrows solve this by constraining the curvature. They use circular arcs instead of bezier curves, reducing the curve to a single degree of freedom: the bend amount. This constraint preserves the user's intent even as bound shapes move, resize, or rotate. The curve stays recognizably the same curve.
 
 ## What arc arrows preserve
 
@@ -14,11 +16,15 @@ All of this information survives change. Drag a shape across the canvas and the 
 
 This stability comes from storing the arrow's properties in normalized, relative terms rather than absolute coordinates. The bend is a perpendicular distance from the midpoint. Binding anchors are normalized positions (0-1) within the target shape's bounds. These values don't change when shapes transform.
 
-## Why circular arcs
+## Why circular arcs over bezier curves
 
-We use circular arcs rather than bezier curves. A circular arc is defined by exactly three points: start, end, and a middle point that controls the bend. Given any three points, exactly one circle passes through all of them.
+The naive approach would use a quadratic bezier curve with two endpoints and one control point. When a bound shape moves, update the endpoints to follow the shape, and maybe interpolate the control point's position based on the new endpoint locations. This seems straightforward until you try it.
 
-This constraint is valuable. Bezier curves have independent control points that can produce S-curves, loops, or other complex shapes. That flexibility becomes a liability when shapes move—how should each control point respond? With circular arcs, there's only one degree of freedom (the bend), and the math for maintaining it through transformations is straightforward.
+**The problem:** Bezier control points have two independent coordinates (x and y) that can move freely. When shapes move at different rates or in different directions, the control point's position becomes ambiguous. Should it maintain its relative distance from each endpoint? Should it stay at the same absolute angle? Should it preserve the curve's maximum distance from the baseline? Each heuristic produces different results, and none reliably preserve what the user drew.
+
+Worse, certain shape movements can flip the control point to the wrong side of the line, suddenly reversing the curve's direction. Or the control point can drift far from the baseline, creating an exaggerated loop where there was a gentle bend. The curve becomes unstable—small shape movements produce disproportionate visual changes.
+
+**Circular arcs eliminate these problems** by reducing the curve to one degree of freedom. A circular arc is defined by exactly three points: start, end, and a middle point that controls the bend. Given any three points, exactly one circle passes through all of them.
 
 ```typescript
 // Given three points, find the circle that passes through them
@@ -26,7 +32,9 @@ const center = centerOfCircleFromThreePoints(start, end, middle)
 const radius = Vec.Dist(center, start)
 ```
 
-The bend value maps directly to how far the middle point sits from the line between endpoints. Positive bends curve one way, negative bends curve the other. The visual result is always a clean, predictable arc.
+When shapes move, we preserve the bend value—the perpendicular distance from the midpoint of the baseline to the arc's middle point. This single scalar value fully defines the curve's shape regardless of endpoint positions. The math is unambiguous: given two new endpoints and the bend distance, there's exactly one circular arc that satisfies those constraints.
+
+The bend value maps directly to how far the middle point sits from the line between endpoints. Positive bends curve one way, negative bends curve the other. The visual result is always a clean, predictable arc—never an S-curve, never a loop, never an unexpected reversal.
 
 ## Handle arc vs body arc
 
@@ -117,7 +125,13 @@ new PathBuilder()
 
 ## The tradeoff
 
-Circular arcs sacrifice expressiveness for stability. You can't draw an S-curve or a spiral connector. But in practice, this constraint rarely matters—most arrow connections need exactly one thing: a clean curve that bends around obstacles. The single-degree-of-freedom design makes that curve predictable and maintainable across every transformation the canvas throws at it.
+Circular arcs sacrifice expressiveness for stability. You can't draw an S-curve or a spiral connector. But this constraint rarely matters in practice. Consider what happens when users create arrow connections:
+
+**With bezier curves:** User draws a gentle curve from shape A to shape B. Later, shape A moves left while shape B moves right. The bezier control point tries to maintain some relationship to both endpoints, but the geometry fights itself. The curve might flip to the wrong side, might become too pronounced, or might develop an unexpected inflection point. The user has to manually fix the arrow by adjusting handles that weren't visible when they created it.
+
+**With circular arcs:** User draws the same gentle curve. Shapes A and B move in any direction, at any speed. The bend amount stays constant (e.g., "20 pixels perpendicular to the baseline"), so the curve simply adjusts its radius to maintain that perpendicular distance. The visual appearance changes, but the fundamental curve shape—the amount of "bendiness" the user intended—remains intact. No manual correction needed.
+
+Most arrow connections need exactly one thing: a clean curve that bends around obstacles. The single-degree-of-freedom design makes that curve predictable and maintainable across every transformation the canvas throws at it.
 
 The handle arc / body arc distinction adds complexity to the implementation, but it's essential. Without it, you'd have to choose between arrows that pass through shape centers (confusing) or arrows whose curvature changes as shapes move (unstable). Neither is acceptable for a tool people rely on.
 

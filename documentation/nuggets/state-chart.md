@@ -113,24 +113,24 @@ export class SelectTool extends StateNode {
 
 	static override children(): TLStateNodeConstructor[] {
 		return [
+			Crop,
+			Cropping,
 			Idle,
 			PointingCanvas,
 			PointingShape,
-			PointingSelection,
-			PointingResizeHandle,
-			PointingRotateHandle,
-			PointingHandle,
-			PointingArrowLabel,
-			PointingCropHandle,
+			Translating,
 			Brushing,
 			ScribbleBrushing,
-			Translating,
+			PointingCropHandle,
+			PointingSelection,
+			PointingResizeHandle,
+			EditingShape,
 			Resizing,
 			Rotating,
+			PointingRotateHandle,
+			PointingArrowLabel,
+			PointingHandle,
 			DraggingHandle,
-			EditingShape,
-			Crop,
-			Cropping,
 		]
 	}
 }
@@ -161,7 +161,11 @@ handleEvent(info: TLEventInfo) {
 }
 ```
 
-This means parent states can intercept events before children see them. If the parent transitions to a different child (or becomes inactive), the old child never receives the event. This prevents stale states from handling events they shouldn't.
+This parent-first routing pattern gives parents control over event propagation. If the parent transitions to a different child (or becomes inactive), the old child never receives the event. This prevents stale states from handling events they shouldn't.
+
+The check `currentActiveChild === this._current.__unsafe__getWithoutCapture()` is crucial. It detects if the parent's handler caused a state transition. If it did, the original child no longer exists in the hierarchy, so we skip passing the event down. Without this check, a pointer down on the canvas could trigger both the parent's transition logic and the stale child's handler, causing inconsistent state.
+
+The `__unsafe__getWithoutCapture()` calls bypass signal dependency tracking. Normal `.get()` would register this code as dependent on the current state, causing unnecessary reactive updates. Since `handleEvent` is called from outside the reactive system, we don't want these dependencies.
 
 The event types are mapped to handler methods:
 
@@ -186,28 +190,37 @@ State transitions are explicit. When the Idle state detects a pointer down on th
 this.parent.transition('pointing_canvas', info)
 ```
 
-The `transition` method handles the mechanics: exit the old state, enter the new one, and pass along any context data:
+The `transition` method handles the mechanics: exit the old state, enter the new one, and pass along any context data. It supports dot-separated paths to transition through multiple levels:
 
 ```typescript
 transition(id: string, info: any = {}) {
-	const prevChildState = this.getCurrent()
-	const nextChildState = this.children?.[id]
+	const path = id.split('.')
+	let currState = this as StateNode
 
-	if (prevChildState?.id !== nextChildState.id) {
-		prevChildState?.exit(info, id)
-		this._current.set(nextChildState)
-		nextChildState.enter(info, prevChildState?.id || 'initial')
+	for (let i = 0; i < path.length; i++) {
+		const id = path[i]
+		const prevChildState = currState.getCurrent()
+		const nextChildState = currState.children?.[id]
+
+		if (prevChildState?.id !== nextChildState.id) {
+			prevChildState?.exit(info, id)
+			currState._current.set(nextChildState)
+			nextChildState.enter(info, prevChildState?.id || 'initial')
+			if (!nextChildState.getIsActive()) break
+		}
+
+		currState = nextChildState
 	}
 }
 ```
 
-The `enter` and `exit` methods trigger `onEnter` and `onExit` hooks where states do setup and cleanup. The `from` parameter tells you where you came from, so you can behave differently based on the transition path:
+The `enter` and `exit` methods trigger `onEnter` and `onExit` hooks where states do setup and cleanup. Both hooks receive the transition info and a second parameter indicating where the transition came from (for `onEnter`) or where it's going to (for `onExit`):
 
 ```typescript
 // In PointingCanvas
-override onEnter(info: TLPointerEventInfo) {
+override onEnter(info: TLPointerEventInfo, from: string) {
 	// Clear selection if not holding shift/accel
-	if (!info.shiftKey && !info.accelKey) {
+	if (!(info.shiftKey || info.accelKey)) {
 		if (this.editor.getSelectedShapeIds().length > 0) {
 			this.editor.selectNone()
 		}
@@ -234,6 +247,15 @@ override onPointerUp(info: TLPointerEventInfo) {
 }
 ```
 
+The dot-separated path syntax enables transitions across multiple hierarchy levels in one call. For example, the Idle state can transition directly into a nested crop state:
+
+```typescript
+// From select.idle, jump directly to select.crop.pointing_crop_handle
+this.parent.transition('crop.pointing_crop_handle', info)
+```
+
+This walks through each level, exiting and entering states along the way. Without this feature, you'd need multiple transition calls or manual state management to navigate deep hierarchies.
+
 ## Nested hierarchies
 
 The "hierarchical" part matters. The Crop state has its own child states:
@@ -247,12 +269,26 @@ export class Crop extends StateNode {
 		return [Idle, TranslatingCrop, PointingCrop, PointingCropHandle, Cropping]
 	}
 
-	override onEnter() {
+	markId = ''
+	didExit = false
+
+	override onEnter(info: any, from: string) {
+		this.didExit = false
 		this.markId = this.editor.markHistoryStoppingPoint('crop')
 	}
 
-	override onExit() {
-		this.editor.squashToMark(this.markId)
+	override onExit(info: any, to: string) {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.squashToMark(this.markId)
+		}
+	}
+
+	override onCancel() {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.bailToMark(this.markId)
+		}
 	}
 }
 ```
@@ -264,7 +300,7 @@ editor.isIn('select.crop') // true if in crop mode
 editor.isIn('select.crop.cropping') // true only while actively cropping
 ```
 
-Nested states inherit event handling from parents. When you're in `select.crop.cropping`, events flow through SelectTool, then Crop, then Cropping. The Crop state's `onExit` runs when leaving crop mode entirely, regardless of which child state was active. This is perfect for cleanup—Crop uses it to squash the undo history so the entire crop operation becomes a single undo step.
+Nested states inherit event handling from parents. When you're in `select.crop.cropping`, events flow through SelectTool, then Crop, then Cropping. The Crop state's `onExit` runs when leaving crop mode entirely, regardless of which child state was active. This is perfect for cleanup—Crop uses it to squash the undo history so the entire crop operation becomes a single undo step. The `didExit` flag prevents double-processing if the state exits through both normal exit and cancel paths.
 
 ## A simpler example: EraserTool
 
@@ -279,7 +315,7 @@ export class EraserTool extends StateNode {
 		return [Idle, Pointing, Erasing]
 	}
 
-	override onEnter() {
+	override onEnter(info: any, from: string) {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 }
@@ -289,7 +325,7 @@ The Pointing state marks shapes for erasure on enter, transitions to Erasing if 
 
 ```typescript
 export class Pointing extends StateNode {
-	override onEnter() {
+	override onEnter(info: any, from: string) {
 		// Hit test and mark shapes for erasure
 		const erasing = new Set<TLShapeId>()
 		for (const shape of currentPageShapesSorted) {
@@ -322,15 +358,17 @@ Three states, clear responsibilities. The complexity matches the tool's actual b
 
 XState is the standard choice for state machines in JavaScript. We considered it but built our own for several reasons.
 
-**Class-based architecture fits better.** tldraw's tools are classes with inheritance. The DrawTool extends a base with draw-specific behavior. XState's configuration-first approach would require a different architecture.
+**Class-based architecture fits better.** tldraw's tools are classes with inheritance. The DrawTool extends a base with draw-specific behavior. XState's configuration-first approach would require a different architecture—you'd define machine configurations separately from the classes that use them, or wrap machines inside classes, neither of which feels natural.
 
-**We needed tight integration with the editor.** Every state needs access to the editor, inputs, and store. With our approach, states are instantiated with an editor reference and can call any editor method directly. XState would require additional plumbing.
+**We needed tight integration with the editor.** Every state needs access to the editor, inputs, and store. With our approach, states are instantiated with an editor reference and can call any editor method directly. XState would require additional plumbing through context objects or services to achieve the same level of access.
 
-**Performance matters.** State transitions happen on every pointer event during drawing. Our implementation is minimal—a few method calls and property updates. No configuration parsing, no actor model overhead.
+**Performance matters.** State transitions happen on every pointer event during drawing. Our implementation is minimal—a few method calls and property updates. No configuration parsing, no actor model overhead. XState's generality comes with runtime cost that matters when transitioning 60 times per second during a drag operation.
 
-**Simpler mental model.** Our states are just classes with handler methods. You read `onPointerDown` and see what happens. XState's declarative configuration is powerful but adds indirection.
+**Simpler mental model.** Our states are just classes with handler methods. You read `onPointerDown` and see what happens. XState's declarative configuration is powerful but adds indirection—you need to understand the machine configuration language, actions, guards, and the actor model. For contributors familiar with object-oriented patterns, our approach has less cognitive overhead.
 
-The tradeoff is maintaining our own implementation. But it's around 300 lines of code for StateNode, well-tested, and hasn't needed significant changes since it was written. For our use case, simplicity won.
+**Type safety was easier to achieve.** TypeScript's inference works naturally with our class hierarchy. Each state knows its parent's type, has typed access to the editor, and gets proper autocomplete for event handlers. Getting equivalent type safety with XState requires more ceremony.
+
+The tradeoff is maintaining our own implementation. But StateNode is around 300 lines of code, well-tested, and hasn't needed significant changes since it was written. For our use case, the simplicity and performance benefits outweighed the power of a general-purpose state machine library. If we needed features like state machine visualization, time-travel debugging, or actor orchestration, the calculus might be different.
 
 ## Key files
 

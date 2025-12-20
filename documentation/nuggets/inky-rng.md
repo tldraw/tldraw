@@ -22,7 +22,10 @@ We use a [xorshift](https://en.wikipedia.org/wiki/Xorshift) algorithm:
 ```typescript
 // packages/utils/src/lib/number.ts
 export function rng(seed = '') {
-	let x = 0, y = 0, z = 0, w = 0
+	let x = 0,
+		y = 0,
+		z = 0,
+		w = 0
 
 	function next() {
 		const t = x ^ (x << 11)
@@ -50,9 +53,10 @@ Every shape in tldraw has a unique, immutable ID. This makes it the perfect seed
 
 ```typescript
 // packages/tldraw/src/lib/shapes/geo/components/GeoShapeBody.tsx
-const fillPath = dash === 'draw'
-	? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0 })
-	: path.toD({ onlyFilled: true })
+const fillPath =
+	dash === 'draw'
+		? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })
+		: path.toD({ onlyFilled: true })
 ```
 
 Same shape, same ID, same random sequence, same appearance. Different shapes get different sequences, so each one has its own organic character.
@@ -87,8 +91,8 @@ Sharp corners look mechanical. The draw style rounds them using quadratic bezier
 ```typescript
 const roundnessClampedForAngle = modulate(
 	Math.abs(Vec.AngleBetween(tangentToPrev, tangentToNext)),
-	[Math.PI / 2, Math.PI],  // 90° to 180°
-	[roundness, 0],          // Full roundness at 90°, none at 180°
+	[Math.PI / 2, Math.PI], // 90° to 180°
+	[roundness, 0], // Full roundness at 90°, none at 180°
 	true
 )
 ```
@@ -117,6 +121,12 @@ function getCloudPath(width, height, seed, size, scale, isFilled) {
 ```
 
 Each cloud with a different ID has differently-shaped bumps, but the same cloud always looks the same.
+
+## Why xorshift?
+
+The xorshift algorithm is lightweight—just a few bitwise operations per call. For draw-style shapes, we might call `random()` hundreds of times per shape during rendering. A heavyweight PRNG like Mersenne Twister would be overkill. Xorshift gives us "good enough" randomness at minimal cost, and the bit patterns pass basic statistical tests for visual applications.
+
+The tradeoff is that xorshift isn't cryptographically secure, but we don't need that. We just need shapes that look hand-drawn and stay stable. The visual quality matters more than the mathematical properties.
 
 ## Key files
 
