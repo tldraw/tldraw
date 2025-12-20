@@ -44,11 +44,11 @@ Camera behavior is configured through `TLCameraOptions`, which control input sen
 
 ```typescript
 editor.setCameraOptions({
-  isLocked: false,
-  wheelBehavior: 'pan',
-  panSpeed: 1,
-  zoomSpeed: 1,
-  zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
+	isLocked: false,
+	wheelBehavior: 'pan',
+	panSpeed: 1,
+	zoomSpeed: 1,
+	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 })
 ```
 
@@ -66,14 +66,14 @@ Camera constraints limit where users can navigate, useful for presentations, gui
 
 ```typescript
 editor.setCameraOptions({
-  constraints: {
-    bounds: { x: 0, y: 0, w: 1920, h: 1080 },
-    padding: { x: 50, y: 50 },
-    origin: { x: 0.5, y: 0.5 },
-    initialZoom: 'fit-min',
-    baseZoom: 'default',
-    behavior: 'inside',
-  },
+	constraints: {
+		bounds: { x: 0, y: 0, w: 1920, h: 1080 },
+		padding: { x: 50, y: 50 },
+		origin: { x: 0.5, y: 0.5 },
+		initialZoom: 'fit-min',
+		baseZoom: 'default',
+		behavior: 'inside',
+	},
 })
 ```
 
@@ -168,13 +168,13 @@ Add smooth transitions to camera movements using the `animation` option:
 
 ```typescript
 editor.setCamera(
-  { x: 0, y: 0, z: 1 },
-  {
-    animation: {
-      duration: 500,
-      easing: EASINGS.easeInOutCubic,
-    },
-  }
+	{ x: 0, y: 0, z: 1 },
+	{
+		animation: {
+			duration: 500,
+			easing: EASINGS.easeInOutCubic,
+		},
+	}
 )
 ```
 
@@ -186,9 +186,9 @@ Create smooth momentum-based camera movement:
 
 ```typescript
 editor.slideCamera({
-  speed: 2,
-  direction: { x: 1, y: 0 },
-  friction: 0.1,
+	speed: 2,
+	direction: { x: 1, y: 0 },
+	friction: 0.1,
 })
 ```
 

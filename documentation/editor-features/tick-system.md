@@ -22,28 +22,28 @@ The `TickManager` class manages the animation frame loop for the editor. It star
 
 ```typescript
 export class TickManager {
-  constructor(public editor: Editor) {
-    this.start()
-  }
+	constructor(public editor: Editor) {
+		this.start()
+	}
 
-  start() {
-    this.isPaused = false
-    this.cancelRaf = throttleToNextFrame(this.tick)
-    this.now = Date.now()
-  }
+	start() {
+		this.isPaused = false
+		this.cancelRaf = throttleToNextFrame(this.tick)
+		this.now = Date.now()
+	}
 
-  tick() {
-    if (this.isPaused) return
+	tick() {
+		if (this.isPaused) return
 
-    const now = Date.now()
-    const elapsed = now - this.now
-    this.now = now
+		const now = Date.now()
+		const elapsed = now - this.now
+		this.now = now
 
-    this.editor.inputs.updatePointerVelocity(elapsed)
-    this.editor.emit('frame', elapsed)
-    this.editor.emit('tick', elapsed)
-    this.cancelRaf = throttleToNextFrame(this.tick)
-  }
+		this.editor.inputs.updatePointerVelocity(elapsed)
+		this.editor.emit('frame', elapsed)
+		this.editor.emit('tick', elapsed)
+		this.cancelRaf = throttleToNextFrame(this.tick)
+	}
 }
 ```
 
@@ -56,10 +56,10 @@ When the `TickManager` emits a tick event, the editor dispatches it through the 
 ```typescript
 // In Editor.ts
 this.on('tick', (elapsed) => {
-  if (elapsed > 0) {
-    this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
-  }
-  this.scribbles.tick(elapsed)
+	if (elapsed > 0) {
+		this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+	}
+	this.scribbles.tick(elapsed)
 })
 ```
 
@@ -67,16 +67,16 @@ Tools implement the `onTick` handler to receive these events:
 
 ```typescript
 export interface TLTickEventInfo {
-  type: 'misc'
-  name: 'tick'
-  elapsed: number
+	type: 'misc'
+	name: 'tick'
+	elapsed: number
 }
 
 export type TLTickEvent = (info: TLTickEventInfo) => void
 
 export interface TLEventHandlers {
-  // ... other handlers
-  onTick: TLTickEvent
+	// ... other handlers
+	onTick: TLTickEvent
 }
 ```
 
@@ -87,10 +87,10 @@ Tools that need continuous frame-based updates override the `onTick` method in t
 ```typescript
 // From Translating.ts
 export class Translating extends StateNode {
-  override onTick({ elapsed }: TLTickEventInfo) {
-    const { editor } = this
-    editor.edgeScrollManager.updateEdgeScrolling(elapsed)
-  }
+	override onTick({ elapsed }: TLTickEventInfo) {
+		const { editor } = this
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+	}
 }
 ```
 
@@ -123,13 +123,15 @@ updateEdgeScrolling(elapsed: number) {
 The `ScribbleManager` also subscribes to tick events to animate scribble trails (the visual feedback during brush selection and laser tool usage):
 
 ```typescript
+// Simplified for clarity - see ScribbleManager.ts for full implementation
 tick(elapsed: number) {
   if (this.scribbleItems.size === 0) return
 
   this.scribbleItems.forEach((item) => {
+    const { next, prev, delayRemaining, scribble } = item
     item.timeoutMs += elapsed
 
-    if (item.scribble.state === 'active') {
+    if (scribble.state === 'active') {
       // Add new points and shrink from the tail
       if (next && next !== prev) {
         scribble.points.push(next)
@@ -137,7 +139,7 @@ tick(elapsed: number) {
           scribble.points.shift()
         }
       }
-    } else if (item.scribble.state === 'stopping') {
+    } else if (scribble.state === 'stopping') {
       // Gradually shrink the scribble
       if (scribble.points.length === 1) {
         this.scribbleItems.delete(item.id)

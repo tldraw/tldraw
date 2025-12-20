@@ -26,10 +26,10 @@ The editor emits `tick` events at the browser's animation frame rate. Animation 
 // Internal implementation - not public API
 // This illustrates how animations work under the hood
 editor.on('tick', (elapsed) => {
-  animation.elapsed += elapsed
-  const t = easing(animation.elapsed / animation.duration)
-  const currentX = lerp(startX, endX, t)
-  // ... update shape or camera
+	animation.elapsed += elapsed
+	const t = easing(animation.elapsed / animation.duration)
+	const currentX = lerp(startX, endX, t)
+	// ... update shape or camera
 })
 ```
 
@@ -43,8 +43,8 @@ Use `animateShape()` to animate a single shape or `animateShapes()` to animate m
 
 ```typescript
 editor.animateShape(
-  { id: 'shape1', type: 'geo', x: 200, y: 100 },
-  { animation: { duration: 500, easing: EASINGS.easeInOutCubic } }
+	{ id: 'shape1', type: 'geo', x: 200, y: 100 },
+	{ animation: { duration: 500, easing: EASINGS.easeInOutCubic } }
 )
 ```
 
@@ -90,8 +90,8 @@ The `setCamera()` method accepts an animation option to smoothly transition to a
 
 ```typescript
 editor.setCamera(
-  { x: 0, y: 0, z: 1 },
-  { animation: { duration: 320, easing: EASINGS.easeInOutCubic } }
+	{ x: 0, y: 0, z: 1 },
+	{ animation: { duration: 320, easing: EASINGS.easeInOutCubic } }
 )
 ```
 
@@ -103,9 +103,9 @@ The `slideCamera()` method creates momentum-based camera movement that gradually
 
 ```typescript
 editor.slideCamera({
-  speed: 2,
-  direction: { x: 1, y: 0 },
-  friction: 0.1
+	speed: 2,
+	direction: { x: 1, y: 0 },
+	friction: 0.1,
 })
 ```
 

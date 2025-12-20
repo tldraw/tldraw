@@ -12,150 +12,91 @@ keywords:
 
 ## Overview
 
-The shape indexing system determines the visual stacking order (z-order) of shapes on the canvas. Every shape has an `index` property that controls whether it appears above or below other shapes. Instead of using integer indices that require renumbering when reordering shapes, tldraw uses string-based fractional indices that can always be inserted between any two existing values. This design enables efficient reordering without modifying other shapes and works well with real-time collaboration where multiple users might reorder shapes simultaneously.
+The shape indexing system determines the visual stacking order (z-order) of shapes on the canvas. Every shape has an `index` property that controls whether it appears above or below other shapes. This system enables efficient reordering operations and supports real-time collaboration where multiple users might reorder shapes simultaneously.
 
-## Why fractional indices
+## Fractional indexing
 
-Integer-based indexing systems require renumbering when inserting shapes between existing ones. If you have shapes with indices `[0, 1, 2]` and want to insert a shape between 0 and 1, you must either renumber all subsequent shapes or use floating-point numbers which eventually exhaust precision.
+tldraw uses string-based fractional indices instead of integers. Integer-based indexing systems require renumbering when inserting shapes between existing ones. If you have shapes with indices `[0, 1, 2]` and want to insert a shape between 0 and 1, you must either renumber all subsequent shapes or use floating-point numbers which eventually exhaust precision.
 
-Fractional indexing solves this by using lexicographically sortable strings where you can always generate a new index between any two existing indices:
+Fractional indexing solves this by using lexicographically sortable strings. You can always generate a new index between any two existing indices. The strings compare correctly using standard JavaScript string comparison, so sorting shapes by index is a simple lexicographic sort. Reordering shapes only updates the shapes being moved, not every shape on the canvas.
 
-```typescript
-// Example indices showing infinite insertability
-'a0'    // First shape
-'a1'    // Second shape
-'a0V'   // Inserted between 'a0' and 'a1'
-'a0G'   // Inserted between 'a0' and 'a0V'
-```
+## Index structure
 
-The strings compare correctly using standard JavaScript string comparison, so sorting shapes by index is a simple lexicographic sort. No renumbering is required, which means reordering shapes only updates the shapes being moved, not every shape on the canvas.
+Fractional indices are based on the [jittered fractional indexing](https://www.npmjs.com/package/jittered-fractional-indexing) algorithm. Each index is a string consisting of an integer part followed by an optional fractional part. Indices use base-62 encoding (a-z, A-Z, 0-9) to maximize density.
 
-## How fractional indices work
+The integer part determines the rough position in the sequence. The fractional part provides precision for inserting between existing indices. Indices omit trailing zeros in the fractional part to stay compact.
 
-Fractional indices are based on the [jittered fractional indexing](https://www.npmjs.com/package/jittered-fractional-indexing) algorithm. Each index is a string consisting of an integer part followed by an optional fractional part.
-
-### Index structure
-
-Indices use base-62 encoding (a-z, A-Z, 0-9) to maximize density:
-
-- The integer part determines the rough position in the sequence
-- The fractional part provides precision for inserting between existing indices
-- No trailing zeros in the fractional part keeps indices compact
-
-```typescript
-'a0'     // Integer part: a, no fractional part
-'a1'     // Integer part: a, fractional part: 1
-'a0V'    // Integer part: a, fractional part: 0V
-'b0'     // Integer part: b (comes after all 'a' indices)
-```
-
-### Generating indices
+## Generating indices
 
 The `@tldraw/utils` package provides functions for generating indices:
 
 ```typescript
 import { getIndexBetween, getIndicesAbove, getIndicesBelow } from '@tldraw/utils'
 
-// Get a single index between two others
-const index = getIndexBetween('a0', 'a2')  // Returns 'a1'
-
-// Get multiple indices at once
-const indices = getIndicesAbove('a0', 3)    // Returns ['a1', 'a2', 'a3']
-const below = getIndicesBelow('a2', 2)      // Returns ['a1', 'a0V']
+const index = getIndexBetween('a0', 'a2') // 'a1'
+const indices = getIndicesAbove('a0', 3) // ['a1', 'a2', 'a3']
+const below = getIndicesBelow('a2', 2) // ['a1', 'a0V']
 ```
 
-The algorithm includes optional jittering (randomization) to reduce conflicts in collaborative environments where multiple users might simultaneously insert shapes at the same position. Jittering is disabled during tests for deterministic behavior.
+The algorithm includes optional jittering (randomization) to reduce conflicts in collaborative environments where multiple users might simultaneously insert shapes at the same position. Tests disable jittering for deterministic behavior.
 
-## Shape ordering methods
+## Reordering operations
 
-The Editor class provides four methods for reordering shapes:
+The Editor class provides four methods for reordering shapes.
 
-### Send to back
-
-Moves shapes to the bottom of the z-order within their parent:
+### Send to back and bring to front
 
 ```typescript
 editor.sendToBack(['shape1', 'shape2'])
-```
-
-The `sendToBack` method finds the lowest non-moving shape and inserts the selected shapes below it. If some of the bottom shapes are already being moved, they stay in their relative order and only the shapes above them are reindexed.
-
-### Bring to front
-
-Moves shapes to the top of the z-order within their parent:
-
-```typescript
 editor.bringToFront(['shape1', 'shape2'])
 ```
 
-Similar to `sendToBack` but works from the top of the stack. The method finds the highest non-moving shape and inserts the selected shapes above it.
+These methods move shapes to the bottom or top of the z-order within their parent. The `sendToBack` method finds the lowest non-moving shape and inserts the selected shapes below it. The `bringToFront` method finds the highest non-moving shape and inserts the selected shapes above it. If some shapes at the target position are already being moved, they stay in their relative order.
 
-### Send backward
+### Send backward and bring forward
 
-Moves shapes one position down in the z-order:
+```typescript
+editor.sendBackward(['shape1'])
+editor.bringForward(['shape1'])
+```
+
+These methods move shapes one position down or up in the z-order. By default, they only move shapes past overlapping shapes. Pass `considerAllShapes: true` to move past any shape regardless of overlap:
 
 ```typescript
 editor.sendBackward(['shape1'], { considerAllShapes: true })
 ```
 
-By default, `sendBackward` only moves shapes behind overlapping shapes. Pass `considerAllShapes: true` to move shapes behind the next shape regardless of overlap. This creates intuitive behavior where keyboard shortcuts move shapes past only the shapes they visually overlap.
+This creates intuitive behavior where keyboard shortcuts move shapes past only the shapes they visually overlap.
 
-### Bring forward
-
-Moves shapes one position up in the z-order:
-
-```typescript
-editor.bringForward(['shape1'])
-```
-
-Like `sendBackward`, this considers only overlapping shapes by default. Use `considerAllShapes: true` to move past any shape in the stack.
-
-### Preserving relative order
+### Relative order preservation
 
 All reordering methods maintain the relative order of moved shapes. If you select shapes A, B, and C (where A is below B which is below C) and bring them forward, they maintain that A-B-C ordering at their new position in the stack.
 
 ## Reordering algorithm
 
-The reordering logic in `packages/editor/src/lib/utils/reorderShapes.ts` follows this pattern:
+The reordering logic follows this pattern:
 
-1. Group shapes by their parent (since indices are relative to siblings)
+1. Group shapes by their parent (indices are relative to siblings)
 2. For each parent, identify which children are moving and which are stationary
 3. Find the insertion point based on the operation (toFront, toBack, forward, backward)
 4. Generate new indices for moved shapes using `getIndicesBetween`
 5. Update only the shapes that need new indices
 
-For example, when bringing shapes to front:
+The algorithm optimizes by not generating indices for shapes that don't need to move. If shapes are already at the target position, no updates occur.
 
-```typescript
-// Children: [A, B, C, D, E] where C and D are selected
-// Start from top and find first non-moving shape
-// E is moving, skip
-// Found B as stationary
-// Generate indices between B and E for [C, D]
-// Result: [A, B, C, D, E] with C and D now at the top
-```
+## Collaboration support
 
-The algorithm optimizes by not generating indices for shapes that don't need to move. If you're already at the front and try to bring shapes to front, no updates occur.
-
-## Collaboration and conflicts
-
-Fractional indexing is particularly important for real-time collaboration. When two users simultaneously reorder shapes, they generate different indices in the same region of the index space. Since indices are strings, these don't conflict - both operations succeed and the final order depends on which operation completed last.
+Fractional indexing supports real-time collaboration. When two users simultaneously reorder shapes, they generate different indices in the same region of the index space. Since indices are strings, these don't conflict - both operations succeed and the final order depends on which operation completed last.
 
 The jittering in the fractional indexing algorithm reduces the likelihood that two users generate identical indices for different shapes. Without jittering, two users inserting shapes at the same position would generate the same index, requiring conflict resolution. With jittering, they generate different indices that sort near each other but remain distinct.
 
-The store's synchronization system (in `@tldraw/sync`) handles merging concurrent updates. Since reordering operations only update the moved shapes' indices, they don't interfere with other concurrent operations on different shapes.
+The `@tldraw/sync` package handles merging concurrent updates. Since reordering operations only update the moved shapes' indices, they don't interfere with other concurrent operations on different shapes.
 
 ## Index validation
 
-The `IndexKey` type is branded to prevent accidentally using arbitrary strings as indices:
+The `IndexKey` type is a branded type that prevents accidentally using arbitrary strings as indices. The `validateIndexKey` function ensures a string is a valid index by attempting to generate an index after it. Invalid indices throw an error during validation.
 
-```typescript
-type IndexKey = string & { __brand: 'indexKey' }
-```
-
-The `validateIndexKey` function ensures a string is a valid index by attempting to generate an index after it. Invalid indices throw an error during validation.
-
-All shapes must have valid indices. The store validates indices when shapes are created or updated, ensuring the editor never enters an invalid state.
+All shapes must have valid indices. The store validates indices when you create or update shapes, ensuring the editor never enters an invalid state.
 
 ## Key files
 
@@ -166,5 +107,7 @@ All shapes must have valid indices. The store validates indices when shapes are 
 
 ## Related
 
-- [Store](../packages/store.md)
-- [Editor](../packages/editor.md)
+- [Editor](../packages/editor.md) - Main editor package documentation
+- [Store](../packages/store.md) - Reactive database that manages shape records
+- [Shape system](../architecture/shape-system.md) - How shapes work in tldraw
+- [Multiplayer](../architecture/multiplayer.md) - Real-time collaboration architecture

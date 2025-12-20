@@ -73,13 +73,13 @@ The `TLClickEventInfo` type extends the base event info with click-specific prop
 
 ```typescript
 type TLClickEventInfo = {
-  type: 'click'
-  name: 'double_click' | 'triple_click' | 'quadruple_click'
-  point: VecLike
-  pointerId: number
-  button: number
-  phase: 'down' | 'up' | 'settle'
-  // ... plus modifier keys (shift, alt, ctrl, meta)
+	type: 'click'
+	name: 'double_click' | 'triple_click' | 'quadruple_click'
+	point: VecLike
+	pointerId: number
+	button: number
+	phase: 'down' | 'up' | 'settle'
+	// ... plus modifier keys (shift, alt, ctrl, meta)
 }
 ```
 

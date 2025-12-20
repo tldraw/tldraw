@@ -12,7 +12,7 @@ keywords:
 
 ## Overview
 
-The selection system manages which shapes are currently selected in the editor. It provides computed properties for retrieving selected shapes and their collective properties (like bounds and rotation), enforces selection rules to maintain consistency, and exposes methods for programmatically changing the selection. The system ensures that ancestors and descendants are never selected simultaneously, automatically manages focus groups when selecting grouped shapes, and filters out locked shapes from bulk operations.
+The selection system manages which shapes the editor currently selects. It provides computed properties for retrieving selected shapes and their collective properties (like bounds and rotation), enforces selection rules to maintain consistency, and exposes methods for programmatically changing the selection. The system ensures that ancestors and descendants never select simultaneously, automatically manages focus groups when you select grouped shapes, and filters out locked shapes from bulk operations.
 
 ## Selected shape IDs
 
@@ -59,7 +59,7 @@ editor.selectAll()
 The behavior adapts to context:
 
 - If nothing is selected, it selects all page-level shapes
-- If shapes are selected that share a common parent (like shapes inside a group), it selects all shapes within that parent
+- If you select shapes that share a common parent (like shapes inside a group), it selects all shapes within that parent
 - If the selected shapes have different parents, it does nothing
 
 This allows users to progressively select "outward" by calling `selectAll()` multiple times.
@@ -89,7 +89,7 @@ editor.selectParentShape()
 editor.selectFirstChildShape()
 ```
 
-These methods automatically zoom to the selected shape if it's offscreen.
+Both methods automatically zoom to the selected shape if it's offscreen.
 
 ## Single shape helpers
 
@@ -103,7 +103,7 @@ const id = editor.getOnlySelectedShapeId()
 const shape = editor.getOnlySelectedShape()
 ```
 
-These return `null` if zero shapes or multiple shapes are selected.
+Both methods return `null` if zero shapes or multiple shapes are selected.
 
 ## Selection bounds
 
@@ -116,11 +116,11 @@ The `getSelectionPageBounds()` method returns the axis-aligned bounding box that
 ```typescript
 const bounds = editor.getSelectionPageBounds()
 if (bounds) {
-  console.log(bounds.x, bounds.y, bounds.width, bounds.height)
+	console.log(bounds.x, bounds.y, bounds.width, bounds.height)
 }
 ```
 
-If the selection includes rotated shapes, these bounds represent the smallest axis-aligned box that would contain the rotated shapes. The method returns `null` if nothing is selected.
+If the selection includes rotated shapes, these bounds represent the smallest axis-aligned box that contains the rotated shapes. The method returns `null` if nothing is selected.
 
 ### Rotated bounds
 
@@ -130,9 +130,9 @@ The `getSelectionRotatedPageBounds()` method returns bounds that respect the sha
 const rotatedBounds = editor.getSelectionRotatedPageBounds()
 ```
 
-This is used for displaying the selection box UI. If all selected shapes share the same rotation, the bounds rotate with them. If shapes have different rotations, this falls back to axis-aligned bounds.
+The selection box UI uses this for display. If all selected shapes share the same rotation, the bounds rotate with them. If shapes have different rotations, this falls back to axis-aligned bounds.
 
-The shared rotation angle is available via `getSelectionRotation()`, which returns `0` if shapes have different rotations.
+You can access the shared rotation angle via `getSelectionRotation()`, which returns `0` if shapes have different rotations.
 
 ### Screen space bounds
 
@@ -161,7 +161,7 @@ This prevents ambiguous situations where both a container and its contents are s
 
 ### Focused group management
 
-When selecting shapes that are children of a group, the editor automatically updates the focused group:
+When you select shapes that are children of a group, the editor automatically updates the focused group. A **focused group** is the group shape that defines the current editing scope—it determines which shapes are available for selection and manipulation. When you enter a group by selecting its children, that group becomes focused, restricting your editing context to shapes within that group.
 
 ```typescript
 // Selecting shapes inside a group focuses that group
@@ -169,11 +169,11 @@ editor.select(shapeInsideGroup)
 // The group becomes the focused group
 ```
 
-The focused group determines which shapes are editable and visible in the current "editing context". If all selected shapes share a common group ancestor, that group becomes focused. If the selection is cleared or contains shapes without a common group ancestor, the focused group is cleared.
+If all selected shapes share a common group ancestor, that group becomes focused. If you clear the selection or select shapes without a common group ancestor, the editor clears the focused group.
 
 ## Locked shapes
 
-Locked shapes are excluded from bulk selection operations. The `_getUnlockedShapeIds()` helper filters shape IDs:
+The editor excludes locked shapes from bulk selection operations. The `_getUnlockedShapeIds()` helper filters shape IDs:
 
 ```typescript
 // selectAll only selects unlocked shapes
@@ -183,7 +183,7 @@ editor.selectAll()
 editor.deleteShapes(shapeIds) // Only deletes unlocked shapes
 ```
 
-Individual shape selection through `select()` is not restricted by locks, allowing users to explicitly select locked shapes when needed.
+Locks do not restrict individual shape selection through `select()`, allowing users to explicitly select locked shapes when needed.
 
 ## Ancestor checking
 

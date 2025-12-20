@@ -1,6 +1,6 @@
 # Documentation quality report
 
-Generated: 2025-12-20 (Updated)
+Generated: 12/20/2024
 
 This report evaluates all documentation files in the `/documentation` folder against the standards defined in [HOW_TO_WRITE_DOCUMENTATION.md](./HOW_TO_WRITE_DOCUMENTATION.md).
 
@@ -46,6 +46,7 @@ Launch a subagent to rewrite the article. Provide the subagent with:
 - The package's CONTEXT.md file if available (for package docs)
 
 Example prompt:
+
 ```
 You are improving the documentation for [package/topic].
 
@@ -94,48 +95,61 @@ After evaluation, update this quality report:
 
 ## Summary statistics
 
-| Category         | Avg Readability | Avg Structure | Avg Conformance | Files |
-| ---------------- | --------------- | ------------- | --------------- | ----- |
-| Architecture     | 8.8             | 10.0          | 9.9             | 10    |
-| Editor features  | 9.0             | 9.7           | 9.7             | 3     |
-| Infrastructure   | 8.6             | 10.0          | 9.6             | 5     |
-| Overview         | 9.0             | 9.3           | 9.5             | 4     |
-| Guides           | 9.0             | 9.2           | 8.8             | 6     |
-| Packages         | 8.2             | 6.9           | 7.9             | 14    |
-| Reference        | 8.8             | 7.8           | 9.0             | 4     |
-| Templates        | 8.3             | 8.3           | 9.0             | 6     |
-| Tooling          | 9.0             | 10.0          | 10.0            | 4     |
-| Apps             | 8.5             | 9.3           | 9.3             | 4     |
-| Changelog        | 8.4             | 9.2           | 8.4             | 26    |
+| Category        | Avg Readability | Avg Structure | Avg Conformance | Files |
+| --------------- | --------------- | ------------- | --------------- | ----- |
+| Architecture    | 8.8             | 10.0          | 9.9             | 10    |
+| Editor features | 8.7             | 9.5           | 9.3             | 16    |
+| Infrastructure  | 8.6             | 10.0          | 9.6             | 5     |
+| Overview        | 9.0             | 9.3           | 9.5             | 4     |
+| Guides          | 9.0             | 9.2           | 8.8             | 6     |
+| Packages        | 8.2             | 6.9           | 7.9             | 14    |
+| Reference       | 8.8             | 7.8           | 9.0             | 4     |
+| Templates       | 8.3             | 8.3           | 9.0             | 6     |
+| Tooling         | 9.0             | 10.0          | 10.0            | 4     |
+| Apps            | 8.5             | 9.3           | 9.3             | 4     |
+| Changelog       | 8.4             | 9.2           | 8.4             | 26    |
 
 ---
 
 ## Editor features documentation
 
-| File                             | Readability | Structure | Conformance | Notes                                                                                |
-| -------------------------------- | ----------- | --------- | ----------- | ------------------------------------------------------------------------------------ |
-| editor-features/animation.md     | 9           | 9         | 9           | Excellent. Strong overview, good tick system example, practical easing guidance.     |
-| editor-features/camera-system.md | 9           | 10        | 10          | Exemplary. Comprehensive coverage of camera mechanics, constraints, and methods.     |
-| editor-features/click-detection.md | 9         | 10        | 10          | Exemplary. Comprehensive state machine explanation, clear event handling, good timing docs. |
+| File                                  | Readability | Structure | Conformance | Notes                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------- | ----------- | --------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| editor-features/index.md              | 7           | 5         | 6           | Navigation index with proper frontmatter and sentence case. Missing Overview section (1-2 paragraphs), no Key files section, minimal prose explanations. Structure is mostly categorized bullet lists without explanatory prose about feature groupings or conceptual relationships.                                                         |
+| editor-features/animation.md          | 9           | 9         | 9           | Excellent. Strong overview, good tick system example, practical easing guidance.                                                                                                                                                                                                                                                             |
+| editor-features/camera-system.md      | 9           | 10        | 10          | Exemplary. Comprehensive coverage of camera mechanics, constraints, and methods.                                                                                                                                                                                                                                                             |
+| editor-features/click-detection.md    | 9           | 10        | 10          | Exemplary. Comprehensive state machine explanation, clear event handling, good timing docs.                                                                                                                                                                                                                                                  |
+| editor-features/edge-scrolling.md     | 9           | 10        | 10          | Exemplary. Perfect structure with strong Overview establishing function and role. Well-organized subsections in Edge detection and Speed calculation for improved scanability. Concise prose throughout, excellent sentence case, active voice, minimal code examples.                                                                       |
+| editor-features/coordinate-systems.md | 9           | 10        | 9           | Exemplary. Clear prose explanations of three coordinate spaces, practical code examples, strong overview. Minor: slightly more code examples than typical (6 total) but each serves distinct purpose.                                                                                                                                        |
+| editor-features/snapping.md           | 9           | 10        | 9           | Exemplary. Strong Overview establishing function and role with clear taxonomy of snapping types. Consistent active voice, proper sentence case throughout, minimal focused code examples. Logical section flow from SnapManager through bounds/handle snapping to indicators.                                                                |
+| editor-features/selection-system.md   | 9           | 10        | 10          | Exemplary. Perfect structure, clear technical writing, minimal code examples. Defines "focused group" on first use, consistent active voice throughout. Strong Overview establishing function and role.                                                                                                                                      |
+| editor-features/shape-indexing.md     | 9           | 10        | 9           | Exemplary. Strong Overview establishing function before mechanism. Perfect sentence case, active voice throughout, logical flow from concept to implementation to collaboration. Minimal focused code examples. Clear explanation of fractional indexing benefits.                                                                           |
+| editor-features/tick-system.md        | 9           | 10        | 9.5         | Exemplary. Exceptional structure and clarity with progressive explanation. Code examples properly annotated with "Simplified for clarity" notes and all variables defined. Strong balance of prose and code.                                                                                                                                 |
+| editor-features/focus-management.md   | 9           | 9.5       | 9.5         | Exemplary. Strong 2-paragraph Overview establishing function and role. Well-organized "How it works" section with logical subsections covering focus state, container synchronization, auto-focus, pointer interactions, shape editing, and focus restoration. Proper sentence case throughout, active voice, minimal focused code examples. |
+| editor-features/history-system.md     | 9           | 9         | 8.5         | Strong. Good Overview establishing function and role. Well-organized sections covering how it works, marks, basic operations, and advanced features. Active voice throughout, proper sentence case. Good balance of prose and code. Minor: "Integration with the store" section may be too implementation-focused.                           |
+| editor-features/input-handling.md     | 9           | 10        | 10          | Exemplary. Strong Overview establishing function and role, perfect structure with all required sections. Excellent balance of prose and code examples. Active voice throughout, proper sentence case. Well-organized progression from concepts to implementation details.                                                                    |
+| editor-features/user-following.md     | 8           | 9         | 9           | Excellent. Strong Overview establishing function and role, proper structure with How it works, API methods, Follow chains, and UI integration sections. Good balance of prose and code examples. All headings use sentence case, active voice throughout. Minor: some sentences dense with multiple clauses.                                 |
+| editor-features/text-measurement.md   | 9           | 9         | 9           | Exemplary. Strong Overview establishing function and role. Excellent balance of prose and code with properly annotated examples. All headings use sentence case, active voice throughout. Comprehensive coverage of TextManager and FontManager.                                                                                             |
+| editor-features/scribble.md           | 9           | 10        | 10          | Exemplary. Perfect structure with strong Overview establishing function and role. Well-organized sections covering lifecycle, usage, properties, and use cases. All headings use sentence case, active voice throughout. Minimal focused code examples. Complete Key files and Related sections.                                             |
 
-**Summary**: Editor features documentation is exemplary. All three files demonstrate high quality with strong overviews, proper structure, and excellent prose explanations.
+**Summary**: Most editor features documentation is exemplary (16 files). Individual feature articles score consistently high with strong overviews and proper structure. The index.md serves as a navigation page but needs a formal Overview section, Key files section, and more prose explanations for each category.
 
 ---
 
 ## Architecture documentation
 
-| File                           | Readability | Structure | Conformance | Notes                                                                                       |
-| ------------------------------ | ----------- | --------- | ----------- | ------------------------------------------------------------------------------------------- |
-| architecture/reactive-state.md | 9           | 10        | 10          | Excellent. Clear prose, proper sentence case, perfect structure with all required sections. |
-| architecture/asset-pipeline.md | 9           | 10        | 10          | Very strong. Clear explanation, proper structure, appropriately sized code examples.        |
-| architecture/binding-system.md | 9           | 10        | 10          | Excellent clarity and structure. Good balance of prose and code.                            |
-| architecture/migrations.md     | 9           | 10        | 10          | Comprehensive and well-written. Strong coverage of migration mechanics.                     |
-| architecture/multiplayer.md    | 9           | 10        | 10          | Clear and well-organized. Excellent ASCII diagram for architecture visualization.           |
-| architecture/shape-system.md   | 9           | 10        | 10          | Excellent explanation of three-part architecture. Good minimal code examples.               |
-| architecture/style-system.md   | 8           | 10        | 10          | Clear and concise. Appropriate brevity for the topic scope.                                 |
-| architecture/tool-system.md    | 8           | 10        | 10          | Solid StateNode explanation. Code example demonstrates tool creation well.                  |
+| File                           | Readability | Structure | Conformance | Notes                                                                                            |
+| ------------------------------ | ----------- | --------- | ----------- | ------------------------------------------------------------------------------------------------ |
+| architecture/reactive-state.md | 9           | 10        | 10          | Excellent. Clear prose, proper sentence case, perfect structure with all required sections.      |
+| architecture/asset-pipeline.md | 9           | 10        | 10          | Very strong. Clear explanation, proper structure, appropriately sized code examples.             |
+| architecture/binding-system.md | 9           | 10        | 10          | Excellent clarity and structure. Good balance of prose and code.                                 |
+| architecture/migrations.md     | 9           | 10        | 10          | Comprehensive and well-written. Strong coverage of migration mechanics.                          |
+| architecture/multiplayer.md    | 9           | 10        | 10          | Clear and well-organized. Excellent ASCII diagram for architecture visualization.                |
+| architecture/shape-system.md   | 9           | 10        | 10          | Excellent explanation of three-part architecture. Good minimal code examples.                    |
+| architecture/style-system.md   | 8           | 10        | 10          | Clear and concise. Appropriate brevity for the topic scope.                                      |
+| architecture/tool-system.md    | 8           | 10        | 10          | Solid StateNode explanation. Code example demonstrates tool creation well.                       |
 | architecture/ui-components.md  | 9           | 10        | 9           | Excellent expanded overview, rich prose explanations, good ASCII diagram, minimal code examples. |
-| architecture/store-records.md  | 9           | 10        | 10          | Comprehensive coverage of Store, records, schema. Good use of tables.                       |
+| architecture/store-records.md  | 9           | 10        | 10          | Comprehensive coverage of Store, records, schema. Good use of tables.                            |
 
 **Summary**: Architecture documentation is exemplary. All files follow the guide perfectly with consistent sentence case, proper frontmatter, and excellent structure.
 
@@ -185,22 +199,22 @@ After evaluation, update this quality report:
 
 ## Packages documentation
 
-| File                      | Readability | Structure | Conformance | Notes                                                                       |
-| ------------------------- | ----------- | --------- | ----------- | --------------------------------------------------------------------------- |
-| packages/assets.md        | 7           | 4         | 6           | Missing Architecture, Key concepts is bullets only, no API patterns.        |
-| packages/create-tldraw.md | 8           | 3         | 6           | Missing Architecture, Key concepts, API patterns sections entirely.         |
-| packages/dotcom-shared.md | 7           | 4         | 6           | Missing Architecture and API patterns, Key concepts is bullets only.        |
-| packages/editor.md        | 8           | 5         | 7           | Key concepts is bullets, missing Architecture section.                      |
-| packages/state.md         | 8           | 5         | 7           | Key concepts is bullets, missing Architecture section.                      |
-| packages/state-react.md   | 5           | 3         | 6           | Minimal stub, missing most required sections.                               |
+| File                      | Readability | Structure | Conformance | Notes                                                                                  |
+| ------------------------- | ----------- | --------- | ----------- | -------------------------------------------------------------------------------------- |
+| packages/assets.md        | 7           | 4         | 6           | Missing Architecture, Key concepts is bullets only, no API patterns.                   |
+| packages/create-tldraw.md | 8           | 3         | 6           | Missing Architecture, Key concepts, API patterns sections entirely.                    |
+| packages/dotcom-shared.md | 7           | 4         | 6           | Missing Architecture and API patterns, Key concepts is bullets only.                   |
+| packages/editor.md        | 8           | 5         | 7           | Key concepts is bullets, missing Architecture section.                                 |
+| packages/state.md         | 8           | 5         | 7           | Key concepts is bullets, missing Architecture section.                                 |
+| packages/state-react.md   | 5           | 3         | 6           | Minimal stub, missing most required sections.                                          |
 | packages/store.md         | 9           | 10        | 10          | Excellent. All sections present with prose explanations, strong architecture coverage. |
-| packages/sync-core.md     | 9           | 10        | 9           | Excellent. All sections present with prose explanations.                    |
-| packages/sync.md          | 9           | 10        | 9           | Excellent. Comprehensive architecture and practical patterns.               |
-| packages/tldraw.md        | 9           | 9         | 9           | Very comprehensive flagship docs with strong customization coverage.        |
-| packages/tlschema.md      | 9           | 9         | 9           | Excellent structure and prose explanations throughout.                      |
-| packages/utils.md         | 8           | 7         | 8           | Good but Key concepts section is too code-heavy, needs more prose.          |
-| packages/validate.md      | 9           | 8         | 9           | Strong but some sections lean too heavily on code examples.                 |
-| packages/worker-shared.md | 9           | 9         | 9           | Model document with excellent balance of prose and examples.                |
+| packages/sync-core.md     | 9           | 10        | 9           | Excellent. All sections present with prose explanations.                               |
+| packages/sync.md          | 9           | 10        | 9           | Excellent. Comprehensive architecture and practical patterns.                          |
+| packages/tldraw.md        | 9           | 9         | 9           | Very comprehensive flagship docs with strong customization coverage.                   |
+| packages/tlschema.md      | 9           | 9         | 9           | Excellent structure and prose explanations throughout.                                 |
+| packages/utils.md         | 8           | 7         | 8           | Good but Key concepts section is too code-heavy, needs more prose.                     |
+| packages/validate.md      | 9           | 8         | 9           | Strong but some sections lean too heavily on code examples.                            |
+| packages/worker-shared.md | 9           | 9         | 9           | Model document with excellent balance of prose and examples.                           |
 
 **Summary**: Package docs vary significantly. Improved packages (sync-core, sync, tldraw, tlschema, validate, worker-shared) score well. Original packages (store, state-react, assets, create-tldraw, dotcom-shared, editor, state) need significant work - missing Architecture sections and Key concepts with prose.
 
@@ -325,32 +339,42 @@ After evaluation, update this quality report:
 
 ### Highest rated (27+ total score)
 
-| File                           | Total | R   | S   | C   |
-| ------------------------------ | ----- | --- | --- | --- |
-| overview/getting-started.md    | 30    | 10  | 10  | 10  |
-| architecture/reactive-state.md | 29    | 9   | 10  | 10  |
-| architecture/asset-pipeline.md | 29    | 9   | 10  | 10  |
-| architecture/binding-system.md | 29    | 9   | 10  | 10  |
-| architecture/migrations.md     | 29    | 9   | 10  | 10  |
-| architecture/multiplayer.md    | 29    | 9   | 10  | 10  |
-| architecture/shape-system.md   | 29    | 9   | 10  | 10  |
-| architecture/store-records.md  | 29    | 9   | 10  | 10  |
-| apps/examples.md               | 29    | 9   | 10  | 10  |
-| changelog/v2.2.md              | 29    | 9   | 10  | 10  |
-| reference/validation.md        | 29    | 9   | 10  | 10  |
-| tooling/typescript.md          | 29    | 9   | 10  | 10  |
-| tooling/code-quality.md        | 29    | 9   | 10  | 10  |
-| tooling/lazyrepo.md            | 29    | 9   | 10  | 10  |
-| tooling/yarn-workspaces.md     | 29    | 9   | 10  | 10  |
-| packages/sync-core.md          | 28    | 9   | 10  | 9   |
-| packages/sync.md               | 28    | 9   | 10  | 9   |
-| packages/tldraw.md             | 27    | 9   | 9   | 9   |
-| packages/tlschema.md           | 27    | 9   | 9   | 9   |
-| packages/worker-shared.md      | 27    | 9   | 9   | 9   |
-| packages/store.md              | 29    | 9   | 10  | 10  |
-| editor-features/camera-system.md | 29  | 9   | 10  | 10  |
-| editor-features/click-detection.md | 29 | 9  | 10  | 10  |
-| editor-features/animation.md   | 27    | 9   | 9   | 9   |
+| File                                  | Total | R   | S   | C   |
+| ------------------------------------- | ----- | --- | --- | --- |
+| overview/getting-started.md           | 30    | 10  | 10  | 10  |
+| architecture/reactive-state.md        | 29    | 9   | 10  | 10  |
+| architecture/asset-pipeline.md        | 29    | 9   | 10  | 10  |
+| architecture/binding-system.md        | 29    | 9   | 10  | 10  |
+| architecture/migrations.md            | 29    | 9   | 10  | 10  |
+| architecture/multiplayer.md           | 29    | 9   | 10  | 10  |
+| architecture/shape-system.md          | 29    | 9   | 10  | 10  |
+| architecture/store-records.md         | 29    | 9   | 10  | 10  |
+| apps/examples.md                      | 29    | 9   | 10  | 10  |
+| changelog/v2.2.md                     | 29    | 9   | 10  | 10  |
+| reference/validation.md               | 29    | 9   | 10  | 10  |
+| tooling/typescript.md                 | 29    | 9   | 10  | 10  |
+| tooling/code-quality.md               | 29    | 9   | 10  | 10  |
+| tooling/lazyrepo.md                   | 29    | 9   | 10  | 10  |
+| tooling/yarn-workspaces.md            | 29    | 9   | 10  | 10  |
+| packages/sync-core.md                 | 28    | 9   | 10  | 9   |
+| packages/sync.md                      | 28    | 9   | 10  | 9   |
+| packages/tldraw.md                    | 27    | 9   | 9   | 9   |
+| packages/tlschema.md                  | 27    | 9   | 9   | 9   |
+| packages/worker-shared.md             | 27    | 9   | 9   | 9   |
+| editor-features/tick-system.md        | 28.5  | 9   | 10  | 9.5 |
+| packages/store.md                     | 29    | 9   | 10  | 10  |
+| editor-features/camera-system.md      | 29    | 9   | 10  | 10  |
+| editor-features/click-detection.md    | 29    | 9   | 10  | 10  |
+| editor-features/scribble.md           | 29    | 9   | 10  | 10  |
+| editor-features/edge-scrolling.md     | 29    | 9   | 10  | 10  |
+| editor-features/coordinate-systems.md | 28    | 9   | 10  | 9   |
+| editor-features/selection-system.md   | 29    | 9   | 10  | 10  |
+| editor-features/shape-indexing.md     | 28    | 9   | 10  | 9   |
+| editor-features/snapping.md           | 28    | 9   | 10  | 9   |
+| editor-features/animation.md          | 27    | 9   | 9   | 9   |
+| editor-features/input-handling.md     | 29    | 9   | 10  | 10  |
+| editor-features/text-measurement.md   | 27    | 9   | 9   | 9   |
+| editor-features/focus-management.md   | 28    | 9   | 9.5 | 9.5 |
 
 ### Needs improvement (< 24 total score)
 

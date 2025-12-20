@@ -39,9 +39,15 @@ The built-in tools that implement edge scrolling are:
 
 The manager determines edge proximity by comparing the pointer position to the viewport bounds. An edge scroll zone extends inward from each screen edge by a distance defined in `editor.options.edgeScrollDistance` (default: 8 pixels).
 
+### Proximity calculation
+
 When the pointer enters this zone, the manager calculates a proximity factor from 0 to 1 based on how deeply the pointer penetrates the zone. At the zone boundary, the factor is 0. At the screen edge (or beyond), the factor reaches 1.
 
-For touch input, the system expands the effective pointer size using `editor.options.coarsePointerWidth` to make edge scrolling easier to trigger on mobile devices. The expanded pointer area is centered on the actual touch point.
+The proximity factor is calculated independently for each axis. The `getEdgeProximityFactors()` method compares the pointer position to the screen dimension, accounting for both the edge scroll distance and any pointer expansion for touch input.
+
+### Touch input handling
+
+For touch input, the system expands the effective pointer size using `editor.options.coarsePointerWidth` to make edge scrolling easier to trigger on mobile devices. The expanded pointer area is centered on the actual touch point, creating a larger target zone for edge detection.
 
 ### Inset handling
 
@@ -57,23 +63,34 @@ After the delay expires, scrolling begins with a gradual acceleration controlled
 
 ### Speed calculation
 
-The scroll speed depends on several factors:
+The scroll speed depends on four factors.
 
-- **Proximity factor** - How close the pointer is to the screen edge (0 to 1)
+#### Base speed and user preferences
+
+Two multipliers establish the base pixel speed:
+
 - **User preference** - `editor.user.getEdgeScrollSpeed()` multiplier (default: 1)
 - **Base speed** - `editor.options.edgeScrollSpeed` pixels per tick (default: 25)
-- **Screen size** - Reduced speed on smaller screens (width or height under 1000px)
-- **Zoom level** - Divided by current zoom to maintain consistent canvas-space velocity
 
-The camera moves by this formula on each tick:
+#### Proximity-based adjustment
+
+The **proximity factor** (0 to 1) scales speed based on pointer distance from the screen edge. Scrolling is slower near the zone boundary and faster at the edge.
+
+#### Screen size compensation
+
+A **screen size factor** of 0.612 applies when the viewport dimension is below 1000 pixels, reducing speed on smaller displays.
+
+#### Zoom level normalization
+
+The scroll delta divides by the current zoom level to maintain consistent canvas-space velocity regardless of zoom.
+
+The complete calculation:
 
 ```typescript
 const pxSpeed = editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed
 const screenSizeFactor = screenBounds.w < 1000 ? 0.612 : 1
 const scrollDelta = (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
 ```
-
-The proximity factor multiplies the speed, so scrolling is slower near the edge zone boundary and faster near the screen edge. The screen size factor (approximately 61% speed) activates when the viewport width or height is below 1000 pixels, making scrolling more controllable on smaller displays.
 
 ### Conditions for scrolling
 
@@ -90,13 +107,13 @@ If any condition fails, scrolling stops immediately and the internal duration ti
 
 Edge scrolling behavior can be customized through the editor's options:
 
-| Option                    | Default | Description                                           |
-| ------------------------- | ------- | ----------------------------------------------------- |
-| `edgeScrollDelay`         | 200     | Milliseconds to wait before starting scroll           |
-| `edgeScrollEaseDuration`  | 200     | Milliseconds to accelerate from zero to full speed    |
-| `edgeScrollSpeed`         | 25      | Base scroll speed in pixels per tick                  |
-| `edgeScrollDistance`      | 8       | Width of the edge scroll zone in pixels               |
-| `coarsePointerWidth`      | 12      | Expanded pointer size for touch input (pixels)        |
+| Option                   | Default | Description                                        |
+| ------------------------ | ------- | -------------------------------------------------- |
+| `edgeScrollDelay`        | 200     | Milliseconds to wait before starting scroll        |
+| `edgeScrollEaseDuration` | 200     | Milliseconds to accelerate from zero to full speed |
+| `edgeScrollSpeed`        | 25      | Base scroll speed in pixels per tick               |
+| `edgeScrollDistance`     | 8       | Width of the edge scroll zone in pixels            |
+| `coarsePointerWidth`     | 12      | Expanded pointer size for touch input (pixels)     |
 
 Set these options when creating the editor or tldraw component:
 
@@ -119,9 +136,9 @@ Tools integrate edge scrolling by calling `updateEdgeScrolling()` in their tick 
 
 ```typescript
 export class CustomDragTool extends StateNode {
-  override onTick({ elapsed }: TLTickEventInfo) {
-    editor.edgeScrollManager.updateEdgeScrolling(elapsed)
-  }
+	override onTick({ elapsed }: TLTickEventInfo) {
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+	}
 }
 ```
 

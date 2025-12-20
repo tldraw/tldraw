@@ -11,6 +11,7 @@ First, read these files to understand the current state:
 3. Read the quality report to find current scores and feedback: /Users/stephenruiz/Documents/GitHub/tldraw/documentation/DOCS_QUALITY_REPORT.md
 
 From the quality report, extract:
+
 - Current Readability, Structure, and Conformance scores
 - Current notes/feedback about the article
 - The category this article belongs to (packages, tooling, etc.)
@@ -25,16 +26,20 @@ Launch a subagent (using Task tool with subagent_type="general-purpose") to rewr
 - If it's a package doc, the package's CONTEXT.md path if it exists
 
 The subagent prompt should include:
+
 - The current scores and specific feedback from the quality report
 - The expected sections for this document type (from HOW_TO_WRITE_DOCUMENTATION.md)
 - Instructions to read source files if needed to understand the topic
 - Clear instruction to rewrite the documentation following the guide
+
+Important! Run prettier on the file after you've finished.
 
 ## Step 3: Evaluate the improved article
 
 Launch **two fresh subagents in parallel** (two separate Task calls in the same message) to evaluate the improved article. These must be different subagents than the one that made improvements. Running two independent evaluators helps ensure consistent, reliable scores.
 
 Use this exact evaluation prompt for both:
+
 ```
 You are evaluating documentation quality. Read the HOW_TO_WRITE_DOCUMENTATION.md guide at /Users/stephenruiz/Documents/GitHub/tldraw/documentation/HOW_TO_WRITE_DOCUMENTATION.md first to understand the standards.
 
@@ -78,6 +83,7 @@ Edit /Users/stephenruiz/Documents/GitHub/tldraw/documentation/DOCS_QUALITY_REPOR
 ## Step 5: Report results
 
 Tell me:
+
 - Before scores (R/S/C) and total
 - After scores (R/S/C) and total
 - Point improvement

@@ -15,24 +15,23 @@ keywords:
 
 ## Overview
 
-Accurate text measurement is essential for rendering text shapes, calculating bounds, and handling text wrapping on the infinite canvas. The tldraw editor needs to know the exact dimensions text will occupy before rendering it, enabling precise hit testing, selection bounds, and layout calculations.
+Accurate text measurement is essential for rendering text shapes, calculating bounds, and handling text wrapping on the infinite canvas. The editor needs to know the exact dimensions text will occupy before rendering it, enabling precise hit testing, selection bounds, and layout calculations.
 
-The text measurement system operates through two core managers. The `TextManager` handles all dimension calculations by creating an off-screen DOM element, applying font styles, and measuring the resulting layout. The `FontManager` ensures custom fonts are loaded before measurement, preventing incorrect dimensions from unloaded fonts.
+The text measurement system operates through two core managers. The `TextManager` handles dimension calculations by creating an off-screen DOM element, applying font styles, and measuring the resulting layout. The `FontManager` ensures custom fonts are loaded before measurement, preventing incorrect dimensions that occur when fonts are not yet available.
 
 ## How text measurement works
 
-The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, allowing for fast repeated measurements without repeated DOM manipulation.
+The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, allowing fast repeated measurements without repeated DOM manipulation.
 
 ```typescript
+// Simplified for clarity - see TextManager.ts for full implementation
 const elm = document.createElement('div')
-elm.classList.add('tl-text')
 elm.classList.add('tl-text-measure')
 elm.setAttribute('dir', 'auto')
-elm.tabIndex = -1
 this.editor.getContainer().appendChild(elm)
 ```
 
-The element is hidden from users but remains part of the document flow so the browser's layout engine can compute accurate dimensions.
+The element is hidden from users but remains part of the document flow so the browser's layout engine computes accurate dimensions.
 
 ### Basic text measurement
 
@@ -51,7 +50,7 @@ const dimensions = editor.textManager.measureText('Hello world', {
 // Returns: { x: 0, y: 0, w: 85, h: 22, scrollWidth: 0 }
 ```
 
-The measurement process temporarily applies the provided styles to the measurement element, reads the computed dimensions, then restores the previous styles. This approach ensures measurements don't interfere with each other when called in rapid succession.
+The measurement process applies the provided styles to the measurement element, reads the computed dimensions, then restores the previous styles. This approach ensures measurements don't interfere with each other when called in rapid succession.
 
 ### Text wrapping calculations
 
@@ -70,7 +69,7 @@ const wrapped = editor.textManager.measureText('This is a long line of text', {
 // Returns dimensions accounting for multiple lines
 ```
 
-Setting `maxWidth: null` preserves explicit line breaks and spaces but doesn't wrap text, which is useful for measuring single-line text or text where wrapping is handled elsewhere.
+Setting `maxWidth: null` preserves explicit line breaks and spaces without wrapping text, which is useful for measuring single-line text or text where wrapping is handled elsewhere.
 
 ## Measuring text spans
 
@@ -94,7 +93,7 @@ const spans = editor.textManager.measureTextSpans('Hello world\nSecond line', {
 Each span includes the text content and its bounding box:
 
 ```typescript
-[
+;[
 	{ text: 'Hello ', box: { x: 0, y: 0, w: 45, h: 22 } },
 	{ text: 'world', box: { x: 45, y: 0, w: 40, h: 22 } },
 	{ text: 'Second ', box: { x: 0, y: 22, w: 52, h: 22 } },
@@ -102,7 +101,7 @@ Each span includes the text content and its bounding box:
 ]
 ```
 
-The span measurement algorithm creates a `Range` object for each character in the text, measures its position using `getClientRects()`, then groups characters into spans when they share the same line and are part of the same word or whitespace sequence.
+The span measurement algorithm creates a `Range` object for each character in the text, measures its position using `getClientRects()`, then groups characters into spans based on line position and word boundaries.
 
 ### Truncation handling
 
@@ -116,13 +115,14 @@ When truncating with ellipsis, the measurement algorithm first measures the elli
 
 ## Font loading with FontManager
 
-The `FontManager` handles loading custom fonts before text measurement. Measuring text before its font loads produces incorrect dimensions, leading to layout shifts when the font finally loads.
+The `FontManager` loads custom fonts before text measurement. Measuring text before its font loads produces incorrect dimensions, leading to layout shifts when the font finally loads.
 
 ### Font face definitions
 
 Shapes declare which fonts they need through the `getFontFaces` method on their `ShapeUtil`:
 
 ```typescript
+// Simplified for clarity - see ShapeUtil.ts for full implementation
 class MyTextShapeUtil extends ShapeUtil<MyTextShape> {
 	getFontFaces(shape: MyTextShape): TLFontFace[] {
 		return [
@@ -137,17 +137,17 @@ class MyTextShapeUtil extends ShapeUtil<MyTextShape> {
 }
 ```
 
-The `FontManager` tracks these fonts for each shape and ensures they're loaded before the shape renders.
+The `FontManager` tracks these fonts for each shape and ensures they load before the shape renders.
 
 ### Font loading process
 
 When a font is requested, the `FontManager` checks if it's already loaded. If not, it creates a `FontFace` instance using the browser's Font Loading API and begins loading:
 
 ```typescript
+// Simplified for clarity - see FontManager.ts for full implementation
 const instance = new FontFace(font.family, `url(${url})`, {
 	style: font.style,
 	weight: font.weight,
-	// ... other descriptors
 })
 
 await instance.load()
@@ -171,7 +171,7 @@ The method accepts a `limit` parameter to avoid loading too many fonts at once, 
 
 ### Measurement caching
 
-While the `TextManager` itself doesn't cache measurements, shape utilities typically cache their own measurement results using reactive computed values. This ensures text is only remeasured when font properties or content actually change.
+The `TextManager` itself doesn't cache measurements. Shape utilities typically cache their own measurement results using reactive computed values. This ensures text is only remeasured when font properties or content actually change.
 
 ### Font loading optimization
 
@@ -186,10 +186,10 @@ The `FontManager` uses several strategies to optimize font loading:
 
 The measurement element uses specific CSS properties to ensure consistent, efficient measurements:
 
-- `overflow-wrap: break-word` allows long words to break at arbitrary points if needed
+- `overflow-wrap: break-word` allows long words to break at arbitrary points when needed
 - `width` and `max-width` control wrapping behavior
-- `line-height` as a unitless multiplier ensures consistent line spacing
-- Text direction is set to `auto` to properly handle mixed LTR/RTL content
+- Unitless `line-height` ensures consistent line spacing
+- Text direction set to `auto` handles mixed LTR/RTL content
 
 ## Key files
 

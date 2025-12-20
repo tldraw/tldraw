@@ -53,3 +53,12 @@ function App() {
 - [@tldraw/tldraw](./tldraw.md)
 - [Shape system](../architecture/shape-system.md)
 - [Tool system](../architecture/tool-system.md)
+
+## Documentation todos
+
+The following topics should be documented:
+
+- **Instance state** - The `TLInstance` record tracks per-editor state like current page, camera, and UI mode. Instance page state (`TLInstancePageState`) tracks per-page state like selection, hovered shape, and editing shape.
+- **Locking** - Shapes can be locked to prevent modification. The `toggleLock()` method changes lock state, and `isShapeOrAncestorLocked()` checks if a shape or its parent is locked.
+- **Visibility** - The `getShapeVisibility` option and `isShapeHidden()` method control whether shapes are visible or hidden from rendering and interaction.
+- **Snapshots** - The `getSnapshot()` and `loadSnapshot()` methods serialize and restore the entire editor state, useful for persistence and collaboration.
