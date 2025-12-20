@@ -16,9 +16,10 @@ This guide covers unit testing with Vitest and end-to-end testing with Playwrigh
 
 ## Unit tests (Vitest)
 
-Tests live next to source files and use `.test.ts`.
+Tests live next to source files and use `.test.ts`. The `TestEditor` utility is available within the monorepo for testing tldraw functionality.
 
 ```typescript
+// Within the tldraw monorepo
 import { describe, it, expect } from 'vitest'
 import { TestEditor } from 'tldraw/src/test/TestEditor'
 
@@ -31,6 +32,8 @@ describe('selection', () => {
 	})
 })
 ```
+
+Note: `TestEditor` is not exported from the `@tldraw/tldraw` npm package. This import path works within the monorepo via yarn workspaces. External consumers should create their own test utilities or mount the editor in a test environment.
 
 Run tests from a package directory:
 

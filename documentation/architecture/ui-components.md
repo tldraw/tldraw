@@ -179,4 +179,4 @@ Actions and tools can be customized through the `overrides` prop. This allows yo
 
 - [Tool system](./tool-system.md) - Tools exposed in the toolbar
 - [Style system](./style-system.md) - Styles controlled through the style panel
-- [Reactivity](./reactivity.md) - Reactive state management underlying UI updates
+- [Reactive state](./reactive-state.md) - Reactive state management underlying UI updates

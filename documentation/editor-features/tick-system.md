@@ -179,6 +179,6 @@ Tick events should not be used for:
 
 ## Related
 
-- [State management](../architecture/state-management.md)
-- [Input system](./input-system.md)
+- [Reactive state](../architecture/reactive-state.md)
+- [Input handling](./input-handling.md)
 - [Camera system](./camera-system.md)

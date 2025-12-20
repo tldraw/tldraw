@@ -28,6 +28,7 @@ This section documents the various subsystems and features of the tldraw Editor.
 
 ## Shape management
 
+- [Shapes](./shapes.md) - Shape records, ShapeUtil, geometry, and rendering
 - [Selection system](./selection-system.md) - Shape selection and bounds computation
 - [Shape indexing](./shape-indexing.md) - Z-order with fractional indices
 - [Shape transforms](./shape-transforms.md) - Grouping, alignment, distribution, and rotation

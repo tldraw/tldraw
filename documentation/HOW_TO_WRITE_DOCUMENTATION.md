@@ -50,6 +50,12 @@ it exists and what it enables.]
 
 [Organized logically for the topic]
 
+## Examples
+
+[Links to examples from the examples app that significantly overlap with
+this article's focus. Not every article will have examples; some will have
+several. Only include this section if relevant examples exist.]
+
 ## Key files
 
 [List of important file paths for readers who want to explore further]
@@ -61,12 +67,12 @@ it exists and what it enables.]
 
 Adjust sections based on document type:
 
-| Document type     | Typical sections                                                             |
-| ----------------- | ---------------------------------------------------------------------------- |
-| Package docs      | Overview, Architecture, Key concepts, API patterns, Key files, Related       |
-| Architecture docs | Overview, How it works, Key components, Data flow, Extension points, Related |
-| Guides            | Overview, Prerequisites, Steps, Examples, Troubleshooting, Related           |
-| Reference docs    | Overview, organized reference content, Related                               |
+| Document type     | Typical sections                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| Package docs      | Overview, Architecture, Key concepts, API patterns, Examples, Key files, Related       |
+| Architecture docs | Overview, How it works, Key components, Data flow, Extension points, Examples, Related |
+| Guides            | Overview, Prerequisites, Steps, Examples, Troubleshooting, Related                     |
+| Reference docs    | Overview, organized reference content, Related                                         |
 
 Additional expectations for architecture docs:
 
@@ -338,6 +344,42 @@ for more on this pattern.
 Click [here](https://react.dev/reference/react) for more info.
 ```
 
+### Linking to examples
+
+Include an Examples section when there are examples from the examples app (`apps/examples/src/examples/`) that significantly overlap with the article's topic. Examples help readers see concepts in action and provide copy-paste starting points.
+
+**When to include examples:**
+
+- The article discusses a feature that has working examples
+- Multiple examples demonstrate variations of the concept
+- The examples show practical use cases beyond the article's code snippets
+
+**When to skip examples:**
+
+- No examples exist that directly relate to the topic
+- The topic is too foundational (e.g., "what is a shape")
+- The article itself is a step-by-step guide that serves as the example
+
+**Format the Examples section like this:**
+
+```markdown
+## Examples
+
+- **[Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape)** - Creating a simple custom shape with a ShapeUtil.
+
+- **[Editable shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editable-shape)** - A custom shape with inline text editing.
+
+- **[Shape with geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-geometry)** - Custom geometry for hit testing and selection.
+```
+
+Each example entry should:
+
+- Use bold text for the example name as a link to its GitHub folder
+- Include a brief description explaining what the example demonstrates
+- Focus on how the example relates to the article's topic
+
+Browse `apps/examples/src/examples/` to find relevant examples. Read the README.md in each example folder to understand what it demonstrates.
+
 ### Linking to source
 
 When referencing specific code, include file path and line number when stable:
@@ -479,6 +521,7 @@ Before considering a document complete:
 - [ ] Internal links use relative paths
 - [ ] File references use repository-root paths
 - [ ] Technical terms are defined on first use
+- [ ] Examples section links to relevant examples from the examples app (if applicable)
 - [ ] Key files section lists important paths
 - [ ] Related section links to relevant documents
 - [ ] Content is reviewed for accuracy against source code
