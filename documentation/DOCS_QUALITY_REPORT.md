@@ -1,6 +1,6 @@
 # Documentation quality report
 
-Generated: 12/20/2024 (updated)
+Generated: 12/20/2025 (updated)
 
 This report evaluates all documentation files in the `/documentation` folder against the standards defined in [HOW_TO_WRITE_DOCUMENTATION.md](./HOW_TO_WRITE_DOCUMENTATION.md).
 
@@ -289,34 +289,34 @@ After evaluation, update this quality report:
 
 ## Changelog documentation
 
-| File               | Readability | Structure | Conformance | Notes                                                                                     |
-| ------------------ | ----------- | --------- | ----------- | ----------------------------------------------------------------------------------------- |
-| changelog/index.md | 9           | 10        | 10          | Excellent navigation document. Clear descriptions for each version.                       |
-| changelog/next.md  | 9           | 10        | 10          | Comprehensive. Proper sections, PR links, contributor credits. Future date typo.          |
-| changelog/v4.2.md  | 9           | 10        | 10          | Strong. Clear featured section, proper formatting, good patch releases.                   |
-| changelog/v4.1.md  | 9           | 10        | 10          | Excellent shader starter kit documentation. Proper structure.                             |
-| changelog/v4.0.md  | 8           | 9         | 9           | Comprehensive major release. Some sections lack PR links.                                 |
-| changelog/v3.15.md | 8           | 9         | 9           | Good structure. Some items verbose. Missing PR links in several sections.                 |
-| changelog/v3.14.md | 8           | 9         | 8           | Good structure. Missing PR links throughout most sections.                                |
-| changelog/v3.13.md | 9           | 10        | 9           | Excellent. Bug fixes lack specificity and PR links.                                       |
-| changelog/v3.12.md | 9           | 10        | 10          | Strong. Clear accessibility focus. Proper section ordering.                               |
-| changelog/v3.11.md | 8           | 10        | 9           | Well-structured. Some items lack PR attribution.                                          |
-| changelog/v3.10.md | 8           | 10        | 9           | Good rich text feature section. Some items lack PR links.                                 |
-| changelog/v3.9.md  | 8           | 9         | 8           | Clean and concise. Missing PR links throughout.                                           |
-| changelog/v3.8.md  | 8           | 10        | 9           | Comprehensive breaking changes. Missing PR links on most items.                           |
-| changelog/v3.7.md  | 9           | 10        | 10          | Excellent conformance. Includes PR links for improvements.                                |
-| changelog/v3.6.md  | 8           | 7         | 7           | Improved with Featured section, PR links, unbundled fixes.                                |
-| changelog/v3.5.md  | 8           | 9         | 8           | Strong structure. Some items lack PR links.                                               |
-| changelog/v3.4.md  | 8           | 9         | 7           | Clear organization. Most items missing PR links.                                          |
-| changelog/v3.3.md  | 8           | 9         | 7           | Clean structure. Bug fixes too brief. Missing PR links.                                   |
-| changelog/v3.2.md  | 10          | 8         | 9           | Appropriately brief version alignment release.                                            |
-| changelog/v3.1.md  | 8           | 9         | 8           | Strong feature descriptions. Bug fixes lack PR links.                                     |
-| changelog/v3.0.md  | 8           | 7         | 8           | Improved with migration guidance and before/after code examples.                          |
-| changelog/v2.4.md  | 9           | 10        | 9           | Excellent. Clear writing, good featured sections with code examples.                      |
-| changelog/v2.3.md  | 9           | 9         | 8           | Clear. Uses "Features" instead of standard section names.                                 |
-| changelog/v2.2.md  | 9           | 10        | 10          | Exemplary. Excellent featured sections, proper breaking changes, complete patch releases. |
-| changelog/v2.1.md  | 9           | 9         | 9           | Strong breaking changes documentation. Good performance section.                          |
-| changelog/v2.0.md  | 10          | 8         | 7           | Most readable. Initial release format differs from standard changelog structure.          |
+| File               | Readability | Structure | Conformance | Notes                                                                                                                              |
+| ------------------ | ----------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| changelog/index.md | 9           | 10        | 10          | Excellent navigation document. Clear descriptions for each version.                                                                |
+| changelog/next.md  | 9           | 10        | 10          | Comprehensive. Proper sections, PR links, contributor credits. Future date typo.                                                   |
+| changelog/v4.2.md  | 9           | 10        | 10          | Strong. Clear featured section, proper formatting, good patch releases.                                                            |
+| changelog/v4.1.md  | 9           | 10        | 10          | Excellent shader starter kit documentation. Proper structure.                                                                      |
+| changelog/v4.0.md  | 9           | 9         | 9           | Comprehensive major release. PR links throughout, clear breaking changes with migration guidance, well-organized feature sections. |
+| changelog/v3.15.md | 8           | 9         | 9           | Good structure. Some items verbose. Missing PR links in several sections.                                                          |
+| changelog/v3.14.md | 8           | 9         | 8           | Good structure. Missing PR links throughout most sections.                                                                         |
+| changelog/v3.13.md | 9           | 10        | 9           | Excellent. Bug fixes lack specificity and PR links.                                                                                |
+| changelog/v3.12.md | 9           | 10        | 10          | Strong. Clear accessibility focus. Proper section ordering.                                                                        |
+| changelog/v3.11.md | 8           | 10        | 9           | Well-structured. Some items lack PR attribution.                                                                                   |
+| changelog/v3.10.md | 8           | 10        | 9           | Good rich text feature section. Some items lack PR links.                                                                          |
+| changelog/v3.9.md  | 8           | 9         | 8           | Clean and concise. Missing PR links throughout.                                                                                    |
+| changelog/v3.8.md  | 8           | 10        | 9           | Comprehensive breaking changes. Missing PR links on most items.                                                                    |
+| changelog/v3.7.md  | 9           | 10        | 10          | Excellent conformance. Includes PR links for improvements.                                                                         |
+| changelog/v3.6.md  | 8           | 7         | 7           | Improved with Featured section, PR links, unbundled fixes.                                                                         |
+| changelog/v3.5.md  | 8           | 9         | 8           | Strong structure. Some items lack PR links.                                                                                        |
+| changelog/v3.4.md  | 8           | 9         | 7           | Clear organization. Most items missing PR links.                                                                                   |
+| changelog/v3.3.md  | 8           | 9         | 7           | Clean structure. Bug fixes too brief. Missing PR links.                                                                            |
+| changelog/v3.2.md  | 10          | 8         | 9           | Appropriately brief version alignment release.                                                                                     |
+| changelog/v3.1.md  | 8           | 9         | 8           | Strong feature descriptions. Bug fixes lack PR links.                                                                              |
+| changelog/v3.0.md  | 8           | 7         | 8           | Improved with migration guidance and before/after code examples.                                                                   |
+| changelog/v2.4.md  | 9           | 10        | 9           | Excellent. Clear writing, good featured sections with code examples.                                                               |
+| changelog/v2.3.md  | 9           | 9         | 8           | Clear. Uses "Features" instead of standard section names.                                                                          |
+| changelog/v2.2.md  | 9           | 10        | 10          | Exemplary. Excellent featured sections, proper breaking changes, complete patch releases.                                          |
+| changelog/v2.1.md  | 9           | 9         | 9           | Strong breaking changes documentation. Good performance section.                                                                   |
+| changelog/v2.0.md  | 10          | 8         | 7           | Most readable. Initial release format differs from standard changelog structure.                                                   |
 
 **Summary**: Changelog quality improves over time. Recent versions (v4.x, v3.12+) show better PR link attribution. Older versions commonly miss PR links and have vague bug fix descriptions.
 
@@ -364,6 +364,7 @@ After evaluation, update this quality report:
 | architecture/store-records.md         | 29    | 9   | 10  | 10  |
 | apps/examples.md                      | 29    | 9   | 10  | 10  |
 | changelog/v2.2.md                     | 29    | 9   | 10  | 10  |
+| changelog/v4.0.md                     | 27    | 9   | 9   | 9   |
 | reference/validation.md               | 29    | 9   | 10  | 10  |
 | tooling/typescript.md                 | 29    | 9   | 10  | 10  |
 | tooling/code-quality.md               | 29    | 9   | 10  | 10  |
