@@ -98,8 +98,9 @@ After evaluation, update this quality report:
 | Category        | Avg Readability | Avg Structure | Avg Conformance | Files |
 | --------------- | --------------- | ------------- | --------------- | ----- |
 | Architecture    | 8.8             | 10.0          | 9.9             | 10    |
-| Editor features | 8.7             | 9.5           | 9.4             | 27    |
+| Editor features | 8.7             | 9.5           | 9.4             | 28    |
 | Infrastructure  | 8.6             | 10.0          | 9.6             | 5     |
+| Nuggets         | 9.0             | 8.0           | 8.0             | 1     |
 | Overview        | 9.0             | 9.3           | 9.5             | 4     |
 | Guides          | 9.0             | 9.2           | 8.8             | 6     |
 | Packages        | 8.2             | 6.9           | 7.9             | 14    |
@@ -113,39 +114,50 @@ After evaluation, update this quality report:
 
 ## Editor features documentation
 
-| File                                  | Readability | Structure | Conformance | Notes                                                                                                                                                                                                                                                                                                                                                      |
-| ------------------------------------- | ----------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| editor-features/index.md              | 7           | 5         | 6           | Navigation index with proper frontmatter and sentence case. Missing Overview section (1-2 paragraphs), no Key files section, minimal prose explanations. Structure is mostly categorized bullet lists without explanatory prose about feature groupings or conceptual relationships.                                                                       |
-| editor-features/animation.md          | 9           | 9         | 9           | Excellent. Strong overview, good tick system example, practical easing guidance.                                                                                                                                                                                                                                                                           |
-| editor-features/assets.md             | 9           | 9         | 9           | Excellent. Comprehensive coverage of asset system with strong 2-paragraph overview. Well-organized sections covering asset types, TLAssetStore interface, and extension points. Good balance of prose and code with properly structured examples. Active voice throughout, proper sentence case.                                                           |
-| editor-features/bindings.md           | 9           | 9         | 9           | Excellent. Strong 2-paragraph overview, comprehensive lifecycle hooks explanation, clear isolation vs deletion concept. Good balance of prose and code with minimal focused examples.                                                                                                                                                                      |
-| editor-features/camera-system.md      | 9           | 9.5       | 9.5         | Exemplary. Comprehensive coverage of camera mechanics, constraints, and methods. Strong overview establishing function and role, proper sentence case, active voice throughout, minimal focused code examples.                                                                                                                                             |
-| editor-features/click-detection.md    | 9           | 10        | 10          | Exemplary. Comprehensive state machine explanation, clear event handling, good timing docs.                                                                                                                                                                                                                                                                |
-| editor-features/edge-scrolling.md     | 9           | 10        | 10          | Exemplary. Perfect structure with strong Overview establishing function and role. Well-organized subsections in Edge detection and Speed calculation for improved scanability. Concise prose throughout, excellent sentence case, active voice, minimal code examples.                                                                                     |
-| editor-features/external-content.md   | 8           | 9         | 9           | Excellent. Strong overview establishing function and role. Good coverage of content types and asset handling with minimal code examples. All headings use sentence case, active voice throughout. Minor: Overview could be split into two paragraphs for readability.                                                                                      |
-| editor-features/coordinate-systems.md | 9           | 10        | 9           | Exemplary. Clear prose explanations of three coordinate spaces, practical code examples, strong overview. Minor: slightly more code examples than typical (6 total) but each serves distinct purpose.                                                                                                                                                      |
-| editor-features/snapping.md           | 9           | 10        | 9           | Exemplary. Strong Overview establishing function and role with clear taxonomy of snapping types. Consistent active voice, proper sentence case throughout, minimal focused code examples. Logical section flow from SnapManager through bounds/handle snapping to indicators.                                                                              |
-| editor-features/styles.md             | 9           | 9         | 9           | Excellent. Strong 2-paragraph overview establishing function and role. Well-organized sections covering StyleProp, shared styles, default styles, and custom styles. Good balance of prose and code with minimal focused examples. Active voice throughout, proper sentence case.                                                                          |
-| editor-features/selection-system.md   | 9           | 10        | 10          | Exemplary. Perfect structure, clear technical writing, minimal code examples. Defines "focused group" on first use, consistent active voice throughout. Strong Overview establishing function and role.                                                                                                                                                    |
-| editor-features/shapes.md             | 9           | 9         | 9           | Excellent. Strong overview establishing function and role before mechanism. Comprehensive coverage of shape records, ShapeUtil, geometry, rendering, lifecycle, and parent-child relationships. Prose-heavy with minimal focused code examples. All headings use sentence case, active voice throughout. Good "why" context for geometry caching.          |
-| editor-features/side-effects.md       | 9           | 10        | 9           | Exemplary. Strong 2-paragraph overview with concise sentences. Well-organized "How it works" section using prose explanations for all handler types. Good "Use cases" section with practical examples. All headings in sentence case, active voice throughout. Minimal focused code examples.                                                              |
-| editor-features/shape-indexing.md     | 9           | 10        | 9           | Exemplary. Strong Overview establishing function before mechanism. Perfect sentence case, active voice throughout, logical flow from concept to implementation to collaboration. Minimal focused code examples. Clear explanation of fractional indexing benefits.                                                                                         |
-| editor-features/tick-system.md        | 9           | 10        | 9.5         | Exemplary. Exceptional structure and clarity with progressive explanation. Code examples properly annotated with "Simplified for clarity" notes and all variables defined. Strong balance of prose and code.                                                                                                                                               |
-| editor-features/focus-management.md   | 9           | 9.5       | 9.5         | Exemplary. Strong 2-paragraph Overview establishing function and role. Well-organized "How it works" section with logical subsections covering focus state, container synchronization, auto-focus, pointer interactions, shape editing, and focus restoration. Proper sentence case throughout, active voice, minimal focused code examples.               |
-| editor-features/history-system.md     | 9           | 9         | 8.5         | Strong. Good Overview establishing function and role. Well-organized sections covering how it works, marks, basic operations, and advanced features. Active voice throughout, proper sentence case. Good balance of prose and code. Minor: "Integration with the store" section may be too implementation-focused.                                         |
-| editor-features/input-handling.md     | 9           | 10        | 10          | Exemplary. Strong Overview establishing function and role, perfect structure with all required sections. Excellent balance of prose and code examples. Active voice throughout, proper sentence case. Well-organized progression from concepts to implementation details.                                                                                  |
-| editor-features/user-following.md     | 8           | 9         | 9           | Excellent. Strong Overview establishing function and role, proper structure with How it works, API methods, Follow chains, and UI integration sections. Good balance of prose and code examples. All headings use sentence case, active voice throughout. Minor: some sentences dense with multiple clauses.                                               |
-| editor-features/text-measurement.md   | 9           | 9         | 9           | Exemplary. Strong Overview establishing function and role. Excellent balance of prose and code with properly annotated examples. All headings use sentence case, active voice throughout. Comprehensive coverage of TextManager and FontManager.                                                                                                           |
-| editor-features/scribble.md           | 9           | 10        | 10          | Exemplary. Perfect structure with strong Overview establishing function and role. Well-organized sections covering lifecycle, usage, properties, and use cases. All headings use sentence case, active voice throughout. Minimal focused code examples. Complete Key files and Related sections.                                                           |
-| editor-features/clipboard.md          | 9           | 10        | 10          | Exemplary. Strong overview establishing function and role, excellent subsections covering extraction/placement flows, browser integration, asset resolution. All headings use sentence case, active voice throughout. Single focused code example. Complete Key files and Related sections.                                                                |
-| editor-features/deep-links.md         | 8.5         | 9.5       | 9.5         | Excellent. Strong 2-paragraph overview, good table summarizing deep link types, well-organized API methods with practical examples. All headings use sentence case, active voice throughout. Proper frontmatter, logical structure. Minor: encoding format notation could include one example URL for clarity.                                             |
-| editor-features/export.md             | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Perfect structure with How it works, Export options, Editor export methods, Key files, and Related sections. Active voice and sentence case throughout. Minimal focused code examples. Export options uses proper list formatting with inline code labels.                          |
-| editor-features/pages.md              | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Well-organized sections covering how it works, page methods, cross-page operations, collaboration, and integration. All headings in sentence case, active voice throughout. Minimal focused code examples. Complete Key files and Related sections.                                 |
-| editor-features/shape-transforms.md   | 8.5         | 9.5       | 9           | Excellent. Strong 2-paragraph overview establishing function and role. Well-organized sections covering all seven transform operations with logical flow to coordinates, clustering, and utilities. Good use of numbered annotations in parent coordinate example. All headings use sentence case, active voice throughout. Minimal focused code examples. |
-| editor-features/tools.md              | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Well-structured How it works, Key concepts with prose explanations, and Creating custom tools sections. All headings in sentence case, active voice throughout. Minimal focused code examples showing progressive complexity. Complete Key files and Related sections.              |
-| editor-features/user-preferences.md   | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Comprehensive coverage of preference categories, persistence, reactive integration, and validation. All headings in sentence case, active voice throughout. Minimal focused code examples. Perfect structure with Key files and Related sections.                                   |
+| File                           | Readability | Structure | Conformance | Notes                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------ | ----------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| features/index.md              | 7           | 5         | 6           | Navigation index with proper frontmatter and sentence case. Missing Overview section (1-2 paragraphs), no Key files section, minimal prose explanations. Structure is mostly categorized bullet lists without explanatory prose about feature groupings or conceptual relationships.                                                                       |
+| features/animation.md          | 9           | 9         | 9           | Excellent. Strong overview, good tick system example, practical easing guidance.                                                                                                                                                                                                                                                                           |
+| features/assets.md             | 9           | 9         | 9           | Excellent. Comprehensive coverage of asset system with strong 2-paragraph overview. Well-organized sections covering asset types, TLAssetStore interface, and extension points. Good balance of prose and code with properly structured examples. Active voice throughout, proper sentence case.                                                           |
+| features/bindings.md           | 9           | 9         | 9           | Excellent. Strong 2-paragraph overview, comprehensive lifecycle hooks explanation, clear isolation vs deletion concept. Good balance of prose and code with minimal focused examples.                                                                                                                                                                      |
+| features/camera-system.md      | 9           | 9.5       | 9.5         | Exemplary. Comprehensive coverage of camera mechanics, constraints, and methods. Strong overview establishing function and role, proper sentence case, active voice throughout, minimal focused code examples.                                                                                                                                             |
+| features/click-detection.md    | 9           | 10        | 10          | Exemplary. Comprehensive state machine explanation, clear event handling, good timing docs.                                                                                                                                                                                                                                                                |
+| features/edge-scrolling.md     | 9           | 10        | 10          | Exemplary. Perfect structure with strong Overview establishing function and role. Well-organized subsections in Edge detection and Speed calculation for improved scanability. Concise prose throughout, excellent sentence case, active voice, minimal code examples.                                                                                     |
+| features/external-content.md   | 8           | 9         | 9           | Excellent. Strong overview establishing function and role. Good coverage of content types and asset handling with minimal code examples. All headings use sentence case, active voice throughout. Minor: Overview could be split into two paragraphs for readability.                                                                                      |
+| features/coordinate-systems.md | 9           | 10        | 9           | Exemplary. Clear prose explanations of three coordinate spaces, practical code examples, strong overview. Minor: slightly more code examples than typical (6 total) but each serves distinct purpose.                                                                                                                                                      |
+| features/snapping.md           | 9           | 10        | 9           | Exemplary. Strong Overview establishing function and role with clear taxonomy of snapping types. Consistent active voice, proper sentence case throughout, minimal focused code examples. Logical section flow from SnapManager through bounds/handle snapping to indicators.                                                                              |
+| features/styles.md             | 9           | 9         | 9           | Excellent. Strong 2-paragraph overview establishing function and role. Well-organized sections covering StyleProp, shared styles, default styles, and custom styles. Good balance of prose and code with minimal focused examples. Active voice throughout, proper sentence case.                                                                          |
+| features/selection-system.md   | 9           | 10        | 10          | Exemplary. Perfect structure, clear technical writing, minimal code examples. Defines "focused group" on first use, consistent active voice throughout. Strong Overview establishing function and role.                                                                                                                                                    |
+| features/shapes.md             | 9           | 9         | 9           | Excellent. Strong overview establishing function and role before mechanism. Comprehensive coverage of shape records, ShapeUtil, geometry, rendering, lifecycle, and parent-child relationships. Prose-heavy with minimal focused code examples. All headings use sentence case, active voice throughout. Good "why" context for geometry caching.          |
+| features/side-effects.md       | 9           | 10        | 9           | Exemplary. Strong 2-paragraph overview with concise sentences. Well-organized "How it works" section using prose explanations for all handler types. Good "Use cases" section with practical examples. All headings in sentence case, active voice throughout. Minimal focused code examples.                                                              |
+| features/shape-indexing.md     | 9           | 10        | 9           | Exemplary. Strong Overview establishing function before mechanism. Perfect sentence case, active voice throughout, logical flow from concept to implementation to collaboration. Minimal focused code examples. Clear explanation of fractional indexing benefits.                                                                                         |
+| features/tick-system.md        | 9           | 10        | 9.5         | Exemplary. Exceptional structure and clarity with progressive explanation. Code examples properly annotated with "Simplified for clarity" notes and all variables defined. Strong balance of prose and code.                                                                                                                                               |
+| features/focus-management.md   | 9           | 9.5       | 9.5         | Exemplary. Strong 2-paragraph Overview establishing function and role. Well-organized "How it works" section with logical subsections covering focus state, container synchronization, auto-focus, pointer interactions, shape editing, and focus restoration. Proper sentence case throughout, active voice, minimal focused code examples.               |
+| features/history-system.md     | 9           | 9         | 8.5         | Strong. Good Overview establishing function and role. Well-organized sections covering how it works, marks, basic operations, and advanced features. Active voice throughout, proper sentence case. Good balance of prose and code. Minor: "Integration with the store" section may be too implementation-focused.                                         |
+| features/input-handling.md     | 9           | 10        | 10          | Exemplary. Strong Overview establishing function and role, perfect structure with all required sections. Excellent balance of prose and code examples. Active voice throughout, proper sentence case. Well-organized progression from concepts to implementation details.                                                                                  |
+| features/user-following.md     | 8           | 9         | 9           | Excellent. Strong Overview establishing function and role, proper structure with How it works, API methods, Follow chains, and UI integration sections. Good balance of prose and code examples. All headings use sentence case, active voice throughout. Minor: some sentences dense with multiple clauses.                                               |
+| features/text-measurement.md   | 9           | 9         | 9           | Exemplary. Strong Overview establishing function and role. Excellent balance of prose and code with properly annotated examples. All headings use sentence case, active voice throughout. Comprehensive coverage of TextManager and FontManager.                                                                                                           |
+| features/scribble.md           | 9           | 10        | 10          | Exemplary. Perfect structure with strong Overview establishing function and role. Well-organized sections covering lifecycle, usage, properties, and use cases. All headings use sentence case, active voice throughout. Minimal focused code examples. Complete Key files and Related sections.                                                           |
+| features/clipboard.md          | 9           | 10        | 10          | Exemplary. Strong overview establishing function and role, excellent subsections covering extraction/placement flows, browser integration, asset resolution. All headings use sentence case, active voice throughout. Single focused code example. Complete Key files and Related sections.                                                                |
+| features/deep-links.md         | 8.5         | 9.5       | 9.5         | Excellent. Strong 2-paragraph overview, good table summarizing deep link types, well-organized API methods with practical examples. All headings use sentence case, active voice throughout. Proper frontmatter, logical structure. Minor: encoding format notation could include one example URL for clarity.                                             |
+| features/export.md             | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Perfect structure with How it works, Export options, Editor export methods, Key files, and Related sections. Active voice and sentence case throughout. Minimal focused code examples. Export options uses proper list formatting with inline code labels.                          |
+| features/pages.md              | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Well-organized sections covering how it works, page methods, cross-page operations, collaboration, and integration. All headings in sentence case, active voice throughout. Minimal focused code examples. Complete Key files and Related sections.                                 |
+| features/rich-text.md          | 9           | 10        | 9.5         | Exemplary. Strong overview establishing function and role. Comprehensive TipTap integration coverage. Well-organized sections covering document structure, shapes, font management, and extension points. All headings in sentence case, active voice throughout. Minimal focused code examples. Complete Examples, Key files, and Related sections.       |
+| features/shape-transforms.md   | 8.5         | 9.5       | 9           | Excellent. Strong 2-paragraph overview establishing function and role. Well-organized sections covering all seven transform operations with logical flow to coordinates, clustering, and utilities. Good use of numbered annotations in parent coordinate example. All headings use sentence case, active voice throughout. Minimal focused code examples. |
+| features/tools.md              | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Well-structured How it works, Key concepts with prose explanations, and Creating custom tools sections. All headings in sentence case, active voice throughout. Minimal focused code examples showing progressive complexity. Complete Key files and Related sections.              |
+| features/user-preferences.md   | 9           | 10        | 10          | Exemplary. Strong 2-paragraph overview establishing function and role. Comprehensive coverage of preference categories, persistence, reactive integration, and validation. All headings in sentence case, active voice throughout. Minimal focused code examples. Perfect structure with Key files and Related sections.                                   |
 
-**Summary**: Most editor features documentation is exemplary (27 files). Individual feature articles score consistently high with strong overviews and proper structure. The index.md serves as a navigation page but needs a formal Overview section, Key files section, and more prose explanations for each category.
+**Summary**: Most editor features documentation is exemplary (28 files). Individual feature articles score consistently high with strong overviews and proper structure. The index.md serves as a navigation page but needs a formal Overview section, Key files section, and more prose explanations for each category.
+
+---
+
+## Nuggets documentation
+
+| File               | Readability | Structure | Conformance | Notes                                                                                                                                                                                                                                                            |
+| ------------------ | ----------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| nuggets/signals.md | 9           | 8         | 8           | Strong technical writing explaining signals system. Good opening establishing motivation, proper sentence case, active voice throughout. Complete frontmatter, Key files, and Related sections. Code examples minimal and focused with "Simplified" annotations. |
+
+**Summary**: First nugget evaluated. signals.md demonstrates high-quality technical writing for this document type. The nugget format allows for more engaging tone while maintaining documentation standards.
 
 ---
 
@@ -352,55 +364,56 @@ After evaluation, update this quality report:
 
 ### Highest rated (27+ total score)
 
-| File                                  | Total | R   | S   | C   |
-| ------------------------------------- | ----- | --- | --- | --- |
-| overview/getting-started.md           | 30    | 10  | 10  | 10  |
-| architecture/reactive-state.md        | 29    | 9   | 10  | 10  |
-| architecture/asset-pipeline.md        | 29    | 9   | 10  | 10  |
-| architecture/binding-system.md        | 29    | 9   | 10  | 10  |
-| architecture/migrations.md            | 29    | 9   | 10  | 10  |
-| architecture/multiplayer.md           | 29    | 9   | 10  | 10  |
-| architecture/shape-system.md          | 29    | 9   | 10  | 10  |
-| architecture/store-records.md         | 29    | 9   | 10  | 10  |
-| apps/examples.md                      | 29    | 9   | 10  | 10  |
-| changelog/v2.2.md                     | 29    | 9   | 10  | 10  |
-| changelog/v4.0.md                     | 27    | 9   | 9   | 9   |
-| reference/validation.md               | 29    | 9   | 10  | 10  |
-| tooling/typescript.md                 | 29    | 9   | 10  | 10  |
-| tooling/code-quality.md               | 29    | 9   | 10  | 10  |
-| tooling/lazyrepo.md                   | 29    | 9   | 10  | 10  |
-| tooling/yarn-workspaces.md            | 29    | 9   | 10  | 10  |
-| packages/sync-core.md                 | 28    | 9   | 10  | 9   |
-| packages/sync.md                      | 28    | 9   | 10  | 9   |
-| packages/tldraw.md                    | 27    | 9   | 9   | 9   |
-| packages/tlschema.md                  | 27    | 9   | 9   | 9   |
-| packages/worker-shared.md             | 27    | 9   | 9   | 9   |
-| editor-features/tick-system.md        | 28.5  | 9   | 10  | 9.5 |
-| packages/store.md                     | 29    | 9   | 10  | 10  |
-| editor-features/camera-system.md      | 28    | 9   | 9.5 | 9.5 |
-| editor-features/click-detection.md    | 29    | 9   | 10  | 10  |
-| editor-features/scribble.md           | 29    | 9   | 10  | 10  |
-| editor-features/edge-scrolling.md     | 29    | 9   | 10  | 10  |
-| editor-features/coordinate-systems.md | 28    | 9   | 10  | 9   |
-| editor-features/selection-system.md   | 29    | 9   | 10  | 10  |
-| editor-features/shape-indexing.md     | 28    | 9   | 10  | 9   |
-| editor-features/side-effects.md       | 28    | 9   | 10  | 9   |
-| editor-features/snapping.md           | 28    | 9   | 10  | 9   |
-| editor-features/styles.md             | 27    | 9   | 9   | 9   |
-| editor-features/animation.md          | 27    | 9   | 9   | 9   |
-| editor-features/assets.md             | 27    | 9   | 9   | 9   |
-| editor-features/bindings.md           | 27    | 9   | 9   | 9   |
-| editor-features/shapes.md             | 27    | 9   | 9   | 9   |
-| editor-features/input-handling.md     | 29    | 9   | 10  | 10  |
-| editor-features/text-measurement.md   | 27    | 9   | 9   | 9   |
-| editor-features/focus-management.md   | 28    | 9   | 9.5 | 9.5 |
-| editor-features/clipboard.md          | 29    | 9   | 10  | 10  |
-| editor-features/deep-links.md         | 27.5  | 8.5 | 9.5 | 9.5 |
-| editor-features/export.md             | 29    | 9   | 10  | 10  |
-| editor-features/pages.md              | 29    | 9   | 10  | 10  |
-| editor-features/shape-transforms.md   | 27    | 8.5 | 9.5 | 9   |
-| editor-features/tools.md              | 29    | 9   | 10  | 10  |
-| editor-features/user-preferences.md   | 29    | 9   | 10  | 10  |
+| File                           | Total | R   | S   | C   |
+| ------------------------------ | ----- | --- | --- | --- |
+| overview/getting-started.md    | 30    | 10  | 10  | 10  |
+| architecture/reactive-state.md | 29    | 9   | 10  | 10  |
+| architecture/asset-pipeline.md | 29    | 9   | 10  | 10  |
+| architecture/binding-system.md | 29    | 9   | 10  | 10  |
+| architecture/migrations.md     | 29    | 9   | 10  | 10  |
+| architecture/multiplayer.md    | 29    | 9   | 10  | 10  |
+| architecture/shape-system.md   | 29    | 9   | 10  | 10  |
+| architecture/store-records.md  | 29    | 9   | 10  | 10  |
+| apps/examples.md               | 29    | 9   | 10  | 10  |
+| changelog/v2.2.md              | 29    | 9   | 10  | 10  |
+| changelog/v4.0.md              | 27    | 9   | 9   | 9   |
+| reference/validation.md        | 29    | 9   | 10  | 10  |
+| tooling/typescript.md          | 29    | 9   | 10  | 10  |
+| tooling/code-quality.md        | 29    | 9   | 10  | 10  |
+| tooling/lazyrepo.md            | 29    | 9   | 10  | 10  |
+| tooling/yarn-workspaces.md     | 29    | 9   | 10  | 10  |
+| packages/sync-core.md          | 28    | 9   | 10  | 9   |
+| packages/sync.md               | 28    | 9   | 10  | 9   |
+| packages/tldraw.md             | 27    | 9   | 9   | 9   |
+| packages/tlschema.md           | 27    | 9   | 9   | 9   |
+| packages/worker-shared.md      | 27    | 9   | 9   | 9   |
+| features/tick-system.md        | 28.5  | 9   | 10  | 9.5 |
+| packages/store.md              | 29    | 9   | 10  | 10  |
+| features/camera-system.md      | 28    | 9   | 9.5 | 9.5 |
+| features/click-detection.md    | 29    | 9   | 10  | 10  |
+| features/scribble.md           | 29    | 9   | 10  | 10  |
+| features/edge-scrolling.md     | 29    | 9   | 10  | 10  |
+| features/coordinate-systems.md | 28    | 9   | 10  | 9   |
+| features/selection-system.md   | 29    | 9   | 10  | 10  |
+| features/shape-indexing.md     | 28    | 9   | 10  | 9   |
+| features/side-effects.md       | 28    | 9   | 10  | 9   |
+| features/snapping.md           | 28    | 9   | 10  | 9   |
+| features/styles.md             | 27    | 9   | 9   | 9   |
+| features/animation.md          | 27    | 9   | 9   | 9   |
+| features/assets.md             | 27    | 9   | 9   | 9   |
+| features/bindings.md           | 27    | 9   | 9   | 9   |
+| features/shapes.md             | 27    | 9   | 9   | 9   |
+| features/input-handling.md     | 29    | 9   | 10  | 10  |
+| features/text-measurement.md   | 27    | 9   | 9   | 9   |
+| features/focus-management.md   | 28    | 9   | 9.5 | 9.5 |
+| features/clipboard.md          | 29    | 9   | 10  | 10  |
+| features/deep-links.md         | 27.5  | 8.5 | 9.5 | 9.5 |
+| features/export.md             | 29    | 9   | 10  | 10  |
+| features/pages.md              | 29    | 9   | 10  | 10  |
+| features/rich-text.md          | 28.5  | 9   | 10  | 9.5 |
+| features/shape-transforms.md   | 27    | 8.5 | 9.5 | 9   |
+| features/tools.md              | 29    | 9   | 10  | 10  |
+| features/user-preferences.md   | 29    | 9   | 10  | 10  |
 
 ### Needs improvement (< 24 total score)
 

@@ -1,34 +1,32 @@
 # PNG scale metadata and clipboard limitations
 
-Here's a fun one. When you copy a shape as PNG in tldraw and paste it back, it should appear at the same size. Sounds simple, right? Browsers have other ideas.
+When you copy a shape as PNG in tldraw and paste it back, it should appear at the same size. This sounds simple, but browsers actively work against us. Here's how we solved it.
 
-## The setup
+## The problem
 
-We export PNGs at 2x resolution so they look crisp on retina displays. A 100×100 shape becomes a 200×200 pixel image. But we don't want it to *display* at 200×200—we want it at 100×100, just with more pixels packed in.
+tldraw exports PNGs at 2x resolution for crisp rendering on retina displays. A 100×100 shape becomes a 200×200 pixel image, but should still display at 100×100. PNG files store this information in a metadata chunk called `pHYs` (physical pixel dimensions), which tells image viewers the intended display size.
 
-PNG has a solution for this: the `pHYs` chunk. It's a little piece of metadata that tells image viewers "hey, this image has X pixels per meter, so display it at this size." We write this chunk into our exported PNGs, and everything works great.
+The problem: browsers sanitize clipboard data for security reasons. When you paste an image, the browser strips metadata—including our carefully written `pHYs` chunk. The result? Your 100×100 shape comes back as a 200×200 image.
 
-Until you try to copy and paste.
+## How PNG resolution metadata works
 
-## The browser problem
+PNG files are structured as a series of chunks. The `pHYs` chunk contains:
 
-Browsers sanitize clipboard data. This makes sense from a security perspective—you don't want malicious metadata sneaking through when someone pastes an image. But the browser doesn't distinguish between "malicious metadata" and "useful metadata." It strips everything, including our `pHYs` chunk.
+- **ppux**: pixels per unit on the X axis
+- **ppuy**: pixels per unit on the Y axis
+- **unit**: the unit type (1 = meters)
 
-The result: you copy a 100×100 shape, paste it back, and now it's 200×200. Not great.
+For a 2x retina image at 72 DPI baseline:
 
-## A quick detour into PNG internals
+```
+pixels per meter = 72 DPI / 0.0254 meters per inch ≈ 2835
+2x resolution = 2835 × 2 = 5670 pixels per meter
+```
 
-PNG files are built from chunks. Each chunk has a type (like `IHDR` for header, `IDAT` for image data, `pHYs` for physical dimensions), a length, some data, and a CRC checksum.
-
-The `pHYs` chunk is tiny—just 9 bytes of actual data:
-
-- 4 bytes: pixels per unit, X axis
-- 4 bytes: pixels per unit, Y axis
-- 1 byte: unit type (1 means meters)
-
-For a 2x image at the standard 72 DPI baseline, the math works out to about 5670 pixels per meter (that's `72 / 0.0254 * 2`). When we read an image, we check for this chunk and divide the pixel dimensions accordingly:
+When reading a PNG, we parse this chunk and divide the pixel dimensions by the ratio to get the display size:
 
 ```typescript
+// packages/utils/src/lib/media/media.ts
 const pixelsPerMeter = 72 / 0.0254
 const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
 return {
@@ -37,24 +35,46 @@ return {
 }
 ```
 
-Writing the chunk is trickier because we have to calculate the CRC ourselves, find the right spot in the binary (before `IDAT`), and splice it in. `PngHelpers.setPhysChunk` handles all of this.
+## Writing the pHYs chunk
 
-## The workaround
+We can't just append metadata—PNG chunks have a specific binary format with CRC checksums. The `PngHelpers.setPhysChunk` method in `packages/utils/src/lib/media/png.ts` handles this:
 
-Here's where it gets interesting. Chromium browsers have this feature where clipboard formats starting with `web ` bypass sanitization. It's meant for web apps that need to pass custom data through the clipboard without the browser messing with it.
-
-So we write the PNG twice:
-
-1. As `image/png` (the normal way, for pasting into other apps)
-2. As `web image/vnd.tldraw+png` (our custom format, unsanitized)
+1. Find the position to insert (before the `IDAT` chunk, or replace existing `pHYs`)
+2. Build a 21-byte chunk: 4 bytes length + 4 bytes type + 9 bytes data + 4 bytes CRC
+3. Calculate the CRC32 checksum
+4. Splice the chunk into the binary data
 
 ```typescript
+const DPI_72 = 2835.5 // pixels per meter at 72 DPI
+
+pHYsDataView.setInt32(8, DPI_72 * dpr) // X resolution
+pHYsDataView.setInt32(12, DPI_72 * dpr) // Y resolution
+pHYsDataView.setInt8(16, 1) // unit = meters
+```
+
+## The clipboard workaround
+
+Browsers won't preserve our metadata in standard clipboard formats. But Chromium-based browsers support custom clipboard formats prefixed with `web ` that bypass sanitization.
+
+Our solution writes two versions of the PNG:
+
+```typescript
+// packages/tldraw/src/lib/utils/clipboard.ts
 export const TLDRAW_CUSTOM_PNG_MIME_TYPE = 'web image/vnd.tldraw+png'
 ```
 
-When pasting, we check for our custom format first. If it's there, we get the image with the `pHYs` chunk intact. If not (older browser, pasting from another app), we fall back to the standard `image/png`.
+**On copy:**
+
+- Write the PNG as `image/png` (for compatibility with other apps)
+- Also write it as `web image/vnd.tldraw+png` (unsanitized, preserves metadata)
+
+**On paste:**
+
+- Try `web image/vnd.tldraw+png` first (has correct scale metadata)
+- Fall back to `image/png` if unavailable
 
 ```typescript
+// packages/tldraw/src/lib/ui/hooks/useClipboardEvents.ts
 const expectedPasteFileMimeTypes = [
 	TLDRAW_CUSTOM_PNG_MIME_TYPE, // Prefer unsanitized version
 	'image/png', // Fallback
@@ -64,12 +84,14 @@ const expectedPasteFileMimeTypes = [
 ]
 ```
 
-It's a bit of a hack, but it works. Copy a shape, paste it back, same size. The way it should be.
+## The result
 
-## Sources
+When copying and pasting within tldraw on Chromium browsers, images maintain their intended display size despite being rendered at 2x resolution. On other browsers or when pasting from external sources, the standard `image/png` format works but may lose scale information.
 
-- `packages/utils/src/lib/media/png.ts` — PNG chunk parsing and writing
-- `packages/utils/src/lib/media/media.ts` — Image size calculation with pHYs support
-- `packages/tldraw/src/lib/utils/clipboard.ts` — Custom MIME type definitions
-- `packages/tldraw/src/lib/ui/hooks/useClipboardEvents.ts` — Clipboard paste handling
-- `packages/editor/src/lib/exports/getSvgAsImage.ts` — PNG export with pHYs injection
+## Key files
+
+- `packages/utils/src/lib/media/png.ts` - PNG chunk parsing and writing
+- `packages/utils/src/lib/media/media.ts` - Image size calculation with pHYs support
+- `packages/tldraw/src/lib/utils/clipboard.ts` - Custom MIME type definitions
+- `packages/tldraw/src/lib/ui/hooks/useClipboardEvents.ts` - Clipboard paste handling
+- `packages/editor/src/lib/exports/getSvgAsImage.ts` - PNG export with pHYs injection
