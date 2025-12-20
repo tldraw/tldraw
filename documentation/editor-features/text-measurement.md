@@ -1,0 +1,203 @@
+---
+title: Text measurement
+created_at: 12/20/2024
+updated_at: 12/20/2024
+keywords:
+  - text
+  - measurement
+  - TextManager
+  - fonts
+  - dimensions
+  - wrapping
+  - FontManager
+  - spans
+---
+
+## Overview
+
+Accurate text measurement is essential for rendering text shapes, calculating bounds, and handling text wrapping on the infinite canvas. The tldraw editor needs to know the exact dimensions text will occupy before rendering it, enabling precise hit testing, selection bounds, and layout calculations.
+
+The text measurement system operates through two core managers. The `TextManager` handles all dimension calculations by creating an off-screen DOM element, applying font styles, and measuring the resulting layout. The `FontManager` ensures custom fonts are loaded before measurement, preventing incorrect dimensions from unloaded fonts.
+
+## How text measurement works
+
+The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, allowing for fast repeated measurements without repeated DOM manipulation.
+
+```typescript
+const elm = document.createElement('div')
+elm.classList.add('tl-text')
+elm.classList.add('tl-text-measure')
+elm.setAttribute('dir', 'auto')
+elm.tabIndex = -1
+this.editor.getContainer().appendChild(elm)
+```
+
+The element is hidden from users but remains part of the document flow so the browser's layout engine can compute accurate dimensions.
+
+### Basic text measurement
+
+The `measureText` method handles simple text dimension calculations. It accepts text content and styling options, then returns a box model with width and height.
+
+```typescript
+const dimensions = editor.textManager.measureText('Hello world', {
+	fontFamily: 'Inter',
+	fontSize: 16,
+	fontWeight: 'normal',
+	fontStyle: 'normal',
+	lineHeight: 1.35,
+	maxWidth: null, // No wrapping
+	padding: '4px',
+})
+// Returns: { x: 0, y: 0, w: 85, h: 22, scrollWidth: 0 }
+```
+
+The measurement process temporarily applies the provided styles to the measurement element, reads the computed dimensions, then restores the previous styles. This approach ensures measurements don't interfere with each other when called in rapid succession.
+
+### Text wrapping calculations
+
+When `maxWidth` is specified, the browser automatically wraps text to fit within that width. The `TextManager` leverages the browser's native text layout algorithm rather than implementing its own wrapping logic.
+
+```typescript
+const wrapped = editor.textManager.measureText('This is a long line of text', {
+	fontFamily: 'Inter',
+	fontSize: 16,
+	fontWeight: 'normal',
+	fontStyle: 'normal',
+	lineHeight: 1.35,
+	maxWidth: 100, // Wrap at 100px
+	padding: '4px',
+})
+// Returns dimensions accounting for multiple lines
+```
+
+Setting `maxWidth: null` preserves explicit line breaks and spaces but doesn't wrap text, which is useful for measuring single-line text or text where wrapping is handled elsewhere.
+
+## Measuring text spans
+
+For advanced use cases like SVG export or precise text selection, the `measureTextSpans` method breaks text into individual spans based on line breaks and word boundaries.
+
+```typescript
+const spans = editor.textManager.measureTextSpans('Hello world\nSecond line', {
+	width: 200,
+	height: 100,
+	padding: 8,
+	fontSize: 16,
+	fontWeight: 'normal',
+	fontFamily: 'Inter',
+	fontStyle: 'normal',
+	lineHeight: 1.35,
+	textAlign: 'start',
+	overflow: 'wrap',
+})
+```
+
+Each span includes the text content and its bounding box:
+
+```typescript
+[
+	{ text: 'Hello ', box: { x: 0, y: 0, w: 45, h: 22 } },
+	{ text: 'world', box: { x: 45, y: 0, w: 40, h: 22 } },
+	{ text: 'Second ', box: { x: 0, y: 22, w: 52, h: 22 } },
+	{ text: 'line', box: { x: 52, y: 22, w: 32, h: 22 } },
+]
+```
+
+The span measurement algorithm creates a `Range` object for each character in the text, measures its position using `getClientRects()`, then groups characters into spans when they share the same line and are part of the same word or whitespace sequence.
+
+### Truncation handling
+
+The `overflow` option controls how text that exceeds the available space is handled:
+
+- `wrap` - Text wraps to multiple lines (default behavior)
+- `truncate-clip` - Text is truncated to the first line without visual indication
+- `truncate-ellipsis` - Text is truncated with an ellipsis character added
+
+When truncating with ellipsis, the measurement algorithm first measures the ellipsis width, then reduces the available width and remeasures to determine where to cut the text.
+
+## Font loading with FontManager
+
+The `FontManager` handles loading custom fonts before text measurement. Measuring text before its font loads produces incorrect dimensions, leading to layout shifts when the font finally loads.
+
+### Font face definitions
+
+Shapes declare which fonts they need through the `getFontFaces` method on their `ShapeUtil`:
+
+```typescript
+class MyTextShapeUtil extends ShapeUtil<MyTextShape> {
+	getFontFaces(shape: MyTextShape): TLFontFace[] {
+		return [
+			{
+				family: 'MyCustomFont',
+				src: { url: '/fonts/my-custom-font.woff2', format: 'woff2' },
+				weight: 'normal',
+				style: 'normal',
+			},
+		]
+	}
+}
+```
+
+The `FontManager` tracks these fonts for each shape and ensures they're loaded before the shape renders.
+
+### Font loading process
+
+When a font is requested, the `FontManager` checks if it's already loaded. If not, it creates a `FontFace` instance using the browser's Font Loading API and begins loading:
+
+```typescript
+const instance = new FontFace(font.family, `url(${url})`, {
+	style: font.style,
+	weight: font.weight,
+	// ... other descriptors
+})
+
+await instance.load()
+document.fonts.add(instance)
+```
+
+The manager caches font loading state to avoid redundant loading attempts. Multiple concurrent requests for the same font share a single loading promise.
+
+### Page-level font loading
+
+The `loadRequiredFontsForCurrentPage` method loads all fonts needed by shapes on the current page. This is useful for ensuring fonts are ready before exporting or taking screenshots.
+
+```typescript
+await editor.fontManager.loadRequiredFontsForCurrentPage()
+// All fonts for visible shapes are now loaded
+```
+
+The method accepts a `limit` parameter to avoid loading too many fonts at once, which can impact performance on pages with many text shapes using different fonts.
+
+## Performance considerations
+
+### Measurement caching
+
+While the `TextManager` itself doesn't cache measurements, shape utilities typically cache their own measurement results using reactive computed values. This ensures text is only remeasured when font properties or content actually change.
+
+### Font loading optimization
+
+The `FontManager` uses several strategies to optimize font loading:
+
+- **Computed caches** - Font faces are computed per-shape and cached using the store's computed cache system, only recalculating when shape props or meta change
+- **Shared loading promises** - Multiple requests for the same font share a single loading promise
+- **Batched loading** - The `requestFonts` method batches font loading requests into a single microtask to reduce overhead
+- **State tracking** - Font loading state is tracked to avoid redundant load attempts
+
+### Browser rendering optimization
+
+The measurement element uses specific CSS properties to ensure consistent, efficient measurements:
+
+- `overflow-wrap: break-word` allows long words to break at arbitrary points if needed
+- `width` and `max-width` control wrapping behavior
+- `line-height` as a unitless multiplier ensures consistent line spacing
+- Text direction is set to `auto` to properly handle mixed LTR/RTL content
+
+## Key files
+
+- packages/editor/src/lib/editor/managers/TextManager/TextManager.ts - Text dimension calculations and span measurement
+- packages/editor/src/lib/editor/managers/FontManager/FontManager.ts - Font loading and state management
+- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - Base class with getFontFaces method
+
+## Related
+
+- [ShapeUtil system](../architecture/shape-system.md)
+- [Reactive state management](../architecture/reactive-state.md)

@@ -1,0 +1,148 @@
+---
+title: Animation
+created_at: 12/20/2024
+updated_at: 12/20/2024
+keywords:
+  - animation
+  - easing
+  - interpolation
+  - transition
+  - animateShape
+---
+
+## Overview
+
+The animation system provides smooth transitions for shapes and camera movements in the tldraw editor. It enables animations for shape properties like position, rotation, and opacity, as well as viewport transitions for camera movements. The system integrates with the tick system to coordinate frame-by-frame updates and respects user animation speed preferences for accessibility.
+
+Shape animations run independently and can be interrupted or replaced. Camera animations coordinate with the camera system to provide smooth panning and zooming experiences.
+
+## How it works
+
+Animations in tldraw use the tick system to drive frame-by-frame updates. On each tick, active animations calculate elapsed time, apply easing functions to determine progress, and interpolate between start and end values.
+
+The editor emits `tick` events at the browser's animation frame rate. Animation handlers subscribe to these events and update shape or camera state accordingly:
+
+```typescript
+// Internal implementation - not public API
+// This illustrates how animations work under the hood
+editor.on('tick', (elapsed) => {
+  animation.elapsed += elapsed
+  const t = easing(animation.elapsed / animation.duration)
+  const currentX = lerp(startX, endX, t)
+  // ... update shape or camera
+})
+```
+
+All animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. This ensures the editor remains accessible to users who prefer reduced motion.
+
+## Shape animations
+
+Shape animations enable smooth transitions for individual shape properties. The editor tracks each animating shape independently, allowing multiple concurrent animations that can be interrupted or replaced.
+
+Use `animateShape()` to animate a single shape or `animateShapes()` to animate multiple shapes simultaneously:
+
+```typescript
+editor.animateShape(
+  { id: 'shape1', type: 'geo', x: 200, y: 100 },
+  { animation: { duration: 500, easing: EASINGS.easeInOutCubic } }
+)
+```
+
+### Animated properties
+
+The animation system handles interpolation for core shape properties that are common across all shape types. These built-in properties use linear interpolation (lerp) to calculate intermediate values between the start and end states:
+
+- `x` - Horizontal position
+- `y` - Vertical position
+- `opacity` - Shape transparency (0 to 1)
+- `rotation` - Shape rotation angle in radians
+
+For shape-specific properties like width, height, or custom values, shape utilities can define their own interpolation logic by implementing the `getInterpolatedProps()` method. This allows each shape type to control how its unique properties animate. For example, box shapes interpolate their dimensions:
+
+```typescript
+getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
+  return {
+    ...endShape.props,
+    w: lerp(startShape.props.w, endShape.props.w, t),
+    h: lerp(startShape.props.h, endShape.props.h, t),
+  }
+}
+```
+
+### Animation lifecycle
+
+Each animation receives a unique ID when started. The editor maintains a map of shape IDs to animation IDs to track which shapes are currently animating.
+
+Animations can be interrupted in two ways:
+
+- **Direct updates**: Calling `updateShapes()` on an animating shape cancels its animation and immediately applies the new values.
+- **New animations**: Starting a new animation for a shape automatically cancels any existing animation for that shape.
+
+This design ensures that user interactions always take precedence over ongoing animations, preventing conflicts between programmatic animations and direct manipulation.
+
+## Camera animations
+
+Camera animations move the viewport smoothly using easing functions. These animations integrate with the camera system and can be interrupted by user input like panning or zooming.
+
+### Viewport animations
+
+The `setCamera()` method accepts an animation option to smoothly transition to a new camera position:
+
+```typescript
+editor.setCamera(
+  { x: 0, y: 0, z: 1 },
+  { animation: { duration: 320, easing: EASINGS.easeInOutCubic } }
+)
+```
+
+Camera animations automatically stop when the user interacts with the viewport through mouse wheel, pinch gestures, or keyboard navigation.
+
+### Camera slide
+
+The `slideCamera()` method creates momentum-based camera movement that gradually decelerates:
+
+```typescript
+editor.slideCamera({
+  speed: 2,
+  direction: { x: 1, y: 0 },
+  friction: 0.1
+})
+```
+
+This method respects the user's animation speed preference. If animation speed is set to zero, the slide animation is disabled.
+
+## Easing functions
+
+Easing functions control the rate of change during animations, making movements feel natural rather than mechanical. Choose an easing based on the interaction: use `easeOut` variants when responding to user actions (the animation starts fast and settles), `easeIn` for exits or dismissals (gradual start, quick finish), and `easeInOut` for autonomous movements like camera transitions (smooth start and end).
+
+The editor provides these easing functions in `EASINGS`:
+
+- `linear` - Constant rate of change, useful for progress indicators
+- `easeInQuad`, `easeOutQuad`, `easeInOutQuad` - Subtle, gentle curves
+- `easeInCubic`, `easeOutCubic`, `easeInOutCubic` - Balanced, natural-feeling motion
+- `easeInQuart`, `easeOutQuart`, `easeInOutQuart` - More pronounced acceleration
+- `easeInQuint`, `easeOutQuint`, `easeInOutQuint` - Strong acceleration curves
+- `easeInSine`, `easeOutSine`, `easeInOutSine` - Very gentle, sinusoidal curves
+- `easeInExpo`, `easeOutExpo`, `easeInOutExpo` - Dramatic, exponential curves
+
+The default easing is `easeInOutCubic`, which provides smooth acceleration at the start and deceleration at the end. This works well for most UI animations where you want movement to feel responsive but not abrupt.
+
+## User preferences
+
+The animation system respects the user's animation speed preference, accessed via `editor.user.getAnimationSpeed()`. This value multiplies animation durations, allowing users to speed up, slow down, or disable animations.
+
+When animation speed is set to zero, animations are skipped entirely and shapes or the camera immediately jump to their final values. This ensures the editor remains functional for users who require reduced motion.
+
+## Key files
+
+- packages/editor/src/lib/editor/Editor.ts - Animation methods (animateShape, animateShapes, setCamera)
+- packages/editor/src/lib/primitives/easings.ts - Easing function definitions
+- packages/editor/src/lib/constants.ts - DEFAULT_ANIMATION_OPTIONS configuration
+- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - getInterpolatedProps method definition
+- packages/editor/src/lib/editor/shapes/BaseBoxShapeUtil.tsx - Example getInterpolatedProps implementation
+
+## Related
+
+- [Camera system](./camera-system.md)
+- [Tick system](./tick-system.md)
+- [Shape utilities](../packages/editor.md)

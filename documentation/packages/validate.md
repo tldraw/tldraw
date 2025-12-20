@@ -1,7 +1,7 @@
 ---
 title: '@tldraw/validate'
 created_at: 12/17/2024
-updated_at: 12/19/2025
+updated_at: 12/20/2025
 keywords:
   - validate
   - validation
@@ -12,24 +12,711 @@ keywords:
 
 ## Overview
 
-`@tldraw/validate` is a runtime validation library with TypeScript inference. It is used throughout tldraw for schema and API validation.
+`@tldraw/validate` provides runtime validation for TypeScript applications. It validates data from external sources like API responses, file uploads, and user input, ensuring values match expected types before entering your application.
 
-## Basic usage
+The library serves as the foundation for tldraw's type system, providing validators for all shape properties, bindings, and records in `@tldraw/tlschema`. Every shape creation, update, and migration passes through validators defined in this package.
+
+Validators are composable functions that build complex types from simple primitives. They maintain referential equality when possible, using a "known good version" optimization that avoids re-validating unchanged data. This makes validation efficient in reactive systems that re-validate frequently. Type information flows from validator definitions to TypeScript types automatically, eliminating parallel type declarations.
+
+## Architecture
+
+The validation system centers on the `Validator<T>` class, which implements a two-phase validation strategy.
+
+In the first phase, validators accept unknown values and either return the validated value with proper typing or throw a `ValidationError`. The validation function receives an unknown value and must return that exact value if it passes validation. This maintains referential equality, which React and other libraries use for change detection.
+
+In the second phase, validators support optimized re-validation using `validateUsingKnownGoodVersion`. When a previously validated value exists, the validator compares the new value against it. If they are referentially equal, the validator returns the known good value immediately. For complex structures like objects and arrays, the validator checks each property or element. Unchanged portions retain their references, while only modified parts undergo full validation.
+
+This architecture enables efficient validation in reactive systems. When tldraw's store updates a shape, only the changed properties are re-validated. The unchanged properties keep their existing references, preventing unnecessary work in React components that depend on those values.
+
+The error handling system provides detailed context through the `ValidationError` class. Each error includes a path array showing exactly where in a nested structure validation failed. When validating deeply nested objects, validators catch errors and prepend their path segment, building a complete trail from root to failure point.
+
+## Key concepts
+
+### The Validator class
+
+Every validator is an instance of the `Validator<T>` class, which provides methods for validation, type checking, and composition:
 
 ```typescript
 import { T } from '@tldraw/validate'
 
-const name = T.string.validate('Alice')
-const point = T.object({ x: T.number, y: T.number }).validate({ x: 1, y: 2 })
+// Basic validation
+const name = T.string.validate('Alice') // Returns "Alice" as string type
+
+// Type guard with isValid
+function processInput(value: unknown) {
+	if (T.string.isValid(value)) {
+		// value is narrowed to string within this block
+		return value.toUpperCase()
+	}
+	throw new Error('Expected string')
+}
+
+// Composable validators
+const emailValidator = T.string.nullable().optional()
+
+// Type inference
+type Email = TypeOf<typeof emailValidator> // string | null | undefined
+```
+
+### ValidationError and error paths
+
+When validation fails, a `ValidationError` is thrown with contextual information. The error includes both a human-readable message and a path array showing exactly where in a nested structure the failure occurred:
+
+```typescript
+const userValidator = T.object({
+	name: T.string,
+	settings: T.object({
+		theme: T.literalEnum('light', 'dark'),
+	}),
+})
+
+try {
+	userValidator.validate({
+		name: 'Alice',
+		settings: { theme: 'blue' },
+	})
+} catch (error) {
+	if (error instanceof ValidationError) {
+		console.log(error.message)
+		// "At settings.theme: Expected "light" or "dark", got "blue""
+
+		console.log(error.path)
+		// ['settings', 'theme']
+
+		console.log(error.rawMessage)
+		// 'Expected "light" or "dark", got "blue"'
+	}
+}
+```
+
+The path array is particularly valuable for debugging complex nested structures. It shows the exact location of the failure, making it easy to trace validation errors back to their source in large objects.
+
+### Performance optimization
+
+The `validateUsingKnownGoodVersion` method provides significant performance benefits by comparing new values against previously validated data. When values are referentially equal, validation is skipped entirely. When values differ, only the changed portions are re-validated:
+
+```typescript
+const shapeValidator = T.object({
+	type: T.literal('rectangle'),
+	x: T.number,
+	y: T.number,
+	props: T.object({
+		w: T.number,
+		h: T.number,
+	}),
+})
+
+const shape = shapeValidator.validate({
+	type: 'rectangle',
+	x: 100,
+	y: 100,
+	props: { w: 200, h: 150 },
+})
+
+// Later, with partially changed data
+const updated = {
+	type: 'rectangle',
+	x: 100,
+	y: 100,
+	props: { w: 250, h: 150 }, // Only w changed
+}
+
+// This validates only the changed 'w' property
+const result = shapeValidator.validateUsingKnownGoodVersion(shape, updated)
+```
+
+This optimization is crucial in tldraw's reactive architecture, where the same data structures are re-validated on every state change. By maintaining referential equality for unchanged portions, the library minimizes unnecessary work.
+
+## Primitive validators
+
+### Basic types
+
+The library provides validators for JavaScript's primitive types.
+
+```typescript
+T.string // string
+T.number // finite, non-NaN number
+T.boolean // boolean
+T.bigint // bigint
+T.unknown // unknown (accepts any value)
+T.any // any (escape hatch)
+```
+
+The `number` validator automatically rejects `NaN`, `Infinity`, and `-Infinity`, ensuring only finite numbers pass validation.
+
+### Constrained numbers
+
+Specialized number validators add common constraints.
+
+```typescript
+T.positiveNumber // >= 0
+T.nonZeroNumber // > 0
+T.integer // whole numbers
+T.positiveInteger // >= 0, integer
+T.nonZeroInteger // > 0, integer
+T.unitInterval // [0, 1] inclusive
+```
+
+### Literals and enums
+
+Validators enforce specific literal values or sets of allowed values.
+
+```typescript
+// Single literal value
+const readonlyValidator = T.literal('readonly')
+
+// Enum from multiple values
+const statusValidator = T.literalEnum('pending', 'active', 'completed')
+
+// Enum from a Set
+const allowedRoles = new Set(['admin', 'editor', 'viewer'] as const)
+const roleValidator = T.setEnum(allowedRoles)
+```
+
+### URL validators
+
+URL validators provide security by validating both format and protocol.
+
+```typescript
+T.linkUrl // Safe for user-facing links (http, https, mailto)
+T.srcUrl // Safe for resource loading (http, https, data, asset)
+T.httpUrl // Strictly HTTP/HTTPS only
+```
+
+These validators prevent XSS attacks by rejecting dangerous protocols like `javascript:` where only safe URLs should be accepted.
+
+## Validator composition
+
+### Nullable and optional
+
+Convert any validator to accept `null` or `undefined`:
+
+```typescript
+// Nullable: accepts T or null
+const nullableString = T.string.nullable()
+nullableString.validate('hello') // Returns "hello"
+nullableString.validate(null) // Returns null
+nullableString.validate(undefined) // Throws ValidationError
+
+// Optional: accepts T or undefined
+const optionalNumber = T.number.optional()
+optionalNumber.validate(42) // Returns 42
+optionalNumber.validate(undefined) // Returns undefined
+optionalNumber.validate(null) // Throws ValidationError
+
+// Chain both for T | null | undefined
+const flexibleValue = T.string.nullable().optional()
+```
+
+### Refine and check
+
+The `refine` method transforms validated values to a new type, while `check` adds validation constraints without changing the type:
+
+```typescript
+// refine: transform to a different type
+const uppercaseValidator = T.string.refine((str) => str.toUpperCase())
+const result = uppercaseValidator.validate('hello') // Returns "HELLO"
+
+// Parse JSON strings
+const jsonValidator = T.string.refine((str) => {
+	try {
+		return JSON.parse(str)
+	} catch {
+		throw new ValidationError('Invalid JSON')
+	}
+})
+
+// check: add constraints without transformation
+const evenNumber = T.number.check((value) => {
+	if (value % 2 !== 0) {
+		throw new ValidationError('Expected even number')
+	}
+})
+
+// Named checks for better error messages
+const boundedNumber = T.number
+	.check('positive', (n) => {
+		if (n < 0) throw new ValidationError('Must be positive')
+	})
+	.check('max-1000', (n) => {
+		if (n > 1000) throw new ValidationError('Must be <= 1000')
+	})
+```
+
+Use `refine` when you need to transform values or parse strings. Use `check` when you need additional validation but want to preserve the original value.
+
+### Union types
+
+The `or` function creates a union validator that tries validators in sequence:
+
+```typescript
+const stringOrNumber = T.or(T.string, T.number)
+stringOrNumber.validate('hello') // Returns "hello" as string
+stringOrNumber.validate(42) // Returns 42 as number
+stringOrNumber.validate(true) // Throws ValidationError (tried both)
+```
+
+For discriminated unions where a property determines the variant, use `union`:
+
+```typescript
+const shapeValidator = T.union('type', {
+	circle: T.object({
+		type: T.literal('circle'),
+		radius: T.number,
+	}),
+	rectangle: T.object({
+		type: T.literal('rectangle'),
+		width: T.number,
+		height: T.number,
+	}),
+})
+
+const circle = shapeValidator.validate({
+	type: 'circle',
+	radius: 10,
+}) // Typed as { type: 'circle'; radius: number }
+```
+
+The `union` validator is optimized for discriminated unions, checking the discriminator property first and only validating the matching variant's schema.
+
+### Building complex validators through composition
+
+Validators compose naturally to build sophisticated validation logic. Start with primitive validators and chain methods to add constraints and transformations.
+
+```typescript
+// Compose constraints step by step
+const percentValidator = T.number.check((n) => {
+	if (n < 0 || n > 100) throw new ValidationError('Must be between 0 and 100')
+})
+
+// Transform after validation
+const normalizedPercentValidator = percentValidator.refine((n) => n / 100)
+
+type NormalizedPercent = TypeOf<typeof normalizedPercentValidator> // number
+
+// Combine with nullability
+const optionalPercentValidator = percentValidator.nullable().optional()
+```
+
+Compose object validators through extension and nesting.
+
+```typescript
+// Base validator with common properties
+const baseShapeValidator = T.object({
+	id: T.string,
+	x: T.number,
+	y: T.number,
+	rotation: T.number,
+})
+
+// Extend with specific properties
+const rectangleValidator = baseShapeValidator.extend({
+	type: T.literal('rectangle'),
+	width: T.positiveNumber,
+	height: T.positiveNumber,
+})
+
+// Nest validators for complex structures
+const documentValidator = T.object({
+	version: T.positiveInteger,
+	shapes: T.arrayOf(rectangleValidator),
+	metadata: T.object({
+		created: T.string,
+		modified: T.string,
+	}).nullable(),
+})
+```
+
+Reuse validators across different contexts to maintain consistency.
+
+```typescript
+// Define shared validators once
+const colorValidator = T.literalEnum('red', 'green', 'blue', 'yellow')
+const sizeValidator = T.literalEnum('small', 'medium', 'large')
+
+// Use in multiple object validators
+const buttonValidator = T.object({
+	label: T.string,
+	color: colorValidator,
+	size: sizeValidator,
+})
+
+const badgeValidator = T.object({
+	text: T.string,
+	color: colorValidator,
+})
+```
+
+## Complex validators
+
+### Object validation
+
+The `ObjectValidator` validates object shapes with defined properties.
+
+```typescript
+const userValidator = T.object({
+	name: T.string,
+	age: T.positiveInteger,
+	email: T.linkUrl.optional(),
+	settings: T.object({
+		theme: T.literalEnum('light', 'dark'),
+	}).nullable(),
+})
+
+type User = TypeOf<typeof userValidator>
+```
+
+By default, objects reject unknown properties. Use `allowUnknownProperties()` to accept extra properties. Use `extend()` to add properties while preserving the original structure.
+
+```typescript
+const baseUser = T.object({
+	name: T.string,
+	age: T.number,
+})
+
+const adminUser = baseUser.extend({
+	role: T.literal('admin'),
+	permissions: T.arrayOf(T.string),
+})
+```
+
+### Array validation
+
+The `ArrayOfValidator` validates array contents.
+
+```typescript
+const numbers = T.arrayOf(T.number)
+const matrix = T.arrayOf(T.arrayOf(T.number))
+const nonEmptyStrings = T.arrayOf(T.string).nonEmpty()
+```
+
+### Dictionary validation
+
+The `DictValidator` validates objects used as key-value maps.
+
+```typescript
+const scores = T.dict(T.string, T.number)
+const config = T.jsonDict()
+```
+
+Unlike object validators that validate specific named properties, dict validators validate all properties using the same key and value validators.
+
+### Union validation
+
+Discriminated unions use a key property to determine which variant to validate.
+
+```typescript
+const shapeValidator = T.union('type', {
+	circle: T.object({
+		type: T.literal('circle'),
+		radius: T.number,
+	}),
+	rectangle: T.object({
+		type: T.literal('rectangle'),
+		width: T.number,
+		height: T.number,
+	}),
+})
+```
+
+The `union` validator checks the discriminator property first and only validates the matching variant's schema.
+
+### Model validation
+
+Named model validators provide better error context by including the model name in error messages.
+
+```typescript
+const userModel = T.model(
+	'User',
+	T.object({
+		id: T.string,
+		name: T.string,
+		email: T.linkUrl,
+	})
+)
+```
+
+## Creating custom validators
+
+Build custom validators by composing primitives or creating new `Validator` instances.
+
+```typescript
+// Compose with check for additional constraints
+const hexColorValidator = T.string.check((value) => {
+	if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+		throw new ValidationError('Expected hex color')
+	}
+})
+
+// Transform with refine
+const dateValidator = T.string.refine((str) => {
+	const date = new Date(str)
+	if (isNaN(date.getTime())) {
+		throw new ValidationError('Expected valid date string')
+	}
+	return date
+})
+
+// Create from scratch
+const uuidValidator = new Validator<string>((value) => {
+	if (typeof value !== 'string') {
+		throw new ValidationError(`Expected string, got ${typeof value}`)
+	}
+	if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+		throw new ValidationError('Expected UUID format')
+	}
+	return value
+})
+```
+
+When creating validators, ensure the validation function returns the same value it receives (referentially equal). This maintains object identity for React's rendering optimization.
+
+## API patterns
+
+### Type inference
+
+Use `TypeOf` to extract TypeScript types from validator definitions. This eliminates the need to maintain parallel type declarations.
+
+```typescript
+const userValidator = T.object({
+	id: T.string,
+	name: T.string,
+	email: T.linkUrl.optional(),
+	settings: T.object({
+		theme: T.literalEnum('light', 'dark'),
+		notifications: T.boolean,
+	}),
+})
+
+type User = TypeOf<typeof userValidator>
+// Inferred type:
+// {
+//   id: string
+//   name: string
+//   email?: string
+//   settings: {
+//     theme: 'light' | 'dark'
+//     notifications: boolean
+//   }
+// }
+```
+
+### Type guards
+
+Use `isValid` for type narrowing without throwing errors. This provides safe type guards for conditional logic.
+
+```typescript
+function processInput(value: unknown) {
+	if (T.string.isValid(value)) {
+		// value is typed as string here
+		return value.toUpperCase()
+	}
+	if (T.number.isValid(value)) {
+		// value is typed as number here
+		return value.toFixed(2)
+	}
+	throw new Error('Expected string or number')
+}
+```
+
+### Reusable validators
+
+Define validators once and compose them across your application. This ensures consistency and reduces duplication.
+
+```typescript
+// Define shared validators
+const colorValidator = T.literalEnum('red', 'green', 'blue')
+const sizeValidator = T.literalEnum('small', 'medium', 'large')
+
+// Compose in multiple contexts
+const buttonPropsValidator = T.object({
+	label: T.string,
+	color: colorValidator,
+	size: sizeValidator,
+	disabled: T.boolean.optional(),
+})
+
+const badgePropsValidator = T.object({
+	text: T.string,
+	color: colorValidator,
+})
+```
+
+## Performance
+
+The library optimizes for common validation scenarios through several techniques.
+
+### Validator reuse
+
+Create validators at module level and reuse them. Validator construction has overhead.
+
+```typescript
+// Good: define once at module level
+const userValidator = T.object({ name: T.string, age: T.number })
+
+function processUsers(data: unknown[]) {
+	return data.map((user) => userValidator.validate(user))
+}
+
+// Avoid: creates new validator on every call
+function processUser(data: unknown) {
+	return T.object({ name: T.string, age: T.number }).validate(data)
+}
+```
+
+### Known good version optimization
+
+When re-validating similar data, use `validateUsingKnownGoodVersion` to skip unchanged portions.
+
+```typescript
+let currentShape = shapeValidator.validate(initialData)
+
+function updateShape(newData: unknown) {
+	currentShape = shapeValidator.validateUsingKnownGoodVersion(currentShape, newData)
+}
+```
+
+This provides the most benefit in reactive systems where data is frequently re-validated but only partially changed. The validator compares the new value against the known good value and reuses unchanged portions.
+
+## Integration with tldraw
+
+This package provides the foundation for tldraw's type system. `@tldraw/tlschema` uses validators to define all shape types, bindings, and records. `@tldraw/store` uses validators to ensure record integrity during creation and updates. Schema migrations use validators to ensure data transformations preserve type safety.
+
+Every shape in tldraw has a validator that defines its structure.
+
+```typescript
+// From @tldraw/tlschema
+export const TLGeoShape = T.object({
+	type: T.literal('geo'),
+	x: T.number,
+	y: T.number,
+	props: T.object({
+		w: T.number,
+		h: T.number,
+		geo: T.literalEnum('rectangle', 'ellipse', 'triangle', 'diamond'),
+		fill: T.literalEnum('none', 'semi', 'solid'),
+	}),
+})
+```
+
+## Error handling
+
+Validators throw `ValidationError` when validation fails. Each error includes detailed context about what went wrong and where.
+
+### Error structure
+
+The `ValidationError` class provides three pieces of information:
+
+- `message`: Formatted error message including the path to the failure
+- `rawMessage`: The core error message without path information
+- `path`: Array of keys/indices showing where in the structure the error occurred
+
+```typescript
+try {
+	validator.validate(data)
+} catch (error) {
+	if (error instanceof ValidationError) {
+		console.log(error.message)
+		// "At users.0.email: Expected string, got number"
+
+		console.log(error.rawMessage)
+		// "Expected string, got number"
+
+		console.log(error.path)
+		// ['users', 0, 'email']
+	}
+}
+```
+
+### Catching and handling errors
+
+Always check for `ValidationError` specifically to distinguish validation failures from other errors.
+
+```typescript
+function loadUserData(data: unknown) {
+	try {
+		return userValidator.validate(data)
+	} catch (error) {
+		if (error instanceof ValidationError) {
+			// Handle validation failure - data is invalid
+			console.error(`Invalid user data: ${error.message}`)
+			return getDefaultUser()
+		}
+		// Re-throw other errors (network issues, bugs, etc.)
+		throw error
+	}
+}
+```
+
+### Structured error logging
+
+Use the path array for structured logging systems. The path identifies exactly where validation failed in complex nested structures.
+
+```typescript
+function logValidationError(error: ValidationError, context: string) {
+	const location = error.path.length > 0 ? error.path.join('.') : 'root'
+
+	logger.error({
+		type: 'validation_error',
+		context,
+		location,
+		message: error.rawMessage,
+		path: error.path,
+		timestamp: Date.now(),
+	})
+}
+```
+
+### User-facing error messages
+
+Transform technical validation errors into user-friendly messages. Use the path array to identify which field failed and provide appropriate guidance.
+
+```typescript
+function getUserMessage(error: ValidationError): string {
+	const pathStr = error.path.join('.')
+
+	if (pathStr.includes('email')) {
+		return 'Please enter a valid email address'
+	}
+	if (pathStr.includes('age')) {
+		return 'Age must be a positive number'
+	}
+	if (pathStr.includes('password')) {
+		return 'Password must meet security requirements'
+	}
+
+	// Fallback for unexpected errors
+	return 'Please check your input and try again'
+}
+```
+
+### Validation at boundaries
+
+Validate data at system boundaries where it enters your application. After validation passes, treat the data as trusted and avoid re-validating it.
+
+```typescript
+// Good: validate once at entry point
+function handleApiResponse(response: unknown) {
+	const validated = responseValidator.validate(response)
+	processData(validated) // No validation needed - already validated
+	storeData(validated) // No validation needed
+	renderData(validated) // No validation needed
+}
+
+// Avoid: validating already-validated data
+function processData(data: ValidatedResponse) {
+	responseValidator.validate(data) // Unnecessary - wastes CPU
+	// ... process
+}
 ```
 
 ## Key files
 
-- packages/validate/src/index.ts - Package entry
-- packages/validate/src/lib/T.ts - Validator helpers
-- packages/validate/src/lib/ValidationError.ts - Error types
+- packages/validate/src/index.ts - Package exports
+- packages/validate/src/lib/validation.ts - Core validator implementation
 
 ## Related
 
-- [@tldraw/tlschema](./tlschema.md)
-- [@tldraw/store](./store.md)
+- [@tldraw/tlschema](./tlschema.md) - Shape and record schemas built on validate
+- [@tldraw/store](./store.md) - Store system using validators for record integrity
+- [@tldraw/utils](./utils.md) - Utility functions used by validators

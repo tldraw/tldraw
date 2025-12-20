@@ -76,5 +76,5 @@ VITE_SENTRY_DSN=...
 ## Related
 
 - [Sync worker](../infrastructure/sync-worker.md) - Backend collaboration
-- [@tldraw/sync](../packages/sync.md) - Sync hooks
-- [@tldraw/tldraw](../packages/tldraw.md) - Editor SDK
+- [`@tldraw/sync`](../packages/sync.md) - Sync hooks
+- [`@tldraw/tldraw`](../packages/tldraw.md) - Editor SDK

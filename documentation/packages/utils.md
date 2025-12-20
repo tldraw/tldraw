@@ -1,34 +1,309 @@
 ---
 title: '@tldraw/utils'
 created_at: 12/17/2024
-updated_at: 12/19/2025
+updated_at: 12/20/2025
 keywords:
   - utils
   - utilities
   - helpers
   - functions
   - foundation
+  - collections
+  - error handling
+  - performance
 ---
 
 ## Overview
 
-`@tldraw/utils` provides shared utility functions with no dependency on other tldraw packages. It includes helpers for arrays, objects, math, and performance.
+The `@tldraw/utils` package provides foundational utility functions used throughout the tldraw codebase. It sits at the base of the dependency graph with no dependencies on other tldraw packages, making it safe for any package to import.
 
-## Basic usage
+This package fills gaps in JavaScript's standard library with functions the tldraw codebase needs repeatedly. The utilities are pure, type-safe, and generic enough for any TypeScript project. They handle collections, error management, performance optimization, media processing, and cross-platform compatibility.
+
+Unlike higher-level packages such as `@tldraw/editor` or `@tldraw/store`, this package has no concept of shapes, records, or reactive state. It provides the building blocks that those systems depend on.
+
+## Architecture
+
+The package organizes utilities into focused modules by function:
+
+- **Collections** - Array and object manipulation with type preservation
+- **Error handling** - Result types and assertions for type-safe error management
+- **Ordering** - Fractional indexing system for stable item ordering
+- **Performance** - Caching, throttling, and execution control
+- **Media** - Image and video processing utilities
+- **Platform** - Storage, network, and file system abstractions
+- **Math** - Interpolation and random number generation
+- **Types** - Type guards, cloning, and TypeScript helpers
+
+All utilities export as named exports from the package root:
 
 ```typescript
-import { dedupe, minBy } from '@tldraw/utils'
+import { dedupe, minBy, Result, IndexKey } from '@tldraw/utils'
+```
 
-const unique = dedupe([1, 2, 2, 3])
-const smallest = minBy([{ x: 2 }, { x: 1 }], (v) => v.x)
+## Key concepts
+
+### Collection utilities
+
+The package provides type-safe operations for arrays and objects that preserve TypeScript types through transformations. Unlike standard `Object.keys` which returns `string[]`, these functions maintain actual key types.
+
+**Array operations:**
+
+```typescript
+import { dedupe, partition, minBy, maxBy, rotateArray } from '@tldraw/utils'
+
+// Remove duplicates with optional custom equality
+const unique = dedupe([1, 2, 2, 3, 1]) // [1, 2, 3]
+
+// Split array by predicate
+const [visible, hidden] = partition(shapes, (s) => s.visible)
+
+// Find extremes by key function
+const smallest = minBy(shapes, (s) => s.area)
+
+// Rotate elements with wrapping
+const rotated = rotateArray(['a', 'b', 'c'], 1) // ['b', 'c', 'a']
+```
+
+**Object operations:**
+
+```typescript
+import { objectMapKeys, mapObjectMapValues, filterEntries } from '@tldraw/utils'
+
+// Type-preserving key extraction
+const keys = objectMapKeys({ x: 1, y: 2 }) // Array<'x' | 'y'>
+
+// Transform values while preserving keys
+const doubled = mapObjectMapValues({ x: 1, y: 2 }, (k, v) => v * 2)
+
+// Filter entries with predicate
+const passing = filterEntries(scores, (name, score) => score >= 80)
+```
+
+### Error handling with Result
+
+The `Result<T, E>` type provides error handling without exceptions. Functions return either success with a value or failure with an error, making error handling explicit and type-safe:
+
+```typescript
+import { Result } from '@tldraw/utils'
+
+function parseAge(input: string): Result<number, string> {
+	const num = parseInt(input, 10)
+	if (isNaN(num)) return Result.err('Not a valid number')
+	if (num < 0 || num > 150) return Result.err('Age out of range')
+	return Result.ok(num)
+}
+
+const result = parseAge('25')
+if (result.ok) {
+	console.log(result.value) // TypeScript knows value exists
+} else {
+	console.error(result.error) // TypeScript knows error exists
+}
+```
+
+Chain operations by checking the `ok` flag between steps:
+
+```typescript
+function processUser(id: string): Result<void, string> {
+	const loadResult = loadUser(id)
+	if (!loadResult.ok) return loadResult
+
+	const validateResult = validateUser(loadResult.value)
+	if (!validateResult.ok) return validateResult
+
+	return saveUser(validateResult.value)
+}
+```
+
+### Fractional indexing with IndexKey
+
+Traditional integer indices require renumbering when inserting items. Fractional indexing uses string keys that can always be subdivided, enabling stable ordering in collaborative environments.
+
+`IndexKey` is a branded string type that prevents mixing regular strings with order keys:
+
+```typescript
+import { getIndexBetween, getIndexAbove, sortByIndex, ZERO_INDEX_KEY } from '@tldraw/utils'
+
+// Generate indices for ordering
+const first = ZERO_INDEX_KEY // 'a0'
+const second = getIndexAbove(first) // 'a1'
+const between = getIndexBetween(first, second) // 'a0V' (sorts between)
+
+// Sort objects by index property
+const sorted = shapes.sort(sortByIndex)
+```
+
+To insert multiple items at once, use batch generation:
+
+```typescript
+import { getIndicesBetween } from '@tldraw/utils'
+
+// Insert 3 items between two positions
+const indices = getIndicesBetween('a0' as IndexKey, 'a2' as IndexKey, 3)
+// ['a0V', 'a1', 'a1V'] - all sort between 'a0' and 'a2'
+```
+
+### Control flow and assertions
+
+Assertions document invariants and provide type information to TypeScript:
+
+```typescript
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+
+function getArea(shape: Shape): number {
+	assert(shape.width > 0, 'Width must be positive')
+	return shape.width * shape.height
+}
+
+function getElement(id: string): HTMLElement {
+	const element = document.getElementById(id)
+	assertExists(element, `Element ${id} not found`)
+	return element // TypeScript knows element is not null
+}
+
+// Ensure exhaustive switch handling
+function getToolCursor(tool: Tool): string {
+	switch (tool) {
+		case 'select':
+			return 'default'
+		case 'draw':
+			return 'crosshair'
+		default:
+			return exhaustiveSwitchError(tool) // Type error if case missing
+	}
+}
+```
+
+Promise utilities provide external control and delays:
+
+```typescript
+import { promiseWithResolve, sleep } from '@tldraw/utils'
+
+// Promise with external resolve/reject
+const loaded = promiseWithResolve<void>()
+loaded.resolve() // Resolve from outside
+
+// Async delays
+await sleep(1000) // Wait 1 second
+```
+
+## API patterns
+
+### Sequential execution with ExecutionQueue
+
+The `ExecutionQueue` class ensures tasks execute one at a time, preventing race conditions:
+
+```typescript
+import { ExecutionQueue } from '@tldraw/utils'
+
+class FileWriter {
+	private queue = new ExecutionQueue(5000) // Optional timeout in ms
+
+	async writeFile(path: string, data: string) {
+		return this.queue.push(async () => {
+			await fs.writeFile(path, data)
+		})
+	}
+}
+
+// Writes execute sequentially even if called rapidly
+writer.writeFile('a.txt', 'content a')
+writer.writeFile('b.txt', 'content b')
+```
+
+### Memory-efficient caching with WeakCache
+
+The `WeakCache` class caches computations tied to object lifecycles. Cached values are freed when the key object is garbage collected:
+
+```typescript
+import { WeakCache } from '@tldraw/utils'
+
+const bboxCache = new WeakCache<Shape, BoundingBox>()
+
+function getBoundingBox(shape: Shape): BoundingBox {
+	return bboxCache.get(shape, (s) => {
+		// Computation runs once per shape object
+		return computeBounds(s)
+	})
+}
+```
+
+### Throttling for performance
+
+Throttle expensive operations to maintain smooth frame rates:
+
+```typescript
+import { fpsThrottle, throttleToNextFrame } from '@tldraw/utils'
+
+// Run at most 60 times per second
+const updateCanvas = fpsThrottle((data) => renderToCanvas(data))
+
+// Run once per animation frame
+const scheduleRender = throttleToNextFrame(() => renderScene())
+```
+
+### Media processing
+
+The `MediaHelpers` class provides utilities for working with images and videos:
+
+```typescript
+import { MediaHelpers } from '@tldraw/utils'
+
+// Check file type and get dimensions
+if (MediaHelpers.isImage(file)) {
+	const { w, h } = await MediaHelpers.getImageSize(file)
+	const isAnimated = await MediaHelpers.isAnimated(file)
+}
+
+if (MediaHelpers.isVideo(file)) {
+	const { w, h } = await MediaHelpers.getVideoSize(file)
+	const thumbnail = await MediaHelpers.getVideoFrameAsDataUrl(file)
+}
+```
+
+### Storage utilities
+
+Storage utilities handle browser storage with graceful error handling:
+
+```typescript
+import { setInLocalStorage, getFromLocalStorage } from '@tldraw/utils'
+
+// Safe operations that handle quota errors
+setInLocalStorage('preferences', JSON.stringify(data))
+const saved = getFromLocalStorage('preferences')
+```
+
+### Hashing and identification
+
+Create stable hashes for deduplication and generate unique IDs:
+
+```typescript
+import { getHashForObject, uniqueId } from '@tldraw/utils'
+
+// Content-based hashing
+const hash = getHashForObject({ x: 1, y: 2 })
+
+// Generate unique identifiers
+const id = uniqueId() // e.g., 'shape_abc123'
 ```
 
 ## Key files
 
-- packages/utils/src/index.ts - Package entry
-- packages/utils/src/lib/array.ts - Array utilities
-- packages/utils/src/lib/object.ts - Object utilities
+- packages/utils/src/index.ts - Package exports and entry point
+- packages/utils/src/lib/array.ts - Array manipulation utilities
+- packages/utils/src/lib/object.ts - Object transformation utilities
+- packages/utils/src/lib/control.ts - Result type and assertions
+- packages/utils/src/lib/reordering.ts - Fractional indexing system
+- packages/utils/src/lib/ExecutionQueue.ts - Sequential task execution
+- packages/utils/src/lib/cache.ts - Weak reference caching
+- packages/utils/src/lib/media/media.ts - Image and video processing
+- packages/utils/src/lib/hash.ts - Content hashing functions
+- packages/utils/src/lib/storage.ts - Browser storage utilities
+- packages/utils/src/lib/throttle.ts - Performance throttling
+- packages/utils/src/lib/perf.ts - Performance measurement
 
 ## Related
 
-- [@tldraw/validate](./validate.md)
+- [validate](./validate.md) - Validation library built on utils
+- [state](./state.md) - Reactive state management using utils foundations
+- [store](./store.md) - Document storage leveraging utils primitives

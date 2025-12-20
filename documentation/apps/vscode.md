@@ -65,5 +65,5 @@ yarn dev
 
 ## Related
 
-- [@tldraw/tldraw](../packages/tldraw.md) - Editor SDK
+- [`@tldraw/tldraw`](../packages/tldraw.md) - Editor SDK
 - [Examples app](./examples.md) - SDK examples

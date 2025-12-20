@@ -1,51 +1,520 @@
 ---
 title: '@tldraw/tldraw'
 created_at: 12/17/2024
-updated_at: 12/19/2025
+updated_at: 12/20/2025
 keywords:
   - tldraw
   - sdk
-  - complete
   - ui
+  - shapes
+  - tools
+  - components
+  - customization
 ---
 
 ## Overview
 
-`@tldraw/tldraw` is the full editor with default shapes, tools, and UI. Most applications should start here.
+`@tldraw/tldraw` is the flagship package that provides a complete infinite canvas drawing application through a single React component. It combines the low-level canvas engine from `@tldraw/editor` with a comprehensive UI system, twelve default shape types, a complete toolset, and content handlers for drag-and-drop and paste operations.
 
-## Installation
+This is the recommended starting point for most applications. While `@tldraw/editor` gives you a minimal canvas engine that you must build upon, `@tldraw/tldraw` gives you a production-ready editor with text editing, drawing tools, geometric shapes, arrows with smart connections, image and video support, embeds from services like YouTube and Figma, a responsive UI that adapts from mobile to desktop, and keyboard shortcuts. Everything remains extensible through well-defined customization points.
+
+## Architecture
+
+The package wraps `@tldraw/editor` with three major additions: a complete UI system, default implementations of shapes and tools, and content handlers for external data.
+
+### Component hierarchy
+
+The main `Tldraw` component orchestrates several layers:
+
+- **TldrawEditor** - The core editor from `@tldraw/editor` configured with default shape utilities, binding utilities, and tools
+- **TldrawUi** - The UI layer that provides menus, toolbars, panels, and dialogs
+- **Content handlers** - Registration of handlers for images, videos, URLs, text, and other external content
+- **Side effects** - Reactive behaviors like auto-entering crop mode or switching tools during text editing
+
+### UI system structure
+
+The UI uses a provider hierarchy for dependency injection:
+
+- **TldrawUiContextProvider** - Master provider that holds asset URLs, action overrides, tool configurations, and component overrides
+- **Specialized providers** - Translation, tooltip, dialog, toast, breakpoint, and event providers
+- **Component rendering** - Responsive layout that adapts to screen size and editor state (readonly, focus mode, debug mode)
+
+The UI divides the screen into zones: top zone (menu, helper buttons, style panel), bottom zone (toolbar, navigation panel), and floating elements (minimap, context menu, dialogs). On mobile, the toolbar moves to the bottom and the style panel becomes a modal.
+
+### Shape and tool merging
+
+When you provide custom `shapeUtils`, `bindingUtils`, or `tools` props, the component merges them with defaults. This means you keep all built-in shapes and tools while adding your own, unless you explicitly replace a default by using the same type identifier.
+
+## Installation and basic usage
+
+Install the package:
 
 ```bash
 npm install tldraw
 ```
 
-```typescript
+Import the component and CSS:
+
+```tsx
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
+}
 ```
 
-## Basic usage
+The container element should use fixed positioning or have an explicit size. The component renders a complete drawing application with all features enabled.
+
+## Key concepts
+
+### Component props
+
+The `Tldraw` component accepts props organized into several categories:
+
+**Store and persistence:**
+
+- `store` - Provide your own store instance for multiplayer or custom synchronization
+- `snapshot` - Initialize with a document snapshot
+- `defaultName` - Default document name
+- `persistenceKey` - Enable automatic IndexedDB persistence with this key
+
+**Customization:**
+
+- `shapeUtils` - Custom shape utilities (merged with defaults)
+- `bindingUtils` - Custom binding utilities (merged with defaults)
+- `tools` - Custom tools (merged with defaults)
+- `components` - Override UI or canvas components
+- `overrides` - Customize actions, tools, and translations
+- `assetUrls` - Custom icon and font URLs
+- `embeds` - Custom embed provider definitions
+
+**Content handling:**
+
+- `acceptedImageMimeTypes` - Image format whitelist (defaults to PNG, JPEG, GIF, SVG)
+- `acceptedVideoMimeTypes` - Video format whitelist (defaults to MP4, WebM)
+- `maxImageDimension` - Maximum image width/height (defaults to 5000px)
+- `maxAssetSize` - Maximum file size in bytes (defaults to 10MB)
+
+**UI behavior:**
+
+- `hideUi` - Hide the entire UI layer, showing only the canvas
+- `onMount` - Callback that receives the editor instance when ready
+
+### The overrides system
+
+The `overrides` prop lets you modify the editor's built-in behaviors without replacing entire components. You can override actions, tools, translations, and help menu content.
+
+**Actions** define keyboard shortcuts and menu items. Each action has an ID, label, keyboard shortcut, and handler function. Override the `actions` function to add new actions or modify existing ones:
+
+```tsx
+import { Tldraw, TLUiOverrides } from 'tldraw'
+
+const overrides: TLUiOverrides = {
+	actions(editor, actions) {
+		return {
+			...actions,
+			'my-action': {
+				id: 'my-action',
+				label: 'My custom action',
+				kbd: 'ctrl+k',
+				onSelect(source) {
+					alert('Action triggered')
+				},
+			},
+		}
+	},
+}
+
+function App() {
+	return <Tldraw overrides={overrides} />
+}
+```
+
+**Tools** define which tools appear in the toolbar. Override the `tools` function to reorder, add, or remove tool buttons:
+
+```tsx
+const overrides: TLUiOverrides = {
+	tools(editor, tools) {
+		// Remove the laser tool
+		delete tools.laser
+		return tools
+	},
+}
+```
+
+**Translations** let you override UI strings or add new languages. Override the `translations` property with a language code and key-value pairs.
+
+### Shape utilities
+
+A **shape utility** defines how a shape type behaves. Each shape has a `ShapeUtil` class that implements rendering, hit testing, geometry calculation, and interaction handlers. The package provides twelve default shape utilities:
+
+- `TextShapeUtil` - Rich text editing with auto-sizing and formatting
+- `DrawShapeUtil` - Freehand drawing with stroke smoothing
+- `GeoShapeUtil` - Geometric shapes (rectangle, ellipse, triangle, diamond, hexagon, star, cloud, and more)
+- `NoteShapeUtil` - Sticky notes with color variants
+- `LineShapeUtil` - Straight lines with configurable styles
+- `FrameShapeUtil` - Container frames for grouping content
+- `ArrowShapeUtil` - Smart arrows with binding and routing
+- `HighlightShapeUtil` - Highlighter annotations
+- `BookmarkShapeUtil` - URL cards with metadata
+- `EmbedShapeUtil` - Embedded content from external services
+- `ImageShapeUtil` - Images with cropping support
+- `VideoShapeUtil` - Video playback with controls
+
+Add custom shapes by creating a `ShapeUtil` class and passing it to the `shapeUtils` prop. Your shape merges with the defaults.
+
+### Tools
+
+A **tool** controls how the editor responds to user input. Tools are implemented as state machines using the `StateNode` class. The package includes five core interaction tools and one creation tool per shape type:
+
+**Interaction tools:**
+
+- `SelectTool` - The primary interaction tool with child states for brushing, translating, resizing, rotating, cropping, and text editing
+- `HandTool` - Pan the canvas by dragging
+- `EraserTool` - Delete shapes by brushing over them
+- `LaserTool` - Temporary pointer that fades after use (for presentations)
+- `ZoomTool` - Click to zoom in, shift-click to zoom out
+
+**Shape creation tools:**
+
+Each shape type has a corresponding tool (e.g., `ArrowTool`, `GeoTool`). Most follow a point-drag-release pattern. Tools support tool locking, which keeps the same tool selected after creating a shape for rapid repeated creation.
+
+### Bindings
+
+A **binding** represents a relationship between shapes. The package includes `ArrowBindingUtil`, which connects arrows to other shapes. When you connect an arrow to a shape's edge, the binding ensures the arrow endpoint stays attached as you move or resize the target shape. Arrow bindings also enable smart routing around obstacles.
+
+## Customization
+
+The package provides multiple customization layers: component overrides for UI replacement, overrides for actions and keyboard shortcuts, custom shapes and tools, and external content handlers.
+
+### Customizing UI components
+
+Every UI component can be replaced through the `components` prop. The `TLComponents` type includes over 40 override points covering both canvas-level elements (handles, indicators, cursors) and UI-level elements (menus, toolbars, panels).
+
+**Hiding components:**
+
+Set any component to `null` to hide it:
+
+```tsx
+import { Tldraw, TLComponents } from 'tldraw'
+
+const components: Partial<TLComponents> = {
+	Toolbar: null,
+	StylePanel: null,
+	Minimap: null,
+}
+
+function App() {
+	return <Tldraw components={components} />
+}
+```
+
+**Replacing components:**
+
+Provide your own component implementation. Many components export both a container and a content component, letting you customize content while keeping positioning and styling:
+
+```tsx
+import {
+	Tldraw,
+	DefaultMainMenu,
+	DefaultMainMenuContent,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+} from 'tldraw'
+
+function CustomMainMenuContent() {
+	return (
+		<>
+			<DefaultMainMenuContent />
+			<TldrawUiMenuGroup id="custom">
+				<TldrawUiMenuItem
+					id="export-json"
+					label="Export as JSON"
+					onSelect={() => {
+						// Handle export
+					}}
+				/>
+			</TldrawUiMenuGroup>
+		</>
+	)
+}
+
+const components: Partial<TLComponents> = {
+	MainMenu: () => (
+		<DefaultMainMenu>
+			<CustomMainMenuContent />
+		</DefaultMainMenu>
+	),
+}
+
+function App() {
+	return <Tldraw components={components} />
+}
+```
+
+**Available override points:**
+
+Canvas-level: `Background`, `Brush`, `CollaboratorBrush`, `CollaboratorCursor`, `CollaboratorHint`, `CollaboratorScribble`, `Cursor`, `Grid`, `Handles`, `Scribble`, `SelectionBackground`, `SelectionForeground`, `ShapeErrorFallback`, `ShapeIndicators`, `SnapIndicator`, `Spinner`, `Overlays`
+
+UI-level: `MenuPanel`, `TopPanel`, `SharePanel`, `StylePanel`, `Toolbar`, `HelperButtons`, `HelpMenu`, `NavigationPanel`, `DebugPanel`, `Minimap`, `MainMenu`, `QuickActions`, `ActionsMenu`, `ContextMenu`, `ZoomMenu`, `PageMenu`, `RichTextToolbar`, `ImageToolbar`, `VideoToolbar`, `A11y`, `Toasts`, `Dialogs`, `FollowingIndicator`, `CursorChatBubble`
+
+### Adding custom shapes
+
+Create a `ShapeUtil` class that defines your shape's behavior and pass it to the `shapeUtils` prop. The component merges your custom shapes with the defaults:
+
+```tsx
+import { Tldraw, BaseBoxShapeUtil, TLBaseShape } from 'tldraw'
+
+type MyShape = TLBaseShape<'my-shape', { w: number; h: number; color: string }>
+
+class MyShapeUtil extends BaseBoxShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+
+	getDefaultProps() {
+		return { w: 100, h: 100, color: 'blue' }
+	}
+
+	component(shape: MyShape) {
+		return (
+			<div
+				style={{
+					width: shape.props.w,
+					height: shape.props.h,
+					backgroundColor: shape.props.color,
+				}}
+			/>
+		)
+	}
+
+	indicator(shape: MyShape) {
+		return <rect width={shape.props.w} height={shape.props.h} />
+	}
+}
+
+function App() {
+	return <Tldraw shapeUtils={[MyShapeUtil]} />
+}
+```
+
+The shape utility must implement three core methods: `getDefaultProps` returns default property values, `component` renders the shape, and `indicator` renders the selection outline. For box-like shapes, extend `BaseBoxShapeUtil` to get automatic resize handle behavior.
+
+### Adding custom tools
+
+Create a tool class extending `StateNode`. Tools are state machines that handle user input through lifecycle methods:
+
+```tsx
+import { Tldraw, StateNode } from 'tldraw'
+
+class StampTool extends StateNode {
+	static override id = 'stamp'
+
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross' })
+	}
+
+	override onPointerDown() {
+		const { currentPagePoint } = this.editor.inputs
+		this.editor.createShape({
+			type: 'geo',
+			x: currentPagePoint.x - 50,
+			y: currentPagePoint.y - 50,
+			props: { w: 100, h: 100, geo: 'star' },
+		})
+	}
+
+	override onExit() {
+		this.editor.setCursor({ type: 'default' })
+	}
+}
+
+function App() {
+	return <Tldraw tools={[StampTool]} />
+}
+```
+
+The tool receives pointer events (`onPointerDown`, `onPointerMove`, `onPointerUp`), keyboard events (`onKeyDown`, `onKeyUp`), and lifecycle events (`onEnter`, `onExit`, `onTick`). Access the editor instance through `this.editor` to manipulate shapes and state.
+
+### Handling external content
+
+The package registers handlers for images, videos, URLs, SVG, plain text, and tldraw content. Register custom handlers to override or extend this behavior:
 
 ```tsx
 import { Tldraw } from 'tldraw'
 
 function App() {
-	return <Tldraw />
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				editor.registerExternalContentHandler('text', async (info) => {
+					if (info.type === 'text' && info.text.startsWith('SPECIAL:')) {
+						const content = info.text.slice(8)
+						editor.createShape({
+							type: 'note',
+							x: info.point.x,
+							y: info.point.y,
+							props: { text: content },
+						})
+					}
+				})
+			}}
+		/>
+	)
 }
 ```
 
-## Key components
+Handlers receive content metadata and a point where the content should be placed. The editor calls handlers in registration order until one handles the content.
 
-- Default shapes and tools
-- UI components (toolbar, menus, panels)
-- External content handling
+## API patterns
+
+### Persistence
+
+The component supports three persistence approaches:
+
+**Browser storage** - Set `persistenceKey` to enable automatic IndexedDB persistence. The document saves automatically as users edit:
+
+```tsx
+<Tldraw persistenceKey="my-app-v1" />
+```
+
+The key should be unique to your application. Change the key when you need to invalidate old stored data.
+
+**Snapshot-based** - Control loading and saving through snapshots. A snapshot represents the complete document state at a point in time:
+
+```tsx
+import { Tldraw, TLStoreSnapshot } from 'tldraw'
+
+function App() {
+	const [snapshot, setSnapshot] = useState<TLStoreSnapshot>()
+
+	return (
+		<Tldraw
+			snapshot={snapshot}
+			onMount={(editor) => {
+				const interval = setInterval(() => {
+					setSnapshot(editor.store.getSnapshot())
+				}, 5000)
+				return () => clearInterval(interval)
+			}}
+		/>
+	)
+}
+```
+
+Use snapshots when you need to save to a backend or implement custom save/load logic.
+
+**Custom store** - Create your own store for multiplayer or advanced synchronization. Pass it to the `store` prop to take complete control over data flow:
+
+```tsx
+import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
+
+function App() {
+	const store = useMemo(() => {
+		return createTLStore({ shapeUtils: defaultShapeUtils })
+	}, [])
+
+	return <Tldraw store={store} />
+}
+```
+
+When providing a custom store, the component uses it as-is without any persistence layer.
+
+### Working with the editor instance
+
+The `onMount` callback receives the `Editor` instance. Store it in a ref to call methods programmatically:
+
+```tsx
+import { Tldraw, Editor } from 'tldraw'
+import { useRef } from 'react'
+
+function App() {
+	const editorRef = useRef<Editor>()
+
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				editorRef.current = editor
+
+				// Programmatically create shapes
+				editor.createShape({
+					type: 'geo',
+					x: 100,
+					y: 100,
+					props: { w: 200, h: 100, geo: 'rectangle' },
+				})
+
+				// Select shapes
+				const shapes = editor.getCurrentPageShapes()
+				editor.setSelectedShapes([shapes[0].id])
+
+				// Control viewport
+				editor.zoomToFit()
+			}}
+		/>
+	)
+}
+```
+
+The `Editor` class provides methods for shape manipulation, viewport control, history management, and state queries. See the `@tldraw/editor` documentation for the complete API surface.
+
+### Asset handling
+
+By default, assets are stored as base64 data URLs in the document. For production applications, implement custom asset storage:
+
+```tsx
+import { Tldraw, TLAssetStore } from 'tldraw'
+
+const assetStore: TLAssetStore = {
+	async upload(asset, file) {
+		const formData = new FormData()
+		formData.append('file', file)
+		const response = await fetch('/api/upload', { method: 'POST', body: formData })
+		const { url } = await response.json()
+		return url
+	},
+	async resolve(asset) {
+		return asset.props.src
+	},
+}
+
+function App() {
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				editor.store.props.assets = assetStore
+			}}
+		/>
+	)
+}
+```
+
+The `upload` method receives a file and returns a URL. The `resolve` method converts an asset record to a displayable URL. This separation lets you use different URLs for upload destinations and CDN delivery.
 
 ## Key files
 
-- packages/tldraw/src/index.ts - Package entry
-- packages/tldraw/src/lib/Tldraw.tsx - Main component
-- packages/tldraw/src/lib/ui/ - UI components and hooks
+- packages/tldraw/src/index.ts - Package exports and public API surface
+- packages/tldraw/src/lib/Tldraw.tsx - Main component that orchestrates editor and UI
+- packages/tldraw/src/lib/ui/TldrawUi.tsx - UI system root with provider hierarchy
+- packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx - Master context provider
+- packages/tldraw/src/lib/defaultShapeUtils.ts - Default shape utility array
+- packages/tldraw/src/lib/defaultTools.ts - Core interaction tools (select, hand, eraser, zoom, laser)
+- packages/tldraw/src/lib/defaultShapeTools.ts - Shape creation tools merged with default tools
+- packages/tldraw/src/lib/defaultBindingUtils.ts - Arrow binding implementation
+- packages/tldraw/src/lib/defaultExternalContentHandlers.ts - Content handler registration
+- packages/tldraw/src/lib/defaultSideEffects.ts - Reactive side effect registration
+- packages/tldraw/src/lib/shapes/ - Shape implementations organized by type
+- packages/tldraw/src/lib/tools/ - Tool implementations (SelectTool, EraserTool, etc.)
+- packages/tldraw/src/lib/ui/components/ - UI component implementations
+- packages/tldraw/src/lib/ui/context/actions.tsx - Action definitions and override system
+- packages/tldraw/src/lib/ui/context/components.tsx - Component override system
+- packages/tldraw/src/lib/ui/overrides.ts - Override helper types and utilities
 
 ## Related
 
-- [@tldraw/editor](./editor.md)
-- [UI components](../architecture/ui-components.md)
+- [Editor package](./editor.md) - Core editor engine that this package wraps
+- [Store package](./store.md) - Reactive database for document state
+- [TLSchema package](./tlschema.md) - Type definitions for shapes, bindings, and records

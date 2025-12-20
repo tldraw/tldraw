@@ -66,5 +66,5 @@ yarn refresh-api
 
 ## Related
 
-- [@tldraw/tldraw](../packages/tldraw.md) - Main SDK being documented
+- [`@tldraw/tldraw`](../packages/tldraw.md) - Main SDK being documented
 - [Examples app](./examples.md) - Live code examples

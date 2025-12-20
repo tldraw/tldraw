@@ -15,6 +15,8 @@ Our documentation serves multiple audiences:
 
 Write for developers who are technically proficient but unfamiliar with tldraw's internals. Assume they know TypeScript and React, but don't assume they know our architecture or conventions.
 
+Avoid re-documenting fundamental concepts from JavaScript, TypeScript, or React. We should not, for example, need to document how React components update or what TypeScript generics are. The documentation should presume knowledge of these things and stick to the concepts and systems introduced by the code we're documenting.
+
 ## Document structure
 
 ### Frontmatter
@@ -40,8 +42,9 @@ Most documents should follow this structure:
 ```markdown
 ## Overview
 
-[1-2 paragraphs: What problem does this solve? What does it enable?
-Don't explain how it works yet—just establish why it exists.]
+[1-2 paragraphs: What is this component's function? What role does it play
+in the overall system? Don't explain how it works yet—just establish why
+it exists and what it enables.]
 
 ## [Main content sections]
 
@@ -470,7 +473,7 @@ Before considering a document complete:
 - [ ] Frontmatter includes title in sentence case
 - [ ] Frontmatter includes created_at date for new articles
 - [ ] Frontmatter includes updated_at date for new or updated articles
-- [ ] Overview section states the problem before explaining mechanism
+- [ ] Overview section establishes function and role before explaining mechanism
 - [ ] All headings use sentence case
 - [ ] Code examples are minimal and don't duplicate prose
 - [ ] Internal links use relative paths

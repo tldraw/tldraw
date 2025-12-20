@@ -1,0 +1,145 @@
+---
+title: Edge scrolling
+created_at: 12/20/2024
+updated_at: 12/20/2024
+keywords:
+  - scroll
+  - edge
+  - auto-scroll
+  - EdgeScrollManager
+  - drag
+---
+
+## Overview
+
+The edge scrolling system automatically pans the camera when the pointer moves near the viewport edges during drag operations. The `EdgeScrollManager` detects when users drag shapes toward screen boundaries and smoothly scrolls the canvas in that direction, enabling continuous movement beyond the visible area without releasing the drag.
+
+Edge scrolling activates only during drag operations and requires specific conditions: the user must be dragging (not panning), the camera must be unlocked, and the pointer must be within a defined proximity zone at the viewport edge. The system uses easing functions to create smooth acceleration from rest, providing a natural feel when scrolling begins.
+
+## How it works
+
+Tools that support edge scrolling call `editor.edgeScrollManager.updateEdgeScrolling(elapsed)` on every tick during drag operations. The manager checks the pointer position against the viewport bounds and calculates a proximity factor for each axis.
+
+When the pointer enters the edge scroll zone, the manager begins tracking elapsed time. After a configurable delay, scrolling starts and gradually accelerates using an easing function. The camera moves continuously on each tick until the pointer leaves the edge zone or the drag operation ends.
+
+```typescript
+// Tools call updateEdgeScrolling on each tick
+override onTick({ elapsed }: TLTickEventInfo) {
+  editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+}
+```
+
+The built-in tools that implement edge scrolling are:
+
+- **Translating** - Moving shapes across the canvas
+- **Brushing** - Selecting multiple shapes with a selection box
+- **Resizing** - Changing shape dimensions by dragging handles
+
+## Edge detection
+
+The manager determines edge proximity by comparing the pointer position to the viewport bounds. An edge scroll zone extends inward from each screen edge by a distance defined in `editor.options.edgeScrollDistance` (default: 8 pixels).
+
+When the pointer enters this zone, the manager calculates a proximity factor from 0 to 1 based on how deeply the pointer penetrates the zone. At the zone boundary, the factor is 0. At the screen edge (or beyond), the factor reaches 1.
+
+For touch input, the system expands the effective pointer size using `editor.options.coarsePointerWidth` to make edge scrolling easier to trigger on mobile devices. The expanded pointer area is centered on the actual touch point.
+
+### Inset handling
+
+The edge detection respects screen insets from the editor's instance state. When an edge has an inset (like a toolbar or panel), that edge's scroll zone starts at the inset boundary rather than at the physical screen edge. This prevents scrolling when dragging near UI elements that obscure the viewport.
+
+The insets array follows the CSS convention: `[top, right, bottom, left]`. A truthy value means that edge has an inset and should not trigger edge scrolling.
+
+## Scrolling behavior
+
+Once the pointer enters the edge zone, the manager waits for `editor.options.edgeScrollDelay` milliseconds (default: 200ms) before starting to scroll. This delay prevents accidental scrolling when the pointer briefly crosses the edge.
+
+After the delay expires, scrolling begins with a gradual acceleration controlled by `editor.options.edgeScrollEaseDuration` (default: 200ms). The manager applies `EASINGS.easeInCubic` to create smooth acceleration from zero to full speed.
+
+### Speed calculation
+
+The scroll speed depends on several factors:
+
+- **Proximity factor** - How close the pointer is to the screen edge (0 to 1)
+- **User preference** - `editor.user.getEdgeScrollSpeed()` multiplier (default: 1)
+- **Base speed** - `editor.options.edgeScrollSpeed` pixels per tick (default: 25)
+- **Screen size** - Reduced speed on smaller screens (width or height under 1000px)
+- **Zoom level** - Divided by current zoom to maintain consistent canvas-space velocity
+
+The camera moves by this formula on each tick:
+
+```typescript
+const pxSpeed = editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed
+const screenSizeFactor = screenBounds.w < 1000 ? 0.612 : 1
+const scrollDelta = (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
+```
+
+The proximity factor multiplies the speed, so scrolling is slower near the edge zone boundary and faster near the screen edge. The screen size factor (approximately 61% speed) activates when the viewport width or height is below 1000 pixels, making scrolling more controllable on smaller displays.
+
+### Conditions for scrolling
+
+The manager only moves the camera when all these conditions are met:
+
+- The editor is in a dragging state (`editor.inputs.getIsDragging()` returns true)
+- The editor is not panning (`editor.inputs.getIsPanning()` returns false)
+- The camera is not locked (`editor.getCameraOptions().isLocked` is false)
+- The proximity factor is non-zero for at least one axis
+
+If any condition fails, scrolling stops immediately and the internal duration timer resets.
+
+## Configuration options
+
+Edge scrolling behavior can be customized through the editor's options:
+
+| Option                    | Default | Description                                           |
+| ------------------------- | ------- | ----------------------------------------------------- |
+| `edgeScrollDelay`         | 200     | Milliseconds to wait before starting scroll           |
+| `edgeScrollEaseDuration`  | 200     | Milliseconds to accelerate from zero to full speed    |
+| `edgeScrollSpeed`         | 25      | Base scroll speed in pixels per tick                  |
+| `edgeScrollDistance`      | 8       | Width of the edge scroll zone in pixels               |
+| `coarsePointerWidth`      | 12      | Expanded pointer size for touch input (pixels)        |
+
+Set these options when creating the editor or tldraw component:
+
+```typescript
+const options = {
+  edgeScrollSpeed: 50, // Double the default speed
+  edgeScrollDelay: 100, // Start scrolling sooner
+}
+
+<Tldraw options={options} />
+```
+
+### User preferences
+
+Users can adjust edge scroll speed through `editor.user.getEdgeScrollSpeed()`, which returns a multiplier from the user preferences. This value defaults to 1 and persists across sessions. The multiplier affects all edge scrolling uniformly without changing the base configuration.
+
+## Tool integration
+
+Tools integrate edge scrolling by calling `updateEdgeScrolling()` in their tick handler. The manager reads the current pointer position and drag state from the editor's input system, so tools don't need to pass any parameters beyond elapsed time.
+
+```typescript
+export class CustomDragTool extends StateNode {
+  override onTick({ elapsed }: TLTickEventInfo) {
+    editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+  }
+}
+```
+
+The manager tracks whether edge scrolling is active using `getIsEdgeScrolling()`. This returns true when the pointer is in the edge zone and scrolling has started (after the delay period).
+
+Tools should only call `updateEdgeScrolling()` during states where edge scrolling makes sense. For example, the select tool calls it during translating, brushing, and resizing, but not during idle or pointing states.
+
+## Key files
+
+- packages/editor/src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.ts - Edge detection and scroll logic
+- packages/editor/src/lib/options.ts - Configuration options and defaults
+- packages/editor/src/lib/config/TLUserPreferences.ts - User preference for edge scroll speed
+- packages/tldraw/src/lib/tools/SelectTool/childStates/Translating.ts - Example tool integration
+- packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts - Example tool integration
+- packages/tldraw/src/lib/tools/SelectTool/childStates/Resizing.ts - Example tool integration
+
+## Related
+
+- [Camera system](./camera-system.md)
+- [Input handling](./input-handling.md)
+- [Tick system](./tick-system.md)

@@ -1,7 +1,7 @@
 ---
 title: '@tldraw/sync-core'
 created_at: 12/17/2024
-updated_at: 12/19/2025
+updated_at: 12/20/2024
 keywords:
   - sync
   - collaboration
@@ -12,36 +12,179 @@ keywords:
 
 ## Overview
 
-`@tldraw/sync-core` provides the protocol and runtime for real-time collaboration. It manages WebSocket sessions, diffs, and presence without any React dependencies.
+The `@tldraw/sync-core` package provides the foundational protocol and runtime for real-time collaboration in tldraw. This package implements the synchronization machinery that keeps multiple clients in sync, handling WebSocket communication, conflict resolution, presence updates, and automatic reconnection. It operates without React dependencies, making it suitable for server-side code, non-React frameworks, and scenarios requiring direct protocol control.
 
-## Basic usage
+Most applications should use `@tldraw/sync`, which wraps sync-core in React hooks and provides production-ready server implementations. Use sync-core directly when building custom sync servers, integrating with existing infrastructure, implementing non-React frontends, or requiring advanced control over synchronization behavior.
 
-```typescript
-import { TLSyncClient } from '@tldraw/sync-core'
+## Architecture
 
-const client = new TLSyncClient({
-	store,
-	socket: websocketAdapter,
-	onSyncError: (error) => console.error(error),
-})
+The sync protocol implements a server-authoritative model with optimistic updates. This design balances responsive user experience with strong consistency guarantees across all connected clients.
 
-client.connect()
-```
+### How synchronization works
+
+When a user makes changes, the synchronization follows this flow:
+
+1. **Optimistic application**: Changes apply immediately to the local store for instant feedback
+2. **Push to server**: A diff of the changes sends to the server via WebSocket
+3. **Server validation**: The server validates changes, applies migrations if needed, and determines the canonical result
+4. **Broadcast**: The server distributes validated changes to all other connected clients
+5. **Reconciliation**: If the server's version differs from what the client expected, the client automatically rebases its pending changes
+
+This git-like push/pull/rebase model ensures all clients converge to the same state while maintaining responsive interactions. The server acts as the single source of truth, preventing divergent document states even when multiple users edit simultaneously.
+
+### Clock-based change tracking
+
+The protocol uses a clock system to track causal ordering of changes. Each document maintains a monotonically increasing clock value. When clients reconnect, they provide their last known clock value, allowing the server to send only the changes that occurred since that point.
+
+For efficient network usage, the protocol transmits changes as compact diffs rather than full document snapshots. Three operation types compose these diffs:
+
+- Put: Add a new record or completely replace an existing one
+- Patch: Update specific fields within a record (most common for incremental edits)
+- Remove: Delete a record and create a tombstone
+
+The server computes minimal patches by comparing record states, sending only modified fields. For example, moving a shape only transmits the new x and y coordinates, not the entire shape definition.
+
+### Presence handling
+
+Presence information (cursors, selections, user metadata) receives special handling distinct from document data. Presence updates are ephemeral, not persisted to storage, and use throttled transmission to reduce bandwidth for high-frequency updates like cursor movement.
+
+Each client session has a unique presence ID. When a client connects, the server sends the current presence state of all other connected users. When a client disconnects, the server broadcasts a presence removal to remaining clients.
+
+### Schema compatibility and migrations
+
+Clients and servers may run different versions of the document schema. The protocol negotiates compatibility during connection establishment. When versions differ, the server applies up or down migrations to translate between representations, ensuring older clients can participate in sessions with newer servers and vice versa.
+
+If a migration cannot be performed safely (for example, a new required field with no default), the server rejects the connection with a specific error code indicating whether the client or server needs updating.
 
 ## Key concepts
 
-- Server-authoritative sync
-- Diff-based updates (put, patch, remove)
-- Presence and connection state
+### TLSyncClient
+
+`TLSyncClient` manages bidirectional synchronization between a local tldraw store and a remote server. It handles the connection lifecycle, queues changes during disconnection, and reconciles state after reconnection. The client maintains a speculative changes buffer for optimistic edits. During reconnection, it undoes speculative changes, applies the server's authoritative state, then reapplies local work on top.
+
+### TLSyncRoom
+
+`TLSyncRoom` represents a server-side collaborative session for one document. It manages client connections, validates incoming changes, broadcasts updates, and coordinates persistence through storage backends. Rooms track session state through three phases: awaiting connection handshake (10 second timeout), connected and active, and awaiting removal after disconnect (5 second grace period). This approach prevents premature cleanup while ensuring abandoned sessions don't accumulate.
+
+### Network diffs
+
+Network diffs represent changes in a compact format optimized for transmission. The protocol uses three operation types: Put (add or replace a complete record), Patch (update specific fields within a record), and Remove (delete and create a tombstone). Patch operations support nested updates, transmitting only modified fields rather than entire records. For example, moving a shape only transmits new x and y coordinates, not the complete shape definition.
+
+### Presence system
+
+Presence data (cursors, selections, user metadata) receives special handling distinct from document data. Presence updates are ephemeral, not persisted to storage, and use throttled transmission to reduce bandwidth. Each client session has a unique presence ID. The server distributes current presence state to connecting clients and broadcasts removal when clients disconnect.
+
+### Storage backends
+
+`TLSyncStorage` abstracts persistence, enabling integration with various backends. The package provides SQLiteSyncStorage for production deployments and InMemorySyncStorage for testing. Storage implementations handle document persistence, tombstone tracking, and clock management. They must support transactions to ensure atomic updates across multiple records.
+
+## API patterns
+
+### Creating a sync client
+
+Connect a local store to a sync server using `TLSyncClient`. The client handles connection lifecycle, queues changes during disconnection, and reconciles state automatically.
+
+```typescript
+import { TLSyncClient, ClientWebSocketAdapter } from '@tldraw/sync-core'
+import { createTLStore } from '@tldraw/tldraw'
+
+const store = createTLStore({ schema })
+const socket = new ClientWebSocketAdapter('wss://server.com/sync')
+
+const syncClient = new TLSyncClient({
+	store,
+	socket,
+	presence: atom({ cursor: { x: 0, y: 0 }, name: 'Alice' }),
+	onLoad: () => console.log('Synced'),
+	onSyncError: (reason) => console.error('Sync failed:', reason),
+})
+```
+
+### Setting up a sync room
+
+Create a server-side room to manage collaborative sessions. Rooms validate changes, broadcast updates, and coordinate with storage.
+
+```typescript
+import { TLSyncRoom } from '@tldraw/sync-core'
+
+const room = new TLSyncRoom({
+	schema,
+	storage: sqliteStorage,
+	onPresenceChange: () => updateLiveCursors(),
+})
+
+room.handleNewSession({
+	sessionId: crypto.randomUUID(),
+	socket: webSocketAdapter,
+	meta: { userId: '123', name: 'Alice' },
+	isReadonly: false,
+})
+```
+
+### Handling errors
+
+The protocol defines specific error codes for different failure modes. Servers close connections with status codes, and clients receive errors through callbacks.
+
+```typescript
+const syncClient = new TLSyncClient({
+	// ...other config
+	onSyncError: (reason) => {
+		switch (reason) {
+			case 'NOT_FOUND':
+				showError('Room does not exist')
+				break
+			case 'CLIENT_TOO_OLD':
+				showError('Please update your app')
+				break
+		}
+	},
+})
+```
+
+Error reasons include: NOT_FOUND (room doesn't exist), FORBIDDEN (insufficient permissions), CLIENT_TOO_OLD (client schema outdated), INVALID_RECORD (malformed data), and ROOM_FULL (max capacity reached).
+
+### Sending custom messages
+
+Beyond document synchronization, the protocol supports application-specific messages for features like chat or notifications.
+
+```typescript
+// Client receives custom messages
+const syncClient = new TLSyncClient({
+	onCustomMessageReceived: (data) => {
+		if (data.type === 'chat') displayChatMessage(data.message)
+	},
+})
+
+// Server sends to specific sessions
+room.sendCustomMessage(sessionId, { type: 'notification', text: 'Saved' })
+```
+
+### Implementing read-only sessions
+
+Sessions can be marked read-only to prevent modification while still receiving updates and displaying presence.
+
+```typescript
+room.handleNewSession({
+	sessionId: 'viewer-123',
+	socket: webSocketAdapter,
+	meta: { userId: '456', name: 'Bob' },
+	isReadonly: true, // Bob can view but not edit
+})
+```
 
 ## Key files
 
-- packages/sync-core/src/index.ts - Package entry
-- packages/sync-core/src/lib/TLSyncClient.ts - Client implementation
-- packages/sync-core/src/lib/protocol.ts - Wire protocol types
-- packages/sync-core/src/lib/diff.ts - Diff utilities
+- packages/sync-core/src/index.ts - Package exports
+- packages/sync-core/src/lib/TLSyncClient.ts - Client synchronization engine
+- packages/sync-core/src/lib/TLSyncRoom.ts - Server room management
+- packages/sync-core/src/lib/protocol.ts - Wire protocol definitions
+- packages/sync-core/src/lib/diff.ts - Diff computation and application
+- packages/sync-core/src/lib/ClientWebSocketAdapter.ts - Client socket wrapper
+- packages/sync-core/src/lib/RoomSession.ts - Session state management
+- packages/sync-core/src/lib/TLSyncStorage.ts - Storage interface
 
 ## Related
 
-- [@tldraw/sync](./sync.md)
-- [Multiplayer architecture](../architecture/multiplayer.md)
+- [@tldraw/sync](./sync.md) - High-level React integration
+- [@tldraw/store](./store.md) - Reactive store synchronized by this package
+- [Multiplayer architecture](../architecture/multiplayer.md) - Overall collaboration design

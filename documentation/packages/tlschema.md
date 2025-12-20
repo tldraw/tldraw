@@ -1,7 +1,7 @@
 ---
 title: '@tldraw/tlschema'
 created_at: 12/17/2024
-updated_at: 12/19/2025
+updated_at: 12/20/2024
 keywords:
   - schema
   - types
@@ -13,31 +13,538 @@ keywords:
 
 ## Overview
 
-`@tldraw/tlschema` defines the persisted data model: record types, validators, and migrations for shapes, pages, assets, and editor state.
+`@tldraw/tlschema` defines the complete data model for tldraw. It provides TypeScript type definitions, runtime validators, and migration sequences for every piece of persistent data in a tldraw document—shapes, pages, assets, bindings, camera state, and more. This package serves as the single source of truth for tldraw's data structures.
 
-## Basic usage
+The schema system ensures data integrity across tldraw versions through two key mechanisms. Runtime validators catch invalid data before it enters the store, preventing corruption and type errors. Migration sequences automatically transform documents created with older tldraw versions to work with newer ones, making tldraw documents resilient and portable across time and versions. The `@tldraw/editor` package uses these schemas to configure its store, while `@tldraw/tldraw` provides the default shape and binding implementations.
 
-```typescript
-import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
+## Architecture
 
-type MyShape = TLBaseShape<'my-shape', { w: number; h: number }>
-const id = createShapeId()
-```
+### Records and the data model
+
+A tldraw document consists of multiple record types stored together in a reactive database (see `@tldraw/store`). Each record type serves a specific purpose in the editor's data model.
+
+**TLShape** is the primary record type for visual elements on the canvas. All shapes extend `TLBaseShape`, which provides common properties including position (`x`, `y`), `rotation`, `index` for z-ordering, `parentId` for nesting within pages or containers, `opacity`, and a `props` object for shape-specific data. The `type` field identifies which shape utility handles rendering and interactions.
+
+**TLBinding** represents connections between shapes. The most common binding is an arrow attached to a rectangle—when you move the rectangle, the arrow's endpoint follows along. Bindings have a `fromId` (the shape creating the relationship), a `toId` (the target shape), and binding-specific properties that control the relationship's behavior.
+
+**TLAsset** stores metadata for external resources. When you add an image or video to a tldraw canvas, the binary data lives separately (in IndexedDB, on a server, or as a data URL), while the asset record tracks its dimensions, MIME type, and source URL. This separation keeps the document store lightweight and allows efficient asset management.
+
+**TLPage**, **TLCamera**, **TLInstance**, and **TLInstancePageState** manage the document structure and viewport. Pages organize shapes into separate canvases. Cameras control each page's viewport position and zoom. Instance records track per-user editor settings. Page states hold per-page selections and editing modes.
+
+**TLPresence** and **TLPointer** enable real-time collaboration. Presence records broadcast each user's cursor position, selection, and current activity to other collaborators. Pointer records track the state of input devices.
+
+### Record scopes
+
+Records have different scopes that control their persistence and synchronization:
+
+- **document** - These records are both synced in multiplayer sessions and persisted to disk. Shapes, assets, pages, and bindings use document scope.
+- **session** - These records may be persisted locally but aren't synced between users. User preferences like theme settings use session scope.
+- **presence** - These records are synced in real-time during collaboration but never persisted. Cursors and selections use presence scope.
+
+This scoping enables efficient multiplayer without sending ephemeral presence data to storage, while ensuring important document data is always preserved.
 
 ## Key concepts
 
-- Record type definitions and validators
-- Schema versions and migrations
-- Shared style props
+### Record types and document structure
+
+A tldraw document is not a single monolithic object. Instead, it consists of many independent records stored together in a reactive database. This record-based architecture provides several advantages: fine-grained reactivity where only the specific records that change trigger updates, efficient serialization for network transmission and persistence, and a clear separation of concerns between different types of data.
+
+Each record type serves a specific purpose in the system. Shapes are the visual elements users interact with directly. Assets hold metadata for external resources like images and videos. Bindings create relationships between shapes, allowing one shape to respond when another moves or changes. Pages organize shapes into separate canvases. Cameras control the viewport for each page, tracking zoom and pan position. Instance records store per-user editor settings that shouldn't sync between collaborators. The record-based design means you can work with individual pieces of the document independently, making operations more efficient and easier to reason about.
+
+### Shape system and extensibility
+
+Every shape in tldraw extends from `TLBaseShape`, which establishes a common structure across all shape types. This base interface includes positioning properties (`x`, `y`, `rotation`), ordering information (`index`, `parentId`), visual attributes (`opacity`, `isLocked`), and a `props` object for shape-specific data. The separation between base properties and shape-specific props creates a clear contract: the editor handles all shapes uniformly through their base properties, while each shape type defines its own unique characteristics in its props.
+
+Shape extensibility comes from this uniform structure. When you create a custom shape, you define its props interface and validation schema, then register it with `createTLSchema()`. The editor automatically understands how to store, serialize, and migrate your custom shape because it follows the same base structure as built-in shapes. This architecture allows tldraw to support an unlimited variety of shape types—from simple geometric shapes to complex custom visualizations—without requiring changes to the core editor code.
+
+### Style properties and persistence
+
+Style properties are a special category of shape properties that persist across shape creation sessions. When you change a shape's color to red, tldraw remembers that choice and makes the next shape you create also red. This persistence creates a natural drawing experience where tools maintain their settings without requiring explicit configuration.
+
+The implementation uses the `StyleProp` class to define properties that should participate in this persistence system. Style properties can be enum-based (like selecting from a fixed set of colors) or free-form (like entering a numeric line width). The editor automatically tracks the last-used value for each style property and applies it when creating new shapes. Style properties also participate in batch operations—when you select multiple shapes and change their color, that change applies to all selected shapes, and the new color becomes the default for future shapes.
+
+This system works because style properties have unique identifiers and a defined type system. The schema collects all style properties from all registered shapes during initialization, creating a global registry of available styles. This registry enables features like the style panel UI, which shows all applicable styles for the current selection, and keyboard shortcuts that cycle through style values.
+
+### Bindings and shape relationships
+
+Bindings create dynamic relationships between shapes. The most common example is an arrow attached to a rectangle: the binding records the connection, and when the rectangle moves, the arrow automatically updates its endpoint to follow. Bindings are first-class records in the store, separate from the shapes they connect.
+
+A binding has a `fromId` (the shape creating the relationship), a `toId` (the target shape), and binding-specific properties that control the relationship's behavior. For arrow bindings, these properties include which arrow endpoint is bound (start or end), the normalized anchor position on the target shape, and whether the binding uses exact positioning or general anchoring. This separation of binding data from shape data means multiple arrows can bind to the same target without modifying that target, and the binding persists even if the shapes move to different pages (though the editor may choose to delete cross-page bindings).
+
+Bindings have their own lifecycle and validation rules. When a shape is deleted, the store automatically cleans up its associated bindings. When a bound-to shape moves, the editor can recalculate binding positions. Binding utilities (similar to shape utilities) define how specific binding types behave, making the binding system as extensible as the shape system.
+
+### Validation and runtime type safety
+
+TypeScript provides compile-time type checking, but tldraw documents can come from many sources: stored files, network synchronization, user imports, or even malicious inputs. Runtime validation ensures that data entering the store matches the expected schema, catching errors before they cause crashes or data corruption.
+
+The validation system uses `@tldraw/validate` to define validators for every property of every record type. These validators describe not just types but also constraints: a width must be a positive number, not just any number; a color must be one of the defined color values, not an arbitrary string. When data enters the store, validators check it against these rules and either accept the data, transform it to match the expected format, or reject it with a descriptive error.
+
+Validation behavior differs between development and production. In development, validators throw detailed errors to help you catch problems early. In production, validation is more forgiving, attempting to coerce invalid data into valid formats when possible to avoid breaking documents with minor issues. This balance maintains good developer experience during development while providing resilience in production environments.
+
+### Migrations and schema evolution
+
+Software evolves, and data structures change over time. A rectangle shape might gain a new `cornerRadius` property, or an arrow might change how it stores its binding information. Migrations are functions that transform old data into new formats, ensuring documents created with older tldraw versions continue to work with newer ones.
+
+Each migration has an `up` function (transform old data to new format) and optionally a `down` function (transform back to old format). Migrations are organized into sequences, with each migration identified by a unique ID. When loading a document, tldraw compares the document's version numbers with the current schema version and applies any necessary migrations in order. This system handles both simple changes (adding a property with a default value) and complex transformations (restructuring data or computing new values from existing data).
+
+Migrations exist at multiple levels. Store-level migrations handle structural changes to the overall database. Record-level migrations transform individual record types. Props-level migrations modify just the props object of shapes or bindings. This hierarchy matches how the schema is organized, making it clear where each migration should live. The migration system tracks version history and dependencies, ensuring migrations always run in the correct order and that documents never skip necessary transformations.
+
+### Asset management and external resources
+
+Shapes can reference external resources like images, videos, and web page previews. Rather than storing binary data directly in the document, tldraw uses an asset system that separates metadata (stored as asset records) from the actual binary data (stored separately in an asset store).
+
+An asset record contains information about the resource: its dimensions, MIME type, source URL, and any other metadata needed to display it. Image shapes reference image assets by ID, video shapes reference video assets, and bookmark shapes reference bookmark assets. This separation keeps the document store lightweight and enables efficient asset management—multiple shapes can reference the same asset without duplicating data, and assets can be stored in optimal locations like CDNs or local caches.
+
+The `TLAssetStore` interface defines how to handle asset operations. When a user adds an image, the `upload` function processes it and returns a URL. When rendering a shape, the `resolve` function converts the asset record into the actual URL to display. This abstraction allows tldraw to work with any storage backend: local IndexedDB for offline applications, cloud storage for collaboration, or custom CDNs for production deployments. The asset system handles lifecycle management, including cleanup when assets are no longer referenced by any shapes.
+
+## API patterns
+
+### Creating schemas
+
+#### Using default shapes
+
+Most applications use tldraw's built-in shapes and bindings:
+
+```typescript
+import { createTLSchema, defaultShapeSchemas, defaultBindingSchemas } from '@tldraw/tlschema'
+import { Store } from '@tldraw/store'
+
+const schema = createTLSchema({
+	shapes: defaultShapeSchemas,
+	bindings: defaultBindingSchemas,
+})
+
+const store = new Store({ schema })
+```
+
+This gives you all default shapes (arrow, bookmark, draw, embed, frame, geo, group, highlight, image, line, note, text, video) and arrow bindings.
+
+#### Creating a minimal schema
+
+For applications that only need specific shapes:
+
+```typescript
+import { createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema'
+
+const minimalSchema = createTLSchema({
+	shapes: {
+		geo: defaultShapeSchemas.geo,
+		text: defaultShapeSchemas.text,
+		arrow: defaultShapeSchemas.arrow,
+	},
+	bindings: {
+		arrow: defaultBindingSchemas.arrow,
+	},
+})
+```
+
+This creates a schema with only geometric shapes, text, and arrows—useful for diagramming applications that don't need media embeds or drawing tools.
+
+#### Adding custom shapes
+
+To add your own shape type to the schema:
+
+```typescript
+import {
+	createTLSchema,
+	defaultShapeSchemas,
+	TLBaseShape,
+	RecordProps,
+	StyleProp,
+	DefaultColorStyle,
+	createShapePropsMigrationSequence,
+	createShapePropsMigrationIds,
+} from '@tldraw/tlschema'
+import { T } from '@tldraw/validate'
+
+// 1. Define your shape's interface
+interface TLCustomShape extends TLBaseShape<'custom', TLCustomShapeProps> {}
+
+interface TLCustomShapeProps {
+	// Style properties (shared across shapes)
+	color: TLDefaultColorStyle
+	customStyle: T.TypeOf<typeof CustomStyleProp>
+
+	// Regular properties (shape-specific)
+	width: number
+	height: number
+	cornerRadius: number
+}
+
+// 2. Define any custom style properties
+const CustomStyleProp = StyleProp.defineEnum('myapp:custom-style', {
+	defaultValue: 'solid',
+	values: ['solid', 'gradient', 'pattern'],
+})
+
+// 3. Create the props validator
+const customShapeProps: RecordProps<TLCustomShape> = {
+	color: DefaultColorStyle,
+	customStyle: CustomStyleProp,
+	width: T.positiveNumber,
+	height: T.positiveNumber,
+	cornerRadius: T.number,
+}
+
+// 4. Create migrations (required even if empty)
+const customShapeVersions = createShapePropsMigrationIds('custom', {
+	Initial: 1,
+})
+
+const customShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: customShapeVersions.Initial,
+			up: (props) => props, // No changes needed for initial version
+			down: (props) => props,
+		},
+	],
+})
+
+// 5. Register in schema
+const schema = createTLSchema({
+	shapes: {
+		...defaultShapeSchemas,
+		custom: {
+			props: customShapeProps,
+			migrations: customShapeMigrations,
+		},
+	},
+})
+```
+
+After defining your shape schema, you'll also need to create a `ShapeUtil` class in your editor code to handle rendering and interactions (see `@tldraw/editor` documentation).
+
+#### Augmenting the type system
+
+TypeScript needs to know about your custom shapes for proper type checking. Augment the global type map:
+
+```typescript
+declare module '@tldraw/tlschema' {
+	interface TLGlobalShapePropsMap {
+		custom: TLCustomShapeProps
+	}
+}
+```
+
+This makes your custom shape available in the `TLShape` union type, enabling type-safe shape access throughout your application.
+
+### Validation
+
+#### How validation works
+
+Validators are defined using `@tldraw/validate`, which provides runtime type checking:
+
+```typescript
+import { T } from '@tldraw/validate'
+
+// Simple validators
+const numberValidator = T.number
+const stringValidator = T.string
+const booleanValidator = T.boolean
+
+// Compound validators
+const positiveNumber = T.positiveNumber
+const nonZeroNumber = T.nonZeroNumber
+const linkUrl = T.linkUrl
+
+// Object validators
+const shapeValidator = T.object({
+	id: shapeIdValidator,
+	type: T.literal('geo'),
+	x: T.number,
+	y: T.number,
+	props: T.object({
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+	}),
+})
+```
+
+When creating shape props validators, map each property to its validator:
+
+```typescript
+const geoShapeProps: RecordProps<TLGeoShape> = {
+	geo: GeoShapeGeoStyle, // Style property validator
+	w: T.nonZeroNumber, // Must be non-zero
+	h: T.nonZeroNumber, // Must be non-zero
+	url: T.linkUrl, // Must be valid URL or empty
+	richText: richTextValidator, // Complex custom validator
+	color: DefaultColorStyle, // Style property validator
+}
+```
+
+#### Custom validators
+
+For complex types, create custom validators:
+
+```typescript
+import { T } from '@tldraw/validate'
+
+// Validator for a custom complex type
+const customDataValidator = T.object({
+	version: T.number,
+	items: T.arrayOf(
+		T.object({
+			id: T.string,
+			value: T.number,
+		})
+	),
+})
+```
+
+Use these custom validators in your shape props just like built-in validators.
+
+### Migrations
+
+#### Migration types
+
+There are three levels of migrations:
+
+**Store-level migrations** (`store-migrations.ts`) handle structural changes to the store itself, like adding new record types or changing how records relate to each other.
+
+**Record-level migrations** handle changes to a specific record type's structure:
+
+```typescript
+import { createRecordMigrationSequence, createMigrationIds } from '@tldraw/store'
+
+const versions = createMigrationIds('shape', {
+	AddOpacity: 1,
+	AddMeta: 2,
+})
+
+const shapeMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw.shape',
+	recordType: 'shape',
+	sequence: [
+		{
+			id: versions.AddOpacity,
+			up: (record) => {
+				record.opacity = 1
+				return record
+			},
+			down: (record) => {
+				delete record.opacity
+				return record
+			},
+		},
+	],
+})
+```
+
+**Props-level migrations** handle changes to a shape's properties object:
+
+```typescript
+const geoShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: geoShapeVersions.AddUrlProp,
+			up: (props) => {
+				props.url = ''
+			},
+			down: 'retired', // Old down migrations can be retired
+		},
+		{
+			id: geoShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
+		},
+	],
+})
+```
+
+#### Writing migrations
+
+When you change a shape's structure, add a migration:
+
+```typescript
+const customShapeVersions = createShapePropsMigrationIds('custom', {
+	Initial: 1,
+	AddRadius: 2,
+	RenameRadiusToBorderRadius: 3,
+})
+
+const customShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: customShapeVersions.Initial,
+			up: (props) => props,
+			down: (props) => props,
+		},
+		{
+			id: customShapeVersions.AddRadius,
+			up: (props) => {
+				props.radius = 0
+			},
+			down: (props) => {
+				delete props.radius
+			},
+		},
+		{
+			id: customShapeVersions.RenameRadiusToBorderRadius,
+			up: (props) => {
+				props.borderRadius = props.radius
+				delete props.radius
+			},
+			down: (props) => {
+				props.radius = props.borderRadius
+				delete props.borderRadius
+			},
+		},
+	],
+})
+```
+
+Each migration needs:
+
+- **id**: A unique identifier following the pattern `sequenceId/version`
+- **up**: Function that transforms data from the old version to the new version
+- **down**: Function that transforms data back (can be `'retired'` for old migrations)
+
+#### Migration best practices
+
+**Always add migrations for schema changes.** Even small changes need migrations to ensure documents remain loadable.
+
+**Test migrations with real data.** Create test documents with the old schema, run the migration, and verify the result matches expectations.
+
+**Use descriptive migration names.** `AddUrlProp` is clearer than `Migration1`.
+
+**Retire old down migrations.** After a few months, you can replace old `down` functions with the string `'retired'`. This signals that the migration is too old for backward compatibility but must remain in the sequence for version tracking.
+
+**Handle edge cases gracefully.** If adding a required property, provide a sensible default. If transforming values, handle unexpected inputs:
+
+```typescript
+{
+  id: versions.MakeUrlsValid,
+  up: (props) => {
+    // Handle invalid URLs gracefully
+    if (!T.linkUrl.isValid(props.url)) {
+      props.url = ''
+    }
+  },
+}
+```
+
+**Group related changes into single migrations.** If you're adding three related properties, one migration that adds all three is clearer than three separate migrations.
+
+### Asset management
+
+#### Asset types
+
+**TLImageAsset** - Image metadata including dimensions, MIME type, source URL, and whether the image is animated.
+
+**TLVideoAsset** - Video metadata including dimensions, MIME type, source URL, duration, and thumbnail URL.
+
+**TLBookmarkAsset** - Web page preview metadata including title, description, favicon URL, and thumbnail image URL.
+
+#### Asset storage
+
+The `TLAssetStore` interface defines how to handle asset upload and resolution:
+
+```typescript
+interface TLAssetStore {
+	// Upload an asset and return its URL
+	upload(asset: TLAsset, file: File): Promise<{ src: string }>
+
+	// Resolve an asset to its current URL
+	resolve?(asset: TLAsset, context: TLAssetContext): Promise<string | null>
+
+	// Remove assets when they're no longer needed
+	remove?(assetIds: TLAssetId[]): Promise<void>
+}
+```
+
+You provide an asset store implementation when creating your editor. This abstraction allows tldraw to work with any storage backend—local IndexedDB, cloud storage services, or custom CDNs.
+
+### Working with records
+
+#### Creating shapes programmatically
+
+When working with tldraw's store directly, you create shape records:
+
+```typescript
+import { createShapeId } from '@tldraw/tlschema'
+
+const shapeId = createShapeId()
+
+const geoShape: TLGeoShape = {
+	id: shapeId,
+	typeName: 'shape',
+	type: 'geo',
+	x: 100,
+	y: 200,
+	rotation: 0,
+	index: 'a1',
+	parentId: 'page:main',
+	isLocked: false,
+	opacity: 1,
+	props: {
+		geo: 'rectangle',
+		w: 200,
+		h: 100,
+		color: 'black',
+		fill: 'solid',
+		dash: 'solid',
+		size: 'm',
+		font: 'draw',
+		align: 'middle',
+		verticalAlign: 'middle',
+		richText: toRichText('Hello World'),
+		labelColor: 'black',
+		url: '',
+		growY: 0,
+		scale: 1,
+	},
+	meta: {},
+}
+
+store.put([geoShape])
+```
+
+In practice, you'll usually use editor methods like `editor.createShape()` which handle default values and validation automatically.
+
+#### Type narrowing
+
+Use the generic `TLShape` type with a type parameter to narrow to specific shapes:
+
+```typescript
+function getShapeSize(shape: TLShape) {
+	if (shape.type === 'geo') {
+		// TypeScript doesn't narrow here automatically
+		const geoShape = shape as TLGeoShape
+		return { w: geoShape.props.w, h: geoShape.props.h }
+	}
+}
+
+// Better: use the generic parameter
+function getGeoSize(shape: TLShape<'geo'>) {
+	// TypeScript knows this is TLGeoShape
+	return { w: shape.props.w, h: shape.props.h }
+}
+```
 
 ## Key files
 
-- packages/tlschema/src/index.ts - Package entry
-- packages/tlschema/src/records/ - Record definitions
-- packages/tlschema/src/shapes/ - Shape schemas
-- packages/tlschema/src/store-migrations.ts - Store migrations
+- packages/tlschema/src/index.ts - Package exports
+- packages/tlschema/src/createTLSchema.ts - Schema creation and default schemas
+- packages/tlschema/src/TLStore.ts - Store type definitions
+- packages/tlschema/src/records/TLRecord.ts - Root record type union
+- packages/tlschema/src/records/TLShape.ts - Shape record and type system
+- packages/tlschema/src/records/TLBinding.ts - Binding record and type system
+- packages/tlschema/src/records/TLAsset.ts - Asset record and type system
+- packages/tlschema/src/shapes/TLBaseShape.ts - Base shape interface and validators
+- packages/tlschema/src/shapes/TLGeoShape.ts - Example shape implementation
+- packages/tlschema/src/styles/StyleProp.ts - Style property system
+- packages/tlschema/src/recordsWithProps.ts - Props validation types and utilities
+- packages/tlschema/src/store-migrations.ts - Store-level migrations
 
 ## Related
 
-- [Migrations](../architecture/migrations.md)
+- [Creating custom shapes](../guides/custom-shapes.md)
 - [@tldraw/store](./store.md)
+- [@tldraw/editor](./editor.md)
+- [@tldraw/validate](./validate.md)

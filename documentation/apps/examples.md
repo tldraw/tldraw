@@ -89,5 +89,5 @@ yarn e2e
 
 - [Repository overview](../overview/repository-overview.md)
 - [Writing examples guide](../../apps/examples/writing-examples.md)
-- [@tldraw/tldraw package](../packages/tldraw.md)
-- [@tldraw/editor package](../packages/editor.md)
+- [`@tldraw/tldraw` package](../packages/tldraw.md)
+- [`@tldraw/editor` package](../packages/editor.md)
