@@ -1,73 +1,54 @@
 # Perfect dash patterns
 
-Set `stroke-dasharray: 10 5` on an SVG path and you'll get dashes. But they'll look wrong. The pattern will end mid-dash, leaving an ugly stump at the endpoint. Or it will have uneven spacing because 10+5 doesn't divide evenly into your path length. The browser doesn't care—it just repeats the pattern until it runs out of path.
+When we added dashed lines to tldraw, we wanted them to look right—complete dashes at both ends, even spacing, corners that line up on rectangles. SVG's `stroke-dasharray` doesn't do this. The browser just tiles your pattern until it runs out of path.
 
-Tldraw's shapes need dashes that look intentional. That means calculating exact dash and gap lengths so the pattern "fits" the path, with whole dashes meeting at clean boundaries.
+Set `stroke-dasharray: 4 4` on a 100-pixel line and you get 12.5 repetitions—twelve complete dash-gap cycles, then half a dash that cuts off mid-stroke. It's subtle, but it makes shapes look mechanical rather than designed.
 
-## The naive approach fails
+You can't fix this by tweaking the dash length. You need complete cycles that exactly fill the path, and closed shapes need the pattern to meet where the path closes. So we wrote `getPerfectDashProps` to figure this out automatically.
 
-Consider a 100-pixel line with a 2-pixel stroke. You want dashes roughly 4 pixels long (twice the stroke width) with equal gaps. The naive approach:
+## Working backwards
 
-```typescript
-strokeDasharray = "4 4"  // 4px dash, 4px gap
-```
+The trick is counterintuitive: instead of specifying a dash length and seeing how many fit, you calculate how many dashes _should_ fit, then adjust lengths to fill the space exactly.
 
-A 4+4=8 pixel pattern repeats 12.5 times in 100 pixels. That half-repetition means the line ends somewhere in the middle of a gap, or worse, mid-dash. It looks like a rendering bug.
-
-## Fitting dashes to the path
-
-The solution is to work backwards: given a path length, figure out how many complete dash-gap cycles fit, then adjust the dash and gap lengths to exactly fill the space.
+Start with a target dash length (usually a multiple of stroke width), then figure out how many complete cycles fit:
 
 ```typescript
-// Start with the desired dash length based on stroke width
-let dashLength = Math.min(strokeWidth * lengthRatio, totalLength / 4)
+// Desired dash length based on stroke width
+let dashLength = strokeWidth * 2
 
-// Calculate how many complete cycles fit
-dashCount = Math.floor(totalLength / dashLength / (2 * ratio))
+// How many complete cycles fit?
+let dashCount = Math.floor(totalLength / dashLength / 2)
 
-// Now recalculate dash length to exactly fill the path
-dashLength = totalLength / dashCount / (2 * ratio)
+// Recalculate dash length to exactly fill the space
+dashLength = totalLength / dashCount / 2
 ```
 
-The `ratio` parameter handles dotted vs dashed styles. For dashed lines, `ratio` is 1, meaning equal dash and gap lengths. For dots, `ratio` is 100—the "dash" is tiny (1% of the pattern) and the gap is huge (99%).
-
-After calculating dash length, the gap becomes whatever's left:
+Then calculate gaps to fill what's left:
 
 ```typescript
 if (closed) {
 	gapLength = (totalLength - dashCount * dashLength) / dashCount
 } else {
-	gapLength = (totalLength - dashCount * dashLength) / Math.max(1, dashCount - 1)
+	gapLength = (totalLength - dashCount * dashLength) / (dashCount - 1)
 }
 ```
 
-Open paths have one fewer gap than dashes (the endpoints don't need gaps beyond them), while closed paths have equal numbers of each.
+Open paths have one fewer gap than dashes—the endpoints don't need gaps beyond them. Closed paths have equal numbers since the pattern wraps around.
 
-## Terminal handling
+## Endpoints and corners
 
-Where should the dash pattern start and end? For a simple line, you probably want the stroke to begin and end with a solid dash, not a gap. For a shape's outline, you might want the pattern to look continuous around corners.
-
-The `start` and `end` parameters control this with three modes:
-
-- **outset**: Extend the path length virtually so the dash pattern starts/ends outside the visible stroke. This creates the illusion of a complete dash at each endpoint.
-- **skip**: Remove a full dash length from consideration at the endpoint, starting/ending with a gap.
-- **none**: No adjustment—the pattern starts exactly at the path start.
+For open paths, you want dashes at both endpoints, not gaps. We fake this by treating the path as slightly longer than it actually is:
 
 ```typescript
-if (start === 'outset') {
-	totalLength += dashLength / 2
-	strokeDashoffset += dashLength / 2
-} else if (start === 'skip') {
-	totalLength -= dashLength
-	strokeDashoffset -= dashLength
-}
+// Virtually extend the path so dashes appear at endpoints
+totalLength += dashLength / 2 // at start
+totalLength += dashLength / 2 // at end
+
+// Offset the pattern to center it
+strokeDashoffset = dashLength / 2
 ```
 
-The `strokeDashoffset` shifts where the dash pattern begins along the path. By combining length adjustments with offset, we control exactly which part of the dash cycle appears at each endpoint.
-
-## Closed paths need centering
-
-For closed shapes like rectangles or ellipses, the dash pattern must meet up with itself. If you start at the "beginning" of a closed path, the last dash must flow seamlessly into the first.
+For closed shapes like rectangles, the pattern has to meet where the path closes. A half-dash offset centers the pattern on the closure point, hiding the seam:
 
 ```typescript
 if (closed) {
@@ -75,70 +56,37 @@ if (closed) {
 }
 ```
 
-Starting with a half-dash offset means the pattern is centered on the path's start point. The "seam" where the path closes falls in the middle of a dash rather than at a gap boundary, making it invisible.
+## Short paths
 
-## Short path edge cases
-
-What happens when the path is shorter than a reasonable dash pattern? A 10-pixel line with 8-pixel dashes would look absurd.
+Very short paths are tricky. If the math says "fit 1.5 dashes," what do you actually render?
 
 ```typescript
-if (dashCount < 3 && style === 'dashed') {
+if (dashCount < 3) {
 	if (totalLength / strokeWidth < 4) {
-		// Path is very short—just make it solid
-		dashLength = totalLength
-		dashCount = 1
-		gapLength = 0
+		// Very short—just make it solid
+		return solid line
 	} else {
-		// Fall back to thirds: dash, gap, dash
-		dashLength = totalLength * (1 / 3)
-		gapLength = totalLength * (1 / 3)
+		// Short but not tiny—force three segments: dash, gap, dash
+		dashLength = totalLength / 3
+		gapLength = totalLength / 3
 	}
 }
 ```
 
-Very short paths become solid. Somewhat short paths get exactly three segments: dash, gap, dash. This looks intentional rather than broken.
+A tiny line becomes solid. A short line gets a minimal dash pattern. Either way, the result looks intentional rather than broken.
 
-## Snap for visual alignment
+Dotted lines use the same approach with a twist: the "dash" is nearly invisible (1/100th of stroke width) and rendered with `stroke-linecap: round` to create circles. We just calculate gap lengths to space the dots evenly.
 
-When multiple paths need aligned dash patterns (like parallel lines), the `snap` parameter rounds the dash count to a multiple:
+## In practice
 
-```typescript
-dashCount -= dashCount % snap
-```
+`getPerfectDashProps` also handles terminal styles (outset, skip, none), alignment snapping for parallel lines, and dotted vs dashed rendering. The core idea stays the same—work backwards from how many cycles should fit, then adjust lengths to match.
 
-With `snap: 4`, dash counts round to 4, 8, 12, etc. Two lines of slightly different lengths will have patterns that align at regular intervals.
+`PathBuilder` applies this to complex shapes by treating each edge separately. A rectangle's four sides each get their own dash calculation rather than flowing the pattern around corners.
 
-## Usage in practice
-
-The function returns two strings ready for SVG attributes:
-
-```typescript
-const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-	pathLength,
-	strokeWidth,
-	{ style: 'dashed', lengthRatio: 2 }
-)
-
-return <path strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
-```
-
-The `PathBuilder` class uses this to render each segment of dashed shapes. For complex paths with multiple segments (like a rectangle's four sides), each segment gets its own calculated dash props. This prevents dashes from flowing around corners—instead, each edge gets its own clean pattern that starts and ends appropriately.
-
-## The dotted variation
-
-Dotted lines use the same algorithm with `ratio: 100` and a tiny base dash length:
-
-```typescript
-case 'dotted': {
-	ratio = 100
-	dashLength = strokeWidth / ratio  // Nearly zero
-}
-```
-
-With `linecap: round`, these near-zero dashes become circles. The algorithm then calculates gap lengths so these dots are evenly distributed along the path, using the same snapping logic to ensure whole numbers of dots.
+The cost is computational—we're calculating lengths and offsets for every dashed path at render time. But shapes end up looking designed rather than mechanically generated, and for a drawing tool, that's worth it.
 
 ## Key files
 
-- `packages/editor/src/lib/editor/shapes/shared/getPerfectDashProps.ts` — The dash calculation algorithm
-- `packages/tldraw/src/lib/shapes/shared/PathBuilder.tsx` — Integration with shape rendering (`toDashedSvg` method)
-- `packages/editor/src/lib/editor/shapes/group/DashedOutlineBox.tsx` — Usage for selection outlines
+- `/packages/editor/src/lib/editor/shapes/shared/getPerfectDashProps.ts` — The dash calculation algorithm
+- `/packages/tldraw/src/lib/shapes/shared/PathBuilder.tsx` — Integration with shape rendering (see `toDashedSvg` method)
+- `/packages/editor/src/lib/editor/shapes/group/DashedOutlineBox.tsx` — Usage example for selection outlines

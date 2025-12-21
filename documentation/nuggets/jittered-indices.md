@@ -1,8 +1,22 @@
+---
+title: Jittered fractional indices
+created_at: 12/20/2025
+updated_at: 12/21/2025
+keywords:
+  - fractional indexing
+  - z-order
+  - multiplayer
+  - offline
+  - sync
+  - collision
+  - randomness
+---
+
 # Jittered fractional indices
 
-Two users go offline. Both add a shape to the same canvas position. Both come back online. Their shapes stack on top of each other with identical z-indices, flickering between which one appears on top depending on sync order. This happened often enough in real usage that we needed to fix it.
+Two users go offline. Both add a shape to the same canvas position. Both come back online. Their shapes stack on top of each other with identical z-indices, flickering between which one appears on top depending on sync order. This happened often enough in production that we needed to fix it.
 
-The problem is that fractional indexing—our solution for ordering shapes without renumbering everything—is deterministic. Given the same inputs, it produces the same output. That's usually fine, but breaks down in offline-first multiplayer.
+The problem: fractional indexing—our solution for ordering shapes without renumbering everything—is deterministic. Given the same inputs, it produces the same output. That's usually fine, but breaks down in offline-first multiplayer.
 
 ## Why fractional indices
 
@@ -16,11 +30,11 @@ getIndexBetween('a1', 'a2') // Returns 'a1V'
 getIndexBetween('a1', 'a1V') // Returns 'a1G'
 ```
 
-This solves the renumbering problem completely. No matter how many shapes exist or where you want to insert, you generate a single new index that slots into the right position without touching anything else.
+This solves the renumbering problem completely. No matter how many shapes exist or where you want to insert, you generate a single new index that slots into position without touching anything else.
 
 ## The collision scenario
 
-But deterministic generation creates collisions in offline scenarios:
+Deterministic generation creates collisions in offline scenarios:
 
 1. Alice and Bob both have shapes at indices `'a1'` and `'a2'`
 2. Both users go offline
@@ -35,7 +49,7 @@ This wasn't theoretical—we saw it regularly in production, especially when mul
 
 ## Adding randomness
 
-The fix is straightforward: add random bits to the generated index. Instead of always producing `'a1V'`, generate `'a1V8tX'` or `'a1VK3p'` or any of billions of other values between `'a1'` and `'a2'`. The indices still sort correctly—they're all between the bounds—but collisions become vanishingly rare.
+We add random bits to the generated index. Instead of always producing `'a1V'`, we generate `'a1V8tX'` or `'a1VK3p'` or any of billions of other values between `'a1'` and `'a2'`. The indices still sort correctly—they're all between the bounds—but collisions become vanishingly rare.
 
 We use the `jittered-fractional-indexing` package, which generates indices with 30 bits of entropy by default:
 
@@ -51,7 +65,7 @@ generateNKeysBetween('a1', 'a2', 1, { jitterBits: 0 })
 // Always returns ['a1V']
 ```
 
-In production, jitter is always enabled. In tests, we disable it so test results are reproducible.
+In production, jitter is always enabled. In tests, we disable it so results are reproducible.
 
 ## The math
 
@@ -59,11 +73,11 @@ With 30 bits of entropy, there are 2^30 = 1,073,741,824 possible values between 
 
 For typical usage—two users inserting concurrently—the collision probability is roughly 1 in 537 million. At these odds, collisions should be extremely rare in practice.
 
-The tradeoff is that jittered indices are about 3 characters longer on average. A deterministic index might be `'a1V'` while a jittered one might be `'a1VK3p7q'`. Given that the alternative is shapes stacking unpredictably in multiplayer scenarios, this is trivial.
+The tradeoff: jittered indices are about 3 characters longer on average. A deterministic index might be `'a1V'` while a jittered one might be `'a1VK3p7q'`. Given that the alternative is shapes stacking unpredictably in multiplayer, this is trivial.
 
-## Implementation details
+## How the jittering works
 
-The jittering works by binary splitting. To add one bit of entropy:
+The algorithm uses binary splitting. To add one bit of entropy:
 
 1. Generate a midpoint index between the lower and upper bounds
 2. With 50% probability, either:
@@ -71,9 +85,13 @@ The jittering works by binary splitting. To add one bit of entropy:
    - Generate a key between the midpoint and the upper bound
 3. This gives you one random bit
 
-For 30 bits, repeat this process 30 times, narrowing the range each time. The result is a uniformly distributed random position within the original bounds.
+For 30 bits, repeat this 30 times, narrowing the range each time. The result is a uniformly distributed random position within the original bounds.
 
 This runs in O(jitterBits) time—for 30 bits of jitter, we call the base fractional indexing algorithm 31 times. At human scale this is imperceptible. At massive scale (thousands of concurrent insertions) you might consider fewer jitter bits, but we've never hit this limit.
+
+## A small cost for a big win
+
+Three extra characters per index is a trivial cost. The flickering z-order bugs were genuinely confusing for users—shapes would appear to jump between layers unpredictably, and different users would see different stacking orders for the same document. The randomness eliminates this entire class of problem while remaining invisible to users.
 
 ## Key files
 

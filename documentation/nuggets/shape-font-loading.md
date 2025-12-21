@@ -1,34 +1,36 @@
-# Coalescing async operations with microtask batching
+# Microtask batching for font loading
 
-When many components request the same async resource during a single render pass, you can end up with duplicate requests, redundant state updates, and UI flickering. The microtask batching pattern solves this by accumulating requests synchronously and processing them once in a single batch. This nugget shows how tldraw uses `queueMicrotask` to load fonts efficiently, but the pattern applies to any scenario where multiple components might trigger the same async work.
+When dozens of text shapes mount simultaneously during document load, each requests fonts independently. Without coordination, you create duplicate `FontFace` objects, trigger redundant network requests, and fire separate state updates for each shape—causing visible flicker as shapes pop in one by one.
 
-## The synchronous render problem
+Tldraw solves this with microtask batching: accumulate all font requests synchronously during React's render pass, then load them together in a single batch. The trick is `queueMicrotask`, which runs after all synchronous code completes but before the browser yields control. This timing lets you see every request before processing any of them.
 
-React renders all components in a single synchronous pass. When components mount simultaneously and each triggers an async operation, there's no natural opportunity to deduplicate. Consider loading a document with dozens of text shapes that all use the same handwriting font:
+## The render coordination problem
+
+React renders all components in a single synchronous burst. When shapes mount and each requests fonts, there's no natural pause to deduplicate:
 
 ```typescript
 // Each shape mounts and requests fonts
 useEffect(() => {
 	const fonts = getFontsForShape(shape)
-	fonts.forEach((font) => loadFont(font)) // Duplicate requests!
+	fonts.forEach((font) => loadFont(font)) // Duplicate work
 }, [shape])
 ```
 
-Every shape fires its own `loadFont` call. Even if you track loaded fonts to avoid redundant network requests, you still create multiple `FontFace` objects and trigger multiple state updates. The result is cascade rendering: shapes pop in one by one as each completes its independent font load, causing visible flicker.
+Even if `loadFont` checks whether a font is already loading, you still trigger multiple state updates—one per shape. Shape A's font finishes loading, causing a re-render. Then shape B's, then C's. The cascade creates flicker.
 
-The core issue is timing. All the synchronous render code executes in one burst, leaving no chance to see which fonts multiple shapes need and deduplicate before starting loads.
+You need to batch the requests before any loading begins, but all the `useEffect` calls happen synchronously in the same event loop tick.
 
-## Why queueMicrotask is perfect for batching
+## Microtask timing
 
-The JavaScript event loop has three phases where work can be scheduled:
+The JavaScript event loop schedules work in three phases:
 
 1. **Synchronous code** - Runs immediately in the current task
-2. **Microtasks** - Run after the current synchronous code, before the next task
+2. **Microtasks** - Run after synchronous code, before the next task
 3. **Tasks** (setTimeout, setImmediate) - Run in future event loop iterations
 
-`queueMicrotask` schedules work to run after all synchronous code completes, but before the browser yields control. This timing is perfect for batching: collect requests synchronously, then process them all at once in a microtask.
+`queueMicrotask` schedules work to run after all synchronous code completes, but before the browser yields. This is the perfect moment to process accumulated requests.
 
-Here's how tldraw's `FontManager` uses this pattern:
+Here's tldraw's `FontManager.requestFonts`:
 
 ```typescript
 // packages/editor/src/lib/editor/managers/FontManager/FontManager.ts
@@ -52,68 +54,9 @@ requestFonts(fonts: TLFontFace[]) {
 }
 ```
 
-The first call to `requestFonts` schedules a microtask, then immediately adds its fonts to the set. Subsequent calls during the same synchronous execution skip scheduling (the set already has items) and just add their fonts. The `Set` naturally deduplicates identical font requests.
+The first call schedules a microtask, then adds its fonts to the set. Subsequent calls during the same synchronous execution skip scheduling (the set already has items) and just add fonts. The `Set` naturally deduplicates.
 
-When all synchronous code finishes, the microtask runs and processes every accumulated font in one batch. The `transact` wrapper (from tldraw's reactive state library) groups all the state updates from font loading into a single notification, so dependent components re-render once instead of many times.
-
-## Applying the pattern to other async operations
-
-This pattern works for any async operation where multiple components might request the same resource:
-
-**Image preloading:**
-
-```typescript
-private imagesToLoad = new Set<string>()
-
-requestImage(url: string) {
-  if (!this.imagesToLoad.size) {
-    queueMicrotask(() => {
-      const urls = this.imagesToLoad
-      this.imagesToLoad = new Set()
-      this.loadImagesInBatch(Array.from(urls))
-    })
-  }
-  this.imagesToLoad.add(url)
-}
-```
-
-**API data fetching:**
-
-```typescript
-private idsToFetch = new Set<string>()
-
-requestEntity(id: string) {
-  if (!this.idsToFetch.size) {
-    queueMicrotask(() => {
-      const ids = Array.from(this.idsToFetch)
-      this.idsToFetch = new Set()
-      // Batch API request for all IDs at once
-      this.fetchEntitiesByIds(ids)
-    })
-  }
-  this.idsToFetch.add(id)
-}
-```
-
-**GraphQL query batching:**
-
-```typescript
-private pendingQueries = new Map<string, QueryConfig>()
-
-query(config: QueryConfig) {
-  if (!this.pendingQueries.size) {
-    queueMicrotask(() => {
-      const queries = Array.from(this.pendingQueries.values())
-      this.pendingQueries = new Map()
-      // Combine into a single GraphQL request
-      this.executeBatchQuery(queries)
-    })
-  }
-  this.pendingQueries.set(config.id, config)
-}
-```
-
-The pattern is the same in all cases: check if the queue is empty (no microtask scheduled yet), schedule one if needed, add the current request to the queue, and let the microtask process everything in batch.
+When synchronous code finishes, the microtask processes every accumulated font in one batch. The `transact` wrapper groups all state updates from font loading into a single notification, so dependent components re-render once instead of cascading.
 
 ## How shapes request fonts
 
@@ -211,13 +154,15 @@ CSS `@font-face` rules load fonts lazily when the browser first encounters text 
 
 By managing font loading explicitly with the batching pattern, tldraw measures text with correct fonts, embeds fonts in exports reliably, and integrates font readiness into the reactive render cycle.
 
-## The tradeoff: timing assumptions
+## When microtask batching breaks down
 
-Microtask batching assumes all requests happen in a single synchronous execution. If requests arrive asynchronously (after awaiting a promise, for example), you might batch some but miss others. This is fine for font loading during initial render, but wouldn't work if fonts were requested from async effects.
+Microtask batching assumes all requests arrive during a single synchronous execution. If fonts are requested asynchronously—after awaiting a promise or in a setTimeout callback—they miss the batch. Each async request schedules its own microtask, defeating the purpose.
 
-The pattern also adds a small delay (one microtask) before processing begins. For fonts, this is negligible—the network request dominates. For operations where immediate execution matters, you'd need a different approach.
+This is fine for tldraw's use case. Shapes mount synchronously during React's render pass, so all font requests arrive together. But if you're loading shapes asynchronously (fetching from an API, for example), you'd either need to batch at a different level or accept that late arrivals load independently.
 
-Still, when you have multiple components triggering the same async work during synchronous execution, microtask batching is a simple, elegant solution. One small timing trick eliminates duplicate work and coordinates state updates.
+The pattern also delays processing by one microtask. For fonts, this is negligible—network time dominates. But if immediate execution matters, batching adds unwanted latency.
+
+Despite these constraints, microtask batching is remarkably effective for its specific problem: coordinating duplicate synchronous requests. One timing trick eliminates redundant work and flicker.
 
 ## Key files
 

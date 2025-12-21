@@ -13,9 +13,11 @@ keywords:
 
 # Incremental bindings index
 
-Bindings connect shapes to each other. An arrow bound to a rectangle needs to know about that connection so it can update when the rectangle moves. But finding all bindings for a given shape requires searching through every binding in the document—expensive when you have thousands. The bindings index solves this with a lookup table: given a shape ID, instantly get all bindings connected to it.
+Bindings connect shapes to each other. When an arrow binds to a rectangle, the arrow needs to know about that connection so it can update when the rectangle moves. Finding all bindings for a shape requires iterating through every binding in the document. With a handful of arrows, that's fine. With hundreds or thousands, it becomes a performance problem—especially when you need to do this lookup every time something changes.
 
-The problem is keeping this index updated. Every time a binding changes, the index must reflect that change. A naive approach rebuilds the entire index from scratch on every change. With thousands of bindings, that's thousands of iterations just because one arrow moved. tldraw uses a smarter approach: track what changed since the last computation and apply only those changes.
+The bindings index solves this with a `Map<TLShapeId, TLBinding[]>` that maps each shape to all its bindings. Given a shape ID, you get all connected bindings instantly. But now there's a different problem: keeping the index updated. Every time a binding changes, the index must reflect that change. The naive approach is to rebuild the entire index from scratch—iterate through all bindings and construct a fresh map. With thousands of bindings, that means thousands of iterations just because one arrow moved.
+
+tldraw uses incremental updates instead. Rather than rebuilding the whole index, the system tracks what changed since the last computation and applies only those changes. An arrow moves? Update just that binding in the index. This turns an O(N) operation into O(1) for the common case.
 
 ## The data structure
 
@@ -32,11 +34,11 @@ This bidirectional indexing means any shape can instantly look up all its connec
 
 ## Epochs and diff history
 
-The signals system tracks changes using epoch numbers. Every time state changes, a global epoch counter increments. Each computed signal remembers the epoch when it was last computed. To check if the computation is stale, compare your last computed epoch against your dependencies' last changed epochs.
+The signals system tracks when things change using epoch numbers—a global counter that increments with every state change. Each computed signal remembers the epoch when it last ran. To check if a computation is stale, compare your last computed epoch against your dependencies' last changed epochs.
 
-For the bindings index, this enables incremental updates. The store maintains a diff history—a log of what bindings were added, updated, or removed. When the index recomputes, it can ask: "What changed since epoch N?" If the diff history has that information, we apply just those changes. If not—maybe too many changes happened and the history buffer overflowed—we fall back to rebuilding from scratch.
+This enables incremental updates for the bindings index. The store maintains a diff history: a log of what records were added, updated, or removed. When the index recomputes, it asks: "What changed since epoch N?" If the diff history has that information, apply just those changes. If not—maybe the history buffer overflowed—fall back to rebuilding from scratch.
 
-The `filterHistory` method provides this capability, returning a computed signal that tracks changes for a specific record type:
+The `filterHistory` method provides this, returning a computed signal that tracks changes for a specific record type:
 
 ```typescript
 const bindingsHistory = store.query.filterHistory('binding')
@@ -45,25 +47,25 @@ const bindingsHistory = store.query.filterHistory('binding')
 const diff = bindingsHistory.getDiffSince(lastComputedEpoch)
 ```
 
+This returns either an array of diffs or a special `RESET_VALUE` sentinel.
+
 ## The RESET_VALUE sentinel
 
-`getDiffSince` returns either an array of diffs or a special `RESET_VALUE` sentinel. RESET_VALUE means "I can't tell you what changed—my history doesn't go back far enough." This happens in two cases:
+`RESET_VALUE` means "I can't tell you what changed—my history doesn't go back far enough." This happens in two cases:
 
 1. **First computation**: The signal has never run before, so there's no "last computed epoch" to compare against.
-2. **History overflow**: The circular history buffer has a fixed size. If more changes happened than the buffer can hold, older diffs get overwritten. Requesting diffs from before that point returns RESET_VALUE.
+2. **History overflow**: The circular history buffer has a fixed size (typically 100 entries). If more changes happened than the buffer can hold, older diffs get overwritten. Requesting diffs from before that point returns RESET_VALUE.
 
-The computed function checks for both cases:
+The computed function handles both:
 
 ```typescript
 computed('arrowBindingsIndex', (_lastValue, lastComputedEpoch) => {
-	// First computation ever
 	if (isUninitialized(_lastValue)) {
 		return fromScratch(bindingsQuery)
 	}
 
 	const diff = bindingsHistory.getDiffSince(lastComputedEpoch)
 
-	// History doesn't go back far enough
 	if (diff === RESET_VALUE) {
 		return fromScratch(bindingsQuery)
 	}
@@ -72,17 +74,16 @@ computed('arrowBindingsIndex', (_lastValue, lastComputedEpoch) => {
 })
 ```
 
-This pattern appears throughout tldraw's incremental computations. The history buffer provides diffs when it can, and the fallback to full recomputation handles edge cases gracefully.
+The incremental path is the optimization. The from-scratch path is correctness. You need both.
 
 ## Lazy copy-on-write
 
-The incremental update uses copy-on-write semantics to avoid unnecessary allocations. If nothing changed, return the exact same Map object. If something changed, create a new Map—but only copy the arrays that actually need modification:
+The incremental update uses copy-on-write semantics to avoid unnecessary allocations. If nothing changed, return the same Map object. If something changed, create a new Map—but only copy the arrays that need modification:
 
 ```typescript
 let nextValue: TLBindingsIndex | undefined = undefined
 
 function ensureNewArray(shapeId: TLShapeId) {
-	// Create new Map on first modification
 	nextValue ??= new Map(lastValue)
 
 	let result = nextValue.get(shapeId)
@@ -90,7 +91,6 @@ function ensureNewArray(shapeId: TLShapeId) {
 		result = []
 		nextValue.set(shapeId, result)
 	} else if (result === lastValue.get(shapeId)) {
-		// Still pointing to old array - make a copy
 		result = result.slice(0)
 		nextValue.set(shapeId, result)
 	}
@@ -98,9 +98,9 @@ function ensureNewArray(shapeId: TLShapeId) {
 }
 ```
 
-The `??=` operator is key here. `nextValue` stays `undefined` until we actually need to make a change. If the diff contains no relevant changes, we return the original `lastValue` unchanged, preserving reference equality for downstream consumers.
+The `??=` operator defers allocation. `nextValue` stays `undefined` until we actually need to make a change. If the diff contains no relevant changes, return the original `lastValue` unchanged. This preserves reference equality—downstream consumers see the same object and know nothing changed.
 
-The array copying check (`result === lastValue.get(shapeId)`) prevents mutation of shared arrays. When we create the new Map with `new Map(lastValue)`, both maps initially point to the same array objects. Before modifying an array, we check if it's still shared with the old value and copy it if so.
+The array copying check prevents mutation of shared arrays. When we create the new Map with `new Map(lastValue)`, both maps initially point to the same array objects. Before modifying an array, check if it's still shared with the old value. If so, copy it first.
 
 ## Applying the diff
 
@@ -140,9 +140,7 @@ getChangesSince(sinceEpoch: number): RESET_VALUE | Diff[] {
 
 		const [fromEpoch, toEpoch] = elem
 
-		// Found the range containing our epoch
 		if (fromEpoch <= sinceEpoch && sinceEpoch < toEpoch) {
-			// Return all diffs from here to the present
 			return collectDiffs(offset, i + 1)
 		}
 	}
@@ -151,7 +149,7 @@ getChangesSince(sinceEpoch: number): RESET_VALUE | Diff[] {
 }
 ```
 
-The buffer size determines how far back history is retained. tldraw uses `historyLength: 100` for most incremental computations—enough to handle typical edit sequences without overflow, small enough to keep memory usage reasonable.
+The buffer size determines how far back history is retained. tldraw uses `historyLength: 100` for most incremental computations. That's enough to handle typical edit sequences without overflow, small enough to keep memory usage reasonable. If you overflow the buffer, you fall back to from-scratch computation—not ideal for performance, but correct.
 
 ## Performance characteristics
 
@@ -160,15 +158,11 @@ For a document with N bindings:
 - **Full rebuild**: O(N) to iterate all bindings and build the index
 - **Incremental update**: O(D) where D is the number of changed bindings
 
-Most user actions change a small number of bindings—dragging a shape updates its arrow bindings, maybe a handful. Building the index incrementally turns an O(N) operation into O(1) for the common case.
+Most user actions change a small number of bindings. Dragging a shape updates its arrow bindings—maybe a handful. The incremental path turns an O(N) operation into O(1) for typical edits.
 
-The tradeoff is memory. We store the previous index value plus a history buffer of recent diffs. For tldraw's use case, this is a good tradeoff. Bindings are small, and the performance improvement for interactive editing is substantial.
+The tradeoff is memory and complexity. You store the previous index value plus a history buffer of recent diffs. You need fallback logic for RESET_VALUE cases. You need copy-on-write semantics to avoid unnecessary allocations. For tldraw, this is worth it. Bindings are small, the performance improvement for interactive editing is substantial, and the memory cost is modest.
 
-## Takeaways
-
-The incremental bindings index demonstrates a pattern used throughout tldraw: avoid unnecessary work by tracking what changed rather than recomputing everything. The epoch-based diff system, combined with copy-on-write semantics and graceful fallback to full recomputation, provides both correctness and performance. The memory cost is modest—a history buffer and previous state—but the payoff is huge for interactive editing where changes are typically localized.
-
-This pattern isn't free. It adds complexity in the form of history buffers, epoch tracking, and fallback logic. But for frequently-updated derived state in interactive applications, the tradeoff is worth it. The same approach powers indexes, queries, and other computed state across the editor.
+But the complexity is real. History buffers, epoch tracking, fallback logic—these aren't free. The pattern works for frequently-updated derived state in interactive applications. It would be overkill for data that rarely changes or where full recomputation is cheap. The same approach powers other indexes and queries across the editor: shape culling, selection queries, anything where you need fast lookups on data that changes incrementally.
 
 ## Key files
 

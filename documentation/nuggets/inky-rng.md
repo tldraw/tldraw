@@ -1,6 +1,19 @@
+---
+title: Seeded randomness for hand-drawn shapes
+created_at: 12/20/2025
+updated_at: 12/21/2025
+keywords:
+  - draw style
+  - randomness
+  - seeded RNG
+  - xorshift
+  - organic shapes
+  - hand-drawn
+---
+
 # Seeded randomness for hand-drawn shapes
 
-When shapes use the "draw" style, they look hand-drawn—imperfect lines with subtle wobbles and rounded corners. But the randomness can't actually be random. If it were, shapes would flicker and change appearance every time they rendered. Here's how we create organic-looking shapes that stay stable.
+When shapes use the "draw" style, they look hand-drawn—imperfect lines with subtle wobbles and rounded corners. But the randomness can't actually be random. If it were, shapes would flicker and change appearance every time they rendered. We need organic-looking shapes that stay stable.
 
 ## The stability problem
 
@@ -63,9 +76,9 @@ Same shape, same ID, same random sequence, same appearance. Different shapes get
 
 ## Applying the randomness
 
-The `toDrawD` method in `PathBuilder` applies the random offsets in two ways:
+The `toDrawD` method in `PathBuilder` applies random offsets in two ways.
 
-**Per-point jitter**: Each point along the path gets a random offset proportional to the stroke width:
+Each point along the path gets a random offset proportional to the stroke width:
 
 ```typescript
 // packages/tldraw/src/lib/shapes/shared/PathBuilder.tsx
@@ -73,7 +86,7 @@ const offset = { x: random() * offsetAmount, y: random() * offsetAmount }
 const offsetPoint = Vec.Add(command, offset)
 ```
 
-**Multiple passes**: By default, the path renders twice with different offsets. Each pass uses a modified seed (`randomSeed + pass`), creating slightly different jitter:
+By default, the path also renders twice with different offsets. Each pass uses a modified seed (`randomSeed + pass`), creating slightly different jitter:
 
 ```typescript
 for (let pass = 0; pass < passes; pass++) {
@@ -122,11 +135,11 @@ function getCloudPath(width, height, seed, size, scale, isFilled) {
 
 Each cloud with a different ID has differently-shaped bumps, but the same cloud always looks the same.
 
-## Why xorshift?
+## Why xorshift
 
-The xorshift algorithm is lightweight—just a few bitwise operations per call. For draw-style shapes, we might call `random()` hundreds of times per shape during rendering. A heavyweight PRNG like Mersenne Twister would be overkill. Xorshift gives us "good enough" randomness at minimal cost, and the bit patterns pass basic statistical tests for visual applications.
+The xorshift algorithm is lightweight—just a few bitwise operations per call. For draw-style shapes, we might call `random()` hundreds of times per shape during rendering. A heavyweight PRNG like Mersenne Twister would be overkill.
 
-The tradeoff is that xorshift isn't cryptographically secure, but we don't need that. We just need shapes that look hand-drawn and stay stable. The visual quality matters more than the mathematical properties.
+Xorshift isn't cryptographically secure, but we don't need that. We just need shapes that look hand-drawn and stay stable. Visual quality matters more than mathematical properties, and xorshift passes the basic statistical tests that matter for our use case.
 
 ## Key files
 
