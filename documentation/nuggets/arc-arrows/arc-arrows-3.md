@@ -6,6 +6,11 @@ keywords:
   - arrows
   - arcs
   - curves
+readability: 8
+voice: 8
+potential: 7
+accuracy: 8
+notes: 'Thorough edge case coverage. Opening questions are engaging. Verified: double-bound <30px check, offset flipping multipliers (-1.5, -2), clamping logic. Quite long - could be tightened.'
 ---
 
 # Arc arrows

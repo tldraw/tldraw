@@ -6,6 +6,11 @@ keywords:
   - arrows
   - arcs
   - curves
+readability: 9
+voice: 9
+potential: 8
+accuracy: 9
+notes: "Strong opening with Bezier failure mode. All code verified against source. 'One degree of freedom' insight is transferable. Comprehensive coverage of handle/body arc and intersection logic."
 ---
 
 # Arc arrows

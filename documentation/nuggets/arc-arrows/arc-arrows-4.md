@@ -5,6 +5,11 @@ updated_at: 12/21/2025
 keywords:
   - arc
   - arrows
+readability: 9
+voice: 9
+potential: 8
+accuracy: 9
+notes: "Concrete opening with resize scenario. Clear two-arc concept explanation. 'Separating logical intent from visual rendering' is transferable insight. All technical claims verified."
 ---
 
 # Two arcs: handle arc and body arc
@@ -35,8 +40,8 @@ interface TLArcArrowInfo {
 	start: TLArrowPoint
 	end: TLArrowPoint
 	middle: VecLike
-	handleArc: TLArcInfo   // user intent
-	bodyArc: TLArcInfo     // rendered result
+	handleArc: TLArcInfo // user intent
+	bodyArc: TLArcInfo // rendered result
 	isValid: boolean
 }
 ```

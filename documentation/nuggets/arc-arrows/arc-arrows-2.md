@@ -6,6 +6,11 @@ keywords:
   - arrows
   - arcs
   - curves
+readability: 8
+voice: 8
+potential: 7
+accuracy: 8
+notes: 'Clear handle/body arc explanation. Narrower focus than draft 1 - misses the Bezier problem framing that makes the solution compelling. Code examples are accurate but less complete.'
 ---
 
 # Arc arrows
