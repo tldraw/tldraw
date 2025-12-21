@@ -1,6 +1,68 @@
+---
+title: Nuggets
+created_at: 12/20/2024
+updated_at: 12/21/2025
+keywords:
+  - nuggets
+  - technical writing
+  - documentation
+---
+
 # Nuggets
 
 This section contains short, focused articles about interesting technical details within the tldraw library. These are "behind-the-scenes" explorations of implementation choices, surprising behaviors, and solutions to non-obvious problems.
+
+## Workflow
+
+Each nugget lives in a folder (e.g., `arc-arrows/`) containing:
+
+- `{topic}-raw.md` — Raw notes, research, and source material
+- `{topic}-1.md`, `{topic}-2.md`, etc. — Numbered drafts
+
+The workflow for creating and refining nuggets:
+
+1. **[Generate](./GENERATE.md)** — Create a draft from raw notes
+2. **[Evaluate](./EVALUATE.md)** — Score the draft and record in frontmatter
+3. **[Improve](./IMPROVE.md)** — Fix issues and create a new draft
+
+Repeat evaluate → improve until all scores reach 8+.
+
+## Frontmatter
+
+Every draft must have frontmatter:
+
+```yaml
+---
+title: Arc arrows
+created_at: 12/20/2024
+updated_at: 12/21/2024
+keywords:
+  - arrows
+  - arcs
+  - bezier
+---
+```
+
+After evaluation, scores and notes are added:
+
+```yaml
+---
+title: Arc arrows
+created_at: 12/20/2024
+updated_at: 12/21/2024
+keywords:
+  - arrows
+  - arcs
+  - bezier
+readability: 9
+voice: 9
+potential: 8
+accuracy: 10
+notes: 'Strong opening with bezier failure mode.'
+---
+```
+
+See [VOICE.md](./VOICE.md) for writing style guidelines.
 
 ## What belongs here
 
