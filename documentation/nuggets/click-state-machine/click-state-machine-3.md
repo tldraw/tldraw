@@ -1,3 +1,14 @@
+---
+title: Preventing race conditions with unique IDs
+created_at: 12/21/2025
+updated_at: 12/21/2025
+keywords:
+  - click
+  - state
+  - machine
+  - race conditions
+---
+
 # Preventing race conditions in click detection
 
 The first bug we hit with click detection was stale timeouts. A user would click twice quickly, then click somewhere else, and the double-click handler would fire on the wrong target. The old timeout was still running, and when it fired, it used outdated state.
@@ -41,8 +52,8 @@ We also discovered that double-click timing should differ from triple-click timi
 
 ```typescript
 state === 'idle' || state === 'pendingDouble'
-  ? this.editor.options.doubleClickDurationMs   // 450ms
-  : this.editor.options.multiClickDurationMs    // 200ms
+	? this.editor.options.doubleClickDurationMs // 450ms
+	: this.editor.options.multiClickDurationMs // 200ms
 ```
 
 The first double-click gets 450ms. Users deliberately perform double-clicks and often pause slightly before the second click. But once you're in a multi-click sequence, you're clicking rapidly—200ms is enough, and a longer timeout would feel sluggish.
@@ -57,10 +68,10 @@ Clicks also have to happen close together in space:
 const MAX_CLICK_DISTANCE = 40
 
 if (
-  this._previousScreenPoint &&
-  Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
+	this._previousScreenPoint &&
+	Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
 ) {
-  this._clickState = 'idle'
+	this._clickState = 'idle'
 }
 ```
 
@@ -74,8 +85,8 @@ Touch input gets a larger drag threshold:
 
 ```typescript
 const threshold = this.editor.getInstanceState().isCoarsePointer
-  ? this.editor.options.coarseDragDistanceSquared  // 36 (6px)
-  : this.editor.options.dragDistanceSquared        // 16 (4px)
+	? this.editor.options.coarseDragDistanceSquared // 36 (6px)
+	: this.editor.options.dragDistanceSquared // 16 (4px)
 ```
 
 Fingers wobble. A 4-pixel movement during a mouse click is probably intentional—you're starting to drag. But during a finger tap, 4 pixels of movement is just your finger's natural imprecision. We give touch input a 6-pixel threshold so taps aren't misinterpreted as drags.

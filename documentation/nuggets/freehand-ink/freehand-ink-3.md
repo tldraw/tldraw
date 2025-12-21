@@ -1,5 +1,5 @@
 ---
-title: SVG paths from hand-drawn points
+title: Pressure-sensitive stroke pipeline
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -31,13 +31,13 @@ Each `StrokePoint` contains more than just position:
 
 ```typescript
 export interface StrokePoint {
-	point: Vec           // adjusted/smoothed position
-	input: Vec           // original input position
-	vector: Vec          // direction vector
-	pressure: number     // normalized pressure 0-1
-	distance: number     // distance from previous point
+	point: Vec // adjusted/smoothed position
+	input: Vec // original input position
+	vector: Vec // direction vector
+	pressure: number // normalized pressure 0-1
+	distance: number // distance from previous point
 	runningLength: number // cumulative distance
-	radius: number       // stroke radius at this point
+	radius: number // stroke radius at this point
 }
 ```
 
@@ -79,7 +79,7 @@ Mouse and trackpad users don't have pressure input, so we simulate it based on v
 const simulatePressureSettings = (strokeWidth: number): StrokeOptions => {
 	return {
 		size: strokeWidth,
-		thinning: 0.5,              // 50% pressure effect
+		thinning: 0.5, // 50% pressure effect
 		streamline: modulate(strokeWidth, [9, 16], [0.64, 0.74], true),
 		smoothing: 0.62,
 		easing: EASINGS.easeOutSine,
@@ -94,11 +94,11 @@ Simulated pressure uses 50% thinning—the stroke can vary from 50% to 100% of t
 const realPressureSettings = (strokeWidth: number): StrokeOptions => {
 	return {
 		size: 1 + strokeWidth * 1.2,
-		thinning: 0.62,             // 62% pressure effect
+		thinning: 0.62, // 62% pressure effect
 		streamline: 0.62,
 		smoothing: 0.62,
 		simulatePressure: false,
-		easing: PEN_EASING,         // Custom curve
+		easing: PEN_EASING, // Custom curve
 	}
 }
 ```
@@ -164,7 +164,7 @@ Not all hand-drawn strokes use pressure. The "solid" line style disables thinnin
 const solidSettings = (strokeWidth: number): StrokeOptions => {
 	return {
 		size: strokeWidth,
-		thinning: 0,                // No thinning
+		thinning: 0, // No thinning
 		streamline: modulate(strokeWidth, [9, 16], [0.64, 0.74], true),
 		smoothing: 0.62,
 		simulatePressure: false,

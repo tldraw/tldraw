@@ -1,5 +1,5 @@
 ---
-title: Elbow arrows
+title: Heuristics to prevent flickering
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -20,12 +20,12 @@ When shapes are separated, we first check if there's a clearly preferred axis:
 
 ```typescript
 if (Math.abs(info.gapX) + 1 > Math.abs(info.gapY) && info.midX !== null) {
-  // +1 bias towards x-axis to prevent flicker at 45 degrees
-  if (info.gapX > 0) {
-    idealRoute = tryRouteArrow(info, 'right', 'left')
-  } else {
-    idealRoute = tryRouteArrow(info, 'left', 'right')
-  }
+	// +1 bias towards x-axis to prevent flicker at 45 degrees
+	if (info.gapX > 0) {
+		idealRoute = tryRouteArrow(info, 'right', 'left')
+	} else {
+		idealRoute = tryRouteArrow(info, 'left', 'right')
+	}
 }
 ```
 
@@ -37,12 +37,12 @@ Before applying the general heuristic, we check for special geometric arrangemen
 
 ```typescript
 if (
-  aRight &&
-  bTop &&
-  (aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
-  aRight.crossTarget <= (bTop.expanded ?? bTop.value)
+	aRight &&
+	bTop &&
+	(aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
+	aRight.crossTarget <= (bTop.expanded ?? bTop.value)
 ) {
-  idealRoute = tryRouteArrow(info, 'right', 'top')
+	idealRoute = tryRouteArrow(info, 'right', 'top')
 }
 ```
 
@@ -54,13 +54,13 @@ When comparing routes, we use Manhattan distance: the sum of all horizontal and 
 
 ```typescript
 function measureRouteManhattanDistance(path: VecLike[]): number {
-  let distance = 0
-  for (let i = 0; i < path.length - 1; i++) {
-    const start = path[i]
-    const end = path[i + 1]
-    distance += Math.abs(end.x - start.x) + Math.abs(end.y - start.y)
-  }
-  return distance
+	let distance = 0
+	for (let i = 0; i < path.length - 1; i++) {
+		const start = path[i]
+		const end = path[i + 1]
+		distance += Math.abs(end.x - start.x) + Math.abs(end.y - start.y)
+	}
+	return distance
 }
 ```
 
@@ -72,31 +72,31 @@ When multiple routes have the same corner count and similar distance, we need a 
 
 ```typescript
 function pickBest(info, edges) {
-  let bestRoute = null
-  let bestCornerCount = Infinity
-  let bestDistance = Infinity
-  let distanceBias = 0
+	let bestRoute = null
+	let bestCornerCount = Infinity
+	let bestDistance = Infinity
+	let distanceBias = 0
 
-  for (const [aSide, bSide] of edges) {
-    distanceBias += 1  // increasing bias for later candidates
-    const route = tryRouteArrow(info, aSide, bSide)
+	for (const [aSide, bSide] of edges) {
+		distanceBias += 1 // increasing bias for later candidates
+		const route = tryRouteArrow(info, aSide, bSide)
 
-    if (route) {
-      if (route.points.length < bestCornerCount) {
-        bestCornerCount = route.points.length
-        bestDistance = route.distance
-        bestRoute = route
-      } else if (
-        route.points.length === bestCornerCount &&
-        route.distance + distanceBias < bestDistance
-      ) {
-        bestDistance = route.distance
-        bestRoute = route
-      }
-    }
-  }
+		if (route) {
+			if (route.points.length < bestCornerCount) {
+				bestCornerCount = route.points.length
+				bestDistance = route.distance
+				bestRoute = route
+			} else if (
+				route.points.length === bestCornerCount &&
+				route.distance + distanceBias < bestDistance
+			) {
+				bestDistance = route.distance
+				bestRoute = route
+			}
+		}
+	}
 
-  return bestRoute
+	return bestRoute
 }
 ```
 

@@ -1,5 +1,5 @@
 ---
-title: Fairies
+title: Three-tier shape format for token efficiency
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -26,13 +26,13 @@ We use different formats depending on where a shape is and what the model needs 
 
 ```typescript
 interface BlurryShape {
-  shapeId: string
-  text?: string
-  type: SimpleShape['_type']
-  x: number
-  y: number
-  w: number
-  h: number
+	shapeId: string
+	text?: string
+	type: SimpleShape['_type']
+	x: number
+	y: number
+	w: number
+	h: number
 }
 ```
 
@@ -44,8 +44,8 @@ That's 6-7 fields. Enough to reference the shape by ID, understand what type it 
 
 ```typescript
 interface PeripheralShapeCluster {
-  bounds: BoxModel
-  numberOfShapes: number
+	bounds: BoxModel
+	numberOfShapes: number
 }
 ```
 
@@ -67,21 +67,21 @@ Shapes outside the viewport are grouped by proximity. The algorithm expands each
 
 ```typescript
 const expandedBounds = shapes.map((shape) => {
-  return {
-    shape,
-    bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(75),
-  }
+	return {
+		shape,
+		bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(75),
+	}
 })
 
 for (const item of expandedBounds) {
-  for (const group of groups) {
-    if (group.bounds.includes(item.bounds)) {
-      group.shapes.push(item.shape)
-      group.bounds.expand(item.bounds)
-      group.numberOfShapes++
-      break
-    }
-  }
+	for (const group of groups) {
+		if (group.bounds.includes(item.bounds)) {
+			group.shapes.push(item.shape)
+			group.bounds.expand(item.bounds)
+			group.numberOfShapes++
+			break
+		}
+	}
 }
 ```
 

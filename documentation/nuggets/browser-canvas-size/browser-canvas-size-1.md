@@ -3,128 +3,82 @@ title: The two-canvas probing trick
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
-  - browser
   - canvas
-  - size
+  - browser
+  - limits
 ---
 
-# The two-canvas probing trick
+# Browser canvas size limits
 
-When we implemented image export in tldraw, we discovered that browsers have maximum canvas sizes—and no API to tell you what they are. Worse, exceeding the limit doesn't throw an error. The canvas just doesn't work.
+When we export large documents or high-resolution images, we create canvases that can push against browser limits. The problem is that browsers don't tell you what those limits are. There's no API to query "how big can my canvas be?" The limits vary wildly—Safari allows 8 million pixels tall but only 16 thousand pixels square. Chrome caps any dimension at 32,767 pixels. iOS Safari is even more restrictive.
 
-Try to create a 50,000×50,000 canvas in Chrome and call `getContext('2d')`. It returns a context object. Draw something. No error. Export the image. Blank. The browser accepted your request, gave you a context, let you draw, and produced nothing.
+Worse, when you exceed the limit, the browser doesn't throw an error. It just silently fails. Your canvas appears to be created, `getContext()` returns a context, but drawing operations do nothing. This makes debugging nearly impossible—the code looks correct, but nothing renders.
 
-This silent failure makes detection tricky. We can't just try to create a canvas and catch an exception. So we probe.
+We solve this by probing. Before creating a canvas for export, we test what the browser can actually handle.
 
-## The naive approach that fails
+## The probing algorithm
 
-The obvious probing strategy: create a canvas at a given size, draw a pixel, read it back:
+The core idea is to try creating canvases at known size thresholds and see which ones work. We maintain a list of empirically determined limits from testing across browsers—Safari's 4096×4096 area limit, Chrome's 32,767 dimension cap, Firefox's 11,180 square pixel limit, and so on.
 
-```typescript
-function testSize(width: number, height: number): boolean {
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')!
+The algorithm tests these sizes in descending order, stopping at the first one that succeeds. Three separate probes run: one for maximum width (testing very wide but 1 pixel tall canvases), one for maximum height (1 pixel wide but very tall), and one for maximum area (square canvases).
 
-  ctx.fillRect(width - 1, height - 1, 1, 1)
-  const pixel = ctx.getImageData(width - 1, height - 1, 1, 1)
-  return pixel.data[3] !== 0 // Check alpha channel
-}
-```
+Here's the interesting part: you can't just draw to a test canvas and check if it worked. Near browser limits, `getImageData()` can fail even when the canvas was successfully allocated. Instead, we use a two-canvas approach.
 
-This works for reasonable sizes. But near browser limits, `getImageData` itself can behave strangely—returning zeros even when the canvas technically exists, or failing to read from coordinates near the edge. The problem we're trying to detect interferes with our detection method.
+## The two-canvas trick
 
-## The two-canvas solution
+For each test size, we create two canvases:
 
-We use an intermediate canvas to isolate the "did the draw work?" question from the "can I read at these coordinates?" question:
+1. A test canvas at the target dimensions
+2. A 1×1 "crop" canvas that stays small
+
+We draw a single pixel in the far corner of the test canvas—the bottom-right at coordinates `(width-1, height-1)`. Then we use `drawImage()` to copy just that 1×1 area from the test canvas to the crop canvas:
 
 ```typescript
-function testSize(width: number, height: number): boolean {
-  const testCanvas = document.createElement('canvas')
-  testCanvas.width = width
-  testCanvas.height = height
-  const testCtx = testCanvas.getContext('2d')!
+// Draw pixel in far corner of test canvas
+testCtx.fillRect(w - 1, h - 1, 1, 1)
 
-  // Draw a pixel in the far corner
-  testCtx.fillRect(width - 1, height - 1, 1, 1)
+// Copy that pixel to the 1x1 crop canvas
+cropCtx.drawImage(testCvs, w - 1, h - 1, 1, 1, 0, 0, 1, 1)
 
-  // Create a tiny 1×1 canvas to read the result
-  const cropCanvas = document.createElement('canvas')
-  cropCanvas.width = 1
-  cropCanvas.height = 1
-  const cropCtx = cropCanvas.getContext('2d')!
-
-  // Copy the far corner to our crop canvas
-  cropCtx.drawImage(testCanvas, width - 1, height - 1, 1, 1, 0, 0, 1, 1)
-
-  // Now read from the crop canvas at (0,0)—guaranteed to work
-  const pixel = cropCtx.getImageData(0, 0, 1, 1)
-  return pixel.data[3] !== 0
-}
+// Read from the crop canvas
+const isTestPassed = cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
 ```
 
-The crop canvas is always 1×1. Reading pixel (0,0) from a 1×1 canvas will never hit size limits. By drawing from the test canvas to the crop canvas, we test whether the test canvas actually contains data at the far corner.
+If the alpha channel is non-zero, the test passed. The pixel was successfully drawn and read. If it's zero, the canvas silently failed.
 
-If the test canvas failed to allocate, the `drawImage` call silently draws nothing, and we read back a transparent pixel. If it succeeded, we read back the opaque pixel we drew.
+The crop canvas isolates the test. Since it's always 1×1, `getImageData()` definitely works. We're not testing whether we can read pixels at extreme coordinates—we're testing whether the test canvas can be allocated at all. If allocation fails, drawing to it does nothing, and the crop canvas reads back zeros.
 
-## Probing the three limits
+## Why this matters
 
-Browsers constrain canvases in three ways: maximum width, maximum height, and maximum area (total pixels). A canvas can exceed any one of these and fail. Safari, for example, allows canvases millions of pixels wide but restricts total area.
+The probing code runs once per session and caches the result. Most exports never trigger it—there's a fast path that returns immediately for canvases under 8192×8192. But when users export very large documents or use high pixel ratios, we need to clamp dimensions to what the browser can handle.
 
-We probe each limit independently:
+Without probing, we'd either:
+
+- Set conservative limits that waste capability on modern browsers
+- Risk silent failures that produce blank exports
+
+The two-canvas approach lets us test aggressively while avoiding the edge cases that make direct pixel reading unreliable near browser limits.
+
+After determining the limits, we clamp the requested canvas size while preserving aspect ratio. For width and height, that's straightforward scaling. For area limits, we scale both dimensions by `sqrt(maxArea / currentArea)` so the proportions stay consistent.
+
+## Memory management
+
+During probing, we create and test many canvases. Each one allocates memory, especially when testing large dimensions. After each test, we explicitly release that memory:
 
 ```typescript
-function getBrowserCanvasMaxSize() {
-  return {
-    maxWidth: probeLimit('width'),   // Test N×1 canvases
-    maxHeight: probeLimit('height'), // Test 1×N canvases
-    maxArea: probeLimit('area'),     // Test N×N canvases
-  }
-}
+testCvs.width = 0
+testCvs.height = 0
 ```
 
-For width, we test canvases like 65535×1, 32767×1, 16384×1 in descending order. The first size that passes becomes `maxWidth`. Same for height (1×65535, etc.) and area (65535×65535, etc.).
+Setting dimensions to zero deallocates the canvas buffer. Without this, memory usage could spike as we test progressively larger sizes.
 
-The test sizes come from empirical browser testing—Chrome 83+ allows 65535, Chrome 70 allows 32767, Firefox allows 32767, and so on. We binary search through known limits rather than doing an actual binary search, since we already know the universe of values browsers use.
+## Where this lives
 
-## Memory cleanup
+The probing code is in `/packages/editor/src/lib/utils/browserCanvasMaxSize.ts`. It's extracted from the [canvas-size](https://github.com/jhildenbiddle/canvas-size) library, which did the empirical browser testing to determine the test sizes.
 
-During probing, we create many large canvases. Setting dimensions to zero releases the memory:
+The limits are used in:
 
-```typescript
-testCanvas.width = 0
-testCanvas.height = 0
-```
+- `/packages/editor/src/lib/exports/getSvgAsImage.ts` — clamping export dimensions
+- `/packages/tldraw/src/lib/utils/assets/assets.ts` — downsizing uploaded images
 
-Without this, memory usage spikes. It's especially important when testing large sizes that might succeed—a 32767×1 canvas that works still allocates 32K pixels.
-
-## The fast path
-
-Most exports never trigger probing. We define "safe" limits that work on every browser we've tested:
-
-```typescript
-const MAX_SAFE_CANVAS_DIMENSION = 8192
-const MAX_SAFE_CANVAS_AREA = 4096 * 4096  // 16,777,216 pixels
-```
-
-Before probing, we check if the requested dimensions fit:
-
-```typescript
-if (width <= 8192 && height <= 8192 && width * height <= 16777216) {
-  return [width, height]  // No probing needed
-}
-```
-
-The safe limits are conservative—the worst-case browser (iOS Safari 9-12) supports 4096×4096 area. Most browsers allow much more, but we only probe to find out when someone actually needs more than the safe limits.
-
-## The tradeoff
-
-We cache probe results for the session but not to localStorage. Browser limits can change between versions, and stale cached values could cause silent export failures. The probing cost is acceptable—it runs at most once per session, and most sessions never trigger it at all.
-
-The two-canvas trick lets us detect the undetectable: a canvas that looks fine but renders nothing. It's not elegant, but it's the only reliable way we've found.
-
-## Key files
-
-- `/packages/editor/src/lib/utils/browserCanvasMaxSize.ts` - Probing and clamping logic
-- `/packages/editor/src/lib/exports/getSvgAsImage.ts` - Usage in SVG export
+The cached limits are stored in a module-level variable, not localStorage. Browser limits can change between versions, so we don't want stale cached values causing failures.

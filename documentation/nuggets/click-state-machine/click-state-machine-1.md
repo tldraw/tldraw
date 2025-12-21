@@ -1,5 +1,5 @@
 ---
-title: A state machine for click detection
+title: State machine for multi-click detection
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -17,14 +17,14 @@ let clickCount = 0
 let clickTimeout: number
 
 function onPointerUp() {
-  clickCount++
-  clearTimeout(clickTimeout)
-  clickTimeout = setTimeout(() => {
-    if (clickCount === 1) handleSingleClick()
-    else if (clickCount === 2) handleDoubleClick()
-    else if (clickCount === 3) handleTripleClick()
-    clickCount = 0
-  }, 300)
+	clickCount++
+	clearTimeout(clickTimeout)
+	clickTimeout = setTimeout(() => {
+		if (clickCount === 1) handleSingleClick()
+		else if (clickCount === 2) handleDoubleClick()
+		else if (clickCount === 3) handleTripleClick()
+		clickCount = 0
+	}, 300)
 }
 ```
 
@@ -38,12 +38,12 @@ Our ClickManager has six states:
 
 ```typescript
 type TLClickState =
-  | 'idle'
-  | 'pendingDouble'
-  | 'pendingTriple'
-  | 'pendingQuadruple'
-  | 'pendingOverflow'
-  | 'overflow'
+	| 'idle'
+	| 'pendingDouble'
+	| 'pendingTriple'
+	| 'pendingQuadruple'
+	| 'pendingOverflow'
+	| 'overflow'
 ```
 
 Each state represents where we are in a click sequence:
@@ -63,29 +63,29 @@ The state machine advances on pointer down, not pointer up. This is important—
 
 ```typescript
 switch (this._clickState) {
-  case 'idle': {
-    this._clickState = 'pendingDouble'
-    break
-  }
-  case 'pendingDouble': {
-    this._clickState = 'pendingTriple'
-    return {
-      ...info,
-      type: 'click',
-      name: 'double_click',
-      phase: 'down',
-    }
-  }
-  case 'pendingTriple': {
-    this._clickState = 'pendingQuadruple'
-    return {
-      ...info,
-      type: 'click',
-      name: 'triple_click',
-      phase: 'down',
-    }
-  }
-  // ... continues for quadruple_click
+	case 'idle': {
+		this._clickState = 'pendingDouble'
+		break
+	}
+	case 'pendingDouble': {
+		this._clickState = 'pendingTriple'
+		return {
+			...info,
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+		}
+	}
+	case 'pendingTriple': {
+		this._clickState = 'pendingQuadruple'
+		return {
+			...info,
+			type: 'click',
+			name: 'triple_click',
+			phase: 'down',
+		}
+	}
+	// ... continues for quadruple_click
 }
 ```
 
@@ -94,6 +94,7 @@ The first click transitions from `idle` to `pendingDouble` but just returns the 
 ## Why this beats counters
 
 The naive counter approach has hidden states. When `clickCount` is 2, you don't know if the user is:
+
 - In the middle of clicking (waiting for pointer up)
 - Done clicking (timeout hasn't fired yet)
 - Dragging (moved too far from the click point)

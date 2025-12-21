@@ -1,5 +1,5 @@
 ---
-title: Elbow arrows
+title: Coordinate transformation for route normalization
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -31,10 +31,10 @@ Each transform is defined by three values:
 
 ```typescript
 export const ElbowArrowTransform = {
-  Identity: { x: 1, y: 1, transpose: false },
-  Rotate90: { x: -1, y: 1, transpose: true },
-  Rotate180: { x: -1, y: -1, transpose: false },
-  Rotate270: { x: 1, y: -1, transpose: true },
+	Identity: { x: 1, y: 1, transpose: false },
+	Rotate90: { x: -1, y: 1, transpose: true },
+	Rotate180: { x: -1, y: -1, transpose: false },
+	Rotate270: { x: 1, y: -1, transpose: true },
 }
 ```
 
@@ -46,11 +46,11 @@ Here's how we route from a top edge to a left edge:
 
 ```typescript
 const routes = {
-  top: {
-    left: [ElbowArrowTransform.Rotate270, routeRightToTop],
-    // ... other combinations
-  },
-  // ... other starting edges
+	top: {
+		left: [ElbowArrowTransform.Rotate270, routeRightToTop],
+		// ... other combinations
+	},
+	// ... other starting edges
 }
 ```
 

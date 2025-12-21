@@ -1,5 +1,5 @@
 ---
-title: Deep link encoding
+title: Making URLs readable with dot encoding
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:

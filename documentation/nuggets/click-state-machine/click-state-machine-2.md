@@ -1,3 +1,13 @@
+---
+title: Three phases of click events
+created_at: 12/21/2025
+updated_at: 12/21/2025
+keywords:
+  - click
+  - state
+  - machine
+---
+
 # Three phases of a click event
 
 When you double-click to edit text in tldraw, the selection highlight appears immediately—before your finger leaves the mouse button. That instant feedback matters for making the canvas feel responsive. But we also need to know if the double-click turns into a drag, and we need a moment when we're sure the click sequence is complete.
@@ -8,11 +18,11 @@ We solve this by giving every multi-click event three phases: `down`, `up`, and 
 
 ```typescript
 type TLClickEventInfo = {
-  type: 'click'
-  name: 'double_click' | 'triple_click' | 'quadruple_click'
-  phase: 'down' | 'up' | 'settle'
-  point: VecLike
-  // ...
+	type: 'click'
+	name: 'double_click' | 'triple_click' | 'quadruple_click'
+	phase: 'down' | 'up' | 'settle'
+	point: VecLike
+	// ...
 }
 ```
 
@@ -48,10 +58,10 @@ The `up` and `settle` phases use the position captured on `down`, not the curren
 ```typescript
 // In handlePointerEvent for pointer_up:
 return {
-  ...this.lastPointerInfo,  // Position from pointer_down
-  type: 'click',
-  name: 'double_click',
-  phase: 'up',
+	...this.lastPointerInfo, // Position from pointer_down
+	type: 'click',
+	name: 'double_click',
+	phase: 'up',
 }
 ```
 

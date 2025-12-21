@@ -1,5 +1,5 @@
 ---
-title: Edge scrolling
+title: When browsers lie about touch position
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -11,7 +11,7 @@ readability: 9
 voice: 8
 potential: 8
 accuracy: 10
-notes: "Opens with our experience. Connects to broader touch vs mouse patterns. Constants list slightly ChatGPT-ish but content is good."
+notes: 'Opens with our experience. Connects to broader touch vs mouse patterns. Constants list slightly ChatGPT-ish but content is good.'
 ---
 
 # Edge scrolling
@@ -42,7 +42,7 @@ After the delay, velocity ramps up following a cubic curve:
 
 ```typescript
 const eased = EASINGS.easeInCubic(
-    Math.min(1, this._edgeScrollDuration / (edgeScrollDelay + edgeScrollEaseDuration))
+	Math.min(1, this._edgeScrollDuration / (edgeScrollDelay + edgeScrollEaseDuration))
 )
 ```
 
@@ -52,7 +52,7 @@ The proximity factor adds another dimension of control. Closer to the edge means
 
 ```typescript
 if (pMin < min) {
-    return Math.min(1, (min - pMin) / dist)
+	return Math.min(1, (min - pMin) / dist)
 }
 ```
 

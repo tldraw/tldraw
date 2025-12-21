@@ -1,5 +1,5 @@
 ---
-title: Cross-tab synchronization
+title: Two-tier architecture for persistence
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -237,8 +237,7 @@ When loading from IndexedDB, the tab first tries to load its own session state b
 
 ```typescript
 let sessionStateSnapshot = sessionId
-	? ((await sessionStateStore.get(sessionId)) as SessionStateSnapshotRow | undefined)
-			?.snapshot
+	? ((await sessionStateStore.get(sessionId)) as SessionStateSnapshotRow | undefined)?.snapshot
 	: null
 
 if (!sessionStateSnapshot) {

@@ -1,5 +1,5 @@
 ---
-title: SVG paths from hand-drawn points
+title: Quadratic curves and the T command optimization
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -51,6 +51,7 @@ The path string for a typical 50-point stroke drops from ~2KB to ~500 bytes. For
 We use the averaging trick: place endpoints at the midpoint between consecutive input points, and use the actual input points as control points.
 
 For three consecutive points A, B, C:
+
 - Control point: B (the raw input point)
 - Endpoint: midpoint of B and C
 
@@ -64,10 +65,10 @@ let result = `M${precise(points[0])}Q${precise(points[1])}${average(points[1], p
 
 // Chain remaining curves with T command
 if (points.length > 3) {
-  result += 'T'
-  for (let i = 2; i < points.length - 1; i++) {
-    result += average(points[i], points[i + 1])
-  }
+	result += 'T'
+	for (let i = 2; i < points.length - 1; i++) {
+		result += average(points[i], points[i + 1])
+	}
 }
 
 // End with line to last point
@@ -78,7 +79,7 @@ The `average` function returns a formatted midpoint string:
 
 ```typescript
 function average(A: VecLike, B: VecLike) {
-  return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
+	return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
 }
 ```
 

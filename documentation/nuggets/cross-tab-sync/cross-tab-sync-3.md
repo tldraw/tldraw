@@ -1,5 +1,5 @@
 ---
-title: Cross-tab synchronization
+title: Handling schema mismatches and edge cases
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -29,7 +29,7 @@ The first fix is simple: use BroadcastChannel to broadcast changes between tabs.
 
 **Edge case three: corruption propagation.** Something goes wrong in Tab A. Maybe a bug in a custom shape, maybe a failed migration, maybe cosmic rays. The store's integrity checker marks it as `isPossiblyCorrupted()`. If Tab A keeps broadcasting changes to other tabs, the corruption spreads. If it keeps writing to IndexedDB, the corruption persists across sessions.
 
-**Edge case four: the fresh tab paradox.** You open Tab A, which loads the app with schema version 13. But the document in IndexedDB was last saved by schema version 12. The tab migrates the data forward and everything works. Two seconds later, Tab B finishes loading and sends an "announce" message with schema version 13. Tab A compares versions, sees they match, and everything is fine. But what if Tab B finished loading with schema version 12 because the browser cached an old bundle? Now Tab A (which has already migrated to v13) receives an announce with v12 and thinks *it's* outdated. It reloads. Tab B sees the reload, reloads itself. Infinite reload loop.
+**Edge case four: the fresh tab paradox.** You open Tab A, which loads the app with schema version 13. But the document in IndexedDB was last saved by schema version 12. The tab migrates the data forward and everything works. Two seconds later, Tab B finishes loading and sends an "announce" message with schema version 13. Tab A compares versions, sees they match, and everything is fine. But what if Tab B finished loading with schema version 12 because the browser cached an old bundle? Now Tab A (which has already migrated to v13) receives an announce with v12 and thinks _it's_ outdated. It reloads. Tab B sees the reload, reloads itself. Infinite reload loop.
 
 These aren't theoretical. We hit every single one in production.
 
@@ -242,7 +242,7 @@ Here's a scenario we didn't anticipate: user has four tabs open. Tab A is runnin
 
 In practice, this works fine. BroadcastChannel is fast enough that the messages don't pile up. The reloaded tabs finish loading in a staggered fashion (network jitter), so they don't all announce simultaneously. And because they're all running the same schema version after reloading, they all agree and no one reloads again.
 
-But we did add one defensive check. When you receive a schema mismatch and decide to reload, you set `this.isReloading = true` and then call `window.location.reload()`. But `reload()` is asynchronous. The tab continues running for a few frames before the navigation happens. During that time, you might receive *another* message from a different outdated tab. Without the `isReloading` guard, you'd process that message, detect a mismatch, and reload again. This does nothing (you're already reloading), but it does log duplicate errors and confuse the user.
+But we did add one defensive check. When you receive a schema mismatch and decide to reload, you set `this.isReloading = true` and then call `window.location.reload()`. But `reload()` is asynchronous. The tab continues running for a few frames before the navigation happens. During that time, you might receive _another_ message from a different outdated tab. Without the `isReloading` guard, you'd process that message, detect a mismatch, and reload again. This does nothing (you're already reloading), but it does log duplicate errors and confuse the user.
 
 So we gate all message processing on `isReloading`:
 

@@ -1,0 +1,11 @@
+- Dead zone dragging (not right away! but then account for the distance already traveled)
+- Cloning
+- Keyboard shortcuts race condition (when a user releases cmd while cloning at the same time that they stop dragging, we add a delay to the modifier release so that we don't have a physical race condition that might "stop cloning" before finishing the interaction)
+- hiding the selection ui when you change styles, then restoring it after a moment or after the cursor leaves the style panel
+- adding numbers to duplicate page names, and backfilling pages, so that if i have page 1, page 3, page 4, creating a new page would be page 2, then the next page would be page 6.
+- stick note interactions. there are a bunch of stories here: snapping to other sticky notes, but only if the rotation is the same. using keyboard shortcuts to create new sticky notes above / below / left of / right of.
+- allowing single click moves between text inputs when editing text shapes / geo shapes
+- resizing in depth
+- rotation in depth, how rotating multiple shapes works
+- collaboration conflicts, like dragging the same shape at the same time. the system produces weird UX but its okay, the weirdness produces good feedback that you're doing something weird. dragging different handles of the same arrow works fine.
+- known bugs and crashes. errors where the problem could be solved by running the "rules of the canvas" and side effects on the server, but that doesn't happen yet

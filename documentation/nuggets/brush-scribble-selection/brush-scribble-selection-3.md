@@ -1,107 +1,162 @@
-# Why scribble selection never re-tests shapes
+---
+title: Wrap mode vs intersection mode
+created_at: 12/21/2025
+updated_at: 12/21/2025
+keywords:
+  - selection
+  - brush
+  - scribble
+---
 
-Brush selection recomputes everything each frame. If you shrink the rectangle, shapes drop out of the selection. If you expand it, shapes get added back. Every frame is a fresh calculation of what's currently inside the brush.
+# Brush vs scribble selection
 
-Scribble selection can't work this way. There's no rectangle to shrink. Once you've drawn through a shape, you can't undraw through it. So we took a different approach: test each shape at most once, and never re-test.
+When we built selection in tldraw, we wanted two modes: a rectangular brush for clean selection areas, and a freeform scribble for lasso-style selection. Holding Alt switches between them. But the interesting part isn't the different shapes—it's how the modes decide which shapes to select, and how frames create an extra layer of complexity.
 
-## The incremental model
+## Wrap mode vs intersection mode
 
-Scribble selection maintains two sets:
+The brush supports two selection modes: **intersection mode** (shapes selected if they touch the selection area) and **wrap mode** (shapes must be fully enclosed). By default, tldraw uses intersection mode. Holding Ctrl toggles to wrap mode:
 
 ```typescript
-// packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts
-initialSelectedShapeIds = new Set<TLShapeId>()
-newlySelectedShapeIds = new Set<TLShapeId>()
+const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 ```
 
-`initialSelectedShapeIds` holds whatever was selected before you started scribbling (if you held Shift). `newlySelectedShapeIds` holds shapes you've crossed during this scribble. The final selection is the union.
+When `isWrapMode = false` (default), `isWrapping` is `true` only if Ctrl is held. When `isWrapMode = true` (user preference), `isWrapping` is `true` unless Ctrl is held.
 
-Each frame, we only test shapes that aren't already in `newlySelectedShapeIds`:
+The brush first checks if a shape is completely contained by the selection box:
 
 ```typescript
-if (
-    editor.isShapeOfType(shape, 'group') ||
-    newlySelectedShapeIds.has(shape.id) ||
-    editor.isShapeOrAncestorLocked(shape)
-) {
-    continue
+if (brush.contains(pageBounds)) {
+	this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
+	continue testAllShapes
 }
 ```
 
-Once a shape is crossed, it's in the set forever. We never test it again.
-
-## Why this matters for performance
-
-On a page with 5,000 shapes, brush selection tests potentially thousands of shapes every frame. It has optimizations (viewport culling, bounding box checks), but the fundamental operation is "which shapes are currently in the rectangle."
-
-Scribble selection's fundamental operation is "which new shapes did I just cross." If your scribble path moved 10 pixels, you're only testing shapes whose bounding boxes overlap that 10-pixel segment. And once you've crossed a cluster of shapes, you never test them again even if you loop back through the same area.
-
-The longer you scribble, the fewer shapes remain to test. Brush selection doesn't get this benefit—expanding the rectangle tests more shapes, not fewer.
-
-## The bounding box early-out
-
-Before testing geometry, we check if the current line segment is even close to the shape:
+If not completely contained, the mode matters:
 
 ```typescript
-const { bounds } = geometry
-if (
-    bounds.minX - minDist > Math.max(A.x, B.x) ||
-    bounds.minY - minDist > Math.max(A.y, B.y) ||
-    bounds.maxX + minDist < Math.min(A.x, B.x) ||
-    bounds.maxY + minDist < Math.min(A.y, B.y)
-) {
-    continue
+if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
+	continue testAllShapes
 }
 ```
 
-If the segment is entirely above, below, left, or right of the shape's bounds, skip it. This is cheaper than the geometry test and eliminates most shapes immediately.
+In wrap mode, we skip the shape—it didn't pass the containment test, so it's not selected. In intersection mode, we continue to test if the brush edges cross the shape's geometry.
 
-Each condition tests one axis. The segment endpoints define a tiny bounding box (just two points). If that tiny box doesn't overlap the shape's bounds, no intersection is possible.
+Frames always require wrap mode, regardless of the Ctrl key state. This prevents accidentally selecting a frame when you're trying to select its children.
 
-## Frame handling
+## Edge intersection test
 
-Frames need special treatment. When you start a scribble inside a frame, you probably want to select shapes inside it, not the frame itself. So we skip frames if the scribble origin is inside:
+For shapes not fully contained and not excluded by wrap mode, we test if any of the four brush edges intersect the shape's geometry:
 
 ```typescript
-if (
-    editor.isShapeOfType(shape, 'frame') &&
-    geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
-) {
-    continue
+if (brush.collides(pageBounds)) {
+	pageTransform = editor.getShapePageTransform(shape)
+	if (!pageTransform) continue testAllShapes
+	localCorners = pageTransform.clone().invert().applyToPoints(corners)
+	const geometry = editor.getShapeGeometry(shape)
+	hitTestBrushEdges: for (let i = 0; i < 4; i++) {
+		A = localCorners[i]
+		B = localCorners[(i + 1) % 4]
+		if (geometry.hitTestLineSegment(A, B, 0)) {
+			this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
+			break hitTestBrushEdges
+		}
+	}
 }
 ```
 
-This prevents accidentally selecting the frame when you're trying to select its contents. If you want to select the frame, start your scribble outside it.
+We transform the brush corners into the shape's local coordinate space rather than transforming the shape's geometry into page space. This is cheaper—four points vs potentially hundreds of vertices.
 
-## The mask check
+Filled shapes behave differently from hollow ones. For filled shapes, the `hitTestLineSegment` method returns success if the line segment passes through the interior, not just if it crosses an edge:
 
-Shapes inside frames can be clipped. A shape might geometrically extend outside its parent frame, but only the visible portion should count for selection. We check the page mask:
+```typescript
+return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
+```
+
+A negative distance means "inside the polygon," which counts as a hit. Hollow shapes only select if the brush edge crosses their outline.
+
+## Scribble selection differences
+
+Scribble selection uses freeform paths instead of rectangles. Hold Alt while dragging to activate it. Each frame of pointer movement creates a line segment that's tested against visible shapes:
+
+```typescript
+const pageTransform = editor.getShapePageTransform(shape)
+if (!geometry || !pageTransform) continue
+const pt = pageTransform.clone().invert()
+A = pt.applyToPoint(previousPagePoint)
+B = pt.applyToPoint(currentPagePoint)
+
+if (geometry.hitTestLineSegment(A, B, minDist)) {
+	const outermostShape = this.editor.getOutermostSelectableShape(shape)
+	newlySelectedShapeIds.add(outermostShape.id)
+}
+```
+
+Scribble doesn't support wrap mode—all selections are intersection-based. It's also incremental: once a shape is added to `newlySelectedShapeIds`, it's never tested again. Selection only grows, never shrinks.
+
+Frames get special treatment in scribble. If the scribble origin is inside a frame's bounds, we skip the frame entirely:
+
+```typescript
+if (
+	editor.isShapeOfType(shape, 'frame') &&
+	geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
+) {
+	continue
+}
+```
+
+This prevents accidentally selecting a frame when scribbling inside it to select its children.
+
+## Frame masking
+
+Shapes inside frames can be clipped—the visible portion is smaller than the shape's actual bounds. We don't want to select shapes by brushing through their invisible parts. This is where masking comes in.
+
+When a shape is selected, we check if it has a mask (a polygon representing the visible region after clipping):
+
+```typescript
+if (shape.parentId === currentPageId) {
+	results.add(shape.id)
+	return
+}
+
+const selectedShape = this.editor.getOutermostSelectableShape(shape)
+const pageMask = this.editor.getShapeMask(selectedShape.id)
+if (
+	pageMask &&
+	!polygonsIntersect(pageMask, corners) &&
+	!pointInPolygon(currentPagePoint, pageMask)
+) {
+	return
+}
+results.add(selectedShape.id)
+```
+
+If the shape is a direct child of the page, it has no mask. Otherwise, we get its mask and check two conditions:
+
+1. Does the brush intersect the mask polygon?
+2. Is the current pointer position inside the mask?
+
+If the mask exists but neither condition is met, we don't select the shape. This ensures you can't select clipped shapes by brushing over their hidden portions.
+
+Scribble has a similar but slightly different check:
 
 ```typescript
 const pageMask = this.editor.getShapeMask(outermostShape.id)
 if (pageMask) {
-    const intersection = intersectLineSegmentPolygon(
-        previousPagePoint,
-        currentPagePoint,
-        pageMask
-    )
-    if (intersection !== null) {
-        const isInMask = pointInPolygon(currentPagePoint, pageMask)
-        if (!isInMask) continue
-    }
+	const intersection = intersectLineSegmentPolygon(previousPagePoint, currentPagePoint, pageMask)
+	if (intersection !== null) {
+		const isInMask = pointInPolygon(currentPagePoint, pageMask)
+		if (!isInMask) continue
+	}
 }
 ```
 
-If the scribble segment crosses the mask but ends outside the visible area, we don't select the shape. You can't select shapes by scribbling through their invisible portions.
+If the scribble line intersects the mask but the current point isn't inside it, we skip the shape. The check is stricter than brush because scribble is a moving line segment—we need to ensure the pointer ends up in the visible region, not just that it passed through at some point.
 
-## Trade-offs
+## Source files
 
-The incremental approach means scribble selection can only grow, never shrink. If you accidentally cross a shape, it's selected—you can't uncross it by moving away. This matches the "lasso" metaphor (you're drawing a selection region), but it's different from brush selection's "spotlight" metaphor (you're revealing what's currently under the brush).
+The brush and scribble implementations live in:
 
-We could theoretically implement deselection by tracking which shapes the path has crossed twice, but that would add complexity and break the intuitive "draw through to select" model. The current approach is simpler and matches what users expect from lasso tools.
-
-## Key files
-
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts` — Incremental scribble selection
-- `packages/editor/src/lib/primitives/intersect.ts:123` — `intersectLineSegmentPolygon` for mask checking
-- `packages/editor/src/lib/primitives/geometry/Geometry2d.ts:146` — `hitTestLineSegment`
+- `/packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts` — Rectangular brush selection
+- `/packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts` — Freeform scribble selection
+- `/packages/editor/src/lib/primitives/geometry/Geometry2d.ts` — Line segment hit testing
+- `/packages/editor/src/lib/primitives/intersect.ts` — Polygon and line intersection functions

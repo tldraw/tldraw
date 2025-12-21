@@ -1,71 +1,110 @@
 ---
-title: Arrow bend with circular arcs
+title: Handle arc and body arc distinction
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
-  - arc
   - arrows
+  - arcs
+  - curves
 ---
 
-# Arrow bend with circular arcs
+# Arc arrows
 
-If you've ever connected two shapes with a curved arrow in tldraw, you might have noticed that the curve stays stable as you drag the shapes around. Pull them apart and the arc stretches. Push them together and it tightens. Rotate one shape and the arrow adjusts its entry angle. Through all of this, the curve you drew remains recognizable—no sudden flips, no S-curves appearing where you drew a clean arc.
+When we added curved arrows that bind to shapes, we ran into a conceptual problem: what exactly does the curve represent? If you draw an arrow from one shape to another with a specific bend, and then move those shapes around, where should the arrow endpoints be?
 
-This stability might seem like the obvious way curved arrows _should_ work, but it's not what you'd get with the standard approach. Most vector tools use bezier curves for this, and beziers have a nasty habit of misbehaving when their endpoints move independently. We use circular arcs instead, which reduces the curve to a single number: how much it bends.
+The naive answer—put them at the shape boundaries—breaks down immediately. As shapes move, the intersection points slide around the perimeter. The curve changes unpredictably. Small movements produce large visual jumps. The user drew a specific curve, but we can't preserve it.
 
-Here's how it works.
+The solution is to split the curve into two distinct arcs. One represents the user's intent—the logical connection between shapes. The other is what actually renders on screen. They share the same circular path, but their endpoints sit at different positions.
 
-## The bezier problem
+## Handle arc vs body arc
 
-A quadratic bezier curve has two endpoints and one control point. When an arrow binds to shapes, the endpoints follow the shapes as they move. But what should happen to the control point?
+The **handle arc** is the curve the user drew. Its endpoints sit at the binding anchor positions—typically the center of each shape, or the exact point the user targeted. This arc captures the logical relationship: "connect shape A to shape B with this much bend."
 
-The control point has two coordinates (x and y) that can move independently. When the bound shapes move at different rates or in different directions, there's no obvious way to update the control point's position. Should it maintain its relative distance from each endpoint? Should it stay at the same absolute angle? Should it preserve the curve's maximum distance from the baseline?
+The **body arc** is what renders. Its endpoints sit at the shape boundaries, where the circular path intersects the shape geometry. This arc accounts for arrowheads and visual polish, but it's derived from the handle arc—they share the same center and radius.
 
-Every heuristic produces different results. None reliably preserve what you drew. Worse, certain movements can flip the control point to the wrong side of the line between endpoints, suddenly reversing which way the arrow curves. Or the control point drifts far from the baseline, creating an exaggerated loop where there was a gentle bend.
-
-Small shape movements produce disproportionate visual changes. The curve becomes unstable.
-
-## Circular arcs: one degree of freedom
-
-We chose circular arcs because they reduce the curve to a single value: the bend amount.
-
-Given any three points, exactly one circle passes through all of them. This is the key insight. Instead of storing a control point with two independent coordinates, we store a scalar bend value—the perpendicular distance from the midpoint of the baseline to the arc's middle point.
+Here's how they're represented:
 
 ```typescript
-const med = Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // midpoint
-const distance = Vec.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start)
-const u = Vec.Len(distance) ? distance.uni() : Vec.From(distance) // unit vector
-const middle = Vec.Add(med, u.per().mul(-bend)) // perpendicular offset by bend amount
+interface TLArcArrowInfo {
+	type: 'arc'
+	start: TLArrowPoint
+	end: TLArrowPoint
+	middle: VecLike
+	handleArc: TLArcInfo // user intent
+	bodyArc: TLArcInfo // rendered
+	isValid: boolean
+}
 ```
 
-When bound shapes move, we recalculate the endpoints from the binding anchors, compute the new midpoint, and offset perpendicular by the stored bend value. This gives us the middle point. Now we have three points, which uniquely define a circle:
+When shapes move, we recalculate the body arc from the handle arc. The handle arc stays stable because binding anchors move with the shapes. The body arc adjusts to find new intersection points.
+
+## Finding shape intersections
+
+To find where the body arc should end, we need to know where the circular path intersects the shape boundary. This is a geometric problem: given a circle (defined by the handle arc's center and radius) and a shape, find the intersection points.
+
+The algorithm transforms the arc's circle into the shape's local coordinate space, then asks the shape's geometry object for intersections:
 
 ```typescript
-// Given three points, find the circle that passes through them
-const center = centerOfCircleFromThreePoints(start, end, middle)
-const radius = Vec.Dist(center, start)
+// Transform circle into shape space
+const inShapeSpace = editor.getPointInShapeSpace(shape, center)
+
+// Ask geometry for all intersections with this circle
+let intersections = geometry.intersectCircle(inShapeSpace, radius)
 ```
 
-The math is unambiguous. Given two endpoints and a bend distance, there's exactly one circular arc that satisfies those constraints. The bend value maps directly to visual curvature—positive bends curve one way, negative bends curve the other. No S-curves, no loops, no unexpected reversals.
+Not all intersections are valid—we only want points that actually sit on the arc segment, not somewhere else on the circle. We filter by angle:
 
-## What this preserves
+```typescript
+intersections = intersections.filter(
+	(pt) => distFn(angleToStart, centerInShapeSpace.angle(pt)) <= arcAngle
+)
+```
 
-The bend amount is the arrow's "curvature intent." When you create an arc arrow, you're expressing how much the arrow should curve and in which direction. That intent stays constant as shapes transform.
+Once we have valid intersections, we need to pick the right one. For closed shapes (rectangles, ellipses), we pick the intersection closest to 25% along the arc for the start terminal, or 75% for the end terminal. These positions ensure arrows point "into" the shape rather than grazing tangentially.
 
-Drag shapes across the canvas and the arrow adjusts its arc radius to maintain the perpendicular distance. The visual appearance changes—the arc tightens or widens—but the fundamental curve shape remains recognizable. Resize shapes and the arrow recomputes intersection points but keeps the same bend. Rotate shapes and the arrow adjusts entry angles while preserving curvature.
+For open shapes (lines, polylines), we just pick the nearest intersection.
 
-The relationship you defined stays intact because it's stored as a relative, normalized value that doesn't depend on absolute coordinates.
+If no intersection exists—maybe the arc doesn't actually reach the shape—we fall back to the nearest point on the geometry boundary for closed shapes, or the handle position for open shapes.
 
-## The tradeoff
+## Arrowhead offsets
 
-Circular arcs sacrifice expressiveness for stability. You can't draw an S-curve or a spiral connector with a single arrow. But that constraint rarely matters.
+Arrowheads complicate things. We don't want the line to extend under the arrowhead; it should stop at the arrowhead's base. This means the body arc needs to be slightly shorter than the handle arc.
 
-Most arrow connections need exactly one thing: a clean curve that bends around obstacles and stays recognizable as shapes move. The single-degree-of-freedom design makes that curve predictable and maintainable across every transformation.
+We calculate the offset based on stroke width and arrowhead size:
 
-With bezier curves, you'd need to choose which heuristic to use when shapes move—and every heuristic fails in some scenario, forcing users to manually fix arrows by adjusting control points that weren't visible when they created the arrow. With circular arcs, the math is deterministic. The bend value unambiguously defines the curve for any endpoint configuration.
+```typescript
+const strokeOffset =
+	STROKE_SIZES[shape.props.size] / 2 +
+	('size' in targetShape.props ? STROKE_SIZES[targetShape.props.size] / 2 : 0)
+const offset = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
+```
 
-## Key files
+We convert this linear distance to an arc angle and adjust the endpoint:
 
-- `packages/tldraw/src/lib/shapes/arrow/curved-arrow.ts` — Arc arrow geometry calculations
-- `packages/editor/src/lib/primitives/utils.ts` — Circle-from-three-points utility (`centerOfCircleFromThreePoints`)
-- `packages/tldraw/src/lib/shapes/arrow/shared.ts` — Binding utilities and terminal positioning
+```typescript
+if (offset !== 0) {
+	endpoint
+		.setTo(handleArc.center)
+		.add(
+			Vec.FromAngle(startAngle + arcAngle * ((offset / arcLength) * (isClockwise ? 1 : -1))).mul(
+				handleArc.radius
+			)
+		)
+}
+```
+
+When the arc becomes too short—endpoints nearly touching—we flip the offsets outward. This makes the arrow poke slightly into the shapes rather than collapsing to nothing. It's a visual compromise that preserves the arrow's existence even in tight spaces.
+
+## Why this matters
+
+This two-arc system solves the fundamental problem: how do you preserve a user-drawn curve when its endpoints need to move? The answer is to separate the logical relationship from the visual rendering.
+
+The handle arc is stable—it moves with the shapes and maintains the bend the user specified. The body arc is flexible—it adjusts to find clean intersection points and accommodate arrowheads. They're both derived from the same circular path, so they feel like the same curve. But splitting them lets us maintain both the user's intent and a polished visual result.
+
+Without this separation, curved arrows would feel unstable. Move a shape slightly and the curve changes unexpectedly. With it, curved arrows behave the way you'd expect: they follow the shapes while maintaining the character of the curve you drew.
+
+## Source files
+
+- `packages/tldraw/src/lib/shapes/arrow/curved-arrow.ts` - Arc geometry and intersection logic
+- `packages/tldraw/src/lib/shapes/arrow/arrow-types.ts` - Type definitions for handle and body arcs
+- `packages/tldraw/src/lib/shapes/arrow/shared.ts` - Binding anchors and terminals

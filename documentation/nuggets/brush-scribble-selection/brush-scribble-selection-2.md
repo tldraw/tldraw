@@ -1,142 +1,113 @@
 ---
-title: The three-tier cascade in brush selection
+title: Incremental selection for scribble mode
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
+  - selection
   - brush
   - scribble
-  - selection
 ---
 
-# The three-tier cascade in brush selection
+# Brush vs scribble selection
 
-On a page with 5,000 shapes, brush selection needs to stay responsive. Every pointer move recomputes which shapes are selected. The naive approach—test every shape's full geometry against the brush rectangle—would be unusable at scale.
+When we built selection tools for tldraw, we knew from other canvas apps that users expect two modes: a rectangular brush (click and drag) and a freeform lasso (hold Alt while dragging). What wasn't obvious at first was that these modes need fundamentally different algorithms. The brush can afford to retest every shape on every frame because it's just checking rectangle intersection. But scribble draws arbitrary paths—testing all shapes against all segments would be too slow.
 
-We use a three-tier cascade that eliminates most shapes before doing any real geometry work.
+The solution is incremental selection. Instead of retesting shapes every frame, scribble tests each shape exactly once. Once selected, a shape stays selected.
 
-## Tier 1: Complete containment
+## Three selection sets
 
-If the brush completely contains a shape's bounding box, the shape is definitely selected. No geometry test needed—a box inside a box is trivially intersecting.
+Scribble maintains three sets of shape IDs:
 
 ```typescript
-// packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts
-if (brush.contains(pageBounds)) {
-    this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
-    continue testAllShapes
+initialSelectedShapeIds = new Set<TLShapeId>()
+newlySelectedShapeIds = new Set<TLShapeId>()
+```
+
+When the scribble starts, `initialSelectedShapeIds` captures whatever was already selected (if you're holding Shift for additive selection). As you drag, shapes that the scribble crosses get added to `newlySelectedShapeIds`. The final selection is the union of both sets.
+
+The key difference from brush: once a shape enters `newlySelectedShapeIds`, it's never removed. The selection only grows.
+
+```typescript
+if (
+	editor.isShapeOfType(shape, 'group') ||
+	newlySelectedShapeIds.has(shape.id) ||
+	editor.isShapeOrAncestorLocked(shape)
+) {
+	continue
 }
 ```
 
-The `Box.Contains` check is four comparisons:
+This check skips shapes that are groups, already selected in this scribble pass, or locked. Notice the second condition: if we've already added this shape, we never test it again. This keeps the algorithm efficient even as the scribble path gets long.
+
+## Bounding box early-out
+
+Before testing a shape's geometry, scribble checks whether the line segment could possibly intersect the shape's bounding box:
 
 ```typescript
-// packages/editor/src/lib/primitives/Box.ts
-static Contains(A: Box, B: Box) {
-    return A.minX < B.minX && A.minY < B.minY && A.maxY > B.maxY && A.maxX > B.maxX
+const { bounds } = geometry
+if (
+	bounds.minX - minDist > Math.max(A.x, B.x) ||
+	bounds.minY - minDist > Math.max(A.y, B.y) ||
+	bounds.maxX + minDist < Math.min(A.x, B.x) ||
+	bounds.maxY + minDist < Math.min(A.y, B.y)
+) {
+	continue
 }
 ```
 
-When you're drawing a large selection rectangle, this catches most shapes immediately. They're fully inside, so we add them and move on.
+Four conditions cull the shape if the segment is entirely to the left, above, right, or below the bounds. This is cheap—just comparing numbers—and eliminates most shapes without touching the geometry.
 
-## Tier 2: Wrap mode check
+After that, we do the expensive test: transform the line segment into the shape's local space and call `geometry.hitTestLineSegment()`. But we only do this for shapes that passed the bounding box check.
 
-If we're in wrap mode (shapes must be completely enclosed to select), and tier 1 didn't pass, the shape isn't selected. Skip it.
+## Frame special handling
+
+Frames are containers, and we don't want to select them when you're scribbling inside to select their children. So we check the scribble's origin point:
 
 ```typescript
-if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
-    continue testAllShapes
+if (
+	editor.isShapeOfType(shape, 'frame') &&
+	geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
+) {
+	continue
 }
 ```
 
-Wrap mode is toggled by holding Ctrl. Frames always require wrap mode regardless of the setting—you can't accidentally select a frame by brushing across its edge.
+If the scribble started inside the frame's bounds, we skip the frame entirely. This means you can scribble freely inside a frame without accidentally selecting the frame itself.
 
-This tier costs nothing. If the shape didn't pass containment and we need containment, there's no point testing further.
+Brush selection doesn't need this check because it uses wrap mode for frames—you must completely enclose a frame to select it.
 
-## Tier 3: Edge intersection
+## Scribble visual feedback
 
-If the shape's bounds collide with the brush but aren't fully contained, we need to test actual geometry. The brush might overlap the bounding box but not touch the shape itself (imagine a small circle in a corner of its bounds).
-
-But we don't test the full shape. We test whether any of the brush's four edges intersect the shape's geometry:
+The scribble path itself is rendered using the same system as the eraser visual:
 
 ```typescript
-if (brush.collides(pageBounds)) {
-    pageTransform = editor.getShapePageTransform(shape)
-    localCorners = pageTransform.clone().invert().applyToPoints(corners)
-    const geometry = editor.getShapeGeometry(shape)
-
-    for (let i = 0; i < 4; i++) {
-        A = localCorners[i]
-        B = localCorners[(i + 1) % 4]
-        if (geometry.hitTestLineSegment(A, B, 0)) {
-            this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
-            break
-        }
-    }
-}
-```
-
-Four line segment tests against the shape's geometry. If any edge of the brush crosses any edge of the shape, it's a hit.
-
-## The viewport optimization
-
-Before any of this, we filter which shapes to even consider:
-
-```typescript
-// On a page with ~5000 shapes, on-screen hit tests are about 2x faster than
-// testing all shapes.
-
-const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
-const shapesToHitTest =
-    brushBoxIsInsideViewport && !this.viewportDidChange
-        ? editor.getCurrentPageRenderingShapesSorted()
-        : editor.getCurrentPageShapesSorted()
-```
-
-If the brush is entirely within the viewport and the viewport hasn't scrolled during this drag, we only test shapes currently being rendered. Shapes outside the viewport are culled by the rendering system anyway—no need to test them.
-
-This is a 2x speedup on dense pages. But it comes with a condition: if you scroll while brushing, we have to test all shapes. The viewport change detection tracks this:
-
-```typescript
-this.cleanupViewportChangeReactor = react('viewport change while brushing', () => {
-    editor.getViewportPageBounds()
-    if (!isInitialCheck && !this.viewportDidChange) {
-        this.viewportDidChange = true
-    }
+const scribbleItem = this.editor.scribbles.addScribble({
+	color: 'selection-stroke',
+	opacity: 0.32,
+	size: 12,
 })
 ```
 
-Once the viewport moves, `viewportDidChange` becomes true and stays true for the rest of the interaction. This prevents shapes from being missed during edge scrolling.
-
-## Early exclusion
-
-Before the cascade even runs, we build an exclusion set of shapes that can never be selected:
+Each frame, we add the current pointer position:
 
 ```typescript
-this.excludedShapeIds = new Set(
-    editor
-        .getCurrentPageShapes()
-        .filter(
-            (shape) => editor.isShapeOfType(shape, 'group') || editor.isShapeOrAncestorLocked(shape)
-        )
-        .map((shape) => shape.id)
-)
+this.editor.scribbles.addPoint(this.scribbleId, x, y)
 ```
 
-Groups and locked shapes are excluded upfront. We pay this cost once at the start, not on every frame.
+The scribble manager only adds points if they're at least 1 pixel apart from the previous point. This keeps the point count manageable. Once the scribble accumulates 8 points, it transitions from 'starting' to 'active' state. When you release, it enters 'stopping' and fades out.
 
-## Why this matters
+## Brush comparison
 
-On a page with thousands of shapes, the cascade eliminates almost all work:
+Brush selection tests every shape every frame. It creates a rectangle from the drag origin to the current pointer position, then tests that rectangle against all shapes. If the rectangle completely contains a shape's bounding box, it's selected. Otherwise, if the boxes overlap, we test the shape's geometry against the brush's four edges.
 
-- Most shapes aren't in the viewport (viewport culling)
-- Most shapes in the viewport aren't near the brush (bounds collision fails)
-- Of shapes near the brush, many are fully contained (tier 1)
-- Of the remainder, many are filtered by wrap mode (tier 2)
-- Only a handful need actual geometry tests (tier 3)
+This works because the brush always has four edges, so it's O(4 \* S) where S is the number of shapes. We optimize by only testing visible shapes when the brush is inside the viewport.
 
-The geometry test—`hitTestLineSegment`—is the expensive part. The cascade ensures we rarely reach it. A large brush that contains hundreds of shapes might never do a single geometry test; containment catches everything.
+Scribble is O(F \* S) where F is the number of frames, but in practice it's much better because each shape is tested only once. The first time a segment crosses a shape, we select it and never test it again. The bounding box early-out eliminates most shapes without touching geometry.
 
-## Key files
+The cost of incremental selection is that you can't deselect shapes by scribbling back over them. But that behavior would feel strange anyway—users expect lasso selection to grow as they add to the path.
 
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts` — The full cascade implementation
-- `packages/editor/src/lib/primitives/Box.ts:416` — `Contains` and `Collides` methods
-- `packages/editor/src/lib/primitives/geometry/Geometry2d.ts:146` — `hitTestLineSegment`
+## Implementation notes
+
+Scribble selection lives in `packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts`. The scribble visual system is in `packages/editor/src/lib/editor/managers/ScribbleManager/ScribbleManager.ts`. Both selection modes test only shapes returned by `editor.getCurrentPageRenderingShapesSorted()`, which already excludes shapes outside the viewport.
+
+The "test each shape once" approach scales well to large documents because the cost per frame is bounded by the number of newly-visible shapes, not the total number of shapes. Edge scrolling brings new shapes into view, but we still only test them once.

@@ -1,5 +1,5 @@
 ---
-title: Deep link encoding
+title: Graceful degradation for broken links
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -84,9 +84,9 @@ Updating the URL on every camera change would thrash the browser's history stack
 const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
 
 const unlisten = react(
-  'update url on state change',
-  () => announceChange(new URL(url$.get()), this),
-  { scheduleEffect }
+	'update url on state change',
+	() => announceChange(new URL(url$.get()), this),
+	{ scheduleEffect }
 )
 ```
 
@@ -100,10 +100,10 @@ URL parsing can fail in several ways. The deep link string might be malformed, t
 
 ```typescript
 try {
-  this._navigateToDeepLink(parseDeepLinkString(deepLinkString))
+	this._navigateToDeepLink(parseDeepLinkString(deepLinkString))
 } catch (e) {
-  console.warn(e)
-  this._zoomToFitPageContentAt100Percent()
+	console.warn(e)
+	this._zoomToFitPageContentAt100Percent()
 }
 ```
 

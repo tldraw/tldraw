@@ -1,5 +1,5 @@
 ---
-title: Fairies
+title: Hybrid multimodal context for AI agents
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -26,12 +26,12 @@ Coordinates are straightforward in JSON:
 
 ```json
 {
-  "shapeId": "rectangle-1",
-  "type": "rectangle",
-  "x": 847,
-  "y": 1923,
-  "w": 200,
-  "h": 150
+	"shapeId": "rectangle-1",
+	"type": "rectangle",
+	"x": 847,
+	"y": 1923,
+	"w": 200,
+	"h": 150
 }
 ```
 
@@ -165,8 +165,8 @@ Screenshots capture only shapes that fit entirely within the viewport bounds:
 
 ```typescript
 const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
-  const bounds = editor.getShapeMaskedPageBounds(shape)
-  return contextBoundsBox.includes(bounds)
+	const bounds = editor.getShapeMaskedPageBounds(shape)
+	return contextBoundsBox.includes(bounds)
 })
 ```
 
@@ -179,10 +179,10 @@ const largestDimension = Math.max(bounds.w, bounds.h)
 const scale = largestDimension > 8000 ? 8000 / largestDimension : 1
 
 const result = await editor.toImage(shapes, {
-  format: 'jpeg',
-  background: true,
-  bounds: Box.From(bounds),
-  scale,
+	format: 'jpeg',
+	background: true,
+	bounds: Box.From(bounds),
+	scale,
 })
 ```
 

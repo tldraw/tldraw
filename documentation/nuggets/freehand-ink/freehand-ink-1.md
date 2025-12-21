@@ -1,5 +1,5 @@
 ---
-title: SVG paths from hand-drawn points
+title: The averaging algorithm for smooth curves
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -28,7 +28,7 @@ Here's what the core helper looks like:
 
 ```typescript
 export function average(A: VecLike, B: VecLike) {
-  return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
+	return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
 }
 ```
 
@@ -40,7 +40,7 @@ The path generation starts simple. For less than two points, return an empty str
 
 ```typescript
 if (len === 2) {
-  return `M${precise(a)}L${precise(b)}`
+	return `M${precise(a)}L${precise(b)}`
 }
 ```
 
@@ -50,11 +50,12 @@ Open paths (like selection brushes) start and end at the actual input points. Th
 
 ```typescript
 return `M${precise(points[0])}Q${precise(points[1])}${average(points[1], points[2])}${
-  points.length > 3 ? 'T' : ''
+	points.length > 3 ? 'T' : ''
 }${result}L${precise(points[len - 1])}`
 ```
 
 Breaking this down:
+
 - `M${precise(points[0])}` — Move to the first point exactly
 - `Q${precise(points[1])}` — Start a quadratic curve with points[1] as control
 - `${average(points[1], points[2])}` — End at the midpoint between points 1 and 2
@@ -66,7 +67,8 @@ Closed paths (like completed shapes) work differently. There's no meaningful "st
 
 ```typescript
 return `M${average(points[0], points[1])}Q${precise(points[1])}${average(
-  points[1], points[2]
+	points[1],
+	points[2]
 )}T${result}${average(points[len - 1], points[0])}${average(points[0], points[1])}Z`
 ```
 

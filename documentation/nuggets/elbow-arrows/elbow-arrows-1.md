@@ -1,5 +1,5 @@
 ---
-title: Elbow arrows
+title: Edge-based routing instead of grid pathfinding
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -10,11 +10,11 @@ keywords:
 
 # Elbow arrows
 
-When we added connector arrows to tldraw, we wanted them to route intelligently around shapes. The standard approach is grid-based pathfinding with A*: overlay a grid on the canvas, mark cells containing shapes as blocked, find the shortest path. This is how most diagramming tools do it.
+When we added connector arrows to tldraw, we wanted them to route intelligently around shapes. The standard approach is grid-based pathfinding with A\*: overlay a grid on the canvas, mark cells containing shapes as blocked, find the shortest path. This is how most diagramming tools do it.
 
 It doesn't work well for real-time shape dragging.
 
-A 5000x5000px canvas with a 10px grid has 250,000 cells to search. Running A* on every frame as you drag shapes is too expensive. You have two bad choices: use a fine grid and accept sluggish performance, or use a coarse grid and get blocky routes.
+A 5000x5000px canvas with a 10px grid has 250,000 cells to search. Running A\* on every frame as you drag shapes is too expensive. You have two bad choices: use a fine grid and accept sluggish performance, or use a coarse grid and get blocky routes.
 
 Worse, arbitrary shape rotations don't align with grid cells. A slightly rotated rectangle blocks cells it doesn't actually occupy.
 
@@ -32,29 +32,30 @@ Here's the blocking logic from `getElbowArrowInfo.tsx`:
 
 ```typescript
 if (
-    isWithinRange(aValue, bRange) &&
-    !a.isPoint &&
-    !b.isPoint &&
-    !isSelfBoundAndShouldRouteExternal
+	isWithinRange(aValue, bRange) &&
+	!a.isPoint &&
+	!b.isPoint &&
+	!isSelfBoundAndShouldRouteExternal
 ) {
-    const subtracted = subtractRange(aCrossRange, bCrossRange)
-    switch (subtracted.length) {
-        case 0:
-            return null  // edge completely blocked
-        case 1:
-            isPartial = subtracted[0] !== aCrossRange
-            aCrossRange = subtracted[0]
-            break
-        case 2:
-            isPartial = true
-            aCrossRange = rangeSize(subtracted[0]) > rangeSize(subtracted[1])
-                ? subtracted[0] : subtracted[1]
-            break
-    }
+	const subtracted = subtractRange(aCrossRange, bCrossRange)
+	switch (subtracted.length) {
+		case 0:
+			return null // edge completely blocked
+		case 1:
+			isPartial = subtracted[0] !== aCrossRange
+			aCrossRange = subtracted[0]
+			break
+		case 2:
+			isPartial = true
+			aCrossRange =
+				rangeSize(subtracted[0]) > rangeSize(subtracted[1]) ? subtracted[0] : subtracted[1]
+			break
+	}
 }
 ```
 
 Range subtraction works like this:
+
 - If shape B is completely inside shape A's range: return two ranges (left and right of B)
 - If B is completely outside A's range: return A unchanged
 - If B fully contains A's range: return empty array (completely blocked)
@@ -65,6 +66,7 @@ When a shape blocks part of an edge, we route through the largest remaining gap.
 ## Coordinate transforms
 
 We only implement four routing functions:
+
 - `routeRightToLeft`
 - `routeRightToTop`
 - `routeRightToBottom`
@@ -76,12 +78,12 @@ The transforms are defined in `ElbowArrowWorkingInfo.ts`:
 
 ```typescript
 export const ElbowArrowTransform = {
-    Identity: { x: 1, y: 1, transpose: false },
-    Rotate90: { x: -1, y: 1, transpose: true },
-    Rotate180: { x: -1, y: -1, transpose: false },
-    Rotate270: { x: 1, y: -1, transpose: true },
-    FlipX: { x: -1, y: 1, transpose: false },
-    FlipY: { x: 1, y: -1, transpose: false },
+	Identity: { x: 1, y: 1, transpose: false },
+	Rotate90: { x: -1, y: 1, transpose: true },
+	Rotate180: { x: -1, y: -1, transpose: false },
+	Rotate270: { x: 1, y: -1, transpose: true },
+	FlipX: { x: -1, y: 1, transpose: false },
+	FlipY: { x: 1, y: -1, transpose: false },
 }
 ```
 
@@ -89,19 +91,19 @@ Each edge pair maps to a transform and a route function:
 
 ```typescript
 const routes = {
-    top: {
-        top: [ElbowArrowTransform.Rotate270, routeRightToRight],
-        left: [ElbowArrowTransform.Rotate270, routeRightToTop],
-        bottom: [ElbowArrowTransform.Rotate270, routeRightToLeft],
-        right: [ElbowArrowTransform.Rotate270, routeRightToBottom],
-    },
-    right: {
-        top: [ElbowArrowTransform.Identity, routeRightToTop],
-        right: [ElbowArrowTransform.Identity, routeRightToRight],
-        bottom: [ElbowArrowTransform.Identity, routeRightToBottom],
-        left: [ElbowArrowTransform.Identity, routeRightToLeft],
-    },
-    // ... bottom and left follow similar pattern
+	top: {
+		top: [ElbowArrowTransform.Rotate270, routeRightToRight],
+		left: [ElbowArrowTransform.Rotate270, routeRightToTop],
+		bottom: [ElbowArrowTransform.Rotate270, routeRightToLeft],
+		right: [ElbowArrowTransform.Rotate270, routeRightToBottom],
+	},
+	right: {
+		top: [ElbowArrowTransform.Identity, routeRightToTop],
+		right: [ElbowArrowTransform.Identity, routeRightToRight],
+		bottom: [ElbowArrowTransform.Identity, routeRightToBottom],
+		left: [ElbowArrowTransform.Identity, routeRightToLeft],
+	},
+	// ... bottom and left follow similar pattern
 }
 ```
 
@@ -184,12 +186,12 @@ The distance calculation includes a small bias:
 
 ```typescript
 const arrow3Distance =
-    Math.abs(aEdge.value - info.common.expanded.right) +
-    Math.abs(aEdge.crossTarget - info.common.expanded.bottom) +
-    Math.abs(info.common.expanded.right - bEdge.expanded) +
-    Math.abs(info.common.expanded.bottom - bEdge.crossTarget) +
-    info.options.expandElbowLegLength +
-    6 // 6 points in this arrow
+	Math.abs(aEdge.value - info.common.expanded.right) +
+	Math.abs(aEdge.crossTarget - info.common.expanded.bottom) +
+	Math.abs(info.common.expanded.right - bEdge.expanded) +
+	Math.abs(info.common.expanded.bottom - bEdge.crossTarget) +
+	info.options.expandElbowLegLength +
+	6 // 6 points in this arrow
 ```
 
 Routes with more points get penalized slightly. This prevents unnecessarily complex paths.
@@ -222,18 +224,19 @@ The primary heuristic picks edges based on gap direction:
 
 ```typescript
 if (Math.abs(info.gapX) + 1 > Math.abs(info.gapY) && info.midX !== null) {
-    // +1 bias towards x-axis prevents flickering at 45 degrees
-    if (info.gapX > 0) {
-        idealRoute = tryRouteArrow(info, 'right', 'left')
-    } else {
-        idealRoute = tryRouteArrow(info, 'left', 'right')
-    }
+	// +1 bias towards x-axis prevents flickering at 45 degrees
+	if (info.gapX > 0) {
+		idealRoute = tryRouteArrow(info, 'right', 'left')
+	} else {
+		idealRoute = tryRouteArrow(info, 'left', 'right')
+	}
 }
 ```
 
 If the ideal route fails (edge blocked, no valid path), we try all sixteen combinations and pick the best.
 
 Route quality is judged by:
+
 1. Fewest corners (points in the path)
 2. Shortest Manhattan distance
 
@@ -247,17 +250,17 @@ For a shape like a rounded rectangle or an arbitrary polygon, we need to find wh
 
 ```typescript
 const intersections = target.geometry.intersectLineSegment(point2, target.target, {
-    includeLabels: false,
-    includeInternal: false,
+	includeLabels: false,
+	includeInternal: false,
 })
 
 // Find nearest intersection
 for (const intersection of intersections) {
-    const point2Distance = Vec.ManhattanDist(pointToFindClosestIntersectionTo, intersection)
-    if (point2Distance < nearestDistanceToPoint2) {
-        nearestDistanceToPoint2 = point2Distance
-        nearestIntersectionToPoint2 = intersection
-    }
+	const point2Distance = Vec.ManhattanDist(pointToFindClosestIntersectionTo, intersection)
+	if (point2Distance < nearestDistanceToPoint2) {
+		nearestDistanceToPoint2 = point2Distance
+		nearestIntersectionToPoint2 = intersection
+	}
 }
 ```
 
@@ -286,6 +289,7 @@ The tradeoff: we can't route through narrow gaps between shapes that a grid-base
 ---
 
 Source files:
+
 - `packages/tldraw/src/lib/shapes/arrow/elbow/getElbowArrowInfo.tsx` (881 lines)
 - `packages/tldraw/src/lib/shapes/arrow/elbow/routes/elbowArrowRoutes.tsx` (404 lines)
 - `packages/tldraw/src/lib/shapes/arrow/elbow/routes/ElbowArrowWorkingInfo.ts` (234 lines)

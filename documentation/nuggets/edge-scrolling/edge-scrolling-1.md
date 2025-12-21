@@ -1,5 +1,5 @@
 ---
-title: Edge scrolling
+title: Touch pointer width compensation
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:

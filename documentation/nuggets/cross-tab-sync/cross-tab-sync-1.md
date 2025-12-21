@@ -1,5 +1,5 @@
 ---
-title: Cross-tab synchronization
+title: BroadcastChannel for instant tab synchronization
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -36,16 +36,16 @@ When the store changes, we post those changes to the channel:
 
 ```typescript
 store.listen(
-  ({ changes }) => {
-    this.channel.postMessage({
-      type: 'diff',
-      storeId: this.store.id,
-      changes,
-      schema: this.serializedSchema,
-    })
-    this.schedulePersist()
-  },
-  { source: 'user', scope: 'document' }
+	({ changes }) => {
+		this.channel.postMessage({
+			type: 'diff',
+			storeId: this.store.id,
+			changes,
+			schema: this.serializedSchema,
+		})
+		this.schedulePersist()
+	},
+	{ source: 'user', scope: 'document' }
 )
 ```
 
@@ -57,15 +57,15 @@ Other tabs receive these messages and apply them directly to their stores:
 
 ```typescript
 this.channel.onmessage = ({ data }) => {
-  const msg = data as Message
+	const msg = data as Message
 
-  // Schema version check (covered later)
+	// Schema version check (covered later)
 
-  if (msg.type === 'diff') {
-    this.store.mergeRemoteChanges(() => {
-      this.store.applyDiff(msg.changes)
-    })
-  }
+	if (msg.type === 'diff') {
+		this.store.mergeRemoteChanges(() => {
+			this.store.applyDiff(msg.changes)
+		})
+	}
 }
 ```
 
@@ -103,11 +103,11 @@ The store listener calls `schedulePersist()` immediately after broadcasting:
 
 ```typescript
 store.listen(
-  ({ changes }) => {
-    this.channel.postMessage(/* ... */)
-    this.schedulePersist()
-  },
-  { source: 'user', scope: 'document' }
+	({ changes }) => {
+		this.channel.postMessage(/* ... */)
+		this.schedulePersist()
+	},
+	{ source: 'user', scope: 'document' }
 )
 ```
 
@@ -123,10 +123,10 @@ We handle this by including the schema in every message:
 
 ```typescript
 this.channel.postMessage({
-  type: 'diff',
-  storeId: this.store.id,
-  changes,
-  schema: this.serializedSchema,
+	type: 'diff',
+	storeId: this.store.id,
+	changes,
+	schema: this.serializedSchema,
 })
 ```
 
@@ -136,19 +136,19 @@ When receiving a message, we check if we can understand the sender's schema:
 const res = this.store.schema.getMigrationsSince(msg.schema)
 
 if (!res.ok) {
-  // Sender has newer schema — we're outdated
-  window?.location?.reload?.()
-  return
+	// Sender has newer schema — we're outdated
+	window?.location?.reload?.()
+	return
 } else if (res.value.length > 0) {
-  // Sender has older schema — tell them to reload
-  this.channel.postMessage({
-    type: 'announce',
-    schema: this.serializedSchema
-  })
-  // Do a full DB write to ensure our version wins
-  this.shouldDoFullDBWrite = true
-  this.persistIfNeeded()
-  return
+	// Sender has older schema — tell them to reload
+	this.channel.postMessage({
+		type: 'announce',
+		schema: this.serializedSchema,
+	})
+	// Do a full DB write to ensure our version wins
+	this.shouldDoFullDBWrite = true
+	this.persistIfNeeded()
+	return
 }
 ```
 
@@ -159,8 +159,8 @@ There's one edge case: a tab might be outdated at creation time. During developm
 ```typescript
 const timeSinceInit = Date.now() - this.initTime
 if (timeSinceInit < 5000) {
-  onLoadError(new Error('Schema mismatch, please close other tabs and reload'))
-  return
+	onLoadError(new Error('Schema mismatch, please close other tabs and reload'))
+	return
 }
 ```
 
@@ -174,11 +174,11 @@ We set up a second listener for session-scoped changes:
 
 ```typescript
 store.listen(
-  () => {
-    this.diffQueue.push(UPDATE_INSTANCE_STATE)
-    this.schedulePersist()
-  },
-  { scope: 'session' }
+	() => {
+		this.diffQueue.push(UPDATE_INSTANCE_STATE)
+		this.schedulePersist()
+	},
+	{ scope: 'session' }
 )
 ```
 
@@ -186,12 +186,12 @@ Note the absence of `channel.postMessage`. Session changes schedule persistence 
 
 ```typescript
 await sessionStateStore.put(
-  {
-    snapshot: sessionStateSnapshot,
-    updatedAt: Date.now(),
-    id: sessionId,
-  },
-  sessionId
+	{
+		snapshot: sessionStateSnapshot,
+		updatedAt: Date.now(),
+		id: sessionId,
+	},
+	sessionId
 )
 ```
 
@@ -199,12 +199,12 @@ Each tab has a unique session ID. When a tab loads, it looks for its session sta
 
 ```typescript
 let sessionStateSnapshot = sessionId
-  ? ((await sessionStateStore.get(sessionId)) as SessionStateSnapshotRow)?.snapshot
-  : null
+	? ((await sessionStateStore.get(sessionId)) as SessionStateSnapshotRow)?.snapshot
+	: null
 
 if (!sessionStateSnapshot) {
-  const all = (await sessionStateStore.getAll()) as SessionStateSnapshotRow[]
-  sessionStateSnapshot = all.sort((a, b) => a.updatedAt - b.updatedAt).pop()?.snapshot
+	const all = (await sessionStateStore.getAll()) as SessionStateSnapshotRow[]
+	sessionStateSnapshot = all.sort((a, b) => a.updatedAt - b.updatedAt).pop()?.snapshot
 }
 ```
 
@@ -233,12 +233,12 @@ Changes accumulate in a queue during the throttle window:
 
 ```typescript
 store.listen(
-  ({ changes }) => {
-    this.diffQueue.push(changes)
-    this.channel.postMessage(/* ... */)
-    this.schedulePersist()
-  },
-  { source: 'user', scope: 'document' }
+	({ changes }) => {
+		this.diffQueue.push(changes)
+		this.channel.postMessage(/* ... */)
+		this.schedulePersist()
+	},
+	{ source: 'user', scope: 'document' }
 )
 ```
 

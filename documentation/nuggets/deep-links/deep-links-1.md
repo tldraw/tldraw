@@ -1,5 +1,5 @@
 ---
-title: Deep link encoding
+title: Double-encoding dots for URL separators
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -26,8 +26,8 @@ We solve this by encoding dots twice:
 
 ```typescript
 function encodeId(str: string): string {
-  // need to encode dots because they are used as separators
-  return encodeURIComponent(str).replace(/\./g, '%2E')
+	// need to encode dots because they are used as separators
+	return encodeURIComponent(str).replace(/\./g, '%2E')
 }
 ```
 
@@ -56,21 +56,21 @@ When navigating to a list of shape IDs, some shapes might not exist anymore. The
 ```typescript
 const byPage: { [pageId: string]: TLShape[] } = {}
 for (const shape of allShapes) {
-  const pageId = this.getAncestorPageId(shape)
-  if (!pageId) continue
-  byPage[pageId] ??= []
-  byPage[pageId].push(shape)
+	const pageId = this.getAncestorPageId(shape)
+	if (!pageId) continue
+	byPage[pageId] ??= []
+	byPage[pageId].push(shape)
 }
 const [pageId, shapes] = Object.entries(byPage).sort(
-  ([_, a], [__, b]) => b.length - a.length
+	([_, a], [__, b]) => b.length - a.length
 )[0] ?? ['', []]
 
 if (!pageId || !shapes.length) {
-  this._zoomToFitPageContentAt100Percent()
+	this._zoomToFitPageContentAt100Percent()
 } else {
-  this.setCurrentPage(pageId as TLPageId)
-  const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
-  this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
+	this.setCurrentPage(pageId as TLPageId)
+	const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
+	this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
 }
 ```
 

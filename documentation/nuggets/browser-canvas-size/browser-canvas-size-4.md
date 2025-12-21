@@ -1,5 +1,5 @@
 ---
-title: Browser canvas size limits
+title: Probing for maximum dimensions
 created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
@@ -52,7 +52,7 @@ A canvas might be allowed to be 4 million pixels wide if it's only 1 pixel tall,
 
 ```typescript
 TEST_SIZES = {
-	area: [16384, 14188, 11402, 11180, 10836, 8192, 4096],  // square side length
+	area: [16384, 14188, 11402, 11180, 10836, 8192, 4096], // square side length
 	height: [8388607, 65535, 32767, 16384, 8192, 4096],
 	width: [4194303, 65535, 32767, 16384, 8192, 4096],
 }
