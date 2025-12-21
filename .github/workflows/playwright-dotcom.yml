@@ -92,7 +92,7 @@ jobs:
       - name: Log report to summary
         if: always()
         run: |
-          report_url="https://playwright-reports.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
+          report_url="https://playwright.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
           echo "Report: $report_url"
           echo "## Playwright report" >> $GITHUB_STEP_SUMMARY
           echo "* $report_url" >> $GITHUB_STEP_SUMMARY
