@@ -6,6 +6,11 @@ keywords:
   - freehand
   - SVG
   - bezier
+readability: 8
+voice: 8
+potential: 8
+accuracy: 6
+notes: "Good voice and T command insight. Coordinate count math is wrong: cubic uses 3 pairs/segment (2 control + 1 end), not 4. The '(2+2)*100=400' formula is incorrect and misleading."
 ---
 
 # SVG paths from hand-drawn points
