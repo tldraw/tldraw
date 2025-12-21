@@ -9,3 +9,5 @@
 - rotation in depth, how rotating multiple shapes works
 - collaboration conflicts, like dragging the same shape at the same time. the system produces weird UX but its okay, the weirdness produces good feedback that you're doing something weird. dragging different handles of the same arrow works fine.
 - known bugs and crashes. errors where the problem could be solved by running the "rules of the canvas" and side effects on the server, but that doesn't happen yet
+- tracking pointer velocity, preventing noise, and sliding the camera around
+- culling, how we do it and why we do it that way

@@ -8,13 +8,14 @@ keywords:
   - page
   - viewport
   - transform
+reviewed_by: steveruizok
 ---
 
 ## Overview
 
-The editor operates across three distinct coordinate systems to map between user input, the canvas viewport, and the infinite drawing space. These coordinate systems enable the editor to accurately translate mouse positions into canvas locations, position shapes correctly at any zoom level, and render content within the visible viewport.
+The editor operates across three distinct coordinate systems to map between user input, the canvas viewport, and the infinite space of the canvas. These coordinate systems enable the editor to accurately translate mouse positions into canvas locations, position shapes correctly at any zoom level, and render content within the visible viewport.
 
-Understanding these coordinate systems is essential when working with user input, custom tools, or programmatic shape manipulation. The camera system bridges these spaces through transformation methods that account for viewport position, zoom level, and container placement.
+Understanding these coordinate systems is essential when working with user input, custom tools, or programmatic shape manipulation. The camera system bridges these spaces through transformation methods that account for viewport position, zoom level, and the container's placement on the website's document.
 
 ## The three coordinate systems
 
@@ -22,7 +23,7 @@ The editor uses three coordinate systems, each serving a specific purpose in the
 
 ### Screen space
 
-Screen space represents absolute pixel coordinates from the browser document's origin at the top-left corner of the entire page. This includes any space outside the editor container, such as browser chrome, toolbars, or other page content. Screen coordinates match the values returned by browser events like `MouseEvent.clientX` and `MouseEvent.clientY`.
+Screen space represents absolute pixel coordinates from the browser document's origin at the top-left corner of the browser window. This includes any space outside the editor container, such as browser chrome, toolbars, or other page content. Screen coordinates match the values returned by browser events like `MouseEvent.clientX` and `MouseEvent.clientY`.
 
 When processing mouse or touch input, coordinates arrive in screen space and must be transformed into page space to determine which shapes the user is interacting with.
 
@@ -44,7 +45,7 @@ The editor provides transformation methods to convert between coordinate systems
 
 ### Screen to page space
 
-The `screenToPage()` method converts screen coordinates to page coordinates:
+The editor's `screenToPage()` method converts screen coordinates to page coordinates:
 
 ```typescript
 // Convert mouse event coordinates to page space
@@ -140,16 +141,6 @@ const shape = editor.getShape(shapeId)
 const screenPoint = editor.pageToScreen({ x: shape.x, y: shape.y })
 overlay.style.left = `${screenPoint.x}px`
 overlay.style.top = `${screenPoint.y}px`
-```
-
-### Checking visibility
-
-Determine if shapes are visible within the current viewport:
-
-```typescript
-const viewportPageBounds = editor.getViewportPageBounds()
-const shapePageBounds = editor.getShapePageBounds(shape)
-const isVisible = viewportPageBounds.includes(shapePageBounds)
 ```
 
 ## Key files

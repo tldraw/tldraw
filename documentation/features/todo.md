@@ -1,0 +1,7 @@
+- bounds, page bounds, and rotated page bounds
+- intersections
+- geometry
+- vec
+- matrix
+- options
+- fractional indices

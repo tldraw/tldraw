@@ -8,15 +8,16 @@ keywords:
   - immutable
   - linked list
   - structural sharing
+edited_by: steve
 ---
 
-# Immutable stack structure
+History was among the first systems we designed for tldraw. A good undo / redo system is fast, efficient, and resiliant to cases where operations fail, such as when you try to redo a change on a shape that another user has deleted.
 
-Undo/redo stacks don't need to be immutable. You could implement history with mutable arrays—push entries on, pop them off, splice when needed. We use an immutable linked list instead, not for safety or correctness, but for efficiency.
-
-The key property: when you push onto an immutable stack, you create a new stack that shares its tail with the old one. Both references remain valid. This structural sharing means multiple undo/redo operations can coexist without copying the entire stack.
+The current design of our history system reflects a host of requirements that we slowly encountered while implementing the canvas. In this article, we'll look at the data structure we use for our history and unpack our design decisions.
 
 ## The stack implementation
+
+The editor's history manager uses **immutable linked lists**, called "stacks", for its undos and redos. 
 
 We define stacks as linked lists with two node types:
 
@@ -48,7 +49,7 @@ class StackItem<T> implements Iterable<T> {
 }
 ```
 
-Every operation returns a new stack. The `push` method doesn't modify the existing stack—it allocates a new `StackItem` whose tail points to the old stack.
+Every operation returns a new stack. The `push` method doesn't modify the existing stack—it allocates a new `StackItem` whose tail points to the old stack. Importantly, both references remain valid. This structural sharing means multiple undo/redo operations can coexist without copying the entire stack.
 
 ## Why this matters
 
@@ -131,7 +132,9 @@ private stacks = atom(
 )
 ```
 
-The custom equality check uses reference equality. Since stacks are immutable, if the references are the same, the contents must be the same. This makes change detection trivial—no deep equality checks needed.
+Note the `isEqual` method there. That's a custom equality check. By default, atoms identify whether two versions of an atom are equal using a reference equality check. In our case, however, we're mutating the same `stacks` object, so the default check would always return `true`.
+
+To accurately capture change, we perform our reference equality checks on the undo and redo stacks instead. Since stacks are immutable, if the references are the same, the contents must be the same. This makes change detection trivial—no deep equality checks needed.
 
 When we update the stacks:
 

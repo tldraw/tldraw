@@ -9,6 +9,7 @@ keywords:
   - HistoryManager
   - marks
   - batch
+reviewed_by: steveruizok
 ---
 
 ## Overview
@@ -93,6 +94,10 @@ The three history modes are:
 - `record-preserveRedoStack` - Add to undo stack but keep redo stack intact
 - `ignore` - Don't add to either stack
 
+> We use `preserveRedoStack` when selecting shapes. When you don't have any redos, then changing your selection will add an entry onto the undo stack. Normally, adding things to the undo stack will clear the redo stack. However, we use `preserveRedoStack` for selections to prevent this behavior so that you can undo, select things, maybe copy them, and then redo back to where you were before. If, however, you change selection and _then_ make a change to the document that clears the redos, then your pending selections _will_ be added to the new undo stack.
+
+> We use `ignore` when updating the user's pointer, which is used to show a user's live cursor to collaborators.
+
 ## Advanced features
 
 ### Bailing
@@ -103,10 +108,12 @@ Bailing reverses changes without adding them to the redo stack, effectively disc
 const markId = editor.markHistoryStoppingPoint('begin drag')
 // User drags shapes around
 // User presses escape to cancel
-editor.bailToMark(markId) // Discard all changes since mark
+editor.bailToMark(markId) // Roll back and discard all changes since mark
 ```
 
 The `bail()` method returns to the most recent mark, while `bailToMark(id)` returns to a specific mark.
+
+> We use bailing while cloning shapes. A user can switch between translating shapes and cloning shapes by pressing or releasing the control modifier key during a drag interaction. When this changes, we bail on the changes since the interaction before applying the new mode's changes.
 
 ### Squashing
 
@@ -121,6 +128,8 @@ editor.squashToMark(markId) // All three nudges become one undo step
 ```
 
 Squashing doesn't change the current state, only how history is organized.
+
+> We use `squashToMark` during image cropping. As the user adjusts the cropped area, each change is recorded on the history stack, allowing them to undo or redo individual adjustments. However, when the user finishes cropping and exits this state, all of the intermediate changes are combined – or ‘squashed’ – into a single history entry. An undo will restore the image to its original state before cropping began, while a redo will restore the final state after cropping was complete.
 
 ### Clearing history
 

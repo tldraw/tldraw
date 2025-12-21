@@ -8,13 +8,14 @@ keywords:
   - keyboard
   - InputsManager
   - events
+reviewed_by: steveruizok
 ---
 
 ## Overview
 
 The input handling system manages pointer and keyboard state through the `InputsManager` class. This manager tracks pointer positions in multiple coordinate spaces, maintains button and key press states, detects input device types, and calculates pointer velocity for gesture recognition. By normalizing input across different devices (mouse, touch, pen), the system provides a consistent interface that tools and shapes can use to respond to user interactions.
 
-All input state is stored as reactive atoms using the `@tldraw/state` library. This reactive approach means components can efficiently read input state without subscribing to every update, and dependent computations automatically recalculate when the specific input values they depend on change. The manager updates its state on every input event, converts coordinates between screen space and page space, and maintains historical positions to support delta calculations for dragging and panning operations.
+All input state is stored as reactive atoms using the `@tldraw/state` library. This reactive approach means components can efficiently read input state without subscribing to every update, and dependent computations automatically recalculate when dereferenced if the specific input values they depend on have changed. The manager updates its state on every input event, converts coordinates between screen space and page space, and maintains historical positions to support delta calculations for dragging and panning operations.
 
 ## Pointer position tracking
 
@@ -81,6 +82,8 @@ editor.inputs.getIsPen() // true for stylus input
 
 The system determines pen input from the pointer event's `isPen` property, which is set by the browser based on the input device type. This enables pen-specific behaviors like pen mode, which ignores non-pen input to prevent accidental touch interactions when using a stylus. The pen flag updates on every pointer event through `updateFromEvent()`.
 
+> While devices have the ability to self-identify as 'pen', many devices do not do so. For example, many stylus devices will identify as 'mouse'. We use heuristics to handle these inputs so that we can correctly account for pressure.
+
 ## Modifier keys and button states
 
 The manager tracks modifier key states as reactive boolean atoms:
@@ -123,9 +126,10 @@ The manager maintains boolean flags that describe the current interaction state:
 ```typescript
 editor.inputs.getIsPointing() // Pointer button is down
 editor.inputs.getIsDragging() // Pointer moved while pointing
-editor.inputs.getIsPanning() // Panning the canvas
 editor.inputs.getIsPinching() // Two-finger pinch gesture
 editor.inputs.getIsEditing() // Editing text or content
+editor.inputs.getIsPanning() // Panning the canvas
+editor.inputs.getIsSpacebarPanning() // Holding the spacebar to pan
 ```
 
 The editor sets these flags through setter methods during event processing. For example, `isPointing` becomes true on pointer_down and false on pointer_up. The `isDragging` flag becomes true when the pointer moves beyond a drag distance threshold while pointing. The `isSpacebarPanning` flag distinguishes spacebar-initiated panning from other panning modes, allowing tools to respond appropriately.
@@ -163,6 +167,8 @@ const state = editor.inputs.toJson()
 ```
 
 The serialized state includes all position vectors, modifier key states, interaction flags, device type, and the contents of the keys and buttons sets.
+
+> We use this serialized form when generating a crash report.
 
 ## Key files
 
