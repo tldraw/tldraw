@@ -40,9 +40,9 @@ keywords:
 Most documents should follow this structure:
 
 ```markdown
-[1-2 paragraphs: What is this component's function? What role does it play
-in the overall system? Don't explain how it works yet—just establish why
-it exists and what it enables.]
+[1-2 paragraphs: An overview. What is this component's function?
+What role does it play in the overall system? Don't explain how it works
+yet—just establish why it exists and what it enables.]
 
 ## [Main content sections]
 
