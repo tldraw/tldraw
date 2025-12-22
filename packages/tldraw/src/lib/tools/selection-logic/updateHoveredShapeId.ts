@@ -1,8 +1,15 @@
-import { Editor, TLShape, throttle } from '@tldraw/editor'
+import { Editor, TLShape, Vec, throttle } from '@tldraw/editor'
+
+const _prevPagePoint = new Vec(-1, -1)
 
 function _updateHoveredShapeId(editor: Editor) {
+	// if the pointer has moved less than 0.05 units, don't update the hovered shape id
+	const currentPagePoint = editor.inputs.getCurrentPagePoint()
+	if (Vec.Dist(_prevPagePoint, currentPagePoint) < 0.05) return
+	_prevPagePoint.setTo(currentPagePoint)
+
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
-	const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
 		hitLabels: false,
 		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
