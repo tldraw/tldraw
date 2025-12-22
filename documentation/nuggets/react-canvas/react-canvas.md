@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - react
   - canvas
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # React as a canvas renderer

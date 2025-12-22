@@ -6,6 +6,9 @@ keywords:
   - IndexedDB
   - migrations
   - schema
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # IndexedDB migrations
@@ -194,6 +197,7 @@ Record scope can only see and modify one record at a time. Storage scope sees th
 Use **record scope** for most migrations. It's the fastest option and handles almost everything: adding properties, renaming fields, transforming values, and updating nested data. If you only need to modify existing records, use record scope.
 
 Use **storage scope** when you need to:
+
 - Create new records
 - Delete records or entire record types
 - Move data between records

@@ -6,6 +6,9 @@ keywords:
   - fractional indexing
   - jitter
   - z-order
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Jittered fractional indices
@@ -59,6 +62,7 @@ describe('getIndicesBetween', () => {
 ```
 
 We check that:
+
 - The count is correct
 - All generated indices fall between the bounds
 - Indices sort lexicographically in the expected order
@@ -84,18 +88,19 @@ This works because the `jittered-fractional-indexing` library has its own intern
 Tests verify that valid indices pass and invalid ones throw:
 
 ```typescript
-validateIndexKey('a0')  // passes
-validateIndexKey('a1')  // passes
+validateIndexKey('a0') // passes
+validateIndexKey('a1') // passes
 validateIndexKey('a0V') // passes
 
-validateIndexKey('')        // throws 'invalid index: '
+validateIndexKey('') // throws 'invalid index: '
 validateIndexKey('invalid') // throws 'invalid index: invalid'
-validateIndexKey('123')     // throws 'invalid index: 123'
+validateIndexKey('123') // throws 'invalid index: 123'
 ```
 
 ## Why this works
 
 The key insight is that jitter changes the specific values, not the structure of the algorithm. Deterministic indices and jittered indices both:
+
 - Sort lexicographically
 - Fall within specified bounds
 - Support infinite subdivision

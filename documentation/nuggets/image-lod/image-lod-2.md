@@ -6,6 +6,9 @@ keywords:
   - image
   - LOD
   - resolution
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Image level of detail
@@ -35,20 +38,20 @@ If the screen scale changes againâ€”zooming in, zooming out, moving the cameraâ€
 
 ```typescript
 if (didAlreadyResolve.current) {
-  let tick = 0
+	let tick = 0
 
-  const resolveAssetAfterAWhile = () => {
-    tick++
-    if (tick > 500 / 16) {
-      // debounce for 500ms
-      resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
-      cancelDebounceFn?.()
-    }
-  }
+	const resolveAssetAfterAWhile = () => {
+		tick++
+		if (tick > 500 / 16) {
+			// debounce for 500ms
+			resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
+			cancelDebounceFn?.()
+		}
+	}
 
-  cancelDebounceFn?.()
-  editor.on('tick', resolveAssetAfterAWhile)
-  cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
+	cancelDebounceFn?.()
+	editor.on('tick', resolveAssetAfterAWhile)
+	cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
 }
 ```
 

@@ -8,6 +8,9 @@ keywords:
   - playwright
   - e2e
   - guide
+status: published
+date: 12/19/2025
+order: 3
 ---
 
 This guide covers unit testing with Vitest and end-to-end testing with Playwright in the tldraw monorepo.

@@ -6,6 +6,9 @@ keywords:
   - wheel
   - or
   - trackpad
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Wheel or trackpad: raw notes
@@ -15,6 +18,7 @@ Internal research notes for the wheel-or-trackpad.md article.
 ## Core problem
 
 Browser wheel events look identical whether they come from a mouse wheel or trackpad, but users expect opposite behaviors:
+
 - **Mouse wheel**: scroll up/down = zoom in/out
 - **Trackpad**: two-finger swipe = pan (zoom happens via pinch gestures)
 
@@ -23,16 +27,18 @@ The `WheelEvent` API provides no device information, and all detection heuristic
 ## Browser WheelEvent API limitations
 
 From the DOM spec, the `WheelEvent` interface contains:
+
 ```typescript
 interface WheelEvent extends MouseEvent {
-  deltaX: number  // Horizontal scroll amount
-  deltaY: number  // Vertical scroll amount
-  deltaZ: number  // Rarely used (depth scrolling)
-  deltaMode: number  // 0 = DOM_DELTA_PIXEL, 1 = DOM_DELTA_LINE, 2 = DOM_DELTA_PAGE
+	deltaX: number // Horizontal scroll amount
+	deltaY: number // Vertical scroll amount
+	deltaZ: number // Rarely used (depth scrolling)
+	deltaMode: number // 0 = DOM_DELTA_PIXEL, 1 = DOM_DELTA_LINE, 2 = DOM_DELTA_PAGE
 }
 ```
 
 **Missing information:**
+
 - No `deviceType` or `inputSource` field
 - No `isTrackpad` boolean
 - No reliable way to distinguish input hardware
@@ -40,6 +46,7 @@ interface WheelEvent extends MouseEvent {
 ## Failed detection heuristics
 
 **Delta magnitude approach:**
+
 - Mouse wheels typically produce discrete, larger deltas (e.g., 100+ pixels per notch)
 - Trackpads produce smoother, smaller deltas (e.g., 1-10 pixels per frame)
 - **Problem**: OS settings, browser scaling, and hardware sensitivity vary wildly
@@ -47,6 +54,7 @@ interface WheelEvent extends MouseEvent {
 - Low-sensitivity trackpad can produce large jumps
 
 **Delta mode approach:**
+
 - `DOM_DELTA_LINE` (mode 1) more common with mouse wheels
 - `DOM_DELTA_PIXEL` (mode 0) more common with trackpads
 - **Problem**: Inconsistent across browsers and configurations
@@ -54,6 +62,7 @@ interface WheelEvent extends MouseEvent {
 - Not reliable for detection
 
 **Event frequency approach:**
+
 - Trackpads fire many events during continuous gesture
 - Mouse wheels fire discrete events per notch
 - **Problem**: Momentum scrolling on trackpads has gaps
@@ -61,6 +70,7 @@ interface WheelEvent extends MouseEvent {
 - Overlap between devices too large
 
 **Platform detection approach:**
+
 - Assume macOS laptops = trackpad, Windows desktops = mouse
 - **Problem**: Users can have both devices
 - Laptops can have external mice
@@ -73,61 +83,65 @@ Located in `packages/editor/src/lib/config/TLUserPreferences.ts:13-29`:
 
 ```typescript
 export interface TLUserPreferences {
-  id: string
-  name?: string | null
-  color?: string | null
-  locale?: string | null
-  animationSpeed?: number | null
-  areKeyboardShortcutsEnabled?: boolean | null
-  edgeScrollSpeed?: number | null
-  colorScheme?: 'light' | 'dark' | 'system'
-  isSnapMode?: boolean | null
-  isWrapMode?: boolean | null
-  isDynamicSizeMode?: boolean | null
-  isPasteAtCursorMode?: boolean | null
-  enhancedA11yMode?: boolean | null
-  inputMode?: 'trackpad' | 'mouse' | null  // null = "auto"
+	id: string
+	name?: string | null
+	color?: string | null
+	locale?: string | null
+	animationSpeed?: number | null
+	areKeyboardShortcutsEnabled?: boolean | null
+	edgeScrollSpeed?: number | null
+	colorScheme?: 'light' | 'dark' | 'system'
+	isSnapMode?: boolean | null
+	isWrapMode?: boolean | null
+	isDynamicSizeMode?: boolean | null
+	isPasteAtCursorMode?: boolean | null
+	enhancedA11yMode?: boolean | null
+	inputMode?: 'trackpad' | 'mouse' | null // null = "auto"
 }
 ```
 
 **Input mode values:**
+
 - `'trackpad'`: Force pan-on-wheel behavior
 - `'mouse'`: Force zoom-on-wheel behavior
 - `null`: Use default from camera options (auto mode)
 
 **Validator:**
 From `TLUserPreferences.ts:43-59`:
+
 ```typescript
 export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
-  // ... other fields
-  inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
+	// ... other fields
+	inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
 })
 ```
 
 ## Migration and versioning
 
 From `TLUserPreferences.ts:61-74`:
+
 ```typescript
 const Versions = {
-  AddAnimationSpeed: 1,
-  AddIsSnapMode: 2,
-  MakeFieldsNullable: 3,
-  AddEdgeScrollSpeed: 4,
-  AddExcalidrawSelectMode: 5,
-  AddDynamicSizeMode: 6,
-  AllowSystemColorScheme: 7,
-  AddPasteAtCursor: 8,
-  AddKeyboardShortcuts: 9,
-  AddShowUiLabels: 10,
-  AddPointerPeripheral: 11,  // When inputMode was added
-  RenameShowUiLabelsToEnhancedA11yMode: 12,
+	AddAnimationSpeed: 1,
+	AddIsSnapMode: 2,
+	MakeFieldsNullable: 3,
+	AddEdgeScrollSpeed: 4,
+	AddExcalidrawSelectMode: 5,
+	AddDynamicSizeMode: 6,
+	AllowSystemColorScheme: 7,
+	AddPasteAtCursor: 8,
+	AddKeyboardShortcuts: 9,
+	AddShowUiLabels: 10,
+	AddPointerPeripheral: 11, // When inputMode was added
+	RenameShowUiLabelsToEnhancedA11yMode: 12,
 } as const
 ```
 
 From `TLUserPreferences.ts:120-122`:
+
 ```typescript
 if (data.version < Versions.AddPointerPeripheral) {
-  data.user.inputMode = null
+	data.user.inputMode = null
 }
 ```
 
@@ -136,21 +150,22 @@ The `inputMode` field was added in version 11 (AddPointerPeripheral). Older user
 ## Default values
 
 From `TLUserPreferences.ts:158-174`:
+
 ```typescript
 export const defaultUserPreferences = Object.freeze({
-  name: '',
-  locale: getDefaultTranslationLocale(),
-  color: getRandomColor(),
-  edgeScrollSpeed: 1,
-  animationSpeed: userPrefersReducedMotion() ? 0 : 1,
-  areKeyboardShortcutsEnabled: true,
-  isSnapMode: false,
-  isWrapMode: false,
-  isDynamicSizeMode: false,
-  isPasteAtCursorMode: false,
-  enhancedA11yMode: false,
-  colorScheme: 'light',
-  inputMode: null,  // Default to "auto"
+	name: '',
+	locale: getDefaultTranslationLocale(),
+	color: getRandomColor(),
+	edgeScrollSpeed: 1,
+	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
+	areKeyboardShortcutsEnabled: true,
+	isSnapMode: false,
+	isWrapMode: false,
+	isDynamicSizeMode: false,
+	isPasteAtCursorMode: false,
+	enhancedA11yMode: false,
+	colorScheme: 'light',
+	inputMode: null, // Default to "auto"
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 ```
 
@@ -158,46 +173,50 @@ export const defaultUserPreferences = Object.freeze({
 
 **LocalStorage:**
 From `TLUserPreferences.ts:6`:
+
 ```typescript
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 ```
 
 From `TLUserPreferences.ts:213-221`:
+
 ```typescript
 function storeUserPreferences() {
-  setInLocalStorage(
-    USER_DATA_KEY,
-    JSON.stringify({
-      version: CURRENT_VERSION,
-      user: globalUserPreferences.get(),
-    })
-  )
+	setInLocalStorage(
+		USER_DATA_KEY,
+		JSON.stringify({
+			version: CURRENT_VERSION,
+			user: globalUserPreferences.get(),
+		})
+	)
 }
 ```
 
 **BroadcastChannel synchronization:**
 From `TLUserPreferences.ts:233-243`:
+
 ```typescript
 const channel =
-  typeof BroadcastChannel !== 'undefined' && !isTest
-    ? new BroadcastChannel('tldraw-user-sync')
-    : null
+	typeof BroadcastChannel !== 'undefined' && !isTest
+		? new BroadcastChannel('tldraw-user-sync')
+		: null
 
 channel?.addEventListener('message', (e) => {
-  const data = e.data as undefined | UserChangeBroadcastMessage
-  if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
-    globalUserPreferences.set(migrateUserPreferences(data.data))
-  }
+	const data = e.data as undefined | UserChangeBroadcastMessage
+	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
+		globalUserPreferences.set(migrateUserPreferences(data.data))
+	}
 })
 ```
 
 **Message format:**
 From `TLUserPreferences.ts:36-40`:
+
 ```typescript
 interface UserChangeBroadcastMessage {
-  type: typeof broadcastEventKey  // 'tldraw-user-preferences-change'
-  origin: string  // unique ID to prevent echo
-  data: UserDataSnapshot
+	type: typeof broadcastEventKey // 'tldraw-user-preferences-change'
+	origin: string // unique ID to prevent echo
+	data: UserDataSnapshot
 }
 ```
 
@@ -206,25 +225,27 @@ Preferences sync across browser tabs/windows using `BroadcastChannel`. Each tab 
 ## Camera options
 
 From `packages/editor/src/lib/editor/types/misc-types.ts:93-111`:
+
 ```typescript
 export interface TLCameraOptions {
-  isLocked: boolean
-  panSpeed: number  // Default: 1
-  zoomSpeed: number  // Default: 1
-  zoomSteps: number[]  // Default: [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8]
-  wheelBehavior: 'zoom' | 'pan' | 'none'
-  constraints?: TLCameraConstraints
+	isLocked: boolean
+	panSpeed: number // Default: 1
+	zoomSpeed: number // Default: 1
+	zoomSteps: number[] // Default: [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8]
+	wheelBehavior: 'zoom' | 'pan' | 'none'
+	constraints?: TLCameraConstraints
 }
 ```
 
 From `packages/editor/src/lib/constants.ts:5-11`:
+
 ```typescript
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
-  isLocked: false,
-  wheelBehavior: 'pan',  // Default assumes trackpad-like behavior
-  panSpeed: 1,
-  zoomSpeed: 1,
-  zoomSteps: [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8],
+	isLocked: false,
+	wheelBehavior: 'pan', // Default assumes trackpad-like behavior
+	panSpeed: 1,
+	zoomSpeed: 1,
+	zoomSteps: [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8],
 }
 ```
 
@@ -305,11 +326,13 @@ case 'wheel': {
 ## Ctrl key modifier (escape hatch)
 
 From `Editor.ts:10446`:
+
 ```typescript
 if (info.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 ```
 
 **Behavior:**
+
 - When `wheelBehavior === 'pan'` and Ctrl pressed → zoom
 - When `wheelBehavior === 'zoom'` and Ctrl pressed → pan
 - Allows temporary behavior inversion without changing preference
@@ -319,22 +342,25 @@ if (info.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 **Mouse wheel zoom mode:**
 From `Editor.ts:10455-10461`:
+
 ```typescript
 if (wheelBehavior === 'zoom') {
-  if (Math.abs(dy) > 10) {
-    delta = (10 * Math.sign(dy)) / 100
-  } else {
-    delta = dy / 100
-  }
+	if (Math.abs(dy) > 10) {
+		delta = (10 * Math.sign(dy)) / 100
+	} else {
+		delta = dy / 100
+	}
 }
 ```
 
 **Constants:**
+
 - Threshold: `10` pixels
 - Scale factor: `100` (divide by 100)
 - Clamp: `Math.abs(dy) > 10` → use `±10` instead
 
 **Why this matters:**
+
 - Mouse wheels can produce very large `deltaY` values (100+ pixels per notch)
 - Without clamping, a single wheel notch could zoom from 100% to 300% instantly
 - Clamping creates discrete, predictable zoom steps
@@ -344,19 +370,22 @@ if (wheelBehavior === 'zoom') {
 Uses `dz` directly from `normalizeWheel()`, which already processes pinch gestures appropriately. The `dz` value comes from `@use-gesture/react` pinch handling.
 
 From `Editor.ts:10463`:
+
 ```typescript
 const zoom = cz + (delta ?? 0) * zoomSpeed * cz
 ```
 
 **Zoom-at-point calculation:**
 From `Editor.ts:10464`:
+
 ```typescript
 this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
-  immediate: true,
+	immediate: true,
 })
 ```
 
 **Math breakdown:**
+
 - `cz` = current zoom level
 - `zoom` = new zoom level
 - `x, y` = cursor position in screen space
@@ -366,6 +395,7 @@ this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
 This keeps the point under the cursor fixed in page space while zooming.
 
 **Derivation:**
+
 ```
 // Point P in page space:
 P = camera + cursor/zoom
@@ -380,13 +410,15 @@ new_camera = old_camera + cursor/new_zoom - cursor/old_zoom
 ## Pan calculation
 
 From `Editor.ts:10472`:
+
 ```typescript
 this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz), {
-  immediate: true,
+	immediate: true,
 })
 ```
 
 **Why divide by zoom:**
+
 - `dx, dy` are in screen-space pixels
 - Camera position is in page space
 - At zoom level 2 (200%), 10 screen pixels = 5 page units
@@ -395,31 +427,33 @@ this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz
 ## Wheel normalization
 
 From `packages/editor/src/lib/utils/normalizeWheel.ts`:
+
 ```typescript
 const MAX_ZOOM_STEP = 10
 const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
-  typeof window === 'undefined' ? 'node' : window.navigator.platform
+	typeof window === 'undefined' ? 'node' : window.navigator.platform
 )
 
 export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>) {
-  let { deltaY, deltaX } = event
-  let deltaZ = 0
+	let { deltaY, deltaX } = event
+	let deltaZ = 0
 
-  // wheeling
-  if (event.ctrlKey || event.altKey || event.metaKey) {
-    deltaZ = (Math.abs(deltaY) > MAX_ZOOM_STEP ? MAX_ZOOM_STEP * Math.sign(deltaY) : deltaY) / 100
-  } else {
-    if (event.shiftKey && !IS_DARWIN) {
-      deltaX = deltaY
-      deltaY = 0
-    }
-  }
+	// wheeling
+	if (event.ctrlKey || event.altKey || event.metaKey) {
+		deltaZ = (Math.abs(deltaY) > MAX_ZOOM_STEP ? MAX_ZOOM_STEP * Math.sign(deltaY) : deltaY) / 100
+	} else {
+		if (event.shiftKey && !IS_DARWIN) {
+			deltaX = deltaY
+			deltaY = 0
+		}
+	}
 
-  return { x: -deltaX, y: -deltaY, z: -deltaZ }
+	return { x: -deltaX, y: -deltaY, z: -deltaZ }
 }
 ```
 
 **Key behaviors:**
+
 - `Ctrl/Alt/Meta` keys → treat as zoom gesture (set `deltaZ`)
 - `Shift` key (non-macOS) → swap X/Y for horizontal scrolling
 - Clamp zoom delta to ±10 pixels max
@@ -494,11 +528,13 @@ export function InputModeMenu() {
 ```
 
 **Radio-style selection:**
+
 - Three mutually exclusive options
 - Only one can be checked at a time
 - `isModeChecked()` determines which option is active
 
 **Dynamic auto label:**
+
 - Auto mode label reflects current `wheelBehavior` from camera options
 - `action.toggle-auto-pan` if `wheelBehavior === 'pan'`
 - `action.toggle-auto-zoom` if `wheelBehavior === 'zoom'`
@@ -507,14 +543,15 @@ export function InputModeMenu() {
 ## Translation keys
 
 From `packages/assets/translations/main.json`:
+
 ```json
 {
-  "action.toggle-auto-pan": "Auto (trackpad)",
-  "action.toggle-auto-zoom": "Auto (mouse)",
-  "action.toggle-auto-none": "Auto",
-  "action.toggle-mouse": "Mouse",
-  "action.toggle-trackpad": "Trackpad",
-  "menu.input-mode": "Input mode"
+	"action.toggle-auto-pan": "Auto (trackpad)",
+	"action.toggle-auto-zoom": "Auto (mouse)",
+	"action.toggle-auto-none": "Auto",
+	"action.toggle-mouse": "Mouse",
+	"action.toggle-trackpad": "Trackpad",
+	"menu.input-mode": "Input mode"
 }
 ```
 
@@ -524,25 +561,29 @@ Users need to know what "auto" means for their current configuration. If `wheelB
 ## Analytics tracking
 
 From `InputModeMenu.tsx:47`:
+
 ```typescript
 trackEvent('input-mode', { source: 'menu', value: mode })
 ```
 
 From `packages/tldraw/src/lib/ui/context/events.tsx:106`:
+
 ```typescript
 export interface TLUiEventMap {
-  // ...
-  'input-mode': { value: string }
-  // ...
+	// ...
+	'input-mode': { value: string }
+	// ...
 }
 ```
 
 **Event data:**
+
 - Event name: `'input-mode'`
 - Source: `'menu'` (could theoretically track from other sources)
 - Value: `'auto'`, `'trackpad'`, or `'mouse'`
 
 Analytics help understand:
+
 - What percentage of users change from default
 - Which mode is most popular
 - Whether users discover the preference
@@ -553,18 +594,18 @@ The wheel handler runs before pinch disambiguation. From `packages/editor/src/li
 
 ```typescript
 const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
-  if (!editor.getInstanceState().isFocused) {
-    return
-  }
+	if (!editor.getInstanceState().isFocused) {
+		return
+	}
 
-  pinchState = 'not sure'
+	pinchState = 'not sure'
 
-  if (isWheelEndEvent(Date.now())) {
-    // ignore wheelEnd events
-    return
-  }
+	if (isWheelEndEvent(Date.now())) {
+		// ignore wheelEnd events
+		return
+	}
 
-  // ... rest of wheel handling
+	// ... rest of wheel handling
 }
 ```
 
@@ -573,17 +614,19 @@ const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
 ## Vec class structure
 
 From `packages/editor/src/lib/primitives/Vec.ts:9-14`:
+
 ```typescript
 export class Vec {
-  constructor(
-    public x = 0,
-    public y = 0,
-    public z = 1  // Used for camera zoom level
-  ) {}
+	constructor(
+		public x = 0,
+		public y = 0,
+		public z = 1 // Used for camera zoom level
+	) {}
 }
 ```
 
 Camera position stored as `Vec(x, y, z)` where:
+
 - `x, y`: Page-space position (top-left corner of viewport)
 - `z`: Zoom level (1 = 100%, 2 = 200%, 0.5 = 50%)
 
@@ -623,19 +666,22 @@ Check for touch screen, specific hardware APIs, etc. Tells you device capabiliti
 ## Browser support notes
 
 **BroadcastChannel:**
+
 - Supported in modern browsers (Chrome 54+, Firefox 38+, Safari 15.4+)
 - Gracefully degrades: preference changes don't sync across tabs
 - Mock implementation for Node.js test environment
 
 From `TLUserPreferences.ts:233-236`:
+
 ```typescript
 const channel =
-  typeof BroadcastChannel !== 'undefined' && !isTest
-    ? new BroadcastChannel('tldraw-user-sync')
-    : null
+	typeof BroadcastChannel !== 'undefined' && !isTest
+		? new BroadcastChannel('tldraw-user-sync')
+		: null
 ```
 
 **localStorage:**
+
 - Universal support
 - 5-10MB quota (sufficient for user preferences)
 - Synchronous API (blocking, but data is small)
@@ -644,6 +690,7 @@ const channel =
 
 **Immediate camera updates:**
 From `Editor.ts:10464` and `10472`:
+
 ```typescript
 this._setCamera(newPos, { immediate: true })
 ```
@@ -652,6 +699,7 @@ The `immediate: true` flag bypasses animation system. Wheel events need instant 
 
 **Performance tracking:**
 From `Editor.ts:10467` and `10475`:
+
 ```typescript
 this.maybeTrackPerformance('Zooming')
 this.maybeTrackPerformance('Panning')
@@ -669,19 +717,20 @@ The `@use-gesture/react` library fires phantom wheel events ~140ms after momentu
 
 **Scrollable shape handling:**
 From `useGestureEvents.ts:101-113`:
+
 ```typescript
 const editingShapeId = editor.getEditingShapeId()
 if (editingShapeId) {
-  const shape = editor.getShape(editingShapeId)
-  if (shape) {
-    const util = editor.getShapeUtil(shape)
-    if (util.canScroll(shape)) {
-      const bounds = editor.getShapePageBounds(editingShapeId)
-      if (bounds?.containsPoint(editor.inputs.getCurrentPagePoint())) {
-        return  // Let the shape handle scrolling
-      }
-    }
-  }
+	const shape = editor.getShape(editingShapeId)
+	if (shape) {
+		const util = editor.getShapeUtil(shape)
+		if (util.canScroll(shape)) {
+			const bounds = editor.getShapePageBounds(editingShapeId)
+			if (bounds?.containsPoint(editor.inputs.getCurrentPagePoint())) {
+				return // Let the shape handle scrolling
+			}
+		}
+	}
 }
 ```
 

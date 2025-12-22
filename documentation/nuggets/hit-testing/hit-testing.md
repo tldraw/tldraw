@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - hit
   - testing
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Hit testing: what's under the pointer?

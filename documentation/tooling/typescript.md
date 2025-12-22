@@ -8,6 +8,9 @@ keywords:
   - types
   - configuration
   - project references
+status: published
+date: 12/20/2024
+order: 2
 ---
 
 The tldraw monorepo uses TypeScript's project references feature to enable fast incremental compilation across dozens of packages. This architecture allows TypeScript to track dependencies between packages and recompile only what changed, reducing type check times from minutes to seconds. The configuration prioritizes both developer productivity through speed and code quality through strict type safety.

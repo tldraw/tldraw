@@ -8,6 +8,9 @@ keywords:
   - naming
   - patterns
   - style
+status: published
+date: 12/19/2025
+order: 0
 ---
 
 This reference lists the naming and API patterns used across tldraw packages.

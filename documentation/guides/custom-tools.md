@@ -8,6 +8,9 @@ keywords:
   - statenode
   - tutorial
   - guide
+status: published
+date: 12/19/2025
+order: 2
 ---
 
 Tools are state machines built on `StateNode`. This guide shows how to create a custom tool and register it with the editor.

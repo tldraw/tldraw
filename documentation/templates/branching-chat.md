@@ -8,6 +8,9 @@ keywords:
   - branching
   - conversation
   - template
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 The Branching Chat template builds a conversation tree UI on tldraw. Messages are nodes on the canvas, and a worker streams AI responses.

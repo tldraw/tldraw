@@ -7,6 +7,9 @@ keywords:
   - state
   - machine
   - race conditions
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Preventing race conditions in click detection

@@ -6,6 +6,9 @@ keywords:
   - shape
   - font
   - loading
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Microtask batching for font loading

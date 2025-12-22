@@ -1,0 +1,117 @@
+---
+title: Export
+created_at: 12/20/2024
+updated_at: 12/20/2024
+keywords:
+  - export
+  - SVG
+  - image
+  - PNG
+  - download
+status: published
+date: 12/20/2024
+order: 13
+---
+
+The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The system handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports preserve visual fidelity by embedding fonts, inlining styles, and converting media elements to data URLs so the resulting files are fully self-contained.
+
+## How it works
+
+The export process has two main stages: SVG generation and optional raster conversion. The SVG stage renders shapes into a self-contained SVG document, while the raster stage converts that SVG into a bitmap image format.
+
+### SVG generation
+
+SVG export starts by gathering the shapes to export and calculating their bounding box. The system creates a React tree representing the SVG, renders it into a temporary DOM element, and processes it to ensure it's self-contained.
+
+Each shape can define how it renders to SVG through its `ShapeUtil`:
+
+- If the shape implements `toSvg()` or `toBackgroundSvg()`, those methods generate native SVG elements
+- If the shape doesn't implement SVG methods, the system renders its normal HTML representation inside an SVG `<foreignObject>` element
+
+The temporary render step is necessary because CSS and layout aren't computed until elements are in the document. The `<foreignObject>` elements in particular need their styles and content inlined to work when the SVG is extracted.
+
+### Making SVG self-contained
+
+SVG files must be completely self-contained to work outside the document. The system processes the rendered SVG to embed all external resources:
+
+**Font embedding**: The `FontEmbedder` traverses document stylesheets to find `@font-face` declarations, fetches font files, converts them to data URLs, and inlines them in the SVG. This ensures text renders identically regardless of what fonts the viewer has installed.
+
+**Style inlining**: The `StyleEmbedder` reads computed styles from every element in `<foreignObject>` sections and applies them directly as inline styles. This prevents reliance on external stylesheets. Pseudo-elements like `::before` and `::after` can't be inlined, so their styles are extracted into a `<style>` tag within the SVG.
+
+**Media conversion**: The `embedMedia` function converts images, videos, and canvas elements to embedded formats. Images become data URLs, videos are captured as single frame images, and canvas elements are converted to images via `toDataURL()`.
+
+### Raster conversion
+
+Once the SVG is generated, it can be converted to a raster image format. The `getSvgAsImage` function loads the SVG into an `Image` element, draws it to a canvas at the requested resolution, and exports the canvas as a blob.
+
+The pixel ratio parameter controls output resolution. For high-DPI displays, use a pixel ratio of 2 or higher to ensure sharp rendering. The system automatically clamps dimensions to browser canvas limits to avoid out-of-memory errors.
+
+## Export options
+
+All export methods accept a configuration object with these options:
+
+- `bounds` specifies the bounding box in page coordinates to export. If not provided, the system calculates bounds automatically from the selected shapes.
+- `scale` sets the logical scale multiplier for the export. A scale of 2 doubles the size of the resulting SVG.
+- `pixelRatio` controls asset quality and raster image resolution. For SVG exports, this is passed to the asset store so it can provide appropriately sized assets. For raster exports, it multiplies the output image dimensions. Defaults to `undefined` for SVG (original quality) and `2` for raster formats.
+- `background` determines whether to include the background color. If false, the export is transparent (for formats that support transparency).
+- `padding` adds space in pixels around the shape bounds. Defaults to 32. Padding is skipped when exporting a single frame or when shapes are contained within an export bounds container like an image.
+- `darkMode` controls whether to render in dark mode. Defaults to the current user's theme setting.
+- `quality` sets compression quality for lossy formats like JPEG as a number between 0 and 1. Only applies to raster image exports.
+- `format` sets the output format for image exports: `'svg'`, `'png'`, `'jpeg'`, or `'webp'`. Defaults to `'png'`.
+
+## Editor export methods
+
+The `Editor` class provides three methods for exporting shapes:
+
+**getSvgElement**: Returns the SVG as a DOM element along with its dimensions. Use this when you need to manipulate the SVG programmatically or insert it directly into the DOM.
+
+```typescript
+const result = await editor.getSvgElement(shapes, { scale: 2 })
+if (result) {
+	document.body.appendChild(result.svg)
+}
+```
+
+**getSvgString**: Returns the SVG as a serialized string. Use this when you need the SVG as text, such as for saving to a file or sending to a server.
+
+```typescript
+const result = await editor.getSvgString(shapes, { background: true })
+if (result) {
+	console.log(result.svg) // SVG markup as string
+}
+```
+
+**toImage**: Returns a blob of the exported image in the specified format. This is the primary method for generating raster images.
+
+```typescript
+const result = await editor.toImage(shapes, {
+	format: 'png',
+	pixelRatio: 2,
+	background: true,
+})
+downloadBlob(result.blob, 'export.png')
+```
+
+All methods accept either shape IDs or shape objects, and an empty array exports all shapes on the current page.
+
+## Examples
+
+- **[Export canvas as image](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/export-canvas-as-image)** - Export the entire canvas as an image file using `Editor.toImage()` and download it.
+- **[Export canvas as image (with settings)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/export-canvas-settings)** - Export the canvas as an image with configurable settings for format, scale, background, and other options.
+- **[Custom shape SVG export](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/toSvg-method-example)** - Define how custom shapes render when exported as SVG/PNG using the `toSvg` and `toBackgroundSvg` methods.
+
+## Key files
+
+- packages/editor/src/lib/exports/exportToSvg.tsx - Main export orchestration
+- packages/editor/src/lib/exports/getSvgJsx.tsx - SVG React tree generation
+- packages/editor/src/lib/exports/getSvgAsImage.ts - Raster image conversion
+- packages/editor/src/lib/exports/FontEmbedder.ts - Font embedding system
+- packages/editor/src/lib/exports/StyleEmbedder.ts - Style inlining system
+- packages/editor/src/lib/exports/embedMedia.ts - Media element conversion
+- packages/editor/src/lib/editor/types/misc-types.ts - Export option types
+- packages/editor/src/lib/editor/Editor.ts - Public export methods
+
+## Related
+
+- [Text measurement](./text-measurement.md)
+- [Assets](./assets.md)

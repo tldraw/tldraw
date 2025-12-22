@@ -1,0 +1,76 @@
+---
+title: Clipboard
+created_at: 12/20/2024
+updated_at: 12/20/2024
+keywords:
+  - clipboard
+  - copy
+  - paste
+  - cut
+  - content
+status: published
+date: 12/20/2024
+order: 6
+---
+
+The clipboard system handles copying, cutting, and pasting shapes within a single editor or between different editor instances. It serializes shapes, their bindings, and associated assets into a portable `TLContent` format that preserves the document structure and relationships. The system integrates with both the browser's native clipboard API and custom HTML-based clipboard data to enable reliable shape transfer across contexts.
+
+## How clipboard operations work
+
+The clipboard system operates through two primary flows: extracting content for copy/cut operations and placing content for paste operations.
+
+### Extracting content
+
+When you copy or cut shapes, the editor uses `getContentFromCurrentPage` to serialize the selected shapes into a `TLContent` object. This method collects shapes and their descendants, identifies which bindings connect the shapes, and gathers any referenced assets. Root shapes (those whose parents are not included in the selection) are transformed to page coordinates to ensure they paste at the correct position.
+
+The method uses `withIsolatedShapes` to filter bindings, keeping only those where both the from and to shapes are part of the copied set. This prevents dangling references to shapes outside the clipboard content.
+
+### Placing content
+
+The `putContentOntoCurrentPage` method handles paste operations. It takes serialized `TLContent` and reconstructs shapes on the current page. The method migrates the content through the store's schema system to handle version differences, remaps shape and binding IDs to prevent collisions, and determines an appropriate parent for the pasted shapes.
+
+Parent selection follows a specific logic. If shapes are selected when pasting, the system finds the selected shape with the fewest ancestors and uses its parent. This creates intuitive behavior where pasting with a frame selected places shapes inside the frame, while pasting with shapes on the page pastes beside them. When pasting at a specific point (such as the cursor position), the system searches for an appropriate parent at that location.
+
+### Browser clipboard integration
+
+The system writes clipboard data in multiple formats. For HTML-aware applications, it embeds serialized `TLContent` in an HTML comment within a div tag. For plain text contexts, it extracts text from text shapes. This multi-format approach maximizes compatibility while preserving tldraw-specific data.
+
+The clipboard code uses a versioned format with compression. Version 3 (current) stores assets as plain JSON and compresses other data using LZ compression. This reduces clipboard payload size while maintaining fast access to asset information.
+
+When pasting, the system attempts to read from the browser's Clipboard API first, which preserves metadata that the clipboard event API strips out. If that fails, it falls back to reading from the paste event's clipboard data. The system handles various content types including images, files, URLs, HTML, and plain text, routing each through the appropriate handler.
+
+### Asset resolution
+
+Before writing to the clipboard, the system calls `resolveAssetsInContent` to convert asset references into data URLs. This ensures images and videos embed directly in the clipboard data rather than relying on URLs that might not be accessible when pasting in a different context. The resolved content becomes fully portable across editor instances.
+
+### Cut operations
+
+Cut operations combine copy and delete. The system first copies the selected shapes to the clipboard using the same flow as copy, then deletes the originals. This two-step process ensures the clipboard is populated before shapes disappear, preventing data loss if the copy operation fails.
+
+## Content structure
+
+The `TLContent` type defines the clipboard payload structure:
+
+```typescript
+interface TLContent {
+	shapes: TLShape[]
+	bindings: TLBinding[] | undefined
+	rootShapeIds: TLShapeId[]
+	assets: TLAsset[]
+	schema: SerializedSchema
+}
+```
+
+The `shapes` array contains all copied shapes in their serialized form. The `rootShapeIds` array identifies which shapes have no parent in the copied set, distinguishing top-level shapes from nested children. The `bindings` array holds relationships between shapes, such as arrows connected to boxes. The `assets` array includes images, videos, and other external resources. The `schema` field preserves the store schema version, enabling migration when pasting content created with a different editor version.
+
+## Position handling
+
+The system offers flexible positioning for pasted content. By default, shapes paste at a slight offset from their original position, making it clear that new shapes were created. When pasting with the shift key pressed (or when paste-at-cursor mode is enabled), shapes paste at the cursor position. The `preservePosition` option bypasses offset calculation entirely, placing shapes at their exact stored coordinates. This option is used internally when moving shapes between pages, where position preservation is essential.
+
+## ID remapping
+
+Shape and binding IDs are remapped during paste to prevent collisions with existing shapes. The system creates a mapping table from old IDs to new IDs, then updates all references throughout the pasted content. Parent-child relationships, binding endpoints, and asset references all update to use the new IDs. The `preserveIds` option disables remapping, useful when duplicating pages where maintaining specific IDs matters.
+
+## Related examples
+- **[Custom paste behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-paste)** - Demonstrates how to customize paste behavior by registering an external content handler that changes where pasted shapes are positioned.
+- **[External content sources](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/external-content-sources)** - Shows how to handle different content types when pasting into tldraw, including custom handling for HTML content.

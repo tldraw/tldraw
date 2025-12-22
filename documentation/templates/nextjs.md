@@ -7,6 +7,9 @@ keywords:
   - template
   - ssr
   - react
+status: published
+date: 12/19/2025
+order: 2
 ---
 
 The Next.js template provides an App Router setup with tldraw preconfigured. It uses client components for the editor.

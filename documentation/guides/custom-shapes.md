@@ -8,6 +8,9 @@ keywords:
   - shapeutil
   - tutorial
   - guide
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 This guide shows how to add a custom shape to tldraw by defining a shape type, implementing a `ShapeUtil`, and registering it with the editor.

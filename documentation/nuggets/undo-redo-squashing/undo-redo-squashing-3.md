@@ -9,6 +9,9 @@ keywords:
   - linked list
   - structural sharing
 edited_by: steve
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 History was among the first systems we designed for tldraw. A good undo / redo system is fast, efficient, and resiliant to cases where operations fail, such as when you try to redo a change on a shape that another user has deleted.
@@ -17,7 +20,7 @@ The current design of our history system reflects a host of requirements that we
 
 ## The stack implementation
 
-The editor's history manager uses **immutable linked lists**, called "stacks", for its undos and redos. 
+The editor's history manager uses **immutable linked lists**, called "stacks", for its undos and redos.
 
 We define stacks as linked lists with two node types:
 
@@ -25,27 +28,27 @@ We define stacks as linked lists with two node types:
 type Stack<T> = StackItem<T> | EmptyStackItem<T>
 
 class EmptyStackItem<T> implements Iterable<T> {
-    readonly length = 0
-    readonly head = null
-    readonly tail: Stack<T> = this
+	readonly length = 0
+	readonly head = null
+	readonly tail: Stack<T> = this
 
-    push(head: T): Stack<T> {
-        return new StackItem<T>(head, this)
-    }
+	push(head: T): Stack<T> {
+		return new StackItem<T>(head, this)
+	}
 }
 
 class StackItem<T> implements Iterable<T> {
-    length: number
-    constructor(
-        public readonly head: T,
-        public readonly tail: Stack<T>
-    ) {
-        this.length = tail.length + 1
-    }
+	length: number
+	constructor(
+		public readonly head: T,
+		public readonly tail: Stack<T>
+	) {
+		this.length = tail.length + 1
+	}
 
-    push(head: T): Stack<T> {
-        return new StackItem(head, this)
-    }
+	push(head: T): Stack<T> {
+		return new StackItem(head, this)
+	}
 }
 ```
 
@@ -105,12 +108,12 @@ Now undo once. We pop everything back to `mark_b`:
 let redos = stack()
 
 // Pop diff_3
-redos = redos.push(undos.head)  // redos = [diff_3]
-undos = undos.tail              // undos = [diff_2, mark_b, diff_1, mark_a]
+redos = redos.push(undos.head) // redos = [diff_3]
+undos = undos.tail // undos = [diff_2, mark_b, diff_1, mark_a]
 
 // Pop mark_b
-redos = redos.push(undos.head)  // redos = [mark_b, diff_3]
-undos = undos.tail              // undos = [diff_2, diff_1, mark_a]
+redos = redos.push(undos.head) // redos = [mark_b, diff_3]
+undos = undos.tail // undos = [diff_2, diff_1, mark_a]
 ```
 
 The key observation: at every step, both the old and new stack references work. If we needed to bail out mid-operation, we could. The original `undos` reference still points to `[diff_1, mark_a, diff_2, mark_b, diff_3]`, unchanged.
@@ -140,8 +143,8 @@ When we update the stacks:
 
 ```typescript
 this.stacks.update(({ undos, redos }) => ({
-    undos: undos.push({ type: 'diff', diff }),
-    redos,
+	undos: undos.push({ type: 'diff', diff }),
+	redos,
 }))
 ```
 
@@ -153,13 +156,13 @@ Although we rarely need it, the stack implements the iterable protocol:
 
 ```typescript
 class StackItem<T> implements Iterable<T> {
-    *[Symbol.iterator]() {
-        let stack: Stack<T> = this
-        while (stack.head !== null) {
-            yield stack.head
-            stack = stack.tail
-        }
-    }
+	*[Symbol.iterator]() {
+		let stack: Stack<T> = this
+		while (stack.head !== null) {
+			yield stack.head
+			stack = stack.tail
+		}
+	}
 }
 ```
 

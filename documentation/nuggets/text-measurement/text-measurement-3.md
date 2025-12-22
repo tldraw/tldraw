@@ -8,6 +8,9 @@ keywords:
   - truncation
   - ellipsis
   - whitespace
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Ellipsis truncation two-pass algorithm
@@ -48,7 +51,7 @@ We measure the ellipsis by itself to know exactly how much space it takes up. We
 elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
 elm.textContent = normalizedText
 const truncatedSpans = this.measureElementTextNodeSpans(elm, {
-  shouldTruncateToFirstLine: true,
+	shouldTruncateToFirstLine: true,
 }).spans
 ```
 
@@ -59,13 +62,13 @@ Now we subtract the ellipsis width from the available space and measure the text
 ```typescript
 const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
 truncatedSpans.push({
-  text: '…',
-  box: {
-    x: Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth),
-    y: lastSpan.box.y,
-    w: ellipsisWidth,
-    h: lastSpan.box.h,
-  },
+	text: '…',
+	box: {
+		x: Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth),
+		y: lastSpan.box.y,
+		w: ellipsisWidth,
+		h: lastSpan.box.h,
+	},
 })
 
 return truncatedSpans
@@ -90,6 +93,7 @@ The ellipsis algorithm is in `TextManager.ts`, specifically in the `measureTextS
 The measured spans are used by `SvgTextLabel.tsx` and `createTextJsxFromSpans.tsx` to generate SVG text elements with explicit positioning. Each span becomes a `<tspan>` element with exact x/y coordinates.
 
 You can find the full implementation at:
+
 - `/packages/editor/src/lib/editor/managers/TextManager/TextManager.ts`
 - `/packages/tldraw/src/lib/shapes/shared/SvgTextLabel.tsx`
 - `/packages/tldraw/src/lib/shapes/shared/createTextJsxFromSpans.tsx`

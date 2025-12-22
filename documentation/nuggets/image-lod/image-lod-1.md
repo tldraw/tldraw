@@ -6,6 +6,9 @@ keywords:
   - image
   - LOD
   - resolution
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Image level of detail

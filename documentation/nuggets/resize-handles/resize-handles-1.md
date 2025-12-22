@@ -6,6 +6,9 @@ keywords:
   - resize
   - handles
   - cursor
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Resize handles on rotated shapes
@@ -33,21 +36,21 @@ Instead of using CSS cursor keywords, we construct SVG graphics on the fly and e
 
 ```typescript
 function getCursorCss(
-  svg: string,
-  r: number,        // rotation in degrees
-  tr: number,       // additional rotation offset
-  f: boolean,       // flip flag
-  color: string,
-  hotspotX = 16,
-  hotspotY = 16
+	svg: string,
+	r: number, // rotation in degrees
+	tr: number, // additional rotation offset
+	f: boolean, // flip flag
+	color: string,
+	hotspotX = 16,
+	hotspotY = 16
 ) {
-  const a = (-tr - r) * (PI / 180)  // Convert to radians
-  const s = Math.sin(a)
-  const c = Math.cos(a)
-  const dx = 1 * c - 1 * s  // Rotated drop shadow offset
-  const dy = 1 * s + 1 * c
+	const a = (-tr - r) * (PI / 180) // Convert to radians
+	const s = Math.sin(a)
+	const c = Math.cos(a)
+	const dx = 1 * c - 1 * s // Rotated drop shadow offset
+	const dy = 1 * s + 1 * c
 
-  return `url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'>
+	return `url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'>
     <defs>
       <filter id='shadow' y='-40%' x='-40%' width='180px' height='180%' color-interpolation-filters='sRGB'>
         <feDropShadow dx='${dx}' dy='${dy}' stdDeviation='1.2' flood-opacity='.5'/>
@@ -79,10 +82,10 @@ Drop shadows need special handling. If we just rotated the entire SVG including 
 We want the cursor graphic itself to rotate, but the shadow to always fall "downward" in screen space. To achieve this, we rotate the shadow's offset vector by the negative of the cursor rotation:
 
 ```typescript
-const a = (-tr - r) * (PI / 180)  // Negate the rotation
+const a = (-tr - r) * (PI / 180) // Negate the rotation
 const s = Math.sin(a)
 const c = Math.cos(a)
-const dx = 1 * c - 1 * s  // Standard rotation matrix
+const dx = 1 * c - 1 * s // Standard rotation matrix
 const dy = 1 * s + 1 * c
 ```
 
@@ -96,10 +99,10 @@ We have different cursor graphics for different handle types, each with a base r
 
 ```typescript
 const CURSORS: Record<TLCursorType, CursorFunction> = {
-  'ew-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 0, f, c),
-  'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),
-  'nesw-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 0, f, c),
-  'nwse-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 90, f, c),
+	'ew-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 0, f, c),
+	'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),
+	'nesw-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 0, f, c),
+	'nwse-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 90, f, c),
 }
 ```
 
@@ -115,15 +118,16 @@ The flip logic uses XOR on the scale signs:
 
 ```typescript
 updateCursor({
-  dragHandle,
-  isFlippedX: scale.x < 0,
-  isFlippedY: scale.y < 0,
-  rotation: selectionRotation,
+	dragHandle,
+	isFlippedX: scale.x < 0,
+	isFlippedY: scale.y < 0,
+	rotation: selectionRotation,
 })
 
 // Inside updateCursor:
-if (isFlippedX !== isFlippedY) {  // XOR
-  nextCursor.type = 'nesw-resize'  // flip from nwse
+if (isFlippedX !== isFlippedY) {
+	// XOR
+	nextCursor.type = 'nesw-resize' // flip from nwse
 }
 ```
 
@@ -144,19 +148,23 @@ In dark mode, cursors are white. In light mode, black. The SVG paths already hav
 This theme awareness happens in a reactive hook:
 
 ```typescript
-useQuickReactor('useCursor', () => {
-  const { type, rotation } = editor.getInstanceState().cursor
+useQuickReactor(
+	'useCursor',
+	() => {
+		const { type, rotation } = editor.getInstanceState().cursor
 
-  if (STATIC_CURSORS.includes(type)) {
-    container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
-    return
-  }
+		if (STATIC_CURSORS.includes(type)) {
+			container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
+			return
+		}
 
-  container.style.setProperty(
-    '--tl-cursor',
-    getCursor(type, rotation, isDarkMode ? 'white' : 'black')
-  )
-}, [editor, container, isDarkMode])
+		container.style.setProperty(
+			'--tl-cursor',
+			getCursor(type, rotation, isDarkMode ? 'white' : 'black')
+		)
+	},
+	[editor, container, isDarkMode]
+)
 ```
 
 Static cursors like `pointer`, `grab`, and `text` use CSS variables. Only resize and rotate cursors get the dynamic SVG treatment.
@@ -167,8 +175,8 @@ When multiple shapes with different rotations are selected together, showing a r
 
 ```typescript
 this.editor.setCursor({
-  type: cursorType,
-  rotation: selected.length === 1 ? this.editor.getSelectionRotation() : 0,
+	type: cursorType,
+	rotation: selected.length === 1 ? this.editor.getSelectionRotation() : 0,
 })
 ```
 

@@ -74,8 +74,7 @@
 		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
-		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts",
-		"generate-docs-word": "tsx internal/scripts/generate-docs-word.ts && pandoc documentation/tldraw-documentation.md -o documentation/tldraw-documentation.docx --toc --toc-depth=3 && tsx internal/scripts/style-docs-word.ts"
+		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0",

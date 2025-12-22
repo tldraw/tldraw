@@ -9,6 +9,9 @@ keywords:
   - rebase
   - CRDT
   - WebSocket
+status: published
+date: 12/20/2025
+order: 4
 ---
 
 # Real-time sync
@@ -58,12 +61,12 @@ The system tracks causality with logical clocks—simple incrementing counters t
 
 ```typescript
 interface RoomSnapshot {
-  clock: number
-  documents: Array<{
-    state: TLRecord
-    lastChangedClock: number
-  }>
-  tombstones: Record<string, number>
+	clock: number
+	documents: Array<{
+		state: TLRecord
+		lastChangedClock: number
+	}>
+	tombstones: Record<string, number>
 }
 ```
 
@@ -106,17 +109,17 @@ Network bandwidth matters for real-time collaboration. Sending entire records on
 type NetworkDiff = Record<string, RecordOp>
 
 type RecordOp =
-  | ['put', TLRecord]       // Full record (new or replaced)
-  | ['patch', ObjectDiff]   // Partial update
-  | ['remove']              // Deletion
+	| ['put', TLRecord] // Full record (new or replaced)
+	| ['patch', ObjectDiff] // Partial update
+	| ['remove'] // Deletion
 
 type ObjectDiff = Record<string, ValueOp>
 
 type ValueOp =
-  | ['put', unknown]                 // Set property
-  | ['patch', ObjectDiff]            // Nested object update
-  | ['append', unknown[], number]    // Array append with offset
-  | ['delete']                       // Remove property
+	| ['put', unknown] // Set property
+	| ['patch', ObjectDiff] // Nested object update
+	| ['append', unknown[], number] // Array append with offset
+	| ['delete'] // Remove property
 ```
 
 For a shape move, we send `{ 'shape:abc': ['patch', { x: ['put', 100], y: ['put', 100] }] }` instead of the entire shape record. The `append` operation handles a special case: string properties that grow (like text content) can append to their previous value instead of replacing it entirely.
@@ -130,13 +133,13 @@ The sync system handles presence separately from documents:
 ```typescript
 // Presence scoped differently from document data
 store.listen(
-  (changes) => sendToServer(changes),
-  { scope: 'presence' }  // Only presence records
+	(changes) => sendToServer(changes),
+	{ scope: 'presence' } // Only presence records
 )
 
 store.listen(
-  (changes) => sendToServer(changes),
-  { scope: 'document' }  // Only document records
+	(changes) => sendToServer(changes),
+	{ scope: 'document' } // Only document records
 )
 ```
 
@@ -161,13 +164,13 @@ The protocol version and schema exchange prevents incompatible clients from corr
 ```typescript
 // Server checks client compatibility
 if (message.protocolVersion < MIN_SUPPORTED_VERSION) {
-  socket.close(TLCloseEventCode.CLIENT_TOO_OLD)
-  return
+	socket.close(TLCloseEventCode.CLIENT_TOO_OLD)
+	return
 }
 
 if (message.protocolVersion > CURRENT_VERSION) {
-  socket.close(TLCloseEventCode.SERVER_TOO_OLD)
-  return
+	socket.close(TLCloseEventCode.SERVER_TOO_OLD)
+	return
 }
 ```
 

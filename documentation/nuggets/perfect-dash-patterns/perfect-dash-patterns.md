@@ -6,6 +6,9 @@ keywords:
   - perfect
   - dash
   - patterns
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Perfect dash patterns

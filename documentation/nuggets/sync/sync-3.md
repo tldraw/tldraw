@@ -8,6 +8,9 @@ keywords:
   - protocol
   - optimization
   - bandwidth
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # NetworkDiff wire format optimization
@@ -36,15 +39,15 @@ When text content changes, we check if the new string starts with the old string
 
 ```typescript
 if (valueB.startsWith(valueA)) {
-  const appendedText = valueB.slice(valueA.length)
-  return ['append', appendedText, valueA.length]
+	const appendedText = valueB.slice(valueA.length)
+	return ['append', appendedText, valueA.length]
 }
 ```
 
 If you're editing "Hello" into "Hello World", the wire format is:
 
 ```typescript
-['append', ' World', 5]
+;['append', ' World', 5]
 ```
 
 The offset ensures the append only succeeds if the client's base state matches. If the client has "Hello" at length 5, the append works. If another client's edit already changed it to "Hi there", the offset won't match and the operation falls back to a full replacement.
@@ -58,9 +61,9 @@ Arrays work similarly. When an array grows, we check if all the existing items a
 ```typescript
 // Check if only items were appended
 for (let i = 0; i < prevArray.length; i++) {
-  if (!isEqual(prevArray[i], nextArray[i])) {
-    return ['put', nextArray]  // Fall back to full replacement
-  }
+	if (!isEqual(prevArray[i], nextArray[i])) {
+		return ['put', nextArray] // Fall back to full replacement
+	}
 }
 return ['append', nextArray.slice(prevArray.length), prevArray.length]
 ```
@@ -89,8 +92,8 @@ Protocol version 7 and earlier fall back to full property replacements. Version 
 
 ```typescript
 if (!legacyAppendMode && valueB.startsWith(valueA)) {
-  const appendedText = valueB.slice(valueA.length)
-  return ['append', appendedText, valueA.length]
+	const appendedText = valueB.slice(valueA.length)
+	return ['append', appendedText, valueA.length]
 }
 ```
 

@@ -11,6 +11,9 @@ voice: 8
 potential: 7
 accuracy: 8
 notes: 'Clear handle/body arc explanation. Narrower focus than draft 1 - misses the Bezier problem framing that makes the solution compelling. Code examples are accurate but less complete.'
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Arc arrows

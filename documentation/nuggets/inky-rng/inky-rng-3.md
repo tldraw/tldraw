@@ -6,6 +6,9 @@ keywords:
   - RNG
   - seeded
   - hand-drawn
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Seeded randomness for hand-drawn shapes
@@ -30,19 +33,19 @@ Here's the calculation:
 
 ```typescript
 const roundnessClampedForAngle =
-  currentSupportsRoundness &&
-  nextSupportsRoundness &&
-  tangentToPrev &&
-  tangentToNext &&
-  Vec.Len2(tangentToPrev) > 0.01 &&
-  Vec.Len2(tangentToNext) > 0.01
-    ? modulate(
-        Math.abs(Vec.AngleBetween(tangentToPrev, tangentToNext)),
-        [Math.PI / 2, Math.PI],
-        [roundness, 0],
-        true
-      )
-    : 0
+	currentSupportsRoundness &&
+	nextSupportsRoundness &&
+	tangentToPrev &&
+	tangentToNext &&
+	Vec.Len2(tangentToPrev) > 0.01 &&
+	Vec.Len2(tangentToNext) > 0.01
+		? modulate(
+				Math.abs(Vec.AngleBetween(tangentToPrev, tangentToNext)),
+				[Math.PI / 2, Math.PI],
+				[roundness, 0],
+				true
+			)
+		: 0
 ```
 
 The `modulate()` function maps the angle from the range `[Math.PI / 2, Math.PI]` (90° to 180°) to the range `[roundness, 0]`. At 90°, you get the full roundness value—typically `strokeWidth * 2`. At 180°, you get zero. The `true` parameter clamps the result, so angles sharper than 90° still get full roundness.
@@ -57,12 +60,12 @@ To prevent this, we clamp roundness to 1/4 of each adjacent segment:
 
 ```typescript
 const roundnessBeforeClampedForLength = Math.min(
-  roundnessClampedForAngle,
-  (currentInfo?.length ?? Infinity) / 4
+	roundnessClampedForAngle,
+	(currentInfo?.length ?? Infinity) / 4
 )
 const roundnessAfterClampedForLength = Math.min(
-  roundnessClampedForAngle,
-  (nextInfo?.length ?? Infinity) / 4
+	roundnessClampedForAngle,
+	(nextInfo?.length ?? Infinity) / 4
 )
 ```
 
@@ -76,15 +79,15 @@ Once we know how much to round, we need to actually draw the curve. The implemen
 
 ```typescript
 parts.push(
-  'L',
-  toDomPrecision(startPoint.x),
-  toDomPrecision(startPoint.y),
+	'L',
+	toDomPrecision(startPoint.x),
+	toDomPrecision(startPoint.y),
 
-  'Q',
-  toDomPrecision(offsetPoint.x),
-  toDomPrecision(offsetPoint.y),
-  toDomPrecision(endPoint.x),
-  toDomPrecision(endPoint.y)
+	'Q',
+	toDomPrecision(offsetPoint.x),
+	toDomPrecision(offsetPoint.y),
+	toDomPrecision(endPoint.x),
+	toDomPrecision(endPoint.y)
 )
 ```
 
@@ -101,10 +104,7 @@ The corner rounding algorithm also influences how much random offset can be appl
 The offset is clamped based on the shortest adjacent segment and the roundness:
 
 ```typescript
-const shortestDistance = Math.min(
-  currentInfo?.length ?? Infinity,
-  nextInfo?.length ?? Infinity
-)
+const shortestDistance = Math.min(currentInfo?.length ?? Infinity, nextInfo?.length ?? Infinity)
 const offsetLimit = shortestDistance - roundnessClampedForAngle * 2
 const offsetAmount = clamp(offset, 0, offsetLimit / 4)
 ```

@@ -7,6 +7,9 @@ keywords:
   - batching
   - microtasks
   - performance
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Microtask batching for font loading
@@ -93,7 +96,7 @@ Using a `Set` prevents duplicate font loads:
 
 ```typescript
 for (const font of fonts) {
-  this.fontsToLoad.add(font)
+	this.fontsToLoad.add(font)
 }
 ```
 
@@ -109,7 +112,7 @@ One subtle detail: we replace the set instead of clearing it:
 const toLoad = this.fontsToLoad
 this.fontsToLoad = new Set()
 for (const font of toLoad) {
-  this.ensureFontIsLoaded(font)
+	this.ensureFontIsLoaded(font)
 }
 ```
 
@@ -121,8 +124,8 @@ The microtask includes a disposal check:
 
 ```typescript
 queueMicrotask(() => {
-  if (this.editor.isDisposed) return
-  // ...
+	if (this.editor.isDisposed) return
+	// ...
 })
 ```
 
@@ -134,9 +137,9 @@ All font loads happen inside a `transact()` call:
 
 ```typescript
 transact(() => {
-  for (const font of toLoad) {
-    this.ensureFontIsLoaded(font)
-  }
+	for (const font of toLoad) {
+		this.ensureFontIsLoaded(font)
+	}
 })
 ```
 

@@ -6,6 +6,9 @@ keywords:
   - resize
   - handles
   - shapes
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Resize handle positioning on rotated shapes
@@ -68,11 +71,9 @@ The correct approach: un-rotate the drag vector to shape space, then calculate s
 // packages/tldraw/src/lib/tools/SelectTool/childStates/Resizing.ts
 
 // Un-rotate distances to shape's local coordinate system
-const distanceFromOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage)
-  .rot(-selectionRotation)
+const distanceFromOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(-selectionRotation)
 
-const distanceFromOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage)
-  .rot(-selectionRotation)
+const distanceFromOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage).rot(-selectionRotation)
 
 const scale = Vec.DivV(distanceFromOriginNow, distanceFromOriginAtStart)
 ```
@@ -88,14 +89,20 @@ This matters for finding the anchor point during resize. Dragging the `top_left`
 ```typescript
 // packages/editor/src/lib/primitives/Box.ts
 const ORDERED_SELECTION_HANDLES = [
-  'top', 'top_right', 'right', 'bottom_right',
-  'bottom', 'bottom_left', 'left', 'top_left',
+	'top',
+	'top_right',
+	'right',
+	'bottom_right',
+	'bottom',
+	'bottom_left',
+	'left',
+	'top_left',
 ] as const
 
 export function rotateSelectionHandle(handle: SelectionHandle, rotation: number) {
-  const numSteps = Math.round(rotation / (PI / 4))  // 45° increments
-  const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-  return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % 8]
+	const numSteps = Math.round(rotation / (PI / 4)) // 45° increments
+	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
+	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % 8]
 }
 ```
 
@@ -148,8 +155,8 @@ The answer: none. Multi-selection cursors don't rotate.
 ```typescript
 // packages/tldraw/src/lib/tools/SelectTool/childStates/PointingResizeHandle.ts
 this.editor.setCursor({
-  type: cursorType,
-  rotation: selected.length === 1 ? this.editor.getSelectionRotation() : 0,
+	type: cursorType,
+	rotation: selected.length === 1 ? this.editor.getSelectionRotation() : 0,
 })
 ```
 
@@ -163,13 +170,13 @@ The aspect ratio constraint is applied after un-rotating to shape space:
 
 ```typescript
 if (isAspectRatioLocked) {
-  if (Math.abs(scale.x) > Math.abs(scale.y)) {
-    // Dragged further in X: lock Y to X
-    scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
-  } else {
-    // Dragged further in Y: lock X to Y
-    scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
-  }
+	if (Math.abs(scale.x) > Math.abs(scale.y)) {
+		// Dragged further in X: lock Y to X
+		scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
+	} else {
+		// Dragged further in Y: lock X to Y
+		scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
+	}
 }
 ```
 
@@ -179,9 +186,9 @@ Center-anchoring just changes the scale origin point:
 
 ```typescript
 const scaleOriginPage = Vec.RotWith(
-  altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
-  selectionBounds.point,
-  selectionRotation
+	altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
+	selectionBounds.point,
+	selectionRotation
 )
 ```
 

@@ -7,6 +7,9 @@ keywords:
   - transitions
   - nested states
   - crop
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Dot-separated path transitions
@@ -110,33 +113,33 @@ The select tool has a child state called `Crop` that manages the cropping intera
 
 ```typescript
 export class Crop extends StateNode {
-    static override id = 'crop'
-    static override initial = 'idle'
-    static override children(): TLStateNodeConstructor[] {
-        return [Idle, TranslatingCrop, PointingCrop, PointingCropHandle, Cropping]
-    }
+	static override id = 'crop'
+	static override initial = 'idle'
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, TranslatingCrop, PointingCrop, PointingCropHandle, Cropping]
+	}
 
-    markId = ''
-    didExit = false
+	markId = ''
+	didExit = false
 
-    override onEnter() {
-        this.didExit = false
-        this.markId = this.editor.markHistoryStoppingPoint('crop')
-    }
+	override onEnter() {
+		this.didExit = false
+		this.markId = this.editor.markHistoryStoppingPoint('crop')
+	}
 
-    override onExit() {
-        if (!this.didExit) {
-            this.didExit = true
-            this.editor.squashToMark(this.markId)
-        }
-    }
+	override onExit() {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.squashToMark(this.markId)
+		}
+	}
 
-    override onCancel() {
-        if (!this.didExit) {
-            this.didExit = true
-            this.editor.bailToMark(this.markId)
-        }
-    }
+	override onCancel() {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.bailToMark(this.markId)
+		}
+	}
 }
 ```
 
@@ -158,9 +161,9 @@ If you transition to just `'crop'` without specifying a child, the `enter` metho
 
 ```typescript
 if (this.children && this.initial && this.getIsActive()) {
-    const initial = this.children[this.initial]
-    this._current.set(initial)
-    initial.enter(info, from)
+	const initial = this.children[this.initial]
+	this._current.set(initial)
+	initial.enter(info, from)
 }
 ```
 

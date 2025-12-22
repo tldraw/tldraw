@@ -6,6 +6,9 @@ keywords:
   - scribble
   - animation
   - trail
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Scribble animation
@@ -22,10 +25,10 @@ Each scribble tracks a `delayRemaining` countdown timer:
 export interface ScribbleItem {
 	id: string
 	scribble: TLScribble
-	timeoutMs: number          // Accumulates elapsed time, resets at 16ms
-	delayRemaining: number     // Countdown timer for delay queue
-	prev: null | VecModel      // Previous point (for deduplication)
-	next: null | VecModel      // Next point to add
+	timeoutMs: number // Accumulates elapsed time, resets at 16ms
+	delayRemaining: number // Countdown timer for delay queue
+	prev: null | VecModel // Previous point (for deduplication)
+	next: null | VecModel // Next point to add
 }
 ```
 
@@ -50,7 +53,7 @@ Once the delay expires (`delayRemaining === 0`), the sliding window begins. In t
 if (next && next !== prev) {
 	scribble.points.push(next)
 	if (item.delayRemaining === 0 && scribble.points.length > 8) {
-		scribble.points.shift()  // Remove oldest point
+		scribble.points.shift() // Remove oldest point
 	}
 	item.prev = next
 	item.next = null
@@ -80,9 +83,9 @@ When a scribble enters the "stopping" state (pointer released), the same throttl
 // Stopping state
 if (item.delayRemaining === 0 && item.timeoutMs === 0) {
 	if (scribble.points.length === 1) {
-		this.scribbleItems.delete(id)  // Last point, remove scribble
+		this.scribbleItems.delete(id) // Last point, remove scribble
 	} else {
-		scribble.points.shift()  // Remove oldest point
+		scribble.points.shift() // Remove oldest point
 	}
 }
 ```
@@ -129,8 +132,8 @@ const scribble = this.editor.scribbles.addScribble({
 	color: 'laser',
 	opacity: 0.7,
 	size: 4,
-	delay: this.editor.options.laserDelayMs,  // 1200ms
-	shrink: 0.05,  // Slower fade
+	delay: this.editor.options.laserDelayMs, // 1200ms
+	shrink: 0.05, // Slower fade
 	taper: true,
 })
 ```

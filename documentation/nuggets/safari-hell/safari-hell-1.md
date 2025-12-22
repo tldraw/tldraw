@@ -6,6 +6,9 @@ keywords:
   - Safari
   - browser
   - workarounds
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 When building a canvas application that works across browsers, you quickly learn that Safari has its own set of quirks. Some are performance problems, others are rendering bugs that don't appear in Chrome or Firefox. We've built workarounds for the most significant ones, but they're worth documenting—both as reference and as a reminder of the browser landscape we're working in.
@@ -25,32 +28,32 @@ We disable text shadows completely on Safari:
 const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
 
 useQuickReactor(
-  'position layers',
-  function positionLayersWhenCameraMoves() {
-    const { x, y, z } = editor.getCamera()
+	'position layers',
+	function positionLayersWhenCameraMoves() {
+		const { x, y, z } = editor.getCamera()
 
-    // This should only run once on first load
-    if (rMemoizedStuff.current.allowTextOutline && tlenv.isSafari) {
-      container.style.setProperty('--tl-text-outline', 'none')
-      rMemoizedStuff.current.allowTextOutline = false
-    }
+		// This should only run once on first load
+		if (rMemoizedStuff.current.allowTextOutline && tlenv.isSafari) {
+			container.style.setProperty('--tl-text-outline', 'none')
+			rMemoizedStuff.current.allowTextOutline = false
+		}
 
-    // And this should only run if we're not in Safari;
-    // If we're below the lod distance for text shadows, turn them off
-    if (
-      rMemoizedStuff.current.allowTextOutline &&
-      z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
-    ) {
-      const lodDisableTextOutline = z < editor.options.textShadowLod
-      container.style.setProperty(
-        '--tl-text-outline',
-        lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
-      )
-      rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
-    }
-    // ... camera transform logic
-  },
-  [editor, container]
+		// And this should only run if we're not in Safari;
+		// If we're below the lod distance for text shadows, turn them off
+		if (
+			rMemoizedStuff.current.allowTextOutline &&
+			z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
+		) {
+			const lodDisableTextOutline = z < editor.options.textShadowLod
+			container.style.setProperty(
+				'--tl-text-outline',
+				lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
+			)
+			rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+		}
+		// ... camera transform logic
+	},
+	[editor, container]
 )
 ```
 
@@ -73,30 +76,30 @@ The fix is to force a reflow whenever the set of culled shapes changes. Reading 
 ```typescript
 // DefaultCanvas.tsx
 function ReflowIfNeeded() {
-  const editor = useEditor()
-  const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
+	const editor = useEditor()
+	const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
 
-  useQuickReactor(
-    'reflow for culled shapes',
-    () => {
-      const culledShapes = editor.getCulledShapes()
-      if (
-        culledShapesRef.current.size === culledShapes.size &&
-        [...culledShapes].every((id) => culledShapesRef.current.has(id))
-      )
-        return
+	useQuickReactor(
+		'reflow for culled shapes',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			if (
+				culledShapesRef.current.size === culledShapes.size &&
+				[...culledShapes].every((id) => culledShapesRef.current.has(id))
+			)
+				return
 
-      culledShapesRef.current = culledShapes
-      const canvas = document.getElementsByClassName('tl-canvas')
-      if (canvas.length === 0) return
+			culledShapesRef.current = culledShapes
+			const canvas = document.getElementsByClassName('tl-canvas')
+			if (canvas.length === 0) return
 
-      // This causes a reflow
-      // https://gist.github.com/paulirish/5d52fb081b3570c81e3a
-      const _height = (canvas[0] as HTMLDivElement).offsetHeight
-    },
-    [editor]
-  )
-  return null
+			// This causes a reflow
+			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+			const _height = (canvas[0] as HTMLDivElement).offsetHeight
+		},
+		[editor]
+	)
+	return null
 }
 ```
 

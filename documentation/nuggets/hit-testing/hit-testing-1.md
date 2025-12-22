@@ -6,6 +6,9 @@ keywords:
   - hit testing
   - geometry
   - selection
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Hit testing
@@ -30,6 +33,7 @@ distanceToPoint(point: VecLike, hitInside = false): number {
 ```
 
 The algorithm:
+
 1. Find the nearest point on the shape's edge
 2. Calculate the distance to that point
 3. If the point is inside a closed/filled shape, negate the distance
@@ -37,6 +41,7 @@ The algorithm:
 This single number encodes both containment and proximity. A filled rectangle might return `-15` (15 pixels inside), `0` (on the edge), or `8` (8 pixels outside). A hollow rectangle returns positive distances for both inside and outside, but we can still distinguish them—more on that in a moment.
 
 The hit testing logic becomes simple:
+
 - Filled shapes: hit if `distance <= margin`
 - Hollow shapes: hit if `Math.abs(distance) <= margin` (near the edge from either side)
 - Open shapes (lines): hit if `distance < margin`
@@ -47,37 +52,38 @@ To determine if a point is inside a closed shape, we use the winding number algo
 
 ```typescript
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
-    let windingNumber = 0
-    let a: VecLike
-    let b: VecLike
+	let windingNumber = 0
+	let a: VecLike
+	let b: VecLike
 
-    for (let i = 0; i < points.length; i++) {
-        a = points[i]
-        if (a.x === A.x && a.y === A.y) return true
+	for (let i = 0; i < points.length; i++) {
+		a = points[i]
+		if (a.x === A.x && a.y === A.y) return true
 
-        b = points[(i + 1) % points.length]
+		b = points[(i + 1) % points.length]
 
-        // Point is on the polygon edge
-        if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
+		// Point is on the polygon edge
+		if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
 
-        if (a.y <= A.y) {
-            if (b.y > A.y && cross(a, b, A) > 0) {
-                windingNumber += 1
-            }
-        } else if (b.y <= A.y && cross(a, b, A) < 0) {
-            windingNumber -= 1
-        }
-    }
+		if (a.y <= A.y) {
+			if (b.y > A.y && cross(a, b, A) > 0) {
+				windingNumber += 1
+			}
+		} else if (b.y <= A.y && cross(a, b, A) < 0) {
+			windingNumber -= 1
+		}
+	}
 
-    return windingNumber !== 0
+	return windingNumber !== 0
 }
 
 function cross(x: VecLike, y: VecLike, z: VecLike): number {
-    return (y.x - x.x) * (z.y - x.y) - (z.x - x.x) * (y.y - x.y)
+	return (y.x - x.x) * (z.y - x.y) - (z.x - x.x) * (y.y - x.y)
 }
 ```
 
 The winding number counts how many times the polygon winds around the point. For each edge:
+
 - If the edge crosses upward and the point is to its left: increment
 - If the edge crosses downward and the point is to its right: decrement
 
@@ -169,7 +175,7 @@ The hit test margin scales with zoom:
 
 ```typescript
 if (distance < this.options.hitTestMargin / zoomLevel) {
-    return shape
+	return shape
 }
 ```
 
@@ -181,14 +187,14 @@ When multiple hollow shapes contain the same point, we prioritize by proximity t
 
 ```typescript
 if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
-    inMarginClosestToEdgeDistance = Math.abs(distance)
-    inMarginClosestToEdgeHit = shape
+	inMarginClosestToEdgeDistance = Math.abs(distance)
+	inMarginClosestToEdgeHit = shape
 } else if (!inMarginClosestToEdgeHit) {
-    const { area } = geometry
-    if (area < inHollowSmallestArea) {
-        inHollowSmallestArea = area
-        inHollowSmallestAreaHit = shape
-    }
+	const { area } = geometry
+	if (area < inHollowSmallestArea) {
+		inHollowSmallestArea = area
+		inHollowSmallestAreaHit = shape
+	}
 }
 ```
 
@@ -236,6 +242,7 @@ Shapes are checked in reverse z-order. The first filled shape that's hit returns
 ---
 
 **Related files:**
+
 - `/packages/editor/src/lib/editor/Editor.ts` (line 5198: `getShapeAtPoint`)
 - `/packages/editor/src/lib/primitives/geometry/Geometry2d.ts` (line 111: `distanceToPoint`)
 - `/packages/editor/src/lib/primitives/utils.ts` (line 319: `pointInPolygon`)

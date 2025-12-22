@@ -8,6 +8,9 @@ keywords:
   - sync
   - websocket
   - real-time
+status: published
+date: 12/19/2025
+order: 3
 ---
 
 tldraw multiplayer enables real-time collaboration by synchronizing store records over WebSockets. The system is server-authoritative: clients apply changes optimistically, then the server validates and rebroadcasts canonical updates. The implementation spans client hooks, a protocol layer, and a Cloudflare Worker with Durable Objects.

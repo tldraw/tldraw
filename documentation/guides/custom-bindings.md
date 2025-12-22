@@ -8,6 +8,9 @@ keywords:
   - custom
   - tutorial
   - guide
+status: published
+date: 12/19/2025
+order: 0
 ---
 
 Bindings define relationships between two shapes. This guide shows how to define a binding type, implement a `BindingUtil`, and register it with the editor.

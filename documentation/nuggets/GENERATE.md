@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - workflow
   - generate
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Generating nuggets
@@ -51,7 +54,7 @@ readability: 9
 voice: 9
 potential: 8
 accuracy: 10
-notes: "Strong opening with bezier failure mode."
+notes: 'Strong opening with bezier failure mode.'
 ---
 ```
 

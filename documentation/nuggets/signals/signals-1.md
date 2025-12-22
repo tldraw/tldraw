@@ -8,6 +8,9 @@ keywords:
   - performance
   - epochs
   - dirty checking
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Epoch-based invalidation

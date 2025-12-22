@@ -6,6 +6,9 @@ keywords:
   - react
   - DOM
   - canvas
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # React as a canvas renderer
@@ -28,31 +31,31 @@ We use `useQuickReactor` for container updates. This is a hook that runs effects
 
 ```typescript
 useQuickReactor(
-  'set shape stuff',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set shape stuff',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const pageTransform = editor.getShapePageTransform(id)
-    const transform = Mat.toCssString(pageTransform)
+		const pageTransform = editor.getShapePageTransform(id)
+		const transform = Mat.toCssString(pageTransform)
 
-    if (transform !== prev.transform) {
-      setStyleProperty(containerRef.current, 'transform', transform)
-      prev.transform = transform
-    }
+		if (transform !== prev.transform) {
+			setStyleProperty(containerRef.current, 'transform', transform)
+			prev.transform = transform
+		}
 
-    const bounds = editor.getShapeGeometry(shape).bounds
-    const width = Math.max(bounds.width, 1)
-    const height = Math.max(bounds.height, 1)
+		const bounds = editor.getShapeGeometry(shape).bounds
+		const width = Math.max(bounds.width, 1)
+		const height = Math.max(bounds.height, 1)
 
-    if (width !== prev.width || height !== prev.height) {
-      setStyleProperty(containerRef.current, 'width', width + 'px')
-      setStyleProperty(containerRef.current, 'height', height + 'px')
-      prev.width = width
-      prev.height = height
-    }
-  },
-  [editor]
+		if (width !== prev.width || height !== prev.height) {
+			setStyleProperty(containerRef.current, 'width', width + 'px')
+			setStyleProperty(containerRef.current, 'height', height + 'px')
+			prev.width = width
+			prev.height = height
+		}
+	},
+	[editor]
 )
 ```
 
@@ -66,14 +69,14 @@ Shape content uses `React.memo` with a custom equality check:
 
 ```typescript
 export const InnerShape = memo(
-  function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-    return useStateTracking(
-      'InnerShape:' + shape.type,
-      () => util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
-      [util, shape.id]
-    )
-  },
-  (prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
+	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() => util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
+		)
+	},
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
 )
 ```
 
@@ -81,7 +84,7 @@ The equality function compares props and meta by reference:
 
 ```typescript
 export const areShapesContentEqual = (a: TLShape, b: TLShape) =>
-  a.props === b.props && a.meta === b.meta
+	a.props === b.props && a.meta === b.meta
 ```
 
 This works because props and meta are immutable. If you change a shape's color, you get a new props object. Reference equality is sufficient.
@@ -92,22 +95,20 @@ The entire shapes layer transforms via CSS. Panning and zooming don't touch indi
 
 ```typescript
 useQuickReactor(
-  'position layers',
-  function positionLayersWhenCameraMoves() {
-    const { x, y, z } = editor.getCamera()
+	'position layers',
+	function positionLayersWhenCameraMoves() {
+		const { x, y, z } = editor.getCamera()
 
-    const offset =
-      z >= 1
-        ? modulate(z, [1, 8], [0.125, 0.5], true)
-        : modulate(z, [0.1, 1], [-2, 0.125], true)
+		const offset =
+			z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-    const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-      x + offset
-    )}px,${toDomPrecision(y + offset)}px)`
+		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+			x + offset
+		)}px,${toDomPrecision(y + offset)}px)`
 
-    setStyleProperty(rHtmlLayer.current, 'transform', transform)
-  },
-  [editor, container]
+		setStyleProperty(rHtmlLayer.current, 'transform', transform)
+	},
+	[editor, container]
 )
 ```
 
@@ -145,24 +146,24 @@ The culling calculation runs in a computed signal. It checks every shape's bound
 
 ```typescript
 function fromScratch(editor: Editor): Set<TLShapeId> {
-  const shapesIds = editor.getCurrentPageShapeIds()
-  const viewportPageBounds = editor.getViewportPageBounds()
-  const notVisibleShapes = new Set<TLShapeId>()
+	const shapesIds = editor.getCurrentPageShapeIds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	const notVisibleShapes = new Set<TLShapeId>()
 
-  shapesIds.forEach((id) => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	shapesIds.forEach((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-    if (!canCull) return
+		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+		if (!canCull) return
 
-    const pageBounds = editor.getShapePageBounds(id)
-    if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
-      notVisibleShapes.add(id)
-    }
-  })
+		const pageBounds = editor.getShapePageBounds(id)
+		if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
+			notVisibleShapes.add(id)
+		}
+	})
 
-  return notVisibleShapes
+	return notVisibleShapes
 }
 ```
 
@@ -187,23 +188,19 @@ const renderingShapes = useValue('rendering shapes', () => editor.getRenderingSh
 **useStateTracking**: Wraps a render function in a reactive tracking context. The component re-renders when any signals it reads change:
 
 ```typescript
-return useStateTracking(
-  'InnerShape:' + shape.type,
-  () => util.component(shape),
-  [util, shape.id]
-)
+return useStateTracking('InnerShape:' + shape.type, () => util.component(shape), [util, shape.id])
 ```
 
 **useQuickReactor**: Runs effects immediately when dependencies change. No throttling, no animation frame. This is what we use for container positioning:
 
 ```typescript
 useQuickReactor(
-  'set display',
-  () => {
-    const isCulled = editor.getCulledShapes().has(id)
-    setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-  },
-  [editor]
+	'set display',
+	() => {
+		const isCulled = editor.getCulledShapes().has(id)
+		setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+	},
+	[editor]
 )
 ```
 

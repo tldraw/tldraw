@@ -9,6 +9,9 @@ keywords:
   - epochs
   - diffs
   - performance
+status: published
+date: 12/20/2025
+order: 4
 ---
 
 # Incremental bindings index

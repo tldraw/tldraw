@@ -11,6 +11,9 @@ keywords:
   - sync
   - performance
   - compression
+status: published
+date: 12/19/2025
+order: 2
 ---
 
 ## v4.3.0

@@ -6,6 +6,9 @@ keywords:
   - scribble
   - animation
   - trail
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Scribble animation
@@ -151,6 +154,7 @@ This prevents trails from accumulating thousands of points when you hold still w
 The core implementation is in `/packages/editor/src/lib/editor/managers/ScribbleManager/ScribbleManager.ts`. Rendering happens in `/packages/tldraw/src/lib/canvas/TldrawScribble.tsx`, which uses `getStroke()` to generate variable-width SVG paths from the points.
 
 Tool implementations show the different configurations in action:
+
 - Eraser: `/packages/tldraw/src/lib/tools/EraserTool/childStates/Erasing.ts`
 - Laser: `/packages/tldraw/src/lib/tools/LaserTool/childStates/Lasering.ts`
 - Selection lasso: `/packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts`

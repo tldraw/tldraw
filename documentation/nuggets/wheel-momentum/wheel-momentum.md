@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - wheel
   - momentum
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Wheel momentum filtering
@@ -27,18 +30,18 @@ There's no flag on the event saying "I'm a phantom end event." The only distingu
 let lastWheelTime = undefined as undefined | number
 
 const isWheelEndEvent = (time: number) => {
-  if (lastWheelTime === undefined) {
-    lastWheelTime = time
-    return false
-  }
+	if (lastWheelTime === undefined) {
+		lastWheelTime = time
+		return false
+	}
 
-  if (time - lastWheelTime > 120 && time - lastWheelTime < 160) {
-    lastWheelTime = time
-    return true
-  }
+	if (time - lastWheelTime > 120 && time - lastWheelTime < 160) {
+		lastWheelTime = time
+		return true
+	}
 
-  lastWheelTime = time
-  return false
+	lastWheelTime = time
+	return false
 }
 ```
 
@@ -56,18 +59,18 @@ The filter runs at the top of the wheel event handler:
 
 ```typescript
 const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
-  if (!editor.getInstanceState().isFocused) {
-    return
-  }
+	if (!editor.getInstanceState().isFocused) {
+		return
+	}
 
-  pinchState = 'not sure'
+	pinchState = 'not sure'
 
-  if (isWheelEndEvent(Date.now())) {
-    // ignore wheelEnd events
-    return
-  }
+	if (isWheelEndEvent(Date.now())) {
+		// ignore wheelEnd events
+		return
+	}
 
-  // ... process legitimate wheel event
+	// ... process legitimate wheel event
 }
 ```
 
@@ -99,6 +102,7 @@ This is explicitly a workaround, not a proper solution:
 The code comment acknowledges the hack. If use-gesture changes its timing, this filter could start missing phantom events or filtering real ones. The behavior isn't documented in use-gesture's API, so there's no guarantee it will remain consistent across versions.
 
 Possible future improvements:
+
 - Use-gesture might add an explicit "end" event type that doesn't masquerade as a wheel event
 - The timing might become configurable
 - A velocity-based approach could detect the discontinuity (phantom events have momentum-level deltas but zero preceding velocity)

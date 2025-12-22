@@ -6,6 +6,9 @@ keywords:
   - pinch
   - gesture
   - touch
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Pinch gesture disambiguation
@@ -38,26 +41,26 @@ The state machine transitions based on these values:
 
 ```typescript
 function updatePinchState() {
-  switch (pinchState) {
-    case 'not sure': {
-      if (touchDistance > 24) {
-        pinchState = 'zooming'
-      } else if (originDistance > 16) {
-        pinchState = 'panning'
-      }
-      break
-    }
-    case 'panning': {
-      if (touchDistance > 64) {
-        pinchState = 'zooming'
-      }
-      break
-    }
-    case 'zooming': {
-      // No transitions out of zooming
-      break
-    }
-  }
+	switch (pinchState) {
+		case 'not sure': {
+			if (touchDistance > 24) {
+				pinchState = 'zooming'
+			} else if (originDistance > 16) {
+				pinchState = 'panning'
+			}
+			break
+		}
+		case 'panning': {
+			if (touchDistance > 64) {
+				pinchState = 'zooming'
+			}
+			break
+		}
+		case 'zooming': {
+			// No transitions out of zooming
+			break
+		}
+	}
 }
 ```
 
@@ -80,11 +83,10 @@ The reverse transition doesn't exist. Once we're zooming, we stay zooming. The z
 Desktop Safari complicates this. Safari's trackpad pinch generates `gesturechange` and `gestureend` events instead of touch events. These are always zoom gestures—you can't two-finger pan on a trackpad. We detect these events and skip straight to the `zooming` state:
 
 ```typescript
-const isSafariTrackpadPinch =
-  gesture.type === 'gesturechange' || gesture.type === 'gestureend'
+const isSafariTrackpadPinch = gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 
 if (isSafariTrackpadPinch) {
-  pinchState = 'zooming'
+	pinchState = 'zooming'
 }
 ```
 
@@ -105,6 +107,7 @@ The state resets to `not sure` at the end of each gesture, ready for the next in
 ---
 
 **Source files:**
+
 - `/packages/editor/src/lib/hooks/useGestureEvents.ts` - Pinch state machine and gesture handlers
 - `/packages/editor/src/lib/editor/Editor.ts` - Camera updates from pinch events (lines ~10327-10394)
 - `/packages/editor/src/lib/primitives/Vec.ts` - Distance calculations

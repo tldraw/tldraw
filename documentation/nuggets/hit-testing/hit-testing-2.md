@@ -6,6 +6,9 @@ keywords:
   - hit testing
   - geometry
   - selection
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Hit testing
@@ -22,11 +25,11 @@ The test is simple: does the point fall inside the shape's bounding box?
 
 ```typescript
 if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
-  // Point might be near the shape—compute actual distance
-  distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+	// Point might be near the shape—compute actual distance
+	distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 } else {
-  // Point is nowhere near this shape
-  distance = Infinity
+	// Point is nowhere near this shape
+	distance = Infinity
 }
 ```
 
@@ -55,15 +58,15 @@ So we skip the broad phase for very thin shapes:
 
 ```typescript
 if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
-  // Skip broad phase for thin shapes—always compute distance
-  distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+	// Skip broad phase for thin shapes—always compute distance
+	distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 } else {
-  // Normal path: broad phase then distance calculation
-  if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
-    distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-  } else {
-    distance = Infinity
-  }
+	// Normal path: broad phase then distance calculation
+	if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
+		distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+	} else {
+		distance = Infinity
+	}
 }
 ```
 

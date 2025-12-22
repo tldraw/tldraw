@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - deep
   - links
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Deep link encoding: raw notes
@@ -16,6 +19,7 @@ Internal research notes for the deep-links.md article.
 How to encode viewport coordinates and shape IDs in URLs while keeping them human-readable and handling edge cases like IDs containing dots.
 
 **Requirements:**
+
 - Human-readable URLs (not gibberish like `v%2D342%2E178%2E1920%2E1080`)
 - Support for shape IDs that may contain dots
 - Unambiguous parsing
@@ -24,6 +28,7 @@ How to encode viewport coordinates and shape IDs in URLs while keeping them huma
 ## URL encoding strategy
 
 **Standard approach fails:**
+
 - `encodeURIComponent()` doesn't encode dots (they're valid URL characters)
 - If shape ID is `a.b.c`, it encodes to `a.b.c` unchanged
 - Parser splits on dots and gets ambiguous results: `sabc.a.b.c` → `['abc', 'a', 'b', 'c']` (4 items instead of 2)
@@ -31,6 +36,7 @@ How to encode viewport coordinates and shape IDs in URLs while keeping them huma
 **Solution: Double-encode dots only**
 
 From `packages/editor/src/lib/utils/deepLinks.ts:87-90`:
+
 ```typescript
 function encodeId(str: string): string {
 	// need to encode dots because they are used as separators
@@ -44,6 +50,7 @@ function encodeId(str: string): string {
 - Standard `decodeURIComponent()` handles decoding (no custom logic needed)
 
 **Percent-encoding recursion:**
+
 - ID `a%2Eb` (literal `%2E` characters) encodes to `a%252Eb`
 - The `%` itself gets encoded to `%25`
 - System is self-consistent for arbitrary nesting
@@ -51,6 +58,7 @@ function encodeId(str: string): string {
 ## Deep link types
 
 From `packages/editor/src/lib/utils/deepLinks.ts:7-13`:
+
 ```typescript
 export type TLDeepLink =
 	| { type: 'shapes'; shapeIds: TLShapeId[] }
@@ -60,6 +68,7 @@ export type TLDeepLink =
 
 **BoxModel structure:**
 From `packages/tlschema/src/misc/geometry-types.ts:7-12`:
+
 ```typescript
 export interface BoxModel {
 	x: number
@@ -96,16 +105,19 @@ export function createDeepLinkString(deepLink: TLDeepLink): string {
 ```
 
 **Format prefixes:**
+
 - `s` = shapes link (e.g., `sabc.def.ghi`)
 - `p` = page link (e.g., `pabc`)
 - `v` = viewport link (e.g., `v342.178.1920.1080` or `v342.178.1920.1080.page-id`)
 
 **Shape ID stripping:**
+
 - Shape IDs stored as `shape:abc` internally
 - `.slice('shape:'.length)` removes `shape:` prefix before encoding
 - Only the suffix (e.g., `abc`) goes in URL
 
 **Page ID inclusion:**
+
 - Viewport links optionally include page ID as 5th component
 - Only included if `pageId` is provided in the deep link
 - Useful for multi-page documents
@@ -145,6 +157,7 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 ```
 
 **Parsing steps:**
+
 1. Read first character to determine type
 2. Slice off prefix character
 3. Split on dots (unencoded dots are separators)
@@ -154,6 +167,7 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 
 **Shape ID reconstruction:**
 From `packages/tlschema/src/records/TLShape.ts:436-438`:
+
 ```typescript
 export function createShapeId(id?: string): TLShapeId {
 	return `shape:${id ?? uniqueId()}` as TLShapeId
@@ -164,6 +178,7 @@ export function createShapeId(id?: string): TLShapeId {
 
 **Integer rounding for viewport coordinates:**
 From line 40 of deepLinks.ts:
+
 ```typescript
 let res = `v${Math.round(bounds.x)}.${Math.round(bounds.y)}.${Math.round(bounds.w)}.${Math.round(bounds.h)}`
 ```
@@ -174,6 +189,7 @@ let res = `v${Math.round(bounds.x)}.${Math.round(bounds.y)}.${Math.round(bounds.
 - 3x shorter URLs for imperceptible difference on screen
 
 **Tradeoff:**
+
 - Viewport might be off by ~1 pixel when restored
 - Acceptable for general area/shape viewing
 - Exact reproduction requires full document state (not URL-based)
@@ -209,6 +225,7 @@ navigateToDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): 
 ```
 
 **Default parameter:**
+
 - URL param defaults to `d` (e.g., `?d=v342.178.1920.1080`)
 - Configurable via `param` option
 - Falls back to fitting page content if no param found or parsing fails
@@ -266,6 +283,7 @@ private _navigateToDeepLink(deepLink: TLDeepLink) {
 ```
 
 **Graceful degradation for shapes:**
+
 - Groups shapes by page using `getAncestorPageId()`
 - Sorts pages by shape count (descending)
 - Navigates to page with most matching shapes
@@ -273,6 +291,7 @@ private _navigateToDeepLink(deepLink: TLDeepLink) {
 
 **Box.Common utility:**
 From `packages/editor/src/lib/primitives/Box.ts:442-457`:
+
 ```typescript
 static Common(boxes: Box[]) {
 	let minX = Infinity
@@ -291,18 +310,22 @@ static Common(boxes: Box[]) {
 	return new Box(minX, minY, maxX - minX, maxY - minY)
 }
 ```
+
 Computes bounding box that encompasses all provided boxes.
 
 **compact utility:**
 From `packages/utils/src/lib/array.ts:81-83`:
+
 ```typescript
 export function compact<T>(arr: T[]): NonNullable<T>[] {
 	return arr.filter((i) => i !== undefined && i !== null) as any
 }
 ```
+
 Removes null/undefined values from array.
 
 **Zoom behavior:**
+
 - Shapes link: zooms to `getBaseZoom()` (typically 100% or fit-to-viewport)
 - Viewport link: restores exact camera position
 - Immediate transitions (no animation) via `{ immediate: true }`
@@ -331,6 +354,7 @@ createDeepLink(opts?: { url?: string | URL; param?: string; to?: TLDeepLink }): 
 ```
 
 **Default behavior:**
+
 - Uses current `window.location.href` as base URL
 - Defaults to viewport link with current viewport bounds
 - Includes page ID only if `maxPages !== 1` (multi-page documents)
@@ -386,17 +410,19 @@ registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void {
 
 **Options interface:**
 From `packages/editor/src/lib/utils/deepLinks.ts:93-122`:
+
 ```typescript
 export interface TLDeepLinkOptions {
-	param?: string           // URL param name (default: 'd')
-	debounceMs?: number      // Debounce delay (default: 500ms)
-	getUrl?(editor: Editor): string | URL  // Custom URL provider
+	param?: string // URL param name (default: 'd')
+	debounceMs?: number // Debounce delay (default: 500ms)
+	getUrl?(editor: Editor): string | URL // Custom URL provider
 	getTarget?(editor: Editor): TLDeepLink // Custom target provider
 	onChange?(url: URL, editor: Editor): void // Custom change handler
 }
 ```
 
 **Debounce behavior:**
+
 - Default: 500ms delay before URL updates
 - From line 10051: `debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)`
 - Prevents thrashing browser history during pan/zoom
@@ -404,11 +430,13 @@ export interface TLDeepLinkOptions {
 - Only updates once user stops moving
 
 **Default onChange:**
+
 - Uses `window.history.replaceState()` (doesn't create new history entries)
 - Updates URL in place without page reload
 - Each pan/zoom creates only one history entry after debounce
 
 **Reactive computation:**
+
 - Uses `@tldraw/state` reactive signals (`computed`, `react`)
 - Automatically tracks dependencies (viewport bounds, page ID, etc.)
 - Updates triggered by state changes
@@ -418,6 +446,7 @@ export interface TLDeepLinkOptions {
 From `packages/editor/src/lib/TldrawEditor.tsx:421-443, 472-510`:
 
 **Props:**
+
 ```typescript
 interface TldrawEditorProps {
 	deepLinks?: true | TLDeepLinkOptions
@@ -426,6 +455,7 @@ interface TldrawEditorProps {
 ```
 
 **Initialization on mount:**
+
 ```typescript
 const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
 
@@ -442,6 +472,7 @@ if (deepLinks) {
 ```
 
 **Listener registration:**
+
 ```typescript
 useLayoutEffect(() => {
 	if (!editor) return
@@ -459,6 +490,7 @@ useLayoutEffect(() => {
 ## URL length constraints
 
 **No enforced limits:**
+
 - Code doesn't validate URL length
 - Practical limits:
   - IE: ~2,000 characters
@@ -466,11 +498,13 @@ useLayoutEffect(() => {
   - User experience: <1,000 chars preferred
 
 **Size estimates:**
+
 - 100 shapes with short IDs: ~290 characters (`s0.1.2.3.4...98.99`)
 - 20 shapes with long custom IDs: ~910 characters
 - Viewport only: ~18-30 characters (`v342.178.1920.1080`)
 
 **Design decision:**
+
 - Put state directly in URL (no server/database needed)
 - Accept length constraints as fundamental tradeoff
 - Alternative (short tokens like `?d=x7h9k2`) requires server infrastructure
@@ -508,32 +542,41 @@ const testCases = [
 	},
 	{
 		name: 'viewport with page',
-		deepLink: { type: 'viewport', bounds: new Box(1, -2, 3, 4), pageId: PageRecordType.createId('abc') },
+		deepLink: {
+			type: 'viewport',
+			bounds: new Box(1, -2, 3, 4),
+			pageId: PageRecordType.createId('abc'),
+		},
 		expected: 'v1.-2.3.4.abc',
 	},
 ]
 ```
 
 **Negative coordinates:**
+
 - Supported natively: `v-1.2.3.4` (negative x), `v1.-2.3.4` (negative y)
 - Minus sign is URL-safe and human-readable
 
 ## Error handling
 
 **Parse errors:**
+
 - `parseDeepLinkString()` throws on invalid type character
 - `navigateToDeepLink()` catches exceptions and falls back to fitting page content
 
 **Missing shapes:**
+
 - `compact()` filters out null results from `getShape(id)`
 - If no shapes found, falls back to current page
 - If some shapes found, zooms to those (partial success)
 
 **Missing pages:**
+
 - `getPage(pageId)` returns null if page doesn't exist
 - Falls back to current page without error
 
 **Invalid viewport bounds:**
+
 - No validation in parsing
 - `Number()` on non-numeric strings returns `NaN`
 - Camera operations handle `NaN` gracefully (typically clamp to valid values)

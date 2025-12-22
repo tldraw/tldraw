@@ -6,6 +6,9 @@ keywords:
   - fractional indexing
   - jitter
   - z-order
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Jittered fractional indices

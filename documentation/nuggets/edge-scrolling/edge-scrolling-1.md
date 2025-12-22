@@ -10,6 +10,9 @@ voice: 7
 potential: 6
 accuracy: 10
 notes: "Opening doesn't follow 'When we...' pattern. Passive voice in places. Conclusion summarizes rather than adds perspective. Niche topic with limited broader appeal."
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Edge scrolling

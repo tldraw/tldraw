@@ -4,6 +4,9 @@ created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
   - EVALUATE
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Evaluating nuggets
@@ -39,6 +42,7 @@ Does it sound like tldraw? Check [VOICE.md](./VOICE.md) for the full guide.
 **Below 5**: Reads like AI-generated content. Multiple obvious tells.
 
 AI tells to check for:
+
 - Hollow importance claims ("serves as a testament", "plays a crucial role")
 - Trailing gerund phrases ("...ensuring optimal performance")
 - Formulaic transitions ("Moreover," "Furthermore," "It's important to note")
@@ -102,6 +106,7 @@ notes: "Strong opening with bezier failure mode. Uses 'we' appropriately. No AI 
 ```
 
 Notes should be brief (1-2 sentences) identifying:
+
 - Key strengths
 - Specific issues to fix (if any)
 - Any accuracy concerns found when checking source files

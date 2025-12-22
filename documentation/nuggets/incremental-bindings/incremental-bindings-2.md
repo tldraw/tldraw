@@ -6,6 +6,9 @@ keywords:
   - bindings
   - incremental
   - index
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Incremental bindings index
@@ -82,7 +85,7 @@ When the bindings index receives `RESET_VALUE`, it knows it can't apply diffs. T
 const diff = bindingsHistory.getDiffSince(lastComputedEpoch)
 
 if (diff === RESET_VALUE) {
-  return fromScratch(bindingsQuery)
+	return fromScratch(bindingsQuery)
 }
 ```
 
@@ -95,14 +98,14 @@ The sentinel also flows in the opposite direction. When a computed value produce
 ```typescript
 // Computed.ts
 if (this.historyBuffer && !isUninitialized) {
-  const diff = result instanceof WithDiff ? result.diff : undefined
-  this.historyBuffer.pushEntry(
-    this.lastChangedEpoch,
-    getGlobalEpoch(),
-    diff ??
-      this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
-      RESET_VALUE
-  )
+	const diff = result instanceof WithDiff ? result.diff : undefined
+	this.historyBuffer.pushEntry(
+		this.lastChangedEpoch,
+		getGlobalEpoch(),
+		diff ??
+			this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
+			RESET_VALUE
+	)
 }
 ```
 

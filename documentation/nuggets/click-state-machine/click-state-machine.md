@@ -6,6 +6,9 @@ keywords:
   - click
   - state
   - machine
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Click detection state machine
@@ -22,14 +25,14 @@ let clickCount = 0
 let clickTimeout: number
 
 function onPointerUp() {
-  clickCount++
-  clearTimeout(clickTimeout)
-  clickTimeout = setTimeout(() => {
-    if (clickCount === 1) handleSingleClick()
-    else if (clickCount === 2) handleDoubleClick()
-    else if (clickCount === 3) handleTripleClick()
-    clickCount = 0
-  }, 300)
+	clickCount++
+	clearTimeout(clickTimeout)
+	clickTimeout = setTimeout(() => {
+		if (clickCount === 1) handleSingleClick()
+		else if (clickCount === 2) handleDoubleClick()
+		else if (clickCount === 3) handleTripleClick()
+		clickCount = 0
+	}, 300)
 }
 ```
 
@@ -41,12 +44,12 @@ The `ClickManager` models click detection as a finite state machine with six sta
 
 ```typescript
 type TLClickState =
-  | 'idle'
-  | 'pendingDouble'
-  | 'pendingTriple'
-  | 'pendingQuadruple'
-  | 'pendingOverflow'
-  | 'overflow'
+	| 'idle'
+	| 'pendingDouble'
+	| 'pendingTriple'
+	| 'pendingQuadruple'
+	| 'pendingOverflow'
+	| 'overflow'
 ```
 
 Each state represents a point in the click sequence. `idle` means no recent clicks. `pendingDouble` means one click happened and we're waiting to see if another follows. The pattern continues through triple and quadruple, then enters `overflow` where additional clicks no longer advance the count.
@@ -55,29 +58,29 @@ State transitions happen on pointer down:
 
 ```typescript
 switch (this._clickState) {
-  case 'idle': {
-    this._clickState = 'pendingDouble'
-    break
-  }
-  case 'pendingDouble': {
-    this._clickState = 'pendingTriple'
-    return {
-      ...info,
-      type: 'click',
-      name: 'double_click',
-      phase: 'down',
-    }
-  }
-  case 'pendingTriple': {
-    this._clickState = 'pendingQuadruple'
-    return {
-      ...info,
-      type: 'click',
-      name: 'triple_click',
-      phase: 'down',
-    }
-  }
-  // ...
+	case 'idle': {
+		this._clickState = 'pendingDouble'
+		break
+	}
+	case 'pendingDouble': {
+		this._clickState = 'pendingTriple'
+		return {
+			...info,
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+		}
+	}
+	case 'pendingTriple': {
+		this._clickState = 'pendingQuadruple'
+		return {
+			...info,
+			type: 'click',
+			name: 'triple_click',
+			phase: 'down',
+		}
+	}
+	// ...
 }
 ```
 
@@ -89,8 +92,8 @@ Double-click detection uses a longer timeout than subsequent multi-clicks. After
 
 ```typescript
 state === 'idle' || state === 'pendingDouble'
-  ? this.editor.options.doubleClickDurationMs   // 450ms
-  : this.editor.options.multiClickDurationMs    // 200ms
+	? this.editor.options.doubleClickDurationMs // 450ms
+	: this.editor.options.multiClickDurationMs // 200ms
 ```
 
 This matches operating system conventions. People double-click deliberately, but triple and quadruple clicks are rapid-fire actions—usually selecting a word then extending to a sentence or paragraph.
@@ -131,10 +134,10 @@ Clicks in a sequence must happen near each other. Moving the pointer more than 4
 const MAX_CLICK_DISTANCE = 40
 
 if (
-  this._previousScreenPoint &&
-  Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
+	this._previousScreenPoint &&
+	Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
 ) {
-  this._clickState = 'idle'
+	this._clickState = 'idle'
 }
 ```
 

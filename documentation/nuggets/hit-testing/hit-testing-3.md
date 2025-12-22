@@ -6,6 +6,9 @@ keywords:
   - hit testing
   - geometry
   - selection
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Hit testing hollow shapes
@@ -20,8 +23,8 @@ The first check is straightforward: which shape's edge is closest to the click p
 
 ```typescript
 if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
-  inMarginClosestToEdgeDistance = Math.abs(distance)
-  inMarginClosestToEdgeHit = shape
+	inMarginClosestToEdgeDistance = Math.abs(distance)
+	inMarginClosestToEdgeHit = shape
 }
 ```
 
@@ -34,8 +37,8 @@ When edge distance doesn't resolve the ambiguity, we fall back to area. We assum
 ```typescript
 const { area } = geometry
 if (area < inHollowSmallestArea) {
-  inHollowSmallestArea = area
-  inHollowSmallestAreaHit = shape
+	inHollowSmallestArea = area
+	inHollowSmallestAreaHit = shape
 }
 ```
 
@@ -74,9 +77,9 @@ Hollow shapes with text get special handling. The label is a separate child geom
 
 ```typescript
 for (const childGeometry of (geometry as Group2d).children) {
-  if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
-    return shape
-  }
+	if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+		return shape
+	}
 }
 ```
 
@@ -106,5 +109,6 @@ We've accepted this tradeoff. Self-intersecting hollow shapes are rare enough th
 ---
 
 **Source files**:
+
 - Hit testing entry point: `/packages/editor/src/lib/editor/Editor.ts` (line 5198, `getShapeAtPoint` method)
 - Area calculation: `/packages/editor/src/lib/primitives/geometry/Geometry2d.ts` (line 362, `getArea` method)

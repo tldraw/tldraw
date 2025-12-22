@@ -8,6 +8,9 @@ keywords:
   - diffs
   - history buffer
   - optimization
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Incremental computation with diffs
@@ -22,7 +25,7 @@ By default, a computed signal's derive function just returns a value:
 
 ```typescript
 const allBooks = computed('allBooks', () => {
-  return store.query.records('book').get()
+	return store.query.records('book').get()
 })
 ```
 
@@ -32,15 +35,15 @@ To support incremental updates, you can return a `WithDiff` instead:
 
 ```typescript
 const allBooks = computed('allBooks', (prev) => {
-  if (isUninitialized(prev)) {
-    // First run: build from scratch
-    return buildFromScratch()
-  }
+	if (isUninitialized(prev)) {
+		// First run: build from scratch
+		return buildFromScratch()
+	}
 
-  const changes = getRecordChanges()
-  const nextValue = applyChangesTo(prev, changes)
+	const changes = getRecordChanges()
+	const nextValue = applyChangesTo(prev, changes)
 
-  return withDiff(nextValue, changes)
+	return withDiff(nextValue, changes)
 })
 ```
 
@@ -53,18 +56,18 @@ const result = this.derive(this.state, this.lastCheckedEpoch)
 const newState = result instanceof WithDiff ? result.value : result
 const isUninitialized = this.state === UNINITIALIZED
 if (isUninitialized || !this.isEqual(newState, this.state)) {
-  if (this.historyBuffer && !isUninitialized) {
-    const diff = result instanceof WithDiff ? result.diff : undefined
-    this.historyBuffer.pushEntry(
-      this.lastChangedEpoch,
-      getGlobalEpoch(),
-      diff ??
-        this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
-        RESET_VALUE
-    )
-  }
-  this.lastChangedEpoch = getGlobalEpoch()
-  this.state = newState
+	if (this.historyBuffer && !isUninitialized) {
+		const diff = result instanceof WithDiff ? result.diff : undefined
+		this.historyBuffer.pushEntry(
+			this.lastChangedEpoch,
+			getGlobalEpoch(),
+			diff ??
+				this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
+				RESET_VALUE
+		)
+	}
+	this.lastChangedEpoch = getGlobalEpoch()
+	this.state = newState
 }
 ```
 
@@ -76,10 +79,10 @@ If the result is a `WithDiff`, the system uses the provided diff. Otherwise it f
 
 ```typescript
 class WithDiff<Value, Diff> {
-  constructor(
-    public value: Value,
-    public diff: Diff
-  ) {}
+	constructor(
+		public value: Value,
+		public diff: Diff
+	) {}
 }
 ```
 
@@ -87,7 +90,7 @@ The `withDiff` helper is the preferred way to create instances:
 
 ```typescript
 export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff> {
-  return new WithDiff(value, diff)
+	return new WithDiff(value, diff)
 }
 ```
 
@@ -203,10 +206,10 @@ For atoms, you can provide a `computeDiff` function:
 
 ```typescript
 const recordAtom = atom('record:id', initialValue, {
-  historyLength: 100,
-  computeDiff: (prev, next, prevEpoch, nextEpoch) => {
-    return { changed: findDifferences(prev, next) }
-  }
+	historyLength: 100,
+	computeDiff: (prev, next, prevEpoch, nextEpoch) => {
+		return { changed: findDifferences(prev, next) }
+	},
 })
 ```
 
@@ -255,7 +258,7 @@ Circular buffer operations are constant time:
 
 - **Push**: O(1) - write to current index, increment with modulo
 - **Read**: O(capacity) worst case - walk entire buffer to find relevant diffs
-- **Memory**: O(capacity * diff size) - fixed upper bound
+- **Memory**: O(capacity \* diff size) - fixed upper bound
 
 In practice, the capacity is small (typically 100), so even the worst-case read is fast. The memory cost is predictable and doesn't grow with document size or usage time.
 

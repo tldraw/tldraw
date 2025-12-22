@@ -8,6 +8,9 @@ keywords:
   - tiptap
   - visitor pattern
   - text rendering
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Extracting fonts from rich text

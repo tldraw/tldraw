@@ -7,6 +7,9 @@ keywords:
   - tabs
   - BroadcastChannel
   - IndexedDB
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Cross-tab synchronization

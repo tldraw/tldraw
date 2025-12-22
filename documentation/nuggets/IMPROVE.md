@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - workflow
   - improve
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Improving nuggets
@@ -20,7 +23,7 @@ readability: 7
 voice: 6
 potential: 8
 accuracy: 10
-notes: "Bolded section labels feel ChatGPT-ish. Opening could be punchier."
+notes: 'Bolded section labels feel ChatGPT-ish. Opening could be punchier.'
 ```
 
 ## Before improving
@@ -37,9 +40,11 @@ notes: "Bolded section labels feel ChatGPT-ish. Opening could be punchier."
 **Weak opening**: The first paragraph should ground the reader in a concrete problem or scenario. Don't start with abstract claims or definitions.
 
 Before:
+
 > Arc arrows are a fundamental component of tldraw's arrow system that provides stable curvature.
 
 After:
+
 > Draw an arrow with a gentle curve between two rectangles. Now drag one rectangle across the canvas. What should happen to the curve?
 
 **Poor flow**: Each paragraph should connect to the next. If you're jumping between topics, add a transitional sentence or reorder sections.
@@ -51,20 +56,22 @@ After:
 **Wrong opening pattern**: Nuggets should open with our experience, not definitions.
 
 Before:
+
 > Circular arcs provide stable curvature for connected shapes.
 
 After:
+
 > When we added curved arrows to tldraw, we wanted them to stay stable as shapes moved.
 
 **AI tells to remove**:
 
-| Pattern | Fix |
-|---------|-----|
-| "serves as a testament to" | Delete or rewrite concretely |
-| "plays a crucial role" | Just say what it does |
-| "Moreover," / "Furthermore," | Delete or use "And," / "But," |
-| "ensuring optimal performance" | Delete trailing gerund |
-| "robust," "seamless," "empowers" | Use plain language |
+| Pattern                            | Fix                             |
+| ---------------------------------- | ------------------------------- |
+| "serves as a testament to"         | Delete or rewrite concretely    |
+| "plays a crucial role"             | Just say what it does           |
+| "Moreover," / "Furthermore,"       | Delete or use "And," / "But,"   |
+| "ensuring optimal performance"     | Delete trailing gerund          |
+| "robust," "seamless," "empowers"   | Use plain language              |
 | Bullet lists with **bold headers** | Convert to prose or plain table |
 
 **Wrong pronouns**: Use "we" for tldraw decisions, "you" for the reader. Don't use "I" or passive voice that hides the actor.

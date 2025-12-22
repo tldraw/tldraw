@@ -1,12 +1,15 @@
 ---
 title: Changelog
-created_at: 19/12/2024
-updated_at: 19/12/2024
+created_at: 12/19/2024
+updated_at: 12/19/2024
 keywords:
   - changelog
   - releases
   - versions
   - history
+status: published
+date: 12/19/2024
+order: 0
 ---
 
 Release notes for all tldraw SDK versions. Each minor release has its own page documenting new features, breaking changes, API additions, improvements, and bug fixes. Patch releases are listed within their parent minor release.

@@ -6,6 +6,9 @@ keywords:
   - shape
   - font
   - loading
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Raw notes: Microtask batching for font loading
@@ -13,14 +16,16 @@ keywords:
 ## Core implementation files
 
 ### FontManager.ts
+
 **Location**: `/packages/editor/src/lib/editor/managers/FontManager/FontManager.ts`
 
 #### Key interfaces and types
 
 **TLFontFaceSource** (lines 18-26):
+
 ```typescript
 export interface TLFontFaceSource {
-	url: string  // URL from which to load the font
+	url: string // URL from which to load the font
 	format?: string
 	tech?: string
 }
@@ -28,6 +33,7 @@ export interface TLFontFaceSource {
 
 **TLFontFace** (lines 34-77):
 Main font descriptor matching CSS `@font-face` rule properties:
+
 - `family`: string - CSS font-family name
 - `src`: TLFontFaceSource - font source
 - `ascentOverride?`: string
@@ -40,6 +46,7 @@ Main font descriptor matching CSS `@font-face` rule properties:
 - `unicodeRange?`: string
 
 **FontState** (lines 79-83):
+
 ```typescript
 interface FontState {
 	readonly state: 'loading' | 'ready' | 'error'
@@ -51,6 +58,7 @@ interface FontState {
 #### Default font face descriptors (lines 244-254)
 
 From CSS font loading spec:
+
 ```typescript
 const defaultFontFaceDescriptors = {
 	style: 'normal',
@@ -67,6 +75,7 @@ const defaultFontFaceDescriptors = {
 #### Computed cache for shape font faces (lines 91-101)
 
 Cache configuration:
+
 ```typescript
 this.shapeFontFacesCache = editor.store.createComputedCache(
 	'shape font faces',
@@ -86,6 +95,7 @@ this.shapeFontFacesCache = editor.store.createComputedCache(
 #### Font load state tracking cache (lines 103-115)
 
 Two-level computed structure:
+
 ```typescript
 this.shapeFontLoadStateCache = editor.store.createCache<(FontState | null)[], TLShape>(
 	(id: TLShapeId) => {
@@ -127,6 +137,7 @@ requestFonts(fonts: TLFontFace[]) {
 ```
 
 **Key details**:
+
 - `fontsToLoad` is a `Set<TLFontFace>` for automatic deduplication
 - First call schedules `queueMicrotask`, subsequent calls just add to set
 - Editor disposal check: `if (this.editor.isDisposed) return`
@@ -162,6 +173,7 @@ ensureFontIsLoaded(font: TLFontFace): Promise<void> {
 ```
 
 **Implementation notes**:
+
 - Returns existing promise for duplicate requests (deduplication)
 - Uses browser's `FontFace.load()` API
 - Adds to `document.fonts` after successful load
@@ -205,6 +217,7 @@ private findOrCreateFontFace(font: TLFontFace) {
 ```
 
 **Key details**:
+
 - Reuses existing FontFace from `document.fonts` if all descriptors match
 - URL resolution: checks `assetUrls` map first, falls back to direct URL
 - FontFace display mode: `'swap'` - text visible immediately with fallback font
@@ -237,6 +250,7 @@ async toEmbeddedCssDeclaration(font: TLFontFace) {
 **Purpose**: Convert font to data URL for SVG/PNG exports with embedded fonts.
 
 ### Shape.tsx
+
 **Location**: `/packages/editor/src/lib/components/Shape.tsx`
 
 #### Font tracking effect (lines 46-51)
@@ -251,6 +265,7 @@ useEffect(() => {
 ```
 
 **Implementation details**:
+
 - `useEffect` runs on component mount
 - `react()` from `@tldraw/state` creates reactive effect
 - Effect re-runs automatically when shape's font requirements change
@@ -260,6 +275,7 @@ useEffect(() => {
 **Reactivity**: When shape props change (e.g., text becomes bold), computed cache invalidates, `getShapeFontFaces` returns new fonts, reactive effect re-runs, fonts added to batch.
 
 ### ShapeUtil.ts
+
 **Location**: `/packages/editor/src/lib/editor/shapes/ShapeUtil.ts`
 
 #### Base getFontFaces method (lines 176-185)
@@ -280,6 +296,7 @@ getFontFaces(shape: Shape): TLFontFace[] {
 **Default**: Returns `EMPTY_ARRAY` (shared constant). Most shapes don't use fonts.
 
 ### TextShapeUtil.tsx
+
 **Location**: `/packages/tldraw/src/lib/shapes/text/TextShapeUtil.tsx`
 
 #### Text shape font faces (lines 99-106)
@@ -384,6 +401,7 @@ override getFontFaces(shape: TLArrowShape) {
 **Label fonts**: Arrow labels use same font system as text shapes.
 
 ### richText.ts (getFontsFromRichText)
+
 **Location**: `/packages/editor/src/lib/utils/richText.ts`
 
 #### Font extraction from rich text (lines 47-78)
@@ -422,6 +440,7 @@ export function getFontsFromRichText(
 ```
 
 **Algorithm**:
+
 1. Parse TLRichText as TipTap Node tree
 2. Recursive visitor pattern traverses tree
 3. Each node updates state (font family/weight/style)
@@ -429,6 +448,7 @@ export function getFontsFromRichText(
 5. Returns array of unique fonts
 
 **RichTextFontVisitorState** (lines 29-33):
+
 ```typescript
 export interface RichTextFontVisitorState {
 	readonly family: string
@@ -438,6 +458,7 @@ export interface RichTextFontVisitorState {
 ```
 
 ### richText.ts (defaultAddFontsFromNode)
+
 **Location**: `/packages/tldraw/src/lib/utils/text/richText.ts`
 
 #### Default font visitor implementation (lines 145-174)
@@ -482,6 +503,7 @@ export function defaultAddFontsFromNode(
 **Font lookup path**: `DefaultFontFaces[family][style][weight]` - hierarchical structure.
 
 ### defaultFonts.tsx
+
 **Location**: `/packages/tldraw/src/lib/shapes/shared/defaultFonts.tsx`
 
 #### Font structure (lines 4-20)
@@ -558,6 +580,7 @@ export const allDefaultFontFaces = objectMapValues(DefaultFontFaces).flatMap((fo
 ## Reactive state system (@tldraw/state)
 
 ### transactions.ts
+
 **Location**: `/packages/state/src/lib/transactions.ts`
 
 #### transact function (lines 354-359)
@@ -650,6 +673,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 **Safety**: 1000 iteration limit prevents infinite loops.
 
 ### AtomMap.ts
+
 **Location**: `/packages/store/src/lib/AtomMap.ts`
 
 #### Update method (lines 167-188)
@@ -692,17 +716,19 @@ export class AtomMap<K, V> implements Map<K, V> {
 ```
 
 **Two-level reactive structure**:
+
 1. Outer atom: tracks which keys exist
 2. Inner atoms: track individual values
 
 **Benefit**: Updating value doesn't notify observers of keys set, only observers of specific value.
 
 ### EffectScheduler.ts
+
 **Location**: `/packages/state/src/lib/EffectScheduler.ts`
 
 #### scheduleEffect option (lines 10-40)
 
-```typescript
+````typescript
 export interface EffectSchedulerOptions {
 	/**
 	 * scheduleEffect is a function that will be called when the effect is scheduled.
@@ -731,7 +757,7 @@ export interface EffectSchedulerOptions {
 	 */
 	scheduleEffect?: (execute: () => void) => void
 }
-```
+````
 
 **Not used for font loading**: Font loading uses immediate execution, not deferred scheduling.
 
@@ -761,6 +787,7 @@ maybeScheduleEffect() {
 ### Microtask phase
 
 **JavaScript event loop phases**:
+
 1. **Synchronous code** - Current task/script execution
 2. **Microtasks** - `queueMicrotask`, Promise callbacks, MutationObserver
 3. **Render** - Browser layout, paint (if needed)
@@ -779,6 +806,7 @@ maybeScheduleEffect() {
 **requestAnimationFrame()**: Runs before next paint, too late (after microtasks).
 
 **Why microtask works for font batching**:
+
 - All shape `useEffect` calls run synchronously during React commit phase
 - Each effect calls `requestFonts()` synchronously
 - First call schedules microtask, rest add to set
@@ -791,6 +819,7 @@ maybeScheduleEffect() {
 ### Async font requests
 
 If fonts requested asynchronously (e.g., after `await fetch()`):
+
 - Each async request schedules own microtask
 - Batching defeated - each microtask runs separately
 - Multiple transactions created
@@ -806,6 +835,7 @@ Check in microtask: `if (this.editor.isDisposed) return`
 ### Set mutation during iteration
 
 Pattern used:
+
 ```typescript
 const toLoad = this.fontsToLoad
 this.fontsToLoad = new Set()
@@ -814,6 +844,7 @@ this.fontsToLoad = new Set()
 **Why**: Creates new Set before processing. If font loading triggers more font requests, they go to new set, not current iteration.
 
 **Alternative that breaks**:
+
 ```typescript
 for (const font of this.fontsToLoad) {
 	this.ensureFontIsLoaded(font) // If this causes more requestFonts calls, Set modified during iteration
@@ -832,6 +863,7 @@ Prevented at multiple levels:
 ### Font loading failures
 
 Error handling:
+
 ```typescript
 .catch((err) => {
 	console.error(err)
@@ -846,6 +878,7 @@ Error handling:
 ### Empty rich text optimization
 
 Multiple shapes check `isEmptyRichText()` before calling `getFontsFromRichText`:
+
 ```typescript
 if (isEmptyRichText(shape.props.richText)) {
 	return EMPTY_ARRAY
@@ -873,12 +906,14 @@ if (isEmptyRichText(shape.props.richText)) {
 ### Network characteristics
 
 **Without batching**:
+
 - 100 text shapes mounting → 100 separate font load calls
 - Duplicate FontFace objects created
 - Browser may deduplicate network requests, but not guaranteed
 - 100 separate state updates → 100 re-render cascades
 
 **With batching**:
+
 - 100 shapes → 1 microtask → 1 transaction
 - Unique fonts identified (e.g., 4 variants for mixed formatting)
 - 4 font loads → 4 network requests
@@ -897,7 +932,7 @@ if (isEmptyRichText(shape.props.richText)) {
 ### Promise.all batching
 
 ```typescript
-const fontPromises = shapes.map(s => loadFonts(s))
+const fontPromises = shapes.map((s) => loadFonts(s))
 await Promise.all(fontPromises)
 ```
 
@@ -933,12 +968,14 @@ useLayoutEffect(() => {
 **Test file**: `/packages/editor/src/lib/editor/managers/FontManager/FontManager.test.ts`
 
 Key test cases (lines 147-184):
+
 - `ensureFontIsLoaded` creates and loads font face
 - Error handling logs to console, sets error state
 - Concurrent requests return same promise (deduplication)
 - Minimal font face (only required properties) works
 
 **Mock setup needed**:
+
 - `global.FontFace` constructor
 - `FontFace.prototype.load` returning Promise
 - `document.fonts` collection
@@ -948,6 +985,7 @@ Key test cases (lines 147-184):
 ### FontFace API
 
 Browser API for programmatic font loading:
+
 ```typescript
 const font = new FontFace('MyFont', 'url(font.woff2)', {
 	style: 'normal',
@@ -964,6 +1002,7 @@ document.fonts.add(font)
 ### document.fonts
 
 FontFaceSet API:
+
 - `document.fonts.add(fontFace)` - Register font
 - `document.fonts.check('12px MyFont')` - Check if font loaded
 - `document.fonts.ready` - Promise resolving when fonts loaded
@@ -973,6 +1012,7 @@ FontFaceSet API:
 ## Code statistics
 
 **FontManager.ts**: 255 lines
+
 - ~40 lines: interfaces and types
 - ~25 lines: cache setup
 - ~50 lines: core batching and loading logic

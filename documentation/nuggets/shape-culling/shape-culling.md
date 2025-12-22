@@ -6,6 +6,9 @@ keywords:
   - shape
   - culling
   - shapes
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Shape culling

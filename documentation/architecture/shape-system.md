@@ -8,6 +8,9 @@ keywords:
   - geometry
   - rendering
   - architecture
+status: published
+date: 12/19/2025
+order: 5
 ---
 
 The shape system is tldraw's core extension mechanism. A shape is a typed record defined in `@tldraw/tlschema`, rendered and interacted with via a `ShapeUtil` in `@tldraw/editor`, and hit-tested using `Geometry2d` classes. This separation keeps data, rendering, and geometry decoupled while still working together.

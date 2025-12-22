@@ -4,6 +4,9 @@ created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
   - signals
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Raw notes: Fine-grained reactivity with signals
@@ -27,6 +30,7 @@ keywords:
 ## Historical context
 
 From `/packages/state/CONTEXT.md`:
+
 - Originally developed as standalone project called "signia"
 - Incorporated back into tldraw monorepo as `@tldraw/state`
 - Designed specifically for tldraw's performance requirements
@@ -200,6 +204,7 @@ set(value: Value, diff?: Diff): Value {
 ```
 
 Key points:
+
 1. Early exit if value unchanged (using custom or default equality)
 2. Advance global epoch
 3. Add diff to history buffer if configured
@@ -273,7 +278,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 	}
 ```
 
-### Computed.__unsafe__getWithoutCapture() - the core computation logic
+### Computed.**unsafe**getWithoutCapture() - the core computation logic
 
 From `/packages/state/src/lib/Computed.ts` (lines 266-332):
 
@@ -348,6 +353,7 @@ __unsafe__getWithoutCapture(ignoreErrors?: boolean): Value {
 ```
 
 Key points:
+
 1. Early exit conditions (cache hit):
    - Already checked this epoch
    - Actively listening during reaction and hasn't been traversed yet
@@ -529,6 +535,7 @@ export const ARRAY_SIZE_THRESHOLD = 8
 ### Core implementation
 
 Lines 19-24:
+
 ```typescript
 export class ArraySet<T> {
 	private arraySize = 0
@@ -539,6 +546,7 @@ export class ArraySet<T> {
 ### Add operation with threshold switch
 
 Lines 57-82:
+
 ```typescript
 add(elem: T) {
 	if (this.array) {
@@ -601,6 +609,7 @@ export class HistoryBuffer<Diff> {
 ### Push operation
 
 Lines 70-85:
+
 ```typescript
 pushEntry(lastComputedEpoch: number, currentEpoch: number, diff: Diff | RESET_VALUE) {
 	if (diff === undefined) {
@@ -682,6 +691,7 @@ class Transaction {
 ```
 
 Key points:
+
 - Stores initial values for rollback
 - Nested transactions merge initial values to parent
 - Abort increments epoch, resets atoms, then commits
@@ -713,6 +723,7 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 ```
 
 Three modes:
+
 1. During transaction: save initial value
 2. During reaction: schedule cleanup
 3. Otherwise: flush immediately
@@ -766,6 +777,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 ```
 
 Key points:
+
 - Traverses dependency graph to find all affected reactors
 - Schedules effects for execution
 - Handles cleanup reactors (from changes during reactions)
@@ -825,6 +837,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 ### maybeScheduleEffect logic
 
 Lines 91-104:
+
 ```typescript
 maybeScheduleEffect() {
 	// bail out if we have been cancelled by another effect
@@ -847,6 +860,7 @@ Three bailout conditions for efficiency.
 ### execute implementation
 
 Lines 156-169:
+
 ```typescript
 execute(): Result {
 	try {
@@ -906,9 +920,10 @@ export function useValue() {
 ```
 
 Key points:
+
 - Uses React's useSyncExternalStore for efficient subscription
 - getSnapshot returns lastChangedEpoch (not the value itself)
-- Returns value via __unsafe__getWithoutCapture to avoid capturing in render context
+- Returns value via **unsafe**getWithoutCapture to avoid capturing in render context
 - Subscribe function creates reaction that calls notify when signal changes
 
 ### useQuickReactor implementation
@@ -984,6 +999,7 @@ export function equals(a: any, b: any): boolean {
 ```
 
 Three-tier equality:
+
 1. Reference equality (`===`)
 2. `Object.is()` (handles NaN, -0/+0)
 3. Custom `.equals()` method if present
@@ -993,15 +1009,17 @@ Three-tier equality:
 ### Memory overhead per signal
 
 Atom:
+
 - name: string
 - current: Value
 - lastChangedEpoch: number (4-8 bytes)
-- children: ArraySet (40 bytes base + 8 * items if array mode, or Set overhead if >8 children)
-- historyBuffer?: HistoryBuffer (optional, capacity * 3 * 8 bytes for tuples)
+- children: ArraySet (40 bytes base + 8 \* items if array mode, or Set overhead if >8 children)
+- historyBuffer?: HistoryBuffer (optional, capacity _ 3 _ 8 bytes for tuples)
 - isEqual?: function reference
 - computeDiff?: function reference
 
 Computed (extends Atom):
+
 - All Atom fields plus:
 - lastCheckedEpoch: number
 - lastTraversedEpoch: number
@@ -1028,6 +1046,7 @@ Operations and their complexity:
 From article and CONTEXT.md:
 
 MobX:
+
 - Uses dirty flags (boolean)
 - Push-based reactivity (changes immediately propagate)
 - Discards computed caches when unobserved
@@ -1035,12 +1054,14 @@ MobX:
 - Issue: recomputation when subscriptions resume
 
 Solid signals:
+
 - Uses pull-based reactivity
 - Similar performance characteristics
 - Not designed for tldraw's scale
 - Missing: incremental computation with diffs, always-on caching, transactional rollback
 
 Preact signals:
+
 - Lightweight but lacks features
 - Missing: history/diff tracking, transaction system, advanced caching
 
@@ -1049,6 +1070,7 @@ Preact signals:
 From `/packages/store/src/lib/Store.ts`:
 
 The Store uses signals as foundation:
+
 - Each record stored in atom
 - Queries implemented as computed signals
 - Change listeners use react()
@@ -1056,11 +1078,12 @@ The Store uses signals as foundation:
 - Diff tracking for sync/undo
 
 Example pattern (conceptual):
+
 ```typescript
 // Store internally uses:
 const recordAtom = atom('record:id', recordValue, {
 	historyLength: 100,
-	computeDiff: recordDiffComputer
+	computeDiff: recordDiffComputer,
 })
 
 const query = computed('query:getAllBooks', (prev) => {
@@ -1075,26 +1098,32 @@ const query = computed('query:getAllBooks', (prev) => {
 ## Constants and configuration
 
 From `/packages/state/src/lib/constants.ts`:
+
 - `GLOBAL_START_EPOCH = -1`
 
 From `/packages/state/src/lib/ArraySet.ts`:
+
 - `ARRAY_SIZE_THRESHOLD = 8`
 
 From `/packages/state/src/lib/transactions.ts`:
+
 - Max update depth: 1000 (hardcoded in flushChanges)
 
 From `/packages/state/src/lib/helpers.ts`:
+
 - `EMPTY_ARRAY` singleton for zero-allocation empty arrays
 
 ## Error handling
 
 From Computed implementation:
+
 - Errors during computation reset state to UNINITIALIZED
 - Error is cached and rethrown on next get()
 - History buffer cleared on error
 - ignoreErrors flag for haveParentsChanged to prevent error propagation
 
 From Transaction implementation:
+
 - Exceptions during transaction trigger automatic rollback
 - History buffers cleared on abort
 - Error boundaries prevent cascading failures
@@ -1129,6 +1158,7 @@ export function singleton<T>(key: string, init: () => T): T {
 ```
 
 Used throughout for global state:
+
 - Capture stack instance
 - Transaction state instance
 - Atom/Computed class references

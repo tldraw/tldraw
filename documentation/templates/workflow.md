@@ -8,6 +8,9 @@ keywords:
   - nodes
   - connections
   - template
+status: published
+date: 12/19/2025
+order: 5
 ---
 
 The Workflow template demonstrates a node-based editor built on tldraw. It includes custom node shapes, ports, and an execution graph for running connected workflows.

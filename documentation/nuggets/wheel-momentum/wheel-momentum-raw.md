@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - wheel
   - momentum
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Wheel momentum filtering: raw notes
@@ -14,27 +17,32 @@ Internal research notes for the wheel-momentum.md article.
 ## Core problem
 
 The `@use-gesture/react` library fires a phantom wheel event approximately 140ms after momentum scrolling ends. This event:
+
 - Contains a momentum-adjusted delta representing the "final destination"
 - Arrives after all real scroll events have been processed
 - Causes an unwanted jump in the canvas right as scrolling should settle
 - Has no explicit flag identifying it as a synthetic end event
 
 **Library version affected:**
+
 - `@use-gesture/react`: `^10.3.1` (from `packages/editor/package.json:61`)
 
 ## The phantom event characteristics
 
 **Timing:**
+
 - Fires approximately 140ms after the last real wheel event
 - Timing is consistent regardless of scroll speed or direction
 - Appears intentional in use-gesture's implementation (not a bug)
 
 **Delta characteristics:**
+
 - Carries a non-zero delta value
 - Represents momentum-adjusted "where scroll would have ended" position
 - Not what tldraw wants - we handle scroll frame-by-frame as events arrive
 
 **User experience impact:**
+
 - Canvas drifts smoothly as momentum decays
 - Small jump (few pixels) occurs right at the end
 - More noticeable at higher zoom levels (small pixel movements = larger canvas movements)
@@ -66,17 +74,20 @@ const isWheelEndEvent = (time: number) => {
 ```
 
 **Module-level state:**
+
 - `lastWheelTime` stored as module-level variable (not in React state)
 - Undefined initially, then tracks timestamp of each wheel event
 - Persists across all wheel events for the lifetime of the module
 
 **Detection logic:**
+
 1. First event: Initialize `lastWheelTime`, return `false` (not phantom)
 2. Subsequent events: Check time gap
 3. If gap is between 120-160ms: Flag as phantom, return `true`
 4. Otherwise: Update timestamp, return `false` (legitimate event)
 
 **Timing window rationale:**
+
 - Center point: 140ms (observed phantom event delay)
 - Lower bound: 120ms (140 - 20ms tolerance)
 - Upper bound: 160ms (140 + 20ms tolerance)
@@ -86,6 +97,7 @@ const isWheelEndEvent = (time: number) => {
   - Slight timing differences across browsers
 
 **Why this window works:**
+
 - Real scroll events rarely have exactly 140ms gaps
 - Users don't naturally scroll in bursts with 140ms pauses
 - Narrower window would miss some phantom events
@@ -97,6 +109,7 @@ const isWheelEndEvent = (time: number) => {
 `packages/editor/src/lib/hooks/useGestureEvents.ts:84-134`
 
 **Handler structure:**
+
 ```typescript
 const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
 	if (!editor.getInstanceState().isFocused) {
@@ -115,12 +128,14 @@ const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
 ```
 
 **Execution order (critical):**
+
 1. **Line 85-87:** Check if editor is focused
 2. **Line 89:** Reset `pinchState = 'not sure'` (unconditional)
 3. **Line 91-94:** Check for phantom event, early return if detected
 4. **Line 96-133:** Process legitimate wheel event
 
 **Why `pinchState` resets before phantom check:**
+
 - Ensures pinch disambiguation starts fresh even if wheel event is filtered
 - State cleanup happens unconditionally
 - Event dispatch is conditional (only for non-phantom events)
@@ -136,34 +151,39 @@ const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
    - Let the shape handle scrolling, don't process as canvas scroll
 
 2. **Prevent default (lines 115-116):**
+
    ```typescript
    preventDefault(event)
    event.stopPropagation()
    ```
 
 3. **Normalize wheel delta (line 117):**
+
    ```typescript
    const delta = normalizeWheel(event)
    ```
+
    Calls `normalizeWheel()` from `packages/editor/src/lib/utils/normalizeWheel.ts`
 
 4. **Zero delta check (line 119):**
+
    ```typescript
    if (delta.x === 0 && delta.y === 0) return
    ```
 
 5. **Build event info (lines 121-131):**
+
    ```typescript
    const info: TLWheelEventInfo = {
-       type: 'wheel',
-       name: 'wheel',
-       delta,
-       point: new Vec(event.clientX, event.clientY),
-       shiftKey: event.shiftKey,
-       altKey: event.altKey,
-       ctrlKey: event.metaKey || event.ctrlKey,
-       metaKey: event.metaKey,
-       accelKey: isAccelKey(event),
+   	type: 'wheel',
+   	name: 'wheel',
+   	delta,
+   	point: new Vec(event.clientX, event.clientY),
+   	shiftKey: event.shiftKey,
+   	altKey: event.altKey,
+   	ctrlKey: event.metaKey || event.ctrlKey,
+   	metaKey: event.metaKey,
+   	accelKey: isAccelKey(event),
    }
    ```
 
@@ -178,14 +198,16 @@ const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
 `packages/editor/src/lib/utils/normalizeWheel.ts`
 
 **Constants:**
+
 ```typescript
 const MAX_ZOOM_STEP = 10
 const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
-    typeof window === 'undefined' ? 'node' : window.navigator.platform
+	typeof window === 'undefined' ? 'node' : window.navigator.platform
 )
 ```
 
 **Normalization logic:**
+
 ```typescript
 export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>) {
 	let { deltaY, deltaX } = event
@@ -207,15 +229,18 @@ export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>
 ```
 
 **Zoom handling:**
+
 - Ctrl/Alt/Meta + wheel = zoom (deltaZ)
 - Clamps deltaZ to ±10 maximum step
 - Divides by 100 for zoom sensitivity
 
 **Shift key behavior:**
+
 - On non-macOS: converts vertical scroll to horizontal
 - On macOS: shift key has no special effect (natural trackpad behavior)
 
 **Sign inversion:**
+
 - Returns negative deltas (`-deltaX`, `-deltaY`, `-deltaZ`)
 - Converts DOM wheel conventions to tldraw conventions
 
@@ -250,22 +275,26 @@ export interface TLBaseEventInfo {
 ## PinchState interaction
 
 **Why wheel events reset pinchState:**
+
 - Wheel events can be confused with pinch gestures on some devices
 - Two-finger trackpad scrolling can register as either wheel or pinch
 - Resetting to `'not sure'` allows the pinch state machine to re-evaluate
 - See `packages/editor/src/lib/hooks/useGestureEvents.ts:11-43` for full pinch disambiguation logic
 
 **PinchState values:**
+
 ```typescript
 let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 ```
 
 **State transitions:**
+
 - `'not sure'` → Initial state, evaluating gesture intent
 - `'zooming'` → Two fingers moving apart/together (expensive, triggers re-renders)
 - `'panning'` → Two fingers moving in parallel (cheap, just camera movement)
 
 **Threshold values (from pinch logic):**
+
 - Touch distance > 24px → zooming from "not sure"
 - Origin distance > 16px → panning from "not sure"
 - Touch distance > 64px → zooming from "panning" (requires more movement to override)
@@ -288,6 +317,7 @@ Located in `packages/editor/src/lib/hooks/useGestureEvents.ts:52-60`
 ```
 
 **Key acknowledgments:**
+
 - Explicitly labeled as a workaround, not a proper solution
 - Behavior appears intentional in use-gesture (not a bug to be fixed)
 - No direct detection method available (no event flag)
@@ -297,17 +327,20 @@ Located in `packages/editor/src/lib/hooks/useGestureEvents.ts:52-60`
 ## Fragility and future concerns
 
 **Current version stability:**
+
 - Works reliably with `@use-gesture/react` 10.3.1
 - Has survived several minor version updates
 - Timing behavior appears stable even if undocumented
 
 **Potential breaking changes:**
+
 - use-gesture might change phantom event timing
 - Could start missing phantom events (if timing shifts)
 - Could start filtering real events (if timing becomes variable)
 - No documented API guarantees this behavior
 
 **Alternative approaches (not implemented):**
+
 1. **Explicit end event:**
    - use-gesture could add an event type like `wheel_end`
    - Would not masquerade as a real wheel event
@@ -376,6 +409,7 @@ useGesture(events, {
 ```
 
 **Configuration:**
+
 - `passive: false` - allows `preventDefault()` to work
 - `pinch.from` - returns initial zoom level when pinch starts
 - `pinch.scaleBounds` - constrains zoom range based on camera options
@@ -383,16 +417,19 @@ useGesture(events, {
 ## Related event handlers
 
 **onPinchStart (lines 142-169):**
+
 - Initializes pinch state variables
 - Sets `pinchState = 'not sure'`
 - Dispatches `pinch_start` event
 
 **onPinch (lines 210-271):**
+
 - Updates pinch state based on finger movement
 - Dispatches `pinch` events with zoom or pan deltas
 - Differentiates Safari trackpad pinch from touch pinch
 
 **onPinchEnd (lines 273-297):**
+
 - Resets `pinchState = 'not sure'`
 - Dispatches `pinch_end` event
 
@@ -402,6 +439,7 @@ useGesture(events, {
 No dedicated tests found for wheel event phantom filtering.
 
 **Potential test approach:**
+
 1. Mock `Date.now()` to control timestamps
 2. Fire sequence of wheel events with controlled timing
 3. Verify events with 120-160ms gaps are filtered
@@ -409,6 +447,7 @@ No dedicated tests found for wheel event phantom filtering.
 5. Test boundary conditions (exactly 120ms, exactly 160ms)
 
 **Testing challenges:**
+
 - Requires mocking time
 - Difficult to reproduce use-gesture's exact behavior
 - Would be testing the workaround, not the underlying issue
@@ -416,15 +455,17 @@ No dedicated tests found for wheel event phantom filtering.
 ## Constants and magic numbers
 
 **Timing constants:**
+
 ```typescript
-120  // Lower bound for phantom event detection (ms)
-140  // Observed phantom event delay (ms, not in code)
-160  // Upper bound for phantom event detection (ms)
+120 // Lower bound for phantom event detection (ms)
+140 // Observed phantom event delay (ms, not in code)
+160 // Upper bound for phantom event detection (ms)
 ```
 
 **Related constants (from normalizeWheel.ts):**
+
 ```typescript
-MAX_ZOOM_STEP = 10  // Maximum zoom delta per wheel event
+MAX_ZOOM_STEP = 10 // Maximum zoom delta per wheel event
 ```
 
 ## Key source files

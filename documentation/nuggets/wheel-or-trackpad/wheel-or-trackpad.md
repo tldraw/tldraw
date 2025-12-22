@@ -9,6 +9,9 @@ keywords:
   - input
   - mouse
   - detection
+status: published
+date: 12/20/2025
+order: 1
 ---
 
 # Wheel or trackpad?
@@ -31,11 +34,11 @@ The browser's wheel event looks identical regardless of source:
 
 ```typescript
 interface WheelEvent {
-  deltaX: number  // Horizontal scroll amount
-  deltaY: number  // Vertical scroll amount
-  deltaZ: number  // Rarely used
-  deltaMode: number  // Units (pixels, lines, or pages)
-  // ... inherited mouse event properties
+	deltaX: number // Horizontal scroll amount
+	deltaY: number // Vertical scroll amount
+	deltaZ: number // Rarely used
+	deltaMode: number // Units (pixels, lines, or pages)
+	// ... inherited mouse event properties
 }
 ```
 
@@ -59,8 +62,8 @@ tldraw provides an input mode preference with three options:
 
 ```typescript
 interface TLUserPreferences {
-  // ...
-  inputMode?: 'trackpad' | 'mouse' | null
+	// ...
+	inputMode?: 'trackpad' | 'mouse' | null
 }
 ```
 
@@ -73,7 +76,7 @@ const inputMode = this.user.getUserPreferences().inputMode
 
 // If the user has set their input mode preference, use it
 if (inputMode !== null) {
-  wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
+	wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
 }
 ```
 
@@ -91,15 +94,15 @@ let behavior = wheelBehavior
 if (info.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 switch (behavior) {
-  case 'zoom': {
-    // Zoom at cursor position
-    const { x, y } = this.inputs.getCurrentScreenPoint()
-    // ...
-  }
-  case 'pan': {
-    // Pan by scroll delta
-    // ...
-  }
+	case 'zoom': {
+		// Zoom at cursor position
+		const { x, y } = this.inputs.getCurrentScreenPoint()
+		// ...
+	}
+	case 'pan': {
+		// Pan by scroll delta
+		// ...
+	}
 }
 ```
 

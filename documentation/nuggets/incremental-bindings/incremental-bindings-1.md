@@ -7,6 +7,9 @@ keywords:
   - index
   - incremental
   - performance
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Incremental bindings index

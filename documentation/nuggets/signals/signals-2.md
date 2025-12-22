@@ -8,6 +8,9 @@ keywords:
   - performance
   - caching
   - computed
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Signals: Always-on caching
@@ -102,4 +105,3 @@ This keeps the dependency graph compact. An atom with 10,000 children doesn't ne
 The computed implementation is in `/packages/state/src/lib/Computed.ts`. The `__unsafe__getWithoutCapture()` method handles cache hits and misses. The `isActivelyListening` property is used throughout the codebase, but never to clear cached state—only to manage subscriptions.
 
 This pattern appears in thousands of places across tldraw. Every shape's bounds, every visible arrow's path, every label's measured size—all kept in memory, ready to return instantly when needed. The canvas stays fast because we already know the answer.
-

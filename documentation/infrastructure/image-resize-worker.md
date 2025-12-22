@@ -8,6 +8,9 @@ keywords:
   - optimization
   - worker
   - cloudflare
+status: published
+date: 12/19/2025
+order: 2
 ---
 
 The image resize worker provides on-demand image transformations using Cloudflare Image Resizing. It validates origins, selects an optimal output format, and caches results at the edge.

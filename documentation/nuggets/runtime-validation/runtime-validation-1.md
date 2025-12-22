@@ -6,6 +6,9 @@ keywords:
   - validation
   - runtime
   - TypeScript
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Runtime validation
@@ -77,8 +80,8 @@ Every validator implements this interface:
 
 ```typescript
 interface Validatable<T> {
-  validate(value: unknown): T
-  validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
+	validate(value: unknown): T
+	validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
 }
 ```
 
@@ -94,14 +97,14 @@ External data can contain more than just invalid numbers. URLs in particular nee
 const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
 
 export const linkUrl = string.check((value) => {
-  if (value === '') return
-  const url = parseUrl(value)
+	if (value === '') return
+	const url = parseUrl(value)
 
-  if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
-    throw new ValidationError(
-      `Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
-    )
-  }
+	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
 })
 ```
 
@@ -115,12 +118,12 @@ We track the path as we recurse through validators:
 
 ```typescript
 try {
-  validator.validate(value)
+	validator.validate(value)
 } catch (err) {
-  if (err instanceof ValidationError) {
-    throw new ValidationError(err.rawMessage, [path, ...err.path])
-  }
-  throw new ValidationError((err as Error).toString(), [path])
+	if (err instanceof ValidationError) {
+		throw new ValidationError(err.rawMessage, [path, ...err.path])
+	}
+	throw new ValidationError((err as Error).toString(), [path])
 }
 ```
 

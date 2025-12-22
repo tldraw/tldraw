@@ -6,6 +6,9 @@ keywords:
   - resize
   - handles
   - cursor
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Resize handles on rotated shapes
@@ -22,11 +25,13 @@ Here's the core insight: we measure distances from the scale origin in page coor
 
 ```typescript
 // Distance vectors in page space
-const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage)
-  .rot(-selectionRotation)
+const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
+	-selectionRotation
+)
 
-const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage)
-  .rot(-selectionRotation)
+const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage).rot(
+	-selectionRotation
+)
 
 // Scale is the ratio in shape-local space
 const scale = Vec.DivV(distanceFromScaleOriginNow, distanceFromScaleOriginAtStart)
@@ -36,9 +41,9 @@ The scale origin is the opposite handle from the one being dragged. When you dra
 
 ```typescript
 const scaleOriginPage = Vec.RotWith(
-  altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
-  selectionBounds.point,
-  selectionRotation
+	altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
+	selectionBounds.point,
+	selectionRotation
 )
 ```
 
@@ -77,15 +82,15 @@ When holding Shift (or when shapes have incompatible rotations), we lock the asp
 
 ```typescript
 if (isAspectRatioLocked) {
-  if (isYLocked) {
-    scale.y = Math.abs(scale.x)
-  } else if (isXLocked) {
-    scale.x = Math.abs(scale.y)
-  } else if (Math.abs(scale.x) > Math.abs(scale.y)) {
-    scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
-  } else {
-    scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
-  }
+	if (isYLocked) {
+		scale.y = Math.abs(scale.x)
+	} else if (isXLocked) {
+		scale.x = Math.abs(scale.y)
+	} else if (Math.abs(scale.x) > Math.abs(scale.y)) {
+		scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
+	} else {
+		scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
+	}
 }
 ```
 
@@ -143,9 +148,9 @@ When you click a resize handle, you rarely click exactly at its center. If we sn
 
 ```typescript
 const dragHandlePoint = Vec.RotWith(
-  selectionBounds.getHandlePoint(this.info.handle!),
-  selectionBounds.point,
-  selectionRotation
+	selectionBounds.getHandlePoint(this.info.handle!),
+	selectionBounds.point,
+	selectionRotation
 )
 
 const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
@@ -154,15 +159,9 @@ const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 Both the current and origin points are adjusted by this offset when calculating the drag delta:
 
 ```typescript
-const currentPagePoint = this.editor.inputs
-  .getCurrentPagePoint()
-  .clone()
-  .sub(cursorHandleOffset)
+const currentPagePoint = this.editor.inputs.getCurrentPagePoint().clone().sub(cursorHandleOffset)
 
-const originPagePoint = this.editor.inputs
-  .getOriginPagePoint()
-  .clone()
-  .sub(cursorHandleOffset)
+const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 ```
 
 This keeps the handle visually locked under the cursor during the entire gesture.

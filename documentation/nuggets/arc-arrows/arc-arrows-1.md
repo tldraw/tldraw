@@ -11,6 +11,9 @@ voice: 9
 potential: 8
 accuracy: 9
 notes: "Strong opening with Bezier failure mode. All code verified against source. 'One degree of freedom' insight is transferable. Comprehensive coverage of handle/body arc and intersection logic."
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Arc arrows

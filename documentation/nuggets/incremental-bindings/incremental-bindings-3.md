@@ -7,6 +7,9 @@ keywords:
   - incremental
   - copy-on-write
   - performance
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Incremental bindings index
@@ -65,19 +68,19 @@ Before modifying an array, we check if it's shared:
 
 ```typescript
 function ensureNewArray(shapeId: TLShapeId) {
-  nextValue ??= new Map(lastValue)
+	nextValue ??= new Map(lastValue)
 
-  let result = nextValue.get(shapeId)
-  if (!result) {
-    // Shape not in map - create new array
-    result = []
-    nextValue.set(shapeId, result)
-  } else if (result === lastValue.get(shapeId)) {
-    // Array is shared - copy it
-    result = result.slice(0)
-    nextValue.set(shapeId, result)
-  }
-  return result
+	let result = nextValue.get(shapeId)
+	if (!result) {
+		// Shape not in map - create new array
+		result = []
+		nextValue.set(shapeId, result)
+	} else if (result === lastValue.get(shapeId)) {
+		// Array is shared - copy it
+		result = result.slice(0)
+		nextValue.set(shapeId, result)
+	}
+	return result
 }
 ```
 
@@ -90,16 +93,18 @@ This check works because we only call `ensureNewArray` before modifying arrays. 
 When we call `ensureNewArray(shapeId)`, we hit one of three cases:
 
 **Case 1: Shape not in map**
+
 ```typescript
 if (!result) {
-  result = []
-  nextValue.set(shapeId, result)
+	result = []
+	nextValue.set(shapeId, result)
 }
 ```
 
 This shape has no bindings yet. Create an empty array. We'll push the new binding into it.
 
 **Case 2: Shape in map, array shared**
+
 ```typescript
 else if (result === lastValue.get(shapeId)) {
   result = result.slice(0)
@@ -110,6 +115,7 @@ else if (result === lastValue.get(shapeId)) {
 This shape exists in both maps, and they point to the same array. Copy the array before modifying it. The old Map still points to the old array, the new Map points to the copy.
 
 **Case 3: Shape in map, array already copied**
+
 ```typescript
 // else - just return result
 ```
@@ -122,8 +128,8 @@ Adding a binding is straightforward once we have `ensureNewArray`:
 
 ```typescript
 function addBinding(binding: TLBinding) {
-  ensureNewArray(binding.fromId).push(binding)
-  ensureNewArray(binding.toId).push(binding)
+	ensureNewArray(binding.fromId).push(binding)
+	ensureNewArray(binding.toId).push(binding)
 }
 ```
 
@@ -135,17 +141,17 @@ Removing is more expensive because we need to filter the array:
 
 ```typescript
 function removingBinding(binding: TLBinding) {
-  nextValue ??= new Map(lastValue)
+	nextValue ??= new Map(lastValue)
 
-  const prevFrom = nextValue.get(binding.fromId)
-  const nextFrom = prevFrom?.filter((b) => b.id !== binding.id)
-  if (!nextFrom?.length) {
-    nextValue.delete(binding.fromId)
-  } else {
-    nextValue.set(binding.fromId, nextFrom)
-  }
+	const prevFrom = nextValue.get(binding.fromId)
+	const nextFrom = prevFrom?.filter((b) => b.id !== binding.id)
+	if (!nextFrom?.length) {
+		nextValue.delete(binding.fromId)
+	} else {
+		nextValue.set(binding.fromId, nextFrom)
+	}
 
-  // Same for binding.toId...
+	// Same for binding.toId...
 }
 ```
 
@@ -159,8 +165,8 @@ When a binding updates, we handle it as two operations:
 
 ```typescript
 for (const [prev, next] of objectMapValues(changes.updated)) {
-  removingBinding(prev)
-  addBinding(next)
+	removingBinding(prev)
+	addBinding(next)
 }
 ```
 
@@ -169,12 +175,12 @@ Why not check if the binding's `fromId` and `toId` changed, and only update if t
 ```typescript
 // Complex approach - check what changed
 if (prev.fromId !== next.fromId) {
-  removeFromArray(prev.fromId, prev)
-  addToArray(next.fromId, next)
+	removeFromArray(prev.fromId, prev)
+	addToArray(next.fromId, next)
 }
 if (prev.toId !== next.toId) {
-  removeFromArray(prev.toId, prev)
-  addToArray(next.toId, next)
+	removeFromArray(prev.toId, prev)
+	addToArray(next.toId, next)
 }
 // And we still need to update the binding reference in arrays
 // where the ID didn't change but the binding object did...
@@ -188,18 +194,18 @@ All of this copy-on-write logic is an optimization. The correctness comes from t
 
 ```typescript
 return computed('arrowBindingsIndex', (_lastValue, lastComputedEpoch) => {
-  if (isUninitialized(_lastValue)) {
-    return fromScratch(bindingsQuery)
-  }
+	if (isUninitialized(_lastValue)) {
+		return fromScratch(bindingsQuery)
+	}
 
-  const diff = bindingsHistory.getDiffSince(lastComputedEpoch)
+	const diff = bindingsHistory.getDiffSince(lastComputedEpoch)
 
-  if (diff === RESET_VALUE) {
-    return fromScratch(bindingsQuery)
-  }
+	if (diff === RESET_VALUE) {
+		return fromScratch(bindingsQuery)
+	}
 
-  // Incremental update...
-  return nextValue ?? lastValue
+	// Incremental update...
+	return nextValue ?? lastValue
 })
 ```
 

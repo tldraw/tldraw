@@ -1,0 +1,115 @@
+---
+title: Deep links
+created_at: 12/20/2024
+updated_at: 12/20/2024
+keywords:
+  - deep link
+  - URL
+  - share
+  - navigation
+  - state
+status: published
+date: 12/20/2024
+order: 9
+---
+
+The deep links system serializes editor state into URL-safe strings, enabling users to share links that open the editor at specific locations. Deep links can target individual shapes, viewport positions, or entire pages, making it easy to share and navigate to precise locations within a document.
+
+The system provides three core methods: `createDeepLink()` generates URLs with encoded state, `navigateToDeepLink()` moves the editor to a specified location, and `registerDeepLinkListener()` automatically updates URLs as users navigate. Deep links encode all necessary information in a compact, URL-safe format using a single query parameter.
+
+## Deep link types
+
+The system supports three types of deep links:
+
+| Type       | Purpose                      | Encoded prefix | Example use case                  |
+| ---------- | ---------------------------- | -------------- | --------------------------------- |
+| `shapes`   | Links to specific shapes     | `s`            | Share selected shapes with a team |
+| `viewport` | Links to a bounding box view | `v`            | Share current viewport position   |
+| `page`     | Links to a specific page     | `p`            | Navigate to a particular page     |
+
+Each type serves different navigation needs. Shape links focus the editor on specific elements, viewport links preserve the exact camera position and zoom level, and page links navigate to particular pages in multi-page documents.
+
+## How it works
+
+Deep links are encoded as compact strings with a single-character prefix identifying the type. The prefix is followed by encoded data specific to that type:
+
+- Shape links (`s`) encode shape IDs separated by dots: `s<id1>.<id2>.<id3>`
+- Viewport links (`v`) encode bounding box coordinates: `v<x>.<y>.<w>.<h>` with optional page ID
+- Page links (`p`) encode a page ID: `p<pageId>`
+
+All IDs are URL-encoded to handle special characters. The system uses a default query parameter named `d`, but this can be customized. When navigating to a shapes deep link, the editor switches to the page containing the most shapes and zooms to fit them. Viewport links set the camera to the exact specified bounds.
+
+## API methods
+
+### createDeepLink
+
+Creates a URL with a deep link query parameter encoding the current viewport and page:
+
+```typescript
+// Create a link to the current viewport
+const url = editor.createDeepLink()
+navigator.clipboard.writeText(url.toString())
+```
+
+Specify a target to link to specific shapes:
+
+```typescript
+// Link to currently selected shapes
+const url = editor.createDeepLink({
+	to: { type: 'shapes', shapeIds: editor.getSelectedShapeIds() },
+})
+```
+
+### navigateToDeepLink
+
+Navigates the editor to the location specified by a deep link URL or object:
+
+```typescript
+// Navigate using the current URL's query parameter
+editor.navigateToDeepLink()
+
+// Navigate to a specific URL
+editor.navigateToDeepLink({ url: 'https://example.com?d=v100.100.200.200' })
+
+// Navigate directly to shapes
+editor.navigateToDeepLink({
+	type: 'shapes',
+	shapeIds: ['shape:abc', 'shape:xyz'],
+})
+```
+
+### registerDeepLinkListener
+
+Sets up automatic URL updates as the viewport changes. The listener debounces updates to avoid excessive history entries:
+
+```typescript
+// Use default behavior (updates window.location)
+const unlisten = editor.registerDeepLinkListener()
+
+// Custom change handler
+const unlisten = editor.registerDeepLinkListener({
+	onChange(url) {
+		window.history.replaceState({}, document.title, url.toString())
+	},
+	debounceMs: 1000,
+})
+
+// Clean up when done
+unlisten()
+```
+
+The listener can also be enabled via the `deepLinks` prop on the Tldraw component instead of calling this method directly.
+
+## Examples
+
+- **[Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links)** - Demonstrates how to use the `deepLinks` prop to enable URL-based navigation and how to create, parse, and handle deep links manually using the editor methods.
+
+## Key files
+
+- packages/editor/src/lib/utils/deepLinks.ts - Deep link string encoding and parsing
+- packages/editor/src/lib/editor/Editor.ts - createDeepLink, navigateToDeepLink, registerDeepLinkListener methods
+
+## Related
+
+- [Camera system](./camera-system.md)
+- [Pages](./pages.md)

@@ -8,6 +8,9 @@ keywords:
   - monorepo
   - packages
   - dependencies
+status: published
+date: 12/20/2024
+order: 3
 ---
 
 tldraw uses Yarn workspaces to manage packages, apps, and templates in a single monorepo. Workspaces allow multiple npm packages to coexist in one repository while sharing dependencies and enabling cross-package development without publishing. Changes to a dependency package are immediately visible to packages that use it, without any manual linking or publishing steps.

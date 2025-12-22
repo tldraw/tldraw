@@ -8,6 +8,9 @@ keywords:
   - versioning
   - hydration
   - reconnection
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Clock-based versioning in sync
@@ -52,8 +55,8 @@ The server doesn't just track its own clock. Every record stored on the server h
 ```typescript
 // TLSyncRoom.ts
 documents: Array<{
-  state: TLRecord
-  lastChangedClock: number
+	state: TLRecord
+	lastChangedClock: number
 }>
 ```
 
@@ -71,7 +74,7 @@ The solution is tombstones. When a record is deleted, the server stores its ID a
 
 ```typescript
 // InMemorySyncStorage.ts
-tombstones: Map<string, number>  // ID -> deletion clock
+tombstones: Map<string, number> // ID -> deletion clock
 ```
 
 When you reconnect, the server checks tombstones the same way it checks records. Any tombstone with a deletion clock greater than your `lastServerClock` gets sent as a delete operation.
@@ -124,13 +127,13 @@ When you first connect, the server sends a snapshot of the entire document. This
 ```typescript
 // TLSyncRoom.ts
 export interface RoomSnapshot {
-  clock?: number
-  documents: Array<{
-    state: TLRecord
-    lastChangedClock: number
-  }>
-  tombstones?: Record<string, number>
-  tombstoneHistoryStartsAtClock?: number
+	clock?: number
+	documents: Array<{
+		state: TLRecord
+		lastChangedClock: number
+	}>
+	tombstones?: Record<string, number>
+	tombstoneHistoryStartsAtClock?: number
 }
 ```
 

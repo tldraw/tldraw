@@ -8,6 +8,9 @@ keywords:
   - state
   - atoms
   - computed
+status: published
+date: 12/20/2025
+order: 4
 ---
 
 # Fine-grained reactivity with signals

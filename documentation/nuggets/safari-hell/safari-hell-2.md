@@ -6,6 +6,9 @@ keywords:
   - Safari
   - browser
   - workarounds
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Safari quirks and workarounds
@@ -26,8 +29,7 @@ We check for this in our pinch handler:
 // In (desktop) Safari, a two finger trackpad pinch will be a "gesturechange" event
 // and will have 0 touches; on iOS, a two-finger pinch will be a "pointermove" event
 // with two touches.
-const isSafariTrackpadPinch =
-  gesture.type === 'gesturechange' || gesture.type === 'gestureend'
+const isSafariTrackpadPinch = gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 ```
 
 This distinction matters because it affects how we resolve the pinch state machine. On touch screens, we start in a "not sure" state—the gesture could be panning (moving the canvas) or zooming (changing scale). We watch what the pointers do and commit to one interpretation once we have enough information.
@@ -36,15 +38,15 @@ But trackpad pinches are unambiguous. If we see a `gesturechange` event, we know
 
 ```typescript
 const updatePinchState = (isSafariTrackpadPinch: boolean) => {
-  if (isSafariTrackpadPinch) {
-    pinchState = 'zooming'
-  }
+	if (isSafariTrackpadPinch) {
+		pinchState = 'zooming'
+	}
 
-  if (pinchState === 'zooming') {
-    return
-  }
+	if (pinchState === 'zooming') {
+		return
+	}
 
-  // ... ambiguity resolution for touch screens
+	// ... ambiguity resolution for touch screens
 }
 ```
 
@@ -61,14 +63,14 @@ Here's the problem. Preparing clipboard data often requires async work. You migh
 ```typescript
 // This fails in Safari
 async function copyShapes() {
-  const textBlob = await serializeShapes()
-  const imageBlob = await renderAsPNG()
-  await navigator.clipboard.write([
-    new ClipboardItem({
-      'text/plain': textBlob,
-      'image/png': imageBlob,
-    })
-  ])
+	const textBlob = await serializeShapes()
+	const imageBlob = await renderAsPNG()
+	await navigator.clipboard.write([
+		new ClipboardItem({
+			'text/plain': textBlob,
+			'image/png': imageBlob,
+		}),
+	])
 }
 ```
 
@@ -78,18 +80,18 @@ The solution is to create the `ClipboardItem` synchronously with promise-valued 
 
 ```typescript
 export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<void> {
-  // Note: it's important that this function itself isn't async and doesn't really use promises -
-  // we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
-  // synchronously to make sure safari knows that the user _wants_ to copy See
-  // https://bugs.webkit.org/show_bug.cgi?id=222262
+	// Note: it's important that this function itself isn't async and doesn't really use promises -
+	// we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
+	// synchronously to make sure safari knows that the user _wants_ to copy See
+	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
-  const entries = Object.entries(types)
+	const entries = Object.entries(types)
 
-  // clipboard.write will swallow errors if any of the promises reject. we log them here so we can
-  // understand what might have gone wrong.
-  for (const [_, promise] of entries) promise.catch((err) => console.error(err))
+	// clipboard.write will swallow errors if any of the promises reject. we log them here so we can
+	// understand what might have gone wrong.
+	for (const [_, promise] of entries) promise.catch((err) => console.error(err))
 
-  return navigator.clipboard.write([new ClipboardItem(types)])
+	return navigator.clipboard.write([new ClipboardItem(types)])
 }
 ```
 
@@ -103,9 +105,9 @@ Safari workarounds follow a common pattern: check the browser, take a different 
 
 ```typescript
 if ('navigator' in window) {
-  tlenv.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-  tlenv.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
-  // ...
+	tlenv.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+	tlenv.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
+	// ...
 }
 ```
 

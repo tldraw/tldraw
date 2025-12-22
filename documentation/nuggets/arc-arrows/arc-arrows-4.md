@@ -10,6 +10,9 @@ voice: 9
 potential: 8
 accuracy: 9
 notes: "Concrete opening with resize scenario. Clear two-arc concept explanation. 'Separating logical intent from visual rendering' is transferable insight. All technical claims verified."
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Two arcs: handle arc and body arc

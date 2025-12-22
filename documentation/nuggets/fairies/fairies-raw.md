@@ -4,6 +4,9 @@ created_at: 12/21/2025
 updated_at: 12/21/2025
 keywords:
   - fairies
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Fairies: raw notes
@@ -13,6 +16,7 @@ Internal research notes for the fairies.md article.
 ## Multi-modal context: hybrid approach
 
 **The vision problem:**
+
 - Screenshots provide visual context: layout, colors, text content
 - Screenshots alone cannot provide exact coordinates for manipulation
 - Models struggle to read pixel-precise coordinates from images
@@ -23,6 +27,7 @@ Located in prompt parts system: `templates/agent/shared/parts/`
 
 **Screenshot generation:**
 From `ScreenshotPartUtil.ts:17-51`:
+
 ```typescript
 override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
     const contextBounds = request.bounds
@@ -49,6 +54,7 @@ override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
 ```
 
 **Screenshot scaling:**
+
 - Maximum dimension: 8000px
 - Scale factor calculated: `scale = largestDimension > 8000 ? 8000 / largestDimension : 1`
 - Format: JPEG (compression for token efficiency)
@@ -61,116 +67,121 @@ From `templates/agent/shared/format/`
 
 **BlurryShape (minimal ~6 fields):**
 From `BlurryShape.ts:3-11`:
+
 ```typescript
 export interface BlurryShape {
-    shapeId: string
-    text?: string
-    type: SimpleShape['_type']
-    x: number
-    y: number
-    w: number
-    h: number
+	shapeId: string
+	text?: string
+	type: SimpleShape['_type']
+	x: number
+	y: number
+	w: number
+	h: number
 }
 ```
 
 **SimpleShape (full detail ~40 fields):**
 From `SimpleShape.ts:10-128`:
+
 ```typescript
 // Geo shapes (rectangles, ellipses, clouds, etc)
 const SimpleGeoShape = z.object({
-    _type: SimpleGeoShapeTypeSchema,
-    color: SimpleColor,
-    fill: SimpleFillSchema,
-    h: z.number(),
-    note: z.string(),
-    shapeId: SimpleShapeIdSchema,
-    text: SimpleLabel.optional(),
-    textAlign: z.enum(['start', 'middle', 'end']).optional(),
-    w: z.number(),
-    x: z.number(),
-    y: z.number(),
+	_type: SimpleGeoShapeTypeSchema,
+	color: SimpleColor,
+	fill: SimpleFillSchema,
+	h: z.number(),
+	note: z.string(),
+	shapeId: SimpleShapeIdSchema,
+	text: SimpleLabel.optional(),
+	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
 })
 
 // Text shapes
 const SimpleTextShape = z.object({
-    _type: z.literal('text'),
-    color: SimpleColor,
-    fontSize: SimpleFontSize.optional(),
-    note: z.string(),
-    shapeId: SimpleShapeIdSchema,
-    text: SimpleLabel,
-    textAlign: z.enum(['start', 'middle', 'end']).optional(),
-    width: z.number().optional(),
-    wrap: z.boolean().optional(),
-    x: z.number(),
-    y: z.number(),
+	_type: z.literal('text'),
+	color: SimpleColor,
+	fontSize: SimpleFontSize.optional(),
+	note: z.string(),
+	shapeId: SimpleShapeIdSchema,
+	text: SimpleLabel,
+	textAlign: z.enum(['start', 'middle', 'end']).optional(),
+	width: z.number().optional(),
+	wrap: z.boolean().optional(),
+	x: z.number(),
+	y: z.number(),
 })
 
 // Arrow shapes
 const SimpleArrowShape = z.object({
-    _type: z.literal('arrow'),
-    color: SimpleColor,
-    fromId: SimpleShapeIdSchema.nullable(),
-    note: z.string(),
-    shapeId: SimpleShapeIdSchema,
-    text: z.string().optional(),
-    toId: SimpleShapeIdSchema.nullable(),
-    x1: z.number(),
-    x2: z.number(),
-    y1: z.number(),
-    y2: z.number(),
-    bend: z.number().optional(),
+	_type: z.literal('arrow'),
+	color: SimpleColor,
+	fromId: SimpleShapeIdSchema.nullable(),
+	note: z.string(),
+	shapeId: SimpleShapeIdSchema,
+	text: z.string().optional(),
+	toId: SimpleShapeIdSchema.nullable(),
+	x1: z.number(),
+	x2: z.number(),
+	y1: z.number(),
+	y2: z.number(),
+	bend: z.number().optional(),
 })
 ```
 
 **PeripheralShapeCluster (clustered ~5 fields):**
 From `PeripheralShapesCluster.ts:1-6`:
+
 ```typescript
 export interface PeripheralShapeCluster {
-    bounds: BoxModel
-    numberOfShapes: number
+	bounds: BoxModel
+	numberOfShapes: number
 }
 ```
 
 **When each format is used:**
+
 - BlurryShape: Shapes in viewport (enough to reference by ID)
 - SimpleShape: Shapes being actively edited (full properties needed)
 - PeripheralShapeCluster: Shapes outside viewport (spatial awareness only)
 
 **Clustering algorithm:**
 From `convertTldrawShapesToPeripheralShapes.ts:4-54`:
+
 ```typescript
 export function convertTldrawShapesToPeripheralShapes(
-    editor: Editor,
-    shapes: TLShape[],
-    { padding = 75 }: { padding?: number } = {}
+	editor: Editor,
+	shapes: TLShape[],
+	{ padding = 75 }: { padding?: number } = {}
 ): PeripheralShapeCluster[] {
-    const expandedBounds = shapes.map((shape) => {
-        return {
-            shape,
-            bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(padding),
-        }
-    })
+	const expandedBounds = shapes.map((shape) => {
+		return {
+			shape,
+			bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(padding),
+		}
+	})
 
-    for (let i = 0; i < expandedBounds.length; i++) {
-        const item = expandedBounds[i]
-        for (const group of groups) {
-            if (group.bounds.includes(item.bounds)) {
-                group.shapes.push(item.shape)
-                group.bounds.expand(item.bounds)
-                group.numberOfShapes++
-                didLand = true
-                break
-            }
-        }
-        if (!didLand) {
-            groups.push({
-                shapes: [item.shape],
-                bounds: item.bounds,
-                numberOfShapes: 1,
-            })
-        }
-    }
+	for (let i = 0; i < expandedBounds.length; i++) {
+		const item = expandedBounds[i]
+		for (const group of groups) {
+			if (group.bounds.includes(item.bounds)) {
+				group.shapes.push(item.shape)
+				group.bounds.expand(item.bounds)
+				group.numberOfShapes++
+				didLand = true
+				break
+			}
+		}
+		if (!didLand) {
+			groups.push({
+				shapes: [item.shape],
+				bounds: item.bounds,
+				numberOfShapes: 1,
+			})
+		}
+	}
 }
 ```
 
@@ -180,6 +191,7 @@ export function convertTldrawShapesToPeripheralShapes(
 
 **Chat origin tracking:**
 From `TldrawAgent.ts:84-87`:
+
 ```typescript
 /**
  * An atom containing the position on the page where the current chat
@@ -190,6 +202,7 @@ $chatOrigin = atom<VecModel>('chatOrigin', { x: 0, y: 0 })
 
 **Origin initialization:**
 From `TldrawAgent.ts:569-571`:
+
 ```typescript
 reset() {
     const viewport = this.editor.getViewportPageBounds()
@@ -201,6 +214,7 @@ Chat origin is set to viewport position when chat resets.
 
 **Offset calculation:**
 From `AgentHelpers.ts:35-43`:
+
 ```typescript
 constructor(agent: TldrawAgent) {
     this.agent = agent
@@ -215,6 +229,7 @@ constructor(agent: TldrawAgent) {
 
 **Applying offset (to model):**
 From `AgentHelpers.ts:65-70`:
+
 ```typescript
 applyOffsetToVec(position: VecModel): VecModel {
     return {
@@ -226,6 +241,7 @@ applyOffsetToVec(position: VecModel): VecModel {
 
 **Removing offset (from model):**
 From `AgentHelpers.ts:75-80`:
+
 ```typescript
 removeOffsetFromVec(position: VecModel): VecModel {
     return {
@@ -237,6 +253,7 @@ removeOffsetFromVec(position: VecModel): VecModel {
 
 **Offset for shapes:**
 From `AgentHelpers.ts:109-127`:
+
 ```typescript
 applyOffsetToShape(shape: SimpleShape): SimpleShape {
     if ('x1' in shape) {
@@ -265,6 +282,7 @@ Handles both point-based shapes (x, y) and line-based shapes (x1, y1, x2, y2).
 
 **Rounding shapes before sending to model:**
 From `AgentHelpers.ts:296-313`:
+
 ```typescript
 roundShape(shape: SimpleShape): SimpleShape {
     if ('x1' in shape) {
@@ -288,6 +306,7 @@ roundShape(shape: SimpleShape): SimpleShape {
 
 **Tracking rounding diffs:**
 From `AgentHelpers.ts:360-365`:
+
 ```typescript
 roundAndSaveNumber(number: number, key: string): number {
     const roundedNumber = Math.round(number)
@@ -299,6 +318,7 @@ roundAndSaveNumber(number: number, key: string): number {
 
 **Restoring original precision:**
 From `AgentHelpers.ts:373-377`:
+
 ```typescript
 unroundAndRestoreNumber(number: number, key: string): number {
     const diff = this.roundingDiffMap.get(key)
@@ -309,6 +329,7 @@ unroundAndRestoreNumber(number: number, key: string): number {
 
 **Storage map:**
 From `AgentHelpers.ts:60`:
+
 ```typescript
 roundingDiffMap = new Map<string, number>()
 ```
@@ -321,189 +342,195 @@ Models perform better with small integers than large decimals. Coordinates like 
 ## Utility architecture
 
 **Two parallel systems:**
+
 1. Prompt parts - What the model sees
 2. Action utilities - What the model can do
 
 **Prompt part registration:**
 From `AgentUtils.ts:54-80`:
+
 ```typescript
 export const PROMPT_PART_UTILS = [
-    // Model
-    SystemPromptPartUtil,
-    ModelNamePartUtil,
+	// Model
+	SystemPromptPartUtil,
+	ModelNamePartUtil,
 
-    // Request
-    MessagesPartUtil,
-    DataPartUtil,
-    ContextItemsPartUtil,
+	// Request
+	MessagesPartUtil,
+	DataPartUtil,
+	ContextItemsPartUtil,
 
-    // Viewport
-    ScreenshotPartUtil,
-    ViewportBoundsPartUtil,
+	// Viewport
+	ScreenshotPartUtil,
+	ViewportBoundsPartUtil,
 
-    // Shapes
-    BlurryShapesPartUtil,
-    PeripheralShapesPartUtil,
-    SelectedShapesPartUtil,
+	// Shapes
+	BlurryShapesPartUtil,
+	PeripheralShapesPartUtil,
+	SelectedShapesPartUtil,
 
-    // History
-    ChatHistoryPartUtil,
-    UserActionHistoryPartUtil,
-    TodoListPartUtil,
+	// History
+	ChatHistoryPartUtil,
+	UserActionHistoryPartUtil,
+	TodoListPartUtil,
 
-    // Metadata
-    TimePartUtil,
+	// Metadata
+	TimePartUtil,
 ]
 ```
 
 **Action utility registration:**
 From `AgentUtils.ts:88-127`:
+
 ```typescript
 export const AGENT_ACTION_UTILS = [
-    // Communication
-    MessageActionUtil,
+	// Communication
+	MessageActionUtil,
 
-    // Planning
-    ThinkActionUtil,
-    ReviewActionUtil,
-    AddDetailActionUtil,
-    TodoListActionUtil,
-    SetMyViewActionUtil,
+	// Planning
+	ThinkActionUtil,
+	ReviewActionUtil,
+	AddDetailActionUtil,
+	TodoListActionUtil,
+	SetMyViewActionUtil,
 
-    // Individual shapes
-    CreateActionUtil,
-    DeleteActionUtil,
-    UpdateActionUtil,
-    LabelActionUtil,
-    MoveActionUtil,
+	// Individual shapes
+	CreateActionUtil,
+	DeleteActionUtil,
+	UpdateActionUtil,
+	LabelActionUtil,
+	MoveActionUtil,
 
-    // Groups of shapes
-    PlaceActionUtil,
-    BringToFrontActionUtil,
-    SendToBackActionUtil,
-    RotateActionUtil,
-    ResizeActionUtil,
-    AlignActionUtil,
-    DistributeActionUtil,
-    StackActionUtil,
-    ClearActionUtil,
+	// Groups of shapes
+	PlaceActionUtil,
+	BringToFrontActionUtil,
+	SendToBackActionUtil,
+	RotateActionUtil,
+	ResizeActionUtil,
+	AlignActionUtil,
+	DistributeActionUtil,
+	StackActionUtil,
+	ClearActionUtil,
 
-    // Drawing
-    PenActionUtil,
+	// Drawing
+	PenActionUtil,
 
-    // External APIs
-    RandomWikipediaArticleActionUtil,
-    CountryInfoActionUtil,
-    CountShapesActionUtil,
+	// External APIs
+	RandomWikipediaArticleActionUtil,
+	CountryInfoActionUtil,
+	CountShapesActionUtil,
 
-    // Internal (required)
-    UnknownActionUtil,
+	// Internal (required)
+	UnknownActionUtil,
 ]
 ```
 
 **PromptPartUtil base class:**
 From `PromptPartUtil.ts:9-93`:
+
 ```typescript
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
-    static type: string
+	static type: string
 
-    protected agent?: TldrawAgent
-    protected editor?: Editor
+	protected agent?: TldrawAgent
+	protected editor?: Editor
 
-    /**
-     * Get some data to add to the prompt.
-     */
-    abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
+	/**
+	 * Get some data to add to the prompt.
+	 */
+	abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
 
-    /**
-     * Get priority for this prompt part to determine its position in the prompt.
-     * Lower numbers have higher priority.
-     */
-    getPriority(_part: T): number {
-        return 0
-    }
+	/**
+	 * Get priority for this prompt part to determine its position in the prompt.
+	 * Lower numbers have higher priority.
+	 */
+	getPriority(_part: T): number {
+		return 0
+	}
 
-    /**
-     * Build an array of text or image content for this prompt part.
-     */
-    buildContent(_part: T): string[] {
-        return []
-    }
+	/**
+	 * Build an array of text or image content for this prompt part.
+	 */
+	buildContent(_part: T): string[] {
+		return []
+	}
 
-    /**
-     * Build an array of messages to send to the model.
-     */
-    buildMessages(part: T): AgentMessage[] {
-        // Converts content to messages with appropriate type (text/image)
-    }
+	/**
+	 * Build an array of messages to send to the model.
+	 */
+	buildMessages(part: T): AgentMessage[] {
+		// Converts content to messages with appropriate type (text/image)
+	}
 
-    /**
-     * Build a system message that gets concatenated with the other system messages.
-     */
-    buildSystemPrompt(_part: T): string | null {
-        return null
-    }
+	/**
+	 * Build a system message that gets concatenated with the other system messages.
+	 */
+	buildSystemPrompt(_part: T): string | null {
+		return null
+	}
 }
 ```
 
 **AgentActionUtil base class:**
 From `AgentActionUtil.ts:9-68`:
+
 ```typescript
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
-    static type: string
+	static type: string
 
-    protected agent?: TldrawAgent
-    protected editor?: Editor
+	protected agent?: TldrawAgent
+	protected editor?: Editor
 
-    /**
-     * Get a schema to use for the model's response.
-     */
-    getSchema(): z.ZodType<T> | null {
-        return null
-    }
+	/**
+	 * Get a schema to use for the model's response.
+	 */
+	getSchema(): z.ZodType<T> | null {
+		return null
+	}
 
-    /**
-     * Get information about the action to display within the chat history UI.
-     */
-    getInfo(_action: Streaming<T>): Partial<ChatHistoryInfo> | null {
-        return {}
-    }
+	/**
+	 * Get information about the action to display within the chat history UI.
+	 */
+	getInfo(_action: Streaming<T>): Partial<ChatHistoryInfo> | null {
+		return {}
+	}
 
-    /**
-     * Transforms the action before saving it to chat history.
-     * Useful for sanitizing or correcting actions.
-     * @returns The transformed action, or null to reject the action
-     */
-    sanitizeAction(action: Streaming<T>, _helpers: AgentHelpers): Streaming<T> | null {
-        return action
-    }
+	/**
+	 * Transforms the action before saving it to chat history.
+	 * Useful for sanitizing or correcting actions.
+	 * @returns The transformed action, or null to reject the action
+	 */
+	sanitizeAction(action: Streaming<T>, _helpers: AgentHelpers): Streaming<T> | null {
+		return action
+	}
 
-    /**
-     * Apply the action to the editor.
-     * Any changes that happen during this function will be displayed as a diff.
-     */
-    applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
-        // Do nothing by default
-    }
+	/**
+	 * Apply the action to the editor.
+	 * Any changes that happen during this function will be displayed as a diff.
+	 */
+	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
+		// Do nothing by default
+	}
 
-    /**
-     * Whether the action gets saved to history.
-     */
-    savesToHistory(): boolean {
-        return true
-    }
+	/**
+	 * Whether the action gets saved to history.
+	 */
+	savesToHistory(): boolean {
+		return true
+	}
 
-    /**
-     * Build a system message that gets concatenated with the other system messages.
-     */
-    buildSystemPrompt(): string | null {
-        return null
-    }
+	/**
+	 * Build a system message that gets concatenated with the other system messages.
+	 */
+	buildSystemPrompt(): string | null {
+		return null
+	}
 }
 ```
 
 **Example: BlurryShapesPartUtil:**
 From `BlurryShapesPartUtil.ts:20-66`:
+
 ```typescript
 override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
     const shapes = editor.getCurrentPageShapesSorted()
@@ -612,6 +639,7 @@ ensureValueIsBoolean(value: any): boolean | null {
 
 **Example sanitization in CreateActionUtil:**
 From `CreateActionUtil.ts:36-70`:
+
 ```typescript
 override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
     if (!action.complete) return action
@@ -651,6 +679,7 @@ override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) 
 ```
 
 **Sanitization is critical because:**
+
 - Models reference non-existent shape IDs
 - Models output strings where numbers expected
 - Models provide coordinates out of bounds
@@ -659,6 +688,7 @@ override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) 
 
 **ID transformation tracking:**
 From `AgentHelpers.ts:54`:
+
 ```typescript
 shapeIdMap = new Map<string, string>()
 ```
@@ -669,6 +699,7 @@ If model creates shape "box" but ID exists, rename to "box-1" and store mapping 
 
 **Core loop structure:**
 From `TldrawAgent.ts:304-345`:
+
 ```typescript
 async prompt(input: AgentInput) {
     const request = this.getFullRequestFromInput(input)
@@ -715,6 +746,7 @@ async prompt(input: AgentInput) {
 
 **1. Scheduled requests:**
 From `TldrawAgent.ts:407-431`:
+
 ```typescript
 schedule(input: AgentInput) {
     const scheduledRequest = this.$scheduledRequest.get()
@@ -745,6 +777,7 @@ schedule(input: AgentInput) {
 
 **2. Todo list:**
 From `TodoListActionUtil.ts:31-49`:
+
 ```typescript
 override applyAction(action: Streaming<TodoListAction>) {
     if (!action.complete) return
@@ -769,6 +802,7 @@ override applyAction(action: Streaming<TodoListAction>) {
 
 **3. Data passing:**
 From `RandomWikipediaArticleActionUtil.ts:34-44`:
+
 ```typescript
 override async applyAction(
     action: Streaming<RandomWikipediaArticleAction>,
@@ -784,6 +818,7 @@ override async applyAction(
 ```
 
 **Loop termination conditions:**
+
 1. No scheduled request AND
 2. No incomplete todo items
 
@@ -791,182 +826,186 @@ override async applyAction(
 
 **Streaming from worker:**
 From `AgentService.ts:50-152`:
+
 ```typescript
 async function* streamActions(
-    model: LanguageModel,
-    prompt: AgentPrompt
+	model: LanguageModel,
+	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {
-    messages.push({
-        role: 'assistant',
-        content: '{"actions": [{"_type":',
-    })
+	messages.push({
+		role: 'assistant',
+		content: '{"actions": [{"_type":',
+	})
 
-    const { textStream } = streamText({
-        model,
-        system: systemPrompt,
-        messages,
-        maxOutputTokens: 8192,
-        temperature: 0,
-    })
+	const { textStream } = streamText({
+		model,
+		system: systemPrompt,
+		messages,
+		maxOutputTokens: 8192,
+		temperature: 0,
+	})
 
-    let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
-    let cursor = 0
-    let maybeIncompleteAction: AgentAction | null = null
+	let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
+	let cursor = 0
+	let maybeIncompleteAction: AgentAction | null = null
 
-    for await (const text of textStream) {
-        buffer += text
+	for await (const text of textStream) {
+		buffer += text
 
-        const partialObject = closeAndParseJson(buffer)
-        if (!partialObject) continue
+		const partialObject = closeAndParseJson(buffer)
+		if (!partialObject) continue
 
-        const actions = partialObject.actions
-        if (!Array.isArray(actions)) continue
-        if (actions.length === 0) continue
+		const actions = partialObject.actions
+		if (!Array.isArray(actions)) continue
+		if (actions.length === 0) continue
 
-        // If the events list is ahead of the cursor, we know we've completed the current event
-        if (actions.length > cursor) {
-            const action = actions[cursor - 1]
-            if (action) {
-                yield {
-                    ...action,
-                    complete: true,
-                    time: Date.now() - startTime,
-                }
-                maybeIncompleteAction = null
-            }
-            cursor++
-        }
+		// If the events list is ahead of the cursor, we know we've completed the current event
+		if (actions.length > cursor) {
+			const action = actions[cursor - 1]
+			if (action) {
+				yield {
+					...action,
+					complete: true,
+					time: Date.now() - startTime,
+				}
+				maybeIncompleteAction = null
+			}
+			cursor++
+		}
 
-        // Now let's check the (potentially new) current event
-        const action = actions[cursor - 1]
-        if (action) {
-            if (!maybeIncompleteAction) {
-                startTime = Date.now()
-            }
+		// Now let's check the (potentially new) current event
+		const action = actions[cursor - 1]
+		if (action) {
+			if (!maybeIncompleteAction) {
+				startTime = Date.now()
+			}
 
-            maybeIncompleteAction = action
+			maybeIncompleteAction = action
 
-            // Yield the potentially incomplete event
-            yield {
-                ...action,
-                complete: false,
-                time: Date.now() - startTime,
-            }
-        }
-    }
+			// Yield the potentially incomplete event
+			yield {
+				...action,
+				complete: false,
+				time: Date.now() - startTime,
+			}
+		}
+	}
 
-    // Complete final action if incomplete
-    if (maybeIncompleteAction) {
-        yield {
-            ...maybeIncompleteAction,
-            complete: true,
-            time: Date.now() - startTime,
-        }
-    }
+	// Complete final action if incomplete
+	if (maybeIncompleteAction) {
+		yield {
+			...maybeIncompleteAction,
+			complete: true,
+			time: Date.now() - startTime,
+		}
+	}
 }
 ```
 
 **JSON parsing for incomplete streams:**
 From `closeAndParseJson.ts:1-72`:
+
 ```typescript
 /**
  * JSON helper. Given a potentially incomplete JSON string, return the parsed object.
  * The string might be missing closing braces, brackets, or other characters like quotation marks.
  */
 export function closeAndParseJson(string: string) {
-    const stackOfOpenings = []
+	const stackOfOpenings = []
 
-    // Track openings and closings
-    let i = 0
-    while (i < string.length) {
-        const char = string[i]
-        const lastOpening = stackOfOpenings.at(-1)
+	// Track openings and closings
+	let i = 0
+	while (i < string.length) {
+		const char = string[i]
+		const lastOpening = stackOfOpenings.at(-1)
 
-        if (char === '"') {
-            // Check if this quote is escaped
-            if (i > 0 && string[i - 1] === '\\') {
-                i++
-                continue
-            }
+		if (char === '"') {
+			// Check if this quote is escaped
+			if (i > 0 && string[i - 1] === '\\') {
+				i++
+				continue
+			}
 
-            if (lastOpening === '"') {
-                stackOfOpenings.pop()
-            } else {
-                stackOfOpenings.push('"')
-            }
-        }
+			if (lastOpening === '"') {
+				stackOfOpenings.pop()
+			} else {
+				stackOfOpenings.push('"')
+			}
+		}
 
-        if (lastOpening === '"') {
-            i++
-            continue
-        }
+		if (lastOpening === '"') {
+			i++
+			continue
+		}
 
-        if (char === '{' || char === '[') {
-            stackOfOpenings.push(char)
-        }
+		if (char === '{' || char === '[') {
+			stackOfOpenings.push(char)
+		}
 
-        if (char === '}' && lastOpening === '{') {
-            stackOfOpenings.pop()
-        }
+		if (char === '}' && lastOpening === '{') {
+			stackOfOpenings.pop()
+		}
 
-        if (char === ']' && lastOpening === '[') {
-            stackOfOpenings.pop()
-        }
+		if (char === ']' && lastOpening === '[') {
+			stackOfOpenings.pop()
+		}
 
-        i++
-    }
+		i++
+	}
 
-    // Now close all unclosed openings
-    for (let i = stackOfOpenings.length - 1; i >= 0; i--) {
-        const opening = stackOfOpenings[i]
-        if (opening === '{') string += '}'
-        if (opening === '[') string += ']'
-        if (opening === '"') string += '"'
-    }
+	// Now close all unclosed openings
+	for (let i = stackOfOpenings.length - 1; i >= 0; i--) {
+		const opening = stackOfOpenings[i]
+		if (opening === '{') string += '}'
+		if (opening === '[') string += ']'
+		if (opening === '"') string += '"'
+	}
 
-    try {
-        return JSON.parse(string)
-    } catch (_e) {
-        return null
-    }
+	try {
+		return JSON.parse(string)
+	} catch (_e) {
+		return null
+	}
 }
 ```
 
 **Action yielding pattern:**
 Each action is yielded twice:
+
 1. First time: `complete: false` (still streaming, partial data)
 2. Second time: `complete: true` (fully received)
 
 **Reverting incomplete actions:**
 From `TldrawAgent.ts:746-763`:
+
 ```typescript
 for await (const action of streamAgent({ prompt, signal })) {
-    editor.run(() => {
-        const actionUtil = agent.getAgentActionUtil(action._type)
+	editor.run(() => {
+		const actionUtil = agent.getAgentActionUtil(action._type)
 
-        // Sanitize the agent's action
-        const transformedAction = actionUtil.sanitizeAction(action, helpers)
-        if (!transformedAction) {
-            incompleteDiff = null
-            return
-        }
+		// Sanitize the agent's action
+		const transformedAction = actionUtil.sanitizeAction(action, helpers)
+		if (!transformedAction) {
+			incompleteDiff = null
+			return
+		}
 
-        // If there was a diff from an incomplete action, revert it
-        if (incompleteDiff) {
-            const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-            editor.store.applyDiff(inversePrevDiff)
-        }
+		// If there was a diff from an incomplete action, revert it
+		if (incompleteDiff) {
+			const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+			editor.store.applyDiff(inversePrevDiff)
+		}
 
-        // Apply the action to the app and editor
-        const { diff, promise } = agent.act(transformedAction, helpers)
+		// Apply the action to the app and editor
+		const { diff, promise } = agent.act(transformedAction, helpers)
 
-        // Save diff if action is incomplete
-        if (transformedAction.complete) {
-            incompleteDiff = null
-        } else {
-            incompleteDiff = diff
-        }
-    })
+		// Save diff if action is incomplete
+		if (transformedAction.complete) {
+			incompleteDiff = null
+		} else {
+			incompleteDiff = diff
+		}
+	})
 }
 ```
 
@@ -974,6 +1013,7 @@ for await (const action of streamAgent({ prompt, signal })) {
 
 **Reactive state management:**
 From `TldrawAgent.ts:70-115`:
+
 ```typescript
 /**
  * An atom containing the currently active request.
@@ -1020,6 +1060,7 @@ All state stored in reactive atoms from `@tldraw/state`.
 
 **Persistence:**
 From `TldrawAgent.ts:131-135`:
+
 ```typescript
 persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
 persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
@@ -1030,6 +1071,7 @@ persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
 
 **User action tracking:**
 From `TldrawAgent.ts:591-636`:
+
 ```typescript
 private startRecordingUserActions() {
     const cleanUpCreate = editor.sideEffects.registerAfterCreateHandler(
@@ -1080,6 +1122,7 @@ Tracks user edits between agent turns so model can see what changed.
 
 **isActing flag:**
 From `TldrawAgent.ts:585`:
+
 ```typescript
 /**
  * Whether the agent is currently acting on the editor or not.
@@ -1094,6 +1137,7 @@ Prevents agent's own actions from being recorded as user actions.
 
 **Main agent class:**
 `templates/agent/client/agent/TldrawAgent.ts` (983 lines)
+
 - Core agent orchestration
 - Request handling and multi-turn loops
 - State management with reactive atoms
@@ -1101,6 +1145,7 @@ Prevents agent's own actions from being recorded as user actions.
 
 **Coordinate transformation helpers:**
 `templates/agent/shared/AgentHelpers.ts` (503 lines)
+
 - Offset calculations (applyOffsetToVec, removeOffsetFromVec)
 - Coordinate rounding with diff tracking
 - Shape ID validation and uniqueness
@@ -1109,28 +1154,33 @@ Prevents agent's own actions from being recorded as user actions.
 
 **Utility registry:**
 `templates/agent/shared/AgentUtils.ts` (150 lines)
+
 - PROMPT_PART_UTILS array (15 utilities)
 - AGENT_ACTION_UTILS array (27 utilities)
 - Factory functions to instantiate utilities
 
 **Shape format definitions:**
+
 - `templates/agent/shared/format/BlurryShape.ts` (12 lines) - Minimal viewport format
 - `templates/agent/shared/format/SimpleShape.ts` (153 lines) - Full detail format
 - `templates/agent/shared/format/PeripheralShapesCluster.ts` (7 lines) - Out-of-viewport format
 
 **Format converters:**
+
 - `templates/agent/shared/format/convertTldrawShapeToBlurryShape.ts` - TLShape → BlurryShape
 - `templates/agent/shared/format/convertTldrawShapesToPeripheralShapes.ts` - TLShape[] → clusters
 - `templates/agent/shared/format/convertSimpleShapeToTldrawShape.ts` - SimpleShape → TLShape
 - `templates/agent/shared/format/convertTldrawShapeToSimpleShape.ts` - TLShape → SimpleShape
 
 **Prompt parts (what model sees):**
+
 - `templates/agent/shared/parts/ScreenshotPartUtil.ts` - JPEG viewport capture
 - `templates/agent/shared/parts/BlurryShapesPartUtil.ts` - Shapes in viewport
 - `templates/agent/shared/parts/PeripheralShapesPartUtil.ts` - Shapes outside viewport
 - `templates/agent/shared/parts/PromptPartUtil.ts` - Base class
 
 **Action utilities (what model can do):**
+
 - `templates/agent/shared/actions/AgentActionUtil.ts` - Base class
 - `templates/agent/shared/actions/CreateActionUtil.ts` - Create shapes
 - `templates/agent/shared/actions/AddDetailActionUtil.ts` - Schedule follow-up
@@ -1138,6 +1188,7 @@ Prevents agent's own actions from being recorded as user actions.
 - `templates/agent/shared/actions/RandomWikipediaArticleActionUtil.ts` - External API + data passing
 
 **Streaming infrastructure:**
+
 - `templates/agent/worker/worker.ts` - Cloudflare worker entry point
 - `templates/agent/worker/do/AgentService.ts` - Model streaming orchestration
 - `templates/agent/worker/do/closeAndParseJson.ts` - Incomplete JSON parsing
@@ -1145,26 +1196,31 @@ Prevents agent's own actions from being recorded as user actions.
 ## Performance and token optimization
 
 **Screenshot constraints:**
+
 - Maximum dimension: 8000px
 - Format: JPEG (lossy compression)
 - No shapes = no screenshot sent
 
 **Token savings from three-tier format:**
+
 - BlurryShape: ~6 fields × 20 shapes = ~120 fields
 - SimpleShape: ~40 fields × 20 shapes = ~800 fields
 - Saving: ~85% reduction for viewport shapes
 
 **Peripheral clustering:**
+
 - Padding: 75px
 - Single cluster can represent hundreds of shapes
 - Example: "47 shapes to the north" vs sending all 47 shapes
 
 **Coordinate rounding:**
+
 - Reduces decimal noise: `12847.234` → `12847`
 - Smaller JSON payloads
 - Easier for model to process
 
 **Integer offsetting benefits:**
+
 - Large coordinate: (12847, -3291) - harder for model
 - Offset coordinate: (47, 109) - easier for model
 - Model accuracy improvement (not quantified in code)
@@ -1173,13 +1229,14 @@ Prevents agent's own actions from being recorded as user actions.
 
 **Cancellation:**
 From `TldrawAgent.ts:722-800`:
+
 ```typescript
 const controller = new AbortController()
 const signal = controller.signal
 
 const cancel = () => {
-    cancelled = true
-    controller.abort('Cancelled by user')
+	cancelled = true
+	controller.abort('Cancelled by user')
 }
 ```
 
@@ -1187,6 +1244,7 @@ Uses AbortController to cancel in-flight requests.
 
 **Error boundaries:**
 From `TldrawAgent.ts:786-791`:
+
 ```typescript
 catch (e) {
     if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
@@ -1198,13 +1256,17 @@ catch (e) {
 
 **Shape lock handling:**
 From `TldrawAgent.ts:779-782`:
+
 ```typescript
-editor.run(() => {
-    // action execution
-}, {
-    ignoreShapeLock: false,
-    history: 'ignore',
-})
+editor.run(
+	() => {
+		// action execution
+	},
+	{
+		ignoreShapeLock: false,
+		history: 'ignore',
+	}
+)
 ```
 
 Respects shape locks, doesn't add to undo/redo history.
@@ -1218,17 +1280,21 @@ Auto-increment numeric suffix until unique ID found, track mapping for future re
 ## Constants and configuration
 
 **Peripheral shape clustering:**
+
 - Padding: 75px (from `PeripheralShapesPartUtil.ts:40`)
 
 **Screenshot scaling:**
+
 - Max dimension: 8000px (from `ScreenshotPartUtil.ts:37`)
 
 **Model settings:**
 From `AgentService.ts:72-73`:
+
 - maxOutputTokens: 8192
 - temperature: 0 (deterministic)
 
 **Action streaming:**
+
 - Format: Server-Sent Events (SSE)
 - Prefix: `data: ` (from worker streaming)
 - Complete actions yield twice (incomplete + complete)

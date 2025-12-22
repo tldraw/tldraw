@@ -6,6 +6,9 @@ keywords:
   - culling
   - performance
   - viewport
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Shape culling
@@ -24,24 +27,24 @@ The first stage checks every shape on the current page against the viewport boun
 
 ```typescript
 function fromScratch(editor: Editor): Set<TLShapeId> {
-  const shapesIds = editor.getCurrentPageShapeIds()
-  const viewportPageBounds = editor.getViewportPageBounds()
-  const notVisibleShapes = new Set<TLShapeId>()
+	const shapesIds = editor.getCurrentPageShapeIds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	const notVisibleShapes = new Set<TLShapeId>()
 
-  shapesIds.forEach((id) => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	shapesIds.forEach((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-    if (!canCull) return
+		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+		if (!canCull) return
 
-    const pageBounds = editor.getShapePageBounds(id)
-    if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
-      notVisibleShapes.add(id)
-    }
-  })
+		const pageBounds = editor.getShapePageBounds(id)
+		if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
+			notVisibleShapes.add(id)
+		}
+	})
 
-  return notVisibleShapes
+	return notVisibleShapes
 }
 ```
 
@@ -59,9 +62,9 @@ The `canCull()` check gives individual shapes an opt-out. By default it returns 
 
 ```typescript
 class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
-  override canCull() {
-    return false
-  }
+	override canCull() {
+		return false
+	}
 }
 ```
 
@@ -99,21 +102,21 @@ The Shape component watches the culled set and updates the `display` property di
 
 ```typescript
 useQuickReactor(
-  'set display',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set display',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const culledShapes = editor.getCulledShapes()
-    const isCulled = culledShapes.has(id)
+		const culledShapes = editor.getCulledShapes()
+		const isCulled = culledShapes.has(id)
 
-    if (isCulled !== memoizedStuffRef.current.isCulled) {
-      setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-      setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
-      memoizedStuffRef.current.isCulled = isCulled
-    }
-  },
-  [editor]
+		if (isCulled !== memoizedStuffRef.current.isCulled) {
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			memoizedStuffRef.current.isCulled = isCulled
+		}
+	},
+	[editor]
 )
 ```
 
@@ -133,23 +136,23 @@ The culling algorithm is wrapped in a reactive computed value:
 
 ```typescript
 export function notVisibleShapes(editor: Editor) {
-  return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-    const nextValue = fromScratch(editor)
+	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
+		const nextValue = fromScratch(editor)
 
-    if (isUninitialized(prevValue)) {
-      return nextValue
-    }
+		if (isUninitialized(prevValue)) {
+			return nextValue
+		}
 
-    if (prevValue.size !== nextValue.size) return nextValue
+		if (prevValue.size !== nextValue.size) return nextValue
 
-    for (const prev of prevValue) {
-      if (!nextValue.has(prev)) {
-        return nextValue
-      }
-    }
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				return nextValue
+			}
+		}
 
-    return prevValue
-  })
+		return prevValue
+	})
 }
 ```
 

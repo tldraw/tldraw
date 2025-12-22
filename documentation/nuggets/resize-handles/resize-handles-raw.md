@@ -6,6 +6,9 @@ keywords:
   - resize
   - handles
   - shapes
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Resize handle positioning on rotated shapes: raw notes
@@ -15,6 +18,7 @@ Internal research notes for the resize-handles.md article.
 ## Core problem
 
 When shapes are rotated, resize handles need to:
+
 1. Rotate with the shape visually
 2. Maintain correct resize direction in shape-local coordinates
 3. Display cursors oriented to the resize axis
@@ -28,6 +32,7 @@ Browser-provided cursors only support 8 fixed orientations, but rotated shapes n
 **Source:** `/packages/editor/src/lib/hooks/useCursor.ts`
 
 Browser provides only 8 resize cursors:
+
 - `nwse-resize`, `nesw-resize` (diagonals)
 - `ew-resize`, `ns-resize` (edges)
 - Cannot be rotated via CSS
@@ -35,23 +40,24 @@ Browser provides only 8 resize cursors:
 **Solution: SVG embedded in data URI**
 
 Located in `useCursor.ts:12-34`:
+
 ```typescript
 function getCursorCss(
-  svg: string,
-  r: number,        // rotation in degrees
-  tr: number,       // additional rotation offset
-  f: boolean,       // flip flag
-  color: string,
-  hotspotX = 16,
-  hotspotY = 16
+	svg: string,
+	r: number, // rotation in degrees
+	tr: number, // additional rotation offset
+	f: boolean, // flip flag
+	color: string,
+	hotspotX = 16,
+	hotspotY = 16
 ) {
-  const a = (-tr - r) * (PI / 180)  // Convert to radians
-  const s = Math.sin(a)
-  const c = Math.cos(a)
-  const dx = 1 * c - 1 * s  // Rotated drop shadow offset
-  const dy = 1 * s + 1 * c
+	const a = (-tr - r) * (PI / 180) // Convert to radians
+	const s = Math.sin(a)
+	const c = Math.cos(a)
+	const dx = 1 * c - 1 * s // Rotated drop shadow offset
+	const dy = 1 * s + 1 * c
 
-  return `url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'>
+	return `url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'>
     <defs>
       <filter id='shadow' y='-40%' x='-40%' width='180px' height='180%' color-interpolation-filters='sRGB'>
         <feDropShadow dx='${dx}' dy='${dy}' stdDeviation='1.2' flood-opacity='.5'/>
@@ -65,12 +71,14 @@ function getCursorCss(
 ```
 
 **Cursor specifications:**
+
 - Canvas size: 32x32 pixels
 - Hotspot: (16, 16) - center of canvas
 - Drop shadow always points "down" in screen space regardless of rotation
 - Shadow offset uses rotation matrix: `[dx, dy] = rotate([1, 1], angle)`
 
 **SVG cursor definitions** (lines 8-10):
+
 ```typescript
 const CORNER_SVG = `<path d='m19.7432 17.0869-4.072 4.068 2.829 2.828-8.473-.013-.013-8.47 2.841 2.842 4.075-4.068 1.414-1.415-2.844-2.842h8.486v8.484l-2.83-2.827z' fill='%23fff'/><path d='m18.6826 16.7334-4.427 4.424 1.828 1.828-5.056-.016-.014-5.054 1.842 1.841 4.428-4.422 2.474-2.475-1.844-1.843h5.073v5.071l-1.83-1.828z' fill='%23000'/>`
 
@@ -80,37 +88,43 @@ const ROTATE_CORNER_SVG = `<path d="M22.4789 9.45728L25.9935 12.9942L22.4789 16.
 ```
 
 **Cursor type mapping** (lines 50-60):
+
 ```typescript
 const CURSORS: Record<TLCursorType, CursorFunction> = {
-  none: () => 'none',
-  'ew-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 0, f, c),
-  'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),
-  'nesw-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 0, f, c),
-  'nwse-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 90, f, c),
-  'nwse-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 0, f, c),
-  'nesw-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 90, f, c),
-  'senw-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 180, f, c),
-  'swne-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 270, f, c),
+	none: () => 'none',
+	'ew-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 0, f, c),
+	'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),
+	'nesw-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 0, f, c),
+	'nwse-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 90, f, c),
+	'nwse-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 0, f, c),
+	'nesw-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 90, f, c),
+	'senw-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 180, f, c),
+	'swne-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 270, f, c),
 }
 ```
 
 Static cursors (don't rotate): `default`, `pointer`, `cross`, `move`, `grab`, `grabbing`, `text`, `zoom-in`, `zoom-out`
 
 **Cursor application** (lines 72-88):
+
 ```typescript
-useQuickReactor('useCursor', () => {
-  const { type, rotation } = editor.getInstanceState().cursor
+useQuickReactor(
+	'useCursor',
+	() => {
+		const { type, rotation } = editor.getInstanceState().cursor
 
-  if (STATIC_CURSORS.includes(type)) {
-    container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
-    return
-  }
+		if (STATIC_CURSORS.includes(type)) {
+			container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
+			return
+		}
 
-  container.style.setProperty(
-    '--tl-cursor',
-    getCursor(type, rotation, isDarkMode ? 'white' : 'black')
-  )
-}, [editor, container, isDarkMode])
+		container.style.setProperty(
+			'--tl-cursor',
+			getCursor(type, rotation, isDarkMode ? 'white' : 'black')
+		)
+	},
+	[editor, container, isDarkMode]
+)
 ```
 
 Color is theme-dependent: white for dark mode, black for light mode.
@@ -122,6 +136,7 @@ Color is theme-dependent: white for dark mode, black for light mode.
 Key insight: scale must be calculated in shape-local coordinate system, not screen coordinates.
 
 **The problem with screen-space calculation:**
+
 ```typescript
 // WRONG APPROACH:
 const dragDelta = currentPoint.sub(startPoint)
@@ -132,18 +147,22 @@ const scale = newBounds.div(selectionBounds)
 On a 45° rotated shape, dragging the "right" handle horizontally in screen space would try to stretch along screen X axis, but the shape's "width" is along its local X axis (rotated 45°).
 
 **Correct approach** (lines 315-323):
+
 ```typescript
 // Un-rotate the distances to shape's local coordinate system
-const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage)
-  .rot(-selectionRotation)
+const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
+	-selectionRotation
+)
 
-const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage)
-  .rot(-selectionRotation)
+const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage).rot(
+	-selectionRotation
+)
 
 const scale = Vec.DivV(distanceFromScaleOriginNow, distanceFromScaleOriginAtStart)
 ```
 
 **Vec.rot() implementation** (`/packages/editor/src/lib/primitives/Vec.ts:401-405`):
+
 ```typescript
 static Rot(A: VecLike, r = 0): Vec {
   const s = Math.sin(r)
@@ -153,23 +172,26 @@ static Rot(A: VecLike, r = 0): Vec {
 ```
 
 Standard 2D rotation matrix:
+
 ```
 [ cos(r)  -sin(r) ] [ x ]
 [ sin(r)   cos(r) ] [ y ]
 ```
 
 **Scale origin point** (lines 304-308):
+
 ```typescript
 const scaleOriginPage = Vec.RotWith(
-  altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
-  selectionBounds.point,
-  selectionRotation
+	altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
+	selectionBounds.point,
+	selectionRotation
 )
 ```
 
 `scaleOriginHandle` is the opposite handle from the drag handle (calculated using `rotateSelectionHandle(dragHandle, Math.PI)`).
 
 **Vec.RotWith() implementation** (`Vec.ts:407-413`):
+
 ```typescript
 static RotWith(A: VecLike, C: VecLike, r: number): Vec {
   const x = A.x - C.x
@@ -183,6 +205,7 @@ static RotWith(A: VecLike, C: VecLike, r: number): Vec {
 Rotates point A around center C by r radians.
 
 **Handling infinite/NaN scale values** (lines 325-326):
+
 ```typescript
 if (!Number.isFinite(scale.x)) scale.x = 1
 if (!Number.isFinite(scale.y)) scale.y = 1
@@ -191,32 +214,34 @@ if (!Number.isFinite(scale.y)) scale.y = 1
 Can occur when drag handle moves to exactly the scale origin point (division by zero).
 
 **Axis locking** (lines 328-354):
+
 ```typescript
 const isXLocked = dragHandle === 'top' || dragHandle === 'bottom'
 const isYLocked = dragHandle === 'left' || dragHandle === 'right'
 
 if (isAspectRatioLocked) {
-  if (isYLocked) {
-    // Dragging left or right edge: lock Y to X
-    scale.y = Math.abs(scale.x)
-  } else if (isXLocked) {
-    // Dragging top or bottom edge: lock X to Y
-    scale.x = Math.abs(scale.y)
-  } else if (Math.abs(scale.x) > Math.abs(scale.y)) {
-    // Corner drag: moved further in X dimension
-    scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
-  } else {
-    // Corner drag: moved further in Y dimension
-    scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
-  }
+	if (isYLocked) {
+		// Dragging left or right edge: lock Y to X
+		scale.y = Math.abs(scale.x)
+	} else if (isXLocked) {
+		// Dragging top or bottom edge: lock X to Y
+		scale.x = Math.abs(scale.y)
+	} else if (Math.abs(scale.x) > Math.abs(scale.y)) {
+		// Corner drag: moved further in X dimension
+		scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
+	} else {
+		// Corner drag: moved further in Y dimension
+		scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
+	}
 } else {
-  // Not holding shift, but still lock axes for edge handles
-  if (isXLocked) scale.x = 1
-  if (isYLocked) scale.y = 1
+	// Not holding shift, but still lock axes for edge handles
+	if (isXLocked) scale.x = 1
+	if (isYLocked) scale.y = 1
 }
 ```
 
 Aspect ratio lock triggered by:
+
 - User holding shift key
 - Shape's `canShapesDeform` is false (when shapes have incompatible rotations or locked aspect ratios)
 
@@ -227,39 +252,43 @@ Aspect ratio lock triggered by:
 Handle names describe position in shape-local coordinates, not screen position.
 
 **Handle order array** (lines 654-663):
+
 ```typescript
 const ORDERED_SELECTION_HANDLES = [
-  'top',
-  'top_right',
-  'right',
-  'bottom_right',
-  'bottom',
-  'bottom_left',
-  'left',
-  'top_left',
+	'top',
+	'top_right',
+	'right',
+	'bottom_right',
+	'bottom',
+	'bottom_left',
+	'left',
+	'top_left',
 ] as const
 ```
 
 8 handles arranged clockwise starting from top. Each handle is 45° (π/4 radians) from the next.
 
 **Rotation function** (lines 666-673):
+
 ```typescript
 export function rotateSelectionHandle(handle: SelectionHandle, rotation: number): SelectionHandle {
-  // First find out how many tau we need to rotate by
-  rotation = rotation % PI2  // Normalize to [0, 2π)
-  const numSteps = Math.round(rotation / (PI / 4))  // Number of 45° steps
+	// First find out how many tau we need to rotate by
+	rotation = rotation % PI2 // Normalize to [0, 2π)
+	const numSteps = Math.round(rotation / (PI / 4)) // Number of 45° steps
 
-  const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-  return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
+	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
+	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
 }
 ```
 
 Where:
+
 - `PI2 = 2 * Math.PI` (full circle)
 - `PI / 4` = 45° in radians
 - Modulo operation wraps around the 8-handle array
 
 **Finding opposite handle:**
+
 ```typescript
 const scaleOriginHandle = rotateSelectionHandle(dragHandle, Math.PI)
 ```
@@ -305,6 +334,7 @@ Returns points in the box's local coordinate system. Must be rotated to page spa
 Cursor type changes as shape flips during resize.
 
 **Update function** (lines 432-467):
+
 ```typescript
 private updateCursor({
   dragHandle,
@@ -344,19 +374,21 @@ private updateCursor({
 ```
 
 **XOR flip logic:**
+
 - Diagonal cursor should flip when shape is mirrored on exactly one axis
 - If flipped on both axes or neither axis, diagonal stays the same
 - `isFlippedX !== isFlippedY` is the XOR condition
 
 **When called** (lines 356-363):
+
 ```typescript
 if (!this.info.isCreating) {
-  this.updateCursor({
-    dragHandle,
-    isFlippedX: scale.x < 0,
-    isFlippedY: scale.y < 0,
-    rotation: selectionRotation,
-  })
+	this.updateCursor({
+		dragHandle,
+		isFlippedX: scale.x < 0,
+		isFlippedY: scale.y < 0,
+		rotation: selectionRotation,
+	})
 }
 ```
 
@@ -378,25 +410,27 @@ private updateCursor() {
 ```
 
 **Cursor type mapping** (lines 3-17):
+
 ```typescript
 const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
-  bottom: 'ns-resize',
-  top: 'ns-resize',
-  left: 'ew-resize',
-  right: 'ew-resize',
-  bottom_left: 'nesw-resize',
-  bottom_right: 'nwse-resize',
-  top_left: 'nwse-resize',
-  top_right: 'nesw-resize',
-  bottom_left_rotate: 'swne-rotate',
-  bottom_right_rotate: 'senw-rotate',
-  top_left_rotate: 'nwse-rotate',
-  top_right_rotate: 'nesw-rotate',
-  mobile_rotate: 'grabbing',
+	bottom: 'ns-resize',
+	top: 'ns-resize',
+	left: 'ew-resize',
+	right: 'ew-resize',
+	bottom_left: 'nesw-resize',
+	bottom_right: 'nwse-resize',
+	top_left: 'nwse-resize',
+	top_right: 'nesw-resize',
+	bottom_left_rotate: 'swne-rotate',
+	bottom_right_rotate: 'senw-rotate',
+	top_left_rotate: 'nwse-rotate',
+	top_right_rotate: 'nesw-rotate',
+	mobile_rotate: 'grabbing',
 }
 ```
 
 **Multi-selection behavior:**
+
 - If multiple shapes selected: `rotation: 0` (no rotation)
 - If single shape: `rotation: editor.getSelectionRotation()`
 
@@ -407,6 +441,7 @@ This is a UX compromise - multi-selection has shapes with potentially different 
 **Source:** `/packages/tldraw/src/lib/canvas/TldrawSelectionForeground.tsx`
 
 **Handle size calculations** (lines 66-86):
+
 ```typescript
 const zoom = editor.getEfficientZoomLevel()
 
@@ -423,6 +458,7 @@ const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMult
 ```
 
 **Small shape detection** (lines 72-79):
+
 ```typescript
 const isTinyX = width < size * 2
 const isTinyY = height < size * 2
@@ -434,6 +470,7 @@ const isSmallCropY = height < size * 5
 ```
 
 **Corner handle rendering** (lines 308-351):
+
 ```typescript
 <ResizeHandle
   hide={hideTopLeftCorner}
@@ -449,11 +486,13 @@ const isSmallCropY = height < size * 5
 ```
 
 Target areas:
+
 - Normal: extends 1.5× targetSize beyond corner in each direction
 - Small shapes: extends 2× targetSize to make easier to grab
 - Total size: 3× targetSize in each dimension
 
 **Visual handle rendering** (lines 353-395):
+
 ```typescript
 {showResizeHandles && (
   <>
@@ -475,6 +514,7 @@ Target areas:
 Visual handles are centered on corner points, `size / 2` offset in each direction.
 
 **Edge handle rendering** (lines 263-306):
+
 ```typescript
 <ResizeHandle
   hide={hideHorizontalEdgeTargets}
@@ -490,19 +530,22 @@ Visual handles are centered on corner points, `size / 2` offset in each directio
 ```
 
 Edge targets:
+
 - Span full height/width of selection
 - Width/height: 2× targetSize
 - Position: offset by targetSize from edge (0 offset for small shapes)
 
 **Transform application** (lines 59-62):
+
 ```typescript
 useTransform(rSvg, bounds?.x, bounds?.y, 1, selectionRotation, {
-  x: expandedBounds.x - bounds.x,
-  y: expandedBounds.y - bounds.y,
+	x: expandedBounds.x - bounds.x,
+	y: expandedBounds.y - bounds.y,
 })
 ```
 
 Entire SVG is transformed:
+
 1. Translate to bounds position
 2. Rotate by selectionRotation
 3. Apply expansion offset
@@ -516,22 +559,25 @@ Handles are defined in local coordinates, then the whole SVG rotates, so handles
 Problem: User clicks inside the handle target area, but not exactly at the handle point. Need to offset calculations so it appears the handle is under the cursor.
 
 **Calculation in snapshot** (lines 484-490):
+
 ```typescript
 const dragHandlePoint = Vec.RotWith(
-  selectionBounds.getHandlePoint(this.info.handle!),
-  selectionBounds.point,
-  selectionRotation
+	selectionBounds.getHandlePoint(this.info.handle!),
+	selectionBounds.point,
+	selectionRotation
 )
 
 const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 ```
 
 Where:
+
 - `originPagePoint` = where user actually clicked (from `editor.inputs.getOriginPagePoint()`)
 - `dragHandlePoint` = mathematical center of the handle
 - `cursorHandleOffset` = difference between the two
 
 **Diagram from source** (lines 239-266):
+
 ```
                          │
                          │
@@ -555,16 +601,15 @@ Where:
 ```
 
 **Application during drag** (lines 270-277):
+
 ```typescript
 const currentPagePoint = this.editor.inputs
-  .getCurrentPagePoint()
-  .clone()
-  .sub(cursorHandleOffset)
-  .sub(this.creationCursorOffset)
+	.getCurrentPagePoint()
+	.clone()
+	.sub(cursorHandleOffset)
+	.sub(this.creationCursorOffset)
 
-const originPagePoint = this.editor.inputs.getOriginPagePoint()
-  .clone()
-  .sub(cursorHandleOffset)
+const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 ```
 
 Both current and origin points are adjusted by the same offset, so the handle appears to be directly under the cursor during the entire drag.
@@ -575,34 +620,37 @@ Both current and origin points are adjusted by the same offset, so the handle ap
 
 ```typescript
 if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
-  const { gridSize } = this.editor.getDocumentSettings()
-  currentPagePoint.snapToGrid(gridSize)
+	const { gridSize } = this.editor.getDocumentSettings()
+	currentPagePoint.snapToGrid(gridSize)
 }
 
 const shouldSnap = this.editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
 if (shouldSnap && selectionRotation % HALF_PI === 0) {
-  const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
-    dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
-    initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
-    handle: rotateSelectionHandle(dragHandle, selectionRotation),
-    isAspectRatioLocked,
-    isResizingFromCenter: altKey,
-  })
+	const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
+		dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
+		initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
+		handle: rotateSelectionHandle(dragHandle, selectionRotation),
+		isAspectRatioLocked,
+		isResizingFromCenter: altKey,
+	})
 
-  currentPagePoint.add(nudge)
+	currentPagePoint.add(nudge)
 }
 ```
 
 Where:
+
 - `HALF_PI = Math.PI / 2` (90°)
 - `isHoldingAccel` = Cmd/Ctrl key
 
 **Snap conditions:**
+
 1. Grid mode: Always snap to grid (unless holding Cmd/Ctrl)
 2. Shape snapping: Only when selection rotation is multiple of 90° (to avoid complex rotated snapping)
 
 **Snap mode toggle:**
+
 - If snap mode enabled: hold Cmd/Ctrl to temporarily disable
 - If snap mode disabled: hold Cmd/Ctrl to temporarily enable
 
@@ -612,14 +660,15 @@ Where:
 
 ```typescript
 if (shapeSnapshots.size === 1) {
-  const onlySnapshot = [...shapeSnapshots.values()][0]!
-  if (this.editor.isShapeOfType(onlySnapshot.shape, 'text')) {
-    isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
-  }
+	const onlySnapshot = [...shapeSnapshots.values()][0]!
+	if (this.editor.isShapeOfType(onlySnapshot.shape, 'text')) {
+		isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
+	}
 }
 ```
 
 Text shapes:
+
 - Can resize width freely via left/right handles
 - Top/bottom handles lock aspect ratio (preserve width, adjust height based on text wrapping)
 - Corner handles lock aspect ratio
@@ -632,30 +681,30 @@ When resizing a frame while holding Cmd/Ctrl, children stay in absolute page pos
 
 ```typescript
 if (isHoldingAccel) {
-  this.didHoldCommand = true
+	this.didHoldCommand = true
 
-  for (const { id, children } of frames) {
-    if (!children.length) continue
-    const initial = shapeSnapshots.get(id)!.shape
-    const current = this.editor.getShape(id)!
-    if (!(initial && current)) continue
+	for (const { id, children } of frames) {
+		if (!children.length) continue
+		const initial = shapeSnapshots.get(id)!.shape
+		const current = this.editor.getShape(id)!
+		if (!(initial && current)) continue
 
-    const dx = current.x - initial.x
-    const dy = current.y - initial.y
+		const dx = current.x - initial.x
+		const dy = current.y - initial.y
 
-    const delta = new Vec(dx, dy).rot(-initial.rotation)
+		const delta = new Vec(dx, dy).rot(-initial.rotation)
 
-    if (delta.x !== 0 || delta.y !== 0) {
-      for (const child of children) {
-        this.editor.updateShape({
-          id: child.id,
-          type: child.type,
-          x: child.x - delta.x,
-          y: child.y - delta.y,
-        })
-      }
-    }
-  }
+		if (delta.x !== 0 || delta.y !== 0) {
+			for (const child of children) {
+				this.editor.updateShape({
+					id: child.id,
+					type: child.type,
+					x: child.x - delta.x,
+					y: child.y - delta.y,
+				})
+			}
+		}
+	}
 }
 ```
 
@@ -667,24 +716,26 @@ Children positions updated to counteract the frame's position change, keeping th
 
 ```typescript
 export function areAnglesCompatible(a: number, b: number) {
-  return a === b || approximately((a % (Math.PI / 2)) - (b % (Math.PI / 2)), 0)
+	return a === b || approximately((a % (Math.PI / 2)) - (b % (Math.PI / 2)), 0)
 }
 ```
 
 Where:
+
 ```typescript
 export function approximately(a: number, b: number, precision = 0.000001): boolean {
-  return Math.abs(a - b) < precision
+	return Math.abs(a - b) < precision
 }
 ```
 
 Two angles are "compatible" if they differ by a multiple of 90°. Used to determine if shapes in multi-selection can deform together.
 
 **Usage in Resizing** (lines 548-551):
+
 ```typescript
 const canShapesDeform = ![...shapeSnapshots.values()].some(
-  (shape) =>
-    !areAnglesCompatible(shape.pageRotation, selectionRotation) || shape.isAspectRatioLocked
+	(shape) =>
+		!areAnglesCompatible(shape.pageRotation, selectionRotation) || shape.isAspectRatioLocked
 )
 ```
 
@@ -693,13 +744,15 @@ If any shape has incompatible rotation or locked aspect ratio, all shapes' aspec
 ## Constants and configuration
 
 **Mathematical constants** (`/packages/editor/src/lib/primitives/utils.ts:14-18`):
+
 ```typescript
 export const PI = Math.PI
-export const HALF_PI = PI / 2     // 90° in radians
-export const PI2 = PI * 2         // 360° in radians (full circle)
+export const HALF_PI = PI / 2 // 90° in radians
+export const PI2 = PI * 2 // 360° in radians (full circle)
 ```
 
 **Handle visual sizes** (`TldrawSelectionForeground.tsx:72-86`):
+
 - Visual handle size: `8 / zoom` (gets smaller as you zoom in)
 - Base target size: `6 / zoom`
 - Mobile multiplier: `1.75` for coarse pointers, `1` for precise
@@ -707,11 +760,13 @@ export const PI2 = PI * 2         // 360° in radians (full circle)
 - Total target size: 3× targetSize in each dimension
 
 **Handle hiding thresholds:**
+
 - Tiny: `width < size * 2` or `height < size * 2`
 - Small: `width < size * 4` or `height < size * 4`
 - Small crop: `width < size * 5` or `height < size * 5`
 
 **Text handle sizing** (line 188):
+
 ```typescript
 const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
 ```
@@ -721,11 +776,17 @@ Minimum visible height: `4` zoom-adjusted pixels (line 194).
 ## Selection handle types
 
 **TypeScript types:**
+
 ```typescript
 type SelectionCorner = 'top_left' | 'top_right' | 'bottom_right' | 'bottom_left'
 type SelectionEdge = 'top' | 'right' | 'bottom' | 'left'
 type SelectionHandle = SelectionCorner | SelectionEdge
-type RotateCorner = 'top_left_rotate' | 'top_right_rotate' | 'bottom_right_rotate' | 'bottom_left_rotate' | 'mobile_rotate'
+type RotateCorner =
+	| 'top_left_rotate'
+	| 'top_right_rotate'
+	| 'bottom_right_rotate'
+	| 'bottom_left_rotate'
+	| 'mobile_rotate'
 type TLSelectionHandle = SelectionHandle | RotateCorner
 ```
 
@@ -743,6 +804,7 @@ mode:
 ```
 
 Two modes:
+
 - `resize_bounds`: Single selected shape - resize by adjusting bounds
 - `scale_shape`: Multi-selection or non-selected shapes in group - apply scale transform
 

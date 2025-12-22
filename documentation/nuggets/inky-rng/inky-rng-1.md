@@ -9,6 +9,9 @@ keywords:
   - xorshift
   - organic shapes
   - hand-drawn
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Seeded randomness for hand-drawn shapes

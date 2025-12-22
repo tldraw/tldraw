@@ -8,6 +8,9 @@ keywords:
   - agent
   - cloudflare
   - worker
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 The fairy worker provides AI agent streaming for tldraw.com. Each session is backed by a Durable Object that streams actions to the client using Server-Sent Events (SSE).

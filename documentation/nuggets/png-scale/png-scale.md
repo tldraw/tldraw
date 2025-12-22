@@ -6,6 +6,9 @@ keywords:
   - png
   - scale
   - browser
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Browsers destroy your PNG metadata

@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - hit
   - testing
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Hit Testing - Raw Notes and Implementation Details
@@ -12,10 +15,12 @@ keywords:
 ## Core Implementation Files
 
 ### Main Entry Point
+
 - **File**: `/packages/editor/src/lib/editor/Editor.ts:5198`
 - **Method**: `getShapeAtPoint(point: VecLike, opts: TLGetShapeAtPointOptions = {}): TLShape | undefined`
 
 ### Geometry System
+
 - **Base class**: `/packages/editor/src/lib/primitives/geometry/Geometry2d.ts`
 - **Polygon implementation**: `/packages/editor/src/lib/primitives/geometry/Polygon2d.ts`
 - **Polyline implementation**: `/packages/editor/src/lib/primitives/geometry/Polyline2d.ts`
@@ -23,6 +28,7 @@ keywords:
 - **Optimized shapes**: `Rectangle2d.ts`, `Circle2d.ts`, `Stadium2d.ts`
 
 ### Utility Functions
+
 - **Point in polygon**: `/packages/editor/src/lib/primitives/utils.ts:319`
 - **Cross product**: `/packages/editor/src/lib/primitives/utils.ts:306`
 - **Box containment**: `/packages/editor/src/lib/primitives/Box.ts:433`
@@ -30,20 +36,22 @@ keywords:
 ## Configuration Constants
 
 ### Hit Test Margin
+
 **Location**: `/packages/editor/src/lib/options.ts:135`
 
 ```typescript
-hitTestMargin: 8  // default value in pixels
+hitTestMargin: 8 // default value in pixels
 ```
 
 This is the base margin for hit testing at 100% zoom. It provides forgiveness when clicking near shapes.
 
 ### Usage in Code
+
 **Location**: `/packages/editor/src/lib/editor/Editor.ts:5374`
 
 ```typescript
 if (distance < this.options.hitTestMargin / zoomLevel) {
-    return shape
+	return shape
 }
 ```
 
@@ -55,12 +63,12 @@ The margin is divided by zoom level - at 400% zoom, the effective margin is 2 pi
 
 ```typescript
 const {
-    filter,                  // Custom filter function
-    margin = 0,             // Hit test margin (can be [inner, outer])
-    hitLocked = false,      // Whether to hit locked shapes
-    hitLabels = false,      // Whether to hit label geometries
-    hitInside = false,      // Whether to consider points inside hollow shapes
-    hitFrameInside = false, // Whether to hit inside frame bodies
+	filter, // Custom filter function
+	margin = 0, // Hit test margin (can be [inner, outer])
+	hitLocked = false, // Whether to hit locked shapes
+	hitLabels = false, // Whether to hit label geometries
+	hitInside = false, // Whether to consider points inside hollow shapes
+	hitFrameInside = false, // Whether to hit inside frame bodies
 } = opts
 ```
 
@@ -90,24 +98,25 @@ let inMarginClosestToEdgeHit: TLShape | null = null
 
 ```typescript
 const shapesToCheck = (
-    opts.renderingOnly
-        ? this.getCurrentPageRenderingShapesSorted()
-        : this.getCurrentPageShapesSorted()
+	opts.renderingOnly
+		? this.getCurrentPageRenderingShapesSorted()
+		: this.getCurrentPageShapesSorted()
 ).filter((shape) => {
-    if (
-        (shape.isLocked && !hitLocked) ||
-        this.isShapeHidden(shape) ||
-        this.isShapeOfType(shape, 'group')
-    )
-        return false
-    const pageMask = this.getShapeMask(shape)
-    if (pageMask && !pointInPolygon(point, pageMask)) return false
-    if (filter && !filter(shape)) return false
-    return true
+	if (
+		(shape.isLocked && !hitLocked) ||
+		this.isShapeHidden(shape) ||
+		this.isShapeOfType(shape, 'group')
+	)
+		return false
+	const pageMask = this.getShapeMask(shape)
+	if (pageMask && !pointInPolygon(point, pageMask)) return false
+	if (filter && !filter(shape)) return false
+	return true
 })
 ```
 
 **Exclusions**:
+
 - Locked shapes (unless `hitLocked = true`)
 - Hidden shapes
 - Group shapes (groups are never directly selectable)
@@ -130,6 +139,7 @@ const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 ```
 
 **Implementation** (Line 5465-5467):
+
 ```typescript
 getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec {
     const id = typeof shape === 'string' ? shape : shape.id
@@ -145,17 +155,17 @@ Special case for shapes with labels (frames, notes, arrows, hollow geo shapes wi
 
 ```typescript
 if (
-    this.isShapeOfType(shape, 'frame') ||
-    ((this.isShapeOfType(shape, 'note') ||
-        this.isShapeOfType(shape, 'arrow') ||
-        (this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
-        this.getShapeUtil(shape).getText(shape)?.trim())
+	this.isShapeOfType(shape, 'frame') ||
+	((this.isShapeOfType(shape, 'note') ||
+		this.isShapeOfType(shape, 'arrow') ||
+		(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
+		this.getShapeUtil(shape).getText(shape)?.trim())
 ) {
-    for (const childGeometry of (geometry as Group2d).children) {
-        if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
-            return shape
-        }
-    }
+	for (const childGeometry of (geometry as Group2d).children) {
+		if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+			return shape
+		}
+	}
 }
 ```
 
@@ -164,6 +174,7 @@ Labels are checked first and return immediately if hit. Labels are child geometr
 ### 8. Frame Handling (Lines 5257-5286)
 
 Frames have special logic:
+
 - Test with `hitFrameInside` forced to true (prevents clicks passing through)
 - If distance is within margin, return the frame (or closest edge hit)
 - If point is inside frame but no specific shape hit, behavior depends on `hitFrameInside` flag
@@ -173,21 +184,22 @@ Frames have special logic:
 
 ```typescript
 if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
-    // Skip broad phase for very thin shapes
-    distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+	// Skip broad phase for very thin shapes
+	distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 } else {
-    // Broad phase: cheap bounding box check
-    if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
-        // Narrow phase: actual distance
-        distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-    } else {
-        // Failed broad phase
-        distance = Infinity
-    }
+	// Broad phase: cheap bounding box check
+	if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
+		// Narrow phase: actual distance
+		distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+	} else {
+		// Failed broad phase
+		distance = Infinity
+	}
 }
 ```
 
 **Bounding Box Check** (`Box.ContainsPoint` at line 433-438):
+
 ```typescript
 static ContainsPoint(A: Box, B: VecLike, margin = 0) {
     return !(
@@ -207,28 +219,29 @@ For closed shapes (rectangles, circles, polygons):
 
 ```typescript
 if (geometry.isClosed) {
-    if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
-        if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
-            // Filled shape: immediate hit
-            return inMarginClosestToEdgeHit || shape
-        } else {
-            // Hollow shape: track closest edge or smallest area
-            if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
-                inMarginClosestToEdgeDistance = Math.abs(distance)
-                inMarginClosestToEdgeHit = shape
-            } else if (!inMarginClosestToEdgeHit) {
-                const { area } = geometry
-                if (area < inHollowSmallestArea) {
-                    inHollowSmallestArea = area
-                    inHollowSmallestAreaHit = shape
-                }
-            }
-        }
-    }
+	if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
+		if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
+			// Filled shape: immediate hit
+			return inMarginClosestToEdgeHit || shape
+		} else {
+			// Hollow shape: track closest edge or smallest area
+			if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
+				inMarginClosestToEdgeDistance = Math.abs(distance)
+				inMarginClosestToEdgeHit = shape
+			} else if (!inMarginClosestToEdgeHit) {
+				const { area } = geometry
+				if (area < inHollowSmallestArea) {
+					inHollowSmallestArea = area
+					inHollowSmallestAreaHit = shape
+				}
+			}
+		}
+	}
 }
 ```
 
 **Logic**:
+
 - Filled shapes: Return immediately on hit (topmost wins)
 - Hollow shapes: Track two candidates:
   - Shape with closest edge within margin
@@ -257,6 +270,7 @@ return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
 ```
 
 Priority:
+
 1. Shape with closest edge within margin
 2. Hollow shape with smallest area
 3. undefined (no hit)
@@ -277,6 +291,7 @@ distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) 
 ```
 
 **Algorithm**:
+
 1. Find nearest point on edge via `nearestPoint()`
 2. Calculate distance to that point
 3. If point is inside a closed/filled shape, negate the distance
@@ -288,41 +303,43 @@ Uses **winding number algorithm**:
 
 ```typescript
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
-    let windingNumber = 0
-    let a: VecLike
-    let b: VecLike
+	let windingNumber = 0
+	let a: VecLike
+	let b: VecLike
 
-    for (let i = 0; i < points.length; i++) {
-        a = points[i]
-        // Point is the same as one of the corners
-        if (a.x === A.x && a.y === A.y) return true
+	for (let i = 0; i < points.length; i++) {
+		a = points[i]
+		// Point is the same as one of the corners
+		if (a.x === A.x && a.y === A.y) return true
 
-        b = points[(i + 1) % points.length]
+		b = points[(i + 1) % points.length]
 
-        // Point is on the polygon edge
-        if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
+		// Point is on the polygon edge
+		if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
 
-        if (a.y <= A.y) {
-            if (b.y > A.y && cross(a, b, A) > 0) {
-                windingNumber += 1
-            }
-        } else if (b.y <= A.y && cross(a, b, A) < 0) {
-            windingNumber -= 1
-        }
-    }
+		if (a.y <= A.y) {
+			if (b.y > A.y && cross(a, b, A) > 0) {
+				windingNumber += 1
+			}
+		} else if (b.y <= A.y && cross(a, b, A) < 0) {
+			windingNumber -= 1
+		}
+	}
 
-    return windingNumber !== 0
+	return windingNumber !== 0
 }
 ```
 
 **Cross Product** (utils.ts:306-308):
+
 ```typescript
 function cross(x: VecLike, y: VecLike, z: VecLike): number {
-    return (y.x - x.x) * (z.y - x.y) - (z.x - x.x) * (y.y - x.y)
+	return (y.x - x.x) * (z.y - x.y) - (z.x - x.x) * (y.y - x.y)
 }
 ```
 
 **Winding Number Logic**:
+
 - For each edge, check if ray from point upward crosses edge
 - If edge crosses upward and point is to its left: increment
 - If edge crosses downward and point is to its right: decrement
@@ -333,6 +350,7 @@ function cross(x: VecLike, y: VecLike, z: VecLike): number {
 ### Special Cases
 
 #### Edge Detection
+
 Point exactly on edge: `Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)`
 
 If the sum of distances from point to both endpoints equals the distance between endpoints, the point lies on the edge.
@@ -400,6 +418,7 @@ nearestPoint(point: VecLike): Vec {
 ```
 
 **Algorithm**:
+
 1. If point is at center, return arbitrary point on circle
 2. Otherwise: normalize vector from center to point, scale to radius
 
@@ -516,6 +535,7 @@ Page transforms (position, rotation, scale) are cached per shape.
 ```
 
 **Clip masks** for shapes inside frames:
+
 - Computed by intersecting all ancestor frame boundaries
 - Cached per shape
 - Used to exclude shapes outside their containing frames
@@ -542,21 +562,27 @@ Returns all shapes sorted in z-index order with parent-child hierarchy. Children
 ## Performance Characteristics
 
 ### Complexity
+
 - **Worst case**: O(n) where n = number of visible shapes
 - **Average case**: Much better due to broad phase rejection
 
 ### Broad Phase Performance
+
 - Bounding box check: 4 comparisons (minX, minY, maxX, maxY)
 - Most shapes fail this check instantly when point is far away
 - Only shapes close to the point proceed to expensive distance calculation
 
 ### Thin Shape Exception
+
 Shapes with width or height < 1 pixel skip broad phase because:
+
 - A horizontal line has ~0 height, so bounds check would reject valid hits
 - Better to compute actual distance than miss the shape entirely
 
 ### Zoom Adjustment
+
 Hit test margin divided by zoom level:
+
 - 100% zoom: 8px margin
 - 200% zoom: 4px margin
 - 400% zoom: 2px margin
@@ -565,13 +591,16 @@ Hit test margin divided by zoom level:
 ## Edge Cases
 
 ### Overlapping Hollow Shapes
+
 When multiple hollow shapes contain the same point:
+
 1. First check: Is point within margin of any edge? Return closest.
 2. Fallback: Return hollow shape with smallest area (assumes user wants inner shape).
 
 **Bug note** (Line 5359): Self-intersecting hollow shapes (e.g., figure-8 drawing) can confuse this logic.
 
 ### Viewport-Sized Shapes
+
 **Location**: Line 5335
 
 ```typescript
@@ -582,12 +611,15 @@ if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
 Hollow shapes larger than the viewport are skipped to prevent accidentally selecting huge background shapes.
 
 ### Very Thin Shapes
+
 Lines with width/height < 1 pixel:
+
 - Skip broad phase (bounding box too small)
 - Always compute full distance
 - Prevents missing thin lines that should be hittable
 
 ### Point on Polygon Edge
+
 **Location**: utils.ts:332
 
 ```typescript
@@ -598,6 +630,7 @@ if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
 Explicitly checks if point lies on edge before winding number calculation.
 
 ### Point at Polygon Corner
+
 **Location**: utils.ts:327
 
 ```typescript
@@ -610,23 +643,29 @@ Exact corner match returns true immediately.
 ## Mathematical Foundations
 
 ### Signed Distance Function (SDF)
+
 - **Inside**: distance < 0 (distance to nearest edge, negated)
 - **Outside**: distance > 0 (distance to nearest edge)
 - **On boundary**: distance = 0
 
 ### Hit Testing with Margin
+
 - **Filled shape**: Hit if `distance <= margin`
 - **Hollow shape**: Hit if `Math.abs(distance) <= margin` (near edge from either side)
 - **Inside hollow with margin**: `distance <= 0 && distance > -innerMargin`
 
 ### Distance Calculation
+
 For a point P and edge with endpoints A and B:
+
 1. Project P onto infinite line through A-B
 2. Clamp projection to segment [A, B]
 3. Return distance from P to clamped point
 
 ### Winding Number
+
 Mathematical property: For a closed curve and a point, count signed crossings of a ray from the point:
+
 - Non-zero winding = inside
 - Zero winding = outside
 - Works for self-intersecting polygons unlike ray casting
@@ -647,6 +686,7 @@ override distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2d
 ```
 
 **Algorithm**:
+
 1. Transform point to geometry's local space using inverse matrix
 2. Compute distance in local space
 3. Scale result by transform scale factor
@@ -659,15 +699,15 @@ Allows applying rotations, translations, and uniform scaling without recomputing
 
 ```typescript
 export interface Geometry2dFilters {
-    readonly includeLabels?: boolean
-    readonly includeInternal?: boolean
+	readonly includeLabels?: boolean
+	readonly includeInternal?: boolean
 }
 
 export const Geometry2dFilters = {
-    EXCLUDE_NON_STANDARD: { includeLabels: false, includeInternal: false },
-    INCLUDE_ALL: { includeLabels: true, includeInternal: true },
-    EXCLUDE_LABELS: { includeLabels: false, includeInternal: true },
-    EXCLUDE_INTERNAL: { includeLabels: true, includeInternal: false },
+	EXCLUDE_NON_STANDARD: { includeLabels: false, includeInternal: false },
+	INCLUDE_ALL: { includeLabels: true, includeInternal: true },
+	EXCLUDE_LABELS: { includeLabels: false, includeInternal: true },
+	EXCLUDE_INTERNAL: { includeLabels: true, includeInternal: false },
 }
 ```
 
@@ -694,6 +734,7 @@ getArea() {
 ```
 
 **Shoelace formula**: Sum of cross products of consecutive vertices divided by 2.
+
 - Positive area = counter-clockwise winding
 - Negative area = clockwise winding
 - Used to compare sizes of overlapping hollow shapes
@@ -701,10 +742,12 @@ getArea() {
 ## Shape Types and Fill Status
 
 Shapes have two key properties:
+
 - `isClosed`: Whether the shape is a closed path (true for rectangles, circles; false for lines)
 - `isFilled`: Whether the interior is filled (true for solid shapes; false for hollow)
 
 **Combination behaviors**:
+
 - `isClosed=true, isFilled=true`: Filled shape (immediate hit if inside)
 - `isClosed=true, isFilled=false`: Hollow shape (must be near edge)
 - `isClosed=false`: Open path (always use margin, never inside)
@@ -712,6 +755,7 @@ Shapes have two key properties:
 ## Related Methods
 
 ### getShapesAtPoint
+
 **Location**: `/packages/editor/src/lib/editor/Editor.ts:5404-5411`
 
 Returns **all** shapes at a point (not just topmost):
@@ -725,6 +769,7 @@ getShapesAtPoint(point: VecLike, opts = {}): TLShape[] {
 ```
 
 ### isPointInShape
+
 Tests if a point hits a single shape, considering masks.
 
 ## Optimization Notes

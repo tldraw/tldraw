@@ -6,6 +6,9 @@ keywords:
   - dash
   - pattern
   - SVG
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Perfect dash patterns
@@ -42,16 +45,16 @@ When a path is very short relative to stroke width, the standard algorithm break
 
 ```typescript
 if (dashCount < 3 && style === 'dashed') {
-  if (totalLength / strokeWidth < 4) {
-    // Very short—just make it solid
-    dashLength = totalLength
-    dashCount = 1
-    gapLength = 0
-  } else {
-    // Short but not tiny—force three segments
-    dashLength = totalLength * (1 / 3)
-    gapLength = totalLength * (1 / 3)
-  }
+	if (totalLength / strokeWidth < 4) {
+		// Very short—just make it solid
+		dashLength = totalLength
+		dashCount = 1
+		gapLength = 0
+	} else {
+		// Short but not tiny—force three segments
+		dashLength = totalLength * (1 / 3)
+		gapLength = totalLength * (1 / 3)
+	}
 }
 ```
 

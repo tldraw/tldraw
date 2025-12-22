@@ -8,6 +8,9 @@ keywords:
   - right-to-left
   - measurement
   - unicode
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Detecting RTL text by position
@@ -42,20 +45,20 @@ const range = new Range()
 const textNode = element.childNodes[0]
 
 for (const char of childNode.textContent ?? '') {
-  // Place range around single character
-  range.setStart(textNode, idx)
-  range.setEnd(textNode, idx + char.length)
+	// Place range around single character
+	range.setStart(textNode, idx)
+	range.setEnd(textNode, idx + char.length)
 
-  // Get character rect
-  const rects = range.getClientRects()
-  const rect = rects[rects.length - 1]
+	// Get character rect
+	const rects = range.getClientRects()
+	const rect = rects[rects.length - 1]
 
-  const left = rect.left + offsetX
-  const right = rect.right + offsetX
+	const left = rect.left + offsetX
+	const right = rect.right + offsetX
 
-  // ... use position data
+	// ... use position data
 
-  idx += char.length
+	idx += char.length
 }
 ```
 
@@ -77,12 +80,12 @@ We group characters into spans (words and spaces) for efficiency. When extending
 
 ```typescript
 if (isRTL) {
-  // RTL: new character extends to the left
-  currentSpan.box.x = left
-  currentSpan.box.w = currentSpan.box.w + rect.width
+	// RTL: new character extends to the left
+	currentSpan.box.x = left
+	currentSpan.box.w = currentSpan.box.w + rect.width
 } else {
-  // LTR: new character extends to the right
-  currentSpan.box.w = right - currentSpan.box.x
+	// LTR: new character extends to the right
+	currentSpan.box.w = right - currentSpan.box.x
 }
 ```
 
@@ -94,7 +97,7 @@ After a newline, we reset the RTL test:
 
 ```typescript
 if (char === '\n') {
-  prevCharLeftForRTLTest = 0
+	prevCharLeftForRTLTest = 0
 }
 ```
 

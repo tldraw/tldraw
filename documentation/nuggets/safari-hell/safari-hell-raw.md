@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - safari
   - hell
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Safari quirks and workarounds: raw notes
@@ -16,6 +19,7 @@ Internal research notes for the safari-hell.md article.
 **File:** `/packages/editor/src/lib/globals/environment.ts`
 
 **Detection logic (lines 23-34):**
+
 ```typescript
 if (typeof window !== 'undefined') {
 	if ('navigator' in window) {
@@ -32,11 +36,13 @@ if (typeof window !== 'undefined') {
 ```
 
 **Key regex patterns:**
+
 - Safari: `/^((?!chrome|android).)*safari/i` - negative lookahead to exclude Chrome/Android
 - iOS: `/iPad/i` and `/iPhone/i` - matches iPad and iPhone devices
 - Chrome for iOS: `/crios.*safari/i` - identifies Chrome running on iOS
 
 **tlenv object (lines 10-19):**
+
 ```typescript
 const tlenv = {
 	isSafari: false,
@@ -55,6 +61,7 @@ const tlenv = {
 **File:** `/packages/editor/src/lib/components/default-components/DefaultCanvas.tsx`
 
 **Implementation (lines 53-78):**
+
 ```typescript
 const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
 
@@ -90,17 +97,20 @@ useQuickReactor(
 
 **Configuration constant:**
 `/packages/editor/src/lib/options.ts:144`
+
 ```typescript
 textShadowLod: 0.35,
 ```
 
 **Logic:**
+
 - Safari: Text outlines disabled completely on first render (`allowTextOutline = false`)
 - Chrome/Firefox: Text outlines disabled when zoom level < 0.35 (`textShadowLod`)
 - Uses CSS custom property `--tl-text-outline` to toggle between `none` and reference value
 - LOD (Level of Detail) optimization only applies to non-Safari browsers
 
 **Performance characteristics:**
+
 - Chrome: Can handle dozens of text shapes with shadows at 60fps
 - Safari: Drops to ~20fps with 50 text shapes during camera movement
 - Cause: Safari's compositor doesn't batch or optimize text shadows
@@ -110,6 +120,7 @@ textShadowLod: 0.35,
 **File:** `/packages/editor/src/lib/components/default-components/DefaultCanvas.tsx`
 
 **ReflowIfNeeded component (lines 408-431):**
+
 ```typescript
 function ReflowIfNeeded() {
 	const editor = useEditor()
@@ -138,11 +149,13 @@ function ReflowIfNeeded() {
 ```
 
 **Rendering (line 443):**
+
 ```typescript
 {tlenv.isSafari && <ReflowIfNeeded />}
 ```
 
 **How it works:**
+
 1. Tracks set of culled shape IDs using `useRef`
 2. When culled set changes (size differs or IDs differ), force reflow
 3. Reading `offsetHeight` forces synchronous layout recalculation
@@ -152,6 +165,7 @@ function ReflowIfNeeded() {
 Paul Irish's list of layout-triggering properties: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
 
 **Bug behavior:**
+
 - Element removed from viewport → Safari marks as "nothing to render"
 - Element returns to viewport → Safari doesn't invalidate cached state
 - Element present in DOM with correct styles but not painted
@@ -162,6 +176,7 @@ Paul Irish's list of layout-triggering properties: https://gist.github.com/pauli
 **File:** `/packages/editor/src/lib/exports/getSvgAsImage.ts`
 
 **Implementation (lines 32-65):**
+
 ```typescript
 const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 	const image = Image()
@@ -201,6 +216,7 @@ const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 
 **sleep utility:**
 `/packages/utils/src/lib/control.ts:272-275`
+
 ```typescript
 export function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -208,6 +224,7 @@ export function sleep(ms: number): Promise<void> {
 ```
 
 **Canvas size clamping (lines 19-25):**
+
 ```typescript
 let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 	width * pixelRatio,
@@ -219,6 +236,7 @@ const effectiveScale = clampedWidth / width
 ```
 
 **WebKit bug:**
+
 - Bug ID: 219770
 - Filed: 2020
 - Status: Still open as of article writing
@@ -227,6 +245,7 @@ const effectiveScale = clampedWidth / width
 - No promise or event to await
 
 **Fragility:**
+
 - 250ms arbitrary timeout
 - Fails if fonts take longer to load (slow network, complex fonts, busy system)
 - No better alternative exists in WebKit
@@ -236,11 +255,13 @@ const effectiveScale = clampedWidth / width
 **File:** `/packages/editor/src/lib/hooks/useFixSafariDoubleTapZoomPencilEvents.ts`
 
 **Constants (line 5):**
+
 ```typescript
 const IGNORED_TAGS = ['textarea', 'input']
 ```
 
 **Implementation (lines 12-45):**
+
 ```typescript
 export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLElement | null>) {
 	const editor = useEditor()
@@ -279,11 +300,13 @@ export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLE
 ```
 
 **Usage in DefaultCanvas (line 51):**
+
 ```typescript
 useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 ```
 
 **Logic:**
+
 1. Intercept `touchstart` and `touchend` events
 2. Check if pointer type is `'pen'` (Apple Pencil)
 3. Allow events through for:
@@ -294,6 +317,7 @@ useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 4. Otherwise call `preventDefault(e)` to suppress default behavior
 
 **iOS behavior:**
+
 - Double-tap with Apple Pencil shows magnifying loupe by default
 - Useful for reading small text
 - Catastrophic for drawing apps (interrupts drawing flow)
@@ -301,6 +325,7 @@ useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
 **preventDefault function:**
 `/packages/editor/src/lib/utils/dom.ts:38-43`
+
 ```typescript
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
 	event.preventDefault()
@@ -315,6 +340,7 @@ export function preventDefault(event: React.BaseSyntheticEvent | Event) {
 **File:** `/packages/tldraw/src/lib/shapes/shared/useEditablePlainText.ts`
 
 **Implementation (lines 40-57):**
+
 ```typescript
 useEffect(() => {
 	if (!isEditing) return
@@ -337,12 +363,14 @@ useEffect(() => {
 ```
 
 **Sequence:**
+
 1. Check if editing mode active
 2. Focus input if not already focused
 3. Select text if using coarse pointer (touch)
 4. **Safari only:** Blur then immediately refocus
 
 **Bug characteristics:**
+
 - Random occurrence (not consistently reproducible)
 - Input has focus
 - Typing works
@@ -350,6 +378,7 @@ useEffect(() => {
 - Common enough to frustrate users
 
 **Fix rationale:**
+
 - Pure voodoo (comment says "XXX(mime)")
 - Unknown why caret disappears
 - Unknown why blur/focus cycle helps
@@ -360,20 +389,22 @@ useEffect(() => {
 **File:** `/packages/editor/src/lib/hooks/useGestureEvents.ts`
 
 **Pinch state machine (line 82):**
+
 ```typescript
 let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 ```
 
 **Safari trackpad detection (lines 217-221):**
+
 ```typescript
 // In (desktop) Safari, a two finger trackpad pinch will be a "gesturechange" event
 // and will have 0 touches; on iOS, a two-finger pinch will be a "pointermove" event
 // with two touches.
-const isSafariTrackpadPinch =
-	gesture.type === 'gesturechange' || gesture.type === 'gestureend'
+const isSafariTrackpadPinch = gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 ```
 
 **State update logic (lines 172-208):**
+
 ```typescript
 const updatePinchState = (isSafariTrackpadPinch: boolean) => {
 	if (isSafariTrackpadPinch) {
@@ -410,11 +441,13 @@ const updatePinchState = (isSafariTrackpadPinch: boolean) => {
 ```
 
 **Thresholds:**
+
 - `touchDistance > 24` → switch to zooming from "not sure"
 - `originDistance > 16` → switch to panning from "not sure"
 - `touchDistance > 64` → switch to zooming from "panning"
 
 **Key variables (lines 136-140):**
+
 ```typescript
 let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
 let initZoom = 1 // the browser's zoom level when the pinch starts
@@ -424,12 +457,14 @@ const prevPointBetweenFingers = new Vec()
 ```
 
 **Event type differences:**
+
 - **Desktop Safari (trackpad):** `gesturechange` / `gestureend` events, 0 touches
 - **iOS Safari (touch):** `pointermove` events, 2 touches
 - **Chrome/Firefox:** Different gesture API entirely
 
 **State machine rationale:**
 From comment (lines 12-42):
+
 ```
 Zooming is much more expensive than panning (because it causes shapes to render),
 so we want to be sure that we don't zoom while two-finger panning.
@@ -454,6 +489,7 @@ In the "zooming" state, we just stay zooming—it's not YET possible to switch b
 **File:** `/packages/tldraw/src/lib/utils/clipboard.ts`
 
 **Implementation (lines 36-62):**
+
 ```typescript
 export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
@@ -485,6 +521,7 @@ export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<vo
 ```
 
 **Custom PNG format (lines 4-19):**
+
 ```typescript
 // Browsers sanitize image formats to prevent security issues when pasting between applications. For
 // paste within an application though, some browsers (only chromium-based browsers as of Nov 2024)
@@ -505,17 +542,20 @@ const canonicalClipboardReadTypes = {
 ```
 
 **WebKit bug:**
+
 - Bug ID: 222262
 - Issue: Async gap between user gesture and clipboard write breaks "user intent" chain
 - Safari silently rejects clipboard operations if they're not synchronous
 
 **Key constraint:**
+
 - Function itself is NOT async (returns `Promise<void>` but is synchronous)
 - `ClipboardItem` created synchronously with promise-valued types
 - `navigator.clipboard.write` called synchronously
 - Blob generation happens asynchronously but creation of ClipboardItem is sync
 
 **Firefox fallback:**
+
 - Some Firefox configs fail with promise-valued ClipboardItem
 - Fallback: await all promises first, then create ClipboardItem with resolved blobs
 
@@ -526,12 +566,14 @@ const canonicalClipboardReadTypes = {
 **File:** `/packages/editor/src/lib/utils/browserCanvasMaxSize.ts`
 
 **Constants (lines 28-29):**
+
 ```typescript
 const MAX_SAFE_CANVAS_DIMENSION = 8192
 const MAX_SAFE_CANVAS_AREA = 4096 * 4096
 ```
 
 **Test sizes array (lines 31-88):**
+
 ```typescript
 const TEST_SIZES = {
 	area: [
@@ -594,11 +636,13 @@ const TEST_SIZES = {
 ```
 
 **Safari-specific limits (older versions 7-12):**
+
 - **Area:** 16,777,216 pixels (4096 × 4096)
 - **Height:** 8,388,607 pixels
 - **Width:** 4,194,303 pixels
 
 **Detection algorithm (lines 94-135):**
+
 ```typescript
 export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 	const cropCvs = document.createElement('canvas')
@@ -645,6 +689,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 ```
 
 **How detection works:**
+
 1. Create test canvas at candidate size
 2. Draw 1px square at bottom-right corner
 3. Copy that pixel to crop canvas
@@ -654,6 +699,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 7. Test sizes in descending order until one succeeds
 
 **Clamping function (lines 138-167):**
+
 ```typescript
 export function clampToBrowserMaxCanvasSize(width: number, height: number) {
 	if (
@@ -688,6 +734,7 @@ export function clampToBrowserMaxCanvasSize(width: number, height: number) {
 ```
 
 **Usage in getSvgAsImage (line 19):**
+
 ```typescript
 let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 	width * pixelRatio,
@@ -696,6 +743,7 @@ let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 ```
 
 **Silent failure characteristics:**
+
 - `createElement('canvas')` succeeds
 - `getContext('2d')` may return `null` OR return context that doesn't work
 - Drawing operations fail silently
@@ -703,6 +751,7 @@ let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 - Makes debugging very difficult
 
 **Caching (lines 8-20):**
+
 ```typescript
 let maxCanvasSizes: CanvasMaxSize | null = null
 
@@ -727,14 +776,17 @@ Extracted from https://github.com/jhildenbiddle/canvas-size (MIT License)
 
 **Root cause:**
 Fundamental difference in compositor architecture:
+
 - **Chrome:** Renders shapes at full resolution → scales display
 - **Safari:** Rasterizes content at current resolution → scales rasterized pixels
 
 **Result:**
+
 - Chrome: Sharp vectors at all zoom levels
 - Safari: Blurry/pixelated appearance when zoomed in
 
 **No workaround:**
+
 - Can't change Safari's compositing strategy via CSS or API
 - Re-rendering everything at zoomed scale would be sharp but destroys performance
 - Trade-off: Safari prioritizes performance, Chrome prioritizes sharpness
@@ -755,6 +807,7 @@ Breaks design systems that use smaller inputs
 
 **Fix:**
 Force 16px minimum:
+
 ```css
 input,
 textarea {
@@ -773,6 +826,7 @@ Either accept 16px minimum OR accept auto-zoom behavior.
 **File:** `/packages/editor/src/lib/hooks/useGestureEvents.ts`
 
 **Issue (lines 53-60):**
+
 ```typescript
 /**
  * GOTCHA
@@ -786,6 +840,7 @@ Either accept 16px minimum OR accept auto-zoom behavior.
 ```
 
 **Timestamp tracking (lines 61-76):**
+
 ```typescript
 let lastWheelTime = undefined as undefined | number
 
@@ -806,10 +861,12 @@ const isWheelEndEvent = (time: number) => {
 ```
 
 **Detection window:**
+
 - If wheel event arrives 120-160ms after previous event → it's the phantom end event
 - Otherwise → it's a real wheel event
 
 **Usage (lines 91-94):**
+
 ```typescript
 if (isWheelEndEvent(Date.now())) {
 	// ignore wheelEnd events
@@ -824,6 +881,7 @@ if (isWheelEndEvent(Date.now())) {
 **File:** `/packages/editor/src/lib/utils/normalizeWheel.ts`
 
 **Constants (lines 2-6):**
+
 ```typescript
 const MAX_ZOOM_STEP = 10
 const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
@@ -832,6 +890,7 @@ const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
 ```
 
 **Implementation (lines 10-25):**
+
 ```typescript
 export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>) {
 	let { deltaY, deltaX } = event
@@ -852,6 +911,7 @@ export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>
 ```
 
 **Logic:**
+
 - Modifier keys (ctrl/alt/meta) → interpret as zoom (`deltaZ`)
 - Shift key on non-Darwin → swap X and Y (horizontal scroll)
 - Clamp zoom delta to ±10 to prevent huge jumps
@@ -862,34 +922,42 @@ export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>
 ## Key source files
 
 ### Core Safari detection
+
 - `/packages/editor/src/lib/globals/environment.ts` - Browser/OS detection via user agent
 
 ### Performance workarounds
+
 - `/packages/editor/src/lib/components/default-components/DefaultCanvas.tsx:53-78` - Text shadow disable
 - `/packages/editor/src/lib/components/default-components/DefaultCanvas.tsx:408-431` - Culling reflow
 - `/packages/editor/src/lib/options.ts:144` - textShadowLod constant
 
 ### Font and rendering
+
 - `/packages/editor/src/lib/exports/getSvgAsImage.ts:36-43` - SVG font loading delay
 - `/packages/utils/src/lib/control.ts:272-275` - sleep utility
 
 ### Input handling
+
 - `/packages/editor/src/lib/hooks/useFixSafariDoubleTapZoomPencilEvents.ts` - Apple Pencil zoom suppression
 - `/packages/tldraw/src/lib/shapes/shared/useEditablePlainText.ts:40-57` - Caret visibility fix
 
 ### Gesture and wheel
+
 - `/packages/editor/src/lib/hooks/useGestureEvents.ts:172-221` - Pinch state machine and trackpad detection
 - `/packages/editor/src/lib/hooks/useGestureEvents.ts:61-76` - UseGesture wheel quirk
 - `/packages/editor/src/lib/utils/normalizeWheel.ts` - Wheel event normalization
 
 ### Clipboard
+
 - `/packages/tldraw/src/lib/utils/clipboard.ts:36-62` - Synchronous clipboard write
 - `/packages/tldraw/src/lib/utils/export/copyAs.ts:35-41` - Copy implementation with sync constraint
 
 ### Canvas limits
+
 - `/packages/editor/src/lib/utils/browserCanvasMaxSize.ts` - Canvas size detection and clamping
 
 ### Utilities
+
 - `/packages/editor/src/lib/utils/dom.ts:38-43` - preventDefault helper
 
 ## WebKit bug references
@@ -912,19 +980,23 @@ export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>
 ## Configuration values
 
 ### From defaultTldrawOptions
+
 - `textShadowLod: 0.35` - Zoom level below which text shadows disabled (non-Safari)
 - `doubleClickDurationMs: 450` - Double-click detection window
 - `longPressDurationMs: 500` - Long press detection window
 
 ### Pinch gesture thresholds
+
 - Touch distance > 24px → zooming (from "not sure")
 - Origin distance > 16px → panning (from "not sure")
 - Touch distance > 64px → zooming (from "panning")
 
 ### Timing constants
+
 - SVG font delay: 250ms
 - UseGesture phantom event window: 120-160ms after last real event
 
 ### Canvas safety limits
+
 - Safe dimension: 8192px
 - Safe area: 16,777,216 pixels (4096 × 4096)

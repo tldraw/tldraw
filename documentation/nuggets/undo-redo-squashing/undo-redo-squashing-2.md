@@ -8,6 +8,9 @@ keywords:
   - squashing
   - history
   - diffs
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # The diff squashing algorithm
@@ -22,9 +25,9 @@ A diff tracks three types of record changes:
 
 ```typescript
 interface RecordsDiff<R> {
-  added: Record<IdOf<R>, R>
-  updated: Record<IdOf<R>, [from: R, to: R]>
-  removed: Record<IdOf<R>, R>
+	added: Record<IdOf<R>, R>
+	updated: Record<IdOf<R>, [from: R, to: R]>
+	removed: Record<IdOf<R>, R>
 }
 ```
 
@@ -40,9 +43,9 @@ When we combine diffs, we need to handle every possible sequence of operations. 
 
 ```typescript
 if (target.added[id]) {
-  target.added[id] = to
-  delete target.updated[id]
-  delete target.removed[id]
+	target.added[id] = to
+	delete target.updated[id]
+	delete target.removed[id]
 }
 ```
 
@@ -52,8 +55,8 @@ If a record was just created and then modified, it's still a creation—just wit
 
 ```typescript
 if (target.updated[id]) {
-  target.updated[id] = [target.updated[id][0], to]
-  delete target.removed[id]
+	target.updated[id] = [target.updated[id][0], to]
+	delete target.removed[id]
 }
 ```
 
@@ -63,7 +66,7 @@ Multiple updates to the same record collapse into a single change from the first
 
 ```typescript
 if (target.added[id]) {
-  delete target.added[id]
+	delete target.added[id]
 }
 ```
 
@@ -73,11 +76,11 @@ If a record is created and then deleted before the next mark, it never existed a
 
 ```typescript
 if (target.removed[id]) {
-  const original = target.removed[id]
-  delete target.removed[id]
-  if (original !== value) {
-    target.updated[id] = [original, value]
-  }
+	const original = target.removed[id]
+	delete target.removed[id]
+	if (original !== value) {
+		target.updated[id] = [original, value]
+	}
 }
 ```
 
@@ -87,8 +90,8 @@ This case is unusual but possible. If a record is deleted and then recreated wit
 
 ```typescript
 if (target.updated[id]) {
-  target.removed[id] = target.updated[id][0]
-  delete target.updated[id]
+	target.removed[id] = target.updated[id][0]
+	delete target.updated[id]
 }
 ```
 
@@ -100,12 +103,12 @@ The function name ends with `Mutable` because it modifies the target diff in pla
 
 ```typescript
 export function squashRecordDiffsMutable<T extends UnknownRecord>(
-  target: RecordsDiff<T>,
-  diffs: RecordsDiff<T>[]
+	target: RecordsDiff<T>,
+	diffs: RecordsDiff<T>[]
 ): void {
-  for (const diff of diffs) {
-    // Apply rules to target directly
-  }
+	for (const diff of diffs) {
+		// Apply rules to target directly
+	}
 }
 ```
 

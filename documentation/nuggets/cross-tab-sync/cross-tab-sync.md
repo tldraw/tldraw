@@ -8,6 +8,9 @@ keywords:
   - BroadcastChannel
   - IndexedDB
   - offline
+status: published
+date: 12/20/2025
+order: 4
 ---
 
 # Cross-tab synchronization

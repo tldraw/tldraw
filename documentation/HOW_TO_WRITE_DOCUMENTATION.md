@@ -1,5 +1,8 @@
 ---
 title: How to write documentation
+status: published
+date: 12/22/2025
+order: 501
 ---
 
 This guide helps authors write consistent, high-quality documentation for the tldraw monorepo. Following these guidelines reduces editing time and creates a better experience for readers.

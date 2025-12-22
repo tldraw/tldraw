@@ -6,6 +6,9 @@ keywords:
   - undo
   - redo
   - squashing
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Undo/redo squashing: raw notes
@@ -19,12 +22,14 @@ When a user drags a shape across the canvas, the editor receives many position u
 ## Mark-based model vs explicit squashing
 
 **Traditional approach (explicit squashing):**
+
 - Create undo entries explicitly: "add this change to the stack"
 - Manually call squash operations to combine entries
 - Need to track which changes should be combined
 - Requires explicit "begin group" / "end group" operations
 
 **tldraw's mark-based approach (implicit squashing):**
+
 - Changes accumulate silently in a pending diff
 - Marks define boundaries where undo should stop
 - Squashing happens automatically between marks
@@ -39,9 +44,9 @@ Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManage
 
 ```typescript
 enum HistoryRecorderState {
-    Recording = 'recording',
-    RecordingPreserveRedoStack = 'recordingPreserveRedoStack',
-    Paused = 'paused',
+	Recording = 'recording',
+	RecordingPreserveRedoStack = 'recordingPreserveRedoStack',
+	Paused = 'paused',
 }
 ```
 
@@ -50,11 +55,12 @@ enum HistoryRecorderState {
 - **Paused**: No recording at all (for transient UI state)
 
 Maps to batch options via `modeToState` constant (line 323-327):
+
 ```typescript
 const modeToState = {
-    record: HistoryRecorderState.Recording,
-    'record-preserveRedoStack': HistoryRecorderState.RecordingPreserveRedoStack,
-    ignore: HistoryRecorderState.Paused,
+	record: HistoryRecorderState.Recording,
+	'record-preserveRedoStack': HistoryRecorderState.RecordingPreserveRedoStack,
+	ignore: HistoryRecorderState.Paused,
 } as const
 ```
 
@@ -64,28 +70,29 @@ Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManage
 
 ```typescript
 class PendingDiff<R extends UnknownRecord> {
-    private diff = createEmptyRecordsDiff<R>()
-    private isEmptyAtom = atom('PendingDiff.isEmpty', true)
+	private diff = createEmptyRecordsDiff<R>()
+	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
 
-    clear() {
-        const diff = this.diff
-        this.diff = createEmptyRecordsDiff<R>()
-        this.isEmptyAtom.set(true)
-        return diff
-    }
+	clear() {
+		const diff = this.diff
+		this.diff = createEmptyRecordsDiff<R>()
+		this.isEmptyAtom.set(true)
+		return diff
+	}
 
-    isEmpty() {
-        return this.isEmptyAtom.get()
-    }
+	isEmpty() {
+		return this.isEmptyAtom.get()
+	}
 
-    apply(diff: RecordsDiff<R>) {
-        squashRecordDiffsMutable(this.diff, [diff])
-        this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
-    }
+	apply(diff: RecordsDiff<R>) {
+		squashRecordDiffsMutable(this.diff, [diff])
+		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+	}
 }
 ```
 
 **Key properties:**
+
 - Maintains a single `RecordsDiff<R>` that accumulates all changes
 - Uses reactive atom to track empty state efficiently
 - `clear()` returns the accumulated diff and resets to empty
@@ -97,19 +104,20 @@ Located in `packages/editor/src/lib/editor/types/history-types.ts:4-16`
 
 ```typescript
 interface TLHistoryMark {
-    type: 'stop'
-    id: string
+	type: 'stop'
+	id: string
 }
 
 interface TLHistoryDiff<R extends UnknownRecord> {
-    type: 'diff'
-    diff: RecordsDiff<R>
+	type: 'diff'
+	diff: RecordsDiff<R>
 }
 
 type TLHistoryEntry<R extends UnknownRecord> = TLHistoryMark | TLHistoryDiff<R>
 ```
 
 The undo/redo stacks contain these two types:
+
 - **'stop'**: A mark (boundary) with a unique ID
 - **'diff'**: Actual record changes
 
@@ -119,16 +127,17 @@ Located in `packages/store/src/lib/RecordsDiff.ts:29-36`
 
 ```typescript
 interface RecordsDiff<R extends UnknownRecord> {
-    /** Records that were created, keyed by their ID */
-    added: Record<IdOf<R>, R>
-    /** Records that were modified, keyed by their ID. Each entry contains [from, to] tuple */
-    updated: Record<IdOf<R>, [from: R, to: R]>
-    /** Records that were deleted, keyed by their ID */
-    removed: Record<IdOf<R>, R>
+	/** Records that were created, keyed by their ID */
+	added: Record<IdOf<R>, R>
+	/** Records that were modified, keyed by their ID. Each entry contains [from, to] tuple */
+	updated: Record<IdOf<R>, [from: R, to: R]>
+	/** Records that were deleted, keyed by their ID */
+	removed: Record<IdOf<R>, R>
 }
 ```
 
 Three categories of changes:
+
 - **added**: Records created (maps ID -> new record)
 - **updated**: Records modified (maps ID -> [old record, new record])
 - **removed**: Records deleted (maps ID -> deleted record)
@@ -143,33 +152,34 @@ Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManage
 type Stack<T> = StackItem<T> | EmptyStackItem<T>
 
 class EmptyStackItem<T> implements Iterable<T> {
-    readonly length = 0
-    readonly head = null
-    readonly tail: Stack<T> = this
+	readonly length = 0
+	readonly head = null
+	readonly tail: Stack<T> = this
 
-    push(head: T): Stack<T> {
-        return new StackItem<T>(head, this)
-    }
+	push(head: T): Stack<T> {
+		return new StackItem<T>(head, this)
+	}
 }
 
 const EMPTY_STACK_ITEM = new EmptyStackItem()
 
 class StackItem<T> implements Iterable<T> {
-    length: number
-    constructor(
-        public readonly head: T,
-        public readonly tail: Stack<T>
-    ) {
-        this.length = tail.length + 1
-    }
+	length: number
+	constructor(
+		public readonly head: T,
+		public readonly tail: Stack<T>
+	) {
+		this.length = tail.length + 1
+	}
 
-    push(head: T): Stack<T> {
-        return new StackItem(head, this)
-    }
+	push(head: T): Stack<T> {
+		return new StackItem(head, this)
+	}
 }
 ```
 
 **Why immutable:**
+
 - Not for safety or correctness
 - For efficiency: sharing structure between states
 - Pushing creates new stack that shares tail with old stack
@@ -177,6 +187,7 @@ class StackItem<T> implements Iterable<T> {
 - Cheap to maintain multiple references (useful during undo/redo)
 
 **Stack operations:**
+
 - `push(item)`: Returns new stack with item on top (O(1))
 - `head`: Get top item without removing (O(1))
 - `tail`: Get rest of stack without top item (O(1))
@@ -188,27 +199,28 @@ Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManage
 
 ```typescript
 export class HistoryManager<R extends UnknownRecord> {
-    private readonly store: Store<R>
-    readonly dispose: () => void
+	private readonly store: Store<R>
+	readonly dispose: () => void
 
-    private state: HistoryRecorderState = HistoryRecorderState.Recording
-    private readonly pendingDiff = new PendingDiff<R>()
-    private stacks = atom(
-        'HistoryManager.stacks',
-        {
-            undos: stack<TLHistoryEntry<R>>(),
-            redos: stack<TLHistoryEntry<R>>(),
-        },
-        {
-            isEqual: (a, b) => a.undos === b.undos && a.redos === b.redos,
-        }
-    )
+	private state: HistoryRecorderState = HistoryRecorderState.Recording
+	private readonly pendingDiff = new PendingDiff<R>()
+	private stacks = atom(
+		'HistoryManager.stacks',
+		{
+			undos: stack<TLHistoryEntry<R>>(),
+			redos: stack<TLHistoryEntry<R>>(),
+		},
+		{
+			isEqual: (a, b) => a.undos === b.undos && a.redos === b.redos,
+		}
+	)
 
-    private readonly annotateError: (error: unknown) => void
+	private readonly annotateError: (error: unknown) => void
 }
 ```
 
 **Key state:**
+
 - `state`: Current recording mode
 - `pendingDiff`: Accumulates changes since last mark
 - `stacks`: Reactive atom holding undo/redo stacks
@@ -220,25 +232,26 @@ Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManage
 
 ```typescript
 this.dispose = this.store.addHistoryInterceptor((entry, source) => {
-    if (source !== 'user') return
+	if (source !== 'user') return
 
-    switch (this.state) {
-        case HistoryRecorderState.Recording:
-            this.pendingDiff.apply(entry.changes)
-            this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
-            break
-        case HistoryRecorderState.RecordingPreserveRedoStack:
-            this.pendingDiff.apply(entry.changes)
-            break
-        case HistoryRecorderState.Paused:
-            break
-        default:
-            exhaustiveSwitchError(this.state)
-    }
+	switch (this.state) {
+		case HistoryRecorderState.Recording:
+			this.pendingDiff.apply(entry.changes)
+			this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+			break
+		case HistoryRecorderState.RecordingPreserveRedoStack:
+			this.pendingDiff.apply(entry.changes)
+			break
+		case HistoryRecorderState.Paused:
+			break
+		default:
+			exhaustiveSwitchError(this.state)
+	}
 })
 ```
 
 **Behavior by state:**
+
 - **Recording**: Apply to pending diff, clear redo stack
 - **RecordingPreserveRedoStack**: Apply to pending diff, keep redo stack
 - **Paused**: Ignore the change entirely
@@ -247,7 +260,7 @@ Only processes changes with `source === 'user'` (not internal or remote changes)
 
 ## Mark creation and flushing
 
-### _mark() method
+### \_mark() method
 
 Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManager.ts:287-292`
 
@@ -264,6 +277,7 @@ _mark(id: string) {
 ```
 
 **Process:**
+
 1. Flush pending diff to undo stack (if any changes)
 2. Push mark onto undo stack
 3. Wrapped in `transact()` for atomicity
@@ -285,6 +299,7 @@ private flushPendingDiff() {
 ```
 
 **Behavior:**
+
 - Only flushes if pending diff is non-empty
 - Clears pending diff and pushes accumulated changes to undo stack
 - Preserves redo stack during flush
@@ -302,6 +317,7 @@ markHistoryStoppingPoint(name?: string): string {
 ```
 
 **Mark ID format:** `[name]_uniqueId`
+
 - Examples: `[translating]_abc123`, `[stop]_xyz789`
 - Name helps with debugging
 - Unique ID ensures no collisions
@@ -314,58 +330,58 @@ Located in `packages/store/src/lib/RecordsDiff.ts:202-248`
 
 ```typescript
 export function squashRecordDiffsMutable<T extends UnknownRecord>(
-    target: RecordsDiff<T>,
-    diffs: RecordsDiff<T>[]
+	target: RecordsDiff<T>,
+	diffs: RecordsDiff<T>[]
 ): void {
-    for (const diff of diffs) {
-        // Process added records
-        for (const [id, value] of objectMapEntries(diff.added)) {
-            if (target.removed[id]) {
-                // Was removed, now added back = update
-                const original = target.removed[id]
-                delete target.removed[id]
-                if (original !== value) {
-                    target.updated[id] = [original, value]
-                }
-            } else {
-                target.added[id] = value
-            }
-        }
+	for (const diff of diffs) {
+		// Process added records
+		for (const [id, value] of objectMapEntries(diff.added)) {
+			if (target.removed[id]) {
+				// Was removed, now added back = update
+				const original = target.removed[id]
+				delete target.removed[id]
+				if (original !== value) {
+					target.updated[id] = [original, value]
+				}
+			} else {
+				target.added[id] = value
+			}
+		}
 
-        // Process updated records
-        for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-            if (target.added[id]) {
-                // Was just added, keep it as added with new value
-                target.added[id] = to
-                delete target.updated[id]
-                delete target.removed[id]
-                continue
-            }
-            if (target.updated[id]) {
-                // Chain updates: keep original 'from', use new 'to'
-                target.updated[id] = [target.updated[id][0], to]
-                delete target.removed[id]
-                continue
-            }
+		// Process updated records
+		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
+			if (target.added[id]) {
+				// Was just added, keep it as added with new value
+				target.added[id] = to
+				delete target.updated[id]
+				delete target.removed[id]
+				continue
+			}
+			if (target.updated[id]) {
+				// Chain updates: keep original 'from', use new 'to'
+				target.updated[id] = [target.updated[id][0], to]
+				delete target.removed[id]
+				continue
+			}
 
-            target.updated[id] = diff.updated[id]
-            delete target.removed[id]
-        }
+			target.updated[id] = diff.updated[id]
+			delete target.removed[id]
+		}
 
-        // Process removed records
-        for (const [id, value] of objectMapEntries(diff.removed)) {
-            if (target.added[id]) {
-                // Added then removed = nothing happened
-                delete target.added[id]
-            } else if (target.updated[id]) {
-                // Updated then removed = removed from original state
-                target.removed[id] = target.updated[id][0]
-                delete target.updated[id]
-            } else {
-                target.removed[id] = value
-            }
-        }
-    }
+		// Process removed records
+		for (const [id, value] of objectMapEntries(diff.removed)) {
+			if (target.added[id]) {
+				// Added then removed = nothing happened
+				delete target.added[id]
+			} else if (target.updated[id]) {
+				// Updated then removed = removed from original state
+				target.removed[id] = target.updated[id][0]
+				delete target.updated[id]
+			} else {
+				target.removed[id] = value
+			}
+		}
+	}
 }
 ```
 
@@ -392,13 +408,14 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
    - Example: Move shape then delete it = Delete from original position
 
 **Mutation vs copying:**
+
 - Mutates `target` in place for efficiency
 - Avoids allocating intermediate diff objects
 - Safe because diffs are flushed atomically
 
 ## Undo operation
 
-### _undo() method
+### \_undo() method
 
 Located in `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManager.ts:115-187`
 
@@ -475,6 +492,7 @@ _undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMar
 ```
 
 **Process:**
+
 1. Pause recording (prevent undo from creating history entries)
 2. Clear and reverse pending diff (changes since last mark)
 3. Optionally push pending diff to redo stack
@@ -486,6 +504,7 @@ _undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMar
 9. Restore recording state
 
 **Key optimizations:**
+
 - Squashes all changes between marks into single atomic operation
 - Avoids intermediate states during undo
 - Uses immutable stack operations (old references still valid)
@@ -514,6 +533,7 @@ bailToMark(id: string) {
 ```
 
 **Differences:**
+
 - **undo()**: Normal undo, pushes to redo stack
 - **bail()**: Undo without redo, as if changes never happened (used for canceling)
 - **bailToMark(id)**: Undo to specific mark without redo (used for canceling to specific point)
@@ -530,6 +550,7 @@ bailToMark(id: string): this {
 ```
 
 Example in Translating tool (line 183):
+
 ```typescript
 reset() {
     this.editor.bailToMark(this.markId)
@@ -587,6 +608,7 @@ redo() {
 ```
 
 **Process:**
+
 1. Pause recording
 2. Flush pending diff (ensure clean state)
 3. Skip marks at top of redo stack
@@ -597,6 +619,7 @@ redo() {
 8. Restore recording state
 
 **Symmetry with undo:**
+
 - Same squashing behavior
 - Same atomic application
 - Moves entries between stacks
@@ -647,12 +670,14 @@ squashToMark(id: string) {
 ```
 
 **Purpose:**
+
 - Collapses everything since a mark into single undo entry
 - Removes intermediate marks
 - Useful for complex operations that create multiple marks internally
 
 **Example usage:**
 From test file (line 435-473):
+
 ```typescript
 manager._mark('a')
 setA(1)
@@ -715,6 +740,7 @@ batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 ```
 
 **Behavior:**
+
 - Temporarily changes recording state
 - Wraps function in `transact()` for reactivity batching
 - Handles nested batches (paused state takes precedence)
@@ -723,15 +749,16 @@ batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 
 **Batch options:**
 From `packages/editor/src/lib/editor/types/history-types.ts:19-27`:
+
 ```typescript
 interface TLHistoryBatchOptions {
-    /**
-     * How should this change interact with the history stack?
-     * - record: Add to the undo stack and clear the redo stack
-     * - record-preserveRedoStack: Add to the undo stack but do not clear the redo stack
-     * - ignore: Do not add to the undo stack or the redo stack
-     */
-    history?: 'record' | 'record-preserveRedoStack' | 'ignore'
+	/**
+	 * How should this change interact with the history stack?
+	 * - record: Add to the undo stack and clear the redo stack
+	 * - record-preserveRedoStack: Add to the undo stack but do not clear the redo stack
+	 * - ignore: Do not add to the undo stack or the redo stack
+	 */
+	history?: 'record' | 'record-preserveRedoStack' | 'ignore'
 }
 ```
 
@@ -740,6 +767,7 @@ interface TLHistoryBatchOptions {
 ### ignoreEphemeralKeys flag
 
 Used in `applyDiff()` calls during undo/redo (line 179, 227):
+
 ```typescript
 this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 ```
@@ -786,6 +814,7 @@ applyDiff(
 
 **Ephemeral keys:**
 From `packages/store/src/lib/RecordType.ts:53-62`:
+
 ```typescript
 /**
  * Ephemeral properties are not included in snapshots or synchronization.
@@ -801,6 +830,7 @@ readonly ephemeralKeySet: ReadonlySet<string>
 ```
 
 **Purpose:**
+
 - Some record properties are transient (e.g., hover states, temporary flags)
 - These shouldn't be restored during undo/redo
 - `ignoreEphemeralKeys: true` skips these properties when applying diffs
@@ -851,12 +881,14 @@ override onEnter(info: TranslatingInfo) {
 ```
 
 **Pattern:**
+
 - Create mark when entering drag state
 - Store mark ID in state
 - All position updates accumulate in pending diff
 - Mark stays on stack until next mark or completion
 
 **Cancel handling** (line 215-238):
+
 ```typescript
 private cancel() {
     // Call onTranslateCancel callback before resetting
@@ -876,6 +908,7 @@ private cancel() {
 ```
 
 **Reset method** (line 182-184):
+
 ```typescript
 reset() {
     this.editor.bailToMark(this.markId)
@@ -911,6 +944,7 @@ override onEnter(
 ```
 
 **Pattern identical to Translating:**
+
 - Create mark on enter
 - Store mark ID
 - All rotation updates accumulate
@@ -946,6 +980,7 @@ private startShape() {
 ```
 
 **Special case: palm rejection** (line 64-77):
+
 ```typescript
 override onPointerMove() {
     const { inputs } = this.editor
@@ -1000,6 +1035,7 @@ protected stopCloning() {
 ```
 
 **Pattern:**
+
 1. User starts dragging (creates 'translating' mark)
 2. User presses Alt (wants to clone)
 3. Bail back to 'translating' mark (undo the drag)
@@ -1024,6 +1060,7 @@ getNumRedos() {
 ```
 
 **Pending diff counts as one undo:**
+
 - Stack length gives number of flushed entries
 - If pending diff non-empty, add 1 (will be flushed on next mark/undo)
 - Accurate count for UI display
@@ -1036,23 +1073,24 @@ From `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManager.test
 
 ```typescript
 it('allows squashing of commands', () => {
-    editor.increment()
+	editor.increment()
 
-    editor.history._mark('stop at 1')
-    expect(editor.getCount()).toBe(1)
+	editor.history._mark('stop at 1')
+	expect(editor.getCount()).toBe(1)
 
-    editor.increment(1)
-    editor.increment(1)
-    editor.increment(1)
-    editor.increment(1)
+	editor.increment(1)
+	editor.increment(1)
+	editor.increment(1)
+	editor.increment(1)
 
-    expect(editor.getCount()).toBe(5)
+	expect(editor.getCount()).toBe(5)
 
-    expect(editor.history.getNumUndos()).toBe(3)
+	expect(editor.history.getNumUndos()).toBe(3)
 })
 ```
 
 **Breakdown:**
+
 - First increment creates pending diff
 - Mark flushes it (1 diff + 1 mark = 2 entries)
 - Four more increments accumulate in pending diff (1 entry)
@@ -1064,16 +1102,16 @@ From test file (line 195-206):
 
 ```typescript
 it('allows ignore commands that do not affect the stack', () => {
-    editor.increment()
-    editor.history._mark('stop at 1')
-    editor.increment()
-    editor.setName('wilbur')  // Uses history: 'ignore'
-    editor.increment()
-    expect(editor.getCount()).toBe(3)
-    expect(editor.getName()).toBe('wilbur')
-    editor.history.undo()
-    expect(editor.getCount()).toBe(1)
-    expect(editor.getName()).toBe('wilbur')  // Name unchanged!
+	editor.increment()
+	editor.history._mark('stop at 1')
+	editor.increment()
+	editor.setName('wilbur') // Uses history: 'ignore'
+	editor.increment()
+	expect(editor.getCount()).toBe(3)
+	expect(editor.getName()).toBe('wilbur')
+	editor.history.undo()
+	expect(editor.getCount()).toBe(1)
+	expect(editor.getName()).toBe('wilbur') // Name unchanged!
 })
 ```
 
@@ -1083,25 +1121,25 @@ From test file (line 208-231):
 
 ```typescript
 it('allows inconsequential commands that do not clear the redo stack', () => {
-    editor.increment()
-    editor.history._mark('stop at 1')
-    editor.increment()
-    expect(editor.getCount()).toBe(2)
-    editor.history.undo()
-    expect(editor.getCount()).toBe(1)
-    editor.history._mark('stop at age 35')
-    editor.setAge(23)  // Uses history: 'record-preserveRedoStack'
-    editor.history._mark('stop at age 23')
-    expect(editor.getCount()).toBe(1)
-    editor.history.redo()
-    expect(editor.getCount()).toBe(2)  // Redo still works!
-    expect(editor.getAge()).toBe(23)
-    editor.history.undo()
-    expect(editor.getCount()).toBe(1)
-    expect(editor.getAge()).toBe(23)
-    editor.history.undo()
-    expect(editor.getCount()).toBe(1)
-    expect(editor.getAge()).toBe(35)  // Can undo age change
+	editor.increment()
+	editor.history._mark('stop at 1')
+	editor.increment()
+	expect(editor.getCount()).toBe(2)
+	editor.history.undo()
+	expect(editor.getCount()).toBe(1)
+	editor.history._mark('stop at age 35')
+	editor.setAge(23) // Uses history: 'record-preserveRedoStack'
+	editor.history._mark('stop at age 23')
+	expect(editor.getCount()).toBe(1)
+	editor.history.redo()
+	expect(editor.getCount()).toBe(2) // Redo still works!
+	expect(editor.getAge()).toBe(23)
+	editor.history.undo()
+	expect(editor.getCount()).toBe(1)
+	expect(editor.getAge()).toBe(23)
+	editor.history.undo()
+	expect(editor.getCount()).toBe(1)
+	expect(editor.getAge()).toBe(35) // Can undo age change
 })
 ```
 
@@ -1113,39 +1151,39 @@ From test file (line 399-433):
 
 ```typescript
 it('nested ignore', () => {
-    manager._mark('')
-    manager.batch(
-        () => {
-            setA(1)
-            // Even though we set this to record, it will still be ignored
-            manager.batch(() => setB(1), { history: 'record' })
-            setA(2)
-        },
-        { history: 'ignore' }
-    )
-    expect(getState()).toMatchObject({ a: 2, b: 1 })
+	manager._mark('')
+	manager.batch(
+		() => {
+			setA(1)
+			// Even though we set this to record, it will still be ignored
+			manager.batch(() => setB(1), { history: 'record' })
+			setA(2)
+		},
+		{ history: 'ignore' }
+	)
+	expect(getState()).toMatchObject({ a: 2, b: 1 })
 
-    // Changes were ignored:
-    manager.undo()
-    expect(getState()).toMatchObject({ a: 2, b: 1 })
+	// Changes were ignored:
+	manager.undo()
+	expect(getState()).toMatchObject({ a: 2, b: 1 })
 
-    manager._mark('')
-    manager.batch(
-        () => {
-            setA(3)
-            manager.batch(() => setB(2), { history: 'ignore' })
-        },
-        { history: 'record-preserveRedoStack' }
-    )
-    expect(getState()).toMatchObject({ a: 3, b: 2 })
+	manager._mark('')
+	manager.batch(
+		() => {
+			setA(3)
+			manager.batch(() => setB(2), { history: 'ignore' })
+		},
+		{ history: 'record-preserveRedoStack' }
+	)
+	expect(getState()).toMatchObject({ a: 3, b: 2 })
 
-    // Changes to A were recorded, but changes to B were ignore:
-    manager.undo()
-    expect(getState()).toMatchObject({ a: 2, b: 2 })
+	// Changes to A were recorded, but changes to B were ignore:
+	manager.undo()
+	expect(getState()).toMatchObject({ a: 2, b: 2 })
 
-    // We can still redo because we preserved the redo stack:
-    manager.redo()
-    expect(getState()).toMatchObject({ a: 3, b: 2 })
+	// We can still redo because we preserved the redo stack:
+	manager.redo()
+	expect(getState()).toMatchObject({ a: 3, b: 2 })
 })
 ```
 
@@ -1156,11 +1194,13 @@ it('nested ignore', () => {
 ### Why immutable stacks
 
 **Memory sharing:**
+
 - Multiple undo/redo operations don't copy entire stack
 - Each state shares structure with previous state
 - Only new top item is allocated
 
 **Example:**
+
 ```
 Stack A: [1, 2, 3, 4]
 Stack B = A.push(5): [5, 1, 2, 3, 4]
@@ -1172,12 +1212,14 @@ Both stacks can exist simultaneously without duplication
 ### Atomic diff application
 
 **All changes applied together:**
+
 - Squash multiple diffs before applying
 - Single `store.applyDiff()` call
 - Avoids intermediate states
 - Triggers reactions once instead of multiple times
 
 **Code location:** Line 179 and 227 in HistoryManager.ts
+
 ```typescript
 this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 ```
@@ -1185,16 +1227,19 @@ this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 ### Reactive state management
 
 **PendingDiff uses atom:**
+
 ```typescript
 private isEmptyAtom = atom('PendingDiff.isEmpty', true)
 ```
 
 **Benefits:**
+
 - Reactive components can track pending diff state
 - Automatic updates when changes occur
 - Efficient equality checks (boolean)
 
 **HistoryManager stacks use atom:**
+
 ```typescript
 private stacks = atom('HistoryManager.stacks', { undos, redos }, {
     isEqual: (a, b) => a.undos === b.undos && a.redos === b.redos
@@ -1202,6 +1247,7 @@ private stacks = atom('HistoryManager.stacks', { undos, redos }, {
 ```
 
 **Custom equality:**
+
 - Reference equality sufficient for immutable stacks
 - Avoids deep equality checks
 - Fast updates when stacks change
@@ -1211,10 +1257,12 @@ private stacks = atom('HistoryManager.stacks', { undos, redos }, {
 No specific constants for history system itself, but related:
 
 **From Editor.ts:**
+
 - Mark ID format: `[${name ?? 'stop'}]_${uniqueId()}`
 - Name defaults to "stop" if not provided
 
 **From tests:**
+
 - No minimum time between marks
 - No maximum stack depth enforced (limited by memory)
 - No automatic mark creation on timeout
@@ -1239,6 +1287,7 @@ getMarkIdMatching(idSubstring: string) {
 ```
 
 **Purpose:**
+
 - Find mark by substring match
 - Used for legacy "creating:{shapeId}" marks
 - Returns most recent matching mark (searches from top)
@@ -1260,6 +1309,7 @@ debug() {
 ```
 
 **Returns:**
+
 - Arrays of undo/redo entries (converted from linked lists)
 - Pending diff state
 - Current recording state
@@ -1270,6 +1320,7 @@ debug() {
 ### Empty mark ID
 
 From bailToMark (line 243-249):
+
 ```typescript
 bailToMark(id: string) {
     if (id) {
@@ -1284,21 +1335,23 @@ Early return if mark ID is empty/falsy.
 ### Mark not found
 
 From squashToMark (line 264-267):
+
 ```typescript
 if (!top.head || top.head?.id !== id) {
-    console.error('Could not find mark to squash to: ', id)
-    return this
+	console.error('Could not find mark to squash to: ', id)
+	return this
 }
 ```
 
 Logs error but doesn't throw - graceful degradation.
 
-From _undo (line 173-177):
+From \_undo (line 173-177):
+
 ```typescript
 if (!didFindMark && toMark) {
-    // whoops, we didn't find the mark we were looking for
-    // don't do anything
-    return this
+	// whoops, we didn't find the mark we were looking for
+	// don't do anything
+	return this
 }
 ```
 
@@ -1307,9 +1360,10 @@ No-op if specified mark not found in bailToMark.
 ### Empty redo stack
 
 From redo (line 202-204):
+
 ```typescript
 if (redos.length === 0) {
-    return this
+	return this
 }
 ```
 
@@ -1318,18 +1372,20 @@ Early return if nothing to redo.
 ### Batch error handling
 
 From batch (line 100-104):
+
 ```typescript
 try {
-    transact(fn)
+	transact(fn)
 } catch (error) {
-    this.annotateError(error)
-    throw error
+	this.annotateError(error)
+	throw error
 } finally {
-    this._isInBatch = false
+	this._isInBatch = false
 }
 ```
 
 **Behavior:**
+
 - Annotates error for debugging
 - Re-throws error (doesn't swallow)
 - Ensures `_isInBatch` flag reset
@@ -1338,6 +1394,7 @@ try {
 ### Store validation
 
 After undo/redo (line 180, 228):
+
 ```typescript
 this.store.ensureStoreIsUsable()
 ```

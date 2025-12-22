@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - state
   - chart
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Tools as hierarchical state machines: raw notes
@@ -56,11 +59,13 @@ constructor(public editor: Editor, parent?: StateNode) {
 ```
 
 **Node types:**
+
 - `'root'` - The top-level state machine (no parent)
 - `'branch'` - Has child states (like SelectTool with 18 children)
 - `'leaf'` - Terminal state with no children (like Idle, Brushing, etc.)
 
 **Static properties:**
+
 ```typescript
 static id: string              // Unique identifier for the state
 static initial?: string        // Default child state ID
@@ -75,26 +80,26 @@ static useCoalescedEvents = false  // Performance optimization for pointer event
 
 ```typescript
 export const EVENT_NAME_MAP: Record<
-    Exclude<TLEventName, TLPinchEventName>,
-    keyof TLEventHandlers
+	Exclude<TLEventName, TLPinchEventName>,
+	keyof TLEventHandlers
 > = {
-    wheel: 'onWheel',
-    pointer_down: 'onPointerDown',
-    pointer_move: 'onPointerMove',
-    long_press: 'onLongPress',
-    pointer_up: 'onPointerUp',
-    right_click: 'onRightClick',
-    middle_click: 'onMiddleClick',
-    key_down: 'onKeyDown',
-    key_up: 'onKeyUp',
-    key_repeat: 'onKeyRepeat',
-    cancel: 'onCancel',
-    complete: 'onComplete',
-    interrupt: 'onInterrupt',
-    double_click: 'onDoubleClick',
-    triple_click: 'onTripleClick',
-    quadruple_click: 'onQuadrupleClick',
-    tick: 'onTick',
+	wheel: 'onWheel',
+	pointer_down: 'onPointerDown',
+	pointer_move: 'onPointerMove',
+	long_press: 'onLongPress',
+	pointer_up: 'onPointerUp',
+	right_click: 'onRightClick',
+	middle_click: 'onMiddleClick',
+	key_down: 'onKeyDown',
+	key_up: 'onKeyUp',
+	key_repeat: 'onKeyRepeat',
+	cancel: 'onCancel',
+	complete: 'onComplete',
+	interrupt: 'onInterrupt',
+	double_click: 'onDoubleClick',
+	triple_click: 'onTripleClick',
+	quadruple_click: 'onQuadrupleClick',
+	tick: 'onTick',
 }
 ```
 
@@ -123,12 +128,14 @@ handleEvent(info: Exclude<TLEventInfo, TLPinchEventInfo>) {
 ```
 
 **Why `__unsafe__getWithoutCapture()`:**
+
 - Bypasses reactive signal dependency tracking
 - Normal `.get()` would register dependencies in @tldraw/state system
 - `handleEvent` is called from outside reactive system, doesn't need tracking
 - Prevents unnecessary reactive updates and memory leaks
 
 **Parent-first routing pattern:**
+
 - Parent handles event before passing to child
 - If parent transitions to different child, old child never receives event
 - Check `currentActiveChild === this._current.__unsafe__getWithoutCapture()` detects transitions
@@ -168,6 +175,7 @@ transition(id: string, info: any = {}) {
 ```
 
 **Dot-separated path syntax:**
+
 - `'pointing_canvas'` - transition to sibling
 - `'crop.pointing_crop_handle'` - transition through multiple levels
 - Walks each level, exiting old states and entering new ones
@@ -193,6 +201,7 @@ enter(info: any, from: string) {
 ```
 
 **Parameters:**
+
 - `info: any` - Arbitrary data passed through transition (often event info)
 - `from: string` - ID of state transitioning from (for onEnter) or to (for onExit)
 
@@ -213,6 +222,7 @@ exit(info: any, to: string) {
 ```
 
 **Automatic child exit:**
+
 - When exiting, automatically exits current child state
 - Cascades through entire hierarchy
 - Ensures cleanup happens at all levels
@@ -223,21 +233,22 @@ exit(info: any, to: string) {
 
 ```typescript
 const STATE_NODES_TO_MEASURE = [
-    'brushing',
-    'cropping',
-    'dragging',
-    'dragging_handle',
-    'drawing',
-    'erasing',
-    'lasering',
-    'resizing',
-    'rotating',
-    'scribble_brushing',
-    'translating',
+	'brushing',
+	'cropping',
+	'dragging',
+	'dragging_handle',
+	'drawing',
+	'erasing',
+	'lasering',
+	'resizing',
+	'rotating',
+	'scribble_brushing',
+	'translating',
 ]
 ```
 
 **Why these states:**
+
 - All are high-frequency interaction states
 - Called 60+ times per second during active use
 - Performance issues here directly impact user experience
@@ -251,18 +262,17 @@ From `packages/editor/src/lib/editor/Editor.ts:10572-10582`:
 
 ```typescript
 if (
-    inputs.getIsPointing() &&
-    !inputs.getIsDragging() &&
-    Vec.Dist2(inputs.getOriginPagePoint(), inputs.getCurrentPagePoint()) *
-        this.getZoomLevel() >
-        (instanceState.isCoarsePointer
-            ? this.options.coarseDragDistanceSquared
-            : this.options.dragDistanceSquared) /
-            cz
+	inputs.getIsPointing() &&
+	!inputs.getIsDragging() &&
+	Vec.Dist2(inputs.getOriginPagePoint(), inputs.getCurrentPagePoint()) * this.getZoomLevel() >
+		(instanceState.isCoarsePointer
+			? this.options.coarseDragDistanceSquared
+			: this.options.dragDistanceSquared) /
+			cz
 ) {
-    // Start dragging
-    inputs.setIsDragging(true)
-    clearTimeout(this._longPressTimeout)
+	// Start dragging
+	inputs.setIsDragging(true)
+	clearTimeout(this._longPressTimeout)
 }
 ```
 
@@ -276,6 +286,7 @@ uiCoarseDragDistanceSquared: 625, // 25 squared (UI on mobile - high to prevent 
 ```
 
 **Zoom compensation:**
+
 - Formula: `distance * zoomLevel > threshold / cz`
 - Where `cz` is camera zoom level
 - Maintains consistent pixel threshold regardless of zoom
@@ -283,6 +294,7 @@ uiCoarseDragDistanceSquared: 625, // 25 squared (UI on mobile - high to prevent 
 - At 50% zoom, need double the actual distance
 
 **Distance calculation:**
+
 - Uses `Vec.Dist2` (squared distance) to avoid expensive `Math.sqrt`
 - Compares squared distances to squared thresholds
 - More efficient than comparing actual distances
@@ -317,6 +329,7 @@ static override children(): TLStateNodeConstructor[] {
 ```
 
 **State naming convention:**
+
 - `Pointing*` - Waiting for drag threshold or pointer up
 - `*ing` (Brushing, Translating, etc.) - Active interaction in progress
 - `Idle` - Default/resting state
@@ -446,45 +459,46 @@ export const GRID_INCREMENT = 5
 
 ```typescript
 export class PointingCanvas extends StateNode {
-    static override id = 'pointing_canvas'
+	static override id = 'pointing_canvas'
 
-    override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-        const additiveSelectionKey = info.shiftKey || info.accelKey
+	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
+		const additiveSelectionKey = info.shiftKey || info.accelKey
 
-        if (!additiveSelectionKey) {
-            if (this.editor.getSelectedShapeIds().length > 0) {
-                this.editor.markHistoryStoppingPoint('selecting none')
-                this.editor.selectNone()
-            }
-        }
-    }
+		if (!additiveSelectionKey) {
+			if (this.editor.getSelectedShapeIds().length > 0) {
+				this.editor.markHistoryStoppingPoint('selecting none')
+				this.editor.selectNone()
+			}
+		}
+	}
 
-    override onPointerMove(info: TLPointerEventInfo) {
-        if (this.editor.inputs.getIsDragging()) {
-            this.parent.transition('brushing', info)
-        }
-    }
+	override onPointerMove(info: TLPointerEventInfo) {
+		if (this.editor.inputs.getIsDragging()) {
+			this.parent.transition('brushing', info)
+		}
+	}
 
-    override onPointerUp(info: TLPointerEventInfo) {
-        selectOnCanvasPointerUp(this.editor, info)
-        this.complete()
-    }
+	override onPointerUp(info: TLPointerEventInfo) {
+		selectOnCanvasPointerUp(this.editor, info)
+		this.complete()
+	}
 
-    override onComplete() {
-        this.complete()
-    }
+	override onComplete() {
+		this.complete()
+	}
 
-    override onInterrupt() {
-        this.parent.transition('idle')
-    }
+	override onInterrupt() {
+		this.parent.transition('idle')
+	}
 
-    private complete() {
-        this.parent.transition('idle')
-    }
+	private complete() {
+		this.parent.transition('idle')
+	}
 }
 ```
 
 **Pattern:**
+
 - `onEnter` - Setup (clear selection if not additive)
 - `onPointerMove` - Check drag and transition to Brushing
 - `onPointerUp` - Complete interaction, return to Idle
@@ -497,12 +511,13 @@ export class PointingCanvas extends StateNode {
 ```typescript
 const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
 const shapesToHitTest =
-    brushBoxIsInsideViewport && !this.viewportDidChange
-        ? editor.getCurrentPageRenderingShapesSorted()  // On-screen shapes only
-        : editor.getCurrentPageShapesSorted()            // All shapes
+	brushBoxIsInsideViewport && !this.viewportDidChange
+		? editor.getCurrentPageRenderingShapesSorted() // On-screen shapes only
+		: editor.getCurrentPageShapesSorted() // All shapes
 ```
 
 **Why this optimization:**
+
 - On-screen tests are ~2x faster than testing all shapes
 - On page with 5000 shapes, significant performance difference
 - Only test all shapes if:
@@ -513,10 +528,10 @@ const shapesToHitTest =
 
 ```typescript
 this.cleanupViewportChangeReactor = react('viewport change while brushing', () => {
-    editor.getViewportPageBounds() // capture the viewport change
-    if (!isInitialCheck && !this.viewportDidChange) {
-        this.viewportDidChange = true
-    }
+	editor.getViewportPageBounds() // capture the viewport change
+	if (!isInitialCheck && !this.viewportDidChange) {
+		this.viewportDidChange = true
+	}
 })
 ```
 
@@ -524,39 +539,39 @@ this.cleanupViewportChangeReactor = react('viewport change while brushing', () =
 
 ```typescript
 testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
-    shape = shapesToHitTest[i]
-    if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
+	shape = shapesToHitTest[i]
+	if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
 
-    pageBounds = editor.getShapePageBounds(shape)
-    if (!pageBounds) continue testAllShapes
+	pageBounds = editor.getShapePageBounds(shape)
+	if (!pageBounds) continue testAllShapes
 
-    // If brush fully contains shape
-    if (brush.contains(pageBounds)) {
-        this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
-        continue testAllShapes
-    }
+	// If brush fully contains shape
+	if (brush.contains(pageBounds)) {
+		this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
+		continue testAllShapes
+	}
 
-    // In wrap mode or for frames, require full containment
-    if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
-        continue testAllShapes
-    }
+	// In wrap mode or for frames, require full containment
+	if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
+		continue testAllShapes
+	}
 
-    // Test brush edges against shape geometry
-    if (brush.collides(pageBounds)) {
-        pageTransform = editor.getShapePageTransform(shape)
-        if (!pageTransform) continue testAllShapes
-        localCorners = pageTransform.clone().invert().applyToPoints(corners)
+	// Test brush edges against shape geometry
+	if (brush.collides(pageBounds)) {
+		pageTransform = editor.getShapePageTransform(shape)
+		if (!pageTransform) continue testAllShapes
+		localCorners = pageTransform.clone().invert().applyToPoints(corners)
 
-        const geometry = editor.getShapeGeometry(shape)
-        hitTestBrushEdges: for (let i = 0; i < 4; i++) {
-            A = localCorners[i]
-            B = localCorners[(i + 1) % 4]
-            if (geometry.hitTestLineSegment(A, B, 0)) {
-                this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
-                break hitTestBrushEdges
-            }
-        }
-    }
+		const geometry = editor.getShapeGeometry(shape)
+		hitTestBrushEdges: for (let i = 0; i < 4; i++) {
+			A = localCorners[i]
+			B = localCorners[(i + 1) % 4]
+			if (geometry.hitTestLineSegment(A, B, 0)) {
+				this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
+				break hitTestBrushEdges
+			}
+		}
+	}
 }
 ```
 
@@ -584,16 +599,16 @@ override onTick({ elapsed }: TLTickEventInfo) {
 
 ```typescript
 export class EraserTool extends StateNode {
-    static override id = 'eraser'
-    static override initial = 'idle'
-    static override isLockable = false
-    static override children(): TLStateNodeConstructor[] {
-        return [Idle, Pointing, Erasing]
-    }
+	static override id = 'eraser'
+	static override initial = 'idle'
+	static override isLockable = false
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing, Erasing]
+	}
 
-    override onEnter() {
-        this.editor.setCursor({ type: 'cross', rotation: 0 })
-    }
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
 }
 ```
 
@@ -645,11 +660,13 @@ override onEnter() {
 ```
 
 **Accel key behavior:**
+
 - Without accel: Erases all shapes under pointer (z-order stack)
 - With accel: Erases only topmost shape
 - Checked in `onEnter`, `onKeyDown`, `onKeyUp`
 
 **Frame handling:**
+
 - Stop collecting shapes after hitting a frame
 - Prevents erasing everything inside a frame when erasing the frame itself
 
@@ -659,43 +676,45 @@ override onEnter() {
 
 ```typescript
 export class Crop extends StateNode {
-    static override id = 'crop'
-    static override initial = 'idle'
-    static override children(): TLStateNodeConstructor[] {
-        return [Idle, TranslatingCrop, PointingCrop, PointingCropHandle, Cropping]
-    }
+	static override id = 'crop'
+	static override initial = 'idle'
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, TranslatingCrop, PointingCrop, PointingCropHandle, Cropping]
+	}
 
-    markId = ''
-    didExit = false
+	markId = ''
+	didExit = false
 
-    override onEnter() {
-        this.didExit = false
-        this.markId = this.editor.markHistoryStoppingPoint('crop')
-    }
+	override onEnter() {
+		this.didExit = false
+		this.markId = this.editor.markHistoryStoppingPoint('crop')
+	}
 
-    override onExit() {
-        if (!this.didExit) {
-            this.didExit = true
-            this.editor.squashToMark(this.markId)
-        }
-    }
+	override onExit() {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.squashToMark(this.markId)
+		}
+	}
 
-    override onCancel() {
-        if (!this.didExit) {
-            this.didExit = true
-            this.editor.bailToMark(this.markId)
-        }
-    }
+	override onCancel() {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.bailToMark(this.markId)
+		}
+	}
 }
 ```
 
 **History management:**
+
 - `markHistoryStoppingPoint('crop')` - Creates undo checkpoint
 - `squashToMark(markId)` - Combines all changes since mark into single undo step
 - `bailToMark(markId)` - Reverts all changes since mark (cancel)
 - `didExit` flag prevents double-processing if both `onExit` and `onCancel` fire
 
 **Parent state benefits:**
+
 - Handles lifecycle for all child states
 - Single point for setup/cleanup logic
 - History management applies regardless of which child state is active
@@ -707,7 +726,7 @@ export class Crop extends StateNode {
 
 ```typescript
 class NewRoot extends RootState {
-    static override initial = initialState ?? ''
+	static override initial = initialState ?? ''
 }
 
 this.root = new NewRoot(this)
@@ -717,22 +736,23 @@ this.root.children = {}
 
 // Add tools
 for (const Tool of [...tools]) {
-    if (hasOwnProperty(this.root.children!, Tool.id)) {
-        throw Error(`Can't override tool with id "${Tool.id}"`)
-    }
-    this.root.children![Tool.id] = new Tool(this, this.root)
+	if (hasOwnProperty(this.root.children!, Tool.id)) {
+		throw Error(`Can't override tool with id "${Tool.id}"`)
+	}
+	this.root.children![Tool.id] = new Tool(this, this.root)
 }
 
 // ... cleanup and validation ...
 
 if (initialState && this.root.children[initialState] === undefined) {
-    throw Error(`No state found for initialState "${initialState}".`)
+	throw Error(`No state found for initialState "${initialState}".`)
 }
 
 this.root.enter(undefined, 'initial')
 ```
 
 **Tool registration:**
+
 - Tools are children of root state
 - Each tool is a StateNode instance
 - Tool IDs must be unique
@@ -749,6 +769,7 @@ setCurrentTool(id: string, info = {}): this {
 ```
 
 **Simple delegation:**
+
 - Just calls `transition` on root
 - Root handles the mechanics of exiting old tool, entering new one
 - Returns `this` for chaining
@@ -758,9 +779,9 @@ setCurrentTool(id: string, info = {}): this {
 ```typescript
 // On stylus eraser button
 if (info.button === STYLUS_ERASER_BUTTON) {
-    this._restoreToolId = this.getCurrentToolId()
-    this.complete()
-    this.setCurrentTool('eraser')
+	this._restoreToolId = this.getCurrentToolId()
+	this.complete()
+	this.setCurrentTool('eraser')
 }
 ```
 
@@ -772,12 +793,12 @@ if (info.button === STYLUS_ERASER_BUTTON) {
 
 ```typescript
 export type TLPointerEventInfo = TLBaseEventInfo & {
-    type: 'pointer'
-    name: TLPointerEventName
-    point: VecLike          // Client space coordinates
-    pointerId: number
-    button: number
-    isPen: boolean
+	type: 'pointer'
+	name: TLPointerEventName
+	point: VecLike // Client space coordinates
+	pointerId: number
+	button: number
+	isPen: boolean
 } & TLPointerEventTarget
 ```
 
@@ -785,22 +806,22 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 
 ```typescript
 export type TLPointerEventTarget =
-    | { target: 'canvas'; shape?: undefined }
-    | { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
-    | { target: 'shape'; shape: TLShape }
-    | { target: 'handle'; shape: TLShape; handle: TLHandle }
+	| { target: 'canvas'; shape?: undefined }
+	| { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
+	| { target: 'shape'; shape: TLShape }
+	| { target: 'handle'; shape: TLShape; handle: TLHandle }
 ```
 
 **TLBaseEventInfo (lines 46-53):**
 
 ```typescript
 export interface TLBaseEventInfo {
-    type: UiEventType
-    shiftKey: boolean
-    altKey: boolean
-    ctrlKey: boolean
-    metaKey: boolean
-    accelKey: boolean  // Cmd on Mac, Ctrl on Windows/Linux
+	type: UiEventType
+	shiftKey: boolean
+	altKey: boolean
+	ctrlKey: boolean
+	metaKey: boolean
+	accelKey: boolean // Cmd on Mac, Ctrl on Windows/Linux
 }
 ```
 
@@ -830,6 +851,7 @@ onExit?(info: any, to: string): void
 ```
 
 **Lifecycle events:**
+
 - `onCancel` - User pressed Escape or equivalent
 - `onComplete` - Interaction finished successfully
 - `onInterrupt` - Interaction interrupted (e.g., by another tool activation)
@@ -841,21 +863,23 @@ onExit?(info: any, to: string): void
 
 ```typescript
 export interface TLStateNodeConstructor {
-    new (editor: Editor, parent?: StateNode): StateNode
-    id: string
-    initial?: string
-    children?(): TLStateNodeConstructor[]
-    isLockable: boolean
-    useCoalescedEvents: boolean
+	new (editor: Editor, parent?: StateNode): StateNode
+	id: string
+	initial?: string
+	children?(): TLStateNodeConstructor[]
+	isLockable: boolean
+	useCoalescedEvents: boolean
 }
 ```
 
 **isLockable (default: true):**
+
 - Whether tool can be "locked" (sticky) to prevent returning to select tool
 - SelectTool, EraserTool set to `false` (can't lock these)
 - Drawing tools typically `true`
 
 **useCoalescedEvents (default: false):**
+
 - Performance optimization for pointer events
 - If true, browser coalesces multiple pointer events into one
 - Useful for high-frequency events during drawing
@@ -876,6 +900,7 @@ setCurrentToolIdMask(id: string | undefined) {
 ```
 
 **Purpose:**
+
 - Hack/escape hatch for UI display
 - Child state can report different tool as active
 - Example: Temporary transitions that shouldn't change UI
@@ -910,10 +935,10 @@ isInAny(...paths: string[]): boolean {
 **Usage examples:**
 
 ```typescript
-editor.isIn('select')                    // In select tool
-editor.isIn('select.crop')              // In crop mode
-editor.isIn('select.crop.cropping')     // Actively cropping
-editor.isInAny('select.brushing', 'select.translating')  // Multiple checks
+editor.isIn('select') // In select tool
+editor.isIn('select.crop') // In crop mode
+editor.isIn('select.crop.cropping') // Actively cropping
+editor.isInAny('select.brushing', 'select.translating') // Multiple checks
 ```
 
 ## Constants and configuration
@@ -963,6 +988,7 @@ gridSteps: [
 ```
 
 **Zoom-dependent grid:**
+
 - Different grid step sizes at different zoom levels
 - `min` - Minimum zoom for this step
 - `mid` - Midpoint zoom for this step
@@ -973,24 +999,28 @@ gridSteps: [
 ### Why not XState (from article)
 
 **Architectural fit:**
+
 - tldraw uses class-based inheritance for tools
 - XState is configuration-first (JSON/object configs)
 - Would need to define machines separately or wrap them in classes
 - StateNode's class-based approach more natural for OOP patterns
 
 **Editor integration:**
+
 - Every state needs `editor` reference
 - StateNode: passed in constructor, available as `this.editor`
 - XState: would need context objects or services
 - More boilerplate for same level of access
 
 **Performance:**
+
 - State transitions happen on every pointer event (60+ fps during drag)
 - StateNode: minimal - method calls and property updates
 - XState: configuration parsing, actor model overhead
 - General-purpose library has runtime cost
 
 **Mental model:**
+
 - StateNode: classes with handler methods (`onPointerDown`, etc.)
 - Direct, obvious - read method and see what happens
 - XState: declarative configuration with actions, guards, services
@@ -998,11 +1028,13 @@ gridSteps: [
 - Contributors familiar with OOP have easier time
 
 **Type safety:**
+
 - TypeScript inference works naturally with class hierarchy
 - Each state knows parent type, has typed editor access
 - XState: requires more ceremony for equivalent type safety
 
 **Tradeoffs:**
+
 - StateNode: ~300 lines of code, must maintain ourselves
 - XState: battle-tested, features like visualization, time-travel debugging
 - For tldraw's use case, simplicity and performance outweigh XState's power
@@ -1011,6 +1043,7 @@ gridSteps: [
 ## Implementation size
 
 **StateNode.ts:** ~288 lines total
+
 - Constructor: ~45 lines
 - Event handling: ~15 lines
 - Transition logic: ~25 lines
@@ -1019,6 +1052,7 @@ gridSteps: [
 - Type definitions: ~100 lines
 
 **Small, focused implementation:**
+
 - No external dependencies (except @tldraw/state for reactive atoms)
 - Well-tested
 - Hasn't needed significant changes since initial implementation
@@ -1027,6 +1061,7 @@ gridSteps: [
 ## Key source files
 
 ### Core implementation
+
 - `packages/editor/src/lib/editor/tools/StateNode.ts` - Base class (~288 lines)
 - `packages/editor/src/lib/editor/types/event-types.ts` - Event types and mapping
 - `packages/editor/src/lib/editor/Editor.ts` - Root state machine setup
@@ -1038,6 +1073,7 @@ gridSteps: [
   - Lines 117-143: Drag thresholds and timing
 
 ### SelectTool (complex example)
+
 - `packages/tldraw/src/lib/tools/SelectTool/SelectTool.ts` - Parent with 18 children
 - `packages/tldraw/src/lib/tools/SelectTool/childStates/Idle.ts` - Entry state
   - Lines 54-166: onPointerDown routing
@@ -1051,11 +1087,13 @@ gridSteps: [
   - Shows history management pattern
 
 ### EraserTool (simple example)
+
 - `packages/tldraw/src/lib/tools/EraserTool/EraserTool.ts` - Simple 3-state tool
 - `packages/tldraw/src/lib/tools/EraserTool/childStates/Pointing.ts` - Hit testing
   - Lines 8-46: Z-order traversal, accel key handling
 
 ### Input management
+
 - `packages/editor/src/lib/editor/managers/InputsManager/InputsManager.ts`
   - Lines 14-102: Point tracking (origin, previous, current)
   - Lines 283-306: isDragging flag management

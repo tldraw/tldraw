@@ -6,6 +6,9 @@ keywords:
   - resize
   - handles
   - cursor
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Cursor offset and flip handling
@@ -24,9 +27,9 @@ We fix this by calculating an offset when the drag starts:
 
 ```typescript
 const dragHandlePoint = Vec.RotWith(
-  selectionBounds.getHandlePoint(this.info.handle!),
-  selectionBounds.point,
-  selectionRotation
+	selectionBounds.getHandlePoint(this.info.handle!),
+	selectionBounds.point,
+	selectionRotation
 )
 
 const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
@@ -37,15 +40,9 @@ The `dragHandlePoint` is where the handle actually is. The `originPagePoint` is 
 During the drag, we adjust both the current and origin points:
 
 ```typescript
-const currentPagePoint = this.editor.inputs
-  .getCurrentPagePoint()
-  .clone()
-  .sub(cursorHandleOffset)
+const currentPagePoint = this.editor.inputs.getCurrentPagePoint().clone().sub(cursorHandleOffset)
 
-const originPagePoint = this.editor.inputs
-  .getOriginPagePoint()
-  .clone()
-  .sub(cursorHandleOffset)
+const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 ```
 
 Both positions get the same offset subtracted. This makes the math work as if you clicked exactly at the handle center, which keeps the handle visually locked to your cursor.
@@ -104,10 +101,10 @@ Browsers only provide 8 fixed resize cursors (`nwse-resize`, `ew-resize`, etc.) 
 Each cursor is an SVG with a drop shadow. The shadow always points "down" in screen space, regardless of rotation:
 
 ```typescript
-const a = (-tr - r) * (PI / 180)  // Convert to radians
+const a = (-tr - r) * (PI / 180) // Convert to radians
 const s = Math.sin(a)
 const c = Math.cos(a)
-const dx = 1 * c - 1 * s  // Rotated shadow offset
+const dx = 1 * c - 1 * s // Rotated shadow offset
 const dy = 1 * s + 1 * c
 ```
 

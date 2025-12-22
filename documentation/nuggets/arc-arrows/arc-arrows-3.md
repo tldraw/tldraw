@@ -11,6 +11,9 @@ voice: 8
 potential: 7
 accuracy: 8
 notes: 'Thorough edge case coverage. Opening questions are engaging. Verified: double-bound <30px check, offset flipping multipliers (-1.5, -2), clamping logic. Quite long - could be tightened.'
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Arc arrows

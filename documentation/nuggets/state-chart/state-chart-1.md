@@ -7,6 +7,9 @@ keywords:
   - events
   - routing
   - hierarchy
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Hierarchical event routing
@@ -103,6 +106,7 @@ If we routed child-first, Idle would be both the parent and the active child (si
 Event routing is in `packages/editor/src/lib/editor/tools/StateNode.ts`. The `handleEvent` method is around line 178. Event type mappings (converting `'pointer_down'` to `'onPointerDown'`) are in `packages/editor/src/lib/editor/types/event-types.ts`.
 
 Individual tools demonstrate the pattern:
+
 - `packages/tldraw/src/lib/tools/SelectTool/childStates/Idle.ts` shows complex routing in `onPointerDown` (line 54)
 - `packages/tldraw/src/lib/tools/SelectTool/childStates/PointingCanvas.ts` shows simpler forwarding
 

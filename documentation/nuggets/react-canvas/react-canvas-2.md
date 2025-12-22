@@ -6,6 +6,9 @@ keywords:
   - react
   - DOM
   - canvas
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # React as a canvas renderer
@@ -32,49 +35,49 @@ The container positioning logic runs in a `useQuickReactor` hook, which executes
 
 ```typescript
 const memoizedStuffRef = useRef({
-  transform: '',
-  clipPath: 'none',
-  width: 0,
-  height: 0,
+	transform: '',
+	clipPath: 'none',
+	width: 0,
+	height: 0,
 })
 
 useQuickReactor(
-  'set shape stuff',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set shape stuff',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const prev = memoizedStuffRef.current
+		const prev = memoizedStuffRef.current
 
-    // Transform
-    const pageTransform = editor.getShapePageTransform(id)
-    const transform = Mat.toCssString(pageTransform)
+		// Transform
+		const pageTransform = editor.getShapePageTransform(id)
+		const transform = Mat.toCssString(pageTransform)
 
-    if (transform !== prev.transform) {
-      setStyleProperty(containerRef.current, 'transform', transform)
-      prev.transform = transform
-    }
+		if (transform !== prev.transform) {
+			setStyleProperty(containerRef.current, 'transform', transform)
+			prev.transform = transform
+		}
 
-    // Dimensions
-    const bounds = editor.getShapeGeometry(shape).bounds
-    const width = Math.max(bounds.width, 1)
-    const height = Math.max(bounds.height, 1)
+		// Dimensions
+		const bounds = editor.getShapeGeometry(shape).bounds
+		const width = Math.max(bounds.width, 1)
+		const height = Math.max(bounds.height, 1)
 
-    if (width !== prev.width || height !== prev.height) {
-      setStyleProperty(containerRef.current, 'width', width + 'px')
-      setStyleProperty(containerRef.current, 'height', height + 'px')
-      prev.width = width
-      prev.height = height
-    }
+		if (width !== prev.width || height !== prev.height) {
+			setStyleProperty(containerRef.current, 'width', width + 'px')
+			setStyleProperty(containerRef.current, 'height', height + 'px')
+			prev.width = width
+			prev.height = height
+		}
 
-    // Clipping
-    const clipPath = editor.getShapeClipPath(id) ?? 'none'
-    if (clipPath !== prev.clipPath) {
-      setStyleProperty(containerRef.current, 'clip-path', clipPath)
-      prev.clipPath = clipPath
-    }
-  },
-  [editor]
+		// Clipping
+		const clipPath = editor.getShapeClipPath(id) ?? 'none'
+		if (clipPath !== prev.clipPath) {
+			setStyleProperty(containerRef.current, 'clip-path', clipPath)
+			prev.clipPath = clipPath
+		}
+	},
+	[editor]
 )
 ```
 
@@ -101,14 +104,14 @@ The content rendering uses a memoized component with a custom equality check:
 
 ```typescript
 export const InnerShape = memo(
-  function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-    return useStateTracking(
-      'InnerShape:' + shape.type,
-      () => util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
-      [util, shape.id]
-    )
-  },
-  (prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
+	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() => util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
+		)
+	},
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
 )
 ```
 
@@ -116,7 +119,7 @@ The equality function checks only props and meta:
 
 ```typescript
 export const areShapesContentEqual = (a: TLShape, b: TLShape) =>
-  a.props === b.props && a.meta === b.meta
+	a.props === b.props && a.meta === b.meta
 ```
 
 This is reference equality, not deep comparison. Shape props and meta are immutable objects. When you change a shape's text content or color, we create a new props object. Same reference means nothing changed.
@@ -131,23 +134,21 @@ The entire shapes layer is transformed as a unit. Panning and zooming move one p
 
 ```typescript
 useQuickReactor(
-  'position layers',
-  function positionLayersWhenCameraMoves() {
-    const { x, y, z } = editor.getCamera()
+	'position layers',
+	function positionLayersWhenCameraMoves() {
+		const { x, y, z } = editor.getCamera()
 
-    // Zoom offset ensures pixel alignment
-    const offset =
-      z >= 1
-        ? modulate(z, [1, 8], [0.125, 0.5], true)
-        : modulate(z, [0.1, 1], [-2, 0.125], true)
+		// Zoom offset ensures pixel alignment
+		const offset =
+			z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-    const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-      x + offset
-    )}px,${toDomPrecision(y + offset)}px)`
+		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+			x + offset
+		)}px,${toDomPrecision(y + offset)}px)`
 
-    setStyleProperty(rHtmlLayer.current, 'transform', transform)
-  },
-  [editor, container]
+		setStyleProperty(rHtmlLayer.current, 'transform', transform)
+	},
+	[editor, container]
 )
 ```
 

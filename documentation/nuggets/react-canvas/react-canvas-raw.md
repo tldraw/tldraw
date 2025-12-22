@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - react
   - canvas
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # React as a canvas renderer - Raw notes
@@ -48,28 +51,27 @@ The entire shapes layer is transformed via CSS, not individual shapes. This make
 
 ```typescript
 useQuickReactor(
-  'position layers',
-  function positionLayersWhenCameraMoves() {
-    const { x, y, z } = editor.getCamera()
+	'position layers',
+	function positionLayersWhenCameraMoves() {
+		const { x, y, z } = editor.getCamera()
 
-    // Zoom offset calculation - ensures pixel alignment at different zoom levels
-    const offset =
-      z >= 1
-        ? modulate(z, [1, 8], [0.125, 0.5], true)
-        : modulate(z, [0.1, 1], [-2, 0.125], true)
+		// Zoom offset calculation - ensures pixel alignment at different zoom levels
+		const offset =
+			z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-    const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-      x + offset
-    )}px,${toDomPrecision(y + offset)}px)`
+		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+			x + offset
+		)}px,${toDomPrecision(y + offset)}px)`
 
-    setStyleProperty(rHtmlLayer.current, 'transform', transform)
-    setStyleProperty(rHtmlLayer2.current, 'transform', transform)
-  },
-  [editor, container]
+		setStyleProperty(rHtmlLayer.current, 'transform', transform)
+		setStyleProperty(rHtmlLayer2.current, 'transform', transform)
+	},
+	[editor, container]
 )
 ```
 
 **Key implementation details:**
+
 - `toDomPrecision()`: Rounds to 4 decimal places (`Math.round(v * 1e4) / 1e4`)
   - Source: `/packages/editor/src/lib/primitives/utils.ts` line 351-352
 - `modulate()`: Maps value from one range to another with optional clamping
@@ -85,15 +87,15 @@ Text shadows are disabled below a certain zoom level to improve performance:
 
 ```typescript
 if (
-  rMemoizedStuff.current.allowTextOutline &&
-  z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
+	rMemoizedStuff.current.allowTextOutline &&
+	z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
 ) {
-  const lodDisableTextOutline = z < editor.options.textShadowLod
-  container.style.setProperty(
-    '--tl-text-outline',
-    lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
-  )
-  rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+	const lodDisableTextOutline = z < editor.options.textShadowLod
+	container.style.setProperty(
+		'--tl-text-outline',
+		lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
+	)
+	rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
 }
 ```
 
@@ -111,56 +113,56 @@ Uses `useQuickReactor` for immediate, unbatched DOM updates:
 
 ```typescript
 const memoizedStuffRef = useRef({
-  transform: '',
-  clipPath: 'none',
-  width: 0,
-  height: 0,
-  x: 0,
-  y: 0,
-  isCulled: false,
+	transform: '',
+	clipPath: 'none',
+	width: 0,
+	height: 0,
+	x: 0,
+	y: 0,
+	isCulled: false,
 })
 
 useQuickReactor(
-  'set shape stuff',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set shape stuff',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const prev = memoizedStuffRef.current
+		const prev = memoizedStuffRef.current
 
-    // Clip path update
-    const clipPath = editor.getShapeClipPath(id) ?? 'none'
-    if (clipPath !== prev.clipPath) {
-      setStyleProperty(containerRef.current, 'clip-path', clipPath)
-      setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
-      prev.clipPath = clipPath
-    }
+		// Clip path update
+		const clipPath = editor.getShapeClipPath(id) ?? 'none'
+		if (clipPath !== prev.clipPath) {
+			setStyleProperty(containerRef.current, 'clip-path', clipPath)
+			setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
+			prev.clipPath = clipPath
+		}
 
-    // Transform update
-    const pageTransform = editor.getShapePageTransform(id)
-    const transform = Mat.toCssString(pageTransform)
-    const bounds = editor.getShapeGeometry(shape).bounds
+		// Transform update
+		const pageTransform = editor.getShapePageTransform(id)
+		const transform = Mat.toCssString(pageTransform)
+		const bounds = editor.getShapeGeometry(shape).bounds
 
-    if (transform !== prev.transform) {
-      setStyleProperty(containerRef.current, 'transform', transform)
-      setStyleProperty(bgContainerRef.current, 'transform', transform)
-      prev.transform = transform
-    }
+		if (transform !== prev.transform) {
+			setStyleProperty(containerRef.current, 'transform', transform)
+			setStyleProperty(bgContainerRef.current, 'transform', transform)
+			prev.transform = transform
+		}
 
-    // Width/Height update (minimum 1px to ensure rendering)
-    const width = Math.max(bounds.width, 1)
-    const height = Math.max(bounds.height, 1)
+		// Width/Height update (minimum 1px to ensure rendering)
+		const width = Math.max(bounds.width, 1)
+		const height = Math.max(bounds.height, 1)
 
-    if (width !== prev.width || height !== prev.height) {
-      setStyleProperty(containerRef.current, 'width', width + 'px')
-      setStyleProperty(containerRef.current, 'height', height + 'px')
-      setStyleProperty(bgContainerRef.current, 'width', width + 'px')
-      setStyleProperty(bgContainerRef.current, 'height', height + 'px')
-      prev.width = width
-      prev.height = height
-    }
-  },
-  [editor]
+		if (width !== prev.width || height !== prev.height) {
+			setStyleProperty(containerRef.current, 'width', width + 'px')
+			setStyleProperty(containerRef.current, 'height', height + 'px')
+			setStyleProperty(bgContainerRef.current, 'width', width + 'px')
+			setStyleProperty(bgContainerRef.current, 'height', height + 'px')
+			prev.width = width
+			prev.height = height
+		}
+	},
+	[editor]
 )
 ```
 
@@ -177,14 +179,15 @@ static toCssString(m: MatLike) {
 ```
 
 Matrix model structure (lines 9-16):
+
 ```typescript
 interface MatModel {
-  a: number  // horizontal scaling
-  b: number  // vertical skewing
-  c: number  // horizontal skewing
-  d: number  // vertical scaling
-  e: number  // horizontal translation
-  f: number  // vertical translation
+	a: number // horizontal scaling
+	b: number // vertical skewing
+	c: number // horizontal skewing
+	d: number // vertical scaling
+	e: number // horizontal translation
+	f: number // vertical translation
 }
 ```
 
@@ -194,16 +197,16 @@ Uses React.memo with custom equality check:
 
 ```typescript
 export const InnerShape = memo(
-  function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-    return useStateTracking(
-      'InnerShape:' + shape.type,
-      () =>
-        // Always fetch latest from store to avoid stale data
-        util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
-      [util, shape.id]
-    )
-  },
-  (prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
+	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
+		return useStateTracking(
+			'InnerShape:' + shape.type,
+			() =>
+				// Always fetch latest from store to avoid stale data
+				util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+			[util, shape.id]
+		)
+	},
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
 )
 ```
 
@@ -213,7 +216,7 @@ Source: `/packages/editor/src/lib/utils/areShapesContentEqual.ts`
 
 ```typescript
 export const areShapesContentEqual = (a: TLShape, b: TLShape) =>
-  a.props === b.props && a.meta === b.meta
+	a.props === b.props && a.meta === b.meta
 ```
 
 This does reference equality on props and meta (which are immutable), not deep equality.
@@ -224,16 +227,16 @@ Less frequent updates use `useLayoutEffect`:
 
 ```typescript
 useLayoutEffect(() => {
-  const container = containerRef.current
-  const bgContainer = bgContainerRef.current
+	const container = containerRef.current
+	const bgContainer = bgContainerRef.current
 
-  // Opacity
-  setStyleProperty(container, 'opacity', opacity)
-  setStyleProperty(bgContainer, 'opacity', opacity)
+	// Opacity
+	setStyleProperty(container, 'opacity', opacity)
+	setStyleProperty(bgContainer, 'opacity', opacity)
 
-  // Z-Index
-  setStyleProperty(container, 'z-index', index)
-  setStyleProperty(bgContainer, 'z-index', backgroundIndex)
+	// Z-Index
+	setStyleProperty(container, 'z-index', index)
+	setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 }, [opacity, index, backgroundIndex])
 ```
 
@@ -241,20 +244,20 @@ useLayoutEffect(() => {
 
 ```typescript
 useQuickReactor(
-  'set display',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set display',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const culledShapes = editor.getCulledShapes()
-    const isCulled = culledShapes.has(id)
-    if (isCulled !== memoizedStuffRef.current.isCulled) {
-      setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-      setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
-      memoizedStuffRef.current.isCulled = isCulled
-    }
-  },
-  [editor]
+		const culledShapes = editor.getCulledShapes()
+		const isCulled = culledShapes.has(id)
+		if (isCulled !== memoizedStuffRef.current.isCulled) {
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			memoizedStuffRef.current.isCulled = isCulled
+		}
+	},
+	[editor]
 )
 ```
 
@@ -264,12 +267,12 @@ Source: `/packages/editor/src/lib/utils/dom.ts` lines 92-99
 
 ```typescript
 export const setStyleProperty = (
-  elm: HTMLElement | null,
-  property: string,
-  value: string | number
+	elm: HTMLElement | null,
+	property: string,
+	value: string | number
 ) => {
-  if (!elm) return
-  elm.style.setProperty(property, value as string)
+	if (!elm) return
+	elm.style.setProperty(property, value as string)
 }
 ```
 
@@ -278,6 +281,7 @@ export const setStyleProperty = (
 ### @tldraw/state system
 
 Core reactive primitives:
+
 - `Atom`: Writable reactive value
 - `Computed`: Derived reactive value
 - `EffectScheduler`: Runs side effects when dependencies change
@@ -287,6 +291,7 @@ Core reactive primitives:
 Source: `/packages/state-react/src/lib/useValue.ts`
 
 Two overloads:
+
 1. Subscribe to existing signal: `useValue(signal)`
 2. Create computed signal: `useValue(name, fn, deps)`
 
@@ -294,33 +299,33 @@ Implementation (lines 79-108):
 
 ```typescript
 export function useValue() {
-  const args = arguments
-  const deps = args.length === 3 ? args[2] : [args[0]]
-  const name = args.length === 3 ? args[0] : `useValue(${args[0].name})`
+	const args = arguments
+	const deps = args.length === 3 ? args[2] : [args[0]]
+	const name = args.length === 3 ? args[0] : `useValue(${args[0].name})`
 
-  const { $val, subscribe, getSnapshot } = useMemo(() => {
-    // Create or use existing signal
-    const $val =
-      args.length === 1 ? (args[0] as Signal<any>) : (computed(name, args[1]) as Signal<any>)
+	const { $val, subscribe, getSnapshot } = useMemo(() => {
+		// Create or use existing signal
+		const $val =
+			args.length === 1 ? (args[0] as Signal<any>) : (computed(name, args[1]) as Signal<any>)
 
-    return {
-      $val,
-      subscribe: (notify: () => void) => {
-        return react(`useValue(${name})`, () => {
-          try {
-            $val.get()
-          } catch {
-            // Will be rethrown during render if component doesn't unmount first
-          }
-          notify()
-        })
-      },
-      getSnapshot: () => $val.lastChangedEpoch,
-    }
-  }, deps)
+		return {
+			$val,
+			subscribe: (notify: () => void) => {
+				return react(`useValue(${name})`, () => {
+					try {
+						$val.get()
+					} catch {
+						// Will be rethrown during render if component doesn't unmount first
+					}
+					notify()
+				})
+			},
+			getSnapshot: () => $val.lastChangedEpoch,
+		}
+	}, deps)
 
-  useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-  return $val.__unsafe__getWithoutCapture()
+	useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+	return $val.__unsafe__getWithoutCapture()
 }
 ```
 
@@ -334,45 +339,45 @@ Wraps render function in reactive tracking context:
 
 ```typescript
 export function useStateTracking<T>(name: string, render: () => T, deps: unknown[] = []): T {
-  const renderRef = React.useRef(render)
-  renderRef.current = render
+	const renderRef = React.useRef(render)
+	renderRef.current = render
 
-  const [scheduler, subscribe, getSnapshot] = React.useMemo(() => {
-    let scheduleUpdate = null as null | (() => void)
+	const [scheduler, subscribe, getSnapshot] = React.useMemo(() => {
+		let scheduleUpdate = null as null | (() => void)
 
-    const subscribe = (cb: () => void) => {
-      scheduleUpdate = cb
-      return () => {
-        scheduleUpdate = null
-      }
-    }
+		const subscribe = (cb: () => void) => {
+			scheduleUpdate = cb
+			return () => {
+				scheduleUpdate = null
+			}
+		}
 
-    const scheduler = new EffectScheduler(
-      `useStateTracking(${name})`,
-      () => renderRef.current?.(),
-      {
-        scheduleEffect() {
-          scheduleUpdate?.()
-        },
-      }
-    )
+		const scheduler = new EffectScheduler(
+			`useStateTracking(${name})`,
+			() => renderRef.current?.(),
+			{
+				scheduleEffect() {
+					scheduleUpdate?.()
+				},
+			}
+		)
 
-    const getSnapshot = () => scheduler.scheduleCount
+		const getSnapshot = () => scheduler.scheduleCount
 
-    return [scheduler, subscribe, getSnapshot]
-  }, [name, ...deps])
+		return [scheduler, subscribe, getSnapshot]
+	}, [name, ...deps])
 
-  React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+	React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-  React.useEffect(() => {
-    scheduler.attach()
-    scheduler.maybeScheduleEffect()
-    return () => {
-      scheduler.detach()
-    }
-  }, [scheduler])
+	React.useEffect(() => {
+		scheduler.attach()
+		scheduler.maybeScheduleEffect()
+		return () => {
+			scheduler.detach()
+		}
+	}, [scheduler])
 
-  return scheduler.execute()
+	return scheduler.execute()
 }
 ```
 
@@ -384,14 +389,14 @@ Runs effects immediately without throttling:
 
 ```typescript
 export function useQuickReactor(name: string, reactFn: () => void, deps: any[] = EMPTY_ARRAY) {
-  useEffect(() => {
-    const scheduler = new EffectScheduler(name, reactFn)
-    scheduler.attach()
-    scheduler.execute()
-    return () => {
-      scheduler.detach()
-    }
-  }, deps)
+	useEffect(() => {
+		const scheduler = new EffectScheduler(name, reactFn)
+		scheduler.attach()
+		scheduler.execute()
+		return () => {
+			scheduler.detach()
+		}
+	}, deps)
 }
 ```
 
@@ -405,20 +410,20 @@ Throttles effects to next animation frame:
 
 ```typescript
 export function useReactor(name: string, reactFn: () => void, deps: undefined | any[] = []) {
-  useEffect(() => {
-    let cancelFn: () => void | undefined
-    const scheduler = new EffectScheduler(name, reactFn, {
-      scheduleEffect: (cb) => {
-        cancelFn = throttleToNextFrame(cb)
-      },
-    })
-    scheduler.attach()
-    scheduler.execute()
-    return () => {
-      scheduler.detach()
-      cancelFn?.()
-    }
-  }, deps)
+	useEffect(() => {
+		let cancelFn: () => void | undefined
+		const scheduler = new EffectScheduler(name, reactFn, {
+			scheduleEffect: (cb) => {
+				cancelFn = throttleToNextFrame(cb)
+			},
+		})
+		scheduler.attach()
+		scheduler.execute()
+		return () => {
+			scheduler.detach()
+			cancelFn?.()
+		}
+	}, deps)
 }
 ```
 
@@ -427,6 +432,7 @@ export function useReactor(name: string, reactFn: () => void, deps: undefined | 
 Source: `/packages/state/src/lib/EffectScheduler.ts`
 
 Key properties (lines 42-87):
+
 - `_isActivelyListening`: Whether scheduler is attached
 - `lastTraversedEpoch`: Last time dependencies were checked
 - `lastReactedEpoch`: Last time effect was executed
@@ -435,6 +441,7 @@ Key properties (lines 42-87):
 - `_scheduleEffect`: Optional custom scheduler function
 
 Method `maybeScheduleEffect()` (lines 90-99):
+
 ```typescript
 maybeScheduleEffect() {
   // bail out if we have been cancelled by another effect
@@ -458,28 +465,29 @@ maybeScheduleEffect() {
 Source: `/packages/editor/src/lib/editor/derivations/notVisibleShapes.ts`
 
 Algorithm (lines 5-24):
+
 ```typescript
 function fromScratch(editor: Editor): Set<TLShapeId> {
-  const shapesIds = editor.getCurrentPageShapeIds()
-  const viewportPageBounds = editor.getViewportPageBounds()
-  const notVisibleShapes = new Set<TLShapeId>()
+	const shapesIds = editor.getCurrentPageShapeIds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	const notVisibleShapes = new Set<TLShapeId>()
 
-  shapesIds.forEach((id) => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	shapesIds.forEach((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    // Check if shape can be culled (some shapes like frames cannot)
-    const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-    if (!canCull) return
+		// Check if shape can be culled (some shapes like frames cannot)
+		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+		if (!canCull) return
 
-    // If shape is fully outside viewport, add to set
-    const pageBounds = editor.getShapePageBounds(id)
-    if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
-      notVisibleShapes.add(id)
-    }
-  })
+		// If shape is fully outside viewport, add to set
+		const pageBounds = editor.getShapePageBounds(id)
+		if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
+			notVisibleShapes.add(id)
+		}
+	})
 
-  return notVisibleShapes
+	return notVisibleShapes
 }
 ```
 
@@ -501,26 +509,26 @@ Source: `/packages/editor/src/lib/editor/derivations/notVisibleShapes.ts` lines 
 
 ```typescript
 export function notVisibleShapes(editor: Editor) {
-  return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-    const nextValue = fromScratch(editor)
+	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
+		const nextValue = fromScratch(editor)
 
-    if (isUninitialized(prevValue)) {
-      return nextValue
-    }
+		if (isUninitialized(prevValue)) {
+			return nextValue
+		}
 
-    // If there are more or less shapes, we know there's a change
-    if (prevValue.size !== nextValue.size) return nextValue
+		// If there are more or less shapes, we know there's a change
+		if (prevValue.size !== nextValue.size) return nextValue
 
-    // If any of the old shapes are not in the new set, we know there's a change
-    for (const prev of prevValue) {
-      if (!nextValue.has(prev)) {
-        return nextValue
-      }
-    }
+		// If any of the old shapes are not in the new set, we know there's a change
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				return nextValue
+			}
+		}
 
-    // If we've made it here, we know that the set is the same
-    return prevValue
-  })
+		// If we've made it here, we know that the set is the same
+		return prevValue
+	})
 }
 ```
 
@@ -553,11 +561,13 @@ getCulledShapes() {
 ```
 
 Private field (line 5130):
+
 ```typescript
 private _notVisibleShapes = notVisibleShapes(this)
 ```
 
 Public accessor (lines 5125-5128):
+
 ```typescript
 @computed
 getNotVisibleShapes() {
@@ -571,34 +581,35 @@ Source: `/packages/editor/src/lib/components/default-components/DefaultCanvas.ts
 
 ```typescript
 function ReflowIfNeeded() {
-  const editor = useEditor()
-  const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
+	const editor = useEditor()
+	const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
 
-  useQuickReactor(
-    'reflow for culled shapes',
-    () => {
-      const culledShapes = editor.getCulledShapes()
-      if (
-        culledShapesRef.current.size === culledShapes.size &&
-        [...culledShapes].every((id) => culledShapesRef.current.has(id))
-      )
-        return
+	useQuickReactor(
+		'reflow for culled shapes',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			if (
+				culledShapesRef.current.size === culledShapes.size &&
+				[...culledShapes].every((id) => culledShapesRef.current.has(id))
+			)
+				return
 
-      culledShapesRef.current = culledShapes
-      const canvas = document.getElementsByClassName('tl-canvas')
-      if (canvas.length === 0) return
+			culledShapesRef.current = culledShapes
+			const canvas = document.getElementsByClassName('tl-canvas')
+			if (canvas.length === 0) return
 
-      // This causes a reflow - forces Safari to recalculate layout
-      // https://gist.github.com/paulirish/5d52fb081b3570c81e3a
-      const _height = (canvas[0] as HTMLDivElement).offsetHeight
-    },
-    [editor]
-  )
-  return null
+			// This causes a reflow - forces Safari to recalculate layout
+			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+			const _height = (canvas[0] as HTMLDivElement).offsetHeight
+		},
+		[editor]
+	)
+	return null
 }
 ```
 
 Only included in Safari builds (line 443):
+
 ```typescript
 {tlenv.isSafari && <ReflowIfNeeded />}
 ```
@@ -634,53 +645,57 @@ Source: `/packages/editor/src/lib/editor/Editor.ts` lines 4073-4178
 Key aspects:
 
 **Index calculation** (lines 4091-4092):
+
 ```typescript
-let nextIndex = this.options.maxShapesPerPage * 2      // 8000
+let nextIndex = this.options.maxShapesPerPage * 2 // 8000
 let nextBackgroundIndex = this.options.maxShapesPerPage // 4000
 ```
 
 **maxShapesPerPage constant:**
 Source: `/packages/editor/src/lib/options.ts` line 110
+
 ```typescript
 maxShapesPerPage: 4000,
 ```
 
 **Background index management** (lines 4136-4140):
+
 ```typescript
 if (util.providesBackgroundForChildren(shape)) {
-  backgroundIndexToRestore = nextBackgroundIndex
-  nextBackgroundIndex = nextIndex
-  nextIndex += this.options.maxShapesPerPage  // Add 4000 for nested layer
+	backgroundIndexToRestore = nextBackgroundIndex
+	nextBackgroundIndex = nextIndex
+	nextIndex += this.options.maxShapesPerPage // Add 4000 for nested layer
 }
 ```
 
 This creates index "layers" for nested shape hierarchies, ensuring proper z-ordering without DOM reordering.
 
 **Opacity calculation for erasing** (lines 4094-4130):
+
 ```typescript
 const erasingShapeIds = this.getErasingShapeIds()
 
 const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
-  const shape = this.getShape(id)
-  if (!shape) return
+	const shape = this.getShape(id)
+	if (!shape) return
 
-  if (this.isShapeHidden(shape)) {
-    // Process children just in case they override hidden state
-    const isErasing = isAncestorErasing || erasingShapeIds.includes(id)
-    for (const childId of this.getSortedChildIdsForParent(id)) {
-      addShapeById(childId, opacity, isErasing)
-    }
-    return
-  }
+	if (this.isShapeHidden(shape)) {
+		// Process children just in case they override hidden state
+		const isErasing = isAncestorErasing || erasingShapeIds.includes(id)
+		for (const childId of this.getSortedChildIdsForParent(id)) {
+			addShapeById(childId, opacity, isErasing)
+		}
+		return
+	}
 
-  // Reduce opacity of erasing shapes (but only once per subtree)
-  const isErasing = !isAncestorErasing && erasingShapeIds.includes(id)
-  let effectiveOpacity = opacity
-  if (isErasing) {
-    effectiveOpacity = opacity * 0.32  // Hardcoded erasing opacity multiplier
-  }
+	// Reduce opacity of erasing shapes (but only once per subtree)
+	const isErasing = !isAncestorErasing && erasingShapeIds.includes(id)
+	let effectiveOpacity = opacity
+	if (isErasing) {
+		effectiveOpacity = opacity * 0.32 // Hardcoded erasing opacity multiplier
+	}
 
-  // ... add shape to rendering list
+	// ... add shape to rendering list
 }
 ```
 
@@ -745,10 +760,10 @@ Source: `/packages/editor/src/lib/components/Shape.tsx` lines 46-51
 
 ```typescript
 useEffect(() => {
-  return react('load fonts', () => {
-    const fonts = editor.fonts.getShapeFontFaces(id)
-    editor.fonts.requestFonts(fonts)
-  })
+	return react('load fonts', () => {
+		const fonts = editor.fonts.getShapeFontFaces(id)
+		editor.fonts.requestFonts(fonts)
+	})
 }, [editor, id])
 ```
 

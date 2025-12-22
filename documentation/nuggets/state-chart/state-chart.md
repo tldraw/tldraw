@@ -8,6 +8,9 @@ keywords:
   - tools
   - StateNode
   - event handling
+status: published
+date: 12/20/2025
+order: 4
 ---
 
 # Tools as hierarchical state machines

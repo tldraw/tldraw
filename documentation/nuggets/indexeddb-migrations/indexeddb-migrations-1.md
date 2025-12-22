@@ -8,6 +8,9 @@ keywords:
   - schema
   - persistence
   - versioning
+status: published
+date: 12/20/2025
+order: 0
 ---
 
 # IndexedDB migrations
@@ -196,6 +199,7 @@ if (migrationResult.type === 'error') {
 ```
 
 Failure reasons include:
+
 - `IncompatibleSubtype`: Record has a subtype the current schema doesn't understand
 - `UnknownType`: Record type doesn't exist in current schema
 - `TargetVersionTooNew`: Data is from a newer version than current code supports
@@ -244,6 +248,7 @@ This deletes all tldraw data and starts fresh. It's exposed in development build
 ## Testing migrations
 
 Migration code is hard to test because you need real data in old formats. tldraw's approach:
+
 - Keep snapshots of documents from previous versions in test fixtures
 - Run migrations against these fixtures and validate the output
 - Test both success cases and graceful handling of corrupted data

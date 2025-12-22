@@ -6,6 +6,9 @@ keywords:
   - RNG
   - seeded
   - hand-drawn
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Seeded randomness for hand-drawn shapes
@@ -61,7 +64,9 @@ The result is a point that's been nudged slightly in a random direction, but alw
 Close commands reuse the offset from the original `moveTo` command:
 
 ```typescript
-const offset = command.isClose ? lastMoveToOffset : { x: random() * offsetAmount, y: random() * offsetAmount }
+const offset = command.isClose
+	? lastMoveToOffset
+	: { x: random() * offsetAmount, y: random() * offsetAmount }
 ```
 
 If close commands generated new random offsets, paths wouldn't close cleanly—you'd see tiny gaps between the end of the path and the start. By reusing the `moveTo` offset, the close command lands exactly where the path began.
@@ -100,7 +105,7 @@ const fillPath = path.toDrawD({
 	randomSeed: shape.id,
 	passes: 1,
 	offset: 0,
-	onlyFilled: true
+	onlyFilled: true,
 })
 ```
 

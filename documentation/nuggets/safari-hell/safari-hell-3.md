@@ -6,6 +6,9 @@ keywords:
   - Safari
   - browser
   - workarounds
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Safari quirks and workarounds
@@ -22,36 +25,36 @@ We detect the actual limits by probing. Create a test canvas at a candidate size
 
 ```typescript
 export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
-  const cropCvs = document.createElement('canvas')
-  cropCvs.width = 1
-  cropCvs.height = 1
-  const cropCtx = cropCvs.getContext('2d')!
+	const cropCvs = document.createElement('canvas')
+	cropCvs.width = 1
+	cropCvs.height = 1
+	const cropCtx = cropCvs.getContext('2d')!
 
-  for (const size of TEST_SIZES[dimension]) {
-    const w = dimension === 'height' ? 1 : size
-    const h = dimension === 'width' ? 1 : size
+	for (const size of TEST_SIZES[dimension]) {
+		const w = dimension === 'height' ? 1 : size
+		const h = dimension === 'width' ? 1 : size
 
-    const testCvs = document.createElement('canvas')
-    testCvs.width = w
-    testCvs.height = h
-    const testCtx = testCvs.getContext('2d')!
+		const testCvs = document.createElement('canvas')
+		testCvs.width = w
+		testCvs.height = h
+		const testCtx = testCvs.getContext('2d')!
 
-    testCtx.fillRect(w - 1, h - 1, 1, 1)
-    cropCtx.drawImage(testCvs, w - 1, h - 1, 1, 1, 0, 0, 1, 1)
+		testCtx.fillRect(w - 1, h - 1, 1, 1)
+		cropCtx.drawImage(testCvs, w - 1, h - 1, 1, 1, 0, 0, 1, 1)
 
-    const isTestPassed = cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
+		const isTestPassed = cropCtx.getImageData(0, 0, 1, 1).data[3] !== 0
 
-    testCvs.width = 0
-    testCvs.height = 0
+		testCvs.width = 0
+		testCvs.height = 0
 
-    if (isTestPassed) {
-      cropCvs.width = 0
-      cropCvs.height = 0
-      return dimension === 'area' ? size * size : size
-    }
-  }
+		if (isTestPassed) {
+			cropCvs.width = 0
+			cropCvs.height = 0
+			return dimension === 'area' ? size * size : size
+		}
+	}
 
-  throw Error('Failed to determine maximum canvas dimension')
+	throw Error('Failed to determine maximum canvas dimension')
 }
 ```
 
@@ -61,26 +64,26 @@ When we need to render something—like exporting a selection to PNG—we clamp 
 
 ```typescript
 export function clampToBrowserMaxCanvasSize(width: number, height: number) {
-  const { maxWidth, maxHeight, maxArea } = getBrowserCanvasMaxSize()
-  const aspectRatio = width / height
+	const { maxWidth, maxHeight, maxArea } = getBrowserCanvasMaxSize()
+	const aspectRatio = width / height
 
-  if (width > maxWidth) {
-    width = maxWidth
-    height = width / aspectRatio
-  }
+	if (width > maxWidth) {
+		width = maxWidth
+		height = width / aspectRatio
+	}
 
-  if (height > maxHeight) {
-    height = maxHeight
-    width = height * aspectRatio
-  }
+	if (height > maxHeight) {
+		height = maxHeight
+		width = height * aspectRatio
+	}
 
-  if (width * height > maxArea) {
-    const ratio = Math.sqrt(maxArea / (width * height))
-    width *= ratio
-    height *= ratio
-  }
+	if (width * height > maxArea) {
+		const ratio = Math.sqrt(maxArea / (width * height))
+		width *= ratio
+		height *= ratio
+	}
 
-  return [width, height]
+	return [width, height]
 }
 ```
 
@@ -98,28 +101,28 @@ So we wait.
 
 ```typescript
 const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-  const image = Image()
-  image.crossOrigin = 'anonymous'
+	const image = Image()
+	image.crossOrigin = 'anonymous'
 
-  image.onload = async () => {
-    // Safari will fire `onload` before the fonts in the SVG are
-    // actually loaded. Waiting around a while is brittle, but
-    // there's no better solution for now. See
-    // https://bugs.webkit.org/show_bug.cgi?id=219770
-    if (tlenv.isSafari) {
-      await sleep(250)
-    }
+	image.onload = async () => {
+		// Safari will fire `onload` before the fonts in the SVG are
+		// actually loaded. Waiting around a while is brittle, but
+		// there's no better solution for now. See
+		// https://bugs.webkit.org/show_bug.cgi?id=219770
+		if (tlenv.isSafari) {
+			await sleep(250)
+		}
 
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-    canvas.width = clampedWidth
-    canvas.height = clampedHeight
-    ctx.drawImage(image, 0, 0, clampedWidth, clampedHeight)
-    resolve(canvas)
-  }
+		const canvas = document.createElement('canvas')
+		const ctx = canvas.getContext('2d')!
+		canvas.width = clampedWidth
+		canvas.height = clampedHeight
+		ctx.drawImage(image, 0, 0, clampedWidth, clampedHeight)
+		resolve(canvas)
+	}
 
-  image.onerror = () => resolve(null)
-  image.src = svgUrl
+	image.onerror = () => resolve(null)
+	image.src = svgUrl
 })
 ```
 
@@ -133,21 +136,21 @@ We suppress the default behavior by intercepting touch events when the pointer t
 
 ```typescript
 const handleEvent = (e: PointerEvent | TouchEvent) => {
-  if (e instanceof PointerEvent && e.pointerType === 'pen') {
-    editor.markEventAsHandled(e)
-    const { target } = e
+	if (e instanceof PointerEvent && e.pointerType === 'pen') {
+		editor.markEventAsHandled(e)
+		const { target } = e
 
-    // Allow events to propagate if editing a shape or in text inputs
-    if (
-      IGNORED_TAGS.includes((target as Element).tagName?.toLocaleLowerCase()) ||
-      (target as HTMLElement).isContentEditable ||
-      editor.isIn('select.editing_shape')
-    ) {
-      return
-    }
+		// Allow events to propagate if editing a shape or in text inputs
+		if (
+			IGNORED_TAGS.includes((target as Element).tagName?.toLocaleLowerCase()) ||
+			(target as HTMLElement).isContentEditable ||
+			editor.isIn('select.editing_shape')
+		) {
+			return
+		}
 
-    preventDefault(e)
-  }
+		preventDefault(e)
+	}
 }
 ```
 
@@ -161,22 +164,22 @@ The fix is to blur and immediately refocus the input:
 
 ```typescript
 useEffect(() => {
-  if (!isEditing) return
+	if (!isEditing) return
 
-  if (document.activeElement !== rInput.current) {
-    rInput.current?.focus()
-  }
+	if (document.activeElement !== rInput.current) {
+		rInput.current?.focus()
+	}
 
-  if (editor.getInstanceState().isCoarsePointer) {
-    rInput.current?.select()
-  }
+	if (editor.getInstanceState().isCoarsePointer) {
+		rInput.current?.select()
+	}
 
-  // This fixes iOS not showing the caret sometimes.
-  // This "shakes" the caret awake.
-  if (tlenv.isSafari) {
-    rInput.current?.blur()
-    rInput.current?.focus()
-  }
+	// This fixes iOS not showing the caret sometimes.
+	// This "shakes" the caret awake.
+	if (tlenv.isSafari) {
+		rInput.current?.blur()
+		rInput.current?.focus()
+	}
 }, [editor, isEditing])
 ```
 

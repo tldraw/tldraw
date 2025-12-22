@@ -6,6 +6,9 @@ keywords:
   - PNG
   - clipboard
   - pHYs
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # PNG scale preservation
@@ -24,14 +27,14 @@ We use this to write the same PNG blob twice with different MIME types:
 
 ```typescript
 const types: Record<string, Promise<Blob>> = {
-  'image/png': blobPromise,  // Standard format, sanitized
+	'image/png': blobPromise, // Standard format, sanitized
 }
 
 const customMimeType = 'web image/vnd.tldraw+png'
 if (doesClipboardSupportType(customMimeType)) {
-  types[customMimeType] = blobPromise.then((blob) =>
-    FileHelpers.rewriteMimeType(blob, customMimeType)
-  )
+	types[customMimeType] = blobPromise.then((blob) =>
+		FileHelpers.rewriteMimeType(blob, customMimeType)
+	)
 }
 
 clipboardWrite(types)
@@ -46,18 +49,18 @@ When reading from the clipboard, we check for our custom type first:
 
 ```typescript
 const expectedPasteFileMimeTypes = [
-  'web image/vnd.tldraw+png',  // Check custom type first
-  'image/png',                  // Fall back to standard
-  'image/jpeg',
-  // ...
+	'web image/vnd.tldraw+png', // Check custom type first
+	'image/png', // Fall back to standard
+	'image/jpeg',
+	// ...
 ]
 
 for (const type of expectedPasteFileMimeTypes) {
-  if (item.types.includes(type)) {
-    const blob = await item.getType(type)
-    // Use first match
-    break
-  }
+	if (item.types.includes(type)) {
+		const blob = await item.getType(type)
+		// Use first match
+		break
+	}
 }
 ```
 
@@ -81,11 +84,11 @@ Custom clipboard MIME types with the `web ` prefix work in Chrome, Edge, and Ope
 
 ```typescript
 function doesClipboardSupportType(type: string): boolean {
-  try {
-    return ClipboardItem.supports(type)
-  } catch {
-    return false
-  }
+	try {
+		return ClipboardItem.supports(type)
+	} catch {
+		return false
+	}
 }
 ```
 
@@ -97,11 +100,11 @@ When we read `web image/vnd.tldraw+png` from the clipboard, we immediately norma
 
 ```typescript
 const canonicalClipboardReadTypes = {
-  'web image/vnd.tldraw+png': 'image/png',
+	'web image/vnd.tldraw+png': 'image/png',
 }
 
 function getCanonicalClipboardReadType(type: string): string {
-  return canonicalClipboardReadTypes[type] ?? type
+	return canonicalClipboardReadTypes[type] ?? type
 }
 ```
 

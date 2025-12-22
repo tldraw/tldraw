@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - deep
   - links
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Deep link encoding

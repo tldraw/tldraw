@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - jittered
   - indices
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Jittered fractional indices: raw notes
@@ -22,11 +25,13 @@ Internal research notes for the jittered-indices.md article.
 ## Fractional indexing background
 
 **Why not integers:**
+
 - Traditional integer ordering (1, 2, 3...) requires renumbering on insertion
 - Insert between 1 and 2 → must renumber 2→3, 3→4, etc.
 - In multiplayer/offline scenarios, creates merge conflicts on every concurrent insertion
 
 **Fractional indexing properties:**
+
 - Uses lexicographically sortable strings
 - Infinite subdivision possible
 - Between 'a1' and 'a3' → 'a2'
@@ -35,6 +40,7 @@ Internal research notes for the jittered-indices.md article.
 - No renumbering required, ever
 
 **Base implementation:**
+
 - Based on David Greenspan's "Implementing Fractional Indexing" (Observable HQ)
 - Implemented by Rocicorp as `fractional-indexing` package
 - Uses base-62 encoding by default
@@ -42,6 +48,7 @@ Internal research notes for the jittered-indices.md article.
 ## Jittered implementation
 
 **Package:** `jittered-fractional-indexing` v1.0.0
+
 - Located in `packages/utils/package.json` dependencies
 - Author: nathanhleung
 - Built on top of `fractional-indexing` v3.2.0
@@ -69,17 +76,18 @@ From `jittered-fractional-indexing` README and type definitions:
  * `b + 1` times).
  */
 export declare function generateKeyBetween(
-  a: string | null | undefined,
-  b: string | null | undefined,
-  opts?: {
-    digits?: string;
-    jitterBits?: number;        // Defaults to 30
-    getRandomBit?: () => boolean; // Defaults to Math.random() < 0.5
-  }
-): string;
+	a: string | null | undefined,
+	b: string | null | undefined,
+	opts?: {
+		digits?: string
+		jitterBits?: number // Defaults to 30
+		getRandomBit?: () => boolean // Defaults to Math.random() < 0.5
+	}
+): string
 ```
 
 **Step-by-step for 1 bit of jitter:**
+
 1. Generate midpoint between bounds a and b
 2. With 50% probability, pick either:
    - Generate between a and midpoint, OR
@@ -87,6 +95,7 @@ export declare function generateKeyBetween(
 3. Result: one random bit
 
 **For 30 bits:**
+
 - Repeat process 30 times
 - Each iteration narrows the range and adds one bit of randomness
 - Final result: uniformly distributed within original bounds
@@ -110,6 +119,7 @@ const generateKeysFn =
 **Lines:** 3-8
 
 **Rationale:**
+
 - Production: Always use jitter (default 30 bits)
 - Tests: Disable jitter (jitterBits: 0) for deterministic, reproducible results
 
@@ -151,26 +161,31 @@ P(collision) = 1 - (2^b)! / ((2^b - k)! * (2^b)^k)
 ```
 
 **Default configuration (b = 30 bits):**
+
 - Total possible values: 2^30 = 1,073,741,824
 - With k = 10,000 concurrent insertions at same position: ~4.5% collision chance
 - With k = 2 concurrent insertions: ~1 in 537 million collision chance
 
 **From package documentation:**
+
 > "When `b = 30` and `k = 10_000`, we get a ~4.5% chance of collision. Note that this probability is specific to `a` and `b`, i.e., it is when 10,000 keys are generated at the same time for the same `a` and `b`; it is not a general probability of collision for all key ranges."
 
 ## Performance characteristics
 
 **Time complexity:** O(jitterBits)
+
 - For 30 bits: calls base `generateKeyBetween` 31 times
 - At human interaction scale: imperceptible
 - At massive scale (thousands of concurrent insertions): might consider fewer bits
 
 **Space overhead:**
+
 - Deterministic index: ~3 characters (e.g., 'a1V')
 - Jittered index: ~3 additional characters (e.g., 'a1VK3p7q')
 - Total overhead: ~3 characters per index on average
 
 **From article:**
+
 > "A deterministic index might be `'a1V'` while a jittered one might be `'a1VK3p7q'`."
 
 ## Usage in shape operations
@@ -182,6 +197,7 @@ File: `packages/editor/src/lib/utils/reorderShapes.ts`
 Key operations using `getIndicesBetween`:
 
 1. **To back** (lines 64-104):
+
 ```typescript
 function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	// Find first non-moving shape from bottom
@@ -192,6 +208,7 @@ function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLSha
 ```
 
 2. **To front** (lines 113-153):
+
 ```typescript
 function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	// Find first non-moving shape from top
@@ -201,7 +218,7 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
 ```
 
 3. **Forward/Backward** (lines 183-288):
-Uses `getIndicesBetween` with overlap detection to move shapes one layer at a time.
+   Uses `getIndicesBetween` with overlap detection to move shapes one layer at a time.
 
 **Reparenting shapes:**
 
@@ -222,14 +239,15 @@ insertIndexKey = getIndexBetween(prevParent.index, indexKeyAbove)
 From `packages/utils/src/lib/reordering.ts`:
 
 ```typescript
-export const ZERO_INDEX_KEY = 'a0' as IndexKey  // Line 23
+export const ZERO_INDEX_KEY = 'a0' as IndexKey // Line 23
 ```
 
 **Default jitter configuration (from package):**
+
 ```typescript
-jitterBits: 30  // Default entropy
-digits: BASE_62_DIGITS  // 0-9, A-Z, a-z (base-62 encoding)
-getRandomBit: () => Math.random() < 0.5  // Default RNG
+jitterBits: 30 // Default entropy
+digits: BASE_62_DIGITS // 0-9, A-Z, a-z (base-62 encoding)
+getRandomBit: () => Math.random() < 0.5 // Default RNG
 ```
 
 ## Cryptographic randomness option
@@ -241,15 +259,15 @@ For cryptographically-sensitive applications, can replace default `Math.random()
 ```typescript
 // Browser
 const getRandomBit = () => {
-  const arr = new Uint8Array(1);
-  crypto.getRandomValues(arr);
-  return (arr[0] & 1) === 1;
+	const arr = new Uint8Array(1)
+	crypto.getRandomValues(arr)
+	return (arr[0] & 1) === 1
 }
 
 // Node.js
-import crypto from 'node:crypto';
+import crypto from 'node:crypto'
 const getRandomBit = () => {
-  return (crypto.randomBytes(1)[0] & 1) === 1;
+	return (crypto.randomBytes(1)[0] & 1) === 1
 }
 ```
 
@@ -332,6 +350,7 @@ Simple lexicographic comparison. Works because fractional indices are designed t
 ## Edge cases
 
 **Null/undefined bounds:**
+
 - `getIndexBetween(null, 'a2')` → generates index below 'a2'
 - `getIndexBetween('a1', null)` → generates index above 'a1'
 - `getIndexBetween(null, null)` → generates new index (typically starts at 'a1')
@@ -340,14 +359,14 @@ Simple lexicographic comparison. Works because fractional indices are designed t
 
 ```typescript
 // Valid
-validateIndexKey('a0')  // passes
-validateIndexKey('a1')  // passes
+validateIndexKey('a0') // passes
+validateIndexKey('a1') // passes
 validateIndexKey('a0V') // passes
 
 // Invalid
-validateIndexKey('')        // throws 'invalid index: '
+validateIndexKey('') // throws 'invalid index: '
 validateIndexKey('invalid') // throws 'invalid index: invalid'
-validateIndexKey('123')     // throws 'invalid index: 123'
+validateIndexKey('123') // throws 'invalid index: 123'
 ```
 
 Lines 16-28 in test file
@@ -358,35 +377,38 @@ Lines 16-28 in test file
 
 ```typescript
 export function generateNKeysBetween(
-  a: string | null | undefined,
-  b: string | null | undefined,
-  n: number,
-  opts?: {
-    digits?: string;
-    jitterBits?: number;
-    getRandomBit?: () => boolean;
-  }
+	a: string | null | undefined,
+	b: string | null | undefined,
+	n: number,
+	opts?: {
+		digits?: string
+		jitterBits?: number
+		getRandomBit?: () => boolean
+	}
 ): string[]
 ```
 
 **Implementation strategy:**
+
 1. Generate n+1 evenly-spaced keys between a and b (no jitter)
 2. For each adjacent pair, generate a jittered key between them
 3. Result: n keys evenly distributed with individual jitter
 
-**Time complexity:** O(n * jitterBits)
+**Time complexity:** O(n \* jitterBits)
 
 For n=10 keys with 30 bits: ~310 calls to base implementation
 
 ## Production trade-offs
 
 **Why 30 bits is reasonable:**
+
 - String overhead: ~3 characters (trivial in modern storage)
 - CPU overhead: 31 function calls (imperceptible at human scale)
 - Collision prevention: Virtually eliminates the flickering bug
 - User experience: Shapes maintain predictable z-order in multiplayer
 
 **Alternative approaches considered (implicit from design):**
+
 - Server-side coordination: Would add latency to every insertion
 - Timestamp-based: Clock skew could still cause collisions
 - UUID-based: Would break sortability, require separate order field
@@ -404,6 +426,7 @@ For n=10 keys with 30 bits: ~310 calls to base implementation
 ## Related patterns in codebase
 
 Other uses of `process.env.NODE_ENV === 'test'`:
+
 - `packages/store/src/lib/isDev.ts:3` - Development mode detection
 - `packages/utils/src/lib/throttle.ts:3` - Disable throttling in tests
 - `packages/editor/src/lib/editor/managers/TickManager/TickManager.ts:5` - RAF vs immediate execution

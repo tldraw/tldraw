@@ -7,6 +7,9 @@ keywords:
   - template
   - starter
   - react
+status: published
+date: 12/19/2025
+order: 4
 ---
 
 The Vite template is the fastest way to start a tldraw app. It ships a minimal React setup with Tldraw and hot module replacement.

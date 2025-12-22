@@ -11,6 +11,9 @@ voice: 8
 potential: 8
 accuracy: 6
 notes: "Good voice and T command insight. Coordinate count math is wrong: cubic uses 3 pairs/segment (2 control + 1 end), not 4. The '(2+2)*100=400' formula is incorrect and misleading."
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # SVG paths from hand-drawn points

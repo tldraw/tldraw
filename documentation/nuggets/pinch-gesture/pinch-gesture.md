@@ -11,6 +11,9 @@ keywords:
   - trackpad
   - state machine
   - touch handling
+status: published
+date: 12/20/2025
+order: 4
 ---
 
 # Pinch gesture disambiguation

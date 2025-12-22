@@ -7,6 +7,9 @@ keywords:
   - scripts
   - yarn
   - reference
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 Common yarn commands for developing and testing the tldraw monorepo.

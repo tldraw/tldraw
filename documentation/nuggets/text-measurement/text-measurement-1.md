@@ -8,6 +8,9 @@ keywords:
   - range api
   - svg export
   - getClientRects
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Range API for character measurement
@@ -49,36 +52,32 @@ We iterate through text character by character, grouping consecutive characters 
 
 ```typescript
 for (const char of textContent) {
-  range.setStart(textNode, idx)
-  range.setEnd(textNode, idx + char.length)
+	range.setStart(textNode, idx)
+	range.setEnd(textNode, idx + char.length)
 
-  const rects = range.getClientRects()
-  const rect = rects[rects.length - 1]
+	const rects = range.getClientRects()
+	const rect = rects[rects.length - 1]
 
-  const top = rect.top + offsetY
-  const left = rect.left + offsetX
+	const top = rect.top + offsetY
+	const left = rect.left + offsetX
 
-  const isSpaceCharacter = /\s/.test(char)
+	const isSpaceCharacter = /\s/.test(char)
 
-  if (
-    isSpaceCharacter !== prevCharWasSpaceCharacter ||
-    top !== prevCharTop ||
-    !currentSpan
-  ) {
-    // Start new span
-    currentSpan = {
-      box: { x: left, y: top, w: rect.width, h: rect.height },
-      text: char,
-    }
-  } else {
-    // Extend current span
-    currentSpan.box.w = (left + rect.width) - currentSpan.box.x
-    currentSpan.text += char
-  }
+	if (isSpaceCharacter !== prevCharWasSpaceCharacter || top !== prevCharTop || !currentSpan) {
+		// Start new span
+		currentSpan = {
+			box: { x: left, y: top, w: rect.width, h: rect.height },
+			text: char,
+		}
+	} else {
+		// Extend current span
+		currentSpan.box.w = left + rect.width - currentSpan.box.x
+		currentSpan.text += char
+	}
 
-  prevCharWasSpaceCharacter = isSpaceCharacter
-  prevCharTop = top
-  idx += char.length
+	prevCharWasSpaceCharacter = isSpaceCharacter
+	prevCharTop = top
+	idx += char.length
 }
 ```
 
@@ -94,12 +93,12 @@ We detect RTL by watching character positions. If the left edge of a character i
 const isRTL = left < prevCharLeftForRTLTest
 
 if (isRTL) {
-  // RTL: new character extends to the left
-  currentSpan.box.x = left
-  currentSpan.box.w = currentSpan.box.w + rect.width
+	// RTL: new character extends to the left
+	currentSpan.box.x = left
+	currentSpan.box.w = currentSpan.box.w + rect.width
 } else {
-  // LTR: new character extends to the right
-  currentSpan.box.w = right - currentSpan.box.x
+	// LTR: new character extends to the right
+	currentSpan.box.w = right - currentSpan.box.x
 }
 ```
 

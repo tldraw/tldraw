@@ -6,6 +6,9 @@ keywords:
   - validation
   - runtime
   - TypeScript
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Runtime validation
@@ -20,10 +23,10 @@ The obvious way to validate a URL is to check if it parses. The `URL` constructo
 
 ```typescript
 try {
-  new URL(value)
-  return value
+	new URL(value)
+	return value
 } catch {
-  throw new ValidationError('Invalid URL')
+	throw new ValidationError('Invalid URL')
 }
 ```
 
@@ -35,14 +38,14 @@ We use protocol whitelists instead. For clickable links, we allow three protocol
 const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
 
 export const linkUrl = string.check((value) => {
-  if (value === '') return
-  const url = parseUrl(value)
+	if (value === '') return
+	const url = parseUrl(value)
 
-  if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
-    throw new ValidationError(
-      `Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
-    )
-  }
+	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
 })
 ```
 
@@ -52,14 +55,14 @@ For image and video sources, we need different rules. Data URLs are fine for emb
 const validSrcProtocols = new Set(['http:', 'https:', 'data:', 'asset:'])
 
 export const srcUrl = string.check((value) => {
-  if (value === '') return
-  const url = parseUrl(value)
+	if (value === '') return
+	const url = parseUrl(value)
 
-  if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
-    throw new ValidationError(
-      `Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
-    )
-  }
+	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
 })
 ```
 
@@ -77,7 +80,7 @@ JavaScript has `Number.isNaN()` to test for NaN. It's explicit and readable. It'
 
 ```typescript
 if (value !== value) {
-  throw new ValidationError('Expected a number, got NaN')
+	throw new ValidationError('Expected a number, got NaN')
 }
 ```
 
@@ -88,9 +91,7 @@ For checking both NaN and Infinity at once, we use another arithmetic trick:
 ```typescript
 const numVariant = Number(variant)
 if (numVariant - numVariant !== 0) {
-  throw new ValidationError(
-    `Expected a number for key "${this.key}", got "${variant}"`
-  )
+	throw new ValidationError(`Expected a number for key "${this.key}", got "${variant}"`)
 }
 ```
 
@@ -102,7 +103,7 @@ Object validation iterates over properties. The obvious approach uses `Object.en
 
 ```typescript
 for (const [key, value] of Object.entries(object)) {
-  // validate value
+	// validate value
 }
 ```
 
@@ -110,9 +111,9 @@ This allocates an array of `[key, value]` tuples. For an object with ten propert
 
 ```typescript
 for (const key in object) {
-  if (!hasOwnProperty(object, key)) continue
-  const value = object[key]
-  // validate value
+	if (!hasOwnProperty(object, key)) continue
+	const value = object[key]
+	// validate value
 }
 ```
 
@@ -124,14 +125,14 @@ In development, we wrap validation calls in a helper that prefixes error paths:
 
 ```typescript
 function prefixError<T>(path: string | number, fn: () => T): T {
-  try {
-    return fn()
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      throw new ValidationError(err.rawMessage, [path, ...err.path])
-    }
-    throw new ValidationError((err as Error).toString(), [path])
-  }
+	try {
+		return fn()
+	} catch (err) {
+		if (err instanceof ValidationError) {
+			throw new ValidationError(err.rawMessage, [path, ...err.path])
+		}
+		throw new ValidationError((err as Error).toString(), [path])
+	}
 }
 
 // Usage
@@ -144,16 +145,16 @@ We inline the try-catch in production:
 
 ```typescript
 if (IS_DEV) {
-  prefixError(i, () => itemValidator.validate(arr[i]))
+	prefixError(i, () => itemValidator.validate(arr[i]))
 } else {
-  try {
-    itemValidator.validate(arr[i])
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      throw new ValidationError(err.rawMessage, [i, ...err.path])
-    }
-    throw new ValidationError((err as Error).toString(), [i])
-  }
+	try {
+		itemValidator.validate(arr[i])
+	} catch (err) {
+		if (err instanceof ValidationError) {
+			throw new ValidationError(err.rawMessage, [i, ...err.path])
+		}
+		throw new ValidationError((err as Error).toString(), [i])
+	}
 }
 ```
 
@@ -165,16 +166,16 @@ Object validation uses reference equality to skip unchanged properties:
 
 ```typescript
 for (const key in config) {
-  const prev = knownGoodValue[key]
-  const next = newValue[key]
+	const prev = knownGoodValue[key]
+	const next = newValue[key]
 
-  // sneaky quick check here to avoid the prefix + validator overhead
-  if (Object.is(prev, next)) {
-    continue
-  }
+	// sneaky quick check here to avoid the prefix + validator overhead
+	if (Object.is(prev, next)) {
+		continue
+	}
 
-  // Validate only what changed
-  const checked = validator.validateUsingKnownGoodVersion(prev, next)
+	// Validate only what changed
+	const checked = validator.validateUsingKnownGoodVersion(prev, next)
 }
 ```
 

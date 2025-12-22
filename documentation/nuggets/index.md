@@ -6,6 +6,9 @@ keywords:
   - nuggets
   - technical writing
   - documentation
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Nuggets

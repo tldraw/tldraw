@@ -6,6 +6,9 @@ keywords:
   - browser
   - canvas
   - size
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Browser canvas size limits

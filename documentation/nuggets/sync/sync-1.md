@@ -7,6 +7,9 @@ keywords:
   - rebase
   - multiplayer
   - optimistic updates
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # The rebase mechanism
@@ -69,22 +72,22 @@ We iterate through the responses in order:
 
 ```typescript
 for (const diff of diffs) {
-  if (diff.type === 'patch') {
-    this.applyNetworkDiff(diff.diff, true)
-    continue
-  }
-  // Handle push_result: 'commit', 'discard', or rebase action
-  if (diff.action === 'discard') {
-    this.pendingPushRequests.shift()
-  } else if (diff.action === 'commit') {
-    const { request } = this.pendingPushRequests.shift()!
-    if ('diff' in request && request.diff) {
-      this.applyNetworkDiff(request.diff, true)
-    }
-  } else {
-    this.applyNetworkDiff(diff.action.rebaseWithDiff, true)
-    this.pendingPushRequests.shift()
-  }
+	if (diff.type === 'patch') {
+		this.applyNetworkDiff(diff.diff, true)
+		continue
+	}
+	// Handle push_result: 'commit', 'discard', or rebase action
+	if (diff.action === 'discard') {
+		this.pendingPushRequests.shift()
+	} else if (diff.action === 'commit') {
+		const { request } = this.pendingPushRequests.shift()!
+		if ('diff' in request && request.diff) {
+			this.applyNetworkDiff(request.diff, true)
+		}
+	} else {
+		this.applyNetworkDiff(diff.action.rebaseWithDiff, true)
+		this.pendingPushRequests.shift()
+	}
 }
 ```
 
@@ -98,10 +101,10 @@ After applying server diffs, we recalculate `speculativeChanges` by replaying re
 
 ```typescript
 this.speculativeChanges = this.store.extractingChanges(() => {
-  for (const { request } of this.pendingPushRequests) {
-    if (!('diff' in request) || !request.diff) continue
-    this.applyNetworkDiff(request.diff, true)
-  }
+	for (const { request } of this.pendingPushRequests) {
+		if (!('diff' in request) || !request.diff) continue
+		this.applyNetworkDiff(request.diff, true)
+	}
 })
 ```
 

@@ -1,0 +1,42 @@
+---
+title: 'v3.9'
+created_at: 3/3/2025
+updated_at: 3/3/2025
+keywords:
+  - changelog
+  - release
+  - v3.9
+  - performance
+  - cache
+  - layout
+  - atom-map
+status: published
+date: 3/3/2025
+order: 313
+---
+
+## v3.9.0
+
+This release focuses on bug fixes and performance enhancements, laying groundwork for v3.10 features.
+
+### Breaking changes
+
+- `store.createSelectedComputedCache` removed; use `store.createCache` with custom selector `computed` instead
+- `createComputerCache` API modified: third argument now accepts options object with `areRecordsEqual` and `areResultsEqual` properties instead of single equality function
+
+### Improvements
+
+- Improve layout operations including align, distribute, flip, and stack with better compatibility for arrows and overlapping shapes
+- Add new `AtomMap` class to accelerate shape, binding, and record creation/deletion, available as a utility for building custom reactive maps
+- Add horizontal padding to text-bound arrows for improved visual appearance
+
+### Bug fixes
+
+- Improve pasted image size calculations
+- Remove `canvas-size` dependency resolving bundler compatibility issues
+- Correct SVG copy mimetype
+- Fix text shape cloning crash
+- Restore temporary image preview display during uploads
+- Recognize `https://localhost` as development environment for licensing
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.9.0)

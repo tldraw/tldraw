@@ -6,6 +6,9 @@ keywords:
   - culling
   - performance
   - viewport
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Shape culling
@@ -22,26 +25,26 @@ The culling logic lives in a computed value that tracks its dependencies automat
 
 ```typescript
 export function notVisibleShapes(editor: Editor) {
-  return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-    const nextValue = fromScratch(editor)
+	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
+		const nextValue = fromScratch(editor)
 
-    if (isUninitialized(prevValue)) {
-      return nextValue
-    }
+		if (isUninitialized(prevValue)) {
+			return nextValue
+		}
 
-    // If there are more or less shapes, we know there's a change
-    if (prevValue.size !== nextValue.size) return nextValue
+		// If there are more or less shapes, we know there's a change
+		if (prevValue.size !== nextValue.size) return nextValue
 
-    // If any of the old shapes are not in the new set, we know there's a change
-    for (const prev of prevValue) {
-      if (!nextValue.has(prev)) {
-        return nextValue
-      }
-    }
+		// If any of the old shapes are not in the new set, we know there's a change
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				return nextValue
+			}
+		}
 
-    // If we've made it here, we know that the set is the same
-    return prevValue
-  })
+		// If we've made it here, we know that the set is the same
+		return prevValue
+	})
 }
 ```
 
@@ -51,22 +54,22 @@ The `fromScratch` function does the actual bounds checking:
 
 ```typescript
 function fromScratch(editor: Editor): Set<TLShapeId> {
-  const shapesIds = editor.getCurrentPageShapeIds()
-  const viewportPageBounds = editor.getViewportPageBounds()
-  const notVisibleShapes = new Set<TLShapeId>()
-  shapesIds.forEach((id) => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	const shapesIds = editor.getCurrentPageShapeIds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	const notVisibleShapes = new Set<TLShapeId>()
+	shapesIds.forEach((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-    if (!canCull) return
+		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+		if (!canCull) return
 
-    const pageBounds = editor.getShapePageBounds(id)
-    if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
-      notVisibleShapes.add(id)
-    }
-  })
-  return notVisibleShapes
+		const pageBounds = editor.getShapePageBounds(id)
+		if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
+			notVisibleShapes.add(id)
+		}
+	})
+	return notVisibleShapes
 }
 ```
 
@@ -82,9 +85,9 @@ if (prevValue.size !== nextValue.size) return nextValue
 
 // If any of the old shapes are not in the new set, we know there's a change
 for (const prev of prevValue) {
-  if (!nextValue.has(prev)) {
-    return nextValue
-  }
+	if (!nextValue.has(prev)) {
+		return nextValue
+	}
 }
 
 // If we've made it here, we know that the set is the same
@@ -101,20 +104,20 @@ Each shape component watches the culled set and updates its display property whe
 
 ```typescript
 useQuickReactor(
-  'set display',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set display',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const culledShapes = editor.getCulledShapes()
-    const isCulled = culledShapes.has(id)
-    if (isCulled !== memoizedStuffRef.current.isCulled) {
-      setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-      setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
-      memoizedStuffRef.current.isCulled = isCulled
-    }
-  },
-  [editor]
+		const culledShapes = editor.getCulledShapes()
+		const isCulled = culledShapes.has(id)
+		if (isCulled !== memoizedStuffRef.current.isCulled) {
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			memoizedStuffRef.current.isCulled = isCulled
+		}
+	},
+	[editor]
 )
 ```
 

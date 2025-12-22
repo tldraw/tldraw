@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - text
   - measurement
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Text measurement

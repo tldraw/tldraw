@@ -6,6 +6,9 @@ keywords:
   - IndexedDB
   - migrations
   - schema
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # IndexedDB migrations
@@ -37,15 +40,15 @@ Tabs communicate via `BroadcastChannel` to coordinate their schema versions. Eve
 
 ```typescript
 interface SyncMessage {
-  type: 'diff'
-  storeId: string
-  changes: RecordsDiff<UnknownRecord>
-  schema: SerializedSchema
+	type: 'diff'
+	storeId: string
+	changes: RecordsDiff<UnknownRecord>
+	schema: SerializedSchema
 }
 
 interface AnnounceMessage {
-  type: 'announce'
-  schema: SerializedSchema
+	type: 'announce'
+	schema: SerializedSchema
 }
 ```
 
@@ -55,11 +58,11 @@ When a tab receives a message, it compares the sender's schema to its own. The c
 const res = this.store.schema.getMigrationsSince(msg.schema)
 
 if (!res.ok) {
-  // We are older, need to reload
+	// We are older, need to reload
 } else if (res.value.length > 0) {
-  // They are older, tell them to reload
+	// They are older, tell them to reload
 } else {
-  // Same version, all good
+	// Same version, all good
 }
 ```
 
@@ -71,14 +74,14 @@ When a tab detects it's running older code, it reloads the page:
 
 ```typescript
 if (!res.ok) {
-  const timeSinceInit = Date.now() - this.initTime
-  if (timeSinceInit < 5000) {
-    onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
-    return
-  }
-  this.isReloading = true
-  window?.location?.reload?.()
-  return
+	const timeSinceInit = Date.now() - this.initTime
+	if (timeSinceInit < 5000) {
+		onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
+		return
+	}
+	this.isReloading = true
+	window?.location?.reload?.()
+	return
 }
 ```
 
@@ -88,10 +91,10 @@ When a tab detects the sender is older, it tells them to reload:
 
 ```typescript
 if (res.value.length > 0) {
-  this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
-  this.shouldDoFullDBWrite = true
-  this.persistIfNeeded()
-  return
+	this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
+	this.shouldDoFullDBWrite = true
+	this.persistIfNeeded()
+	return
 }
 ```
 
@@ -101,7 +104,7 @@ The `announce` message contains the newer schema. When the older tab receives it
 
 You might wonder: why not just reload whenever schemas differ? The problem is that reloading loses user work. If tabs reload every time they see a different schema version, users would lose changes whenever they opened a second tab.
 
-The migration system lets us be smarter. When `getMigrationsSince` succeeds, we know the difference is forward-compatible—the newer tab can migrate the older data automatically. Only when migrations can't resolve the difference (the persisted schema is *newer* than the code) do we force a reload.
+The migration system lets us be smarter. When `getMigrationsSince` succeeds, we know the difference is forward-compatible—the newer tab can migrate the older data automatically. Only when migrations can't resolve the difference (the persisted schema is _newer_ than the code) do we force a reload.
 
 This asymmetry is intentional. A newer tab can always bring older data forward through migrations. An older tab can't safely write to a database with a newer schema—it would risk data corruption by writing records the newer schema doesn't understand.
 

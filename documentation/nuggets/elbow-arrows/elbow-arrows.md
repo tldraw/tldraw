@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - elbow
   - arrows
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Elbow arrows

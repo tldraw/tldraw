@@ -11,6 +11,9 @@ voice: 9
 potential: 8
 accuracy: 9
 notes: "Strong nugget opening ('When we added stylus support...'). All technical claims verified against source. Pipeline explanation is clear and well-organized."
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # SVG paths from hand-drawn points

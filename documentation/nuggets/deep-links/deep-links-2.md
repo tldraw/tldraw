@@ -6,6 +6,9 @@ keywords:
   - deep links
   - URL encoding
   - navigation
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Deep link encoding

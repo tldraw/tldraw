@@ -6,6 +6,9 @@ keywords:
   - inky
   - rng
   - shapes
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Seeded randomness for hand-drawn shapes: raw notes
@@ -15,6 +18,7 @@ Internal research notes for the inky-rng.md article.
 ## Core problem
 
 Shapes with "draw" style need to look hand-drawn with organic wobbles, but they render multiple times:
+
 - Pan/zoom operations
 - State changes (selection, etc.)
 - React re-renders
@@ -58,12 +62,14 @@ export function rng(seed = '') {
 **Xorshift variant**: This is a 128-bit xorshift PRNG with four 32-bit state variables (x, y, z, w).
 
 **State initialization**:
+
 - Starts with all zeros: `x = y = z = w = 0`
 - Seed string characters mixed into state via XOR: `x ^= seed.charCodeAt(k) | 0`
 - Runs for `seed.length + 64` iterations to thoroughly mix the seed
 - The `| 0` coerces to 32-bit integer (handles cases where k >= seed.length)
 
 **Generation algorithm**:
+
 - `t = x ^ (x << 11)` - XOR x with itself left-shifted by 11 bits
 - Rotate state: `x = y; y = z; z = w`
 - `w ^= ((w >>> 19) ^ t ^ (t >>> 8)) >>> 0` - Complex XOR chain with right shifts
@@ -86,6 +92,7 @@ export function rng(seed = '') {
 - **Not cryptographically secure**: Predictable given seed, state can be reverse-engineered
 
 **Comparison to alternatives**:
+
 - Mersenne Twister: ~100x slower, overkill for visual randomness
 - Math.random(): Can't be seeded, non-deterministic
 - LCG (Linear Congruential): Simpler but visible patterns in 2D/3D distributions
@@ -94,6 +101,7 @@ export function rng(seed = '') {
 ## Shape ID as seed
 
 Every shape has unique, immutable ID from `@tldraw/store`:
+
 - Format: `shape:${nanoid()}` (e.g., `shape:abc123XYZ`)
 - Created once when shape is created
 - Never changes during shape lifetime
@@ -111,14 +119,17 @@ const fillPath =
 ```
 
 **For stroke path** (line 31-36):
+
 ```typescript
-{path.toSvg({
-	style: dash,
-	strokeWidth,
-	forceSolid,
-	randomSeed: shape.id,
-	props: { fill: 'none', stroke: getColorValue(theme, color, 'solid') },
-})}
+{
+	path.toSvg({
+		style: dash,
+		strokeWidth,
+		forceSolid,
+		randomSeed: shape.id,
+		props: { fill: 'none', stroke: getColorValue(theme, color, 'solid') },
+	})
+}
 ```
 
 **Key observation**: Fill and stroke use same seed (shape.id), so their wobbles are coordinated.
@@ -155,6 +166,7 @@ toDrawD(opts: DrawPathBuilderDOpts) {
 ### Multi-pass rendering
 
 Lines 790-791:
+
 ```typescript
 for (let pass = 0; pass < passes; pass++) {
 	const random = rng(randomSeed + pass)
@@ -163,6 +175,7 @@ for (let pass = 0; pass < passes; pass++) {
 ```
 
 **Per-pass seed modification**: Each pass uses `randomSeed + pass` as its seed:
+
 - Pass 0: `rng(shape.id + 0)` → `rng("shape:abc1230")`
 - Pass 1: `rng(shape.id + 1)` → `rng("shape:abc1231")`
 
@@ -171,12 +184,14 @@ String concatenation produces different seeds, different sequences, slightly dif
 **Visual effect**: Multiple passes with different random offsets create a hand-drawn pen-over-pen effect. The line appears thicker and more organic, like a physical pen making multiple strokes that don't perfectly align.
 
 **Typical usage**:
+
 - Geo shapes with draw style: `passes: 1` for fills (cleaner), default `passes: 2` for strokes
 - Line/arrow shapes: `passes: 2` for richer texture
 
 ### Random offset application
 
 Lines 805-806:
+
 ```typescript
 const offset = command.isClose
 	? lastMoveToOffset
@@ -184,6 +199,7 @@ const offset = command.isClose
 ```
 
 **For each command point**:
+
 - Generate random x offset: `random() * offsetAmount` → value in [-offsetAmount, offsetAmount]
 - Generate random y offset: `random() * offsetAmount` → value in [-offsetAmount, offsetAmount]
 - Apply: `offsetPoint = Vec.Add(command, offset)` (line 820)
@@ -191,6 +207,7 @@ const offset = command.isClose
 **Close command special case**: Uses same offset as the original moveTo command to ensure path closes cleanly without gaps.
 
 **Offset limiting** (lines 756-758):
+
 ```typescript
 const offsetLimit = shortestDistance - roundnessClampedForAngle * 2
 const offsetAmount = clamp(offset, 0, offsetLimit / 4)
@@ -201,6 +218,7 @@ Prevents offsets from causing segments to overlap or invert when corners are sha
 ### Corner rounding algorithm
 
 Lines 737-750:
+
 ```typescript
 const roundnessClampedForAngle =
 	currentSupportsRoundness &&
@@ -219,12 +237,14 @@ const roundnessClampedForAngle =
 ```
 
 **Angle-based roundness scaling**:
+
 - 90° angle (Math.PI / 2): Full roundness value
 - 180° angle (Math.PI): Zero roundness (straight line, no corner)
 - Interpolated linearly between these extremes via `modulate()`
 - Clamped to ensure values stay in valid range
 
 **Modulate function** (`/packages/utils/src/lib/number.ts:98-108`):
+
 ```typescript
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp = false): number {
 	const [fromLow, fromHigh] = rangeA
@@ -242,6 +262,7 @@ export function modulate(value: number, rangeA: number[], rangeB: number[], clam
 Linear interpolation/remapping from one range to another.
 
 **Length-based clamping** (lines 760-767):
+
 ```typescript
 const roundnessBeforeClampedForLength = Math.min(
 	roundnessClampedForAngle,
@@ -256,6 +277,7 @@ const roundnessAfterClampedForLength = Math.min(
 Ensures corner radius doesn't exceed 1/4 of adjacent segment lengths, preventing circles from extending past segment endpoints.
 
 **Bezier curve implementation** (lines 863-873):
+
 ```typescript
 parts.push(
 	'L',
@@ -273,6 +295,7 @@ parts.push(
 Uses quadratic bezier curve (`Q`) command with the original (offset) point as control point, connecting shortened segments.
 
 **Supported commands**: Only `line` and `move` commands support rounding (line 968-972):
+
 ```typescript
 const commandsSupportingRoundness = {
 	line: true,
@@ -290,6 +313,7 @@ Located in `/packages/tldraw/src/lib/shapes/geo/getGeoShapePath.ts:421-515`
 ### Cloud generation parameters
 
 Lines 412-417:
+
 ```typescript
 const SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 50,
@@ -307,6 +331,7 @@ const BUMP_PROTRUSION = 0.2
 ### Number of bumps calculation
 
 Lines 431-436:
+
 ```typescript
 const numBumps = Math.max(
 	Math.ceil(pillCircumference / SIZES[size]),
@@ -316,6 +341,7 @@ const numBumps = Math.max(
 ```
 
 **Three constraints**:
+
 1. Based on size style: larger sizes → fewer, larger bumps
 2. Minimum 6 bumps (prevents weird-looking clouds)
 3. At least one bump per minimum dimension (prevents stretched bumps)
@@ -325,6 +351,7 @@ Takes maximum of all three to ensure reasonable appearance.
 ### Wiggle application
 
 Lines 451-469:
+
 ```typescript
 const maxWiggleX = width < 20 ? 0 : targetBumpProtrusion * 0.3
 const maxWiggleY = height < 20 ? 0 : targetBumpProtrusion * 0.3
@@ -348,6 +375,7 @@ for (let i = 0; i < Math.floor(numBumps / 2); i++) {
 **No wiggle for tiny shapes**: If width or height < 20px, wiggle is 0 (would look jittery at small scales).
 
 **Symmetric wiggling**: Wiggles from both ends toward center:
+
 - `i` goes from start
 - `numBumps - i - 1` goes from end
 - Only processes `Math.floor(numBumps / 2)` iterations
@@ -357,6 +385,7 @@ This creates visual stability at top-left while allowing organic variation at bo
 ### Arc generation between bumps
 
 Lines 471-512:
+
 ```typescript
 for (let i = 0; i < wiggledPoints.length; i++) {
 	const j = i === wiggledPoints.length - 1 ? 0 : i + 1
@@ -392,11 +421,13 @@ for (let i = 0; i < wiggledPoints.length; i++) {
 ```
 
 **Three-point circle**: Uses `centerOfCircleFromThreePoints()` to find circle passing through:
+
 1. Left wiggled bump point
 2. Right wiggled bump point
 3. Calculated arc point (midpoint pushed outward perpendicular to baseline)
 
 **Arc point calculation**:
+
 - `Vec.Lrp(leftPoint, rightPoint, 0.5)` - Midpoint between bump bases
 - `.add(Vec.Sub(rightPoint, leftPoint).uni().per().mul(finalDistance))` - Push perpendicular by calculated distance
 - Clamped to shape bounds (lines 489-498) to prevent bumps extending outside
@@ -417,6 +448,7 @@ export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 ```
 
 These values determine:
+
 - Base stroke width for rendering
 - Default offset amount (`strokeWidth / 3`)
 - Default roundness amount (`strokeWidth * 2`)
@@ -426,6 +458,7 @@ These values determine:
 ### Performance requirements
 
 Draw-style shapes may have:
+
 - Hundreds of points per path
 - Multiple passes (typically 2)
 - Multiple segments for complex shapes
@@ -438,18 +471,21 @@ At 60 FPS with multiple shapes visible, need millions of RNG calls per second. X
 ### Quality requirements
 
 **What we need**:
+
 - No visible patterns in 2D point distributions
 - Good period (cycle length before repeating)
 - Different seeds produce uncorrelated sequences
 - Stable across platforms (deterministic)
 
 **What we don't need**:
+
 - Cryptographic security
 - Perfect statistical distribution
 - Resistance to analysis
 - Unpredictability
 
 **Xorshift characteristics**:
+
 - Period: 2^128 - 1 (practically infinite for our use)
 - Passes basic diehard tests (sufficient for visual applications)
 - No visible patterns in 2D/3D point plots
@@ -470,6 +506,7 @@ At 60 FPS with multiple shapes visible, need millions of RNG calls per second. X
 ### Geo shapes
 
 All geo shapes use same pattern:
+
 - Get path from `getGeoShapePath(shape)`
 - For draw style, call `path.toDrawD({ randomSeed: shape.id, ... })`
 - Pass result to `<ShapeFill>` and/or `<path>` element
@@ -487,6 +524,7 @@ Arrows also support draw style, use shape.id as seed for consistency.
 ### Draw shapes
 
 Draw shapes (freehand drawing) use different technique:
+
 - Captured points use `getStroke` algorithm (pressure-sensitive path generation)
 - Draw style (dash='draw') uses different rendering, not PathBuilder.toDrawD()
 - Still use shape.id for any random elements (future-proofing)
@@ -496,6 +534,7 @@ Draw shapes (freehand drawing) use different technique:
 ### Close commands
 
 Lines 803-805:
+
 ```typescript
 const offset = command.isClose
 	? lastMoveToOffset
@@ -507,6 +546,7 @@ Close commands reuse the offset from the original moveTo to ensure paths close c
 ### Empty/invalid paths
 
 PathBuilder handles various degenerate cases:
+
 - Zero-length segments: Skip or render as point
 - Collinear points: No rounding applied
 - Single point: Renders as moveTo only
@@ -514,6 +554,7 @@ PathBuilder handles various degenerate cases:
 ### Very small shapes
 
 Cloud wiggle checks minimum size (line 451-452):
+
 ```typescript
 const maxWiggleX = width < 20 ? 0 : targetBumpProtrusion * 0.3
 const maxWiggleY = height < 20 ? 0 : targetBumpProtrusion * 0.3
@@ -524,16 +565,15 @@ Below 20px, no wiggle applied to prevent jittery appearance.
 ### Offset clamping edge cases
 
 Lines 752-758:
+
 ```typescript
-const shortestDistance = Math.min(
-	currentInfo?.length ?? Infinity,
-	nextInfo?.length ?? Infinity
-)
+const shortestDistance = Math.min(currentInfo?.length ?? Infinity, nextInfo?.length ?? Infinity)
 const offsetLimit = shortestDistance - roundnessClampedForAngle * 2
 const offsetAmount = clamp(offset, 0, offsetLimit / 4)
 ```
 
 Prevents visual artifacts when:
+
 - Segments are very short
 - Corners are sharp (large roundness)
 - Offsets would cause segments to cross
@@ -543,6 +583,7 @@ Prevents visual artifacts when:
 ### Determinism verification
 
 Given same shape ID, should produce identical SVG path data across:
+
 - Different browsers
 - Different operating systems
 - Different runs of the application
@@ -562,6 +603,7 @@ Given same shape ID, should produce identical SVG path data across:
 ```
 t = x ^ (x << 11)
 ```
+
 - Left shift introduces high-frequency mixing
 - XOR with original creates non-linear transformation
 - T is temporary value, not directly returned
@@ -569,6 +611,7 @@ t = x ^ (x << 11)
 ```
 x = y; y = z; z = w
 ```
+
 - State rotation ensures all variables participate
 - Previous outputs influence future outputs
 - Creates dependencies across multiple calls
@@ -576,6 +619,7 @@ x = y; y = z; z = w
 ```
 w ^= ((w >>> 19) ^ t ^ (t >>> 8)) >>> 0
 ```
+
 - Triple XOR of: rotated w, t, shifted t
 - Right shifts (>>>) introduce high bits into low bits
 - `>>> 0` converts to unsigned 32-bit (JavaScript specific)
@@ -583,6 +627,7 @@ w ^= ((w >>> 19) ^ t ^ (t >>> 8)) >>> 0
 ```
 return (w / 0x100000000) * 2
 ```
+
 - Normalize 32-bit unsigned int to [0, 1) float
 - Multiply by 2 to get [0, 2)
 - Effective range becomes [-1, 1) due to how values are used
@@ -592,22 +637,27 @@ return (w / 0x100000000) * 2
 Corner rounding uses vector geometry extensively:
 
 **Unit vector (tangent)** (line 945):
+
 ```typescript
 tangentStart = tangentEnd = Vec.Sub(previous, current).uni()
 ```
+
 - `uni()` normalizes vector to length 1
 - Represents direction without magnitude
 
 **Perpendicular vector** (line 486):
+
 ```typescript
 Vec.Sub(rightPoint, leftPoint).uni().per().mul(finalDistance)
 ```
+
 - `per()` rotates vector 90° (perpendicular)
 - Creates outward bump direction for clouds
 
 ### Bezier curve control point placement
 
 For quadratic bezier corners:
+
 - Control point: Original point position (with offset)
 - Start/end points: Moved along tangent by roundness amount
 - Creates smooth curve through corner
@@ -625,6 +675,7 @@ Cache invalidation happens automatically when shape properties change (handled b
 ### SVG path optimization
 
 `toDomPrecision()` function limits decimal places in SVG path data:
+
 - Reduces file size
 - Improves rendering performance
 - Eliminates sub-pixel differences that don't matter visually

@@ -6,6 +6,9 @@ keywords:
   - click
   - state
   - machine
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Click detection state machine: raw notes
@@ -15,6 +18,7 @@ Internal research notes for the click-state-machine.md article.
 ## Core problem
 
 Detecting double-clicks, triple-clicks, and quadruple-clicks in a way that:
+
 - Distinguishes clicks from drags
 - Handles different input types (mouse vs touch)
 - Provides different timeouts for initial vs subsequent multi-clicks
@@ -22,23 +26,25 @@ Detecting double-clicks, triple-clicks, and quadruple-clicks in a way that:
 - Emits events at appropriate phases (down, up, settle)
 
 **Naive approach (problematic):**
+
 ```typescript
 let clickCount = 0
 let clickTimeout: number
 
 function onPointerUp() {
-  clickCount++
-  clearTimeout(clickTimeout)
-  clickTimeout = setTimeout(() => {
-    if (clickCount === 1) handleSingleClick()
-    else if (clickCount === 2) handleDoubleClick()
-    else if (clickCount === 3) handleTripleClick()
-    clickCount = 0
-  }, 300)
+	clickCount++
+	clearTimeout(clickTimeout)
+	clickTimeout = setTimeout(() => {
+		if (clickCount === 1) handleSingleClick()
+		else if (clickCount === 2) handleDoubleClick()
+		else if (clickCount === 3) handleTripleClick()
+		clickCount = 0
+	}, 300)
 }
 ```
 
 Issues:
+
 - Doesn't handle spatial movement between clicks
 - Can't distinguish clicks from drags
 - Fixed timeout doesn't match OS conventions (double-click vs triple-click timing)
@@ -63,6 +69,7 @@ export type TLClickState =
 ```
 
 **State meanings:**
+
 - `idle` - No recent clicks, waiting for first click
 - `pendingDouble` - One click occurred, waiting to see if a second follows
 - `pendingTriple` - Two clicks occurred (double-click emitted), waiting for third
@@ -78,44 +85,44 @@ The state machine advances on pointer down, not pointer up:
 
 ```typescript
 switch (this._clickState) {
-  case 'idle': {
-    this._clickState = 'pendingDouble'
-    break
-  }
-  case 'pendingDouble': {
-    this._clickState = 'pendingTriple'
-    return {
-      ...info,
-      type: 'click',
-      name: 'double_click',
-      phase: 'down',
-    }
-  }
-  case 'pendingTriple': {
-    this._clickState = 'pendingQuadruple'
-    return {
-      ...info,
-      type: 'click',
-      name: 'triple_click',
-      phase: 'down',
-    }
-  }
-  case 'pendingQuadruple': {
-    this._clickState = 'pendingOverflow'
-    return {
-      ...info,
-      type: 'click',
-      name: 'quadruple_click',
-      phase: 'down',
-    }
-  }
-  case 'pendingOverflow': {
-    this._clickState = 'overflow'
-    break
-  }
-  default: {
-    // overflow state - no further advancement
-  }
+	case 'idle': {
+		this._clickState = 'pendingDouble'
+		break
+	}
+	case 'pendingDouble': {
+		this._clickState = 'pendingTriple'
+		return {
+			...info,
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+		}
+	}
+	case 'pendingTriple': {
+		this._clickState = 'pendingQuadruple'
+		return {
+			...info,
+			type: 'click',
+			name: 'triple_click',
+			phase: 'down',
+		}
+	}
+	case 'pendingQuadruple': {
+		this._clickState = 'pendingOverflow'
+		return {
+			...info,
+			type: 'click',
+			name: 'quadruple_click',
+			phase: 'down',
+		}
+	}
+	case 'pendingOverflow': {
+		this._clickState = 'overflow'
+		break
+	}
+	default: {
+		// overflow state - no further advancement
+	}
 }
 ```
 
@@ -127,33 +134,33 @@ Emits the `up` phase event for pending multi-clicks:
 
 ```typescript
 switch (this._clickState) {
-  case 'pendingTriple': {
-    return {
-      ...this.lastPointerInfo,
-      type: 'click',
-      name: 'double_click',
-      phase: 'up',
-    }
-  }
-  case 'pendingQuadruple': {
-    return {
-      ...this.lastPointerInfo,
-      type: 'click',
-      name: 'triple_click',
-      phase: 'up',
-    }
-  }
-  case 'pendingOverflow': {
-    return {
-      ...this.lastPointerInfo,
-      type: 'click',
-      name: 'quadruple_click',
-      phase: 'up',
-    }
-  }
-  default: {
-    // idle, pendingDouble, overflow - no up event
-  }
+	case 'pendingTriple': {
+		return {
+			...this.lastPointerInfo,
+			type: 'click',
+			name: 'double_click',
+			phase: 'up',
+		}
+	}
+	case 'pendingQuadruple': {
+		return {
+			...this.lastPointerInfo,
+			type: 'click',
+			name: 'triple_click',
+			phase: 'up',
+		}
+	}
+	case 'pendingOverflow': {
+		return {
+			...this.lastPointerInfo,
+			type: 'click',
+			name: 'quadruple_click',
+			phase: 'up',
+		}
+	}
+	default: {
+		// idle, pendingDouble, overflow - no up event
+	}
 }
 ```
 
@@ -229,6 +236,7 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 ```
 
 **Phase purposes:**
+
 - `down` - Fires immediately when pointer goes down and sequence advances. Allows instant UI feedback (e.g., text selection starts immediately on double-click down, not after release).
 - `up` - Fires when pointer releases, confirming the click wasn't dragged. Tools can update visual state.
 - `settle` - Fires when timeout expires, confirming no further clicks are coming. Tools use this for final actions like opening dialogs or completing operations.
@@ -243,16 +251,18 @@ multiClickDurationMs: 200,
 ```
 
 **Rationale:**
+
 - `doubleClickDurationMs` (450ms) - Longer timeout for the initial double-click. Users deliberately perform double-clicks with some hesitation.
 - `multiClickDurationMs` (200ms) - Shorter timeout for subsequent multi-clicks. Once in a multi-click sequence, clicks are rapid-fire.
 
 Matches OS conventions where triple-click to select a paragraph requires fast clicking after the initial double-click.
 
 From line 72-74:
+
 ```typescript
 state === 'idle' || state === 'pendingDouble'
-  ? this.editor.options.doubleClickDurationMs   // 450ms
-  : this.editor.options.multiClickDurationMs    // 200ms
+	? this.editor.options.doubleClickDurationMs // 450ms
+	: this.editor.options.multiClickDurationMs // 200ms
 ```
 
 Only `idle` → `pendingDouble` and `pendingDouble` → `pendingTriple` use the longer timeout. All subsequent transitions use the shorter timeout.
@@ -272,6 +282,7 @@ _getClickTimeout(state: TLClickState, id = uniqueId()) {
 ```
 
 **Mechanism:**
+
 1. Each timeout gets a unique ID via `uniqueId()` from `@tldraw/utils`
 2. ID is stored in `this._clickId` (line 31)
 3. When timeout fires, it checks both:
@@ -280,18 +291,19 @@ _getClickTimeout(state: TLClickState, id = uniqueId()) {
 
 **uniqueId implementation:**
 From `packages/utils/src/lib/id.ts:40-59`:
+
 ```typescript
 function nanoid(size = 21) {
-  fillPool((size -= 0))
-  let id = ''
-  for (let i = poolOffset - size; i < poolOffset; i++) {
-    id += urlAlphabet[pool[i] & 63]
-  }
-  return id
+	fillPool((size -= 0))
+	let id = ''
+	for (let i = poolOffset - size; i < poolOffset; i++) {
+		id += urlAlphabet[pool[i] & 63]
+	}
+	return id
 }
 
 export function uniqueId(size = 21) {
-  return nanoid(size)
+	return nanoid(size)
 }
 ```
 
@@ -311,10 +323,10 @@ const MAX_CLICK_DISTANCE = 40
 
 // In handlePointerEvent for pointer_down:
 if (
-  this._previousScreenPoint &&
-  Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
+	this._previousScreenPoint &&
+	Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
 ) {
-  this._clickState = 'idle'
+	this._clickState = 'idle'
 }
 ```
 
@@ -324,6 +336,7 @@ Clicks must occur within 40 pixels of each other. Moving beyond this resets the 
 `Vec.Dist2` returns squared Euclidean distance, avoiding expensive `Math.sqrt()`:
 
 From `packages/editor/src/lib/primitives/Vec.ts:332-334`:
+
 ```typescript
 static Dist2(A: VecLike, B: VecLike): number {
   return (A.x - B.x) * (A.x - B.x) + (A.y - B.y) * (A.y - B.y)
@@ -355,6 +368,7 @@ case 'pointer_move': {
 Moving the pointer during a click sequence cancels it, treating the interaction as a drag instead.
 
 **Thresholds from `options.ts:117-118`:**
+
 ```typescript
 coarseDragDistanceSquared: 36, // 6 squared
 dragDistanceSquared: 16, // 4 squared
@@ -418,6 +432,7 @@ cancelDoubleClickTimeout() {
 ```
 
 Public method to cancel click sequence, used when:
+
 - Pointer moves beyond drag threshold
 - External events invalidate the sequence
 - Tool transitions occur
@@ -442,15 +457,16 @@ export const EVENT_NAME_MAP: Record<
 	Exclude<TLEventName, TLPinchEventName>,
 	keyof TLEventHandlers
 > = {
-  // ...
-  double_click: 'onDoubleClick',
-  triple_click: 'onTripleClick',
-  quadruple_click: 'onQuadrupleClick',
-  // ...
+	// ...
+	double_click: 'onDoubleClick',
+	triple_click: 'onTripleClick',
+	quadruple_click: 'onQuadrupleClick',
+	// ...
 }
 ```
 
 Click events map to handler methods:
+
 - `double_click` → `onDoubleClick`
 - `triple_click` → `onTripleClick`
 - `quadruple_click` → `onQuadrupleClick`
@@ -469,6 +485,7 @@ override onDoubleClick(info: TLClickEventInfo) {
 ```
 
 The SelectTool's Idle state:
+
 - Checks `info.phase !== 'up'` to only handle the up phase
 - Uses double-click on canvas to create text shapes (if enabled)
 - Uses double-click on shapes to start editing
@@ -482,6 +499,7 @@ Text shapes likely use triple-click in `settle` phase to confirm paragraph selec
 From `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.test.ts`:
 
 Tests verify:
+
 - Initial state is `idle` (line 69)
 - Single click transitions to `pendingDouble` (line 88)
 - Second click within timeout emits `double_click` with `down` phase (lines 115-125)
@@ -501,13 +519,13 @@ Test uses `vi.useFakeTimers()` and `vi.advanceTimersByTime()` to control timeout
 
 ```typescript
 // From ClickManager.ts:15
-const MAX_CLICK_DISTANCE = 40  // pixels in screen space
+const MAX_CLICK_DISTANCE = 40 // pixels in screen space
 
 // From options.ts:115-118
-doubleClickDurationMs: 450      // initial double-click timeout
-multiClickDurationMs: 200       // subsequent multi-click timeout
-coarseDragDistanceSquared: 36   // 6px threshold for touch
-dragDistanceSquared: 16         // 4px threshold for mouse
+doubleClickDurationMs: 450 // initial double-click timeout
+multiClickDurationMs: 200 // subsequent multi-click timeout
+coarseDragDistanceSquared: 36 // 6px threshold for touch
+dragDistanceSquared: 16 // 4px threshold for mouse
 ```
 
 ## Edge cases
@@ -538,16 +556,18 @@ Each state transition can be tested independently. Mock timers allow determinist
 
 **Extensibility:**
 Adding quintuple-click would require:
+
 1. New state `pendingQuintuple` in the enum
 2. Transition in `pendingOverflow` case
 3. Handler in timeout callback
-No refactoring of existing logic needed.
+   No refactoring of existing logic needed.
 
 **Race condition immunity:**
 Unique IDs and state checks make overlapping sequences impossible. Stale timeouts harmlessly no-op.
 
 **Phase separation:**
 Three phases allow progressive enhancement of UX:
+
 - Immediate visual feedback (down)
 - Confirmation of click vs drag (up)
 - Final action when sequence complete (settle)

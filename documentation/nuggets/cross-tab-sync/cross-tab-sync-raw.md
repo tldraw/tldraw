@@ -6,6 +6,9 @@ keywords:
   - cross
   - tab
   - sync
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Cross-tab synchronization: raw notes
@@ -17,6 +20,7 @@ Internal research notes for the cross-tab-sync.md article.
 Multiple browser tabs with same document open + IndexedDB = data loss. Last write wins, other changes disappear silently.
 
 **Common scenario:**
+
 1. Tab A: user draws shape, stores to IndexedDB
 2. Tab B: user opens same document (or refreshes while A still open)
 3. Tab B: makes changes, stores to IndexedDB
@@ -39,6 +43,7 @@ Fallback to mock for environments without support (older browsers, some iframes)
 
 **Channel naming:**
 From `TLLocalSyncClient.ts:102`:
+
 ```typescript
 public readonly channel = new BC(`tldraw-tab-sync-${persistenceKey}`)
 ```
@@ -91,11 +96,13 @@ store.listen(
 ```
 
 **Filters:**
+
 - `source: 'user'` - Only broadcasts user-initiated changes (not remote/system changes)
 - `scope: 'document'` - Only broadcasts document-scoped records (not session state like camera position)
 
 **Session state listener:**
 From `TLLocalSyncClient.ts:136-144`:
+
 ```typescript
 store.listen(
 	() => {
@@ -150,6 +157,7 @@ this.channel.onmessage = ({ data }) => {
 
 **Schema version check timing constant:**
 From `TLLocalSyncClient.ts:216`:
+
 ```typescript
 if (timeSinceInit < 5000) // 5 second window
 ```
@@ -184,6 +192,7 @@ mergeRemoteChanges(fn: () => void) {
 **Purpose:** Marks changes as remote-originated. Store doesn't re-broadcast them to avoid infinite loops.
 
 **Flags:**
+
 - `this.isMergingRemoteChanges = true` during execution
 - Prevents re-triggering store listeners with `source: 'user'` filter
 
@@ -267,6 +276,7 @@ Single pending timeout. Subsequent changes don't schedule new timeouts, just wai
 
 **Queue structure:**
 From `TLLocalSyncClient.ts:69`:
+
 ```typescript
 private diffQueue: Array<RecordsDiff<UnknownRecord> | typeof UPDATE_INSTANCE_STATE> = []
 ```
@@ -275,6 +285,7 @@ Accumulates changes between persist operations.
 
 **Squashing logic:**
 From `TLLocalSyncClient.ts:358-366`:
+
 ```typescript
 const diffs = squashRecordDiffs(
 	diffQueue.filter((d): d is RecordsDiff<UnknownRecord> => d !== UPDATE_INSTANCE_STATE)
@@ -291,12 +302,14 @@ await this.db.storeChanges({
 Located in `packages/store/src/lib/RecordsDiff.ts:152-164`
 
 Combines multiple diffs intelligently:
+
 - Added then updated → single add with final state
 - Added then removed → cancel both operations
 - Updated then updated → chain updates, preserve original 'from' state
 - Removed then added → convert to update
 
 **Example from RecordsDiff.ts:206-247:**
+
 ```typescript
 // Target has removed: { 'book:1': oldBook }
 // New diff has added: { 'book:1': newBook }
@@ -333,6 +346,7 @@ private persistIfNeeded() {
 ```
 
 **Guards:**
+
 1. Already persisting: skip (will reschedule after current persist completes)
 2. Reloading: don't write (newer tab exists, would overwrite their data)
 3. Store corrupted: don't write (prevents corrupting IndexedDB)
@@ -376,6 +390,7 @@ if (this.shouldDoFullDBWrite) {
 Applies squashed diffs (shown above)
 
 **When full write triggered:**
+
 - Initial persist on first change: `TLLocalSyncClient.ts:71` - `private shouldDoFullDBWrite = true`
 - Schema version mismatch detected: `TLLocalSyncClient.ts:234`
 - Write error occurred: `TLLocalSyncClient.ts:372`
@@ -399,6 +414,7 @@ export const Table = {
 
 **Database naming:**
 From `LocalIndexedDb.ts:23-24`:
+
 ```typescript
 const storeId = STORE_PREFIX + persistenceKey
 // Example: "TLDRAW_DOCUMENT_v2my-document-key"
@@ -462,6 +478,7 @@ async storeChanges({
 
 **Session state row:**
 From `LocalIndexedDb.ts:91-95`:
+
 ```typescript
 interface SessionStateSnapshotRow {
 	id: string
@@ -535,6 +552,7 @@ From `TLLocalSyncClient.ts:369-381`:
 
 **Alert message:**
 From `packages/editor/src/lib/utils/sync/alerts.ts:2-10`:
+
 ```typescript
 export function showCantWriteToIndexDbAlert() {
 	window.alert(
@@ -664,6 +682,7 @@ window?.addEventListener('beforeunload', () => {
 ```
 
 **Strategy:**
+
 1. Check window global
 2. Check sessionStorage
 3. Generate new unique ID
@@ -710,6 +729,7 @@ async load({ sessionId }: { sessionId?: string } = {}) {
 ```
 
 **Fallback strategy:**
+
 1. Try to load by sessionId (matches current tab)
 2. If not found, get most recent session state by `updatedAt` timestamp
 3. Ensures new tabs inherit sensible camera position from previous tab
@@ -794,12 +814,14 @@ export function localStorageAtom<Value, Diff = unknown>(
 ```
 
 **Storage event behavior:**
-- Fires when localStorage changes in *different* tab
+
+- Fires when localStorage changes in _different_ tab
 - Does NOT fire for same-tab changes
 - Automatic loop prevention without extra logic
 - Only works for small JSON-serializable values
 
 **Comparison with BroadcastChannel:**
+
 - localStorage atoms: Simpler, automatic persistence, built-in cross-tab sync
 - BroadcastChannel: More control, supports complex data structures, explicit messaging
 
@@ -858,6 +880,7 @@ if (records.length > 0) {
 ```
 
 **Migration strategy:**
+
 1. Load raw records from IndexedDB
 2. Check stored schema version
 3. Run migrations to current schema
@@ -914,6 +937,7 @@ constructor(
 ```
 
 **Sequence:**
+
 1. Create IndexedDb instance
 2. Set up store listeners (immediate - captures changes during load)
 3. Call async `connect()` method
@@ -946,6 +970,7 @@ close() {
 ```
 
 **Disposables registered:**
+
 - Database close: `TLLocalSyncClient.ts:110`
 - Store listener (document): `TLLocalSyncClient.ts:115`
 - Store listener (session): `TLLocalSyncClient.ts:136`
@@ -967,11 +992,13 @@ const UPDATE_INSTANCE_STATE = Symbol('UPDATE_INSTANCE_STATE')
 ```
 
 From `TLLocalSyncClient.ts:216`:
+
 ```typescript
 const SCHEMA_MISMATCH_GRACE_PERIOD = 5000 // milliseconds
 ```
 
 From `LocalIndexedDb.ts:7-10`:
+
 ```typescript
 const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 const LEGACY_ASSET_STORE_PREFIX = 'TLDRAW_ASSET_STORE_v1'
@@ -979,16 +1006,19 @@ const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 ```
 
 From `LocalIndexedDb.ts:28`:
+
 ```typescript
 const DATABASE_VERSION = 4
 ```
 
 From `LocalIndexedDb.ts:282` (pruning limit):
+
 ```typescript
 const MAX_SESSION_STATES = 10
 ```
 
 From `TLSessionStateSnapshot.ts:77-80`:
+
 ```typescript
 const Versions = {
 	Initial: 0,

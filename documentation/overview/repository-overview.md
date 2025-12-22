@@ -7,6 +7,9 @@ keywords:
   - monorepo
   - introduction
   - structure
+status: published
+date: 12/19/2025
+order: 2
 ---
 
 This repository contains the tldraw SDK and the tldraw.com application. It includes published packages, example apps, templates, and infrastructure services.

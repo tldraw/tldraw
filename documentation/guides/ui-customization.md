@@ -8,6 +8,9 @@ keywords:
   - components
   - toolbar
   - menu
+status: published
+date: 12/19/2025
+order: 4
 ---
 
 You can replace or hide any tldraw UI component using the `components` prop. This guide shows the basic override pattern and where to hook custom UI.

@@ -6,6 +6,9 @@ keywords:
   - documentation
   - entry
   - index
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 Welcome to the documentation for the tldraw monorepo. This repository contains the source code for the tldraw SDK as well as the tldraw.com application, the tldraw.dev documentation, and several other applications that depend on the SDK or support its deployment and operations.

@@ -6,6 +6,9 @@ keywords:
   - pinch
   - gesture
   - touch
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Safari trackpad and the wheel momentum ghost
@@ -21,8 +24,7 @@ We bypass the state machine entirely for these events and go straight to zooming
 The @use-gesture library normalizes most browser differences, but Safari's gesture events are distinct enough to check explicitly. The event type reveals the input method:
 
 ```typescript
-const isSafariTrackpadPinch =
-	gesture.type === 'gesturechange' || gesture.type === 'gestureend'
+const isSafariTrackpadPinch = gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 
 if (isSafariTrackpadPinch) {
 	pinchState = 'zooming' // Skip "not sure" state entirely

@@ -6,6 +6,9 @@ keywords:
   - pinch
   - gesture
   - touch
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Pinch gesture disambiguation
@@ -27,11 +30,13 @@ let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 All gestures start in `'not sure'`. We track two metrics that reveal user intent:
 
 **Touch distance** — How far the fingers have moved apart or together:
+
 ```typescript
 const touchDistance = Math.abs(currDistanceBetweenFingers - initDistanceBetweenFingers)
 ```
 
 **Origin distance** — How far the midpoint between fingers has traveled:
+
 ```typescript
 const originDistance = Vec.Dist(initPointBetweenFingers, prevPointBetweenFingers)
 ```
@@ -70,18 +75,18 @@ case 'zooming': {
 }
 ```
 
-There's a TODO comment in the code suggesting we could compare velocities to detect when the user switches from zoom to pan, but we haven't needed it. Zoom operations can handle both distance and position changes simultaneously—when you zoom in on something while moving your fingers, we zoom *and* translate the camera to keep the point under your fingers stable. There's no reason to leave the zooming state once we're in it.
+There's a TODO comment in the code suggesting we could compare velocities to detect when the user switches from zoom to pan, but we haven't needed it. Zoom operations can handle both distance and position changes simultaneously—when you zoom in on something while moving your fingers, we zoom _and_ translate the camera to keep the point under your fingers stable. There's no reason to leave the zooming state once we're in it.
 
 The camera calculation during zoom accounts for both components:
 
 ```typescript
 this.setCamera(
-    {
-        x: cx + dx / cz - (z - cz) * (info.point.x / cz - cx),
-        y: cy + dy / cz - (z - cz) * (info.point.y / cz - cy),
-        z,
-    },
-    { immediate: true }
+	{
+		x: cx + dx / cz - (z - cz) * (info.point.x / cz - cx),
+		y: cy + dy / cz - (z - cz) * (info.point.y / cz - cy),
+		z,
+	},
+	{ immediate: true }
 )
 ```
 
@@ -92,11 +97,10 @@ The `dx / cz` term handles panning. The `(z - cz) * (info.point.x / cz - cx)` te
 Desktop Safari's trackpad pinch gesture uses different events (`gesturechange` and `gestureend` rather than touch events) and is always a zoom—you can't pan with a two-finger pinch on a trackpad. We detect this and skip straight to the zooming state:
 
 ```typescript
-const isSafariTrackpadPinch =
-    gesture.type === 'gesturechange' || gesture.type === 'gestureend'
+const isSafariTrackpadPinch = gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 
 if (isSafariTrackpadPinch) {
-    pinchState = 'zooming'
+	pinchState = 'zooming'
 }
 ```
 

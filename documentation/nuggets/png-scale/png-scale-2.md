@@ -6,6 +6,9 @@ keywords:
   - PNG
   - clipboard
   - pHYs
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # PNG scale preservation
@@ -59,16 +62,16 @@ const pHYsDataView = new DataView(pHYsData)
 pHYsDataView.setUint32(0, 9)
 
 // Type field: "pHYs" as ASCII
-pHYsDataView.setUint8(4, 'p'.charCodeAt(0))  // 0x70
-pHYsDataView.setUint8(5, 'H'.charCodeAt(0))  // 0x48
-pHYsDataView.setUint8(6, 'Y'.charCodeAt(0))  // 0x59
-pHYsDataView.setUint8(7, 's'.charCodeAt(0))  // 0x73
+pHYsDataView.setUint8(4, 'p'.charCodeAt(0)) // 0x70
+pHYsDataView.setUint8(5, 'H'.charCodeAt(0)) // 0x48
+pHYsDataView.setUint8(6, 'Y'.charCodeAt(0)) // 0x59
+pHYsDataView.setUint8(7, 's'.charCodeAt(0)) // 0x73
 
 // Data field: pixels per meter
 const DPI_72 = 2835.5
-pHYsDataView.setInt32(8, DPI_72 * pixelRatio)   // X
-pHYsDataView.setInt32(12, DPI_72 * pixelRatio)  // Y
-pHYsDataView.setInt8(16, 1)                     // unit = meters
+pHYsDataView.setInt32(8, DPI_72 * pixelRatio) // X
+pHYsDataView.setInt32(12, DPI_72 * pixelRatio) // Y
+pHYsDataView.setInt8(16, 1) // unit = meters
 
 // CRC32 checksum over bytes 4-16 (type + data)
 const crcBit = new Uint8Array(pHYsData.slice(4, 17))
@@ -82,19 +85,19 @@ The CRC32 checksum covers the type field and data field, but not the length or t
 The PNG specification requires pHYs to come before IDAT (the chunk containing actual image data). When we inject a pHYs chunk into an existing PNG, we find the IDAT chunk and insert right before it:
 
 ```typescript
-let offset = 46  // default: after IHDR
+let offset = 46 // default: after IHDR
 let size = 0
 
 const existingPhys = findChunk(view, 'pHYs')
 if (existingPhys) {
-    offset = existingPhys.start
-    size = existingPhys.size  // replace existing pHYs
+	offset = existingPhys.start
+	size = existingPhys.size // replace existing pHYs
 }
 
 const idatChunk = findChunk(view, 'IDAT')
 if (idatChunk) {
-    offset = idatChunk.start  // insert before IDAT (preferred)
-    size = 0
+	offset = idatChunk.start // insert before IDAT (preferred)
+	size = 0
 }
 
 // Splice the PNG: before | pHYs chunk | after
@@ -112,18 +115,18 @@ When we paste a PNG, we parse the pHYs chunk to determine display size:
 ```typescript
 const physChunk = findChunk(view, 'pHYs')
 if (physChunk) {
-    const physData = parsePhys(view, physChunk.dataOffset)
+	const physData = parsePhys(view, physChunk.dataOffset)
 
-    // Only scale if using meters and pixels are square
-    if (physData.unit === 1 && physData.ppux === physData.ppuy) {
-        const pixelsPerMeter = 72 / 0.0254  // baseline
-        const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
+	// Only scale if using meters and pixels are square
+	if (physData.unit === 1 && physData.ppux === physData.ppuy) {
+		const pixelsPerMeter = 72 / 0.0254 // baseline
+		const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
 
-        return {
-            w: Math.round(width / pixelRatio),   // 200 / 2 = 100
-            h: Math.round(height / pixelRatio),
-        }
-    }
+		return {
+			w: Math.round(width / pixelRatio), // 200 / 2 = 100
+			h: Math.round(height / pixelRatio),
+		}
+	}
 }
 ```
 
@@ -141,17 +144,17 @@ MIME types prefixed with `web ` bypass clipboard sanitization in Chrome, Edge, a
 
 ```typescript
 const expectedTypes = [
-    TLDRAW_CUSTOM_PNG_MIME_TYPE,  // check custom type first
-    'image/png',                   // fall back to standard
-    // ...
+	TLDRAW_CUSTOM_PNG_MIME_TYPE, // check custom type first
+	'image/png', // fall back to standard
+	// ...
 ]
 
 for (const type of expectedTypes) {
-    if (item.types.includes(type)) {
-        const blob = await item.getType(type)
-        // normalize back to image/png
-        break
-    }
+	if (item.types.includes(type)) {
+		const blob = await item.getType(type)
+		// normalize back to image/png
+		break
+	}
 }
 ```
 

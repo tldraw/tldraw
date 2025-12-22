@@ -8,6 +8,9 @@ keywords:
   - input
   - threshold
   - zoom
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Drag detection and thresholds
@@ -51,16 +54,16 @@ The drag detection picks the threshold based on whether we're using a coarse poi
 
 ```typescript
 if (
-  inputs.getIsPointing() &&
-  !inputs.getIsDragging() &&
-  Vec.Dist2(inputs.getOriginPagePoint(), inputs.getCurrentPagePoint()) *
-    this.getZoomLevel() >
-    (instanceState.isCoarsePointer
-      ? this.options.coarseDragDistanceSquared
-      : this.options.dragDistanceSquared) / cz
+	inputs.getIsPointing() &&
+	!inputs.getIsDragging() &&
+	Vec.Dist2(inputs.getOriginPagePoint(), inputs.getCurrentPagePoint()) * this.getZoomLevel() >
+		(instanceState.isCoarsePointer
+			? this.options.coarseDragDistanceSquared
+			: this.options.dragDistanceSquared) /
+			cz
 ) {
-  inputs.setIsDragging(true)
-  clearTimeout(this._longPressTimeout)
+	inputs.setIsDragging(true)
+	clearTimeout(this._longPressTimeout)
 }
 ```
 

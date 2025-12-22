@@ -7,6 +7,9 @@ keywords:
   - bindingutil
   - relationships
   - architecture
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 The binding system maintains persistent relationships between shapes. A binding is a record that points from one shape (`fromId`) to another (`toId`) and carries relationship-specific data. The system powers arrow attachments and any feature where shapes need to stay synchronized.

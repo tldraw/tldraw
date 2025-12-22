@@ -6,6 +6,9 @@ keywords:
   - shape
   - culling
   - shapes
+status: published
+date: 12/21/2025
+order: 3
 ---
 
 # Shape culling: raw notes
@@ -15,23 +18,27 @@ Internal research notes for the shape-culling.md article.
 ## Core problem
 
 Optimizing rendering performance for canvases with thousands of shapes. Two approaches:
+
 1. **Unmounting offscreen shapes** - Removes from DOM entirely, destroys React component state
 2. **Hiding offscreen shapes with display:none** - Keeps in DOM but invisible, preserves React state
 
 ## Why display:none preserves state
 
 React component state lives in React's fiber tree, which maps to mounted DOM nodes. When you unmount a component:
+
 - React calls cleanup functions and destroys the fiber
 - `useState`, `useRef`, instance variables all lost
 - Undo stacks, cursor positions, selections vanish
 
 With `display: none`:
+
 - Element stays in DOM tree
 - React fiber remains mounted
 - All component state preserved
 - Browser skips layout, paint, and hit testing
 
 From browser perspective, `display: none`:
+
 - Removes element from layout tree entirely
 - No size/position/bounding box calculations
 - No painting, no layers, no compositing
@@ -68,6 +75,7 @@ function fromScratch(editor: Editor): Set<TLShapeId> {
 ```
 
 **Key checks:**
+
 1. Get all shape IDs on current page
 2. Get viewport bounds in page coordinates
 3. For each shape:
@@ -78,6 +86,7 @@ function fromScratch(editor: Editor): Set<TLShapeId> {
 
 **Bounds inclusion logic:**
 From `packages/editor/src/lib/primitives/Box.ts:429-431`:
+
 ```typescript
 static Includes(A: Box, B: Box) {
     return Box.Collides(A, B) || Box.Contains(A, B)
@@ -85,10 +94,12 @@ static Includes(A: Box, B: Box) {
 ```
 
 Where:
+
 - `Collides`: boxes overlap at all
 - `Contains`: A fully contains B
 
 From `packages/editor/src/lib/primitives/Box.ts:412-414`:
+
 ```typescript
 static Collides(A: Box, B: Box) {
     return !(A.maxX < B.minX || A.minX > B.maxX || A.maxY < B.minY || A.minY > B.maxY)
@@ -96,6 +107,7 @@ static Collides(A: Box, B: Box) {
 ```
 
 From `packages/editor/src/lib/primitives/Box.ts:416-418`:
+
 ```typescript
 static Contains(A: Box, B: Box) {
     return A.minX < B.minX && A.minY < B.minY && A.maxY > B.maxY && A.maxX > B.maxX
@@ -129,6 +141,7 @@ getCulledShapes() {
 ```
 
 **Never cull:**
+
 - Shapes being edited (to preserve focus, cursor position, IME state)
 - Selected shapes (to keep handles visible and interactive)
 
@@ -162,18 +175,21 @@ export function notVisibleShapes(editor: Editor) {
 ```
 
 Uses `@tldraw/state` reactive computed values:
+
 - Automatically tracks dependencies (viewport bounds, shape positions, etc.)
 - Recomputes only when tracked values change
 - Optimization: if set contents haven't changed, returns previous reference (prevents unnecessary re-renders downstream)
 
 Created in Editor constructor:
 `packages/editor/src/lib/editor/Editor.ts:5130`:
+
 ```typescript
 private _notVisibleShapes = notVisibleShapes(this)
 ```
 
 Accessed via computed getter:
 `packages/editor/src/lib/editor/Editor.ts:5125-5128`:
+
 ```typescript
 @computed
 getNotVisibleShapes() {
@@ -205,6 +221,7 @@ useQuickReactor(
 ```
 
 **Key mechanics:**
+
 - `useQuickReactor`: Runs immediately when reactive dependencies change (no throttling/batching)
 - Sets `display` CSS property directly on container elements
 - Memoizes current culled state to avoid redundant DOM writes
@@ -212,6 +229,7 @@ useQuickReactor(
 - Component itself doesn't rerender - only display property changes
 
 From `packages/state-react/src/lib/useQuickReactor.ts:44-54`:
+
 ```typescript
 export function useQuickReactor(name: string, reactFn: () => void, deps: any[] = EMPTY_ARRAY) {
 	useEffect(() => {
@@ -227,12 +245,14 @@ export function useQuickReactor(name: string, reactFn: () => void, deps: any[] =
 ```
 
 Creates an EffectScheduler that:
+
 - Tracks reactive signal access during execution
 - Re-executes immediately when any tracked signal changes
 - No animation frame throttling (unlike `useReactor`)
 
 **DOM manipulation helper:**
 From `packages/editor/src/lib/utils/dom.ts:92-99`:
+
 ```typescript
 export const setStyleProperty = (
 	elm: HTMLElement | null,
@@ -247,6 +267,7 @@ export const setStyleProperty = (
 ## ShapeUtil.canCull override
 
 From `packages/editor/src/lib/editor/shapes/ShapeUtil.ts:299-301`:
+
 ```typescript
 canCull(shape: Shape): boolean {
 	return true
@@ -256,6 +277,7 @@ canCull(shape: Shape): boolean {
 Default implementation returns `true`. Shapes can opt out by overriding:
 
 Example from test suite (`packages/tldraw/src/test/getCulledShapes.test.tsx:25-34`):
+
 ```typescript
 class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 	static override type = UNCULLABLE_TYPE
@@ -272,6 +294,7 @@ class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 ```
 
 **Use cases for canCull = false:**
+
 - Shapes with effects extending beyond bounds (large drop shadows, glows)
 - Background shapes or watermarks that should always render
 - Shapes with special rendering requirements
@@ -281,6 +304,7 @@ class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 Both preserve React state, but differ in layout participation:
 
 **`visibility: hidden`:**
+
 - Element invisible but still in layout tree
 - Browser calculates size, position, bounding boxes
 - Reserves space in layout
@@ -288,6 +312,7 @@ Both preserve React state, but differ in layout participation:
 - Still affects parent dimensions
 
 **`display: none`:**
+
 - Element removed from layout tree entirely
 - No size/position calculations
 - No space reserved
@@ -302,6 +327,7 @@ For thousands of offscreen shapes, skipping layout calculations matters signific
 Pre-render shapes slightly outside viewport (e.g., viewport + 200px margin) to prevent pop-in during fast panning.
 
 **Rejected because:**
+
 1. Increases number of shapes rendered unnecessarily
 2. Margin size needs tuning for different screen sizes and zoom levels
 3. Adds complexity to bounds checking
@@ -309,6 +335,7 @@ Pre-render shapes slightly outside viewport (e.g., viewport + 200px margin) to p
 5. Simple exact viewport intersection is performant and easy to reason about
 
 Code from article uses exact bounds check:
+
 ```typescript
 if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
 	notVisibleShapes.add(id)
@@ -320,6 +347,7 @@ No margin added to `viewportPageBounds`.
 ## Why not check masks/clipping?
 
 From comment in `notVisibleShapes.ts:17-18`:
+
 ```typescript
 // If the shape is fully outside of the viewport page bounds, add it to the set.
 // We'll ignore masks here, since they're more expensive to compute and the overhead is not worth it.
@@ -329,11 +357,13 @@ From comment in `notVisibleShapes.ts:17-18`:
 A shape inside a frame might be clipped by the frame's bounds, making it invisible even though the shape itself is within viewport.
 
 **Why not implemented:**
+
 1. Expensive: requires checking every shape against every potential mask container
 2. Cost of checking > cost of rendering a few technically-invisible shapes
 3. Simple viewport intersection is sufficient for performance goals
 
 Test demonstrates this (`packages/tldraw/src/test/getCulledShapes.test.tsx:62-68`):
+
 ```typescript
 <TL.frame ref="B" x={200} y={200} w={300} h={300}>
 	<TL.geo ref="C" x={200} y={200} w={50} h={50} />
@@ -383,12 +413,14 @@ No special-case code needed - geometry system handles this naturally.
 ## Memory vs DOM size tradeoff
 
 **Keeping shapes in DOM with display:none:**
+
 - DOM tree stays large even when most shapes invisible
 - For documents with tens of thousands of shapes, uses more memory than unmounting
 - All React fibers remain in memory
 - All component instances remain allocated
 
 **Alternative (not used):**
+
 - Unmount offscreen shapes to reduce memory
 - Requires external state management (outside React component state)
 - Serializing/deserializing editing state on mount/unmount
@@ -402,6 +434,7 @@ State preservation and simplicity worth the memory cost for typical use cases. I
 From `packages/tldraw/src/test/getCulledShapes.test.tsx`:
 
 **Basic culling test (lines 70-96):**
+
 - Create shapes at various positions
 - Pan camera to move shapes in/out of viewport
 - Verify culled set matches expectations
@@ -409,6 +442,7 @@ From `packages/tldraw/src/test/getCulledShapes.test.tsx`:
 - Verify editing shapes never culled
 
 **Fuzz test (lines 154-185):**
+
 - Create 100 random shapes inside/outside viewport
 - Track which should be culled based on position
 - Verify incremental computation matches
@@ -417,6 +451,7 @@ From `packages/tldraw/src/test/getCulledShapes.test.tsx`:
 - Verify incremental and full recompute produce same result
 
 **Uncullable shape test (lines 253-282):**
+
 - Create custom shape util with `canCull() { return false }`
 - Create both regular and uncullable shapes outside viewport
 - Verify regular shape culled, uncullable shape not culled
@@ -424,6 +459,7 @@ From `packages/tldraw/src/test/getCulledShapes.test.tsx`:
 ## Shape component memoization
 
 From `packages/editor/src/lib/components/Shape.tsx:53-61`:
+
 ```typescript
 const memoizedStuffRef = useRef({
 	transform: '',
@@ -440,6 +476,7 @@ Tracks previous values to avoid redundant DOM writes. Only calls `setStyleProper
 
 **Inner component memoization:**
 From `packages/editor/src/lib/components/Shape.tsx:162-174`:
+
 ```typescript
 export const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
@@ -461,12 +498,14 @@ Shape content only rerenders when props/meta change. Display property changes do
 ## Performance characteristics
 
 **Cheap operations (display:none):**
+
 - Setting CSS display property
 - React fiber remains mounted (no reconciliation)
 - Component state stays in memory
 - Event listeners remain attached
 
 **Expensive operations avoided:**
+
 - Layout calculations
 - Paint operations
 - Compositing layers
@@ -475,6 +514,7 @@ Shape content only rerenders when props/meta change. Display property changes do
 
 **Rendering shapes back:**
 From `packages/editor/src/lib/editor/Editor.ts:5526-5531`:
+
 ```typescript
 @computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 	const culledShapes = this.getCulledShapes()
@@ -485,6 +525,7 @@ From `packages/editor/src/lib/editor/Editor.ts:5526-5531`:
 ```
 
 Shapes filter uses computed culled set. When shape moves back into viewport:
+
 1. Reactive computation detects bounds change
 2. `notVisibleShapes` updates
 3. `getCulledShapes` updates
@@ -499,6 +540,7 @@ All automatic via reactive signals.
 No specific culling-related constants. Culling is purely geometric based on viewport bounds.
 
 Relevant viewport methods:
+
 - `editor.getViewportPageBounds()` - Returns viewport bounds in page coordinates
 - `editor.getShapePageBounds(id)` - Returns shape bounds in page coordinates
 

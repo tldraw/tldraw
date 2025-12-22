@@ -12,6 +12,9 @@ voice: 8
 potential: 8
 accuracy: 10
 notes: 'Opens with our experience. Connects to broader touch vs mouse patterns. Constants list slightly ChatGPT-ish but content is good.'
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Edge scrolling

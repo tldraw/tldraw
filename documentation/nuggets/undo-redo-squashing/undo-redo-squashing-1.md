@@ -8,6 +8,9 @@ keywords:
   - history
   - squashing
   - marks
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # Undo/redo squashing
@@ -74,20 +77,20 @@ The `PendingDiff` class holds a single `RecordsDiff` that accumulates changes:
 
 ```typescript
 class PendingDiff<R extends UnknownRecord> {
-    private diff = createEmptyRecordsDiff<R>()
-    private isEmptyAtom = atom('PendingDiff.isEmpty', true)
+	private diff = createEmptyRecordsDiff<R>()
+	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
 
-    clear() {
-        const diff = this.diff
-        this.diff = createEmptyRecordsDiff<R>()
-        this.isEmptyAtom.set(true)
-        return diff
-    }
+	clear() {
+		const diff = this.diff
+		this.diff = createEmptyRecordsDiff<R>()
+		this.isEmptyAtom.set(true)
+		return diff
+	}
 
-    apply(diff: RecordsDiff<R>) {
-        squashRecordDiffsMutable(this.diff, [diff])
-        this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
-    }
+	apply(diff: RecordsDiff<R>) {
+		squashRecordDiffsMutable(this.diff, [diff])
+		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+	}
 }
 ```
 

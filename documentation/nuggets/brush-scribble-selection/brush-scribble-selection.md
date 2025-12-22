@@ -6,6 +6,9 @@ keywords:
   - brush
   - scribble
   - selection
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Brush vs scribble selection
@@ -33,24 +36,24 @@ For each shape, the algorithm tries to avoid expensive work. First, it checks if
 
 ```typescript
 if (brush.contains(pageBounds)) {
-    results.add(shape.id)
-    continue
+	results.add(shape.id)
+	continue
 }
 ```
 
-If the brush merely *collides* with the shape's bounds (overlap but not containment), we need to check if the brush actually touches the shape's geometry. Here's where it gets interesting: we test the brush's four edges against the shape's geometry as line segments.
+If the brush merely _collides_ with the shape's bounds (overlap but not containment), we need to check if the brush actually touches the shape's geometry. Here's where it gets interesting: we test the brush's four edges against the shape's geometry as line segments.
 
 ```typescript
 if (brush.collides(pageBounds)) {
-    const localCorners = pageTransform.clone().invert().applyToPoints(corners)
-    for (let i = 0; i < 4; i++) {
-        A = localCorners[i]
-        B = localCorners[(i + 1) % 4]
-        if (geometry.hitTestLineSegment(A, B, 0)) {
-            results.add(shape.id)
-            break
-        }
-    }
+	const localCorners = pageTransform.clone().invert().applyToPoints(corners)
+	for (let i = 0; i < 4; i++) {
+		A = localCorners[i]
+		B = localCorners[(i + 1) % 4]
+		if (geometry.hitTestLineSegment(A, B, 0)) {
+			results.add(shape.id)
+			break
+		}
+	}
 }
 ```
 
@@ -66,7 +69,7 @@ A = pt.applyToPoint(previousPagePoint)
 B = pt.applyToPoint(currentPagePoint)
 
 if (geometry.hitTestLineSegment(A, B, minDist)) {
-    newlySelectedShapeIds.add(outermostShape.id)
+	newlySelectedShapeIds.add(outermostShape.id)
 }
 ```
 
@@ -77,12 +80,12 @@ There's a bounding box early-out here too. Before the expensive line-segment-to-
 ```typescript
 const { bounds } = geometry
 if (
-    bounds.minX - minDist > Math.max(A.x, B.x) ||
-    bounds.minY - minDist > Math.max(A.y, B.y) ||
-    bounds.maxX + minDist < Math.min(A.x, B.x) ||
-    bounds.maxY + minDist < Math.min(A.y, B.y)
+	bounds.minX - minDist > Math.max(A.x, B.x) ||
+	bounds.minY - minDist > Math.max(A.y, B.y) ||
+	bounds.maxX + minDist < Math.min(A.x, B.x) ||
+	bounds.maxY + minDist < Math.min(A.y, B.y)
 ) {
-    continue
+	continue
 }
 ```
 
@@ -92,11 +95,11 @@ If the segment is entirely above, below, left, or right of the shape's bounds, s
 
 Both selection modes support two semantics: intersection (shape touches the selection area) and containment (shape is completely inside the selection area). The Ctrl key toggles between them.
 
-For brush selection, containment is trivial—we already check `brush.contains(pageBounds)`. When in wrap mode, that's the *only* passing condition. Shapes that merely intersect the brush edge are skipped:
+For brush selection, containment is trivial—we already check `brush.contains(pageBounds)`. When in wrap mode, that's the _only_ passing condition. Shapes that merely intersect the brush edge are skipped:
 
 ```typescript
 if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
-    continue // Must completely enclose to select
+	continue // Must completely enclose to select
 }
 ```
 
@@ -106,18 +109,18 @@ Scribble selection doesn't currently support wrap mode. The "touch to select" se
 
 ## Filled vs hollow shapes
 
-Both selection modes use the same geometry system from hit testing. A filled rectangle selects if the brush edge crosses its interior *or* its boundary. A hollow rectangle only selects if the brush edge crosses its boundary.
+Both selection modes use the same geometry system from hit testing. A filled rectangle selects if the brush edge crosses its interior _or_ its boundary. A hollow rectangle only selects if the brush edge crosses its boundary.
 
 This is handled by `hitTestLineSegment` on each geometry type. The base implementation in `Geometry2d` walks the shape's vertices as line segments, checking for intersection:
 
 ```typescript
 // packages/editor/src/lib/primitives/geometry/Geometry2d.ts
 for (let i = 0; i < vertices.length; i++) {
-    p = vertices[i]
-    if (i < nextLimit) {
-        const next = vertices[(i + 1) % vertices.length]
-        if (linesIntersect(A, B, p, next)) return 0
-    }
+	p = vertices[i]
+	if (i < nextLimit) {
+		const next = vertices[(i + 1) % vertices.length]
+		if (linesIntersect(A, B, p, next)) return 0
+	}
 }
 ```
 
@@ -132,11 +135,11 @@ Both selection modes check the page mask—a polygon representing the visible ar
 ```typescript
 const pageMask = editor.getShapeMask(selectedShape.id)
 if (
-    pageMask &&
-    !polygonsIntersect(pageMask, corners) &&
-    !pointInPolygon(currentPagePoint, pageMask)
+	pageMask &&
+	!polygonsIntersect(pageMask, corners) &&
+	!pointInPolygon(currentPagePoint, pageMask)
 ) {
-    return
+	return
 }
 ```
 
@@ -150,9 +153,9 @@ On a page with 5,000 shapes, selection needs to stay responsive. Both modes use 
 
 ```typescript
 const shapesToHitTest =
-    brushBoxIsInsideViewport && !this.viewportDidChange
-        ? editor.getCurrentPageRenderingShapesSorted()
-        : editor.getCurrentPageShapesSorted()
+	brushBoxIsInsideViewport && !this.viewportDidChange
+		? editor.getCurrentPageRenderingShapesSorted()
+		: editor.getCurrentPageShapesSorted()
 ```
 
 **Exclude shapes upfront.** Groups and locked shapes are collected into an exclusion set at the start and never tested.

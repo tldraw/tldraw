@@ -7,6 +7,9 @@ keywords:
   - development
   - installation
   - commands
+status: published
+date: 12/19/2025
+order: 1
 ---
 
 This guide sets up the tldraw monorepo and points to the most common development commands.

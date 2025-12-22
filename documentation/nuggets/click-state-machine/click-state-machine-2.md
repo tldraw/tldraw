@@ -6,6 +6,9 @@ keywords:
   - click
   - state
   - machine
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Three phases of a click event

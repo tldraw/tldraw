@@ -9,6 +9,9 @@ keywords:
   - cache
   - reactive
   - signals
+status: published
+date: 12/21/2025
+order: 1
 ---
 
 # Shape font loading: Reactive caching
@@ -140,4 +143,3 @@ The `AtomMap` enables fine-grained updates. When a font loads, only shapes that 
 The font manager is in `/packages/editor/src/lib/editor/managers/FontManager/FontManager.ts`. Shape-specific font requirements live in each shape util—TextShapeUtil, GeoShapeUtil, ArrowShapeUtil—which override `getFontFaces`.
 
 Rich text parsing that extracts fonts from markup is in `/packages/editor/src/lib/utils/richText.ts` and `/packages/tldraw/src/lib/utils/text/richText.ts`.
-

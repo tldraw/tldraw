@@ -5,6 +5,9 @@ updated_at: 12/21/2025
 keywords:
   - freehand
   - ink
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # SVG paths from hand-drawn points
@@ -55,7 +58,8 @@ For **closed paths** like shapes and fills, the stroke needs to loop back seamle
 ```typescript
 if (closed) {
 	return `M${average(points[0], points[1])}Q${precise(points[1])}${average(
-		points[1], points[2]
+		points[1],
+		points[2]
 	)}T${result}${average(points[len - 1], points[0])}${average(points[0], points[1])}Z`
 }
 ```
@@ -80,7 +84,7 @@ Cubic Bézier curves (`C`) offer more control with two control points per segmen
 
 ## Relationship to perfect-freehand
 
-This algorithm converts points to paths, but tldraw's freehand strokes involve another layer: the perfect-freehand library (now bundled into tldraw) that simulates pressure-sensitive ink. Perfect-freehand takes raw input points and produces *outline* points—the boundary of a variable-width stroke. Those outline points form a closed polygon representing the filled stroke shape.
+This algorithm converts points to paths, but tldraw's freehand strokes involve another layer: the perfect-freehand library (now bundled into tldraw) that simulates pressure-sensitive ink. Perfect-freehand takes raw input points and produces _outline_ points—the boundary of a variable-width stroke. Those outline points form a closed polygon representing the filled stroke shape.
 
 Both systems use the same `average` and `precise` helpers and the same quadratic smoothing technique. The editor's `getSvgPathFromPoints` handles simple polylines (like scribbles), while the tldraw package's `getSvgPathFromStrokePoints` handles the richer stroke data with pressure information. Same algorithm, different data structures.
 

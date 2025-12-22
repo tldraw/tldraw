@@ -8,6 +8,9 @@ keywords:
   - StateNode
   - interactions
   - events
+status: published
+date: 12/19/2025
+order: 8
 ---
 
 Tools define how users interact with the canvas. Each tool is a hierarchical state machine built on `StateNode`, which receives pointer, keyboard, and wheel events and transitions between child states. The Editor keeps a single active tool and routes input events to it.

@@ -6,6 +6,9 @@ keywords:
   - image
   - LOD
   - resolution
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Image level of detail
@@ -20,16 +23,16 @@ We calculate the requested width using screen scale, device pixel ratio, and net
 
 ```typescript
 const networkCompensation =
-  !context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
+	!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
 const width = Math.ceil(
-  Math.min(
-    asset.props.w *
-      clamp(context.steppedScreenScale, 1 / 32, 1) *
-      networkCompensation *
-      context.dpr,
-    asset.props.w
-  )
+	Math.min(
+		asset.props.w *
+			clamp(context.steppedScreenScale, 1 / 32, 1) *
+			networkCompensation *
+			context.dpr,
+		asset.props.w
+	)
 )
 ```
 
@@ -59,7 +62,7 @@ if (asset.type === 'video') return asset.props.src
 
 ```typescript
 if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
-  return asset.props.src
+	return asset.props.src
 ```
 
 **Vector images** (SVG) scale infinitely without quality loss:
@@ -81,8 +84,7 @@ These files still go through the image worker for format optimization (AVIF/WebP
 **External domains** aren't transformed. We only resize images hosted on tldraw-controlled domains:
 
 ```typescript
-const isTldrawImage =
-  isDevelopmentEnv || /\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host)
+const isTldrawImage = isDevelopmentEnv || /\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host)
 
 if (!isTldrawImage) return asset.props.src
 ```
@@ -102,10 +104,10 @@ The server uses the `Accept` header to determine which format to serve:
 ```typescript
 const accept = request.headers.get('Accept') ?? ''
 const format = accept.includes('image/avif')
-  ? ('avif' as const)
-  : accept.includes('image/webp')
-    ? ('webp' as const)
-    : null
+	? ('avif' as const)
+	: accept.includes('image/webp')
+		? ('webp' as const)
+		: null
 ```
 
 The priority order is AVIF (best compression, ~50% smaller than JPEG), then WebP (good compression, wider support), then original format. Browsers that support modern formats get them automatically—no feature detection or manual configuration needed.

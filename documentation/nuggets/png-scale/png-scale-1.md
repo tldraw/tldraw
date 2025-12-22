@@ -6,6 +6,9 @@ keywords:
   - PNG
   - clipboard
   - pHYs
+status: published
+date: 12/21/2025
+order: 0
 ---
 
 # PNG scale preservation
@@ -27,12 +30,12 @@ Byte 8:    unit specifier (0 = unknown, 1 = meters)
 When we export at 2x resolution, we write a pHYs chunk indicating 144 DPI (double the standard 72 DPI):
 
 ```typescript
-const DPI_72 = 2835.5  // 72 DPI in pixels per meter (72 / 0.0254)
+const DPI_72 = 2835.5 // 72 DPI in pixels per meter (72 / 0.0254)
 const pixelRatio = 2
 
-pHYsDataView.setInt32(8, DPI_72 * pixelRatio)   // X: 5671 pixels per meter
-pHYsDataView.setInt32(12, DPI_72 * pixelRatio)  // Y: 5671 pixels per meter
-pHYsDataView.setInt8(16, 1)                       // unit = meters
+pHYsDataView.setInt32(8, DPI_72 * pixelRatio) // X: 5671 pixels per meter
+pHYsDataView.setInt32(12, DPI_72 * pixelRatio) // Y: 5671 pixels per meter
+pHYsDataView.setInt8(16, 1) // unit = meters
 ```
 
 A PNG reader that respects this metadata sees a 200×200px image that should display at 100×100px. The problem is that most PNG readers—including browsers—never see this metadata after it goes through the clipboard.
@@ -49,8 +52,8 @@ Chromium browsers have a workaround. MIME types prefixed with `web ` bypass clip
 
 ```typescript
 const types: Record<string, Promise<Blob>> = {
-  'image/png': blobPromise,                        // Standard, sanitized
-  'web image/vnd.tldraw+png': blobPromise          // Custom, unsanitized
+	'image/png': blobPromise, // Standard, sanitized
+	'web image/vnd.tldraw+png': blobPromise, // Custom, unsanitized
 }
 
 await clipboardWrite(types)
@@ -60,11 +63,11 @@ The standard type works everywhere but loses metadata. The custom type preserves
 
 ```typescript
 const expectedPasteFileMimeTypes = [
-  'web image/vnd.tldraw+png',  // Check custom type first
-  'image/png',                  // Fall back to standard
-  'image/jpeg',
-  'image/webp',
-  'image/svg+xml',
+	'web image/vnd.tldraw+png', // Check custom type first
+	'image/png', // Fall back to standard
+	'image/jpeg',
+	'image/webp',
+	'image/svg+xml',
 ]
 ```
 
@@ -76,23 +79,23 @@ When we receive a PNG blob, we check for a pHYs chunk and use it to calculate th
 
 ```typescript
 if (blob.type === 'image/png') {
-  const view = new DataView(await blob.arrayBuffer())
-  if (PngHelpers.isPng(view, 0)) {
-    const physChunk = PngHelpers.findChunk(view, 'pHYs')
-    if (physChunk) {
-      const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
+	const view = new DataView(await blob.arrayBuffer())
+	if (PngHelpers.isPng(view, 0)) {
+		const physChunk = PngHelpers.findChunk(view, 'pHYs')
+		if (physChunk) {
+			const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
 
-      if (physData.unit === 1 && physData.ppux === physData.ppuy) {
-        const pixelsPerMeter = 72 / 0.0254  // Standard display density
-        const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
+			if (physData.unit === 1 && physData.ppux === physData.ppuy) {
+				const pixelsPerMeter = 72 / 0.0254 // Standard display density
+				const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
 
-        return {
-          w: Math.round(naturalWidth / pixelRatio),
-          h: Math.round(naturalHeight / pixelRatio),
-        }
-      }
-    }
-  }
+				return {
+					w: Math.round(naturalWidth / pixelRatio),
+					h: Math.round(naturalHeight / pixelRatio),
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -131,19 +134,19 @@ pHYsDataView.setInt32(17, crc(crcBit))
 We find the IDAT chunk position (or the existing pHYs chunk if present) and splice the new chunk into the binary data:
 
 ```typescript
-let offset = 46  // Default: after IHDR chunk
+let offset = 46 // Default: after IHDR chunk
 let size = 0
 
 const existingPHYs = PngHelpers.findChunk(view, 'pHYs')
 if (existingPHYs) {
-  offset = existingPHYs.start
-  size = existingPHYs.size  // Replace existing
+	offset = existingPHYs.start
+	size = existingPHYs.size // Replace existing
 }
 
 const idatChunk = PngHelpers.findChunk(view, 'IDAT')
 if (idatChunk) {
-  offset = idatChunk.start  // Insert before IDAT (preferred)
-  size = 0
+	offset = idatChunk.start // Insert before IDAT (preferred)
+	size = 0
 }
 
 const startBuf = view.buffer.slice(0, offset)

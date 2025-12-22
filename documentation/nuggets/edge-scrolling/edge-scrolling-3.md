@@ -6,6 +6,9 @@ keywords:
   - edge
   - scrolling
   - camera
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # Edge scrolling
@@ -75,6 +78,7 @@ private getEdgeProximityFactors(
 ```
 
 For a mouse at x=4 with an edge zone at x=8:
+
 - `pMin = 4 - 0 = 4`
 - `proximity = (8 - 4) / 8 = 0.5`
 
@@ -90,18 +94,19 @@ The cubic curve (t³) front-loads the slow phase:
 
 ```typescript
 const eased =
-    editor.options.edgeScrollEaseDuration > 0
-        ? EASINGS.easeInCubic(
-            Math.min(
-                1,
-                this._edgeScrollDuration /
-                    (editor.options.edgeScrollDelay + editor.options.edgeScrollEaseDuration)
-            )
-        )
-        : 1
+	editor.options.edgeScrollEaseDuration > 0
+		? EASINGS.easeInCubic(
+				Math.min(
+					1,
+					this._edgeScrollDuration /
+						(editor.options.edgeScrollDelay + editor.options.edgeScrollEaseDuration)
+				)
+			)
+		: 1
 ```
 
 At 300ms (100ms into the ease phase):
+
 - Linear ramp would give 50% speed
 - Cubic ramp gives 12.5% speed (0.5³ = 0.125)
 
@@ -143,6 +148,7 @@ const scrollDeltaY = (pxSpeed * proximityFactor.y * screenSizeFactorY) / zoomLev
 ```
 
 Example at different zoom levels:
+
 - 1× zoom: `(25 × 1.0 × 1.0) / 1.0 = 25` canvas units per tick
 - 2× zoom: `(25 × 1.0 × 1.0) / 2.0 = 12.5` canvas units per tick
 - 0.5× zoom: `(25 × 1.0 × 1.0) / 0.5 = 50` canvas units per tick
@@ -156,6 +162,7 @@ Without this compensation, edge scrolling would feel sluggish when zoomed in (yo
 Let's walk through a realistic example. You're on a laptop (1440×900 screen), zoomed to 2×, dragging a shape. Your pointer is 2 pixels from the left edge. You've been in the edge zone for 350ms.
 
 Calculate each factor:
+
 - Base speed: 25 pixels per tick
 - User preference: 1.0 (default)
 - Proximity: `(8 - 2) / 8 = 0.75` (75% of the way to the edge)
@@ -164,6 +171,7 @@ Calculate each factor:
 - Zoom: 2.0
 
 Scroll delta:
+
 ```
 scrollDelta = (25 × 1.0 × 0.75 × 0.670 × 1.0) / 2.0
            = (12.56) / 2.0
@@ -173,10 +181,12 @@ scrollDelta = (25 × 1.0 × 0.75 × 0.670 × 1.0) / 2.0
 At 60 FPS, that's about 377 canvas units per second of leftward scroll.
 
 Now you move 2 pixels closer to the edge (pointer at 0, right at the viewport edge):
+
 - Proximity: `(8 - 0) / 8 = 1.0`
 - Everything else unchanged
 
 New scroll delta:
+
 ```
 scrollDelta = (25 × 1.0 × 1.0 × 0.670 × 1.0) / 2.0
            = 8.37 canvas units per tick

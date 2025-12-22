@@ -6,6 +6,9 @@ keywords:
   - undo
   - redo
   - squashing
+status: published
+date: 12/21/2025
+order: 4
 ---
 
 # Undo/redo squashing
@@ -38,11 +41,11 @@ The `HistoryManager` maintains a `PendingDiff` that accumulates all changes sinc
 ```typescript
 // In the history interceptor
 switch (this.state) {
-  case HistoryRecorderState.Recording:
-    this.pendingDiff.apply(entry.changes)
-    this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
-    break
-  // ...
+	case HistoryRecorderState.Recording:
+		this.pendingDiff.apply(entry.changes)
+		this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+		break
+	// ...
 }
 ```
 
@@ -78,55 +81,56 @@ When multiple changes affect the same record, they need to be combined intellige
 
 ```typescript
 export function squashRecordDiffsMutable<T extends UnknownRecord>(
-  target: RecordsDiff<T>,
-  diffs: RecordsDiff<T>[]
+	target: RecordsDiff<T>,
+	diffs: RecordsDiff<T>[]
 ): void {
-  for (const diff of diffs) {
-    // Added records
-    for (const [id, value] of objectMapEntries(diff.added)) {
-      if (target.removed[id]) {
-        // Was removed, now added back = update
-        const original = target.removed[id]
-        delete target.removed[id]
-        if (original !== value) {
-          target.updated[id] = [original, value]
-        }
-      } else {
-        target.added[id] = value
-      }
-    }
+	for (const diff of diffs) {
+		// Added records
+		for (const [id, value] of objectMapEntries(diff.added)) {
+			if (target.removed[id]) {
+				// Was removed, now added back = update
+				const original = target.removed[id]
+				delete target.removed[id]
+				if (original !== value) {
+					target.updated[id] = [original, value]
+				}
+			} else {
+				target.added[id] = value
+			}
+		}
 
-    // Updated records
-    for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-      if (target.added[id]) {
-        // Was just added, keep it as added with new value
-        target.added[id] = to
-      } else if (target.updated[id]) {
-        // Chain updates: keep original 'from', use new 'to'
-        target.updated[id] = [target.updated[id][0], to]
-      } else {
-        target.updated[id] = diff.updated[id]
-      }
-    }
+		// Updated records
+		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
+			if (target.added[id]) {
+				// Was just added, keep it as added with new value
+				target.added[id] = to
+			} else if (target.updated[id]) {
+				// Chain updates: keep original 'from', use new 'to'
+				target.updated[id] = [target.updated[id][0], to]
+			} else {
+				target.updated[id] = diff.updated[id]
+			}
+		}
 
-    // Removed records
-    for (const [id, value] of objectMapEntries(diff.removed)) {
-      if (target.added[id]) {
-        // Added then removed = nothing happened
-        delete target.added[id]
-      } else if (target.updated[id]) {
-        // Updated then removed = removed from original state
-        target.removed[id] = target.updated[id][0]
-        delete target.updated[id]
-      } else {
-        target.removed[id] = value
-      }
-    }
-  }
+		// Removed records
+		for (const [id, value] of objectMapEntries(diff.removed)) {
+			if (target.added[id]) {
+				// Added then removed = nothing happened
+				delete target.added[id]
+			} else if (target.updated[id]) {
+				// Updated then removed = removed from original state
+				target.removed[id] = target.updated[id][0]
+				delete target.updated[id]
+			} else {
+				target.removed[id] = value
+			}
+		}
+	}
 }
 ```
 
 The algorithm collapses sequences like:
+
 - Add → Update → Update = Add (with final state)
 - Update → Update → Update = Update (original → final)
 - Add → Remove = Nothing
@@ -141,16 +145,16 @@ The undo and redo stacks use an immutable linked list:
 
 ```typescript
 class StackItem<T> {
-  constructor(
-    public readonly head: T,
-    public readonly tail: Stack<T>
-  ) {
-    this.length = tail.length + 1
-  }
+	constructor(
+		public readonly head: T,
+		public readonly tail: Stack<T>
+	) {
+		this.length = tail.length + 1
+	}
 
-  push(head: T): Stack<T> {
-    return new StackItem(head, this)
-  }
+	push(head: T): Stack<T> {
+		return new StackItem(head, this)
+	}
 }
 ```
 
@@ -160,8 +164,8 @@ The stack contains two types of entries:
 
 ```typescript
 type TLHistoryEntry<R> =
-  | { type: 'stop', id: string }     // Mark
-  | { type: 'diff', diff: RecordsDiff<R> }  // Actual changes
+	| { type: 'stop'; id: string } // Mark
+	| { type: 'diff'; diff: RecordsDiff<R> } // Actual changes
 ```
 
 Marks are just stopping points with IDs. Diffs contain the actual record changes.
@@ -235,7 +239,7 @@ When you undo, the undone entries move to the redo stack:
 
 ```typescript
 if (pushToRedoStack && !isPendingDiffEmpty) {
-  redos = redos.push({ type: 'diff', diff: pendingDiff })
+	redos = redos.push({ type: 'diff', diff: pendingDiff })
 }
 ```
 
@@ -246,17 +250,24 @@ Normal changes clear the redo stack (you branched history), but there's a specia
 The `batch` method controls how changes interact with history:
 
 ```typescript
-editor.history.batch(() => {
-  editor.updateShapes(/* ... */)
-  editor.updateShapes(/* ... */)
-}, { history: 'record' })  // Normal recording
+editor.history.batch(
+	() => {
+		editor.updateShapes(/* ... */)
+		editor.updateShapes(/* ... */)
+	},
+	{ history: 'record' }
+) // Normal recording
 
-editor.history.batch(() => {
-  editor.setSelectedShapes(/* ... */)
-}, { history: 'ignore' })  // Don't record at all
+editor.history.batch(
+	() => {
+		editor.setSelectedShapes(/* ... */)
+	},
+	{ history: 'ignore' }
+) // Don't record at all
 ```
 
 Three modes:
+
 - `record`: Normal behavior—add to undo stack, clear redo stack
 - `record-preserveRedoStack`: Add to undo stack but keep redo stack intact
 - `ignore`: Don't record to history at all (for transient UI state)

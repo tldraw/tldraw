@@ -6,6 +6,9 @@ keywords:
   - react
   - DOM
   - canvas
+status: published
+date: 12/21/2025
+order: 2
 ---
 
 # React as a canvas renderer
@@ -24,24 +27,24 @@ The computation starts with a bounding box check. For each shape on the page, we
 
 ```typescript
 function fromScratch(editor: Editor): Set<TLShapeId> {
-  const shapesIds = editor.getCurrentPageShapeIds()
-  const viewportPageBounds = editor.getViewportPageBounds()
-  const notVisibleShapes = new Set<TLShapeId>()
+	const shapesIds = editor.getCurrentPageShapeIds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	const notVisibleShapes = new Set<TLShapeId>()
 
-  shapesIds.forEach((id) => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	shapesIds.forEach((id) => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-    if (!canCull) return
+		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+		if (!canCull) return
 
-    const pageBounds = editor.getShapePageBounds(id)
-    if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
-      notVisibleShapes.add(id)
-    }
-  })
+		const pageBounds = editor.getShapePageBounds(id)
+		if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
+			notVisibleShapes.add(id)
+		}
+	})
 
-  return notVisibleShapes
+	return notVisibleShapes
 }
 ```
 
@@ -51,23 +54,23 @@ This computation is wrapped in a reactive signal so it only recalculates when de
 
 ```typescript
 export function notVisibleShapes(editor: Editor) {
-  return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-    const nextValue = fromScratch(editor)
+	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
+		const nextValue = fromScratch(editor)
 
-    if (isUninitialized(prevValue)) {
-      return nextValue
-    }
+		if (isUninitialized(prevValue)) {
+			return nextValue
+		}
 
-    if (prevValue.size !== nextValue.size) return nextValue
+		if (prevValue.size !== nextValue.size) return nextValue
 
-    for (const prev of prevValue) {
-      if (!nextValue.has(prev)) {
-        return nextValue
-      }
-    }
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				return nextValue
+			}
+		}
 
-    return prevValue
-  })
+		return prevValue
+	})
 }
 ```
 
@@ -97,20 +100,20 @@ Each shape component subscribes to this set and toggles `display: none` when its
 
 ```typescript
 useQuickReactor(
-  'set display',
-  () => {
-    const shape = editor.getShape(id)
-    if (!shape) return
+	'set display',
+	() => {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-    const culledShapes = editor.getCulledShapes()
-    const isCulled = culledShapes.has(id)
-    if (isCulled !== memoizedStuffRef.current.isCulled) {
-      setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-      setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
-      memoizedStuffRef.current.isCulled = isCulled
-    }
-  },
-  [editor]
+		const culledShapes = editor.getCulledShapes()
+		const isCulled = culledShapes.has(id)
+		if (isCulled !== memoizedStuffRef.current.isCulled) {
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			memoizedStuffRef.current.isCulled = isCulled
+		}
+	},
+	[editor]
 )
 ```
 
@@ -148,27 +151,27 @@ Each shape gets an `index` property that represents its visual z-order. This get
 
 ```typescript
 useLayoutEffect(() => {
-  const container = containerRef.current
-  const bgContainer = bgContainerRef.current
+	const container = containerRef.current
+	const bgContainer = bgContainerRef.current
 
-  setStyleProperty(container, 'opacity', opacity)
-  setStyleProperty(bgContainer, 'opacity', opacity)
+	setStyleProperty(container, 'opacity', opacity)
+	setStyleProperty(bgContainer, 'opacity', opacity)
 
-  setStyleProperty(container, 'z-index', index)
-  setStyleProperty(bgContainer, 'z-index', backgroundIndex)
+	setStyleProperty(container, 'z-index', index)
+	setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 }, [opacity, index, backgroundIndex])
 ```
 
 The indices are calculated in `getUnorderedRenderingShapes`. The algorithm walks the shape tree in z-order, assigning increasing indices. Shapes that provide backgrounds for their children (like frames) create index "layers" to ensure proper stacking:
 
 ```typescript
-let nextIndex = this.options.maxShapesPerPage * 2      // 8000
+let nextIndex = this.options.maxShapesPerPage * 2 // 8000
 let nextBackgroundIndex = this.options.maxShapesPerPage // 4000
 
 if (util.providesBackgroundForChildren(shape)) {
-  backgroundIndexToRestore = nextBackgroundIndex
-  nextBackgroundIndex = nextIndex
-  nextIndex += this.options.maxShapesPerPage  // Add 4000 for nested layer
+	backgroundIndexToRestore = nextBackgroundIndex
+	nextBackgroundIndex = nextIndex
+	nextIndex += this.options.maxShapesPerPage // Add 4000 for nested layer
 }
 ```
 

@@ -7,6 +7,9 @@ keywords:
   - terms
   - definitions
   - reference
+status: published
+date: 12/20/2025
+order: 3
 ---
 
 Short definitions for common terms used in tldraw docs and code.
