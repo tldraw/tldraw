@@ -13,8 +13,6 @@ keywords:
   - performance
 ---
 
-## Overview
-
 The `@tldraw/utils` package provides foundational utility functions used throughout the tldraw codebase. It sits at the base of the dependency graph with no dependencies on other tldraw packages, making it safe for any package to import.
 
 This package fills gaps in JavaScript's standard library with functions the tldraw codebase needs repeatedly. The utilities are pure, type-safe, and generic enough for any TypeScript project. They handle collections, error management, performance optimization, media processing, and cross-platform compatibility.

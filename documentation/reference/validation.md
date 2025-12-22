@@ -10,8 +10,6 @@ keywords:
   - errors
 ---
 
-## Overview
-
 Validation in tldraw is handled by `@tldraw/validate` and applied across schemas, record types, and shape props. Validators enforce runtime type safety and provide structured errors when data is malformed.
 
 ## Where validation runs

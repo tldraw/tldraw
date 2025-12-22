@@ -9,8 +9,6 @@ keywords:
   - template
 ---
 
-## Overview
-
 The Sync Cloudflare template is a full multiplayer example with a Vite client and a Cloudflare Worker backend using Durable Objects.
 
 ## Quick start

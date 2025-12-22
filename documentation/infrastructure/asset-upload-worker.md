@@ -10,8 +10,6 @@ keywords:
   - r2
 ---
 
-## Overview
-
 The asset upload worker handles file uploads and asset delivery for tldraw.com. It stores uploads in Cloudflare R2, serves them with edge caching, and supports range requests for large files.
 
 ## Key components

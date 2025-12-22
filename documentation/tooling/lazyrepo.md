@@ -10,8 +10,6 @@ keywords:
   - incremental
 ---
 
-## Overview
-
 tldraw uses LazyRepo as its monorepo build orchestrator. LazyRepo provides incremental builds with caching: it tracks which packages have changed since the last build, rebuilds only those packages, and caches outputs so unchanged work doesn't repeat. This transforms build times from minutes to seconds during typical development.
 
 Monorepos face a fundamental challenge: as the number of packages grows, build times grow with them. A naive approach rebuilds everything on every change, wasting time recompiling code that hasn't changed. LazyRepo solves this by treating each package as an independent cacheable unit. Source files are hashed, and if the hash matches a cached build, the cached output is used instantly.

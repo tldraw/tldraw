@@ -9,8 +9,6 @@ keywords:
   - tldr files
 ---
 
-## Overview
-
 The tldraw VS Code extension lets users open and edit `.tldr` files directly in the editor. It pairs a TypeScript extension host with a React-based webview that renders the tldraw editor.
 
 ## Key components

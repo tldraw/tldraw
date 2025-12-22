@@ -10,8 +10,6 @@ keywords:
   - compatibility
 ---
 
-## Overview
-
 The migration system transforms store records between schema versions. A schema version is recorded alongside persisted data; when a snapshot is loaded or synced, migrations bridge the gap between the saved versions and the current schema. This keeps older documents readable and enables cross-version multiplayer.
 
 ## Key components

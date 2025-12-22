@@ -13,8 +13,6 @@ keywords:
   - spans
 ---
 
-## Overview
-
 Accurate text measurement is essential for rendering text shapes, calculating bounds, and handling text wrapping on the infinite canvas. The editor needs to know the exact dimensions text will occupy before rendering it, enabling precise hit testing, selection bounds, and layout calculations.
 
 The text measurement system operates through two core managers. The `TextManager` handles dimension calculations by creating an off-screen DOM element, applying font styles, and measuring the resulting layout. The `FontManager` ensures custom fonts are loaded before measurement, preventing incorrect dimensions that occur when fonts are not yet available.

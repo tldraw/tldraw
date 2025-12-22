@@ -10,8 +10,6 @@ keywords:
   - pipeline
 ---
 
-## Overview
-
 The asset pipeline controls how images, videos, and other external media are stored and served. An asset is a record that points to a file; by default, tldraw stores file data as base64 inside the document, but you can provide a `TLAssetStore` to upload files and resolve optimized URLs.
 
 ## Key components

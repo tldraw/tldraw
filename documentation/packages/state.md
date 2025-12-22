@@ -11,8 +11,6 @@ keywords:
   - performance
 ---
 
-## Overview
-
 `@tldraw/state` is a signals-based reactive state library. It provides atoms for mutable state, computed values for derived state, and transactions for batching updates.
 
 ## Basic usage

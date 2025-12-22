@@ -10,8 +10,6 @@ keywords:
   - design
 ---
 
-## Overview
-
 tldraw's style system manages visual properties shared across shapes. A style is represented by a `StyleProp` that defines allowed values and defaults. The editor stores styles on shapes, exposes them in the UI, and resolves them through the active theme.
 
 ## Key components

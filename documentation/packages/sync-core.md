@@ -10,8 +10,6 @@ keywords:
   - real-time
 ---
 
-## Overview
-
 The `@tldraw/sync-core` package provides the foundational protocol and runtime for real-time collaboration in tldraw. This package implements the synchronization machinery that keeps multiple clients in sync, handling WebSocket communication, conflict resolution, presence updates, and automatic reconnection. It operates without React dependencies, making it suitable for server-side code, non-React frameworks, and scenarios requiring direct protocol control.
 
 Most applications should use `@tldraw/sync`, which wraps sync-core in React hooks and provides production-ready server implementations. Use sync-core directly when building custom sync servers, integrating with existing infrastructure, implementing non-React frontends, or requiring advanced control over synchronization behavior.

@@ -11,8 +11,6 @@ keywords:
   - input
 ---
 
-## Overview
-
 The focus management system determines when the editor captures user input versus allowing it to pass through to the enclosing page. When the editor is focused, it receives keyboard shortcuts, scroll wheel gestures, and certain pointer events. When unfocused, these inputs are ignored by the editor and remain available to other parts of the application. This enables use cases where the editor coexists with other interactive elements on the page, such as forms, toolbars, or sidebars.
 
 The `FocusManager` class tracks the editor's focus state independently from standard DOM focus. While the editor's container element can receive DOM focus through normal browser mechanisms, the focus management system maintains its own focus state in the editor's instance record. This separation allows the editor to distinguish between "editor focus" (whether the editor should respond to keyboard shortcuts and other inputs) and "element focus" (whether a specific HTML element like a text input is the active element).

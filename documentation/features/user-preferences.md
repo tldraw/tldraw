@@ -11,8 +11,6 @@ keywords:
   - locale
 ---
 
-## Overview
-
 The user preferences system stores and manages per-user settings that persist across sessions and synchronize across browser tabs. The `UserPreferencesManager` provides reactive access to preferences through computed values, ensuring that UI components automatically update when preferences change.
 
 User preferences cover three categories: visual settings like color scheme and animation speed, interaction settings like snap mode and edge scroll speed, and identity properties like user name, color, and locale. The system integrates with localStorage for persistence and uses the BroadcastChannel API to synchronize preference changes across tabs in real time.

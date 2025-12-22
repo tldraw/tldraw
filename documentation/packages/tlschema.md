@@ -11,8 +11,6 @@ keywords:
   - records
 ---
 
-## Overview
-
 `@tldraw/tlschema` defines the complete data model for tldraw. It provides TypeScript type definitions, runtime validators, and migration sequences for every piece of persistent data in a tldraw document—shapes, pages, assets, bindings, camera state, and more. This package serves as the single source of truth for tldraw's data structures.
 
 The schema system ensures data integrity across tldraw versions through two key mechanisms. Runtime validators catch invalid data before it enters the store, preventing corruption and type errors. Migration sequences automatically transform documents created with older tldraw versions to work with newer ones, making tldraw documents resilient and portable across time and versions. The `@tldraw/editor` package uses these schemas to configure its store, while `@tldraw/tldraw` provides the default shape and binding implementations.

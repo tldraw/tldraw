@@ -9,8 +9,6 @@ keywords:
   - design
 ---
 
-## Overview
-
 tldraw's SDK is organized as layered packages so you can choose how much of the system to use. The top layer is the full editor, the middle layer is the canvas engine, and the bottom layer is the reactive data system.
 
 ## SDK layers

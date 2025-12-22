@@ -10,8 +10,6 @@ keywords:
   - queries
 ---
 
-## Overview
-
 The Store (in `@tldraw/store`) is tldraw's client-side database for document data. A record is a typed object with an `id` and `typeName` stored in the Store; record types are defined in `@tldraw/tlschema`. The Store provides reactive queries, atomic transactions, change history, and persistence that power the editor's state.
 
 It is responsible for:

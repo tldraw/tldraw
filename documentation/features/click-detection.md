@@ -12,8 +12,6 @@ keywords:
   - multi-click
 ---
 
-## Overview
-
 The click detection system identifies single, double, triple, and quadruple clicks from raw pointer events. It tracks the timing and position of consecutive pointer down events using a state machine, dispatching click events when timing and distance thresholds are met. This enables text editing features like word selection on double-click and paragraph selection on triple-click, as well as custom multi-click behaviors in shapes and tools.
 
 The system validates that consecutive clicks occur within both timing windows and a maximum distance threshold (40 pixels), preventing false multi-click detection when users click in different locations. Movement during a pending click sequence also cancels the detection, ensuring click-drag operations work correctly.

@@ -9,8 +9,6 @@ keywords:
   - tldraw.com
 ---
 
-## Overview
-
 The tldraw.com client is the React application that powers the public web app. It is a Vite SPA that integrates authentication, file management, and real-time collaboration on top of the tldraw SDK.
 
 ## Key components

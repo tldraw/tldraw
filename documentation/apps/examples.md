@@ -10,8 +10,6 @@ keywords:
   - testing
 ---
 
-## Overview
-
 The examples app is the SDK showcase and development sandbox. It runs at `http://localhost:5420` when you start the repo, and it is deployed to [examples.tldraw.com](https://examples.tldraw.com). Each example is a standalone React component with metadata that powers navigation and embedding.
 
 ## Key components

@@ -10,8 +10,6 @@ keywords:
   - download
 ---
 
-## Overview
-
 The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The system handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports preserve visual fidelity by embedding fonts, inlining styles, and converting media elements to data URLs so the resulting files are fully self-contained.
 
 ## How it works

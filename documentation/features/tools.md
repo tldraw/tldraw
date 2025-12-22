@@ -10,8 +10,6 @@ keywords:
   - interaction
 ---
 
-## Overview
-
 Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode like selecting shapes, drawing, or panning the canvas. Tools are implemented as state machines using the `StateNode` class, which provides a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to mouse movements and clicks.
 
 The state machine architecture enables tools to handle multi-step interactions cleanly. For example, when using the select tool to resize a shape, the tool transitions through multiple states: idle, pointing the resize handle, and actively resizing. Each state handles different events and can transition to other states based on user input. This pattern keeps tool logic organized and makes complex interactions manageable.

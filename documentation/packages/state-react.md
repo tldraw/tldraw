@@ -10,8 +10,6 @@ keywords:
   - reactive
 ---
 
-## Overview
-
 `@tldraw/state-react` provides React bindings for tldraw signals. Use `useValue`, `track`, and `useReactor` to connect signals to components.
 
 ## Basic usage

@@ -10,8 +10,6 @@ keywords:
   - collaboration
 ---
 
-## Overview
-
 The sync worker is the core collaboration service for tldraw.com. It uses Cloudflare Workers and Durable Objects to manage rooms, persist snapshots, and broadcast real-time changes over WebSockets.
 
 ## Key components

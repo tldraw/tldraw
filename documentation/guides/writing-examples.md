@@ -10,8 +10,6 @@ keywords:
   - demos
 ---
 
-## Overview
-
 The examples app is the primary SDK showcase and development sandbox. This guide shows how to add a new example and make it appear in the app.
 
 ## Prerequisites

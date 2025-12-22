@@ -10,8 +10,6 @@ keywords:
   - rendering
 ---
 
-## Overview
-
 The culling system optimizes rendering performance by identifying shapes that are outside the viewport and preventing them from being rendered.
 
 In the React canvas, culled shapes remain in the DOM but have their `display` property set to `none` and so incur no rendering cost. The system uses incremental derivations to efficiently track visibility changes as the camera moves or shapes are modified, ensuring that performance remains consistent even with thousands of shapes on the canvas.

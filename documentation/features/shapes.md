@@ -11,8 +11,6 @@ keywords:
   - hit testing
 ---
 
-## Overview
-
 Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable while allowing complex per-shape behavior. Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
 
 ## Shape records

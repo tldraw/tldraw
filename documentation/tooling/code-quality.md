@@ -10,8 +10,6 @@ keywords:
   - api-extractor
 ---
 
-## Overview
-
 Code quality in the monorepo is enforced through automated tools that run locally and in CI. These tools form a layered defense against common issues: ESLint catches bugs and enforces patterns, Prettier maintains consistent formatting, TypeScript verifies type safety, and API Extractor guards the public API surface. Running these tools locally before pushing catches problems early, saving time on failed CI builds.
 
 The tools complement each other by focusing on different concerns. ESLint handles logic and pattern enforcement, Prettier handles visual formatting, TypeScript handles type correctness, and API Extractor handles public contract stability. This separation means each tool can excel at its specific task without overlap.

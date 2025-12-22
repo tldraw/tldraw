@@ -10,8 +10,6 @@ keywords:
   - requestAnimationFrame
 ---
 
-## Overview
-
 The tick system provides a frame-synchronized update loop for the editor through the `TickManager`. It emits `tick` events at the browser's native refresh rate using `requestAnimationFrame`, enabling smooth animations, edge scrolling during drag operations, and time-based state updates. Tools can implement the `onTick` handler to receive continuous updates with precise elapsed time information.
 
 The tick system bridges the gap between user interactions and frame-based updates. While pointer and keyboard events fire in response to user input, tick events fire on every animation frame, providing a consistent timing mechanism for operations that need to update smoothly over time.

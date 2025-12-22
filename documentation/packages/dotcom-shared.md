@@ -10,8 +10,6 @@ keywords:
   - api
 ---
 
-## Overview
-
 `@tldraw/dotcom-shared` contains shared types and utilities for tldraw.com and its backend services. It includes the database schema, mutators, permissions, and common API types.
 
 ## Key components

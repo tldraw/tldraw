@@ -14,8 +14,6 @@ keywords:
   - execution-context
 ---
 
-## Overview
-
 The `@tldraw/worker-shared` package provides reusable infrastructure for building HTTP services on Cloudflare Workers. It centralizes common patterns across tldraw's edge worker services, including type-safe request routing, R2 asset storage with caching, bookmark metadata extraction with image optimization, error monitoring through Sentry, and environment validation.
 
 Cloudflare Workers run JavaScript in V8 isolates at edge locations worldwide, providing instant cold starts and low-latency request handling without traditional servers or containers. Workers access resources through runtime-injected bindings (R2 buckets, KV namespaces, Durable Objects) rather than network connections, and have constraints including no filesystem access, limited memory, and CPU time limits. This package abstracts Workers-specific patterns - R2 integration, streaming responses, Cache API usage, execution context management, and resource bindings - into type-safe utilities that handle these edge runtime constraints.

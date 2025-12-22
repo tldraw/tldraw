@@ -11,8 +11,6 @@ keywords:
   - rocicorp
 ---
 
-## Overview
-
 Zero cache is the database synchronization layer for tldraw.com. It uses Rocicorp Zero to replicate data from Postgres into a local SQLite replica and stream changes to clients in real time.
 
 ## Key components

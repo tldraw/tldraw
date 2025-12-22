@@ -9,8 +9,6 @@ keywords:
   - template
 ---
 
-## Overview
-
 The Agent template adds an AI assistant that can interpret chat prompts and apply actions to the canvas. It includes a Vite client and a Cloudflare Worker backend with streaming responses.
 
 ## Quick start

@@ -12,8 +12,6 @@ keywords:
   - customization
 ---
 
-## Overview
-
 `@tldraw/tldraw` is the flagship package that provides a complete infinite canvas drawing application through a single React component. It combines the low-level canvas engine from `@tldraw/editor` with a comprehensive UI system, twelve default shape types, a complete toolset, and content handlers for drag-and-drop and paste operations.
 
 This is the recommended starting point for most applications. While `@tldraw/editor` gives you a minimal canvas engine that you must build upon, `@tldraw/tldraw` gives you a production-ready editor with text editing, drawing tools, geometric shapes, arrows with smart connections, image and video support, embeds from services like YouTube and Figma, a responsive UI that adapts from mobile to desktop, and keyboard shortcuts. Everything remains extensible through well-defined customization points.

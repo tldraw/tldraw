@@ -10,8 +10,6 @@ keywords:
   - schema
 ---
 
-## Overview
-
 `@tldraw/validate` provides runtime validation for TypeScript applications. It validates data from external sources like API responses, file uploads, and user input, ensuring values match expected types before entering your application.
 
 The library serves as the foundation for tldraw's type system, providing validators for all shape properties, bindings, and records in `@tldraw/tlschema`. Every shape creation, update, and migration passes through validators defined in this package.

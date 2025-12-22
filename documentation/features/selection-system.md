@@ -10,8 +10,6 @@ keywords:
   - group
 ---
 
-## Overview
-
 The selection system manages which shapes the editor currently selects. It provides computed properties for retrieving selected shapes and their collective properties (like bounds and rotation), enforces selection rules to maintain consistency, and exposes methods for programmatically changing the selection. The system ensures that ancestors and descendants never select simultaneously, automatically manages focus groups when you select grouped shapes, and filters out locked shapes from bulk operations.
 
 ## Selected shape IDs

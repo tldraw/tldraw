@@ -13,8 +13,6 @@ keywords:
   - storage
 ---
 
-## Overview
-
 The assets system manages external resources like images, videos, and bookmarks that shapes display on the canvas. Assets are stored as separate records in the store and referenced by ID from shapes, enabling efficient reuse of the same resource across multiple shapes. This separation allows tldraw to handle large media files independently from the shape data structure, supporting custom storage backends and dynamic URL resolution based on render context.
 
 The system handles three core asset types (image, video, bookmark) and provides hooks for uploading files to storage, resolving asset URLs for rendering, and cleaning up unused assets. Each asset record contains metadata about the resource (dimensions, MIME type, source URL) while the actual file data lives in your chosen storage backend.

@@ -10,8 +10,6 @@ keywords:
   - drag
 ---
 
-## Overview
-
 The edge scrolling system automatically pans the camera when the pointer moves near the viewport edges during drag operations. The `EdgeScrollManager` detects when users drag shapes toward screen boundaries and smoothly scrolls the canvas in that direction, enabling continuous movement beyond the visible area without releasing the drag.
 
 Edge scrolling activates only during drag operations and requires specific conditions: the user must be dragging (not panning), the camera must be unlocked, and the pointer must be within a defined proximity zone at the viewport edge. The system uses easing functions to create smooth acceleration from rest, providing a natural feel when scrolling begins.

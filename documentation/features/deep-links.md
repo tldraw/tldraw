@@ -10,8 +10,6 @@ keywords:
   - state
 ---
 
-## Overview
-
 The deep links system serializes editor state into URL-safe strings, enabling users to share links that open the editor at specific locations. Deep links can target individual shapes, viewport positions, or entire pages, making it easy to share and navigate to precise locations within a document.
 
 The system provides three core methods: `createDeepLink()` generates URLs with encoded state, `navigateToDeepLink()` moves the editor to a specified location, and `registerDeepLinkListener()` automatically updates URLs as users navigate. Deep links encode all necessary information in a compact, URL-safe format using a single query parameter.

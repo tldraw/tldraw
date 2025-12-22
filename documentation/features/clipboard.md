@@ -10,8 +10,6 @@ keywords:
   - content
 ---
 
-## Overview
-
 The clipboard system handles copying, cutting, and pasting shapes within a single editor or between different editor instances. It serializes shapes, their bindings, and associated assets into a portable `TLContent` format that preserves the document structure and relationships. The system integrates with both the browser's native clipboard API and custom HTML-based clipboard data to enable reliable shape transfer across contexts.
 
 ## How clipboard operations work

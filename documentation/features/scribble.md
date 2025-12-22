@@ -10,8 +10,6 @@ keywords:
   - visual-feedback
 ---
 
-## Overview
-
 The scribble system provides temporary freehand visual feedback for pointer-based interactions. Scribbles are ephemeral paths that appear during tool operations and automatically fade out after completion. The system is accessed via `editor.scribbles` and manages multiple concurrent scribbles through a state-based lifecycle.
 
 Scribbles are not persisted to the document. They exist only in the instance state and provide real-time visual feedback for operations like erasing, laser pointer drawing, and scribble-brush selection.

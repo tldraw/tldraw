@@ -13,8 +13,6 @@ keywords:
   - shapes
 ---
 
-## Overview
-
 Rich text enables formatted text content within tldraw shapes. The system provides inline formatting like bold, italic, code, and highlighting, plus structural features like lists and links. Text, note, geo, and arrow label shapes all support rich text editing through an integrated text editor.
 
 The implementation uses TipTap, a React wrapper around ProseMirror, as the rich text engine. TipTap provides a document-based content model where text exists as structured JSON rather than plain strings. This approach enables reliable formatting operations, custom extensions, and consistent serialization across different contexts.

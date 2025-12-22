@@ -10,8 +10,6 @@ keywords:
   - customization
 ---
 
-## Overview
-
 The `@tldraw/tldraw` package includes a complete React-based UI system that wraps the core editor. This UI provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. Rather than being monolithic, the UI is composed of named component slots that you can selectively override or hide, making it straightforward to customize the interface while still benefiting from the editor's reactive state management and built-in behaviors.
 
 The UI system connects to the editor through React hooks and context providers, ensuring that components automatically update when editor state changes. This architecture allows you to replace individual parts of the interface without reimplementing the logic that connects UI actions to editor operations.

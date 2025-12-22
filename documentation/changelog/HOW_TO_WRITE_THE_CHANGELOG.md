@@ -2,8 +2,6 @@
 
 This guide explains how to write changelog articles for tldraw releases. The original releases can be found at [https://github.com/tldraw/tldraw/releases](https://github.com/tldraw/tldraw/releases). Use the `write-changelog` skill if it is available to you.
 
-## Overview
-
 Changelog files live in `documentation/changelog/`. Each minor release gets its own markdown file (e.g., `v4.2.md`), with patch releases added at the bottom of their parent file.
 
 The `/changelog` command automates updating the changelog by finding merged PRs and formatting them. Detailed formatting rules are in the `write-changelog` skill at `.claude/skills/changelog.md`.

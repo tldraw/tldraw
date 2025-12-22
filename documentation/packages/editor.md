@@ -9,8 +9,6 @@ keywords:
   - engine
 ---
 
-## Overview
-
 `@tldraw/editor` is the core canvas engine without default shapes, tools, or UI. Use it when you need a fully custom editor built on tldraw's rendering and interaction model.
 
 ## Installation

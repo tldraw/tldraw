@@ -10,8 +10,6 @@ keywords:
   - menu
 ---
 
-## Overview
-
 You can replace or hide any tldraw UI component using the `components` prop. This guide shows the basic override pattern and where to hook custom UI.
 
 ## Prerequisites

@@ -12,8 +12,6 @@ keywords:
   - migrations
 ---
 
-## Overview
-
 `@tldraw/store` is a reactive record storage library that provides a type-safe, event-driven database for managing collections of records. It combines reactive primitives from `@tldraw/state` with validation, migrations, side effects, and history tracking.
 
 The store serves as tldraw's foundational data layer. It manages all document state including shapes, pages, assets, and user preferences. Every record is stored reactively, enabling automatic UI updates when data changes. The store handles record validation, schema evolution through migrations, and change tracking while maintaining excellent performance and type safety.

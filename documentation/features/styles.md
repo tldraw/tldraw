@@ -12,8 +12,6 @@ keywords:
   - appearance
 ---
 
-## Overview
-
 The styles system manages visual properties like color, size, font, fill, and dash patterns across shapes. Style properties differ from regular shape properties in two key ways: they apply consistently across multiple shapes at once, and the editor remembers the last-used value to automatically apply it to newly created shapes. This creates a coherent visual experience where users can set a color once and have it persist across their work.
 
 Styles are defined using `StyleProp` instances that specify valid values and defaults. The editor tracks "shared styles" across the current selection—computing whether all selected shapes share the same value or have different values—to drive the UI and enable batch updates.

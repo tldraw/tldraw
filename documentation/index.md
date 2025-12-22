@@ -12,7 +12,7 @@ Welcome to the documentation for the tldraw monorepo. This repository contains t
 
 ## Table of contents
 
-### Overview
+#
 
 - [Repository overview](./overview/repository-overview.md) - High-level introduction to the monorepo structure, purpose, and key components
 - [Architecture overview](./overview/architecture-overview.md) - The three-layer SDK architecture (editor, tldraw, store) and how packages relate

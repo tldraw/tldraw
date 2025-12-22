@@ -10,8 +10,6 @@ keywords:
   - precision
 ---
 
-## Overview
-
 Snapping provides precision alignment assistance when moving, resizing, or connecting shapes. The system enables precise layout without manual measurement by automatically detecting alignment opportunities and adjusting positions to match key geometry on nearby shapes.
 
 The editor provides three types of snapping: bounds snapping aligns edges, centers, and corners during movement and resizing; handle snapping connects endpoints to outlines and key points for precise attachments; and gap snapping maintains consistent spacing between multiple shapes. All snapping provides real-time visual feedback through colored snap lines that appear when shapes come within the snap threshold.

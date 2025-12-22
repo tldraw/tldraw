@@ -9,8 +9,6 @@ keywords:
   - commands
 ---
 
-## Overview
-
 This guide sets up the tldraw monorepo and points to the most common development commands.
 
 ## Prerequisites

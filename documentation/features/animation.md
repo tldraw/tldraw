@@ -10,8 +10,6 @@ keywords:
   - animateShape
 ---
 
-## Overview
-
 The animation system provides smooth transitions for shapes and camera movements in the tldraw editor. It enables animations for shape properties like position, rotation, and opacity, as well as viewport transitions for camera movements. The system integrates with the tick system to coordinate frame-by-frame updates and respects user animation speed preferences for accessibility.
 
 Shape animations run independently and can be interrupted or replaced. Camera animations coordinate with the camera system to provide smooth panning and zooming experiences.

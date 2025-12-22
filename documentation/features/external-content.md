@@ -11,8 +11,6 @@ keywords:
   - files
 ---
 
-## Overview
-
 The external content handling system processes content from outside the editor, such as pasted text, dropped files, or embedded URLs. It uses a handler registration pattern where you register handlers for specific content types (text, files, URLs, SVG, embeds).
 
 When external content arrives, the editor routes it to the appropriate handler, which transforms the content into shapes or assets. This system powers clipboard operations, drag-and-drop, and direct content insertion through the editor API.

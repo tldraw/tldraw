@@ -10,8 +10,6 @@ keywords:
   - style
 ---
 
-## Overview
-
 This reference lists the naming and API patterns used across tldraw packages.
 
 ## Naming conventions

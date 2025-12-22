@@ -10,8 +10,6 @@ keywords:
 reviewed_by: steveruizok
 ---
 
-## Overview
-
 The pages system provides multiple independent sub-documents within a single tldraw document. Each page acts as a separate scene graph root with its own descendant shapes, camera position, and selection state.
 
 When you switch pages, the editor preserves your camera position and selected shapes on the previous page and restores the state you left on the new page. The page system integrates with collaboration features, allowing users to see which pages their collaborators are viewing and follow them across page boundaries.

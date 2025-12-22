@@ -13,8 +13,6 @@ keywords:
   - pack
 ---
 
-## Overview
-
 The shape transform system provides operations for manipulating multiple shapes together as a unified group. These operations include grouping and ungrouping shapes into hierarchical containers, aligning shapes to common edges or centers, distributing shapes with even spacing, stacking shapes with consistent gaps, packing shapes into compact grid arrangements, flipping shapes along horizontal or vertical axes, and rotating shapes around a common pivot point.
 
 All transform operations respect the editor's parent-child coordinate system and work seamlessly with shapes that have different parents or rotations. Shapes connected by arrow bindings automatically move together as clusters, preserving diagram relationships during transforms.

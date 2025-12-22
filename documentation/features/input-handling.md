@@ -11,8 +11,6 @@ keywords:
 reviewed_by: steveruizok
 ---
 
-## Overview
-
 The input handling system manages pointer and keyboard state through the `InputsManager` class. This manager tracks pointer positions in multiple coordinate spaces, maintains button and key press states, detects input device types, and calculates pointer velocity for gesture recognition. By normalizing input across different devices (mouse, touch, pen), the system provides a consistent interface that tools and shapes can use to respond to user interactions.
 
 All input state is stored as reactive atoms using the `@tldraw/state` library. This reactive approach means components can efficiently read input state without subscribing to every update, and dependent computations automatically recalculate when dereferenced if the specific input values they depend on have changed. The manager updates its state on every input event, converts coordinates between screen space and page space, and maintains historical positions to support delta calculations for dragging and panning operations.

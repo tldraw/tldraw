@@ -10,8 +10,6 @@ keywords:
   - BindingUtil
 ---
 
-## Overview
-
 The bindings system creates persistent relationships between shapes. A binding is a record that links a "from" shape to a "to" shape with typed metadata, enabling features like arrows that stay attached to rectangles when moved, or notes that follow shapes around the canvas. Bindings maintain referential integrity automatically, removing themselves when connected shapes are deleted and providing lifecycle hooks that let bound shapes react to changes in their relationships.
 
 ## How it works

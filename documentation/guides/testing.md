@@ -10,8 +10,6 @@ keywords:
   - guide
 ---
 
-## Overview
-
 This guide covers unit testing with Vitest and end-to-end testing with Playwright in the tldraw monorepo.
 
 ## Unit tests (Vitest)

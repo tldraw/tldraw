@@ -11,8 +11,6 @@ keywords:
 reviewed_by: steveruizok
 ---
 
-## Overview
-
 The editor operates across three distinct coordinate systems to map between user input, the canvas viewport, and the infinite space of the canvas. These coordinate systems enable the editor to accurately translate mouse positions into canvas locations, position shapes correctly at any zoom level, and render content within the visible viewport.
 
 Understanding these coordinate systems is essential when working with user input, custom tools, or programmatic shape manipulation. The camera system bridges these spaces through transformation methods that account for viewport position, zoom level, and the container's placement on the website's document.

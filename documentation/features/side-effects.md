@@ -10,8 +10,6 @@ keywords:
   - cleanup
 ---
 
-## Overview
-
 The side effects system maintains store consistency and enforces business rules when records change. Side effects are lifecycle hooks that run when records are created, updated, or deleted. They serve two distinct purposes: "before" handlers intercept and modify records during operations, allowing validation and transformation, while "after" handlers react to completed changes, enabling cleanup and relationship maintenance.
 
 The editor relies heavily on side effects to maintain correctness. Deleting a shape triggers cleanup of related bindings. Changing bindings notifies connected shapes to update. Modifying instance state synchronizes UI focus. These hooks keep the data model consistent without coupling unrelated components.

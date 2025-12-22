@@ -9,8 +9,6 @@ keywords:
   - reference
 ---
 
-## Overview
-
 Common yarn commands for developing and testing the tldraw monorepo.
 
 ## Development

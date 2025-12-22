@@ -9,8 +9,6 @@ keywords:
   - react
 ---
 
-## Overview
-
 The Next.js template provides an App Router setup with tldraw preconfigured. It uses client components for the editor.
 
 ## Quick start

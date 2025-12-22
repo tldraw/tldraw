@@ -11,8 +11,6 @@ keywords:
   - animation
 ---
 
-## Overview
-
 The camera system controls how users view and navigate the infinite canvas. It manages viewport position and zoom level, translating user interactions into smooth camera movements while transforming coordinates between screen space and page space. This coordinate transformation enables the editor to map mouse positions to canvas locations and render shapes at any zoom level.
 
 The camera acts as the bridge between user input and canvas navigation, providing constraints for bounded experiences, smooth animations for programmatic movement, and zoom-to-fit operations for content focus. It integrates with collaboration features for real-time viewport following and serves as the foundation for all spatial interactions on the canvas.

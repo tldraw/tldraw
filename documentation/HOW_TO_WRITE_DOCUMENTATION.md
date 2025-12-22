@@ -40,8 +40,6 @@ keywords:
 Most documents should follow this structure:
 
 ```markdown
-## Overview
-
 [1-2 paragraphs: What is this component's function? What role does it play
 in the overall system? Don't explain how it works yet—just establish why
 it exists and what it enables.]

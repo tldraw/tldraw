@@ -10,8 +10,6 @@ keywords:
   - multiplayer
 ---
 
-## Overview
-
 The user following system allows users to track a collaborator's viewport in real-time multiplayer sessions. When following, the local camera automatically moves to match the followed user's view, including page changes and zoom level. The system handles follow chains where multiple users follow each other transitively (A follows B who follows C), and provides smooth viewport interpolation that continuously adjusts the camera toward the target user's position on each frame tick.
 
 Following integrates with the presence system to track collaborator state, the camera system to control viewport movement, and the tick system to perform continuous updates. The system automatically stops following when users manually interact with the canvas or when the followed user is no longer available.

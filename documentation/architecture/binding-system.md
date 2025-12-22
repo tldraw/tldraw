@@ -9,8 +9,6 @@ keywords:
   - architecture
 ---
 
-## Overview
-
 The binding system maintains persistent relationships between shapes. A binding is a record that points from one shape (`fromId`) to another (`toId`) and carries relationship-specific data. The system powers arrow attachments and any feature where shapes need to stay synchronized.
 
 ## Key components

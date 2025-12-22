@@ -9,8 +9,6 @@ keywords:
   - reference
 ---
 
-## Overview
-
 Short definitions for common terms used in tldraw docs and code.
 
 ## Core concepts

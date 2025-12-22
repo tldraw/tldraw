@@ -12,8 +12,6 @@ keywords:
 reviewed_by: steveruizok
 ---
 
-## Overview
-
 The history system enables undo/redo functionality by tracking changes to the store through the `HistoryManager`. It organizes changes into batches separated by marks, which act as stopping points for undo/redo operations. This allows complex interactions to be undone as single atomic operations rather than individual edits.
 
 The system integrates with the reactive store to automatically capture modifications. All user-initiated changes are recorded unless explicitly ignored, and the history manager handles compressing multiple rapid changes into cohesive undo steps.

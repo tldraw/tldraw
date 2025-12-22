@@ -11,8 +11,6 @@ keywords:
   - presence
 ---
 
-## Overview
-
 The `@tldraw/sync` package provides React hooks for real-time multiplayer collaboration in tldraw applications. It wraps the lower-level `@tldraw/sync-core` protocol with React-friendly hooks that manage WebSocket connections, state synchronization, user presence, and automatic reconnection. With minimal configuration, it transforms a single-user tldraw instance into a collaborative multiplayer experience.
 
 This is the recommended package for React applications requiring multiplayer functionality. For non-React environments, custom server implementations, or advanced protocol control, use `@tldraw/sync-core` directly.

@@ -9,8 +9,6 @@ keywords:
   - next.js
 ---
 
-## Overview
-
 The documentation site at [tldraw.dev](https://tldraw.dev) hosts the SDK guides, reference docs, and blog content. It is a Next.js 15 app that combines human-written MDX with auto-generated API reference and a searchable index.
 
 ## Key components

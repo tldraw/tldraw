@@ -10,8 +10,6 @@ keywords:
   - computed
 ---
 
-## Overview
-
 tldraw uses a signals-based reactive state system from `@tldraw/state`. A signal is a reactive value; atoms are mutable signals, and computed values are derived signals. The system powers editor state, store updates, and UI reactivity by tracking dependencies automatically and recomputing only what changes.
 
 ## Key components

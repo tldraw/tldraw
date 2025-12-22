@@ -10,8 +10,6 @@ keywords:
   - guide
 ---
 
-## Overview
-
 Tools are state machines built on `StateNode`. This guide shows how to create a custom tool and register it with the editor.
 
 ## Prerequisites

@@ -10,8 +10,6 @@ keywords:
   - guide
 ---
 
-## Overview
-
 This guide shows how to add a custom shape to tldraw by defining a shape type, implementing a `ShapeUtil`, and registering it with the editor.
 
 ## Prerequisites

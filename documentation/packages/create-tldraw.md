@@ -10,8 +10,6 @@ keywords:
   - starter
 ---
 
-## Overview
-
 `@tldraw/create-tldraw` is the CLI for scaffolding new tldraw projects. It guides you through template selection and sets up a working project.
 
 ## Usage

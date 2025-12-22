@@ -10,8 +10,6 @@ keywords:
   - template
 ---
 
-## Overview
-
 The Workflow template demonstrates a node-based editor built on tldraw. It includes custom node shapes, ports, and an execution graph for running connected workflows.
 
 ## Quick start

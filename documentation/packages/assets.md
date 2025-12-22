@@ -10,8 +10,6 @@ keywords:
   - i18n
 ---
 
-## Overview
-
 `@tldraw/assets` provides static assets used by tldraw: icons, fonts, translations, and embed service icons. It includes helpers for resolving asset URLs in different bundling setups.
 
 ## Usage

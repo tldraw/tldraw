@@ -10,8 +10,6 @@ keywords:
   - layers
 ---
 
-## Overview
-
 The shape indexing system determines the visual stacking order (z-order) of shapes on the canvas. Every shape has an `index` property that controls whether it appears above or below other shapes. This system enables efficient reordering operations and supports real-time collaboration where multiple users might reorder shapes simultaneously.
 
 ## Fractional indexing
