@@ -47,7 +47,6 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
-import { WebGLShapeIndicators } from '../components/default-components/WebGLShapeIndicators'
 import { useShallowObjectIdentity } from './useIdentity'
 
 /** @public */
@@ -129,7 +128,7 @@ export function EditorComponentsProvider({
 			SnapIndicator: DefaultSnapIndicator,
 			Spinner: DefaultSpinner,
 			SvgDefs: DefaultSvgDefs,
-			WebGLShapeIndicators: WebGLShapeIndicators,
+			WebGLShapeIndicators: null,
 			ZoomBrush: DefaultBrush,
 
 			ErrorFallback: DefaultErrorFallback,
