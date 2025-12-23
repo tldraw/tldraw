@@ -177,6 +177,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.cleanupReactors = null
 		inst.globalIsReacting = false
 		inst.currentTransaction = outerTxn
+		traverseReactors = undefined! // free memory
 	}
 }
 
