@@ -36,7 +36,8 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { SelectionBackground, Background, SvgDefs, ShapeIndicators } = useEditorComponents()
+	const { SelectionBackground, Background, SvgDefs, ShapeIndicators, WebGLShapeIndicators } =
+		useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -159,12 +160,13 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
 				<div className="tl-overlays">
+					{WebGLShapeIndicators && <WebGLShapeIndicators />}
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
 						<ScribbleWrapper />
 						<ZoomBrushWrapper />
-						{ShapeIndicators && <ShapeIndicators />}
+						{!WebGLShapeIndicators && ShapeIndicators && <ShapeIndicators />}
 						<HintedShapeIndicator />
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />

@@ -78,6 +78,14 @@ export {
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
+	WebGLIndicatorManager,
+	type IndicatorConfig,
+} from './lib/components/default-components/WebGLIndicatorManager'
+export {
+	WebGLShapeIndicators,
+	type TLWebGLShapeIndicatorsProps,
+} from './lib/components/default-components/WebGLShapeIndicators'
+export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
 	type TLErrorBoundaryProps,

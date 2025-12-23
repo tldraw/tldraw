@@ -2037,6 +2037,20 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 // @public (undocumented)
 export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 
+// @public
+export interface IndicatorConfig {
+    // (undocumented)
+    color: [number, number, number, number];
+    // (undocumented)
+    isClosed: boolean;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    transform: MatModel;
+    // (undocumented)
+    vertices: Float32Array;
+}
+
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
 
@@ -3574,6 +3588,7 @@ export interface TLEditorComponents {
     Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
     // (undocumented)
     SvgDefs?: ComponentType | null;
+    WebGLShapeIndicators?: ComponentType | null;
     // (undocumented)
     ZoomBrush?: ComponentType<TLBrushProps> | null;
 }
@@ -4561,6 +4576,12 @@ export interface TLUserPreferences {
 }
 
 // @public (undocumented)
+export interface TLWebGLShapeIndicatorsProps {
+    hideAll?: boolean;
+    showAll?: boolean;
+}
+
+// @public (undocumented)
 export type TLWheelEvent = (info: TLWheelEventInfo) => void;
 
 // @public (undocumented)
@@ -5049,6 +5070,26 @@ export class Vec {
 
 // @public (undocumented)
 export type VecLike = Vec | VecModel;
+
+// @public
+export class WebGLIndicatorManager {
+    constructor(editor: Editor, canvas: HTMLCanvasElement);
+    // (undocumented)
+    readonly canvas: HTMLCanvasElement;
+    dispose(): void;
+    // (undocumented)
+    readonly editor: Editor;
+    getIsInitialized(): boolean;
+    getNeedsRender(): boolean;
+    initialize(): boolean;
+    markNeedsRender(): void;
+    render(): void;
+    resize(): void;
+    setIndicators(indicators: IndicatorConfig[]): void;
+}
+
+// @public (undocumented)
+export const WebGLShapeIndicators: NamedExoticComponent<TLWebGLShapeIndicatorsProps>;
 
 
 export * from "@tldraw/state";

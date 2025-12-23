@@ -47,6 +47,7 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
+import { WebGLShapeIndicators } from '../components/default-components/WebGLShapeIndicators'
 import { useShallowObjectIdentity } from './useIdentity'
 
 /** @public */
@@ -76,6 +77,11 @@ export interface TLEditorComponents {
 	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
 	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
 	SvgDefs?: ComponentType | null
+	/**
+	 * WebGL-accelerated shape indicators. When set, this replaces the default DOM-based
+	 * ShapeIndicators with GPU-accelerated rendering for better performance with many shapes.
+	 */
+	WebGLShapeIndicators?: ComponentType | null
 	ZoomBrush?: ComponentType<TLBrushProps> | null
 
 	// These will always have defaults
@@ -123,6 +129,7 @@ export function EditorComponentsProvider({
 			SnapIndicator: DefaultSnapIndicator,
 			Spinner: DefaultSpinner,
 			SvgDefs: DefaultSvgDefs,
+			WebGLShapeIndicators: WebGLShapeIndicators,
 			ZoomBrush: DefaultBrush,
 
 			ErrorFallback: DefaultErrorFallback,
