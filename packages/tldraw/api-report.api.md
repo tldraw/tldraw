@@ -1912,6 +1912,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
+    getIndicatorGeometry(shape: TLHighlightShape): Circle2d | Polyline2d;
+    // (undocumented)
     getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
     // (undocumented)
     hideResizeHandles(shape: TLHighlightShape): boolean;

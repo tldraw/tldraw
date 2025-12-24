@@ -3,6 +3,7 @@ import {
 	Circle2d,
 	Editor,
 	Polygon2d,
+	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
 	TLHighlightShape,
@@ -23,7 +24,7 @@ import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { getSmoothedStrokePoints, getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -92,6 +93,47 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return new Polygon2d({
 			points: getStrokeOutlinePoints(strokePoints, opts),
 			isFilled: true,
+		})
+	}
+
+	override getIndicatorGeometry(shape: TLHighlightShape) {
+		const strokeWidth = getStrokeWidth(shape)
+		if (getIsDot(shape)) {
+			return new Circle2d({
+				x: -strokeWidth / 2,
+				y: -strokeWidth / 2,
+				radius: strokeWidth / 2,
+				isFilled: true,
+			})
+		}
+
+		const points = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		const { strokePoints } = getHighlightStrokePoints(shape, strokeWidth, true)
+
+		if (strokePoints.length <= 2) {
+			if (strokePoints.length === 1) {
+				return new Circle2d({
+					x: -strokeWidth / 2,
+					y: -strokeWidth / 2,
+					radius: strokeWidth / 2,
+					isFilled: true,
+				})
+			}
+			return new Polyline2d({
+				points: strokePoints.map((p) => p.point),
+			})
+		}
+
+		// Use smoothed points for indicator geometry
+		const smoothedPoints = getSmoothedStrokePoints(strokePoints, false)
+
+		return new Polyline2d({
+			points: smoothedPoints,
 		})
 	}
 
