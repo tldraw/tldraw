@@ -85,6 +85,11 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export { WebGLIndicatorManager } from './lib/components/webgl-indicators/WebGLIndicatorManager'
+export {
+	WebGLShapeIndicators,
+	type TLWebGLShapeIndicatorsProps,
+} from './lib/components/webgl-indicators/WebGLShapeIndicators'
 export {
 	createTLSchemaFromUtils,
 	createTLStore,

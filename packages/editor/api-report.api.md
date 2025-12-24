@@ -4561,6 +4561,12 @@ export interface TLUserPreferences {
 }
 
 // @public (undocumented)
+export interface TLWebGLShapeIndicatorsProps {
+    hideAll?: boolean;
+    showAll?: boolean;
+}
+
+// @public (undocumented)
 export type TLWheelEvent = (info: TLWheelEventInfo) => void;
 
 // @public (undocumented)
@@ -5049,6 +5055,30 @@ export class Vec {
 
 // @public (undocumented)
 export type VecLike = Vec | VecModel;
+
+// @internal (undocumented)
+export class WebGLIndicatorManager {
+    constructor(editor: Editor, canvas: HTMLCanvasElement, container: HTMLElement);
+    // (undocumented)
+    readonly canvas: HTMLCanvasElement;
+    // (undocumented)
+    readonly container: HTMLElement;
+    // (undocumented)
+    dispose(): void;
+    drawCollaboratorIndicators(collaborators: Array<{
+        color: string;
+        odShapeIds: TLShapeId[];
+    }>): void;
+    // (undocumented)
+    readonly editor: Editor;
+    // (undocumented)
+    render(): void;
+    // (undocumented)
+    updateColors(): void;
+}
+
+// @public (undocumented)
+export const WebGLShapeIndicators: NamedExoticComponent<TLWebGLShapeIndicatorsProps>;
 
 
 export * from "@tldraw/state";

@@ -1,4 +1,4 @@
-import { DefaultShapeIndicators, useEditor, useValue } from '@tldraw/editor'
+import { useEditor, useValue, WebGLShapeIndicators } from '@tldraw/editor'
 
 /** @public @react */
 export function TldrawShapeIndicators() {
@@ -20,5 +20,5 @@ export function TldrawShapeIndicators() {
 		[editor]
 	)
 
-	return <DefaultShapeIndicators hideAll={!isInSelectState} />
+	return <WebGLShapeIndicators hideAll={!isInSelectState} />
 }

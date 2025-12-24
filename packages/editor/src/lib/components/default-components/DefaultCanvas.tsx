@@ -159,12 +159,12 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
 				<div className="tl-overlays">
+					{ShapeIndicators && <ShapeIndicators />}
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
 						<ScribbleWrapper />
 						<ZoomBrushWrapper />
-						{ShapeIndicators && <ShapeIndicators />}
 						<HintedShapeIndicator />
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />

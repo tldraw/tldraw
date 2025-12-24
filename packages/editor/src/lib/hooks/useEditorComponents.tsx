@@ -36,7 +36,6 @@ import {
 	DefaultShapeIndicatorErrorFallback,
 	TLShapeIndicatorErrorFallbackComponent,
 } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
-import { DefaultShapeIndicators } from '../components/default-components/DefaultShapeIndicators'
 import {
 	DefaultShapeWrapper,
 	TLShapeWrapperProps,
@@ -47,6 +46,7 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
+import { WebGLShapeIndicators } from '../components/webgl-indicators/WebGLShapeIndicators'
 import { useShallowObjectIdentity } from './useIdentity'
 
 /** @public */
@@ -118,7 +118,7 @@ export function EditorComponentsProvider({
 			SelectionBackground: null,
 			SelectionForeground: DefaultSelectionForeground,
 			ShapeIndicator: DefaultShapeIndicator,
-			ShapeIndicators: DefaultShapeIndicators,
+			ShapeIndicators: WebGLShapeIndicators,
 			ShapeWrapper: DefaultShapeWrapper,
 			SnapIndicator: DefaultSnapIndicator,
 			Spinner: DefaultSpinner,
