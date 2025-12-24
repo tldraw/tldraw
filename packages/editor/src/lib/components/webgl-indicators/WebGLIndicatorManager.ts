@@ -192,7 +192,7 @@ export class WebGLIndicatorManager {
 	private setIndicatorGeometry(shapeId: TLShapeId) {
 		const { editor } = this
 		try {
-			const geometry = editor.getShapeGeometry(shapeId)
+			const geometry = editor.getShapeIndicatorGeometry(shapeId)
 			const pageTransform = editor.getShapePageTransform(shapeId)
 			if (!pageTransform) return null
 

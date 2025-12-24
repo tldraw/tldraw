@@ -158,6 +158,19 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d
 
 	/**
+	 * Get the shape's geometry for indicator rendering.
+	 * By default returns the same geometry as getGeometry(), but can be overridden
+	 * to provide a different outline for indicators (e.g., more detailed curves,
+	 * hand-drawn style outlines, or excluding internal elements like labels).
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getIndicatorGeometry(shape: Shape): Geometry2d {
+		return this.getGeometry(shape)
+	}
+
+	/**
 	 * Get a JSX element for the shape (as an HTML element).
 	 *
 	 * @param shape - The shape.

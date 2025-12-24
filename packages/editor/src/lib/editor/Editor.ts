@@ -4718,6 +4718,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)! as T
 	}
 
+	@computed private _getShapeIndicatorGeometryCache(): ComputedCache<Geometry2d, TLShape> {
+		return this.store.createComputedCache(
+			'indicatorGeometry',
+			(shape) => {
+				return this.getShapeUtil(shape).getIndicatorGeometry(shape)
+			},
+			{ areRecordsEqual: areShapesContentEqual }
+		)
+	}
+
+	/**
+	 * Get the indicator geometry of a shape in shape-space.
+	 * This is the geometry used for rendering selection/hover indicators.
+	 * By default it's the same as getShapeGeometry, but shape utils can override
+	 * getIndicatorGeometry to provide different outlines for indicators.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeIndicatorGeometry(myShape)
+	 * editor.getShapeIndicatorGeometry(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the indicator geometry for.
+	 *
+	 * @public
+	 */
+	getShapeIndicatorGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
+		return this._getShapeIndicatorGeometryCache().get(
+			typeof shape === 'string' ? shape : shape.id
+		)! as T
+	}
+
 	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
 		return this.store.createComputedCache(

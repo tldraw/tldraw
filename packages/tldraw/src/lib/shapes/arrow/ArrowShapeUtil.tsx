@@ -238,6 +238,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		})
 	}
 
+	override getIndicatorGeometry(shape: TLArrowShape): Geometry2d {
+		const info = getArrowInfo(this.editor, shape)!
+
+		return info.type === 'straight'
+			? new Edge2d({
+					start: Vec.From(info.start.point),
+					end: Vec.From(info.end.point),
+				})
+			: info.type === 'arc'
+				? new Arc2d({
+						center: Vec.Cast(info.handleArc.center),
+						start: Vec.Cast(info.start.point),
+						end: Vec.Cast(info.end.point),
+						sweepFlag: info.bodyArc.sweepFlag,
+						largeArcFlag: info.bodyArc.largeArcFlag,
+					})
+				: new Polyline2d({ points: info.route.points })
+	}
+
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = getArrowInfo(this.editor, shape)!
 

@@ -25,7 +25,7 @@ import { ShapeFill } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { getSmoothedStrokePoints, getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -127,6 +127,62 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		// An open draw stroke
 		return new Polyline2d({
 			points: strokePoints,
+		})
+	}
+
+	override getIndicatorGeometry(shape: TLDrawShape) {
+		const points = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+
+		// A dot
+		if (shape.props.segments.length === 1) {
+			const box = Box.FromPoints(points)
+			if (box.width < sw * 2 && box.height < sw * 2) {
+				return new Circle2d({
+					x: -sw,
+					y: -sw,
+					radius: sw,
+					isFilled: true,
+				})
+			}
+		}
+
+		const strokePoints = getStrokePoints(
+			points,
+			getFreehandOptions(shape.props, sw, shape.props.isPen, true)
+		)
+
+		if (strokePoints.length <= 2) {
+			if (strokePoints.length === 1) {
+				return new Circle2d({
+					x: -sw,
+					y: -sw,
+					radius: sw,
+					isFilled: true,
+				})
+			}
+			return new Polyline2d({
+				points: strokePoints.map((p) => p.point),
+			})
+		}
+
+		// Use smoothed points for indicator geometry
+		const smoothedPoints = getSmoothedStrokePoints(strokePoints, shape.props.isClosed)
+
+		if (shape.props.isClosed && smoothedPoints.length > 2) {
+			return new Polygon2d({
+				points: smoothedPoints,
+				isFilled: shape.props.fill !== 'none',
+			})
+		}
+
+		return new Polyline2d({
+			points: smoothedPoints,
 		})
 	}
 

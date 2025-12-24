@@ -154,6 +154,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		})
 	}
 
+	override getIndicatorGeometry(shape: TLNoteShape) {
+		const { scale } = shape.props
+		return new Rectangle2d({
+			width: NOTE_SIZE * scale,
+			height: getNoteHeight(shape),
+			isFilled: true,
+		})
+	}
+
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const { scale } = shape.props
 		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer

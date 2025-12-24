@@ -203,6 +203,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		})
 	}
 
+	override getIndicatorGeometry(shape: TLFrameShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: false,
+		})
+	}
+
 	override getText(shape: TLFrameShape): string | undefined {
 		return shape.props.name
 	}
