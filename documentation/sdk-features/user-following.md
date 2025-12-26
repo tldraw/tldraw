@@ -109,17 +109,3 @@ The indicator is rendered as a div with class `tlui-following-indicator` and a b
 Applications can detect when the user is following someone by checking `editor.getInstanceState().followingUserId`. This enables UI elements like a "Stop following" button or status indicators showing who the user is currently following.
 
 The presence records available through `editor.getCollaborators()` include each user's `followingUserId`, allowing applications to visualize the entire follow graph and show which users are following whom.
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - startFollowingUser, stopFollowingUser, zoomToUser, \_getFollowingPresence, getViewportPageBoundsForFollowing methods
-- packages/tlschema/src/records/TLInstance.ts - followingUserId and highlightedUserIds fields on instance state
-- packages/tlschema/src/records/TLPresence.ts - followingUserId, camera, and screenBounds fields on presence records
-- packages/tldraw/src/lib/ui/components/DefaultFollowingIndicator.tsx - Default UI component showing follow state
-- packages/editor/src/lib/options.ts - followChaseViewportSnap configuration option
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Sync](../packages/sync.md)
-- [Animation](./animation.md)

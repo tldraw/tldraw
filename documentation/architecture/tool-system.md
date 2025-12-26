@@ -65,5 +65,5 @@ class MyTool extends StateNode {
 
 ## Related
 
-- [Shape system](./shape-system.md) - Shapes created and edited by tools
+- [Shapes](../sdk-features/shapes.md) - Shapes created and edited by tools
 - [UI components](./ui-components.md) - Toolbar and tool UI

@@ -143,15 +143,3 @@ const screenPoint = editor.pageToScreen({ x: shape.x, y: shape.y })
 overlay.style.left = `${screenPoint.x}px`
 overlay.style.top = `${screenPoint.y}px`
 ```
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - Coordinate transformation methods (screenToPage, pageToScreen, pageToViewport, getViewportScreenBounds, getViewportPageBounds)
-- packages/editor/src/lib/primitives/Mat.ts - Matrix transformations
-- packages/editor/src/lib/primitives/Vec.ts - Vector operations and point transformations
-- packages/editor/src/lib/primitives/Box.ts - Bounding box utilities
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Input handling](./input-handling.md)

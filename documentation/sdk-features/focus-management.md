@@ -72,13 +72,3 @@ The system handles contextual toolbar elements normally during editing mode, all
 The `FocusManager` listens for changes to the instance state and responds when the `isFocused` property changes. This reactive approach means focus state updates automatically propagate to the container's CSS classes without manual coordination. When a dialog or modal closes and the editor should regain focus, calling `editor.focus()` updates both the instance state and the container's DOM focus, ensuring a consistent focus state across the system.
 
 The `blur()` method calls `editor.complete()` before blurring the container. This completes any ongoing interaction, such as a drag or draw operation, preventing the editor from being left in an incomplete state when focus is lost.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/FocusManager/FocusManager.ts - Focus tracking and restoration
-- packages/editor/src/lib/editor/Editor.ts - focus, blur methods
-- packages/editor/src/lib/TldrawEditor.tsx - Pointer-based auto-focus setup
-
-## Related
-
-- [Input handling](./input-handling.md)

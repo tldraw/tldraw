@@ -188,13 +188,3 @@ Two types of indicators exist:
 The manager automatically deduplicates gap indicators to avoid visual noise. When gap breadths overlap and one gap is larger than another, only the smaller gap displays because it provides more specific information.
 
 The system clears indicators automatically when dragging stops or when `clearIndicators()` is called. The UI subscribes to indicator changes and renders them as SVG overlays on the canvas.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/SnapManager/SnapManager.ts - Main snap coordination and snappable shape filtering
-- packages/editor/src/lib/editor/managers/SnapManager/BoundsSnaps.ts - Bounds, edge, and center snapping with gap detection
-- packages/editor/src/lib/editor/managers/SnapManager/HandleSnaps.ts - Handle point and outline snapping
-
-## Related
-
-- [Selection system](./selection-system.md) - Selection interacts closely with snapping during transforms

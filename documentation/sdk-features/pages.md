@@ -148,17 +148,3 @@ The pages system interacts with several editor features
 
 - **[Disable pages](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/disable-pages)** - Disable page-related UI for single-page use cases by setting the maxPages option to 1.
 - **[Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links)** - Create URLs that navigate to specific pages or parts of a document using the deep links API.
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - Page methods (createPage, deletePage, setCurrentPage, duplicatePage, moveShapesToPage)
-- packages/tlschema/src/records/TLPage.ts - Page record definition
-- packages/tlschema/src/records/TLPageState.ts - Instance page state record definition
-- packages/tlschema/src/records/TLCamera.ts - Camera record definition
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Selection system](./selection-system.md)
-- [User following](./user-following.md)
-- [Deep links](./deep-links.md)

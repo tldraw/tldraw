@@ -42,4 +42,4 @@ const assets = getAssetUrlsByImport()
 ## Related
 
 - [@tldraw/tldraw](./tldraw.md)
-- [Style system](../architecture/style-system.md)
+- [Styles](../sdk-features/styles.md)

@@ -139,14 +139,3 @@ canBeLaidOut(shape: MyShape, info: { type: 'align' | 'distribute' | 'stack' | 'p
 ```
 
 For rotation operations, shape utilities can respond to rotation lifecycle events. The onRotateStart method is called when rotation begins, onRotate is called for each update, and onRotateEnd is called when rotation completes. These methods can return shape partials to modify the shape during rotation.
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - All transform methods and clustering logic
-- packages/editor/src/lib/utils/rotation.ts - Rotation snapshot and application utilities
-
-## Related
-
-- [Selection system](./selection-system.md)
-- [Shape indexing](./shape-indexing.md)
-- [Bindings](./bindings.md)

@@ -28,15 +28,15 @@ The `tlenv` object contains fixed values detected at load time. These don't chan
 import { tlenv } from 'tldraw'
 
 // Browser detection
-tlenv.isSafari    // true if Safari (excluding Chrome on iOS)
-tlenv.isFirefox   // true if Firefox
+tlenv.isSafari // true if Safari (excluding Chrome on iOS)
+tlenv.isFirefox // true if Firefox
 tlenv.isChromeForIos // true if Chrome running on iOS
 
 // Platform detection
-tlenv.isIos       // true if iPad or iPhone
-tlenv.isAndroid   // true if Android device
-tlenv.isDarwin    // true if macOS (used for keyboard shortcuts)
-tlenv.isWebview   // true if running in a webview
+tlenv.isIos // true if iPad or iPhone
+tlenv.isAndroid // true if Android device
+tlenv.isDarwin // true if macOS (used for keyboard shortcuts)
+tlenv.isWebview // true if running in a webview
 
 // Capability detection
 tlenv.hasCanvasSupport // true if Promise and HTMLCanvasElement exist
@@ -56,7 +56,7 @@ const accelKey = tlenv.isDarwin ? e.metaKey : e.ctrlKey
 ```typescript
 const isMobile = tlenv.isIos || tlenv.isAndroid
 if (isMobile) {
-  // Adjust UI for touch
+	// Adjust UI for touch
 }
 ```
 
@@ -65,7 +65,7 @@ if (isMobile) {
 ```typescript
 // Safari needs extra time for SVG image export
 if (tlenv.isSafari) {
-  await sleep(250)
+	await sleep(250)
 }
 ```
 
@@ -98,8 +98,8 @@ const isCoarse = tlenvReactive.get().isCoarsePointer
 
 // Or subscribe to changes
 react('pointer type changed', () => {
-  const { isCoarsePointer } = tlenvReactive.get()
-  console.log('Coarse pointer:', isCoarsePointer)
+	const { isCoarsePointer } = tlenvReactive.get()
+	console.log('Coarse pointer:', isCoarsePointer)
 })
 ```
 
@@ -116,14 +116,3 @@ On iOS, coalesced pointer events are broken (they report wrong coordinates), so 
 Firefox's `(any-pointer: coarse)` media query reports false positives on desktop when a touchscreen is present but not in use. We force fine pointer mode on Firefox desktop to avoid jumpy UI.
 
 Chrome for iOS has its own print implementation that doesn't trigger the standard `beforeprint` event, so we detect it and handle printing manually.
-
-## Key files
-
-- packages/editor/src/lib/globals/environment.ts - Environment detection logic
-- packages/editor/src/lib/hooks/useCoarsePointer.ts - Hook for coarse pointer syncing
-- packages/editor/src/lib/utils/keyboard.ts - Keyboard utilities using tlenv
-
-## Related
-
-- [Input handling](./input-handling.md)
-- [User preferences](./user-preferences.md)

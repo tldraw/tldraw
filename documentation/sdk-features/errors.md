@@ -30,14 +30,14 @@ We use error boundaries at three levels, each with different recovery behavior:
 ```tsx
 // The editor automatically wraps your content
 <TldrawEditor>
-  <OptionalErrorBoundary fallback={ErrorFallback}>
-    {/* Your shapes, each with their own boundary */}
-    <Shape>
-      <OptionalErrorBoundary fallback={ShapeErrorFallback}>
-        {/* Shape content */}
-      </OptionalErrorBoundary>
-    </Shape>
-  </OptionalErrorBoundary>
+	<OptionalErrorBoundary fallback={ErrorFallback}>
+		{/* Your shapes, each with their own boundary */}
+		<Shape>
+			<OptionalErrorBoundary fallback={ShapeErrorFallback}>
+				{/* Shape content */}
+			</OptionalErrorBoundary>
+		</Shape>
+	</OptionalErrorBoundary>
 </TldrawEditor>
 ```
 
@@ -57,31 +57,25 @@ You can replace any error fallback through the `components` prop:
 
 ```tsx
 function MyErrorFallback({ error, editor }) {
-  return (
-    <div className="my-error-screen">
-      <h1>Oops!</h1>
-      <p>{error.message}</p>
-      <button onClick={() => window.location.reload()}>
-        Refresh
-      </button>
-    </div>
-  )
+	return (
+		<div className="my-error-screen">
+			<h1>Oops!</h1>
+			<p>{error.message}</p>
+			<button onClick={() => window.location.reload()}>Refresh</button>
+		</div>
+	)
 }
 
 function MyShapeErrorFallback({ error }) {
-  return (
-    <div className="broken-shape">
-      ⚠️ This shape failed to render
-    </div>
-  )
+	return <div className="broken-shape">⚠️ This shape failed to render</div>
 }
 
-<Tldraw
-  components={{
-    ErrorFallback: MyErrorFallback,
-    ShapeErrorFallback: MyShapeErrorFallback,
-    ShapeIndicatorErrorFallback: MyShapeIndicatorErrorFallback,
-  }}
+;<Tldraw
+	components={{
+		ErrorFallback: MyErrorFallback,
+		ShapeErrorFallback: MyShapeErrorFallback,
+		ShapeIndicatorErrorFallback: MyShapeIndicatorErrorFallback,
+	}}
 />
 ```
 
@@ -94,14 +88,14 @@ When the editor encounters a fatal error during event processing, it enters a cr
 ```tsx
 // Listen for crashes
 editor.on('crash', ({ error }) => {
-  console.error('Editor crashed:', error)
-  // Report to error tracking service
+	console.error('Editor crashed:', error)
+	// Report to error tracking service
 })
 
 // Check if editor is crashed
 const crashingError = editor.getCrashingError()
 if (crashingError) {
-  // Editor is in crashed state
+	// Editor is in crashed state
 }
 ```
 
@@ -113,10 +107,10 @@ The editor annotates errors with contextual information before they're reported.
 
 ```typescript
 editor.annotateError(error, {
-  origin: 'myCustomTool.onPointerDown',
-  willCrashApp: false,
-  tags: { toolName: 'laser' },
-  extras: { shapeCount: 42 }
+	origin: 'myCustomTool.onPointerDown',
+	willCrashApp: false,
+	tags: { toolName: 'laser' },
+	extras: { shapeCount: 42 },
 })
 ```
 
@@ -132,29 +126,15 @@ You can use the exported `ErrorBoundary` component directly in your own code:
 import { ErrorBoundary } from 'tldraw'
 
 function MyComponent() {
-  return (
-    <ErrorBoundary
-      fallback={({ error }) => <div>Error: {error.message}</div>}
-      onError={(error) => console.error('Caught:', error)}
-    >
-      <RiskyComponent />
-    </ErrorBoundary>
-  )
+	return (
+		<ErrorBoundary
+			fallback={({ error }) => <div>Error: {error.message}</div>}
+			onError={(error) => console.error('Caught:', error)}
+		>
+			<RiskyComponent />
+		</ErrorBoundary>
+	)
 }
 ```
 
 Pass a `fallback` component that receives `{ error }` props, and optionally an `onError` callback for logging.
-
-## Key files
-
-- packages/editor/src/lib/components/ErrorBoundary.tsx - ErrorBoundary component
-- packages/editor/src/lib/components/default-components/DefaultErrorFallback.tsx - Application-level fallback
-- packages/editor/src/lib/components/default-components/DefaultShapeErrorFallback.tsx - Shape-level fallback
-- packages/editor/src/lib/components/default-components/DefaultShapeIndicatorErrorFallback.tsx - Indicator fallback
-- packages/editor/src/lib/hooks/useEditorComponents.tsx - Component customization
-- packages/editor/src/lib/editor/Editor.ts - Crash handling and error annotation
-
-## Related
-
-- [Shapes system](./shapes.md)
-- [Tools system](./tools.md)

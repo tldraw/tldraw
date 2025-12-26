@@ -239,6 +239,28 @@ const myShapeProps: RecordProps<TLMyShape> = {
 
 The editor automatically recognizes style properties and handles them appropriately during shape creation, selection, and updates.
 
+## Themes
+
+Themes map style values to actual colors and UI tokens. When a shape has `color: 'blue'`, the theme determines what shade of blue that actually is. The default theme provides light and dark palettes plus selection and background colors.
+
+This indirection lets shapes adapt to different contexts. The same shape renders with appropriate colors whether the user is in light mode, dark mode, or a custom branded theme.
+
+### Theme resolution
+
+Style values are resolved to concrete colors at render time. When a shape component renders, it looks up its style values in the current theme to get the actual CSS colors:
+
+```typescript
+// In a shape component
+const theme = useDefaultColorTheme()
+const color = theme[shape.props.color].solid // Gets the actual hex color
+```
+
+The theme object contains color entries for each style value, with variants for different fill types (solid, semi, pattern).
+
+### Custom themes
+
+You can provide a custom theme for brand colors or palette changes. The theme system supports overriding individual colors while keeping the rest of the defaults.
+
 ## Examples
 
 - **[Custom shape with custom styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-custom-styles)** - Create your own custom styles and use them in custom shapes.
@@ -247,19 +269,3 @@ The editor automatically recognizes style properties and handles them appropriat
 - **[Change default colors](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/changing-default-colors)** - Customize the color values in the tldraw theme.
 - **[Custom stroke and font sizes](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-stroke-and-font-sizes)** - Override the default stroke and font size values.
 - **[Easter egg styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/easter-egg-styles)** - Access hidden styles like white color, special fill variants, and label colors programmatically.
-
-## Key files
-
-- packages/tlschema/src/styles/StyleProp.ts - StyleProp class definition
-- packages/editor/src/lib/utils/SharedStylesMap.ts - Shared style computation logic
-- packages/editor/src/lib/editor/Editor.ts - Style methods (getSharedStyles, setStyleForSelectedShapes, etc.)
-- packages/tlschema/src/styles/TLColorStyle.ts - Color style definitions and theme system
-- packages/tlschema/src/styles/TLSizeStyle.ts - Size style definition
-- packages/tlschema/src/styles/TLFillStyle.ts - Fill style definition
-- packages/tlschema/src/styles/TLDashStyle.ts - Dash style definition
-- packages/tlschema/src/styles/TLFontStyle.ts - Font style definition
-
-## Related
-
-- [Selection system](./selection-system.md)
-- [Creating custom shapes](../guides/custom-shapes.md)

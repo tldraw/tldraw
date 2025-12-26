@@ -204,18 +204,3 @@ The examples app includes several binding implementations that demonstrate diffe
 - **[Pin bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/pin-bindings)** - Pins that connect networks of shapes together, moving them as a group. Demonstrates `onOperationComplete` for computing aggregate updates across multiple related bindings.
 
 - **[Layout bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layout-bindings)** - Constraining shapes to layout positions. Demonstrates using bindings to enforce spatial relationships between shapes.
-
-## Key files
-
-- packages/editor/src/lib/editor/bindings/BindingUtil.ts - Base binding utility class
-- packages/editor/src/lib/editor/Editor.ts - Binding methods (createBinding, getBindingsFromShape, etc.)
-- packages/editor/src/lib/editor/derivations/bindingsIndex.ts - Binding index derivation
-- packages/tlschema/src/bindings/TLBaseBinding.ts - Base binding type definition
-- packages/tlschema/src/bindings/TLArrowBinding.ts - Arrow binding definition
-- packages/tldraw/src/lib/bindings/arrow/ArrowBindingUtil.ts - Arrow binding implementation
-
-## Related
-
-- [Binding system architecture](../architecture/binding-system.md)
-- [Shape system](../architecture/shape-system.md)
-- [Selection system](./selection-system.md)

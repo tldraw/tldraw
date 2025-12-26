@@ -103,13 +103,3 @@ The listener can also be enabled via the `deepLinks` prop on the Tldraw componen
 ## Examples
 
 - **[Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links)** - Demonstrates how to use the `deepLinks` prop to enable URL-based navigation and how to create, parse, and handle deep links manually using the editor methods.
-
-## Key files
-
-- packages/editor/src/lib/utils/deepLinks.ts - Deep link string encoding and parsing
-- packages/editor/src/lib/editor/Editor.ts - createDeepLink, navigateToDeepLink, registerDeepLinkListener methods
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Pages](./pages.md)

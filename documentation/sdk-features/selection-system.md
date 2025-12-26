@@ -195,14 +195,3 @@ const hasSelectedAncestor = editor.isAncestorSelected(shape)
 ```
 
 This walks up the shape's parent chain and returns `true` if any ancestor is in the current selection. This is useful for determining whether a shape is implicitly selected through its parent.
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - Selection methods and computed properties
-- packages/editor/src/lib/editor/derivations/shapeIdsInCurrentPage.ts - Page-scoped shape tracking
-- packages/editor/src/lib/editor/types/selection-types.ts - Selection-related type definitions
-
-## Related
-
-- [Snapping](./snapping.md)
-- [Shape indexing](./shape-indexing.md)

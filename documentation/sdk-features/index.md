@@ -14,6 +14,10 @@ order: 0
 
 This section documents the various subsystems and features of the tldraw Editor. Each article covers a specific capability managed by the Editor class or its associated managers.
 
+## Configuration
+
+- [Editor options](./editor-options.md) - Global configuration for limits, timing, and behavior
+
 ## Input and interaction
 
 - [Click detection](./click-detection.md) - Single, double, triple, and quadruple click handling
@@ -69,8 +73,3 @@ This section documents the various subsystems and features of the tldraw Editor.
 ## Text and rendering
 
 - [Text measurement](./text-measurement.md) - Font and text dimension calculations
-
-## Related
-
-- [Editor](../packages/editor.md)
-- [UI components](../architecture/ui-components.md)

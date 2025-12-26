@@ -170,17 +170,3 @@ const state = editor.inputs.toJson()
 The serialized state includes all position vectors, modifier key states, interaction flags, device type, and the contents of the keys and buttons sets.
 
 > We use this serialized form when generating a crash report.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/InputsManager/InputsManager.ts - Input state management
-- packages/editor/src/lib/editor/managers/TickManager/TickManager.ts - Velocity calculation timing
-- packages/editor/src/lib/editor/types/event-types.ts - Event type definitions
-- packages/editor/src/lib/primitives/Vec.ts - Vector operations
-
-## Related
-
-- [Click detection](./click-detection.md)
-- [Coordinate systems](./coordinate-systems.md)
-- [Tick system](./tick-system.md)
-- [Camera system](./camera-system.md)

@@ -1,5 +1,5 @@
 ---
-title: Export
+title: Image export
 created_at: 12/20/2024
 updated_at: 12/20/2024
 keywords:
@@ -13,7 +13,7 @@ date: 12/20/2024
 order: 13
 ---
 
-The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The system handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports preserve visual fidelity by embedding fonts, inlining styles, and converting media elements to data URLs so the resulting files are fully self-contained.
+The Editor's image export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The system handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports preserve visual fidelity by embedding fonts, inlining styles, and converting media elements to data URLs so the resulting files are fully self-contained.
 
 ## How it works
 
@@ -99,19 +99,3 @@ All methods accept either shape IDs or shape objects, and an empty array exports
 - **[Export canvas as image](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/export-canvas-as-image)** - Export the entire canvas as an image file using `Editor.toImage()` and download it.
 - **[Export canvas as image (with settings)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/export-canvas-settings)** - Export the canvas as an image with configurable settings for format, scale, background, and other options.
 - **[Custom shape SVG export](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/toSvg-method-example)** - Define how custom shapes render when exported as SVG/PNG using the `toSvg` and `toBackgroundSvg` methods.
-
-## Key files
-
-- packages/editor/src/lib/exports/exportToSvg.tsx - Main export orchestration
-- packages/editor/src/lib/exports/getSvgJsx.tsx - SVG React tree generation
-- packages/editor/src/lib/exports/getSvgAsImage.ts - Raster image conversion
-- packages/editor/src/lib/exports/FontEmbedder.ts - Font embedding system
-- packages/editor/src/lib/exports/StyleEmbedder.ts - Style inlining system
-- packages/editor/src/lib/exports/embedMedia.ts - Media element conversion
-- packages/editor/src/lib/editor/types/misc-types.ts - Export option types
-- packages/editor/src/lib/editor/Editor.ts - Public export methods
-
-## Related
-
-- [Text measurement](./text-measurement.md)
-- [Assets](./assets.md)

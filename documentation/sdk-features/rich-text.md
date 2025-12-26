@@ -397,18 +397,3 @@ const textOptions = {
 - **[Rich text with font extensions](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-font-extensions)** - Extending the editor with font-family and font-size controls.
 
 - **[Format rich text on multiple shapes](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-on-multiple-shapes)** - Applying formatting to multiple selected shapes programmatically.
-
-## Key files
-
-- packages/tlschema/src/misc/TLRichText.ts - Rich text type definitions and conversion utilities
-- packages/tldraw/src/lib/utils/text/richText.ts - TipTap configuration and HTML rendering
-- packages/tldraw/src/lib/shapes/text/RichTextArea.tsx - Rich text editing component
-- packages/tldraw/src/lib/shapes/shared/RichTextLabel.tsx - Rich text display and editing wrapper
-- packages/editor/src/lib/utils/richText.ts - Font extraction and TipTap integration
-- packages/tldraw/src/lib/ui/components/Toolbar/DefaultRichTextToolbarContent.tsx - Default formatting toolbar
-
-## Related
-
-- [Text measurement](text-measurement.md) - How text dimensions are calculated
-- [Shapes](shapes.md) - Shape system architecture
-- [Styles](styles.md) - Shape styling system

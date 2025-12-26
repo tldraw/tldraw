@@ -55,5 +55,5 @@ Use UI hooks like `useEditor`, `useTools`, and `useActions` to wire custom menus
 ## Related
 
 - [UI components](../architecture/ui-components.md)
-- [Style system](../architecture/style-system.md)
+- [Styles](../sdk-features/styles.md)
 - [Custom tools](./custom-tools.md)

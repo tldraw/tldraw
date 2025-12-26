@@ -98,17 +98,3 @@ The `@tldraw/sync` package handles merging concurrent updates. Since reordering 
 The `IndexKey` type is a branded type that prevents accidentally using arbitrary strings as indices. The `validateIndexKey` function ensures a string is a valid index by attempting to generate an index after it. Invalid indices throw an error during validation.
 
 All shapes must have valid indices. The store validates indices when you create or update shapes, ensuring the editor never enters an invalid state.
-
-## Key files
-
-- packages/utils/src/lib/reordering.ts - Fractional index generation functions
-- packages/editor/src/lib/utils/reorderShapes.ts - Reordering logic for sendToBack, bringToFront, etc.
-- packages/editor/src/lib/editor/Editor.ts - Shape ordering methods (sendToBack, bringToFront, sendBackward, bringForward)
-- packages/tlschema/src/shapes/TLBaseShape.ts - Base shape interface with index property
-
-## Related
-
-- [Editor](../packages/editor.md) - Main editor package documentation
-- [Store](../packages/store.md) - Reactive database that manages shape records
-- [Shape system](../architecture/shape-system.md) - How shapes work in tldraw
-- [Multiplayer](../architecture/multiplayer.md) - Real-time collaboration architecture

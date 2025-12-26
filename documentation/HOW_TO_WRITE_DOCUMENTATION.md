@@ -93,6 +93,8 @@ Additional expectations for architecture docs:
 
 An ideal article feels like a concise internal engineering note: it orients the reader quickly, stays concrete, uses small code snippets to ground key ideas, and avoids fluff. The reader should finish with a clear mental model and know where to look next.
 
+For comprehensive guidance on voice and tone, see [VOICE.md](./VOICE.md). It covers confidence, avoiding AI writing tells, and maintaining our distinct writing personality.
+
 ### Tone
 
 Write in a **direct, technical tone**. Be helpful without being chatty.

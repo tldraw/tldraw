@@ -152,13 +152,3 @@ The manager tracks three internal states:
 - `Paused` - Don't capture changes (used during undo/redo operations)
 
 This prevents undo/redo operations from creating new history entries while they apply diffs.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/HistoryManager/HistoryManager.ts - Core undo/redo logic
-- packages/editor/src/lib/editor/types/history-types.ts - History batch options
-- packages/editor/src/lib/editor/Editor.ts - Public API methods (undo, redo, mark, bail, squash)
-
-## Related
-
-- [Store](../packages/store.md)

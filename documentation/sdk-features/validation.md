@@ -134,16 +134,3 @@ Validation errors include a message and a path into the failing value. Use them 
 
 - Validators should be pure and must not mutate input values.
 - If you use `onValidationFailure`, return a valid record or rethrow to abort the write.
-
-## Key files
-
-- packages/validate/src/lib/validation.ts - Validators and ValidationError
-- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - Shape props validation
-- packages/store/src/lib/StoreSchema.ts - Store validation and recovery
-- packages/worker-shared/src/handleRequest.ts - Request body/query validation
-
-## Related
-
-- [@tldraw/validate](../packages/validate.md)
-- [Store and records](../architecture/store-records.md)
-- [Migrations](../architecture/migrations.md)

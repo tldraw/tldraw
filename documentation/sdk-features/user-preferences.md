@@ -142,14 +142,3 @@ The validator defines the schema for the `TLUserPreferences` interface, includin
 
 - **[Toggle dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/dark-mode-toggle)** - Demonstrates how to toggle between light and dark mode by changing the user's colorScheme preference.
 - **[Infer dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/infer-dark-mode)** - Shows how to configure the editor to automatically infer its initial theme based on the user's system preferences.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/UserPreferencesManager/UserPreferencesManager.ts - Preference management and reactive integration
-- packages/editor/src/lib/config/TLUserPreferences.ts - Preference type definitions, defaults, persistence, and validation
-- packages/editor/src/lib/config/createTLUser.ts - User creation and preference atoms for React integration
-
-## Related
-
-- [Animation](./animation.md)
-- [Edge scrolling](./edge-scrolling.md)

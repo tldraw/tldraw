@@ -13,7 +13,7 @@ date: 12/20/2024
 order: 1
 ---
 
-The animation system provides smooth transitions for shapes and camera movements in the tldraw editor. It enables animations for shape properties like position, rotation, and opacity, as well as viewport transitions for camera movements. The system integrates with the tick system to coordinate frame-by-frame updates and respects user animation speed preferences for accessibility.
+The editor's animation system provides smooth transitions for shapes and camera movements in the tldraw editor. It enables animations for shape properties like position, rotation, and opacity, as well as viewport transitions for camera movements. The system integrates with the tick system to coordinate frame-by-frame updates and respects user animation speed preferences for accessibility.
 
 Shape animations run independently and can be interrupted or replaced. Camera animations coordinate with the camera system to provide smooth panning and zooming experiences.
 
@@ -133,17 +133,3 @@ The default easing is `easeInOutCubic`, which provides smooth acceleration at th
 The animation system respects the user's animation speed preference, accessed via `editor.user.getAnimationSpeed()`. This value multiplies animation durations, allowing users to speed up, slow down, or disable animations.
 
 When animation speed is set to zero, animations are skipped entirely and shapes or the camera immediately jump to their final values. This ensures the editor remains functional for users who require reduced motion.
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - Animation methods (animateShape, animateShapes, setCamera)
-- packages/editor/src/lib/primitives/easings.ts - Easing function definitions
-- packages/editor/src/lib/constants.ts - DEFAULT_ANIMATION_OPTIONS configuration
-- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - getInterpolatedProps method definition
-- packages/editor/src/lib/editor/shapes/BaseBoxShapeUtil.tsx - Example getInterpolatedProps implementation
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Tick system](./tick-system.md)
-- [Shape utilities](../packages/editor.md)

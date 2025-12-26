@@ -92,15 +92,3 @@ Click timing is configured through the editor's options system:
 - `multiClickDurationMs`: Time window for subsequent clicks in the sequence (default: 200ms)
 
 These values can be customized when creating the editor. The defaults match standard operating system behavior and work well for most applications.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/ClickManager/ClickManager.ts - State machine implementation and event processing
-- packages/editor/src/lib/editor/types/event-types.ts - Click event type definitions and handler interfaces
-- packages/editor/src/lib/options.ts - Default timing configuration (doubleClickDurationMs, multiClickDurationMs)
-- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - Shape-level click handlers (onDoubleClick, onTripleClick, onQuadrupleClick)
-
-## Related
-
-- [Input handling](./input-handling.md)
-- [Tool system](../architecture/tool-system.md)

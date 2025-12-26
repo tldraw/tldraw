@@ -52,7 +52,7 @@ function App() {
 ## Related
 
 - [@tldraw/tldraw](./tldraw.md)
-- [Shape system](../architecture/shape-system.md)
+- [Shapes](../sdk-features/shapes.md)
 - [Tool system](../architecture/tool-system.md)
 
 ## Documentation todos

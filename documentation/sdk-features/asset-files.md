@@ -1,5 +1,5 @@
 ---
-title: Asset pipeline
+title: Asset store
 created_at: 12/17/2024
 updated_at: 12/19/2025
 keywords:
@@ -13,7 +13,7 @@ date: 12/19/2025
 order: 0
 ---
 
-The asset pipeline controls how images, videos, and other external media are stored and served. An asset is a record that points to a file; by default, tldraw stores file data as base64 inside the document, but you can provide a `TLAssetStore` to upload files and resolve optimized URLs.
+The editor's asset store system controls how images, videos, and other external media are stored and served. An asset is a record that points to a file; by default, tldraw stores file data as base64 inside the document, but you can provide a `TLAssetStore` to upload files and resolve optimized URLs.
 
 ## Key components
 
@@ -59,14 +59,3 @@ Assets are stored as records in the Store, alongside shapes and pages. Shapes th
 - Use `resolve` to serve size-appropriate images based on zoom and device pixel ratio.
 - Add custom asset types for bookmarks or embeds.
 - Enforce authentication or signed URLs inside `upload` and `resolve`.
-
-## Key files
-
-- packages/editor/src/lib/editor/types/external-content.ts - Asset and content types
-- packages/tldraw/src/lib/defaultExternalContentHandlers.ts - Default upload handlers
-- apps/dotcom/asset-upload-worker/ - Production R2 upload worker
-
-## Related
-
-- [Asset upload worker](../infrastructure/asset-upload-worker.md) - R2 upload service
-- [@tldraw/editor](../packages/editor.md) - External content handling

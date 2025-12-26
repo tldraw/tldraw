@@ -126,16 +126,3 @@ const scribble = this.editor.scribbles.addScribble({
 	size: 12,
 })
 ```
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/ScribbleManager/ScribbleManager.ts - Scribble lifecycle management and rendering
-- packages/tlschema/src/misc/TLScribble.ts - Scribble type definition and states
-- packages/tldraw/src/lib/tools/LaserTool/childStates/Lasering.ts - Laser pointer scribble implementation
-- packages/tldraw/src/lib/tools/EraserTool/childStates/Erasing.ts - Eraser tool scribble implementation
-- packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts - Scribble-brush selection implementation
-
-## Related
-
-- [Input handling](./input-handling.md)
-- [Tick system](./tick-system.md)

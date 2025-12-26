@@ -62,13 +62,13 @@ Welcome to the documentation for the tldraw monorepo. This repository contains t
 
 ### Architecture deep dives
 
-- [Shape system](./architecture/shape-system.md) - How ShapeUtil works: geometry, rendering, hit testing, interactions
+- [Shapes](./sdk-features/shapes.md) - How ShapeUtil works: geometry, rendering, hit testing, interactions
 - [Tool system](./architecture/tool-system.md) - StateNode state machines and the hierarchical tool architecture
 - [Binding system](./architecture/binding-system.md) - BindingUtil and shape relationships (arrows, connections)
 - [Reactive state](./architecture/reactive-state.md) - The signals system: Atoms, Computed values, effects, and transactions
 - [Store and records](./architecture/store-records.md) - Record types, scopes, queries, side effects, and change tracking
 - [Migration system](./architecture/migrations.md) - Schema evolution, migration sequences, and backward compatibility
-- [Style system](./architecture/style-system.md) - StyleProp, themes, colors, and how styling works across shapes
+- [Styles](./sdk-features/styles.md) - StyleProp, themes, colors, and how styling works across shapes
 - [Asset pipeline](./architecture/asset-pipeline.md) - Asset upload, storage, optimization, and the TLAssetStore interface
 - [UI component system](./architecture/ui-components.md) - Component overrides, responsive design, and customization patterns
 

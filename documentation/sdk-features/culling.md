@@ -45,15 +45,3 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 ```
 
 When `canCull` returns `false` for a shape, the culling system skips that shape entirely during visibility checks, treating it as always visible regardless of its position relative to the viewport.
-
-## Key files
-
-- packages/editor/src/lib/editor/derivations/notVisibleShapes.ts - Incremental derivation of not-visible shapes
-- packages/editor/src/lib/editor/Editor.ts - getCulledShapes and getNotVisibleShapes methods
-- packages/editor/src/lib/editor/shapes/ShapeUtil.ts - canCull method definition
-- packages/editor/src/lib/components/Shape.tsx - Rendering integration with culling system
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Rendering shapes](../architecture/rendering-shapes.md)

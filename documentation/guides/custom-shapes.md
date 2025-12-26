@@ -92,6 +92,6 @@ function App() {
 
 ## Related
 
-- [Shape system](../architecture/shape-system.md)
+- [Shapes](../sdk-features/shapes.md)
 - [Custom tools](./custom-tools.md)
 - [Custom bindings](./custom-bindings.md)

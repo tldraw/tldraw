@@ -146,18 +146,3 @@ export class CustomDragTool extends StateNode {
 The manager tracks whether edge scrolling is active using `getIsEdgeScrolling()`. This returns true when the pointer is in the edge zone and scrolling has started (after the delay period).
 
 Tools should only call `updateEdgeScrolling()` during states where edge scrolling makes sense. For example, the select tool calls it during translating, brushing, and resizing, but not during idle or pointing states.
-
-## Key files
-
-- packages/editor/src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.ts - Edge detection and scroll logic
-- packages/editor/src/lib/options.ts - Configuration options and defaults
-- packages/editor/src/lib/config/TLUserPreferences.ts - User preference for edge scroll speed
-- packages/tldraw/src/lib/tools/SelectTool/childStates/Translating.ts - Example tool integration
-- packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts - Example tool integration
-- packages/tldraw/src/lib/tools/SelectTool/childStates/Resizing.ts - Example tool integration
-
-## Related
-
-- [Camera system](./camera-system.md)
-- [Input handling](./input-handling.md)
-- [Tick system](./tick-system.md)

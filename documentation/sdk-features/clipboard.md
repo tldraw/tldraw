@@ -75,15 +75,3 @@ Shape and binding IDs are remapped during paste to prevent collisions with exist
 
 - **[Custom paste behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-paste)** - Demonstrates how to customize paste behavior by registering an external content handler that changes where pasted shapes are positioned.
 - **[External content sources](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/external-content-sources)** - Shows how to handle different content types when pasting into tldraw, including custom handling for HTML content.
-
-## Key files
-
-- packages/editor/src/lib/editor/Editor.ts - getContentFromCurrentPage, putContentOntoCurrentPage, resolveAssetsInContent methods
-- packages/editor/src/lib/editor/types/clipboard-types.ts - TLContent type definition
-- packages/tldraw/src/lib/ui/hooks/useClipboardEvents.ts - Browser clipboard event handlers and content serialization
-
-## Related
-
-- [External content handling](./external-content.md)
-- [Selection system](./selection-system.md)
-- [Bindings](./bindings.md)
