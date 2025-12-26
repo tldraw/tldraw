@@ -109,29 +109,23 @@ Don't explain how it works yet—establish why it exists.]
 
 - Start with `##` for main sections (never `###` as first heading)
 - Rarely go deeper than `####`
-- One working code example per major concept
+- One illustrative code snippet per major concept
 - Keep paragraphs to 1-3 sentences
 
 ## Code examples
 
-### Show complete code first
+### Snippets, not full examples
 
-Your first snippet should be runnable:
+Documentation should contain **illustrative code snippets**, not self-contained runnable examples. Full examples belong in the examples app (`apps/examples`).
+
+**Do:** Show the specific API or concept being documented:
 
 ```tsx
-import { Tldraw } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-export default function () {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw />
-		</div>
-	)
-}
+// Setting focus on a specific shape
+editor.setFocusedGroup(groupId)
 ```
 
-Subsequent examples can be fragments.
+**Don't:** Write complete React components with imports, CSS, and boilerplate.
 
 ### Keep examples minimal
 
@@ -184,6 +178,14 @@ Before finishing:
 - [ ] Researched the topic in the codebase
 - [ ] Overview establishes purpose before mechanism
 - [ ] All headings use sentence case
-- [ ] Code examples are minimal and runnable
+- [ ] Code snippets are minimal and illustrative (not full examples)
 - [ ] No AI writing tells (check against VOICE.md)
 - [ ] Related examples linked (if applicable)
+
+## After completing documentation
+
+After finishing the documentation, surface any need for new examples:
+
+- If no relevant example exists in `apps/examples`, note this to the user
+- Suggest what a new example might demonstrate
+- Do NOT create the example yourself as part of this command

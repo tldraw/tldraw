@@ -55,16 +55,16 @@ function MyButtons() {
 
 The `type` prop controls the button's appearance:
 
-| Type      | Description                                    |
-| --------- | ---------------------------------------------- |
-| `normal`  | Standard button for general actions            |
-| `primary` | Emphasized button for primary actions          |
-| `danger`  | Red button for destructive actions             |
-| `low`     | Subtle button with minimal visual weight       |
-| `icon`    | Square button sized for a single icon          |
-| `tool`    | Tool button style used in the toolbar          |
-| `menu`    | Button style used inside menus                 |
-| `help`    | Style used for help/info buttons               |
+| Type      | Description                              |
+| --------- | ---------------------------------------- |
+| `normal`  | Standard button for general actions      |
+| `primary` | Emphasized button for primary actions    |
+| `danger`  | Red button for destructive actions       |
+| `low`     | Subtle button with minimal visual weight |
+| `icon`    | Square button sized for a single icon    |
+| `tool`    | Tool button style used in the toolbar    |
+| `menu`    | Button style used inside menus           |
+| `help`    | Style used for help/info buttons         |
 
 Use `isActive` to indicate a selected or active state:
 
@@ -84,6 +84,7 @@ import {
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
 	TldrawUiButtonCheck,
+	TldrawUiButtonSpinner,
 } from 'tldraw'
 
 // Icon button
@@ -101,6 +102,12 @@ import {
 <TldrawUiButton type="menu">
 	<TldrawUiButtonCheck checked={true} />
 	<TldrawUiButtonLabel>Show grid</TldrawUiButtonLabel>
+</TldrawUiButton>
+
+// Button with loading spinner
+<TldrawUiButton type="normal" disabled>
+	<TldrawUiButtonSpinner />
+	<TldrawUiButtonLabel>Loading...</TldrawUiButtonLabel>
 </TldrawUiButton>
 ```
 
@@ -121,10 +128,7 @@ The `label` prop is required for accessibility—it becomes the icon's `aria-lab
 You can also pass a custom React element instead of an icon name:
 
 ```tsx
-<TldrawUiIcon
-	icon={<div className="my-custom-icon">★</div>}
-	label="Favorite"
-/>
+<TldrawUiIcon icon={<div className="my-custom-icon">★</div>} label="Favorite" />
 ```
 
 ## Menu primitives
@@ -137,8 +141,7 @@ The main component for menu items. It automatically adapts its rendering based o
 
 ```tsx
 import { TldrawUiMenuItem, TldrawUiMenuGroup } from 'tldraw'
-
-<TldrawUiMenuGroup id="my-actions">
+;<TldrawUiMenuGroup id="my-actions">
 	<TldrawUiMenuItem
 		id="my-action"
 		label="Do something"
@@ -153,18 +156,18 @@ import { TldrawUiMenuItem, TldrawUiMenuGroup } from 'tldraw'
 
 Props:
 
-| Prop         | Description                                                |
-| ------------ | ---------------------------------------------------------- |
-| `id`         | Unique identifier for the menu item                        |
-| `label`      | Display text (supports translation keys)                   |
-| `icon`       | Icon to display                                            |
-| `kbd`        | Keyboard shortcut to display                               |
-| `onSelect`   | Called when the item is clicked                            |
-| `disabled`   | Whether the item is disabled                               |
-| `readonlyOk` | If true, item is shown even in readonly mode               |
-| `isSelected` | Whether the item shows as selected (for toolbar items)     |
-| `spinner`    | Show a loading spinner                                     |
-| `noClose`    | Prevent the menu from closing when clicked                 |
+| Prop         | Description                                            |
+| ------------ | ------------------------------------------------------ |
+| `id`         | Unique identifier for the menu item                    |
+| `label`      | Display text (supports translation keys)               |
+| `icon`       | Icon to display                                        |
+| `kbd`        | Keyboard shortcut to display                           |
+| `onSelect`   | Called when the item is clicked                        |
+| `disabled`   | Whether the item is disabled                           |
+| `readonlyOk` | If true, item is shown even in readonly mode           |
+| `isSelected` | Whether the item shows as selected (for toolbar items) |
+| `spinner`    | Show a loading spinner                                 |
+| `noClose`    | Prevent the menu from closing when clicked             |
 
 ### TldrawUiMenuGroup
 
@@ -184,8 +187,7 @@ Creates a nested submenu:
 
 ```tsx
 import { TldrawUiMenuSubmenu } from 'tldraw'
-
-<TldrawUiMenuSubmenu id="export" label="Export as...">
+;<TldrawUiMenuSubmenu id="export" label="Export as...">
 	<TldrawUiMenuGroup id="formats">
 		<TldrawUiMenuItem id="png" label="PNG" onSelect={exportPng} />
 		<TldrawUiMenuItem id="svg" label="SVG" onSelect={exportSvg} />
@@ -200,8 +202,7 @@ A menu item with a checkbox:
 
 ```tsx
 import { TldrawUiMenuCheckboxItem } from 'tldraw'
-
-<TldrawUiMenuCheckboxItem
+;<TldrawUiMenuCheckboxItem
 	id="snap-to-grid"
 	label="Snap to grid"
 	checked={snapEnabled}
@@ -239,7 +240,13 @@ function MyDialog({ onClose }: { onClose(): void }) {
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
 				</TldrawUiButton>
-				<TldrawUiButton type="danger" onClick={() => { deleteItem(); onClose() }}>
+				<TldrawUiButton
+					type="danger"
+					onClick={() => {
+						deleteItem()
+						onClose()
+					}}
+				>
 					<TldrawUiButtonLabel>Delete</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
@@ -251,11 +258,7 @@ function MyDialog({ onClose }: { onClose(): void }) {
 function MyComponent() {
 	const { addDialog } = useDialogs()
 
-	return (
-		<button onClick={() => addDialog({ component: MyDialog })}>
-			Delete item
-		</button>
-	)
+	return <button onClick={() => addDialog({ component: MyDialog })}>Delete item</button>
 }
 ```
 
@@ -267,8 +270,7 @@ The `onClose` function is passed to your dialog component automatically. Call it
 
 ```tsx
 import { TldrawUiInput } from 'tldraw'
-
-<TldrawUiInput
+;<TldrawUiInput
 	label="Name"
 	defaultValue="Untitled"
 	onComplete={(value) => {
@@ -290,11 +292,7 @@ import { TldrawUiInput } from 'tldraw'
 Add icons to the input:
 
 ```tsx
-<TldrawUiInput
-	iconLeft="search"
-	placeholder="Search shapes..."
-	onValueChange={setSearchQuery}
-/>
+<TldrawUiInput iconLeft="search" placeholder="Search shapes..." onValueChange={setSearchQuery} />
 ```
 
 ## Layout
@@ -337,26 +335,34 @@ Displays a keyboard shortcut:
 
 ```tsx
 import { TldrawUiKbd } from 'tldraw'
-
-<TldrawUiKbd>cmd+shift+d</TldrawUiKbd>
+;<TldrawUiKbd>cmd+shift+d</TldrawUiKbd>
 ```
 
 ### TldrawUiSlider
 
-A slider control:
+A slider control. The slider uses discrete steps rather than a continuous range:
 
 ```tsx
 import { TldrawUiSlider } from 'tldraw'
-
-<TldrawUiSlider
-	label="Opacity"
-	value={opacity}
-	onValueChange={setOpacity}
-	min={0}
-	max={1}
-	step={0.1}
+;<TldrawUiSlider
+	title="Opacity"
+	label="style-panel.opacity"
+	value={5}
+	steps={10}
+	onValueChange={(value) => console.log(value)}
 />
 ```
+
+Props:
+
+| Prop            | Description                                     |
+| --------------- | ----------------------------------------------- |
+| `title`         | Tooltip title text                              |
+| `label`         | Translation key for the label                   |
+| `value`         | Current value (0 to steps), or null             |
+| `steps`         | Maximum value (the slider goes from 0 to steps) |
+| `min`           | Optional minimum value (defaults to 0)          |
+| `onValueChange` | Called with the new value when it changes       |
 
 ### TldrawUiPopover
 
@@ -364,18 +370,19 @@ A popover that appears next to a trigger element:
 
 ```tsx
 import { TldrawUiPopover, TldrawUiPopoverTrigger, TldrawUiPopoverContent } from 'tldraw'
-
-<TldrawUiPopover>
+;<TldrawUiPopover id="my-popover">
 	<TldrawUiPopoverTrigger>
 		<TldrawUiButton type="icon">
 			<TldrawUiButtonIcon icon="dots-vertical" />
 		</TldrawUiButton>
 	</TldrawUiPopoverTrigger>
-	<TldrawUiPopoverContent>
+	<TldrawUiPopoverContent side="bottom">
 		<div style={{ padding: 8 }}>Popover content here</div>
 	</TldrawUiPopoverContent>
 </TldrawUiPopover>
 ```
+
+The `id` prop is required and used to track the popover's open state. The `side` prop on `TldrawUiPopoverContent` controls which side of the trigger the popover appears on.
 
 ### TldrawUiDropdownMenu
 
@@ -388,9 +395,10 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuGroup,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 } from 'tldraw'
-
-<TldrawUiDropdownMenuRoot>
+;<TldrawUiDropdownMenuRoot id="my-dropdown">
 	<TldrawUiDropdownMenuTrigger>
 		<TldrawUiButton type="normal">
 			<TldrawUiButtonLabel>Options</TldrawUiButtonLabel>
@@ -398,13 +406,27 @@ import {
 	</TldrawUiDropdownMenuTrigger>
 	<TldrawUiDropdownMenuContent>
 		<TldrawUiDropdownMenuGroup>
-			<TldrawUiDropdownMenuItem onSelect={handleEdit}>Edit</TldrawUiDropdownMenuItem>
-			<TldrawUiDropdownMenuItem onSelect={handleDuplicate}>Duplicate</TldrawUiDropdownMenuItem>
-			<TldrawUiDropdownMenuItem onSelect={handleDelete}>Delete</TldrawUiDropdownMenuItem>
+			<TldrawUiDropdownMenuItem>
+				<TldrawUiButton type="menu" onClick={handleEdit}>
+					<TldrawUiButtonLabel>Edit</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
+			<TldrawUiDropdownMenuItem>
+				<TldrawUiButton type="menu" onClick={handleDuplicate}>
+					<TldrawUiButtonLabel>Duplicate</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
+			<TldrawUiDropdownMenuItem>
+				<TldrawUiButton type="menu" onClick={handleDelete}>
+					<TldrawUiButtonLabel>Delete</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
 		</TldrawUiDropdownMenuGroup>
 	</TldrawUiDropdownMenuContent>
 </TldrawUiDropdownMenuRoot>
 ```
+
+The `id` prop is required on `TldrawUiDropdownMenuRoot`. Each `TldrawUiDropdownMenuItem` wraps a child element (typically a button) and handles the dropdown behavior.
 
 ## Related examples
 

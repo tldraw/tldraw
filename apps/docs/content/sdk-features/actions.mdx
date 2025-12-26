@@ -46,11 +46,21 @@ interface TLUiActionItem {
 	kbd?: string
 	readonlyOk?: boolean
 	checkbox?: boolean
+	isRequiredA11yAction?: boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 ```
 
-The `id` uniquely identifies the action. The `label` is a translation key (or an object mapping menu types to different labels). The `kbd` property accepts shortcut strings like `'cmd+g,ctrl+g'` for cross-platform support. The `readonlyOk` flag indicates whether the action works in readonly mode. The `checkbox` flag marks toggle-style actions that show a checkmark when active.
+| Property               | Description                                                                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | Unique identifier for the action (e.g., `'duplicate'`, `'zoom-in'`)                                                                                           |
+| `label`                | Translation key for display text. Can be a string or an object mapping contexts to different keys (see [Context-sensitive labels](#context-sensitive-labels)) |
+| `icon`                 | Icon name from tldraw's icon set, or a custom React element                                                                                                   |
+| `kbd`                  | Keyboard shortcut string. Use commas to separate platform alternatives: `'cmd+g,ctrl+g'` binds Cmd+G on Mac and Ctrl+G elsewhere                              |
+| `readonlyOk`           | When `true`, the action works in readonly mode. Defaults to `false`                                                                                           |
+| `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                          |
+| `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions              |
+| `onSelect`             | Handler called when the action is triggered. Receives a `source` parameter indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)               |
 
 ## Accessing actions
 
@@ -198,7 +208,7 @@ kbd: 'cmd+shift+s,ctrl+shift+s' // Cmd+Shift+S on Mac, Ctrl+Shift+S elsewhere
 
 Available modifiers are `cmd`, `ctrl`, `shift`, and `alt`. Special keys include `del`, `backspace`, `enter`, `escape`, and arrow keys.
 
-Shortcuts are disabled when focus is inside a text input. Actions marked with `isRequiredA11yAction: true` bypass this check for accessibility purposes.
+Shortcuts are disabled when a menu is open, a shape is being edited, the editor has a crashing error, or the user has disabled keyboard shortcuts in preferences. Actions marked with `isRequiredA11yAction: true` bypass this check for accessibility purposes.
 
 ## Actions in menus
 
@@ -256,8 +266,13 @@ actions['custom-action'] = {
 
 The source values include `'menu'`, `'context-menu'`, `'kbd'`, `'toolbar'`, `'quick-actions'`, `'zoom-menu'`, and others. This granularity helps you understand which UI patterns your users prefer.
 
+## Key files
+
+- [packages/tldraw/src/lib/ui/context/actions.tsx](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) — Action definitions and the `ActionsProvider` context
+- [packages/tldraw/src/lib/ui/hooks/useKeyboardShortcuts.ts](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useKeyboardShortcuts.ts) — Keyboard shortcut binding logic
+
 ## Related examples
 
-- **[Action overrides](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/action-overrides)** - Add custom actions and modify existing action shortcuts using the overrides prop.
-- **[Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/keyboard-shortcuts)** - Change keyboard shortcuts for tools and actions.
-- **[Custom menus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-menus)** - Build custom menus that use actions with proper labels and shortcuts.
+- [Action overrides](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/action-overrides) — Add custom actions and modify existing action shortcuts using the overrides prop.
+- [Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/keyboard-shortcuts) — Change keyboard shortcuts for tools and actions.
+- [Custom menus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-menus) — Build custom menus that use actions with proper labels and shortcuts.

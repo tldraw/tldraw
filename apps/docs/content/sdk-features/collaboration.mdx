@@ -1,0 +1,301 @@
+---
+title: Collaboration
+created_at: 12/26/2025
+updated_at: 12/26/2025
+keywords:
+  - multiplayer
+  - sync
+  - collaboration
+  - real-time
+  - presence
+  - cursors
+  - websocket
+status: published
+date: 12/26/2025
+order: 5
+---
+
+The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
+
+Collaboration requires a server component to coordinate changes between clients. You can use tldraw's demo server for prototyping, or run your own server for production.
+
+## Quick start with the demo server
+
+The fastest way to add multiplayer is with `useSyncDemo`. This hook connects to a hosted demo server that handles synchronization:
+
+```tsx
+import { useSyncDemo } from '@tldraw/sync'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const store = useSyncDemo({ roomId: 'my-room-id' })
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} />
+		</div>
+	)
+}
+```
+
+Anyone who opens the app with the same `roomId` will see the same document and each other's cursors. The demo server is useful for prototyping, but data is deleted after a day and rooms are publicly accessible by ID. Do not use it in production.
+
+## Production setup with useSync
+
+For production, use the `useSync` hook with your own server:
+
+```tsx
+import { useSync } from '@tldraw/sync'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function Room({ roomId }: { roomId: string }) {
+	const store = useSync({
+		uri: `wss://your-server.com/sync/${roomId}`,
+		assets: myAssetStore,
+	})
+
+	if (store.status === 'loading') {
+		return <div>Connecting...</div>
+	}
+
+	if (store.status === 'error') {
+		return <div>Connection error: {store.error.message}</div>
+	}
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store.store} />
+		</div>
+	)
+}
+```
+
+The `useSync` hook returns a `RemoteTLStoreWithStatus` object with three possible states:
+
+| Status          | Description                                                    |
+| --------------- | -------------------------------------------------------------- |
+| `loading`       | Establishing connection and performing initial sync            |
+| `synced-remote` | Connected and syncing. Includes `store` and `connectionStatus` |
+| `error`         | Connection failed. Includes `error` with details               |
+
+### Asset storage
+
+Unlike the demo server, production setups require you to provide an asset store for handling images, videos, and other files:
+
+```tsx
+const myAssetStore: TLAssetStore = {
+	upload: async (asset, file) => {
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: file,
+		})
+		const { url } = await response.json()
+		return { src: url }
+	},
+	resolve: (asset, context) => {
+		// context includes dpr, networkEffectiveType, and shouldResolveToOriginal
+		return asset.props.src
+	},
+}
+
+const store = useSync({
+	uri: `wss://your-server.com/sync/${roomId}`,
+	assets: myAssetStore,
+})
+```
+
+See the [Assets](/docs/assets) documentation for more on implementing asset stores.
+
+## User identity
+
+By default, users get a random name and color. To customize this, pass `userInfo`:
+
+```tsx
+const store = useSyncDemo({
+	roomId: 'my-room',
+	userInfo: {
+		id: 'user-123',
+		name: 'Alice',
+		color: '#ff0000',
+	},
+})
+```
+
+For dynamic user info that updates during the session, use an atom:
+
+```tsx
+import { atom } from 'tldraw'
+
+const userInfo = atom('userInfo', {
+	id: 'user-123',
+	name: 'Alice',
+	color: '#ff0000',
+})
+
+// Later, update the user info
+userInfo.set({ ...userInfo.get(), name: 'Alice (away)' })
+
+const store = useSyncDemo({
+	roomId: 'my-room',
+	userInfo,
+})
+```
+
+### Integrating with useTldrawUser
+
+If you need to let users edit their preferences through tldraw's UI, use `useTldrawUser`:
+
+```tsx
+import { useSyncDemo } from '@tldraw/sync'
+import { useState } from 'react'
+import { TLUserPreferences, Tldraw, useTldrawUser } from 'tldraw'
+
+export default function App({ roomId }: { roomId: string }) {
+	const [userPreferences, setUserPreferences] = useState<TLUserPreferences>({
+		id: 'user-123',
+		name: 'Alice',
+		color: 'coral',
+		colorScheme: 'dark',
+	})
+
+	const store = useSyncDemo({ roomId, userInfo: userPreferences })
+	const user = useTldrawUser({ userPreferences, setUserPreferences })
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} user={user} />
+		</div>
+	)
+}
+```
+
+## Connection status
+
+When using `useSync`, the store object includes connection status information:
+
+```tsx
+const store = useSync({ uri, assets })
+
+if (store.status === 'synced-remote') {
+	// store.connectionStatus is 'online' or 'offline'
+	console.log('Connection:', store.connectionStatus)
+}
+```
+
+The connection status reflects the WebSocket connection state. When offline, changes are queued locally and sync when the connection resumes.
+
+## Custom presence
+
+The presence system controls what information is shared with other users. By default, it includes cursor position, selected shapes, and viewport bounds. You can customize this with `getUserPresence`:
+
+```tsx
+import { getDefaultUserPresence } from 'tldraw'
+
+const store = useSyncDemo({
+	roomId: 'my-room',
+	getUserPresence(store, user) {
+		const defaults = getDefaultUserPresence(store, user)
+		if (!defaults) return null
+
+		return {
+			...defaults,
+			// Remove camera/viewport to disable follow functionality
+			camera: undefined,
+		}
+	},
+})
+```
+
+Return `null` from `getUserPresence` to hide this user's presence entirely. This is useful for spectator modes where you want a user to observe without appearing in the room.
+
+## Authentication
+
+To add authentication, generate the WebSocket URI dynamically:
+
+```tsx
+const store = useSync({
+	uri: async () => {
+		const token = await getAuthToken()
+		return `wss://your-server.com/sync/${roomId}?token=${token}`
+	},
+	assets: myAssetStore,
+})
+```
+
+The `uri` option accepts a function that returns a string or Promise. This runs when establishing the connection and on reconnection, so tokens can refresh automatically.
+
+## Running your own server
+
+For production, you'll need to run a sync server. The `@tldraw/sync-core` package provides `TLSocketRoom` for server-side room management.
+
+We provide a complete Cloudflare Workers template that includes:
+
+- WebSocket sync via Durable Objects (one per room)
+- Asset storage with R2
+- Bookmark unfurling for URL previews
+- Production-ready architecture that scales automatically
+
+Get started with the template:
+
+```bash
+npx create-tldraw@latest --template sync-cloudflare
+```
+
+Or copy the relevant pieces to your existing infrastructure. The template handles the complexity of room lifecycle, connection management, and state persistence.
+
+### Server architecture
+
+The sync server uses a room-based model:
+
+1. Each document has a unique room ID
+2. Clients connect via WebSocket to their room
+3. The server maintains one `TLSocketRoom` per active room
+4. Changes broadcast to all connected clients in real-time
+5. The server is authoritative for conflict resolution
+
+```
+┌─────────┐     ┌─────────────────┐     ┌─────────┐
+│ Client  │────▶│   TLSocketRoom  │◀────│ Client  │
+└─────────┘     │   (per room)    │     └─────────┘
+                └────────┬────────┘
+                         │
+                    ┌────▼────┐
+                    │ Storage │
+                    └─────────┘
+```
+
+## Custom shapes and bindings
+
+If you use custom shapes or bindings, register them with the sync hooks using schema options:
+
+```tsx
+import { useSyncDemo } from '@tldraw/sync'
+import { Tldraw } from 'tldraw'
+import { MyCustomShapeUtil, myCustomShapeProps } from './MyCustomShape'
+
+const store = useSyncDemo({
+	roomId: 'my-room',
+	shapeUtils: [MyCustomShapeUtil],
+})
+
+return <Tldraw store={store} shapeUtils={[MyCustomShapeUtil]} />
+```
+
+The shape utilities must be passed to both the sync hook (for schema registration) and the Tldraw component (for rendering).
+
+## Key files
+
+The sync system lives in these packages:
+
+- `packages/sync/src/useSync.ts` — The main `useSync` hook
+- `packages/sync/src/useSyncDemo.ts` — The `useSyncDemo` hook for the demo server
+- `packages/sync-core/src/lib/TLSyncClient.ts` — Client-side sync protocol implementation
+- `packages/sync-core/src/lib/TLSocketRoom.ts` — Server-side room management
+
+## Related examples
+
+- **[Multiplayer sync](/examples/collaboration/sync-demo)** — Basic multiplayer setup with the demo server
+- **[Custom user](/examples/collaboration/sync-custom-user)** — Setting custom user identity for multiplayer
+- **[Custom presence](/examples/collaboration/sync-custom-presence)** — Customizing presence data sent to collaborators

@@ -679,3 +679,7 @@ Write like a knowledgeable colleague who:
 - Has occasional warmth without being chatty
 
 The goal is documentation that developers trust, can scan quickly, and can copy-paste to get something working.
+
+## Tips
+
+- The apps/docs app is the public documentation website for the tldraw SDK. These articles presume a human audience. Articles there are allowed to include information that may be available elsewhere in the tldraw repository.

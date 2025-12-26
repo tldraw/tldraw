@@ -13,9 +13,9 @@ date: 12/20/2025
 order: 1
 ---
 
-The animation system provides smooth transitions for shapes and camera movements in the tldraw editor. It enables animations for shape properties like position, rotation, and opacity, as well as viewport transitions for camera movements. The system integrates with the tick system to coordinate frame-by-frame updates and respects user animation speed preferences for accessibility.
+The animation system controls smooth transitions for shapes and camera movements. Shape animations handle properties like position, rotation, and opacity. Camera animations manage viewport transitions for panning and zooming.
 
-Shape animations run independently and can be interrupted or replaced. Camera animations coordinate with the camera system to provide smooth panning and zooming experiences.
+Shape animations run independently and can be interrupted or replaced. Camera animations integrate with the camera system and respect user animation speed preferences for accessibility.
 
 ## How it works
 
@@ -34,7 +34,7 @@ editor.on('tick', (elapsed) => {
 })
 ```
 
-All animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. This ensures the editor remains accessible to users who prefer reduced motion.
+Camera animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. Shape animations do not check this preference—if you need reduced motion support for shape animations, check `editor.user.getAnimationSpeed()` yourself and skip the animation when it returns zero.
 
 ## Shape animations
 
@@ -43,9 +43,13 @@ Shape animations enable smooth transitions for individual shape properties. The 
 Use `animateShape()` to animate a single shape or `animateShapes()` to animate multiple shapes simultaneously:
 
 ```typescript
+import { createShapeId, EASINGS } from 'tldraw'
+
+const shapeId = createShapeId('myshape')
+
 editor.animateShape(
-	{ id: 'shape1', type: 'geo', x: 200, y: 100 },
-	{ animation: { duration: 500, easing: EASINGS.easeInOutCubic } }
+	{ id: shapeId, type: 'geo', x: 200, y: 100 },
+	{ animation: { duration: 500, easing: EASINGS.easeOutCubic } }
 )
 ```
 
@@ -74,12 +78,12 @@ getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
 
 Each animation receives a unique ID when started. The editor maintains a map of shape IDs to animation IDs to track which shapes are currently animating.
 
-Animations can be interrupted in two ways:
+You can interrupt animations in two ways:
 
 - **Direct updates**: Calling `updateShapes()` on an animating shape cancels its animation and immediately applies the new values.
 - **New animations**: Starting a new animation for a shape automatically cancels any existing animation for that shape.
 
-This design ensures that user interactions always take precedence over ongoing animations, preventing conflicts between programmatic animations and direct manipulation.
+User interactions always take precedence over ongoing animations. If you drag a shape that's currently animating, the animation stops and the shape responds to your input immediately.
 
 ## Camera animations
 
@@ -126,13 +130,24 @@ The editor provides these easing functions in `EASINGS`:
 - `easeInSine`, `easeOutSine`, `easeInOutSine` - Very gentle, sinusoidal curves
 - `easeInExpo`, `easeOutExpo`, `easeInOutExpo` - Dramatic, exponential curves
 
-The default easing is `easeInOutCubic`, which provides smooth acceleration at the start and deceleration at the end. This works well for most UI animations where you want movement to feel responsive but not abrupt.
+Shape animations default to `linear` easing. Camera animations default to `easeInOutCubic`. For shape animations responding to user actions, `easeOutCubic` or `easeOutQuad` often feel more responsive since the animation starts fast and settles gradually.
 
 ## User preferences
 
-The animation system respects the user's animation speed preference, accessed via `editor.user.getAnimationSpeed()`. This value multiplies animation durations, allowing users to speed up, slow down, or disable animations.
+Camera animations check `editor.user.getAnimationSpeed()` before running. This value multiplies animation durations—users can speed up, slow down, or disable animations entirely.
 
-When animation speed is set to zero, animations are skipped entirely and shapes or the camera immediately jump to their final values. This ensures the editor remains functional for users who require reduced motion.
+When animation speed is zero, camera methods like `setCamera()`, `slideCamera()`, and `zoomToBounds()` skip the animation and jump immediately to the final position. Shape animations via `animateShape()` and `animateShapes()` do not check this preference automatically. If you need reduced motion support for shape animations, check the animation speed yourself:
+
+```typescript
+if (editor.user.getAnimationSpeed() > 0) {
+	editor.animateShape(
+		{ id: shapeId, type: 'geo', x: 200, y: 100 },
+		{ animation: { duration: 500 } }
+	)
+} else {
+	editor.updateShape({ id: shapeId, type: 'geo', x: 200, y: 100 })
+}
+```
 
 ## Related examples
 

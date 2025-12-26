@@ -24,7 +24,7 @@ You are evaluating documentation quality.
 1. **Readability**: How clear and easy to understand is the writing?
    - Clear, direct sentences
    - Logical flow between sections
-   - Appropriate use of examples
+   - Appropriate use of code snippets and links to examples
    - No unnecessary jargon
 
 2. **Voice compliance**: How well does it follow VOICE.md?
@@ -37,11 +37,11 @@ You are evaluating documentation quality.
 3. **Completeness**: How thorough is the coverage?
    - Overview establishes purpose before mechanism
    - Key concepts explained with enough depth
-   - Practical examples where needed
-   - Key files and Related sections present (if applicable)
+   - Illustrative code snippets where needed (not full examples)
+   - Links to relevant examples in `apps/examples` (if applicable)
 
 4. **Accuracy**: Is the technical content correct?
-   - Code examples are correct and runnable
+   - Code snippets are syntactically correct and demonstrate valid API usage
    - API references match actual implementation
    - Described behavior matches the code
    - No outdated information
@@ -82,10 +82,11 @@ When improving:
 
 1. Read relevant source code to ensure accuracy
 2. Follow `VOICE.md` guidelines strictly
-3. Verify code examples compile/run correctly
+3. Verify code snippets are syntactically correct and use valid APIs
 4. Run prettier on the file when done: `yarn prettier --write [file]`
 
 **Do not:**
+
 - Over-explain or add unnecessary sections
 - Add features the document doesn't need
 - Change accurate content unnecessarily
@@ -129,3 +130,6 @@ After the re-evaluation completes, report:
 - The re-evaluator should be independent to provide unbiased scoring
 - If accuracy issues require significant code research, take the time to verify
 - Focus on meaningful improvements, not cosmetic changes
+- Documentation should contain illustrative snippets, not full runnable examples
+- Full examples belong in `apps/examples` - link to them rather than embedding complete code
+- After completing the review, note if new examples are needed in `apps/examples`

@@ -13,7 +13,9 @@ date: 12/20/2025
 order: 3
 ---
 
-The bindings system creates persistent relationships between shapes. A binding is a record that links a "from" shape to a "to" shape with typed metadata, enabling features like arrows that stay attached to rectangles when moved, or notes that follow shapes around the canvas. Bindings maintain referential integrity automatically, removing themselves when connected shapes are deleted and providing lifecycle hooks that let bound shapes react to changes in their relationships.
+The bindings system creates persistent relationships between shapes. A binding is a record that links a "from" shape to a "to" shape with typed metadata, enabling features like arrows that stay attached to rectangles when moved, or notes that follow shapes around the canvas.
+
+Bindings maintain referential integrity automatically: they remove themselves when connected shapes are deleted, and lifecycle hooks let bound shapes react to changes in their relationships.
 
 ## How it works
 
@@ -68,7 +70,7 @@ Each binding type implements a `BindingUtil` class that responds to events throu
 
 ### Isolation vs deletion
 
-The isolation callbacks deserve special attention. When an arrow's target shape is deleted, the arrow shouldn't suddenly point to empty space. The `onBeforeIsolateFromShape` hook lets the arrow update its terminal position to match the current attachment point before the binding is removed. The arrow then appears to "let go" of the shape naturally.
+Isolation callbacks handle a specific problem: when an arrow's target shape is deleted, the arrow shouldn't suddenly point to empty space. The `onBeforeIsolateFromShape` hook lets the arrow update its terminal position to match the current attachment point before the binding is removed. The arrow then appears to "let go" of the shape naturally.
 
 Isolation also occurs during copy and duplicate operations. If you copy an arrow but not its target, the copied arrow needs to convert its binding into a fixed position. The isolation callback handles this transformation.
 
@@ -90,6 +92,7 @@ editor.createBinding({
 		normalizedAnchor: { x: 0.5, y: 0.5 },
 		isPrecise: false,
 		isExact: false,
+		snap: 'none',
 	},
 })
 ```
@@ -193,7 +196,11 @@ Pass your BindingUtil to the editor via the `bindingUtils` prop:
 <Tldraw bindingUtils={[MyBindingUtil]} />
 ```
 
-The arrow binding in `packages/tldraw/src/lib/bindings/arrow/ArrowBindingUtil.ts` provides a complete example of a complex binding implementation with reparenting logic, isolation handling, and anchor point management.
+## Key files
+
+- [`ArrowBindingUtil.ts`](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/bindings/arrow/ArrowBindingUtil.ts) - Complete binding implementation with reparenting, isolation handling, and anchor management
+- [`BindingUtil.ts`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/editor/bindings/BindingUtil.ts) - Base class defining all lifecycle hooks
+- [`TLBaseBinding.ts`](https://github.com/tldraw/tldraw/blob/main/packages/tlschema/src/bindings/TLBaseBinding.ts) - Binding record type definition
 
 ## Related examples
 
