@@ -34,7 +34,6 @@ Be strict. Check for:
 - All headings in sentence case
 - Active voice and present tense
 - Minimal, focused code examples
-- Key files and Related sections
 
 Return in this format:
 FILE: [relative path]

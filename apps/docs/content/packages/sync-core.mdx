@@ -172,20 +172,3 @@ room.handleNewSession({
 	isReadonly: true, // Bob can view but not edit
 })
 ```
-
-## Key files
-
-- packages/sync-core/src/index.ts - Package exports
-- packages/sync-core/src/lib/TLSyncClient.ts - Client synchronization engine
-- packages/sync-core/src/lib/TLSyncRoom.ts - Server room management
-- packages/sync-core/src/lib/protocol.ts - Wire protocol definitions
-- packages/sync-core/src/lib/diff.ts - Diff computation and application
-- packages/sync-core/src/lib/ClientWebSocketAdapter.ts - Client socket wrapper
-- packages/sync-core/src/lib/RoomSession.ts - Session state management
-- packages/sync-core/src/lib/TLSyncStorage.ts - Storage interface
-
-## Related
-
-- [@tldraw/sync](./sync.md) - High-level React integration
-- [@tldraw/store](./store.md) - Reactive store synchronized by this package
-- [Multiplayer architecture](../architecture/multiplayer.md) - Overall collaboration design

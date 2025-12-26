@@ -202,20 +202,3 @@ const todoMigrations = createMigrationSequence({
 
 const schema = StoreSchema.create({ todo: Todo }, { migrations: [todoMigrations] })
 ```
-
-## Key files
-
-- packages/store/src/lib/Store.ts - Main store class and core operations
-- packages/store/src/lib/AtomMap.ts - Reactive map implementation
-- packages/store/src/lib/RecordType.ts - Record factory and type system
-- packages/store/src/lib/StoreSchema.ts - Schema management and validation
-- packages/store/src/lib/StoreQueries.ts - Reactive indexing and query system
-- packages/store/src/lib/StoreSideEffects.ts - Lifecycle hooks and side effects
-- packages/store/src/lib/migrate.ts - Migration system and version management
-- packages/store/src/lib/RecordsDiff.ts - Change tracking and diff operations
-- packages/store/src/lib/BaseRecord.ts - Base record interface and types
-
-## Related
-
-- [@tldraw/state](./state.md) - Reactive primitives underlying the store
-- [Store and records](../architecture/store-records.md) - Architectural overview of the store system
