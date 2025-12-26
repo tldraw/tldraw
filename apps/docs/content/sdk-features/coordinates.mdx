@@ -1,7 +1,7 @@
 ---
-title: Coordinate systems
-created_at: 12/20/2024
-updated_at: 12/20/2024
+title: Coordinates
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - coordinates
   - screen
@@ -10,7 +10,7 @@ keywords:
   - transform
 reviewed_by: steveruizok
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 7
 ---
 
@@ -143,3 +143,8 @@ const screenPoint = editor.pageToScreen({ x: shape.x, y: shape.y })
 overlay.style.left = `${screenPoint.x}px`
 overlay.style.top = `${screenPoint.y}px`
 ```
+
+## Related examples
+
+- **[Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs)** - Display page and screen coordinates reactively as the pointer moves.
+- **[Selection UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/selection-ui)** - Use selection bounds in screen space to position custom UI around shapes.

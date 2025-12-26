@@ -1,7 +1,7 @@
 ---
 title: Animation
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - animation
   - easing
@@ -9,7 +9,7 @@ keywords:
   - transition
   - animateShape
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 1
 ---
 
@@ -133,3 +133,8 @@ The default easing is `easeInOutCubic`, which provides smooth acceleration at th
 The animation system respects the user's animation speed preference, accessed via `editor.user.getAnimationSpeed()`. This value multiplies animation durations, allowing users to speed up, slow down, or disable animations.
 
 When animation speed is set to zero, animations are skipped entirely and shapes or the camera immediately jump to their final values. This ensures the editor remains functional for users who require reduced motion.
+
+## Related examples
+
+- **[Slideshow](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/slideshow)** - Uses camera animations to smoothly transition between slides using `zoomToBounds` with animation options.
+- **[Camera options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/camera-options)** - Demonstrates camera constraints and animations for bounded canvas experiences.

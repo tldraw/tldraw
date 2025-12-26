@@ -1,7 +1,7 @@
 ---
 title: Bindings
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - bindings
   - relationships
@@ -9,7 +9,7 @@ keywords:
   - connections
   - BindingUtil
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 3
 ---
 
@@ -196,10 +196,9 @@ Pass your BindingUtil to the editor via the `bindingUtils` prop:
 The arrow binding in `packages/tldraw/src/lib/bindings/arrow/ArrowBindingUtil.ts` provides a complete example of a complex binding implementation with reparenting logic, isolation handling, and anchor point management.
 
 ## Related examples
+
 The examples app includes several binding implementations that demonstrate different use cases:
 
 - **[Sticker bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/sticker-bindings)** - Shapes that stick to other shapes and follow them when moved. Demonstrates `onAfterChangeToShape` for position updates and `onBeforeDeleteToShape` for cascading deletion.
-
 - **[Pin bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/pin-bindings)** - Pins that connect networks of shapes together, moving them as a group. Demonstrates `onOperationComplete` for computing aggregate updates across multiple related bindings.
-
 - **[Layout bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layout-bindings)** - Constraining shapes to layout positions. Demonstrates using bindings to enforce spatial relationships between shapes.

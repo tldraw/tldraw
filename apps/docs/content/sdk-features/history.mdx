@@ -1,7 +1,7 @@
 ---
-title: History system
-created_at: 12/20/2024
-updated_at: 12/20/2024
+title: History
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - undo
   - redo
@@ -11,7 +11,7 @@ keywords:
   - batch
 reviewed_by: steveruizok
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 16
 ---
 
@@ -152,3 +152,8 @@ The manager tracks three internal states:
 - `Paused` - Don't capture changes (used during undo/redo operations)
 
 This prevents undo/redo operations from creating new history entries while they apply diffs.
+
+## Related examples
+
+- **[Timeline scrubber](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/timeline-scrubber)** - Build a visual timeline that lets users scrub through document history.
+- **[Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events)** - Listen to editor events including those related to undo/redo operations.

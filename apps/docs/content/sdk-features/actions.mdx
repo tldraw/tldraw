@@ -1,0 +1,263 @@
+---
+title: Actions
+created_at: 12/25/2025
+updated_at: 12/25/2025
+keywords:
+  - actions
+  - commands
+  - keyboard shortcuts
+  - menus
+  - overrides
+  - customization
+status: published
+date: 12/25/2025
+order: 10
+---
+
+Actions are named operations that users can trigger from menus, keyboard shortcuts, or custom UI. Each action bundles an identifier, display metadata (label, icon, keyboard shortcut), and a handler function. The actions system gives you a single source of truth for operations like "undo", "group", or "export as PNG" that can be invoked from multiple places with consistent behavior.
+
+The `@tldraw/tldraw` package includes over 90 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop.
+
+## How actions work
+
+Actions live in a React context provided by `ActionsProvider`. When the UI mounts, it registers all default actions, applies any overrides you've provided, and makes them available through the `useActions` hook. Components like menus and toolbars look up actions by ID and render them with their labels, icons, and keyboard shortcuts.
+
+Each action has an `onSelect` handler that receives a source parameter indicating where it was triggered—"menu", "kbd", "toolbar", and so on. This lets you track usage patterns or vary behavior based on context.
+
+```typescript
+const actions = useActions()
+const duplicateAction = actions['duplicate']
+
+// Trigger programmatically
+duplicateAction.onSelect('toolbar')
+```
+
+Keyboard shortcuts are bound automatically. The `useKeyboardShortcuts` hook iterates through all actions, parses their `kbd` property, and registers hotkey handlers. When a shortcut fires, it calls the action's `onSelect` with `'kbd'` as the source.
+
+## Action structure
+
+The `TLUiActionItem` interface defines what an action contains:
+
+```typescript
+interface TLUiActionItem {
+	id: string
+	label?: string | { [key: string]: string }
+	icon?: string | React.ReactElement
+	kbd?: string
+	readonlyOk?: boolean
+	checkbox?: boolean
+	onSelect(source: TLUiEventSource): Promise<void> | void
+}
+```
+
+The `id` uniquely identifies the action. The `label` is a translation key (or an object mapping menu types to different labels). The `kbd` property accepts shortcut strings like `'cmd+g,ctrl+g'` for cross-platform support. The `readonlyOk` flag indicates whether the action works in readonly mode. The `checkbox` flag marks toggle-style actions that show a checkmark when active.
+
+## Accessing actions
+
+Use the `useActions` hook to get all registered actions:
+
+```typescript
+import { useActions } from 'tldraw'
+
+function MyComponent() {
+	const actions = useActions()
+
+	return (
+		<button onClick={() => actions['undo'].onSelect('toolbar')}>
+			Undo
+		</button>
+	)
+}
+```
+
+The hook returns a record mapping action IDs to action objects. You can iterate over it to build custom menus or filter actions by property.
+
+## Default actions
+
+The default actions cover most editing operations you'd expect in a canvas application. Here are some common categories:
+
+**Editing**: `undo`, `redo`, `duplicate`, `delete`, `copy`, `cut`, `paste`
+
+**Grouping**: `group`, `ungroup`
+
+**Arrangement**: `bring-to-front`, `bring-forward`, `send-backward`, `send-to-back`, `align-left`, `align-center-horizontal`, `align-right`, `distribute-horizontal`, `distribute-vertical`
+
+**Export**: `export-as-svg`, `export-as-png`, `copy-as-svg`, `copy-as-png`
+
+**Zoom**: `zoom-in`, `zoom-out`, `zoom-to-100`, `zoom-to-fit`, `zoom-to-selection`
+
+**Preferences**: `toggle-dark-mode`, `toggle-snap-mode`, `toggle-grid`, `toggle-focus-mode`
+
+Each action includes appropriate guards. For example, `group` checks that multiple shapes are selected before enabling, and arrangement actions verify that shapes can be reordered.
+
+## Overriding actions
+
+Pass an `overrides` prop to customize actions. The override function receives the editor, the default actions, and helper utilities:
+
+```typescript
+import { Tldraw, TLUiOverrides } from 'tldraw'
+
+const overrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		// Modify existing action
+		actions['duplicate'].kbd = 'cmd+shift+d,ctrl+shift+d'
+
+		// Disable an action by removing it
+		delete actions['print']
+
+		return actions
+	},
+}
+
+function App() {
+	return <Tldraw overrides={overrides} />
+}
+```
+
+### Modifying behavior
+
+To change what an action does, replace its `onSelect` handler:
+
+```typescript
+const overrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		const originalDuplicate = actions['duplicate'].onSelect
+
+		actions['duplicate'].onSelect = async (source) => {
+			console.log('Duplicating shapes...')
+			await originalDuplicate(source)
+			console.log('Done!')
+		}
+
+		return actions
+	},
+}
+```
+
+You can call the original handler before or after your custom logic, or replace it entirely.
+
+### Adding custom actions
+
+Add new actions by inserting them into the actions record:
+
+```typescript
+const overrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		actions['my-custom-action'] = {
+			id: 'my-custom-action',
+			label: 'action.my-custom-action',
+			kbd: 'cmd+shift+k,ctrl+shift+k',
+			icon: 'external-link',
+			onSelect(source) {
+				const shapes = editor.getSelectedShapes()
+				console.log('Custom action on', shapes.length, 'shapes')
+			},
+		}
+
+		return actions
+	},
+}
+```
+
+Custom actions integrate with the keyboard shortcut system automatically. To add them to menus, you'll also need to override the menu components.
+
+### Using helper utilities
+
+The override function receives a `helpers` object with useful utilities:
+
+```typescript
+const overrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		actions['show-toast'] = {
+			id: 'show-toast',
+			label: 'action.show-toast',
+			onSelect(source) {
+				helpers.addToast({
+					title: 'Hello!',
+					description: 'This is a custom action.',
+				})
+			},
+		}
+
+		return actions
+	},
+}
+```
+
+Available helpers include `addToast`, `removeToast`, `addDialog`, `removeDialog`, `msg` (for translations), `insertMedia`, `copy`, `cut`, `paste`, `copyAs`, `exportAs`, and more.
+
+## Keyboard shortcuts
+
+Shortcuts use a simple string format with modifier keys separated by `+`. Use commas to specify alternatives for different platforms:
+
+```typescript
+kbd: 'cmd+g,ctrl+g' // Cmd+G on Mac, Ctrl+G elsewhere
+kbd: 'shift+1' // Shift+1 on all platforms
+kbd: 'cmd+shift+s,ctrl+shift+s' // Cmd+Shift+S on Mac, Ctrl+Shift+S elsewhere
+```
+
+Available modifiers are `cmd`, `ctrl`, `shift`, and `alt`. Special keys include `del`, `backspace`, `enter`, `escape`, and arrow keys.
+
+Shortcuts are disabled when focus is inside a text input. Actions marked with `isRequiredA11yAction: true` bypass this check for accessibility purposes.
+
+## Actions in menus
+
+The default UI uses `TldrawUiMenuActionItem` to render actions in menus:
+
+```typescript
+import { TldrawUiMenuActionItem, TldrawUiMenuGroup } from 'tldraw'
+
+function CustomMenu() {
+	return (
+		<TldrawUiMenuGroup id="edit">
+			<TldrawUiMenuActionItem actionId="undo" />
+			<TldrawUiMenuActionItem actionId="redo" />
+			<TldrawUiMenuActionItem actionId="duplicate" />
+		</TldrawUiMenuGroup>
+	)
+}
+```
+
+This component looks up the action by ID and renders it with the correct label, icon, shortcut hint, and disabled state. For toggle actions, use `TldrawUiMenuActionCheckboxItem` which displays a checkmark when active.
+
+## Context-sensitive labels
+
+Some actions show different labels depending on where they appear. The `label` property can be an object mapping context names to translation keys:
+
+```typescript
+actions['export-as-svg'] = {
+	id: 'export-as-svg',
+	label: {
+		default: 'action.export-as-svg',
+		menu: 'action.export-as-svg.short',
+		'context-menu': 'action.export-as-svg.short',
+	},
+	// ...
+}
+```
+
+The menu component uses the appropriate label based on its context. If no specific label exists for a context, it falls back to `default`.
+
+## Tracking action usage
+
+Actions receive their trigger source as a parameter. Use this to track how users interact with your application:
+
+```typescript
+actions['custom-action'] = {
+	id: 'custom-action',
+	label: 'action.custom',
+	kbd: 'cmd+k,ctrl+k',
+	onSelect(source) {
+		trackEvent('custom-action', { source })
+		// source will be 'kbd', 'menu', 'context-menu', 'toolbar', etc.
+	},
+}
+```
+
+The source values include `'menu'`, `'context-menu'`, `'kbd'`, `'toolbar'`, `'quick-actions'`, `'zoom-menu'`, and others. This granularity helps you understand which UI patterns your users prefer.
+
+## Related examples
+
+- **[Action overrides](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/action-overrides)** - Add custom actions and modify existing action shortcuts using the overrides prop.
+- **[Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/keyboard-shortcuts)** - Change keyboard shortcuts for tools and actions.
+- **[Custom menus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-menus)** - Build custom menus that use actions with proper labels and shortcuts.

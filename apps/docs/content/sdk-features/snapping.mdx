@@ -1,7 +1,7 @@
 ---
 title: Snapping
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - snap
   - alignment
@@ -9,7 +9,7 @@ keywords:
   - SnapManager
   - precision
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 26
 ---
 
@@ -188,3 +188,8 @@ Two types of indicators exist:
 The manager automatically deduplicates gap indicators to avoid visual noise. When gap breadths overlap and one gap is larger than another, only the smaller gap displays because it provides more specific information.
 
 The system clears indicators automatically when dragging stops or when `clearIndicators()` is called. The UI subscribes to indicator changes and renders them as SVG overlays on the canvas.
+
+## Related examples
+
+- **[Custom bounds snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/bounds-snapping-shape)** - Create shapes with custom snap geometry so they snap to specific points, like playing cards that stack with visible icons.
+- **[Custom relative snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-relative-snapping)** - Customize snapping behavior between shapes using getBoundsSnapGeometry.

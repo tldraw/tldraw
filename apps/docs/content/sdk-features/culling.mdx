@@ -1,7 +1,7 @@
 ---
 title: Culling
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - culling
   - visibility
@@ -9,7 +9,7 @@ keywords:
   - performance
   - rendering
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 8
 ---
 
@@ -45,3 +45,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 ```
 
 When `canCull` returns `false` for a shape, the culling system skips that shape entirely during visibility checks, treating it as always visible regardless of its position relative to the viewport.
+
+## Related examples
+
+- **[Camera options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/camera-options)** - Configure camera constraints and bounds that affect which shapes are visible and culled.

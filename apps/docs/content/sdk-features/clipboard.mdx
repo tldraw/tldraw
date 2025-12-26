@@ -1,7 +1,7 @@
 ---
 title: Clipboard
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - clipboard
   - copy
@@ -9,7 +9,7 @@ keywords:
   - cut
   - content
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 6
 ---
 
@@ -72,5 +72,6 @@ The system offers flexible positioning for pasted content. By default, shapes pa
 Shape and binding IDs are remapped during paste to prevent collisions with existing shapes. The system creates a mapping table from old IDs to new IDs, then updates all references throughout the pasted content. Parent-child relationships, binding endpoints, and asset references all update to use the new IDs. The `preserveIds` option disables remapping, useful when duplicating pages where maintaining specific IDs matters.
 
 ## Related examples
+
 - **[Custom paste behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-paste)** - Demonstrates how to customize paste behavior by registering an external content handler that changes where pasted shapes are positioned.
 - **[External content sources](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/external-content-sources)** - Shows how to handle different content types when pasting into tldraw, including custom handling for HTML content.

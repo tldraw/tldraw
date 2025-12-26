@@ -1,7 +1,7 @@
 ---
 title: User following
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - follow
   - collaboration
@@ -9,7 +9,7 @@ keywords:
   - presence
   - multiplayer
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 32
 ---
 
@@ -109,3 +109,8 @@ The indicator is rendered as a div with class `tlui-following-indicator` and a b
 Applications can detect when the user is following someone by checking `editor.getInstanceState().followingUserId`. This enables UI elements like a "Stop following" button or status indicators showing who the user is currently following.
 
 The presence records available through `editor.getCollaborators()` include each user's `followingUserId`, allowing applications to visualize the entire follow graph and show which users are following whom.
+
+## Related examples
+
+- **[User presence](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/user-presence)** - Display collaborator cursors and presence information.
+- **[Multiplayer/sync](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/sync)** - Set up multiplayer sync which enables user following functionality.

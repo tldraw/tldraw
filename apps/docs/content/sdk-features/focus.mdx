@@ -1,7 +1,7 @@
 ---
-title: Focus management
-created_at: 12/20/2024
-updated_at: 12/20/2024
+title: Focus
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - focus
   - blur
@@ -10,7 +10,7 @@ keywords:
   - container
   - input
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 15
 ---
 
@@ -72,3 +72,8 @@ The system handles contextual toolbar elements normally during editing mode, all
 The `FocusManager` listens for changes to the instance state and responds when the `isFocused` property changes. This reactive approach means focus state updates automatically propagate to the container's CSS classes without manual coordination. When a dialog or modal closes and the editor should regain focus, calling `editor.focus()` updates both the instance state and the container's DOM focus, ensuring a consistent focus state across the system.
 
 The `blur()` method calls `editor.complete()` before blurring the container. This completes any ongoing interaction, such as a drag or draw operation, preventing the editor from being left in an incomplete state when focus is lost.
+
+## Related examples
+
+- **[Editor focus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-focus)** - Control editor focus programmatically with focus and blur methods, and use autoFocus to manage initial focus state.
+- **[Multiple editors](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/multiple)** - Manage focus between multiple tldraw instances on the same page.

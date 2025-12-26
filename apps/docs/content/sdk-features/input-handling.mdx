@@ -1,7 +1,7 @@
 ---
 title: Input handling
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - input
   - pointer
@@ -10,7 +10,7 @@ keywords:
   - events
 reviewed_by: steveruizok
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 17
 ---
 
@@ -170,3 +170,8 @@ const state = editor.inputs.toJson()
 The serialized state includes all position vectors, modifier key states, interaction flags, device type, and the contents of the keys and buttons sets.
 
 > We use this serialized form when generating a crash report.
+
+## Related examples
+
+- **[Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs)** - Display pointer positions, velocity, and other input state reactively as you interact with the canvas.
+- **[Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events)** - Log all pointer, keyboard, and wheel events to understand the event flow.

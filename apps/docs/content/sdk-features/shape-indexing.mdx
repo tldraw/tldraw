@@ -1,7 +1,7 @@
 ---
 title: Shape indexing
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - index
   - z-order
@@ -9,7 +9,7 @@ keywords:
   - sorting
   - layers
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 22
 ---
 
@@ -98,3 +98,8 @@ The `@tldraw/sync` package handles merging concurrent updates. Since reordering 
 The `IndexKey` type is a branded type that prevents accidentally using arbitrary strings as indices. The `validateIndexKey` function ensures a string is a valid index by attempting to generate an index after it. Invalid indices throw an error during validation.
 
 All shapes must have valid indices. The store validates indices when you create or update shapes, ensuring the editor never enters an invalid state.
+
+## Related examples
+
+- **[Layer panel](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layer-panel)** - Display shape hierarchy and z-order with reordering controls.
+- **[API example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/api-example)** - Create shapes programmatically, including managing their z-order indices.

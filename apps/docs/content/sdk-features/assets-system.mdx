@@ -1,7 +1,7 @@
 ---
 title: Assets
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - assets
   - images
@@ -12,7 +12,7 @@ keywords:
   - media
   - storage
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 2
 ---
 
@@ -160,6 +160,7 @@ Asset records use the migration system to evolve their schema over time. Each as
 Validators ensure asset data conforms to the expected structure at runtime. The assetValidator uses a discriminated union on the type field to validate each asset type appropriately. If you're implementing custom asset types, create validators following the same pattern and add proper migration sequences.
 
 ## Related examples
+
 - **[Hosted images](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/hosted-images)** - Handle images uploaded by the user by creating a TLAssetStore that manages uploaded assets.
 - **[Local images](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/local-images)** - Create an image shape using a local asset by first creating an asset record, then creating a shape that references it.
 - **[Local videos](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/local-videos)** - Create a video shape using a local asset by creating a TLVideoAsset and adding a VideoShape to the canvas.

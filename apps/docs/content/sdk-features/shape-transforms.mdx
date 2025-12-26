@@ -1,7 +1,7 @@
 ---
 title: Shape transforms
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/20/2025
 keywords:
   - transform
   - align
@@ -12,7 +12,7 @@ keywords:
   - stack
   - pack
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 23
 ---
 
@@ -139,3 +139,8 @@ canBeLaidOut(shape: MyShape, info: { type: 'align' | 'distribute' | 'stack' | 'p
 ```
 
 For rotation operations, shape utilities can respond to rotation lifecycle events. The onRotateStart method is called when rotation begins, onRotate is called for each update, and onRotateEnd is called when rotation completes. These methods can return shape partials to modify the shape during rotation.
+
+## Related examples
+
+- **[Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/keyboard-shortcuts)** - Customize shortcuts for align, distribute, and other transform operations.
+- **[Selection UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/selection-ui)** - Build custom controls that can trigger transform operations on selected shapes.

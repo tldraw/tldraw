@@ -1,7 +1,7 @@
 ---
-title: Editor options
-created_at: 12/25/2024
-updated_at: 12/25/2024
+title: Options
+created_at: 12/25/2025
+updated_at: 12/25/2025
 keywords:
   - options
   - TldrawOptions
@@ -9,17 +9,17 @@ keywords:
   - settings
   - defaults
 status: published
-date: 12/25/2024
+date: 12/25/2025
 order: 5
 ---
 
-The editor options system provides global configuration for tldraw's behavior. Options control limits like maximum pages and shapes, timing for interactions and animations, sizing for handles and hit testing, and feature toggles for various capabilities. Unlike component props or editor methods that apply to specific instances or operations, options establish baseline behavior that remains constant throughout the editor's lifetime.
+Both the `<Tldraw>` and `<TldrawEditor>` components accept configuration through two mechanisms: the `options` prop for editor behavior, and component props for features and functionality. Understanding the difference helps you choose the right approach for your use case.
+
+## Editor options
+
+The `options` prop accepts a `Partial<TldrawOptions>` object that configures the editor's core behavior. These options control limits like maximum pages and shapes, timing for interactions and animations, sizing for handles and hit testing, and feature toggles for various capabilities.
 
 Options are set once when the editor initializes and cannot be changed afterward. This immutability simplifies reasoning about editor behavior—you don't need to account for options changing mid-session. Pass a partial options object to override only the values you want to customize; all other options use sensible defaults.
-
-## Passing options
-
-Pass options to the `<Tldraw>` or `<TldrawEditor>` component via the `options` prop:
 
 ```tsx
 import { Tldraw, TldrawOptions } from 'tldraw'
@@ -47,7 +47,7 @@ const animationDuration = editor.options.animationMediumMs
 
 The options object is readonly. Attempting to modify it has no effect and TypeScript will flag the error.
 
-## Option categories
+## Editor option categories
 
 ### Limits
 
@@ -222,13 +222,123 @@ const options: Partial<TldrawOptions> = {
 }
 ```
 
+## Tldraw component props
+
+The `<Tldraw>` component accepts additional props beyond those available on `<TldrawEditor>`. These props configure the UI layer, external content handling, and other features that the full SDK provides.
+
+### UI configuration
+
+| Prop              | Type                     | Description                                          |
+| ----------------- | ------------------------ | ---------------------------------------------------- |
+| `hideUi`          | `boolean`                | Hide all UI elements, showing only the canvas        |
+| `forceMobile`     | `boolean`                | Force mobile breakpoints regardless of screen size   |
+| `overrides`       | `TLUiOverrides`          | Override actions, tools, and translations            |
+| `onUiEvent`       | `TLUiEventHandler`       | Callback for UI interaction events                   |
+| `components`      | `TLComponents`           | Override or disable UI and canvas components         |
+| `assetUrls`       | `TLUiAssetUrlOverrides`  | Custom URLs for fonts, icons, and other UI assets    |
+
+The `hideUi` prop is useful when building custom interfaces around the canvas:
+
+```tsx
+function CustomEditor() {
+	return (
+		<Tldraw hideUi>
+			<MyCustomToolbar />
+		</Tldraw>
+	)
+}
+```
+
+### External content handling
+
+These props control how the editor handles dropped or pasted files:
+
+| Prop                     | Default                        | Description                                              |
+| ------------------------ | ------------------------------ | -------------------------------------------------------- |
+| `maxImageDimension`      | 5000                           | Maximum width/height for images (larger images resized)  |
+| `maxAssetSize`           | 10485760                       | Maximum file size in bytes (10 MB)                       |
+| `acceptedImageMimeTypes` | `DEFAULT_SUPPORTED_IMAGE_TYPES` | Allowed image MIME types                                 |
+| `acceptedVideoMimeTypes` | `DEFAULT_SUPPORT_VIDEO_TYPES`   | Allowed video MIME types                                 |
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			maxImageDimension={2000}
+			maxAssetSize={5 * 1024 * 1024} // 5 MB
+			acceptedImageMimeTypes={['image/png', 'image/jpeg']}
+		/>
+	)
+}
+```
+
+### Embeds
+
+The `embeds` prop customizes which embed types the editor recognizes:
+
+```tsx
+import { Tldraw, TLEmbedDefinition } from 'tldraw'
+
+const customEmbeds: TLEmbedDefinition[] = [
+	{
+		type: 'custom-video',
+		title: 'Custom Video',
+		hostnames: ['videos.example.com'],
+		toEmbedUrl: (url) => url.replace('/watch/', '/embed/'),
+		fromEmbedUrl: (url) => url.replace('/embed/', '/watch/'),
+	},
+]
+
+function App() {
+	return <Tldraw embeds={customEmbeds} />
+}
+```
+
+### Editor setup
+
+These props configure how the editor initializes:
+
+| Prop                  | Type                          | Description                                           |
+| --------------------- | ----------------------------- | ----------------------------------------------------- |
+| `autoFocus`           | `boolean`                     | Automatically focus the editor on mount               |
+| `initialState`        | `string`                      | Initial tool state (defaults to `'select'`)           |
+| `shapeUtils`          | `TLShapeUtilConstructor[]`    | Custom shape utilities                                |
+| `bindingUtils`        | `TLBindingUtilConstructor[]`  | Custom binding utilities                              |
+| `tools`               | `TLStateNodeConstructor[]`    | Custom tools                                          |
+| `onMount`             | `TLOnMountHandler`            | Callback when editor mounts                           |
+| `cameraOptions`       | `Partial<TLCameraOptions>`    | Camera constraints and behavior                       |
+| `textOptions`         | `TLTextOptions`               | Rich text editor configuration                        |
+| `deepLinks`           | `true \| TLDeepLinkOptions`   | Sync camera state with URL                            |
+| `getShapeVisibility`  | `Function`                    | Conditionally hide shapes                             |
+| `user`                | `TLUser`                      | Current user information                              |
+| `inferDarkMode`       | `boolean`                     | Infer dark mode from OS preference                    |
+| `licenseKey`          | `string`                      | License key to remove watermark                       |
+
+### Store configuration
+
+When not providing your own store, these props configure automatic store creation:
+
+| Prop              | Type                   | Description                                            |
+| ----------------- | ---------------------- | ------------------------------------------------------ |
+| `persistenceKey`  | `string`               | Key for IndexedDB persistence (enables local storage)  |
+| `sessionId`       | `string`               | Session identifier for persistence                     |
+| `snapshot`        | `TLEditorSnapshot`     | Initial document state                                 |
+| `migrations`      | `MigrationSequence[]`  | Additional migrations for custom schemas               |
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			persistenceKey="my-document"
+			snapshot={savedSnapshot}
+		/>
+	)
+}
+```
+
+Alternatively, provide your own store with the `store` prop for full control over data management.
+
 ## Examples
 
 - **[Editor options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-options)** - Override default options like max pages and animation speed.
 - **[Disable pages](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/disable-pages)** - Set `maxPages` to 1 to create a single-page editor.
-
-## Related
-
-- [Edge scrolling](./edge-scrolling.mdx) - Edge scroll options in detail
-- [Camera system](./camera-system.mdx) - Camera-related options and behavior
-- [Pages](./pages.mdx) - Multi-page system affected by maxPages option

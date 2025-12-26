@@ -1,7 +1,7 @@
 ---
 title: Error handling
-created_at: 12/22/2024
-updated_at: 12/22/2024
+created_at: 12/22/2025
+updated_at: 12/22/2025
 keywords:
   - error
   - ErrorBoundary
@@ -11,7 +11,7 @@ keywords:
   - ShapeErrorFallback
 reviewed_by: steveruizok
 status: published
-date: 12/22/2024
+date: 12/22/2025
 order: 12
 ---
 
@@ -30,14 +30,14 @@ We use error boundaries at three levels, each with different recovery behavior:
 ```tsx
 // The editor automatically wraps your content
 <TldrawEditor>
-  <OptionalErrorBoundary fallback={ErrorFallback}>
-    {/* Your shapes, each with their own boundary */}
-    <Shape>
-      <OptionalErrorBoundary fallback={ShapeErrorFallback}>
-        {/* Shape content */}
-      </OptionalErrorBoundary>
-    </Shape>
-  </OptionalErrorBoundary>
+	<OptionalErrorBoundary fallback={ErrorFallback}>
+		{/* Your shapes, each with their own boundary */}
+		<Shape>
+			<OptionalErrorBoundary fallback={ShapeErrorFallback}>
+				{/* Shape content */}
+			</OptionalErrorBoundary>
+		</Shape>
+	</OptionalErrorBoundary>
 </TldrawEditor>
 ```
 
@@ -57,31 +57,25 @@ You can replace any error fallback through the `components` prop:
 
 ```tsx
 function MyErrorFallback({ error, editor }) {
-  return (
-    <div className="my-error-screen">
-      <h1>Oops!</h1>
-      <p>{error.message}</p>
-      <button onClick={() => window.location.reload()}>
-        Refresh
-      </button>
-    </div>
-  )
+	return (
+		<div className="my-error-screen">
+			<h1>Oops!</h1>
+			<p>{error.message}</p>
+			<button onClick={() => window.location.reload()}>Refresh</button>
+		</div>
+	)
 }
 
 function MyShapeErrorFallback({ error }) {
-  return (
-    <div className="broken-shape">
-      ⚠️ This shape failed to render
-    </div>
-  )
+	return <div className="broken-shape">⚠️ This shape failed to render</div>
 }
 
-<Tldraw
-  components={{
-    ErrorFallback: MyErrorFallback,
-    ShapeErrorFallback: MyShapeErrorFallback,
-    ShapeIndicatorErrorFallback: MyShapeIndicatorErrorFallback,
-  }}
+;<Tldraw
+	components={{
+		ErrorFallback: MyErrorFallback,
+		ShapeErrorFallback: MyShapeErrorFallback,
+		ShapeIndicatorErrorFallback: MyShapeIndicatorErrorFallback,
+	}}
 />
 ```
 
@@ -94,14 +88,14 @@ When the editor encounters a fatal error during event processing, it enters a cr
 ```tsx
 // Listen for crashes
 editor.on('crash', ({ error }) => {
-  console.error('Editor crashed:', error)
-  // Report to error tracking service
+	console.error('Editor crashed:', error)
+	// Report to error tracking service
 })
 
 // Check if editor is crashed
 const crashingError = editor.getCrashingError()
 if (crashingError) {
-  // Editor is in crashed state
+	// Editor is in crashed state
 }
 ```
 
@@ -113,10 +107,10 @@ The editor annotates errors with contextual information before they're reported.
 
 ```typescript
 editor.annotateError(error, {
-  origin: 'myCustomTool.onPointerDown',
-  willCrashApp: false,
-  tags: { toolName: 'laser' },
-  extras: { shapeCount: 42 }
+	origin: 'myCustomTool.onPointerDown',
+	willCrashApp: false,
+	tags: { toolName: 'laser' },
+	extras: { shapeCount: 42 },
 })
 ```
 
@@ -132,16 +126,20 @@ You can use the exported `ErrorBoundary` component directly in your own code:
 import { ErrorBoundary } from 'tldraw'
 
 function MyComponent() {
-  return (
-    <ErrorBoundary
-      fallback={({ error }) => <div>Error: {error.message}</div>}
-      onError={(error) => console.error('Caught:', error)}
-    >
-      <RiskyComponent />
-    </ErrorBoundary>
-  )
+	return (
+		<ErrorBoundary
+			fallback={({ error }) => <div>Error: {error.message}</div>}
+			onError={(error) => console.error('Caught:', error)}
+		>
+			<RiskyComponent />
+		</ErrorBoundary>
+	)
 }
 ```
 
 Pass a `fallback` component that receives `{ error }` props, and optionally an `onError` callback for logging.
 
+## Related examples
+
+- **[Error boundary](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/error-boundary)** - Customize the ShapeErrorFallback component to display a custom message when shapes throw errors.
+- **[Custom error capture](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-error-capture)** - Override the ErrorFallback component to create a custom error screen with annotations for debugging.

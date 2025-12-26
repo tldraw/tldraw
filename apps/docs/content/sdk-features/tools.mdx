@@ -1,15 +1,18 @@
 ---
 title: Tools
-created_at: 12/20/2024
-updated_at: 12/20/2024
+created_at: 12/20/2025
+updated_at: 12/25/2025
 keywords:
   - tools
   - StateNode
   - state machine
   - events
   - interaction
+  - overrides
+  - custom tools
+  - toolbar
 status: published
-date: 12/20/2024
+date: 12/20/2025
 order: 31
 ---
 
@@ -136,10 +139,89 @@ export class CustomRootState extends RootState {
 
 Then pass the custom root when creating the editor. In the `@tldraw/tldraw` package, use the `tools` prop to add tools to the existing set.
 
+## Overriding default tools
+
+The tldraw component provides several ways to customize which tools are available. You can remove tools from the toolbar, add new tools, or dynamically register and unregister tools at runtime.
+
+### Removing tools from the toolbar
+
+Use the `overrides` prop to modify which tools appear in the UI. The `tools` function receives the current tools object and returns a modified version:
+
+```typescript
+import { Tldraw, TLUiOverrides } from 'tldraw'
+
+const overrides: TLUiOverrides = {
+	tools(editor, tools) {
+		// Remove the text tool from the toolbar
+		delete tools.text
+		return tools
+	},
+}
+
+function App() {
+	return <Tldraw overrides={overrides} />
+}
+```
+
+This removes the tool from the UI but doesn't remove it from the editor's state machine. Users can still activate the tool programmatically or via keyboard shortcuts. To fully disable a tool, you'd also need to remove its keyboard shortcut binding.
+
+### Adding custom tools to the toolbar
+
+When you create a custom tool, you need to add it both to the editor's state machine and to the UI. The `tools` prop registers the tool with the state machine, while `overrides.tools` adds it to the UI context:
+
+```typescript
+import { Tldraw, TLUiOverrides, StateNode } from 'tldraw'
+
+class MyTool extends StateNode {
+	static override id = 'my-tool'
+	// ... implementation
+}
+
+const overrides: TLUiOverrides = {
+	tools(editor, tools) {
+		tools['my-tool'] = {
+			id: 'my-tool',
+			icon: 'my-icon',
+			label: 'My Tool',
+			kbd: 'm',
+			onSelect: () => editor.setCurrentTool('my-tool'),
+		}
+		return tools
+	},
+}
+
+function App() {
+	return <Tldraw tools={[MyTool]} overrides={overrides} />
+}
+```
+
+To make the tool appear in the toolbar, override the `Toolbar` component and include your tool item. See the "Add a tool to the toolbar" example for the complete implementation.
+
+### Dynamic tool registration
+
+Tools can be added or removed at runtime using the `setTool` and `removeTool` methods on the editor. This is useful when tool availability depends on user permissions, feature flags, or application state:
+
+```typescript
+// Add a tool dynamically
+editor.setTool(MyTool)
+
+// Remove a tool dynamically
+editor.removeTool(MyTool)
+
+// Check if you need to switch away from a removed tool
+if (editor.getCurrentToolId() === 'my-tool') {
+	editor.setCurrentTool('select')
+}
+```
+
+When removing a tool, check whether the user is currently using it. If so, transition to a different tool like select to avoid leaving the editor in an invalid state.
+
 ## Related examples
+
 - **[Custom tool (sticker)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-tool)** - A simple custom tool that adds a heart emoji sticker to the canvas when you click, demonstrating the basics of extending StateNode.
 - **[Custom tool with child states](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/tool-with-child-states)** - Expands on the sticker tool to show how to create a tool with complex interactions using child states in the state machine.
 - **[Screenshot tool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/screenshot-tool)** - A custom tool that takes a screenshot of a specific area of the canvas, demonstrating how to handle multi-step interactions.
 - **[Lasso select tool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/lasso-select-tool)** - A custom selection tool that uses freehand drawing to select shapes, showing how to build alternative selection tools with reactive atoms and overlays.
 - **[Add a tool to the toolbar](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/add-tool-to-toolbar)** - Shows how to make your custom tool icon appear on tldraw's toolbar by overriding the toolbar component and providing custom assets.
+- **[Remove a tool from the toolbar](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/remove-tool)** - Shows how to remove a default tool from the toolbar using UI overrides.
 - **[Dynamic tools with setTool and removeTool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/dynamic-tools)** - Demonstrates how to dynamically add and remove tools from the editor's state chart after initialization, useful for conditional tool availability.
