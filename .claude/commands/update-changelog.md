@@ -1,10 +1,21 @@
-Update the changelog file at `documentation/changelog/next.md` based on PRs merged to main since the previous release.
+Update the changelog file at `apps/docs/content/changelog/next.mdx` based on PRs merged to main since the previous release.
+
+## Style guide
+
+Read and follow the voice and style guidelines in `VOICE.md` at the root of the monorepo. Key points for changelogs:
+
+- Write in English with American spelling
+- Semi-casual and confident tone, professional but not stodgy
+- The audience is international developers—avoid idioms and cultural references
+- Use sentence case for headings: "API changes" not "API Changes"
+- Start entries with verbs: "Add", "Fix", "Improve", "Remove"
+- Be appropriately concise. This is a changelog, not documentation
 
 ## Process
 
 ### 1. Determine the current and previous versions
 
-Read `documentation/changelog/next.md` to find the current version from the frontmatter title (e.g., "v4.3" means current version is 4.3).
+Read `apps/docs/content/changelog/next.mdx` to find the current version from the frontmatter title (e.g., "v4.3" means current version is 4.3).
 
 Calculate the previous release branch name:
 
@@ -46,6 +57,8 @@ gh pr view NNNN --json number,title,labels,author,body,mergedAt
 3. **Improvements** - PRs with `improvement` or `enhancement` label
 4. **Bug fixes** - PRs with `bugfix` or `bug` label
 
+Omit empty sections.
+
 **Extraction from PR body:**
 
 - Look for the "### Release notes" section in the PR body for description text
@@ -54,34 +67,96 @@ gh pr view NNNN --json number,title,labels,author,body,mergedAt
 
 ### 4. Format entries
 
-Format entries following the `write-changelog` skill guidelines. Key points:
+Format each entry as:
 
-- Start with a verb: "Add", "Fix", "Improve", "Remove"
-- Include PR link: `([#NNNN](https://github.com/tldraw/tldraw/pull/NNNN))`
-- Credit community contributors (see team list below)
-- Keep descriptions concise but informative
+```markdown
+- Add `Editor.newMethod()` for doing something. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
+```
+
+For community contributors, add credit:
+
+```markdown
+- Fix arrow rendering issue. ([#7134](https://github.com/tldraw/tldraw/pull/7134)) (contributed by [@user](https://github.com/user))
+```
 
 **Team members (do not credit as contributors):**
 
 - steveruizok, SomeHats, TodePond, ds300, MitjaBezensek, Taha-Hassan-Git, mimecuvalo, huppy-bot, alex-mckenna-1, kostyafarber, max-drake, AniKrisn, github-actions
 
-### 5. Write or update next.md
+### 5. Featured items
 
-Write or update the sections in `documentation/changelog/next.md`. The article should be written as if the release had already been made. Use the `write-changelog` skill if it is available.
+For headline features, add a dedicated section with details:
+
+```markdown
+### SQLite storage for sync ([#7320](https://github.com/tldraw/tldraw/pull/7320))
+
+Added `SQLiteSyncStorage` - a new storage backend that persists room state to SQLite.
+```
+
+### 6. Write or update next.mdx
+
+Update the sections in `apps/docs/content/changelog/next.mdx`. The article should be written as if the release had already been made.
+
+Structure:
+
+```markdown
+---
+title: 'v4.3'
+created_at: 12/19/2024
+updated_at: 12/19/2024
+keywords:
+  - changelog
+  - release
+  - v4.3
+---
+
+## v4.3.0
+
+This release includes [brief summary].
+
+### Breaking changes
+
+- ...
+
+### API changes
+
+- ...
+
+### Improvements
+
+- ...
+
+### Bug fixes
+
+- ...
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.3.0)
+```
 
 If pull requests are already documented, you do not necessarily need to update those sections. You may need to update the introduction and summary if there have been new changes.
 
-### 6. Review the changes
+### 7. Review the changes
 
-After updating:
+After updating, verify:
 
-- Verify all PR links are correct
-- Check that community contributors are credited
-- Ensure no internal/dotcom-only changes leaked through
-- Confirm entries follow sentence case and start with verbs
+- [ ] All significant changes are documented
+- [ ] PR links are correct
+- [ ] Community contributors are credited
+- [ ] Breaking changes include migration guidance
+- [ ] Sections are in correct order (breaking → API → improvements → bug fixes)
+- [ ] Entries follow sentence case and start with verbs
+- [ ] No internal/dotcom-only changes leaked through
+
+## Release workflow
+
+The `next.mdx` file accumulates changes as PRs are merged to main. When a release is published:
+
+1. Rename `next.mdx` to the version number (e.g., `v4.3.mdx`)
+2. Create a new `next.mdx` for the following release
+3. Update the frontmatter title and dates in the new file
 
 ## Notes
 
 - Do not include Claude Code attribution or co-author lines
 - The audience is developers using the tldraw SDK
-- Be appropriately concise—this is a changelog, not documentation
+- Always include `changelog`, `release`, and the version number in keywords

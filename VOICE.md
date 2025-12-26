@@ -12,13 +12,14 @@ The overall feeling is: _"Here's how this works, here's exactly how to use it, a
 
 ### What we are
 
-| Trait                  | Description                                              |
-| ---------------------- | -------------------------------------------------------- |
-| **Confident**          | We make clear, direct assertions without hedging         |
-| **Pragmatic**          | We focus on "here's how to do it" rather than theory     |
-| **Helpful**            | We anticipate developer needs and provide escape hatches |
-| **Honest**             | We're transparent about limitations and work-in-progress |
-| **Warm but efficient** | We have personality without being chatty                 |
+| Trait                  | Description                                                        |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Confident**          | We make clear, direct assertions without hedging                   |
+| **Upfront**            | We present solutions early rather than showing what _doesn't_ work |
+| **Pragmatic**          | We focus on "here's how to do it" rather than theory               |
+| **Helpful**            | We anticipate developer needs and provide escape hatches           |
+| **Honest**             | We're transparent about limitations and work-in-progress           |
+| **Warm but efficient** | We have personality without being chatty                           |
 
 ### What we're not
 
@@ -83,33 +84,9 @@ The overall feeling is: _"Here's how this works, here's exactly how to use it, a
 
 > Backwards compatibility is maintained between versions.
 
-### Occasional warmth and personality
-
-Appropriate places for personality:
-
-- Code comments for non-obvious techniques
-- Self-aware asides about complex topics
-- The rare playful phrase when it fits naturally
-
-**Examples from our docs:**
-
-> Custom shapes are shapes that were created by you or someone you love.
-
-> (Hidden HTML comment: "learn this one weird trick for transparent animated gifs. doctors hate her!!!")
-
-> We still have work to do on the `CardShapeUtil` class, but we'll come back to it later.
-
 ### Stay concrete
 
 Avoid florid language, extended metaphors, and theoretical examples. We explain with real code and real scenarios, not imagination.
-
-**Don't:**
-
-> Think of the store as a river of data, flowing through your application, carrying shapes like leaves on a current.
-
-> Imagine you're building a spaceship dashboard with custom controls...
-
-> The editor orchestrates a symphony of state changes...
 
 **Do:**
 
@@ -119,7 +96,15 @@ Avoid florid language, extended metaphors, and theoretical examples. We explain 
 
 > The editor manages state changes through its store.
 
-Similes are fine when they genuinely clarify—"shapes are just records (JSON objects)"—but don't reach for metaphor when plain language works.
+**Don't:**
+
+> Think of the store as a river of data, flowing through your application, carrying shapes like leaves on a current.
+
+> Imagine you're building a spaceship dashboard with custom controls...
+
+> The editor orchestrates a symphony of state changes...
+
+Short clarifying comparisons are fine—"shapes are just records (JSON objects)"—but don't reach for extended metaphors when plain language works. Avoid distracting hypothetical scenarios in your prose.
 
 ## Avoiding AI writing tells
 
@@ -142,7 +127,7 @@ AI loves to emphasize significance without saying anything concrete. These phras
 
 **Do:**
 
-> The store holds all shapes, bindings, and other records. It's reactive—when data changes, the UI updates automatically.
+> The store holds all shapes, bindings, and other records. The store is reactive: when data changes, the UI updates automatically.
 
 ### Trailing gerund phrases
 
@@ -180,7 +165,7 @@ Usually you can just delete these and the sentence is stronger. If you need a tr
 
 **Do:**
 
-> The editor manages all state changes. It's reactive—when state changes, dependent values update automatically. It also handles undo/redo.
+> The editor manages all state changes. It's reactive: when state changes, dependent values update automatically. It also handles undo/redo.
 
 ### The rule of three
 
@@ -218,11 +203,23 @@ AI picks up marketing speak from its training data. We're writing technical docs
 
 ### Em dash overuse
 
-Em dashes are fine—we use them—but AI uses them constantly, often where a comma or period would be more natural. If you notice several em dashes in a paragraph, try replacing some with other punctuation.
+AI writing often features multiple em dashes where a comma or period would be more natural. One em dash per paragraph is fine; several is a red flag. Also avoid dramatic formulations that call for an em dash.
+
+**Don't:**
+
+> It's not just a history manager—it's a way to track changes across time.
+
+> The store is reactive—it notifies subscribers—and it's fully typed—with TypeScript.
+
+**Do:**
+
+> You can also use the history manager to track changes across time.
+
+> The store is reactive: it notifies subscribers when data changes. All records are fully typed.
 
 ### Bullet points with bolded headers
 
-This format is a ChatGPT signature:
+In prose documentation, this format is a ChatGPT signature:
 
 **Don't:**
 
@@ -232,9 +229,9 @@ This format is a ChatGPT signature:
 
 **Do:**
 
-> The store is reactive—it automatically notifies subscribers when data changes. All records are fully typed. You can persist data to IndexedDB or sync it to a server.
+> The store is reactive: it automatically notifies subscribers when data changes. All records are fully typed. You can persist data to IndexedDB or sync it to a server.
 
-Or use a table if you genuinely have parallel information to present.
+This format is fine for reference material (API docs, style guides, changelogs) where scanability matters more than flow. Use a table if you have genuinely parallel information to present.
 
 ## Grammar and mechanics
 
@@ -248,13 +245,23 @@ Or use a table if you genuinely have parallel information to present.
 
 > You should make sure that there's only ever one `TLSocketRoom` globally.
 
-**Use "we" for the tldraw team or collective decisions:**
-
-> We make a distinction between three types of shapes.
+**Use "we" for recommendations and team perspective:**
 
 > We've found it best to create the store, set its data, and then pass the store into the editor.
 
-> We use side effects to create a new `TLCamera` record every time a new page is made.
+> We recommend the tldraw sync packages for collaboration.
+
+In nuggets and blog-style content, "we" works for narrative: "We tried X, but Y worked better."
+
+**Use "the SDK" or "the editor" when describing what the software does:**
+
+> The SDK has several features to support collaboration.
+
+> The editor provides history methods for undo and redo.
+
+> The editor's history manager handles history. It uses "stacks" for undos and redos.
+
+Don't say "we support X" when you mean "the editor supports X"—it conflates the team with the software.
 
 **Avoid:**
 
@@ -293,7 +300,7 @@ Or use a table if you genuinely have parallel information to present.
 
 > When the editor receives an event via its dispatch method, the event is first handled internally to update inputs and other state before being sent into the editor's state chart, where it cascades through the active states.
 
-The problem isn't sentence length—it's cognitive load. Break up ideas when a sentence asks the reader to hold too much in their head at once.
+The problem isn't sentence length, but rather cognitive load. Break up ideas when a sentence asks the reader to hold too much in their head at once.
 
 ### Contractions
 
@@ -482,9 +489,9 @@ The reader learns from seeing our approach, not from being told what to do.
 
 ## Code examples
 
-### Complete and runnable
+### Complete and runnable, followed by fragments
 
-Provide full, working examples, not fragments:
+When showing code examples, your _first_ snippet should provide a full working examples.
 
 **Do:**
 
@@ -507,6 +514,67 @@ export default function () {
 // Add persistenceKey to your Tldraw component
 <Tldraw persistenceKey="..." />
 ```
+
+If you continue to reference the same code example, your following examples can be fragments of the first.
+
+**Do:**
+
+The `Tldraw` component will take up the size of its parent. In this example, the parent will take up the whole page:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="my-persistence-key" />
+		</div>
+	)
+}
+```
+
+If we wanted to show it inline, then we could style it like this:
+
+```tsx
+<div style={{ height: 500, width: 800 }}>
+	<Tldraw persistenceKey="my-persistence-key" />
+</div>
+```
+
+**Don't:**
+
+The `Tldraw` component will take up the size of its parent. In this example, the parent will take up the whole page:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="my-persistence-key" />
+		</div>
+	)
+}
+```
+
+If we wanted to show it inline, then we could style it like this:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ height: 500, width: 800 }}>
+			<Tldraw persistenceKey="my-persistence-key" />
+		</div>
+	)
+}
+```
+
+When in doubt, show the full example.
 
 ### Comments are conversational
 
@@ -557,6 +625,10 @@ Use meaningful example data, not placeholders:
 	}
 }
 ```
+
+Note the use of branded types. Your snippets should be paste-able without causing TypeScript errors.
+
+- for IDs, use either `"shape:123" as TLShapeId` or `createShapeId("123")`
 
 ## Cross-referencing
 
