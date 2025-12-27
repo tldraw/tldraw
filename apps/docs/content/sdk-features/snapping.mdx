@@ -25,21 +25,21 @@ Snap lines appear when shapes come within the snap threshold, giving real-time v
 
 ## SnapManager
 
-The [SnapManager](?) coordinates all snapping behavior. Access it at `editor.snapping`:
+The [SnapManager](?) coordinates all snapping behavior. Access it at `editor.snaps`:
 
 ```typescript
 // The two snap systems
-editor.snapping.shapeBounds // BoundsSnaps - edge and center alignment
-editor.snapping.handles // HandleSnaps - precise point connections
+editor.snaps.shapeBounds // BoundsSnaps - edge and center alignment
+editor.snaps.handles // HandleSnaps - precise point connections
 
 // Shared utilities
-editor.snapping.getSnapThreshold() // Distance threshold (8px / zoom)
-editor.snapping.getSnappableShapes() // Which shapes can be snapped to
-editor.snapping.setIndicators(indicators) // Update visual snap lines
-editor.snapping.clearIndicators() // Remove all snap indicators
+editor.snaps.getSnapThreshold() // Distance threshold (8px / zoom)
+editor.snaps.getSnappableShapes() // Which shapes can be snapped to
+editor.snaps.setIndicators(indicators) // Update visual snap lines
+editor.snaps.clearIndicators() // Remove all snap indicators
 ```
 
-The snap threshold adjusts dynamically based on zoom level (8 pixels divided by zoom level), so snapping feels consistent regardless of how far you've zoomed in or out.
+The snap threshold is 8 screen pixels.
 
 ### Snappable shape filtering
 
@@ -75,14 +75,14 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-Return an empty array to disable snapping to a shape entirely.
+To disable snapping to a shape entirely, return an empty array.
 
 ### Translation snapping
 
 When moving shapes, `snapTranslateShapes()` finds the nearest snap alignment in each axis:
 
 ```typescript
-const snapData = editor.snapping.shapeBounds.snapTranslateShapes({
+const snapData = editor.snaps.shapeBounds.snapTranslateShapes({
 	lockedAxis: null, // or 'x' | 'y' to constrain to one axis
 	initialSelectionPageBounds: selectionBounds,
 	initialSelectionSnapPoints: selectionSnapPoints,
@@ -104,7 +104,7 @@ When resizing, `snapResizeShapes()` snaps the corners and edges being moved. Whi
 - When aspect ratio is locked, the dominant snap axis determines both
 
 ```typescript
-const snapData = editor.snapping.shapeBounds.snapResizeShapes({
+const snapData = editor.snaps.shapeBounds.snapResizeShapes({
 	initialSelectionPageBounds: selectionBounds,
 	dragDelta: delta,
 	handle: 'bottom_right',
@@ -173,7 +173,7 @@ Tools call `snapHandle()` to snap a handle position:
 const handle = editor.getShapeHandles(shape)?.find((h) => h.id === handleId)
 
 if (handle) {
-	const snapData = editor.snapping.handles.snapHandle({
+	const snapData = editor.snaps.handles.snapHandle({
 		currentShapeId: shape.id,
 		handle, // TLHandle with x, y, snapType, etc.
 	})
