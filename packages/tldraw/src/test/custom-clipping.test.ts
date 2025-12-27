@@ -112,7 +112,7 @@ export class CircleClipShapeTool extends StateNode {
 
 	override onPointerDown(info: Parameters<TLEventHandlers['onPointerDown']>[0]) {
 		if (info.target === 'canvas') {
-			const { originPagePoint } = this.editor.inputs
+			const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 			this.editor.createShape({
 				type: CIRCLE_CLIP_TYPE,

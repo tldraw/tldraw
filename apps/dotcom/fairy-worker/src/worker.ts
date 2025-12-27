@@ -38,7 +38,12 @@ export default class extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: corsify,
+			after: (response, request) => {
+				// Create a new Response with mutable headers before passing to corsify
+				// to avoid "Can't modify immutable headers" error
+				const mutableResponse = new Response(response.body, response)
+				return corsify(mutableResponse, request)
+			},
 		})
 	}
 }

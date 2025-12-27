@@ -9,6 +9,7 @@ import {
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 
+import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,
@@ -32,7 +33,7 @@ export class Pointing extends StateNode {
 		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
 		// Check for note pits; if the pointer is close to one, place the note centered on the pit
-		const center = this.editor.inputs.originPagePoint.clone()
+		const center = this.editor.inputs.getOriginPagePoint().clone()
 		const offset = getNoteShapeAdjacentPositionOffset(
 			this.editor,
 			center,
@@ -52,7 +53,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
@@ -61,8 +62,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId,
 				onCreate: () => {
-					this.editor.setEditingShape(this.shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
+					startEditingShapeWithRichText(this.editor, this.shape.id)
 				},
 			})
 		}
@@ -88,12 +88,7 @@ export class Pointing extends StateNode {
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
 		} else {
-			this.editor.setEditingShape(this.shape.id)
-			this.editor.setCurrentTool('select.editing_shape', {
-				...this.info,
-				target: 'shape',
-				shape: this.shape,
-			})
+			startEditingShapeWithRichText(this.editor, this.shape.id, { info: this.info })
 		}
 	}
 

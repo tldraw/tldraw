@@ -120,6 +120,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 				y: shape.props.cp1.y,
 				index: indices[1],
 				snapType: 'align',
+				snapReferenceHandleId: 'start',
 			},
 			{
 				id: 'cp2',
@@ -174,7 +175,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 
 		// if you hold command or control key whilst dragging over a start or end handle,
 		// move the associated control point to the new positions
-		if (this.editor.inputs.metaKey) {
+		if (this.editor.inputs.getMetaKey()) {
 			switch (id) {
 				case 'start': {
 					return {
@@ -241,7 +242,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		// only bend if we start translating with the command or control key pressed
 		// this avoids bending the curve midway through a translation where the user accidentally
 		// holds the command or control key
-		this.isMetaKeyOnTranslateStart = this.editor.inputs.metaKey
+		this.isMetaKeyOnTranslateStart = this.editor.inputs.getMetaKey()
 
 		// we should bend the curve if we hit the curve but not the start or end handles,
 		const handles = this.getHandles(shape)
@@ -255,13 +256,13 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 			const pageTransform = this.editor.getShapePageTransform(shape)
 			const handleInPageSpace = pageTransform.applyToPoint(handle)
 
-			if (Vec.Dist(handleInPageSpace, this.editor.inputs.currentPagePoint) < threshold) {
+			if (Vec.Dist(handleInPageSpace, this.editor.inputs.getCurrentPagePoint()) < threshold) {
 				return true
 			}
 			return false
 		})
 
-		const hitCurve = this.editor.isPointInShape(shape, this.editor.inputs.currentPagePoint, {
+		const hitCurve = this.editor.isPointInShape(shape, this.editor.inputs.getCurrentPagePoint(), {
 			margin: 10 / this.editor.getZoomLevel(),
 		})
 

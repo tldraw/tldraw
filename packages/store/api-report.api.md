@@ -38,6 +38,33 @@ export class AtomMap<K, V> implements Map<K, V> {
 }
 
 // @public
+export class AtomSet<T> {
+    // (undocumented)
+    [Symbol.iterator](): Generator<T, undefined, unknown>;
+    // (undocumented)
+    [Symbol.toStringTag]: string;
+    constructor(name: string, keys?: Iterable<T>);
+    // (undocumented)
+    add(value: T): this;
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(value: T): boolean;
+    // (undocumented)
+    entries(): Generator<[T, T], undefined, unknown>;
+    // (undocumented)
+    forEach(callbackfn: (value: T, value2: T, set: AtomSet<T>) => void, thisArg?: any): void;
+    // (undocumented)
+    has(value: T): boolean;
+    // (undocumented)
+    keys(): Generator<T, undefined, unknown>;
+    // (undocumented)
+    get size(): number;
+    // (undocumented)
+    values(): Generator<T, undefined, unknown>;
+}
+
+// @public
 export interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>> {
     // (undocumented)
     readonly id: Id;
@@ -176,6 +203,10 @@ export type Migration = {
     readonly filter?: (record: UnknownRecord) => boolean;
     readonly scope: 'record';
     readonly up: (oldState: UnknownRecord) => UnknownRecord | void;
+} | {
+    readonly down?: never;
+    readonly scope: 'storage';
+    readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
 // @public
@@ -514,6 +545,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // @internal
     getType(typeName: string): RecordType<R, any>;
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
+    // (undocumented)
+    migrateStorage(storage: SynchronousStorage<R>): void;
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>, opts?: {
         mutateInputStore?: boolean;
     }): MigrationResult<SerializedStore<R>>;
@@ -626,6 +659,30 @@ export type StoreValidators<R extends UnknownRecord> = {
         typeName: K;
     }>>;
 };
+
+// @public
+export interface SynchronousRecordStorage<R extends UnknownRecord> {
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    entries(): Iterable<[string, R]>;
+    // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
+    keys(): Iterable<string>;
+    // (undocumented)
+    set(id: string, record: R): void;
+    // (undocumented)
+    values(): Iterable<R>;
+}
+
+// @public
+export interface SynchronousStorage<R extends UnknownRecord> extends SynchronousRecordStorage<R> {
+    // (undocumented)
+    getSchema(): SerializedSchema;
+    // (undocumented)
+    setSchema(schema: SerializedSchema): void;
+}
 
 // @public
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;

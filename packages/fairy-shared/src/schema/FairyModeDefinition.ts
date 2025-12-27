@@ -43,6 +43,8 @@ export type FairyModeDefinition = (typeof FAIRY_MODE_DEFINITIONS)[number]
  */
 export type ActiveFairyModeDefinition = (typeof ACTIVE_FAIRY_MODE_DEFINITIONS)[number]
 
+export type FairyModeDefinitionType = FairyModeDefinition['type']
+
 /**
  * Definitions of fairy modes — states that fairies can be in.
  */
@@ -65,11 +67,14 @@ export const FAIRY_MODE_DEFINITIONS = [
 		active: true,
 		pose: 'active',
 		parts: (_work: FairyWork) => [
+			'sign',
 			'messages',
 			'modelName',
 			'mode',
 			'screenshot',
+			'userViewportBounds',
 			'agentViewportBounds',
+			'canvasLints',
 			'blurryShapes',
 			'peripheralShapes',
 			'chatHistory',
@@ -81,7 +86,8 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'message',
 			'think',
 			'fly-to-bounds',
-			'update-personal-todo-list',
+			'upsert-personal-todo-item',
+			'delete-personal-todo-items',
 			'create',
 			'delete',
 			'update',
@@ -97,6 +103,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'stack',
 			'pen',
 		],
+	},
+	{
+		type: 'one-shotting-pausing',
+		memoryLevel: 'fairy',
+		active: false,
+		pose: 'idle',
 	},
 	{
 		type: 'soloing',
@@ -119,7 +131,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			// 'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -148,12 +160,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
 			'mark-my-task-done',
-			// 'update-personal-todo-list',
+			// 'upsert-personal-todo-item',
 			'think',
 			'create',
 			'delete',
@@ -186,12 +198,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
 			'mark-task-done',
-			// 'update-personal-todo-list',
+			// 'upsert-personal-todo-item',
 			'think',
 			'create',
 			'delete',
@@ -230,12 +242,13 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'peripheralShapes',
 			'selectedShapes',
+			'canvasLints',
 			'chatHistory',
 			'userActionHistory',
 			'time',
 			// 'pages',
 			'otherFairies',
-			// 'personality',
+			'sign',
 			'currentProjectOrchestrator',
 			'debug',
 		],
@@ -249,9 +262,11 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'create-page',
 
 			// Project management
+			'abort-project',
 			'start-project',
 			'end-project',
 			'create-project-task',
+			'delete-project-task',
 			'direct-to-start-project-task',
 			'await-tasks-completion',
 		],
@@ -277,12 +292,13 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'peripheralShapes',
 			'selectedShapes',
+			'canvasLints',
 			'chatHistory',
 			'userActionHistory',
 			'time',
 			// 'pages',
 			'otherFairies',
-			// 'personality',
+			'sign',
 			'currentProjectOrchestrator',
 			'debug',
 		],
@@ -296,9 +312,11 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'create-page',
 
 			// Duo project management
+			'abort-duo-project',
 			'start-duo-project',
 			'end-duo-project',
 			'create-duo-task',
+			'delete-project-task',
 			'direct-to-start-duo-task',
 			'start-duo-task',
 			'await-duo-tasks-completion',
@@ -326,12 +344,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			// 'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
 			'mark-duo-task-done',
-			// 'update-personal-todo-list',
+			// 'upsert-personal-todo-item',
 			'think',
 			'create',
 			'delete',

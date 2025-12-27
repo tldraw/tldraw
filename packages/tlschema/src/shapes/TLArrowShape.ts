@@ -1,9 +1,10 @@
 import { createMigrationSequence } from '@tldraw/store'
+import { structuredClone } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { VecModel, vecModelValidator } from '../misc/geometry-types'
 import { createBindingId } from '../records/TLBinding'
-import { TLShapeId, createShapePropsMigrationIds } from '../records/TLShape'
+import { TLShape, TLShapeId, createShapePropsMigrationIds } from '../records/TLShape'
 import { RecordProps, TLPropsMigration, createPropsMigration } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import {
@@ -276,6 +277,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddScale: 5,
 	AddElbow: 6,
 	AddRichText: 7,
+	AddRichTextAttrs: 8,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -341,8 +343,8 @@ export const arrowShapeMigrations = createMigrationSequence({
 
 		{
 			id: arrowShapeVersions.ExtractBindings,
-			scope: 'store',
-			up: (oldStore) => {
+			scope: 'storage',
+			up: (storage) => {
 				type OldArrowTerminal =
 					| {
 							type: 'point'
@@ -361,11 +363,10 @@ export const arrowShapeMigrations = createMigrationSequence({
 
 				type OldArrow = TLBaseShape<'arrow', { start: OldArrowTerminal; end: OldArrowTerminal }>
 
-				const arrows = Object.values(oldStore).filter(
-					(r: any): r is OldArrow => r.typeName === 'shape' && r.type === 'arrow'
-				)
-
-				for (const arrow of arrows) {
+				for (const record of storage.values()) {
+					if (record.typeName !== 'shape' || (record as TLShape).type !== 'arrow') continue
+					const arrow = record as OldArrow
+					const newArrow = structuredClone(arrow)
 					const { start, end } = arrow.props
 					if (start.type === 'binding') {
 						const id = createBindingId()
@@ -384,10 +385,10 @@ export const arrowShapeMigrations = createMigrationSequence({
 							},
 						}
 
-						oldStore[id] = binding
-						arrow.props.start = { x: 0, y: 0 }
+						storage.set(id, binding as any)
+						newArrow.props.start = { x: 0, y: 0 }
 					} else {
-						delete arrow.props.start.type
+						delete newArrow.props.start.type
 					}
 					if (end.type === 'binding') {
 						const id = createBindingId()
@@ -406,11 +407,12 @@ export const arrowShapeMigrations = createMigrationSequence({
 							},
 						}
 
-						oldStore[id] = binding
-						arrow.props.end = { x: 0, y: 0 }
+						storage.set(id, binding as any)
+						newArrow.props.end = { x: 0, y: 0 }
 					} else {
-						delete arrow.props.end.type
+						delete newArrow.props.end.type
 					}
+					storage.set(arrow.id, newArrow)
 				}
 			},
 		},
@@ -444,6 +446,18 @@ export const arrowShapeMigrations = createMigrationSequence({
 			// down: (props) => {
 			// 	delete props.richText
 			// },
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddRichTextAttrs,
+			up: (_props) => {
+				// noop - attrs is optional so old records are valid
+			},
+			down: (props) => {
+				// Remove attrs from richText when migrating down
+				if (props.richText && 'attrs' in props.richText) {
+					delete props.richText.attrs
+				}
+			},
 		}),
 	],
 })

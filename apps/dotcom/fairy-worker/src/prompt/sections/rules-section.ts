@@ -83,6 +83,7 @@ ${flagged(
 ${flagged(
 	flags.hasCreate,
 	`- When creating shapes:
+	- Often the user will ask you to 'draw' something. If you compose the drawing using rectangles, triangles, or circles to achieve the image, use those; otherwise, use the pen to draw a custom shape.
 	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
 	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
@@ -107,21 +108,22 @@ ${flagged(
 		- When looking at the canvas, you might notice arrows that are bending the wrong way. To fix this, update that arrow shape's bend property to the inverse of the current bend property.
 	- Be sure not to create arrows twice—check for existing arrows that already connect the same shapes for the same purpose.
 	- Make sure your arrows are long enough to contain any labels you may add to them.
-- Labels and text
+- Text shapes
+	- When creating a text shape, you must take into account how much space the text will take up on the canvas.
+	- By default, the width of text shapes will grow to fit the text content${flagged(flags.hasScreenshotPart, '. Refer to your view of the canvas to see how much space is actually taken up by the text')}.
+	- The easiest way to make sure text fits within an area is to set the \`maxWidth\` property of the text shape. The text will automatically wrap to fit within that width. This works with text of any alignment.
+	- The font size of a text shape is the height of the text.
+	- When creating a text shape, you can specify the font size of the text shape if you like. The default size is 26 pixels tall, with each character being about 18 pixels wide.
+	- Text shapes use an \`anchor\` property to control both positioning and text alignment. The anchor determines where the shape's \`x\` and \`y\` coordinates are positioned on the text shape.
+		- Available anchors include: \`top-left\`, \`top-center\`, \`top-right\`, \`center-left\`, \`center\`, \`center-right\`, \`bottom-left\`, \`bottom-center\`, and \`bottom-right\`.
+		- For example, a \`top-left\` anchor means the text shape's x,y coordinates represent the top-left corner of the text, and the text is left-aligned. A \`bottom-center\` anchor means the x,y coordinates represent the bottom-center of the text shape, and the text is center-aligned horizontally.
+		- Unlike most shapes where x,y always represents the top-left corner, text shapes' x,y coordinates can be at different points depending on the anchor. For example, to place text to the left of another shape, use a \`center-right\` anchor and set the \`x\` value to just less than the shape's \`x\` value.
+- Labels
 	- Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
 	- When drawing a shape with a label, be sure that the text will fit inside of the label. Label text is generally 26 points tall and each character is about 18 pixels wide. There are 32 pixels of padding around the the text on each side. You need to leave room for the padding. Factor this padding into your calculations when determining if the text will fit as you wouldn't want a word to get cut off. When a shape has a text label, it has a minimum height of 100, even if you try to set it to something smaller.
 	- You may also specify the alignment of the label text within the shape.
-	- There are also standalone text shapes that you may encounter. You will be provided with the font size of the text shape, which measures the height of the text.
-	- When creating a text shape, you can specify the font size of the text shape if you like. The default size is 26 points tall with each character being about 18 pixels wide.
-	- By default, the width of text shapes will auto adjust based on the text content${flagged(flags.hasScreenshotPart, '. Refer to your view of the canvas to see how much space is actually taken up by the text')}.
-	- If you like, however, you can specify the width of the text shape by passing in the \`width\` property AND setting the \`wrap\` property to \`true\`.
-		- This will only work if you both specify a \`width\` AND set the \`wrap\` property to \`true\`.
-		- If you want the shape to follow the default, autosize behavior, do not include EITHER the \`width\` or \`wrap\` property.
-	- Text shapes can be aligned horizontally, either \`start\`, \`middle\`, or \`end\`. The default alignment is \`start\` if you do not specify an alignment.
-		- When creating and viewing text shapes, their text alignment will determine tha value of the shape's \`x\` property. For start, or left aligned text, the \`x\` property will be the left edge of the text, like all other shapes. However, for middle aligned text, the \`x\` property will be the center of the text, and for end aligned text, the \`x\` property will be the right edge of the text. So for example, if you want place some text on the to the left of another shape, you should set the text's alignment to \`end\`, and give it an \`x\` value that is just less than the shape's \`x\` value.
-		- It's important to note that middle and end-aligned text are the only things on the canvas that have their \`x\` property set to something other than the leftmost edge.
 	- If geometry shapes or note shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
-	- Note shapes are 50x50. They're sticky notes and are only suitable for tiny sentences. Use a geometric shape or text shape if you need to write more.
+	- Note shapes are 200x200. They're sticky notes and are only suitable for tiny sentences. Use a geometric shape or text shape if you need to write more.
 	- When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
 - Colors
 	- When specifying a fill, you can use \`background\` to make the shape the same color as the background${flagged(flags.hasScreenshotPart, ", which you'll see in your viewport")}. It will either be white or black, depending on the theme of the canvas.
@@ -175,8 +177,9 @@ ${
 
 ${flagged(
 	flags.hasPersonalTodoList,
-	`- Use \`update-personal-todo-list\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flagged(flags.hasReview, '. You can then use the `review` action to check the todo list')}.
-		- Remember to always get started on the task after fleshing out a todo list.`
+	`- Use \`upsert-personal-todo-item\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flagged(flags.hasReview, '. You can then use the `review` action to check the todo list')}.
+		- Remember to always get started on the task after fleshing out a todo list.
+	- If your plan changes, you can \`upsert-personal-todo-item\` to update todo items, or \`delete-personal-todo-items\` to remove items from the todo list.`
 )}
 ${flagged(flags.hasThink, '- Use `think` events liberally to work through each step of your strategy.')}
 ${flagged(
@@ -255,5 +258,5 @@ ${flagged(
 - If you want to call multiple APIs and the results of the API calls don't depend on each other, you can call them all at once before ending your response. This will help you get the results of the API calls faster.
 - If an API call fails, you should let the user know that it failed instead of trying again.`
 )}
-	`
+`
 }

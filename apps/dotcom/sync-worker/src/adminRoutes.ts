@@ -1,4 +1,4 @@
-import { MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
+import { FeatureFlagKey, MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
@@ -8,6 +8,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -24,14 +25,27 @@ async function requireUser(env: Environment, q: string) {
 	return userRow
 }
 
+export async function upsertFairyAccessWithDb(
+	env: Environment,
+	userId: string,
+	fairyLimit: number | null,
+	expiresAt: number | null
+) {
+	const db = createPostgresConnectionPool(env, 'upsertFairyAccessWithDb')
+	try {
+		return await upsertFairyAccess(env, userId, fairyLimit, expiresAt, db)
+	} finally {
+		await db.destroy()
+	}
+}
+
 export async function upsertFairyAccess(
 	env: Environment,
 	userId: string,
-	fairyLimit: number | null = MAX_FAIRY_COUNT,
-	expiresAt: number | null = FAIRY_WORLDWIDE_EXPIRATION
+	fairyLimit: number | null,
+	expiresAt: number | null,
+	db: ReturnType<typeof createPostgresConnectionPool>
 ) {
-	const db = createPostgresConnectionPool(env, 'upsertFairyAccess')
-
 	try {
 		await db
 			.insertInto('user_fairies')
@@ -40,6 +54,8 @@ export async function upsertFairyAccess(
 				fairyLimit,
 				fairyAccessExpiresAt: expiresAt,
 				fairies: '{}',
+				weeklyUsage: {},
+				weeklyLimit: 25,
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
@@ -56,12 +72,56 @@ export async function upsertFairyAccess(
 	} catch (error) {
 		console.error('Failed to upsert fairy access:', error)
 		return { success: false, error: String(error) }
+	}
+}
+
+async function setFairyWeeklyLimit(
+	env: Environment,
+	email: string,
+	limit: number | null
+): Promise<{ success: boolean; error?: string; limit?: number | null }> {
+	if (limit !== null && (typeof limit !== 'number' || limit < 0)) {
+		return { success: false, error: 'limit must be null or a number >= 0' }
+	}
+
+	const db = createPostgresConnectionPool(env, '/app/admin/fairy/set-weekly-limit')
+	try {
+		// Look up user by email
+		const user = await db
+			.selectFrom('user')
+			.where('email', '=', email)
+			.selectAll()
+			.executeTakeFirst()
+		if (!user) {
+			return { success: false, error: 'User not found' }
+		}
+
+		// Upsert user_fairies with new weeklyLimit
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId: user.id,
+				fairies: '{}',
+				weeklyUsage: {},
+				weeklyLimit: limit,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					weeklyLimit: limit,
+				})
+			)
+			.execute()
+
+		return { success: true, limit }
+	} catch (error) {
+		console.error('Failed to set fairy weekly limit:', error)
+		return { success: false, error: String(error) }
 	} finally {
 		await db.destroy()
 	}
 }
 
-async function grantFairyAccess(env: Environment, email: string, setToZero: boolean = false) {
+async function grantFairyAccess(env: Environment, email: string) {
 	assert(typeof email === 'string' && email, 'email is required')
 
 	const clerkClient = getClerkClient(env)
@@ -74,8 +134,12 @@ async function grantFairyAccess(env: Environment, email: string, setToZero: bool
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const fairyLimit = setToZero ? 0 : MAX_FAIRY_COUNT
-	const result = await upsertFairyAccess(env, userId, fairyLimit)
+	const result = await upsertFairyAccessWithDb(
+		env,
+		userId,
+		MAX_FAIRY_COUNT,
+		FAIRY_WORLDWIDE_EXPIRATION
+	)
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
@@ -97,7 +161,7 @@ async function removeFairyAccess(env: Environment, email: string) {
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const result = await upsertFairyAccess(env, userId, null, null)
+	const result = await upsertFairyAccessWithDb(env, userId, null, null)
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to remove fairy access: ${result.error}`)
@@ -224,26 +288,34 @@ export const adminRoutes = createRouter<Environment>()
 	.post('/app/admin/fairy-invites', async (req, env) => {
 		const body: any = await req.json()
 		const maxUses = body?.maxUses
+		const description = body?.description ?? null
 
 		if (typeof maxUses !== 'number' || maxUses < 0) {
 			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
 		}
 
+		if (description !== null && typeof description !== 'string') {
+			return new Response('description must be a string or null', { status: 400 })
+		}
+
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
 		const id = uniqueId()
+		const createdAt = Date.now()
 
-		await db
-			.insertInto('fairy_invite')
-			.values({
-				id,
-				fairyLimit: MAX_FAIRY_COUNT,
-				maxUses,
-				currentUses: 0,
-				createdAt: Date.now(),
-			})
-			.execute()
+		await sql`
+			INSERT INTO fairy_invite (id, "fairyLimit", "maxUses", "currentUses", "createdAt", description, "redeemedBy")
+			VALUES (${id}, ${MAX_FAIRY_COUNT}, ${maxUses}, 0, ${createdAt}, ${description}, '[]'::jsonb)
+		`.execute(db)
 
-		return json({ id, fairyLimit: MAX_FAIRY_COUNT, maxUses, currentUses: 0, createdAt: Date.now() })
+		return json({
+			id,
+			fairyLimit: MAX_FAIRY_COUNT,
+			maxUses,
+			currentUses: 0,
+			createdAt,
+			description,
+			redeemedBy: [],
+		})
 	})
 	.get('/app/admin/fairy-invites', async (_req, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
@@ -261,16 +333,16 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/fairy/grant-access', async (req, env) => {
 		const body: any = await req.json()
-		const { email, setToZero } = body
+		const { email } = body
 
-		const result = await grantFairyAccess(env, email, setToZero ?? false)
+		const result = await grantFairyAccess(env, email)
 		return json(result)
 	})
 	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
 		const auth = await requireAuth(req, env)
 
 		const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000
-		const result = await upsertFairyAccess(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
+		const result = await upsertFairyAccessWithDb(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
 
 		if (!result.success) {
 			throw new StatusError(500, `Failed to enable fairy access: ${result.error}`)
@@ -284,6 +356,41 @@ export const adminRoutes = createRouter<Environment>()
 
 		const result = await removeFairyAccess(env, email)
 		return json(result)
+	})
+	.post('/app/admin/fairy/set-weekly-limit', async (req, env) => {
+		const body: any = await req.json()
+		const { email, limit } = body
+
+		if (typeof email !== 'string' || !email) {
+			throw new StatusError(400, 'email (string) is required')
+		}
+
+		if (limit !== null && (typeof limit !== 'number' || limit < 0)) {
+			throw new StatusError(400, 'limit must be null or a number >= 0')
+		}
+
+		const result = await setFairyWeeklyLimit(env, email, limit)
+		if (!result.success) {
+			throw new StatusError(400, result.error || 'Failed to set weekly limit')
+		}
+		return json(result)
+	})
+	.get('/app/admin/feature-flags', getFeatureFlags)
+	.post('/app/admin/feature-flags', async (req, env) => {
+		const body: any = await req.json()
+		const { flag, enabled } = body
+
+		if (typeof flag !== 'string' || typeof enabled !== 'boolean') {
+			throw new StatusError(400, 'flag (string) and enabled (boolean) are required')
+		}
+
+		const validFlags: FeatureFlagKey[] = ['fairies', 'fairies_purchase', 'sqlite_file_storage']
+		if (!validFlags.includes(flag as FeatureFlagKey)) {
+			throw new StatusError(400, `Invalid flag. Must be one of: ${validFlags.join(', ')}`)
+		}
+
+		await setFeatureFlag(env, flag as FeatureFlagKey, enabled)
+		return json({ success: true, flag, enabled })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
@@ -485,35 +592,91 @@ async function performUserDeletion(
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
 
-	// First, get all files owned by this user
-	const userFiles = await pg
-		.selectFrom('file')
-		.where('ownerId', '=', userRow.id)
-		.selectAll()
+	// Step 1: Find all groups the user is the only owner of
+	// This includes their home group (group.id = user.id) and any other groups they solely own
+	sendProgress?.('groups', 'Finding groups to delete...')
+
+	// Get all groups where this user is an owner
+	const userOwnedGroupMemberships = await pg
+		.selectFrom('group_user')
+		.where('userId', '=', userRow.id)
+		.where('role', '=', 'owner')
+		.select('groupId')
 		.execute()
 
-	sendProgress?.('files', `Found ${userFiles.length} files to delete`, {
-		fileCount: userFiles.length,
+	const groupsToDelete: string[] = []
+
+	for (const membership of userOwnedGroupMemberships) {
+		// Check if this user is the only owner of this group
+		const ownerCount = await pg
+			.selectFrom('group_user')
+			.where('groupId', '=', membership.groupId)
+			.where('role', '=', 'owner')
+			.select((eb) => eb.fn.countAll().as('count'))
+			.executeTakeFirst()
+
+		if (ownerCount && Number(ownerCount.count) === 1) {
+			groupsToDelete.push(membership.groupId)
+		}
+	}
+
+	sendProgress?.('groups', `Found ${groupsToDelete.length} groups to delete`, {
+		groupCount: groupsToDelete.length,
+		groupIds: groupsToDelete,
 	})
 
-	// Hard delete all user's files
-	for (let i = 0; i < userFiles.length; i++) {
-		const file = userFiles[i]
-		sendProgress?.('files', `Deleting file ${i + 1}/${userFiles.length}: ${file.name}`, {
-			fileId: file.id,
-		})
+	// Step 2: Soft delete groups (the cleanup_deleted_group_trigger will soft delete their files)
+	if (groupsToDelete.length > 0) {
+		sendProgress?.('groups', 'Soft deleting groups...')
+		await pg.updateTable('group').set('isDeleted', true).where('id', 'in', groupsToDelete).execute()
+	}
+
+	// Step 3: Get all files to hard delete
+	const filesToDelete = new Map<string, TlaFile>()
+
+	if (groupsToDelete.length > 0) {
+		const groupFiles = await pg
+			.selectFrom('file')
+			.where('owningGroupId', 'in', groupsToDelete)
+			.selectAll()
+			.execute()
+		for (const file of groupFiles) {
+			filesToDelete.set(file.id, file)
+		}
+	}
+
+	sendProgress?.('files', `Found ${filesToDelete.size} files to delete`, {
+		fileCount: filesToDelete.size,
+	})
+
+	// Allow time for soft deletes to propagate
+	if (groupsToDelete.length > 0 || filesToDelete.size > 0) {
+		await sleep(3000)
+	}
+
+	// Now hard delete all files
+	for (const file of filesToDelete.values()) {
+		sendProgress?.('files', `Hard deleting file '${file.name}' (${file.id})`)
 		await hardDeleteAppFile({ pg, file, env })
 	}
 
 	sendProgress?.('database', 'Cleaning up database records...')
 
-	// Clean up tables that don't have CASCADE delete constraints and delete user in a transaction
+	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
 		// Clean up tables that don't have CASCADE delete constraints
 		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
 
 		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
+
+		// Remove user from all groups they're a member of (including ones they don't solely own)
+		await tx.deleteFrom('group_user').where('userId', '=', userRow.id).execute()
+
+		// Hard delete the groups (this will cascade delete group_user and group_file entries)
+		if (groupsToDelete.length > 0) {
+			await tx.deleteFrom('group').where('id', 'in', groupsToDelete).execute()
+		}
 
 		// Delete the user row (this will cascade delete any remaining related records)
 		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()

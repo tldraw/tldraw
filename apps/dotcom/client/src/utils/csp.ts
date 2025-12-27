@@ -36,6 +36,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://fonts.googleapis.com',
 		// paddle
 		'https://*.paddle.com',
+		// profitwell (loaded by paddle)
+		'https://public.profitwell.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [
@@ -62,9 +64,16 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://static.reo.dev',
 		// paddle
 		'https://*.paddle.com',
+		// profitwell (loaded by paddle)
+		'https://public.profitwell.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
-	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
+	'style-src': [
+		`'self'`,
+		`'unsafe-inline'`,
+		`https://fonts.googleapis.com`,
+		`https://*.paddle.com`,
+	],
 	'style-src-elem': [
 		`'self'`,
 		`'unsafe-inline'`,

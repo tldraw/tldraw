@@ -230,6 +230,18 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Fairy Access ---------------------- */
 
+export interface PaddleCustomData {
+	userId: string
+	email?: string
+}
+
+export type FeatureFlagKey = 'fairies' | 'fairies_purchase' | 'sqlite_file_storage'
+
+export interface FeatureFlagValue {
+	enabled: boolean
+	description: string
+}
+
 export function hasActiveFairyAccess(
 	fairyAccessExpiresAt: number | null,
 	fairyLimit: number | null

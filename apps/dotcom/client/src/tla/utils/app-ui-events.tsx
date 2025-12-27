@@ -21,6 +21,11 @@ export type TLAppUiEventSource =
 	| 'app'
 	| 'cookie-settings'
 	| 'dialog'
+	| 'fairy-teaser'
+	| 'fairy-panel'
+	| 'fairy-canvas'
+	| 'fairy-sidebar'
+	| 'fairy-chat'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -65,6 +70,45 @@ export interface TLAppUiEventMap {
 	'room-size-limit-dialog-shown': null
 	'accept-group-invite': null
 	'add-file-link': null
+	// Fairy events - selection and interaction
+	'fairy-select': { fairyId: string }
+	'fairy-deselect': { fairyId: string }
+	'fairy-add-to-selection': { fairyId: string }
+	'fairy-double-click': { fairyId: string }
+	// Fairy events - messaging
+	'fairy-send-message': { fairyId: string }
+	'fairy-group-chat-message': { projectId: string }
+	'fairy-cancel-generation': { fairyId: string }
+	// Fairy events - project
+	'fairy-start-project': { projectId: string; memberCount: number; projectType: 'duo' | 'group' }
+	'fairy-disband-group': { projectId: string }
+	// Fairy events - navigation
+	'fairy-summon': { fairyId: string }
+	'fairy-summon-all': null
+	'fairy-zoom-to': { fairyId: string }
+	'fairy-follow': { fairyId: string }
+	'fairy-unfollow': { fairyId: string }
+	// Fairy events - state management
+	'fairy-sleep': { fairyId: string }
+	'fairy-sleep-all': null
+	'fairy-wake': { fairyId: string }
+	// Fairy events - customization
+	'fairy-configure': { fairyId: string }
+	// Fairy events - chat management
+	'fairy-reset-chat': { fairyId: string }
+	'fairy-reset-all-chats': null
+	// Fairy events - panel/UI state
+	'fairy-switch-to-manual': null
+	'fairy-close-manual': null
+	'fairy-switch-manual-tab': { tab: 'introduction' | 'usage' | 'about' }
+	'fairy-close-chat-panel': null
+	'fairy-select-all': null
+	'fairy-deselect-all': null
+	// Fairy events - drag/throw
+	'fairy-drag-start': { fairyId: string }
+	'fairy-panic': { fairyId: string }
+	// Fairy events - teaser
+	'click-fairy-teaser': null
 }
 
 /** @public */

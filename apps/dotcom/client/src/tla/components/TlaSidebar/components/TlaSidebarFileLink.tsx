@@ -23,7 +23,7 @@ import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
-import { FileItems, FileItemsWrapper } from '../../TlaFileMenu/TlaFileMenu'
+import { FileItems } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
@@ -121,14 +121,12 @@ export function TlaSidebarFileLink({
 				{/* Don't show the context menu on mobile */}
 				{!isMobile && (
 					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-						<FileItemsWrapper showAsSubMenu={false}>
-							<FileItems
-								source="sidebar-context-menu"
-								fileId={fileId}
-								onRenameAction={handleRenameAction}
-								groupId={groupId}
-							/>
-						</FileItemsWrapper>
+						<FileItems
+							source="sidebar-context-menu"
+							fileId={fileId}
+							onRenameAction={handleRenameAction}
+							groupId={groupId}
+						/>
 					</TldrawUiMenuContextProvider>
 				)}
 			</_ContextMenu.Content>

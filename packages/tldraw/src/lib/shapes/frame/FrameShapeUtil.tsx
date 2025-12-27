@@ -9,6 +9,7 @@ import {
 	TLClickEventInfo,
 	TLDragShapesOutInfo,
 	TLDragShapesOverInfo,
+	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLResizeInfo,
@@ -88,8 +89,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return withOptions
 	}
 
-	override canEdit() {
-		return true
+	override canEdit(shape: TLFrameShape, info: TLEditStartInfo) {
+		return info.type === 'click-header' || info.type === 'unknown'
 	}
 
 	override canResize() {
@@ -115,7 +116,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override getGeometry(shape: TLFrameShape): Geometry2d {
 		const { editor } = this
 
-		const z = editor.getZoomLevel()
+		const z = editor.getEfficientZoomLevel()
 
 		// Which dimension measures the top edge after rotation?
 		const labelSide = getFrameHeadingSide(editor, shape)

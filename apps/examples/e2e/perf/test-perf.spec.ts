@@ -13,7 +13,10 @@ test.describe.configure({ mode: 'serial' })
 function testOutput(result: PerformanceTestResult) {
 	// eslint-disable-next-line no-console
 	console.log(
-		`${result.interaction} Performance: ${result.metrics.averageFps} FPS (min: ${result.metrics.minFps})`
+		`${result.interaction} Performance: ${result.metrics.averageFps} avg FPS (min: ${result.metrics.minFps}, max: ${result.metrics.maxFps})\n` +
+			`${result.comparison.message}\n` +
+			'Comparison:' +
+			JSON.stringify(result.comparison, null, 2)
 	)
 
 	// Validate performance
@@ -32,7 +35,7 @@ test.describe('Performance Tests', () => {
 	test.setTimeout(120000) // Increase timeout
 	test.describe.configure({ mode: 'serial' }) // Run tests in series to avoid resource conflicts
 
-	test.skip('Baseline FPS Performance - Desktop', async ({
+	test('Baseline FPS Performance - Desktop', async ({
 		page,
 		context,
 		request,
@@ -132,8 +135,13 @@ test.describe('Performance Tests', () => {
 	})
 })
 
-test.skip('Baseline Management', () => {
-	test('Establish All Performance Baselines', async ({ page, context, request, browserName }) => {
+test.describe('Baseline Management', () => {
+	test.skip('Establish All Performance Baselines', async ({
+		page,
+		context,
+		request,
+		browserName,
+	}) => {
 		test.setTimeout(120000) // 2 minutes for establishing all baselines
 
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
@@ -158,7 +166,7 @@ test.skip('Baseline Management', () => {
 		console.log('✅ All baselines established successfully!')
 	})
 
-	test('Manual Baseline Update Example', async ({ page, context, request, browserName }) => {
+	test.skip('Manual Baseline Update Example', async ({ page, context, request, browserName }) => {
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 

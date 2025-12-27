@@ -29,10 +29,9 @@ const config: PlaywrightTestConfig = {
 			threshold: 0.01,
 		},
 	},
-	// Run files in parallel, but tests within a file in sequence. This is important for certain
-	// tests that use shared system resources like the clipboard, which should all be kept in the
-	// same file.
-	fullyParallel: false,
+	// Run tests fully in parallel for faster execution.
+	// Clipboard tests are already skipped due to flakiness.
+	fullyParallel: true,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: false, // !!process.env.CI,
 	/* Retry on CI only */

@@ -80,8 +80,11 @@ export function convertFocusedShapeToTldrawShape(
 		case 'note': {
 			return convertNoteShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
-		case 'draw': {
+		case 'pen': {
 			return convertDrawShapeToTldrawShape(editor, focusedShape, { defaultShape })
+		}
+		case 'image': {
+			throw new Error('Image shapes cannot be created by agent via the create action')
 		}
 		case 'unknown': {
 			return convertUnknownShapeToTldrawShape(editor, focusedShape, { defaultShape })
@@ -90,6 +93,10 @@ export function convertFocusedShapeToTldrawShape(
 }
 
 export function convertSimpleIdToTldrawId(id: string): TLShapeId {
+	// If the ID already has the "shape:" prefix, return it as-is to avoid double-prefixing
+	if (id.startsWith('shape:')) {
+		return id as TLShapeId
+	}
 	return ('shape:' + id) as TLShapeId
 }
 
@@ -151,10 +158,13 @@ function convertTextShapeToTldrawShape(
 		scale = defaultTextShape.props.scale ?? 1
 	}
 
+	// If maxWidth is provided as a number, enable wrapping (autoSize = false)
+	// Otherwise (undefined or null), preserve existing autoSize behavior
+	// Check for undefined first to distinguish "not provided" from "explicitly null"
 	const autoSize =
-		focusedShape.wrap === undefined
-			? (defaultTextShape.props?.autoSize ?? true)
-			: !focusedShape.wrap
+		focusedShape.maxWidth !== undefined && focusedShape.maxWidth !== null
+			? false
+			: (defaultTextShape.props?.autoSize ?? true)
 	const font = defaultTextShape.props?.font ?? 'draw'
 
 	let richText
@@ -203,7 +213,10 @@ function convertTextShapeToTldrawShape(
 			color: asColor(focusedShape.color ?? defaultTextShape.props?.color ?? 'black'),
 			textAlign,
 			autoSize,
-			w: focusedShape.width ?? defaultTextShape.props?.w ?? 100,
+			w:
+				focusedShape.maxWidth !== undefined && focusedShape.maxWidth !== null
+					? focusedShape.maxWidth
+					: (defaultTextShape.props?.w ?? 100),
 			font,
 		},
 		meta: {
@@ -463,7 +476,7 @@ function convertGeoShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertFocusFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill) ?? 'none'
 	} else if (defaultGeoShape.props?.fill) {
 		fill = defaultGeoShape.props.fill
 	} else {
@@ -568,7 +581,7 @@ function convertDrawShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertFocusFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill) ?? 'none'
 	} else if (defaultDrawShape.props?.fill) {
 		fill = defaultDrawShape.props.fill
 	} else {
@@ -601,6 +614,8 @@ function convertDrawShapeToTldrawShape(
 				isClosed: defaultDrawShape.props?.isClosed ?? false,
 				isPen: defaultDrawShape.props?.isPen ?? false,
 				scale: defaultDrawShape.props?.scale ?? 1,
+				scaleX: defaultDrawShape.props?.scaleX ?? 1,
+				scaleY: defaultDrawShape.props?.scaleY ?? 1,
 				color: asColor(focusedShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill,
 			},
