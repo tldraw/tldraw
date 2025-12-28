@@ -51,34 +51,29 @@ The state persists across sessions when you use a `persistenceKey`. A document s
 
 ## What readonly mode blocks
 
-When readonly is enabled, the editor prevents all document mutations. These operations return early without making changes:
+When readonly is enabled, the editor prevents all document mutations.
 
-- **Shape operations**: `createShape`, `createShapes`, `deleteShapes`, `updateShape`, `groupShapes`, `ungroupShapes`
-- **Page operations**: `createPage`, `deletePage`, `renamePage`, `moveShapesToPage`
-- **Asset operations**: `createAssets`, `updateAssets`, `deleteAssets`
-- **Transform operations**: `flipShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `rotateShapes`, `resizeShape`
-- **Style operations**: `setStyleForSelectedShapes`, `setOpacityForSelectedShapes`, `setOpacityForNextShapes`
-- **Clipboard operations**: `cut`, and `paste` for external content
-- **History operations**: `undo`, `redo`
+| Category   | Blocked methods                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Shapes     | `createShape`, `deleteShapes`, `updateShape`, `groupShapes`, `ungroupShapes`                 |
+| Pages      | `createPage`, `deletePage`, `renamePage`, `moveShapesToPage`                                 |
+| Assets     | `createAssets`, `updateAssets`, `deleteAssets`                                               |
+| Transforms | `flipShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `rotateShapes`, `resizeShape` |
+| Styles     | `setStyleForSelectedShapes`, `setOpacityForSelectedShapes`, `setOpacityForNextShapes`        |
+| Clipboard  | `cut`, `paste` (for external content)                                                        |
 
-The toolbar automatically hides editing tools. Only the select tool, hand tool, and laser pointer remain visible.
+The toolbar automatically hides editing tools. Only the select tool, hand tool, and laser pointer remain visible. UI actions like undo and redo are also disabled in readonly mode.
 
 ## What readonly mode allows
 
-Navigation and viewing operations work normally:
-
-- **Camera control**: Panning, zooming, `zoomIn`, `zoomOut`, `zoomToFit`, `zoomToSelection`
-- **Selection**: Clicking shapes, brush selection, `selectAll`, `selectNone`
-- **Viewing**: Hovering shapes, inspecting properties
-- **Export**: `exportAs`, `copyAs` (exporting the document doesn't modify it)
-- **Page navigation**: Switching between pages
+Navigation and viewing operations work normally. You can pan, zoom, and use camera methods like `zoomIn`, `zoomOut`, `zoomToFit`, and `zoomToSelection`. Selection works too—clicking shapes, brush selection, `selectAll`, and `selectNone` all function as expected. You can hover over shapes to inspect them, switch between pages, and export the document using `exportAs` or `copyAs` since exporting doesn't modify anything.
 
 ## Using the useReadonly hook
 
 In React components, the `useReadonly` hook provides reactive access to the readonly state:
 
 ```tsx
-import { useReadonly, useEditor } from 'tldraw'
+import { useReadonly } from 'tldraw'
 
 function ReadonlyIndicator() {
 	const isReadonly = useReadonly()
@@ -95,12 +90,7 @@ The component re-renders automatically when readonly state changes.
 
 Actions have a `readonlyOk` property that determines whether they work in readonly mode. When an action has `readonlyOk: false` (the default), triggering it in readonly mode does nothing.
 
-Actions that work in readonly mode include:
-
-- Zoom controls: `zoom-in`, `zoom-out`, `zoom-to-fit`, `zoom-to-selection`
-- Selection: `select-all`, `select-none`, `copy`
-- Export: `export-as-svg`, `export-as-png`, `print`
-- Navigation: `back-to-content`, `change-page-prev`, `change-page-next`
+Built-in actions that work in readonly mode include zoom controls (`zoom-in`, `zoom-out`, `zoom-to-fit`, `zoom-to-selection`), selection actions (`select-all`, `select-none`, `copy`), export actions (`export-as-svg`, `export-as-png`, `print`), and navigation (`back-to-content`, `change-page-prev`, `change-page-next`).
 
 When defining custom actions, set `readonlyOk: true` if the action should work in readonly mode:
 
@@ -123,7 +113,7 @@ const overrides: TLUiOverrides = {
 
 ## Shapes that remain interactive
 
-Some shapes have interactive content that should work even when the document is readonly. Embed shapes—YouTube videos, Figma files, interactive maps—are a good example. The embed itself is locked in place, but users can still play videos or interact with the embedded content.
+Some shapes have interactive content that works even when the document is readonly. Embed shapes—YouTube videos, Figma files, interactive maps—are a good example. The embed itself is locked in place, but users can still play videos or interact with the embedded content.
 
 ShapeUtils can override `canEditInReadonly` to allow editing interactions on their shapes:
 
@@ -143,10 +133,7 @@ For programmatic use cases like migrations or admin tools, you can bypass the re
 
 ```typescript
 // This works even in readonly mode
-editor.putExternalContent(
-	{ type: 'files', files: [...], point: { x: 0, y: 0 } },
-	{ force: true }
-)
+editor.putExternalContent({ type: 'files', files: myFiles, point: { x: 0, y: 0 } }, { force: true })
 ```
 
 Not all methods support this option. Use it sparingly—readonly mode exists to prevent unintended changes.
@@ -166,4 +153,4 @@ Changes from other collaborators still appear—the document updates in real tim
 
 ## Related examples
 
-- **[Readonly](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/readonly)** - Set up a readonly editor that disables all editing functionality.
+- **[Read-only](/examples/configuration/readonly)** — Set up a readonly editor that disables all editing functionality.
