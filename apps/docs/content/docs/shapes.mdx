@@ -300,7 +300,7 @@ Check out our [rich text examples](/examples/rich-text-custom-extension) to see 
 
 ### Clipping
 
-Custom shapes can clip their children using the `getClipPath` and `shouldClipChild` methods. See our [custom clipping shape example](/examples/editor-api/custom-clipping-shape) for details.
+Custom shapes can clip their children so content outside the parent's boundary is hidden. Implement the `getClipPath` method to define the clipping polygon, and optionally `shouldClipChild` to control which children are clipped. See [Shape clipping](/sdk-features/shape-clipping) for the full API and examples.
 
 ### Migrations
 
