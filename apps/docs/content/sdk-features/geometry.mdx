@@ -16,7 +16,7 @@ readability: 8
 voice: 8
 completeness: 8
 accuracy: 8
-notes: "Clear structure covering geometry primitives, operations, and implementation patterns. Good code snippets and examples. API usage is accurate and matches source code. Consider adding more on geometry-snapping relationship."
+notes: 'Clear structure covering geometry primitives, operations, and implementation patterns. Good code snippets and examples. API usage is accurate and matches source code. Consider adding more on geometry-snapping relationship.'
 ---
 
 The geometry system provides mathematical representations of shapes for hit testing, bounds calculation, snapping, and collision detection. Every shape in tldraw has geometry that describes its outline, area, and spatial properties. When you brush a selection box across the canvas, click to select a shape, or snap an arrow to a shape's edge, the geometry system handles the underlying math. For the broader shape system, see [Shapes](/docs/shapes).
@@ -502,17 +502,6 @@ const transformed = geometry.transform(matrix)
 ```
 
 All operations on the transformed geometry apply the transformation automatically.
-
-## Key files
-
-The geometry primitives live in `packages/editor/src/lib/primitives/geometry/`. Each class has its own file:
-
-- `Geometry2d.ts` - Base class and TransformedGeometry2d
-- `Rectangle2d.ts`, `Circle2d.ts`, `Ellipse2d.ts`, `Polygon2d.ts`
-- `Polyline2d.ts`, `Edge2d.ts`, `Arc2d.ts`, `Stadium2d.ts`
-- `CubicBezier2d.ts`, `CubicSpline2d.ts`, `Point2d.ts`, `Group2d.ts`
-
-For snapping behavior, see `packages/editor/src/lib/editor/managers/SnapManager/`.
 
 ## Related examples
 

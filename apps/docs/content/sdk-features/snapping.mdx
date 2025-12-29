@@ -15,7 +15,7 @@ readability: 8
 voice: 7
 completeness: 8
 accuracy: 9
-notes: "Good technical coverage of snapping system. Bullet-with-bold-headers pattern appears multiple times (AI writing tell per VOICE.md). Could use simpler intro code before complex method calls."
+notes: 'Good technical coverage of snapping system. Bullet-with-bold-headers pattern appears multiple times (AI writing tell per VOICE.md). Could use simpler intro code before complex method calls.'
 ---
 
 When you move or resize shapes, tldraw can snap them to key geometry on nearby shapes. This helps users achieve precise alignment without manual measurement.
@@ -205,12 +205,6 @@ Two types of indicators exist:
 The manager automatically deduplicates gap indicators to reduce visual noise—when gap breadths overlap and one is larger than another, only the smaller gap displays because it provides more specific information.
 
 Indicators are cleared automatically when dragging stops or when you call `clearIndicators()`.
-
-## Key files
-
-- `/packages/editor/src/lib/editor/managers/SnapManager/SnapManager.ts` - Main coordinator
-- `/packages/editor/src/lib/editor/managers/SnapManager/BoundsSnaps.ts` - Bounds snapping logic
-- `/packages/editor/src/lib/editor/managers/SnapManager/HandleSnaps.ts` - Handle snapping logic
 
 ## Related examples
 

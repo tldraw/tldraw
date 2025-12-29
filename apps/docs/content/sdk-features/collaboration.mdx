@@ -17,7 +17,7 @@ readability: 8
 voice: 8
 completeness: 8
 accuracy: 9
-notes: "Good structure and flow. Removed unused import in custom shapes example. Could add bindingUtils to example."
+notes: 'Good structure and flow. Removed unused import in custom shapes example. Could add bindingUtils to example.'
 ---
 
 The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
@@ -289,15 +289,6 @@ return <Tldraw store={store} shapeUtils={[MyCustomShapeUtil]} />
 ```
 
 The shape utilities must be passed to both the sync hook (for schema registration) and the Tldraw component (for rendering).
-
-## Key files
-
-The sync system lives in these packages:
-
-- `packages/sync/src/useSync.ts` — The main `useSync` hook
-- `packages/sync/src/useSyncDemo.ts` — The `useSyncDemo` hook for the demo server
-- `packages/sync-core/src/lib/TLSyncClient.ts` — Client-side sync protocol implementation
-- `packages/sync-core/src/lib/TLSocketRoom.ts` — Server-side room management
 
 ## Related examples
 

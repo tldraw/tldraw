@@ -13,9 +13,14 @@ keywords:
 status: published
 date: 12/29/2025
 order: 35
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 9
+notes: Strong opening, clear structure. First code snippet is a fragment not a complete example. Consider adding a complete runnable example per VOICE.md guidelines.
 ---
 
-Tldraw's UI supports 50+ languages out of the box, including right-to-left languages like Arabic, Hebrew, and Farsi. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
+Tldraw's UI supports 46 languages out of the box, including right-to-left languages like Arabic, Hebrew, and Farsi. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
 
 ## Setting the locale
 
@@ -154,11 +159,11 @@ function LanguageSelector() {
 
 Each entry in `LANGUAGES` has a `locale` code and a `label` in that language's native script.
 
-The supported languages include: English, Spanish, French, German, Italian, Portuguese (Brazilian and European), Dutch, Russian, Polish, Czech, Danish, Finnish, Swedish, Hungarian, Norwegian, Romanian, Turkish, Ukrainian, Greek, Bulgarian, Croatian, Slovak, Slovenian, Estonian, Latvian, Lithuanian, Arabic, Hebrew, Farsi, Urdu, Kurdish, Hindi, Tamil, Telugu, Malayalam, Kannada, Bengali, Gujarati, Nepali, Thai, Khmer, Vietnamese, Indonesian, Malay, Japanese, Korean, Simplified Chinese, Traditional Chinese (Taiwan and Hong Kong), Catalan, Basque, and Galician.
+The supported languages include: English, Spanish, French, German, Italian, Portuguese (Brazilian and European), Dutch, Russian, Polish, Czech, Danish, Finnish, Swedish, Hungarian, Norwegian, Romanian, Turkish, Ukrainian, Greek, Croatian, Slovenian, Arabic, Hebrew, Farsi, Urdu, Hindi, Tamil, Telugu, Malayalam, Kannada, Bengali, Gujarati, Nepali, Marathi, Punjabi, Thai, Khmer, Vietnamese, Indonesian, Malay, Filipino, Somali, Japanese, Korean, Simplified Chinese, Traditional Chinese (Taiwan), Catalan, and Galician.
 
 ## Right-to-left support
 
-Languages like Arabic, Hebrew, Farsi, Urdu, and Kurdish automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction, mirroring layout and text alignment.
+Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction, mirroring layout and text alignment.
 
 When building custom UI components, use the `dir` property from the translation context:
 

@@ -16,7 +16,7 @@ readability: 8
 voice: 8
 completeness: 7
 accuracy: 9
-notes: "Strong doc. Needs: runnable first example, complete helpers list, clearer menu customization guidance. Minor: ~80 actions not 90."
+notes: 'Strong doc. Needs: runnable first example, complete helpers list, clearer menu customization guidance. Minor: ~80 actions not 90.'
 ---
 
 Actions are named operations that users can trigger from menus, keyboard shortcuts, or custom UI. Each action bundles an identifier, display metadata (label, icon, keyboard shortcut), and a handler function. The actions system gives you a single source of truth for operations like "undo", "group", or "export as PNG" that can be invoked from multiple places with consistent behavior.
@@ -270,11 +270,6 @@ actions['custom-action'] = {
 ```
 
 The source values include `'menu'`, `'context-menu'`, `'kbd'`, `'toolbar'`, `'quick-actions'`, `'zoom-menu'`, and others. This granularity helps you understand which UI patterns your users prefer.
-
-## Key files
-
-- [packages/tldraw/src/lib/ui/context/actions.tsx](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) — Action definitions and the `ActionsProvider` context
-- [packages/tldraw/src/lib/ui/hooks/useKeyboardShortcuts.ts](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useKeyboardShortcuts.ts) — Keyboard shortcut binding logic
 
 ## Related examples
 

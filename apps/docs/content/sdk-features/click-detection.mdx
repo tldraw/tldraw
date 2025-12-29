@@ -17,7 +17,7 @@ readability: 8
 voice: 8
 completeness: 9
 accuracy: 9
-notes: "Good technical depth. Converted bullet lists to tables for better voice compliance. Added link to options page."
+notes: 'Good technical depth. Converted bullet lists to tables for better voice compliance. Added link to options page.'
 ---
 
 In tldraw, the click detection system lets you respond to double, triple, and quadruple clicks. The `ClickManager` tracks consecutive pointer down events using a state machine, dispatching click events when timing and distance thresholds are met.
@@ -34,14 +34,14 @@ Two timeout durations control the detection speed. The first click uses `doubleC
 
 The click state machine progresses through these states:
 
-| State             | Description                                     |
-| ----------------- | ----------------------------------------------- |
-| `idle`            | No active click sequence                        |
-| `pendingDouble`   | First click registered, waiting for second      |
-| `pendingTriple`   | Second click registered, waiting for third      |
-| `pendingQuadruple`| Third click registered, waiting for fourth      |
-| `pendingOverflow` | Fourth click registered, waiting for fifth      |
-| `overflow`        | More than four clicks detected                  |
+| State              | Description                                |
+| ------------------ | ------------------------------------------ |
+| `idle`             | No active click sequence                   |
+| `pendingDouble`    | First click registered, waiting for second |
+| `pendingTriple`    | Second click registered, waiting for third |
+| `pendingQuadruple` | Third click registered, waiting for fourth |
+| `pendingOverflow`  | Fourth click registered, waiting for fifth |
+| `overflow`         | More than four clicks detected             |
 
 When a pointer down event arrives, the state advances to the next pending state and sets a timeout. If the timeout expires before the next click, the manager dispatches a settle event for the current click level and returns to idle. If another pointer down arrives before the timeout, the state advances and a click event is dispatched immediately.
 
@@ -53,11 +53,11 @@ Consecutive clicks must occur within a maximum distance of 40 pixels (screen spa
 
 Click events are dispatched with a `phase` property indicating when in the sequence the event fired:
 
-| Phase    | When it fires                                              |
-| -------- | ---------------------------------------------------------- |
+| Phase    | When it fires                                                  |
+| -------- | -------------------------------------------------------------- |
 | `down`   | Immediately when a multi-click is detected during pointer down |
-| `up`     | During pointer up for multi-clicks that are still pending  |
-| `settle` | When the timeout expires without further clicks            |
+| `up`     | During pointer up for multi-clicks that are still pending      |
+| `settle` | When the timeout expires without further clicks                |
 
 The phase system lets tools and shapes respond at different points in the click sequence. For example, the hand tool waits for the `settle` phase before zooming in—this avoids triggering a zoom if the user is about to triple-click.
 
@@ -138,15 +138,10 @@ type TLClickEventInfo = {
 
 Click timing is configured through the editor's [options](/docs/options):
 
-| Option                  | Default | Description                                       |
-| ----------------------- | ------- | ------------------------------------------------- |
+| Option                  | Default | Description                                              |
+| ----------------------- | ------- | -------------------------------------------------------- |
 | `doubleClickDurationMs` | 450ms   | Time window for the first click to become a double-click |
-| `multiClickDurationMs`  | 200ms   | Time window for subsequent clicks in the sequence |
-
-## Key files
-
-- `/packages/editor/src/lib/editor/managers/ClickManager/ClickManager.ts` — The click detection state machine
-- `/packages/editor/src/lib/editor/types/event-types.ts` — Event type definitions including `TLClickEventInfo`
+| `multiClickDurationMs`  | 200ms   | Time window for subsequent clicks in the sequence        |
 
 ## Related examples
 

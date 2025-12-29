@@ -15,7 +15,7 @@ readability: 8
 voice: 7
 completeness: 8
 accuracy: 9
-notes: "Uses bolded bullet pattern (AI tell). First code example should be complete. getBindingsInvolvingShape type param is optional."
+notes: 'Uses bolded bullet pattern (AI tell). First code example should be complete. getBindingsInvolvingShape type param is optional.'
 ---
 
 The bindings system creates persistent relationships between shapes. A binding is a record that links a "from" shape to a "to" shape with typed metadata, enabling features like arrows that stay attached to rectangles when moved, or notes that follow shapes around the canvas.
@@ -200,12 +200,6 @@ Pass your BindingUtil to the editor via the `bindingUtils` prop:
 ```tsx
 <Tldraw bindingUtils={[MyBindingUtil]} />
 ```
-
-## Key files
-
-- [`ArrowBindingUtil.ts`](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/bindings/arrow/ArrowBindingUtil.ts) - Complete binding implementation with reparenting, isolation handling, and anchor management
-- [`BindingUtil.ts`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/editor/bindings/BindingUtil.ts) - Base class defining all lifecycle hooks
-- [`TLBaseBinding.ts`](https://github.com/tldraw/tldraw/blob/main/packages/tlschema/src/bindings/TLBaseBinding.ts) - Binding record type definition
 
 ## Related examples
 
