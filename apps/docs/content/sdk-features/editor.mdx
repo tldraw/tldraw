@@ -390,7 +390,7 @@ See [Input handling](/sdk-features/input-handling) for input details.
 
 ## Instance state
 
-The editor maintains per-instance state in a [TLInstance](?) record. This includes which page is current, whether the editor is in readonly mode, the current tool, and UI state.
+The editor maintains per-instance state in a [TLInstance](?) record. This includes which page is current, whether the editor is in readonly mode, the current tool, tool lock state, and UI state.
 
 ```ts
 // Get instance state
@@ -398,7 +398,12 @@ const instance = editor.getInstanceState()
 
 // Update instance state
 editor.updateInstanceState({ isReadonly: true })
+
+// Enable tool lock (keeps current tool active after creating shapes)
+editor.updateInstanceState({ isToolLocked: true })
 ```
+
+See [Tools](/sdk-features/tools#tool-lock) for more on tool lock.
 
 Each page also has instance state ([TLInstancePageState](?)) tracking selection, hovered shape, and editing shape for that page:
 
