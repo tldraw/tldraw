@@ -17,10 +17,10 @@ readability: 8
 voice: 8
 completeness: 8
 accuracy: 8
-notes: "Well-structured coverage of signals API. Good code examples with correct API usage. Debugging section could show actual console output. Links to examples work. All API references verified against source."
+notes: 'Well-structured coverage of signals API. Good code examples with correct API usage. Debugging section could show actual console output. Links to examples work. All API references verified against source.'
 ---
 
-Tldraw uses a signals-based reactive system for state management. Signals provide automatic dependency tracking, lazy evaluation, and efficient updates. When state changes, only the parts of your application that depend on that state will update.
+The tldraw SDK uses a signals-based reactive system for state management. Signals provide automatic dependency tracking, lazy evaluation, and efficient updates. When state changes, only the parts of your application that depend on that state will update.
 
 The editor exposes many of its internal values as signals. Methods like `editor.getSelectedShapeIds()` and `editor.getCurrentPageShapes()` return reactive values that update automatically when the underlying state changes. The React bindings connect these signals to components, so your UI stays in sync without manual subscription management.
 
@@ -191,11 +191,9 @@ You can also compute a value inline with a dependency array:
 
 ```tsx
 function ShapeInfo({ editor }) {
-	const selectedCount = useValue(
-		'selected count',
-		() => editor.getSelectedShapeIds().length,
-		[editor]
-	)
+	const selectedCount = useValue('selected count', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
 	return <div>{selectedCount} shapes selected</div>
 }
 ```
@@ -357,16 +355,16 @@ All signals have a `name` property (the first argument when creating them) that 
 
 ### @tldraw/state-react
 
-| Export                               | Description                                           |
-| ------------------------------------ | ----------------------------------------------------- |
-| `useValue(signal)`                   | Subscribe to a signal, returns its value              |
-| `useValue(name, fn, deps)`           | Compute and subscribe to a derived value              |
-| `useAtom(name, initialValue)`        | Create a component-local atom                         |
-| `useComputed(name, fn, deps)`        | Create a component-local computed                     |
-| `useReactor(name, fn, deps)`         | Effect throttled to animation frames                  |
-| `useQuickReactor(name, fn, deps)`    | Effect that runs immediately                          |
-| `useStateTracking(name, renderFn)`   | Manual signal tracking for render functions           |
-| `track(Component)`                   | HOC that tracks signal access during render           |
+| Export                             | Description                                 |
+| ---------------------------------- | ------------------------------------------- |
+| `useValue(signal)`                 | Subscribe to a signal, returns its value    |
+| `useValue(name, fn, deps)`         | Compute and subscribe to a derived value    |
+| `useAtom(name, initialValue)`      | Create a component-local atom               |
+| `useComputed(name, fn, deps)`      | Create a component-local computed           |
+| `useReactor(name, fn, deps)`       | Effect throttled to animation frames        |
+| `useQuickReactor(name, fn, deps)`  | Effect that runs immediately                |
+| `useStateTracking(name, renderFn)` | Manual signal tracking for render functions |
+| `track(Component)`                 | HOC that tracks signal access during render |
 
 ## Related examples
 

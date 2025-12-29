@@ -13,11 +13,11 @@ keywords:
 status: published
 date: 12/29/2025
 order: 34
-readability: -
-voice: -
-completeness: -
-accuracy: -
-notes: ""
+readability: 8
+voice: 8
+completeness: 7
+accuracy: 8
+notes: "Good structure and flow. Fixed usePrefersReducedMotion description and debugFlags import. Could add links to examples and expand keyboard nav."
 ---
 
 Tldraw includes accessibility features that make the canvas usable with keyboards and assistive technologies. The SDK provides screen reader announcements for shape selection, keyboard navigation between shapes, reduced motion support, and hooks for custom shapes to provide descriptive text.
@@ -141,8 +141,8 @@ function AnimatedIndicator() {
 
 The hook returns `true` when:
 
-- The user has set `animationSpeed` to 0 in preferences
-- The operating system's reduced motion preference is enabled (and `animationSpeed` hasn't been explicitly set)
+- The `animationSpeed` preference is 0 (this is the default when the OS prefers reduced motion)
+- When used outside an editor context, the operating system's reduced motion preference is enabled
 
 Users can toggle reduced motion through the accessibility menu: Help > Accessibility > Reduce motion.
 
@@ -207,7 +207,7 @@ When building custom shapes, consider these accessibility guidelines:
 Enable the `a11y` debug flag to log accessibility announcements to the console:
 
 ```tsx
-import { debugFlags } from '@tldraw/editor'
+import { debugFlags } from 'tldraw'
 
 debugFlags.a11y.set(true)
 ```

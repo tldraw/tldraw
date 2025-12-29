@@ -1,0 +1,214 @@
+---
+title: Internationalization
+created_at: 12/29/2025
+updated_at: 12/29/2025
+keywords:
+  - i18n
+  - internationalization
+  - localization
+  - translations
+  - language
+  - locale
+  - rtl
+status: published
+date: 12/29/2025
+order: 35
+---
+
+Tldraw's UI supports 50+ languages out of the box, including right-to-left languages like Arabic, Hebrew, and Farsi. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
+
+## Setting the locale
+
+The user's locale is stored in [user preferences](/sdk-features/user-preferences). By default, tldraw detects the browser's language and selects the closest match from supported languages.
+
+```ts
+// Change the locale
+editor.user.updateUserPreferences({ locale: 'fr' })
+
+// Get the current locale
+const locale = editor.user.getLocale()
+```
+
+The `locale` value uses standard language codes: `'en'`, `'fr'`, `'de'`, `'ja'`, `'zh-cn'`, `'ar'`, and so on.
+
+### Automatic detection
+
+When no locale is set, tldraw uses `getDefaultTranslationLocale()` to detect the user's preferred language from the browser:
+
+```ts
+import { getDefaultTranslationLocale } from '@tldraw/tlschema'
+
+// Returns 'fr', 'en', 'zh-cn', etc. based on browser settings
+const locale = getDefaultTranslationLocale()
+```
+
+The detection algorithm:
+
+1. Reads the browser's `navigator.languages` array
+2. Tries an exact match against supported languages
+3. Falls back to language-only match (e.g., `'fr-CA'` → `'fr'`)
+4. Applies region defaults for languages like Chinese (`'zh'` → `'zh-cn'`) and Portuguese (`'pt'` → `'pt-br'`)
+5. Defaults to `'en'` if no match is found
+
+## Using translations in components
+
+The `useTranslation` hook returns a function for looking up translation strings:
+
+```tsx
+import { useTranslation } from 'tldraw'
+
+function CopyButton() {
+	const msg = useTranslation()
+	return <button>{msg('action.copy')}</button>
+}
+```
+
+For access to the full translation object including locale and text direction:
+
+```tsx
+import { useCurrentTranslation } from 'tldraw'
+
+function LocaleInfo() {
+	const translation = useCurrentTranslation()
+	return (
+		<div dir={translation.dir}>
+			<p>Locale: {translation.locale}</p>
+			<p>Label: {translation.label}</p>
+		</div>
+	)
+}
+```
+
+The `TLUiTranslation` object contains:
+
+- `locale` — The language code (e.g., `'fr'`)
+- `label` — The display name (e.g., `'Français'`)
+- `messages` — All translation strings
+- `dir` — Text direction: `'ltr'` or `'rtl'`
+
+## Overriding translations
+
+Pass translation overrides through the `overrides` prop on `Tldraw`:
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+function App() {
+	return (
+		<Tldraw
+			overrides={{
+				translations: {
+					en: {
+						'action.copy': 'Copy to clipboard',
+						'action.paste': 'Paste from clipboard',
+					},
+					fr: {
+						'action.copy': 'Copier dans le presse-papiers',
+					},
+				},
+			}}
+		/>
+	)
+}
+```
+
+Overrides are merged with the base translations for each language. English serves as the fallback—any key missing from the target language uses the English string.
+
+### Translation keys
+
+Translation keys follow a hierarchical naming convention. Common prefixes include:
+
+- `action.*` — User actions like copy, paste, delete
+- `tool.*` — Tool names like select, draw, eraser
+- `menu.*` — Menu labels
+- `style-panel.*` — Style panel UI
+- `a11y.*` — Accessibility announcements
+
+The `TLUiTranslationKey` type provides autocomplete for all available keys:
+
+```ts
+import type { TLUiTranslationKey } from 'tldraw'
+
+const key: TLUiTranslationKey = 'action.copy'
+```
+
+## Supported languages
+
+Import `LANGUAGES` from `@tldraw/tlschema` for the complete list of supported languages:
+
+```tsx
+import { LANGUAGES } from '@tldraw/tlschema'
+
+function LanguageSelector() {
+	return (
+		<select>
+			{LANGUAGES.map(({ locale, label }) => (
+				<option key={locale} value={locale}>
+					{label}
+				</option>
+			))}
+		</select>
+	)
+}
+```
+
+Each entry in `LANGUAGES` has a `locale` code and a `label` in that language's native script.
+
+The supported languages include: English, Spanish, French, German, Italian, Portuguese (Brazilian and European), Dutch, Russian, Polish, Czech, Danish, Finnish, Swedish, Hungarian, Norwegian, Romanian, Turkish, Ukrainian, Greek, Bulgarian, Croatian, Slovak, Slovenian, Estonian, Latvian, Lithuanian, Arabic, Hebrew, Farsi, Urdu, Kurdish, Hindi, Tamil, Telugu, Malayalam, Kannada, Bengali, Gujarati, Nepali, Thai, Khmer, Vietnamese, Indonesian, Malay, Japanese, Korean, Simplified Chinese, Traditional Chinese (Taiwan and Hong Kong), Catalan, Basque, and Galician.
+
+## Right-to-left support
+
+Languages like Arabic, Hebrew, Farsi, Urdu, and Kurdish automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction, mirroring layout and text alignment.
+
+When building custom UI components, use the `dir` property from the translation context:
+
+```tsx
+import { useCurrentTranslation } from 'tldraw'
+
+function CustomPanel() {
+	const { dir } = useCurrentTranslation()
+	return <aside dir={dir}>{/* Panel content */}</aside>
+}
+```
+
+## Building a language picker
+
+Here's a language picker that updates the user's locale preference:
+
+```tsx
+import { useEditor, useValue } from 'tldraw'
+import { LANGUAGES } from '@tldraw/tlschema'
+
+function LanguagePicker() {
+	const editor = useEditor()
+	const currentLocale = useValue('locale', () => editor.user.getLocale(), [editor])
+
+	return (
+		<select
+			value={currentLocale}
+			onChange={(e) => {
+				editor.user.updateUserPreferences({ locale: e.target.value })
+			}}
+		>
+			{LANGUAGES.map(({ locale, label }) => (
+				<option key={locale} value={locale}>
+					{label}
+				</option>
+			))}
+		</select>
+	)
+}
+```
+
+The language change applies immediately without a page reload. The preference persists to localStorage and synchronizes across browser tabs.
+
+## Translation loading
+
+Translations load asynchronously when the locale changes. The system:
+
+1. Fetches the translation JSON file for the selected locale
+2. Merges it with English translations (ensuring all keys have values)
+3. Applies any custom overrides
+4. Updates the translation context
+
+During loading, the UI uses the previous translations to avoid flicker. If loading fails, English remains as the fallback.
