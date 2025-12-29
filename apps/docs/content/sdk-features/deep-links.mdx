@@ -11,20 +11,30 @@ keywords:
 status: published
 date: 12/20/2025
 order: 9
-readability: 8
-voice: 7
-completeness: 7
-accuracy: 8
-notes: "Good structure but lacks first runnable example. Opening uses 'enabling' (gerund). Consider mentioning 500ms default debounce."
 ---
 
-The deep links system serializes editor state into URL-safe strings, enabling users to share links that open the editor at specific locations. Deep links can target individual shapes, viewport positions, or entire pages, making it easy to share and navigate to precise locations within a document.
+Deep links serialize editor state into URL-safe strings. They let users share links that open the editor at specific locations: individual shapes, viewport positions, or entire pages.
 
-The system provides three core methods: `createDeepLink()` generates URLs with encoded state, `navigateToDeepLink()` moves the editor to a specified location, and `registerDeepLinkListener()` automatically updates URLs as users navigate. Deep links encode all necessary information in a compact, URL-safe format using a single query parameter.
+The simplest way to enable deep links is with the `deepLinks` prop:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="example" deepLinks />
+		</div>
+	)
+}
+```
+
+With `deepLinks` enabled, the URL updates as users navigate. Anyone opening the URL sees the same page and viewport position.
+
+For more control, use the editor methods directly: `createDeepLink()` generates URLs with encoded state, `navigateToDeepLink()` moves the editor to a specified location, and `registerDeepLinkListener()` updates URLs automatically as users navigate.
 
 ## Deep link types
-
-The system supports three types of deep links:
 
 | Type       | Purpose                      | Encoded prefix | Example use case                  |
 | ---------- | ---------------------------- | -------------- | --------------------------------- |
@@ -32,17 +42,17 @@ The system supports three types of deep links:
 | `viewport` | Links to a bounding box view | `v`            | Share current viewport position   |
 | `page`     | Links to a specific page     | `p`            | Navigate to a particular page     |
 
-Each type serves different navigation needs. Shape links focus the editor on specific elements, viewport links preserve the exact camera position and zoom level, and page links navigate to particular pages in multi-page documents.
+Shape links focus the editor on specific elements. Viewport links preserve the exact camera position and zoom level. Page links navigate to particular pages in multi-page documents.
 
 ## How it works
 
-Deep links are encoded as compact strings with a single-character prefix identifying the type. The prefix is followed by encoded data specific to that type:
+Deep links are encoded as compact strings with a single-character prefix identifying the type:
 
 - Shape links (`s`) encode shape IDs separated by dots: `s<id1>.<id2>.<id3>`
 - Viewport links (`v`) encode bounding box coordinates: `v<x>.<y>.<w>.<h>` with optional page ID
 - Page links (`p`) encode a page ID: `p<pageId>`
 
-All IDs are URL-encoded to handle special characters. The system uses a default query parameter named `d`, but this can be customized. When navigating to a shapes deep link, the editor switches to the page containing the most shapes and zooms to fit them. Viewport links set the camera to the exact specified bounds.
+All IDs are URL-encoded to handle special characters. The default query parameter is `d`, but you can customize this. When navigating to a shapes deep link, the editor switches to the page containing the most shapes and zooms to fit them. Viewport links set the camera to the exact specified bounds.
 
 ## API methods
 
@@ -85,13 +95,13 @@ editor.navigateToDeepLink({
 
 ### registerDeepLinkListener
 
-Sets up automatic URL updates as the viewport changes. The listener debounces updates to avoid excessive history entries:
+Sets up automatic URL updates as the viewport changes. The listener debounces updates (500ms by default) to avoid excessive history entries:
 
 ```typescript
 // Use default behavior (updates window.location)
 const unlisten = editor.registerDeepLinkListener()
 
-// Custom change handler
+// Custom change handler with longer debounce
 const unlisten = editor.registerDeepLinkListener({
 	onChange(url) {
 		window.history.replaceState({}, document.title, url.toString())
@@ -103,7 +113,7 @@ const unlisten = editor.registerDeepLinkListener({
 unlisten()
 ```
 
-The listener can also be enabled via the `deepLinks` prop on the Tldraw component instead of calling this method directly.
+You can also enable this via the `deepLinks` prop on the Tldraw component instead of calling this method directly.
 
 ## Related examples
 

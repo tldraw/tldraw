@@ -11,169 +11,115 @@ keywords:
 status: published
 date: 12/20/2025
 order: 29
-readability: 7
-voice: 7
-completeness: 7
-accuracy: 6
-notes: "TickManager and EdgeScrollManager code snippets are simplified from actual implementation. Missing info on editor.on('tick') subscription pattern."
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 9
+notes: 'Well-structured with accurate code. Minor: bolded list in internal section could be prose per VOICE.md.'
 ---
 
-The tick system provides a frame-synchronized update loop for the editor through the `TickManager`. It emits `tick` events at the browser's native refresh rate using `requestAnimationFrame`, enabling smooth animations, edge scrolling during drag operations, and time-based state updates. Tools can implement the `onTick` handler to receive continuous updates with precise elapsed time information.
+The tick system provides a frame-synchronized update loop for the editor. The editor emits `tick` events on every animation frame using `requestAnimationFrame`, passing the elapsed time since the last frame. This enables smooth animations, edge scrolling during drag operations, and time-based state updates.
 
-The tick system bridges the gap between user interactions and frame-based updates. While pointer and keyboard events fire in response to user input, tick events fire on every animation frame, providing a consistent timing mechanism for operations that need to update smoothly over time.
+While pointer and keyboard events fire in response to user input, tick events fire continuously. Use them when you need updates that run every frame regardless of user interaction.
 
-## How the TickManager works
+## Subscribing to tick events
 
-The `TickManager` class manages the animation frame loop for the editor. It starts automatically when the editor initializes and runs continuously until the editor is disposed.
+The most common way to use ticks is by subscribing to the `tick` event on the editor. The callback receives the elapsed time in milliseconds since the last frame:
 
-```typescript
-export class TickManager {
-	constructor(public editor: Editor) {
-		this.start()
-	}
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-	start() {
-		this.isPaused = false
-		this.cancelRaf = throttleToNextFrame(this.tick)
-		this.now = Date.now()
-	}
+export default function TickExample() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					const handleTick = (elapsed: number) => {
+						// elapsed is typically ~16ms at 60fps
+						updateAnimation(elapsed)
+					}
 
-	tick() {
-		if (this.isPaused) return
+					editor.on('tick', handleTick)
 
-		const now = Date.now()
-		const elapsed = now - this.now
-		this.now = now
-
-		this.editor.inputs.updatePointerVelocity(elapsed)
-		this.editor.emit('frame', elapsed)
-		this.editor.emit('tick', elapsed)
-		this.cancelRaf = throttleToNextFrame(this.tick)
-	}
+					// Clean up when done
+					return () => editor.off('tick', handleTick)
+				}}
+			/>
+		</div>
+	)
 }
 ```
 
-The manager tracks elapsed time between frames by comparing timestamps. This elapsed time is passed to all tick event handlers, allowing them to scale their updates based on the actual frame duration rather than assuming a fixed framerate.
+Remember to unsubscribe when your component unmounts or when you no longer need tick updates. The elapsed time lets you create frame-rate-independent animations by scaling movement based on actual time passed rather than assuming a fixed framerate.
 
-## Tick events in the state tree
+## Tick events in tools
 
-When the `TickManager` emits a tick event, the editor dispatches it through the root state node, which propagates it down the active tool hierarchy. Each active state node can handle the tick event:
-
-```typescript
-// In Editor.ts
-this.on('tick', (elapsed) => {
-	if (elapsed > 0) {
-		this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
-	}
-	this.scribbles.tick(elapsed)
-})
-```
-
-Tools implement the `onTick` handler to receive these events:
+When building custom tools using the state machine pattern, you can handle tick events by implementing the `onTick` method on your `StateNode`. The editor dispatches tick events through the state tree, so your active tool states receive them automatically:
 
 ```typescript
-export interface TLTickEventInfo {
-	type: 'misc'
-	name: 'tick'
-	elapsed: number
-}
+import { StateNode, TLTickEventInfo } from '@tldraw/editor'
 
-export type TLTickEvent = (info: TLTickEventInfo) => void
+export class MyDraggingState extends StateNode {
+	static override id = 'dragging'
 
-export interface TLEventHandlers {
-	// ... other handlers
-	onTick: TLTickEvent
-}
-```
-
-## Implementing onTick in tools
-
-Tools that need continuous frame-based updates override the `onTick` method in their state node. The most common use case is edge scrolling during drag operations:
-
-```typescript
-// From Translating.ts
-export class Translating extends StateNode {
 	override onTick({ elapsed }: TLTickEventInfo) {
-		const { editor } = this
-		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+		// Update something every frame while this state is active
+		this.updateDragPosition(elapsed)
+	}
+
+	private updateDragPosition(elapsed: number) {
+		// Your frame-based logic here
 	}
 }
 ```
 
-The `EdgeScrollManager` uses the elapsed time to smoothly accelerate the scroll speed when the pointer is near screen edges:
+The `TLTickEventInfo` contains the elapsed time in milliseconds. Use this for time-based calculations rather than assuming a fixed frame duration.
+
+## Edge scrolling example
+
+The most common use of `onTick` in tools is edge scrolling during drag operations. When you drag near the edge of the viewport, the canvas scrolls automatically. Here's how tldraw's built-in `Translating` state handles it:
 
 ```typescript
-updateEdgeScrolling(elapsed: number) {
-  const edgeScrollProximityFactor = this.getEdgeScroll()
+import { StateNode, TLTickEventInfo } from '@tldraw/editor'
 
-  if (edgeScrollProximityFactor.x !== 0 || edgeScrollProximityFactor.y !== 0) {
-    this._edgeScrollDuration += elapsed
+export class Translating extends StateNode {
+	static override id = 'translating'
 
-    if (this._edgeScrollDuration > editor.options.edgeScrollDelay) {
-      const eased = EASINGS.easeInCubic(
-        Math.min(1, this._edgeScrollDuration /
-          (editor.options.edgeScrollDelay + editor.options.edgeScrollEaseDuration))
-      )
-
-      this.moveCameraWhenCloseToEdge({
-        x: edgeScrollProximityFactor.x * eased,
-        y: edgeScrollProximityFactor.y * eased,
-      })
-    }
-  }
+	override onTick({ elapsed }: TLTickEventInfo) {
+		this.editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+	}
 }
 ```
 
-## Scribbles and tick updates
+The `EdgeScrollManager` accumulates elapsed time to create a smooth acceleration effect. After a short delay, scrolling begins slowly and speeds up the longer you hold near the edge. This creates a natural feel where small adjustments are easy but you can also scroll quickly when needed.
 
-The `ScribbleManager` also subscribes to tick events to animate scribble trails (the visual feedback during brush selection and laser tool usage):
+For more details on edge scrolling, see the [edge scrolling](/docs/edge-scrolling) documentation.
 
-```typescript
-// Simplified for clarity - see ScribbleManager.ts for full implementation
-tick(elapsed: number) {
-  if (this.scribbleItems.size === 0) return
+## How the editor uses ticks internally
 
-  this.scribbleItems.forEach((item) => {
-    const { next, prev, delayRemaining, scribble } = item
-    item.timeoutMs += elapsed
+The editor uses tick events for several internal features:
 
-    if (scribble.state === 'active') {
-      // Add new points and shrink from the tail
-      if (next && next !== prev) {
-        scribble.points.push(next)
-        if (delayRemaining === 0 && scribble.points.length > 8) {
-          scribble.points.shift()
-        }
-      }
-    } else if (scribble.state === 'stopping') {
-      // Gradually shrink the scribble
-      if (scribble.points.length === 1) {
-        this.scribbleItems.delete(item.id)
-      } else {
-        scribble.size = Math.max(1, scribble.size * (1 - scribble.shrink))
-        scribble.points.shift()
-      }
-    }
-  })
-}
-```
+**Scribble animations**: The `ScribbleManager` animates the visual trails you see during brush selection and laser pointer usage. On each tick, it adds new points to active scribbles and shrinks them from the tail, creating a fading trail effect.
 
-## Use cases for tick events
+**Pointer velocity**: The editor tracks pointer velocity by measuring movement between ticks. This data is available via `editor.inputs.getPointerVelocity()` and is used for features like gesture detection.
 
-Tick events are appropriate when you need:
+**Camera animations**: Methods like `editor.zoomIn()` and `editor.resetZoom()` animate smoothly by subscribing to tick events for the duration of the animation, then unsubscribing when complete.
 
-1. **Edge scrolling** - Continuously update the camera position when the pointer is near screen edges during drag operations
-2. **Scribble animations** - Animate visual feedback trails that grow and shrink over time
-3. **Pointer velocity tracking** - Calculate pointer movement speed for gesture detection
-4. **Time-based state transitions** - Implement delays or timeouts that should respect frame timing
-5. **Smooth interpolation** - Gradually transition values over multiple frames
+## When to use tick events
 
-Tick events should not be used for:
+Tick events are appropriate when you need continuous updates that run every frame:
 
-- Responding to user input (use pointer, keyboard, or wheel events instead)
-- One-time calculations (use event handlers or computed values)
-- State changes that don't need frame-by-frame updates
+- Animations that should run smoothly regardless of user input
+- Edge scrolling during drag operations
+- Physics simulations or particle systems
+- Smooth interpolation between values over time
+- Debouncing based on frame counts rather than timeouts
 
-## Related examples
+Don't use tick events for responding to user input. Pointer, keyboard, and wheel events are better for that since they fire immediately when the user acts. Tick events add a frame of latency.
 
-- **[Snowstorm](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/snowstorm)** - Uses tick events to animate falling snowflakes on the canvas.
+## Related
+
+- [Events](/docs/events) - Overview of all editor events including tick
+- [Edge scrolling](/docs/edge-scrolling) - Detailed documentation on edge scrolling behavior
+- [Snowstorm example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/snowstorm) - Uses tick events to animate falling snowflakes

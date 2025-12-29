@@ -14,20 +14,20 @@ keywords:
 status: published
 date: 12/20/2025
 order: 19
-readability: 8
-voice: 7
+readability: 9
+voice: 8
 completeness: 8
 accuracy: 9
-notes: "Comprehensive coverage of rich text with accurate API references. Voice slightly passive in places. Code examples are correct and match actual implementation. Some formulaic transitions but overall good."
+notes: 'Well-structured with clear explanations and accurate code examples. Voice is active and direct. Code snippets use correct APIs and imports. Good use of tables for extension points.'
 ---
 
-Rich text enables formatted text content within tldraw shapes. The system provides inline formatting like bold, italic, code, and highlighting, plus structural features like lists and links. Text, note, geo, and arrow label shapes all support rich text editing through an integrated text editor.
+Rich text lets you add formatted text to tldraw shapes. You get inline formatting like bold, italic, code, and highlighting, plus structural features like lists and links. Text, note, geo, and arrow label shapes all support rich text editing.
 
-The implementation uses TipTap, a React wrapper around ProseMirror, as the rich text engine. TipTap provides a document-based content model where text exists as structured JSON rather than plain strings. This approach enables reliable formatting operations, custom extensions, and consistent serialization across different contexts.
+Under the hood, tldraw uses TipTap (a React wrapper around ProseMirror) as the rich text engine. TipTap stores text as structured JSON rather than plain strings, which enables reliable formatting operations, custom extensions, and consistent serialization.
 
 ## How it works
 
-Rich text in tldraw follows a document structure where content is represented as a JSON tree. The root document contains paragraphs, and paragraphs contain text nodes with optional formatting marks. This structure aligns with TipTap's document model and provides a foundation for extensibility.
+Rich text content is represented as a JSON tree. The root document contains paragraphs, and paragraphs contain text nodes with optional formatting marks. This structure aligns with TipTap's document model and makes it easy to extend.
 
 ### Document structure
 
@@ -52,20 +52,20 @@ const richText: TLRichText = {
 }
 ```
 
-The `type` field identifies the node kind. The `content` array holds child nodes. Text nodes include a `marks` array that contains formatting information. This nested structure allows arbitrary combinations of formatting and content organization.
+The `type` field identifies the node kind. The `content` array holds child nodes. Text nodes include a `marks` array for formatting information. You can combine formatting marks in any way you need.
 
 ### Converting between formats
 
-The `toRichText` helper converts plain text strings to rich text documents. Each line becomes a separate paragraph, preserving the original text structure.
+Use `toRichText` to convert plain text strings to rich text documents. Each line becomes a separate paragraph:
 
 ```typescript
-import { toRichText } from '@tldraw/editor'
+import { toRichText } from 'tldraw'
 
 const richText = toRichText('First line\nSecond line')
 // Creates two paragraphs
 ```
 
-To extract plain text from a rich text document, use `renderPlaintextFromRichText`. This strips all formatting and returns the text content with line breaks preserved.
+To extract plain text from a rich text document, use `renderPlaintextFromRichText`. It strips all formatting and preserves line breaks:
 
 ```typescript
 import { renderPlaintextFromRichText } from 'tldraw'
@@ -74,7 +74,7 @@ const text = renderPlaintextFromRichText(editor, shape.props.richText)
 // Returns: "First line\nSecond line"
 ```
 
-For HTML output, `renderHtmlFromRichText` generates formatted HTML that preserves all styling and structure. This is useful for rendering rich text in non-editor contexts or exporting content.
+For HTML output, use `renderHtmlFromRichText`. It preserves all styling and structure, which is useful for rendering rich text outside the editor or exporting content:
 
 ```typescript
 import { renderHtmlFromRichText } from 'tldraw'
@@ -85,11 +85,11 @@ const html = renderHtmlFromRichText(editor, shape.props.richText)
 
 ## TipTap integration
 
-TipTap provides the rich text editing experience. The editor appears when users double-click text shapes or press Enter while a text shape is selected. The integration handles focus management, keyboard shortcuts, and formatting commands automatically.
+TipTap handles the rich text editing experience. The editor appears when users double-click text shapes or press Enter while a text shape is selected. It manages focus, keyboard shortcuts, and formatting commands automatically.
 
 ### Default extensions
 
-The `tipTapDefaultExtensions` array includes TipTap's StarterKit plus additional customizations for tldraw's needs. The StarterKit provides basic formatting like bold, italic, and lists. Additional extensions add code highlighting and custom keyboard behavior.
+The `tipTapDefaultExtensions` array includes TipTap's StarterKit plus customizations for tldraw. The StarterKit provides basic formatting like bold, italic, and lists. Additional extensions add code highlighting and custom keyboard behavior.
 
 ```typescript
 export const tipTapDefaultExtensions: Extensions = [
@@ -108,78 +108,108 @@ export const tipTapDefaultExtensions: Extensions = [
 ]
 ```
 
-The configuration disables blockquotes, code blocks, and horizontal rules to keep the interface focused on inline formatting. Links are configured to not open on click during editing, preventing accidental navigation. Text direction is set to automatic, allowing proper rendering of right-to-left languages.
+This configuration disables blockquotes, code blocks, and horizontal rules to keep the interface focused on inline formatting. Links don't open on click during editing, which prevents accidental navigation. Text direction is set to automatic for right-to-left language support.
 
 ### Custom extensions
 
-Add custom TipTap extensions through the `textOptions` prop on the Tldraw component. This allows extending the rich text editor with new formatting options, custom keyboard shortcuts, or specialized behavior.
+You can add custom TipTap extensions through the `textOptions` prop on the Tldraw component. This lets you add new formatting options, custom keyboard shortcuts, or specialized behavior:
 
-```typescript
+```tsx
 import { Mark, mergeAttributes } from '@tiptap/core'
 import { StarterKit } from '@tiptap/starter-kit'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 const CustomMark = Mark.create({
-  name: 'custom',
-  parseHTML() {
-    return [{ tag: 'span.custom' }]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes({ class: 'custom' }, HTMLAttributes), 0]
-  },
-  addCommands() {
-    return {
-      toggleCustom: () => ({ commands }) => commands.toggleMark(this.name),
-    }
-  },
+	name: 'custom',
+	parseHTML() {
+		return [{ tag: 'span.custom' }]
+	},
+	renderHTML({ HTMLAttributes }) {
+		return ['span', mergeAttributes({ class: 'custom' }, HTMLAttributes), 0]
+	},
+	addCommands() {
+		return {
+			toggleCustom:
+				() =>
+				({ commands }) =>
+					commands.toggleMark(this.name),
+		}
+	},
 })
 
 const textOptions = {
-  tipTapConfig: {
-    extensions: [StarterKit, CustomMark],
-  },
+	tipTapConfig: {
+		extensions: [StarterKit, CustomMark],
+	},
 }
 
-<Tldraw textOptions={textOptions} />
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw textOptions={textOptions} />
+		</div>
+	)
+}
 ```
 
-Extensions must be provided as a complete list. If you include custom extensions, also include the default extensions you want to preserve. The example above shows replacing the entire extension list, which means you control exactly what features are available.
+Note that you must provide a complete list of extensions. If you include custom extensions, also include any default extensions you want to keep. The example above replaces the entire extension list, giving you full control over what features are available.
 
 ### Rich text toolbar
 
-The rich text toolbar appears when editing text shapes. It provides quick access to formatting commands like bold, italic, and lists. The toolbar updates dynamically to show which formats are active at the current cursor position.
+The rich text toolbar appears when editing text shapes. It gives you quick access to formatting commands like bold, italic, and lists. The toolbar updates dynamically to show which formats are active at the current cursor position.
 
-Customize the toolbar by overriding the `RichTextToolbar` component. Access the TipTap editor instance through `editor.getRichTextEditor()` to execute formatting commands.
+You can customize the toolbar by overriding the `RichTextToolbar` component. Use `editor.getRichTextEditor()` to get the TipTap editor instance and execute formatting commands:
 
-```typescript
-import { DefaultRichTextToolbar, TLComponents, useEditor, useValue } from 'tldraw'
+```tsx
+import {
+	DefaultRichTextToolbar,
+	TLComponents,
+	Tldraw,
+	TldrawUiButton,
+	preventDefault,
+	useEditor,
+	useValue,
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 const components: TLComponents = {
-  RichTextToolbar: () => {
-    const editor = useEditor()
-    const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
+	RichTextToolbar: () => {
+		const editor = useEditor()
+		const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
 
-    return (
-      <DefaultRichTextToolbar>
-        <button onClick={() => textEditor?.chain().focus().toggleBold().run()}>
-          B
-        </button>
-      </DefaultRichTextToolbar>
-    )
-  },
+		return (
+			<DefaultRichTextToolbar>
+				<TldrawUiButton
+					type="icon"
+					onClick={() => textEditor?.chain().focus().toggleBold().run()}
+					onPointerDown={preventDefault}
+				>
+					B
+				</TldrawUiButton>
+			</DefaultRichTextToolbar>
+		)
+	},
 }
 
-<Tldraw components={components} />
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw components={components} />
+		</div>
+	)
+}
 ```
 
 The `DefaultRichTextToolbar` component provides the default toolbar layout. Nest custom buttons inside it to extend the toolbar, or replace it entirely for complete control over the formatting interface.
 
 ## Shapes with rich text
 
-Four shape types support rich text: text shapes, note shapes, geo shapes, and arrow labels. Each shape renders rich text through the `RichTextLabel` component, which handles both display and editing modes.
+Four shape types support rich text: text shapes, note shapes, geo shapes, and arrow labels. Each renders rich text through the `RichTextLabel` component, which handles both display and editing modes.
 
 ### Text shapes
 
-Text shapes are standalone text blocks that can be placed anywhere on the canvas. They support auto-sizing, where the shape grows to fit content, or fixed-width mode with text wrapping.
+Text shapes are standalone text blocks you can place anywhere on the canvas. They support auto-sizing (where the shape grows to fit content) or fixed-width mode with text wrapping.
 
 ```typescript
 editor.createShape({
@@ -196,11 +226,11 @@ editor.createShape({
 })
 ```
 
-The `autoSize` prop controls whether the shape expands automatically. When true, text never wraps and the shape width matches the content width. When false, text wraps at the shape's width boundary.
+The `autoSize` prop controls whether the shape expands automatically. When true, text never wraps and the shape width matches the content. When false, text wraps at the shape's width boundary.
 
 ### Note shapes
 
-Note shapes display text on colored backgrounds with a note-like appearance. They always have fixed dimensions and wrap text to fit within those bounds.
+Note shapes display text on colored backgrounds. They always have fixed dimensions and wrap text to fit within those bounds.
 
 ```typescript
 editor.createShape({
@@ -216,11 +246,11 @@ editor.createShape({
 })
 ```
 
-Notes are useful for annotations, comments, or highlighting specific information on the canvas. The colored background provides visual distinction from regular text shapes.
+Notes work well for annotations, comments, or highlighting specific information on the canvas. The colored background provides visual distinction from regular text shapes.
 
 ### Geo shapes
 
-Geo shapes include rectangles, ellipses, and other geometric forms that can contain text labels. The text appears centered within the shape bounds with configurable alignment.
+Geo shapes include rectangles, ellipses, and other geometric forms that can contain text labels. Text appears centered within the shape bounds, with configurable alignment.
 
 ```typescript
 editor.createShape({
@@ -244,7 +274,7 @@ The `align` and `verticalAlign` props control text positioning within the shape.
 
 ### Arrow labels
 
-Arrows can have a text label that appears along the arrow path. The label is editable like other rich text and moves with the arrow when the arrow is repositioned.
+Arrows can have a text label that appears along the arrow path. The label is editable like other rich text and moves with the arrow when repositioned.
 
 ```typescript
 editor.createShape({
@@ -265,12 +295,12 @@ Arrow labels automatically position themselves based on the arrow's path and cur
 
 ## Font management
 
-Rich text can include multiple fonts and font styles within a single text block. The `FontManager` tracks which fonts are needed and ensures they load before rendering. This prevents layout shifts that occur when fonts load after initial render.
+Rich text can include multiple fonts and font styles within a single text block. The `FontManager` tracks which fonts are needed and ensures they load before rendering, preventing layout shifts.
 
-The `getFontsFromRichText` function traverses a rich text document and collects all required font faces based on the text content and formatting marks.
+Use `getFontsFromRichText` to collect all required font faces based on the text content and formatting marks:
 
 ```typescript
-import { getFontsFromRichText } from '@tldraw/editor'
+import { getFontsFromRichText } from 'tldraw'
 
 const fonts = getFontsFromRichText(editor, richText, {
 	family: 'tldraw_draw',
@@ -283,7 +313,7 @@ The function accepts an initial font state representing the base font. It walks 
 
 ### Custom font resolution
 
-Override the font resolution logic by providing a custom `addFontsFromNode` function through `textOptions`. This allows using custom fonts or alternative font mapping strategies.
+You can override font resolution by providing a custom `addFontsFromNode` function through `textOptions`. This lets you use custom fonts or alternative font mapping strategies:
 
 ```typescript
 const textOptions = {
@@ -301,11 +331,11 @@ const textOptions = {
 }
 ```
 
-The function receives the current node, font state, and a callback to register required fonts. It returns the updated state for child node processing. This pattern allows walking the document tree while maintaining font context.
+The function receives the current node, font state, and a callback to register required fonts. It returns the updated state for child node processing, letting you walk the document tree while maintaining font context.
 
 ## Programmatic formatting
 
-Apply formatting to rich text programmatically by accessing the TipTap editor instance. This enables bulk operations like applying formatting to multiple shapes or implementing custom formatting commands.
+You can apply formatting to rich text programmatically by accessing the TipTap editor instance. This enables bulk operations like applying formatting to multiple shapes or implementing custom formatting commands:
 
 ```typescript
 const textEditor = editor.getRichTextEditor()
@@ -315,9 +345,9 @@ if (textEditor) {
 }
 ```
 
-The chain API allows composing multiple operations. Each command returns a chainable object, and `run()` executes the composed command sequence.
+The chain API lets you compose multiple operations. Each command returns a chainable object, and `run()` executes the composed command sequence.
 
-For operations outside the editing context, manipulate the rich text JSON directly. This is useful when programmatically generating or transforming content.
+For operations outside the editing context, you can manipulate the rich text JSON directly. This is useful when programmatically generating or transforming content:
 
 ```typescript
 function makeAllTextBold(richText: TLRichText): TLRichText {
@@ -344,11 +374,11 @@ function makeAllTextBold(richText: TLRichText): TLRichText {
 }
 ```
 
-This approach requires understanding the TipTap document structure but provides precise control over content transformation.
+This approach requires understanding the TipTap document structure but gives you precise control over content transformation.
 
 ## Measurement and rendering
 
-Rich text measurement uses the same system as plain text, with HTML rendering replacing plain text content. The `TextManager` measures rich text by generating HTML, applying it to the measurement element, and reading the computed dimensions.
+Rich text measurement uses the same system as plain text, with HTML rendering replacing plain text content. The `TextManager` measures rich text by generating HTML, applying it to the measurement element, and reading the computed dimensions:
 
 ```typescript
 import { renderHtmlFromRichTextForMeasurement } from 'tldraw'
@@ -359,43 +389,36 @@ const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 
 The measurement system accounts for formatting that affects layout, like bold text or lists. Font loading completes before measurement to ensure accurate dimensions.
 
-For SVG export, the `RichTextSVG` component renders rich text as a foreignObject element. This preserves formatting and layout in exported images.
+For SVG export, the `RichTextSVG` component renders rich text as a foreignObject element, preserving formatting and layout in exported images.
 
 ## Extension points
 
-The rich text system provides several extension points for customization.
+The rich text system offers several ways to customize behavior:
 
-### Custom extensions
+| Extension point              | Description                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| **Custom TipTap extensions** | Add new marks, nodes, keyboard shortcuts, or commands                          |
+| **Custom toolbar**           | Replace or extend the rich text toolbar with different formatting controls     |
+| **Font resolution**          | Override font resolution to use custom fonts or alternative loading strategies |
 
-Add TipTap extensions to introduce new formatting options or behavior. Extensions can define new marks, nodes, keyboard shortcuts, or commands.
-
-### Custom toolbar
-
-Replace or extend the rich text toolbar to provide different formatting controls or a different user interface.
-
-### Font resolution
-
-Override font resolution to use custom fonts or implement alternative font loading strategies.
-
-### Text options
-
-The `textOptions` prop accepts a `tipTapConfig` object that passes through to TipTap's editor configuration. This provides access to all TipTap configuration options.
+The `textOptions` prop accepts a `tipTapConfig` object that passes through to TipTap's editor configuration, giving you access to all TipTap configuration options:
 
 ```typescript
 const textOptions = {
-  tipTapConfig: {
-    extensions: [...],
-    editorProps: {
-      attributes: {
-        class: 'custom-editor',
-      },
-    },
-  },
-  addFontsFromNode: customFontResolver,
+	tipTapConfig: {
+		extensions: [...],
+		editorProps: {
+			attributes: {
+				class: 'custom-editor',
+			},
+		},
+	},
+	addFontsFromNode: customFontResolver,
 }
 ```
 
 ## Related examples
+
 - **[Rich text with custom extension](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-custom-extension)** - Adding a custom TipTap extension and toolbar button.
 
 - **[Rich text with font extensions](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-font-extensions)** - Extending the editor with font-family and font-size controls.

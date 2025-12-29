@@ -1,7 +1,7 @@
 ---
 title: Tools
 created_at: 12/20/2025
-updated_at: 12/25/2025
+updated_at: 12/29/2025
 keywords:
   - tools
   - StateNode
@@ -17,9 +17,9 @@ date: 12/20/2025
 order: 31
 readability: 8
 voice: 8
-completeness: 8
-accuracy: 7
-notes: "Strong architecture explanation with good examples. Fixed incorrect custom root state pattern - use tools prop instead of extending RootState. Event handlers and state machine mechanics accurately documented. Example links valid."
+completeness: 9
+accuracy: 8
+notes: "Well-structured with good code examples. StateNode properties table helpful. Dynamic tool registration example is accurate. Minor inconsistency at line 56 about custom root state vs tools prop."
 ---
 
 Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode like selecting shapes, drawing, or panning the canvas. Tools are implemented as state machines using the `StateNode` class, which provides a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to mouse movements and clicks.
@@ -90,7 +90,7 @@ Custom tools should check `isToolLocked` when deciding whether to return to the 
 
 ## Creating custom tools
 
-To create a custom tool, extend the `StateNode` class and implement the required static properties and event handlers. The minimal implementation specifies an id and initial child state if the tool has children.
+To create a custom tool, extend the `StateNode` class and implement the required static properties and event handlers.
 
 ```typescript
 import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
@@ -107,6 +107,16 @@ export class StampTool extends StateNode {
 	}
 }
 ```
+
+The `StateNode` class has these static properties:
+
+| Property             | Description                                                             |
+| -------------------- | ----------------------------------------------------------------------- |
+| `id`                 | Required. The unique identifier for this state                          |
+| `initial`            | The id of the initial child state (required if the tool has children)   |
+| `children()`         | A function returning an array of child state constructors               |
+| `isLockable`         | Whether tool lock applies to this tool (default: `true`)                |
+| `useCoalescedEvents` | Whether to batch pointer move events for performance (default: `false`) |
 
 For a simple tool without child states, implement event handlers directly on the tool class:
 
@@ -225,22 +235,43 @@ To make the tool appear in the toolbar, override the `Toolbar` component and inc
 
 ### Dynamic tool registration
 
-Tools can be added or removed at runtime using the `setTool` and `removeTool` methods on the editor. This is useful when tool availability depends on user permissions, feature flags, or application state:
+Tools can be added or removed at runtime using the `setTool` and `removeTool` methods on the editor. This is useful when tool availability depends on user permissions, feature flags, or application state.
 
-```typescript
-// Add a tool dynamically
-editor.setTool(MyTool)
+```tsx
+import { useState } from 'react'
+import { Editor, StateNode, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-// Remove a tool dynamically
-editor.removeTool(MyTool)
+class HeartTool extends StateNode {
+	static override id = 'heart'
+	override onPointerDown() {
+		// Create a heart shape at click position
+	}
+}
 
-// Check if you need to switch away from a removed tool
-if (editor.getCurrentToolId() === 'my-tool') {
-	editor.setCurrentTool('select')
+function App() {
+	const [editor, setEditor] = useState<Editor | null>(null)
+	const [isEnabled, setIsEnabled] = useState(false)
+
+	const toggleTool = () => {
+		if (!editor) return
+		if (isEnabled) {
+			// Switch away first if currently using the tool
+			if (editor.getCurrentToolId() === 'heart') {
+				editor.setCurrentTool('select')
+			}
+			editor.removeTool(HeartTool)
+		} else {
+			editor.setTool(HeartTool)
+		}
+		setIsEnabled(!isEnabled)
+	}
+
+	return <Tldraw onMount={setEditor} />
 }
 ```
 
-When removing a tool, check whether the user is currently using it. If so, transition to a different tool like select to avoid leaving the editor in an invalid state.
+When removing a tool, check whether the user is currently using it. If so, transition to a different tool like select to avoid leaving the editor in an invalid state. The `setTool` method adds a tool constructor to the state chart, while `removeTool` removes it.
 
 ## Related examples
 

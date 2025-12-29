@@ -1,7 +1,7 @@
 ---
 title: History
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - undo
   - redo
@@ -13,22 +13,22 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 16
-readability: 8
-voice: 7
-completeness: 8
-accuracy: 8
-notes: "Good technical coverage of history system. Fixed: rotateShapes->rotateShapesBy, updateShape id examples use variable instead of string literal, clarified canUndo/canRedo as methods. Minor voice issues: trailing gerund patterns and could use more cross-linking to examples."
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: 'Improved voice with direct statements, removed trailing gerunds. Added API cross-links throughout. Tables for mode/state information. Reactive UndoButton example. Corrected canUndo/canRedo as reactive properties. Better example links (store-events instead of canvas-events).'
 ---
 
-The history system enables undo/redo functionality by tracking changes to the store through the `HistoryManager`. It organizes changes into batches separated by marks, which act as stopping points for undo/redo operations. This allows complex interactions to be undone as single atomic operations rather than individual edits.
+The editor's history system tracks changes to the [store](/docs/store) and provides undo/redo functionality. Changes are organized into batches separated by marks, which act as stopping points. This lets complex interactions be undone as single atomic operations rather than individual edits.
 
-The system integrates with the reactive store to automatically capture modifications. All user-initiated changes are recorded unless explicitly ignored, and the history manager handles compressing multiple rapid changes into cohesive undo steps.
+The history manager captures all user-initiated changes automatically. Multiple rapid changes are compressed into cohesive undo steps, and you can control which changes are recorded using history options.
 
 ## How it works
 
-The history manager maintains two stacks: one for undo operations and one for redo operations. Each stack contains entries that are either diffs (representing changes to records) or marks (representing stopping points).
+The history manager maintains two stacks: one for undos and one for redos. Each stack contains entries that are either diffs (record changes) or marks (stopping points).
 
-When you modify the store, the history manager captures the change as a diff. Changes accumulate in a pending diff buffer until you create a mark, at which point the pending changes are flushed to the undo stack as a single entry. This batching prevents every keystroke or mouse movement from becoming a separate undo step.
+When you modify the store, the history manager captures the change as a diff. Changes accumulate until you create a mark, then the pending changes are flushed to the undo stack as a single entry. This batching prevents every keystroke or mouse movement from becoming a separate undo step.
 
 ```typescript
 editor.updateShape({ id: myShapeId, type: 'geo', x: 100, y: 100 })
@@ -37,11 +37,11 @@ editor.updateShape({ id: myShapeId, type: 'geo', x: 120, y: 100 })
 // All three updates are batched together until a mark is created
 ```
 
-When you undo, the manager reverses all changes back to the previous mark, moves them to the redo stack, and applies the reversed diff atomically. Redoing performs the inverse operation.
+When you undo, the manager reverses all changes back to the previous mark, moves them to the redo stack, and applies the reversed diff atomically. Redo does the inverse.
 
 ## Marks and stopping points
 
-Marks define where undo and redo operations stop. You typically create marks at the start of user interactions, ensuring that complex operations can be undone in one step.
+Marks define where undo and redo operations stop. Create marks at the start of user interactions so that complex operations can be undone in one step.
 
 ```typescript
 const markId = editor.markHistoryStoppingPoint('rotate shapes')
@@ -49,32 +49,38 @@ editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
 // Undoing will return to this mark
 ```
 
-Each mark has a unique identifier that you can use with advanced features like bailing or squashing. Creating a mark flushes pending changes and clears the redo stack, ensuring the history remains linear.
+Each mark has a unique identifier that you can use with [bailToMark](#bailing) or [squashToMark](#squashing). Creating a mark flushes pending changes and clears the redo stack.
 
 ## Basic operations
 
 ### Undo and redo
 
-The `undo()` and `redo()` methods move through history marks. Undo reverses changes back to the previous mark, while redo reapplies them.
+Use [Editor#undo](?) and [Editor#redo](?) to move through history marks.
 
 ```typescript
 editor.undo() // Reverse to previous mark
 editor.redo() // Reapply changes
+```
 
-if (editor.canUndo()) {
-	editor.undo()
-}
+Both methods return the editor instance for chaining.
 
-if (editor.canRedo()) {
-	editor.redo()
+The [Editor#canUndo](?) and [Editor#canRedo](?) properties are reactive, so you can use them to update UI button states automatically:
+
+```typescript
+function UndoButton() {
+	const editor = useEditor()
+	const canUndo = useValue('canUndo', () => editor.canUndo, [editor])
+	return (
+		<button disabled={!canUndo} onClick={() => editor.undo()}>
+			Undo
+		</button>
+	)
 }
 ```
 
-Both methods return the editor instance for chaining. The reactive `canUndo()` and `canRedo()` methods let you update UI button states automatically.
-
 ### Running operations with history options
 
-The `run()` method executes a function while controlling how changes affect history. This lets you make changes that don't pollute the undo stack or that preserve the redo stack for special operations.
+The [Editor#run](?) method executes a function while controlling how changes affect history. Use it to make changes that don't pollute the undo stack or that preserve the redo stack for special operations.
 
 ```typescript
 // Ignore changes (don't add to undo stack)
@@ -96,19 +102,21 @@ editor.run(
 
 The three history modes are:
 
-- `record` - Default behavior: add to undo stack and clear redo stack
-- `record-preserveRedoStack` - Add to undo stack but keep redo stack intact
-- `ignore` - Don't add to either stack
+| Mode                       | Undo stack | Redo stack |
+| -------------------------- | ---------- | ---------- |
+| `record`                   | Add        | Clear      |
+| `record-preserveRedoStack` | Add        | Keep       |
+| `ignore`                   | Skip       | Keep       |
 
-> We use `preserveRedoStack` when selecting shapes. When you don't have any redos, then changing your selection will add an entry onto the undo stack. Normally, adding things to the undo stack will clear the redo stack. However, we use `preserveRedoStack` for selections to prevent this behavior so that you can undo, select things, maybe copy them, and then redo back to where you were before. If, however, you change selection and _then_ make a change to the document that clears the redos, then your pending selections _will_ be added to the new undo stack.
+> We use `record-preserveRedoStack` when selecting shapes. This way you can undo, select some shapes, copy them, and then redo back to where you were. The selection goes on the undo stack, but existing redos aren't cleared.
 
-> We use `ignore` when updating the user's pointer, which is used to show a user's live cursor to collaborators.
+> We use `ignore` for live cursor positions. Showing where collaborators' pointers are doesn't need to be undoable.
 
 ## Advanced features
 
 ### Bailing
 
-Bailing reverses changes without adding them to the redo stack, effectively discarding them. Use this when canceling an interaction.
+Bailing reverses changes without adding them to the redo stack. The changes are discarded entirely. Use this when canceling an interaction.
 
 ```typescript
 const markId = editor.markHistoryStoppingPoint('begin drag')
@@ -117,13 +125,13 @@ const markId = editor.markHistoryStoppingPoint('begin drag')
 editor.bailToMark(markId) // Roll back and discard all changes since mark
 ```
 
-The `bail()` method returns to the most recent mark, while `bailToMark(id)` returns to a specific mark.
+[Editor#bail](?) returns to the most recent mark. [Editor#bailToMark](?) returns to a specific mark by ID.
 
-> We use bailing while cloning shapes. A user can switch between translating shapes and cloning shapes by pressing or releasing the control modifier key during a drag interaction. When this changes, we bail on the changes since the interaction before applying the new mode's changes.
+> We use bailing while cloning shapes. A user can switch between translating and cloning by pressing or releasing the control modifier key during a drag. When this changes, we bail on the changes since the interaction started, then apply the new mode's changes.
 
 ### Squashing
 
-Squashing combines all changes since a mark into a single undo step, removing intermediate marks. This simplifies the undo experience for complex multi-step operations.
+[Editor#squashToMark](?) combines all changes since a mark into a single undo step. Intermediate marks are removed. This simplifies the undo experience for complex multi-step operations.
 
 ```typescript
 const markId = editor.markHistoryStoppingPoint('bump shapes')
@@ -135,11 +143,11 @@ editor.squashToMark(markId) // All three nudges become one undo step
 
 Squashing doesn't change the current state, only how history is organized.
 
-> We use `squashToMark` during image cropping. As the user adjusts the cropped area, each change is recorded on the history stack, allowing them to undo or redo individual adjustments. However, when the user finishes cropping and exits this state, all of the intermediate changes are combined – or ‘squashed’ – into a single history entry. An undo will restore the image to its original state before cropping began, while a redo will restore the final state after cropping was complete.
+> We use squashing during image cropping. As the user adjusts the crop, each change is recorded, allowing undo/redo of individual adjustments. When the user finishes cropping and exits this mode, we squash all the intermediate changes into one history entry. A single undo restores the image to its state before cropping began.
 
 ### Clearing history
 
-The `clearHistory()` method removes all undo and redo entries, useful when loading new documents or resetting the editor state.
+[Editor#clearHistory](?) removes all undo and redo entries. Use this when loading new documents or resetting the editor state.
 
 ```typescript
 editor.loadSnapshot(snapshot)
@@ -148,17 +156,19 @@ editor.clearHistory() // Start with clean history
 
 ## Integration with the store
 
-The history manager listens to store changes through a history interceptor. It only captures changes marked with source `'user'`, ignoring internal updates and external synchronization.
+The history manager listens to [store](/docs/store) changes through a history interceptor. It only captures changes marked with source `'user'`, ignoring internal updates and external synchronization.
 
-The manager tracks three internal states:
+Internally, the manager has three states:
 
-- `Recording` - Normal mode: capture changes and clear redo stack
-- `RecordingPreserveRedoStack` - Capture changes but keep redo stack
-- `Paused` - Don't capture changes (used during undo/redo operations)
+| State                        | Captures changes | Clears redo stack |
+| ---------------------------- | ---------------- | ----------------- |
+| `Recording`                  | Yes              | Yes               |
+| `RecordingPreserveRedoStack` | Yes              | No                |
+| `Paused`                     | No               | No                |
 
-This prevents undo/redo operations from creating new history entries while they apply diffs.
+The `Paused` state is used during undo/redo operations, which prevents them from creating new history entries while they apply diffs.
 
 ## Related examples
 
-- **[Timeline scrubber](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/timeline-scrubber)** - Build a visual timeline that lets users scrub through document history.
-- **[Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events)** - Listen to editor events including those related to undo/redo operations.
+- [Timeline scrubber](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/timeline-scrubber) - A visual timeline that lets users scrub through document history.
+- [Store events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/store-events) - Listen to store changes, which is how the history manager tracks modifications.

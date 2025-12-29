@@ -29,9 +29,8 @@ notes: 'Bolded section labels feel ChatGPT-ish. Opening could be punchier.'
 ## Before improving
 
 1. Read the current draft and its frontmatter notes
-2. Read [VOICE.md](./VOICE.md), especially "Avoiding AI writing tells"
-3. Read [index.md](./index.md) for structure
-4. Read source files to verify any accuracy concerns
+2. Read [write-nuggets.md](../../.claude/skills/write-nuggets.md) for voice and structure guidelines
+3. Read source files to verify any accuracy concerns
 
 ## Fixing common issues
 

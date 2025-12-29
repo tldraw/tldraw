@@ -1,7 +1,7 @@
 ---
 title: Actions
 created_at: 12/25/2025
-updated_at: 12/25/2025
+updated_at: 12/29/2025
 keywords:
   - actions
   - commands
@@ -12,24 +12,48 @@ keywords:
 status: published
 date: 12/25/2025
 order: 10
-readability: 8
-voice: 8
-completeness: 7
-accuracy: 9
-notes: 'Strong doc. Needs: runnable first example, complete helpers list, clearer menu customization guidance. Minor: ~80 actions not 90.'
 ---
 
-Actions are named operations that users can trigger from menus, keyboard shortcuts, or custom UI. Each action bundles an identifier, display metadata (label, icon, keyboard shortcut), and a handler function. The actions system gives you a single source of truth for operations like "undo", "group", or "export as PNG" that can be invoked from multiple places with consistent behavior.
+Actions are named operations that users trigger from menus, keyboard shortcuts, or custom UI. Each action bundles an identifier, display metadata (label, icon, keyboard shortcut), and a handler function. Actions let you define operations like "undo", "group", or "export as PNG" once and invoke them from multiple places with consistent behavior.
 
-The `@tldraw/tldraw` package includes over 90 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop.
+```tsx
+import { Tldraw, TLUiOverrides } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const overrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		// Add a custom action
+		actions['show-selection-count'] = {
+			id: 'show-selection-count',
+			label: 'action.show-selection-count',
+			kbd: 'shift+c',
+			onSelect(source) {
+				const count = editor.getSelectedShapeIds().length
+				helpers.addToast({ title: `${count} shapes selected` })
+			},
+		}
+		return actions
+	},
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw overrides={overrides} />
+		</div>
+	)
+}
+```
+
+The `@tldraw/tldraw` package includes about 80 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop.
 
 ## How actions work
 
-Actions live in a React context provided by `ActionsProvider`. When the UI mounts, it registers all default actions, applies any overrides you've provided, and makes them available through the `useActions` hook. Components like menus and toolbars look up actions by ID and render them with their labels, icons, and keyboard shortcuts.
+Actions live in a React context provided by `ActionsProvider`. When the UI mounts, it registers all default actions, applies any overrides you've provided, and makes them available through the `useActions` hook. Menus and toolbars look up actions by ID and render them with their labels, icons, and keyboard shortcuts.
 
-Each action has an `onSelect` handler that receives a source parameter indicating where it was triggered—"menu", "kbd", "toolbar", and so on. This lets you track usage patterns or vary behavior based on context.
+Each action has an `onSelect` handler that receives a source parameter indicating where it was triggered:
 
-```typescript
+```tsx
 const actions = useActions()
 const duplicateAction = actions['duplicate']
 
@@ -37,7 +61,7 @@ const duplicateAction = actions['duplicate']
 duplicateAction.onSelect('toolbar')
 ```
 
-Keyboard shortcuts are bound automatically. The `useKeyboardShortcuts` hook iterates through all actions, parses their `kbd` property, and registers hotkey handlers. When a shortcut fires, it calls the action's `onSelect` with `'kbd'` as the source.
+Keyboard shortcuts are bound automatically. The `useKeyboardShortcuts` hook parses each action's `kbd` property and registers hotkey handlers. When a shortcut fires, it calls the action's `onSelect` with `'kbd'` as the source.
 
 ## Action structure
 
@@ -199,7 +223,28 @@ const overrides: TLUiOverrides = {
 }
 ```
 
-Available helpers include `addToast`, `removeToast`, `addDialog`, `removeDialog`, `msg` (for translations), `insertMedia`, `copy`, `cut`, `paste`, `copyAs`, `exportAs`, and more.
+Available helpers:
+
+| Helper                  | Description                          |
+| ----------------------- | ------------------------------------ |
+| `addToast`              | Show a toast notification            |
+| `removeToast`           | Remove a specific toast              |
+| `clearToasts`           | Remove all toasts                    |
+| `addDialog`             | Open a dialog                        |
+| `removeDialog`          | Close a specific dialog              |
+| `clearDialogs`          | Close all dialogs                    |
+| `msg`                   | Get a translated string by key       |
+| `isMobile`              | Boolean indicating mobile breakpoint |
+| `insertMedia`           | Open file picker and insert media    |
+| `replaceImage`          | Replace selected image with new file |
+| `replaceVideo`          | Replace selected video with new file |
+| `printSelectionOrPages` | Print selection or all pages         |
+| `cut`                   | Cut selected shapes to clipboard     |
+| `copy`                  | Copy selected shapes to clipboard    |
+| `paste`                 | Paste from clipboard                 |
+| `copyAs`                | Copy shapes as SVG or PNG            |
+| `exportAs`              | Export shapes as SVG, PNG, or JSON   |
+| `getEmbedDefinition`    | Get embed info for a URL             |
 
 ## Keyboard shortcuts
 
@@ -255,21 +300,19 @@ The menu component uses the appropriate label based on its context. If no specif
 
 ## Tracking action usage
 
-Actions receive their trigger source as a parameter. Use this to track how users interact with your application:
+The `source` parameter tells you where the action was triggered. Use this for analytics:
 
-```typescript
+```tsx
 actions['custom-action'] = {
 	id: 'custom-action',
 	label: 'action.custom',
 	kbd: 'cmd+k,ctrl+k',
 	onSelect(source) {
 		trackEvent('custom-action', { source })
-		// source will be 'kbd', 'menu', 'context-menu', 'toolbar', etc.
+		// source: 'kbd', 'menu', 'context-menu', 'toolbar', 'quick-actions', 'zoom-menu', etc.
 	},
 }
 ```
-
-The source values include `'menu'`, `'context-menu'`, `'kbd'`, `'toolbar'`, `'quick-actions'`, `'zoom-menu'`, and others. This granularity helps you understand which UI patterns your users prefer.
 
 ## Related examples
 

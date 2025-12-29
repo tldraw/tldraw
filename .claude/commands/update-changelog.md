@@ -2,7 +2,7 @@ Update the changelog file at `apps/docs/content/changelog/next.mdx` based on PRs
 
 ## Style guide
 
-Read and follow the voice and style guidelines in `VOICE.md` at the root of the monorepo. Key points for changelogs:
+Read and follow the voice and style guidelines in `.claude/skills/write-docs.md`. Key points for changelogs:
 
 - Write in English with American spelling
 - Semi-casual and confident tone, professional but not stodgy

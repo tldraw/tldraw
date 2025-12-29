@@ -6,7 +6,7 @@ You are evaluating documentation quality.
 
 **Read these files first:**
 
-1. VOICE.md - the voice and style guide
+1. `.claude/skills/write-docs.md` - the voice and style guide
 2. $ARGUMENTS - the document to evaluate
 
 **Score these dimensions (0-10 each):**
@@ -17,7 +17,7 @@ You are evaluating documentation quality.
    - Appropriate use of code snippets and links to examples
    - No unnecessary jargon
 
-2. **Voice compliance**: How well does it follow VOICE.md?
+2. **Voice compliance**: How well does it follow the voice skill?
    - Confident assertions (no hedging)
    - Active voice, present tense
    - Sentence case headings

@@ -1,7 +1,7 @@
 ---
 title: Shapes
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - shapes
   - shapeutil
@@ -15,8 +15,8 @@ order: 24
 readability: 8
 voice: 8
 completeness: 8
-accuracy: 6
-notes: "Found several API inaccuracies: focusGroup should be setFocusedGroup, getShapeOpacity doesn't exist, onResize return type is partial not full shape, hitTestPoint is not on ShapeUtil, hideInCulledBounds/isShapeCulled don't exist."
+accuracy: 8
+notes: "APIs verified correct: getGeometry, hitTestPoint on Geometry2d, onResize return type, getFocusedGroup/setFocusedGroup/popFocusedGroupId. Opening paragraph is slightly dense."
 ---
 
 Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable while allowing complex per-shape behavior. Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
@@ -97,13 +97,13 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ### Capability methods
 
-ShapeUtils can override capability methods to declare what interactions the shape supports. These methods return booleans indicating whether the shape can be edited, resized, cropped, scrolled, or bound to other shapes. The `canReceiveNewChildrenOfType` method controls whether the shape can contain other shapes as children. Custom hit testing logic is defined through the `Geometry2d` returned by `getGeometry`.
+ShapeUtils can override capability methods to declare what interactions the shape supports. These methods return booleans indicating whether the shape can be edited, resized, cropped, scrolled, or bound to other shapes. The `canReceiveNewChildrenOfType` method controls whether the shape can contain other shapes as children.
 
 ### Lifecycle hooks
 
 ShapeUtils can respond to shape changes through lifecycle hooks. The `onBeforeCreate` and `onBeforeUpdate` hooks intercept shape creation and updates before they reach the store, allowing modification or validation. The `onResize`, `onRotate`, and `onTranslate` hooks respond to transformation operations. The `onChildrenChange` hook responds to changes in a shape's children. Interaction hooks like `onDoubleClick`, `onDragShapesOver`, and `onDropShapesOver` enable custom behavior for user interactions.
 
-The `onResize` hook requires careful implementation. When a shape resizes, the hook receives resize information including the scale factors and the handle being dragged, and returns a partial shape update with the changed properties:
+The `onResize` hook requires careful implementation. When a shape resizes, the hook receives resize information including the scale factors and the handle being dragged. It returns a partial update containing just the props you want to change (without the `id` or `type`):
 
 ```typescript
 onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
@@ -126,7 +126,7 @@ The geometry system provides mathematical representations of shapes for hit test
 
 ### Key geometry operations
 
-Geometry2d provides methods for spatial queries. Get the axis-aligned bounding box with the `bounds` property. Get boundary vertices with `getVertices`. Find the nearest point on the shape boundary with `nearestPoint`. Test if a point hits the shape with `hitTestPoint`, which accepts a margin parameter that expands the hit area and an `hitInside` parameter that controls whether points inside the shape count as hits for unfilled shapes. Test line segment intersection with `hitTestLineSegment` or get intersection points with `intersectLineSegment`.
+Geometry2d provides methods for spatial queries. Get the axis-aligned bounding box with the `bounds` property. Get boundary vertices with `getVertices`. Find the nearest point on the shape boundary with `nearestPoint`. Test if a point hits the shape with `hitTestPoint`, which accepts a `margin` parameter that expands the hit area and a `hitInside` parameter that controls whether points inside the shape count as hits for unfilled shapes. Test line segment intersection with `hitTestLineSegment` or get intersection points with `intersectLineSegment`.
 
 ### Geometry caching
 
@@ -140,9 +140,9 @@ The editor renders shapes through a React component hierarchy. Each shape is wra
 
 Shapes position relative to their parent's coordinate space. For a shape nested inside a rotated frame, the editor composes transforms. Get the transform from shape space to page space with `getShapePageTransform`. Get just the local transform with `getShapeLocalTransform`. Convert a page point to shape-local coordinates with `getPointInShapeSpace`.
 
-### Opacity and visibility
+### Opacity
 
-Shape opacity multiplies with parent opacity. A shape at 50% opacity inside a frame at 50% opacity renders at 25% opacity. The editor tracks this computed opacity for rendering. Access a shape's opacity directly from the shape record via `shape.opacity`.
+Shape opacity multiplies with parent opacity. A shape at 50% opacity inside a frame at 50% opacity renders at 25% opacity. Access a shape's opacity directly from the shape record via `shape.opacity`. The editor computes the final rendered opacity by combining the shape's opacity with all ancestor opacities.
 
 ## Shape lifecycle
 
@@ -192,7 +192,7 @@ Maps parent IDs to sorted arrays of child shape IDs. Updated incrementally as sh
 
 ### Culled shapes
 
-Tracks which shapes are outside the viewport. Shapes whose ShapeUtil returns `true` from `canCull()` are candidates for culling. Check if a shape is currently culled with `getCulledShapes().has(shapeId)`.
+Tracks which shapes are outside the viewport. Shapes whose ShapeUtil returns `true` from `canCull()` are candidates for culling. Culled shapes are still in the DOM but have their `display` set to `none` for performance. Check if a shape is currently culled with `getCulledShapes().has(shapeId)`.
 
 ### Shape geometry cache
 

@@ -1,7 +1,7 @@
 ---
 title: Default shapes
 created_at: 12/25/2025
-updated_at: 12/25/2025
+updated_at: 12/29/2025
 keywords:
   - shapes
   - default shapes
@@ -21,14 +21,9 @@ keywords:
 status: published
 date: 12/25/2025
 order: 25
-readability: 8
-voice: 7
-completeness: 9
-accuracy: 8
-notes: "Strong reference doc with comprehensive tables. Some AI tells (formulaic structure, bolded lists). First code example lacks imports. Configuration options well documented."
 ---
 
-The tldraw package includes thirteen shape types that cover common diagramming and whiteboarding needs. These default shapes provide drawing, text, media, and organizational capabilities out of the box. Each shape type has a corresponding ShapeUtil that defines its rendering, geometry, and interaction behavior. You can use these shapes as-is, configure their behavior through options, or use them as reference when building custom shapes.
+The tldraw package includes thirteen shape types that cover common diagramming and whiteboarding needs. Each shape type has a corresponding [ShapeUtil](?) that defines its rendering, geometry, and interaction behavior. You can use these shapes as-is, configure their behavior through options, or use them as reference when building custom shapes.
 
 ## Shape overview
 
@@ -46,9 +41,11 @@ The default shapes fall into five categories based on their primary function:
 
 ### Geo
 
-The geo shape renders geometric primitives with optional text labels. It's the most versatile shape for diagrams, supporting 20 different geometric forms including rectangles, ellipses, triangles, stars, and directional arrows. Geo shapes can display rich text labels with configurable alignment, making them suitable for flowcharts, diagrams, and annotated illustrations.
+The geo shape renders geometric primitives with optional text labels. It supports 20 different geometric forms including rectangles, ellipses, triangles, stars, and directional arrows. Geo shapes can display rich text labels with configurable alignment, making them useful for flowcharts, diagrams, and annotated illustrations.
 
-```typescript
+```tsx
+import { toRichText } from 'tldraw'
+
 editor.createShape({
 	type: 'geo',
 	x: 100,
@@ -69,9 +66,9 @@ editor.createShape({
 })
 ```
 
-**Available geometric forms:** `rectangle`, `ellipse`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`, `star`, `rhombus`, `rhombus-2`, `oval`, `trapezoid`, `arrow-right`, `arrow-left`, `arrow-up`, `arrow-down`, `x-box`, `check-box`, `cloud`, `heart`
+The available geometric forms are: `rectangle`, `ellipse`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`, `star`, `rhombus`, `rhombus-2`, `oval`, `trapezoid`, `arrow-right`, `arrow-left`, `arrow-up`, `arrow-down`, `x-box`, `check-box`, `cloud`, `heart`
 
-**Properties:**
+Properties:
 
 | Property        | Type                            | Description                                     |
 | --------------- | ------------------------------- | ----------------------------------------------- |
@@ -91,13 +88,13 @@ editor.createShape({
 | `url`           | `string`                        | Optional hyperlink URL                          |
 | `scale`         | `number`                        | Scale factor applied to the shape               |
 
-**Configuration options:**
+Configuration options:
 
 | Option            | Type      | Default | Description                                                                                      |
 | ----------------- | --------- | ------- | ------------------------------------------------------------------------------------------------ |
 | `showTextOutline` | `boolean` | `true`  | Whether to show a text outline (using the canvas background color) to improve label readability. |
 
-```typescript
+```tsx
 const ConfiguredGeoUtil = GeoShapeUtil.configure({
 	showTextOutline: false,
 })
@@ -105,9 +102,9 @@ const ConfiguredGeoUtil = GeoShapeUtil.configure({
 
 ### Text
 
-The text shape displays formatted text content with automatic sizing. Text shapes resize to fit their content by default, or can be set to a fixed width with text wrapping. The shape supports rich text formatting including bold, italic, and other inline styles through the rich text system.
+The text shape displays formatted text content with automatic sizing. Text shapes resize to fit their content by default, or you can set them to a fixed width with text wrapping. The shape supports rich text formatting including bold, italic, and other inline styles.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'text',
 	x: 100,
@@ -124,7 +121,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property    | Type                      | Description                                     |
 | ----------- | ------------------------- | ----------------------------------------------- |
@@ -137,14 +134,14 @@ editor.createShape({
 | `w`         | `number`                  | Width when autoSize is false                    |
 | `scale`     | `number`                  | Scale factor applied to the shape               |
 
-**Configuration options:**
+Configuration options:
 
 | Option                        | Type      | Default | Description                                                                                                                                                    |
 | ----------------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `extraArrowHorizontalPadding` | `number`  | `10`    | Additional horizontal padding added to the shape's geometry when arrows bind to it. Prevents arrows from overlapping the text.                                 |
 | `showTextOutline`             | `boolean` | `true`  | Whether to show a text outline using the canvas background color. Improves readability when text overlaps other shapes. Disabled on Safari due to performance. |
 
-```typescript
+```tsx
 const ConfiguredTextUtil = TextShapeUtil.configure({
 	extraArrowHorizontalPadding: 20,
 	showTextOutline: false,
@@ -153,9 +150,9 @@ const ConfiguredTextUtil = TextShapeUtil.configure({
 
 ### Note
 
-The note shape renders as a sticky note with a colored background. Notes support rich text and have special interaction behavior—dragging from a note's edge creates a new adjacent note, making it easy to build clusters of related notes. Notes have a fixed base size but grow vertically to accommodate text content.
+The note shape renders as a sticky note with a colored background. Notes support rich text and have special interaction behavior: dragging from a note's edge creates a new adjacent note, making it easy to build clusters of related notes. Notes have a fixed base size but grow vertically to accommodate text content.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'note',
 	x: 100,
@@ -175,7 +172,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property             | Type                            | Description                                          |
 | -------------------- | ------------------------------- | ---------------------------------------------------- |
@@ -191,13 +188,13 @@ editor.createShape({
 | `url`                | `string`                        | Optional hyperlink URL                               |
 | `scale`              | `number`                        | Scale factor applied to the shape                    |
 
-**Configuration options:**
+Configuration options:
 
 | Option       | Type                  | Default  | Description                                                                                                                                       |
 | ------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `resizeMode` | `'none'` \| `'scale'` | `'none'` | How the note shape resizes. By default, notes don't resize (except automatically based on text content). Set to `'scale'` to allow user resizing. |
 
-```typescript
+```tsx
 const ConfiguredNoteUtil = NoteShapeUtil.configure({
 	resizeMode: 'scale',
 })
@@ -211,7 +208,7 @@ The draw shape captures freehand strokes. It stores point data as segments that 
 
 The draw tool creates new shapes when an existing shape exceeds the maximum point count, preventing performance issues with very long strokes.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'draw',
 	x: 100,
@@ -235,7 +232,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property     | Type                   | Description                                                     |
 | ------------ | ---------------------- | --------------------------------------------------------------- |
@@ -251,13 +248,13 @@ editor.createShape({
 | `scaleX`     | `number`               | Horizontal scale factor for lazy resize                         |
 | `scaleY`     | `number`               | Vertical scale factor for lazy resize                           |
 
-**Configuration options:**
+Configuration options:
 
 | Option              | Type     | Default | Description                                                                                                                              |
 | ------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `maxPointsPerShape` | `number` | `600`   | Maximum points in a single draw shape before the tool starts a new shape. Higher values allow longer strokes but may impact performance. |
 
-```typescript
+```tsx
 const ConfiguredDrawUtil = DrawShapeUtil.configure({
 	maxPointsPerShape: 1000,
 })
@@ -265,9 +262,9 @@ const ConfiguredDrawUtil = DrawShapeUtil.configure({
 
 ### Line
 
-The line shape creates multi-point lines with draggable handles. Unlike draw shapes, line shapes have explicit control points that users can manipulate after creation. Each point has an ID and index for ordering, allowing points to be added, removed, or repositioned. Lines support both straight segments and smooth cubic spline interpolation.
+The line shape creates multi-point lines with draggable handles. Unlike draw shapes, line shapes have explicit control points that you can manipulate after creation. Each point has an ID and index for ordering, allowing points to be added, removed, or repositioned. Lines support both straight segments and smooth cubic spline interpolation.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'line',
 	x: 100,
@@ -287,7 +284,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property | Type                               | Description                                                   |
 | -------- | ---------------------------------- | ------------------------------------------------------------- |
@@ -298,13 +295,13 @@ editor.createShape({
 | `points` | `Record<string, TLLineShapePoint>` | Dictionary of control points with IDs, indices, and positions |
 | `scale`  | `number`                           | Scale factor applied to the shape                             |
 
-Line shapes don't have configuration options. The line tool's behavior is controlled through the tool configuration rather than the shape utility.
+Line shapes don't have configuration options. The line tool's behavior is controlled through tool configuration rather than the shape utility.
 
 ### Highlight
 
-The highlight shape works like draw but renders semi-transparently for marking up content. It's designed to simulate a highlighter pen, rendering with configurable opacity layers that create the characteristic translucent appearance. Like draw shapes, highlights support pressure-sensitive input and automatic shape splitting for long strokes.
+The highlight shape works like draw but renders semi-transparently for marking up content. It simulates a highlighter pen, rendering with configurable opacity layers that create the characteristic translucent appearance. Like draw shapes, highlights support pressure-sensitive input and automatic shape splitting for long strokes.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'highlight',
 	x: 100,
@@ -320,7 +317,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property     | Type                   | Description                                  |
 | ------------ | ---------------------- | -------------------------------------------- |
@@ -333,7 +330,7 @@ editor.createShape({
 | `scaleX`     | `number`               | Horizontal scale factor for lazy resize      |
 | `scaleY`     | `number`               | Vertical scale factor for lazy resize        |
 
-**Configuration options:**
+Configuration options:
 
 | Option              | Type     | Default | Description                                                                                     |
 | ------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- |
@@ -341,7 +338,7 @@ editor.createShape({
 | `underlayOpacity`   | `number` | `0.82`  | Opacity of the underlay (background layer). Combined with overlay creates the highlight effect. |
 | `overlayOpacity`    | `number` | `0.35`  | Opacity of the overlay (foreground layer). Lower values create a more subtle highlight.         |
 
-```typescript
+```tsx
 const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
 	maxPointsPerShape: 800,
 	underlayOpacity: 0.7,
@@ -355,7 +352,7 @@ const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
 
 The image shape displays raster images with support for cropping, flipping, and animation control. Images link to asset records that store the actual image data (either as base64 or URLs). The shape maintains aspect ratio during resize and supports circular cropping for profile photos or decorative effects.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'image',
 	x: 100,
@@ -363,7 +360,7 @@ editor.createShape({
 	props: {
 		w: 400,
 		h: 300,
-		assetId: 'asset:abc123',
+		assetId: 'asset:abc123' as TLAssetId,
 		url: '',
 		crop: null,
 		flipX: false,
@@ -374,7 +371,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property  | Type                  | Description                                                     |
 | --------- | --------------------- | --------------------------------------------------------------- |
@@ -394,7 +391,7 @@ Image shapes don't have configuration options. Image handling behavior is contro
 
 The video shape displays video content with playback controls. Like images, videos link to asset records. The shape tracks playback position and state, and supports autoplay for automatic playback when the shape becomes visible.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'video',
 	x: 100,
@@ -402,7 +399,7 @@ editor.createShape({
 	props: {
 		w: 640,
 		h: 480,
-		assetId: 'asset:video123',
+		assetId: 'asset:video123' as TLAssetId,
 		url: '',
 		time: 0,
 		playing: false,
@@ -412,7 +409,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property   | Type                | Description                            |
 | ---------- | ------------------- | -------------------------------------- |
@@ -425,13 +422,13 @@ editor.createShape({
 | `autoplay` | `boolean`           | Whether to start playing automatically |
 | `altText`  | `string`            | Accessibility description              |
 
-**Configuration options:**
+Configuration options:
 
 | Option     | Type      | Default | Description                                     |
 | ---------- | --------- | ------- | ----------------------------------------------- |
 | `autoplay` | `boolean` | `true`  | Default autoplay behavior for new video shapes. |
 
-```typescript
+```tsx
 const ConfiguredVideoUtil = VideoShapeUtil.configure({
 	autoplay: false,
 })
@@ -439,23 +436,23 @@ const ConfiguredVideoUtil = VideoShapeUtil.configure({
 
 ### Bookmark
 
-The bookmark shape displays a URL as a card with metadata including title, description, and preview image. Bookmarks are created when users paste URLs onto the canvas. The editor fetches metadata from the URL and stores it in an associated asset record. Bookmark shapes have fixed dimensions and cannot be resized by the user.
+The bookmark shape displays a URL as a card with metadata including title, description, and preview image. Bookmarks are created when you paste URLs onto the canvas. The editor fetches metadata from the URL and stores it in an associated asset record. Bookmark shapes have fixed dimensions and can't be resized.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'bookmark',
 	x: 100,
 	y: 100,
 	props: {
 		url: 'https://example.com',
-		assetId: 'asset:bookmark123',
+		assetId: 'asset:bookmark123' as TLAssetId,
 		w: 300,
 		h: 320,
 	},
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property  | Type                | Description                                             |
 | --------- | ------------------- | ------------------------------------------------------- |
@@ -468,9 +465,9 @@ Bookmark shapes don't have configuration options. URL metadata fetching is handl
 
 ### Embed
 
-The embed shape displays interactive content from external services within an iframe. The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. Embeds can be interacted with while the shape is locked, allowing users to play videos or interact with embedded applications without accidentally moving the shape.
+The embed shape displays interactive content from external services within an iframe. The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. When an embed shape is locked, you can interact with the content (play videos, use embedded applications) without accidentally moving the shape.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'embed',
 	x: 100,
@@ -483,7 +480,7 @@ editor.createShape({
 })
 ```
 
-**Supported services:**
+Supported services:
 
 | Service         | Hostnames                    |
 | --------------- | ---------------------------- |
@@ -505,7 +502,7 @@ editor.createShape({
 | Observable      | observablehq.com             |
 | Desmos          | desmos.com                   |
 
-**Properties:**
+Properties:
 
 | Property | Type     | Description                                          |
 | -------- | -------- | ---------------------------------------------------- |
@@ -513,7 +510,7 @@ editor.createShape({
 | `w`      | `number` | Width of the embed container                         |
 | `h`      | `number` | Height of the embed container                        |
 
-Embed shapes don't have per-instance configuration options, but the set of supported embed types can be customized globally using `EmbedShapeUtil.setEmbedDefinitions()`.
+Embed shapes don't have per-instance configuration options, but you can customize the set of supported embed types globally using `EmbedShapeUtil.setEmbedDefinitions()`.
 
 ## Structural shapes
 
@@ -521,7 +518,7 @@ Embed shapes don't have per-instance configuration options, but the set of suppo
 
 The frame shape provides a visual container for organizing shapes. Shapes inside a frame are clipped to its bounds and move with the frame when it's repositioned. Frames display a header with the frame's name, and optionally colored borders and backgrounds. They're useful for creating sections, organizing content into logical groups, or defining artboard-like regions for export.
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'frame',
 	x: 100,
@@ -535,7 +532,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property | Type                  | Description                                           |
 | -------- | --------------------- | ----------------------------------------------------- |
@@ -544,7 +541,7 @@ editor.createShape({
 | `name`   | `string`              | Label displayed in the frame header                   |
 | `color`  | `TLDefaultColorStyle` | Color for border and header (when colors are enabled) |
 
-**Configuration options:**
+Configuration options:
 
 | Option       | Type      | Default | Description                                                                                     |
 | ------------ | --------- | ------- | ----------------------------------------------------------------------------------------------- |
@@ -552,7 +549,7 @@ editor.createShape({
 
 When `showColors` is enabled, the frame's `color` property becomes a style that users can change from the style panel. When disabled, all frames appear with the same neutral styling.
 
-```typescript
+```tsx
 const ConfiguredFrameUtil = FrameShapeUtil.configure({
 	showColors: true,
 })
@@ -560,9 +557,9 @@ const ConfiguredFrameUtil = FrameShapeUtil.configure({
 
 ### Group
 
-The group shape logically combines multiple shapes without visual representation. Groups enable moving and transforming shapes together while preserving their relative positions. The group's geometry is computed as the union of all child shapes' geometries. Groups are created through the editor API rather than directly, and they delete themselves automatically when their last child is removed or ungrouped.
+The group shape logically combines multiple shapes without visual representation. Groups let you move and transform shapes together while preserving their relative positions. The group's geometry is computed as the union of all child shapes' geometries. Groups are created through the editor API rather than directly, and they delete themselves automatically when their last child is removed or ungrouped.
 
-```typescript
+```tsx
 // Create a group from selected shapes
 editor.groupShapes(editor.getSelectedShapeIds())
 
@@ -573,18 +570,7 @@ editor.ungroupShapes([groupId])
 const children = editor.getSortedChildIdsForParent(groupId)
 ```
 
-**Properties:**
-
-Groups have no visual properties—their `props` object is empty. All visual characteristics come from their child shapes.
-
-**Characteristics:**
-
-- No configurable options
-- Geometry is the union of all child shapes
-- Automatically deleted when last child is removed
-- Cannot be bound to (arrows cannot connect to groups)
-- Double-click to enter and edit children directly
-- Supports nested groups
+Groups have no visual properties; their `props` object is empty. All visual characteristics come from their child shapes. Their geometry is the union of all child geometries. Groups delete themselves automatically when the last child is removed, and arrows can't bind to them. Double-click a group to enter it and edit children directly.
 
 Group shapes don't have configuration options.
 
@@ -596,7 +582,7 @@ The arrow shape creates lines that can bind to other shapes. Arrows automaticall
 
 The arrow binding system creates connections automatically when arrow terminals are dragged near other shapes. Bindings can be "precise" (connecting to a specific point) or "imprecise" (connecting to the shape's center or edge).
 
-```typescript
+```tsx
 editor.createShape({
 	type: 'arrow',
 	x: 100,
@@ -622,7 +608,7 @@ editor.createShape({
 })
 ```
 
-**Properties:**
+Properties:
 
 | Property         | Type                         | Description                                             |
 | ---------------- | ---------------------------- | ------------------------------------------------------- |
@@ -643,11 +629,11 @@ editor.createShape({
 | `scale`          | `number`                     | Scale factor                                            |
 | `elbowMidPoint`  | `number`                     | Position of the midpoint handle for elbow arrows        |
 
-**Arrowhead styles:** `none`, `arrow`, `triangle`, `square`, `dot`, `pipe`, `diamond`, `inverted`, `bar`
+The available arrowhead styles are: `none`, `arrow`, `triangle`, `square`, `dot`, `pipe`, `diamond`, `inverted`, `bar`
 
-**Configuration options:**
+Configuration options:
 
-Arrows have extensive configuration options controlling snap behavior, timing, and rendering:
+Arrows have extensive configuration options that control snap behavior, timing, and rendering:
 
 | Option                                      | Type                                 | Default                              | Description                                                                                          |
 | ------------------------------------------- | ------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
@@ -668,7 +654,7 @@ Arrows have extensive configuration options controlling snap behavior, timing, a
 | `shouldIgnoreTargets`                       | `(editor: Editor) => boolean`        | Returns `editor.inputs.getCtrlKey()` | Function determining whether to skip binding to target shapes.                                       |
 | `showTextOutline`                           | `boolean`                            | `true`                               | Whether to show a text outline on arrow labels for readability.                                      |
 
-```typescript
+```tsx
 const ConfiguredArrowUtil = ArrowShapeUtil.configure({
 	arcArrowCenterSnapDistance: 24,
 	hoverPreciseTimeout: 400,
@@ -713,6 +699,7 @@ To use configured shape utilities, pass them to the `shapeUtils` prop when initi
 
 ```tsx
 import { Tldraw, ArrowShapeUtil, FrameShapeUtil, NoteShapeUtil } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 const ConfiguredArrowUtil = ArrowShapeUtil.configure({
 	showTextOutline: false,
@@ -727,15 +714,19 @@ const ConfiguredNoteUtil = NoteShapeUtil.configure({
 	resizeMode: 'scale',
 })
 
-function App() {
-	return <Tldraw shapeUtils={[ConfiguredArrowUtil, ConfiguredFrameUtil, ConfiguredNoteUtil]} />
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={[ConfiguredArrowUtil, ConfiguredFrameUtil, ConfiguredNoteUtil]} />
+		</div>
+	)
 }
 ```
 
-You can also extend shape utilities to add custom behavior beyond configuration options. See the custom shapes guide for details.
+You can also extend shape utilities to add custom behavior beyond configuration options. See the [custom shapes](/docs/shapes) guide for details.
 
 ## Related examples
 
-- **[Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape)** - Create a custom shape utility to understand how default shapes are implemented.
-- **[Custom styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-styles)** - Add custom style properties similar to those used by default shapes.
-- **[Shape options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-options)** - Configure shape utility behavior using the configure() method.
+- [Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape): Create a custom shape utility to understand how default shapes are implemented.
+- [Custom styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-styles): Add custom style properties similar to those used by default shapes.
+- [Shape options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-options): Configure shape utility behavior using the configure() method.

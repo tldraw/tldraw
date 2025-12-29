@@ -1,7 +1,7 @@
 ---
 title: Camera system
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - camera
   - zoom
@@ -12,11 +12,6 @@ keywords:
 status: published
 date: 12/20/2025
 order: 4
-readability: 8
-voice: 8
-completeness: 8
-accuracy: 9
-notes: 'Solid doc with clear structure. API accurate, EASINGS import correct. Could mention stopCameraAnimation() and slideCamera optional params.'
 ---
 
 The camera system controls how users view and navigate the infinite canvas. It manages viewport position and zoom level, and transforms coordinates between screen space and page space. The editor uses these transformations to map mouse positions to canvas locations and render shapes at any zoom level.
@@ -123,7 +118,11 @@ behavior: {
 
 ## Camera methods
 
-The editor provides methods for programmatic camera control. All methods accept optional animation parameters.
+The editor provides methods for programmatic camera control. All methods accept an optional options object with:
+
+- `animation` - add smooth transitions with `duration` and `easing`
+- `immediate` - move the camera immediately rather than on the next tick
+- `force` - move the camera even when `isLocked` is true
 
 ### Basic navigation
 
@@ -152,12 +151,21 @@ editor.zoomIn(editor.inputs.currentScreenPoint, { animation: { duration: 200 } }
 Focus the camera on shapes or bounds:
 
 ```typescript
+// Fit all shapes on the current page
 editor.zoomToFit()
+
+// Fit the current selection
 editor.zoomToSelection()
 
+// Reset zoom to 100% (or initial zoom if constraints are set)
+editor.resetZoom()
+
+// Fit specific bounds with padding
 const bounds = { x: 0, y: 0, w: 1000, h: 800 }
 editor.zoomToBounds(bounds, { inset: 100 })
 ```
+
+The `zoomToBounds` method accepts `inset` to add padding around the bounds and `targetZoom` to limit the maximum zoom level.
 
 ### Animated movement
 
@@ -188,10 +196,11 @@ editor.slideCamera({
 	speed: 2,
 	direction: { x: 1, y: 0 },
 	friction: 0.1,
+	speedThreshold: 0.01,
 })
 ```
 
-The camera gradually decelerates based on the friction value. Higher friction stops movement faster. Use this for kinetic scrolling or to continue movement after gesture completion.
+The `speed` and `direction` control initial velocity. The `friction` value determines how fast the camera decelerates (higher friction stops movement faster). The `speedThreshold` sets the minimum speed before the animation stops completely. Use this for kinetic scrolling or to continue movement after gesture completion.
 
 ## Collaboration features
 
@@ -199,7 +208,7 @@ The camera system integrates with collaboration through user following. When fol
 
 User following respects the follower's viewport size. If aspect ratios differ, the system adjusts zoom to keep the followed user's content visible while maintaining the follower's viewport dimensions.
 
-See [User following](./user-following.md) for implementation details.
+See [User following](/docs/user-following) for implementation details.
 
 ## Related examples
 

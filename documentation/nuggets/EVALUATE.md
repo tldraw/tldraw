@@ -31,7 +31,7 @@ How clear and easy to understand is the writing?
 
 ### Voice
 
-Does it sound like tldraw? Check [VOICE.md](./VOICE.md) for the full guide.
+Does it sound like tldraw? Check [write-nuggets.md](../../.claude/skills/write-nuggets.md) for the full guide.
 
 **9-10**: Opens with our experience ("When we added...", "We wanted..."). Uses "we" for tldraw decisions, "you" for the reader. No AI tells.
 
@@ -78,11 +78,10 @@ Is the story true to the source code and documentation?
 ## Evaluation process
 
 1. Read the draft thoroughly
-2. Read [VOICE.md](./VOICE.md) to calibrate on voice criteria
-3. Read [index.md](./index.md) to check structure
-4. Read source files mentioned in the draft's "Key files" section to verify accuracy
-5. Score each dimension
-6. Write brief notes explaining the scores
+2. Read [write-nuggets.md](../../.claude/skills/write-nuggets.md) for voice and structure guidelines
+3. Read source files mentioned in the draft's "Key files" section to verify accuracy
+4. Score each dimension
+5. Write brief notes explaining the scores
 
 ## Recording scores
 

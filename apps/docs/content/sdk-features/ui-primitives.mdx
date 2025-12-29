@@ -15,9 +15,9 @@ date: 12/25/2025
 order: 10
 readability: 8
 voice: 8
-completeness: 7
-accuracy: 8
-notes: "Clear examples with good API coverage. The TldrawUiMenuCheckboxItem onSelect signature was incorrect (missing source parameter). Example URLs may need verification against live routing. Could add more depth on theming integration and custom icon registration."
+completeness: 8
+accuracy: 9
+notes: "Well-structured doc with accurate API coverage. First button example missing TldrawUiButtonIcon import. Could add brief CSS theming notes. Checkbox onSelect source param now correctly documented."
 ---
 
 The `@tldraw/tldraw` package exports a set of UI primitive components that you can use when building custom interfaces. These components match the look and feel of tldraw's default UI and integrate with the editor's theming, translations, and accessibility features.
@@ -211,9 +211,13 @@ import { TldrawUiMenuCheckboxItem } from 'tldraw'
 	id="snap-to-grid"
 	label="Snap to grid"
 	checked={snapEnabled}
-	onSelect={(source) => setSnapEnabled(!snapEnabled)}
+	onSelect={() => {
+		setSnapEnabled(!snapEnabled)
+	}}
 />
 ```
+
+The `onSelect` callback receives a `source` parameter indicating where the action was triggered from (e.g., 'context-menu', 'menu'). You can ignore it if you don't need to differentiate between sources.
 
 ## Dialogs
 
@@ -435,6 +439,6 @@ The `id` prop is required on `TldrawUiDropdownMenuRoot`. Each `TldrawUiDropdownM
 
 ## Related examples
 
-- **[Custom menus](/examples/ui/menus/custom-menus)** — Add items to tldraw's menus using menu primitives
-- **[Toasts and dialogs](/examples/ui/toasts-and-dialogs)** — Show toasts and custom dialogs
-- **[Custom UI](/examples/ui/custom-ui)** — Build a completely custom interface
+- **[Custom menus](/examples/custom-menus)** — Add items to tldraw's menus using menu primitives
+- **[Toasts and dialogs](/examples/toasts-and-dialogs)** — Show toasts and custom dialogs
+- **[Custom UI](/examples/custom-ui)** — Build a completely custom interface

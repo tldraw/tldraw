@@ -1,7 +1,7 @@
 ---
 title: Environment detection
 created_at: 12/22/2025
-updated_at: 12/22/2025
+updated_at: 12/29/2025
 keywords:
   - environment
   - browser
@@ -16,18 +16,13 @@ reviewed_by: steveruizok
 status: published
 date: 12/22/2025
 order: 11
-readability: 8
-voice: 8
-completeness: 7
-accuracy: 8
-notes: "Strong organization and clear prose. Fixed: removed isWebview (never set in source), added missing imports for react() and useValue examples. Browser quirks section adds valuable context."
 ---
 
-We export two objects for environment detection: `tlenv` for static browser/platform info, and `tlenvReactive` for values that change during a session. We use these internally to work around browser quirks, and you can use them for the same purpose in custom shapes or tools.
+The tldraw SDK provides two objects for detecting the user's environment: `tlenv` for fixed browser and platform information, and `tlenvReactive` for values that change during a session (like whether the user is using touch input). We use these internally to work around browser quirks, and you can use them in custom shapes or tools.
 
 ## Static environment: tlenv
 
-The `tlenv` object contains fixed values detected at load time. These don't change during a session.
+The `tlenv` object contains values detected at page load. These don't change during a session.
 
 ```typescript
 import { tlenv } from 'tldraw'
@@ -40,13 +35,13 @@ tlenv.isChromeForIos // true if Chrome running on iOS
 // Platform detection
 tlenv.isIos // true if iPad or iPhone
 tlenv.isAndroid // true if Android device
-tlenv.isDarwin // true if macOS (used for keyboard shortcuts)
+tlenv.isDarwin // true if macOS
 
 // Capability detection
 tlenv.hasCanvasSupport // true if Promise and HTMLCanvasElement exist
 ```
 
-### Common usage patterns
+### Common patterns
 
 **Platform-specific keyboard shortcuts:**
 
@@ -60,68 +55,65 @@ const accelKey = tlenv.isDarwin ? e.metaKey : e.ctrlKey
 ```typescript
 const isMobile = tlenv.isIos || tlenv.isAndroid
 if (isMobile) {
-	// Adjust UI for touch
+	// Adjust UI for mobile
 }
 ```
 
-**Safari workarounds:**
+**Browser-specific workarounds:**
 
 ```typescript
 // Safari needs extra time for SVG image export
 if (tlenv.isSafari) {
-	await sleep(250)
+	await new Promise((r) => setTimeout(r, 250))
 }
 ```
 
 ## Reactive environment: tlenvReactive
 
-The `tlenvReactive` atom contains values that can change during a session, such as the pointer type. Use this with reactive hooks to respond to changes.
+The `tlenvReactive` atom contains values that can change during a session, like the current pointer type. Use `useValue` to subscribe to changes in React components.
 
-```typescript
+```tsx
 import { tlenvReactive, useValue } from 'tldraw'
 
-function MyComponent() {
-  const { isCoarsePointer } = useValue(tlenvReactive)
+function TouchFriendlyButton() {
+	const { isCoarsePointer } = useValue(tlenvReactive)
 
-  return (
-    <div style={{ padding: isCoarsePointer ? 16 : 8 }}>
-      {/* Larger touch targets for touch input */}
-    </div>
-  )
+	return (
+		<button style={{ padding: isCoarsePointer ? 16 : 8 }}>
+			{/* Larger touch target when using touch input */}
+			Click me
+		</button>
+	)
 }
 ```
 
 ### Coarse pointer detection
 
-The `isCoarsePointer` value tracks whether the user is currently using touch input. We update it in two ways: by listening to the `(any-pointer: coarse)` media query, and by checking the `pointerType` on each pointer event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
+The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
 
 ```typescript
 import { tlenvReactive, react } from 'tldraw'
 
-// Access the current value
+// Access the current value directly
 const isCoarse = tlenvReactive.get().isCoarsePointer
 
-// Or subscribe to changes
+// Subscribe to changes outside React
 react('pointer type changed', () => {
 	const { isCoarsePointer } = tlenvReactive.get()
 	console.log('Coarse pointer:', isCoarsePointer)
 })
 ```
 
-Note: Firefox desktop forces fine pointer mode regardless of the actual input device, as its coarse pointer reporting is unreliable.
+Note: We force fine pointer mode on Firefox desktop regardless of the actual input device, since Firefox's coarse pointer reporting is unreliable there.
 
 ## Browser quirks we handle
 
-Here's a sample of what we use environment detection for internally:
+Here's a sample of what we use environment detection for internally.
 
-Safari has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also double-draw minimap triangles because Safari's WebGL implementation sometimes drops the first draw call. Text outlines render incorrectly, so we disable them.
+**Safari** has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also double-draw minimap triangles because Safari's WebGL implementation sometimes drops the first draw call. Text outlines render incorrectly, so we disable them entirely on Safari.
 
-On iOS, coalesced pointer events are broken (they report wrong coordinates), so we skip them entirely and use individual events. We also handle the virtual keyboard differently since iOS doesn't fire standard resize events.
+**iOS** coalesced pointer events are broken (they report wrong coordinates), so we skip them entirely and use individual events. We also handle the virtual keyboard differently since iOS doesn't fire standard resize events.
 
-Firefox's `(any-pointer: coarse)` media query reports false positives on desktop when a touchscreen is present but not in use. We force fine pointer mode on Firefox desktop to avoid jumpy UI.
+**Firefox** desktop's `(any-pointer: coarse)` media query reports false positives when a touchscreen is present but not in use. We force fine pointer mode on Firefox desktop to avoid jumpy UI.
 
-Chrome for iOS has its own print implementation that doesn't trigger the standard `beforeprint` event, so we detect it and handle printing manually.
-
-## Related examples
-
-- **[Custom UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-ui)** - Build custom interfaces that may need platform-specific behavior using tlenv for detection.
+**Chrome for iOS** has its own print implementation that doesn't trigger the standard `beforeprint` event, so we detect it and handle printing manually.

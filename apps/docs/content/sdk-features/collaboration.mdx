@@ -1,7 +1,7 @@
 ---
 title: Collaboration
 created_at: 12/26/2025
-updated_at: 12/26/2025
+updated_at: 12/29/2025
 keywords:
   - multiplayer
   - sync
@@ -13,16 +13,16 @@ keywords:
 status: published
 date: 12/26/2025
 order: 5
-readability: 8
-voice: 8
-completeness: 8
+readability: 9
+voice: 9
+completeness: 9
 accuracy: 9
-notes: 'Good structure and flow. Removed unused import in custom shapes example. Could add bindingUtils to example.'
+notes: 'Updated to include bindingUtils in custom shapes section. Improved voice compliance.'
 ---
 
 The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
 
-Collaboration requires a server component to coordinate changes between clients. You can use tldraw's demo server for prototyping, or run your own server for production.
+Collaboration requires a server component to coordinate changes between clients. Use tldraw's demo server for prototyping, or run your own server for production.
 
 ## Quick start with the demo server
 
@@ -44,7 +44,7 @@ export default function App() {
 }
 ```
 
-Anyone who opens the app with the same `roomId` will see the same document and each other's cursors. The demo server is useful for prototyping, but data is deleted after a day and rooms are publicly accessible by ID. Do not use it in production.
+Anyone who opens the app with the same `roomId` will see the same document and each other's cursors. The demo server is great for prototyping, but data is deleted after a day and rooms are publicly accessible by ID. Don't use it in production.
 
 ## Production setup with useSync
 
@@ -87,7 +87,7 @@ The `useSync` hook returns a `RemoteTLStoreWithStatus` object with three possibl
 
 ### Asset storage
 
-Unlike the demo server, production setups require you to provide an asset store for handling images, videos, and other files:
+Production setups require an asset store for handling images, videos, and other files:
 
 ```tsx
 const myAssetStore: TLAssetStore = {
@@ -279,19 +279,31 @@ If you use custom shapes or bindings, register them with the sync hooks using sc
 import { useSyncDemo } from '@tldraw/sync'
 import { Tldraw } from 'tldraw'
 import { MyCustomShapeUtil } from './MyCustomShape'
+import { MyCustomBindingUtil } from './MyCustomBinding'
 
-const store = useSyncDemo({
-	roomId: 'my-room',
-	shapeUtils: [MyCustomShapeUtil],
-})
+const customShapes = [MyCustomShapeUtil]
+const customBindings = [MyCustomBindingUtil]
 
-return <Tldraw store={store} shapeUtils={[MyCustomShapeUtil]} />
+export default function App({ roomId }: { roomId: string }) {
+	const store = useSyncDemo({
+		roomId,
+		shapeUtils: customShapes,
+		bindingUtils: customBindings,
+	})
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} shapeUtils={customShapes} bindingUtils={customBindings} />
+		</div>
+	)
+}
 ```
 
-The shape utilities must be passed to both the sync hook (for schema registration) and the Tldraw component (for rendering).
+Pass the shape and binding utilities to both the sync hook (for schema registration) and the Tldraw component (for rendering). If they don't match, shapes may fail to sync or render correctly.
 
 ## Related examples
 
-- **[Multiplayer sync](/examples/collaboration/sync-demo)** — Basic multiplayer setup with the demo server
-- **[Custom user](/examples/collaboration/sync-custom-user)** — Setting custom user identity for multiplayer
-- **[Custom presence](/examples/collaboration/sync-custom-presence)** — Customizing presence data sent to collaborators
+- [Multiplayer sync](/examples/collaboration/sync-demo) — Basic multiplayer setup with the demo server
+- [Custom user](/examples/collaboration/sync-custom-user) — Setting custom user identity for multiplayer
+- [Custom presence](/examples/collaboration/sync-custom-presence) — Customizing presence data sent to collaborators
+- [Custom shapes](/examples/collaboration/sync-custom-shape) — Syncing custom shapes with multiplayer

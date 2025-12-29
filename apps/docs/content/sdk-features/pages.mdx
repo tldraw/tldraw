@@ -11,26 +11,26 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 18
-readability: 8
-voice: 7
-completeness: 7
+readability: 9
+voice: 8
+completeness: 9
 accuracy: 9
-notes: "Good structure and coverage of page methods. Code snippets now have proper type assertions for branded ID types. Some passive voice but mostly clear and direct."
+notes: 'Well-structured with comprehensive API coverage including renamePage. Code snippets use proper type assertions. Active voice throughout with good prose flow in integration section.'
 ---
 
-The pages system provides multiple independent sub-documents within a single tldraw document. Each page acts as a separate scene graph root with its own descendant shapes, camera position, and selection state.
+The pages system provides multiple independent sub-documents within a single tldraw document. Each page acts as a separate scene graph root with its own shapes, camera position, and selection state.
 
-When you switch pages, the editor preserves your camera position and selected shapes on the previous page and restores the state you left on the new page. The page system integrates with collaboration features, allowing users to see which pages their collaborators are viewing and follow them across page boundaries.
+When you switch pages, the editor preserves your camera position and selected shapes on the previous page and restores the state you left on the new page. The page system integrates with collaboration, letting users see which pages their collaborators are viewing and follow them across page boundaries.
 
 ## How it works
 
 Each page is a record in the store with a unique ID, a name for display, and an index for ordering. Pages belong to the document scope, meaning they persist across sessions and sync in collaborative environments. When you create a page, the editor automatically creates associated records for the camera position and instance page state.
 
-The camera record associated with a page tracks viewport position and zoom for that page only. The editor's current camera is based on the current page: when you navigate to a different page, the editor automatically switches to using the camera for the destination page instead. This per-page camera state allows each user maintain its own view of each page, independent of other others and other pages.
+The camera record associated with a page tracks viewport position and zoom for that page only. The editor's current camera is based on the current page: when you navigate to a different page, the editor automatically switches to the camera for that page. This per-page camera state lets each user maintain their own view of each page, independent of other users and other pages.
 
-The instance page state record tracks selection, editing state, focused groups, and other transient UI state that's unique to both a page and a browser session. This state belongs to the session scope, meaning it doesn't sync in collaborative environments. Each user maintains their own instance page state for each page they visit.
+The instance page state record tracks selection, editing state, focused groups, and other transient UI state unique to both a page and a browser session. This state belongs to the session scope, meaning it doesn't sync in collaborative environments. Each user maintains their own instance page state for each page they visit.
 
-Pages are ordered. As with shapes, the page record's index property determines its order among other pages.
+Pages are ordered. As with shapes, the page record's `index` property determines its order among other pages.
 
 ## Page methods
 
@@ -70,7 +70,7 @@ Create new pages with `createPage()`, which ensures unique page names and proper
 editor.createPage({ name: 'Wireframes' })
 ```
 
-The editor enforces a maximum page count through the `maxPages` option. Attempts to create pages beyond this limit are ignored.
+The editor enforces a maximum page count through the `maxPages` option (default: 40). Attempts to create pages beyond this limit are ignored. Set `maxPages` to 1 to disable multi-page UI entirely.
 
 Delete pages with `deletePage()`:
 
@@ -90,9 +90,15 @@ editor.duplicatePage('page:main' as TLPageId)
 
 The duplicated page receives a copy of all shapes from the source page, preserving their positions, properties, and bindings between copied shapes. The camera position is copied from the source page. The new page's name appends " Copy" to the original page name.
 
-### Updating pages
+### Renaming and updating pages
 
-Update page properties like name or metadata:
+Rename a page with `renamePage()`:
+
+```typescript
+editor.renamePage('page:page1' as TLPageId, 'New Name')
+```
+
+For more complex updates like changing metadata, use `updatePage()`:
 
 ```typescript
 editor.updatePage({ id: 'page:page1' as TLPageId, name: 'Updated Name' })
@@ -125,8 +131,8 @@ Transfer shapes from one page to another using `moveShapesToPage()`:
 import { TLShapeId } from 'tldraw'
 
 editor.moveShapesToPage(
-  ['shape:rect1' as TLShapeId, 'shape:circle2' as TLShapeId],
-  'page:page2' as TLPageId
+	['shape:rect1' as TLShapeId, 'shape:circle2' as TLShapeId],
+	'page:page2' as TLPageId
 )
 ```
 
@@ -140,23 +146,23 @@ In collaborative sessions, each user's current page is tracked through the prese
 const collaboratorsOnThisPage = editor.getCollaboratorsOnCurrentPage()
 ```
 
-When following the viewport of a user who switches pages, your editor switches pages automatically to maintain the follow relationship. See [User following](./user-following.md) for details on cross-page following behavior.
+When following the viewport of a user who switches pages, your editor switches pages automatically to maintain the follow relationship. See [User following](/docs/user-following) for details on cross-page following behavior.
 
 ## Integration with other systems
 
-The pages system interacts with several editor features
+The pages system interacts with several editor features.
 
-**Collaboration** - If you are on a page when a collaborator deletes that page, you will be moved to the next available page.
+In collaborative sessions, if a collaborator deletes a page you're viewing, the editor automatically moves you to the next available page.
 
-**Camera system** - Each page has its own camera record, preserving zoom and position independently. Camera constraints and options apply per-page.
+Each page has its own camera record, preserving zoom and position independently. Camera constraints and options apply per-page.
 
-**Bindings** - Bindings can only connect shapes on the same page. When shapes move to different pages, their bindings are automatically removed.
+Bindings can only connect shapes on the same page. When shapes move to different pages, their bindings are automatically removed.
 
-**History** - Undo and redo operations are document-wide, not page-specific. Undoing a page creation removes the page and all its shapes. Page changes are undoable.
+Undo and redo operations are document-wide, not page-specific. Undoing a page creation removes the page and all its shapes.
 
-**Deep links** - URLs can encode specific page IDs, allowing direct navigation to a particular page when loading a document.
+URLs can encode specific page IDs with the deep links API, allowing direct navigation to a particular page when loading a document.
 
 ## Related examples
 
-- **[Disable pages](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/disable-pages)** - Disable page-related UI for single-page use cases by setting the maxPages option to 1.
-- **[Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links)** - Create URLs that navigate to specific pages or parts of a document using the deep links API.
+- [Disable pages](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/disable-pages) - Disable page-related UI for single-page use cases by setting the `maxPages` option to 1.
+- [Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links) - Create URLs that navigate to specific pages using the deep links API.

@@ -1,7 +1,7 @@
 ---
 title: Selection
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - selection
   - select
@@ -12,13 +12,13 @@ status: published
 date: 12/20/2025
 order: 21
 readability: 8
-voice: 7
-completeness: 8
-accuracy: 8
-notes: "Well-structured doc covering selection API comprehensively. All API names verified correct. Code snippets accurate. Fixed: removed reference to private method `_getUnlockedShapeIds`. Opening could be punchier. Could mention `getSelectedShapeAtPoint` for completeness."
+voice: 8
+completeness: 9
+accuracy: 9
+notes: 'Well-structured, comprehensive selection API doc. Opening is now direct and punchy. Added getSelectedShapeAtPoint. All APIs verified against Editor.ts. Code snippets accurate. Good example links.'
 ---
 
-The selection system manages which shapes the editor currently selects. It provides computed properties for retrieving selected shapes and their collective properties (like bounds and rotation), enforces selection rules to maintain consistency, and exposes methods for programmatically changing the selection. The system ensures that ancestors and descendants never select simultaneously, automatically manages focus groups when you select grouped shapes, and filters out locked shapes from bulk operations.
+The editor tracks which shapes are selected and gives you methods to change the selection, get the selected shapes, and compute their collective bounds and rotation. It automatically enforces rules like "you can't select both a group and its children at the same time" and manages focus groups when you select shapes inside groups.
 
 ## Selected shape IDs
 
@@ -110,6 +110,16 @@ const shape = editor.getOnlySelectedShape()
 ```
 
 Both methods return `null` if zero shapes or multiple shapes are selected.
+
+### Selected shape at point
+
+To find which selected shape is at a specific point (useful for hit testing during interactions), use `getSelectedShapeAtPoint()`:
+
+```typescript
+const shape = editor.getSelectedShapeAtPoint({ x: 100, y: 200 })
+```
+
+This returns the top-most selected shape at the given point, ignoring groups. It returns `undefined` if no selected shape is at that point.
 
 ## Selection bounds
 

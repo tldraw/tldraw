@@ -13,10 +13,10 @@ status: published
 date: 12/28/2025
 order: 16
 readability: 9
-voice: 8
-completeness: 8
-accuracy: 7
-notes: "Strong structure and clear explanations. Fixed: getShapeAncestors order was documented incorrectly (said parent-to-root, actually returns root-to-parent). isShapeHidden description is slightly simplified but acceptable."
+voice: 9
+completeness: 9
+accuracy: 9
+notes: "Strong documentation with clear structure. Correctly explains getShapeAncestors order (root-to-parent). Hidden shapes section now accurately describes the getShapeVisibility callback requirement."
 ---
 
 Every shape in tldraw has a parent. A shape's parent is either the page it lives on or another shape that contains it. This parent-child relationship creates a hierarchy that affects how shapes move, transform, and render. Groups and frames use this hierarchy to contain other shapes; the editor tracks this hierarchy to manage transforms, selection, and rendering order.
@@ -117,10 +117,7 @@ You can also filter by a predicate:
 
 ```typescript
 // Find the common frame ancestor
-const commonFrame = editor.findCommonAncestor(
-	shapeIds,
-	(shape) => shape.type === 'frame'
-)
+const commonFrame = editor.findCommonAncestor(shapeIds, (shape) => shape.type === 'frame')
 ```
 
 ## Getting children
@@ -195,6 +192,8 @@ const pagePoint = pageTransform.point()
 
 When you move a parent, all children move with it. Their local coordinates stay the same, but their page coordinates change.
 
+For more about coordinate systems and transforms, see [Coordinates](/docs/sdk-features/coordinates).
+
 ## Checking page membership
 
 Use `editor.isShapeInPage()` to check if a shape is on a specific page (even if nested):
@@ -223,15 +222,26 @@ if (editor.isShapeOrAncestorLocked(myShape)) {
 
 This is what the editor uses internally to determine if shapes should respond to interactions.
 
-## Hidden ancestors
+## Hidden shapes
 
-Similarly, shapes are hidden if any ancestor is hidden. The editor tracks this through `editor.isShapeHidden()`:
+The editor can track shape visibility through `editor.isShapeHidden()`. This only works if you provide a `getShapeVisibility` callback when creating the editor:
 
 ```typescript
+const editor = new Editor({
+	getShapeVisibility: (shape, editor) => {
+		// Return 'hidden', 'visible', or 'inherit'
+		return shape.meta.hidden ? 'hidden' : 'inherit'
+	},
+	// ... other options
+})
+
+// Now you can check visibility
 if (editor.isShapeHidden(myShape)) {
 	// Shape won't render (either it or an ancestor is hidden)
 }
 ```
+
+A shape is hidden if its visibility is `'hidden'` or if any ancestor is hidden (unless the shape explicitly overrides with `'visible'`). Without a `getShapeVisibility` callback, `isShapeHidden()` always returns `false`.
 
 ## The focused group
 

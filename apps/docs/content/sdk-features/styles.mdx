@@ -13,11 +13,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 27
-readability: 8
-voice: 8
-completeness: 8
-accuracy: 7
-notes: "Strong coverage of styles system with good code examples. Main accuracy issue: T.numberFrom(1, 10) doesn't exist - should use T.number or other available validators. Document correctly explains StyleProp, shared styles, and default styles. Good examples linking at end."
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: "Well-structured coverage of styles system. Clear progression from basics to custom styles. All API methods verified correct. Code snippets syntactically valid. Good use of getAsKnownValue helper. Examples all exist and properly linked."
 ---
 
 The styles system manages visual properties like color, size, font, fill, and dash patterns across shapes. Style properties differ from regular shape properties in two key ways: they apply consistently across multiple shapes at once, and the editor remembers the last-used value to automatically apply it to newly created shapes. This creates a coherent visual experience where users can set a color once and have it persist across their work.
@@ -33,8 +33,7 @@ A `StyleProp` represents a reusable style property that can be applied across di
 You define a `StyleProp` using one of two static methods:
 
 ```typescript
-import { StyleProp } from '@tldraw/tlschema'
-import { T } from '@tldraw/validate'
+import { StyleProp, T } from 'tldraw'
 
 // Define a numeric style property
 const LineWidthStyle = StyleProp.define('myApp:lineWidth', {
@@ -53,16 +52,23 @@ The unique identifier should be namespaced to avoid conflicts with other style p
 
 ### Shape integration
 
-To use a style property in your shape, include it in your shape's props definition. The shape's props object contains the actual style values, while the `StyleProp` instance serves as the key for accessing and setting those values.
+To use a style property in your shape, include the `StyleProp` instance in your shape's props definition. The editor recognizes `StyleProp` instances and handles them specially: it saves their values, applies them to new shapes, and tracks them across selections.
 
 ```typescript
-interface MyShapeProps {
-	w: number
-	h: number
-	color: typeof DefaultColorStyle
-	size: typeof DefaultSizeStyle
-}
+import { DefaultColorStyle, DefaultSizeStyle, RecordProps, T, TLBaseShape } from 'tldraw'
 
+// Define your shape type with the value types for styles
+type TLMyShape = TLBaseShape<
+	'my-shape',
+	{
+		w: number
+		h: number
+		color: string // Will be one of the default color names
+		size: string // Will be one of the default size values
+	}
+>
+
+// Pass StyleProp instances in the props object for validation
 const myShapeProps: RecordProps<TLMyShape> = {
 	w: T.number,
 	h: T.number,
@@ -71,7 +77,7 @@ const myShapeProps: RecordProps<TLMyShape> = {
 }
 ```
 
-When you create a shape, you provide the actual style values:
+When you create a shape, provide the actual style values. If you omit a style prop, the editor uses its saved value from previous shapes:
 
 ```typescript
 editor.createShape({
@@ -87,7 +93,7 @@ editor.createShape({
 
 ### Shared styles
 
-The editor computes shared styles across the current selection using a `SharedStyleMap`. This map contains each style property and whether its value is "shared" (all shapes have the same value) or "mixed" (shapes have different values).
+The editor computes shared styles across the current selection. Use `getSharedStyles` to get a map of each style property to its status: either "shared" (all shapes have the same value) or "mixed" (shapes have different values).
 
 ```typescript
 const sharedStyles = editor.getSharedStyles()
@@ -100,23 +106,31 @@ if (colorStyle && colorStyle.type === 'shared') {
 }
 ```
 
+For convenience, use `getAsKnownValue` when you only care about the shared case:
+
+```typescript
+const sharedStyles = editor.getSharedStyles()
+const color = sharedStyles.getAsKnownValue(DefaultColorStyle)
+// Returns the color if all shapes share it, undefined otherwise
+```
+
 The `getSharedStyles` method examines each selected shape, extracts its style values, and compares them. For groups, it recursively examines the group's children rather than the group itself, since groups don't have visual styles.
 
-When no shapes are selected, `getSharedStyles` returns the styles for the current tool if that tool creates shapes. This allows the UI to show and modify the styles that will be applied to the next shape.
+When no shapes are selected, `getSharedStyles` returns the styles for the current tool if that tool creates shapes. This lets the UI show and modify the styles that will be applied to the next shape.
 
 ### Style persistence
 
-When you set a style on selected shapes, the editor also saves that value as the "style for next shapes." This means the next shape you create will automatically have the same style value.
+When you set a style on selected shapes, the editor saves that value as the "style for next shapes." The next shape you create will automatically have the same style value.
 
 ```typescript
-// Set color for selected shapes
+// Set color for selected shapes - also saves it for next shapes
 editor.setStyleForSelectedShapes(DefaultColorStyle, 'blue')
 
-// Create a new shape - it will be blue
+// Create a new shape - it will be blue because 'blue' was saved
 editor.createShape({ type: 'geo', props: { w: 100, h: 100 } })
 ```
 
-You can also explicitly set the style for next shapes without affecting the current selection:
+You can set the style for next shapes without affecting the current selection:
 
 ```typescript
 editor.setStyleForNextShapes(DefaultColorStyle, 'green')
@@ -197,15 +211,14 @@ editor.setStyleForNextShapes(DefaultColorStyle, 'blue')
 
 ## Custom styles
 
-You can create custom style properties for your own shapes using `StyleProp.define` or `StyleProp.defineEnum`.
+You can create custom style properties for your shapes using `StyleProp.define` or `StyleProp.defineEnum`.
 
 ### Defining a custom style
 
 For numeric or complex types, use `StyleProp.define`:
 
 ```typescript
-import { StyleProp } from '@tldraw/tlschema'
-import { T } from '@tldraw/validate'
+import { StyleProp, T } from 'tldraw'
 
 export const MyLineWidthStyle = StyleProp.define('myApp:lineWidth', {
 	defaultValue: 2,
@@ -227,12 +240,17 @@ export const MyPatternStyle = StyleProp.defineEnum('myApp:pattern', {
 Include your custom style in your shape's props definition:
 
 ```typescript
-interface MyShapeProps {
-	w: number
-	h: number
-	lineWidth: typeof MyLineWidthStyle
-	pattern: typeof MyPatternStyle
-}
+import { RecordProps, T, TLBaseShape } from 'tldraw'
+
+type TLMyShape = TLBaseShape<
+	'my-shape',
+	{
+		w: number
+		h: number
+		lineWidth: number
+		pattern: string
+	}
+>
 
 const myShapeProps: RecordProps<TLMyShape> = {
 	w: T.number,
@@ -242,7 +260,7 @@ const myShapeProps: RecordProps<TLMyShape> = {
 }
 ```
 
-The editor automatically recognizes style properties and handles them appropriately during shape creation, selection, and updates.
+The editor automatically recognizes `StyleProp` instances in your props and handles them during shape creation, selection, and updates.
 
 ## Related examples
 

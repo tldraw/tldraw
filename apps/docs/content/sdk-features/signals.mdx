@@ -13,14 +13,14 @@ keywords:
 status: published
 date: 12/28/2025
 order: 11
-readability: 8
-voice: 8
-completeness: 8
+readability: 9
+voice: 9
+completeness: 9
 accuracy: 8
-notes: 'Well-structured coverage of signals API. Good code examples with correct API usage. Debugging section could show actual console output. Links to examples work. All API references verified against source.'
+notes: 'Excellent coverage with improved debugging examples showing console output. isComputed listed in API table but not exported from @tldraw/state. Good use of unsafe__withoutCapture section.'
 ---
 
-The tldraw SDK uses a signals-based reactive system for state management. Signals provide automatic dependency tracking, lazy evaluation, and efficient updates. When state changes, only the parts of your application that depend on that state will update.
+The tldraw SDK uses signals for state management. Signals automatically track dependencies and update efficiently: when state changes, only the parts of your application that depend on that state will update.
 
 The editor exposes many of its internal values as signals. Methods like `editor.getSelectedShapeIds()` and `editor.getCurrentPageShapes()` return reactive values that update automatically when the underlying state changes. The React bindings connect these signals to components, so your UI stays in sync without manual subscription management.
 
@@ -235,17 +235,18 @@ function Counter() {
 
 ### useReactor and useQuickReactor
 
-Run effects tied to component lifecycle:
+Run effects tied to component lifecycle. The effect automatically tracks which signals it reads:
 
 ```tsx
 import { useReactor, useQuickReactor } from '@tldraw/state-react'
 
 function SelectionLogger({ editor }) {
-	// Throttled to animation frames — good for visual updates
+	// Throttled to next animation frame — good for DOM updates
 	useReactor(
-		'log selection',
+		'update title',
 		() => {
-			console.log('Selection:', editor.getSelectedShapeIds())
+			const count = editor.getSelectedShapeIds().length
+			document.title = `${count} shapes selected`
 		},
 		[editor]
 	)
@@ -317,18 +318,64 @@ const SelectionInfo = track(function SelectionInfo({ editor }) {
 
 ## Debugging
 
-The `whyAmIRunning` function helps trace what triggered an update:
+The `whyAmIRunning` function helps trace what triggered an update. Call it inside an effect or computed to see which signals changed:
 
 ```ts
-import { whyAmIRunning } from '@tldraw/state'
+import { atom, react, whyAmIRunning } from '@tldraw/state'
 
-react('debug effect', () => {
-	whyAmIRunning() // Prints dependency tree to console
-	return someComputed.get()
+const name = atom('name', 'Bob')
+
+react('greeting', () => {
+	whyAmIRunning()
+	console.log('Hello', name.get())
 })
+
+name.set('Alice')
+// Console output:
+// Effect(greeting) is executing because:
+//  ↳ Atom(name) changed
+```
+
+For nested dependencies, the output shows the full chain:
+
+```ts
+const firstName = atom('firstName', 'Jane')
+const lastName = atom('lastName', 'Doe')
+const fullName = computed('fullName', () => `${firstName.get()} ${lastName.get()}`)
+
+react('log name', () => {
+	whyAmIRunning()
+	console.log(fullName.get())
+})
+
+firstName.set('John')
+// Console output:
+// Effect(log name) is executing because:
+//  ↳ Computed(fullName) changed
+//    ↳ Atom(firstName) changed
 ```
 
 All signals have a `name` property (the first argument when creating them) that appears in debug output.
+
+## Reading without tracking
+
+Sometimes you want to read a signal's value without creating a dependency. Use `unsafe__withoutCapture` to read signals without triggering re-runs:
+
+```ts
+import { atom, react, unsafe__withoutCapture } from '@tldraw/state'
+
+const name = atom('name', 'Sam')
+const time = atom('time', Date.now())
+
+// Update time every second
+setInterval(() => time.set(Date.now()), 1000)
+
+react('log name changes', () => {
+	// Only re-run when name changes, not when time changes
+	const currentTime = unsafe__withoutCapture(() => time.get())
+	console.log(name.get(), 'was changed at', currentTime)
+})
+```
 
 ## API reference
 
@@ -344,7 +391,9 @@ All signals have a `name` property (the first argument when creating them) that 
 | `transact(fn)`               | Batch changes into a single update                              |
 | `transaction(fn)`            | Batch changes with rollback support                             |
 | `isAtom(value)`              | Type guard for atoms                                            |
+| `isComputed(value)`          | Type guard for computed signals                                 |
 | `isSignal(value)`            | Type guard for any signal                                       |
+| `getComputedInstance(o, p)`  | Get the underlying computed for a `@computed` decorated method  |
 | `whyAmIRunning()`            | Debug helper to trace update triggers                           |
 | `unsafe__withoutCapture(fn)` | Read signals without creating dependencies                      |
 | `RESET_VALUE`                | Symbol returned by `getDiffSince` when history is insufficient  |

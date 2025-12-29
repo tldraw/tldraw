@@ -61,15 +61,12 @@ notes: 'Strong opening with bezier failure mode.'
 ## Before writing
 
 1. Read the raw notes thoroughly
-2. Read [VOICE.md](./VOICE.md), especially:
-   - "Nuggets (tech blog posts)" section for opening pattern
-   - "Avoiding AI writing tells" for language to avoid
-3. Read [index.md](./index.md) for structure guidelines
-4. Read source files mentioned in the raw notes to verify accuracy
+2. Read [write-nuggets.md](../../.claude/skills/write-nuggets.md) for voice and structure guidelines
+3. Read source files mentioned in the raw notes to verify accuracy
 
 ## Writing the draft
 
-Follow the structure from index.md:
+Follow the structure from write-nuggets.md:
 
 1. **Frame the problem** — What's this about? What problem did we encounter? Why was it hard or interesting?
 2. **Show the insight** — What's the key idea that makes the solution work?

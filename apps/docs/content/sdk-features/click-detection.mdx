@@ -1,7 +1,7 @@
 ---
 title: Click detection
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - click
   - double-click
@@ -13,14 +13,14 @@ keywords:
 status: published
 date: 12/20/2025
 order: 5
-readability: 8
-voice: 8
+readability: 9
+voice: 9
 completeness: 9
 accuracy: 9
-notes: 'Good technical depth. Converted bullet lists to tables for better voice compliance. Added link to options page.'
+notes: 'Improved accuracy of TLClickEventInfo type. Fixed first code example to be complete. Clarified state machine behavior.'
 ---
 
-In tldraw, the click detection system lets you respond to double, triple, and quadruple clicks. The `ClickManager` tracks consecutive pointer down events using a state machine, dispatching click events when timing and distance thresholds are met.
+In tldraw, the click detection system lets you respond to double, triple, and quadruple clicks. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching click events when timing and distance thresholds are met.
 
 This powers text editing features like word selection on double-click and paragraph selection on triple-click. You can use these events to add custom multi-click behaviors in your own shapes and tools.
 
@@ -67,72 +67,74 @@ If the pointer moves too far during a pending click sequence, the system cancels
 
 ## Handling click events
 
-Tools receive click events through handler methods defined in the `TLEventHandlers` interface:
+Tools receive click events through handler methods defined in the [TLEventHandlers](?) interface. Here's a complete example of a custom tool that zooms in on double-click:
 
 ```tsx
-import { StateNode, TLClickEventInfo } from 'tldraw'
+import { StateNode, TLClickEventInfo, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-export class MyTool extends StateNode {
-	static override id = 'my-tool'
+class ZoomTool extends StateNode {
+	static override id = 'zoom'
 
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (info.phase !== 'settle') return
-
-		// Zoom in at the click location
 		this.editor.zoomIn(info.point, { animation: { duration: 200 } })
 	}
 
 	override onTripleClick(info: TLClickEventInfo) {
-		// Handle triple clicks
+		if (info.phase !== 'settle') return
+		this.editor.zoomOut(info.point, { animation: { duration: 200 } })
 	}
+}
 
-	override onQuadrupleClick(info: TLClickEventInfo) {
-		// Handle quadruple clicks
-	}
+const customTools = [ZoomTool]
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				tools={customTools}
+				onMount={(editor) => {
+					editor.setCurrentTool('zoom')
+				}}
+			/>
+		</div>
+	)
 }
 ```
 
-Shape utilities handle double-clicks through the `onDoubleClick` method. The return value applies changes to the shape:
+Tools can handle [onDoubleClick](?), [onTripleClick](?), and [onQuadrupleClick](?) events. Each receives a [TLClickEventInfo](?) object with details about the click.
+
+Shape utilities handle double-clicks through the [ShapeUtil#onDoubleClick](?) method. Return a partial shape object to apply changes:
 
 ```tsx
-import { ShapeUtil, TLBaseShape } from 'tldraw'
-
-type MyShape = TLBaseShape<'my-shape', { expanded: boolean }>
-
-export class MyShapeUtil extends ShapeUtil<MyShape> {
-	// ... other methods
-
-	override onDoubleClick(shape: MyShape) {
-		// Return a partial to update the shape
-		return {
-			id: shape.id,
-			type: shape.type,
-			props: { expanded: !shape.props.expanded },
-		}
+override onDoubleClick(shape: MyShape) {
+	return {
+		id: shape.id,
+		type: shape.type,
+		props: { expanded: !shape.props.expanded },
 	}
 }
 ```
 
-The `TLClickEventInfo` type includes these properties:
+The [TLClickEventInfo](?) type includes these properties:
 
-```typescript
-type TLClickEventInfo = {
-	type: 'click'
-	name: 'double_click' | 'triple_click' | 'quadruple_click'
-	point: VecLike
-	pointerId: number
-	button: number
-	phase: 'down' | 'up' | 'settle'
-	target: 'canvas' | 'selection' | 'shape' | 'handle'
-	shape?: TLShape // present when target is 'shape' or 'handle'
-	// Modifier keys
-	shiftKey: boolean
-	altKey: boolean
-	ctrlKey: boolean
-	metaKey: boolean
-	accelKey: boolean
-}
-```
+| Property    | Type                                                    | Description                                            |
+| ----------- | ------------------------------------------------------- | ------------------------------------------------------ |
+| `type`      | `'click'`                                               | Event type identifier                                  |
+| `name`      | `'double_click' \| 'triple_click' \| 'quadruple_click'` | Which multi-click event this is                        |
+| `point`     | `VecLike`                                               | Pointer position in client space                       |
+| `pointerId` | `number`                                                | Unique identifier for the pointer                      |
+| `button`    | `number`                                                | Mouse button (0 = left, 1 = middle, 2 = right)         |
+| `phase`     | `'down' \| 'up' \| 'settle'`                            | When in the click sequence this fired                  |
+| `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'`        | What was clicked                                       |
+| `shape`     | `TLShape \| undefined`                                  | The shape, when target is `'shape'` or `'handle'`      |
+| `handle`    | `TLHandle \| undefined`                                 | The handle, when target is `'handle'`                  |
+| `shiftKey`  | `boolean`                                               | Whether Shift was held                                 |
+| `altKey`    | `boolean`                                               | Whether Alt/Option was held                            |
+| `ctrlKey`   | `boolean`                                               | Whether Control was held                               |
+| `metaKey`   | `boolean`                                               | Whether Meta/Command was held                          |
+| `accelKey`  | `boolean`                                               | Platform accelerator key (Cmd on Mac, Ctrl on Windows) |
 
 ## Timing configuration
 
@@ -146,4 +148,5 @@ Click timing is configured through the editor's [options](/docs/options):
 ## Related examples
 
 - [Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events) — logs pointer events including click sequences to understand the event flow
+- [Custom double-click behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-double-click-behavior) — overrides the default double-click handler in the SelectTool
 - [Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape) — implements `onDoubleClick` and other click handlers in custom shapes

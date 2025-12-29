@@ -38,7 +38,7 @@ Follow the voice and structure guidelines below.
 
 ## Voice and style
 
-Read `VOICE.md` at the repo root for comprehensive guidance. Key points:
+Read `.claude/skills/write-docs.md` for comprehensive guidance. Key points:
 
 ### Tone
 
@@ -179,7 +179,7 @@ Before finishing:
 - [ ] Overview establishes purpose before mechanism
 - [ ] All headings use sentence case
 - [ ] Code snippets are minimal and illustrative (not full examples)
-- [ ] No AI writing tells (check against VOICE.md)
+- [ ] No AI writing tells (check against voice skill)
 - [ ] Related examples linked (if applicable)
 
 ## After completing documentation

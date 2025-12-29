@@ -1,7 +1,7 @@
 ---
 title: Animation
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - animation
   - easing
@@ -11,11 +11,6 @@ keywords:
 status: published
 date: 12/20/2025
 order: 1
-readability: 8
-voice: 7
-completeness: 7
-accuracy: 6
-notes: "Clarify internal vs public API in 'How it works'. Add zoomToBounds/zoomToFit coverage. Bolded bullet points violate VOICE.md style."
 ---
 
 The animation system controls smooth transitions for shapes and camera movements. Shape animations handle properties like position, rotation, and opacity. Camera animations manage viewport transitions for panning and zooming.
@@ -26,20 +21,9 @@ Shape animations run independently and can be interrupted or replaced. Camera an
 
 Animations in tldraw use the tick system to drive frame-by-frame updates. On each tick, active animations calculate elapsed time, apply easing functions to determine progress, and interpolate between start and end values.
 
-The editor emits `tick` events at the browser's animation frame rate. Animation handlers subscribe to these events and update shape or camera state accordingly:
+The editor emits `tick` events at the browser's animation frame rate. The animation methods handle all of this internally: when you call `animateShape()` or `setCamera()` with animation options, the editor subscribes to tick events, calculates progress using the easing function, and updates the shape or camera state until the animation completes.
 
-```typescript
-// Internal implementation - not public API
-// This illustrates how animations work under the hood
-editor.on('tick', (elapsed) => {
-	animation.elapsed += elapsed
-	const t = easing(animation.elapsed / animation.duration)
-	const currentX = lerp(startX, endX, t)
-	// ... update shape or camera
-})
-```
-
-Camera animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. Shape animations do not check this preference—if you need reduced motion support for shape animations, check `editor.user.getAnimationSpeed()` yourself and skip the animation when it returns zero.
+Camera animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. Shape animations do not check this preference. If you need reduced motion support for shape animations, check `editor.user.getAnimationSpeed()` yourself and skip the animation when it returns zero.
 
 ## Shape animations
 
@@ -83,10 +67,7 @@ getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
 
 Each animation receives a unique ID when started. The editor maintains a map of shape IDs to animation IDs to track which shapes are currently animating.
 
-You can interrupt animations in two ways:
-
-- **Direct updates**: Calling `updateShapes()` on an animating shape cancels its animation and immediately applies the new values.
-- **New animations**: Starting a new animation for a shape automatically cancels any existing animation for that shape.
+You can interrupt animations in two ways. Calling `updateShapes()` on an animating shape cancels its animation and immediately applies the new values. Starting a new animation for a shape automatically cancels any existing animation for that shape.
 
 User interactions always take precedence over ongoing animations. If you drag a shape that's currently animating, the animation stops and the shape responds to your input immediately.
 
@@ -106,6 +87,31 @@ editor.setCamera(
 ```
 
 Camera animations automatically stop when the user interacts with the viewport through mouse wheel, pinch gestures, or keyboard navigation.
+
+### Zooming to bounds
+
+Use `zoomToBounds()` to animate the camera so a specific area fills the viewport. This is useful for focusing on shapes, navigating between sections, or implementing slideshow-style transitions:
+
+```typescript
+const bounds = { x: 0, y: 0, w: 800, h: 600 }
+editor.zoomToBounds(bounds, { animation: { duration: 500 } })
+```
+
+You can also specify a target zoom level and inset padding:
+
+```typescript
+editor.zoomToBounds(bounds, {
+	animation: { duration: 500 },
+	targetZoom: 1, // zoom to 100%
+	inset: 50, // padding around the bounds in pixels
+})
+```
+
+The `zoomToFit()` method is a convenience wrapper that zooms to fit all shapes on the current page:
+
+```typescript
+editor.zoomToFit({ animation: { duration: 200 } })
+```
 
 ### Camera slide
 
@@ -139,9 +145,9 @@ Shape animations default to `linear` easing. Camera animations default to `easeI
 
 ## User preferences
 
-Camera animations check `editor.user.getAnimationSpeed()` before running. This value multiplies animation durations—users can speed up, slow down, or disable animations entirely.
+Camera animations check `editor.user.getAnimationSpeed()` before running. This value multiplies animation durations, so users can speed up, slow down, or disable animations entirely.
 
-When animation speed is zero, camera methods like `setCamera()`, `slideCamera()`, and `zoomToBounds()` skip the animation and jump immediately to the final position. Shape animations via `animateShape()` and `animateShapes()` do not check this preference automatically. If you need reduced motion support for shape animations, check the animation speed yourself:
+When animation speed is zero, camera methods like `setCamera()`, `slideCamera()`, `zoomToBounds()`, and `zoomToFit()` skip the animation and jump immediately to the final position. Shape animations via `animateShape()` and `animateShapes()` do not check this preference automatically. If you need reduced motion support for shape animations, check the animation speed yourself:
 
 ```typescript
 if (editor.user.getAnimationSpeed() > 0) {
@@ -156,5 +162,4 @@ if (editor.user.getAnimationSpeed() > 0) {
 
 ## Related examples
 
-- **[Slideshow](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/slideshow)** - Uses camera animations to smoothly transition between slides using `zoomToBounds` with animation options.
-- **[Camera options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/camera-options)** - Demonstrates camera constraints and animations for bounded canvas experiences.
+The [slideshow example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/slideshow) uses camera animations to smoothly transition between slides using `zoomToBounds` with animation options. The [camera options example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/camera-options) demonstrates camera constraints and animations for bounded canvas experiences.

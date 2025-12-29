@@ -11,11 +11,11 @@ keywords:
 status: published
 date: 12/19/2025
 order: 4
-readability: 7
+readability: 8
 voice: 8
-completeness: 6
-accuracy: 8
-notes: "Good catalog-style reference doc. Code examples are accurate. Voice is clean with minimal AI tells. Could use more depth on error handling patterns and the ValidationError class properties (rawMessage, path)."
+completeness: 8
+accuracy: 9
+notes: "Well-organized catalog-style doc. Good coverage of ValidationError properties (rawMessage, path). StoreValidationFailure table is accurate. Code examples syntactically correct. Could benefit from a complete first example per VOICE.md."
 ---
 
 Validation in tldraw is handled by `@tldraw/validate` and applied across schemas, record types, and shape props. Validators enforce runtime type safety and provide structured errors when data is malformed.
@@ -41,6 +41,12 @@ const userValidator = T.object({
 
 const user = userValidator.validate(input)
 ```
+
+Every validator has three key methods:
+
+- `validate(value)` - validates unknown input and returns a typed result
+- `isValid(value)` - returns true if valid, false otherwise (useful as a type guard)
+- `validateUsingKnownGoodVersion(knownGood, newValue)` - performance-optimized validation that reuses previously validated data
 
 ## Validator catalog
 
@@ -124,20 +130,56 @@ const schema = StoreSchema.create(
 )
 ```
 
+The `failure` object contains:
+
+| Property       | Description                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| `error`        | The validation error that occurred                                                       |
+| `store`        | The store instance where validation failed                                               |
+| `record`       | The invalid record                                                                       |
+| `phase`        | When validation failed: `'initialize'`, `'createRecord'`, `'updateRecord'`, or `'tests'` |
+| `recordBefore` | The previous record state (null for new records)                                         |
+
 ## Validation lifecycle
 
 1. A record is created or updated.
 2. The record type validator runs.
-3. If validation fails, `onValidationFailure` receives the record, phase, and error.
-4. The handler can return a corrected record or throw.
+3. If validation fails, `onValidationFailure` receives the failure object.
+4. The handler can return a corrected record or throw to abort the write.
 
 ## Error handling
 
-Validation errors include a message and a path into the failing value. Use them to log or correct bad input before it reaches the Store.
+The `ValidationError` class provides structured information about what went wrong:
+
+```typescript
+import { T, ValidationError } from '@tldraw/validate'
+
+const userValidator = T.object({
+	name: T.string,
+	settings: T.object({ theme: T.literalEnum('light', 'dark') }),
+})
+
+try {
+	userValidator.validate({ name: 'Alice', settings: { theme: 'invalid' } })
+} catch (error) {
+	if (error instanceof ValidationError) {
+		console.log(error.message) // "At settings.theme: Expected "light" or "dark", got "invalid""
+		console.log(error.rawMessage) // 'Expected "light" or "dark", got "invalid"'
+		console.log(error.path) // ['settings', 'theme']
+	}
+}
+```
+
+The error has two useful properties:
+
+- `rawMessage` - the error message without path information
+- `path` - an array showing where in the data structure validation failed (e.g., `['settings', 'theme']` or `['items', 0, 'name']`)
+
+The full `message` property combines these: `"At settings.theme: Expected..."`.
 
 ## Gotchas
 
-- Validators should be pure and must not mutate input values.
+- Validators must be pure and must not mutate input values.
 - If you use `onValidationFailure`, return a valid record or rethrow to abort the write.
 
 ## Related examples

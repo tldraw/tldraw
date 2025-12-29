@@ -15,7 +15,7 @@ After reviewing the evaluation, improve the document yourself (do not use a suba
 When improving:
 
 1. Read relevant source code to ensure accuracy
-2. Follow `VOICE.md` guidelines strictly
+2. Follow the write-docs skill guidelines strictly (`.claude/skills/write-docs.md`)
 3. Verify code snippets are syntactically correct and use valid APIs
 4. Run prettier on the file when done: `yarn prettier --write [file]`
 

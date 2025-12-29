@@ -1,7 +1,7 @@
 ---
 title: Bindings
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - bindings
   - relationships
@@ -11,16 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 3
-readability: 8
-voice: 7
-completeness: 8
-accuracy: 9
-notes: 'Uses bolded bullet pattern (AI tell). First code example should be complete. getBindingsInvolvingShape type param is optional.'
 ---
 
-The bindings system creates persistent relationships between shapes. A binding is a record that links a "from" shape to a "to" shape with typed metadata, enabling features like arrows that stay attached to rectangles when moved, or notes that follow shapes around the canvas.
+Bindings create persistent relationships between shapes. When you draw an arrow to a rectangle, a binding stores that connection so the arrow stays attached when you move the rectangle. Bindings power features like arrows that follow shapes, stickers that stick to other shapes, and layout constraints that keep shapes aligned.
 
-Bindings maintain referential integrity automatically: they remove themselves when connected shapes are deleted, and lifecycle hooks let bound shapes react to changes in their relationships.
+The SDK handles bookkeeping for you: when you delete a shape, its bindings are cleaned up automatically, and lifecycle hooks let bound shapes react to changes.
 
 ## How it works
 

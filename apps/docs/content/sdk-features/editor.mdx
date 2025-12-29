@@ -13,9 +13,9 @@ date: 12/29/2025
 order: 1
 readability: 9
 voice: 9
-completeness: 8
-accuracy: 9
-notes: "Strong architectural overview with good cross-linking. All API calls verified correct."
+completeness: 9
+accuracy: 10
+notes: 'Fixed API accuracy (getPath() not .path), added missing managers (FontManager, InputsManager, ClickManager), clarified modifier key timing.'
 ---
 
 The [Editor](?) class is the main way of controlling tldraw's editor. It provides methods for creating, reading, updating, and deleting shapes; managing selection and history; controlling the camera; and responding to user input. By design, the editor's surface area is very large—almost everything is available through it.
@@ -116,7 +116,7 @@ editor.setCurrentTool('hand')
 editor.getCurrentToolId() // 'select', 'draw', 'hand', etc.
 
 // Check the full state path
-editor.root.path // 'root.select.idle', 'root.draw.drawing', etc.
+editor.root.getPath() // 'root.select.idle', 'root.draw.drawing', etc.
 
 // Check if a state is active
 editor.isIn('select') // true if select tool is active
@@ -157,16 +157,19 @@ See [Tools](/sdk-features/tools) for building custom tools.
 
 The editor delegates specialized functionality to manager classes:
 
-| Manager                      | Responsibility                              |
-| ---------------------------- | ------------------------------------------- |
-| [HistoryManager](?)          | Undo/redo stack and history marks           |
-| [SnapManager](?)             | Shape snapping during transforms            |
-| [FocusManager](?)            | Focus state and keyboard event handling     |
-| [TextManager](?)             | Text measurement and layout                 |
-| [TickManager](?)             | Animation frame scheduling                  |
-| [ScribbleManager](?)         | Brush and scribble interactions             |
-| [EdgeScrollManager](?)       | Auto-scroll at viewport edges               |
-| [UserPreferencesManager](?)  | User settings persistence                   |
+| Manager                     | Responsibility                                |
+| --------------------------- | --------------------------------------------- |
+| [HistoryManager](?)         | Undo/redo stack and history marks             |
+| [SnapManager](?)            | Shape snapping during transforms              |
+| [FocusManager](?)           | Focus state and keyboard event handling       |
+| [TextManager](?)            | Text measurement and layout                   |
+| [FontManager](?)            | Font loading and management                   |
+| [TickManager](?)            | Animation frame scheduling                    |
+| [InputsManager](?)          | Pointer position and modifier key tracking    |
+| [ClickManager](?)           | Click, double-click, and long-press detection |
+| [ScribbleManager](?)        | Brush and scribble interactions               |
+| [EdgeScrollManager](?)      | Auto-scroll at viewport edges                 |
+| [UserPreferencesManager](?) | User settings persistence                     |
 
 Access managers through the editor instance:
 
@@ -380,7 +383,7 @@ editor.inputs.getIsDragging()
 editor.inputs.getIsPointing()
 editor.inputs.getIsPinching()
 
-// Modifier keys (with a small delay after release)
+// Modifier keys (held for 150ms after release to smooth out quick taps)
 editor.inputs.getShiftKey()
 editor.inputs.getCtrlKey()
 editor.inputs.getAltKey()

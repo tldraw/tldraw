@@ -1,7 +1,7 @@
 ---
 title: Groups
 created_at: 12/25/2025
-updated_at: 12/25/2025
+updated_at: 12/29/2025
 keywords:
   - groups
   - grouping
@@ -11,11 +11,6 @@ keywords:
 status: published
 date: 12/25/2025
 order: 15
-readability: 8
-voice: 8
-completeness: 8
-accuracy: 8
-notes: "Good coverage of group APIs with accurate code examples. The keyboard shortcuts example link was incorrect - the example doesn't actually demonstrate group/ungroup shortcuts. Fixed by removing that misleading link. Voice is confident and direct."
 ---
 
 Groups are logical containers that combine multiple shapes into a single selectable unit. Unlike frames, groups have no visual representation—they exist purely to organize shapes. Their geometry is the union of their children's geometries, their bounds update automatically as children change, and they clean themselves up when their contents are deleted. Groups support nesting, allowing hierarchical organization of shapes on the canvas.
@@ -38,7 +33,7 @@ editor.groupShapes([shapeId1, shapeId2], {
 })
 ```
 
-Grouping requires at least two shapes. The method does nothing if you pass fewer. The select tool must be active and in its idle state—grouping won't work while you're in the middle of another operation.
+Grouping requires at least two shapes. The method does nothing if you pass fewer. Users can also group shapes with Ctrl+G (Cmd+G on Mac).
 
 The new group is positioned at the top-left of the combined bounds of all grouped shapes. Its z-index matches the highest z-index among the grouped shapes, so it appears at the front of the layer stack.
 
@@ -57,9 +52,9 @@ editor.ungroupShapes([groupId])
 editor.ungroupShapes([groupId], { select: false })
 ```
 
-Ungrouping moves children to the group's parent, preserving their exact page positions and rotations. The layer order is maintained—children appear where the group was in the z-stack. If you pass a mix of groups and non-groups, only the groups are ungrouped; the non-groups remain selected.
+Ungrouping moves children to the group's parent, preserving their exact page positions and rotations. The layer order is maintained—children appear where the group was in the z-stack. If you pass a mix of groups and non-groups, only the groups are ungrouped; the non-groups remain selected. Users can ungroup with Ctrl+Shift+G (Cmd+Shift+G on Mac).
 
-Ungrouping is not recursive. If a group contains other groups, those inner groups remain intact. You'd need to ungroup them separately.
+Ungrouping is not recursive. If a group contains other groups, those inner groups remain intact. Ungroup them separately if needed.
 
 ## Focused groups
 
@@ -177,11 +172,13 @@ If no group is focused, new shapes are created on the current page.
 
 ## Limitations
 
-Groups have a few constraints:
+Groups have a few constraints worth knowing about.
 
-- **Arrows can't bind to groups.** The `canBind()` method returns `false` for group shapes, so arrows must bind to individual shapes within the group.
-- **No visual props.** Groups have no appearance properties—they're purely structural.
-- **Select tool required.** Grouping and ungrouping only work when the select tool is active.
+Arrows can't bind to groups. The `canBind()` method returns `false` for group shapes, so arrows must bind to individual shapes within the group.
+
+Groups have no visual properties—they're purely structural containers. You can't style a group itself, only its children.
+
+Both grouping and ungrouping require the select tool to be active and in its idle state. The operations won't run while you're in the middle of another interaction.
 
 ## Related examples
 

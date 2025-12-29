@@ -1,7 +1,7 @@
 ---
 title: Geometry
 created_at: 12/26/2025
-updated_at: 12/26/2025
+updated_at: 12/29/2025
 keywords:
   - geometry
   - hit testing
@@ -12,18 +12,18 @@ keywords:
 status: published
 date: 12/26/2025
 order: 25
-readability: 8
-voice: 8
-completeness: 8
-accuracy: 8
-notes: 'Clear structure covering geometry primitives, operations, and implementation patterns. Good code snippets and examples. API usage is accurate and matches source code. Consider adding more on geometry-snapping relationship.'
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: 'Clear structure with direct opening. Added connection to snapping system. Documented center, area, and toSimpleSvgPath(). Improved Point2d documentation. Added TransformedGeometry2d limitation note.'
 ---
 
-The geometry system provides mathematical representations of shapes for hit testing, bounds calculation, snapping, and collision detection. Every shape in tldraw has geometry that describes its outline, area, and spatial properties. When you brush a selection box across the canvas, click to select a shape, or snap an arrow to a shape's edge, the geometry system handles the underlying math. For the broader shape system, see [Shapes](/docs/shapes).
+Geometry in tldraw is a mathematical description of a shape's form. Each shape has a [Geometry2d](?) that defines its outline, bounds, and spatial properties. When you click to select a shape, the geometry determines whether the click hit. When you brush a selection box, the geometry calculates intersections. When you snap an arrow to a shape's edge, the geometry provides the nearest point. For the broader shape system, see [Shapes](/docs/shapes).
 
 ## How geometry works
 
-Each ShapeUtil implements a `getGeometry` method that returns a `Geometry2d` instance describing the shape's mathematical form. The editor calls this method whenever it needs to know a shape's bounds, test if a point hits the shape, find intersection points, or calculate distances.
+Each [ShapeUtil](?) implements a [getGeometry](?) method that returns a [Geometry2d](?) instance. The editor calls this method to calculate bounds, test hits, find intersections, and measure distances.
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -37,7 +37,9 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-The `isFilled` property matters for hit testing. A filled geometry counts clicks inside its area as hits. An unfilled geometry only responds to clicks on its outline.
+The `isFilled` property controls hit testing behavior. A filled geometry registers hits inside its area. An unfilled geometry only responds to hits on its outline—useful for shapes like frames where you want to click through the middle.
+
+Geometry also powers [snapping](/docs/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [getBoundsSnapGeometry](?).
 
 ## Geometry primitives
 
@@ -195,12 +197,12 @@ new CubicSpline2d({
 
 ### Point2d
 
-A single point with a hit margin. Both `point` and `margin` are required.
+A single point. Requires both `point` and `margin` parameters—the margin determines how close a click must be to register as a hit.
 
 ```typescript
 new Point2d({
 	point: new Vec(50, 50),
-	margin: 10,
+	margin: 10, // clicks within 10 units count as hits
 })
 ```
 
@@ -223,13 +225,14 @@ Group2d is essential for shapes with multiple parts. The geo shape uses it to co
 
 All Geometry2d classes provide methods for spatial queries.
 
-### Bounds
+### Bounds and center
 
 Get the axis-aligned bounding box:
 
 ```typescript
 const geometry = editor.getShapeGeometry(shape)
 const bounds = geometry.bounds // Box { x, y, w, h, ... }
+const center = geometry.center // Vec at center of bounds
 ```
 
 ### Vertices
@@ -240,7 +243,7 @@ Get the points that define the geometry's outline:
 const vertices = geometry.vertices // Vec[]
 ```
 
-For curves, this returns a discretized approximation.
+For curves, this returns a discretized approximation with enough points to represent the curve accurately.
 
 ### Hit testing
 
@@ -280,12 +283,13 @@ Get intersection points with a line segment:
 const intersections = geometry.intersectLineSegment(A, B)
 ```
 
-### Length and interpolation
+### Length, area, and interpolation
 
-Get the perimeter length:
+Get the perimeter length and area:
 
 ```typescript
-const length = geometry.length
+const length = geometry.length // perimeter length
+const area = geometry.area // enclosed area (0 for open paths)
 ```
 
 Find a point at a fraction along the edge:
@@ -298,6 +302,12 @@ Convert a point back to a fraction:
 
 ```typescript
 const t = geometry.uninterpolateAlongEdge(point)
+```
+
+Generate an SVG path:
+
+```typescript
+const pathData = geometry.toSimpleSvgPath() // "M0,0 L100,0 L100,100 L0,100 Z"
 ```
 
 ## Implementing getGeometry
@@ -495,16 +505,16 @@ Enable the geometry debug view through the debug panel to visualize shape geomet
 
 ## Transformed geometry
 
-The `TransformedGeometry2d` class wraps a geometry with a transformation matrix. This is useful when you need geometry in a different coordinate space without creating new geometry objects.
+The [TransformedGeometry2d](?) class wraps a geometry with a transformation matrix. This is useful when you need geometry in a different coordinate space without creating new geometry objects.
 
 ```typescript
 const transformed = geometry.transform(matrix)
 ```
 
-All operations on the transformed geometry apply the transformation automatically.
+All operations on the transformed geometry apply the transformation automatically. One limitation: transformed geometry doesn't support `getSvgPathData()`—you'll need to transform the path data yourself if you need it.
 
 ## Related examples
 
-- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-geometry)** - A house-shaped custom shape demonstrating custom Polygon2d and Group2d geometry.
-- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/cubic-bezier-shape)** - A custom shape using CubicBezier2d for interactive bezier curve editing.
-- **[Custom snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/bounds-snapping-shape)** - Custom shapes with geometry that affects snapping behavior.
+- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-geometry)** - A house-shaped custom shape using Polygon2d and Group2d geometry.
+- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/cubic-bezier-shape)** - Interactive bezier curve editing with CubicBezier2d geometry and custom handles.
+- **[Custom bounds snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/bounds-snapping-shape)** - Playing card shapes with custom snap geometry so they stack with visible icons.

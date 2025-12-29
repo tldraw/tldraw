@@ -17,12 +17,12 @@ readability: 9
 voice: 9
 completeness: 9
 accuracy: 9
-notes: "Strong doc. Links to side-effects for lifecycle hooks. Code snippets accurate, API matches source."
+notes: 'Excellent doc with good API links. Code accurate. Clear progressive disclosure from basic ops to advanced topics.'
 ---
 
 The store is tldraw's reactive database. It holds all shapes, pages, bindings, assets, and other records that make up your document. The store is reactive: when data changes, the UI updates automatically. It validates all records against a schema and tracks every change for undo/redo, persistence, and synchronization.
 
-In most cases you won't interact with the store directly—the editor wraps it with higher-level methods like `editor.createShapes()` and `editor.getCurrentPageShapes()`. But understanding the store helps when you need snapshots for persistence, want to listen for changes, or need direct access to records.
+In most cases you won't interact with the store directly—the editor wraps it with higher-level methods like [Editor#createShapes](?) and [Editor#getCurrentPageShapes](?). But understanding the store helps when you need snapshots for persistence, want to listen for changes, or need direct access to records.
 
 ## Records
 
@@ -51,11 +51,11 @@ The `id` is a branded string that includes the type prefix (`shape:`, `page:`, `
 
 Records have a scope that determines how they're persisted and synchronized:
 
-| Scope       | Persisted | Synced to other users | Example                          |
-| ----------- | --------- | --------------------- | -------------------------------- |
-| `document`  | Yes       | Yes                   | Shapes, pages, bindings          |
-| `session`   | Optional  | No                    | Current page, camera position    |
-| `presence`  | No        | Yes                   | Cursor positions, user selection |
+| Scope      | Persisted | Synced to other users | Example                          |
+| ---------- | --------- | --------------------- | -------------------------------- |
+| `document` | Yes       | Yes                   | Shapes, pages, bindings          |
+| `session`  | Optional  | No                    | Current page, camera position    |
+| `presence` | No        | Yes                   | Cursor positions, user selection |
 
 Document records are your actual drawing data—saved to storage and synced across instances. Session records are local to one editor instance, like which page you're viewing. Presence records sync to other users in real-time but aren't saved—they're for showing cursors and selections in multiplayer.
 
@@ -79,11 +79,11 @@ const exists = editor.store.has(shapeId)
 const allRecords = editor.store.allRecords()
 ```
 
-The reactive `get()` integrates with tldraw's signals system. When you call it inside a tracked component or computed, the component re-renders when that record changes.
+The reactive [Store#get](?) integrates with tldraw's signals system. When you call it inside a tracked component or computed, the component re-renders when that record changes.
 
 ### Creating and updating records
 
-The `put()` method handles both creation and updates:
+The [Store#put](?) method handles both creation and updates:
 
 ```ts
 // Create a new record
@@ -103,7 +103,7 @@ const shape = editor.store.get(shapeId)
 editor.store.put([{ ...shape, x: 100 }])
 ```
 
-The `update()` helper is more convenient for single-record updates:
+The [Store#update](?) helper is more convenient for single-record updates:
 
 ```ts
 editor.store.update(shapeId, (shape) => ({
@@ -124,7 +124,7 @@ editor.store.clear()
 
 ## Listening to changes
 
-Subscribe to store changes with `listen()`. The callback receives a diff describing what changed:
+Subscribe to store changes with [Store#listen](?). The callback receives a diff describing what changed:
 
 ```ts
 const cleanup = editor.store.listen((entry) => {
@@ -193,6 +193,8 @@ const saved = JSON.parse(localStorage.getItem('my-drawing'))
 loadSnapshot(editor.store, saved)
 ```
 
+See [getSnapshot](?) and [loadSnapshot](?) for more details.
+
 You can load document and session separately:
 
 ```ts
@@ -226,7 +228,7 @@ The migration system handles schema changes between tldraw versions. You can als
 
 ## Queries
 
-The store provides indexed queries for efficient lookups:
+The store provides indexed queries for efficient lookups through [Store#query](?):
 
 ```ts
 // Create an index by property value
@@ -248,6 +250,8 @@ const textShapes = editor.store.query.records('shape', () => ({
 const allShapes = editor.store.query.records('shape')
 ```
 
+Query expressions support `eq` for exact matches. The `records()` method returns a computed array that updates when matching records change, while `index()` returns a map from property values to record IDs.
+
 ## Transactions
 
 Batch multiple changes into a single update with `atomic()`:
@@ -265,7 +269,7 @@ Without batching, each operation triggers listeners separately. Transactions ens
 
 ## Computed caches
 
-For expensive derived data, use a computed cache:
+For expensive derived data, use [Store#createComputedCache](?):
 
 ```ts
 const boundsCache = editor.store.createComputedCache('shape-bounds', (shape: TLShape) => {
@@ -280,23 +284,22 @@ The cache lazily computes values when accessed and invalidates them when the und
 
 ## Creating a standalone store
 
-Most of the time you use the store through the editor. But you can create a standalone store for testing or headless scenarios:
+Most of the time you use the store through the editor. But you can create a standalone store for testing or headless scenarios using [createTLStore](?):
 
 ```ts
-import { createTLStore } from 'tldraw'
+import { createTLStore, loadSnapshot } from 'tldraw'
 
+// Create a store and load saved data
 const store = createTLStore()
+loadSnapshot(store, savedSnapshot)
 
-// Use directly
-store.put([...shapes])
-
-// Or pass to Tldraw
+// Pass the pre-loaded store to Tldraw
 function App() {
 	return <Tldraw store={store} />
 }
 ```
 
-Creating your own store is useful when you need to load data before mounting the editor or share a store between multiple components.
+Creating your own store is useful when you need to load data before mounting the editor, share a store between multiple components, or work with tldraw data without rendering the editor at all.
 
 ## Related examples
 

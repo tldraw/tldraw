@@ -1,7 +1,7 @@
 ---
 title: Events
 created_at: 12/26/2025
-updated_at: 12/26/2025
+updated_at: 12/29/2025
 keywords:
   - events
   - EventEmitter
@@ -14,12 +14,12 @@ date: 12/26/2025
 order: 18
 readability: 8
 voice: 8
-completeness: 7
+completeness: 8
 accuracy: 8
-notes: "Good structure and clear explanations. Fixed store.listen() filter options (source/scope). Input events table omits zoom type (minor). Code examples are correct and API references accurate."
+notes: 'Good structure and clear explanations. Added zoom event type to input events table. Added TLUiEventMap API reference. Code examples are correct and API references accurate.'
 ---
 
-The editor emits events that let you respond to user interactions, state changes, and lifecycle moments. You subscribe using the standard `on()` and `off()` methods inherited from EventEmitter. Events range from low-level input (pointer moves, key presses) to high-level changes (shapes created, camera moved). Use them to build analytics, sync external state, or extend editor behavior.
+The editor emits events for user interactions, state changes, and lifecycle moments. You subscribe using `on()` and `off()` methods inherited from EventEmitter. Events range from low-level input (pointer moves, key presses) to high-level changes (shapes created, camera moved). Use them to build analytics, sync external state, or extend editor behavior.
 
 ## Subscribing to events
 
@@ -86,13 +86,14 @@ The `before-event` fires before the event reaches the tool state machine. Use it
 
 Input events have different types:
 
-| Type | Names | Description |
-|------|-------|-------------|
-| `pointer` | `pointer_down`, `pointer_move`, `pointer_up`, `right_click`, `middle_click`, `long_press` | Mouse, touch, and pen interactions |
-| `click` | `double_click`, `triple_click`, `quadruple_click` | Multi-click sequences |
-| `keyboard` | `key_down`, `key_up`, `key_repeat` | Keyboard input |
-| `wheel` | `wheel` | Scroll wheel and trackpad scrolling |
-| `pinch` | `pinch_start`, `pinch`, `pinch_end` | Two-finger pinch gestures |
+| Type       | Names                                                                                     | Description                         |
+| ---------- | ----------------------------------------------------------------------------------------- | ----------------------------------- |
+| `pointer`  | `pointer_down`, `pointer_move`, `pointer_up`, `right_click`, `middle_click`, `long_press` | Mouse, touch, and pen interactions  |
+| `click`    | `double_click`, `triple_click`, `quadruple_click`                                         | Multi-click sequences               |
+| `keyboard` | `key_down`, `key_up`, `key_repeat`                                                        | Keyboard input                      |
+| `wheel`    | `wheel`                                                                                   | Scroll wheel and trackpad scrolling |
+| `pinch`    | `pinch_start`, `pinch`, `pinch_end`                                                       | Two-finger pinch gestures           |
+| `zoom`     | —                                                                                         | Programmatic zoom events            |
 
 Pointer events include the target—what the pointer is over:
 
@@ -119,14 +120,14 @@ editor.on('event', (info) => {
 
 ### Shape events
 
-Shape events fire when shapes change. These are convenience events—you can also use the `change` event to track all store modifications.
+Shape events fire when shapes change. These are convenience wrappers around store changes—you can also use the `change` event to track all store modifications.
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `created-shapes` | `TLRecord[]` | Shapes were added |
-| `edited-shapes` | `TLRecord[]` | Shapes were modified |
-| `deleted-shapes` | `TLShapeId[]` | Shapes were removed |
-| `edit` | None | Fires alongside any of the above |
+| Event            | Payload       | Description                      |
+| ---------------- | ------------- | -------------------------------- |
+| `created-shapes` | `TLRecord[]`  | Shapes were added                |
+| `edited-shapes`  | `TLRecord[]`  | Shapes were modified             |
+| `deleted-shapes` | `TLShapeId[]` | Shapes were removed              |
+| `edit`           | None          | Fires alongside any of the above |
 
 ```tsx
 editor.on('created-shapes', (shapes) => {
@@ -183,9 +184,9 @@ editor.on('change', (entry) => {
 
 Two events fire on every animation frame:
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `tick` | `number` | Milliseconds since last tick |
+| Event   | Payload  | Description                   |
+| ------- | -------- | ----------------------------- |
+| `tick`  | `number` | Milliseconds since last tick  |
 | `frame` | `number` | Milliseconds since last frame |
 
 ```tsx
@@ -195,16 +196,16 @@ editor.on('tick', (elapsed) => {
 })
 ```
 
-These fire frequently—60+ times per second. Keep handlers fast to avoid dropping frames.
+These fire frequently (60+ times per second). Keep handlers fast to avoid dropping frames.
 
 ### Lifecycle events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `mount` | None | Editor finished initializing |
-| `dispose` | None | Editor is being cleaned up |
-| `crash` | `{ error: unknown }` | Editor encountered an error |
-| `update` | None | Editor state updated |
+| Event     | Payload              | Description                  |
+| --------- | -------------------- | ---------------------------- |
+| `mount`   | None                 | Editor finished initializing |
+| `dispose` | None                 | Editor is being cleaned up   |
+| `crash`   | `{ error: unknown }` | Editor encountered an error  |
+| `update`  | None                 | Editor state updated         |
 
 ```tsx
 editor.on('mount', () => {
@@ -218,14 +219,14 @@ editor.on('crash', ({ error }) => {
 
 ### UI and camera events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `resize` | `BoxModel` | Viewport dimensions changed |
-| `stop-camera-animation` | None | Camera animation interrupted |
-| `stop-following` | None | Stopped following another user |
-| `select-all-text` | `{ shapeId: TLShapeId }` | Triple-clicked to select text |
-| `place-caret` | `{ shapeId, point }` | Text caret positioned |
-| `max-shapes` | `{ name, pageId, count }` | Page reached shape limit |
+| Event                   | Payload                   | Description                    |
+| ----------------------- | ------------------------- | ------------------------------ |
+| `resize`                | `BoxModel`                | Viewport dimensions changed    |
+| `stop-camera-animation` | None                      | Camera animation interrupted   |
+| `stop-following`        | None                      | Stopped following another user |
+| `select-all-text`       | `{ shapeId: TLShapeId }`  | Triple-clicked to select text  |
+| `place-caret`           | `{ shapeId, point }`      | Text caret positioned          |
+| `max-shapes`            | `{ name, pageId, count }` | Page reached shape limit       |
 
 ```tsx
 editor.on('resize', (bounds) => {
@@ -249,7 +250,7 @@ The `Tldraw` component's `onUiEvent` prop captures high-level UI interactions se
 />
 ```
 
-UI events track actions like selecting tools, grouping shapes, toggling dark mode, and zooming. They fire regardless of whether the action came from a click or keyboard shortcut.
+UI events track actions like selecting tools, grouping shapes, toggling dark mode, and zooming. They fire regardless of whether the action came from a click or keyboard shortcut. For the full list of events, see [TLUiEventMap](?).
 
 ## Listening to store changes directly
 

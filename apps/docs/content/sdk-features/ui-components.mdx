@@ -1,7 +1,7 @@
 ---
 title: UI components
 created_at: 12/17/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - ui
   - components
@@ -9,13 +9,13 @@ keywords:
   - menu
   - customization
 status: published
-date: 12/20/2025
+date: 12/29/2025
 order: 9
-readability: 8
-voice: 8
-completeness: 7
-accuracy: 7
-notes: "Good structure with clear sections. CustomToolbar example has incorrect useTools() usage (returns object not array). Example links use non-existent category paths. Voice is confident with minimal hedging. Could use more links to actual examples."
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: "Strong document with complete code examples, proper imports, and API references. Good progressive disclosure from hiding UI to overrides. All code snippets verified against source. Links to relevant examples."
 ---
 
 The `@tldraw/tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
@@ -98,26 +98,36 @@ These hooks encapsulate common UI patterns and keep your custom components in sy
 You can hide the default tldraw user interface entirely using the `hideUi` prop. This turns off both the visuals and the keyboard shortcuts.
 
 ```tsx
-function App() {
-	return <Tldraw hideUi />
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw hideUi />
+		</div>
+	)
 }
 ```
 
-While you can't select tools using keyboard shortcuts when the UI is hidden, you can still control the editor programmatically. Open the console and try:
+When the UI is hidden, you can't select tools using keyboard shortcuts. You can still control the editor programmatically through `Editor` methods. Open the console and try:
 
 ```ts
 editor.setCurrentTool('draw')
 ```
 
-All of our user interface works by controlling the editor via its `Editor` methods. If you hide the user interface, you can still use these same methods to control the editor. See our [custom user interface example](/examples/custom-ui) for this in action.
+All of tldraw's user interface works by controlling the editor via its methods. If you hide the user interface, you can still use these same methods to control the editor. See the [custom user interface example](/examples/custom-ui) for this in action.
 
 ## Extension points
 
 ### Overriding components
 
-Override individual components by passing them to the `components` prop. Your component receives the same props as the default implementation:
+Override individual components by passing them to the `components` prop:
 
 ```tsx
+import { Tldraw, useEditor, useTools } from 'tldraw'
+import 'tldraw/tldraw.css'
+
 function CustomToolbar() {
 	const editor = useEditor()
 	const tools = useTools()
@@ -133,34 +143,36 @@ function CustomToolbar() {
 	)
 }
 
-function App() {
+export default function App() {
 	return (
-		<Tldraw
-			components={{
-				Toolbar: CustomToolbar,
-			}}
-		/>
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				components={{
+					Toolbar: CustomToolbar,
+				}}
+			/>
+		</div>
 	)
 }
 ```
+
+The `useTools` hook returns an object mapping tool IDs to [TLUiToolItem](/reference/tldraw/TLUiToolItem) objects. Each tool item contains metadata like `id`, `label`, `icon`, and `kbd` (keyboard shortcut).
 
 ### Hiding components
 
-Pass `null` to hide a component entirely. This is useful for focused experiences that don't need all the default UI:
+Pass `null` to hide a component entirely. This is useful for focused experiences that don't need the full default UI:
 
 ```tsx
-function App() {
-	return (
-		<Tldraw
-			components={{
-				HelpMenu: null,
-				DebugMenu: null,
-				SharePanel: null,
-			}}
-		/>
-	)
-}
+<Tldraw
+	components={{
+		HelpMenu: null,
+		DebugMenu: null,
+		SharePanel: null,
+	}}
+/>
 ```
+
+See the [UI components hidden example](/examples/ui-components-hidden) for a complete list of hideable components.
 
 ## Overrides
 
@@ -168,15 +180,15 @@ The content of tldraw's menus can be controlled via the `overrides` prop. This p
 
 ### Actions
 
-The user interface has a set of shared `actions` that are used in the menus and keyboard shortcuts. These actions can be overridden by passing a new set of actions to the `overrides.actions` method.
-
-To create, update, or delete actions, provide an `actions` method that receives both the editor and the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) and returns a mutated actions object.
+The user interface has a set of shared actions used in the menus and keyboard shortcuts. Override these by providing an `actions` method that receives the editor and the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) and returns a mutated actions object.
 
 ```tsx
+import { Tldraw, TLUiOverrides } from 'tldraw'
+import 'tldraw/tldraw.css'
+
 const myOverrides: TLUiOverrides = {
 	actions(editor, actions) {
-		// You can delete actions, but remember to
-		// also delete the menu items that reference them!
+		// Delete an action (remember to also delete any menu items that reference it)
 		delete actions['insert-embed']
 
 		// Create a new action or replace an existing one
@@ -185,8 +197,7 @@ const myOverrides: TLUiOverrides = {
 			label: 'My new action',
 			readonlyOk: true,
 			kbd: 'cmd+u,ctrl+u',
-			onSelect(source: any) {
-				// Whatever you want to happen when the action is run
+			onSelect(source) {
 				window.alert('My new action just happened!')
 			},
 		}
@@ -194,45 +205,44 @@ const myOverrides: TLUiOverrides = {
 	},
 }
 
-function App() {
-	return <Tldraw overrides={myOverrides} />
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw overrides={myOverrides} />
+		</div>
+	)
 }
 ```
 
-The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, with each item keyed under its `id`.
+The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, keyed by their `id`. See the [action overrides example](/examples/action-overrides) for more.
 
 ### Tools
 
-Tools work the same way as actions. Override the default tools by passing a `tools` method that accepts the [default tools object](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useTools.tsx) and returns a mutated version of that object.
+Tools work the same way as actions. Provide a `tools` method that accepts the [default tools object](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useTools.tsx) and returns a mutated version.
 
 ```tsx
 const myOverrides: TLUiOverrides = {
 	tools(editor, tools) {
-		// Create a tool item in the ui's context
+		// Create a tool item in the UI's context
 		tools.card = {
 			id: 'card',
 			icon: 'color',
 			label: 'tools.card',
 			kbd: 'c',
 			onSelect: () => {
-				// Whatever you want to happen when the tool is selected
 				editor.setCurrentTool('card')
 			},
 		}
 		return tools
 	},
 }
-
-function App() {
-	return <Tldraw overrides={myOverrides} />
-}
 ```
 
-The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, with each item keyed under its `id`.
+The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, keyed by their `id`. See the [add tool to toolbar example](/examples/add-tool-to-toolbar) for a complete implementation.
 
 ### Translations
 
-The `translations` property accepts a table of new translations. For example, if you wanted a tool to reference a key `"tools.card"`, you should at minimum provide an english translation for this key.
+The `translations` property accepts a table of new translations. If you add a tool with `label: 'tools.card'`, you need to provide an English translation for that key:
 
 ```tsx
 const myOverrides: TLUiOverrides = {
@@ -242,39 +252,48 @@ const myOverrides: TLUiOverrides = {
 		},
 	},
 }
-
-function App() {
-	return <Tldraw overrides={myOverrides} />
-}
 ```
+
+See [internationalization](/sdk-features/internationalization) for more about tldraw's translation system.
 
 ## UI events
 
-The [Tldraw](?) component has a prop, `onUiEvent`, that the user interface will call when certain events occur.
+The [Tldraw](?) component has an `onUiEvent` prop that fires when users interact with the UI:
 
 ```tsx
-function App() {
-	function handleEvent(name, data) {
-		// do something with the event
+import { Tldraw, TLUiEventHandler } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const handleUiEvent: TLUiEventHandler = (name, data) => {
+		console.log('UI event:', name, data)
 	}
 
-	return <Tldraw onUiEvent={handleEvent} />
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw onUiEvent={handleUiEvent} />
+		</div>
+	)
 }
 ```
 
-The `onUiEvent` callback is called with the name of the event as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and possibly other data specific to each event, such as the direction in an `align-shapes` event.
+The callback receives the event name as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and possibly other data specific to each event, such as the direction in an `align-shapes` event.
 
-Note that `onUiEvent` is only called when interacting with the user interface. It is not called when running commands manually against the app—calling [Editor#alignShapes](?) will not call `onUiEvent`.
+Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShapes](?) directly won't trigger this callback. See the [UI events example](/examples/ui-events) for more.
 
 ## Related articles
 
-- **[UI primitives](/docs/ui-primitives)** — Use tldraw's button, menu, dialog, and other UI components in your custom interfaces
+- [UI primitives](/sdk-features/ui-primitives) - Use tldraw's button, menu, dialog, and other UI components in your custom interfaces
+- [Internationalization](/sdk-features/internationalization) - Customize translations and add new languages
+- [Tools](/sdk-features/tools) - Learn how tools work and create your own
 
 ## Related examples
 
-- **[Custom UI](/examples/custom-ui)** — Build a completely custom toolbar UI while using the editor's functionality
-- **[Custom components](/examples/custom-components)** — Override individual canvas components like the brush selection box and scribble
-- **[Hide UI](/examples/hide-ui)** — Use hideUi to hide the entire default interface
-- **[UI components hidden](/examples/ui-components-hidden)** — Selectively hide specific UI components
-- **[Custom menus](/examples/custom-menus)** — Create custom menus using tldraw's menu system
-- **[Vertical toolbar](/examples/vertical-toolbar)** — Rearrange the toolbar layout
+- [Replace the entire UI](/examples/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
+- [Custom canvas components](/examples/custom-components) - Override individual canvas components like the brush selection box and scribble
+- [Hide the entire UI](/examples/hide-ui) - Use hideUi to hide the entire default interface
+- [Hide UI components](/examples/ui-components-hidden) - Selectively hide specific UI components
+- [Changing menus](/examples/custom-menus) - Create custom menus using tldraw's menu system
+- [Vertical toolbar](/examples/vertical-toolbar) - Switch to a vertical toolbar layout
+- [Add tool to toolbar](/examples/add-tool-to-toolbar) - Add a custom tool to the toolbar
+- [UI events](/examples/ui-events) - Listen to UI events like tool selection and menu interactions

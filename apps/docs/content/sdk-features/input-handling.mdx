@@ -12,71 +12,69 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 17
-readability: 7
-voice: 7
-completeness: 8
-accuracy: 7
-notes: "Good coverage of InputsManager APIs. Event flow section slightly misleading: click manager dispatch only happens for pointer events. Event type list incomplete (missing TLPinchEventInfo, TLClickEventInfo). Code snippets accurate."
 ---
 
-The input handling system manages pointer and keyboard state through the `InputsManager` class. This manager tracks pointer positions in multiple coordinate spaces, maintains button and key press states, detects input device types, and calculates pointer velocity for gesture recognition. By normalizing input across different devices (mouse, touch, pen), the system provides a consistent interface that tools and shapes can use to respond to user interactions.
+The `InputsManager` class tracks pointer and keyboard state for the editor. It stores pointer positions in both screen space and page space, tracks pressed keys and buttons, detects device types (mouse, touch, pen), and calculates pointer velocity.
 
-All input state is stored as reactive atoms using the `@tldraw/state` library. This reactive approach means components can efficiently read input state without subscribing to every update, and dependent computations automatically recalculate when dereferenced if the specific input values they depend on have changed. The manager updates its state on every input event, converts coordinates between screen space and page space, and maintains historical positions to support delta calculations for dragging and panning operations.
+All input state is reactive. The manager stores values as atoms from `@tldraw/state`, so components that read input state automatically update when those values change. The manager updates on every input event, converting coordinates between screen space and page space.
 
 ## Pointer position tracking
 
-The `InputsManager` tracks pointer positions in two coordinate spaces. Screen space represents pixels relative to the canvas container's origin, accounting for where the container appears in the browser window. Page space represents coordinates in the infinite canvas, adjusted for camera position and zoom level. The manager maintains three position snapshots in both spaces: current, previous, and origin.
+The manager tracks pointer positions in two coordinate spaces:
+
+- **Screen space**: Pixels relative to the canvas container's origin
+- **Page space**: Coordinates in the infinite canvas, adjusted for camera position and zoom
+
+For each space, the manager maintains three position snapshots: current, previous, and origin.
 
 ### Current and previous positions
 
-The current position updates on every pointer move event:
-
 ```typescript
-editor.inputs.getCurrentScreenPoint() // Current in screen space
-editor.inputs.getCurrentPagePoint() // Current in page space
+editor.inputs.getCurrentScreenPoint() // Current position in screen space
+editor.inputs.getCurrentPagePoint() // Current position in page space
+
+editor.inputs.getPreviousScreenPoint() // Previous position in screen space
+editor.inputs.getPreviousPagePoint() // Previous position in page space
 ```
 
-The previous position stores the last pointer location before the most recent update, enabling delta calculations for dragging and panning:
+The current position updates on every pointer event. The previous position stores where the pointer was before the most recent update. You can use these together to calculate deltas for dragging and panning:
 
 ```typescript
 const delta = Vec.Sub(editor.inputs.getCurrentPagePoint(), editor.inputs.getPreviousPagePoint())
 ```
 
-The `updateFromEvent()` method updates these positions atomically. It first saves the current positions to previous, then calculates new current positions from the incoming event. This ensures the previous position always represents the immediately prior state, making delta calculations reliable even when pointer events arrive rapidly.
-
 ### Origin positions
 
-Origin positions capture where the most recent pointer down event occurred:
+The origin position captures where the most recent `pointer_down` event occurred:
 
 ```typescript
-editor.inputs.getOriginPagePoint() // Where pointer_down occurred
+editor.inputs.getOriginScreenPoint() // Where pointer_down occurred in screen space
+editor.inputs.getOriginPagePoint() // Where pointer_down occurred in page space
 ```
 
-Tools use origin positions to calculate drag distances and determine whether an interaction has moved far enough to trigger certain behaviors. The origin resets on every pointer_down event and during pinch gestures, providing a stable reference point for the duration of each interaction.
+Tools use the origin to calculate drag distances and determine whether an interaction has moved far enough to trigger behaviors like dragging. The origin resets on every `pointer_down` event and when pinch gestures start.
 
 ### Coordinate space conversion
 
-The manager converts from screen space to page space using the camera's position and zoom:
+The manager converts screen coordinates to page coordinates using the camera's position and zoom:
 
 ```typescript
-// Screen to page conversion (simplified)
+// Screen to page conversion
 const pageX = screenX / camera.z - camera.x
 const pageY = screenY / camera.z - camera.y
 ```
 
-The system validates converted coordinates to ensure they're finite before updating state, preventing issues when extreme zoom levels or camera positions produce invalid values.
-
 ## Pointer velocity
 
-The system tracks pointer velocity to support gesture detection. Velocity is measured in pixels per millisecond and calculated on each animation frame tick rather than on each pointer event:
+The manager tracks pointer velocity for gesture detection:
 
 ```typescript
-editor.inputs.getPointerVelocity() // Vec with x/y velocity
+editor.inputs.getPointerVelocity() // Vec with x/y velocity in pixels per millisecond
 ```
 
-The `TickManager` calls `updatePointerVelocity()` on every frame, calculating the distance traveled since the last tick and deriving a direction vector. The new velocity is interpolated with the previous velocity using a 0.5 factor to smooth out rapid changes. Very small velocity values (below 0.01) are clamped to zero to prevent jitter.
+Velocity is calculated on each animation frame tick (not on each pointer event). The `TickManager` calls `updatePointerVelocity()` every frame, calculating the distance traveled since the last tick. The velocity is smoothed by interpolating with the previous value, and very small values (below 0.01) are clamped to zero to prevent jitter.
 
-Tools use velocity to distinguish between interaction types. The hand tool, for example, can differentiate between slow precise panning and fast flick gestures based on velocity magnitude. Velocity resets to zero on pointer_down events and during pinch gestures, ensuring each interaction starts with clean state.
+Tools use velocity to distinguish between slow, precise interactions and fast flick gestures. Velocity resets to zero on `pointer_down` events and when pinch gestures start.
 
 ## Input device detection
 
@@ -86,33 +84,35 @@ The manager tracks whether the current input comes from a pen device:
 editor.inputs.getIsPen() // true for stylus input
 ```
 
-The system determines pen input from the pointer event's `isPen` property, which is set by the browser based on the input device type. This enables pen-specific behaviors like pen mode, which ignores non-pen input to prevent accidental touch interactions when using a stylus. The pen flag updates on every pointer event through `updateFromEvent()`.
+This enables pen-specific behaviors like pen mode, which ignores non-pen input to prevent accidental touch interactions while using a stylus.
 
-> While devices have the ability to self-identify as 'pen', many devices do not do so. For example, many stylus devices will identify as 'mouse'. We use heuristics to handle these inputs so that we can correctly account for pressure.
+> Many stylus devices identify as 'mouse' rather than 'pen'. We use heuristics to detect these devices and correctly account for pressure.
 
 ## Modifier keys and button states
 
-The manager tracks modifier key states as reactive boolean atoms:
+The manager tracks modifier key states:
 
 ```typescript
 editor.inputs.getShiftKey()
 editor.inputs.getAltKey()
 editor.inputs.getCtrlKey()
+editor.inputs.getMetaKey()
 editor.inputs.getAccelKey() // Cmd on Mac, Ctrl elsewhere
 ```
 
-The `getAccelKey()` method provides cross-platform modifier detection, returning true for Command on macOS and Control on other platforms. This simplifies implementing standard shortcuts that work correctly across operating systems.
+The `getAccelKey()` method returns true for Command on macOS and Control on other platforms. Use this for cross-platform shortcuts.
 
 ### Button tracking
 
-The manager maintains a reactive set of currently pressed pointer buttons:
+The manager tracks currently pressed pointer buttons in a reactive set:
 
 ```typescript
-editor.inputs.buttons.has(0) // Primary button
-editor.inputs.buttons.has(2) // Secondary button
+editor.inputs.buttons.has(0) // Primary button (left click)
+editor.inputs.buttons.has(1) // Middle button
+editor.inputs.buttons.has(2) // Secondary button (right click)
 ```
 
-Buttons are identified by number (0 for primary, 1 for middle, 2 for secondary). The set adds buttons on pointer_down events and removes them on pointer_up events.
+Buttons are added on `pointer_down` events and removed on `pointer_up` events.
 
 ### Keyboard key tracking
 
@@ -123,60 +123,65 @@ editor.inputs.keys.has('Space')
 editor.inputs.keys.has('ShiftLeft')
 ```
 
-Keys add to the set on key_down and remove on key_up. This allows tools to detect key combinations and respond to held keys during pointer operations. The select tool, for example, detects when Space is held to temporarily activate the hand tool.
+Keys are added on `key_down` and removed on `key_up`. Tools can use this to detect held keys during pointer operations. For example, the select tool detects when Space is held to temporarily activate the hand tool.
 
 ## Interaction state flags
 
-The manager maintains boolean flags that describe the current interaction state:
+The manager tracks the current interaction state:
 
 ```typescript
 editor.inputs.getIsPointing() // Pointer button is down
-editor.inputs.getIsDragging() // Pointer moved while pointing
-editor.inputs.getIsPinching() // Two-finger pinch gesture
-editor.inputs.getIsEditing() // Editing text or content
+editor.inputs.getIsDragging() // Pointer moved beyond drag threshold while pointing
+editor.inputs.getIsPinching() // Two-finger pinch gesture active
+editor.inputs.getIsEditing() // Editing text or other content
 editor.inputs.getIsPanning() // Panning the canvas
-editor.inputs.getIsSpacebarPanning() // Holding the spacebar to pan
+editor.inputs.getIsSpacebarPanning() // Panning via spacebar (vs. other panning modes)
 ```
 
-The editor sets these flags through setter methods during event processing. For example, `isPointing` becomes true on pointer_down and false on pointer_up. The `isDragging` flag becomes true when the pointer moves beyond a drag distance threshold while pointing. The `isSpacebarPanning` flag distinguishes spacebar-initiated panning from other panning modes, allowing tools to respond appropriately.
+The editor sets these flags during event processing. For example, `isPointing` becomes true on `pointer_down` and false on `pointer_up`. The `isDragging` flag becomes true when the pointer moves beyond the drag distance threshold while pointing.
 
 ## Event processing flow
 
-When an input event occurs, the editor processes it through several stages:
+When an input event occurs, the editor processes it through these stages:
 
 1. The browser fires a native DOM event
-2. The editor's UI layer captures the event
-3. The editor transforms it into a typed event info object (`TLPointerEventInfo`, `TLKeyboardEventInfo`, `TLWheelEventInfo`, `TLPinchEventInfo`, or `TLClickEventInfo`)
-4. The editor calls `updateFromEvent()` on the `InputsManager` to update input state
-5. For pointer events, the editor dispatches to the click manager for multi-click detection
-6. The editor sends the event to the state machine via `root.handleEvent()`
-7. The state machine propagates the event through active tool states
+2. The editor's UI layer captures the event and transforms it into a typed event info object
+3. For pointer, pinch, and wheel events, the editor calls `updateFromEvent()` on the `InputsManager`
+4. For pointer events, the editor dispatches to the `ClickManager` for multi-click detection (double-click, triple-click, etc.)
+5. The editor sends the event to the state machine via `root.handleEvent()`
+6. The state machine propagates the event through active tool states
 
-The `updateFromEvent()` method updates all position atoms, device flags, and velocity state from the incoming event. It calculates both screen and page coordinates from the event's point property, accounting for the canvas container's screen bounds and camera transformation.
+The typed event info objects are:
 
-In collaborative sessions, `updateFromEvent()` also updates the user's pointer presence record in the store, broadcasting pointer position to other users. The system skips updating the activity timestamp for synthetic pointer moves triggered by following another user's camera.
+| Event type                 | Info type             |
+| -------------------------- | --------------------- |
+| Pointer events             | `TLPointerEventInfo`  |
+| Click events (multi-click) | `TLClickEventInfo`    |
+| Keyboard events            | `TLKeyboardEventInfo` |
+| Wheel events               | `TLWheelEventInfo`    |
+| Pinch events               | `TLPinchEventInfo`    |
+
+In collaborative sessions, `updateFromEvent()` also updates the user's pointer presence record in the store, broadcasting pointer position to other users.
 
 ## Input normalization
 
-The system normalizes input across different device types. Touch events convert to pointer events with appropriate properties, and the manager tracks the device type through the `isPen` flag.
+The editor normalizes input across different device types. Touch events convert to pointer events, and the manager tracks the device type through the `isPen` flag.
 
-Pointer positions include an optional z coordinate representing pressure or hover distance, defaulting to 0.5 for devices that don't report pressure. This ensures consistent values across all input types.
-
-The normalization layer accounts for the canvas container's position in the document, allowing the system to work correctly in nested layouts and scrolled containers.
+Pointer positions include a z coordinate representing pressure or hover distance, defaulting to 0.5 for devices that don't report pressure. The normalization layer accounts for the canvas container's position in the document, so the editor works correctly in nested layouts and scrolled containers.
 
 ## State serialization
 
-The manager provides a `toJson()` method for debugging and testing:
+The manager provides a `toJson()` method for debugging:
 
 ```typescript
 const state = editor.inputs.toJson()
+// Returns all position vectors, modifier key states, interaction flags,
+// device type, and the contents of the keys and buttons sets
 ```
 
-The serialized state includes all position vectors, modifier key states, interaction flags, device type, and the contents of the keys and buttons sets.
-
-> We use this serialized form when generating a crash report.
+We use this serialized form when generating crash reports.
 
 ## Related examples
 
-- **[Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs)** - Display pointer positions, velocity, and other input state reactively as you interact with the canvas.
-- **[Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events)** - Log all pointer, keyboard, and wheel events to understand the event flow.
+- [Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs) - Display pointer positions, velocity, and other input state reactively
+- [Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events) - Log pointer, keyboard, and wheel events to see the event flow

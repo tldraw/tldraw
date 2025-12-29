@@ -1,7 +1,7 @@
 ---
 title: Coordinates
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 12/29/2025
 keywords:
   - coordinates
   - screen
@@ -12,46 +12,35 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 7
-readability: 8
-voice: 7
-completeness: 8
-accuracy: 9
-notes: "Opening paragraphs too abstract. Pointer-down example slightly simplified. Generally solid but could be more direct."
 ---
 
-The editor operates across three distinct coordinate systems to map between user input, the canvas viewport, and the infinite space of the canvas. These coordinate systems enable the editor to accurately translate mouse positions into canvas locations, position shapes correctly at any zoom level, and render content within the visible viewport.
+The editor uses three coordinate systems: screen space, viewport space, and page space. When you move the mouse over the canvas, the browser gives you screen coordinates. To create a shape at that location, you need to convert those coordinates to page space.
 
-Understanding these coordinate systems is essential when working with user input, custom tools, or programmatic shape manipulation. The camera system bridges these spaces through transformation methods that account for viewport position, zoom level, and the container's placement on the website's document.
+The editor provides methods to convert between these coordinate systems. You'll use these when building custom tools, positioning DOM overlays, or responding to pointer events.
 
 ## The three coordinate systems
 
-The editor uses three coordinate systems, each serving a specific purpose in the rendering and interaction pipeline.
-
 ### Screen space
 
-Screen space represents absolute pixel coordinates from the browser document's origin at the top-left corner of the browser window. This includes any space outside the editor container, such as browser chrome, toolbars, or other page content. Screen coordinates match the values returned by browser events like `MouseEvent.clientX` and `MouseEvent.clientY`.
-
-When processing mouse or touch input, coordinates arrive in screen space and must be transformed into page space to determine which shapes the user is interacting with.
+Screen space uses pixel coordinates from the browser window's top-left corner. These are the values you get from `MouseEvent.clientX` and `MouseEvent.clientY`. Screen coordinates include any space outside the editor container, like browser chrome or other page content.
 
 ### Viewport space
 
-Viewport space represents pixel coordinates from the canvas container's origin. The viewport is the visible rendering area of the editor, excluding any UI elements outside the canvas. Viewport coordinates account for the container's position on the page, which may change if the editor is embedded within a scrollable or repositioned element.
+Viewport space uses pixel coordinates from the editor container's top-left corner. This accounts for where the editor sits on the page. If the editor is embedded in a scrollable element or positioned away from the browser's origin, viewport coordinates differ from screen coordinates by that offset.
 
-The editor stores the viewport's position and dimensions in the instance state's `screenBounds` property, which tracks the container's location in screen space.
+The editor tracks the container's position in `editor.getViewportScreenBounds()`.
 
 ### Page space
 
-Page space represents coordinates on the infinite canvas itself, independent of camera position or zoom level. A shape at `x: 100, y: 200` in page space maintains those coordinates regardless of how the user pans or zooms the viewport. Page space is the canonical coordinate system for shape positions, and all shape geometries are defined in page coordinates.
+Page space is the infinite canvas itself. A shape at `x: 100, y: 200` stays at those coordinates regardless of how the user pans or zooms. All shape positions are stored in page space.
 
-The camera controls which portion of page space is visible within the viewport. As users pan and zoom, the camera transforms page coordinates into viewport coordinates for rendering.
+The camera determines which part of page space is visible. When you zoom in, the same page-space region takes up more screen pixels. When you pan, different page-space coordinates come into view.
 
 ## Coordinate transformations
 
-The editor provides transformation methods to convert between coordinate systems. These methods account for both camera position and zoom level.
-
 ### Screen to page space
 
-The editor's `screenToPage()` method converts screen coordinates to page coordinates:
+Use `editor.screenToPage()` to convert screen coordinates to page coordinates:
 
 ```typescript
 // Convert mouse event coordinates to page space
@@ -66,11 +55,11 @@ editor.createShape({
 })
 ```
 
-This method subtracts the viewport's screen position, scales by the inverse of the zoom level, and subtracts the camera's page position. Use this whenever you need to map user input to canvas coordinates.
+This is the most common transformation. It accounts for the editor container's position, the camera position, and the zoom level.
 
 ### Page to screen space
 
-The `pageToScreen()` method converts page coordinates to screen coordinates:
+Use `editor.pageToScreen()` to convert page coordinates to screen coordinates:
 
 ```typescript
 // Convert shape position to screen coordinates
@@ -82,11 +71,11 @@ element.style.left = `${screenPoint.x}px`
 element.style.top = `${screenPoint.y}px`
 ```
 
-This method adds the camera's page position, multiplies by the zoom level, and adds the viewport's screen position. Use this when positioning DOM elements or overlays relative to shapes.
+Use this when positioning DOM elements relative to shapes on the canvas.
 
 ### Page to viewport space
 
-The `pageToViewport()` method converts page coordinates to viewport coordinates:
+Use `editor.pageToViewport()` to convert page coordinates to viewport coordinates:
 
 ```typescript
 // Get viewport coordinates for a page point
@@ -101,35 +90,43 @@ const isVisible =
 	viewportPoint.y <= viewportBounds.h
 ```
 
-This transformation is similar to `pageToScreen()` but returns coordinates relative to the viewport's origin rather than the document's origin. Use this when working with canvas rendering contexts or when the viewport's screen position is not relevant.
+This is like `pageToScreen()` but relative to the editor container rather than the browser window. Use this for canvas rendering or when you don't care about the editor's position on the page.
 
-## Working with viewport bounds
+## Viewport bounds
 
-The editor provides methods to query viewport bounds in both screen and page space.
-
-The `getViewportScreenBounds()` method returns the viewport's position and dimensions in screen space:
+Use `editor.getViewportScreenBounds()` to get the editor container's position and size in screen space:
 
 ```typescript
 const screenBounds = editor.getViewportScreenBounds()
-// screenBounds.x, screenBounds.y - viewport position in screen space
-// screenBounds.w, screenBounds.h - viewport dimensions in pixels
+// screenBounds.x, screenBounds.y - container position in screen space
+// screenBounds.w, screenBounds.h - container dimensions in pixels
 ```
 
-The `getViewportPageBounds()` method returns the visible area in page space:
+Use `editor.getViewportPageBounds()` to get the visible area in page space:
 
 ```typescript
 const pageBounds = editor.getViewportPageBounds()
-// pageBounds.x, pageBounds.y - top-left corner of viewport in page space
-// pageBounds.w, pageBounds.h - viewport dimensions in page units
+// pageBounds.x, pageBounds.y - top-left corner of visible area in page space
+// pageBounds.w, pageBounds.h - visible area dimensions in page units
 ```
 
-These bounds are useful for culling off-screen shapes during rendering, determining which content is visible, or calculating positions relative to the viewport.
+The page bounds change when the user pans or zooms. At higher zoom levels, the visible page-space area is smaller.
 
-## Common use cases
+## Using the inputs manager
 
-### Processing mouse input
+The editor's inputs manager tracks the current pointer position in both coordinate systems. This is useful when you need to access the pointer position from anywhere in your code:
 
-Convert mouse events to page coordinates before creating or manipulating shapes:
+```typescript
+// Get the current pointer position
+const screenPoint = editor.inputs.getCurrentScreenPoint()
+const pagePoint = editor.inputs.getCurrentPagePoint()
+
+// Get the position where the current drag started
+const originScreenPoint = editor.inputs.getOriginScreenPoint()
+const originPagePoint = editor.inputs.getOriginPagePoint()
+```
+
+In custom tools, you can also convert the event's `point` property (which is in screen space) to page space:
 
 ```typescript
 editor.on('event', (event) => {
@@ -142,16 +139,19 @@ editor.on('event', (event) => {
 
 ### Positioning custom overlays
 
-Map shape positions to screen space when positioning DOM elements:
+To position a DOM element over a shape, convert the shape's page coordinates to screen coordinates. Then subtract the viewport's screen position to get coordinates relative to the editor container:
 
 ```typescript
 const shape = editor.getShape(shapeId)
+const screenBounds = editor.getViewportScreenBounds()
 const screenPoint = editor.pageToScreen({ x: shape.x, y: shape.y })
-overlay.style.left = `${screenPoint.x}px`
-overlay.style.top = `${screenPoint.y}px`
+
+// Position relative to the editor container
+overlay.style.left = `${screenPoint.x - screenBounds.x}px`
+overlay.style.top = `${screenPoint.y - screenBounds.y}px`
 ```
 
 ## Related examples
 
-- **[Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs)** - Display page and screen coordinates reactively as the pointer moves.
-- **[Selection UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/selection-ui)** - Use selection bounds in screen space to position custom UI around shapes.
+- [Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs) - Display page and screen coordinates reactively as the pointer moves.
+- [Selection UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/selection-ui) - Use selection bounds in screen space to position custom UI around shapes.
