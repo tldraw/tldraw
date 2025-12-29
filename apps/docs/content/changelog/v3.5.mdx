@@ -1,0 +1,56 @@
+---
+title: 'v3.5'
+created_at: 11/26/2024
+updated_at: 11/26/2024
+keywords:
+  - changelog
+  - release
+  - v3.5
+  - grid-snapping
+  - export
+  - layering
+  - performance
+status: published
+date: 11/26/2024
+order: 317
+---
+
+## v3.5.0
+
+This release introduces enhancements to grid snapping during shape creation, improves layering mechanics, and provides better control over export functionality.
+
+### Improvements
+
+- Add automatic grid alignment when shapes are drawn with new `maybeSnapToGrid` function, enabling snapping for both click-created and drag-created shapes when grid mode is active ([#4894](https://github.com/tldraw/tldraw/pull/4894))
+- Improve "bring forward" and "send backward" actions by making them only consider nearby overlapping shapes ([#4898](https://github.com/tldraw/tldraw/pull/4898))
+- Improve panning performance for note-heavy canvases and zoomed-out views
+- Improve page menu hover interaction
+- Add custom React provider support in SVG exports
+- Switch default theme to light mode
+- Improve frame heading right-click behavior
+
+### API changes
+
+- Add `scale` and `pixelRatio` parameters to export utilities for more precise control over export dimensions and quality
+- Expose font size and stroke size APIs
+- Add socket close reason for rate limiting
+- Add option to toggle double-click text creation
+
+### Bug fixes
+
+- Prevent off-screen shape zoom-to-edit
+- Resolve erasing state stickiness
+- Fix frame heading drag interactions
+- Address Safari sleep-related crashes
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.5.0)
+
+---
+
+## Patch releases
+
+### v3.5.1
+
+Fix a bug with long press on inset canvases. ([#5037](https://github.com/tldraw/tldraw/pull/5037))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.5.1)
