@@ -12,7 +12,6 @@ keywords:
   - multi-click
 status: published
 date: 12/20/2025
-order: 5
 readability: 9
 voice: 9
 completeness: 9
@@ -103,7 +102,7 @@ export default function App() {
 }
 ```
 
-Tools can handle [onDoubleClick](?), [onTripleClick](?), and [onQuadrupleClick](?) events. Each receives a [TLClickEventInfo](?) object with details about the click.
+Tools can handle [StateNode#onDoubleClick](?), [StateNode#onTripleClick](?), and [StateNode#onQuadrupleClick](?) events. Each receives a [TLClickEventInfo](?) object with details about the click.
 
 Shape utilities handle double-clicks through the [ShapeUtil#onDoubleClick](?) method. Return a partial shape object to apply changes:
 

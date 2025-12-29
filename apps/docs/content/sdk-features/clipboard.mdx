@@ -10,7 +10,6 @@ keywords:
   - content
 status: published
 date: 12/20/2025
-order: 6
 ---
 
 The clipboard lets you copy, cut, and paste shapes within a single editor or between different editor instances. When you copy shapes, the editor serializes them along with their bindings and assets into a [TLContent](?) object. This format preserves document structure and relationships so shapes paste correctly elsewhere.
@@ -21,7 +20,7 @@ Clipboard operations have two flows: extracting content (copy/cut) and placing c
 
 ### Extracting content
 
-When you copy or cut shapes, the editor calls [getContentFromCurrentPage](?) to serialize them into a [TLContent](?) object:
+When you copy or cut shapes, the editor calls [Editor#getContentFromCurrentPage](?) to serialize them into a [TLContent](?) object:
 
 ```ts
 const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
@@ -34,7 +33,7 @@ The method keeps only bindings where both the `fromId` and `toId` shapes are in 
 
 ### Placing content
 
-[putContentOntoCurrentPage](?) handles paste operations. It takes [TLContent](?) and reconstructs shapes on the current page:
+[Editor#putContentOntoCurrentPage](?) handles paste operations. It takes [TLContent](?) and reconstructs shapes on the current page:
 
 ```ts
 // Paste at a specific point
@@ -63,7 +62,7 @@ When pasting, the editor tries the browser's Clipboard API first because it pres
 
 ### Asset resolution
 
-Before writing to the clipboard, the editor calls [resolveAssetsInContent](?) to convert asset references into data URLs:
+Before writing to the clipboard, the editor calls [Editor#resolveAssetsInContent](?) to convert asset references into data URLs:
 
 ```ts
 const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
@@ -99,7 +98,7 @@ interface TLContent {
 
 ## Position handling
 
-[putContentOntoCurrentPage](?) offers flexible positioning:
+[Editor#putContentOntoCurrentPage](?) offers flexible positioning:
 
 - By default, shapes paste at a slight offset from their original position, making it clear that new shapes were created
 - When pasting with the shift key pressed (or with paste-at-cursor mode enabled), shapes paste at the cursor position

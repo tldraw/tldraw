@@ -11,7 +11,6 @@ keywords:
   - shapes
 status: published
 date: 12/26/2025
-order: 25
 readability: 9
 voice: 9
 completeness: 9
@@ -23,7 +22,7 @@ Geometry in tldraw is a mathematical description of a shape's form. Each shape h
 
 ## How geometry works
 
-Each [ShapeUtil](?) implements a [getGeometry](?) method that returns a [Geometry2d](?) instance. The editor calls this method to calculate bounds, test hits, find intersections, and measure distances.
+Each [ShapeUtil](?) implements a [ShapeUtil#getGeometry](?) method that returns a [Geometry2d](?) instance. The editor calls this method to calculate bounds, test hits, find intersections, and measure distances.
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -39,7 +38,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 The `isFilled` property controls hit testing behavior. A filled geometry registers hits inside its area. An unfilled geometry only responds to hits on its outline—useful for shapes like frames where you want to click through the middle.
 
-Geometry also powers [snapping](/docs/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [getBoundsSnapGeometry](?).
+Geometry also powers [snapping](/docs/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [ShapeUtil#getBoundsSnapGeometry](?).
 
 ## Geometry primitives
 

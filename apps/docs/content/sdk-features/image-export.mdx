@@ -10,7 +10,6 @@ keywords:
   - download
 status: published
 date: 12/20/2025
-order: 13
 ---
 
 The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The editor handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports are fully self-contained: the editor embeds fonts, inlines styles, and converts media elements to data URLs.
@@ -25,7 +24,7 @@ The editor gathers the shapes to export, calculates their bounding box, creates 
 
 Each shape defines how it renders to SVG through its [ShapeUtil](?):
 
-- If the shape implements [toSvg](?) or [toBackgroundSvg](?), those methods generate native SVG elements
+- If the shape implements [ShapeUtil#toSvg](?) or [ShapeUtil#toBackgroundSvg](?), those methods generate native SVG elements
 - If the shape doesn't implement SVG methods, the editor renders its normal HTML representation inside an SVG `<foreignObject>` element
 
 The temporary render step is necessary because CSS and layout aren't computed until elements are in the document. `<foreignObject>` elements in particular need their styles and content inlined to work when the SVG is extracted.
@@ -120,4 +119,4 @@ img.src = result.url
 
 - [Export canvas as image](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/export-canvas-as-image) - Export the entire canvas using [Editor#toImage](?) and download it.
 - [Export canvas as image (with settings)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/export-canvas-settings) - Export with configurable format, scale, background, and other options.
-- [Custom shape SVG export](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/toSvg-method-example) - Define how custom shapes render when exported using [toSvg](?) and [toBackgroundSvg](?).
+- [Custom shape SVG export](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/toSvg-method-example) - Define how custom shapes render when exported using [ShapeUtil#toSvg](?) and [ShapeUtil#toBackgroundSvg](?).

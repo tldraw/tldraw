@@ -13,7 +13,6 @@ keywords:
   - storage
 status: published
 date: 12/29/2025
-order: 11
 readability: 9
 voice: 9
 completeness: 8
@@ -287,7 +286,7 @@ const cleanup = editor.store.listen(saveToStorage)
 
 ## Remote changes
 
-When synchronizing with a multiplayer backend, use [mergeRemoteChanges](?) to apply updates from other users:
+When synchronizing with a multiplayer backend, use [Store#mergeRemoteChanges](?) to apply updates from other users:
 
 ```ts
 myRemoteSource.on('change', (changes) => {

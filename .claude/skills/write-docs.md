@@ -426,11 +426,56 @@ Reference related concepts inline:
 
 > For more information about how to synchronize the store with other processes, see the [Persistence](/docs/persistence) page.
 
-### API references use consistent format
+### API references with auto-linking
 
-Link to API docs using the `[MethodName](?)` pattern:
+Use the `[Reference](?)` syntax to link to API reference pages. During the build, this gets resolved to the correct URL automatically.
 
-> Use the [Editor#createShapes](?) method.
+**Basic usage:**
+
+```markdown
+The [Editor](?) class is the main way of controlling tldraw's editor.
+```
+
+This resolves to a link pointing to `/reference/editor/Editor`.
+
+**Linking to methods and properties:**
+
+Use `#` to link to a specific method or property:
+
+```markdown
+Need to create shapes? Use [Editor#createShapes](?).
+Access the store via [Editor#store](?).
+```
+
+**With code formatting:**
+
+You can wrap the reference in backticks for code styling:
+
+```markdown
+Use the [`Editor#batch`](?) method to group changes.
+```
+
+**How it works:**
+
+The `(?)` syntax is resolved at build time by `autoLinkDocs.ts`. It searches the reference section for an article matching the title, then replaces `(?)` with the actual path. If no match is found, the build fails with an error showing the location.
+
+**When to use it:**
+
+- Use `[Reference](?)` when linking to any API reference from prose documentation
+- Don't use it in the reference section itself (it only searches reference articles)
+- Don't use it for items marked as internal, as these are not documented in the reference section
+- Don't use it for non-API links (use regular markdown links instead)
+
+**Examples in context:**
+
+```markdown
+The [Editor](?) class is the main way of controlling tldraw's editor. You can
+access it via the [Tldraw](?) component's `onMount` callback or the
+[useEditor](?) hook.
+
+The editor holds state in [Editor#store](?). Need to create shapes? Use
+[Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?).
+```
 
 ### Point to working examples
 

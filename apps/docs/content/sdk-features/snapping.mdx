@@ -10,7 +10,6 @@ keywords:
   - precision
 status: published
 date: 12/20/2025
-order: 26
 readability: 9
 voice: 8
 completeness: 8
@@ -54,7 +53,7 @@ Bounds snapping aligns bounding box edges and centers. When you move or resize s
 
 ### Snap points
 
-Each shape defines snap points through [ShapeUtil.getBoundsSnapGeometry](?). By default, shapes snap to their bounding box corners and center. Override this to provide custom snap points:
+Each shape defines snap points through [ShapeUtil#getBoundsSnapGeometry](?). By default, shapes snap to their bounding box corners and center. Override this to provide custom snap points:
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -122,7 +121,7 @@ Handle snapping enables precise connections between shapes. When dragging a hand
 
 ### Handle snap geometry
 
-Shapes define what handles can snap to through [ShapeUtil.getHandleSnapGeometry](?). The method returns an object with these properties:
+Shapes define what handles can snap to through [ShapeUtil#getHandleSnapGeometry](?). The method returns an object with these properties:
 
 | Property               | Description                                                                                                                 |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
