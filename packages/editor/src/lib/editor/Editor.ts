@@ -2767,7 +2767,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the efficient zoom level. This returns the current zoom level if there are less than 300 shapes on the page,
+	 * Get the efficient zoom level. This returns the current zoom level if there are less than a certain number of shapes on the page,
 	 * otherwise it returns the debounced zoom level. This can be used to avoid expensive re-renders during camera movements.
 	 *
 	 * @public
