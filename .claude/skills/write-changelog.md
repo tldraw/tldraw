@@ -1,11 +1,97 @@
 ---
 name: write-changelog
-description: Guidance on writing and maintaining the changelog in `documentation/changelog/`. Use this when writing or updating the changelog.
+description: Guidance on writing and maintaining the changelog in `apps/docs/content/changelog/`. Use this when writing or updating the changelog.
 ---
 
 # Changelog writing guidelines
 
-This skill provides formatting and style guidance for writing changelog entries in `documentation/changelog/`.
+This skill provides guidance for writing, maintaining, and understanding the changelog in `apps/docs/content/changelog/`.
+
+## Changelog structure
+
+The changelog lives in `apps/docs/content/changelog/` and consists of:
+
+### `index.mdx` - The changelog landing page
+
+The index file serves as the entry point and table of contents for all releases. It:
+
+- Lists all releases grouped by major version (v4.x, v3.x, v2.x)
+- Provides brief one-line descriptions for each release
+- Links to individual release pages
+- Has a "Next" section at the top pointing to unreleased changes
+
+When a new release is published, add it to the appropriate version group with a brief description of its highlights.
+
+### `next.mdx` - The upcoming release
+
+The `next.mdx` file accumulates changes as PRs are merged to main. It:
+
+- Has frontmatter with the upcoming version number (e.g., `title: 'v4.3'`)
+- Contains all changelog-worthy changes since the last release
+- Is written as if the release has already happened
+- Gets renamed to `vX.Y.mdx` when published
+
+Check the frontmatter `title` to determine the current upcoming version.
+
+### `vX.Y.mdx` - Historical releases
+
+Each minor release has its own file (e.g., `v4.2.mdx`, `v3.15.mdx`). These files:
+
+- Document all changes in that minor release
+- Include patch releases at the bottom after a horizontal rule
+- Are immutable once published (except for patch release additions)
+
+### Release workflow
+
+1. Changes accumulate in `next.mdx` as PRs merge to main
+2. When a release is published:
+   - Rename `next.mdx` to the version number (e.g., `v4.3.mdx`)
+   - Update `order` in frontmatter (increment by 1)
+   - Create a new `next.mdx` for the following version
+   - Update `index.mdx` to add the new release and update the "Next" section
+
+## Finding the previous release
+
+To determine what's new since the last release:
+
+1. Read `next.mdx` frontmatter to get the current version (e.g., "v4.3")
+2. Calculate the previous release branch:
+   - For v4.3, the previous branch is `v4.2.x`
+   - For v5.0, find the highest v4.N.x branch
+   - For v5.12, the previous branch is `v5.11.x`
+3. Use git to find commits on main not on the release branch:
+   ```bash
+   git log origin/main ^origin/vX.Y.x --oneline
+   ```
+
+## Evaluating PRs for the changelog
+
+### PRs to skip
+
+- PRs with `other`, `skip-release`, `chore`, or `dotcom` labels
+- PRs with titles starting with "Revert" (unless fixing something user-facing)
+- PRs that only affect documentation, translations, or tests
+
+### Categorizing PRs
+
+1. **Breaking changes** - `major` label or breaking change indicators
+2. **API changes** - `api` or `feature` label, or adds/removes/modifies public API
+3. **Improvements** - `improvement` or `enhancement` label
+4. **Bug fixes** - `bugfix` or `bug` label
+
+### Extracting information from PRs
+
+Use `gh pr view NNNN --json number,title,labels,author,body,mergedAt` to fetch PR details.
+
+Look for in the PR body:
+
+- `### Release notes` section for description text
+- `### API changes` section for API change details
+- `### Change type` checkboxes to determine category
+
+### Team members (do not credit as contributors)
+
+steveruizok, SomeHats, TodePond, ds300, MitjaBezensek, Taha-Hassan-Git, mimecuvalo, huppy-bot, alex-mckenna-1, kostyafarber, max-drake, AniKrisn, github-actions
 
 ## Language
 
