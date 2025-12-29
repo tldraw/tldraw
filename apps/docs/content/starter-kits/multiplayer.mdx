@@ -10,6 +10,11 @@ keywords:
   - sync
   - collaboration
   - real-time
+readability: 7
+voice: 6
+completeness: 8
+accuracy: 6
+notes: "'Use Cases' should be sentence case. Code has markdown artifacts (lines 145, 187-188: URLs rendered incorrectly). Good technical depth."
 ---
 
 The Multiplayer Starter Kit demonstrates how to build self-hosted tldraw applications with real-time multiplayer collaboration using Cloudflare Durable Objects. It features production-ready backend infrastructure that handles WebSocket connections, automatic persistence, and asset management. You can use this foundation to create collaborative whiteboards, design tools, or any multi-user canvas application.
@@ -28,7 +33,7 @@ npm create tldraw@latest -- --template multiplayer
 
 ---
 
-## Use Cases
+## Use cases
 
 The multiplayer sync starter kit is perfect for building:
 
@@ -134,7 +139,7 @@ In the code example below, we add authentication to asset uploads:
 export const authenticatedAssetStore: TLAssetStore = {
   async upload(asset, file) {
     const id = uniqueId()
-    const objectName = `${id}-${[file.name](http://file.name)}`.replace(/[^a-zA-Z0-9.]/g, '-')
+    const objectName = `${id}-${file.name}`.replace(/[^a-zA-Z0-9.]/g, '-')
 
     const response = await fetch(`/api/uploads/${objectName}`, {
       method: 'POST',
@@ -184,8 +189,8 @@ name = "TLDRAW_DURABLE_OBJECT"
 class_name = "TldrawDurableObject"
 
 [env.production.routes]
-pattern = "[myapp.com/api/*](http://myapp.com/api/*)"
-zone_name = "[myapp.com](http://myapp.com)"
+pattern = "myapp.com/api/*"
+zone_name = "myapp.com"
 ```
 
 ### Room persistence settings
