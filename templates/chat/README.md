@@ -15,8 +15,6 @@ Run the development server with `yarn dev` or `npm run dev`.
 
 Open `http://localhost:3000/` in your browser to see the app.
 
-## Overview
-
 This starter kit demonstrates how to build an AI chat application that uses tldraw to provide sketches and annotated image to the model. The app features:
 
 - Integrated whiteboard for providing visual context
