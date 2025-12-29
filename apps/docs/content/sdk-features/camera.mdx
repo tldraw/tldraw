@@ -12,11 +12,16 @@ keywords:
 status: published
 date: 12/20/2025
 order: 4
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 9
+notes: 'Solid doc with clear structure. API accurate, EASINGS import correct. Could mention stopCameraAnimation() and slideCamera optional params.'
 ---
 
-The camera system controls how users view and navigate the infinite canvas. It manages viewport position and zoom level, translating user interactions into smooth camera movements while transforming coordinates between screen space and page space. This coordinate transformation enables the editor to map mouse positions to canvas locations and render shapes at any zoom level.
+The camera system controls how users view and navigate the infinite canvas. It manages viewport position and zoom level, and transforms coordinates between screen space and page space. The editor uses these transformations to map mouse positions to canvas locations and render shapes at any zoom level.
 
-The camera acts as the bridge between user input and canvas navigation, providing constraints for bounded experiences, smooth animations for programmatic movement, and zoom-to-fit operations for content focus. It integrates with collaboration features for real-time viewport following and serves as the foundation for all spatial interactions on the canvas.
+The camera handles user input for panning and zooming, supports constraints for bounded experiences, and provides methods for programmatic movement with smooth animations. It also integrates with collaboration features for real-time viewport following.
 
 ## How it works
 
@@ -31,7 +36,7 @@ The `screenToPage()` method converts mouse positions to canvas coordinates, whil
 
 ```typescript
 const pagePoint = editor.screenToPage({ x: event.clientX, y: event.clientY })
-const screenPoint = editor.pageToScreen(shape.x, shape.y)
+const screenPoint = editor.pageToScreen({ x: shape.x, y: shape.y })
 ```
 
 The camera responds to user input through mouse wheel, trackpad gestures, keyboard shortcuts, and touch events. The `wheelBehavior` option determines whether scrolling pans or zooms the viewport.
@@ -134,11 +139,12 @@ Center the viewport on a point:
 editor.centerOnPoint({ x: 1000, y: 500 })
 ```
 
-Zoom in or out:
+Zoom in or out. Both methods accept an optional screen point to zoom toward:
 
 ```typescript
 editor.zoomIn()
-editor.zoomOut({ x: 200, y: 150 })
+editor.zoomOut()
+editor.zoomIn(editor.inputs.currentScreenPoint, { animation: { duration: 200 } })
 ```
 
 ### Zoom to content
@@ -155,9 +161,11 @@ editor.zoomToBounds(bounds, { inset: 100 })
 
 ### Animated movement
 
-Add smooth transitions using the `animation` option:
+Add smooth transitions using the `animation` option. The `EASINGS` object provides common easing functions:
 
 ```typescript
+import { EASINGS } from 'tldraw'
+
 editor.setCamera(
 	{ x: 0, y: 0, z: 1 },
 	{
@@ -169,7 +177,7 @@ editor.setCamera(
 )
 ```
 
-Camera animations stop automatically when users pan or zoom, ensuring user input takes precedence over programmatic movement.
+Camera animations stop automatically when users pan or zoom, ensuring user input takes precedence over programmatic movement. You can also stop camera animations at any time with the editor's `stopCameraAnimation()` method.
 
 ### Momentum scrolling
 

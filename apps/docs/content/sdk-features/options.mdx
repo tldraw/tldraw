@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/25/2025
 order: 5
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 9
+notes: "Strong technical accuracy with all default values verified against source. Tables are well-organized. Opening could be more direct per voice guide. Could add more type details for callback props like getShapeVisibility."
 ---
 
 Both the `<Tldraw>` and `<TldrawEditor>` components accept configuration through two mechanisms: the `options` prop for editor behavior, and component props for features and functionality. Understanding the difference helps you choose the right approach for your use case.
@@ -284,6 +289,9 @@ const customEmbeds: TLEmbedDefinition[] = [
 		type: 'custom-video',
 		title: 'Custom Video',
 		hostnames: ['videos.example.com'],
+		width: 560,
+		height: 315,
+		doesResize: true,
 		toEmbedUrl: (url) => url.replace('/watch/', '/embed/'),
 		fromEmbedUrl: (url) => url.replace('/embed/', '/watch/'),
 	},

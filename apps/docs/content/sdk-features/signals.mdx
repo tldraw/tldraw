@@ -13,6 +13,11 @@ keywords:
 status: published
 date: 12/28/2025
 order: 11
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 8
+notes: "Well-structured coverage of signals API. Good code examples with correct API usage. Debugging section could show actual console output. Links to examples work. All API references verified against source."
 ---
 
 Tldraw uses a signals-based reactive system for state management. Signals provide automatic dependency tracking, lazy evaluation, and efficient updates. When state changes, only the parts of your application that depend on that state will update.
@@ -70,7 +75,7 @@ Computed values are lazy: they don't calculate until you call `.get()`. They als
 The `@computed` decorator provides the same functionality for class methods:
 
 ```ts
-import { computed } from '@tldraw/state'
+import { atom, computed } from '@tldraw/state'
 
 class Counter {
 	count = atom('count', 0)
@@ -347,7 +352,7 @@ All signals have a `name` property (the first argument when creating them) that 
 | `RESET_VALUE`                | Symbol returned by `getDiffSince` when history is insufficient  |
 | `isUninitialized(value)`     | Check if a computed is running its first derivation             |
 | `withDiff(value, diff)`      | Manually provide a diff when returning from a computed          |
-| `localStorageAtom(name, v)`  | Atom that persists to localStorage                              |
+| `localStorageAtom(name, v)`  | Returns `[atom, cleanup]` tuple; atom persists to localStorage  |
 | `deferAsyncEffects(fn)`      | Queue effects for async operations (used internally for stores) |
 
 ### @tldraw/state-react

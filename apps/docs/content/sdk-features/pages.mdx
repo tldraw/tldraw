@@ -11,6 +11,11 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 18
+readability: 8
+voice: 7
+completeness: 7
+accuracy: 9
+notes: "Good structure and coverage of page methods. Code snippets now have proper type assertions for branded ID types. Some passive voice but mostly clear and direct."
 ---
 
 The pages system provides multiple independent sub-documents within a single tldraw document. Each page acts as a separate scene graph root with its own descendant shapes, camera position, and selection state.
@@ -41,6 +46,8 @@ const currentPageId = editor.getCurrentPageId()
 Access any page by ID:
 
 ```typescript
+import { TLPageId } from 'tldraw'
+
 const page = editor.getPage('page:page1' as TLPageId)
 const allPages = editor.getPages()
 ```
@@ -50,7 +57,7 @@ const allPages = editor.getPages()
 Switch to a different page using `setCurrentPage()`:
 
 ```typescript
-editor.setCurrentPage('page:page2')
+editor.setCurrentPage('page:page2' as TLPageId)
 ```
 
 When switching pages, the editor completes any in-progress interactions and stops following other users. The camera constraints are reapplied to ensure the new page's camera respects its configured bounds.
@@ -68,7 +75,7 @@ The editor enforces a maximum page count through the `maxPages` option. Attempts
 Delete pages with `deletePage()`:
 
 ```typescript
-editor.deletePage('page:page1')
+editor.deletePage('page:page1' as TLPageId)
 ```
 
 When deleting the current page, the editor switches to an adjacent page automatically. The last remaining page cannot be deleted. When a page is deleted, all shapes on that page are removed and the associated camera and instance page state records are cleaned up.
@@ -88,7 +95,7 @@ The duplicated page receives a copy of all shapes from the source page, preservi
 Update page properties like name or metadata:
 
 ```typescript
-editor.updatePage({ id: 'page:page1', name: 'Updated Name' })
+editor.updatePage({ id: 'page:page1' as TLPageId, name: 'Updated Name' })
 ```
 
 ## Working with shapes across pages
@@ -105,7 +112,7 @@ const shapeIds = editor.getCurrentPageShapeIds()
 Get shapes from any page:
 
 ```typescript
-const pageShapeIds = editor.getPageShapeIds('page:page2')
+const pageShapeIds = editor.getPageShapeIds('page:page2' as TLPageId)
 ```
 
 These queries return only the top-level and nested shapes that belong to the specified page. Shapes are parented to pages through their `parentId` field.
@@ -115,7 +122,12 @@ These queries return only the top-level and nested shapes that belong to the spe
 Transfer shapes from one page to another using `moveShapesToPage()`:
 
 ```typescript
-editor.moveShapesToPage(['shape:rect1', 'shape:circle2'], 'page:page2')
+import { TLShapeId } from 'tldraw'
+
+editor.moveShapesToPage(
+  ['shape:rect1' as TLShapeId, 'shape:circle2' as TLShapeId],
+  'page:page2' as TLPageId
+)
 ```
 
 The operation copies the shapes to the destination page at the same position and then removes them from the source page. Bindings between moved shapes are preserved, but bindings to shapes not being moved are removed and receive isolation callbacks. The editor enforces per-page shape limits through the `maxShapesPerPage` option.

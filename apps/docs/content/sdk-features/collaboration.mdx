@@ -13,6 +13,11 @@ keywords:
 status: published
 date: 12/26/2025
 order: 5
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 9
+notes: "Good structure and flow. Removed unused import in custom shapes example. Could add bindingUtils to example."
 ---
 
 The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
@@ -273,7 +278,7 @@ If you use custom shapes or bindings, register them with the sync hooks using sc
 ```tsx
 import { useSyncDemo } from '@tldraw/sync'
 import { Tldraw } from 'tldraw'
-import { MyCustomShapeUtil, myCustomShapeProps } from './MyCustomShape'
+import { MyCustomShapeUtil } from './MyCustomShape'
 
 const store = useSyncDemo({
 	roomId: 'my-room',

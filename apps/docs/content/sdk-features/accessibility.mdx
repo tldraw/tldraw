@@ -1,0 +1,215 @@
+---
+title: Accessibility
+created_at: 12/29/2025
+updated_at: 12/29/2025
+keywords:
+  - accessibility
+  - a11y
+  - screen reader
+  - keyboard navigation
+  - reduced motion
+  - aria
+  - alt text
+status: published
+date: 12/29/2025
+order: 34
+readability: -
+voice: -
+completeness: -
+accuracy: -
+notes: ""
+---
+
+Tldraw includes accessibility features that make the canvas usable with keyboards and assistive technologies. The SDK provides screen reader announcements for shape selection, keyboard navigation between shapes, reduced motion support, and hooks for custom shapes to provide descriptive text.
+
+## Screen reader announcements
+
+When users select shapes, tldraw announces the selection to screen readers through a live region. The announcement includes the shape type, any descriptive text, and the shape's position in reading order.
+
+For a single shape selection, the announcement follows this pattern: "[description], [shape type]. [position] of [total]". For example, selecting an image with alt text might announce "A team photo, image. 3 of 7". Multiple selections announce the count: "4 shapes selected".
+
+The announcement system uses the `DefaultA11yAnnouncer` component, which renders a visually hidden live region that screen readers monitor for changes. The `useA11y` hook provides programmatic access to announce custom messages:
+
+```tsx
+import { useA11y } from 'tldraw'
+
+function MyComponent() {
+	const a11y = useA11y()
+
+	const handleCustomAction = () => {
+		a11y.announce({ msg: 'Custom action completed', priority: 'polite' })
+	}
+
+	// ...
+}
+```
+
+The `priority` option accepts 'polite' or 'assertive'. Polite announcements wait for a pause in speech, while assertive announcements interrupt immediately.
+
+## Keyboard navigation
+
+Users can navigate between shapes on the canvas using the keyboard. The Tab key moves focus to the next shape in reading order, and Shift+Tab moves to the previous shape. Arrow keys with Ctrl/Cmd move selection to the nearest shape in that direction.
+
+Tldraw determines reading order by analyzing shape positions on the canvas. Shapes are grouped into rows based on their vertical position, then sorted left-to-right within each row. This creates a natural top-to-bottom, left-to-right reading order similar to text.
+
+The "Skip to main content" link appears when users Tab into the editor, allowing keyboard users to jump directly to the first shape on the canvas.
+
+### Excluding shapes from keyboard navigation
+
+Custom shapes can opt out of keyboard navigation by overriding `canTabTo()`:
+
+```tsx
+class DecorativeShapeUtil extends ShapeUtil<DecorativeShape> {
+	// Decorative shapes shouldn't receive keyboard focus
+	canTabTo() {
+		return false
+	}
+
+	// ...
+}
+```
+
+Shapes that return `false` from `canTabTo()` are skipped during Tab navigation and excluded from reading order calculations.
+
+## Shape descriptions for screen readers
+
+When a shape is selected, the announcement includes descriptive text from two sources: the shape's text content and its ARIA descriptor. The `getText()` method returns the shape's primary text content, while `getAriaDescriptor()` provides alternative text specifically for accessibility purposes.
+
+For most shapes, `getText()` is sufficient. The default implementation returns `undefined`, which produces announcements with just the shape type and position.
+
+### Providing alt text for media shapes
+
+Image and video shapes support an `altText` property that `getAriaDescriptor()` returns. Users can set alt text through the media toolbar when an image or video is selected:
+
+```tsx
+// Setting alt text programmatically
+editor.updateShapes([
+	{
+		id: imageShape.id,
+		type: 'image',
+		props: { altText: 'A diagram showing the system architecture' },
+	},
+])
+```
+
+### Custom shape descriptions
+
+Custom shapes can provide screen reader descriptions by overriding `getAriaDescriptor()`:
+
+```tsx
+class CardShapeUtil extends ShapeUtil<CardShape> {
+	getAriaDescriptor(shape: CardShape) {
+		// Return a description that makes sense when read aloud
+		return `${shape.props.title}: ${shape.props.summary}`
+	}
+
+	// ...
+}
+```
+
+If your shape has visible text, override `getText()` instead. The announcement system uses `getAriaDescriptor()` first if available, then falls back to `getText()`:
+
+```tsx
+class NoteShapeUtil extends ShapeUtil<NoteShape> {
+	getText(shape: NoteShape) {
+		return shape.props.content
+	}
+
+	// ...
+}
+```
+
+## Reduced motion
+
+The SDK respects the user's motion preferences through the `animationSpeed` user preference. When set to 0, animations are disabled. By default, this value respects the operating system's `prefers-reduced-motion` setting.
+
+Use the `usePrefersReducedMotion()` hook in custom shape components to check whether to show animations:
+
+```tsx
+import { usePrefersReducedMotion } from 'tldraw'
+
+function AnimatedIndicator() {
+	const prefersReducedMotion = usePrefersReducedMotion()
+
+	if (prefersReducedMotion) {
+		return <StaticIndicator />
+	}
+
+	return <PulsingIndicator />
+}
+```
+
+The hook returns `true` when:
+
+- The user has set `animationSpeed` to 0 in preferences
+- The operating system's reduced motion preference is enabled (and `animationSpeed` hasn't been explicitly set)
+
+Users can toggle reduced motion through the accessibility menu: Help > Accessibility > Reduce motion.
+
+## Enhanced accessibility mode
+
+The `enhancedA11yMode` user preference adds visible labels to UI elements that normally rely on icons alone. When enabled, the style panel shows text labels for each section like "Color", "Opacity", and "Align", making the interface more navigable for users who need additional context.
+
+Toggle this setting programmatically:
+
+```tsx
+editor.user.updateUserPreferences({
+	enhancedA11yMode: true,
+})
+```
+
+## Disabling keyboard shortcuts
+
+Some users prefer or require keyboard shortcuts to be disabled, particularly when using assistive technologies that have their own keyboard commands. The `areKeyboardShortcutsEnabled` preference controls this:
+
+```tsx
+editor.user.updateUserPreferences({
+	areKeyboardShortcutsEnabled: false,
+})
+```
+
+When disabled, tldraw's keyboard shortcuts don't interfere with assistive technology shortcuts. Basic navigation with Tab and arrow keys still works for shape selection.
+
+## Accessibility menu
+
+The default UI includes an accessibility submenu under Help > Accessibility with toggles for:
+
+- **Reduce motion** - Disables animations
+- **Keyboard shortcuts** - Enables or disables tldraw keyboard shortcuts
+- **Enhanced accessibility mode** - Shows visible labels on UI elements
+
+You can access these same components individually to build custom accessibility controls:
+
+```tsx
+import {
+	ToggleReduceMotionItem,
+	ToggleKeyboardShortcutsItem,
+	ToggleEnhancedA11yModeItem,
+} from 'tldraw'
+```
+
+## Best practices for custom shapes
+
+When building custom shapes, consider these accessibility guidelines:
+
+**Provide meaningful descriptions.** Override `getAriaDescriptor()` or `getText()` to give screen reader users context about what the shape contains. A shape labeled "card" is less useful than "Meeting notes: Q4 planning session".
+
+**Use semantic HTML where possible.** The shape's `component()` renders inside an HTML container. Use appropriate heading levels, lists, and other semantic elements rather than divs with visual styling alone.
+
+**Support keyboard interaction.** If your shape has interactive elements, ensure they're focusable and operable with the keyboard. Use standard focus indicators and ARIA attributes where appropriate.
+
+**Respect motion preferences.** Check `usePrefersReducedMotion()` before showing animations. Provide static alternatives for animated content.
+
+**Consider contrast.** Shape colors should meet WCAG contrast requirements against typical backgrounds. The default color styles are designed with accessibility in mind.
+
+## Debugging accessibility
+
+Enable the `a11y` debug flag to log accessibility announcements to the console:
+
+```tsx
+import { debugFlags } from '@tldraw/editor'
+
+debugFlags.a11y.set(true)
+```
+
+With this flag enabled, the console shows each announcement and logs the accessible name of elements as they receive keyboard focus.

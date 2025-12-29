@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 13
+readability: 7
+voice: 6
+completeness: 7
+accuracy: 8
+notes: 'Some passive voice constructions. Good technical accuracy on APIs and internal class names. Missing API link format [Method](?) for cross-references. Example links are valid. Could mention toImageDataUrl method.'
 ---
 
 The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The system handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports preserve visual fidelity by embedding fonts, inlining styles, and converting media elements to data URLs so the resulting files are fully self-contained.
@@ -58,6 +63,7 @@ All export methods accept a configuration object with these options:
 - `darkMode` controls whether to render in dark mode. Defaults to the current user's theme setting.
 - `quality` sets compression quality for lossy formats like JPEG as a number between 0 and 1. Only applies to raster image exports.
 - `format` sets the output format for image exports: `'svg'`, `'png'`, `'jpeg'`, or `'webp'`. Defaults to `'png'`.
+- `preserveAspectRatio` sets the SVG `preserveAspectRatio` attribute. Only applies to SVG exports.
 
 ## Editor export methods
 

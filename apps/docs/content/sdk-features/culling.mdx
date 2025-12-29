@@ -11,21 +11,26 @@ keywords:
 status: published
 date: 12/20/2025
 order: 8
+readability: 8
+voice: 8
+completeness: 6
+accuracy: 9
+notes: "Good overview, but missing full code example and user-facing API usage."
 ---
 
 The culling system optimizes rendering performance by identifying shapes that are outside the viewport and preventing them from being rendered.
 
-In the React canvas, culled shapes remain in the DOM but have their `display` property set to `none` and so incur no rendering cost. The system uses incremental derivations to efficiently track visibility changes as the camera moves or shapes are modified, ensuring that performance remains consistent even with thousands of shapes on the canvas.
+In the React canvas, culled shapes remain in the DOM but have their `display` property set to `none` and so incur no rendering cost. The system uses incremental derivations to efficiently track visibility changes as the camera moves or shapes are modified. Performance remains consistent even with thousands of shapes on the canvas.
 
 ## How it works
 
 The culling system operates through a two-layer approach that balances performance with user experience.
 
-The first layer, exposed through `editor.getNotVisibleShapes()`, identifies all shapes whose page bounds fall completely outside the viewport's page bounds. This calculation runs through every shape on the current page, checking whether each shape's bounding box intersects with the visible area. Shapes are evaluated against the viewport using a simple bounds comparison, which is fast enough to run reactively.
+The first layer, exposed through `editor.getNotVisibleShapes()`, identifies all shapes whose page bounds don't intersect with the viewport. The calculation iterates through every shape on the current page and performs a simple bounds collision check. This comparison is fast enough to run reactively.
 
 > The system intentionally skips mask calculations during this check because the computational overhead of precise mask geometry outweighs the benefit of more accurate culling.
 
-The second layer, exposed through `editor.getCulledShapes()`, refines the not-visible set by removing shapes that should remain visible despite being outside the viewport. Specifically, it excludes any selected shapes and the currently editing shape. This ensures that users can always see what they're working with, even if they've scrolled it partially or fully out of view, and so that certain stateful DOM elements remain rendered and interactive.
+The second layer, exposed through `editor.getCulledShapes()`, refines the not-visible set by removing shapes that should remain visible despite being outside the viewport. Specifically, it excludes any selected shapes and the currently editing shape. Users can always see what they're working with, even if they've scrolled it partially or fully out of view, and stateful DOM elements remain rendered and interactive.
 
 ### Shape-level control
 

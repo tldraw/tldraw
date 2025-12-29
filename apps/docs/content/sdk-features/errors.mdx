@@ -13,6 +13,11 @@ reviewed_by: steveruizok
 status: published
 date: 12/22/2025
 order: 12
+readability: 8
+voice: 8
+completeness: 7
+accuracy: 8
+notes: "Good structure and clear explanations. Fixed accuracy issues: removed @internal editor.annotateError and getCrashingError references. Fixed ErrorBoundary code example to properly handle unknown error type with instanceof check."
 ---
 
 We wrap the editor in multiple layers of React error boundaries so that a bug in one shape doesn't take down the entire canvas. When a shape throws during render, only that shape shows a fallback—the rest of the editor keeps working. This matters because custom shapes are a common extension point, and we don't want third-party code to crash the whole experience.
@@ -60,14 +65,14 @@ function MyErrorFallback({ error, editor }) {
 	return (
 		<div className="my-error-screen">
 			<h1>Oops!</h1>
-			<p>{error.message}</p>
+			<p>{error instanceof Error ? error.message : String(error)}</p>
 			<button onClick={() => window.location.reload()}>Refresh</button>
 		</div>
 	)
 }
 
 function MyShapeErrorFallback({ error }) {
-	return <div className="broken-shape">⚠️ This shape failed to render</div>
+	return <div className="broken-shape">This shape failed to render</div>
 }
 
 ;<Tldraw
@@ -83,52 +88,32 @@ Set a fallback to `null` to disable the error boundary at that level, which lets
 
 ## Crash handling
 
-When the editor encounters a fatal error during event processing, it enters a crashed state. You can detect this by listening to the `crash` event or checking the crashing error:
+When the editor encounters a fatal error during event processing, it enters a crashed state. You can detect this by listening to the `crash` event:
 
 ```tsx
-// Listen for crashes
 editor.on('crash', ({ error }) => {
 	console.error('Editor crashed:', error)
 	// Report to error tracking service
 })
-
-// Check if editor is crashed
-const crashingError = editor.getCrashingError()
-if (crashingError) {
-	// Editor is in crashed state
-}
 ```
 
 When crashed, the editor stops processing new events to prevent further damage. The error boundary displays the fallback UI, giving users options to recover.
-
-## Error annotation
-
-The editor annotates errors with contextual information before they're reported. This helps with debugging by including details about where the error originated.
-
-```typescript
-editor.annotateError(error, {
-	origin: 'myCustomTool.onPointerDown',
-	willCrashApp: false,
-	tags: { toolName: 'laser' },
-	extras: { shapeCount: 42 },
-})
-```
-
-The method attaches metadata that helps with debugging: an `origin` string identifying where the error occurred, a `willCrashApp` boolean, plus arbitrary `tags` and `extras` for your error tracking service.
-
-When `willCrashApp` is true, we also mark the store as possibly corrupted. This is a signal to avoid further writes—the data might be in an inconsistent state.
 
 ## ErrorBoundary component
 
 You can use the exported `ErrorBoundary` component directly in your own code:
 
 ```tsx
-import { ErrorBoundary } from 'tldraw'
+import { ErrorBoundary, TLErrorFallbackComponent } from 'tldraw'
+
+const MyFallback: TLErrorFallbackComponent = ({ error }) => (
+	<div>Error: {error instanceof Error ? error.message : String(error)}</div>
+)
 
 function MyComponent() {
 	return (
 		<ErrorBoundary
-			fallback={({ error }) => <div>Error: {error.message}</div>}
+			fallback={MyFallback}
 			onError={(error) => console.error('Caught:', error)}
 		>
 			<RiskyComponent />
@@ -137,7 +122,7 @@ function MyComponent() {
 }
 ```
 
-Pass a `fallback` component that receives `{ error }` props, and optionally an `onError` callback for logging.
+Pass a `fallback` component that receives `{ error, editor? }` props, and optionally an `onError` callback for logging.
 
 ## Related examples
 

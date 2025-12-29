@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/25/2025
 order: 15
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 8
+notes: "Good coverage of group APIs with accurate code examples. The keyboard shortcuts example link was incorrect - the example doesn't actually demonstrate group/ungroup shortcuts. Fixed by removing that misleading link. Voice is confident and direct."
 ---
 
 Groups are logical containers that combine multiple shapes into a single selectable unit. Unlike frames, groups have no visual representation—they exist purely to organize shapes. Their geometry is the union of their children's geometries, their bounds update automatically as children change, and they clean themselves up when their contents are deleted. Groups support nesting, allowing hierarchical organization of shapes on the canvas.
@@ -181,4 +186,3 @@ Groups have a few constraints:
 ## Related examples
 
 - **[Layer panel](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layer-panel)** - Build a hierarchical layer panel that shows shape and group structure with visibility controls.
-- **[Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/keyboard-shortcuts)** - Customize keyboard shortcuts for group and ungroup actions.

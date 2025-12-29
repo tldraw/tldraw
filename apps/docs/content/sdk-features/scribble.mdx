@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 20
+readability: 8
+voice: 7
+completeness: 7
+accuracy: 9
+notes: "Good technical coverage of the scribble system. Voice is mostly good but has some passive constructions and could be more direct. Completeness could add more on when to use paused state. Accuracy issues fixed: updated laser example to use editor.options.laserDelayMs; corrected lifecycle to include paused state."
 ---
 
 The scribble system provides temporary freehand visual feedback for pointer-based interactions. Scribbles are ephemeral paths that appear during tool operations and automatically fade out after completion. The system is accessed via `editor.scribbles` and manages multiple concurrent scribbles through a state-based lifecycle.
@@ -25,8 +30,8 @@ Every scribble progresses through a sequence of states managed by the ScribbleMa
 
 1. **Starting**: The scribble is initialized and collects its first 8 points. This prevents flickering for very short strokes.
 2. **Active**: The scribble actively accumulates points as the pointer moves. Points are added with each pointer move event.
-3. **Stopping**: The tool has finished, and the scribble begins fading out by progressively removing points from its tail.
-4. **Removed**: After all points are cleared, the scribble is deleted from the manager.
+3. **Paused**: The scribble is temporarily paused.
+4. **Stopping**: The tool has finished, and the scribble begins fading out by progressively removing points from its tail. After all points are cleared, the scribble is deleted from the manager.
 
 The manager updates all active scribbles on every animation frame via its `tick` method, which handles state transitions, point management, and the fade-out effect.
 
@@ -109,7 +114,7 @@ const scribble = this.editor.scribbles.addScribble({
 	color: 'laser',
 	opacity: 0.7,
 	size: 4,
-	delay: 1000, // Trail persists for 1 second
+	delay: this.editor.options.laserDelayMs, // default 1200ms
 	shrink: 0.05,
 	taper: true,
 })

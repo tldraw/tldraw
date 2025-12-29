@@ -14,6 +14,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 31
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 7
+notes: "Strong architecture explanation with good examples. Fixed incorrect custom root state pattern - use tools prop instead of extending RootState. Event handlers and state machine mechanics accurately documented. Example links valid."
 ---
 
 Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode like selecting shapes, drawing, or panning the canvas. Tools are implemented as state machines using the `StateNode` class, which provides a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to mouse movements and clicks.
@@ -124,20 +129,20 @@ export class DrawingPointing extends StateNode {
 
 Access the editor through `this.editor` to read input state, manipulate shapes, or transition tools. Access the parent state through `this.parent` to transition between sibling states. The editor instance provides the full API for querying and modifying the document.
 
-To register a custom tool, create a custom root state that includes it:
+To register a custom tool, pass it to the Tldraw component via the `tools` prop:
 
-```typescript
-import { RootState } from '@tldraw/editor'
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-export class CustomRootState extends RootState {
-	static override initial = 'select'
-	static override children() {
-		return [...super.children(), StampTool, MeasureTool]
-	}
+const customTools = [StampTool, MeasureTool]
+
+export default function App() {
+	return <Tldraw tools={customTools} />
 }
 ```
 
-Then pass the custom root when creating the editor. In the `@tldraw/tldraw` package, use the `tools` prop to add tools to the existing set.
+The tools array should be defined outside the component to avoid recreation on each render.
 
 ## Overriding default tools
 

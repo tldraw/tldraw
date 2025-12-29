@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 22
+readability: 8
+voice: 7
+completeness: 7
+accuracy: 6
+notes: "Good progressive structure and clear explanations. Code examples need IndexKey type casting. Example link to api-example is incorrect (should be api). Consider adding visual diagram."
 ---
 
 The shape indexing system determines the visual stacking order (z-order) of shapes on the canvas. Every shape has an `index` property that controls whether it appears above or below other shapes. This system enables efficient reordering operations and supports real-time collaboration where multiple users might reorder shapes simultaneously.
@@ -32,11 +37,11 @@ The integer part determines the rough position in the sequence. The fractional p
 The `@tldraw/utils` package provides functions for generating indices:
 
 ```typescript
-import { getIndexBetween, getIndicesAbove, getIndicesBelow } from '@tldraw/utils'
+import { getIndexBetween, getIndicesAbove, getIndicesBelow, IndexKey } from '@tldraw/utils'
 
-const index = getIndexBetween('a0', 'a2') // 'a1'
-const indices = getIndicesAbove('a0', 3) // ['a1', 'a2', 'a3']
-const below = getIndicesBelow('a2', 2) // ['a1', 'a0V']
+const index = getIndexBetween('a0' as IndexKey, 'a2' as IndexKey) // 'a1'
+const indices = getIndicesAbove('a0' as IndexKey, 3) // ['a1', 'a2', 'a3']
+const below = getIndicesBelow('a2' as IndexKey, 2) // ['a1', 'a0V']
 ```
 
 The algorithm includes optional jittering (randomization) to reduce conflicts in collaborative environments where multiple users might simultaneously insert shapes at the same position. Tests disable jittering for deterministic behavior.
@@ -102,4 +107,4 @@ All shapes must have valid indices. The store validates indices when you create 
 ## Related examples
 
 - **[Layer panel](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layer-panel)** - Display shape hierarchy and z-order with reordering controls.
-- **[API example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/api-example)** - Create shapes programmatically, including managing their z-order indices.
+- **[API example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/api)** - Create shapes programmatically, including managing their z-order indices.

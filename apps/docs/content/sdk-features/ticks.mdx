@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 29
+readability: 7
+voice: 7
+completeness: 7
+accuracy: 6
+notes: "TickManager and EdgeScrollManager code snippets are simplified from actual implementation. Missing info on editor.on('tick') subscription pattern."
 ---
 
 The tick system provides a frame-synchronized update loop for the editor through the `TickManager`. It emits `tick` events at the browser's native refresh rate using `requestAnimationFrame`, enabling smooth animations, edge scrolling during drag operations, and time-based state updates. Tools can implement the `onTick` handler to receive continuous updates with precise elapsed time information.
@@ -172,4 +177,3 @@ Tick events should not be used for:
 ## Related examples
 
 - **[Snowstorm](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/snowstorm)** - Uses tick events to animate falling snowflakes on the canvas.
-- **[Sticker bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/sticker-bindings)** - Uses onTick to update sticker positions as their bound shapes move.

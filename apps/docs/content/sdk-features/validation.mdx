@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/19/2025
 order: 4
+readability: 7
+voice: 8
+completeness: 6
+accuracy: 8
+notes: "Good catalog-style reference doc. Code examples are accurate. Voice is clean with minimal AI tells. Could use more depth on error handling patterns and the ValidationError class properties (rawMessage, path)."
 ---
 
 Validation in tldraw is handled by `@tldraw/validate` and applied across schemas, record types, and shape props. Validators enforce runtime type safety and provide structured errors when data is malformed.
@@ -137,5 +142,5 @@ Validation errors include a message and a path into the failing value. Use them 
 
 ## Related examples
 
-- **[Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape)** - Define shape props with validators using RecordProps.
-- **[Shape meta property](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-meta)** - Use meta property validation with shapes.
+- **[Custom shape](/examples/shapes/tools/custom-shape)** - Define shape props with validators using RecordProps.
+- **[Shape meta (on create)](/examples/events/meta-on-create)** - Add custom metadata to shapes when they're created.

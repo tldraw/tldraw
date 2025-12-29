@@ -11,9 +11,14 @@ keywords:
 status: published
 date: 12/20/2025
 order: 32
+readability: 8
+voice: 7
+completeness: 7
+accuracy: 8
+notes: "Solid technical doc with clear explanations of follow mechanics. Voice leans slightly academic with some passive constructions. Could use more links to related docs (camera, presence). Code snippets are accurate and match implementation."
 ---
 
-The user following system allows users to track a collaborator's viewport in real-time multiplayer sessions. When following, the local camera automatically moves to match the followed user's view, including page changes and zoom level. The system handles follow chains where multiple users follow each other transitively (A follows B who follows C), and provides smooth viewport interpolation that continuously adjusts the camera toward the target user's position on each frame tick.
+The user following system allows users to track a collaborator's viewport in real-time multiplayer sessions. When following, the local camera automatically moves to match the followed user's view, including page changes and zoom level. The system handles follow chains where multiple users follow each other transitively (A follows B who follows C), and provides smooth viewport interpolation that continuously adjusts the camera toward the target user's position on each frame.
 
 Following integrates with the presence system to track collaborator state, the camera system to control viewport movement, and the tick system to perform continuous updates. The system automatically stops following when users manually interact with the canvas or when the followed user is no longer available.
 
@@ -21,9 +26,9 @@ Following integrates with the presence system to track collaborator state, the c
 
 ### Follow mechanism
 
-When `startFollowingUser()` is called, the editor stores the target user ID in `followingUserId` on the instance state. The system sets up two separate reactive processes: one monitors the followed user's page changes and switches pages when they navigate, and another runs on every frame tick to interpolate the camera toward the target viewport.
+When `startFollowingUser()` is called, the editor stores the target user ID in `followingUserId` on the instance state. The system sets up two separate reactive processes: one monitors the followed user's page changes and switches pages when they navigate, and another runs on every frame to interpolate the camera toward the target viewport.
 
-The frame tick handler calculates the difference between the current viewport and the target viewport, then applies smooth interpolation using the user's animation speed preference. This creates an ease-out effect where the camera moves quickly at first, then slows as it approaches the target position. Once the viewport difference drops below the `followChaseViewportSnap` threshold (default 2 pixels), the system locks onto the target and stops interpolating until the target moves again.
+The frame handler calculates the difference between the current viewport and the target viewport, then applies smooth interpolation using the user's animation speed preference. This creates an ease-out effect where the camera moves quickly at first, then slows as it approaches the target position. Once the viewport difference drops below the `followChaseViewportSnap` threshold (default 2 pixels), the system locks onto the target and stops interpolating until the target moves again.
 
 ### Viewport calculation
 
@@ -41,7 +46,7 @@ When switching pages to follow a user, the system sets the `_isLockedOnFollowing
 
 ### startFollowingUser
 
-Begins following a user's viewport. The method accepts a user ID and sets up frame tick handlers to track the user's camera and page.
+Begins following a user's viewport. The method accepts a user ID and sets up frame handlers to track the user's camera and page.
 
 ```typescript
 editor.startFollowingUser('user-abc-123')
@@ -83,7 +88,7 @@ editor.startFollowingUser('user-b')
 // Internally resolves to user-c's presence if user-b is following user-c
 ```
 
-The follow chain resolution runs on every frame tick, so changes in the chain (like B stopping following C) immediately affect A's target viewport without requiring A to restart following.
+The follow chain resolution runs on every frame, so changes in the chain (like B stopping following C) immediately affect A's target viewport without requiring A to restart following.
 
 ## UI integration
 
@@ -113,4 +118,4 @@ The presence records available through `editor.getCollaborators()` include each 
 ## Related examples
 
 - **[User presence](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/user-presence)** - Display collaborator cursors and presence information.
-- **[Multiplayer/sync](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/sync)** - Set up multiplayer sync which enables user following functionality.
+- **[Multiplayer/sync](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/sync-demo)** - Set up multiplayer sync which enables user following functionality.

@@ -12,6 +12,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 14
+readability: 7
+voice: 6
+completeness: 6
+accuracy: 8
+notes: "Good overview with accurate code snippets. Missing file-replace content type docs. Links to examples are helpful. Could benefit from more inline code showing real handler implementations."
 ---
 
 The external content handling system processes content from outside the editor, such as pasted text, dropped files, or embedded URLs. It uses a handler registration pattern where you register handlers for specific content types (text, files, URLs, SVG, embeds).
@@ -41,9 +46,9 @@ editor.registerExternalContentHandler('text', async (content) => {
 	editor.createShapes([
 		{
 			type: 'text',
-			x: point.x,
-			y: point.y,
-			props: { text },
+			x: point?.x ?? 0,
+			y: point?.y ?? 0,
+			props: { richText: toRichText(text) },
 		},
 	])
 })
@@ -87,20 +92,32 @@ The URL asset handler receives a URL string and fetches metadata for bookmark cr
 Register asset handlers using `registerExternalAssetHandler`:
 
 ```typescript
-editor.registerExternalAssetHandler('file', async (externalAsset) => {
-	const { file, assetId } = externalAsset
-	// Extract metadata and upload
-	const result = await editor.uploadAsset(assetInfo, file)
-	return AssetRecordType.create({
-		id: assetId,
-		type: 'image',
+editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
+	// Get image dimensions
+	const size = await MediaHelpers.getImageSize(file)
+
+	// Create asset info for upload
+	const asset = {
+		id: assetId ?? AssetRecordType.createId(),
+		type: 'image' as const,
+		typeName: 'asset' as const,
 		props: {
-			src: result.src,
-			w: dimensions.w,
-			h: dimensions.h,
-			// ... other metadata
+			name: file.name,
+			src: '',
+			w: size.w,
+			h: size.h,
+			mimeType: file.type,
+			isAnimated: false,
+			fileSize: file.size,
 		},
-	})
+		meta: {},
+	}
+
+	// Upload and get the URL
+	const result = await editor.uploadAsset(asset, file)
+	asset.props.src = result.src
+
+	return AssetRecordType.create(asset)
 })
 ```
 

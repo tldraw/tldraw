@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 26
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 9
+notes: "Good technical coverage of snapping system. Bullet-with-bold-headers pattern appears multiple times (AI writing tell per VOICE.md). Could use simpler intro code before complex method calls."
 ---
 
 When you move or resize shapes, tldraw can snap them to key geometry on nearby shapes. This helps users achieve precise alignment without manual measurement.
@@ -75,7 +80,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-To disable snapping to a shape entirely, return an empty array.
+To disable snapping to a shape entirely, return `{ points: [] }`.
 
 ### Translation snapping
 
@@ -162,7 +167,7 @@ Handles support two snap types controlled by the `snapType` property on [TLHandl
 
 **Align snapping** (`snapType: 'align'`) snaps to align with nearby points on both x and y axes independently, showing perpendicular snap lines in each direction.
 
-Point snapping takes priority over align snapping. Snap points always have higher priority than outlines.
+Each handle uses one snap type based on its `snapType` property. Snap points always have higher priority than outlines.
 
 ### Snapping handles
 

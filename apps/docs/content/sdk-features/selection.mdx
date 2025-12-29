@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 21
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 8
+notes: "Well-structured doc covering selection API comprehensively. All API names verified correct. Code snippets accurate. Fixed: removed reference to private method `_getUnlockedShapeIds`. Opening could be punchier. Could mention `getSelectedShapeAtPoint` for completeness."
 ---
 
 The selection system manages which shapes the editor currently selects. It provides computed properties for retrieving selected shapes and their collective properties (like bounds and rotation), enforces selection rules to maintain consistency, and exposes methods for programmatically changing the selection. The system ensures that ancestors and descendants never select simultaneously, automatically manages focus groups when you select grouped shapes, and filters out locked shapes from bulk operations.
@@ -174,7 +179,7 @@ If all selected shapes share a common group ancestor, that group becomes focused
 
 ## Locked shapes
 
-The editor excludes locked shapes from bulk selection operations. The `_getUnlockedShapeIds()` helper filters shape IDs:
+The editor excludes locked shapes from bulk selection operations:
 
 ```typescript
 // selectAll only selects unlocked shapes

@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 9
+readability: 8
+voice: 8
+completeness: 7
+accuracy: 7
+notes: "Good structure with clear sections. CustomToolbar example has incorrect useTools() usage (returns object not array). Example links use non-existent category paths. Voice is confident with minimal hedging. Could use more links to actual examples."
 ---
 
 The `@tldraw/tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
@@ -119,7 +124,7 @@ function CustomToolbar() {
 
 	return (
 		<div className="my-toolbar">
-			{tools.map((tool) => (
+			{Object.values(tools).map((tool) => (
 				<button key={tool.id} onClick={() => editor.setCurrentTool(tool.id)}>
 					{tool.label}
 				</button>
@@ -267,9 +272,9 @@ Note that `onUiEvent` is only called when interacting with the user interface. I
 
 ## Related examples
 
-- **[Custom UI](/examples/ui/custom-ui)** — Build a completely custom toolbar UI while using the editor's functionality
-- **[Custom components](/examples/basic/custom-components)** — Override individual canvas components like the brush selection box and scribble
-- **[Hide UI](/examples/ui/hide-ui)** — Use hideUi to hide the entire default interface
-- **[UI components hidden](/examples/ui/ui-components-hidden)** — Selectively hide specific UI components
-- **[Custom menus](/examples/ui/menus/custom-menus)** — Create custom menus using tldraw's menu system
-- **[Vertical toolbar](/examples/ui/vertical-toolbar)** — Rearrange the toolbar layout
+- **[Custom UI](/examples/custom-ui)** — Build a completely custom toolbar UI while using the editor's functionality
+- **[Custom components](/examples/custom-components)** — Override individual canvas components like the brush selection box and scribble
+- **[Hide UI](/examples/hide-ui)** — Use hideUi to hide the entire default interface
+- **[UI components hidden](/examples/ui-components-hidden)** — Selectively hide specific UI components
+- **[Custom menus](/examples/custom-menus)** — Create custom menus using tldraw's menu system
+- **[Vertical toolbar](/examples/vertical-toolbar)** — Rearrange the toolbar layout

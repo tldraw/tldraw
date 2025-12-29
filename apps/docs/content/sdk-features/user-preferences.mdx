@@ -12,6 +12,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 33
+readability: 7
+voice: 6
+completeness: 8
+accuracy: 8
+notes: "Good structure and thorough coverage of preference system. Fixed: userTypeValidator package reference. Voice issues: uses bullet-point-with-bold-header format (AI tell), some hedging language. Missing code examples for common operations like reading preferences."
 ---
 
 The user preferences system stores and manages per-user settings that persist across sessions and synchronize across browser tabs. The `UserPreferencesManager` provides reactive access to preferences through computed values, ensuring that UI components automatically update when preferences change.
@@ -134,7 +139,7 @@ The animation speed default respects the `prefers-reduced-motion` media query, a
 
 ## Validation
 
-The system validates preferences using `userTypeValidator` from `@tldraw/validate`. When loading preferences from localStorage or receiving updates, validation ensures all fields conform to expected types. Invalid data triggers fallback to fresh preferences rather than causing errors or unexpected behavior.
+The system validates preferences using `userTypeValidator` from `@tldraw/editor`. When loading preferences from localStorage or receiving updates, validation ensures all fields conform to expected types. Invalid data triggers fallback to fresh preferences rather than causing errors or unexpected behavior.
 
 The validator defines the schema for the `TLUserPreferences` interface, including nullability rules and enum constraints. For example, `colorScheme` must be one of 'light', 'dark', or 'system', and numeric values like `animationSpeed` must be numbers or null.
 

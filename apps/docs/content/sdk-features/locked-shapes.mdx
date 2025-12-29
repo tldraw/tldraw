@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/28/2025
 order: 18
+readability: 8
+voice: 7
+completeness: 7
+accuracy: 10
+notes: "Good structure and accurate API coverage. Code snippets are correct. Missing links to API docs and examples. Voice is mostly compliant but could be more concise in places."
 ---
 
 Locked shapes can't be selected, moved, resized, edited, or deleted through normal interactions. Lock a shape when you want it to stay exactly where it is—background elements, reference images, or layout guides that shouldn't move while you work on other parts of the canvas. The lock state is stored on each shape record and the editor enforces it across all operations, from pointer events to API calls.
@@ -48,7 +53,7 @@ editor.toggleLock(editor.getSelectedShapeIds())
 editor.toggleLock([shapeId1, shapeId2])
 ```
 
-When you lock shapes, they automatically deselect. This prevents accidentally manipulating them while they're in the "protected" state.
+When you lock shapes that were all previously unlocked, they automatically deselect. This prevents accidentally manipulating them while they're in the "protected" state.
 
 ## What locking prevents
 

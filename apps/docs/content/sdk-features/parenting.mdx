@@ -12,6 +12,11 @@ keywords:
 status: published
 date: 12/28/2025
 order: 16
+readability: 9
+voice: 8
+completeness: 8
+accuracy: 7
+notes: "Strong structure and clear explanations. Fixed: getShapeAncestors order was documented incorrectly (said parent-to-root, actually returns root-to-parent). isShapeHidden description is slightly simplified but acceptable."
 ---
 
 Every shape in tldraw has a parent. A shape's parent is either the page it lives on or another shape that contains it. This parent-child relationship creates a hierarchy that affects how shapes move, transform, and render. Groups and frames use this hierarchy to contain other shapes; the editor tracks this hierarchy to manage transforms, selection, and rendering order.
@@ -60,16 +65,16 @@ if (parent) {
 
 ## Getting ancestors
 
-The ancestor chain is the path from a shape up to the page. Use `editor.getShapeAncestors()` to get all ancestors in order from the immediate parent to the root:
+The ancestor chain is the path from a shape up to the page. Use `editor.getShapeAncestors()` to get all ancestors in order from the root to the immediate parent:
 
 ```typescript
 // For a deeply nested shape:
 // page > frameA > groupB > myShape
 const ancestors = editor.getShapeAncestors(myShapeId)
-// Returns: [groupB, frameA]
+// Returns: [frameA, groupB]
 ```
 
-The array is ordered from immediate parent to root. The page itself is never included—ancestors only contain shapes.
+The array is ordered from root ancestor to immediate parent. The page itself is never included—ancestors only contain shapes.
 
 ### Finding a specific ancestor
 

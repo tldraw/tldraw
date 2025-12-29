@@ -12,6 +12,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 24
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 6
+notes: "Found several API inaccuracies: focusGroup should be setFocusedGroup, getShapeOpacity doesn't exist, onResize return type is partial not full shape, hitTestPoint is not on ShapeUtil, hideInCulledBounds/isShapeCulled don't exist."
 ---
 
 Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable while allowing complex per-shape behavior. Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
@@ -92,20 +97,18 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ### Capability methods
 
-ShapeUtils can override capability methods to declare what interactions the shape supports. These methods return booleans indicating whether the shape can be edited, resized, rotated, cropped, scrolled, or bound to other shapes. The `canReceiveNewChildrenOfType` method controls whether the shape can contain other shapes as children. Custom hit testing logic can be provided through `hitTestPoint`.
+ShapeUtils can override capability methods to declare what interactions the shape supports. These methods return booleans indicating whether the shape can be edited, resized, cropped, scrolled, or bound to other shapes. The `canReceiveNewChildrenOfType` method controls whether the shape can contain other shapes as children. Custom hit testing logic is defined through the `Geometry2d` returned by `getGeometry`.
 
 ### Lifecycle hooks
 
 ShapeUtils can respond to shape changes through lifecycle hooks. The `onBeforeCreate` and `onBeforeUpdate` hooks intercept shape creation and updates before they reach the store, allowing modification or validation. The `onResize`, `onRotate`, and `onTranslate` hooks respond to transformation operations. The `onChildrenChange` hook responds to changes in a shape's children. Interaction hooks like `onDoubleClick`, `onDragShapesOver`, and `onDropShapesOver` enable custom behavior for user interactions.
 
-The `onResize` hook requires careful implementation. When a shape resizes, the hook receives resize information including the scale factors and the handle being dragged, and must return a new shape with updated dimensions:
+The `onResize` hook requires careful implementation. When a shape resizes, the hook receives resize information including the scale factors and the handle being dragged, and returns a partial shape update with the changed properties:
 
 ```typescript
-onResize(shape: MyShape, info: TLResizeInfo<MyShape>): MyShape {
+onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
 	return {
-		...shape,
 		props: {
-			...shape.props,
 			w: shape.props.w * info.scaleX,
 			h: shape.props.h * info.scaleY,
 		},
@@ -139,7 +142,7 @@ Shapes position relative to their parent's coordinate space. For a shape nested 
 
 ### Opacity and visibility
 
-Shape opacity multiplies with parent opacity. A shape at 50% opacity inside a frame at 50% opacity renders at 25% opacity. The editor tracks this computed opacity for rendering and provides it through `getShapeOpacity`.
+Shape opacity multiplies with parent opacity. A shape at 50% opacity inside a frame at 50% opacity renders at 25% opacity. The editor tracks this computed opacity for rendering. Access a shape's opacity directly from the shape record via `shape.opacity`.
 
 ## Shape lifecycle
 
@@ -171,7 +174,7 @@ Groups are logical containers without visual representation. Group selected shap
 
 ### Focused groups
 
-The editor tracks a **focused group** that defines the current editing scope. When you double-click a group, it becomes focused, and you can select and edit shapes inside it. Get the current focused group with `getFocusedGroup`. Focus a specific group with `focusGroup`. Exit the focused group with `popFocusedGroupId`.
+The editor tracks a **focused group** that defines the current editing scope. When you double-click a group, it becomes focused, and you can select and edit shapes inside it. Get the current focused group with `getFocusedGroup`. Focus a specific group with `setFocusedGroup`. Exit the focused group with `popFocusedGroupId`.
 
 ## Coordinate spaces
 
@@ -189,7 +192,7 @@ Maps parent IDs to sorted arrays of child shape IDs. Updated incrementally as sh
 
 ### Culled shapes
 
-Tracks which shapes are outside the viewport. Shapes with `hideInCulledBounds` set to `true` are candidates for culling. Check if a shape is currently culled with `isShapeCulled`.
+Tracks which shapes are outside the viewport. Shapes whose ShapeUtil returns `true` from `canCull()` are candidates for culling. Check if a shape is currently culled with `getCulledShapes().has(shapeId)`.
 
 ### Shape geometry cache
 

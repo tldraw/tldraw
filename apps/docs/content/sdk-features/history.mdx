@@ -13,6 +13,11 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 16
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 8
+notes: "Good technical coverage of history system. Fixed: rotateShapes->rotateShapesBy, updateShape id examples use variable instead of string literal, clarified canUndo/canRedo as methods. Minor voice issues: trailing gerund patterns and could use more cross-linking to examples."
 ---
 
 The history system enables undo/redo functionality by tracking changes to the store through the `HistoryManager`. It organizes changes into batches separated by marks, which act as stopping points for undo/redo operations. This allows complex interactions to be undone as single atomic operations rather than individual edits.
@@ -26,9 +31,9 @@ The history manager maintains two stacks: one for undo operations and one for re
 When you modify the store, the history manager captures the change as a diff. Changes accumulate in a pending diff buffer until you create a mark, at which point the pending changes are flushed to the undo stack as a single entry. This batching prevents every keystroke or mouse movement from becoming a separate undo step.
 
 ```typescript
-editor.updateShape({ id: 'shape1', type: 'geo', x: 100, y: 100 })
-editor.updateShape({ id: 'shape1', type: 'geo', x: 110, y: 100 })
-editor.updateShape({ id: 'shape1', type: 'geo', x: 120, y: 100 })
+editor.updateShape({ id: myShapeId, type: 'geo', x: 100, y: 100 })
+editor.updateShape({ id: myShapeId, type: 'geo', x: 110, y: 100 })
+editor.updateShape({ id: myShapeId, type: 'geo', x: 120, y: 100 })
 // All three updates are batched together until a mark is created
 ```
 
@@ -40,7 +45,7 @@ Marks define where undo and redo operations stop. You typically create marks at 
 
 ```typescript
 const markId = editor.markHistoryStoppingPoint('rotate shapes')
-editor.rotateShapes(editor.getSelectedShapes(), Math.PI / 4)
+editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
 // Undoing will return to this mark
 ```
 
@@ -65,7 +70,7 @@ if (editor.canRedo()) {
 }
 ```
 
-Both methods return the editor instance for chaining. The reactive `canUndo` and `canRedo` properties let you update UI button states automatically.
+Both methods return the editor instance for chaining. The reactive `canUndo()` and `canRedo()` methods let you update UI button states automatically.
 
 ### Running operations with history options
 
@@ -75,7 +80,7 @@ The `run()` method executes a function while controlling how changes affect hist
 // Ignore changes (don't add to undo stack)
 editor.run(
 	() => {
-		editor.updateShape({ id: 'shape1', type: 'geo', x: 100 })
+		editor.updateShape({ id: myShapeId, type: 'geo', x: 100 })
 	},
 	{ history: 'ignore' }
 )
@@ -83,7 +88,7 @@ editor.run(
 // Record but preserve redo stack
 editor.run(
 	() => {
-		editor.updateShape({ id: 'shape1', type: 'geo', x: 100 })
+		editor.updateShape({ id: myShapeId, type: 'geo', x: 100 })
 	},
 	{ history: 'record-preserveRedoStack' }
 )

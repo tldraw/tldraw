@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 10
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 9
+notes: "Bolded bullet point format in Speed calculation section violates voice guide. Good technical depth otherwise."
 ---
 
 The edge scrolling system automatically pans the camera when the pointer moves near the viewport edges during drag operations. The `EdgeScrollManager` detects when users drag shapes toward screen boundaries and smoothly scrolls the canvas in that direction, enabling continuous movement beyond the visible area without releasing the drag.
@@ -79,7 +84,7 @@ The **proximity factor** (0 to 1) scales speed based on pointer distance from th
 
 #### Screen size compensation
 
-A **screen size factor** of 0.612 applies when the viewport dimension is below 1000 pixels, reducing speed on smaller displays.
+A **screen size factor** of 0.612 applies independently to each axis when that viewport dimension is below 1000 pixels, reducing speed on smaller displays.
 
 #### Zoom level normalization
 
@@ -89,8 +94,10 @@ The complete calculation:
 
 ```typescript
 const pxSpeed = editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed
-const screenSizeFactor = screenBounds.w < 1000 ? 0.612 : 1
-const scrollDelta = (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
+const screenSizeFactorX = screenBounds.w < 1000 ? 0.612 : 1
+const screenSizeFactorY = screenBounds.h < 1000 ? 0.612 : 1
+const scrollDeltaX = (pxSpeed * proximityFactor.x * screenSizeFactorX) / zoomLevel
+const scrollDeltaY = (pxSpeed * proximityFactor.y * screenSizeFactorY) / zoomLevel
 ```
 
 ### Conditions for scrolling

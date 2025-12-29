@@ -16,6 +16,11 @@ reviewed_by: steveruizok
 status: published
 date: 12/22/2025
 order: 11
+readability: 8
+voice: 8
+completeness: 7
+accuracy: 8
+notes: "Strong organization and clear prose. Fixed: removed isWebview (never set in source), added missing imports for react() and useValue examples. Browser quirks section adds valuable context."
 ---
 
 We export two objects for environment detection: `tlenv` for static browser/platform info, and `tlenvReactive` for values that change during a session. We use these internally to work around browser quirks, and you can use them for the same purpose in custom shapes or tools.
@@ -36,7 +41,6 @@ tlenv.isChromeForIos // true if Chrome running on iOS
 tlenv.isIos // true if iPad or iPhone
 tlenv.isAndroid // true if Android device
 tlenv.isDarwin // true if macOS (used for keyboard shortcuts)
-tlenv.isWebview // true if running in a webview
 
 // Capability detection
 tlenv.hasCanvasSupport // true if Promise and HTMLCanvasElement exist
@@ -74,8 +78,7 @@ if (tlenv.isSafari) {
 The `tlenvReactive` atom contains values that can change during a session, such as the pointer type. Use this with reactive hooks to respond to changes.
 
 ```typescript
-import { tlenvReactive } from 'tldraw'
-import { useValue } from '@tldraw/state-react'
+import { tlenvReactive, useValue } from 'tldraw'
 
 function MyComponent() {
   const { isCoarsePointer } = useValue(tlenvReactive)
@@ -93,7 +96,9 @@ function MyComponent() {
 The `isCoarsePointer` value tracks whether the user is currently using touch input. We update it in two ways: by listening to the `(any-pointer: coarse)` media query, and by checking the `pointerType` on each pointer event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
 
 ```typescript
-// Access reactively
+import { tlenvReactive, react } from 'tldraw'
+
+// Access the current value
 const isCoarse = tlenvReactive.get().isCoarsePointer
 
 // Or subscribe to changes

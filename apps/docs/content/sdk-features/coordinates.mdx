@@ -12,6 +12,11 @@ reviewed_by: steveruizok
 status: published
 date: 12/20/2025
 order: 7
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 9
+notes: "Opening paragraphs too abstract. Pointer-down example slightly simplified. Generally solid but could be more direct."
 ---
 
 The editor operates across three distinct coordinate systems to map between user input, the canvas viewport, and the infinite space of the canvas. These coordinate systems enable the editor to accurately translate mouse positions into canvas locations, position shapes correctly at any zoom level, and render content within the visible viewport.
@@ -127,9 +132,11 @@ These bounds are useful for culling off-screen shapes during rendering, determin
 Convert mouse events to page coordinates before creating or manipulating shapes:
 
 ```typescript
-editor.on('pointer-down', (event) => {
-	const pagePoint = editor.screenToPage({ x: event.clientX, y: event.clientY })
-	// Use pagePoint for shape manipulation
+editor.on('event', (event) => {
+	if (event.type === 'pointer' && event.name === 'pointer_down') {
+		const pagePoint = editor.screenToPage(event.point)
+		// Use pagePoint for shape manipulation
+	}
 })
 ```
 

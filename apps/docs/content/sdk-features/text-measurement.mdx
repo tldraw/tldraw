@@ -14,6 +14,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 28
+readability: 8
+voice: 7
+completeness: 7
+accuracy: 8
+notes: "Fixed incorrect API property names (textManager->textMeasure, fontManager->fonts). Fixed broken example links. Technical concepts well explained. Code snippets simplified for clarity note is appropriate. TLFontFace example structure is accurate."
 ---
 
 Accurate text measurement is essential for rendering text shapes, calculating bounds, and handling text wrapping on the infinite canvas. The editor needs to know the exact dimensions text will occupy before rendering it, enabling precise hit testing, selection bounds, and layout calculations.
@@ -39,7 +44,7 @@ The element is hidden from users but remains part of the document flow so the br
 The `measureText` method handles simple text dimension calculations. It accepts text content and styling options, then returns a box model with width and height.
 
 ```typescript
-const dimensions = editor.textManager.measureText('Hello world', {
+const dimensions = editor.textMeasure.measureText('Hello world', {
 	fontFamily: 'Inter',
 	fontSize: 16,
 	fontWeight: 'normal',
@@ -58,7 +63,7 @@ The measurement process applies the provided styles to the measurement element, 
 When `maxWidth` is specified, the browser automatically wraps text to fit within that width. The `TextManager` leverages the browser's native text layout algorithm rather than implementing its own wrapping logic.
 
 ```typescript
-const wrapped = editor.textManager.measureText('This is a long line of text', {
+const wrapped = editor.textMeasure.measureText('This is a long line of text', {
 	fontFamily: 'Inter',
 	fontSize: 16,
 	fontWeight: 'normal',
@@ -77,7 +82,7 @@ Setting `maxWidth: null` preserves explicit line breaks and spaces without wrapp
 For advanced use cases like SVG export or precise text selection, the `measureTextSpans` method breaks text into individual spans based on line breaks and word boundaries.
 
 ```typescript
-const spans = editor.textManager.measureTextSpans('Hello world\nSecond line', {
+const spans = editor.textMeasure.measureTextSpans('Hello world\nSecond line', {
 	width: 200,
 	height: 100,
 	padding: 8,
@@ -162,7 +167,7 @@ The manager caches font loading state to avoid redundant loading attempts. Multi
 The `loadRequiredFontsForCurrentPage` method loads all fonts needed by shapes on the current page. This is useful for ensuring fonts are ready before exporting or taking screenshots.
 
 ```typescript
-await editor.fontManager.loadRequiredFontsForCurrentPage()
+await editor.fonts.loadRequiredFontsForCurrentPage()
 // All fonts for visible shapes are now loaded
 ```
 
@@ -194,5 +199,5 @@ The measurement element uses specific CSS properties to ensure consistent, effic
 
 ## Related examples
 
-- **[Rich text](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text)** - Work with text content that uses the text measurement system for layout.
-- **[Custom fonts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-fonts)** - Load and use custom fonts with FontManager integration.
+- **[Rich text with font options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-font-extensions)** - Extend the TipTap text editor with font-family and font-size options.
+- **[Rich text custom extension](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-custom-extension)** - Create custom TipTap extensions for rich text shapes.

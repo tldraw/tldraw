@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/20/2025
 order: 25
+readability: 8
+voice: 7
+completeness: 8
+accuracy: 8
+notes: "Clear structure with practical examples. Fixed: arrow connection example now correctly uses bindings API; added missing source parameters to all handler signatures."
 ---
 
 The side effects system maintains store consistency and enforces business rules when records change. Side effects are lifecycle hooks that run when records are created, updated, or deleted. They serve two distinct purposes: "before" handlers intercept and modify records during operations, allowing validation and transformation, while "after" handlers react to completed changes, enabling cleanup and relationship maintenance.
@@ -46,12 +51,12 @@ editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
 Register side effects using type-specific methods on the `StoreSideEffects` instance:
 
 ```typescript
-const cleanup = editor.sideEffects.registerAfterDeleteHandler('shape', (shape) => {
-	// Clean up arrows connected to deleted shape
-	const connectedArrows = editor
-		.getCurrentPageShapes()
-		.filter((s) => s.type === 'arrow' && (s.props.start === shape.id || s.props.end === shape.id))
-	editor.deleteShapes(connectedArrows.map((a) => a.id))
+const cleanup = editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {
+	// Clean up bindings involving deleted shape
+	const bindings = editor.getBindingsInvolvingShape(shape.id)
+	if (bindings.length) {
+		editor.deleteBindings(bindings)
+	}
 })
 ```
 
@@ -67,15 +72,16 @@ For complex setups with multiple handlers, use the `register` method to register
 ```typescript
 const cleanup = editor.sideEffects.register({
 	shape: {
-		afterDelete: (shape) => {
+		afterDelete: (shape, source) => {
 			/* ... */
 		},
-		beforeChange: (prev, next) => {
+		beforeChange: (prev, next, source) => {
 			/* ... */
+			return next
 		},
 	},
 	binding: {
-		afterCreate: (binding) => {
+		afterCreate: (binding, source) => {
 			/* ... */
 		},
 	},
@@ -97,7 +103,7 @@ Side effects enforce relationships between records. When a shape is deleted, the
 ```typescript
 editor.sideEffects.register({
 	shape: {
-		beforeDelete: (shape) => {
+		beforeDelete: (shape, source) => {
 			const bindingIds = editor.getBindingsInvolvingShape(shape).map((b) => b.id)
 			if (bindingIds.length) {
 				editor.deleteBindings(bindingIds)
@@ -114,7 +120,7 @@ After handlers keep derived data synchronized. When a shape changes, the editor 
 ```typescript
 editor.sideEffects.register({
 	shape: {
-		afterChange: (prev, next) => {
+		afterChange: (prev, next, source) => {
 			if (prev.parentId && isShapeId(prev.parentId)) {
 				const parent = editor.getShape(prev.parentId)
 				if (parent) {
@@ -133,7 +139,7 @@ editor.sideEffects.register({
 Before handlers enforce constraints. This example prevents shapes from leaving the canvas:
 
 ```typescript
-editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
+editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {
 	if (next.x < 0 || next.y < 0) {
 		return prev // Block the change
 	}

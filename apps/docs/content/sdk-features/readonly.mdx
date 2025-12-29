@@ -11,6 +11,11 @@ keywords:
 status: published
 date: 12/28/2025
 order: 19
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 9
+notes: 'Strong coverage of readonly mode with clear examples. Fixed accuracy issues: corrected `rotateShapes` to `rotateShapesBy`, clarified `exportAs`/`copyAs` are functions, and simplified collaboration section to accurately describe sync behavior. Flow is logical and follows voice guidelines well.'
 ---
 
 Readonly mode turns the editor into a viewer. Users can pan, zoom, and select shapes to inspect them, but they can't create, modify, or delete anything. Use readonly mode when you want to display canvas content without allowing changes—embedding documents in a presentation, sharing a design for feedback, or showing a preview of saved work.
@@ -58,7 +63,7 @@ When readonly is enabled, the editor prevents all document mutations.
 | Shapes     | `createShape`, `deleteShapes`, `updateShape`, `groupShapes`, `ungroupShapes`                 |
 | Pages      | `createPage`, `deletePage`, `renamePage`, `moveShapesToPage`                                 |
 | Assets     | `createAssets`, `updateAssets`, `deleteAssets`                                               |
-| Transforms | `flipShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `rotateShapes`, `resizeShape` |
+| Transforms | `flipShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `rotateShapesBy`, `resizeShape` |
 | Styles     | `setStyleForSelectedShapes`, `setOpacityForSelectedShapes`, `setOpacityForNextShapes`        |
 | Clipboard  | `cut`, `paste` (for external content)                                                        |
 
@@ -66,7 +71,7 @@ The toolbar automatically hides editing tools. Only the select tool, hand tool, 
 
 ## What readonly mode allows
 
-Navigation and viewing operations work normally. You can pan, zoom, and use camera methods like `zoomIn`, `zoomOut`, `zoomToFit`, and `zoomToSelection`. Selection works too—clicking shapes, brush selection, `selectAll`, and `selectNone` all function as expected. You can hover over shapes to inspect them, switch between pages, and export the document using `exportAs` or `copyAs` since exporting doesn't modify anything.
+Navigation and viewing operations work normally. You can pan, zoom, and use camera methods like `zoomIn`, `zoomOut`, `zoomToFit`, and `zoomToSelection`. Selection works too—clicking shapes, brush selection, `selectAll`, and `selectNone` all function as expected. You can hover over shapes to inspect them, switch between pages, and export the document using the `exportAs` or `copyAs` functions since exporting doesn't modify anything.
 
 ## Using the useReadonly hook
 
@@ -140,14 +145,7 @@ Not all methods support this option. Use it sparingly—readonly mode exists to 
 
 ## Collaboration and readonly mode
 
-When using tldraw's sync packages for collaboration, readonly mode integrates with room permissions. A user with read-only access to a shared document sees the editor in readonly mode automatically. The sync layer sets `isReadonly: true` based on the user's role.
-
-```typescript
-// The sync layer handles this internally
-editor.updateInstanceState({
-	isReadonly: collaborationMode === 'readonly',
-})
-```
+When using tldraw's sync packages for collaboration, readonly mode integrates with room permissions. A user with read-only access to a shared document sees the editor in readonly mode automatically. The sync layer communicates the mode through a reactive signal, and the editor updates `isReadonly` in response.
 
 Changes from other collaborators still appear—the document updates in real time—but the readonly user can't contribute changes themselves.
 

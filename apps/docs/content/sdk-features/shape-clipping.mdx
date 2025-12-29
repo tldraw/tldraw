@@ -12,6 +12,11 @@ keywords:
 status: published
 date: 12/28/2025
 order: 25
+readability: 8
+voice: 8
+completeness: 7
+accuracy: 9
+notes: "Fixed critical error in hit testing section that incorrectly claimed clipping doesn't affect selection. Also removed reference to nonexistent ShapeUtil.hitTestPoint method. All sections now accurate."
 ---
 
 Shape clipping lets parent shapes mask their children so content outside the parent's boundary is hidden. Frames use this to contain their content—drop shapes into a frame and they're cropped to the frame's edges. Custom shapes can define their own clip boundaries using any polygon, creating circular masks, star-shaped windows, or whatever geometry your application needs.
@@ -146,9 +151,9 @@ When true, shapes with `backgroundComponent` methods have their backgrounds rend
 
 ## Clipping and hit testing
 
-Clipping affects rendering, not hit testing. A clipped shape can still be selected by clicking its hidden portions. The shape's full geometry is used for selection, snapping, and bounds calculation—only the visual representation is masked.
+Clipping affects both rendering and hit testing. The Editor's `getShapeAtPoint` method filters out shapes when the click point falls outside the shape's mask—you can't select a clipped shape by clicking its hidden portions.
 
-If you need hit testing to respect clip boundaries, implement custom logic in your ShapeUtil's `hitTestPoint` method by checking if the point falls within the ancestor's clip path.
+Snapping and bounds calculations use the shape's full geometry, so a clipped shape's bounds may extend beyond what's visible. Only the visual representation and hit testing are masked.
 
 ## Related examples
 
