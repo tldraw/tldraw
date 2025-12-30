@@ -1744,7 +1744,6 @@ it from receiving any pointer events or affecting the cursor. */
 	margin: 0px;
 	margin-left: -4px;
 }
-
 .tl-error-boundary__content__actions__group {
 	display: flex;
 	gap: var(--tl-space-4);
