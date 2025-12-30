@@ -1726,7 +1726,6 @@ it from receiving any pointer events or affecting the cursor. */
 	position: relative;
 	margin: -6px 0 0 0;
 }
-
 .tl-error-boundary__content__error button {
 	position: absolute;
 	top: var(--tl-space-2);
@@ -1744,7 +1743,6 @@ it from receiving any pointer events or affecting the cursor. */
 	margin: 0px;
 	margin-left: -4px;
 }
-
 .tl-error-boundary__content__actions__group {
 	display: flex;
 	gap: var(--tl-space-4);
