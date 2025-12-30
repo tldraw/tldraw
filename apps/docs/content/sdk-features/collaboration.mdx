@@ -10,13 +10,16 @@ keywords:
   - presence
   - cursors
   - websocket
+  - custom sync
+  - store listeners
+  - RecordsDiff
 status: published
 date: 12/26/2025
 readability: 9
 voice: 9
 completeness: 9
 accuracy: 9
-notes: 'Updated to include bindingUtils in custom shapes section. Improved voice compliance.'
+notes: 'Added Building custom sync section covering store listeners, RecordsDiff, mergeRemoteChanges, snapshots, and presence records for developers needing custom sync solutions.'
 ---
 
 The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
@@ -299,6 +302,201 @@ export default function App({ roomId }: { roomId: string }) {
 ```
 
 Pass the shape and binding utilities to both the sync hook (for schema registration) and the Tldraw component (for rendering). If they don't match, shapes may fail to sync or render correctly.
+
+## Building custom sync
+
+The `@tldraw/sync` package handles many complexities: connection management, reconnection, conflict resolution, and protocol versioning. For most applications, it's the right choice. However, you might need custom sync when integrating with existing infrastructure, using a different transport (like WebRTC), or implementing specialized conflict resolution.
+
+tldraw's store provides the primitives you need to build your own sync layer.
+
+### Listening to changes
+
+The store's `listen` method notifies you when records change:
+
+```tsx
+const unsubscribe = editor.store.listen(
+	(entry) => {
+		// entry.changes contains all modifications
+		// entry.source is 'user' (local) or 'remote'
+		console.log('Changes:', entry.changes)
+	},
+	{ source: 'user', scope: 'document' }
+)
+
+// Later: stop listening
+unsubscribe()
+```
+
+Filter options narrow what changes you receive:
+
+| Filter   | Values                                       | Description                     |
+| -------- | -------------------------------------------- | ------------------------------- |
+| `source` | `'user'`, `'remote'`, `'all'`                | Who made the change             |
+| `scope`  | `'document'`, `'session'`, `'presence'`, `'all'` | What type of data changed       |
+
+For sync, you typically want `source: 'user'` (only local changes) and `scope: 'document'` (only persistent data).
+
+### Change structure
+
+Changes arrive as a `RecordsDiff` object with three categories:
+
+```tsx
+interface RecordsDiff<R> {
+	added: Record<string, R> // New records
+	updated: Record<string, [from: R, to: R]> // Changed records (before/after)
+	removed: Record<string, R> // Deleted records
+}
+```
+
+Each entry is keyed by record ID. For updates, you get both the previous and current state, which is useful for conflict detection or generating patches.
+
+### Applying remote changes
+
+When you receive changes from other clients, wrap them in `mergeRemoteChanges`:
+
+```tsx
+function applyRemoteChanges(records: TLRecord[], deletedIds: TLRecord['id'][]) {
+	editor.store.mergeRemoteChanges(() => {
+		if (records.length > 0) {
+			editor.store.put(records)
+		}
+		if (deletedIds.length > 0) {
+			editor.store.remove(deletedIds)
+		}
+	})
+}
+```
+
+This marks the changes as `'remote'` source, so your own listener won't echo them back to the server. It also batches the operations into a single history entry.
+
+### Snapshots and serialization
+
+For initial sync or persistence, serialize the entire store:
+
+```tsx
+// Get all document records as a plain object
+const data = editor.store.serialize('document')
+// Returns: { 'shape:abc': {...}, 'page:xyz': {...}, ... }
+
+// Get a snapshot with schema information (recommended for persistence)
+const snapshot = editor.store.getStoreSnapshot('document')
+// Returns: { store: {...}, schema: {...} }
+
+// Restore from snapshot (handles migrations automatically)
+editor.store.loadStoreSnapshot(snapshot)
+```
+
+The snapshot format includes schema information, so tldraw can automatically migrate old data when your schema evolves.
+
+### Presence records
+
+User presence (cursors, selections, viewports) uses special `instance_presence` records:
+
+```tsx
+import { InstancePresenceRecordType } from 'tldraw'
+
+// Create a presence record for a remote user
+const presence = InstancePresenceRecordType.create({
+	id: InstancePresenceRecordType.createId(
+		editor.store.id // Store ID identifies this client
+	),
+	userId: 'user-123',
+	userName: 'Alice',
+	color: '#ff6b6b',
+	currentPageId: editor.getCurrentPageId(),
+	cursor: { x: 100, y: 200, type: 'default', rotation: 0 },
+	selectedShapeIds: [],
+	camera: { x: 0, y: 0, z: 1 },
+	screenBounds: { x: 0, y: 0, w: 1920, h: 1080 },
+	lastActivityTimestamp: Date.now(),
+	chatMessage: '',
+	brush: null,
+	scribbles: [],
+	followingUserId: null,
+	meta: {},
+})
+
+// Add to store
+editor.store.put([presence])
+
+// Update cursor position
+editor.store.update(presence.id, (record) => ({
+	...record,
+	cursor: { ...record.cursor, x: 150, y: 250 },
+}))
+
+// Remove when user disconnects
+editor.store.remove([presence.id])
+```
+
+Listen for presence changes separately from document changes:
+
+```tsx
+editor.store.listen(
+	(entry) => {
+		// Broadcast presence to other clients
+		sendPresence(entry.changes)
+	},
+	{ source: 'user', scope: 'presence' }
+)
+```
+
+### Example: simple broadcast sync
+
+Here's a minimal example using a WebSocket for broadcast sync (no conflict resolution):
+
+```tsx
+import { Tldraw, createTLStore, defaultShapeUtils, TLRecord } from 'tldraw'
+
+function App() {
+	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
+	const wsRef = useRef<WebSocket | null>(null)
+
+	useEffect(() => {
+		const ws = new WebSocket('wss://your-server.com/room/123')
+		wsRef.current = ws
+
+		// Send local changes to server
+		const unsubscribe = store.listen(
+			(entry) => {
+				ws.send(
+					JSON.stringify({
+						type: 'changes',
+						added: Object.values(entry.changes.added),
+						updated: Object.values(entry.changes.updated).map(([, to]) => to),
+						removed: Object.keys(entry.changes.removed),
+					})
+				)
+			},
+			{ source: 'user', scope: 'document' }
+		)
+
+		// Apply remote changes
+		ws.onmessage = (event) => {
+			const msg = JSON.parse(event.data)
+			if (msg.type === 'changes') {
+				store.mergeRemoteChanges(() => {
+					if (msg.added.length || msg.updated.length) {
+						store.put([...msg.added, ...msg.updated])
+					}
+					if (msg.removed.length) {
+						store.remove(msg.removed)
+					}
+				})
+			}
+		}
+
+		return () => {
+			unsubscribe()
+			ws.close()
+		}
+	}, [store])
+
+	return <Tldraw store={store} />
+}
+```
+
+This example omits important concerns like initial state sync, reconnection handling, and conflict resolution. For production use, consider starting with `@tldraw/sync` and customizing it, or studying its implementation for guidance on handling these edge cases.
 
 ## Related examples
 
