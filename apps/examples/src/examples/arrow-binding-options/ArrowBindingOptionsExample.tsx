@@ -163,7 +163,7 @@ export default function ArrowBindingOptionsPreciseExactSnapExample() {
 						},
 					])
 
-					editor.zoomToFit({ animation: { duration: 400 } })
+					editor.zoomToFit()
 				}}
 			/>
 		</div>
