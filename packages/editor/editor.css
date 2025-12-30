@@ -1020,7 +1020,6 @@ input,
 	0% {
 		opacity: 0;
 	}
-
 	100% {
 		opacity: 1;
 	}
@@ -1034,7 +1033,6 @@ input,
 	0% {
 		transform: rotate(0deg);
 	}
-
 	100% {
 		transform: rotate(360deg);
 	}
@@ -1388,7 +1386,6 @@ input,
 .tl-bookmark__description + .tl-bookmark__link {
 	margin-top: var(--tl-space-3);
 }
-
 .tl-bookmark__link {
 	font-size: 12px;
 	pointer-events: all;
@@ -1752,16 +1749,13 @@ it from receiving any pointer events or affecting the cursor. */
 	display: flex;
 	gap: var(--tl-space-4);
 }
-
 .tl-error-boundary__content .tl-error-boundary__reset {
 	color: var(--tl-color-danger);
 }
-
 .tl-error-boundary__content .tl-error-boundary__refresh {
 	background-color: var(--tl-color-primary);
 	color: var(--tl-color-selected-contrast);
 }
-
 .tl-container__focused:not(.tl-container__no-focus-ring)
 	.tlui-button.tl-error-boundary__refresh:focus-visible {
 	border-radius: 8px;
@@ -1806,11 +1800,9 @@ it from receiving any pointer events or affecting the cursor. */
 	.tl-error-boundary__content button:hover {
 		background-color: var(--tl-color-low);
 	}
-
 	.tl-error-boundary__content a:hover {
 		color: var(--tl-color-text-1);
 	}
-
 	.tl-error-boundary__content .tl-error-boundary__refresh:hover {
 		background-color: var(--tl-color-primary);
 		opacity: 0.9;
