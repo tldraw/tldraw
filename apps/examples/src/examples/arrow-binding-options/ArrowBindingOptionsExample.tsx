@@ -1,7 +1,7 @@
 import { Tldraw, createShapeId, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-export default function ArrowBindingOptionsPreciseExactSnapExample() {
+export default function ArrowBindingOptionsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
