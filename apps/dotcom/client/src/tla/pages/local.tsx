@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, react, useDialogs } from 'tldraw'
+import { assert, getFromSessionStorage, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
-import { TlaInviteDialog } from '../components/dialogs/TlaInviteDialog'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
-import { useInviteDetails } from '../hooks/useInviteDetails'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { clearRedirectOnSignIn } from '../utils/redirect'
+import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
 export function Component() {
@@ -20,6 +20,14 @@ export function Component() {
 	useEffect(() => {
 		const handleFileOperations = async () => {
 			if (!app) return
+
+			// Check for redirect-to first (set by OAuth sign-in)
+			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
+			if (redirectTo) {
+				clearRedirectOnSignIn()
+				navigate(redirectTo, { replace: true })
+				return
+			}
 
 			if (getShouldSlurpFile()) {
 				const res = await app.slurpFile()
@@ -69,17 +77,6 @@ export function Component() {
 }
 
 function LocalTldraw() {
-	const inviteInfo = useInviteDetails()
-	const dialogs = useDialogs()
-
-	useEffect(() => {
-		if (inviteInfo && !inviteInfo.error) {
-			dialogs.addDialog({
-				component: ({ onClose }) => <TlaInviteDialog inviteInfo={inviteInfo} onClose={onClose} />,
-			})
-		}
-	}, [inviteInfo, dialogs])
-
 	return (
 		<TlaAnonLayout>
 			<LocalEditor

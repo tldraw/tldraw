@@ -78,7 +78,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 					</ThemeProvider>
 					<noscript>
 						<iframe
-							src="https://www.googletagmanager.com/ns.html?id=GTM-PJDV58LL"
+							src="https://www.googletagmanager.com/ns.html?id=GTM-KMMLPMMN"
 							height="0"
 							width="0"
 							style={{ display: 'none', visibility: 'hidden' }}

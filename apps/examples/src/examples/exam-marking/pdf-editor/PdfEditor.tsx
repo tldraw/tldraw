@@ -15,7 +15,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import { MarkingTool } from '../add-mark-tool'
-import { EXAM_MARK_HEIGHT, EXAM_MARK_WIDTH, ExamMarkUtil, IExamMarkShape } from '../add-mark-util'
+import { EXAM_MARK_HEIGHT, EXAM_MARK_WIDTH, ExamMarkUtil } from '../add-mark-util'
 import { ExamScoreLabel } from '../ExamScoreLabel'
 import { components, uiOverrides } from '../ui-overrides'
 import { ExportPdfButton } from './ExportPdfButton'
@@ -61,10 +61,11 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				if (!selectIdleState) throw Error('SelectTool Idle state not found')
 
 				function customDoubleClickOnCanvasHandler(_info: TLClickEventInfo) {
-					editor.createShape<IExamMarkShape>({
+					const pagePoint = editor.inputs.getCurrentPagePoint()
+					editor.createShape({
 						type: 'exam-mark',
-						x: editor.inputs.currentPagePoint.x - EXAM_MARK_WIDTH / 2,
-						y: editor.inputs.currentPagePoint.y - EXAM_MARK_HEIGHT / 2,
+						x: pagePoint.x - EXAM_MARK_WIDTH / 2,
+						y: pagePoint.y - EXAM_MARK_HEIGHT / 2,
 					})
 				}
 
@@ -133,8 +134,8 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 					const indexes = getIndicesBetween(undefined, lowestIndex, shapes.length)
 					editor.updateShapes(
 						shapes.map((shape, i) => ({
+							...shape,
 							id: shape.id,
-							type: shape.type,
 							isLocked: shape.isLocked,
 							index: indexes[i],
 						}))

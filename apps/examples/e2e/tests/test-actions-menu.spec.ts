@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { setup } from '../shared-e2e'
+import { setupOrReset } from '../shared-e2e'
 
 test.describe('actions menu', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 
 	test('you can open and close the actions menu', async ({ actionsMenu, menuClickCapture }) => {
 		const { actionsMenuButton, actionsMenuContent } = actionsMenu

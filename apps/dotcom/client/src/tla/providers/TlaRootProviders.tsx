@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -14,8 +14,10 @@ import {
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
+	react,
 	runtime,
 	setRuntimeOverrides,
+	tlenvReactive,
 	useDialogs,
 	useToasts,
 	useValue,
@@ -24,18 +26,23 @@ import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
-import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
-import { components } from '../components/TlaEditor/TlaEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
+import { FairyInviteHandler } from '../components/FairyInviteHandler'
+import { GroupInviteHandler } from '../components/GroupInviteHandler'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
+import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { hasNotAcceptedLegal } from '../utils/auth'
+import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
 	updateLocalSessionState,
+	useAreFairiesEnabled,
 } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
@@ -85,6 +92,18 @@ export function Component() {
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
 		[]
 	)
+	const areFairiesEnabled = useAreFairiesEnabled()
+
+	// Set the data-coarse attribute on the container based on the pointer type
+	// we use a layout effect because we don't want there to be any perceptible delay between the
+	// container mounting and this attribute being applied, because styles may depend on it:
+	useLayoutEffect(() => {
+		if (!container) return
+		return react('coarsePointer', () => {
+			container.setAttribute('data-coarse', String(tlenvReactive.get().isCoarsePointer))
+		})
+	}, [container])
+
 	return (
 		<div
 			ref={setContainer}
@@ -92,6 +111,7 @@ export function Component() {
 				'tla-theme__light tl-theme__light': theme === 'light',
 				'tla-theme__dark tl-theme__dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
+				'tla-fairies-enabled': areFairiesEnabled,
 			})}
 		>
 			<IntlWrapper locale={locale}>
@@ -163,6 +183,8 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
+					<FairyInviteHandler />
+					<GroupInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -197,7 +219,6 @@ function SignedInProvider({
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
-
 	useEffect(() => {
 		if (locale === currentLocale) return
 		onLocaleChange(locale)
@@ -232,6 +253,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
+				<FeatureFlagsFetcher />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -242,6 +264,7 @@ function SignedInProvider({
 		<AppStateProvider>
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
+					<FeatureFlagsFetcher />
 					<SignedInAnalytics />
 					{children}
 				</ThemeContainer>
@@ -263,11 +286,7 @@ function LegalTermsAcceptance() {
 	useEffect(() => {
 		function maybeShowDialog() {
 			const currentUser = userRef.current
-			if (
-				currentUser &&
-				!currentUser.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
-				!currentUser.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
-			) {
+			if (hasNotAcceptedLegal(currentUser)) {
 				addDialog({
 					component: TlaLegalAcceptance,
 					onClose: () => {

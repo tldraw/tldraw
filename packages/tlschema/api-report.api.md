@@ -57,6 +57,7 @@ export const arrowShapeVersions: {
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
     readonly AddRichText: "com.tldraw.shape.arrow/7";
+    readonly AddRichTextAttrs: "com.tldraw.shape.arrow/8";
     readonly AddScale: "com.tldraw.shape.arrow/5";
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };
@@ -72,6 +73,17 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @public
 export const assetValidator: T.Validator<TLAsset>;
+
+// @public
+export class b64Vecs {
+    static decodeFirstPoint(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string): null | VecModel;
+    // @internal
+    static decodePointAt(b64Points: string, charOffset: number): VecModel;
+    static decodePoints(base64: string): VecModel[];
+    static encodePoint(x: number, y: number, z: number): string;
+    static encodePoints(points: VecModel[]): string;
+}
 
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
@@ -102,6 +114,12 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public
+export function compressLegacySegments(segments: {
+    points: VecModel[];
+    type: 'free' | 'straight';
+}[]): TLDrawShapeSegment[];
 
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
@@ -205,6 +223,9 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
 
 // @public
+export const DefaultLabelColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+
+// @public
 export const defaultShapeSchemas: {
     arrow: {
         migrations: MigrationSequence;
@@ -275,7 +296,7 @@ export const DocumentRecordType: RecordType<TLDocument, never>;
 // @public
 export const drawShapeMigrations: TLPropsMigrations;
 
-// @public
+// @public (undocumented)
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public
@@ -297,6 +318,11 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     // (undocumented)
     readonly values: readonly T[];
 }
+
+// @public
+export type ExtractShapeByProps<P> = Extract<TLShape, {
+    props: P;
+}>;
 
 // @public
 export const frameShapeMigrations: TLPropsMigrations;
@@ -363,7 +389,7 @@ export const groupShapeProps: RecordProps<TLGroupShape>;
 // @public
 export const highlightShapeMigrations: TLPropsMigrations;
 
-// @public
+// @public (undocumented)
 export const highlightShapeProps: RecordProps<TLHighlightShape>;
 
 // @public
@@ -599,6 +625,7 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
+    attrs?: any;
     content: unknown[];
     type: string;
 }>;
@@ -626,7 +653,7 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public
-export type ShapeWithCrop = TLBaseShape<string, {
+export type ShapeWithCrop = ExtractShapeByProps<{
     crop: null | TLShapeCrop;
     h: number;
     w: number;
@@ -760,10 +787,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
-export type TLAssetShape = Extract<TLShape, {
-    props: {
-        assetId: TLAssetId;
-    };
+export type TLAssetShape = ExtractShapeByProps<{
+    assetId: TLAssetId;
 }>;
 
 // @public
@@ -784,16 +809,22 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 // @public
-export interface TLBaseBinding<Type extends string, Props extends object> extends BaseRecord<'binding', TLBindingId> {
+export interface TLBaseBinding<Type extends string, Props extends object> {
     fromId: TLShapeId;
+    // (undocumented)
+    readonly id: TLBindingId;
     meta: JsonObject;
     props: Props;
     toId: TLShapeId;
     type: Type;
+    // (undocumented)
+    readonly typeName: 'binding';
 }
 
 // @public
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> {
+    // (undocumented)
+    readonly id: TLShapeId;
     // (undocumented)
     index: IndexKey;
     // (undocumented)
@@ -811,16 +842,18 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     // (undocumented)
     type: Type;
     // (undocumented)
+    readonly typeName: 'shape';
+    // (undocumented)
     x: number;
     // (undocumented)
     y: number;
 }
 
 // @public
-export type TLBinding = TLDefaultBinding | TLUnknownBinding;
+export type TLBinding<K extends keyof TLIndexedBindings = keyof TLIndexedBindings> = TLIndexedBindings[K];
 
 // @public
-export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
+export type TLBindingCreate<T extends TLBinding = TLBinding> = T extends T ? {
     fromId: T['fromId'];
     id?: TLBindingId;
     meta?: Partial<T['meta']>;
@@ -828,13 +861,13 @@ export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
     toId: T['toId'];
     type: T['type'];
     typeName?: T['typeName'];
-}>;
+} : never;
 
 // @public
-export type TLBindingId = RecordId<TLUnknownBinding>;
+export type TLBindingId = RecordId<TLBinding>;
 
 // @public
-export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = T extends T ? {
     fromId?: T['fromId'];
     id: TLBindingId;
     meta?: Partial<T['meta']>;
@@ -842,7 +875,7 @@ export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
     toId?: T['toId'];
     type: T['type'];
     typeName?: T['typeName'];
-}>;
+} : never;
 
 // @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
@@ -877,6 +910,13 @@ export type TLCameraId = RecordId<TLCamera>;
 
 // @public
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
+
+// @public
+export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
+    meta?: Partial<T['meta']>;
+    props?: Partial<T['props']>;
+    type: T['type'];
+} & Partial<Omit<T, 'meta' | 'props' | 'type'>> : never;
 
 // @public
 export interface TLCursor {
@@ -979,13 +1019,15 @@ export interface TLDrawShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
+    scaleX: number;
+    scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
 }
 
 // @public
 export interface TLDrawShapeSegment {
-    points: VecModel[];
+    points: string;
     type: 'free' | 'straight';
 }
 
@@ -1035,6 +1077,14 @@ export interface TLGeoShapeProps {
     w: number;
 }
 
+// @public (undocumented)
+export interface TLGlobalBindingPropsMap {
+}
+
+// @public (undocumented)
+export interface TLGlobalShapePropsMap {
+}
+
 // @public
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 
@@ -1068,6 +1118,8 @@ export interface TLHighlightShapeProps {
     isComplete: boolean;
     isPen: boolean;
     scale: number;
+    scaleX: number;
+    scaleY: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
 }
@@ -1098,6 +1150,22 @@ export interface TLImageShapeProps {
     url: string;
     w: number;
 }
+
+// @public (undocumented)
+export type TLIndexedBindings = {
+    [K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLGlobalBindingPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLBaseBinding<K, TLGlobalBindingPropsMap[K]> : Extract<TLDefaultBinding, {
+        type: K;
+    }> : TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>;
+};
+
+// @public (undocumented)
+export type TLIndexedShapes = {
+    [K in keyof TLGlobalShapePropsMap | TLDefaultShape['type'] as K extends TLDefaultShape['type'] ? K extends 'group' ? K : K extends keyof TLGlobalShapePropsMap ? TLGlobalShapePropsMap[K] extends null | undefined ? never : K : K : K]: K extends 'group' ? Extract<TLDefaultShape, {
+        type: K;
+    }> : K extends TLDefaultShape['type'] ? K extends keyof TLGlobalShapePropsMap ? TLBaseShape<K, TLGlobalShapePropsMap[K]> : Extract<TLDefaultShape, {
+        type: K;
+    }> : TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>;
+};
 
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
@@ -1373,7 +1441,7 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape = TLDefaultShape | TLUnknownShape;
+export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K];
 
 // @public
 export interface TLShapeCrop {
@@ -1386,7 +1454,7 @@ export interface TLShapeCrop {
 }
 
 // @public
-export type TLShapeId = RecordId<TLUnknownShape>;
+export type TLShapeId = RecordId<TLShape>;
 
 // @public
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {

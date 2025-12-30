@@ -23,14 +23,14 @@ export class Pointing extends StateNode {
 
 	override onEnter(info: { shapeId?: TLShapeId }) {
 		const { inputs } = this.editor
-		const { currentPagePoint } = inputs
+		const currentPagePoint = inputs.getCurrentPagePoint()
 
 		this.markId = undefined
 
 		// Previously created line shape that we might be extending
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
-		if (shape && inputs.shiftKey) {
+		if (shape && inputs.getShiftKey()) {
 			// Extending a previous shape
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape
@@ -89,7 +89,7 @@ export class Pointing extends StateNode {
 
 			const newPoint = maybeSnapToGrid(currentPagePoint, this.editor)
 
-			this.editor.createShapes<TLLineShape>([
+			this.editor.createShapes([
 				{
 					id,
 					type: 'line',
@@ -114,7 +114,7 @@ export class Pointing extends StateNode {
 	override onPointerMove() {
 		if (!this.shape) return
 
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			const handles = this.editor.getShapeHandles(this.shape)
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)

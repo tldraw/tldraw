@@ -5,8 +5,7 @@ import {
 	TLBinding,
 	TLBindingCreate,
 	TLBindingId,
-	TLDefaultBinding,
-	TLDefaultShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	ZERO_INDEX_KEY,
@@ -20,9 +19,13 @@ import {
 } from '@tldraw/editor'
 import React, { Fragment } from 'react'
 
+// Re-export test helpers from their new location
+export { base64ToPoints, createDrawSegments, pointsToBase64 } from '../lib/utils/test-helpers'
+
 const shapeTypeSymbol = Symbol('shapeJsx')
 const assetTypeSymbol = Symbol('assetJsx')
 const bindingTypeSymbol = Symbol('bindingJsx')
+
 interface CommonShapeProps {
 	x?: number
 	y?: number
@@ -34,7 +37,6 @@ interface CommonShapeProps {
 	opacity?: number
 }
 
-type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
 type FormatShapeProps<Props extends object> = {
 	[K in keyof Props]?: Props[K] extends TLAssetId
 		? TLAssetId | React.JSX.Element
@@ -42,24 +44,39 @@ type FormatShapeProps<Props extends object> = {
 			? TLAssetId | React.JSX.Element | null
 			: Props[K]
 }
-type PropsForShape<Type extends string> = Type extends TLDefaultShape['type']
-	? CommonShapeProps & FormatShapeProps<ShapeByType<Type>['props']>
-	: CommonShapeProps & Record<string, unknown>
+type PropsForShape<Type extends TLShape['type']> = CommonShapeProps &
+	FormatShapeProps<TLShape<Type>['props']>
 
 type AssetByType<Type extends TLAsset['type']> = Extract<TLAsset, { type: Type }>
 type PropsForAsset<Type extends string> = Type extends TLAsset['type']
 	? Partial<AssetByType<Type>['props']>
 	: Record<string, unknown>
 
-interface CommonBindingProps {
+interface BindingReactConnections {
 	from?: string | TLShapeId
 	to: string | TLShapeId
 }
 
-type BindingByType<Type extends TLBinding['type']> = Extract<TLBinding, { type: Type }>
-type PropsForBinding<Type extends string> = Type extends TLBinding['type']
-	? CommonBindingProps & Partial<BindingByType<Type>['props']>
-	: CommonBindingProps & Record<string, unknown>
+interface CommonBindingReactProps extends BindingReactConnections {
+	ref?: string
+	id?: TLBindingId
+}
+
+type ReactPropsForBinding<Type extends TLBinding['type']> = CommonBindingReactProps &
+	Partial<TLBinding<Type>['props']>
+
+type BindingToCreate = TLBinding extends infer E
+	? E extends TLBinding
+		? {
+				type: E['type']
+				props: Partial<TLBinding<E['type']>['props']>
+				id: TLBindingId | undefined
+				parentId: TLShapeId | undefined
+				ref: string | undefined
+				connections: BindingReactConnections
+			}
+		: never
+	: never
 
 const createElement = (
 	type: typeof shapeTypeSymbol | typeof assetTypeSymbol | typeof bindingTypeSymbol,
@@ -90,10 +107,9 @@ const tlBinding = new Proxy(
 			return createElement(bindingTypeSymbol, key as string)
 		},
 	}
-) as { [K in TLDefaultBinding['type']]: (props: PropsForBinding<K>) => null } & Record<
-	string,
-	(props: PropsForBinding<string>) => null
->
+) as {
+	[K in TLBinding['type']]: (props: ReactPropsForBinding<K>) => null
+}
 
 /**
  * TL - jsx helpers for creating tldraw shapes in test cases
@@ -112,8 +128,8 @@ export const TL = new Proxy(
 		},
 	}
 ) as { asset: typeof tlAsset; binding: typeof tlBinding } & {
-	[K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null
-} & Record<string, (props: PropsForShape<string>) => null>
+	[K in TLShape['type']]: (props: PropsForShape<K>) => null
+}
 
 export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>, idPrefix = '') {
 	const ids = { bindings: {} } as Record<string, TLShapeId> & {
@@ -122,12 +138,7 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 	const currentPageShapes: Array<TLShapePartial> = []
 	const assets: Array<TLAsset> = []
 
-	const bindingsToCreate: Array<{
-		type: string
-		props: Record<string, unknown>
-		parentId: TLShapeId | undefined
-		ref: string | undefined
-	}> = []
+	const bindingsToCreate: Array<BindingToCreate> = []
 
 	function addChildren(
 		children: React.JSX.Element | Array<React.JSX.Element>,
@@ -152,10 +163,21 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 			}
 
 			if (el.type[bindingTypeSymbol]) {
-				const bindingType = (el.type as any)[bindingTypeSymbol] as string
-				const ref = ((el as any).ref || el.props.ref) as string | undefined
-				assert(ref === undefined || typeof ref === 'string', 'ref must be string or undefined')
-				bindingsToCreate.push({ type: bindingType, props: el.props, parentId, ref })
+				const bindingType = (el.type as any)[bindingTypeSymbol] as TLBinding['type']
+				const { id, from, to, ref, ...props } = el.props
+				const bindingRef: unknown = (el as any).ref || ref
+				assert(
+					bindingRef === undefined || typeof bindingRef === 'string',
+					'ref must be string or undefined'
+				)
+				bindingsToCreate.push({
+					type: bindingType,
+					props,
+					id,
+					parentId,
+					ref: bindingRef,
+					connections: { from, to },
+				})
 			} else {
 				const shapeType = (el.type as any)[shapeTypeSymbol] as string
 				if (!shapeType) {
@@ -239,55 +261,48 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 	addChildren(shapes)
 
 	const bindings: TLBindingCreate[] = []
-	for (const binding of bindingsToCreate) {
+	for (const { id, parentId, ref, connections, ...binding } of bindingsToCreate) {
 		let fromId: TLShapeId, toId: TLShapeId
-		if (binding.props.from) {
-			assert(typeof binding.props.from === 'string', 'from must be a ref string or a shape id')
-			if (isShapeId(binding.props.from)) {
-				fromId = binding.props.from
+		if (connections.from) {
+			assert(typeof connections.from === 'string', 'from must be a ref string or a shape id')
+			if (isShapeId(connections.from)) {
+				fromId = connections.from
 			} else {
-				assert(ids[binding.props.from], `Ref not found: ${binding.props.from}`)
-				fromId = ids[binding.props.from]
+				assert(ids[connections.from], `Ref not found: ${connections.from}`)
+				fromId = ids[connections.from]
 			}
-		} else if (binding.parentId) {
-			fromId = binding.parentId
+		} else if (parentId) {
+			fromId = parentId
 		} else {
 			throw new Error('from must be specified, or binding must be a child of a shape')
 		}
 
-		assert(binding.props.to, 'to must be specified')
-		assert(typeof binding.props.to === 'string', 'to must be a ref string or a shape id')
-		if (isShapeId(binding.props.to)) {
-			toId = binding.props.to
+		assert(connections.to, 'to must be specified')
+		assert(typeof connections.to === 'string', 'to must be a ref string or a shape id')
+		if (isShapeId(connections.to)) {
+			toId = connections.to
 		} else {
-			assert(ids[binding.props.to], `Ref not found: ${binding.props.to}`)
-			toId = ids[binding.props.to]
+			assert(ids[connections.to], `Ref not found: ${connections.to}`)
+			toId = ids[connections.to]
 		}
 
-		let bindingId: TLBindingId = binding.props.id as TLBindingId
-		if (binding.ref) {
-			assert(typeof binding.ref === 'string', 'binding ref must be string')
-			assert(!ids.bindings[binding.ref], `Duplicate ref: ${binding.ref}`)
-			assert(!bindingId, `Cannot use both ref and id on binding: ${binding.ref}`)
-			bindingId = createBindingId(`${idPrefix}${binding.ref}`)
-			ids.bindings[binding.ref] = bindingId
+		let bindingId = id
+		if (ref) {
+			assert(typeof ref === 'string', 'binding ref must be string')
+			assert(!ids.bindings[ref], `Duplicate ref: ${ref}`)
+			assert(!bindingId, `Cannot use both ref and id on binding: ${ref}`)
+			bindingId = createBindingId(`${idPrefix}${ref}`)
+			ids.bindings[ref] = bindingId
 		}
 		if (!bindingId) {
 			bindingId = createBindingId()
 		}
 
-		const props = { ...binding.props }
-		delete props.ref
-		delete props.id
-		delete props.from
-		delete props.to
-
 		bindings.push({
+			...binding,
 			id: bindingId,
-			type: binding.type,
 			fromId,
 			toId,
-			props,
 		})
 	}
 

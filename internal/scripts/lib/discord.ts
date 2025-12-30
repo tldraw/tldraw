@@ -10,7 +10,7 @@ function sanitizeVariables(errorOutput: string): string {
 }
 
 export class Discord {
-	static AT_TEAM_MENTION = '<@&959380625100513310>'
+	static AT_TEAM_MENTION = '<@&1414904550917144586>'
 
 	constructor(opts: {
 		webhookUrl: string

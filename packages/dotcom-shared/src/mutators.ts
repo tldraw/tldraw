@@ -10,7 +10,7 @@ import {
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import { MAX_FAIRY_COUNT, MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
 import {
 	immutableColumns,
 	TlaFile,
@@ -150,6 +150,52 @@ function assertValidId(id: string) {
 }
 
 /**
+ * Get user's fairy access status and limit.
+ * @returns { hasAccess: boolean, limit: number }
+ */
+async function getUserFairyAccess(
+	tx: Transaction<TlaSchema>,
+	userId: string
+): Promise<{ hasAccess: boolean; limit: number }> {
+	// Check user_fairies table for purchased/redeemed access
+	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+
+	const limit = userFairies?.fairyLimit ?? 0
+	if (limit === 0) {
+		return { hasAccess: false, limit: 0 }
+	}
+
+	// Check expiration (null = no access, number = check if still valid)
+	const expiresAt = userFairies?.fairyAccessExpiresAt
+	if (expiresAt === null || expiresAt === undefined || expiresAt < Date.now()) {
+		return { hasAccess: false, limit: 0 }
+	}
+
+	return { hasAccess: true, limit }
+}
+
+/**
+ * Assert that user has fairy access and is below their fairy limit.
+ * Throws if user has no access or has reached their limit.
+ * The actual limit is the minimum of the user's limit and MAX_FAIRY_COUNT.
+ */
+async function assertBelowFairyLimit(tx: Transaction<TlaSchema>, userId: string) {
+	const { hasAccess, limit } = await getUserFairyAccess(tx, userId)
+
+	assert(hasAccess, ZErrorCode.forbidden)
+	assert(limit > 0, ZErrorCode.forbidden)
+
+	// Count current fairies from user_fairies table
+	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+
+	const configs = JSON.parse(userFairies?.fairies || '{}')
+	const count = Object.values(configs).filter(Boolean).length
+
+	const effectiveLimit = Math.min(limit, MAX_FAIRY_COUNT)
+	assert(count < effectiveLimit, ZErrorCode.forbidden)
+}
+
+/**
  * Check if a user has the required permissions for a file.
  * @param tx - The transaction
  * @param userId - The user ID to check permissions for
@@ -219,8 +265,17 @@ export function createMutators(userId: string) {
 			},
 			updateFairyConfig: async (tx, { id, properties }: { id: string; properties: object }) => {
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
-				await tx.mutate.user_fairies.upsert({
+				const isNewFairy = !currentConfig[id]
+
+				if (isNewFairy) {
+					await assertBelowFairyLimit(tx, userId)
+				} else {
+					const { hasAccess } = await getUserFairyAccess(tx, userId)
+					assert(hasAccess, ZErrorCode.forbidden)
+				}
+				await tx.mutate.user_fairies.update({
 					userId,
 					fairies: JSON.stringify({
 						...currentConfig,
@@ -232,15 +287,24 @@ export function createMutators(userId: string) {
 				})
 			},
 			deleteFairyConfig: async (tx, { id }: { id: string }) => {
+				const { hasAccess } = await getUserFairyAccess(tx, userId)
+				assert(hasAccess, ZErrorCode.forbidden)
+
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
-				await tx.mutate.user_fairies.upsert({
+				await tx.mutate.user_fairies.update({
 					userId,
 					fairies: JSON.stringify({ ...currentConfig, [id]: undefined }),
 				})
 			},
 			deleteAllFairyConfigs: async (tx) => {
-				await tx.mutate.user_fairies.upsert({ userId, fairies: '{}' })
+				const { hasAccess } = await getUserFairyAccess(tx, userId)
+				assert(hasAccess, ZErrorCode.forbidden)
+
+				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
+				await tx.mutate.user_fairies.update({ userId, fairies: '{}' })
 			},
 		},
 		file: {
@@ -320,7 +384,80 @@ export function createMutators(userId: string) {
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			updateFairies: async (tx, { fileId, fairyState }: { fileId: string; fairyState: string }) => {
-				await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
+				if (tx.location !== 'server') {
+					await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
+					return
+				}
+
+				const MAX_SIZE_PER_AGENT = 300 * 1024 // 300kb
+				const TRUNCATE_THRESHOLD = 350 * 1024 // 350kb
+				let truncatedState = fairyState
+
+				try {
+					const state = JSON.parse(fairyState)
+					if (state.agents && typeof state.agents === 'object') {
+						for (const aid in state.agents) {
+							const agent = state.agents[aid]
+							if (agent.chatHistory && Array.isArray(agent.chatHistory)) {
+								const agentHistoryStr = JSON.stringify(agent.chatHistory)
+								const originalSize = agentHistoryStr.length
+								if (originalSize > TRUNCATE_THRESHOLD) {
+									const originalCount = agent.chatHistory.length
+									// Estimate how many messages to keep based on average size
+									const avgSize = originalSize / originalCount
+									const estimatedKeep = Math.max(1, Math.floor(MAX_SIZE_PER_AGENT / avgSize))
+
+									// Keep estimated number (at least 1 message)
+									agent.chatHistory = agent.chatHistory.slice(-estimatedKeep)
+								}
+							}
+						}
+						truncatedState = JSON.stringify(state)
+					}
+				} finally {
+					await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState: truncatedState })
+				}
+			},
+			appendFairyChatMessage: async (
+				tx,
+				{ fileId, messages }: { fileId: string; messages: any[] }
+			) => {
+				if (messages.length === 0) {
+					return
+				}
+				// Only insert on the backend
+				if (tx.location !== 'server') return
+
+				try {
+					let now = Date.now()
+
+					// Build batch upsert
+					const values: any[] = []
+					const placeholders: string[] = []
+					let paramIndex = 1
+
+					messages.forEach((item) => {
+						const message = JSON.stringify(item)
+						const id = item.id
+
+						placeholders.push(
+							`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5})`
+						)
+						values.push(id, fileId, userId, message, now, now)
+						paramIndex += 6
+						now++ // Increment to preserve order
+					})
+
+					await tx.dbTransaction.query(
+						`INSERT INTO file_fairy_messages ("id", "fileId", "userId", "message", "createdAt", "updatedAt")
+						VALUES ${placeholders.join(', ')}
+						ON CONFLICT ("id")
+						DO UPDATE SET "message" = EXCLUDED."message", "updatedAt" = EXCLUDED."updatedAt"`,
+						values
+					)
+				} catch (e) {
+					console.error('Failed to append fairy chat messages:', e)
+				}
 			},
 		},
 

@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Otwórz tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -51,6 +45,18 @@
       "value": "Konto"
     }
   ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Ten plik osiągnął limit rozmiaru i zmiany mogą nie zostać zapisane. Usuń część zawartości lub utwórz nowy plik."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Porozmawiaj z grupą…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Menu pliku"
+    }
+  ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Wróżki"
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,24 @@
       "value": "Opublikuj"
     }
   ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Zatrzymywać się"
+    }
+  ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Opuść grupę"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Odepnij plik"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +115,18 @@
     {
       "type": 0,
       "value": "Eksportuj jako"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Pokaż więcej"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Usuń grupę"
     }
   ],
   "181b90f889": [
@@ -105,16 +147,22 @@
       "value": "Dzisiaj"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Pokój jest pełny"
+      "value": "Twój tygodniowy limit wykorzystania wróżek został osiągnięty. Zostanie on zresetowany na początku przyszłego tygodnia."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Ten pokój zbliża się do limitu rozmiaru. Rozważ usunięcie części zawartości lub utworzenie nowego pliku."
+      "value": "Spać"
+    }
+  ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Utwórz grupę"
     }
   ],
   "250ddea65c": [
@@ -123,16 +171,54 @@
       "value": "O tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Twoje wróżki czekają"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Przywołaj wszystkich"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
       "value": "Przesyłanie nie powiodło się"
     }
   ],
-  "2deec2cb74": [
+  "2c3ef76333": [
     {
       "type": 0,
-      "value": "Ten pokój osiągnął limit rozmiaru i zmiany mogą nie zostać zapisane. Usuń część zawartości lub utwórz nowy plik."
+      "value": "Moje pliki"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "W grudniu do naszego świata zawitała gromada "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "wróżek"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": ". Aby dowiedzieć się więcej, znajdź wróżkę i kliknij ją."
     }
   ],
   "31246941ad": [
@@ -147,16 +233,76 @@
       "value": "i18n: Brak wyróżnienia"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "trzy wróżki"
+    }
+  ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Dodaj link"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Powrót do tldraw"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Spróbuj odświeżyć stronę."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "W grudniu w Tldraw pojawi się cała plejada wróżek. Zajrzyjcie tu 1 grudnia."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Edytor"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Śpijcie wszyscy"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Zarządzać"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Przestań obserwować"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Podążać"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Warunki korzystania z usługi"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Kontynuuj z e-mailem"
     }
   ],
   "3bd1b98dbd": [
@@ -189,10 +335,38 @@
       "value": "Uzyskaj pomoc na Discordzie"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Wróżki"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " przybyły, aby rysować przez cały grudzień."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Dziękujemy za pomoc w ulepszaniu tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Nie wybrano żadnych wróżek"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Aby kontynuować edycję skopiuj plik do swoich plików."
     }
   ],
   "47839e47a5": [
@@ -201,10 +375,34 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Przypnij plik"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Wklej adres URL pliku tldraw..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Czy na pewno chcesz zapomnieć ten plik?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Nazwa"
+    }
+  ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Zaznacz wszystko"
     }
   ],
   "4d0d3ddec9": [
@@ -219,6 +417,24 @@
       "value": "Załaduj ponownie"
     }
   ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Usuń grupę…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Więcej opcji"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -231,16 +447,16 @@
       "value": "Menu strony"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Ten plik jest teraz tylko do odczytu"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Osiągnięto limit współpracowników"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Należy zwolnić."
     }
   ],
   "554a05155c": [
@@ -277,22 +493,50 @@
       "value": "Polityka prywatności"
     }
   ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Nie udało się zrealizować kodu zaproszenia"
+    }
+  ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Przeciągnij pliki tutaj, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "utwórz plik"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " lub "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "skopiuj link zaproszenia"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": ", aby rozpocząć."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
       "value": "Podziel się"
-    }
-  ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Pokój staje się większy"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Ten pokój jest teraz tylko do odczytu"
     }
   ],
   "5bec508475": [
@@ -301,10 +545,22 @@
       "value": "Wykryto starą przeglądarkę. Zaktualizuj przeglądarkę, aby korzystać z tej aplikacji."
     }
   ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Usuń ten link i utwórz nowy."
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
       "value": "Nie udało nam się przesłać części treści utworzonych przed zalogowaniem."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Zostałeś zaproszony do dołączenia do grupy:"
     }
   ],
   "5f3c333678": [
@@ -325,10 +581,36 @@
       "value": "Później"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Porozmawiaj z "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
       "value": "Starszy"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "Ty"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Przewodnik"
     }
   ],
   "6609dd239e": [
@@ -341,6 +623,36 @@
     {
       "type": 0,
       "value": "Dostępna jest nowa wersja tldraw. Aby kontynuować, odśwież stronę."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Podaj swój adres e-mail"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Budzić"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Wpisz swoją wiadomość"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Imię wróżki"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Wróżki debugowania"
     }
   ],
   "6a26f54883": [
@@ -359,6 +671,12 @@
     {
       "type": 0,
       "value": "Aby ręcznie zaimportować zawartość, wykonaj następujące czynności:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Ustawienia grupy"
     }
   ],
   "70a6facb9d": [
@@ -415,10 +733,38 @@
       "value": "Proszę odświeżyć"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw to darmowa tablica online. Załóż konto, aby zapisać pliki i pracować ze znajomymi."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Nieprawidłowe żądanie."
+    }
+  ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "Zostałeś zaproszony do "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "rysowania wróżek"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Ten anonimowy plik tldraw do gry wieloosobowej jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
     }
   ],
   "78e9815992": [
@@ -433,6 +779,12 @@
       "value": "Prześlij problem na GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Wróżka to mały człowieczek, który może pracować z tobą na płótnie. Wróżki mogą pracować samodzielnie lub w zespole. Nie ma ograniczeń co do możliwości wróżki. Nikt nie wie, skąd się wzięły."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -445,10 +797,22 @@
       "value": "Przywróć wersję"
     }
   ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Otwórz tldraw"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Zapomnij"
+    }
+  ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Opuść grupę…"
     }
   ],
   "7daeced9ff": [
@@ -503,6 +867,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Wyczyść wszystko"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Powitanie"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -529,16 +905,52 @@
       "value": "Zmień nazwę pliku"
     }
   ],
-  "8b1946f965": [
+  "8726ef8909": [
     {
       "type": 0,
-      "value": "Aby kontynuować edycję, skopiuj pokój do swoich plików."
+      "value": "Twardy reset"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Kup pakiet Fairy"
+    }
+  ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Nie, dziękuję"
+    }
+  ],
+  "8be569f100": [
+    {
+      "type": 0,
+      "value": "jednorazowa płatność"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Sprawdź swoją skrzynkę e-mail, aby uzyskać kod weryfikacyjny."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Dom"
     }
   ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Udostępniono Tobie"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "O"
     }
   ],
   "8ff3d0a705": [
@@ -565,6 +977,36 @@
       "value": "Kopiuj do moich plików"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Skopiowano link zaproszenia"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Odznacz"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Jesteś już członkiem tej grupy"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Wysłać"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Zaloguj się za pomocą Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,22 +1019,54 @@
       "value": "W tym miesiącu"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Warunki korzystania"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Dodaj link do pliku"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Jasny"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Widok debugowania"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Nie otrzymałeś kodu? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Wyślij ponownie"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "9bef626805": [
     {
       "type": 0,
       "value": "Usuń plik"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Ten anonimowy pokój wieloosobowy tldraw jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
     }
   ],
   "9ceb927baa": [
@@ -643,6 +1117,12 @@
       "value": "Eksportuj obraz"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Dołączyć"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -655,6 +1135,12 @@
       "value": "Składać"
     }
   ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Odpluskwić"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -665,6 +1151,24 @@
     {
       "type": 0,
       "value": "Analityka"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Plik staje się duży"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Osiągnięto tygodniowy limit wróżek"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nowy czat"
     }
   ],
   "a9ded1e5ce": [
@@ -697,10 +1201,40 @@
       "value": "Użytkownik gość"
     }
   ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Plik jest pełny"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Czas reakcji dziennika"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Adres e-mail"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "Adres URL pliku"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Zaloguj się"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Właściciel"
     }
   ],
   "b758336699": [
@@ -715,10 +1249,10 @@
       "value": "Zaloguj się, aby udostępnić"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Odepnij"
+      "value": "Zaakceptuj i dołącz do grupy"
     }
   ],
   "bbbcefd7ce": [
@@ -781,10 +1315,10 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
+  "be4f1c62d3": [
     {
       "type": 0,
-      "value": "Prześlij pliki .tldr"
+      "value": "Powiększ do wróżki"
     }
   ],
   "c2276c9127": [
@@ -793,16 +1327,66 @@
       "value": "Dowiedz się więcej o udostępnianiu."
     }
   ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Zezwól na "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": ", aby pomóc nam ulepszyć tldraw."
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Nie można opublikować pliku."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Otwarte"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Rozumiem"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Niezbędne pliki cookie"
+    }
+  ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Zaakceptuj zaproszenie"
+    }
+  ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Nazwa grupy"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Stosowanie"
     }
   ],
   "c655b27b1e": [
@@ -817,10 +1401,22 @@
       "value": "Zaproś"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Pokaż mniej"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Wyloguj się"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Ratować"
     }
   ],
   "cceaefbc20": [
@@ -835,6 +1431,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Ten plik zbliża się do limitu rozmiaru. Rozważ usunięcie części zawartości lub utworzenie nowego pliku."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Masz już dostęp do wróżki!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -847,10 +1455,50 @@
       "value": "Zamknij"
     }
   ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Zbyt wiele żądań. Proszę zwolnić."
+    }
+  ],
   "d4bbf74f3e": [
     {
       "type": 0,
       "value": "Przełącz pasek boczny"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Przed rozpoczęciem prosimy o zaakceptowanie naszych "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "warunków korzystania"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "polityki prywatności"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "d721757161": [
@@ -865,10 +1513,28 @@
       "value": "Spróbuj ponownie"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Akceptuj i kontynuuj"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Kliknij tutaj, aby zobaczyć zawartość"
+    }
+  ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Włącz wróżki"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Osiągnięto maksymalną liczbę grup. Aby utworzyć nowe, należy usunąć stare grupy."
     }
   ],
   "dbbebf3c03": [
@@ -877,10 +1543,60 @@
       "value": "Tylko z zaproszeniem"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Jasne"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Nieprawidłowy adres URL pliku tldraw"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Wróżki to funkcja "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tymczasowa"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". 1 stycznia 2026 roku wszystkie wróżki zostaną usunięte z aplikacji. Być może kiedyś powrócą. Zakup uprawnia do dostępu do wróżek tylko do grudnia 2025 roku."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Oznaczenia debugowania aplikacji"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Wybierać"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Zaproś członków"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Kopiuj link zaproszenia"
     }
   ],
   "e2ae80a510": [
@@ -889,16 +1605,34 @@
       "value": "Podsumowanie prawne"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Administrator"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Warunki korzystania z usługi"
     }
   ],
-  "e78e14c5f1": [
+  "e43ec38a93": [
     {
       "type": 0,
-      "value": "Pinezka"
+      "value": "Idź do"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "Lub"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Strefa niebezpieczna"
     }
   ],
   "ea4788705e": [
@@ -957,10 +1691,28 @@
       "value": "."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Rozpuszczać"
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Członkowie"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
       "value": "wybrany"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Wezwać"
     }
   ],
   "f09b16bc5f": [
@@ -975,6 +1727,12 @@
       "value": "Ustawienia użytkownika"
     }
   ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Konfiguruj"
+    }
+  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -987,16 +1745,22 @@
       "value": "Usuń"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Powrót do tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Ustawienia"
+    }
+  ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Czy na pewno chcesz opuścić tę grupę?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Polityka prywatności"
     }
   ],
   "fb15c53f22": [
@@ -1015,6 +1779,12 @@
     {
       "type": 0,
       "value": "Skopiowany link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Dodaj link do pliku…"
     }
   ],
   "ffcd73e997": [

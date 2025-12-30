@@ -20,6 +20,7 @@ import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'
+import { createDrawSegments } from './test-jsx'
 
 vi.useFakeTimers()
 
@@ -904,15 +905,12 @@ describe('When resizing a shape with children', () => {
 					x: 100,
 					y: 100,
 					props: {
-						segments: [
-							{
-								type: 'free',
-								points: [
-									{ x: 0, y: 0, z: 0.5 },
-									{ x: 100, y: 100, z: 0.5 },
-								],
-							},
-						],
+						segments: createDrawSegments([
+							[
+								{ x: 0, y: 0, z: 0.5 },
+								{ x: 100, y: 100, z: 0.5 },
+							],
+						]),
 					},
 				},
 			])
@@ -3876,10 +3874,8 @@ it('uses the cross cursor when create resizing', () => {
 describe('Resizing text from the right edge', () => {
 	it('Resizes text from the right edge', () => {
 		const id = createShapeId()
-		editor.createShapes<TLTextShape>([{ id, type: 'text', props: { richText: toRichText('H') } }])
-		editor.updateShapes<TLTextShape>([
-			{ id, type: 'text', props: { richText: toRichText('Hello World') } },
-		]) // auto size
+		editor.createShapes([{ id, type: 'text', props: { richText: toRichText('H') } }])
+		editor.updateShapes([{ id, type: 'text', props: { richText: toRichText('Hello World') } }]) // auto size
 
 		editor.select(id)
 
@@ -3905,10 +3901,8 @@ describe('Resizing text from the right edge', () => {
 		editor.updateInstanceState({ isCoarsePointer: true })
 
 		const id = createShapeId()
-		editor.createShapes<TLTextShape>([{ id, type: 'text', props: { richText: toRichText('H') } }])
-		editor.updateShapes<TLTextShape>([
-			{ id, type: 'text', props: { richText: toRichText('Hello World') } },
-		]) // auto size
+		editor.createShapes([{ id, type: 'text', props: { richText: toRichText('H') } }])
+		editor.updateShapes([{ id, type: 'text', props: { richText: toRichText('Hello World') } }]) // auto size
 
 		editor.select(id)
 
@@ -3954,7 +3948,7 @@ describe('When resizing near the edges of the screen', () => {
 
 describe('resizing text with autosize true', () => {
 	it('resizes text from the right side', () => {
-		editor.createShape<TLTextShape>({
+		editor.createShape({
 			type: 'text',
 			x: 0,
 			y: 0,
@@ -3980,7 +3974,7 @@ describe('resizing text with autosize true', () => {
 	})
 
 	it('resizes text from the right side when alt key is pressed', () => {
-		editor.createShape<TLTextShape>({
+		editor.createShape({
 			type: 'text',
 			x: 0,
 			y: 0,
@@ -4007,7 +4001,7 @@ describe('resizing text with autosize true', () => {
 	})
 
 	it('resizes text from the left side', () => {
-		editor.createShape<TLTextShape>({
+		editor.createShape({
 			type: 'text',
 			x: 0,
 			y: 0,
@@ -4033,7 +4027,7 @@ describe('resizing text with autosize true', () => {
 	})
 
 	it('resizes text from the left side when alt is pressed', () => {
-		editor.createShape<TLTextShape>({
+		editor.createShape({
 			type: 'text',
 			x: 0,
 			y: 0,
@@ -4062,7 +4056,7 @@ describe('resizing text with autosize true', () => {
 
 describe('cancelling a resize operation', () => {
 	it('undoes any changes since the start of the resize operation', () => {
-		editor.createShape<TLGeoShape>({
+		editor.createShape({
 			type: 'geo',
 			x: 0,
 			y: 0,

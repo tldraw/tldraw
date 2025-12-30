@@ -6,23 +6,23 @@ import { reoService } from './analytics-services/reo'
 import { mountCookieConsentBanner } from './components/CookieConsentBanner'
 import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
 import {
-	clearCookieValue,
 	CookieConsentState,
-	cookieConsentToCookieValue,
-	cookieValueToCookieConsent,
-	getCookieValue,
-	setCookieValue,
+	getCookieConsent,
+	setOrClearCookieConsent,
 } from './state/cookie-consent-state'
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
 import { ConsentPreferences, CookieConsent } from './types'
 import { shouldRequireConsent } from './utils/consent-check'
 
-function cookieConsentToPreferences(consent: CookieConsent): ConsentPreferences {
+function cookieConsentToPreferences(
+	consent: CookieConsent,
+	consentOptInType: 'manual' | 'auto'
+): ConsentPreferences {
 	if (consent === 'opted-in') {
-		return { analytics: 'granted', marketing: 'granted' }
+		return { analytics: 'granted', marketing: 'granted', opt_in_type: consentOptInType }
 	}
-	return { analytics: 'denied', marketing: 'denied' }
+	return { analytics: 'denied', marketing: 'denied', opt_in_type: consentOptInType }
 }
 
 class Analytics {
@@ -34,6 +34,14 @@ class Analytics {
 	private isInitialized = false
 
 	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
+
+	private maybeTrackConsentUpdate(consent: ConsentPreferences) {
+		if (this.isInitialized) {
+			this.track('consent_update', consent)
+		} else {
+			gtmService.trackEvent('consent_update', consent)
+		}
+	}
 
 	async initialize() {
 		// Inject styles
@@ -56,15 +64,22 @@ class Analytics {
 
 		// Subscribe to consent changes
 		cookieConsentState.subscribe((consent) => {
+			// If the user changed the setting we want to change opt in type to manual
+			if (this.isInitialized && consent !== 'unknown' && consent !== this.consent) {
+				this.consentOptInType = 'manual'
+			}
 			// Set (or clear) the cookie value
-			const cookieValue = cookieConsentToCookieValue(consent)
-			if (cookieValue) setCookieValue(cookieValue)
-			else clearCookieValue()
+			setOrClearCookieConsent(consent, this.consentOptInType)
+
+			const consentState = cookieConsentToPreferences(consent, this.consentOptInType)
 
 			// If the consent is the same as the current consent, do nothing
-			if (consent === this.consent) return
+			if (consent === this.consent) {
+				// We still send the event to gtm, so that we can send data to gtm on website reload
+				gtmService.trackEvent('consent_update', consentState)
+				return
+			}
 
-			const wasUnknown = this.consent === 'unknown'
 			this.consent = consent
 
 			if (this.consent === 'opted-in') {
@@ -72,6 +87,8 @@ class Analytics {
 				for (const service of this.services) {
 					service.enable()
 				}
+
+				this.maybeTrackConsentUpdate(consentState)
 
 				// Identify the user if we have a userId. Most of the time
 				// identify() should be called off of the window.tlanalytics object, ie. in an app
@@ -83,32 +100,24 @@ class Analytics {
 					this.identify(this.userId, this.userProperties)
 				}
 			} else {
+				this.maybeTrackConsentUpdate(consentState)
 				// Disable the analytics services when consent is revoked or when consent is unknown
 				for (const service of this.services) {
 					service.disable()
 				}
 			}
 
-			// Track the consent change (after enabling or disabling)
-			this.track('consent_changed', { consent })
-
 			// Track consent selection only if user actually interacted with banner (not during initialization)
-			if (this.isInitialized && wasUnknown && consent !== 'unknown') {
-				const preferences = cookieConsentToPreferences(consent)
+			if (this.isInitialized && consent !== 'unknown') {
 				for (const service of this.services) {
-					service.trackConsentBannerSelected?.({
-						consent_analytics: preferences.analytics,
-						consent_marketing: preferences.marketing,
-						consent_opt_in_type: this.consentOptInType,
-					})
+					service.trackConsentBannerSelected?.(consentState)
 				}
 			}
 
 			// Notify consent callbacks
 			if (consent !== 'unknown') {
-				const preferences = cookieConsentToPreferences(consent)
 				for (const callback of this.consentCallbacks) {
-					callback(preferences)
+					callback(consentState)
 				}
 			}
 		})
@@ -120,7 +129,7 @@ class Analytics {
 			track: this.track.bind(this),
 			page: this.page.bind(this),
 			gtag: this.gtag.bind(this),
-			getConsentState: () => cookieConsentToPreferences(this.consent),
+			getConsentState: () => cookieConsentToPreferences(this.consent, this.consentOptInType),
 			onConsentUpdate: (callback: (preferences: ConsentPreferences) => void) => {
 				this.consentCallbacks.push(callback)
 				return () => {
@@ -138,12 +147,13 @@ class Analytics {
 		// Now that we have our subscriber set up, determine the initial consent state.
 		// If the user has already made a choice (cookie exists), use that.
 		// Otherwise, check their location to determine if we need explicit consent.
-		const initialCookieValue = getCookieValue()
+		const cookieData = getCookieConsent()
 		let initialConsent: CookieConsent
 
-		if (initialCookieValue) {
-			// User has previously made a consent decision - respect it
-			initialConsent = cookieValueToCookieConsent(initialCookieValue)
+		if (cookieData) {
+			// User has previously made a consent decision - respect it and restore opt-in type
+			initialConsent = cookieData.consent
+			this.consentOptInType = cookieData.optInType
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()
@@ -272,12 +282,13 @@ class Analytics {
 	 */
 	trackFormSubmission(data: {
 		enquiry_type: string
+		page_category?: string
 		company_size?: string
 		company_website?: string
-		user_email: string
-		user_email_sha256: string
-		user_first_name: string
-		user_last_name: string
+		user_email?: string
+		user_email_sha256?: string
+		user_first_name?: string
+		user_last_name?: string
 		user_phone_number?: string
 	}) {
 		for (const service of this.services) {

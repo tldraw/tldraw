@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/assets",
 	"description": "tldraw infinite canvas SDK (assets).",
-	"version": "4.1.2",
+	"version": "4.2.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

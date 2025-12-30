@@ -1,4 +1,5 @@
 import z from 'zod'
+import { AgentIdSchema } from '../schema/id-schemas'
 import { BoxModelSchema } from './PeripheralCluster'
 
 export const VecModelSchema = z.object({
@@ -7,12 +8,12 @@ export const VecModelSchema = z.object({
 })
 
 export const OtherFairySchema = z.object({
-	id: z.string(),
+	id: AgentIdSchema,
 	name: z.string(),
 	position: VecModelSchema,
 	isGenerating: z.boolean(),
 	bounds: BoxModelSchema.nullable(),
-	personality: z.string(),
+	// personality: z.string(),
 	currentProjectId: z.string().nullable(),
 })
 

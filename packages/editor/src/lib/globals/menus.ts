@@ -148,7 +148,7 @@ export const tlmenus = {
 	 * @public
 	 */
 	isMenuOpen(id: string, contextId?: string): boolean {
-		return this.getOpenMenus(contextId).includes(id)
+		return this.getOpenMenus(contextId).includes(`${id}-${contextId}`)
 	},
 
 	/**

@@ -44,7 +44,7 @@ export class DragAndDropManager {
 
 		for (const shape of shapesToActuallyMove) {
 			const parent = editor.getShapeParent(shape)
-			if (parent && editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
+			if (parent && editor.isShapeOfType(parent, 'group')) {
 				if (!movingGroups.has(parent)) {
 					movingGroups.add(parent)
 				}
@@ -70,9 +70,7 @@ export class DragAndDropManager {
 			}
 			this.initialIndices.set(shape.id, shape.index)
 
-			const group = editor.findShapeAncestor(shape, (s) =>
-				editor.isShapeOfType<TLGroupShape>(s, 'group')
-			)
+			const group = editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))
 			if (group) {
 				this.initialGroupIds.set(shape.id, group.id)
 			}
@@ -94,10 +92,13 @@ export class DragAndDropManager {
 		this.intervalTimerId = this.editor.timers.setInterval(
 			() => {
 				skip2of3FramesWhileMovingFast++
-				if (skip2of3FramesWhileMovingFast % 3 && this.editor.inputs.pointerVelocity.len() > 0.5) {
+				if (
+					skip2of3FramesWhileMovingFast % 3 &&
+					this.editor.inputs.getPointerVelocity().len() > 0.5
+				) {
 					return
 				}
-				this.updateDraggingShapes(editor.inputs.currentPagePoint, cb)
+				this.updateDraggingShapes(editor.inputs.getCurrentPagePoint(), cb)
 			},
 			movingShapes.length > 10 ? SLOW_POINTER_LAG_DURATION : FAST_POINTER_LAG_DURATION
 		)
@@ -105,9 +106,10 @@ export class DragAndDropManager {
 
 	dropShapes(shapes: TLShape[]) {
 		const { editor } = this
-		this.updateDraggingShapes(editor.inputs.currentPagePoint)
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		this.updateDraggingShapes(currentPagePoint)
 
-		const draggingOverShape = editor.getDraggingOverShape(editor.inputs.currentPagePoint, shapes)
+		const draggingOverShape = editor.getDraggingOverShape(currentPagePoint, shapes)
 
 		if (draggingOverShape) {
 			const util = editor.getShapeUtil(draggingOverShape)
@@ -149,8 +151,9 @@ export class DragAndDropManager {
 		// This is the shape under the pointer that can handle at least one of the dragging shapes
 		const nextDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)
 
-		const cursorDidMove = !this.prevPagePoint.equals(editor.inputs.currentPagePoint)
-		this.prevPagePoint.setTo(editor.inputs.currentPagePoint)
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const cursorDidMove = !this.prevPagePoint.equals(currentPagePoint)
+		this.prevPagePoint.setTo(currentPagePoint)
 
 		editor.run(() => {
 			if (this.prevDraggingOverShape?.id === nextDraggingOverShape?.id) {
@@ -158,7 +161,7 @@ export class DragAndDropManager {
 					cursorDidMove &&
 					nextDraggingOverShape &&
 					isShapeId(nextDraggingOverShape.id) &&
-					!editor.inputs.previousPagePoint.equals(editor.inputs.currentPagePoint)
+					!editor.inputs.getPreviousPagePoint().equals(currentPagePoint)
 				) {
 					// If the cursor moved, call onDragShapesOver for the previous dragging over shape
 					const util = editor.getShapeUtil(nextDraggingOverShape)

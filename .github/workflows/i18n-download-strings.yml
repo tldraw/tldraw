@@ -48,7 +48,7 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          
+
           # Check if there are any changes to JSON files
           if ! git diff --quiet '*.json' || ! git diff --cached --quiet '*.json'; then
             echo "Changes detected, creating PR..."
@@ -56,10 +56,10 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          
+
           # Delete the branch if it already exists
           git push origin --delete update-i18n-strings 2>/dev/null || true
-          
+
           git checkout -b update-i18n-strings
           git add "*.json"
           git commit --no-verify -m '[automated] update i18n strings'

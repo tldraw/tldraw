@@ -3,9 +3,12 @@ import { BlurryShape } from '../format/BlurryShape'
 import { FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
 import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
+import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
+import { AgentRequestSource } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
+import { FairyCanvasLint } from '../types/FairyCanvasLint'
 import { FairyProject } from '../types/FairyProject'
 import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
@@ -48,7 +51,7 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 			return ['There are no shapes in your view at the moment.']
 		}
 
-		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
+		return [`These are the shapes you can currently see: ${JSON.stringify(shapes)}`]
 	},
 }
 
@@ -94,10 +97,11 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'prompt': {
 			const content: AgentMessageContent[] = []
 
-			if (item.message.trim() !== '') {
+			// Add agent-facing message to the content
+			if (item.agentFacingMessage && item.agentFacingMessage.trim() !== '') {
 				content.push({
 					type: 'text',
-					text: item.message,
+					text: item.agentFacingMessage,
 				})
 			}
 
@@ -105,8 +109,11 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				return null
 			}
 
+			// TODO: we can do something for source: 'self' messages like: I recevied this notification: <message>, or soemthing along those lines
+			const role =
+				item.promptSource === 'user' || item.promptSource === 'other-agent' ? 'user' : 'assistant'
 			return {
-				role: 'user',
+				role,
 				content,
 				priority,
 			}
@@ -134,6 +141,12 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
 					break
 				}
+				case 'mark-my-task-done':
+				case 'mark-duo-task-done':
+				case 'mark-task-done': {
+					text = `[TASK DONE] I marked the task as done.`
+					break
+				}
 				default: {
 					const { complete: _complete, time: _time, ...rawAction } = action || {}
 					text = '[ACTION]: ' + JSON.stringify(rawAction)
@@ -143,6 +156,13 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 			return {
 				role: 'assistant',
 				content: [{ type: 'text', text }],
+				priority,
+			}
+		}
+		case 'memory-transition': {
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text: item.agentFacingMessage }],
 				priority,
 			}
 		}
@@ -173,7 +193,7 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 export interface MessagesPart {
 	type: 'messages'
 	messages: string[]
-	source: 'user' | 'self' | 'other-agent'
+	source: AgentRequestSource
 }
 
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
@@ -231,23 +251,28 @@ export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShap
 	},
 }
 
-// PersonalityPart
-export interface PersonalityPart {
-	type: 'personality'
-	personality: string
+// SignPart
+export interface SignPart {
+	type: 'sign'
+	sign: {
+		sun: string
+		moon: string
+		rising: string
+	}
 }
 
-export const PersonalityPartDefinition: PromptPartDefinition<PersonalityPart> = {
-	type: 'personality',
+export const SignPartDefinition: PromptPartDefinition<SignPart> = {
+	type: 'sign',
 	priority: 150,
-	buildContent({ personality }: PersonalityPart) {
-		if (!personality || personality.trim() === '') {
-			return []
+	buildContent({ sign }: SignPart) {
+		if (sign.sun && sign.moon && sign.rising) {
+			if (sign.sun === sign.moon && sign.moon === sign.rising) {
+				return [`You're a triple ${sign.sun}.`]
+			}
+			return [`You're a ${sign.sun} sun, ${sign.moon} moon, and ${sign.rising} rising.`]
 		}
-		return [
-			`You are actually a specific kind of AI agent; a fairy! And so is everyone else (besides the user). So, if you hear other agents (or the user) refer to you or anyone else as a fairy, that's why.`,
-			`Your personality is: ${personality}`,
-		]
+
+		return []
 	},
 }
 
@@ -291,7 +316,6 @@ export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPa
 	},
 }
 
-// SharedTodoListPart
 export interface SoloTasksPart {
 	type: 'soloTasks'
 	tasks: Array<FairyTask>
@@ -299,7 +323,7 @@ export interface SoloTasksPart {
 
 export const SoloTasksPartDefinition: PromptPartDefinition<SoloTasksPart> = {
 	type: 'soloTasks',
-	priority: -10,
+	priority: -4,
 	buildContent(part: SoloTasksPart) {
 		if (part.tasks.length === 0) {
 			return ['There are no tasks at the moment.']
@@ -325,7 +349,7 @@ export interface WorkingTasksPart {
 
 export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> = {
 	type: 'workingTasks',
-	priority: -10,
+	priority: -4,
 	buildContent(part: WorkingTasksPart) {
 		if (part.tasks.length === 0) {
 			return ['There are no tasks currently in progress.']
@@ -347,51 +371,18 @@ export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> 
 	},
 }
 
-// SharedTodoListPart
-export interface SharedTodoListPart {
-	type: 'sharedTodoList'
-	items: Array<FairyTask & { fairyName: string }>
-}
-
-export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPart> = {
-	type: 'sharedTodoList',
-	priority: -10,
-	buildContent(part: SharedTodoListPart) {
-		if (part.items.length === 0) {
-			return ['There are no shared todo items at the moment.']
-		}
-
-		const itemContent = part.items.map((item) => {
-			let text = `Todo ${item.id} [${item.status}]: "${item.text}"`
-			if (item.fairyName) {
-				text += ` (assigned to: ${item.fairyName})`
-			}
-			if (item.x && item.y) {
-				text += ` (position: x: ${item.x}, y: ${item.y})`
-			}
-			return text
-		})
-
-		if (itemContent.length === 1) {
-			return [`Here is the shared todo item:`, itemContent[0]]
-		}
-
-		return [`Here are all the shared todo items:`, ...itemContent]
-	},
-}
-
-// TodoListPart
-export interface TodoListPart {
-	type: 'todoList'
+// PersonalTodoListPart
+export interface PersonalTodoListPart {
+	type: 'personalTodoList'
 	items: FairyTodoItem[]
 }
 
-export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
-	type: 'todoList',
+export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoListPart> = {
+	type: 'personalTodoList',
 	priority: 10,
-	buildContent(part: TodoListPart) {
+	buildContent(part: PersonalTodoListPart) {
 		if (part.items.length === 0) {
-			return ['You have no todos yet. Use the `update-personal-todo-list` action to create a todo.']
+			return ['You have no personal todos yet.']
 		}
 		return [
 			`Here is your current personal todo list for the task at hand:`,
@@ -400,32 +391,58 @@ export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 	},
 }
 
-// CurrentProjectPart
-export interface CurrentProjectPart {
-	type: 'currentProject'
+// CurrentProjectDronePart
+export interface CurrentProjectDronePart {
+	type: 'currentProjectDrone'
 	currentProject: FairyProject | null
-	currentProjectTasks: FairyTask[]
 }
 
-export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
-	type: 'currentProject',
+export const CurrentProjectDronePartDefinition: PromptPartDefinition<CurrentProjectDronePart> = {
+	type: 'currentProjectDrone',
 	priority: -5,
-	buildContent(part: CurrentProjectPart) {
-		const { currentProject, currentProjectTasks } = part
+	buildContent(part: CurrentProjectDronePart) {
+		const { currentProject } = part
 
 		if (!currentProject) {
-			return ['There is no current project.']
+			return []
 		}
 
 		return [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
-			`Project color: ${currentProject.color}`,
-			`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
-			`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`,
 		]
 	},
 }
+
+// CurrentProjectOrchestratorPart
+export interface CurrentProjectOrchestratorPart {
+	type: 'currentProjectOrchestrator'
+	currentProject: FairyProject | null
+	currentProjectTasks: FairyTask[]
+}
+
+export const CurrentProjectOrchestratorPartDefinition: PromptPartDefinition<CurrentProjectOrchestratorPart> =
+	{
+		type: 'currentProjectOrchestrator',
+		priority: -5,
+		buildContent(part: CurrentProjectOrchestratorPart) {
+			const { currentProject, currentProjectTasks } = part
+
+			if (!currentProject) {
+				return ['There is no current project.']
+			}
+
+			return [
+				`You are currently working on project "${currentProject.title}".`,
+				`Project description: ${currentProject.description}`,
+				`You came up with this project plan:\n${currentProject.plan}`,
+				`Project members:\n${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
+				currentProjectTasks.length > 0
+					? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}`
+					: 'There are no tasks in the project.',
+			]
+		},
+	}
 
 // TimePart
 export interface TimePart {
@@ -437,7 +454,7 @@ export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	type: 'time',
 	priority: -100,
 	buildContent({ time }: TimePart) {
-		return ["The user's current time is:", time]
+		return [`The user's current time is: ${time}`]
 	},
 }
 
@@ -475,30 +492,40 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 	},
 }
 
-// ViewportBoundsPart
-export interface ViewportBoundsPart {
-	type: 'viewportBounds'
+// UserViewportBoundsPart
+export interface UserViewportBoundsPart {
+	type: 'userViewportBounds'
 	userBounds: BoxModel | null
+}
+
+export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewportBoundsPart> = {
+	type: 'userViewportBounds',
+	priority: -80,
+	buildContent({ userBounds }: UserViewportBoundsPart) {
+		if (!userBounds) {
+			return []
+		}
+		const userViewCenter = Box.From(userBounds).center
+		return [`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`]
+	},
+}
+
+// AgentViewportBoundsPart
+export interface AgentViewportBoundsPart {
+	type: 'agentViewportBounds'
 	agentBounds: BoxModel | null
 }
 
-export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
-	type: 'viewportBounds',
-	priority: -75,
-	buildContent({ userBounds, agentBounds }: ViewportBoundsPart) {
-		const response = []
-
-		if (agentBounds) {
-			response.push(
-				`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`
-			)
+export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewportBoundsPart> = {
+	type: 'agentViewportBounds',
+	priority: -80,
+	buildContent({ agentBounds }: AgentViewportBoundsPart) {
+		if (!agentBounds) {
+			return []
 		}
-		if (userBounds) {
-			const userViewCenter = Box.From(userBounds).center
-			response.push(`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`)
-		}
-
-		return response
+		return [
+			`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`,
+		]
 	},
 }
 
@@ -551,4 +578,69 @@ export interface DebugPart {
 
 export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
 	type: 'debug',
+}
+
+// ModelNamePart
+export interface ModelNamePart {
+	type: 'modelName'
+	name: AgentModelName
+}
+
+export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
+	type: 'modelName',
+}
+
+// CanvasLintsPart
+export interface CanvasLintsPart {
+	type: 'canvasLints'
+	lints: FairyCanvasLint[]
+}
+
+export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = {
+	type: 'canvasLints',
+	priority: -50,
+	buildContent({ lints }: CanvasLintsPart) {
+		if (!lints || lints.length === 0) {
+			return []
+		}
+
+		const messages: string[] = []
+
+		// Group lints by type
+		const growYLints = lints.filter((l) => l.type === 'growY-on-shape')
+		const overlappingTextLints = lints.filter((l) => l.type === 'overlapping-text')
+		const friendlessArrowLints = lints.filter((l) => l.type === 'friendless-arrow')
+
+		messages.push(
+			"[LINTER]: The following potential visual problems have been detected in the canvas. You should decide if you want to address them. Defer to your view of the canvas to decide if you need to make changes; it's very possible that you don't need to make any changes."
+		)
+
+		if (growYLints.length > 0) {
+			const shapeIds = growYLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				'Text overflow: These shapes have text that caused their containers to grow past the size that they were intended to be, potentially breaking out of their container. If you decide to fix: you need to set the height back to what you originally intended after increasing the width.',
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (overlappingTextLints.length > 0) {
+			const lines = [
+				'Overlapping text: The shapes in each group have text and overlap each other, which may make text hard to read. If you decide to fix this, you may need to increase the size of any shapes containing the text.',
+				...overlappingTextLints.map((lint) => `  - ${lint.shapeIds.join(', ')}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (friendlessArrowLints.length > 0) {
+			const shapeIds = friendlessArrowLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				"Unconnected arrows: These arrows aren't fully connected to other shapes.",
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		return messages
+	},
 }

@@ -26,10 +26,7 @@ import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
 
 /** @public */
-export interface TLShapeUtilConstructor<
-	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>,
-> {
+export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
 	new (editor: Editor): U
 	type: T['type']
 	props?: RecordProps<T>
@@ -42,11 +39,11 @@ export interface TLShapeUtilConstructor<
  *
  * @public
  */
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
+export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
 	/** The type of shape referenced by the `fromId` of the binding. */
-	fromShapeType: string
+	fromShapeType: TLShape['type']
 	/** The type of shape referenced by the `toId` of the binding. */
-	toShapeType: string
+	toShapeType: TLShape['type']
 	/** The type of binding. */
 	bindingType: string
 }
@@ -79,7 +76,7 @@ export interface TLShapeUtilCanvasSvgDef {
 }
 
 /** @public */
-export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
+export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
 	static configure<T extends TLShapeUtilConstructor<any, any>>(
 		this: T,
@@ -193,7 +190,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	canSnap(_shape: Shape): boolean {
+	canSnap(shape: Shape): boolean {
 		return true
 	}
 
@@ -203,7 +200,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	canTabTo(_shape: Shape): boolean {
+	canTabTo(shape: Shape): boolean {
 		return true
 	}
 
@@ -212,7 +209,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canScroll(_shape: Shape): boolean {
+	canScroll(shape: Shape): boolean {
 		return false
 	}
 
@@ -230,7 +227,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canEdit(_shape: Shape): boolean {
+	canEdit(shape: Shape, info: TLEditStartInfo): boolean {
 		return false
 	}
 
@@ -239,7 +236,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canResize(_shape: Shape): boolean {
+	canResize(shape: Shape): boolean {
 		return true
 	}
 
@@ -248,7 +245,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canResizeChildren(_shape: Shape): boolean {
+	canResizeChildren(shape: Shape): boolean {
 		return true
 	}
 
@@ -257,7 +254,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canEditInReadonly(_shape: Shape): boolean {
+	canEditInReadonly(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape can be edited while locked or while an ancestor is locked.
+	 *
+	 * @public
+	 */
+	canEditWhileLocked(shape: Shape): boolean {
 		return false
 	}
 
@@ -266,7 +272,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canCrop(_shape: Shape): boolean {
+	canCrop(shape: Shape): boolean {
 		return false
 	}
 
@@ -279,7 +285,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canBeLaidOut(_shape: Shape, _info: TLShapeUtilCanBeLaidOutOpts): boolean {
+	canBeLaidOut(shape: Shape, info: TLShapeUtilCanBeLaidOutOpts): boolean {
 		return true
 	}
 
@@ -290,7 +296,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @param shape - The shape.
 	 */
-	canCull(_shape: Shape): boolean {
+	canCull(shape: Shape): boolean {
 		return true
 	}
 
@@ -303,7 +309,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @internal
 	 */
-	providesBackgroundForChildren(_shape: Shape): boolean {
+	providesBackgroundForChildren(shape: Shape): boolean {
 		return false
 	}
 
@@ -336,14 +342,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns boolean indicating if this shape should hide in the minimap
 	 * @public
 	 */
-	hideInMinimap?(_shape: Shape): boolean
+	hideInMinimap?(shape: Shape): boolean
 
 	/**
 	 * Whether the shape should hide its resize handles when selected.
 	 *
 	 * @public
 	 */
-	hideResizeHandles(_shape: Shape): boolean {
+	hideResizeHandles(shape: Shape): boolean {
 		return false
 	}
 
@@ -352,7 +358,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	hideRotateHandle(_shape: Shape): boolean {
+	hideRotateHandle(shape: Shape): boolean {
 		return false
 	}
 
@@ -361,7 +367,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsBg(_shape: Shape): boolean {
+	hideSelectionBoundsBg(shape: Shape): boolean {
 		return false
 	}
 
@@ -370,7 +376,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsFg(_shape: Shape): boolean {
+	hideSelectionBoundsFg(shape: Shape): boolean {
 		return false
 	}
 
@@ -379,7 +385,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	isAspectRatioLocked(_shape: Shape): boolean {
+	isAspectRatioLocked(shape: Shape): boolean {
 		return false
 	}
 
@@ -390,10 +396,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * useful in cases like annotating on top of an image, where you usually want to avoid extra
 	 * padding around the image if you don't need it.
 	 *
-	 * @param _shape - The shape to check
+	 * @param shape - The shape to check
 	 * @returns True if this shape should be treated as an export bounds container
 	 */
-	isExportBoundsContainer(_shape: Shape): boolean {
+	isExportBoundsContainer(shape: Shape): boolean {
 		return false
 	}
 
@@ -442,7 +448,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']) {
 		return false
 	}
 
@@ -490,7 +496,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
 	 * {@link BoundsSnapGeometry} for details.
 	 */
-	getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry {
+	getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry {
 		return {}
 	}
 
@@ -498,15 +504,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry}
 	 * for details.
 	 */
-	getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry {
+	getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
 		return {}
 	}
 
-	getText(_shape: Shape): string | undefined {
+	getText(shape: Shape): string | undefined {
 		return undefined
 	}
 
-	getAriaDescriptor(_shape: Shape): string | undefined {
+	getAriaDescriptor(shape: Shape): string | undefined {
 		return undefined
 	}
 
@@ -933,4 +939,18 @@ export interface TLHandleDragInfo<T extends TLShape> {
 	isPrecise: boolean
 	isCreatingShape: boolean
 	initial?: T | undefined
+}
+
+/* --------------------------------- Editing -------------------------------- */
+
+/** @public */
+export interface TLEditStartInfo {
+	type:
+		| 'press_enter'
+		| 'click'
+		| 'double-click'
+		| 'double-click-edge'
+		| 'double-click-corner'
+		| 'click-header'
+		| 'unknown'
 }

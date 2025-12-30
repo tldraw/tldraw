@@ -73,7 +73,7 @@ export class DraggingHandle extends StateNode {
 
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
+		this.initialPagePoint = this.editor.inputs.getOriginPagePoint().clone()
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
@@ -115,7 +115,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		// <!-- Only relevant to arrows
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
 			this.isPrecise = false
@@ -228,7 +228,7 @@ export class DraggingHandle extends StateNode {
 			}
 			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
 			if (endChanges) {
-				this.editor.updateShapes([{ ...endChanges, id: shape.id, type: shape.type }])
+				this.editor.updateShapes([{ ...endChanges, id: shape.id }])
 			}
 		}
 
@@ -284,10 +284,12 @@ export class DraggingHandle extends StateNode {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const isSnapMode = this.editor.user.getIsSnapMode()
-		const {
-			snaps,
-			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
-		} = editor
+		const { snaps } = editor
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const shiftKey = editor.inputs.getShiftKey()
+		const ctrlKey = editor.inputs.getCtrlKey()
+		const altKey = editor.inputs.getAltKey()
+		const pointerVelocity = editor.inputs.getPointerVelocity()
 
 		const initial = this.info.shape
 
@@ -295,7 +297,7 @@ export class DraggingHandle extends StateNode {
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
 
-		const initialBinding = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+		const initialBinding = editor.isShapeOfType(shape, 'arrow')
 			? getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 			: undefined
 
@@ -352,10 +354,7 @@ export class DraggingHandle extends StateNode {
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (
-			initialHandle.type === 'vertex' &&
-			this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
-		) {
+		if (initialHandle.type === 'vertex' && this.editor.isShapeOfType(shape, 'arrow')) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {

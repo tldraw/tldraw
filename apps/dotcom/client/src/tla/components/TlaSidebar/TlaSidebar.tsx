@@ -87,7 +87,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 						<button
 							className={styles.sidebarCreateFileButton}
 							onClick={handleCreateGroup}
-							data-testid="tla-create-file"
+							data-testid="tla-create-group"
 							style={{ marginRight: -8, color: 'var(--tla-color-text-1)' }}
 						>
 							<TlaIcon icon="folder-new" />

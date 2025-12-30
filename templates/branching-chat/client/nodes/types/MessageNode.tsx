@@ -83,7 +83,7 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 			const node = editor.getShape(connectedShape)
 
 			if (!node) continue
-			if (!editor.isShapeOfType<NodeShape>(node, 'node')) continue
+			if (!editor.isShapeOfType(node, 'node')) continue
 			if (node.props.node.type !== 'message') continue
 
 			if (node.props.node.assistantMessage && connectedShape !== shape.id) {

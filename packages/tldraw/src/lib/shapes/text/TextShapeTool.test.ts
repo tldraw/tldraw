@@ -1,4 +1,4 @@
-import { DefaultTextAlignStyle, TLTextShape, toRichText } from '@tldraw/editor'
+import { DefaultTextAlignStyle, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
@@ -24,7 +24,7 @@ describe(TextShapeTool, () => {
 		editor.pointerUp()
 		editor.expectToBeIn('select.editing_shape')
 		// This comes from the component, not the state chart
-		editor.updateShapes<TLTextShape>([
+		editor.updateShapes([
 			{
 				...editor.getCurrentPageShapes()[0]!,
 				type: 'text',
@@ -96,7 +96,7 @@ describe('When in idle state', () => {
 		editor.expectToBeIn('select.editing_shape')
 
 		// Update the text shape with some content
-		editor.updateShapes<TLTextShape>([
+		editor.updateShapes([
 			{
 				...editor.getCurrentPageShapes()[0]!,
 				type: 'text',
@@ -133,7 +133,7 @@ describe('When in idle state', () => {
 		editor.expectToBeIn('select.editing_shape')
 
 		// Update the text shape with some content
-		editor.updateShapes<TLTextShape>([
+		editor.updateShapes([
 			{
 				...editor.getCurrentPageShapes()[0]!,
 				type: 'text',
