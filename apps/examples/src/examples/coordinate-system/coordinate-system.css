@@ -1,7 +1,7 @@
 .coordinate-debug-panel {
 	position: absolute;
 	top: 64px;
-	right: 16px;
+	left: 16px;
 	width: 280px;
 	background: white;
 	border: 1px solid #ccc;

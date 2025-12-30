@@ -97,14 +97,14 @@ const SelectedShapeOverlay = track(() => {
 	if (!pageBounds) return null
 
 	// [6]
-	const topLeftScreen = editor.pageToScreen({ x: pageBounds.x, y: pageBounds.y })
+	const topLeftViewport = editor.pageToViewport({ x: pageBounds.x, y: pageBounds.y })
 
 	return (
 		<div
 			className="shape-overlay"
 			style={{
-				left: topLeftScreen.x,
-				top: topLeftScreen.y - 32,
+				left: topLeftViewport.x,
+				top: topLeftViewport.y - 32,
 			}}
 		>
 			Page: ({pageBounds.x.toFixed(0)}, {pageBounds.y.toFixed(0)})
@@ -164,9 +164,10 @@ The `SelectedShapeOverlay` demonstrates `pageToScreen()` by positioning a DOM el
 the selected shape. This component tracks editor state to update when selection or camera changes.
 
 [6]
-We convert the shape's page position to screen coordinates using `pageToScreen()`. This is the key
-transformation for positioning DOM elements (which use screen coordinates) relative to shapes
-(which are in page coordinates). The overlay follows the shape as you pan and zoom.
+We convert the shape's page position to viewport coordinates using `pageToViewport()`. This is the
+correct transformation for positioning DOM elements inside `InFrontOfTheCanvas`, which is positioned
+relative to the editor container (not the browser window). Using `pageToScreen()` here would cause
+the overlay to be displaced when the editor has an offset from the browser origin (e.g., a sidebar).
 
 [7]
 We use the `InFrontOfTheCanvas` component slot to render our UI. Components here are positioned
