@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { createShapeId, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './request-align-and-distribute-shapes.css'
@@ -66,79 +67,117 @@ function DistributeButtons() {
 	)
 }
 
+function ResetButton({
+	originalPositions,
+}: {
+	originalPositions: React.RefObject<Map<string, { x: number; y: number }>>
+}) {
+	const editor = useEditor()
+
+	return (
+		<div className="align-distribute-controls distribute-row">
+			<button
+				className="align-distribute-button"
+				onClick={() => {
+					const shapes = editor.getCurrentPageShapes()
+					editor.run(() => {
+						for (const shape of shapes) {
+							const originalPos = originalPositions.current?.get(shape.id)
+							if (originalPos) {
+								editor.updateShape({
+									...shape,
+									x: originalPos.x,
+									y: originalPos.y,
+								})
+							}
+						}
+					})
+				}}
+			>
+				Reset positions
+			</button>
+		</div>
+	)
+}
+
 export default function RequestAlignAndDistributeShapesExample() {
+	const originalPositions = useRef(new Map<string, { x: number; y: number }>())
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// [5]
-					editor.createShapes([
+					const shapes = [
 						{
 							id: createShapeId(),
-							type: 'geo',
+							type: 'geo' as const,
 							x: 100,
 							y: 100,
 							props: {
 								w: 100,
 								h: 100,
-								color: 'blue',
+								color: 'blue' as const,
 							},
 						},
 						{
 							id: createShapeId(),
-							type: 'geo',
+							type: 'geo' as const,
 							x: 300,
 							y: 200,
 							props: {
 								w: 120,
 								h: 80,
-								color: 'red',
+								color: 'red' as const,
 							},
 						},
 						{
 							id: createShapeId(),
-							type: 'geo',
+							type: 'geo' as const,
 							x: 500,
 							y: 150,
 							props: {
 								w: 80,
 								h: 120,
-								color: 'green',
+								color: 'green' as const,
 							},
 						},
 						{
 							id: createShapeId(),
-							type: 'geo',
+							type: 'geo' as const,
 							x: 150,
 							y: 400,
 							props: {
 								w: 100,
 								h: 100,
-								color: 'violet',
+								color: 'violet' as const,
 							},
 						},
 						{
 							id: createShapeId(),
-							type: 'geo',
+							type: 'geo' as const,
 							x: 400,
 							y: 450,
 							props: {
 								w: 90,
 								h: 90,
-								color: 'orange',
+								color: 'orange' as const,
 							},
 						},
-					])
+					]
 
-					// [6]
+					for (const shape of shapes) {
+						originalPositions.current.set(shape.id, { x: shape.x, y: shape.y })
+					}
+
+					editor.createShapes(shapes)
 					editor.selectAll()
 				}}
 				components={{
-					// [7]
 					TopPanel: () => (
 						<>
 							<AlignButtons />
 							<DistributeButtons />
+							<ResetButton originalPositions={originalPositions} />
 						</>
 					),
 				}}
@@ -159,13 +198,4 @@ Define an array of distribute operations. Distribution evenly spaces shapes alon
 
 [4]
 The distributeShapes method requires at least 3 shapes to be selected. It distributes shapes evenly along the horizontal or vertical axis, maintaining equal spacing between them.
-
-[5]
-Create 5 shapes at different positions with varying sizes and colors. This provides a good demonstration of the align and distribute operations. The shapes are positioned at varied coordinates to make the alignment and distribution effects clearly visible.
-
-[6]
-Select all shapes on mount so users can immediately try the align and distribute buttons without needing to manually select shapes first.
-
-[7]
-Use the TopPanel component to display the buttons above the canvas.
 */
