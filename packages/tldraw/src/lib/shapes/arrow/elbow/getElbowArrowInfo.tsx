@@ -348,7 +348,7 @@ function getElbowArrowTerminalInfo(
 	point: VecModel
 ): ElbowArrowTerminal {
 	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
-	const minEndSegmentLength = arrowStrokeSize * arrow.props.scale * 3
+	const minEndSegmentLength = arrowStrokeSize * 3
 
 	if (binding) {
 		const target = editor.getShape(binding.toId)
