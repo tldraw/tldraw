@@ -13,7 +13,8 @@ const TEMPLATE_IDS: TLShapeId[] = [
 function ControlPanel() {
 	const editor = useEditor()
 
-	// [3]
+	// [3] Update locked shapes using ignoreShapeLock option
+	// Without ignoreShapeLock: true, these updates would be blocked
 	const handleScatter = () => {
 		editor.run(
 			() => {
@@ -112,24 +113,27 @@ export default function LockedShapesExample() {
 }
 
 /*
-This example demonstrates locked shapes and the ignoreShapeLock escape hatch.
+This example demonstrates the key distinction between locked shapes and programmatic updates:
+
+Locked shapes prevent ALL user interaction (dragging, deleting, etc.), but programs can still
+modify them using the ignoreShapeLock option. This is useful for shapes that should be fixed
+in place by the user but need to be repositioned programmatically.
 
 [1] Pre-defined shape IDs so we can reference them later.
 
-[2] Control panel with Scatter/Reset buttons.
+[2] Control panel with action buttons.
 
-[3] Both buttons use editor.run() with { ignoreShapeLock: true } to
-programmatically modify locked shapes. Without this option, updates
-to locked shapes would be blocked.
+[3] Both buttons use editor.run() with { ignoreShapeLock: true } to bypass the lock constraint.
+This option allows programmatic updates even though user interactions on these shapes are blocked.
 
 [4] The main component sets up the editor.
 
 [5] On mount, we create a 2x2 grid of template shapes.
 
-[6] We immediately lock them with toggleLock(). Users can't move or
-delete these shapes, but they can draw on top of them.
+[6] We immediately lock them with toggleLock(). The key behavior: users cannot move or delete
+these shapes, but the Scatter/Reset buttons can still reposition them programmatically.
 
 Try it:
-- Drag the template shapes (won't work - they're locked!)
-- Click Scatter/Reset to see ignoreShapeLock in action
+- Try dragging any template shape (won't work - they're locked by the user interface)
+- Click Scatter or Reset to see how programmatic updates work with ignoreShapeLock: true
 */
