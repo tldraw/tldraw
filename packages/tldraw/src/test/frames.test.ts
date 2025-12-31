@@ -886,6 +886,62 @@ describe('frame shapes', () => {
 			expect(configuredFrameUtil.options.resizeChildren).toBe(true)
 			expect(configuredFrameUtil.options.showColors).toBe(true)
 		})
+
+		it('resizes children when configured with resizeChildren: true', () => {
+			// Create a frame with a child shape using a configured frame util
+			editor.setCurrentTool('frame')
+			editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+
+			const frameId = editor.getOnlySelectedShape()!.id
+
+			// Add a child shape
+			editor.setCurrentTool('geo')
+			editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
+
+			const childId = editor.getOnlySelectedShape()!.id
+
+			// Get initial bounds
+			const initialFrameBounds = editor.getShapePageBounds(frameId)!
+			const initialChildBounds = editor.getShapePageBounds(childId)!
+
+			// Create a new editor with configured frame util that allows resizing children
+			const configuredEditor = new TestEditor({
+				shapeUtils: [FrameShapeUtil.configure({ resizeChildren: true })],
+			})
+
+			// Create the same frame and child in the new editor
+			configuredEditor.createShapes([
+				{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{
+					id: childId,
+					type: 'geo',
+					parentId: frameId,
+					x: 125,
+					y: 125,
+					props: { w: 50, h: 50 },
+				},
+			])
+
+			// Resize the frame to half size
+			configuredEditor.select(frameId)
+			configuredEditor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
+
+			// Verify the frame was resized
+			const resizedFrameBounds = configuredEditor.getShapePageBounds(frameId)!
+			expect(resizedFrameBounds).toCloselyMatchObject({
+				x: 100,
+				y: 100,
+				w: 50,
+				h: 50,
+			})
+
+			// Verify the child was also resized
+			const resizedChildBounds = configuredEditor.getShapePageBounds(childId)!
+			expect(resizedChildBounds.w).toBeCloseTo(initialChildBounds.w * 0.5)
+			expect(resizedChildBounds.h).toBeCloseTo(initialChildBounds.h * 0.5)
+
+			configuredEditor.dispose()
+		})
 	})
 })
 
