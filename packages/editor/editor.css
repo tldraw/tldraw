@@ -607,7 +607,6 @@ input,
 	pointer-events: all;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
-	text-shadow: var(--tl-text-outline);
 }
 
 .tl-text-wrapper[data-font='draw'] {
@@ -709,7 +708,7 @@ input,
 	resize: none;
 	border: none;
 	user-select: none;
-	contain: style paint;
+	contain: layout style paint;
 	/* N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers") is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs. */
 	unicode-bidi: plaintext;
 	-webkit-user-select: none;
@@ -770,7 +769,6 @@ input,
 	justify-content: center;
 	align-items: center;
 	color: var(--tl-color-text);
-	text-shadow: var(--tl-text-outline);
 	line-height: inherit;
 	position: absolute;
 	inset: 0px;
@@ -970,6 +968,14 @@ input,
 	display: block;
 }
 
+.tl-text__outline {
+	text-shadow: var(--tl-text-outline);
+}
+
+.tl-text__no-outline {
+	text-shadow: none;
+}
+
 /* --------------------- Loading -------------------- */
 
 .tl-loading {
@@ -1134,14 +1140,12 @@ input,
 	fill: none;
 }
 
-@media (pointer: coarse) {
-	.tl-handle__bg:active {
-		fill: var(--tl-color-selection-fill);
-	}
+.tl-container[data-coarse='true'] .tl-handle__bg:active {
+	fill: var(--tl-color-selection-fill);
+}
 
-	.tl-handle__create {
-		opacity: 1;
-	}
+.tl-container[data-coarse='true'] .tl-handle__create {
+	opacity: 1;
 }
 
 .tl-rotate-corner:not(:hover),
@@ -1217,7 +1221,6 @@ input,
 	align-items: center;
 	text-align: center;
 	color: var(--tl-color-text);
-	text-shadow: var(--tl-text-outline);
 }
 
 .tl-shape[data-shape-type='arrow'] .tl-text-label__inner {
@@ -1321,6 +1324,10 @@ input,
 	flex: 1;
 }
 
+.tl-bookmark__copy_container:has(.tl-bookmark__link:only-child) {
+	justify-content: center;
+}
+
 .tl-bookmark__heading,
 .tl-bookmark__description,
 .tl-bookmark__link {
@@ -1353,7 +1360,7 @@ input,
 	line-clamp: 3;
 	text-overflow: ellipsis;
 	display: -webkit-box;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 	margin: var(--tl-space-2) 0px;
 }
 
@@ -1365,11 +1372,12 @@ input,
 	font-size: 12px;
 	pointer-events: all;
 	display: flex;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 	align-items: center;
 	cursor: var(--tl-cursor-pointer);
 	width: fit-content;
 	max-width: 100%;
+	text-decoration: none;
 }
 
 .tl-bookmark__link > span {
@@ -1441,7 +1449,6 @@ input,
 }
 
 .tl-note__container > .tl-text-label {
-	text-shadow: none;
 	color: currentColor;
 }
 

@@ -44,12 +44,19 @@ export interface UseSyncDemoOptions {
 }
 
 /**
- * Depending on the environment this package is used in, process.env may not be available. Wrap
- * `process.env` accesses in this to make sure they don't fail.
+ * Safely accesses environment variables across different bundling environments.
+ *
+ * Depending on the environment this package is used in, process.env may not be available. This function
+ * wraps `process.env` accesses in a try/catch to prevent runtime errors in environments where process
+ * is not defined.
  *
  * The reason that this is just a try/catch and not a dynamic check e.g. `process &&
  * process.env[key]` is that many bundlers implement `process.env.WHATEVER` using compile-time
  * string replacement, rather than actually creating a runtime implementation of a `process` object.
+ *
+ * @param cb - Callback function that accesses an environment variable
+ * @returns The environment variable value if available, otherwise undefined
+ * @internal
  */
 function getEnv(cb: () => string | undefined): string | undefined {
 	try {
@@ -124,6 +131,16 @@ export function useSyncDemo(
 	})
 }
 
+/**
+ * Determines whether file uploads should be disabled for a given host.
+ *
+ * Uploads are disabled for production tldraw domains to prevent abuse of the demo server
+ * infrastructure. This includes tldraw.com and tldraw.xyz domains and their subdomains.
+ *
+ * @param host - The host URL to check for upload restrictions
+ * @returns True if uploads should be disabled, false otherwise
+ * @internal
+ */
 function shouldDisallowUploads(host: string) {
 	const disallowedHosts = ['tldraw.com', 'tldraw.xyz']
 	return disallowedHosts.some(
@@ -131,6 +148,33 @@ function shouldDisallowUploads(host: string) {
 	)
 }
 
+/**
+ * Creates an asset store implementation optimized for the tldraw demo server.
+ *
+ * This asset store handles file uploads to the demo server and provides intelligent
+ * asset resolution with automatic image optimization based on network conditions,
+ * screen density, and display size. It includes safeguards to prevent uploads to
+ * production domains and optimizes images through the tldraw image processing service.
+ *
+ * @param host - The demo server host URL for file uploads and asset resolution
+ * @returns A TLAssetStore implementation with upload and resolve capabilities
+ * @example
+ * ```ts
+ * const assetStore = createDemoAssetStore('https://demo.tldraw.xyz')
+ *
+ * // Upload a file
+ * const result = await assetStore.upload(asset, file)
+ * console.log('Uploaded to:', result.src)
+ *
+ * // Resolve optimized asset URL
+ * const optimizedUrl = assetStore.resolve(imageAsset, {
+ *   steppedScreenScale: 1.5,
+ *   dpr: 2,
+ *   networkEffectiveType: '4g'
+ * })
+ * ```
+ * @internal
+ */
 function createDemoAssetStore(host: string): TLAssetStore {
 	return {
 		upload: async (_asset, file) => {
@@ -211,6 +255,28 @@ function createDemoAssetStore(host: string): TLAssetStore {
 	}
 }
 
+/**
+ * Creates a bookmark asset by fetching metadata from a URL using the demo server.
+ *
+ * This function uses the demo server's bookmark unfurling service to extract metadata
+ * like title, description, favicon, and preview image from a given URL. If the metadata
+ * fetch fails, it returns a blank bookmark asset with just the URL.
+ *
+ * @param host - The demo server host URL to use for bookmark unfurling
+ * @param url - The URL to create a bookmark asset from
+ * @returns A promise that resolves to a TLAsset of type 'bookmark' with extracted metadata
+ * @example
+ * ```ts
+ * const asset = await createAssetFromUrlUsingDemoServer(
+ *   'https://demo.tldraw.xyz',
+ *   'https://example.com'
+ * )
+ *
+ * console.log(asset.props.title) // "Example Domain"
+ * console.log(asset.props.description) // "This domain is for use in illustrative examples..."
+ * ```
+ * @internal
+ */
 async function createAssetFromUrlUsingDemoServer(host: string, url: string): Promise<TLAsset> {
 	const urlHash = getHashForString(url)
 	try {

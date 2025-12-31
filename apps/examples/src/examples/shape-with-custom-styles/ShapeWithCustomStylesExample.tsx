@@ -5,12 +5,24 @@ import {
 	HTMLContainer,
 	StyleProp,
 	T,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 	useEditor,
 	useRelevantStyles,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+const MY_SHAPE_WITH_CUSTOM_STYLES_TYPE = 'myshapewithcustomstyles'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[MY_SHAPE_WITH_CUSTOM_STYLES_TYPE]: {
+			w: number
+			h: number
+			rating: MyRatingStyle
+		}
+	}
+}
 
 // [1]
 const myRatingStyle = StyleProp.defineEnum('example:rating', {
@@ -21,17 +33,10 @@ const myRatingStyle = StyleProp.defineEnum('example:rating', {
 // [2]
 type MyRatingStyle = T.TypeOf<typeof myRatingStyle>
 
-type IMyShape = TLBaseShape<
-	'myshape',
-	{
-		w: number
-		h: number
-		rating: MyRatingStyle
-	}
->
+type IMyShape = TLShape<typeof MY_SHAPE_WITH_CUSTOM_STYLES_TYPE>
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshape' as const
+	static override type = MY_SHAPE_WITH_CUSTOM_STYLES_TYPE
 
 	// [3]
 	static override props = {
@@ -115,18 +120,23 @@ export default function ShapeWithTldrawStylesExample() {
 					StylePanel: CustomStylePanel,
 				}}
 				onMount={(editor) => {
-					editor.createShape({ type: 'myshape', x: 100, y: 100 })
+					editor.createShape({ type: 'myshapewithcustomstyles', x: 100, y: 100 })
 					editor.selectAll()
-					editor.createShape({ type: 'myshape', x: 450, y: 250, props: { rating: 5 } })
+					editor.createShape({
+						type: 'myshapewithcustomstyles',
+						x: 450,
+						y: 250,
+						props: { rating: 5 },
+					})
 				}}
 			/>
 		</div>
 	)
 }
 
-/* 
+/*
 
-This file shows a custom shape that uses a user-created styles 
+This file shows a custom shape that uses a user-created styles
 
 For more on custom shapes, see our Custom Shape example.
 
@@ -143,8 +153,8 @@ We pass the style to the shape's props.
 
 [4]
 Since this property uses one a style, whatever value we put here in the
-shape's default props will be overwritten by the editor's current value 
-for that style, which will either be the default value or the most 
+shape's default props will be overwritten by the editor's current value
+for that style, which will either be the default value or the most
 recent value the user has set. This is special behavior just for styles.
 
 [5]
@@ -163,6 +173,6 @@ We pass the custom shape util and custom components in as props.
 [8]
 And for this example, we create two shapes: the first does not specify a
 rating, so it will use the editor's current style value (in this example,
-this will be the style's default value of 4). The second specifies a 
+this will be the style's default value of 4). The second specifies a
 rating of 5, so it will use that value.
 */

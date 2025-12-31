@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "tldraw infinite canvas SDK (multiplayer sync).",
-	"version": "4.0.2",
+	"version": "4.2.1",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -28,6 +28,7 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
@@ -43,10 +44,11 @@
 		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"devDependencies": {
-		"@types/react": "^18.3.18",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@types/uuid-readable": "^0.0.3",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
 		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
@@ -62,7 +64,7 @@
 		"ws": "^8.18.0"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }

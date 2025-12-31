@@ -1,11 +1,11 @@
 import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import { TLArrowBinding, TLBinding, TLShapeId, TLUnknownBinding } from '@tldraw/tlschema'
+import { TLBinding, TLShapeId } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Editor } from '../Editor'
 
 type TLBindingsIndex = Map<TLShapeId, TLBinding[]>
 
-function fromScratch(bindingsQuery: Computed<(TLArrowBinding | TLUnknownBinding)[], unknown>) {
+function fromScratch(bindingsQuery: Computed<TLBinding[], unknown>) {
 	const allBindings = bindingsQuery.get() as TLBinding[]
 
 	const shapesToBindings: TLBindingsIndex = new Map()

@@ -13,8 +13,9 @@
 		"repo": "tldraw/workflow-template",
 		"cli": {
 			"name": "Workflow",
-			"description": "Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.",
-			"shortDescription": "Visual node-based builder for workflows."
+			"description": "Create a node-based builder for visual workflows.",
+			"shortDescription": "Visual node-based builder for workflows.",
+			"order": 4
 		},
 		"scripts": {
 			"lint": null
@@ -29,13 +30,13 @@
 	"dependencies": {
 		"classnames": "^2.5.1",
 		"radix-ui": "^1.4.2",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"typescript": "^5.8.3",
 		"vite": "^7.0.1"

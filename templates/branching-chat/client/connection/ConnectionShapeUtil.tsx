@@ -8,9 +8,9 @@ import {
 	RecordProps,
 	SVGContainer,
 	ShapeUtil,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
+	TLShape,
 	Vec,
 	VecLike,
 	VecModel,
@@ -37,6 +37,14 @@ import {
 } from './ConnectionBindingUtil'
 import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
+const CONNECTION_TYPE = 'connection'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[CONNECTION_TYPE]: { start: VecModel; end: VecModel }
+	}
+}
+
 /**
  * A connection shape is a directed connection between two node shapes. It has a start point, and an
  * end point. These are called "terminals" in the code.
@@ -46,16 +54,10 @@ import { insertNodeWithinConnection } from './insertNodeWithinConnection'
  * the connection, but only when there isn't a binding (ie while dragging the connection). When the
  * ends are bound, the position is derived from the connected shape instead.
  */
-export type ConnectionShape = TLBaseShape<
-	'connection',
-	{
-		start: VecModel
-		end: VecModel
-	}
->
+export type ConnectionShape = TLShape<typeof CONNECTION_TYPE>
 
 export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
-	static override type = 'connection' as const
+	static override type = CONNECTION_TYPE
 	static override props: RecordProps<ConnectionShape> = {
 		start: vecModelValidator,
 		end: vecModelValidator,
@@ -224,7 +226,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		if (isCreatingShape && draggingTerminal === 'end') {
 			this.editor.selectNone()
 			const newNodeId = createShapeId()
-			const terminalInPageSpace = this.editor.inputs.currentPagePoint
+			const terminalInPageSpace = this.editor.inputs.getCurrentPagePoint()
 			this.editor.createShape({
 				type: 'node',
 				id: newNodeId,

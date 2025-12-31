@@ -2,7 +2,7 @@ import { throttle } from '@tldraw/utils'
 import { useLayoutEffect } from 'react'
 import { useEditor } from './useEditor'
 
-export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
+export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {

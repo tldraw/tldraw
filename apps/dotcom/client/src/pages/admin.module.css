@@ -79,6 +79,14 @@
 	align-items: center;
 }
 
+.userActionButton {
+	border: 1px solid transparent !important;
+}
+
+.userActionButton:hover:not(:disabled) {
+	border-color: var(--tla-color-text-3) !important;
+}
+
 .dataDisplay {
 	background-color: var(--tla-color-low);
 	border: 1px solid var(--tla-color-border);
@@ -225,6 +233,178 @@
 	font-weight: 500;
 	color: var(--tla-color-text-1);
 	word-break: break-word;
+}
+
+/* Migration Section */
+.migrationSection {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-2);
+	margin-top: 16px;
+}
+
+/* Stats Display */
+.statsContainer {
+	display: flex;
+	gap: 16px;
+	padding: 12px;
+	flex-wrap: wrap;
+}
+
+.statItem {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.statLabel {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--tla-color-text-3);
+	text-transform: uppercase;
+}
+
+.statValue {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--tla-color-text-1);
+}
+
+/* Count Container */
+.countContainer {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.countDisplay {
+	font-size: 12px;
+	color: var(--tla-color-text-2);
+}
+
+/* Config Container */
+.configContainer {
+	display: flex;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+/* Invites Table */
+.invitesTable {
+	width: 100%;
+	border-collapse: collapse;
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+	overflow: hidden;
+}
+
+.invitesTable th {
+	text-align: left;
+	padding: 12px;
+	background-color: var(--tla-color-low);
+	border-bottom: 1px solid var(--tla-color-border);
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--tla-color-text-3);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.invitesTable td {
+	text-align: left;
+	padding: 12px;
+	border-bottom: 1px solid var(--tla-color-border);
+	font-size: 12px;
+	color: var(--tla-color-text-1);
+}
+
+.invitesTable tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.invitesTable tbody tr:hover {
+	background-color: var(--tla-color-low);
+}
+
+/* Fairy Invites Section */
+.fairyButtonContainer {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.fairyAccessContainer {
+	margin-bottom: 24px;
+}
+
+.fairyEmailInput {
+	width: 250px;
+	margin-left: 8px;
+}
+
+.fairyDescriptionInput {
+	width: 200px;
+	margin-left: 8px;
+}
+
+.fairyMaxUsesInput {
+	width: 120px;
+	margin-left: 8px;
+}
+
+.tableActions {
+	display: flex;
+	gap: 8px;
+}
+
+.paddleSectionHeading {
+	margin-top: 32px;
+}
+
+.paddleButtonContainer {
+	margin-top: 16px;
+}
+
+/* Feature Flags */
+.featureFlagsNote {
+	margin-bottom: 8px;
+}
+
+.featureFlagsDescription {
+	color: var(--tla-color-text-3);
+}
+
+.featureFlagsContainer {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.featureFlagItem {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.featureFlagLabel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	min-width: 200px;
+}
+
+/* Batch Migration */
+.sleepInput {
+	width: 100px;
+	margin-left: 8px;
 }
 
 /* Responsive adjustments */

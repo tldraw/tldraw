@@ -4,7 +4,6 @@ import {
 	createOrUpdateConnectionBinding,
 	getConnectionBindings,
 } from '../connection/ConnectionBindingUtil'
-import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom'
 import {
 	DEFAULT_NODE_SPACING_PX,
@@ -36,7 +35,7 @@ export class PointingPort extends StateNode {
 	override onPointerMove(info: TLPointerEventInfo): void {
 		// isDragging is true if the user has moved the pointer sufficiently. below this threshold,
 		// we treat the pointer as a click.
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			const allowsMultipleConnections = this.info?.terminal === 'start'
 			const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
 				(c) => c.ownPortId === this.info!.portId
@@ -65,8 +64,8 @@ export class PointingPort extends StateNode {
 			this.editor.createShape({
 				type: 'connection',
 				id: connectionShapeId,
-				x: this.editor.inputs.currentPagePoint.x,
-				y: this.editor.inputs.currentPagePoint.y,
+				x: this.editor.inputs.getCurrentPagePoint().x,
+				y: this.editor.inputs.getCurrentPagePoint().y,
 				index: getNextConnectionIndex(this.editor),
 				props: {
 					start: { x: 0, y: 0 },
@@ -146,7 +145,7 @@ export class PointingPort extends StateNode {
 			.getPointInShapeSpace(connectionShapeId, targetPositionInPageSpace)
 			.addXY(0, NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2)
 
-		this.editor.updateShape<ConnectionShape>({
+		this.editor.updateShape({
 			id: connectionShapeId,
 			type: 'connection',
 			props: {
@@ -193,8 +192,7 @@ export class PointingPort extends StateNode {
 			onClose: () => {
 				// If the connection isn't fully connected, delete it
 				const connection = this.editor.getShape(connectionShapeId)
-				if (!connection || !this.editor.isShapeOfType<ConnectionShape>(connection, 'connection'))
-					return
+				if (!connection || !this.editor.isShapeOfType(connection, 'connection')) return
 
 				const bindings = getConnectionBindings(this.editor, connection)
 				if (!bindings.start || !bindings.end) {

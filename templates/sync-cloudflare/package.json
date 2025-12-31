@@ -13,8 +13,9 @@
 		"repo": "tldraw/tldraw-sync-cloudflare",
 		"cli": {
 			"name": "Multiplayer",
-			"description": "Bring multiplayer mode to your tldraw canvas app. Self-hosted and powered by tldraw sync and Cloudflare Durable Objects.",
-			"shortDescription": "Real-time multiplayer for tldraw, built with Cloudflare Durable Objects."
+			"description": "Real-time multiplayer with a self-hosted backend.",
+			"shortDescription": "Real-time multiplayer.",
+			"order": 2
 		},
 		"scripts": {
 			"lint": null
@@ -33,16 +34,16 @@
 		"cloudflare-workers-unfurl": "^0.0.8",
 		"itty-router": "^5.0.18",
 		"lodash.throttle": "^4.1.1",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"react-router-dom": "^6.28.2",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.13.2",
 		"@types/lodash.throttle": "^4.1.9",
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"concurrently": "^9.1.2",
 		"typescript": "^5.8.3",

@@ -1,0 +1,108 @@
+.shader-app {
+	position: fixed;
+	inset: 0;
+}
+
+.shader-app__example-menu {
+	z-index: 1000;
+	margin: 4px;
+	overflow: hidden;
+	color: var(--tl-color-text);
+	background-color: var(--tl-color-background);
+}
+
+.shader-app__canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 1000;
+	background-color: var(--tl-color-background);
+}
+
+/* Pixelated rendering - nearest-neighbor instead of smooth interpolation */
+.shader-app__canvas--pixelated {
+	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: crisp-edges;
+}
+
+.shader-config-panel {
+	width: fit-content;
+	max-width: none;
+	z-index: 1000;
+	pointer-events: all;
+	font-size: 12px;
+	color: var(--tl-color-text);
+}
+
+.shader-config-panel--expanded {
+	height: fit-content;
+	min-width: 220px;
+	max-height: calc(min(500px, 80vh));
+	overflow-y: auto;
+	padding-bottom: var(--tl-space-3);
+}
+
+.shader-config-panel--collapsed {
+	height: min-content;
+	overflow-y: visible;
+}
+
+.shader-config-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tl-space-3);
+	z-index: 200;
+	color: var(--tl-color-text);
+	border-bottom: 1px solid var(--tl-color-muted-2);
+	cursor: pointer;
+}
+
+.shader-config-panel__toggle {
+	padding: var(--tl-space-4);
+}
+
+.shader-config-panel__content {
+	height: fit-content;
+	padding: 0;
+}
+
+.shader-config-panel__reset-button {
+	color: var(--tl-color-text);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.shader-config-panel__control {
+	height: 44px;
+}
+
+.shader-config-panel__control--slider {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.shader-config-panel__control--boolean {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	cursor: pointer;
+	padding-right: var(--tl-space-4);
+}
+
+.shader-config-panel__boolean-input {
+	cursor: pointer;
+}
+
+.shader-config-panel__label {
+	padding: var(--tl-space-4);
+	font-family: var(--tl-font-mono);
+	display: block;
+}

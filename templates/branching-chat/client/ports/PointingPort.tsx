@@ -1,6 +1,5 @@
 import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
 import { createOrUpdateConnectionBinding } from '../connection/ConnectionBindingUtil.tsx'
-import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom.tsx'
 import { DEFAULT_NODE_SPACING_PX, NODE_WIDTH_PX } from '../constants.tsx'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts.tsx'
@@ -27,7 +26,7 @@ export class PointingPort extends StateNode {
 	override onPointerMove(info: TLPointerEventInfo): void {
 		// isDragging is true if the user has moved the pointer sufficiently. below this threshold,
 		// we treat the pointer as a click.
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			const allowsMultipleConnections = this.info?.terminal === 'start'
 			const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
 				(c) => c.ownPortId === this.info!.portId
@@ -56,8 +55,8 @@ export class PointingPort extends StateNode {
 			this.editor.createShape({
 				type: 'connection',
 				id: connectionShapeId,
-				x: this.editor.inputs.currentPagePoint.x,
-				y: this.editor.inputs.currentPagePoint.y,
+				x: this.editor.inputs.getCurrentPagePoint().x,
+				y: this.editor.inputs.getCurrentPagePoint().y,
 				index: getNextConnectionIndex(this.editor),
 				props: {
 					start: { x: 0, y: 0 },
@@ -137,7 +136,7 @@ export class PointingPort extends StateNode {
 			.getPointInShapeSpace(connectionShapeId, targetPositionInPageSpace)
 			.addXY(0, 200)
 
-		this.editor.updateShape<ConnectionShape>({
+		this.editor.updateShape({
 			id: connectionShapeId,
 			type: 'connection',
 			props: {

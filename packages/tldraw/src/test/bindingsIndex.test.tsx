@@ -1,4 +1,4 @@
-import { TLArrowBinding, TLGeoShape, TLShapeId, createShapeId } from '@tldraw/editor'
+import { TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -219,7 +219,7 @@ describe('bindingsIndex', () => {
 
 			const [box1Clone, box2Clone] = editor
 				.getSelectedShapes()
-				.filter((shape) => editor.isShapeOfType<TLGeoShape>(shape, 'geo'))
+				.filter((shape) => editor.isShapeOfType(shape, 'geo'))
 				.sort((a, b) => a.x - b.x)
 
 			expect(editor.getArrowsBoundTo(box2Clone.id)).toHaveLength(3)
@@ -248,9 +248,9 @@ describe('bindingsIndex', () => {
 
 			// move arrowA end from box2 to box3
 			const binding = editor
-				.getBindingsInvolvingShape<TLArrowBinding>(ids.box2, 'arrow')
+				.getBindingsInvolvingShape(ids.box2, 'arrow')
 				.find((b) => b.props.terminal === 'end')!
-			editor.updateBinding({ ...binding, toId: box3 } satisfies TLArrowBinding)
+			editor.updateBinding({ ...binding, toId: box3 })
 
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(2)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)

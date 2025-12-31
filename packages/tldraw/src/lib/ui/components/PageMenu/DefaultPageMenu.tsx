@@ -3,7 +3,6 @@ import {
 	TLPageId,
 	releasePointerCapture,
 	setPointerCapture,
-	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -306,6 +305,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[editor, trackEvent]
 	)
 
+	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
+
 	return (
 		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
 			<TldrawUiPopoverTrigger data-testid="main.page-menu">
@@ -390,7 +391,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									>
 										<TldrawUiButtonIcon icon="drag-handle-dots" />
 									</TldrawUiButton>
-									{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer ? (
+									{shouldUseWindowPrompt ? (
 										// sigh, this is a workaround for iOS Safari
 										// because the device and the radix popover seem
 										// to be fighting over scroll position. Nothing
@@ -399,7 +400,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 											type="normal"
 											className="tlui-page-menu__item__button"
 											onClick={() => {
-												const name = window.prompt('Rename page', page.name)
+												const name = window.prompt(msg('action.rename'), page.name)
 												if (name && name !== page.name) {
 													renamePage(page.id, name)
 												}
@@ -465,8 +466,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												item={page}
 												listSize={pages.length}
 												onRename={() => {
-													if (tlenv.isIos) {
-														const name = window.prompt('Rename page', page.name)
+													if (shouldUseWindowPrompt) {
+														const name = window.prompt(msg('action.rename'), page.name)
 														if (name && name !== page.name) {
 															renamePage(page.id, name)
 														}

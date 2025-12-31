@@ -146,6 +146,7 @@ export {
 	type TLFontFaceSource,
 } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
 	type ScribbleItem,
@@ -168,6 +169,7 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
+export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
@@ -178,6 +180,7 @@ export {
 	type TLDragShapesOutInfo,
 	type TLDragShapesOverInfo,
 	type TLDropShapesOverInfo,
+	type TLEditStartInfo,
 	type TLGeometryOpts,
 	type TLHandleDragInfo,
 	type TLResizeInfo,
@@ -282,7 +285,7 @@ export {
 	type SvgExportDef,
 } from './lib/editor/types/SvgExportContext'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
-export { tlenv } from './lib/globals/environment'
+export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
 export {
@@ -431,6 +434,7 @@ export {
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {
+	createDebugValue,
 	debugFlags,
 	featureFlags,
 	type DebugFlag,

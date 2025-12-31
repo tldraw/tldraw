@@ -639,9 +639,13 @@ describe('frame shapes', () => {
 
 		editor.setCurrentTool('select')
 
+		// Not with enter key
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
+		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
 
+		// Just with header click (tests against header's geometry)
+		editor.click(105, 95)
 		expect(editor.getCurrentPageState().editingShapeId).toBe(frameId)
 	})
 
@@ -1363,13 +1367,13 @@ describe('Unparenting behavior', () => {
 
 		// When the shape has a fill, it should not fall out of the frame
 		editor.undo()
-		editor.updateShape<TLGeoShape>({ ...largeRect, props: { fill: 'solid' } })
+		editor.updateShape({ ...largeRect, props: { fill: 'solid' } })
 		dragOntoFrame()
 		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
 
 		// When the shape has a label and that label is on top of the frame, it should not fall out of the frame
 		editor.undo()
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			...largeRect,
 			props: { fill: 'none', richText: toRichText('hello') },
 		})

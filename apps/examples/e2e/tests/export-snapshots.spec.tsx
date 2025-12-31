@@ -13,15 +13,15 @@ import {
 	TLAsset,
 	TLBindingCreate,
 	TLShapePartial,
-	TLTextShape,
 	degreesToRadians,
 	mapObjectMapValues,
 	mockUniqueId,
 	toRichText,
 } from 'tldraw'
-import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
+import { TL, createDrawSegments, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
-import { setup } from '../shared-e2e'
+import test, { ApiFixture } from '../fixtures/fixtures'
+import { hardResetEditor, setup } from '../shared-e2e'
 import {
 	convexDrawShape,
 	frameContent,
@@ -32,7 +32,6 @@ import {
 	richText,
 	richTextForArrow,
 } from './export-snapshots-data'
-import test, { ApiFixture } from './fixtures/fixtures'
 
 declare const editor: Editor
 declare const tldrawApi: EndToEndApi
@@ -96,37 +95,28 @@ const snapshots: Snapshots = {
 					<TL.draw
 						fill={fill}
 						color="light-violet"
-						segments={[
-							{ type: 'straight', points: [{ x: 0, y: 0 }] },
-							{
-								type: 'straight',
-								points: [
+						segments={createDrawSegments(
+							[
+								[{ x: 0, y: 0 }],
+								[
 									{ x: 0, y: 0 },
 									{ x: 100, y: 0 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 100, y: 0 },
 									{ x: 0, y: 100 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 0, y: 100 },
 									{ x: 100, y: 100 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 100, y: 100 },
 									{ x: 0, y: 0 },
 								],
-							},
-						]}
+							],
+							'straight'
+						)}
 						isClosed
 						isComplete
 					/>
@@ -977,7 +967,14 @@ interface SnapshotWithoutJsx {
 test.describe('Export snapshots', () => {
 	const snapshotsToTest = Object.entries(snapshots)
 
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {
 		for (const colorScheme of ['light', 'dark'] as const) {
@@ -1007,7 +1004,7 @@ test.describe('Export snapshots', () => {
 							.deleteShapes(editor.getSelectedShapeIds())
 
 						const titleId = tldrawApi.createShapeId()
-						editor.createShape<TLTextShape>({
+						editor.createShape({
 							id: titleId,
 							type: 'text',
 							x: 0,
@@ -1019,7 +1016,7 @@ test.describe('Export snapshots', () => {
 
 						for (const [rowName, testCases] of Object.entries(snapshot)) {
 							const rowTitleId = tldrawApi.createShapeId()
-							editor.createShape<TLTextShape>({
+							editor.createShape({
 								id: rowTitleId,
 								type: 'text',
 								x: 0,
@@ -1034,7 +1031,7 @@ test.describe('Export snapshots', () => {
 								testCases
 							)) {
 								const testCaseTitleId = tldrawApi.createShapeId()
-								editor.createShape<TLTextShape>({
+								editor.createShape({
 									id: testCaseTitleId,
 									type: 'text',
 									x,

@@ -1,7 +1,6 @@
 import { Box, createShapeId, Editor, TLShapeId } from 'tldraw'
 import { DEFAULT_NODE_SPACING_PX, NODE_HEIGHT_PX, NODE_WIDTH_PX } from '../constants'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import { createOrUpdateConnectionBinding, getConnectionBindings } from './ConnectionBindingUtil'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
@@ -52,7 +51,7 @@ export function insertNodeWithinConnection(
 
 	// create the new node
 	const newNodeId = createShapeId()
-	editor.createShape<NodeShape>({
+	editor.createShape({
 		type: 'node',
 		id: newNodeId,
 		x: newNodeX,
@@ -78,7 +77,7 @@ export function insertNodeWithinConnection(
 
 	// create a new connection between the new node and the end of the original connection
 	const newConnectionId = createShapeId()
-	editor.createShape<ConnectionShape>({
+	editor.createShape({
 		type: 'connection',
 		id: newConnectionId,
 	})
@@ -117,8 +116,8 @@ function moveNodesIfNeeded(
 	if (
 		!rootNode ||
 		!newNode ||
-		!editor.isShapeOfType<NodeShape>(rootNode, 'node') ||
-		!editor.isShapeOfType<NodeShape>(newNode, 'node')
+		!editor.isShapeOfType(rootNode, 'node') ||
+		!editor.isShapeOfType(newNode, 'node')
 	) {
 		return
 	}
@@ -136,7 +135,7 @@ function moveNodesIfNeeded(
 
 	function visit(nodeId: TLShapeId, parentExpandedBounds: Box) {
 		const node = editor.getShape(nodeId)
-		if (!node || !editor.isShapeOfType<NodeShape>(node, 'node')) return
+		if (!node || !editor.isShapeOfType(node, 'node')) return
 
 		// if this node has already been visited, we need to continue on from the nudge we
 		// calculated last time:
@@ -200,7 +199,7 @@ function moveNodesIfNeeded(
 				},
 				...Array.from(toNudge.entries()).map(([id, nudge]) => ({
 					id,
-					type: 'node',
+					type: 'node' as const,
 					x: nudge.initialX + nudge.amountX,
 					y: nudge.initialY + nudge.amountY,
 				})),

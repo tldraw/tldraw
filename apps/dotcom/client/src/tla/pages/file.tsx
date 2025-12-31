@@ -20,7 +20,8 @@ export function ErrorBoundary() {
 export function Component({ error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
-	const userId = useMaybeApp()?.userId
+	const app = useMaybeApp()
+	const userId = app?.userId
 
 	const errorElem = error ? <TlaFileError error={error} /> : null
 
@@ -30,6 +31,12 @@ export function Component({ error }: { error?: unknown }) {
 			toggleSidebar(true)
 		}
 	}, [error, userId])
+
+	useEffect(() => {
+		if (app && fileSlug) {
+			app.ensureFileVisibleInSidebar(fileSlug)
+		}
+	}, [app, fileSlug])
 
 	if (!userId) {
 		return (

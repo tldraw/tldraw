@@ -1,16 +1,16 @@
 import {
 	Extension,
 	Extensions,
+	extensions,
 	generateHTML,
 	generateJSON,
 	generateText,
 	JSONContent,
 } from '@tiptap/core'
-import Code from '@tiptap/extension-code'
-import Highlight from '@tiptap/extension-highlight'
-import Link from '@tiptap/extension-link'
+import { Code } from '@tiptap/extension-code'
+import { Highlight } from '@tiptap/extension-highlight'
 import { Node } from '@tiptap/pm/model'
-import StarterKit from '@tiptap/starter-kit'
+import { StarterKit } from '@tiptap/starter-kit'
 import {
 	Editor,
 	getOwnProperty,
@@ -20,7 +20,6 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
-import { TextDirection } from './textDirection'
 
 /** @public */
 export const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -35,6 +34,7 @@ export const KeyboardShiftEnterTweakExtension = Extension.create({
 
 // We change the default Code to override what's in the StarterKit.
 // It allows for other attributes/extensions.
+// @ts-ignore this is fine.
 Code.config.excludes = undefined
 
 // We want the highlighting to take precedence over bolding/italics/links
@@ -52,14 +52,18 @@ export const tipTapDefaultExtensions: Extensions = [
 		blockquote: false,
 		codeBlock: false,
 		horizontalRule: false,
-	}),
-	Link.configure({
-		openOnClick: false,
-		autolink: true,
+		link: {
+			openOnClick: false,
+			autolink: true,
+		},
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
-	TextDirection,
+
+	// N.B. We disable the text direction core extension in RichTextArea,
+	// but we add it back in again here in our own extensions list so that
+	// people can omit/override it if they want to.
+	extensions.TextDirection.configure({ direction: 'auto' }),
 ]
 
 // todo: bust this if the editor changes, too
@@ -88,7 +92,6 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
- *
  * @public
  */
 export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText) {
@@ -111,7 +114,6 @@ export function isEmptyRichText(richText: TLRichText) {
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
- *
  * @public
  */
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
@@ -130,7 +132,6 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
  * Renders JSONContent from html.
  * @param editor - The editor instance.
  * @param richText - The rich text content.
- *
  *
  * @public
  */

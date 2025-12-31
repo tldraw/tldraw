@@ -2,29 +2,7 @@ import { computed, isUninitialized } from '@tldraw/state'
 import { TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
-function fromScratch(editor: Editor): Set<TLShapeId> {
-	const shapesIds = editor.getCurrentPageShapeIds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	const notVisibleShapes = new Set<TLShapeId>()
-	shapesIds.forEach((id) => {
-		const shape = editor.getShape(id)
-		if (!shape) return
-
-		const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-		if (!canCull) return
-
-		// If the shape is fully outside of the viewport page bounds, add it to the set.
-		// We'll ignore masks here, since they're more expensive to compute and the overhead is not worth it.
-		const pageBounds = editor.getShapePageBounds(id)
-		if (pageBounds === undefined || !viewportPageBounds.includes(pageBounds)) {
-			notVisibleShapes.add(id)
-		}
-	})
-	return notVisibleShapes
-}
-
 /**
- * Incremental derivation of not visible shapes.
  * Non visible shapes are shapes outside of the viewport page bounds.
  *
  * @param editor - Instance of the tldraw Editor.
@@ -32,7 +10,43 @@ function fromScratch(editor: Editor): Set<TLShapeId> {
  */
 export function notVisibleShapes(editor: Editor) {
 	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-		const nextValue = fromScratch(editor)
+		const shapeIds = editor.getCurrentPageShapeIds()
+		const nextValue = new Set<TLShapeId>()
+
+		// Extract viewport bounds once to avoid repeated property access
+		const viewportPageBounds = editor.getViewportPageBounds()
+		const viewMinX = viewportPageBounds.minX
+		const viewMinY = viewportPageBounds.minY
+		const viewMaxX = viewportPageBounds.maxX
+		const viewMaxY = viewportPageBounds.maxY
+
+		for (const id of shapeIds) {
+			const pageBounds = editor.getShapePageBounds(id)
+
+			// Hybrid check: if bounds exist and shape overlaps viewport, it's visible.
+			// This inlines Box.Collides to avoid function call overhead and the
+			// redundant Contains check that Box.Includes was doing.
+			if (
+				pageBounds !== undefined &&
+				pageBounds.maxX >= viewMinX &&
+				pageBounds.minX <= viewMaxX &&
+				pageBounds.maxY >= viewMinY &&
+				pageBounds.minY <= viewMaxY
+			) {
+				continue
+			}
+
+			// Shape is outside viewport or has no bounds - check if it can be culled.
+			// We defer getShape and canCull checks until here since most shapes are
+			// typically visible and we can skip these calls for them.
+			const shape = editor.getShape(id)
+			if (!shape) continue
+
+			const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+			if (!canCull) continue
+
+			nextValue.add(id)
+		}
 
 		if (isUninitialized(prevValue)) {
 			return nextValue

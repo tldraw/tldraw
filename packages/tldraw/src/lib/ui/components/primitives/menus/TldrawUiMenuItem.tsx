@@ -24,7 +24,7 @@ import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
 import { TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
-import { tooltipManager } from '../TldrawUiTooltip'
+import { hideAllTooltips } from '../TldrawUiTooltip'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -134,6 +134,7 @@ export function TldrawUiMenuItem<
 						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
 						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+						{icon && <TldrawUiButtonIcon icon={icon} small />}
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuItem>
 			)
@@ -349,7 +350,7 @@ function useDraggableEvents(
 							point: screenSpaceStart,
 						})
 
-						tooltipManager.hideAllTooltips()
+						hideAllTooltips()
 						editor.getContainer().focus()
 					})
 				}

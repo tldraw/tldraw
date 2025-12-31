@@ -20,7 +20,7 @@ export default function APIExample() {
 		const id = createShapeId('hello')
 
 		// Create a shape
-		editor.createShapes<TLGeoShape>([
+		editor.createShapes([
 			{
 				id,
 				type: 'geo',
@@ -41,7 +41,7 @@ export default function APIExample() {
 		const shape = editor.getShape<TLGeoShape>(id)!
 
 		// Update the shape
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			id,
 			type: 'geo',
 			props: {
@@ -57,7 +57,7 @@ export default function APIExample() {
 		editor.zoomToFit()
 
 		// Select the shape
-		editor.select(id) 
+		editor.select(id)
 	}
 
 	return (
@@ -93,20 +93,20 @@ const InsideOfEditorContext = () => {
 	return null
 }
 
-/* 
-Introduction: 
+/*
+Introduction:
 
-This example shows how to use the tldraw editor instance to make changes 
-to the canvas. The editor instance is tldraw's "god object". You can use 
-the app to do just about everything that's possible in tldraw. Internally, 
-the canvas component and all shapes, tools, and UI components use this instance 
-to send events, observe changes, and perform actions. 
+This example shows how to use the tldraw editor instance to make changes
+to the canvas. The editor instance is tldraw's "god object". You can use
+the app to do just about everything that's possible in tldraw. Internally,
+the canvas component and all shapes, tools, and UI components use this instance
+to send events, observe changes, and perform actions.
 
 There are two main ways to use the editor:
 
-[1] 
+[1]
 The tldraw component shares its editor instance via its onMount callback prop.
-When you define a function for the onMount callback, it receives the editor 
+When you define a function for the onMount callback, it receives the editor
 instance as an argument. You can use this to manipulate the canvas.
 
 

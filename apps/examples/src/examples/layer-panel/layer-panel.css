@@ -7,6 +7,7 @@
 	background: white;
 	display: flex;
 	flex-direction: column;
+	pointer-events: all;
 }
 .shape-tree {
 	display: flex;

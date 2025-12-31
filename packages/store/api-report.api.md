@@ -16,41 +16,52 @@ export function assertIdType<R extends UnknownRecord>(id: string | undefined, ty
 
 // @public
 export class AtomMap<K, V> implements Map<K, V> {
-    // (undocumented)
     [Symbol.iterator](): Generator<[K, V], undefined, unknown>;
-    // (undocumented)
     [Symbol.toStringTag]: string;
     constructor(name: string, entries?: Iterable<readonly [K, V]>);
-    // (undocumented)
     __unsafe__getWithoutCapture(key: K): undefined | V;
-    // (undocumented)
     __unsafe__hasWithoutCapture(key: K): boolean;
+    clear(): void;
+    delete(key: K): boolean;
+    deleteMany(keys: Iterable<K>): [K, V][];
+    entries(): Generator<[K, V], undefined, unknown>;
+    forEach(callbackfn: (value: V, key: K, map: AtomMap<K, V>) => void, thisArg?: any): void;
+    get(key: K): undefined | V;
+    // @internal
+    getAtom(key: K): Atom<UNINITIALIZED | V> | undefined;
+    has(key: K): boolean;
+    keys(): Generator<K, undefined, unknown>;
+    set(key: K, value: V): this;
+    get size(): number;
+    update(key: K, updater: (value: V) => V): void;
+    values(): Generator<V, undefined, unknown>;
+}
+
+// @public
+export class AtomSet<T> {
+    // (undocumented)
+    [Symbol.iterator](): Generator<T, undefined, unknown>;
+    // (undocumented)
+    [Symbol.toStringTag]: string;
+    constructor(name: string, keys?: Iterable<T>);
+    // (undocumented)
+    add(value: T): this;
     // (undocumented)
     clear(): void;
     // (undocumented)
-    delete(key: K): boolean;
+    delete(value: T): boolean;
     // (undocumented)
-    deleteMany(keys: Iterable<K>): [K, V][];
+    entries(): Generator<[T, T], undefined, unknown>;
     // (undocumented)
-    entries(): Generator<[K, V], undefined, unknown>;
+    forEach(callbackfn: (value: T, value2: T, set: AtomSet<T>) => void, thisArg?: any): void;
     // (undocumented)
-    forEach(callbackfn: (value: V, key: K, map: AtomMap<K, V>) => void, thisArg?: any): void;
+    has(value: T): boolean;
     // (undocumented)
-    get(key: K): undefined | V;
-    // @internal (undocumented)
-    getAtom(key: K): Atom<UNINITIALIZED | V> | undefined;
-    // (undocumented)
-    has(key: K): boolean;
-    // (undocumented)
-    keys(): Generator<K, undefined, unknown>;
-    // (undocumented)
-    set(key: K, value: V): this;
+    keys(): Generator<T, undefined, unknown>;
     // (undocumented)
     get size(): number;
     // (undocumented)
-    update(key: K, updater: (value: V) => V): void;
-    // (undocumented)
-    values(): Generator<V, undefined, unknown>;
+    values(): Generator<T, undefined, unknown>;
 }
 
 // @public
@@ -61,20 +72,17 @@ export interface BaseRecord<TypeName extends string, Id extends RecordId<Unknown
     readonly typeName: TypeName;
 }
 
-// @public (undocumented)
+// @public
 export type ChangeSource = 'remote' | 'user';
 
 // @public
 export interface CollectionDiff<T> {
-    // (undocumented)
     added?: Set<T>;
-    // (undocumented)
     removed?: Set<T>;
 }
 
 // @public
 export interface ComputedCache<Data, R extends UnknownRecord> {
-    // (undocumented)
     get(id: IdOf<R>): Data | undefined;
 }
 
@@ -83,15 +91,13 @@ export function createComputedCache<Context extends StoreObject<any>, Result, Re
     get(context: Context, id: IdOf<Record>): Result | undefined;
 };
 
-// @public (undocumented)
+// @public
 export interface CreateComputedCacheOpts<Data, R extends UnknownRecord> {
-    // (undocumented)
     areRecordsEqual?(a: R, b: R): boolean;
-    // (undocumented)
     areResultsEqual?(a: Data, b: Data): boolean;
 }
 
-// @internal (undocumented)
+// @internal
 export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
 
 // @public
@@ -106,7 +112,7 @@ export function createMigrationSequence({ sequence, sequenceId, retroactive, }: 
     sequenceId: string;
 }): MigrationSequence;
 
-// @internal (undocumented)
+// @internal
 export function createRecordMigrationSequence(opts: {
     filter?(record: UnknownRecord): boolean;
     recordType: string;
@@ -131,13 +137,11 @@ export function devFreeze<T>(object: T): T;
 
 // @public
 export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
-    // (undocumented)
     changes: RecordsDiff<R>;
-    // (undocumented)
     source: ChangeSource;
 }
 
-// @public (undocumented)
+// @public
 export type IdOf<R extends UnknownRecord> = R['id'];
 
 // @internal
@@ -155,10 +159,10 @@ export class IncrementalSetConstructor<T> {
     remove(item: T): void;
 }
 
-// @internal
+// @public
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>): boolean;
 
-// @public (undocumented)
+// @public
 export interface LegacyBaseMigrationsInfo {
     // (undocumented)
     currentVersion: number;
@@ -170,7 +174,7 @@ export interface LegacyBaseMigrationsInfo {
     };
 }
 
-// @public (undocumented)
+// @public
 export interface LegacyMigration<Before = any, After = any> {
     // (undocumented)
     down: (newState: After) => Before;
@@ -178,7 +182,7 @@ export interface LegacyMigration<Before = any, After = any> {
     up: (oldState: Before) => After;
 }
 
-// @public (undocumented)
+// @public
 export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
     // (undocumented)
     subTypeKey?: string;
@@ -186,7 +190,7 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
     subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>;
 }
 
-// @public (undocumented)
+// @public
 export type Migration = {
     readonly dependsOn?: readonly MigrationId[] | undefined;
     readonly id: MigrationId;
@@ -199,9 +203,13 @@ export type Migration = {
     readonly filter?: (record: UnknownRecord) => boolean;
     readonly scope: 'record';
     readonly up: (oldState: UnknownRecord) => UnknownRecord | void;
+} | {
+    readonly down?: never;
+    readonly scope: 'storage';
+    readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
-// @public (undocumented)
+// @public
 export enum MigrationFailureReason {
     // (undocumented)
     IncompatibleSubtype = "incompatible-subtype",
@@ -217,10 +225,10 @@ export enum MigrationFailureReason {
     UnrecognizedSubtype = "unrecognized-subtype"
 }
 
-// @public (undocumented)
+// @public
 export type MigrationId = `${string}/${number}`;
 
-// @public (undocumented)
+// @public
 export type MigrationResult<T> = {
     reason: MigrationFailureReason;
     type: 'error';
@@ -229,7 +237,7 @@ export type MigrationResult<T> = {
     value: T;
 };
 
-// @public (undocumented)
+// @public
 export interface MigrationSequence {
     retroactive: boolean;
     // (undocumented)
@@ -238,7 +246,7 @@ export interface MigrationSequence {
     sequenceId: string;
 }
 
-// @internal (undocumented)
+// @internal
 export function parseMigrationId(id: MigrationId): {
     sequenceId: string;
     version: number;
@@ -246,10 +254,10 @@ export function parseMigrationId(id: MigrationId): {
 
 // @public (undocumented)
 export type QueryExpression<R extends object> = {
-    [k in keyof R & string]?: QueryValueMatcher<R[k]>;
+    [k in keyof R & string]?: R[k] extends boolean | null | number | string | undefined ? QueryValueMatcher<R[k]> : R[k] extends object ? QueryExpression<R[k]> : QueryValueMatcher<R[k]>;
 };
 
-// @public (undocumented)
+// @public
 export type QueryValueMatcher<T> = {
     eq: T;
 } | {
@@ -258,10 +266,10 @@ export type QueryValueMatcher<T> = {
     neq: T;
 };
 
-// @public (undocumented)
+// @public
 export type RecordFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never;
 
-// @public (undocumented)
+// @public
 export type RecordId<R extends UnknownRecord> = string & {
     __type__: R;
 };
@@ -271,11 +279,8 @@ export type RecordScope = 'document' | 'presence' | 'session';
 
 // @public
 export interface RecordsDiff<R extends UnknownRecord> {
-    // (undocumented)
     added: Record<IdOf<R>, R>;
-    // (undocumented)
     removed: Record<IdOf<R>, R>;
-    // (undocumented)
     updated: Record<IdOf<R>, [from: R, to: R]>;
 }
 
@@ -292,43 +297,38 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     });
     clone(record: R): R;
     create(properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>): R;
-    // (undocumented)
     readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>;
     createId(customUniquePart?: string): IdOf<R>;
-    // (undocumented)
     readonly ephemeralKeys?: {
         readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
     };
-    // (undocumented)
     readonly ephemeralKeySet: ReadonlySet<string>;
     isId(id?: string): id is IdOf<R>;
     isInstance(record?: UnknownRecord): record is R;
     parseId(id: IdOf<R>): string;
-    // (undocumented)
     readonly scope: RecordScope;
     readonly typeName: R['typeName'];
     validate(record: unknown, recordBefore?: R): R;
-    // (undocumented)
     readonly validator: StoreValidator<R>;
     withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'id' | 'typeName'>>(createDefaultProperties: () => DefaultProps): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>;
 }
 
-// @public (undocumented)
+// @public
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
-// @public (undocumented)
-export type RSIndex<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>;
+// @public
+export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
 
-// @public (undocumented)
-export type RSIndexDiff<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], CollectionDiff<IdOf<R>>>;
+// @public
+export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<R>>>;
 
-// @public (undocumented)
-export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], Set<IdOf<R>>>;
+// @public
+export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;
 
-// @public (undocumented)
+// @public
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
 
-// @public (undocumented)
+// @public
 export interface SerializedSchemaV1 {
     recordVersions: Record<string, {
         subTypeKey: string;
@@ -341,7 +341,7 @@ export interface SerializedSchemaV1 {
     storeVersion: number;
 }
 
-// @public (undocumented)
+// @public
 export interface SerializedSchemaV2 {
     // (undocumented)
     schemaVersion: 2;
@@ -362,7 +362,7 @@ export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>
 // @internal
 export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
 
-// @public (undocumented)
+// @public
 export interface StandaloneDependsOn {
     // (undocumented)
     readonly dependsOn: readonly MigrationId[];
@@ -371,10 +371,10 @@ export interface StandaloneDependsOn {
 // @public
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
+        props: Props;
+        id?: string;
         schema: StoreSchema<R, Props>;
         initialData?: SerializedStore<R>;
-        id?: string;
-        props: Props;
     });
     // @internal (undocumented)
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
@@ -416,19 +416,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges(fn: () => void): void;
     migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R>;
-    // (undocumented)
     readonly props: Props;
     put(records: R[], phaseOverride?: 'initialize'): void;
     readonly query: StoreQueries<R>;
     remove(ids: IdOf<R>[]): void;
-    // (undocumented)
     readonly schema: StoreSchema<R, Props>;
-    // (undocumented)
     readonly scopedTypes: {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
-    // (undocumented)
     readonly sideEffects: StoreSideEffects<R>;
     unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
@@ -436,72 +432,63 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
 }
 
-// @public (undocumented)
+// @public
 export type StoreAfterChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
 
-// @public (undocumented)
+// @public
 export type StoreAfterCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => void;
 
-// @public (undocumented)
+// @public
 export type StoreAfterDeleteHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => void;
 
-// @public (undocumented)
+// @public
 export type StoreBeforeChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
 
-// @public (undocumented)
+// @public
 export type StoreBeforeCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => R;
 
-// @public (undocumented)
+// @public
 export type StoreBeforeDeleteHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => false | void;
 
-// @public (undocumented)
+// @public
 export interface StoreError {
-    // (undocumented)
     error: Error;
-    // (undocumented)
     isExistingValidationIssue: boolean;
-    // (undocumented)
     phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
-    // (undocumented)
     recordAfter: unknown;
-    // (undocumented)
     recordBefore?: unknown;
 }
 
 // @public
 export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void;
 
-// @public (undocumented)
+// @public
 export interface StoreListenerFilters {
-    // (undocumented)
     scope: 'all' | RecordScope;
-    // (undocumented)
     source: 'all' | ChangeSource;
 }
 
-// @public (undocumented)
+// @public
 export type StoreObject<R extends UnknownRecord> = {
     store: Store<R>;
 } | Store<R>;
 
-// @public (undocumented)
+// @public
 export type StoreObjectRecordType<Context extends StoreObject<any>> = Context extends Store<infer R> ? R : Context extends {
     store: Store<infer R>;
 } ? R : never;
 
-// @public (undocumented)
+// @public
 export type StoreOperationCompleteHandler = (source: 'remote' | 'user') => void;
 
 // @public
 export class StoreQueries<R extends UnknownRecord> {
+    // @internal
     constructor(recordMap: AtomMap<IdOf<R>, R>, history: Atom<number, RecordsDiff<R>>);
     // @internal
-    __uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+    __uncached_createIndex<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
-        typeName: TypeName;
-    }>, Property>;
-    // (undocumented)
+    }>>;
     exec<TypeName extends R['typeName']>(typeName: TypeName, query: QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>): Array<Extract<R, {
@@ -510,6 +497,16 @@ export class StoreQueries<R extends UnknownRecord> {
     filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed<number, RecordsDiff<Extract<R, {
         typeName: TypeName;
     }>>>;
+    // @internal (undocumented)
+    getAllIdsForType<TypeName extends R['typeName']>(typeName: TypeName): Set<IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>>;
+    // @internal (undocumented)
+    getRecordById<TypeName extends R['typeName']>(typeName: TypeName, id: IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>): Extract<R, {
+        typeName: TypeName;
+    }> | undefined;
     ids<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Set<IdOf<Extract<R, {
@@ -517,11 +514,9 @@ export class StoreQueries<R extends UnknownRecord> {
     }>>>, CollectionDiff<IdOf<Extract<R, {
         typeName: TypeName;
     }>>>>;
-    index<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+    index<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
-        typeName: TypeName;
-    }>, Property>;
+    }>>;
     record<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Extract<R, {
@@ -534,34 +529,31 @@ export class StoreQueries<R extends UnknownRecord> {
     }>>>;
 }
 
-// @internal (undocumented)
+// @internal
 export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : never;
 
-// @public (undocumented)
+// @public
 export class StoreSchema<R extends UnknownRecord, P = unknown> {
-    // (undocumented)
     static create<R extends UnknownRecord, P = unknown>(types: {
         [TypeName in R['typeName']]: {
             createId: any;
         };
     }, options?: StoreSchemaOptions<R, P>): StoreSchema<R, P>;
-    // @internal (undocumented)
+    // @internal
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
-    // (undocumented)
     getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string>;
-    // @internal (undocumented)
+    // @internal
     getType(typeName: string): RecordType<R, any>;
-    // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
+    migrateStorage(storage: SynchronousStorage<R>): void;
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>, opts?: {
         mutateInputStore?: boolean;
     }): MigrationResult<SerializedStore<R>>;
     // (undocumented)
     readonly migrations: Record<string, MigrationSequence>;
-    // (undocumented)
     serialize(): SerializedSchemaV2;
-    // @internal @deprecated (undocumented)
+    // @internal @deprecated
     serializeEarliestVersion(): SerializedSchema;
     // (undocumented)
     readonly sortedMigrations: readonly Migration[];
@@ -569,11 +561,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     readonly types: {
         [Record in R as Record['typeName']]: RecordType<R, any>;
     };
-    // (undocumented)
     validateRecord(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
 }
 
-// @public (undocumented)
+// @public
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
     // @internal (undocumented)
     createIntegrityChecker?(store: Store<R, P>): void;
@@ -586,21 +577,21 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 // @public
 export class StoreSideEffects<R extends UnknownRecord> {
     constructor(store: Store<R>);
-    // @internal (undocumented)
+    // @internal
     handleAfterChange(prev: R, next: R, source: 'remote' | 'user'): void;
-    // @internal (undocumented)
+    // @internal
     handleAfterCreate(record: R, source: 'remote' | 'user'): void;
-    // @internal (undocumented)
+    // @internal
     handleAfterDelete(record: R, source: 'remote' | 'user'): void;
-    // @internal (undocumented)
+    // @internal
     handleBeforeChange(prev: R, next: R, source: 'remote' | 'user'): R;
-    // @internal (undocumented)
+    // @internal
     handleBeforeCreate(record: R, source: 'remote' | 'user'): R;
-    // @internal (undocumented)
+    // @internal
     handleBeforeDelete(record: R, source: 'remote' | 'user'): boolean;
-    // @internal (undocumented)
+    // @internal
     handleOperationComplete(source: 'remote' | 'user'): void;
-    // @internal (undocumented)
+    // @internal
     isEnabled(): boolean;
     // @internal
     register(handlersByType: {
@@ -632,19 +623,17 @@ export class StoreSideEffects<R extends UnknownRecord> {
         typeName: T;
     }>): () => void;
     registerOperationCompleteHandler(handler: StoreOperationCompleteHandler): () => void;
-    // @internal (undocumented)
+    // @internal
     setIsEnabled(enabled: boolean): void;
 }
 
-// @public (undocumented)
+// @public
 export interface StoreSnapshot<R extends UnknownRecord> {
-    // (undocumented)
     schema: SerializedSchema;
-    // (undocumented)
     store: SerializedStore<R>;
 }
 
-// @public (undocumented)
+// @public
 export interface StoreValidationFailure<R extends UnknownRecord> {
     // (undocumented)
     error: unknown;
@@ -658,22 +647,44 @@ export interface StoreValidationFailure<R extends UnknownRecord> {
     store: Store<R>;
 }
 
-// @public (undocumented)
+// @public
 export interface StoreValidator<R extends UnknownRecord> {
-    // (undocumented)
     validate(record: unknown): R;
-    // (undocumented)
     validateUsingKnownGoodVersion?(knownGoodVersion: R, record: unknown): R;
 }
 
-// @public (undocumented)
+// @public
 export type StoreValidators<R extends UnknownRecord> = {
     [K in R['typeName']]: StoreValidator<Extract<R, {
         typeName: K;
     }>>;
 };
 
-// @public (undocumented)
+// @public
+export interface SynchronousRecordStorage<R extends UnknownRecord> {
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    entries(): Iterable<[string, R]>;
+    // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
+    keys(): Iterable<string>;
+    // (undocumented)
+    set(id: string, record: R): void;
+    // (undocumented)
+    values(): Iterable<R>;
+}
+
+// @public
+export interface SynchronousStorage<R extends UnknownRecord> extends SynchronousRecordStorage<R> {
+    // (undocumented)
+    getSchema(): SerializedSchema;
+    // (undocumented)
+    setSchema(schema: SerializedSchema): void;
+}
+
+// @public
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;
 
 // (No @packageDocumentation comment for this package)

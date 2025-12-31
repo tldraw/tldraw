@@ -38,7 +38,7 @@ function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: 
 
 	editor.run(() => {
 		// Create the shape with the node definition
-		editor.createShape<NodeShape>({
+		editor.createShape({
 			id: shapeId,
 			type: 'node',
 			props: { node },
@@ -78,7 +78,7 @@ export const overrides: TLUiOverrides = {
 				onDragStart: (_, info) => {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
-							editor.createShape<NodeShape>({
+							editor.createShape({
 								id,
 								type: 'node',
 								props: { node: nodeDef.getDefault() },

@@ -110,6 +110,7 @@ apps/docs/api
 /vercel.json
 license-report-prod.html
 license-report.html
+license-report.md
 
 .bundle-meta.json
 .zed
@@ -118,3 +119,6 @@ license-report.html
 .sst
 
 .mcp.json
+
+# TypeScript profiling
+.ts-profile

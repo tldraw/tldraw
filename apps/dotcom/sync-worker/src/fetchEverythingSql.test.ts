@@ -36,21 +36,56 @@ function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.table
 
 const withs = [
 	{
-		alias: 'my_owned_files',
-		expression: 'SELECT * FROM public."file" WHERE "ownerId" = $1',
+		alias: 'legacy_my_own_files',
+		expression: 'SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false',
 	},
 	{
 		alias: 'my_file_states',
 		expression: 'SELECT * FROM public."file_state" WHERE "userId" = $1',
 	},
 	{
-		alias: 'files_shared_with_me',
+		alias: 'legacy_files_shared_with_me',
+		// Legacy access control via file_state for non-migrated users
+		// Migrated users (with 'groups_backend' flag) have shared files in their home group via group_file
 		expression:
 			'SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true',
 	},
 	{
+		alias: 'my_group_ids',
+		expression: 'SELECT "groupId" FROM public."group_user" WHERE "userId" = $1',
+	},
+	{
+		alias: 'my_groups',
+		expression:
+			'SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId" WHERE g."isDeleted" = false',
+	},
+	{
+		alias: 'all_group_users',
+		expression:
+			'SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"',
+	},
+	{
+		alias: 'group_file_ownership',
+		expression:
+			'SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"',
+	},
+	{
+		alias: 'group_files',
+		expression:
+			'SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"',
+	},
+	{
 		alias: 'all_files',
-		expression: 'SELECT * FROM my_owned_files UNION SELECT * FROM files_shared_with_me',
+		expression:
+			'SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files',
+	},
+	{
+		alias: 'my_fairies',
+		expression: 'SELECT * FROM public."user_fairies" WHERE "userId" = $1',
+	},
+	{
+		alias: 'file_fairies',
+		expression: 'SELECT * FROM public."file_fairies" WHERE "userId" = $1',
 	},
 ] as const satisfies WithClause[]
 
@@ -79,6 +114,31 @@ const selects: SelectClause[] = [
 		from: 'all_files',
 		outputTableName: 'file',
 		columns: makeColumnStuff(schema.tables.file),
+	},
+	{
+		from: 'group_file_ownership',
+		outputTableName: 'group_file',
+		columns: makeColumnStuff(schema.tables.group_file),
+	},
+	{
+		from: 'my_groups',
+		outputTableName: 'group',
+		columns: makeColumnStuff(schema.tables.group),
+	},
+	{
+		from: 'all_group_users',
+		outputTableName: 'group_user',
+		columns: makeColumnStuff(schema.tables.group_user),
+	},
+	{
+		from: 'my_fairies',
+		outputTableName: 'user_fairies',
+		columns: makeColumnStuff(schema.tables.user_fairies),
+	},
+	{
+		from: 'file_fairies',
+		outputTableName: 'file_fairies',
+		columns: makeColumnStuff(schema.tables.file_fairies),
 	},
 	{
 		from: 'public."user_mutation_number"',

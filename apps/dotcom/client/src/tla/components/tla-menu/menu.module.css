@@ -324,6 +324,7 @@ div:has(> .menuSelectContent) {
 	justify-content: flex-start;
 	position: relative;
 	overflow-x: auto;
+	flex: 1;
 	--tab-padding: 12px;
 	--line-height: 2px;
 }
@@ -390,4 +391,8 @@ div:has(> .menuSelectContent) {
 	right: var(--tab-padding);
 	height: var(--line-height);
 	background-color: var(--tla-color-hover-1);
+}
+
+.menuLabel + .menuInfoTriggerContainer {
+	margin-left: -4px;
 }

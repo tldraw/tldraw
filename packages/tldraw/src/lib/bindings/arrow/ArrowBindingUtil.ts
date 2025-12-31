@@ -180,7 +180,7 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	}
 
 	if (finalIndex !== reparentedArrow.index) {
-		editor.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
+		editor.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
 	}
 }
 

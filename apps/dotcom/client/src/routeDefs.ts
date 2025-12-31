@@ -5,12 +5,17 @@ export const ROUTES = {
 
 	tlaRoot: `/`,
 	tlaNew: `/new`,
+	pricing: `/pricing`,
 	tlaFile: `/f/:fileSlug`,
 	tlaFileHistory: `/f/:fileSlug/history`,
 	tlaFileHistorySnapshot: `/f/:fileSlug/history/:timestamp`,
+	tlaFilePierreHistory: `/f/:fileSlug/pierre-history`,
+	tlaFilePierreHistorySnapshot: `/f/:fileSlug/pierre-history/:commitHash`,
 	tlaLocalFileIndex: `/lf`,
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,
+	tlaInvite: `/invite/:token`,
+	tlaFairyInvite: `/fairy-invite/:token`,
 	// Legacy routes
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',

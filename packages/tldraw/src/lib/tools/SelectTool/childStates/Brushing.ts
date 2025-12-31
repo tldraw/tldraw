@@ -3,8 +3,6 @@ import {
 	Mat,
 	StateNode,
 	TLCancelEventInfo,
-	TLFrameShape,
-	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPageId,
 	TLPointerEventInfo,
@@ -33,7 +31,7 @@ export class Brushing extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
-		const { altKey } = editor.inputs
+		const altKey = editor.inputs.getAltKey()
 
 		this.isWrapMode = editor.user.getIsWrapMode()
 
@@ -57,9 +55,7 @@ export class Brushing extends StateNode {
 			editor
 				.getCurrentPageShapes()
 				.filter(
-					(shape) =>
-						editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-						editor.isShapeOrAncestorLocked(shape)
+					(shape) => editor.isShapeOfType(shape, 'group') || editor.isShapeOrAncestorLocked(shape)
 				)
 				.map((shape) => shape.id)
 		)
@@ -100,7 +96,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (this.editor.inputs.altKey) {
+		if (this.editor.inputs.getAltKey()) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()
@@ -118,9 +114,10 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const { editor, excludedShapeIds, isWrapMode } = this
-		const {
-			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
-		} = editor
+		const originPagePoint = editor.inputs.getOriginPagePoint()
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const shiftKey = editor.inputs.getShiftKey()
+		const ctrlKey = editor.inputs.getCtrlKey()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
@@ -177,7 +174,7 @@ export class Brushing extends StateNode {
 
 			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
 			// We also skip frames unless we've completely selected the frame.
-			if (isWrapping || editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
 				continue testAllShapes
 			}
 

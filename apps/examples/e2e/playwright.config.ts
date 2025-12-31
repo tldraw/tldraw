@@ -8,11 +8,12 @@ import path from 'path'
  */
 _config()
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
-	testDir: './tests',
 	globalSetup: './global-setup.ts',
 	globalTeardown: './global-teardown.ts',
 	/* Maximum time one test can run for. */
@@ -28,10 +29,9 @@ const config: PlaywrightTestConfig = {
 			threshold: 0.01,
 		},
 	},
-	// Run files in parallel, but tests within a file in sequence. This is important for certain
-	// tests that use shared system resources like the clipboard, which should all be kept in the
-	// same file.
-	fullyParallel: false,
+	// Run tests fully in parallel for faster execution.
+	// Clipboard tests are already skipped due to flakiness.
+	fullyParallel: true,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: false, // !!process.env.CI,
 	/* Retry on CI only */

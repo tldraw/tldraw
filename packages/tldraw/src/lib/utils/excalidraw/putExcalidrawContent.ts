@@ -16,7 +16,9 @@ import {
 	TLShapeId,
 	Vec,
 	VecLike,
+	VecModel,
 	ZERO_INDEX_KEY,
+	b64Vecs,
 	compact,
 	createBindingId,
 	createShapeId,
@@ -133,6 +135,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'geo',
 					props: {
+						...editor.getShapeUtil('geo').getDefaultProps(),
 						geo: element.type,
 						url: element.link ?? '',
 						w: element.width,
@@ -148,21 +151,25 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'freedraw': {
+				const points: VecModel[] = element.points.map(([x, y, z = 0.5]: number[]) => ({
+					x,
+					y,
+					z,
+				}))
+				const base64Points = b64Vecs.encodePoints(points)
+
 				tldrawContent.shapes.push({
 					...base,
 					type: 'draw',
 					props: {
+						...editor.getShapeUtil('draw').getDefaultProps(),
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						segments: [
 							{
 								type: 'free',
-								points: element.points.map(([x, y, z = 0.5]: number[]) => ({
-									x,
-									y,
-									z,
-								})),
+								points: base64Points,
 							},
 						],
 					},
@@ -180,6 +187,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'line',
 					props: {
+						...editor.getShapeUtil('line').getDefaultProps(),
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
 						color: colorsToColors[element.strokeColor] ?? 'black',
@@ -221,6 +229,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'arrow',
 					props: {
+						...editor.getShapeUtil('arrow').getDefaultProps(),
 						richText: toRichText(text),
 						kind: element.elbowed ? 'elbow' : 'arc',
 						bend: getBend(element, start, end),
@@ -243,6 +252,7 @@ export async function putExcalidrawContent(
 						toId: startTargetId,
 						props: {
 							terminal: 'start',
+							snap: 'none',
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isPrecise: false,
 							isExact: false,
@@ -259,6 +269,7 @@ export async function putExcalidrawContent(
 						toId: endTargetId,
 						props: {
 							terminal: 'end',
+							snap: 'none',
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isPrecise: false,
 							isExact: false,
@@ -275,6 +286,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'text',
 					props: {
+						...editor.getShapeUtil('text').getDefaultProps(),
 						size,
 						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
@@ -310,6 +322,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'image',
 					props: {
+						...editor.getShapeUtil('image').getDefaultProps(),
 						w: element.width,
 						h: element.height,
 						assetId,
@@ -321,7 +334,7 @@ export async function putExcalidrawContent(
 		index = getIndexAbove(index)
 	}
 
-	const p = point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : undefined)
+	const p = point ?? (editor.inputs.getShiftKey() ? editor.inputs.getCurrentPagePoint() : undefined)
 
 	editor.putContentOntoCurrentPage(tldrawContent, {
 		point: p,

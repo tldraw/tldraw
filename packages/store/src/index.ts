@@ -1,5 +1,6 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { AtomMap } from './lib/AtomMap'
+export { AtomSet } from './lib/AtomSet'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { devFreeze } from './lib/devFreeze'
 export { type QueryExpression, type QueryValueMatcher } from './lib/executeQuery'
@@ -18,6 +19,8 @@ export {
 	type MigrationResult,
 	type MigrationSequence,
 	type StandaloneDependsOn,
+	type SynchronousRecordStorage,
+	type SynchronousStorage,
 } from './lib/migrate'
 export {
 	createEmptyRecordsDiff,

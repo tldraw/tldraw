@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test'
-import { setup, sleep } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import test from '../fixtures/fixtures'
+import { setupOrReset } from '../shared-e2e'
 
 test.describe('more rich text', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 
 	test('Double click from select tool to create and edit text on the canvas', async ({
 		page,
@@ -11,7 +11,8 @@ test.describe('more rich text', () => {
 	}) => {
 		await toolbar.tools.select.click()
 		await page.mouse.dblclick(150, 150)
-		await sleep(500) // racey here
+		// Wait for the text editor to be ready
+		await expect(page.getByTestId('rich-text-area')).toBeVisible()
 		await page.keyboard.type('id like to go to india')
 		expect(page.getByTestId('rich-text-area')).toHaveText('id like to go to india')
 	})
@@ -19,7 +20,8 @@ test.describe('more rich text', () => {
 	test('Click with text tool to create and edit text on the canvas', async ({ page, toolbar }) => {
 		await toolbar.tools.text.click()
 		await page.mouse.click(150, 150)
-		await sleep(500) // racey here
+		// Wait for the text editor to be ready
+		await expect(page.getByTestId('rich-text-area')).toBeVisible()
 		await page.keyboard.type('Live in a big white house in the forest')
 		expect(page.getByTestId('rich-text-area')).toHaveText('Live in a big white house in the forest')
 
@@ -41,7 +43,8 @@ test.describe('more rich text', () => {
 		await page.mouse.down()
 		await page.mouse.move(350, 150, { steps: 10 })
 		await page.mouse.up()
-		await sleep(500) // racey here
+		// Wait for the text editor to be ready
+		await expect(page.getByTestId('rich-text-area')).toBeVisible()
 		await page.keyboard.type('Drink gin and tonic and play a grand piano')
 		expect(page.getByTestId('rich-text-area')).toHaveText(
 			'Drink gin and tonic and play a grand piano'

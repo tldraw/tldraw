@@ -1,5 +1,4 @@
 import { StateNode, TLEventHandlers } from 'tldraw'
-import { CircleClipShape } from './CircleClipShapeUtil'
 
 export class CircleClipShapeTool extends StateNode {
 	static override id = 'circle-clip'
@@ -10,9 +9,9 @@ export class CircleClipShapeTool extends StateNode {
 
 	override onPointerDown(info: Parameters<TLEventHandlers['onPointerDown']>[0]) {
 		if (info.target === 'canvas') {
-			const { originPagePoint } = this.editor.inputs
+			const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
-			this.editor.createShape<CircleClipShape>({
+			this.editor.createShape({
 				type: 'circle-clip',
 				x: originPagePoint.x - 100,
 				y: originPagePoint.y - 100,
