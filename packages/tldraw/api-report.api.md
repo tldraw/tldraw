@@ -1528,6 +1528,7 @@ export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export interface FrameShapeOptions {
+    resizeChildren: boolean;
     showColors: boolean;
 }
 
