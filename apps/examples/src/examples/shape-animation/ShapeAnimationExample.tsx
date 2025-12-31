@@ -1,5 +1,14 @@
-import { createShapeId, EASINGS, TLComponents, Tldraw, useEditor } from 'tldraw'
+import {
+	createShapeId,
+	EASINGS,
+	TLComponents,
+	Tldraw,
+	TldrawUiButton,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
+import './shape-animation.css'
 
 // [1]
 function AnimationControls() {
@@ -73,68 +82,29 @@ function AnimationControls() {
 		editor.animateShapes(updates, { animation: { duration: 1000, easing: EASINGS.easeOutCubic } })
 	}
 
+	const hasOneSelected = useValue(
+		'has one selected',
+		() => editor.getSelectedShapeIds().length !== 1,
+		[editor]
+	)
+
 	return (
-		<div style={{ display: 'flex', gap: '8px', padding: '8px', flexWrap: 'wrap' }}>
-			<button
-				onClick={animatePosition}
-				style={{
-					padding: '8px 12px',
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					pointerEvents: 'all',
-				}}
-			>
+		<div className="tlui-menu animation-controls">
+			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animatePosition}>
 				Animate position
-			</button>
-			<button
-				onClick={animateRotation}
-				style={{
-					padding: '8px 12px',
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					pointerEvents: 'all',
-				}}
-			>
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateRotation}>
 				Animate rotation
-			</button>
-			<button
-				onClick={animateFade}
-				style={{
-					padding: '8px 12px',
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					pointerEvents: 'all',
-				}}
-			>
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateFade}>
 				Fade in/out
-			</button>
-			<button
-				onClick={animateAll}
-				style={{
-					padding: '8px 12px',
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					pointerEvents: 'all',
-				}}
-			>
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateAll}>
 				Animate all
-			</button>
-			<button
-				onClick={animateMultiple}
-				style={{
-					padding: '8px 12px',
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					pointerEvents: 'all',
-				}}
-			>
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" onClick={animateMultiple}>
 				Animate multiple shapes
-			</button>
+			</TldrawUiButton>
 		</div>
 	)
 }
