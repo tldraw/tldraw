@@ -911,6 +911,25 @@ input,
 	padding-inline-start: 5.25ch;
 }
 
+/* Nested list marker differentiation - restore browser-like visual hierarchy */
+/* Unordered lists: disc → circle → square */
+.tl-rich-text ul ul {
+	list-style-type: circle;
+}
+
+.tl-rich-text ul ul ul {
+	list-style-type: square;
+}
+
+/* Ordered lists: decimal → lower-alpha → lower-roman */
+.tl-rich-text ol ol {
+	list-style-type: lower-alpha;
+}
+
+.tl-rich-text ol ol ol {
+	list-style-type: lower-roman;
+}
+
 /* RTL support: When list items contain RTL content (computed direction is RTL) */
 /* :dir(rtl) matches based on computed direction, not just attribute value */
 .tl-rich-text li:has(p:dir(rtl)),
