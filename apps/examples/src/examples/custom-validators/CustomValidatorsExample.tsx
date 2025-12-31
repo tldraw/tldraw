@@ -20,13 +20,9 @@ const validatedShapeProps: RecordProps<ValidatedShape> = {
 	w: T.positiveNumber,
 	h: T.positiveNumber,
 	// [3]
-	percentage: T.number
-		.check('min-value', (value) => {
-			if (value < 0) throw new Error('Percentage must be at least 0')
-		})
-		.check('max-value', (value) => {
-			if (value > 100) throw new Error('Percentage cannot exceed 100')
-		}),
+	percentage: T.nonZeroFiniteNumber.check('max-value', (value) => {
+		if (value > 100) throw new Error('Percentage cannot exceed 100')
+	}),
 	// [4]
 	rating: T.integer.refine((value) => {
 		return Math.max(1, Math.min(5, value))
@@ -106,8 +102,8 @@ Extend TLGlobalShapePropsMap to register your custom shape's props with the type
 Define validators for each prop. Each validator adds constraints beyond basic type checking.
 
 [3]
-Chain multiple .check() calls to add validation constraints. Each check validates without
-transforming the value. The name (e.g. 'min-value') appears in error messages for debugging.
+Use .check() to add validation constraints. Each check validates without
+transforming the value. The name (e.g. 'max-value') appears in error messages for debugging.
 
 [4]
 Use .refine() to transform values. Unlike .check(), refine() returns a (possibly modified)
