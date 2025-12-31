@@ -901,7 +901,6 @@ describe('frame shapes', () => {
 			const childId = editor.getOnlySelectedShape()!.id
 
 			// Get initial bounds
-			const initialFrameBounds = editor.getShapePageBounds(frameId)!
 			const initialChildBounds = editor.getShapePageBounds(childId)!
 
 			// Create a new editor with configured frame util that allows resizing children
