@@ -90,4 +90,8 @@ is placed in the TopPanel to demonstrate how custom UI can use the translation s
 [5]
 We pass both the overrides and components to the Tldraw component. The overrides provide the
 custom translations, and the components prop adds our custom toolbar that uses those translations.
+
+In addition to our custom menu, our custom translations can be found in the other menus as well.
+Try creating a shape and right clicking it to see the custom translations in the context menu, or
+in the main menu, keyboard shortcuts dialog, and more.
 */
