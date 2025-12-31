@@ -174,19 +174,9 @@ function SetRef(ref?: Ref): void {
 	}
 }
 
-// http://jsperf.com/copy-array-inline
-function arrCopy<I>(arr: Array<I>, offset?: number): Array<I> {
-	offset = offset || 0
-	const len = Math.max(0, arr.length - offset)
-	const newArr: Array<I> = new Array(len)
-	for (let ii = 0; ii < len; ii++) {
-		// We may want to guard for undefined values with `if (arr[ii + offset] !== undefined`, but ths should not happen by design
-		newArr[ii] = arr[ii + offset]
-	}
-	return newArr
+function arrCopy<I>(arr: Array<I>, offset = 0): Array<I> {
+	return arr.slice(offset)
 }
-
-const is = Object.is
 
 class OwnerID {}
 
@@ -481,7 +471,7 @@ class ArrayMapNode<K, V> {
 	get(_shift: unknown, _keyHash: unknown, key: K, notSetValue?: V) {
 		const entries = this.entries
 		for (let ii = 0, len = entries.length; ii < len; ii++) {
-			if (is(key, entries[ii][0])) {
+			if (Object.is(key, entries[ii][0])) {
 				return entries[ii][1]
 			}
 		}
@@ -503,7 +493,7 @@ class ArrayMapNode<K, V> {
 		let idx = 0
 		const len = entries.length
 		for (; idx < len; idx++) {
-			if (is(key, entries[idx][0])) {
+			if (Object.is(key, entries[idx][0])) {
 				break
 			}
 		}
@@ -514,8 +504,7 @@ class ArrayMapNode<K, V> {
 		}
 
 		SetRef(didAlter)
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
-		;(removed || !exists) && SetRef(didChangeSize)
+		if (removed || !exists) SetRef(didChangeSize)
 
 		if (removed && entries.length === 1) {
 			return // undefined
@@ -530,8 +519,11 @@ class ArrayMapNode<K, V> {
 
 		if (exists) {
 			if (removed) {
-				// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
-				idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop()!)
+				if (idx === len - 1) {
+					newEntries.pop()
+				} else {
+					newEntries[idx] = newEntries.pop()!
+				}
 			} else {
 				newEntries[idx] = [key, value]
 			}
@@ -719,7 +711,7 @@ class HashCollisionNode<K, V> {
 	get(shift: number, keyHash: number, key: K, notSetValue?: V) {
 		const entries = this.entries
 		for (let ii = 0, len = entries.length; ii < len; ii++) {
-			if (is(key, entries[ii][0])) {
+			if (Object.is(key, entries[ii][0])) {
 				return entries[ii][1]
 			}
 		}
@@ -754,7 +746,7 @@ class HashCollisionNode<K, V> {
 		let idx = 0
 		const len = entries.length
 		for (; idx < len; idx++) {
-			if (is(key, entries[idx][0])) {
+			if (Object.is(key, entries[idx][0])) {
 				break
 			}
 		}
@@ -765,8 +757,7 @@ class HashCollisionNode<K, V> {
 		}
 
 		SetRef(didAlter)
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
-		;(removed || !exists) && SetRef(didChangeSize)
+		if (removed || !exists) SetRef(didChangeSize)
 
 		if (removed && len === 2) {
 			return new ValueNode(ownerID, this.keyHash, entries[idx ^ 1])
@@ -777,8 +768,11 @@ class HashCollisionNode<K, V> {
 
 		if (exists) {
 			if (removed) {
-				// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
-				idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop()!)
+				if (idx === len - 1) {
+					newEntries.pop()
+				} else {
+					newEntries[idx] = newEntries.pop()!
+				}
 			} else {
 				newEntries[idx] = [key, value]
 			}
@@ -803,7 +797,7 @@ class ValueNode<K, V> {
 	) {}
 
 	get(shift: number, keyHash: number, key: K, notSetValue?: V) {
-		return is(key, this.entry[0]) ? this.entry[1] : notSetValue
+		return Object.is(key, this.entry[0]) ? this.entry[1] : notSetValue
 	}
 
 	update(
@@ -816,7 +810,7 @@ class ValueNode<K, V> {
 		didAlter?: Ref
 	) {
 		const removed = value === NOT_SET
-		const keyMatch = is(key, this.entry[0])
+		const keyMatch = Object.is(key, this.entry[0])
 		if (keyMatch ? value === this.entry[1] : removed) {
 			return this
 		}
@@ -927,13 +921,11 @@ function iteratorValue<K, V>(
 	iteratorResult?: IteratorResult<any>
 ) {
 	const value = type === ITERATE_KEYS ? k : type === ITERATE_VALUES ? v : [k, v]
-	// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- TODO enable eslint here
-	iteratorResult
-		? (iteratorResult.value = value)
-		: (iteratorResult = {
-				value: value,
-				done: false,
-			})
+	if (iteratorResult) {
+		iteratorResult.value = value
+	} else {
+		iteratorResult = { value, done: false }
+	}
 	return iteratorResult
 }
 
