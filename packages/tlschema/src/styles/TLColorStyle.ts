@@ -2,7 +2,24 @@ import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
-/** @public */
+/**
+ * Array of default color names available in tldraw's color palette.
+ * These colors form the basis for the default color style system and are available
+ * in both light and dark theme variants.
+ *
+ * @example
+ * ```ts
+ * import { defaultColorNames } from '@tldraw/tlschema'
+ *
+ * // Create a color picker with all default colors
+ * const colorOptions = defaultColorNames.map(color => ({
+ *   name: color,
+ *   value: color
+ * }))
+ * ```
+ *
+ * @public
+ */
 export const defaultColorNames = [
 	'black',
 	'grey',
@@ -19,12 +36,32 @@ export const defaultColorNames = [
 	'white',
 ] as const
 
-/** @public */
+/**
+ * Defines the color variants available for each color in the default theme.
+ * Each color has multiple variants for different use cases like fills, strokes,
+ * patterns, and UI elements like frames and notes.
+ *
+ * @example
+ * ```ts
+ * import { TLDefaultColorThemeColor } from '@tldraw/tlschema'
+ *
+ * const blueColor: TLDefaultColorThemeColor = {
+ *   solid: '#4465e9',
+ *   semi: '#dce1f8',
+ *   pattern: '#6681ee',
+ *   fill: '#4465e9',
+ *   // ... other variants
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface TLDefaultColorThemeColor {
 	solid: string
 	semi: string
 	pattern: string
 	fill: string // usually same as solid
+	linedFill: string // usually slightly lighter than fill
 	frameHeadingStroke: string
 	frameHeadingFill: string
 	frameStroke: string
@@ -36,7 +73,27 @@ export interface TLDefaultColorThemeColor {
 	highlightP3: string
 }
 
-/** @public */
+/**
+ * Complete color theme definition containing all colors and their variants
+ * for either light or dark mode. Includes base theme properties and all
+ * default colors with their respective color variants.
+ *
+ * @example
+ * ```ts
+ * import { TLDefaultColorTheme } from '@tldraw/tlschema'
+ *
+ * const customTheme: TLDefaultColorTheme = {
+ *   id: 'light',
+ *   text: '#000000',
+ *   background: '#ffffff',
+ *   solid: '#fcfffe',
+ *   black: { solid: '#000000', semi: '#cccccc', ... },
+ *   // ... other colors
+ * }
+ * ```
+ *
+ * @public
+ */
 export type TLDefaultColorTheme = Expand<
 	{
 		id: 'light' | 'dark'
@@ -46,7 +103,26 @@ export type TLDefaultColorTheme = Expand<
 	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
-/** @public */
+/**
+ * Complete color palette containing both light and dark theme definitions.
+ * This object provides the full color system used by tldraw's default themes,
+ * including all color variants and theme-specific adjustments.
+ *
+ * @example
+ * ```ts
+ * import { DefaultColorThemePalette } from '@tldraw/tlschema'
+ *
+ * // Get the dark theme colors
+ * const darkTheme = DefaultColorThemePalette.darkMode
+ * const redColor = darkTheme.red.solid // '#e03131'
+ *
+ * // Access light theme colors
+ * const lightTheme = DefaultColorThemePalette.lightMode
+ * const blueColor = lightTheme.blue.fill // '#4465e9'
+ * ```
+ *
+ * @public
+ */
 export const DefaultColorThemePalette: {
 	lightMode: TLDefaultColorTheme
 	darkMode: TLDefaultColorTheme
@@ -59,6 +135,7 @@ export const DefaultColorThemePalette: {
 		black: {
 			solid: '#1d1d1d',
 			fill: '#1d1d1d',
+			linedFill: '#363636',
 			frameHeadingStroke: '#717171',
 			frameHeadingFill: '#ffffff',
 			frameStroke: '#717171',
@@ -74,6 +151,7 @@ export const DefaultColorThemePalette: {
 		blue: {
 			solid: '#4465e9',
 			fill: '#4465e9',
+			linedFill: '#6580ec',
 			frameHeadingStroke: '#6681ec',
 			frameHeadingFill: '#f9fafe',
 			frameStroke: '#6681ec',
@@ -89,6 +167,7 @@ export const DefaultColorThemePalette: {
 		green: {
 			solid: '#099268',
 			fill: '#099268',
+			linedFill: '#0bad7c',
 			frameHeadingStroke: '#37a684',
 			frameHeadingFill: '#f8fcfa',
 			frameStroke: '#37a684',
@@ -104,6 +183,7 @@ export const DefaultColorThemePalette: {
 		grey: {
 			solid: '#9fa8b2',
 			fill: '#9fa8b2',
+			linedFill: '#bbc1c9',
 			frameHeadingStroke: '#aaaaab',
 			frameHeadingFill: '#fbfcfc',
 			frameStroke: '#aaaaab',
@@ -119,6 +199,7 @@ export const DefaultColorThemePalette: {
 		'light-blue': {
 			solid: '#4ba1f1',
 			fill: '#4ba1f1',
+			linedFill: '#7abaf5',
 			frameHeadingStroke: '#6cb2f3',
 			frameHeadingFill: '#f8fbfe',
 			frameStroke: '#6cb2f3',
@@ -134,6 +215,7 @@ export const DefaultColorThemePalette: {
 		'light-green': {
 			solid: '#4cb05e',
 			fill: '#4cb05e',
+			linedFill: '#7ec88c',
 			frameHeadingStroke: '#6dbe7c',
 			frameHeadingFill: '#f8fcf9',
 			frameStroke: '#6dbe7c',
@@ -149,6 +231,7 @@ export const DefaultColorThemePalette: {
 		'light-red': {
 			solid: '#f87777',
 			fill: '#f87777',
+			linedFill: '#f99a9a',
 			frameHeadingStroke: '#f89090',
 			frameHeadingFill: '#fffafa',
 			frameStroke: '#f89090',
@@ -164,6 +247,7 @@ export const DefaultColorThemePalette: {
 		'light-violet': {
 			solid: '#e085f4',
 			fill: '#e085f4',
+			linedFill: '#e9abf7',
 			frameHeadingStroke: '#e59bf5',
 			frameHeadingFill: '#fefaff',
 			frameStroke: '#e59bf5',
@@ -179,6 +263,7 @@ export const DefaultColorThemePalette: {
 		orange: {
 			solid: '#e16919',
 			fill: '#e16919',
+			linedFill: '#ea8643',
 			frameHeadingStroke: '#e68544',
 			frameHeadingFill: '#fef9f6',
 			frameStroke: '#e68544',
@@ -194,6 +279,7 @@ export const DefaultColorThemePalette: {
 		red: {
 			solid: '#e03131',
 			fill: '#e03131',
+			linedFill: '#e75f5f',
 			frameHeadingStroke: '#e55757',
 			frameHeadingFill: '#fef7f7',
 			frameStroke: '#e55757',
@@ -209,6 +295,7 @@ export const DefaultColorThemePalette: {
 		violet: {
 			solid: '#ae3ec9',
 			fill: '#ae3ec9',
+			linedFill: '#be68d4',
 			frameHeadingStroke: '#bc62d3',
 			frameHeadingFill: '#fcf7fd',
 			frameStroke: '#bc62d3',
@@ -224,6 +311,7 @@ export const DefaultColorThemePalette: {
 		yellow: {
 			solid: '#f1ac4b',
 			fill: '#f1ac4b',
+			linedFill: '#f5c27a',
 			frameHeadingStroke: '#f3bb6c',
 			frameHeadingFill: '#fefcf8',
 			frameStroke: '#f3bb6c',
@@ -239,6 +327,7 @@ export const DefaultColorThemePalette: {
 		white: {
 			solid: '#FFFFFF',
 			fill: '#FFFFFF',
+			linedFill: '#ffffff',
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			frameHeadingStroke: '#7d7d7d',
@@ -261,6 +350,7 @@ export const DefaultColorThemePalette: {
 		black: {
 			solid: '#f2f2f2',
 			fill: '#f2f2f2',
+			linedFill: '#ffffff',
 			frameHeadingStroke: '#5c5c5c',
 			frameHeadingFill: '#252525',
 			frameStroke: '#5c5c5c',
@@ -276,6 +366,7 @@ export const DefaultColorThemePalette: {
 		blue: {
 			solid: '#4f72fc', // 3c60f0
 			fill: '#4f72fc',
+			linedFill: '#3c5cdd',
 			frameHeadingStroke: '#384994',
 			frameHeadingFill: '#1C2036',
 			frameStroke: '#384994',
@@ -291,6 +382,7 @@ export const DefaultColorThemePalette: {
 		green: {
 			solid: '#099268',
 			fill: '#099268',
+			linedFill: '#087856',
 			frameHeadingStroke: '#10513C',
 			frameHeadingFill: '#14241f',
 			frameStroke: '#10513C',
@@ -306,6 +398,7 @@ export const DefaultColorThemePalette: {
 		grey: {
 			solid: '#9398b0',
 			fill: '#9398b0',
+			linedFill: '#8388a5',
 			frameHeadingStroke: '#42474D',
 			frameHeadingFill: '#23262A',
 			frameStroke: '#42474D',
@@ -321,6 +414,7 @@ export const DefaultColorThemePalette: {
 		'light-blue': {
 			solid: '#4dabf7',
 			fill: '#4dabf7',
+			linedFill: '#2793ec',
 			frameHeadingStroke: '#075797',
 			frameHeadingFill: '#142839',
 			frameStroke: '#075797',
@@ -336,6 +430,7 @@ export const DefaultColorThemePalette: {
 		'light-green': {
 			solid: '#40c057',
 			fill: '#40c057',
+			linedFill: '#37a44b',
 			frameHeadingStroke: '#1C5427',
 			frameHeadingFill: '#18251A',
 			frameStroke: '#1C5427',
@@ -351,6 +446,7 @@ export const DefaultColorThemePalette: {
 		'light-red': {
 			solid: '#ff8787',
 			fill: '#ff8787',
+			linedFill: '#ff6666',
 			frameHeadingStroke: '#6f3232', // Darker and desaturated variant of solid
 			frameHeadingFill: '#341818', // Deep, muted dark red
 			frameStroke: '#6f3232', // Matches headingStroke
@@ -366,6 +462,7 @@ export const DefaultColorThemePalette: {
 		'light-violet': {
 			solid: '#e599f7',
 			fill: '#e599f7',
+			linedFill: '#dc71f4',
 			frameHeadingStroke: '#6c367a',
 			frameHeadingFill: '#2D2230',
 			frameStroke: '#6c367a',
@@ -381,6 +478,7 @@ export const DefaultColorThemePalette: {
 		orange: {
 			solid: '#f76707',
 			fill: '#f76707',
+			linedFill: '#f54900',
 			frameHeadingStroke: '#773a0e', // Darker, muted version of solid
 			frameHeadingFill: '#2f1d13', // Deep, warm, muted background
 			frameStroke: '#773a0e', // Matches headingStroke
@@ -396,6 +494,7 @@ export const DefaultColorThemePalette: {
 		red: {
 			solid: '#e03131',
 			fill: '#e03131',
+			linedFill: '#c31d1d',
 			frameHeadingStroke: '#701e1e', // Darker, muted variation of solid
 			frameHeadingFill: '#301616', // Deep, muted reddish backdrop
 			frameStroke: '#701e1e', // Matches headingStroke
@@ -411,6 +510,7 @@ export const DefaultColorThemePalette: {
 		violet: {
 			solid: '#ae3ec9',
 			fill: '#ae3ec9',
+			linedFill: '#8f2fa7',
 			frameHeadingStroke: '#6d1583', // Darker, muted variation of solid
 			frameHeadingFill: '#27152e', // Deep, rich muted violet backdrop
 			frameStroke: '#6d1583', // Matches headingStroke
@@ -426,6 +526,7 @@ export const DefaultColorThemePalette: {
 		yellow: {
 			solid: '#ffc034',
 			fill: '#ffc034',
+			linedFill: '#ffae00',
 			frameHeadingStroke: '#684e12', // Darker, muted variant of solid
 			frameHeadingFill: '#2a2113', // Rich, muted dark-yellow background
 			frameStroke: '#684e12', // Matches headingStroke
@@ -441,6 +542,7 @@ export const DefaultColorThemePalette: {
 		white: {
 			solid: '#f3f3f3',
 			fill: '#f3f3f3',
+			linedFill: '#f3f3f3',
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			frameHeadingStroke: '#ffffff',
@@ -456,36 +558,179 @@ export const DefaultColorThemePalette: {
 	},
 }
 
-/** @public */
+/**
+ * Returns the appropriate default color theme based on the dark mode preference.
+ *
+ * @param opts - Configuration options
+ *   - isDarkMode - Whether to return the dark theme (true) or light theme (false)
+ * @returns The corresponding TLDefaultColorTheme (light or dark)
+ *
+ * @example
+ * ```ts
+ * import { getDefaultColorTheme } from '@tldraw/tlschema'
+ *
+ * // Get light theme
+ * const lightTheme = getDefaultColorTheme({ isDarkMode: false })
+ *
+ * // Get dark theme
+ * const darkTheme = getDefaultColorTheme({ isDarkMode: true })
+ *
+ * // Use with editor
+ * const theme = getDefaultColorTheme({ isDarkMode: window.matchMedia('(prefers-color-scheme: dark)').matches })
+ * ```
+ *
+ * @public
+ */
 export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultColorTheme {
 	return opts.isDarkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
 }
 
-/** @public */
+/**
+ * Default color style property used by tldraw shapes for their primary color.
+ * This style prop allows shapes to use any of the default color names and
+ * automatically saves the last used value for new shapes.
+ *
+ * @example
+ * ```ts
+ * import { DefaultColorStyle } from '@tldraw/tlschema'
+ *
+ * // Use in shape props definition
+ * interface MyShapeProps {
+ *   color: typeof DefaultColorStyle
+ *   // other props...
+ * }
+ *
+ * // Set color on a shape
+ * const shape = {
+ *   // ... other properties
+ *   props: {
+ *     color: 'red' as const,
+ *     // ... other props
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
-/** @public */
+/**
+ * Default label color style property used for text labels on shapes.
+ * This is separate from the main color style to allow different colors
+ * for shape fills/strokes versus their text labels.
+ *
+ * @example
+ * ```ts
+ * import { DefaultLabelColorStyle } from '@tldraw/tlschema'
+ *
+ * // Use in shape props definition
+ * interface MyShapeProps {
+ *   labelColor: typeof DefaultLabelColorStyle
+ *   // other props...
+ * }
+ *
+ * // Create a shape with different fill and label colors
+ * const shape = {
+ *   // ... other properties
+ *   props: {
+ *     color: 'blue' as const,
+ *     labelColor: 'white' as const,
+ *     // ... other props
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
 
-/** @public */
+/**
+ * Type representing a default color style value.
+ * This is a union type of all available default color names.
+ *
+ * @example
+ * ```ts
+ * import { TLDefaultColorStyle } from '@tldraw/tlschema'
+ *
+ * // Valid color values
+ * const redColor: TLDefaultColorStyle = 'red'
+ * const blueColor: TLDefaultColorStyle = 'blue'
+ *
+ * // Type guard usage
+ * function isValidColor(color: string): color is TLDefaultColorStyle {
+ *   return ['black', 'red', 'blue'].includes(color as TLDefaultColorStyle)
+ * }
+ * ```
+ *
+ * @public
+ */
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
 
 const defaultColorNamesSet = new Set(defaultColorNames)
 
-/** @public */
+/**
+ * Type guard to check if a color value is one of the default theme colors.
+ * Useful for determining if a color can be looked up in the theme palette.
+ *
+ * @param color - The color value to check
+ * @returns True if the color is a default theme color, false otherwise
+ *
+ * @example
+ * ```ts
+ * import { isDefaultThemeColor, TLDefaultColorStyle } from '@tldraw/tlschema'
+ *
+ * const color: TLDefaultColorStyle = 'red'
+ *
+ * if (isDefaultThemeColor(color)) {
+ *   // color is guaranteed to be a default theme color
+ *   console.log(`${color} is a default theme color`)
+ * } else {
+ *   // color might be a custom hex value or other format
+ *   console.log(`${color} is a custom color`)
+ * }
+ * ```
+ *
+ * @public
+ */
 export function isDefaultThemeColor(
 	color: TLDefaultColorStyle
 ): color is (typeof defaultColorNames)[number] {
 	return defaultColorNamesSet.has(color as (typeof defaultColorNames)[number])
 }
 
-/** @public */
+/**
+ * Resolves a color style value to its actual CSS color string for a given theme and variant.
+ * If the color is not a default theme color, returns the color value as-is.
+ *
+ * @param theme - The color theme to use for resolution
+ * @param color - The color style value to resolve
+ * @param variant - Which variant of the color to return (solid, fill, pattern, etc.)
+ * @returns The CSS color string for the specified color and variant
+ *
+ * @example
+ * ```ts
+ * import { getColorValue, getDefaultColorTheme } from '@tldraw/tlschema'
+ *
+ * const theme = getDefaultColorTheme({ isDarkMode: false })
+ *
+ * // Get the solid variant of red
+ * const redSolid = getColorValue(theme, 'red', 'solid') // '#e03131'
+ *
+ * // Get the fill variant of blue
+ * const blueFill = getColorValue(theme, 'blue', 'fill') // '#4465e9'
+ *
+ * // Custom color passes through unchanged
+ * const customColor = getColorValue(theme, '#ff0000', 'solid') // '#ff0000'
+ * ```
+ *
+ * @public
+ */
 export function getColorValue(
 	theme: TLDefaultColorTheme,
 	color: TLDefaultColorStyle,

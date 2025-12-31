@@ -28,7 +28,7 @@ export type TranslatingInfo = TLPointerEventInfo & {
 	isCreating?: boolean
 	creatingMarkId?: string
 	onCreate?(): void
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class Translating extends StateNode {
@@ -59,7 +59,9 @@ export class Translating extends StateNode {
 		}
 
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.isCreating = isCreating
 
 		this.markId = ''
@@ -90,7 +92,7 @@ export class Translating extends StateNode {
 
 		// Don't clone on create; otherwise clone on altKey
 		if (!this.isCreating) {
-			if (this.editor.inputs.altKey) {
+			if (this.editor.inputs.getAltKey()) {
 				this.startCloning()
 				if (this.isCloning) return
 			}
@@ -120,7 +122,7 @@ export class Translating extends StateNode {
 	}
 
 	override onKeyDown() {
-		if (this.editor.inputs.altKey && !this.isCloning) {
+		if (this.editor.inputs.getAltKey() && !this.isCloning) {
 			this.startCloning()
 			if (this.isCloning) return
 		}
@@ -130,7 +132,7 @@ export class Translating extends StateNode {
 	}
 
 	override onKeyUp() {
-		if (!this.editor.inputs.altKey && this.isCloning) {
+		if (!this.editor.inputs.getAltKey() && this.isCloning) {
 			this.stopCloning()
 			return
 		}
@@ -190,14 +192,23 @@ export class Translating extends StateNode {
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd)
-		} else {
-			if (this.isCreating) {
-				this.onCreate?.(this.editor.getOnlySelectedShape())
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked) {
+					this.editor.setCurrentTool(onInteractionEnd)
+					return
+				}
 			} else {
-				this.parent.transition('idle')
+				onInteractionEnd()
+				return
 			}
+		}
+
+		if (this.isCreating) {
+			this.onCreate?.(this.editor.getOnlySelectedShape())
+		} else {
+			this.parent.transition('idle')
 		}
 	}
 
@@ -214,11 +225,16 @@ export class Translating extends StateNode {
 		})
 
 		this.reset()
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd)
-		} else {
-			this.parent.transition('idle', this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle', this.info)
 	}
 
 	protected handleStart() {
@@ -242,7 +258,7 @@ export class Translating extends StateNode {
 			// Get fresh shapes from the snapshot, in case onTranslateStart mutates the shape
 			compact(this.snapshot.movingShapes.map((s) => this.editor.getShape(s.id))),
 			// Start from the place where the user started dragging
-			this.editor.inputs.originPagePoint,
+			this.editor.inputs.getOriginPagePoint(),
 			this.updateParentTransforms
 		)
 
@@ -289,7 +305,7 @@ export class Translating extends StateNode {
 		// We should have started already, but hey
 		this.dragAndDropManager.startDraggingShapes(
 			snapshot.movingShapes,
-			this.editor.inputs.originPagePoint,
+			this.editor.inputs.getOriginPagePoint(),
 			this.updateParentTransforms
 		)
 
@@ -388,12 +404,10 @@ function getTranslatingSnapshot(editor: Editor) {
 	let noteAdjacentPositions: Vec[] | undefined
 	let noteSnapshot: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
 
-	const { originPagePoint } = editor.inputs
+	const originPagePoint = editor.inputs.getOriginPagePoint()
 
 	const allHoveredNotes = shapeSnapshots.filter(
-		(s) =>
-			editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
-			editor.isPointInShape(s.shape, originPagePoint)
+		(s) => editor.isShapeOfType(s.shape, 'note') && editor.isPointInShape(s.shape, originPagePoint)
 	) as (MovingShapeSnapshot & { shape: TLNoteShape })[]
 
 	if (allHoveredNotes.length === 0) {
@@ -459,13 +473,16 @@ export function moveShapesToPoint({
 		averagePagePoint,
 	} = snapshot
 
+	const shiftKey = editor.inputs.getShiftKey()
+	const accelKey = editor.inputs.getAccelKey()
+
 	const isGridMode = editor.getInstanceState().isGridMode
 
 	const gridSize = editor.getDocumentSettings().gridSize
 
-	const delta = Vec.Sub(inputs.currentPagePoint, inputs.originPagePoint)
+	const delta = Vec.Sub(inputs.getCurrentPagePoint(), inputs.getOriginPagePoint())
 
-	const flatten: 'x' | 'y' | null = editor.inputs.shiftKey
+	const flatten: 'x' | 'y' | null = shiftKey
 		? Math.abs(delta.x) < Math.abs(delta.y)
 			? 'x'
 			: 'y'
@@ -481,9 +498,9 @@ export function moveShapesToPoint({
 	editor.snaps.clearIndicators()
 
 	// If the user isn't moving super quick
-	const isSnapping = editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey
+	const isSnapping = editor.user.getIsSnapMode() ? !accelKey : accelKey
 	let snappedToPit = false
-	if (isSnapping && editor.inputs.pointerVelocity.len() < 0.5) {
+	if (isSnapping && editor.inputs.getPointerVelocity().len() < 0.5) {
 		// snapping
 		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
 			dragDelta: delta,
@@ -523,9 +540,9 @@ export function moveShapesToPoint({
 
 	const averageSnappedPoint = Vec.Add(averagePagePoint, delta)
 
-	// we don't want to snap to the grid if we're holding the ctrl key, if we've already snapped into a pit, or if we're showing snapping indicators
+	// we don't want to snap to the grid if we're holding the accel key, if we've already snapped into a pit, or if we're showing snapping indicators
 	const snapIndicators = editor.snaps.getIndicators()
-	if (isGridMode && !inputs.ctrlKey && !snappedToPit && snapIndicators.length === 0) {
+	if (isGridMode && !accelKey && !snappedToPit && snapIndicators.length === 0) {
 		averageSnappedPoint.snapToGrid(gridSize)
 	}
 

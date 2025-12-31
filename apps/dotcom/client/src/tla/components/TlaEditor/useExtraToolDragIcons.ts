@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import {
+	b64Vecs,
 	DefaultSizeStyle,
 	onDragFromToolbarToCreateShape,
-	TLDrawShape,
 	TLUiOverrides,
 	VecModel,
 } from 'tldraw'
@@ -16,14 +16,14 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape<TLDrawShape>({
+							return editor.createShape({
 								id,
 								type: 'draw',
 								props: {
 									segments: [
 										{
 											type: 'free',
-											points: scalePoints(POINTER_POINTS, SCALES[sizeStyle]),
+											points: b64Vecs.encodePoints(scalePoints(POINTER_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -39,14 +39,14 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape<TLDrawShape>({
+							return editor.createShape({
 								id,
 								type: 'draw',
 								props: {
 									segments: [
 										{
 											type: 'free',
-											points: scalePoints(HAND_POINTS, SCALES[sizeStyle]),
+											points: b64Vecs.encodePoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -62,14 +62,14 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape<TLDrawShape>({
+							return editor.createShape({
 								id,
 								type: 'draw',
 								props: {
 									segments: [
 										{
 											type: 'free',
-											points: scalePoints(DRAW_POINTS, SCALES[sizeStyle]),
+											points: b64Vecs.encodePoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,

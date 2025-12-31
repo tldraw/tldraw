@@ -115,28 +115,31 @@ function HighlightedCodeElem({ children, ...props }: React.ComponentProps<'code'
 				if (!line || !isValidElement(line)) return line
 
 				assert(line.type === 'span', 'Invalid code child (not a span)')
-				assert(line.props.className === 'line', 'Invalid code child (not a line)')
+				const lineElement = line as ReactElement<{ className?: string; children?: ReactNode }>
+				assert(lineElement.props.className === 'line', 'Invalid code child (not a line)')
 
 				// apply line lowlights
 				lineNumber++
+				let updatedLine = lineElement
 				if (focusLines && !focusLines?.includes(lineNumber)) {
-					line = React.cloneElement(line, {
-						...line.props,
-						className: cn(line.props?.className, blurredLineClassName),
+					updatedLine = React.cloneElement(lineElement, {
+						...lineElement.props,
+						className: cn(lineElement.props?.className, blurredLineClassName),
 					})
 				}
 				// inject links where needed
 				if (codeLinks) {
-					line = React.cloneElement(line as ReactElement, {
-						...line.props,
-						children: React.Children.map(line.props.children, (elem) => {
-							if (!isValidElement<any>(elem)) return elem
+					updatedLine = React.cloneElement(updatedLine, {
+						...updatedLine.props,
+						children: React.Children.map(updatedLine.props.children, (elem) => {
+							if (!isValidElement(elem)) return elem
 							if (elem.type !== 'span') return elem
-							const token = elem.props.children
+							const spanElement = elem as ReactElement<{ children?: ReactNode }>
+							const token = spanElement.props.children
 							if (typeof token !== 'string') return elem
 							const tokens = tokenize(token)
-							return React.cloneElement(elem, {
-								...elem.props,
+							return React.cloneElement(spanElement, {
+								...spanElement.props,
 								children: tokens.map((token, i) => {
 									if (!isIdentifier(token)) return token
 									const link = getOwnProperty(codeLinks, token)
@@ -151,7 +154,7 @@ function HighlightedCodeElem({ children, ...props }: React.ComponentProps<'code'
 						}),
 					})
 				}
-				return line
+				return updatedLine
 			})}
 		</code>
 	)
@@ -167,7 +170,7 @@ export function Code(props: React.ComponentProps<'code'>) {
 	if (
 		isValidElement<any>(props.children) &&
 		props.children.type === 'span' &&
-		props.children.props?.className === 'line'
+		(props.children.props as { className?: string })?.className === 'line'
 	) {
 		// eslint-disable-next-line react/no-children-prop
 		return <HighlightedCodeElem {...props} children={[props.children]} />

@@ -1,0 +1,38 @@
+{
+	"name": "@tldraw/fairy-shared",
+	"version": "1.0.0",
+	"private": true,
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"type": "module",
+	"dependencies": {
+		"@tldraw/editor": "workspace:*",
+		"ai": "^5.0.63",
+		"tldraw": "workspace:*",
+		"zod": "^4.1.8"
+	},
+	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
+	},
+	"devDependencies": {
+		"@tldraw/state": "workspace:*",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1"
+	},
+	"scripts": {
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
+	}
+}

@@ -1,8 +1,8 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
-import type { RoomSnapshot } from '@tldraw/sync-core'
-import type { TLDrawDurableObject } from './TLDrawDurableObject'
+import { RoomSnapshot } from '@tldraw/sync-core'
+import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -19,7 +19,7 @@ export interface Analytics {
 
 export interface Environment {
 	// bindings
-	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
+	TLDR_DOC: DurableObjectNamespace<TLFileDurableObject>
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
@@ -29,6 +29,7 @@ export interface Environment {
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	DISCORD_FAIRY_PURCHASE_WEBHOOK_URL?: string
 
 	MEASURE: Analytics | undefined
 
@@ -43,6 +44,8 @@ export interface Environment {
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
+
+	FEATURE_FLAGS: KVNamespace
 
 	CF_VERSION_METADATA: WorkerVersionMetadata
 
@@ -63,6 +66,14 @@ export interface Environment {
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 
+	ANALYTICS_API_URL: string | undefined
+	ANALYTICS_API_TOKEN: string | undefined
+
+	PIERRE_KEY: string | undefined
+
+	PADDLE_WEBHOOK_SECRET: string | undefined
+	PADDLE_ENVIRONMENT: 'sandbox' | 'production' | undefined
+
 	RATE_LIMITER: RateLimit
 
 	QUEUE: Queue<QueueMessage>
@@ -77,19 +88,10 @@ export function getUserDoSnapshotKey(env: Environment, userId: string) {
 	return `${snapshotPrefix}${userId}`
 }
 
-export type DBLoadResult =
-	| {
-			type: 'error'
-			error?: Error | undefined
-	  }
-	| {
-			type: 'room_found'
-			snapshot: RoomSnapshot
-			roomSizeMB: number
-	  }
-	| {
-			type: 'room_not_found'
-	  }
+export interface DBLoadResult {
+	snapshot: RoomSnapshot
+	roomSizeMB: number
+}
 
 export type TLServerEvent =
 	| {
@@ -120,6 +122,10 @@ export type TLServerEvent =
 			roomId: string
 			messageType: string
 			messageLength: number
+	  }
+	| {
+			type: 'persist_success'
+			attempts: number
 	  }
 
 export type TLPostgresReplicatorRebootSource =

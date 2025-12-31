@@ -73,8 +73,18 @@ export function Component({ error: _error }: { error?: unknown }) {
 					<TlaHistorySnapshotEditor
 						fileSlug={result.fileSlug}
 						snapshot={snapshot}
-						timestamp={ts}
-						isApp
+						onRestore={async () => {
+							const res = await fetch(`/api/app/file/${result.fileSlug}/restore`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+								},
+								body: JSON.stringify({ timestamp: ts }),
+							})
+							if (!res.ok) {
+								throw new Error('Failed to restore version: ' + (await res.text()))
+							}
+						}}
 					/>
 				</TlaAnonLayout>
 			)}

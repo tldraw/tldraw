@@ -1,5 +1,5 @@
 import { parse as parseArgs } from '@bomb.sh/args'
-import { intro, outro, select, spinner, text } from '@clack/prompts'
+import { outro, select, spinner, text } from '@clack/prompts'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path, { relative, resolve } from 'node:path'
 import process from 'node:process'
@@ -26,15 +26,13 @@ import { wrapAnsi } from './wrap-ansi'
 const DEBUG = !!process.env.DEBUG
 
 async function main() {
-	intro(`Let's build a tldraw app!`)
-
 	const args = parseArgs(process.argv.slice(2), {
 		alias: {
 			h: 'help',
 			t: 'template',
 			o: 'overwrite',
 		},
-		boolean: ['help', 'overwrite'],
+		boolean: ['help', 'overwrite', 'no-telemetry'],
 		string: ['template'],
 	})
 
@@ -46,7 +44,7 @@ async function main() {
 	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
 	const targetDir = maybeTargetDir ?? process.cwd()
 
-	const template = await templatePicker(args.template)
+	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
 	await ensureDirectoryEmpty(targetDir, args.overwrite)
@@ -61,7 +59,7 @@ async function main() {
 	doneMessage.push(`   ${getInstallCommand(manager)}`)
 	doneMessage.push(`   ${getRunCommand(manager, 'dev')}`)
 	doneMessage.push('')
-	doneMessage.push('   Happy building!')
+	doneMessage.push('   Happy building! Visit https://tldraw.dev/docs to learn more.')
 
 	outro(doneMessage.join('\n'))
 }
@@ -72,7 +70,7 @@ main().catch((err) => {
 	process.exit(1)
 })
 
-async function templatePicker(argOption?: string) {
+async function templatePicker(argOption?: string, noTelemetry?: boolean) {
 	if (argOption) {
 		const template = TEMPLATES.find((t) => formatTemplateId(t) === argOption.toLowerCase().trim())
 
@@ -81,12 +79,13 @@ async function templatePicker(argOption?: string) {
 			process.exit(1)
 		}
 
+		trackStarterKitChoice(template.name, noTelemetry)
 		return template
 	}
 
-	return await handleCancel(
+	const template = await handleCancel(
 		groupSelect({
-			message: 'Select a template:',
+			message: 'Select a tldraw starter kit:',
 			options: TEMPLATES.map(
 				(template): GroupSelectOption<Template> => ({
 					label: template.name,
@@ -96,6 +95,25 @@ async function templatePicker(argOption?: string) {
 			),
 		})
 	)
+
+	trackStarterKitChoice(template.name, noTelemetry)
+	return template
+}
+
+function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
+	// Skip tracking if --no-telemetry flag is set
+	if (noTelemetry) return
+
+	// Fire and forget - don't block on this request
+	fetch('https://dashboard.tldraw.pro/api/starter-kit-choice', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ id: templateId }),
+	}).catch(() => {
+		// Silently ignore errors
+	})
 }
 
 async function namePicker(argOption?: string) {
@@ -107,11 +125,11 @@ async function namePicker(argOption?: string) {
 
 	const name = await handleCancel(
 		text({
-			message: picocolors.bold('Name your package'),
+			message: picocolors.bold('Name your app'),
 			placeholder: defaultName,
 			validate: (value) => {
 				if (value && !isValidPackageName(value)) {
-					return `Invalid package name: ${value}`
+					return `Invalid name: ${value}`
 				}
 
 				return undefined
@@ -215,6 +233,7 @@ function getHelp() {
 		{ flags: '-h, --help', description: 'Display this help message.' },
 		{ flags: '-t, --template NAME', description: 'Use a specific template.' },
 		{ flags: '-o, --overwrite', description: 'Overwrite the target directory if it exists.' },
+		{ flags: '--no-telemetry', description: 'Disable anonymous usage tracking.' },
 	]
 
 	const GAP_SIZE = 2
@@ -234,7 +253,7 @@ function getHelp() {
 	const lines = [
 		picocolors.bold('Usage: create-tldraw [OPTION]... [DIRECTORY]'),
 		'',
-		'Create a new tldraw project.',
+		'Create a new tldraw project from a starter kit.',
 		"With no arguments, you'll be guided through an interactive setup.",
 		'',
 		picocolors.bold('Options:'),

@@ -11,6 +11,7 @@ import {
 	getArrowBodyGeometry,
 	getArrowLabelDefaultPosition,
 } from '../../../shapes/arrow/arrowLabel'
+import { startEditingShapeWithRichText } from '../selectHelpers'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -23,7 +24,7 @@ export class PointingArrowLabel extends StateNode {
 
 	private info = {} as TLPointerEventInfo & {
 		shape: TLArrowShape
-		onInteractionEnd?: string
+		onInteractionEnd?: string | (() => void)
 		isCreating: boolean
 	}
 
@@ -34,12 +35,14 @@ export class PointingArrowLabel extends StateNode {
 	override onEnter(
 		info: TLPointerEventInfo & {
 			shape: TLArrowShape
-			onInteractionEnd?: string
+			onInteractionEnd?: string | (() => void)
 			isCreating: boolean
 		}
 	) {
 		const { shape } = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.info = info
 		this.shapeId = shape.id
 		this.didDrag = false
@@ -52,7 +55,7 @@ export class PointingArrowLabel extends StateNode {
 		if (!labelGeometry) {
 			throw Error(`Expected to find an arrow label geometry for shape: ${shape.id}`)
 		}
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const pointInShapeSpace = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
 		this._labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
@@ -79,7 +82,7 @@ export class PointingArrowLabel extends StateNode {
 	private _labelDragOffset = new Vec(0, 0)
 
 	override onPointerMove() {
-		const { isDragging } = this.editor.inputs
+		const isDragging = this.editor.inputs.getIsDragging()
 		if (!isDragging) return
 
 		if (this.didCtrlOnEnter) {
@@ -95,7 +98,7 @@ export class PointingArrowLabel extends StateNode {
 		const transform = this.editor.getShapePageTransform(shape.id)
 
 		const pointInShapeSpace = this.editor
-			.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			.getPointInShapeSpace(shape, this.editor.inputs.getCurrentPagePoint())
 			.add(this._labelDragOffset)
 
 		const defaultLabelPosition = getArrowLabelDefaultPosition(this.editor, shape)
@@ -122,7 +125,7 @@ export class PointingArrowLabel extends StateNode {
 		}
 
 		this.didDrag = true
-		this.editor.updateShape<TLArrowShape>({
+		this.editor.updateShape({
 			id: shape.id,
 			type: shape.type,
 			props: { labelPosition: nextLabelPosition },
@@ -135,10 +138,8 @@ export class PointingArrowLabel extends StateNode {
 
 		if (this.didDrag || !this.wasAlreadySelected) {
 			this.complete()
-		} else if (!this.editor.getIsReadonly()) {
-			// Go into edit mode.
-			this.editor.setEditingShape(shape.id)
-			this.editor.setCurrentTool('select.editing_shape')
+		} else if (this.editor.canEditShape(shape)) {
+			startEditingShapeWithRichText(this.editor, shape.id)
 		}
 	}
 
@@ -155,20 +156,30 @@ export class PointingArrowLabel extends StateNode {
 	}
 
 	private complete() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
 
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 }

@@ -514,12 +514,10 @@
 /* If mobile use 16px as font size */
 /* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
 /* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
-@media (max-width: 600px) {
-	@supports (-webkit-touch-callout: none) {
-		/* CSS specific to iOS devices */
-		.tlui-input {
-			font-size: 16px;
-		}
+@supports (-webkit-touch-callout: none) {
+	/* CSS specific to iOS devices */
+	.tlui-input {
+		font-size: 16px;
 	}
 }
 
@@ -908,10 +906,8 @@
 	}
 }
 
-@media (any-pointer: coarse) {
-	.tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
+.tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
+	opacity: 1;
 }
 
 .tlui-button__icon {
@@ -1277,6 +1273,7 @@ tldraw? probably.
 	position: relative;
 	background: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-2);
+	contain: layout style paint;
 }
 
 .tlui-main-toolbar--horizontal .tlui-main-toolbar__mobile-style-panel {

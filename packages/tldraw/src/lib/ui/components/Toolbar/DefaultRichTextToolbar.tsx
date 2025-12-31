@@ -38,7 +38,7 @@ function ContextualToolbarInner({
 }) {
 	const { isEditingLink, onEditLinkStart, onEditLinkClose } = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
-	const previousSelectionBounds = useRef<Box | undefined>()
+	const previousSelectionBounds = useRef<Box | undefined>(undefined)
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
 	const msg = useTranslation()
 
@@ -117,7 +117,9 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 
 		textEditor.view.dom.addEventListener('click', handleClick)
 		return () => {
-			textEditor.view.dom.removeEventListener('click', handleClick)
+			if (textEditor.isInitialized) {
+				textEditor.view.dom.removeEventListener('click', handleClick)
+			}
 		}
 	}, [textEditor, isEditingLink])
 
@@ -193,7 +195,9 @@ function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {
 		})
 		return () => {
 			touchDownEvents.forEach((eventName: string) => {
-				textEditor.view.dom.removeEventListener(eventName, handlePointingDown)
+				if (textEditor.isInitialized) {
+					textEditor.view.dom.removeEventListener(eventName, handlePointingDown)
+				}
 			})
 			touchUpEvents.forEach((eventName: string) => {
 				document.body.removeEventListener(eventName, handlePointingUp)

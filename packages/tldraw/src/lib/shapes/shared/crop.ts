@@ -361,6 +361,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 		x: newPoint.x,
 		y: newPoint.y,
 		props: {
+			...shape.props,
 			w: tempBox.w,
 			h: tempBox.h,
 			crop: newCrop,

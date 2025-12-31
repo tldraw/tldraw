@@ -17,7 +17,7 @@ export class Cropping extends StateNode {
 	info = {} as TLPointerEventInfo & {
 		target: 'selection'
 		handle: SelectionHandle
-		onInteractionEnd?: string
+		onInteractionEnd?: string | (() => void)
 	}
 
 	markId = ''
@@ -28,10 +28,13 @@ export class Cropping extends StateNode {
 		info: TLPointerEventInfo & {
 			target: 'selection'
 			handle: SelectionHandle
-			onInteractionEnd?: string
+			onInteractionEnd?: string | (() => void)
 		}
 	) {
 		this.info = info
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
@@ -61,6 +64,10 @@ export class Cropping extends StateNode {
 		this.cancel()
 	}
 
+	override onExit() {
+		this.parent.setCurrentToolIdMask(undefined)
+	}
+
 	private updateCursor() {
 		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
@@ -76,9 +83,12 @@ export class Cropping extends StateNode {
 		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
 		if (!util) return
 
-		const { shiftKey } = this.editor.inputs
-		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
-		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const shiftKey = this.editor.inputs.getShiftKey()
+		const currentPagePoint = this.editor.inputs
+			.getCurrentPagePoint()
+			.clone()
+			.sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
@@ -108,8 +118,13 @@ export class Cropping extends StateNode {
 	private complete() {
 		this.updateShapes()
 		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
 		} else {
 			this.editor.setCroppingShape(null)
 			this.editor.setCurrentTool('select.idle')
@@ -118,8 +133,13 @@ export class Cropping extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
 		} else {
 			this.editor.setCroppingShape(null)
 			this.editor.setCurrentTool('select.idle')
@@ -128,9 +148,7 @@ export class Cropping extends StateNode {
 
 	private createSnapshot() {
 		const selectionRotation = this.editor.getSelectionRotation()
-		const {
-			inputs: { originPagePoint },
-		} = this.editor
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 

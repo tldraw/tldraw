@@ -10,5 +10,6 @@ export {
 	type ApiRoute,
 	type ApiRouter,
 } from './handleRequest'
+export { blockUnknownOrigins, isAllowedOrigin } from './origins'
 export { createSentry } from './sentry'
 export { handleUserAssetGet, handleUserAssetUpload } from './userAssetUploads'

@@ -9,21 +9,14 @@ import {
 	TLArrowShapeProps,
 	TLBaseShape,
 	TLDOCUMENT_ID,
-	TLDocument,
-	TLPage,
 	TLRecord,
 	TLShapeId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, promiseWithResolve, sortById } from '@tldraw/utils'
+import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, sortById } from '@tldraw/utils'
 import { vi } from 'vitest'
-import {
-	MAX_TOMBSTONES,
-	RoomSnapshot,
-	TLRoomSocket,
-	TLSyncRoom,
-	TOMBSTONE_PRUNE_BUFFER_SIZE,
-} from '../lib/TLSyncRoom'
+import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
+import { RoomSnapshot, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
 import {
 	TLConnectRequest,
 	TLPushRequest,
@@ -47,6 +40,7 @@ const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) =
 	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
 	clock: 0,
 	documentClock: 0,
+	schema: schema.serialize(),
 	...others,
 })
 
@@ -98,63 +92,21 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 }
 
 describe('TLSyncRoom', () => {
-	it('can be constructed with a schema alone', () => {
-		const room = new TLSyncRoom<any, undefined>({ schema })
-
-		// we populate the store with a default document if none is given
-		expect(room.getSnapshot().documents.length).toBeGreaterThan(0)
-	})
-
-	it('can be constructed with a snapshot', () => {
-		const room = new TLSyncRoom<TLRecord, undefined>({
+	it('can be constructed with a storage', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const _room = new TLSyncRoom<TLRecord, undefined>({
 			schema,
-			snapshot: makeSnapshot(records),
+			storage,
 		})
 
 		expect(
-			room
+			storage
 				.getSnapshot()
 				.documents.map((r) => r.state)
 				.sort(sortById)
 		).toEqual(records)
 
-		expect(room.getSnapshot().documents.map((r) => r.lastChangedClock)).toEqual([0, 0])
-	})
-
-	it('trims tombstones down if you pass too many in the snapshot', () => {
-		const room = new TLSyncRoom({
-			schema,
-			snapshot: {
-				documents: [],
-				clock: MAX_TOMBSTONES + 100,
-				tombstones: Object.fromEntries(
-					Array.from({ length: MAX_TOMBSTONES + 100 }, (_, i) => [PageRecordType.createId(), i])
-				),
-			},
-		})
-
-		expect(Object.keys(room.getSnapshot().tombstones ?? {})).toHaveLength(
-			MAX_TOMBSTONES - TOMBSTONE_PRUNE_BUFFER_SIZE
-		)
-	})
-
-	it('updates tombstoneHistoryStartsAtClock when pruning tombstones', () => {
-		const room = new TLSyncRoom({
-			schema,
-			snapshot: {
-				documents: [],
-				clock: MAX_TOMBSTONES + 100,
-				tombstones: Object.fromEntries(
-					Array.from({ length: MAX_TOMBSTONES + 100 }, (_, i) => [PageRecordType.createId(), i])
-				),
-			},
-		})
-
-		// After pruning, tombstoneHistoryStartsAtClock should be updated to the clock value
-		// of the oldest remaining tombstone
-		const remainingTombstones = Object.values(room.getSnapshot().tombstones ?? {})
-		const oldestRemainingClock = Math.min(...remainingTombstones)
-		expect(room.tombstoneHistoryStartsAtClock).toBe(oldestRemainingClock)
+		expect(storage.getSnapshot().documents.map((r) => r.lastChangedClock)).toEqual([0, 0])
 	})
 
 	it('migrates the snapshot if it is dealing with old data', () => {
@@ -167,40 +119,50 @@ describe('TLSyncRoom', () => {
 			},
 		}
 
-		const room = new TLSyncRoom({
-			schema,
-			snapshot: makeSnapshot([...records, oldArrow], {
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot([...records, oldArrow as any], {
 				schema: oldSerializedSchema,
 			}),
 		})
+		const _room = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			storage,
+		})
 
-		const arrow = room.getSnapshot().documents.find((r) => r.state.id === oldArrow.id)
+		const arrow = storage.getSnapshot().documents.find((r) => r.state.id === oldArrow.id)
 			?.state as TLArrowShape
 		expect(arrow.props.labelColor).toBe('black')
 	})
 
-	it('filters out instance state records', () => {
-		const schema = createTLSchema({ shapes: {}, bindings: {} })
-		const room = new TLSyncRoom({
-			schema,
-			snapshot: makeSnapshot([
-				...records,
-				schema.types.instance.create({
-					currentPageId: PageRecordType.createId('page_1'),
-					id: schema.types.instance.createId('instance_1'),
-				}),
-				InstancePageStateRecordType.create({
-					id: InstancePageStateRecordType.createId(PageRecordType.createId('page_1')),
-					pageId: PageRecordType.createId('page_1'),
-				}),
-				CameraRecordType.create({
-					id: CameraRecordType.createId('camera_1'),
-				}),
-			]),
+	it('filters out instance state records if a migration occurs, for legacy reasons', () => {
+		const schema = createTLSchema()
+		const oldSchema = structuredClone(schema.serialize())
+		oldSchema.sequences['com.tldraw.shape.arrow'] = 0
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot(
+				[
+					...records,
+					schema.types.instance.create({
+						currentPageId: PageRecordType.createId('page_1'),
+						id: schema.types.instance.createId('instance_1'),
+					}),
+					InstancePageStateRecordType.create({
+						id: InstancePageStateRecordType.createId(PageRecordType.createId('page_1')),
+						pageId: PageRecordType.createId('page_1'),
+					}),
+					CameraRecordType.create({
+						id: CameraRecordType.createId('camera_1'),
+					}),
+				],
+				{
+					schema: oldSchema,
+				}
+			),
 		})
+		const _room = new TLSyncRoom({ schema, storage })
 
 		expect(
-			room
+			storage
 				.getSnapshot()
 				.documents.map((r) => r.state)
 				.sort(sortById)
@@ -223,348 +185,17 @@ function makeSocket(): MockSocket {
 	return socket
 }
 
-describe('TLSyncRoom.updateStore', () => {
-	const sessionAId = 'sessionA'
-	const sessionBId = 'sessionB'
-	let room = new TLSyncRoom<TLRecord, undefined>({ schema, snapshot: makeSnapshot(records) })
-	let socketA = makeSocket()
-	let socketB = makeSocket()
-	function init(snapshot?: RoomSnapshot) {
-		room = new TLSyncRoom<TLRecord, undefined>({
-			schema,
-			snapshot: snapshot ?? makeSnapshot(records),
-		})
-		socketA = makeSocket()
-		socketB = makeSocket()
-		room.handleNewSession({
-			sessionId: sessionAId,
-			socket: socketA,
-			meta: null as any,
-			isReadonly: false,
-		})
-		room.handleNewSession({
-			sessionId: sessionBId,
-			socket: socketB,
-			meta: null as any,
-			isReadonly: false,
-		})
-		room.handleMessage(sessionAId, {
-			connectRequestId: 'connectRequestId' + sessionAId,
-			lastServerClock: 0,
-			protocolVersion: getTlsyncProtocolVersion(),
-			schema: room.serializedSchema,
-			type: 'connect',
-		} satisfies TLConnectRequest)
-		room.handleMessage(sessionBId, {
-			connectRequestId: 'connectRequestId' + sessionBId,
-			lastServerClock: 0,
-			protocolVersion: getTlsyncProtocolVersion(),
-			schema: room.serializedSchema,
-			type: 'connect',
-		} satisfies TLConnectRequest)
-		expect(room.sessions.get(sessionAId)?.state).toBe('connected')
-		expect(room.sessions.get(sessionBId)?.state).toBe('connected')
-		socketA.__lastMessage = null
-		socketB.__lastMessage = null
-	}
-	beforeEach(() => {
-		init()
-	})
-
-	test('it allows updating records', async () => {
-		const clock = room.clock
-		const documentClock = room.documentClock
-		await room.updateStore((store) => {
-			const document = store.get('document:document') as TLDocument
-			document.name = 'My lovely document'
-			store.put(document)
-		})
-		expect(
-			(room.getSnapshot().documents.find((r) => r.state.id === 'document:document')?.state as any)
-				.name
-		).toBe('My lovely document')
-		expect(clock).toBeLessThan(room.clock)
-		expect(documentClock).toBeLessThan(room.documentClock)
-	})
-
-	test('it does not update unless you call .set', () => {
-		const documentClock = room.documentClock
-		room.updateStore((store) => {
-			const document = store.get('document:document') as TLDocument
-			document.name = 'My lovely document'
-		})
-		expect(
-			(room.getSnapshot().documents.find((r) => r.state.id === 'document:document')?.state as any)
-				.name
-		).toBe('')
-		expect(documentClock).toBe(room.documentClock)
-	})
-
-	test('after the change it sends a patch to all clients', async () => {
-		const clock = room.clock
-		const documentClock = room.documentClock
-		await room.updateStore((store) => {
-			const document = store.get('document:document') as TLDocument
-			document.name = 'My lovely document'
-			store.put(document)
-		})
-
-		expect(clock).toBeLessThan(room.clock)
-		expect(documentClock).toBeLessThan(room.documentClock)
-
-		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
-		{
-		  "data": [
-		    {
-		      "diff": {
-		        "document:document": [
-		          "patch",
-		          {
-		            "name": [
-		              "put",
-		              "My lovely document",
-		            ],
-		          },
-		        ],
-		      },
-		      "serverClock": 1,
-		      "type": "patch",
-		    },
-		  ],
-		  "type": "data",
-		}
-	`)
-		expect(socketB.__lastMessage).toEqual(socketA.__lastMessage)
-	})
-
-	test('it allows adding new records', async () => {
-		const id = PageRecordType.createId('page_3')
-		await room.updateStore((store) => {
-			const page = PageRecordType.create({ id, name: 'page 3', index: 'a0' as IndexKey })
-			store.put(page)
-		})
-
-		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
-		{
-		  "data": [
-		    {
-		      "diff": {
-		        "page:page_3": [
-		          "put",
-		          {
-		            "id": "page:page_3",
-		            "index": "a0",
-		            "meta": {},
-		            "name": "page 3",
-		            "typeName": "page",
-		          },
-		        ],
-		      },
-		      "serverClock": 1,
-		      "type": "patch",
-		    },
-		  ],
-		  "type": "data",
-		}
-	`)
-		expect(socketB.__lastMessage).toEqual(socketA.__lastMessage)
-		expect(room.getSnapshot().documents.find((r) => r.state.id === id)?.state).toBeTruthy()
-	})
-
-	test('it allows deleting records', async () => {
-		await room.updateStore((store) => {
-			store.delete('page:page_2')
-		})
-
-		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
-		{
-		  "data": [
-		    {
-		      "diff": {
-		        "page:page_2": [
-		          "remove",
-		        ],
-		      },
-		      "serverClock": 1,
-		      "type": "patch",
-		    },
-		  ],
-		  "type": "data",
-		}
-	`)
-		expect(socketB.__lastMessage).toEqual(socketA.__lastMessage)
-		expect(room.getSnapshot().documents.find((r) => r.state.id === 'page:page_2')).toBeFalsy()
-	})
-
-	test('it wont do anything if your changes are no-ops', async () => {
-		const documentClock = room.documentClock
-		await room.updateStore((store) => {
-			const newPage = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
-			store.put(newPage)
-			store.delete(newPage.id)
-		})
-
-		expect(room.documentClock).toBe(documentClock)
-		expect(socketA.__lastMessage).toBeNull()
-		expect(socketB.__lastMessage).toBeNull()
-
-		await room.updateStore((store) => {
-			const page = store.get('page:page_2')!
-			store.delete(page)
-			store.put(page)
-		})
-
-		expect(room.documentClock).toBe(documentClock)
-		expect(socketA.__lastMessage).toBeNull()
-		expect(socketB.__lastMessage).toBeNull()
-
-		await room.updateStore((store) => {
-			let page = store.get('page:page_2') as TLPage
-			page.name = 'my lovely page'
-			store.put(page)
-			page = store.get('page:page_2') as TLPage
-			store.delete(page)
-			page.name = 'page 2'
-			store.put(page)
-		})
-
-		expect(room.documentClock).toBe(documentClock)
-		expect(socketA.__lastMessage).toBeNull()
-		expect(socketB.__lastMessage).toBeNull()
-	})
-
-	test('it returns all records if you ask for them', async () => {
-		let allRecords
-		await room.updateStore((store) => {
-			allRecords = store.getAll()
-		})
-		expect(allRecords!.sort(compareById)).toEqual(records)
-		await room.updateStore((store) => {
-			const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
-			store.put(page3)
-			allRecords = store.getAll()
-			expect(allRecords.sort(compareById)).toEqual([...records, page3].sort(compareById))
-			store.delete(page3)
-			allRecords = store.getAll()
-		})
-		expect(allRecords!.sort(compareById)).toEqual(records)
-	})
-
-	test('all operations fail after the store is closed', async () => {
-		let store
-		await room.updateStore((s) => {
-			store = s
-		})
-		expect(() => {
-			store!.put(PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey }))
-		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
-		expect(() => {
-			store!.delete('page:page_2')
-		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
-		expect(() => {
-			store!.getAll()
-		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
-		expect(() => {
-			store!.get('page:page_2')
-		}).toThrowErrorMatchingInlineSnapshot(`[Error: StoreUpdateContext is closed]`)
-	})
-
-	test('it fails if the room is closed', async () => {
-		room.close()
-		await expect(
-			room.updateStore(() => {
-				// noop
-			})
-		).rejects.toMatchInlineSnapshot(`[Error: Cannot update store on a closed room]`)
-	})
-
-	test('it fails if you try to add bad data', async () => {
-		await expect(
-			room.updateStore((store) => {
-				const page = store.get('page:page_2') as TLPage
-				page.index = 34 as any
-				store.put(page)
-			})
-		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: INVALID_RECORD]`)
-	})
-
-	test('changes in multiple transaction are isolated from one another', async () => {
-		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
-		const didDelete = promiseWithResolve()
-		const didPut = promiseWithResolve()
-		const doneA = room.updateStore(async (store) => {
-			store.put(page3)
-			didPut.resolve(null)
-			await didDelete
-			expect(store.get(page3.id)).toBeTruthy()
-		})
-		const doneB = room.updateStore(async (store) => {
-			await didPut
-			expect(store.get(page3.id)).toBeFalsy()
-			store.delete(page3.id)
-			didDelete.resolve(null)
-		})
-		await Promise.all([doneA, doneB])
-	})
-
-	test('getting something that was deleted in the same transaction returns null', async () => {
-		await room.updateStore((store) => {
-			expect(store.get('page:page_2')).toBeTruthy()
-			store.delete('page:page_2')
-			expect(store.get('page:page_2')).toBe(null)
-		})
-	})
-
-	test('getting something that never existed in the first place returns null', async () => {
-		await room.updateStore((store) => {
-			expect(store.get('page:page_3')).toBe(null)
-		})
-	})
-
-	test('mutations to shapes gotten via .get are not committed unless you .put', async () => {
-		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
-		let page4 = PageRecordType.create({ name: 'page 4', index: 'a1' as IndexKey })
-		let page2
-		await room.updateStore((store) => {
-			page2 = store.get('page:page_2') as TLPage
-			page2.name = 'my lovely page 2'
-			store.put(page3)
-			page3.name = 'my lovely page 3'
-			store.put(page4)
-			page4 = store.get(page4.id) as TLPage
-			page4.name = 'my lovely page 4'
-		})
-
-		const getPageNames = () =>
-			room
-				.getSnapshot()
-				.documents.filter((r) => r.state.typeName === 'page')
-				.map((r) => (r.state as any).name)
-				.sort()
-
-		expect(getPageNames()).toEqual(['page 2', 'page 3', 'page 4'])
-
-		await room.updateStore((store) => {
-			store.put(page2!)
-			store.put(page3)
-			store.put(page4)
-		})
-
-		expect(getPageNames()).toEqual(['my lovely page 2', 'my lovely page 3', 'my lovely page 4'])
-	})
-})
-
 describe('isReadonly', () => {
 	const sessionAId = 'sessionA'
 	const sessionBId = 'sessionB'
-	let room = new TLSyncRoom<TLRecord, undefined>({ schema, snapshot: makeSnapshot(records) })
+	let storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+	let room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 	let socketA = makeSocket()
 	let socketB = makeSocket()
+	const getDoc = (id: string) => storage.documents.get(id)?.state
 	function init(snapshot?: RoomSnapshot) {
-		room = new TLSyncRoom<TLRecord, undefined>({
-			schema,
-			snapshot: snapshot ?? makeSnapshot(records),
-		})
+		storage = new InMemorySyncStorage<TLRecord>({ snapshot: snapshot ?? makeSnapshot(records) })
+		room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 		socketA = makeSocket()
 		socketB = makeSocket()
 		room.handleNewSession({
@@ -622,7 +253,7 @@ describe('isReadonly', () => {
 		// sessionA is readonly
 		room.handleMessage(sessionAId, push)
 
-		expect(room.documents.get('page:page_3')?.state).toBe(undefined)
+		expect(getDoc('page:page_3')).toBe(undefined)
 		// should tell the session to discard it
 		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
 		{
@@ -630,7 +261,7 @@ describe('isReadonly', () => {
 		    {
 		      "action": "discard",
 		      "clientClock": 0,
-		      "serverClock": 1,
+		      "serverClock": 0,
 		      "type": "push_result",
 		    },
 		  ],
@@ -643,7 +274,7 @@ describe('isReadonly', () => {
 		// sessionB is not readonly
 		room.handleMessage(sessionBId, push)
 
-		expect(room.documents.get('page:page_3')?.state).not.toBe(undefined)
+		expect(getDoc('page:page_3')).not.toBe(undefined)
 
 		// should tell the session to commit it
 		expect(socketB.__lastMessage).toMatchInlineSnapshot(`
@@ -652,7 +283,7 @@ describe('isReadonly', () => {
 		    {
 		      "action": "commit",
 		      "clientClock": 0,
-		      "serverClock": 2,
+		      "serverClock": 1,
 		      "type": "push_result",
 		    },
 		  ],
@@ -687,7 +318,7 @@ describe('isReadonly', () => {
 		    {
 		      "action": "commit",
 		      "clientClock": 0,
-		      "serverClock": 1,
+		      "serverClock": 0,
 		      "type": "push_result",
 		    },
 		  ],
@@ -723,7 +354,7 @@ describe('isReadonly', () => {
 		          },
 		        ],
 		      },
-		      "serverClock": 1,
+		      "serverClock": 0,
 		      "type": "patch",
 		    },
 		  ],
@@ -736,16 +367,14 @@ describe('isReadonly', () => {
 		it('can load snapshot without documentClock field', () => {
 			const legacySnapshot = makeLegacySnapshot(records)
 
-			const room = new TLSyncRoom<TLRecord, undefined>({
-				schema,
-				snapshot: legacySnapshot,
-			})
+			const storage = new InMemorySyncStorage<TLRecord>({ snapshot: legacySnapshot })
+			const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
 			// Room should load successfully without errors
-			expect(room.getSnapshot().documents.length).toBe(2)
+			expect(storage.getSnapshot().documents.length).toBe(2)
 
 			// documentClock should be calculated from existing data
-			const snapshot = room.getSnapshot()
+			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(0) // max lastChangedClock from documents
 		})
 
@@ -757,12 +386,10 @@ describe('isReadonly', () => {
 				],
 			})
 
-			const room = new TLSyncRoom<TLRecord, undefined>({
-				schema,
-				snapshot: legacySnapshot,
-			})
+			const storage = new InMemorySyncStorage<TLRecord>({ snapshot: legacySnapshot })
+			const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
-			const snapshot = room.getSnapshot()
+			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(10) // max lastChangedClock
 		})
 
@@ -775,12 +402,10 @@ describe('isReadonly', () => {
 				},
 			})
 
-			const room = new TLSyncRoom<TLRecord, undefined>({
-				schema,
-				snapshot: legacySnapshot,
-			})
+			const storage = new InMemorySyncStorage<TLRecord>({ snapshot: legacySnapshot })
+			const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
-			const snapshot = room.getSnapshot()
+			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(12) // max of document (3) and tombstones (7, 12)
 		})
 
@@ -790,12 +415,10 @@ describe('isReadonly', () => {
 				tombstones: {},
 			})
 
-			const room = new TLSyncRoom<TLRecord, undefined>({
-				schema,
-				snapshot: emptyLegacySnapshot,
-			})
+			const storage = new InMemorySyncStorage<TLRecord>({ snapshot: emptyLegacySnapshot })
+			const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
-			const snapshot = room.getSnapshot()
+			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(0) // no documents or tombstones
 		})
 
@@ -808,12 +431,10 @@ describe('isReadonly', () => {
 				},
 			})
 
-			const room = new TLSyncRoom<TLRecord, undefined>({
-				schema,
-				snapshot: legacySnapshot,
-			})
+			const storage = new InMemorySyncStorage<TLRecord>({ snapshot: legacySnapshot })
+			const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
-			const snapshot = room.getSnapshot()
+			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(8) // max tombstone clock
 		})
 
@@ -822,96 +443,966 @@ describe('isReadonly', () => {
 				documentClock: 15,
 			})
 
-			const room = new TLSyncRoom<TLRecord, undefined>({
-				schema,
-				snapshot: snapshotWithDocumentClock,
-			})
+			const storage = new InMemorySyncStorage<TLRecord>({ snapshot: snapshotWithDocumentClock })
+			const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
-			const snapshot = room.getSnapshot()
+			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(15) // should preserve explicit value
 		})
+	})
+})
 
-		describe('Document clock initialization logic', () => {
-			it('sets documentClock to room clock when migrations run (didIncrementClock = true)', () => {
-				// Create a schema with a migration that will update documents
-				const schemaWithMigration = createTLSchema({
-					migrations: [
-						{
-							sequenceId: 'test-migration',
-							retroactive: false,
-							sequence: [
-								{
-									id: 'test-migration/1',
-									scope: 'record',
-									filter: (record: any) => record.typeName === 'document',
-									up: (record: any) => {
-										// Modify the record to trigger clock increment
-										return { ...record, meta: { ...record.meta, migrated: true } }
-									},
-								},
-							],
-						},
-					],
-				})
+describe('External storage changes', () => {
+	it('broadcasts external storage changes to connected clients', async () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
 
-				const snapshotWithDocumentClock = makeSnapshot(records, {
-					documentClock: 5,
-					clock: 10,
-				})
+		const socket = makeSocket()
+		const sessionId = 'test-session'
 
-				const onDataChange = vi.fn()
-				const room = new TLSyncRoom<TLRecord, undefined>({
-					schema: schemaWithMigration,
-					snapshot: snapshotWithDocumentClock,
-					onDataChange,
-				})
-
-				// Migration should have run, incrementing the clock
-				expect(room.getSnapshot().clock).toBe(11)
-				expect(room.getSnapshot().documentClock).toBe(11)
-				expect(onDataChange).toHaveBeenCalled()
-			})
-
-			it('preserves documentClock from snapshot when no migrations run (didIncrementClock = false)', () => {
-				const snapshotWithDocumentClock = makeSnapshot(records, {
-					documentClock: 15,
-					clock: 20,
-				})
-
-				const onDataChange = vi.fn()
-				const room = new TLSyncRoom<TLRecord, undefined>({
-					schema,
-					snapshot: snapshotWithDocumentClock,
-					onDataChange,
-				})
-
-				// No migrations should have run
-				expect(room.getSnapshot().documentClock).toBe(15)
-				expect(room.getSnapshot().clock).toBe(20)
-				expect(onDataChange).not.toHaveBeenCalled()
-			})
-
-			it('calculates documentClock when snapshot lacks documentClock field (didIncrementClock = false)', () => {
-				const legacySnapshot = makeLegacySnapshot(records, {
-					documents: [
-						{ state: records[0], lastChangedClock: 7 },
-						{ state: records[1], lastChangedClock: 12 },
-					],
-					clock: 15,
-				})
-
-				const onDataChange = vi.fn()
-				const room = new TLSyncRoom<TLRecord, undefined>({
-					schema,
-					snapshot: legacySnapshot,
-					onDataChange,
-				})
-
-				// Should calculate from existing data
-				expect(room.getSnapshot().documentClock).toBe(12) // max lastChangedClock
-				expect(room.getSnapshot().clock).toBe(15) // clock from snapshot
-				expect(onDataChange).not.toHaveBeenCalled()
-			})
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
 		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+		socket.__lastMessage = null
+
+		// Simulate external storage change (as if another room instance modified it)
+		const newPage = PageRecordType.create({
+			id: PageRecordType.createId('external_page'),
+			name: 'External Page',
+			index: 'a2' as IndexKey,
+		})
+
+		storage.transaction((txn) => {
+			txn.set(newPage.id, newPage)
+		})
+
+		// Wait for onChange microtask to fire
+		await Promise.resolve()
+		// Wait for the room to process the change
+		await Promise.resolve()
+
+		// The client should have received a patch with the new page
+		expect(socket.sendMessage).toHaveBeenCalled()
+		const calls = (socket.sendMessage as any).mock.calls
+		const lastCall = calls[calls.length - 1][0]
+
+		// Should be a data message containing a patch
+		expect(lastCall.type).toBe('data')
+		expect(lastCall.data).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					type: 'patch',
+					diff: expect.objectContaining({
+						[newPage.id]: ['put', expect.objectContaining({ id: newPage.id })],
+					}),
+				}),
+			])
+		)
+	})
+
+	it('does not broadcast changes from its own transactions (via internalTxnId)', async () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socketA = makeSocket()
+		const socketB = makeSocket()
+		const sessionAId = 'session-a'
+		const sessionBId = 'session-b'
+
+		// Connect two clients
+		room.handleNewSession({
+			sessionId: sessionAId,
+			socket: socketA,
+			meta: undefined,
+			isReadonly: false,
+		})
+		room.handleNewSession({
+			sessionId: sessionBId,
+			socket: socketB,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionAId, {
+			connectRequestId: 'connect-a',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+		room.handleMessage(sessionBId, {
+			connectRequestId: 'connect-b',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		// Clear message history
+		;(socketA.sendMessage as any).mockClear()
+		;(socketB.sendMessage as any).mockClear()
+
+		// Client A pushes a change through the room
+		const newPage = PageRecordType.create({
+			id: PageRecordType.createId('client_page'),
+			name: 'Client Page',
+			index: 'a2' as IndexKey,
+		})
+
+		room.handleMessage(sessionAId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[newPage.id]: ['put', newPage],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Wait for any microtasks
+		await Promise.resolve()
+
+		// Client A should get push_result
+		const clientACalls = (socketA.sendMessage as any).mock.calls
+		expect(clientACalls.length).toBeGreaterThan(0)
+		const lastAMessage = clientACalls[clientACalls.length - 1][0]
+		expect(lastAMessage.type).toBe('data')
+		expect(lastAMessage.data[0].type).toBe('push_result')
+
+		// Client B should get exactly one patch (from the push), not a duplicate from external change detection
+		const clientBCalls = (socketB.sendMessage as any).mock.calls
+		expect(clientBCalls.length).toBe(1)
+		expect(clientBCalls[0][0].type).toBe('data')
+		expect(clientBCalls[0][0].data[0].type).toBe('patch')
+	})
+
+	it('handles multiple rapid external changes', async () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'test-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+		;(socket.sendMessage as any).mockClear()
+
+		// Make multiple rapid external changes
+		const page1 = PageRecordType.create({
+			id: PageRecordType.createId('rapid_page_1'),
+			name: 'Rapid Page 1',
+			index: 'a2' as IndexKey,
+		})
+		const page2 = PageRecordType.create({
+			id: PageRecordType.createId('rapid_page_2'),
+			name: 'Rapid Page 2',
+			index: 'a3' as IndexKey,
+		})
+
+		storage.transaction((txn) => {
+			txn.set(page1.id, page1)
+		})
+		storage.transaction((txn) => {
+			txn.set(page2.id, page2)
+		})
+
+		// Wait for all microtasks to settle
+		await Promise.resolve()
+
+		// Client should have received patches for both changes
+		const calls = (socket.sendMessage as any).mock.calls
+		expect(calls.length).toBeGreaterThan(0)
+
+		// Collect all patches received
+		const allPatches: any[] = []
+		for (const call of calls) {
+			const msg = call[0]
+			if (msg.type === 'data') {
+				for (const item of msg.data) {
+					if (item.type === 'patch') {
+						allPatches.push(item)
+					}
+				}
+			}
+		}
+
+		// Should have received both pages in patches
+		const allDiffs = allPatches.reduce((acc, patch) => ({ ...acc, ...patch.diff }), {})
+		expect(allDiffs[page1.id]).toBeDefined()
+		expect(allDiffs[page2.id]).toBeDefined()
+	})
+})
+
+describe('Migration idempotency', () => {
+	it('running migrations twice does not cause issues', () => {
+		const serializedSchema = schema.serialize()
+		const oldSerializedSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...serializedSchema.sequences,
+				'com.tldraw.shape.arrow': 0,
+			},
+		}
+
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot([...records, oldArrow as any], {
+				schema: oldSerializedSchema,
+			}),
+		})
+
+		// First migration (simulating what TLSyncRoom constructor does)
+		const _room1 = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			storage,
+		})
+
+		// Get state after first migration
+		const snapshotAfterFirst = storage.getSnapshot()
+		const arrowAfterFirst = snapshotAfterFirst.documents.find((r) => r.state.id === oldArrow.id)
+			?.state as TLArrowShape
+
+		// Verify migration happened
+		expect(arrowAfterFirst.props.labelColor).toBe('black')
+
+		// Create another room with the same storage (simulating a second migration attempt)
+		// This would happen if TestServer ran migrations before TLSyncRoom constructor
+		const _room2 = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			storage,
+		})
+
+		// Get state after second "migration"
+		const snapshotAfterSecond = storage.getSnapshot()
+		const arrowAfterSecond = snapshotAfterSecond.documents.find((r) => r.state.id === oldArrow.id)
+			?.state as TLArrowShape
+
+		// Should still have the migrated value
+		expect(arrowAfterSecond.props.labelColor).toBe('black')
+
+		// Document count should be the same
+		expect(snapshotAfterSecond.documents.length).toBe(snapshotAfterFirst.documents.length)
+
+		// Schema should be up to date
+		expect(snapshotAfterSecond.schema).toEqual(schema.serialize())
+	})
+
+	it('already migrated data is not modified again', () => {
+		// Start with current schema (no migration needed)
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot(records, {
+				documentClock: 10,
+			}),
+		})
+
+		const clockBefore = storage.getClock()
+
+		// Create room - should not modify anything since schema is current
+		const _room = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			storage,
+		})
+
+		// Clock should not have changed since no migration was needed
+		expect(storage.getClock()).toBe(clockBefore)
+
+		// Documents should be unchanged
+		expect(storage.getSnapshot().documents.length).toBe(2)
+	})
+
+	it('migration updates schema version in storage', () => {
+		const serializedSchema = schema.serialize()
+		const oldSerializedSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...serializedSchema.sequences,
+				'com.tldraw.shape.arrow': 0,
+			},
+		}
+
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot([...records, oldArrow as any], {
+				schema: oldSerializedSchema,
+			}),
+		})
+
+		// Verify old schema before room creation
+		expect(storage.schema.get()).toEqual(oldSerializedSchema)
+
+		// Create room which triggers migration
+		const _room = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			storage,
+		})
+
+		// Schema should now be updated to current version
+		expect(storage.schema.get()).toEqual(schema.serialize())
+	})
+})
+
+describe('Protocol version handling', () => {
+	it('sets supportsStringAppend to false for protocol version 7', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'v7-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with protocol version 7 (which gets upgraded to 8 but with supportsStringAppend = false)
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: 7,
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const session = room.sessions.get(sessionId)
+		expect(session?.state).toBe('connected')
+		if (session?.state === 'connected') {
+			expect(session.supportsStringAppend).toBe(false)
+		}
+	})
+
+	it('sets supportsStringAppend to true for protocol version 8', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'v8-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(), // version 8
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const session = room.sessions.get(sessionId)
+		expect(session?.state).toBe('connected')
+		if (session?.state === 'connected') {
+			expect(session.supportsStringAppend).toBe(true)
+		}
+	})
+
+	it('getCanEmitStringAppend returns false when any client lacks string append support', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socketV7 = makeSocket()
+		const socketV8 = makeSocket()
+
+		// Connect v8 client first
+		room.handleNewSession({
+			sessionId: 'v8-client',
+			socket: socketV8,
+			meta: undefined,
+			isReadonly: false,
+		})
+		room.handleMessage('v8-client', {
+			connectRequestId: 'connect-v8',
+			lastServerClock: 0,
+			protocolVersion: 8,
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		// With only v8 client, should be true
+		expect(room.getCanEmitStringAppend()).toBe(true)
+
+		// Connect v7 client
+		room.handleNewSession({
+			sessionId: 'v7-client',
+			socket: socketV7,
+			meta: undefined,
+			isReadonly: false,
+		})
+		room.handleMessage('v7-client', {
+			connectRequestId: 'connect-v7',
+			lastServerClock: 0,
+			protocolVersion: 7,
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		// With mixed clients, should be false
+		expect(room.getCanEmitStringAppend()).toBe(false)
+	})
+})
+
+describe('Presence store isolation', () => {
+	it('presence changes do not affect document clock', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot(records, { documentClock: 10 }),
+		})
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'presence-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const clockBefore = storage.getClock()
+
+		// Send presence update
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: undefined,
+			presence: [
+				'put',
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('presence-1'),
+					currentPageId: PageRecordType.createId('page_2'),
+					userId: 'user-1',
+					userName: 'Test User',
+				}),
+			],
+		} as TLPushRequest<TLRecord>)
+
+		// Document clock should not have changed
+		expect(storage.getClock()).toBe(clockBefore)
+	})
+
+	it('presence is stored in presenceStore, not document storage', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'presence-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const session = room.sessions.get(sessionId)
+		const presenceId = session?.presenceId
+
+		// Send presence update
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: undefined,
+			presence: [
+				'put',
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('any'),
+					currentPageId: PageRecordType.createId('page_2'),
+					userId: 'user-1',
+					userName: 'Test User',
+				}),
+			],
+		} as TLPushRequest<TLRecord>)
+
+		// Presence should be in presenceStore
+		expect(room.presenceStore.get(presenceId!)).toBeDefined()
+
+		// Presence should NOT be in document storage
+		storage.transaction((txn) => {
+			expect(txn.get(presenceId!)).toBeUndefined()
+		})
+	})
+
+	it('presence is removed from presenceStore when session is removed', async () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'presence-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const session = room.sessions.get(sessionId)!
+		const presenceId = session.presenceId!
+
+		// Send presence
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: undefined,
+			presence: [
+				'put',
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('any'),
+					currentPageId: PageRecordType.createId('page_2'),
+					userId: 'user-1',
+					userName: 'Test User',
+				}),
+			],
+		} as TLPushRequest<TLRecord>)
+
+		expect(room.presenceStore.get(presenceId)).toBeDefined()
+
+		// Close the session
+		room.rejectSession(sessionId)
+
+		// Presence should be removed
+		expect(room.presenceStore.get(presenceId)).toBeUndefined()
+	})
+})
+
+describe('Client with future clock', () => {
+	it('handles client with lastServerClock greater than current documentClock', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot(records, { documentClock: 10 }),
+		})
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'future-clock-client'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Client claims to have clock 100, but server is only at 10
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 100, // Future clock!
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		// Session should still connect successfully
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+
+		// Check the connect response
+		const connectResponse = socket.__lastMessage
+		expect(connectResponse?.type).toBe('connect')
+		if (connectResponse?.type === 'connect') {
+			// Should receive wipe_all to reset client state
+			expect(connectResponse.hydrationType).toBe('wipe_all')
+			// Should receive all documents
+			expect(Object.keys(connectResponse.diff).length).toBe(2)
+		}
+	})
+
+	it('provides all documents when client has future clock', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot(records, {
+				documentClock: 5,
+				documents: [
+					{ state: records[0], lastChangedClock: 3 },
+					{ state: records[1], lastChangedClock: 5 },
+				],
+			}),
+		})
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'future-client'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 999,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const connectResponse = socket.__lastMessage
+		expect(connectResponse?.type).toBe('connect')
+		if (connectResponse?.type === 'connect') {
+			// Both documents should be included regardless of their lastChangedClock
+			expect(connectResponse.diff[records[0].id]).toBeDefined()
+			expect(connectResponse.diff[records[1].id]).toBeDefined()
+		}
+	})
+})
+
+describe('Loading snapshot during active session', () => {
+	it('broadcasts changes when snapshot is loaded via storage transaction', async () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'active-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+		;(socket.sendMessage as any).mockClear()
+
+		// Load a new snapshot with additional page
+		const newPage = PageRecordType.create({
+			id: PageRecordType.createId('new_page'),
+			name: 'New Page',
+			index: 'a2' as IndexKey,
+		})
+
+		storage.transaction((txn) => {
+			txn.set(newPage.id, newPage)
+		})
+
+		// Wait for onChange to fire
+		await Promise.resolve()
+
+		// Client should have received the new page
+		const calls = (socket.sendMessage as any).mock.calls
+		expect(calls.length).toBeGreaterThan(0)
+
+		const allPatches: any[] = []
+		for (const call of calls) {
+			const msg = call[0]
+			if (msg.type === 'data') {
+				for (const item of msg.data) {
+					if (item.type === 'patch') {
+						allPatches.push(item)
+					}
+				}
+			}
+		}
+
+		const allDiffs = allPatches.reduce((acc, patch) => ({ ...acc, ...patch.diff }), {})
+		expect(allDiffs[newPage.id]).toBeDefined()
+	})
+
+	it('handles document deletion during active session', async () => {
+		const extraPage = PageRecordType.create({
+			id: PageRecordType.createId('extra_page'),
+			name: 'Extra Page',
+			index: 'a2' as IndexKey,
+		})
+
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot([...records, extraPage]),
+		})
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'active-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+		;(socket.sendMessage as any).mockClear()
+
+		// Delete the extra page via storage
+		storage.transaction((txn) => {
+			txn.delete(extraPage.id)
+		})
+
+		await Promise.resolve()
+
+		// Client should have received the delete
+		const calls = (socket.sendMessage as any).mock.calls
+		expect(calls.length).toBeGreaterThan(0)
+
+		const allPatches: any[] = []
+		for (const call of calls) {
+			const msg = call[0]
+			if (msg.type === 'data') {
+				for (const item of msg.data) {
+					if (item.type === 'patch') {
+						allPatches.push(item)
+					}
+				}
+			}
+		}
+
+		const allDiffs = allPatches.reduce((acc, patch) => ({ ...acc, ...patch.diff }), {})
+		expect(allDiffs[extraPage.id]).toEqual(['remove'])
+	})
+})
+
+describe('Invalid record handling', () => {
+	it('rejects session when push contains record with unknown type', () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'invalid-record-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+
+		// Try to push a record with an unknown type
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				'unknown:record': [
+					'put',
+					{
+						id: 'unknown:record',
+						typeName: 'unknown_type_that_does_not_exist',
+					} as any,
+				],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Session should be rejected/removed
+		const session = room.sessions.get(sessionId)
+		expect(session?.state === 'connected').toBe(false)
+		consoleSpy.mockRestore()
+	})
+})
+
+describe('Migration and patch handling', () => {
+	it('successfully patches arrow shape with current schema', () => {
+		// Create a document in the room first
+		const existingArrow: TLArrowShape = {
+			typeName: 'shape',
+			type: 'arrow',
+			id: 'shape:existing_arrow' as TLShapeId,
+			index: ZERO_INDEX_KEY,
+			isLocked: false,
+			parentId: PageRecordType.createId(),
+			rotation: 0,
+			x: 0,
+			y: 0,
+			opacity: 1,
+			props: {
+				kind: 'arc',
+				elbowMidPoint: 0.5,
+				dash: 'draw',
+				size: 'm',
+				fill: 'none',
+				color: 'black',
+				labelColor: 'black',
+				bend: 0,
+				start: { x: 0, y: 0 },
+				end: { x: 0, y: 0 },
+				arrowheadStart: 'none',
+				arrowheadEnd: 'arrow',
+				richText: { type: 'doc', content: [] },
+				font: 'draw',
+				labelPosition: 0.5,
+				scale: 1,
+			},
+			meta: {},
+		}
+
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeSnapshot([...records, existingArrow]),
+		})
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'patch-migration-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with current schema
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+
+		// Patch the arrow - this should work normally
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[existingArrow.id]: ['patch', { props: ['patch', { color: ['put', 'red'] }] }],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Session should still be connected after valid patch
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+
+		// Verify the patch was applied
+		const patchedArrow = storage.documents.get(existingArrow.id)?.state as TLArrowShape
+		expect(patchedArrow.props.color).toBe('red')
+	})
+
+	it('rejects client with incompatible schema version that lacks down migrations', () => {
+		// Use an old schema version that can't connect (arrow v0 has no down migration)
+		const serializedSchema = schema.serialize()
+		const oldSerializedSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...serializedSchema.sequences,
+				// Set arrow shape to version 0, which has retired down migrations
+				'com.tldraw.shape.arrow': 0,
+			},
+		}
+
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'old-client-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with old schema - this should fail because arrow v1 migration has no down function
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: oldSerializedSchema,
+			type: 'connect',
+		})
+
+		// Session should not be connected - it was rejected due to incompatible schema
+		expect(room.sessions.get(sessionId)?.state).not.toBe('connected')
+
+		// Socket should be closed with CLIENT_TOO_OLD
+		expect(socket.isOpen).toBe(false)
+	})
+
+	it('accepts client with same schema version', () => {
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'current-client-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with same schema
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		// Session should be connected
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
 	})
 })

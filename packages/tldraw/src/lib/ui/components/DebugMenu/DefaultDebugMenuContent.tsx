@@ -29,8 +29,17 @@ import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
+/** @public */
+export interface CustomDebugFlags {
+	customDebugFlags?: Record<string, DebugFlag<boolean>>
+	customFeatureFlags?: Record<string, DebugFlag<boolean>>
+}
+
 /** @public @react */
-export function DefaultDebugMenuContent() {
+export function DefaultDebugMenuContent({
+	customDebugFlags,
+	customFeatureFlags,
+}: CustomDebugFlags) {
 	const editor = useEditor()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
@@ -161,18 +170,24 @@ export function DefaultDebugMenuContent() {
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
-				<DebugFlags />
-				<FeatureFlags />
+				<DebugFlags customDebugFlags={customDebugFlags} />
+				<FeatureFlags customFeatureFlags={customFeatureFlags} />
 			</TldrawUiMenuGroup>
 		</>
 	)
 }
+
+/** @public */
+export interface DebugFlagsProps {
+	customDebugFlags?: Record<string, DebugFlag<boolean>> | undefined
+}
+
 /** @public @react */
-export function DebugFlags() {
-	const items = Object.values(debugFlags)
+export function DebugFlags(props: DebugFlagsProps) {
+	const items = Object.values(props.customDebugFlags ?? debugFlags)
 	if (!items.length) return null
 	return (
-		<TldrawUiMenuSubmenu id="debug flags" label="Debug Flags">
+		<TldrawUiMenuSubmenu id="debug flags" label="Debug flags">
 			<TldrawUiMenuGroup id="debug flags">
 				{items.map((flag) => (
 					<DebugFlagToggle key={flag.name} flag={flag} />
@@ -181,12 +196,17 @@ export function DebugFlags() {
 		</TldrawUiMenuSubmenu>
 	)
 }
+/** @public */
+export interface FeatureFlagsProps {
+	customFeatureFlags?: Record<string, DebugFlag<boolean>> | undefined
+}
+
 /** @public @react */
-export function FeatureFlags() {
-	const items = Object.values(featureFlags)
+export function FeatureFlags(props: FeatureFlagsProps) {
+	const items = Object.values(props.customFeatureFlags ?? featureFlags)
 	if (!items.length) return null
 	return (
-		<TldrawUiMenuSubmenu id="feature flags" label="Feature Flags">
+		<TldrawUiMenuSubmenu id="feature flags" label="Feature flags">
 			<TldrawUiMenuGroup id="feature flags">
 				{items.map((flag) => (
 					<DebugFlagToggle key={flag.name} flag={flag} />

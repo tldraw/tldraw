@@ -8,9 +8,6 @@
   "043973ec1f": {
     "translation": "Bạn vẫn gặp sự cố? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "Mở tldraw."
-  },
   "06b9281e39": {
     "translation": "Tự động"
   },
@@ -23,11 +20,20 @@
   "08bd40c754": {
     "translation": "Tài khoản"
   },
+  "0a91f7fa87": {
+    "translation": "Tệp này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
+  },
+  "0ab1ef22a3": {
+    "translation": "Nói chuyện với nhóm…"
+  },
   "0b27918290": {
     "translation": "Tệp"
   },
   "0b9a4cde72": {
     "translation": "Menu tệp"
+  },
+  "0befa10111": {
+    "translation": "Tiên nữ"
   },
   "0d1f2bb523": {
     "translation": "Gửi phản hồi"
@@ -35,8 +41,26 @@
   "110a4b01be": {
     "translation": "Xuất bản"
   },
+  "11a755d598": {
+    "translation": "Dừng lại"
+  },
+  "129b9e34ea": {
+    "translation": "Rời khỏi nhóm"
+  },
+  "12a6766ba1": {
+    "translation": "Bỏ ghim tệp"
+  },
+  "12c8a9838c": {
+    "translation": "Hãy thử SDK tldraw"
+  },
   "13ddd375ad": {
     "translation": "Xuất dưới dạng"
+  },
+  "146ffe2fd9": {
+    "translation": "Hiển thị thêm"
+  },
+  "14d65465b7": {
+    "translation": "Xóa nhóm"
   },
   "181b90f889": {
     "translation": "Tạo tệp"
@@ -47,20 +71,35 @@
   "1dd1c5fb7f": {
     "translation": "Hôm nay"
   },
-  "20976e7bec": {
-    "translation": "Phòng đã đầy"
+  "23f879f41a": {
+    "translation": "Giới hạn sử dụng tiên hằng tuần của bạn đã đạt đến. Giới hạn này sẽ được đặt lại vào đầu tuần sau."
   },
-  "21bfb2dc2e": {
-    "translation": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
+  "243924bfd5": {
+    "translation": "Ngủ"
+  },
+  "2445e5e347": {
+    "translation": "Tạo nhóm"
   },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
   },
+  "269097080b": {
+    "translation": "Các nàng tiên của bạn đang chờ đợi"
+  },
+  "275173253d": {
+    "translation": "Triệu hồi tất cả"
+  },
+  "284d5cd0dd": {
+    "translation": "Người mẫu:"
+  },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
   },
-  "2deec2cb74": {
-    "translation": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
+  "2c3ef76333": {
+    "translation": "Các tập tin của tôi"
+  },
+  "30cd34258a": {
+    "translation": "Một đàn <b>tiên</b> nữ đã đến để vẽ tranh trong tháng 12. Để tìm hiểu thêm, hãy tìm tiên nữ và nhấp vào nó."
   },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
@@ -68,11 +107,41 @@
   "31418ce4ad": {
     "translation": "i18n: Thiếu đánh dấu"
   },
+  "3209f407ed": {
+    "translation": "ba nàng tiên"
+  },
+  "32210b37e4": {
+    "translation": "Thêm liên kết"
+  },
+  "324a0f3182": {
+    "translation": "Quay lại tldraw"
+  },
   "335defdafe": {
     "translation": "Vui lòng thử tải lại trang."
   },
+  "34140869c6": {
+    "translation": "Một đàn tiên sẽ đến để vẽ tranh trong tháng 12. Vui lòng quay lại vào ngày 1 tháng 12."
+  },
   "344a7f427f": {
     "translation": "Biên tập viên"
+  },
+  "34abfe7a0d": {
+    "translation": "Ngủ tất cả"
+  },
+  "34e34c43ec": {
+    "translation": "Quản lý"
+  },
+  "3596c1b1f7": {
+    "translation": "Bỏ theo dõi"
+  },
+  "3903aab323": {
+    "translation": "Theo"
+  },
+  "3b6c2b4caa": {
+    "translation": "Điều khoản dịch vụ"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Tiếp tục với email"
   },
   "3bd1b98dbd": {
     "translation": "Không thể xuất bản các thay đổi này."
@@ -89,14 +158,35 @@
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Các nàng tiên</strong> đã đến để vẽ tranh trong tháng 12."
+  },
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Không có nàng tiên nào được chọn"
+  },
+  "477df802ca": {
+    "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào thư mục của bạn."
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Tệp ghim"
+  },
+  "49049467ff": {
+    "translation": "Dán URL tệp tldraw..."
+  },
   "4908687e50": {
     "translation": "Bạn có chắc chắn muốn quên tệp này không?"
+  },
+  "49ee308734": {
+    "translation": "Tên"
+  },
+  "4c41e0bd95": {
+    "translation": "Chọn tất cả"
   },
   "4d0d3ddec9": {
     "translation": "Trang web này sử dụng cookie để ứng dụng hoạt động và thu thập số liệu phân tích."
@@ -104,17 +194,26 @@
   "4d1c8263ba": {
     "translation": "Tải lại"
   },
+  "4da5988a2e": {
+    "translation": "Xóa nhóm…"
+  },
+  "4dab36ac83": {
+    "translation": "Thêm tùy chọn"
+  },
+  "4e6fbf032b": {
+    "translation": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
+  },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
   },
   "517bb809d9": {
     "translation": "Menu trang"
   },
+  "542248f0ba": {
+    "translation": "Tập tin này hiện chỉ có thể đọc"
+  },
   "54286b1d01": {
     "translation": "Đã đạt tới giới hạn cộng tác viên"
-  },
-  "54d240fa41": {
-    "translation": "Vui lòng chậm lại."
   },
   "554a05155c": {
     "translation": "Vẫn gặp sự cố? <a>Báo cáo sự cố</a>"
@@ -128,20 +227,26 @@
   "56c34c6410": {
     "translation": "Chính sách bảo mật"
   },
+  "5a2ccdc00a": {
+    "translation": "Không đổi được mã mời"
+  },
+  "5a86b22fa0": {
+    "translation": "Kéo tệp vào đây, <create>tạo tệp</create> hoặc <invite>sao chép liên kết mời</invite> để bắt đầu."
+  },
   "5a95a425f7": {
     "translation": "Chia sẻ"
-  },
-  "5bb6cf3b53": {
-    "translation": "Phòng đang trở nên rộng hơn"
-  },
-  "5bcc12ace8": {
-    "translation": "Phòng này hiện chỉ có thể đọc"
   },
   "5bec508475": {
     "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
   },
+  "5c6fe42bc2": {
+    "translation": "Thu hồi liên kết này và tạo liên kết mới."
+  },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
+  },
+  "5ea8bb44be": {
+    "translation": "Bạn đã được mời tham gia nhóm:"
   },
   "5f3c333678": {
     "translation": "Phản hồi đã gửi"
@@ -152,14 +257,38 @@
   "61057a0c84": {
     "translation": "Để sau"
   },
+  "61daf2e53d": {
+    "translation": "Nói chuyện với {name}…"
+  },
   "625fd29749": {
     "translation": "Cũ hơn"
+  },
+  "639bae9ac6": {
+    "translation": "Bạn"
+  },
+  "6602bbeb29": {
+    "translation": "Hướng dẫn"
   },
   "6609dd239e": {
     "translation": "Đã xảy ra lỗi"
   },
   "6637a98151": {
     "translation": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
+  },
+  "6832ac5936": {
+    "translation": "Nhập địa chỉ email của bạn"
+  },
+  "688761c83e": {
+    "translation": "Thức dậy"
+  },
+  "68d390535e": {
+    "translation": "Nhập tin nhắn của bạn"
+  },
+  "6910bbdc82": {
+    "translation": "Tên của nàng tiên"
+  },
+  "695c3e899d": {
+    "translation": "Tiên gỡ lỗi"
   },
   "6a26f54883": {
     "translation": "Trợ giúp"
@@ -169,6 +298,9 @@
   },
   "6dfc62f621": {
     "translation": "Làm theo các bước sau để nhập nội dung theo cách thủ công:"
+  },
+  "70222abcfc": {
+    "translation": "Cài đặt nhóm"
   },
   "70a6facb9d": {
     "translation": "Tuần này"
@@ -197,8 +329,17 @@
   "764671e008": {
     "translation": "Trò chuyện với chúng tôi trên Discord"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw là một bảng trắng trực tuyến miễn phí. Tạo tài khoản để lưu tệp và làm việc cùng bạn bè."
+  },
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
+  },
+  "77f0abf1aa": {
+    "translation": "Bạn đã được mời <strong>vẽ tiên</strong>"
+  },
+  "7827371d1a": {
+    "translation": "Tệp tldraw nhiều người chơi ẩn danh này hiện ở chế độ chỉ đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
   },
   "78e9815992": {
     "translation": "Hiểu rồi"
@@ -206,14 +347,23 @@
   "797799f35e": {
     "translation": "Gửi vấn đề trên GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Tiên là một chàng trai nhỏ có thể cùng bạn vẽ tranh. Tiên có thể làm việc độc lập hoặc theo nhóm. Không có giới hạn nào cho những gì tiên có thể làm. Không ai biết họ đến từ đâu."
+  },
   "7b1329f5ca": {
     "translation": "Hướng dẫn sử dụng"
   },
   "7be10fc592": {
     "translation": "Khôi phục phiên bản"
   },
+  "7c0747a5df": {
+    "translation": "Mở tldraw"
+  },
   "7cb5f8b4a5": {
     "translation": "Quên"
+  },
+  "7cfe6c43dc": {
+    "translation": "Rời khỏi nhóm…"
   },
   "7daeced9ff": {
     "translation": "Xuất bản các thay đổi"
@@ -227,6 +377,12 @@
   "815e116a2e": {
     "translation": "Bạn có lỗi, vấn đề hoặc ý tưởng cho tldraw? Hãy cho chúng tôi biết! Hãy điền vào biểu mẫu này và chúng tôi sẽ liên hệ qua email nếu cần. Bạn cũng có thể <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi vấn đề trên GitHub</github>."
   },
+  "81aa2078d1": {
+    "translation": "Xóa tất cả"
+  },
+  "83218ac34c": {
+    "translation": "Chào mừng"
+  },
   "85a082de1b": {
     "translation": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
   },
@@ -236,11 +392,29 @@
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
-  "8b1946f965": {
-    "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+  "8726ef8909": {
+    "translation": "Đặt lại cứng"
+  },
+  "88e83b88c5": {
+    "translation": "Mua Fairy Bundle"
+  },
+  "8ad4303b83": {
+    "translation": "Không, cảm ơn"
+  },
+  "8be569f100": {
+    "translation": "thanh toán một lần"
+  },
+  "8c2d3d730c": {
+    "translation": "Kiểm tra email của bạn để lấy mã xác minh."
+  },
+  "8cf04a9734": {
+    "translation": "Trang chủ"
   },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Về"
   },
   "8ff3d0a705": {
     "translation": "Lượng gửi/nhận yêu cầu có giới hạn"
@@ -254,17 +428,44 @@
   "91e49bb0eb": {
     "translation": "Sao chép vào tệp của tôi"
   },
+  "930390d222": {
+    "translation": "Đã sao chép liên kết mời"
+  },
+  "94186070ef": {
+    "translation": "Bỏ chọn"
+  },
+  "9489b2f82a": {
+    "translation": "Bạn đã là thành viên của nhóm này"
+  },
+  "94966d9074": {
+    "translation": "Gửi"
+  },
+  "95aacd4d4a": {
+    "translation": "Đăng nhập bằng Google"
+  },
+  "95d2109dc8": {
+    "translation": "Xây dựng với SDK tldraw"
+  },
   "96165d6df5": {
     "translation": "Tháng này"
+  },
+  "985a4b720f": {
+    "translation": "Điều khoản sử dụng"
+  },
+  "98c997a27e": {
+    "translation": "Thêm liên kết tệp"
   },
   "9914a0ce04": {
     "translation": "Sáng"
   },
+  "9953e9946b": {
+    "translation": "Chế độ xem gỡ lỗi"
+  },
+  "9b33f5c63c": {
+    "translation": "Không nhận được mã? <resend>Gửi lại</resend>."
+  },
   "9bef626805": {
     "translation": "Xóa tệp"
-  },
-  "9c258b8f88": {
-    "translation": "Phòng nhiều người chơi tldraw ẩn danh này hiện chỉ có thể đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
   },
   "9ceb927baa": {
     "translation": "Xuất bản tệp này"
@@ -290,17 +491,32 @@
   "a239905023": {
     "translation": "Xuất ảnh"
   },
+  "a286d9991c": {
+    "translation": "Tham gia"
+  },
   "a3debabee7": {
     "translation": "Chính sách cookie"
   },
   "a4d3b161ce": {
     "translation": "Nộp"
   },
+  "a603905470": {
+    "translation": "Gỡ lỗi"
+  },
   "a6cc403d56": {
     "translation": "Bất kỳ ai có liên kết"
   },
   "a768caa988": {
     "translation": "Phân tích"
+  },
+  "a8873770ab": {
+    "translation": "Tệp đang trở nên lớn hơn"
+  },
+  "a8de4c27a8": {
+    "translation": "Đã đạt đến giới hạn tiên nữ hàng tuần"
+  },
+  "a917baaf14": {
+    "translation": "Trò chuyện mới"
   },
   "a9ded1e5ce": {
     "translation": "Cơ sở"
@@ -315,8 +531,23 @@
   "b028909917": {
     "translation": "Người dùng khách"
   },
+  "b2c3c2e30c": {
+    "translation": "Tệp đã đầy"
+  },
+  "b34a671e2c": {
+    "translation": "Thời gian phản hồi của Nhật ký"
+  },
+  "b357b524e7": {
+    "translation": "Địa chỉ email"
+  },
+  "b3d2db69fe": {
+    "translation": "URL tệp"
+  },
   "b6d4223e60": {
     "translation": "Đăng nhập"
+  },
+  "b6f4a2ec63": {
+    "translation": "Người sở hữu"
   },
   "b758336699": {
     "translation": "Sao chép liên kết"
@@ -324,8 +555,8 @@
   "ba0318cb81": {
     "translation": "Đăng nhập để chia sẻ"
   },
-  "bb792693e2": {
-    "translation": "Bỏ ghim"
+  "bb93a7590f": {
+    "translation": "Chấp nhận và tham gia nhóm"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {Đang tải lên {uploaded} trong tổng số {total} tệp .tldr…}}"
@@ -333,17 +564,35 @@
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Tải lên các tệp .tldr."
+  "be4f1c62d3": {
+    "translation": "Phóng to đến tiên"
   },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
   },
+  "c28aed8348": {
+    "translation": "Cho phép <cookies>analytics</cookies> giúp chúng tôi cải thiện tldraw."
+  },
   "c303bd1095": {
     "translation": "Không thể xuất bản tệp này."
   },
+  "c3bf447eab": {
+    "translation": "Mở"
+  },
+  "c3eb5c3b90": {
+    "translation": "Tôi hiểu"
+  },
   "c4b39a1cc3": {
     "translation": "Cookie thiết yếu"
+  },
+  "c54a624f46": {
+    "translation": "Chấp nhận lời mời"
+  },
+  "c6155aaecc": {
+    "translation": "Tên nhóm"
+  },
+  "c64518704c": {
+    "translation": "Cách sử dụng"
   },
   "c655b27b1e": {
     "translation": "i18n: Chuỗi dài"
@@ -351,8 +600,14 @@
   "c6a00f137b": {
     "translation": "Mời"
   },
+  "c74ea6dbff": {
+    "translation": "Hiển thị ít hơn"
+  },
   "c87aacf567": {
     "translation": "Đăng xuất"
+  },
+  "c9cc8cce24": {
+    "translation": "Cứu"
   },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
@@ -360,14 +615,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Tệp này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo tệp mới."
+  },
+  "ce1424d44b": {
+    "translation": "Bạn đã có quyền truy cập vào Fairy rồi!"
+  },
   "cea291e45e": {
     "translation": "Tìm hiểu thêm về xuất bản."
   },
   "d3d2e61733": {
     "translation": "Đóng"
   },
+  "d46632fe1f": {
+    "translation": "Quá nhiều yêu cầu. Vui lòng chậm lại."
+  },
   "d4bbf74f3e": {
     "translation": "Chuyển đổi thanh bên"
+  },
+  "d638a3344b": {
+    "translation": "Trước khi bắt đầu, vui lòng chấp nhận <tos>điều khoản sử dụng</tos> và <privacy>chính sách bảo mật</privacy> của chúng tôi."
   },
   "d721757161": {
     "translation": "Chủ đề"
@@ -375,23 +642,59 @@
   "d876a9fe1a": {
     "translation": "Thử lại"
   },
+  "d88ad2dc74": {
+    "translation": "Chấp nhận và tiếp tục"
+  },
   "d9100f3e10": {
     "translation": "Vào đây để xem nội dung"
+  },
+  "d9bfb9789a": {
+    "translation": "Kích hoạt các nàng tiên"
+  },
+  "d9e35d0f55": {
+    "translation": "Bạn đã đạt đến số lượng nhóm tối đa. Bạn cần xóa nhóm cũ trước khi tạo nhóm mới."
   },
   "dbbebf3c03": {
     "translation": "Chỉ mời"
   },
+  "dc30bc0c79": {
+    "translation": "Thông thoáng"
+  },
+  "dcdaa754fe": {
+    "translation": "URL tệp tldraw không hợp lệ"
+  },
+  "df6ff49394": {
+    "translation": "Tiên là một tính năng <strong>tạm thời</strong>. Vào ngày 1 tháng 1 năm 2026, tất cả tiên sẽ bị xóa khỏi ứng dụng. Có thể chúng sẽ quay trở lại vào một ngày nào đó. Giao dịch mua của bạn chỉ dành cho quyền truy cập vào tiên trong tháng 12 năm 2025."
+  },
   "dfdb78a4e4": {
     "translation": "Cờ gỡ lỗi ứng dụng"
+  },
+  "e062622261": {
+    "translation": "Lựa chọn"
+  },
+  "e0c88179b3": {
+    "translation": "Mời thành viên"
+  },
+  "e2198d6228": {
+    "translation": "Sao chép liên kết mời"
   },
   "e2ae80a510": {
     "translation": "Tóm tắt pháp lý"
   },
+  "e3afed0047": {
+    "translation": "Quản trị viên"
+  },
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
   },
-  "e78e14c5f1": {
-    "translation": "Ghim"
+  "e43ec38a93": {
+    "translation": "Đi đến"
+  },
+  "e81c4e4f2b": {
+    "translation": "hoặc"
+  },
+  "ea0626ac5a": {
+    "translation": "Khu vực nguy hiểm"
   },
   "ea4788705e": {
     "translation": "Hủy"
@@ -414,11 +717,26 @@
   "ede55d955f": {
     "translation": "Đọc <a>chính sách cookie</a> của chúng tôi để tìm hiểu thêm."
   },
+  "eee6f05922": {
+    "translation": "Giải tán"
+  },
+  "ef53538ae4": {
+    "translation": "Thành viên"
+  },
+  "ef7de3f485": {
+    "translation": "đã chọn"
+  },
+  "efde983742": {
+    "translation": "Triệu hồi"
+  },
   "f09b16bc5f": {
     "translation": "Chúng tôi sử dụng cookie để giữ cho bạn đăng nhập, đồng bộ hóa các tệp của bạn và thu thập số liệu phân tích để giúp chúng tôi cải thiện tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Cài đặt người dùng"
+  },
+  "f1206f9fad": {
+    "translation": "Cấu hình"
   },
   "f2569594b2": {
     "translation": "Chúng tôi sử dụng các cookie này để lưu tệp và cài đặt của bạn."
@@ -426,11 +744,14 @@
   "f2a6c498fb": {
     "translation": "Xóa"
   },
-  "f43fb62093": {
-    "translation": "Quay lại tldraw."
-  },
   "f4f70727dc": {
     "translation": "Cài đặt"
+  },
+  "f714e36843": {
+    "translation": "Bạn có chắc chắn muốn rời khỏi nhóm này không?"
+  },
+  "fa2ead697d": {
+    "translation": "Chính sách bảo mật"
   },
   "fb15c53f22": {
     "translation": "Người xem"
@@ -440,6 +761,9 @@
   },
   "fed5ec05eb": {
     "translation": "Đã sao chép liên kết"
+  },
+  "ff7a814974": {
+    "translation": "Thêm liên kết tệp…"
   },
   "ffcd73e997": {
     "translation": "Nhập tập tin…"

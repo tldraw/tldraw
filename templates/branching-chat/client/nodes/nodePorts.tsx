@@ -2,7 +2,7 @@
  * This file contains functions for working with ports and connections on nodes.
  */
 import { createComputedCache, Editor, TLShapeId } from 'tldraw'
-import { ConnectionBinding, getConnectionBindings } from '../connection/ConnectionBindingUtil'
+import { getConnectionBindings } from '../connection/ConnectionBindingUtil'
 import { PortId } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { getNodeTypePorts, NodeTypePorts } from './nodeTypes'
@@ -42,7 +42,7 @@ export function getNodePortConnections(
 const nodePortConnectionsCache = createComputedCache(
 	'port connections',
 	(editor: Editor, node: NodeShape) => {
-		const bindings = editor.getBindingsToShape<ConnectionBinding>(node.id, 'connection')
+		const bindings = editor.getBindingsToShape(node.id, 'connection')
 
 		const connections: NodePortConnection[] = []
 		for (const binding of bindings) {
@@ -83,7 +83,7 @@ export function getAllConnectedNodes(
 		if (!nodeId) continue
 
 		const node = editor.getShape(nodeId)
-		if (!node || !editor.isShapeOfType<NodeShape>(node, 'node')) continue
+		if (!node || !editor.isShapeOfType(node, 'node')) continue
 
 		if (found.has(node.id)) continue
 		found.add(node.id)

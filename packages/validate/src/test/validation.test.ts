@@ -1,4 +1,5 @@
 import * as T from '../lib/validation'
+import { ValidationError } from '../lib/validation'
 
 describe('validations', () => {
 	it('Returns referentially identical objects', () => {
@@ -116,15 +117,98 @@ describe('validations', () => {
 			`[ValidationError: At animal(type = cat).meow: Expected boolean, got undefined]`
 		)
 	})
+
+	it('Rejects Infinity and -Infinity in numberUnion discriminators', () => {
+		const numberUnionSchema = T.numberUnion('version', {
+			1: T.object({ version: T.literal(1), data: T.string }),
+			2: T.object({ version: T.literal(2), data: T.string }),
+		})
+
+		// Valid cases
+		expect(numberUnionSchema.validate({ version: 1, data: 'hello' })).toEqual({
+			version: 1,
+			data: 'hello',
+		})
+		expect(numberUnionSchema.validate({ version: 2, data: 'world' })).toEqual({
+			version: 2,
+			data: 'world',
+		})
+
+		// Should reject Infinity
+		expect(() =>
+			numberUnionSchema.validate({ version: Infinity, data: 'test' })
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected a number for key "version", got "Infinity"]`
+		)
+
+		// Should reject -Infinity
+		expect(() =>
+			numberUnionSchema.validate({ version: -Infinity, data: 'test' })
+		).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected a number for key "version", got "-Infinity"]`
+		)
+
+		// Should reject NaN
+		expect(() => numberUnionSchema.validate({ version: NaN, data: 'test' })).toThrowError(
+			/Expected a number for key "version"/
+		)
+	})
 })
 
 describe('T.refine', () => {
-	it.todo('Refines a validator.')
-	it.todo('Produces a type error if the refinement is not of the correct type.')
+	it('Refines a validator.', () => {
+		// refine can transform values (e.g., string to number)
+		const stringToNumber = T.string.refine((str) => parseInt(str, 10))
+		expect(stringToNumber.validate('42')).toBe(42)
+
+		// refine can also modify values of the same type
+		const prefixedString = T.string.refine((str) =>
+			str.startsWith('prefix:') ? str : `prefix:${str}`
+		)
+		expect(prefixedString.validate('test')).toBe('prefix:test')
+		expect(prefixedString.validate('prefix:existing')).toBe('prefix:existing')
+	})
+
+	it('Produces a type error if the refinement is not of the correct type.', () => {
+		const stringToNumber = T.string.refine((str) => {
+			const num = parseInt(str, 10)
+			if (isNaN(num)) {
+				throw new ValidationError('Invalid number format')
+			}
+			return num
+		})
+
+		expect(() => stringToNumber.validate('not-a-number')).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Invalid number format]`
+		)
+	})
 })
 
 describe('T.check', () => {
-	it.todo('Adds a check to a validator.')
+	it('Adds a check to a validator.', () => {
+		const evenNumber = T.number.check((value) => {
+			if (value % 2 !== 0) {
+				throw new ValidationError('Expected even number')
+			}
+		})
+
+		expect(evenNumber.validate(4)).toBe(4)
+		expect(evenNumber.validate(0)).toBe(0)
+		expect(() => evenNumber.validate(3)).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected even number]`
+		)
+
+		const namedCheck = T.number.check('positive', (value) => {
+			if (value <= 0) {
+				throw new ValidationError('Must be positive')
+			}
+		})
+
+		expect(namedCheck.validate(5)).toBe(5)
+		expect(() => namedCheck.validate(-1)).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At (check positive): Must be positive]`
+		)
+	})
 })
 
 describe('T.indexKey', () => {

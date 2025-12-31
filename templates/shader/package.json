@@ -1,0 +1,42 @@
+{
+	"name": "tldraw-shader-starter-kit",
+	"private": true,
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"type": "module",
+	"tldraw_template": {
+		"repo": "tldraw/shader-starter-kit",
+		"cli": {
+			"name": "Shader",
+			"description": "Create WebGL shaders that respond to shapes on the canvas.",
+			"shortDescription": "Shaders on the canvas.",
+			"order": 7
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1"
+	}
+}

@@ -53,7 +53,7 @@ function handleCustomTldrawPaste(editor: Editor, { content, point }: TLTldrawExt
 	// free space to the right of the frame to put this one.
 	editor.putContentOntoCurrentPage(content, { select: true })
 	const newlyPastedFrame = editor.getOnlySelectedShape()
-	if (!newlyPastedFrame || !editor.isShapeOfType<TLFrameShape>(newlyPastedFrame, 'frame')) return
+	if (!newlyPastedFrame || !editor.isShapeOfType(newlyPastedFrame, 'frame')) return
 
 	const siblingIds = editor.getSortedChildIdsForParent(newlyPastedFrame.parentId)
 	const pastedBounds = editor.getShapePageBounds(newlyPastedFrame.id)!

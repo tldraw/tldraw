@@ -1,0 +1,30 @@
+.custom-error__button {
+	position: absolute;
+	top: 100px;
+	left: 100px;
+	pointer-events: all;
+}
+
+.custom-error {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: center;
+	justify-content: center;
+	background: #f5f5f5;
+}
+
+.custom-error__annotations {
+	margin: 8px 0;
+	padding: 8px;
+	background: white;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 12px;
+	max-width: 600px;
+	max-height: 300px;
+	overflow-y: auto;
+	text-align: left;
+}

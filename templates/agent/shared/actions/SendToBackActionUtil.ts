@@ -1,6 +1,7 @@
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -8,7 +9,7 @@ const SendToBackAction = z
 	.object({
 		_type: z.literal('sendToBack'),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Send to Back',
