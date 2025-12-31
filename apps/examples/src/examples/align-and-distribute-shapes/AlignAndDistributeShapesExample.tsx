@@ -1,7 +1,7 @@
 import { useRef } from 'react'
-import { createShapeId, Tldraw, useEditor } from 'tldraw'
+import { createShapeId, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
-import './request-align-and-distribute-shapes.css'
+import './align-and-distribute-shapes.css'
 
 // [1]
 const ALIGN_OPERATIONS = [
@@ -13,15 +13,19 @@ const ALIGN_OPERATIONS = [
 	{ operation: 'bottom', label: 'Align bottom' },
 ] as const
 
-function AlignButtons() {
+function ControlPanel({
+	originalPositions,
+}: {
+	originalPositions: React.RefObject<Map<string, { x: number; y: number }>>
+}) {
 	const editor = useEditor()
 
 	return (
-		<div className="align-distribute-controls">
+		<div className="tlui-menu control-panel">
 			{ALIGN_OPERATIONS.map(({ operation, label }) => (
-				<button
+				<TldrawUiButton
+					type="normal"
 					key={operation}
-					className="align-distribute-button"
 					onClick={() => {
 						// [2]
 						const selectedIds = editor.getSelectedShapeIds()
@@ -31,27 +35,12 @@ function AlignButtons() {
 					}}
 				>
 					{label}
-				</button>
+				</TldrawUiButton>
 			))}
-		</div>
-	)
-}
-
-// [3]
-const DISTRIBUTE_OPERATIONS = [
-	{ operation: 'horizontal', label: 'Distribute horizontal' },
-	{ operation: 'vertical', label: 'Distribute vertical' },
-] as const
-
-function DistributeButtons() {
-	const editor = useEditor()
-
-	return (
-		<div className="align-distribute-controls distribute-row">
 			{DISTRIBUTE_OPERATIONS.map(({ operation, label }) => (
-				<button
+				<TldrawUiButton
+					type="normal"
 					key={operation}
-					className="align-distribute-button"
 					onClick={() => {
 						// [4]
 						const selectedIds = editor.getSelectedShapeIds()
@@ -61,23 +50,10 @@ function DistributeButtons() {
 					}}
 				>
 					{label}
-				</button>
+				</TldrawUiButton>
 			))}
-		</div>
-	)
-}
-
-function ResetButton({
-	originalPositions,
-}: {
-	originalPositions: React.RefObject<Map<string, { x: number; y: number }>>
-}) {
-	const editor = useEditor()
-
-	return (
-		<div className="align-distribute-controls distribute-row">
-			<button
-				className="align-distribute-button"
+			<TldrawUiButton
+				type="normal"
 				onClick={() => {
 					const shapes = editor.getCurrentPageShapes()
 					editor.run(() => {
@@ -95,10 +71,16 @@ function ResetButton({
 				}}
 			>
 				Reset positions
-			</button>
+			</TldrawUiButton>
 		</div>
 	)
 }
+
+// [3]
+const DISTRIBUTE_OPERATIONS = [
+	{ operation: 'horizontal', label: 'Distribute horizontal' },
+	{ operation: 'vertical', label: 'Distribute vertical' },
+] as const
 
 export default function RequestAlignAndDistributeShapesExample() {
 	const originalPositions = useRef(new Map<string, { x: number; y: number }>())
@@ -173,13 +155,7 @@ export default function RequestAlignAndDistributeShapesExample() {
 					editor.selectAll()
 				}}
 				components={{
-					TopPanel: () => (
-						<>
-							<AlignButtons />
-							<DistributeButtons />
-							<ResetButton originalPositions={originalPositions} />
-						</>
-					),
+					TopPanel: () => <ControlPanel originalPositions={originalPositions} />,
 				}}
 			/>
 		</div>
