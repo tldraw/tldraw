@@ -17,7 +17,7 @@ This example shows how to create custom validators for shape properties using `@
 
 The example creates a custom shape with two validated properties:
 
-1. **Percentage** - Chains multiple `.check()` calls to validate that the value is between 0 and 100
-2. **Rating** - Uses `.refine()` to both validate and clamp the value between 1 and 5
+1. **Percentage** - Chains multiple `.check()` calls to validate that the value is between 0 and 100. Invalid values throw an error.
+2. **Rating** - Uses `.refine()` to clamp values to the 1-5 range. Invalid values are transformed rather than rejected.
 
-When the example loads, it creates one valid shape and attempts to create another with an invalid percentage. Open your browser console to see the validation error.
+When the example loads, it demonstrates both behaviors: attempting to create a shape with percentage=150 throws an error, while creating a shape with rating=10 succeeds but the value is clamped to 5.

@@ -29,7 +29,6 @@ const validatedShapeProps: RecordProps<ValidatedShape> = {
 		}),
 	// [4]
 	rating: T.integer.refine((value) => {
-		if (value < 1 || value > 5) throw new Error('Rating must be between 1 and 5')
 		return Math.max(1, Math.min(5, value))
 	}),
 }
@@ -83,6 +82,14 @@ export default function CustomValidatorsExample() {
 					} catch (error: any) {
 						console.error('Validation failed:', error.message)
 					}
+
+					// [8]
+					editor.createShape({
+						type: 'validated-shape',
+						x: 450,
+						y: 100,
+						props: { rating: 10 }, // Will be clamped to 5
+					})
 				}}
 			/>
 		</div>
@@ -103,8 +110,8 @@ Chain multiple .check() calls to add validation constraints. Each check validate
 transforming the value. The name (e.g. 'min-value') appears in error messages for debugging.
 
 [4]
-Use .refine() to both validate and transform values. Unlike .check(), refine() can modify
-the value - here it clamps the rating to the valid range.
+Use .refine() to transform values. Unlike .check(), refine() returns a (possibly modified)
+value rather than just validating. Here it clamps the rating to 1-5 instead of throwing.
 
 [5]
 Create the shape utils array outside the component to prevent recreation on each render.
@@ -113,6 +120,10 @@ Create the shape utils array outside the component to prevent recreation on each
 Create a valid shape on mount to show the default values.
 
 [7]
-Demonstrate validation by attempting to create a shape with an invalid percentage (150%).
+Demonstrate .check() validation by attempting to create a shape with an invalid percentage.
 Open your browser console to see the validation error.
+
+[8]
+Demonstrate .refine() transformation - this shape is created successfully with rating=10,
+but the stored value is clamped to 5.
 */
