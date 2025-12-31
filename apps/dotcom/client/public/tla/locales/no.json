@@ -8,9 +8,6 @@
   "043973ec1f": {
     "translation": "Har du fortsatt problemer? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "Åpne tldraw."
-  },
   "06b9281e39": {
     "translation": "Auto"
   },
@@ -23,11 +20,20 @@
   "08bd40c754": {
     "translation": "Konto"
   },
+  "0a91f7fa87": {
+    "translation": "Denne filen har nådd størrelsesgrensen, og endringene kan kanskje ikke lenger lagres. Fjern noe innhold eller start en ny fil."
+  },
+  "0ab1ef22a3": {
+    "translation": "Snakk med gruppen…"
+  },
   "0b27918290": {
     "translation": "Fil"
   },
   "0b9a4cde72": {
     "translation": "Fil-menyen"
+  },
+  "0befa10111": {
+    "translation": "Feer"
   },
   "0d1f2bb523": {
     "translation": "Send tilbakemelding"
@@ -35,8 +41,26 @@
   "110a4b01be": {
     "translation": "Utgi"
   },
+  "11a755d598": {
+    "translation": "Stoppe"
+  },
+  "129b9e34ea": {
+    "translation": "Forlat gruppen"
+  },
+  "12a6766ba1": {
+    "translation": "Løsne filen"
+  },
+  "12c8a9838c": {
+    "translation": "Prøv tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Eksporter som"
+  },
+  "146ffe2fd9": {
+    "translation": "Vis mer"
+  },
+  "14d65465b7": {
+    "translation": "Slett gruppe"
   },
   "181b90f889": {
     "translation": "Opprett fil"
@@ -47,20 +71,35 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
-  "20976e7bec": {
-    "translation": "Rommet er fullt"
+  "23f879f41a": {
+    "translation": "Din ukentlige bruksgrense for feer er nådd. Den vil bli nullstilt i begynnelsen av neste uke."
   },
-  "21bfb2dc2e": {
-    "translation": "Dette rommet nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
+  "243924bfd5": {
+    "translation": "Sove"
+  },
+  "2445e5e347": {
+    "translation": "Opprett gruppe"
   },
   "250ddea65c": {
     "translation": "Om tldraw"
   },
+  "269097080b": {
+    "translation": "Feene dine venter"
+  },
+  "275173253d": {
+    "translation": "Tilkall alle"
+  },
+  "284d5cd0dd": {
+    "translation": "Modell:"
+  },
   "299cb00a7a": {
     "translation": "Opplasting mislyktes"
   },
-  "2deec2cb74": {
-    "translation": "Dette rommet har nådd størrelsesgrensen, og endringene kan kanskje ikke lenger lagres. Fjern noe innhold eller start en ny fil."
+  "2c3ef76333": {
+    "translation": "Mine filer"
+  },
+  "30cd34258a": {
+    "translation": "En mengde <b>feer</b> har kommet til tldraw i desember måned. For å undersøke nærmere, finn feen og klikk på den."
   },
   "31246941ad": {
     "translation": "Du må logge på for å se denne filen."
@@ -68,11 +107,41 @@
   "31418ce4ad": {
     "translation": "i18n: Utheving mangler"
   },
+  "3209f407ed": {
+    "translation": "tre feer"
+  },
+  "32210b37e4": {
+    "translation": "Legg til lenke"
+  },
+  "324a0f3182": {
+    "translation": "Tilbake til tldraw"
+  },
   "335defdafe": {
     "translation": "Prøv å oppdatere siden."
   },
+  "34140869c6": {
+    "translation": "En mengde feer kommer til tldraw i desember måned. Vennligst sjekk tilbake 1. desember."
+  },
   "344a7f427f": {
     "translation": "Redaktør"
+  },
+  "34abfe7a0d": {
+    "translation": "Sov alle"
+  },
+  "34e34c43ec": {
+    "translation": "Administrer"
+  },
+  "3596c1b1f7": {
+    "translation": "Slutt å følge"
+  },
+  "3903aab323": {
+    "translation": "Følge"
+  },
+  "3b6c2b4caa": {
+    "translation": "Vilkår for bruk"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Fortsett med e-post"
   },
   "3bd1b98dbd": {
     "translation": "Kan ikke publisere endringene."
@@ -89,14 +158,35 @@
   "44db318ee5": {
     "translation": "Få hjelp på Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Feer</strong> har kommet for å tegne i desember måned."
+  },
   "46137245cd": {
     "translation": "Takk for at du hjelper oss med å forbedre tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Ingen feer valgt"
+  },
+  "477df802ca": {
+    "translation": "For å fortsette redigeringen, kopier filen til filene dine."
   },
   "47839e47a5": {
     "translation": "tldra"
   },
+  "47f493a590": {
+    "translation": "Fest filen"
+  },
+  "49049467ff": {
+    "translation": "Lim inn URL-en til tldraw-filen..."
+  },
   "4908687e50": {
     "translation": "Er du sikker på at du vil glemme denne filen?"
+  },
+  "49ee308734": {
+    "translation": "Navn"
+  },
+  "4c41e0bd95": {
+    "translation": "Velg alle"
   },
   "4d0d3ddec9": {
     "translation": "Dette nettstedet bruker informasjonskapsler for å få appen til å fungere og for å samle inn analyser."
@@ -104,17 +194,26 @@
   "4d1c8263ba": {
     "translation": "Last inn på nytt"
   },
+  "4da5988a2e": {
+    "translation": "Slett gruppe…"
+  },
+  "4dab36ac83": {
+    "translation": "Flere alternativer"
+  },
+  "4e6fbf032b": {
+    "translation": "Er du sikker på at du vil slette denne gruppen? Denne handlingen kan ikke angres."
+  },
   "50db1b7e1e": {
     "translation": "Kan ikke oppheve publiseringen av filen."
   },
   "517bb809d9": {
     "translation": "Sidemeny"
   },
+  "542248f0ba": {
+    "translation": "Denne filen er nå skrivebeskyttet"
+  },
   "54286b1d01": {
     "translation": "Grensen for samarbeidspartnere er nådd"
-  },
-  "54d240fa41": {
-    "translation": "Vennligst senke farten."
   },
   "554a05155c": {
     "translation": "Har du fortsatt problemer? <a>Rapporter et problem</a>"
@@ -128,20 +227,26 @@
   "56c34c6410": {
     "translation": "Personvernerklæring"
   },
+  "5a2ccdc00a": {
+    "translation": "Kunne ikke løse inn invitasjonskoden"
+  },
+  "5a86b22fa0": {
+    "translation": "Dra filer hit, <create>opprett en fil</create>, eller <invite>kopier invitasjonslenken</invite> for å komme i gang."
+  },
   "5a95a425f7": {
     "translation": "Dele"
-  },
-  "5bb6cf3b53": {
-    "translation": "Rommet blir stort"
-  },
-  "5bcc12ace8": {
-    "translation": "Dette rommet er nå skrivebeskyttet"
   },
   "5bec508475": {
     "translation": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
   },
+  "5c6fe42bc2": {
+    "translation": "Tilbakekalle denne lenken og opprett en ny."
+  },
   "5d26ae7550": {
     "translation": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
+  },
+  "5ea8bb44be": {
+    "translation": "Du har blitt invitert til å bli med i gruppen:"
   },
   "5f3c333678": {
     "translation": "Tilbakemelding sendt"
@@ -152,14 +257,38 @@
   "61057a0c84": {
     "translation": "Seinere"
   },
+  "61daf2e53d": {
+    "translation": "Snakk med {name}…"
+  },
   "625fd29749": {
     "translation": "Eldre"
+  },
+  "639bae9ac6": {
+    "translation": "du"
+  },
+  "6602bbeb29": {
+    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Noe gikk galt"
   },
   "6637a98151": {
     "translation": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
+  },
+  "6832ac5936": {
+    "translation": "Skriv inn e-postadressen din"
+  },
+  "688761c83e": {
+    "translation": "Våkne"
+  },
+  "68d390535e": {
+    "translation": "Skriv inn meldingen din"
+  },
+  "6910bbdc82": {
+    "translation": "Feens navn"
+  },
+  "695c3e899d": {
+    "translation": "Feilsøk feer"
   },
   "6a26f54883": {
     "translation": "Hjelp"
@@ -169,6 +298,9 @@
   },
   "6dfc62f621": {
     "translation": "Følg disse trinnene for å importere innholdet manuelt:"
+  },
+  "70222abcfc": {
+    "translation": "Gruppeinnstillinger"
   },
   "70a6facb9d": {
     "translation": "Denne uken"
@@ -197,8 +329,17 @@
   "764671e008": {
     "translation": "Chat med oss ​​på Discord"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw er en gratis tavle på nett. Opprett en konto for å lagre filene dine og samarbeide med vennene dine."
+  },
   "777f9e90cf": {
     "translation": "Ugyldig forespørsel."
+  },
+  "77f0abf1aa": {
+    "translation": "Du har blitt invitert til å <strong>tldraw feer</strong>"
+  },
+  "7827371d1a": {
+    "translation": "Denne anonyme tldraw-flerspillerfilen er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier den til filene dine."
   },
   "78e9815992": {
     "translation": "Forstått"
@@ -206,14 +347,23 @@
   "797799f35e": {
     "translation": "Send inn et problem på GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "En fe er en liten fyr som kan jobbe med deg på lerretet. Feer kan jobbe alene eller som et team. Det er ingen grense for hva en fe kan gjøre. Ingen vet hvor de kommer fra."
+  },
   "7b1329f5ca": {
     "translation": "Brukermanual"
   },
   "7be10fc592": {
     "translation": "Gjenopprett versjon"
   },
+  "7c0747a5df": {
+    "translation": "Åpne tldraw"
+  },
   "7cb5f8b4a5": {
     "translation": "Glemme"
+  },
+  "7cfe6c43dc": {
+    "translation": "Forlat gruppen…"
   },
   "7daeced9ff": {
     "translation": "Publiser endringer"
@@ -227,6 +377,12 @@
   "815e116a2e": {
     "translation": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed! Fyll ut dette skjemaet, så følger vi opp via e-post om nødvendig. Du kan også <discord>chatte med oss ​​på Discord</discord> eller <github>sende inn et problem på GitHub</github>."
   },
+  "81aa2078d1": {
+    "translation": "Fjern alle"
+  },
+  "83218ac34c": {
+    "translation": "Velkomst"
+  },
   "85a082de1b": {
     "translation": "Oppdater siden for å få den nyeste versjonen av tldraw."
   },
@@ -236,11 +392,29 @@
   "86c66437fd": {
     "translation": "Gi nytt navn til filen"
   },
-  "8b1946f965": {
-    "translation": "For å fortsette redigeringen, kopier rommet til filene dine."
+  "8726ef8909": {
+    "translation": "Hard tilbakestilling"
+  },
+  "88e83b88c5": {
+    "translation": "Kjøp fe-pakke"
+  },
+  "8ad4303b83": {
+    "translation": "Nei takk"
+  },
+  "8be569f100": {
+    "translation": "engangsbetaling"
+  },
+  "8c2d3d730c": {
+    "translation": "Sjekk e-posten din for en bekreftelseskode."
+  },
+  "8cf04a9734": {
+    "translation": "Hjem"
   },
   "8eb2c00e96": {
     "translation": "Delt med deg"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Om"
   },
   "8ff3d0a705": {
     "translation": "Begrenset pris"
@@ -254,17 +428,44 @@
   "91e49bb0eb": {
     "translation": "Kopier til filene mine"
   },
+  "930390d222": {
+    "translation": "Kopierte invitasjonslenken"
+  },
+  "94186070ef": {
+    "translation": "Opphev valget"
+  },
+  "9489b2f82a": {
+    "translation": "Du er allerede medlem av denne gruppen"
+  },
+  "94966d9074": {
+    "translation": "Sende"
+  },
+  "95aacd4d4a": {
+    "translation": "Logg inn med Google"
+  },
+  "95d2109dc8": {
+    "translation": "Bygg med tldraw SDK"
+  },
   "96165d6df5": {
     "translation": "Denne måneden"
+  },
+  "985a4b720f": {
+    "translation": "Bruksvilkår"
+  },
+  "98c997a27e": {
+    "translation": "Legg til fillenke"
   },
   "9914a0ce04": {
     "translation": "Lys"
   },
+  "9953e9946b": {
+    "translation": "Feilsøkingsvisning"
+  },
+  "9b33f5c63c": {
+    "translation": "Fikk du ikke en kode? <resend>Send på nytt</resend>."
+  },
   "9bef626805": {
     "translation": "Slett fil"
-  },
-  "9c258b8f88": {
-    "translation": "Dette anonyme tldraw-flerspillerrommet er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier det til filene dine."
   },
   "9ceb927baa": {
     "translation": "Publiser denne filen"
@@ -290,17 +491,32 @@
   "a239905023": {
     "translation": "Eksporter bilde"
   },
+  "a286d9991c": {
+    "translation": "Bli med"
+  },
   "a3debabee7": {
     "translation": "Cookie policy"
   },
   "a4d3b161ce": {
     "translation": "Send inn"
   },
+  "a603905470": {
+    "translation": "Feilsøking"
+  },
   "a6cc403d56": {
     "translation": "Alle med linken"
   },
   "a768caa988": {
     "translation": "Analytics"
+  },
+  "a8873770ab": {
+    "translation": "Filen blir stor"
+  },
+  "a8de4c27a8": {
+    "translation": "Ukentlig fe-grense nådd"
+  },
+  "a917baaf14": {
+    "translation": "Ny chat"
   },
   "a9ded1e5ce": {
     "translation": "Bakgrunn"
@@ -315,8 +531,23 @@
   "b028909917": {
     "translation": "Gjestebruker"
   },
+  "b2c3c2e30c": {
+    "translation": "Filen er full"
+  },
+  "b34a671e2c": {
+    "translation": "Loggresponstid"
+  },
+  "b357b524e7": {
+    "translation": "E-postadresse"
+  },
+  "b3d2db69fe": {
+    "translation": "Fil-URL"
+  },
   "b6d4223e60": {
     "translation": "Logg på"
+  },
+  "b6f4a2ec63": {
+    "translation": "Eier"
   },
   "b758336699": {
     "translation": "Kopier lenken"
@@ -324,8 +555,8 @@
   "ba0318cb81": {
     "translation": "Logg inn for å dele"
   },
-  "bb792693e2": {
-    "translation": "Løsne"
+  "bb93a7590f": {
+    "translation": "Godta og bli med i gruppen"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Laster opp .tldr-fil …} other {Laster opp {uploaded} av {total} .tldr-filer …}}"
@@ -333,17 +564,35 @@
   "bc88b0e89e": {
     "translation": "Delt av {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Last opp .tldr-filer"
+  "be4f1c62d3": {
+    "translation": "Zoom til fe"
   },
   "c2276c9127": {
     "translation": "Finn ut mer om deling."
   },
+  "c28aed8348": {
+    "translation": "Tillat <cookies>analyse</cookies> for å hjelpe oss med å forbedre tldraw."
+  },
   "c303bd1095": {
     "translation": "Kan ikke publisere filen."
   },
+  "c3bf447eab": {
+    "translation": "Åpne"
+  },
+  "c3eb5c3b90": {
+    "translation": "Jeg forstår"
+  },
   "c4b39a1cc3": {
     "translation": "Viktige informasjonskapsler"
+  },
+  "c54a624f46": {
+    "translation": "Godta invitasjonen"
+  },
+  "c6155aaecc": {
+    "translation": "Gruppenavn"
+  },
+  "c64518704c": {
+    "translation": "Bruk"
   },
   "c655b27b1e": {
     "translation": "i18n: Lang streng"
@@ -351,8 +600,14 @@
   "c6a00f137b": {
     "translation": "Invitere"
   },
+  "c74ea6dbff": {
+    "translation": "Vis mindre"
+  },
   "c87aacf567": {
     "translation": "Logg ut"
+  },
+  "c9cc8cce24": {
+    "translation": "Spare"
   },
   "cceaefbc20": {
     "translation": "Del denne filen"
@@ -360,14 +615,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Denne filen nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
+  },
+  "ce1424d44b": {
+    "translation": "Du har allerede tilgang til feer!"
+  },
   "cea291e45e": {
     "translation": "Finn ut mer om publisering."
   },
   "d3d2e61733": {
     "translation": "Lukke"
   },
+  "d46632fe1f": {
+    "translation": "For mange forespørsler. Vennligst sakk ned farten."
+  },
   "d4bbf74f3e": {
     "translation": "Bytt sidefelt"
+  },
+  "d638a3344b": {
+    "translation": "Før du starter, vennligst godta våre <tos>bruksvilkår</tos> og <privacy>personvernerklæring</privacy>."
   },
   "d721757161": {
     "translation": "Tema"
@@ -375,23 +642,59 @@
   "d876a9fe1a": {
     "translation": "Prøv igjen"
   },
+  "d88ad2dc74": {
+    "translation": "Godta og fortsett"
+  },
   "d9100f3e10": {
     "translation": "Gå hit for å se innholdet"
+  },
+  "d9bfb9789a": {
+    "translation": "Aktiver feer"
+  },
+  "d9e35d0f55": {
+    "translation": "Du har nådd maksimalt antall grupper. Du må slette gamle grupper før du oppretter nye."
   },
   "dbbebf3c03": {
     "translation": "Kun invitasjon"
   },
+  "dc30bc0c79": {
+    "translation": "Klar"
+  },
+  "dcdaa754fe": {
+    "translation": "Ugyldig URL-adresse for tldraw-filen"
+  },
+  "df6ff49394": {
+    "translation": "Feer er en <strong>midlertidig</strong> funksjon. 1. januar 2026 vil alle feer bli fjernet fra applikasjonen. Kanskje de kommer tilbake igjen en dag. Kjøpet ditt gjelder kun tilgang til feer i desember 2025."
+  },
   "dfdb78a4e4": {
     "translation": "App-feilsøkingsflagg"
+  },
+  "e062622261": {
+    "translation": "Velge"
+  },
+  "e0c88179b3": {
+    "translation": "Inviter medlemmer"
+  },
+  "e2198d6228": {
+    "translation": "Kopier invitasjonslenken"
   },
   "e2ae80a510": {
     "translation": "Juridisk sammendrag"
   },
+  "e3afed0047": {
+    "translation": "Admin"
+  },
   "e404559826": {
     "translation": "Vilkår for bruk"
   },
-  "e78e14c5f1": {
-    "translation": "Pin"
+  "e43ec38a93": {
+    "translation": "Gå til"
+  },
+  "e81c4e4f2b": {
+    "translation": "eller"
+  },
+  "ea0626ac5a": {
+    "translation": "Faresone"
   },
   "ea4788705e": {
     "translation": "Kansellere"
@@ -414,11 +717,26 @@
   "ede55d955f": {
     "translation": "Les vår <a>policy for informasjonskapsler</a> for å lære mer."
   },
+  "eee6f05922": {
+    "translation": "Oppløse"
+  },
+  "ef53538ae4": {
+    "translation": "Medlemmer"
+  },
+  "ef7de3f485": {
+    "translation": "valgt"
+  },
+  "efde983742": {
+    "translation": "Innkalle"
+  },
   "f09b16bc5f": {
     "translation": "Vi bruker informasjonskapsler for å holde deg innlogget, for å synkronisere filene dine og for å samle inn analyser som hjelper oss med å forbedre tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Brukerinnstillinger"
+  },
+  "f1206f9fad": {
+    "translation": "Konfigurer"
   },
   "f2569594b2": {
     "translation": "Vi bruker disse informasjonskapslene for å lagre filene og innstillingene dine."
@@ -426,11 +744,14 @@
   "f2a6c498fb": {
     "translation": "Slett"
   },
-  "f43fb62093": {
-    "translation": "Tilbake til tldraw."
-  },
   "f4f70727dc": {
     "translation": "Innstillinger"
+  },
+  "f714e36843": {
+    "translation": "Er du sikker på at du vil forlate denne gruppen?"
+  },
+  "fa2ead697d": {
+    "translation": "Personvernerklæring"
   },
   "fb15c53f22": {
     "translation": "Seer"
@@ -440,6 +761,9 @@
   },
   "fed5ec05eb": {
     "translation": "Kopiert lenke"
+  },
+  "ff7a814974": {
+    "translation": "Legg til fillenke…"
   },
   "ffcd73e997": {
     "translation": "Importer fil…"

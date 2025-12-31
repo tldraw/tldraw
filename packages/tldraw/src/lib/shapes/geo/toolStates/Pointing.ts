@@ -16,15 +16,15 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
-			const { originPagePoint } = this.editor.inputs
+		if (this.editor.inputs.getIsDragging()) {
+			const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 			const id = createShapeId()
 
 			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 			const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
 			this.editor
-				.createShapes<TLGeoShape>([
+				.createShapes([
 					{
 						id,
 						type: 'geo',
@@ -71,7 +71,7 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const id = createShapeId()
 
@@ -88,7 +88,7 @@ export class Pointing extends StateNode {
 					? { w: 300, h: 180 }
 					: { w: 200, h: 200 }
 
-		this.editor.createShapes<TLGeoShape>([
+		this.editor.createShapes([
 			{
 				id,
 				type: 'geo',
@@ -115,7 +115,7 @@ export class Pointing extends StateNode {
 		if (parentTransform) delta.rot(-parentTransform.rotation())
 		const newPoint = maybeSnapToGrid(new Vec(shape.x - delta.x, shape.y - delta.y), this.editor)
 		this.editor.select(id)
-		this.editor.updateShape<TLGeoShape>({
+		this.editor.updateShape({
 			id: shape.id,
 			type: 'geo',
 			x: newPoint.x,

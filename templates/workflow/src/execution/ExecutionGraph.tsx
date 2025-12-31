@@ -42,7 +42,7 @@ export class ExecutionGraph {
 			if (this.nodesById.has(nodeId)) continue
 
 			const node = this.editor.getShape(nodeId)
-			if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) continue
+			if (!node || !this.editor.isShapeOfType(node, 'node')) continue
 
 			const connections = getNodePortConnections(this.editor, node)
 
@@ -136,13 +136,13 @@ export class ExecutionGraph {
 			state: 'executing',
 		})
 
-		this.editor.updateShape<NodeShape>({
+		this.editor.updateShape({
 			id: nodeId,
 			type: node.shape.type,
 			props: { isOutOfDate: true },
 		})
 		const outputs = await executeNode(this.editor, node.shape, inputs)
-		this.editor.updateShape<NodeShape>({
+		this.editor.updateShape({
 			id: nodeId,
 			type: node.shape.type,
 			props: { isOutOfDate: false },

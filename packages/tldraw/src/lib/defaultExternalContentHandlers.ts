@@ -19,7 +19,6 @@ import {
 	TLTextShapeProps,
 	TLUrlExternalAsset,
 	TLVideoAsset,
-	TLVideoShape,
 	Vec,
 	VecLike,
 	assert,
@@ -31,6 +30,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
+import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
@@ -205,7 +205,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			newY = result.y
 		}
 
-		editor.updateShapes<TLImageShape>([
+		editor.updateShapes([
 			{
 				id: imageShape.id,
 				type: imageShape.type,
@@ -220,7 +220,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			},
 		])
 	} else if (shape.type === 'video') {
-		editor.updateShapes<TLVideoShape>([
+		editor.updateShapes([
 			{
 				id: shape.id,
 				type: shape.type,
@@ -307,8 +307,8 @@ export async function defaultHandleExternalSvgTextContent(
 ) {
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
@@ -345,8 +345,8 @@ export function defaultHandleExternalEmbedContent<T>(
 ) {
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const { width, height } = embed as { width: number; height: number }
@@ -382,14 +382,14 @@ export async function defaultHandleExternalFileContent(
 ) {
 	const { acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES, toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
-		toasts.addToast({ title: msg('assets.files.amount-too-big'), severity: 'error' })
+		toasts.addToast({ title: msg('assets.files.amount-too-many'), severity: 'error' })
 		return
 	}
 
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const pagePoint = new Vec(position.x, position.y)
@@ -446,8 +446,8 @@ export async function defaultHandleExternalTextContent(
 ) {
 	const p =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
 	const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
@@ -530,7 +530,7 @@ export async function defaultHandleExternalTextContent(
 	const shapeId = createShapeId()
 
 	// Allow this to trigger the max shapes reached alert
-	editor.createShapes<TLTextShape>([
+	editor.createShapes([
 		{
 			id: shapeId,
 			type: 'text',
@@ -557,7 +557,7 @@ export async function defaultHandleExternalUrlContent(
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
 
-	if (embedInfo) {
+	if (embedInfo && embedInfo.definition.embedOnPaste !== false) {
 		return editor.putExternalContent({
 			type: 'embed',
 			url: embedInfo.url,
@@ -568,46 +568,20 @@ export async function defaultHandleExternalUrlContent(
 
 	const position =
 		point ??
-		(editor.inputs.shiftKey
-			? editor.inputs.currentPagePoint
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
-	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-	const shape = createEmptyBookmarkShape(editor, url, position)
+	// Use the new function to create the bookmark
+	const result = await createBookmarkFromUrl(editor, { url, center: position })
 
-	// Use an existing asset if we have one, or else else create a new one
-	let asset = editor.getAsset(assetId) as TLAsset
-	let shouldAlsoCreateAsset = false
-	if (!asset) {
-		shouldAlsoCreateAsset = true
-		try {
-			const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
-			if (!bookmarkAsset) throw Error('Could not create an asset')
-			asset = bookmarkAsset
-		} catch {
-			toasts.addToast({
-				title: msg('assets.url.failed'),
-				severity: 'error',
-			})
-			return
-		}
+	if (!result.ok) {
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
+		return
 	}
-
-	editor.run(() => {
-		if (shouldAlsoCreateAsset) {
-			editor.createAssets([asset])
-		}
-
-		editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: {
-					assetId: asset.id,
-				},
-			},
-		])
-	})
 }
 
 /** @public */

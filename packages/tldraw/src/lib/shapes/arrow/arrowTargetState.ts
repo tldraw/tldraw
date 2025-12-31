@@ -198,7 +198,7 @@ export function updateArrowTargetState({
 	if (!precise) {
 		// If we're switching to a new bound shape, then precise only if moving slowly
 		if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
-			precise = editor.inputs.pointerVelocity.len() < 0.5
+			precise = editor.inputs.getPointerVelocity().len() < 0.5
 		}
 	}
 
@@ -377,7 +377,7 @@ export function updateArrowTargetState({
 	return result
 }
 
-const targetFilterFallback = { type: 'arrow' }
+const targetFilterFallback = { type: 'arrow' as const }
 
 /**
  * Funky math but we want the snap distance to be 4 at the minimum and either 16 or 15% of the

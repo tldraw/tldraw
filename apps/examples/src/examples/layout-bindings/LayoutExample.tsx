@@ -10,8 +10,8 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
-	TLBaseBinding,
-	TLBaseShape,
+	TLBinding,
+	TLShape,
 	Tldraw,
 	Vec,
 	clamp,
@@ -21,14 +21,24 @@ import {
 import 'tldraw/tldraw.css'
 import snapShot from './snapshot.json'
 
+const CONTAINER_TYPE = 'container'
+const ELEMENT_TYPE = 'element'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[CONTAINER_TYPE]: { height: number; width: number }
+		[ELEMENT_TYPE]: { color: string }
+	}
+}
+
 // The container shapes that can contain element shapes
 
 const CONTAINER_PADDING = 24
 
-type ContainerShape = TLBaseShape<'element', { height: number; width: number }>
+type ContainerShape = TLShape<typeof CONTAINER_TYPE>
 
 class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
-	static override type = 'container' as const
+	static override type = CONTAINER_TYPE
 	static override props: RecordProps<ContainerShape> = { height: T.number, width: T.number }
 
 	override getDefaultProps() {
@@ -47,7 +57,7 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 		toShapeType: string
 		bindingType: string
 	}) {
-		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
+		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === LAYOUT_TYPE
 	}
 	override canEdit() {
 		return false
@@ -89,10 +99,10 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 
 // The element shapes that can be placed inside the container shapes
 
-type ElementShape = TLBaseShape<'element', { color: string }>
+type ElementShape = TLShape<typeof ELEMENT_TYPE>
 
 class ElementShapeUtil extends ShapeUtil<ElementShape> {
-	static override type = 'element' as const
+	static override type = ELEMENT_TYPE
 	static override props: RecordProps<ElementShape> = {
 		color: T.string,
 	}
@@ -112,7 +122,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		toShapeType: string
 		bindingType: string
 	}) {
-		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
+		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === LAYOUT_TYPE
 	}
 	override canEdit() {
 		return false
@@ -148,14 +158,14 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
 			filter: (otherShape) =>
-				this.editor.canBindShapes({ fromShape: otherShape, toShape: shape, binding: 'layout' }),
+				this.editor.canBindShapes({ fromShape: otherShape, toShape: shape, binding: LAYOUT_TYPE }),
 		}) as ContainerShape | undefined
 	}
 
 	getBindingIndexForPosition(shape: ElementShape, container: ContainerShape, pageAnchor: Vec) {
 		// All the layout bindings from the container
 		const allBindings = this.editor
-			.getBindingsFromShape<LayoutBinding>(container, 'layout')
+			.getBindingsFromShape(container, LAYOUT_TYPE)
 			.sort((a, b) => (a.props.index > b.props.index ? 1 : -1))
 
 		// Those bindings that don't involve the element
@@ -188,7 +198,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	override onTranslateStart(shape: ElementShape) {
 		// Update all the layout bindings for this shape to be placeholders
 		this.editor.updateBindings(
-			this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout').map((binding) => ({
+			this.editor.getBindingsToShape(shape, LAYOUT_TYPE).map((binding) => ({
 				...binding,
 				props: { ...binding.props, placeholder: true },
 			}))
@@ -204,7 +214,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 		if (!targetContainer) {
 			// Delete all the bindings to the element
-			const bindings = this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout')
+			const bindings = this.editor.getBindingsToShape(shape, LAYOUT_TYPE)
 			this.editor.deleteBindings(bindings)
 			return
 		}
@@ -214,13 +224,13 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 		// Is there an existing binding already between the container and the shape?
 		const existingBinding = this.editor
-			.getBindingsFromShape<LayoutBinding>(targetContainer, 'layout')
+			.getBindingsFromShape(targetContainer, LAYOUT_TYPE)
 			.find((b) => b.toId === shape.id)
 
 		if (existingBinding) {
 			// If a binding already exists, update it
 			if (existingBinding.props.index === index) return
-			this.editor.updateBinding<LayoutBinding>({
+			this.editor.updateBinding({
 				...existingBinding,
 				props: {
 					...existingBinding.props,
@@ -230,9 +240,9 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 			})
 		} else {
 			// ...otherwise, create a new one
-			this.editor.createBinding<LayoutBinding>({
+			this.editor.createBinding({
 				id: createBindingId(),
-				type: 'layout',
+				type: LAYOUT_TYPE,
 				fromId: targetContainer.id,
 				toId: shape.id,
 				props: {
@@ -257,12 +267,12 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		const index = this.getBindingIndexForPosition(shape, targetContainer, pageAnchor)
 
 		// delete all the previous bindings for this shape
-		this.editor.deleteBindings(this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout'))
+		this.editor.deleteBindings(this.editor.getBindingsToShape(shape, LAYOUT_TYPE))
 
 		// ...and then create a new one
-		this.editor.createBinding<LayoutBinding>({
+		this.editor.createBinding({
 			id: createBindingId(),
-			type: 'layout',
+			type: LAYOUT_TYPE,
 			fromId: targetContainer.id,
 			toId: shape.id,
 			props: {
@@ -275,16 +285,21 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 // The binding between the element shapes and the container shapes
 
-type LayoutBinding = TLBaseBinding<
-	'layout',
-	{
-		index: IndexKey
-		placeholder: boolean
+const LAYOUT_TYPE = 'layout'
+
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		[LAYOUT_TYPE]: {
+			index: IndexKey
+			placeholder: boolean
+		}
 	}
->
+}
+
+type LayoutBinding = TLBinding<typeof LAYOUT_TYPE>
 
 class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
-	static override type = 'layout' as const
+	static override type = LAYOUT_TYPE
 
 	override getDefaultProps() {
 		return {
@@ -319,7 +334,7 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		if (!container) return
 
 		const bindings = this.editor
-			.getBindingsFromShape<LayoutBinding>(container, 'layout')
+			.getBindingsFromShape(container, LAYOUT_TYPE)
 			.sort((a, b) => (a.props.index > b.props.index ? 1 : -1))
 		if (bindings.length === 0) return
 

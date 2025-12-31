@@ -33,8 +33,8 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 		})
 		onClose()
 		if (res?.ok) {
-			const { file } = res.value
-			navigate(routes.tlaFile(file.id))
+			const { fileId } = res.value
+			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
 	}
@@ -43,16 +43,16 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 		<div className={styles.dialog}>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="This room is now read-only" />
+					<F defaultMessage="This file is now read-only" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody>
 				<p>
 					{isSignedIn ? (
-						<F defaultMessage="To continue editing please copy the room to your files." />
+						<F defaultMessage="To continue editing please copy the file to your files." />
 					) : (
-						<F defaultMessage="This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files." />
+						<F defaultMessage="This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files." />
 					)}
 				</p>
 			</TldrawUiDialogBody>

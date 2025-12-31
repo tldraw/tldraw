@@ -143,7 +143,8 @@ function configurePosthog(options: AnalyticsOptions) {
 		api_host: 'https://analytics.tldraw.com/i',
 		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
-		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
+		cookieless_mode: 'on_reject',
+		disable_surveys: true,
 		before_send: (payload) => {
 			if (!payload) return null
 			payload.properties.is_signed_in = !!options.user
@@ -170,7 +171,12 @@ function configurePosthog(options: AnalyticsOptions) {
 				: undefined,
 	}
 	if (!currentOptionsPosthog) {
+		// First time initialization only
 		posthog.init(POSTHOG_KEY, config)
+	} else {
+		// We need to call _before_ opt_in/opt_out to avoid interfering with
+		// their state management
+		posthog.set_config(config)
 	}
 
 	if (options.optedIn) {
@@ -178,13 +184,15 @@ function configurePosthog(options: AnalyticsOptions) {
 			posthog.identify(options.user.id, {
 				email: options.user.email,
 				name: options.user.name,
+				analytics_consent: true,
 			})
 		}
+		posthog.opt_in_capturing()
 	} else if (currentOptionsPosthog?.optedIn) {
-		posthog.reset()
+		posthog.setPersonProperties({ analytics_consent: false })
+		posthog.opt_out_capturing()
 	}
 
-	posthog.set_config(config)
 	currentOptionsPosthog = options
 	eventBufferPosthog?.forEach((event) => posthog.capture(event.name, event.data))
 	eventBufferPosthog = null
@@ -203,6 +211,12 @@ function configureGA4(options: AnalyticsOptions) {
 			analytics_storage: 'denied',
 			// Wait for our cookie to load.
 			wait_for_update: 500,
+		})
+
+		// Set up conversion linker for cross-domain tracking with tldraw.dev
+		// Must be set before ReactGA.initialize() to ensure it's configured before gtag('config')
+		ReactGA.gtag('set', 'linker', {
+			domains: ['tldraw.dev'],
 		})
 
 		ReactGA.initialize(GA4_MEASUREMENT_ID, {
@@ -271,6 +285,15 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 	// Send pageviews to both platforms, but other app-specific events only to PostHog
 	if (name === '$pageview') {
 		getGA4()?.event('page_view', data)
+	}
+
+	// Track watermark clicks in GA4
+	if (name === 'click-watermark' && data?.url) {
+		if (getGA4()) {
+			ReactGA.gtag('event', 'click_tldraw_dev', {
+				link_url: data.url,
+			})
+		}
 	}
 }
 
@@ -358,4 +381,9 @@ function useTrackPageViews() {
 	useEffect(() => {
 		trackEvent('$pageview')
 	}, [location])
+}
+
+export function signoutAnalytics() {
+	if (shouldUsePosthog) posthog.reset()
+	if (shouldUseGA4) ReactGA.reset()
 }

@@ -1,12 +1,14 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
+import { tlenv } from '../globals/environment'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
+	const ownerDocument = editor.getContainer().ownerDocument
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
@@ -161,8 +163,14 @@ export function useCanvasEvents() {
 			// For tools that benefit from a higher fidelity of events,
 			// we dispatch the coalesced events.
 			// N.B. Sometimes getCoalescedEvents isn't present on iOS, ugh.
+			// Specifically, in local mode (non-https) mode, iOS does not `useCoalescedEvents`
+			// so it appears like the ink is working locally, when really it's just that `useCoalescedEvents`
+			// is disabled. The intent here is to have `useCoalescedEvents` disabled for iOS.
 			const events =
-				currentTool.useCoalescedEvents && e.getCoalescedEvents ? e.getCoalescedEvents() : [e]
+				!tlenv.isIos && currentTool.useCoalescedEvents && e.getCoalescedEvents
+					? e.getCoalescedEvents()
+					: [e]
+
 			for (const singleEvent of events) {
 				editor.dispatch({
 					type: 'pointer',
@@ -173,11 +181,11 @@ export function useCanvasEvents() {
 			}
 		}
 
-		document.body.addEventListener('pointermove', onPointerMove)
+		ownerDocument.body.addEventListener('pointermove', onPointerMove)
 		return () => {
-			document.body.removeEventListener('pointermove', onPointerMove)
+			ownerDocument.body.removeEventListener('pointermove', onPointerMove)
 		}
-	}, [editor, currentTool])
+	}, [editor, currentTool, ownerDocument])
 
 	return events
 }

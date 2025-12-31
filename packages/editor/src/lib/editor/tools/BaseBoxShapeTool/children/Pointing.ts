@@ -12,8 +12,8 @@ export class Pointing extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		const { editor } = this
-		if (editor.inputs.isDragging) {
-			const { originPagePoint } = editor.inputs
+		if (editor.inputs.getIsDragging()) {
+			const originPagePoint = editor.inputs.getOriginPagePoint()
 
 			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
 
@@ -23,7 +23,7 @@ export class Pointing extends StateNode {
 			const newPoint = maybeSnapToGrid(originPagePoint, editor)
 
 			// Allow this to trigger the max shapes reached alert
-			this.editor.createShapes<TLBaseBoxShape>([
+			this.editor.createShapes([
 				{
 					id,
 					type: shapeType,
@@ -78,7 +78,7 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 
@@ -88,7 +88,7 @@ export class Pointing extends StateNode {
 
 		// Allow this to trigger the max shapes reached alert
 		// todo: add scale here when dynamic size is enabled (is this still needed?)
-		this.editor.createShapes<TLBaseBoxShape>([
+		this.editor.createShapes([
 			{
 				id,
 				type: shapeType,
@@ -127,7 +127,7 @@ export class Pointing extends StateNode {
 			;(next as TLBaseBoxShape & { props: { scale: number } }).props.scale = scale
 		}
 
-		this.editor.updateShape<TLBaseBoxShape>(next)
+		this.editor.updateShape(next)
 
 		this.editor.setSelectedShapes([id])
 

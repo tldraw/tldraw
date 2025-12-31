@@ -15,7 +15,6 @@ import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
 import { AgentViewportBoundsHighlight } from './components/highlights/AgentViewportBoundsHighlights'
 import { ContextHighlights } from './components/highlights/ContextHighlights'
-import { enableLinedFillStyle } from './enableLinedFillStyle'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
@@ -27,7 +26,6 @@ export const AGENT_ID = 'agent-starter'
 
 // Customize tldraw's styles to play to the agent's strengths
 DefaultSizeStyle.setDefaultValue('s')
-enableLinedFillStyle()
 
 // Custom tools for picking context items
 const tools = [TargetShapeTool, TargetAreaTool]

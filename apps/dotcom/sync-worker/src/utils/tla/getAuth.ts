@@ -23,7 +23,7 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 	const clerk = getClerkClient(env)
 
 	const state = await clerk.authenticateRequest(request)
-	if (state.isSignedIn) return state.toAuth()
+	if (state.isSignedIn) return state.toAuth() as SignedInAuth
 
 	// we can't send headers with websockets, so for those connections we need to pass the token in
 	// the query string. `authenticateRequest` only works with headers/cookies though, so we need to
@@ -43,12 +43,12 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 		return null
 	}
 
-	return res.toAuth()
+	return res.toAuth() as SignedInAuth
 }
 
 export type SignedInAuth = ReturnType<
 	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
->
+> & { userId: string }
 
 export async function requireWriteAccessToFile(
 	request: IRequest,
@@ -63,6 +63,7 @@ export async function requireWriteAccessToFile(
 		const file = await db
 			.selectFrom('file')
 			.select('ownerId')
+			.select('owningGroupId')
 			.select('shared')
 			.select('sharedLinkType')
 			.where('id', '=', roomId)
@@ -77,6 +78,20 @@ export async function requireWriteAccessToFile(
 			return
 		}
 
+		// If the file is owned by a group, check if user is a member
+		if (file.owningGroupId) {
+			const groupMember = await db
+				.selectFrom('group_user')
+				.select('role')
+				.where('groupId', '=', file.owningGroupId)
+				.where('userId', '=', auth.userId)
+				.executeTakeFirst()
+
+			if (groupMember) {
+				return
+			}
+		}
+
 		// If the file is not shared, the user does not have write access
 		if (!file.shared) {
 			throw new StatusError(403, 'File is not shared')
@@ -87,19 +102,8 @@ export async function requireWriteAccessToFile(
 			throw new StatusError(403, 'File is shared but not for editing')
 		}
 
-		// Check if user is a collaborator
-		const fileState = await db
-			.selectFrom('file_state')
-			.select('fileId')
-			.where('fileId', '=', roomId)
-			.where('userId', '=', auth.userId)
-			.executeTakeFirst()
-
-		if (fileState) {
-			return
-		}
-
-		throw new StatusError(403, 'User does not have write access to this file')
+		// file is shared and for editing, allow access
+		return
 	} finally {
 		// Ensure database connection is properly closed
 		await db.destroy()

@@ -81,8 +81,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 							createSource: window.location.pathname.slice(1),
 						})
 						if (res?.ok) {
-							const { file } = res.value
-							navigate(routes.tlaFile(file.id))
+							const { fileId } = res.value
+							navigate(routes.tlaFile(fileId))
 							trackEvent('create-file', { source: 'legacy-import-button' })
 						}
 					},

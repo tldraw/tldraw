@@ -4,12 +4,7 @@ import { memo, useCallback, useRef } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 
 /** @internal */
-const TldrawUiDialog = ({
-	id,
-	component: ModalContent,
-	onClose,
-	preventBackgroundClose,
-}: TLUiDialog) => {
+const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
 	const mouseDownInsideContentRef = useRef(false)
 
@@ -18,17 +13,10 @@ const TldrawUiDialog = ({
 	const handleOpenChange = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				if (onClose) {
-					try {
-						onClose()
-					} catch (err: any) {
-						console.warn(err)
-					}
-				}
 				removeDialog(id)
 			}
 		},
-		[id, onClose, removeDialog]
+		[id, removeDialog]
 	)
 
 	return (

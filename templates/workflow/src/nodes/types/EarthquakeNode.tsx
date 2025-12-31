@@ -1,7 +1,8 @@
-import { sleep, T } from 'tldraw'
+import { T } from 'tldraw'
 import { EarthquakeIcon } from '../../components/icons/EarthquakeIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
+import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
@@ -87,7 +88,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 
 			if (data.features.length === 0) {
 				// Update node with no data state
-				this.editor.updateShape<NodeShape>({
+				this.editor.updateShape({
 					id: shape.id,
 					type: shape.type,
 					props: {
@@ -114,7 +115,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			}
 
 			// Update node with fetched data
-			this.editor.updateShape<NodeShape>({
+			this.editor.updateShape({
 				id: shape.id,
 				type: shape.type,
 				props: {
@@ -133,7 +134,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			console.error('Failed to fetch earthquake data:', error)
 
 			// Update node with error state
-			this.editor.updateShape<NodeShape>({
+			this.editor.updateShape({
 				id: shape.id,
 				type: shape.type,
 				props: {

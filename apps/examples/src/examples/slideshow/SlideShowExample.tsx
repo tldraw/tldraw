@@ -66,7 +66,7 @@ function InsideSlidesContext() {
 						name = `Slide ${slide.index + 1}`
 					}
 
-					editor.updateShape<TLFrameShape>({
+					editor.updateShape({
 						id: shapeId,
 						type: 'frame',
 						x: slide.index * (SLIDE_SIZE.w + SLIDE_MARGIN),
@@ -75,7 +75,7 @@ function InsideSlidesContext() {
 						},
 					})
 				} else {
-					editor.createShape<TLFrameShape>({
+					editor.createShape({
 						id: shapeId,
 						parentId: editor.getCurrentPageId(),
 						type: 'frame',
@@ -91,7 +91,7 @@ function InsideSlidesContext() {
 			}
 		})
 
-		const unsubs = [] as (() => void)[]
+		const unsubs: (() => void)[] = []
 
 		unsubs.push(
 			editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {

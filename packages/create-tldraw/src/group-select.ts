@@ -71,17 +71,7 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 			return [picocolors.dim(S_RADIO_INACTIVE), ' ', picocolors.dim(label)].join('')
 		}
 
-		return [
-			picocolors.green(S_RADIO_ACTIVE),
-			' ',
-			picocolors.bold(label),
-			'\n  ',
-			picocolors.cyan(S_BAR),
-			'    ',
-			option.hint,
-			'\n',
-			picocolors.cyan(S_BAR),
-		].join('')
+		return [picocolors.green(S_RADIO_ACTIVE), ' ', picocolors.bold(label)].join('')
 	}
 
 	return new SelectPrompt({
@@ -129,6 +119,9 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 				previousGroup = option.group
 			}
 
+			// Add the description as the last line
+			body.push(picocolors.cyan(S_BAR), '\n', picocolors.cyan(S_BAR), '  ', selectedOption.hint)
+
 			const output = opts.output ?? process.stdout
 			const columns = output instanceof WriteStream ? output.columns : 80
 			const rows = output instanceof WriteStream ? output.rows : 10
@@ -144,7 +137,7 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 				[picocolors.cyan(S_BAR), picocolors.dim(' ...')].join('')
 			)
 
-			return [title, limited].join('')
+			return [title, picocolors.cyan(S_BAR), '\n', limited].join('')
 		},
 	}).prompt() as Promise<Value | symbol>
 }

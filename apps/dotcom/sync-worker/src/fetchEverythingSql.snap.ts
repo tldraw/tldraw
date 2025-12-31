@@ -3,10 +3,17 @@
 
 export const fetchEverythingSql = `
 WITH
-  my_owned_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1),
+  legacy_my_own_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false),
   my_file_states AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
-  files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
-  all_files AS (SELECT * FROM my_owned_files UNION SELECT * FROM files_shared_with_me)
+  legacy_files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
+  my_group_ids AS (SELECT "groupId" FROM public."group_user" WHERE "userId" = $1),
+  my_groups AS (SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId" WHERE g."isDeleted" = false),
+  all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
+  group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
+  group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
+  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files),
+  my_fairies AS (SELECT * FROM public."user_fairies" WHERE "userId" = $1),
+  file_fairies AS (SELECT * FROM public."file_fairies" WHERE "userId" = $1)
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -30,8 +37,9 @@ SELECT
   "exportTheme"::text as "18",
   "flags"::text as "19",
   "id"::text as "20",
-  "locale"::text as "21",
-  "name"::text as "22"
+  "inputMode"::text as "21",
+  "locale"::text as "22",
+  "name"::text as "23"
 FROM public."user"
 WHERE "id" = $1
 UNION ALL
@@ -59,7 +67,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM my_file_states
 UNION ALL
 SELECT
@@ -83,11 +92,152 @@ SELECT
   "ownerAvatar"::text as "16",
   "ownerId"::text as "17",
   "ownerName"::text as "18",
-  "publishedSlug"::text as "19",
-  "sharedLinkType"::text as "20",
-  "thumbnail"::text as "21",
-  null::text as "22"
+  "owningGroupId"::text as "19",
+  "publishedSlug"::text as "20",
+  "sharedLinkType"::text as "21",
+  "thumbnail"::text as "22",
+  null::text as "23"
 FROM all_files
+UNION ALL
+SELECT
+  'group_file' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  "createdAt"::bigint as "9",
+  "updatedAt"::bigint as "10",
+  null::bigint as "11",
+  null::bigint as "12",
+  "fileId"::text as "13",
+  "groupId"::text as "14",
+  "index"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM group_file_ownership
+UNION ALL
+SELECT
+  'group' as "table",
+  "isDeleted"::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  "createdAt"::bigint as "9",
+  "updatedAt"::bigint as "10",
+  null::bigint as "11",
+  null::bigint as "12",
+  "id"::text as "13",
+  "inviteSecret"::text as "14",
+  "name"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM my_groups
+UNION ALL
+SELECT
+  'group_user' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  "createdAt"::bigint as "9",
+  "updatedAt"::bigint as "10",
+  null::bigint as "11",
+  null::bigint as "12",
+  "groupId"::text as "13",
+  "index"::text as "14",
+  "role"::text as "15",
+  "userColor"::text as "16",
+  "userId"::text as "17",
+  "userName"::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM all_group_users
+UNION ALL
+SELECT
+  'user_fairies' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  "fairyAccessExpiresAt"::bigint as "9",
+  "fairyLimit"::bigint as "10",
+  "weeklyLimit"::bigint as "11",
+  null::bigint as "12",
+  "fairies"::text as "13",
+  "userId"::text as "14",
+  "weeklyUsage"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM my_fairies
+UNION ALL
+SELECT
+  'file_fairies' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  null::bigint as "11",
+  null::bigint as "12",
+  "fairyState"::text as "13",
+  "fileId"::text as "14",
+  "userId"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM file_fairies
 UNION ALL
 SELECT
   'user_mutation_number' as "table",
@@ -113,7 +263,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
 UNION ALL
@@ -141,7 +292,8 @@ SELECT
   null::text as "19",
   null::text as "20",
   null::text as "21",
-  null::text as "22"
+  null::text as "22",
+  null::text as "23"
 `
 
 export const columnNamesByAlias = {
@@ -167,8 +319,9 @@ export const columnNamesByAlias = {
 		'18': 'exportTheme',
 		'19': 'flags',
 		'20': 'id',
-		'21': 'locale',
-		'22': 'name',
+		'21': 'inputMode',
+		'22': 'locale',
+		'23': 'name',
 	},
 	file_state: {
 		'0': 'isFileOwner',
@@ -194,9 +347,48 @@ export const columnNamesByAlias = {
 		'16': 'ownerAvatar',
 		'17': 'ownerId',
 		'18': 'ownerName',
-		'19': 'publishedSlug',
-		'20': 'sharedLinkType',
-		'21': 'thumbnail',
+		'19': 'owningGroupId',
+		'20': 'publishedSlug',
+		'21': 'sharedLinkType',
+		'22': 'thumbnail',
+	},
+	group_file: {
+		'9': 'createdAt',
+		'10': 'updatedAt',
+		'13': 'fileId',
+		'14': 'groupId',
+		'15': 'index',
+	},
+	group: {
+		'0': 'isDeleted',
+		'9': 'createdAt',
+		'10': 'updatedAt',
+		'13': 'id',
+		'14': 'inviteSecret',
+		'15': 'name',
+	},
+	group_user: {
+		'9': 'createdAt',
+		'10': 'updatedAt',
+		'13': 'groupId',
+		'14': 'index',
+		'15': 'role',
+		'16': 'userColor',
+		'17': 'userId',
+		'18': 'userName',
+	},
+	user_fairies: {
+		'9': 'fairyAccessExpiresAt',
+		'10': 'fairyLimit',
+		'11': 'weeklyLimit',
+		'13': 'fairies',
+		'14': 'userId',
+		'15': 'weeklyUsage',
+	},
+	file_fairies: {
+		'13': 'fairyState',
+		'14': 'fileId',
+		'15': 'userId',
 	},
 	user_mutation_number: {
 		'9': 'mutationNumber',

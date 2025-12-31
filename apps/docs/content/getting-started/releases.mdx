@@ -15,89 +15,54 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.15.0](/releases/v3.15.0)
+## Current release: [v4.2.0](/releases/v4.2.0)
 
-This release adds `npm create tldraw` to bootstrap new tldraw projects. It also includes several small API additions, accessibility improvements, performance optimizations, and various bug fixes.
+Welcome to tldraw v4.2.0!
 
-### `npm create tldraw`
+This is a minor maintenance release that includes many bug fixes and small API additions, along with a major version bump of our TipTap rich text editor.
 
-You can now run `npm create tldraw` in your terminal to bootstrap a new tldraw project from our starter templates.
+## TipTap v3 ([#5717](https://github.com/tldraw/tldraw/issues/5717))
 
-![npm create tldraw](https://github.com/user-attachments/assets/7141d2cc-fb24-44c4-b440-2e6e00d3606b)
+We've upgraded TipTap from v2 to v3. If you've done any customization to our standard TipTap kit, please refer to TipTap's Guide [How to upgrade Tiptap v2 to v3](https://tiptap.dev/docs/guides/upgrade-tiptap-v2) as to any breaking changes you might experience from a custom homebrew of the rich text editor in tldraw.
 
-## Breaking changes
+## API Changes
 
-There are no breaking changes in this release.
+- Add `Editor.setTool`/`Editor.removeTool` for dynamically altering the editor's tool state chart. ([#6909](https://github.com/tldraw/tldraw/issues/6909)) ([#7134](https://github.com/tldraw/tldraw/issues/7134))
+- Allow using custom socket implementations with `useSync` via a new `connect` option ([#6859](https://github.com/tldraw/tldraw/issues/6859)) (thanks to [@Digital39999](https://github.com/Digital39999) for help on this one)
+- Support store queries on nested properties, e.g. props ([#6981](https://github.com/tldraw/tldraw/issues/6981))
+- Add `createBookmarkFromUrl` helper function for creating bookmark shapes more easily. ([#6894](https://github.com/tldraw/tldraw/issues/6894))
+- Allow handles to specify a custom reference point for shift-modifier angle snapping ([#6987](https://github.com/tldraw/tldraw/issues/6987)) (contributed by [@naaa760](https://github.com/naaa760))
+- Add a 'secret' lined-fill style similar to the full-fill style but with visible outlines. Users can select it by pressing `Option+Shift+F`. ([#7034](https://github.com/tldraw/tldraw/issues/7034))
+- Add option to pass callback to onInteractionEnd ([#6919](https://github.com/tldraw/tldraw/issues/6919))
+- Add `allowReferrer` option to window opening functions ([#7004](https://github.com/tldraw/tldraw/issues/7004))
+- Remove broken/defunct Excalidraw embed definition. Existing Excalidraw embed shapes will remain but render as bookmarks. ([#6897](https://github.com/tldraw/tldraw/issues/6897))
 
-## User-facing changes
+## Improvements
 
-- Improve the 'Select All' action to select within the common parent of the current selection. For example, if you select a shape within a frame, it will select all the shapes within that frame but not the frame itself. ([#6386](https://github.com/tldraw/tldraw/pull/6386))
+- Use window.prompt for renaming frames on mobile ([#6838](https://github.com/tldraw/tldraw/issues/6838))
+- Add string append optimization to sync protocol ([#7007](https://github.com/tldraw/tldraw/issues/7007)) (contributed by [@quasor](https://github.com/quasor))
 
-- Add a user preference option to turn off keyboard shortcuts. ([#6363](https://github.com/tldraw/tldraw/pull/6363))
+## Bug Fixes
 
-## API additions
-
-- Add several new `ShapeUtil` callbacks for handle interactions. ([#6489](https://github.com/tldraw/tldraw/pull/6489))
-  - Handle drag start and end callbacks: `onHandleDragStart` and `onHandleDragEnd`.
-  - Interaction cancellation callbacks: `onTranslateCancel`, `onResizeCancel`, `onRotateCancel`, and `onHandleDragCancel`.
-
-- Allow custom JSX for icons in UI components. ([#6486](https://github.com/tldraw/tldraw/pull/6486))
-
-  This applies to tool and action overrides as well as our button and menu item components.
-
-- Add the `StateNode.addChild` method for dynamically adding functionality to tools. ([#6485](https://github.com/tldraw/tldraw/pull/6485))
-
-- The `DefaultSpinner` component is now an SVG, and accepts SVG props like `width`, `height`, and `className`. ([#6459](https://github.com/tldraw/tldraw/pull/6459))
-
-- Add a missing export of `HeartToolbarItem`. ([#6438](https://github.com/tldraw/tldraw/pull/6438))
-
-## Bug fixes
-
-- Fix HTML entities escaping in pasted content. ([#6396](https://github.com/tldraw/tldraw/pull/6396))
-
-- Fix measurement of fixed-size text shapes and labels. ([#6423](https://github.com/tldraw/tldraw/pull/6423))
-
-- Fix an issue where text measurement could be wrong due to styles being leaked between measurements. ([#6419](https://github.com/tldraw/tldraw/pull/6419))
-
-- Fix an issue that would cause arrows between circles to sometimes render incorrectly. ([#6417](https://github.com/tldraw/tldraw/pull/6417))
-
-- Fix text outline rendering in exported SVGs. ([#6371](https://github.com/tldraw/tldraw/pull/6371))
-
-- Fix some edge cases where errors were thrown after reaching the maximum number of shapes. ([#6359](https://github.com/tldraw/tldraw/pull/6359))
-
-- Fix image toolbar reacting to camera movement. ([#6375](https://github.com/tldraw/tldraw/pull/6375))
-
-- Update `fractional-indexing-jittered` to address an issue with certain null values. See [this PR](https://github.com/TMeerhof/fractional-indexing-jittered/pull/5). ([#6479](https://github.com/tldraw/tldraw/pull/6479))
-
-## Performance improvements
-
-- Prevent unnecessarily dropped frames. ([#6464](https://github.com/tldraw/tldraw/pull/6464)) ([#6409](https://github.com/tldraw/tldraw/pull/6409))
-
-- Optimize the `useValue` hook. ([#6405](https://github.com/tldraw/tldraw/pull/6405))
-
-- Optimize the `useReactor` hook. ([#6383](https://github.com/tldraw/tldraw/pull/6383))
-
-- Optimize frame rendering performance. ([#6415](https://github.com/tldraw/tldraw/pull/6415))
-
-## Accessibility improvements
-
-- Apply `aria-hidden` to more elements, and in more intelligent ways. ([#6471](https://github.com/tldraw/tldraw/pull/6471)) ([#6437](https://github.com/tldraw/tldraw/pull/6437))
-
-- Improve keyboard navigation. ([#6446](https://github.com/tldraw/tldraw/pull/6446))
-
-- Set `role="radiogroup"` on the `ToggleGroup` component. ([#6435](https://github.com/tldraw/tldraw/pull/6435))
-
-- Fix aria slider values and make dialogs scrollable via keyboard. ([#6431](https://github.com/tldraw/tldraw/pull/6431))
-
-- Fix several other minor accessibility issues. ([#6358](https://github.com/tldraw/tldraw/pull/6358))
-
-## Other improvements
-
-- Show max shapes alert when duplicating shapes. ([#6411](https://github.com/tldraw/tldraw/pull/6411))
-
-- Hide cropping toolbar while cropping. ([#6376](https://github.com/tldraw/tldraw/pull/6376))
+- Fix Replit embed URL handling ([#6892](https://github.com/tldraw/tldraw/issues/6892))
+- Fix accessibility issue that caused a misleading warning in the console ([#6904](https://github.com/tldraw/tldraw/issues/6904))
+- Fix convert-to-bookmark action ([#6894](https://github.com/tldraw/tldraw/issues/6894))
+- Fix pointer handling for dropdown menus in `InFrontOfTheCanvas` ([#7021](https://github.com/tldraw/tldraw/issues/7021))
+- Fixed a bug with iOS image uploads on Safari ([#7037](https://github.com/tldraw/tldraw/issues/7037))
+- Ignore alt+tab on Windows to avoid conflicting with the window manager ([#7005](https://github.com/tldraw/tldraw/issues/7005))
+- Fix text focus issue ([#7043](https://github.com/tldraw/tldraw/issues/7043))
+- Allow using `TldrawEditor` without needing `TldrawUiContextProvider` ([#7053](https://github.com/tldraw/tldraw/issues/7053))
+- Fix clipboard functionality for cross-realm apps ([#7026](https://github.com/tldraw/tldraw/issues/7026))
+- Fix broken ink on iOS by disabling coalesced events ([#6917](https://github.com/tldraw/tldraw/issues/6917))
+- Fix dragging behavior when menu is open ([#6918](https://github.com/tldraw/tldraw/issues/6918))
 
 ## Previous releases
+
+- [v4.1.0](/releases/v4.1.0)
+
+- [v4.0.0](/releases/v4.0.0)
+
+- [v3.15.0](/releases/v3.15.0)
 
 - [v3.14.0](/releases/v3.14.0)
 

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tlschema",
 	"description": "tldraw infinite canvas SDK (schema).",
-	"version": "4.0.1",
+	"version": "4.2.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -28,6 +28,7 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
@@ -46,7 +47,7 @@
 	"devDependencies": {
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27",
-		"react": "^18.3.1",
+		"react": "^19.2.1",
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
@@ -56,7 +57,7 @@
 		"@tldraw/validate": "workspace:*"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }

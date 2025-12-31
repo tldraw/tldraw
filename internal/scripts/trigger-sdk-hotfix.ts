@@ -7,6 +7,7 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
+import { getAllWorkspacePackages } from './lib/workspace'
 
 function getEnv() {
 	return makeEnv([
@@ -118,7 +119,14 @@ async function main() {
 	} else {
 		await discord.step('Running sdk tests', async () => {
 			await exec('yarn', ['install'])
-			await exec('yarn', ['test', '--filter=packages/*'])
+			const packages = await getAllWorkspacePackages()
+
+			await exec('yarn', [
+				'test',
+				...packages
+					.filter((p) => !p.packageJson.private)
+					.flatMap(({ name }) => ['--project', name]),
+			])
 		})
 	}
 

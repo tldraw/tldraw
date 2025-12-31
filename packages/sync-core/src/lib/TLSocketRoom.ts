@@ -1,21 +1,153 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
-import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues, structuredClone } from '@tldraw/utils'
+import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
+import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
+import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import {
+	convertStoreSnapshotToRoomSnapshot,
+	loadSnapshotIntoStorage,
+	TLSyncStorage,
+} from './TLSyncStorage'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
-// TODO: structured logging support
-/** @public */
+/**
+ * Logging interface for TLSocketRoom operations. Provides optional methods
+ * for warning and error logging during synchronization operations.
+ *
+ * @example
+ * ```ts
+ * const logger: TLSyncLog = {
+ *   warn: (...args) => console.warn('[SYNC]', ...args),
+ *   error: (...args) => console.error('[SYNC]', ...args)
+ * }
+ *
+ * const room = new TLSocketRoom({ log: logger })
+ * ```
+ *
+ * @public
+ */
 export interface TLSyncLog {
+	/**
+	 * Optional warning logger for non-fatal sync issues
+	 * @param args - Arguments to log
+	 */
 	warn?(...args: any[]): void
+	/**
+	 * Optional error logger for sync errors and failures
+	 * @param args - Arguments to log
+	 */
 	error?(...args: any[]): void
 }
 
-/** @public */
+/**
+ * Base options for TLSocketRoom.
+ * @public
+ */
+export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+	storage?: TLSyncStorage<R>
+	/**
+	 * @deprecated use the storage option instead
+	 */
+	initialSnapshot?: RoomSnapshot | TLStoreSnapshot
+	/**
+	 * @deprecated use the storage option with an onChange callback instead
+	 */
+	onDataChange?(): void
+	schema?: StoreSchema<R, any>
+	// how long to wait for a client to communicate before disconnecting them
+	clientTimeout?: number
+	log?: TLSyncLog
+	// a callback that is called when a client is disconnected
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onSessionRemoved?: (
+		room: TLSocketRoom<R, SessionMeta>,
+		args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
+	) => void
+	// a callback that is called whenever a message is sent
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onBeforeSendMessage?: (args: {
+		sessionId: string
+		/** @internal keep the protocol private for now */
+		message: TLSocketServerSentEvent<R>
+		stringified: string
+		meta: SessionMeta
+	}) => void
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onAfterReceiveMessage?: (args: {
+		sessionId: string
+		/** @internal keep the protocol private for now */
+		message: TLSocketServerSentEvent<R>
+		stringified: string
+		meta: SessionMeta
+	}) => void
+	/** @internal */
+	onPresenceChange?(): void
+}
+
+/**
+ * A server-side room that manages WebSocket connections and synchronizes tldraw document state
+ * between multiple clients in real-time. Each room represents a collaborative document space
+ * where users can work together on drawings with automatic conflict resolution.
+ *
+ * TLSocketRoom handles:
+ * - WebSocket connection lifecycle management
+ * - Real-time synchronization of document changes
+ * - Session management and presence tracking
+ * - Message chunking for large payloads
+ * - Automatic client timeout and cleanup
+ *
+ * @example
+ * ```ts
+ * // Basic room setup
+ * const room = new TLSocketRoom({
+ *   onSessionRemoved: (room, { sessionId, numSessionsRemaining }) => {
+ *     console.log(`Client ${sessionId} disconnected, ${numSessionsRemaining} remaining`)
+ *     if (numSessionsRemaining === 0) {
+ *       room.close()
+ *     }
+ *   },
+ *   onDataChange: () => {
+ *     console.log('Document data changed, consider persisting')
+ *   }
+ * })
+ *
+ * // Handle new client connections
+ * room.handleSocketConnect({
+ *   sessionId: 'user-session-123',
+ *   socket: webSocket,
+ *   isReadonly: false
+ * })
+ * ```
+ *
+ * @example
+ * ```ts
+ * // Room with initial snapshot and schema
+ * const room = new TLSocketRoom({
+ *   initialSnapshot: existingSnapshot,
+ *   schema: myCustomSchema,
+ *   clientTimeout: 30000,
+ *   log: {
+ *     warn: (...args) => logger.warn('SYNC:', ...args),
+ *     error: (...args) => logger.error('SYNC:', ...args)
+ *   }
+ * })
+ *
+ * // Update document programmatically
+ * await room.updateStore(store => {
+ *   const shape = store.get('shape:abc123')
+ *   if (shape) {
+ *     shape.x = 100
+ *     store.put(shape)
+ *   }
+ * })
+ * ```
+ *
+ * @public
+ */
 export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
@@ -24,61 +156,55 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog
-	private readonly syncCallbacks: {
-		onDataChange?(): void
-		onPresenceChange?(): void
-	}
 
-	constructor(
-		public readonly opts: {
-			initialSnapshot?: RoomSnapshot | TLStoreSnapshot
-			schema?: StoreSchema<R, any>
-			// how long to wait for a client to communicate before disconnecting them
-			clientTimeout?: number
-			log?: TLSyncLog
-			// a callback that is called when a client is disconnected
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onSessionRemoved?: (
-				room: TLSocketRoom<R, SessionMeta>,
-				args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
-			) => void
-			// a callback that is called whenever a message is sent
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onBeforeSendMessage?: (args: {
-				sessionId: string
-				/** @internal keep the protocol private for now */
-				message: TLSocketServerSentEvent<R>
-				stringified: string
-				meta: SessionMeta
-			}) => void
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onAfterReceiveMessage?: (args: {
-				sessionId: string
-				/** @internal keep the protocol private for now */
-				message: TLSocketServerSentEvent<R>
-				stringified: string
-				meta: SessionMeta
-			}) => void
-			onDataChange?(): void
-			/** @internal */
-			onPresenceChange?(): void
+	public storage: TLSyncStorage<R>
+
+	private disposables = new Set<() => void>()
+
+	/**
+	 * Creates a new TLSocketRoom instance for managing collaborative document synchronization.
+	 *
+	 * opts - Configuration options for the room
+	 *   - initialSnapshot - Optional initial document state to load
+	 *   - schema - Store schema defining record types and validation
+	 *   - clientTimeout - Milliseconds to wait before disconnecting inactive clients
+	 *   - log - Optional logger for warnings and errors
+	 *   - onSessionRemoved - Called when a client session is removed
+	 *   - onBeforeSendMessage - Called before sending messages to clients
+	 *   - onAfterReceiveMessage - Called after receiving messages from clients
+	 *   - onDataChange - Called when document data changes
+	 *   - onPresenceChange - Called when presence data changes
+	 */
+	constructor(public readonly opts: TLSocketRoomOptions<R, SessionMeta>) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (opts.storage && opts.initialSnapshot) {
+			throw new Error('Cannot provide both storage and initialSnapshot options')
 		}
-	) {
-		const initialSnapshot =
-			opts.initialSnapshot && 'store' in opts.initialSnapshot
-				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
-				: opts.initialSnapshot
+		const storage = opts.storage
+			? opts.storage
+			: new InMemorySyncStorage<R>({
+					snapshot: convertStoreSnapshotToRoomSnapshot(
+						// eslint-disable-next-line @typescript-eslint/no-deprecated
+						opts.initialSnapshot ?? DEFAULT_INITIAL_SNAPSHOT
+					),
+				})
 
-		this.syncCallbacks = {
-			onDataChange: opts.onDataChange,
-			onPresenceChange: opts.onPresenceChange,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if ('onDataChange' in opts && opts.onDataChange) {
+			this.disposables.add(
+				storage.onChange(() => {
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					opts.onDataChange?.()
+				})
+			)
 		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
-			...this.syncCallbacks,
+			onPresenceChange: opts.onPresenceChange,
 			schema: opts.schema ?? (createTLSchema() as any),
-			snapshot: initialSnapshot,
 			log: opts.log,
+			storage,
 		})
+		this.storage = storage
 		this.room.events.on('session_removed', (args) => {
 			this.sessions.delete(args.sessionId)
 			if (this.opts.onSessionRemoved) {
@@ -104,14 +230,35 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Call this when a client establishes a new socket connection.
+	 * Handles a new client WebSocket connection, creating a session within the room.
+	 * This should be called whenever a client establishes a WebSocket connection to join
+	 * the collaborative document.
 	 *
-	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useSync hook.
-	 * - `socket` is a WebSocket-like object that the server uses to communicate with the client.
-	 * - `isReadonly` is an optional boolean that can be set to true if the client should not be able to make changes to the document. They will still be able to send presence updates.
-	 * - `meta` is an optional object that can be used to store additional information about the session.
+	 * @param opts - Connection options
+	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
+	 *   - socket - WebSocket-like object for client communication
+	 *   - isReadonly - Whether the client can modify the document (defaults to false)
+	 *   - meta - Additional session metadata (required if SessionMeta is not void)
 	 *
-	 * @param opts - The options object
+	 * @example
+	 * ```ts
+	 * // Handle new WebSocket connection
+	 * room.handleSocketConnect({
+	 *   sessionId: 'user-session-abc123',
+	 *   socket: webSocketConnection,
+	 *   isReadonly: !userHasEditPermission
+	 * })
+	 * ```
+	 *
+	 * @example
+	 * ```ts
+	 * // With session metadata
+	 * room.handleSocketConnect({
+	 *   sessionId: 'session-xyz',
+	 *   socket: ws,
+	 *   meta: { userId: 'user-123', name: 'Alice' }
+	 * })
+	 * ```
 	 */
 	handleSocketConnect(
 		opts: {
@@ -160,12 +307,30 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * If executing in a server environment where sockets do not have instance-level listeners
-	 * (e.g. Bun.serve, Cloudflare Worker with WebSocket hibernation), you should call this
-	 * method when messages are received. See our self-hosting example for Bun.serve for an example.
+	 * Processes a message received from a client WebSocket. Use this method in server
+	 * environments where WebSocket event listeners cannot be attached directly to socket
+	 * instances (e.g., Bun.serve, Cloudflare Workers with WebSocket hibernation).
 	 *
-	 * @param sessionId - The id of the session. (should match the one used when calling handleSocketConnect)
-	 * @param message - The message received from the client.
+	 * The method handles message chunking/reassembly and forwards complete messages
+	 * to the underlying sync room for processing.
+	 *
+	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 * @param message - Raw message data from the client (string or binary)
+	 *
+	 * @example
+	 * ```ts
+	 * // In a Bun.serve handler
+	 * server.upgrade(req, {
+	 *   data: { sessionId, room },
+	 *   upgrade(res, req) {
+	 *     // Connection established
+	 *   },
+	 *   message(ws, message) {
+	 *     const { sessionId, room } = ws.data
+	 *     room.handleSocketMessage(sessionId, message)
+	 *   }
+	 * })
+	 * ```
 	 */
 	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
 		const assembler = this.sessions.get(sessionId)?.assembler
@@ -211,45 +376,106 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * If executing in a server environment where sockets do not have instance-level listeners,
-	 * call this when a socket error occurs.
-	 * @param sessionId - The id of the session. (should match the one used when calling handleSocketConnect)
+	 * Handles a WebSocket error for the specified session. Use this in server environments
+	 * where socket event listeners cannot be attached directly. This will initiate cleanup
+	 * and session removal for the affected client.
+	 *
+	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 *
+	 * @example
+	 * ```ts
+	 * // In a custom WebSocket handler
+	 * socket.addEventListener('error', () => {
+	 *   room.handleSocketError(sessionId)
+	 * })
+	 * ```
 	 */
 	handleSocketError(sessionId: string) {
 		this.room.handleClose(sessionId)
 	}
 
 	/**
-	 * If executing in a server environment where sockets do not have instance-level listeners,
-	 * call this when a socket is closed.
-	 * @param sessionId - The id of the session. (should match the one used when calling handleSocketConnect)
+	 * Handles a WebSocket close event for the specified session. Use this in server
+	 * environments where socket event listeners cannot be attached directly. This will
+	 * initiate cleanup and session removal for the disconnected client.
+	 *
+	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 *
+	 * @example
+	 * ```ts
+	 * // In a custom WebSocket handler
+	 * socket.addEventListener('close', () => {
+	 *   room.handleSocketClose(sessionId)
+	 * })
+	 * ```
 	 */
 	handleSocketClose(sessionId: string) {
 		this.room.handleClose(sessionId)
 	}
 
 	/**
-	 * Returns the current 'clock' of the document.
-	 * The clock is an integer that increments every time the document changes.
-	 * The clock is stored as part of the snapshot of the document for consistency purposes.
+	 * Returns the current document clock value. The clock is a monotonically increasing
+	 * integer that increments with each document change, providing a consistent ordering
+	 * of changes across the distributed system.
 	 *
-	 * @returns The clock
+	 * @returns The current document clock value
+	 *
+	 * @example
+	 * ```ts
+	 * const clock = room.getCurrentDocumentClock()
+	 * console.log(`Document is at version ${clock}`)
+	 * ```
 	 */
 	getCurrentDocumentClock() {
-		return this.room.documentClock
+		return this.storage.getClock()
 	}
 
 	/**
-	 * Returns a deeply cloned record from the store, if available.
-	 * @param id - The id of the record
-	 * @returns the cloned record
+	 * Retrieves a deeply cloned copy of a record from the document store.
+	 * Returns undefined if the record doesn't exist. The returned record is
+	 * safe to mutate without affecting the original store data.
+	 *
+	 * @param id - Unique identifier of the record to retrieve
+	 * @returns Deep clone of the record, or undefined if not found
+	 *
+	 * @example
+	 * ```ts
+	 * const shape = room.getRecord('shape:abc123')
+	 * if (shape) {
+	 *   console.log('Shape position:', shape.x, shape.y)
+	 *   // Safe to modify without affecting store
+	 *   shape.x = 100
+	 * }
+	 * ```
 	 */
 	getRecord(id: string) {
-		return structuredClone(this.room.documents.get(id)?.state)
+		return this.storage.transaction((txn) => {
+			return structuredClone(txn.get(id)) as any
+		}).result as R
 	}
 
 	/**
-	 * Returns a list of the sessions in the room.
+	 * Returns information about all active sessions in the room. Each session
+	 * represents a connected client with their current connection status and metadata.
+	 *
+	 * @returns Array of session information objects containing:
+	 *   - sessionId - Unique session identifier
+	 *   - isConnected - Whether the session has an active WebSocket connection
+	 *   - isReadonly - Whether the session can modify the document
+	 *   - meta - Custom session metadata
+	 *
+	 * @example
+	 * ```ts
+	 * const sessions = room.getSessions()
+	 * console.log(`Room has ${sessions.length} active sessions`)
+	 *
+	 * for (const session of sessions) {
+	 *   console.log(`${session.sessionId}: ${session.isConnected ? 'online' : 'offline'}`)
+	 *   if (session.isReadonly) {
+	 *     console.log('  (read-only access)')
+	 *   }
+	 * }
+	 * ```
 	 */
 	getSessions(): Array<{
 		sessionId: string
@@ -268,159 +494,364 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Return a snapshot of the document state, including clock-related bookkeeping.
-	 * You can store this and load it later on when initializing a TLSocketRoom.
-	 * You can also pass a snapshot to {@link TLSocketRoom#loadSnapshot} if you need to revert to a previous state.
-	 * @returns The snapshot
+	 * Creates a complete snapshot of the current document state, including all records
+	 * and synchronization metadata. This snapshot can be persisted to storage and used
+	 * to restore the room state later or revert to a previous version.
+	 *
+	 * @returns Complete room snapshot including documents, clock values, and tombstones
+	 * @deprecated if you need to do this use
+	 *
+	 * @example
+	 * ```ts
+	 * // Capture current state for persistence
+	 * const snapshot = room.getCurrentSnapshot()
+	 * await saveToDatabase(roomId, JSON.stringify(snapshot))
+	 *
+	 * // Later, restore from snapshot
+	 * const savedSnapshot = JSON.parse(await loadFromDatabase(roomId))
+	 * const newRoom = new TLSocketRoom({ initialSnapshot: savedSnapshot })
+	 * ```
 	 */
 	getCurrentSnapshot() {
-		return this.room.getSnapshot()
+		if (this.storage.getSnapshot) {
+			return this.storage.getSnapshot()
+		}
+		throw new Error('getCurrentSnapshot is not supported for this storage type')
 	}
 
 	/**
+	 * Retrieves all presence records from the document store. Presence records
+	 * contain ephemeral user state like cursor positions and selections.
+	 *
+	 * @returns Object mapping record IDs to presence record data
 	 * @internal
 	 */
 	getPresenceRecords() {
 		const result = {} as Record<string, UnknownRecord>
-		for (const document of this.room.documents.values()) {
-			if (document.state.typeName === this.room.presenceType?.typeName) {
-				result[document.state.id] = document.state
-			}
+		for (const presence of this.room.presenceStore.values()) {
+			result[presence.id] = presence
 		}
 		return result
 	}
 
 	/**
-	 * Return a serialized snapshot of the document state, including clock-related bookkeeping.
-	 * @returns The serialized snapshot
-	 * @internal
-	 */
-	getCurrentSerializedSnapshot() {
-		return JSON.stringify(this.room.getSnapshot())
-	}
-
-	/**
-	 * Load a snapshot of the document state, overwriting the current state.
-	 * @param snapshot - The snapshot to load
-	 */
-	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
-		if ('store' in snapshot) {
-			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
-		}
-		const oldRoom = this.room
-		const oldRoomSnapshot = oldRoom.getSnapshot()
-		const oldIds = oldRoomSnapshot.documents.map((d) => d.state.id)
-		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
-		const removedIds = oldIds.filter((id) => !newIds.has(id))
-
-		const tombstones: RoomSnapshot['tombstones'] = { ...oldRoomSnapshot.tombstones }
-		removedIds.forEach((id) => {
-			tombstones[id] = oldRoom.clock + 1
-		})
-		newIds.forEach((id) => {
-			delete tombstones[id]
-		})
-
-		const newRoom = new TLSyncRoom<R, SessionMeta>({
-			...this.syncCallbacks,
-			schema: oldRoom.schema,
-			snapshot: {
-				clock: oldRoom.clock + 1,
-				documentClock: oldRoom.clock + 1,
-				documents: snapshot.documents.map((d) => ({
-					lastChangedClock: oldRoom.clock + 1,
-					state: d.state,
-				})),
-				schema: snapshot.schema,
-				tombstones,
-				tombstoneHistoryStartsAtClock: oldRoomSnapshot.tombstoneHistoryStartsAtClock,
-			},
-			log: this.log,
-		})
-		// replace room with new one and kick out all the clients
-		this.room = newRoom
-		oldRoom.close()
-	}
-
-	/**
-	 * Allow applying changes to the store inside of a transaction.
+	 * Loads a document snapshot, completely replacing the current room state.
+	 * This will disconnect all current clients and update the document to match
+	 * the provided snapshot. Use this for restoring from backups or implementing
+	 * document versioning.
 	 *
-	 * You can get values from the store by id with `store.get(id)`.
-	 * These values are safe to mutate, but to commit the changes you must call `store.put(...)` with the updated value.
-	 * You can get all values in the store with `store.getAll()`.
-	 * You can also delete values with `store.delete(id)`.
+	 * @param snapshot - Room or store snapshot to load
 	 *
 	 * @example
 	 * ```ts
-	 * room.updateStore(store => {
-	 *   const shape = store.get('shape:abc123')
-	 *   shape.meta.approved = true
-	 *   store.put(shape)
-	 * })
+	 * // Restore from a saved snapshot
+	 * const backup = JSON.parse(await loadBackup(roomId))
+	 * room.loadSnapshot(backup)
+	 *
+	 * // All clients will be disconnected and need to reconnect
+	 * // to see the restored document state
 	 * ```
-	 *
-	 * Changes to the store inside the callback are isolated from changes made by other clients until the transaction commits.
-	 *
-	 * @param updater - A function that will be called with a store object that can be used to make changes.
-	 * @returns A promise that resolves when the transaction is complete.
 	 */
-	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
-		return this.room.updateStore(updater)
+	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
+		this.storage.transaction((txn) => {
+			loadSnapshotIntoStorage(txn, this.room.schema, snapshot)
+		})
 	}
 
 	/**
-	 * Send a custom message to a connected client.
+	 * Executes a transaction to modify the document store. Changes made within the
+	 * transaction are atomic and will be synchronized to all connected clients.
+	 * The transaction provides isolation from concurrent changes until it commits.
 	 *
-	 * @param sessionId - The id of the session to send the message to.
-	 * @param data - The payload to send.
+	 * @param updater - Function that receives store methods to make changes
+	 *   - store.get(id) - Retrieve a record (safe to mutate, but must call put() to commit)
+	 *   - store.put(record) - Save a modified record
+	 *   - store.getAll() - Get all records in the store
+	 *   - store.delete(id) - Remove a record from the store
+	 * @returns Promise that resolves when the transaction completes
+	 *
+	 * @example
+	 * ```ts
+	 * // Update multiple shapes in a single transaction
+	 * await room.updateStore(store => {
+	 *   const shape1 = store.get('shape:abc123')
+	 *   const shape2 = store.get('shape:def456')
+	 *
+	 *   if (shape1) {
+	 *     shape1.x = 100
+	 *     store.put(shape1)
+	 *   }
+	 *
+	 *   if (shape2) {
+	 *     shape2.meta.approved = true
+	 *     store.put(shape2)
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * @example
+	 * ```ts
+	 * // Async transaction with external API call
+	 * await room.updateStore(async store => {
+	 *   const doc = store.get('document:main')
+	 *   if (doc) {
+	 *     doc.lastModified = await getCurrentTimestamp()
+	 *     store.put(doc)
+	 *   }
+	 * })
+	 * ```
+	 * @deprecated use the storage.transaction method instead
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
+		if (this.isClosed()) {
+			throw new Error('Cannot update store on a closed room')
+		}
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const ctx = new StoreUpdateContext<R>(
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
+			this.room.schema
+		)
+		try {
+			await updater(ctx)
+		} finally {
+			ctx.close()
+		}
+		this.storage.transaction((txn) => {
+			for (const [id, record] of Object.entries(ctx.updates.puts)) {
+				txn.set(id, record as R)
+			}
+			for (const id of ctx.updates.deletes) {
+				txn.delete(id)
+			}
+		})
+	}
+
+	/**
+	 * Sends a custom message to a specific client session. This allows sending
+	 * application-specific data that doesn't modify the document state, such as
+	 * notifications, chat messages, or custom commands.
+	 *
+	 * @param sessionId - Target session identifier
+	 * @param data - Custom payload to send (will be JSON serialized)
+	 *
+	 * @example
+	 * ```ts
+	 * // Send a notification to a specific user
+	 * room.sendCustomMessage('session-123', {
+	 *   type: 'notification',
+	 *   message: 'Your changes have been saved'
+	 * })
+	 *
+	 * // Send a chat message
+	 * room.sendCustomMessage('session-456', {
+	 *   type: 'chat',
+	 *   from: 'Alice',
+	 *   text: 'Great work on this design!'
+	 * })
+	 * ```
 	 */
 	sendCustomMessage(sessionId: string, data: any) {
 		this.room.sendCustomMessage(sessionId, data)
 	}
 
 	/**
-	 * Immediately remove a session from the room, and close its socket if not already closed.
+	 * Immediately removes a session from the room and closes its WebSocket connection.
+	 * The client will attempt to reconnect automatically unless a fatal reason is provided.
 	 *
-	 * The client will attempt to reconnect unless you provide a `fatalReason` parameter.
+	 * @param sessionId - Session identifier to remove
+	 * @param fatalReason - Optional fatal error reason that prevents reconnection
 	 *
-	 * The `fatalReason` parameter will be available in the return value of the `useSync` hook as `useSync().error.reason`.
+	 * @example
+	 * ```ts
+	 * // Kick a user (they can reconnect)
+	 * room.closeSession('session-troublemaker')
 	 *
-	 * @param sessionId - The id of the session to remove
-	 * @param fatalReason - The reason message to use when calling .close on the underlying websocket
+	 * // Permanently ban a user
+	 * room.closeSession('session-banned', 'PERMISSION_DENIED')
+	 *
+	 * // Close session due to inactivity
+	 * room.closeSession('session-idle', 'TIMEOUT')
+	 * ```
 	 */
 	closeSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
 		this.room.rejectSession(sessionId, fatalReason)
 	}
 
 	/**
-	 * Close the room and disconnect all clients. Call this before discarding the room instance or shutting down the server.
+	 * Closes the room and disconnects all connected clients. This should be called
+	 * when shutting down the room permanently, such as during server shutdown or
+	 * when the room is no longer needed. Once closed, the room cannot be reopened.
+	 *
+	 * @example
+	 * ```ts
+	 * // Clean shutdown when no users remain
+	 * if (room.getNumActiveSessions() === 0) {
+	 *   await persistSnapshot(room.getCurrentSnapshot())
+	 *   room.close()
+	 * }
+	 *
+	 * // Server shutdown
+	 * process.on('SIGTERM', () => {
+	 *   for (const room of activeRooms.values()) {
+	 *     room.close()
+	 *   }
+	 * })
+	 * ```
 	 */
 	close() {
 		this.room.close()
+		this.disposables.forEach((d) => d())
+		this.disposables.clear()
 	}
 
 	/**
-	 * @returns true if the room is closed
+	 * Checks whether the room has been permanently closed. Closed rooms cannot
+	 * accept new connections or process further changes.
+	 *
+	 * @returns True if the room is closed, false if still active
+	 *
+	 * @example
+	 * ```ts
+	 * if (room.isClosed()) {
+	 *   console.log('Room has been shut down')
+	 *   // Create a new room or redirect users
+	 * } else {
+	 *   // Room is still accepting connections
+	 *   room.handleSocketConnect({ sessionId, socket })
+	 * }
+	 * ```
 	 */
 	isClosed() {
 		return this.room.isClosed()
 	}
 }
 
-/** @public */
+/**
+ * Utility type that removes properties with void values from an object type.
+ * This is used internally to conditionally require session metadata based on
+ * whether SessionMeta extends void.
+ *
+ * @example
+ * ```ts
+ * type Example = { a: string, b: void, c: number }
+ * type Result = OmitVoid<Example> // { a: string, c: number }
+ * ```
+ *
+ * @public
+ */
 export type OmitVoid<T, KS extends keyof T = keyof T> = {
 	[K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K]
 }
 
-function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
-	return {
-		clock: 0,
-		documentClock: 0,
-		documents: objectMapValues(snapshot.store).map((state) => ({
-			state,
-			lastChangedClock: 0,
-		})),
-		schema: snapshot.schema,
-		tombstones: {},
+/**
+ * Interface for making transactional changes to room store data. Used within
+ * updateStore transactions to modify documents atomically.
+ *
+ * @example
+ * ```ts
+ * await room.updateStore((store) => {
+ *   const shape = store.get('shape:123')
+ *   if (shape) {
+ *     store.put({ ...shape, x: shape.x + 10 })
+ *   }
+ *   store.delete('shape:456')
+ * })
+ * ```
+ *
+ * @public
+ * @deprecated use the storage.transaction method instead
+ */
+export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+	/**
+	 * Add or update a record in the store.
+	 *
+	 * @param record - The record to store
+	 */
+	put(record: R): void
+	/**
+	 * Delete a record from the store.
+	 *
+	 * @param recordOrId - The record or record ID to delete
+	 */
+	delete(recordOrId: R | string): void
+	/**
+	 * Get a record by its ID.
+	 *
+	 * @param id - The record ID
+	 * @returns The record or null if not found
+	 */
+	get(id: string): R | null
+	/**
+	 * Get all records in the store.
+	 *
+	 * @returns Array of all records
+	 */
+	getAll(): R[]
+}
+
+/**
+ * @deprecated use the storage.transaction method instead
+ */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+class StoreUpdateContext<R extends UnknownRecord> implements RoomStoreMethods<R> {
+	constructor(
+		private readonly snapshot: Record<string, UnknownRecord>,
+		private readonly schema: StoreSchema<R, any>
+	) {}
+	readonly updates = {
+		puts: {} as Record<string, UnknownRecord>,
+		deletes: new Set<string>(),
+	}
+	put(record: R): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const recordType = getOwnProperty(this.schema.types, record.typeName)
+		if (!recordType) {
+			throw new Error(`Missing definition for record type ${record.typeName}`)
+		}
+		const recordBefore = this.snapshot[record.id] ?? undefined
+		recordType.validate(record, recordBefore as R)
+
+		if (record.id in this.snapshot && isEqual(this.snapshot[record.id], record)) {
+			delete this.updates.puts[record.id]
+		} else {
+			this.updates.puts[record.id] = structuredClone(record)
+		}
+		this.updates.deletes.delete(record.id)
+	}
+	delete(recordOrId: R | string): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const id = typeof recordOrId === 'string' ? recordOrId : recordOrId.id
+		delete this.updates.puts[id]
+		if (this.snapshot[id]) {
+			this.updates.deletes.add(id)
+		}
+	}
+	get(id: string): R | null {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		if (hasOwnProperty(this.updates.puts, id)) {
+			return structuredClone(this.updates.puts[id]) as R
+		}
+		if (this.updates.deletes.has(id)) {
+			return null
+		}
+		return structuredClone(this.snapshot[id] ?? null) as R
+	}
+
+	getAll(): R[] {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const result = Object.values(this.updates.puts)
+		for (const [id, record] of Object.entries(this.snapshot)) {
+			if (!this.updates.deletes.has(id) && !hasOwnProperty(this.updates.puts, id)) {
+				result.push(record)
+			}
+		}
+		return structuredClone(result) as R[]
+	}
+
+	private _isClosed = false
+	close() {
+		this._isClosed = true
 	}
 }

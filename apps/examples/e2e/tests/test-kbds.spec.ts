@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test'
 import { Editor } from 'tldraw'
+import test from '../fixtures/fixtures'
 import { setupPage, setupPageWithShapes } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 declare const editor: Editor
 
@@ -816,6 +816,28 @@ test.describe('Shape Navigation', () => {
 			})
 		).toMatchObject({
 			isInInnerFrame: true,
+		})
+	})
+
+	test('Tab navigation does not happen when alt key is pressed', async ({ isMobile }) => {
+		if (isMobile) return // can't test this on mobile
+
+		// Create multiple shapes
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 100)
+		await page.keyboard.press('r')
+		await page.mouse.click(250, 100)
+		await page.keyboard.press('r')
+		await page.mouse.click(400, 100)
+		await page.keyboard.press('v')
+
+		// Click on the first shape to select it
+		await page.mouse.click(100, 100)
+
+		await page.keyboard.press('Alt+Tab')
+		expect(await page.evaluate(() => editor.getOnlySelectedShape())).toMatchObject({
+			x: 0,
+			y: 0,
 		})
 	})
 })

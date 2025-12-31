@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test'
-import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import test from '../fixtures/fixtures'
+import { setupOrReset } from '../shared-e2e'
 
 test.describe('navigationPanel', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 
 	test('you can open and close the zoom menu', async ({ navigationPanel, isMobile }) => {
 		// no navigationPanel on mobile

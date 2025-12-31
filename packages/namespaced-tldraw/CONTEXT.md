@@ -8,7 +8,7 @@ The `@tldraw/tldraw` package is a legacy compatibility wrapper that re-exports t
 
 ## Architecture
 
-### Legacy Compatibility Layer
+### Legacy compatibility layer
 
 Simple re-export pattern with version registration:
 
@@ -24,7 +24,7 @@ registerTldrawLibraryVersion(
 )
 ```
 
-### Package Structure
+### Package structure
 
 ```
 namespaced-tldraw/
@@ -39,9 +39,9 @@ namespaced-tldraw/
 └── api-report.api.md         # API report in package root
 ```
 
-## Distribution Strategy
+## Distribution strategy
 
-### Build System Integration
+### Build system integration
 
 Uses tsx wrapper for build processes:
 
@@ -55,7 +55,7 @@ Uses tsx wrapper for build processes:
 
 **Note**: The `main` and `types` fields in package.json are rewritten by the build script and are not the actual published values.
 
-### CSS Asset Management
+### CSS asset management
 
 Automated CSS synchronization from main package using correct relative paths:
 
@@ -70,7 +70,7 @@ const destination = join(packageDir, 'tldraw.css')
 writeFileSync(destination, content)
 ```
 
-**Build Integration:**
+**Build integration:**
 
 ```json
 {
@@ -80,9 +80,9 @@ writeFileSync(destination, content)
 }
 ```
 
-## Global Usage Support
+## Global usage support
 
-### Version Registration System
+### Version registration system
 
 Enables version tracking for CDN and global usage using globalThis casting:
 
@@ -96,7 +96,7 @@ registerTldrawLibraryVersion(
 )
 ```
 
-### CDN Integration Patterns
+### CDN integration patterns
 
 Designed for script tag and global usage:
 
@@ -114,9 +114,9 @@ Designed for script tag and global usage:
 </script>
 ```
 
-## Package Dependencies
+## Package dependencies
 
-### Minimal Dependency Chain
+### Minimal dependency chain
 
 Single dependency on core tldraw package:
 
@@ -126,13 +126,13 @@ Single dependency on core tldraw package:
 		"tldraw": "workspace:*" // Re-export main package
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }
 ```
 
-### Development Dependencies
+### Development dependencies
 
 Build and development tooling:
 
@@ -148,9 +148,9 @@ Build and development tooling:
 }
 ```
 
-## Build System
+## Build system
 
-### Dual Package Exports
+### Dual package exports
 
 Support for both CommonJS and ES modules (built by tsx scripts):
 
@@ -197,9 +197,9 @@ CSS file included in package files array:
 import '@tldraw/tldraw/tldraw.css'
 ```
 
-## Legacy Support
+## Legacy support
 
-### Migration Path
+### Migration path
 
 Smooth transition for existing users:
 
@@ -213,18 +213,18 @@ import { Tldraw } from 'tldraw'
 // Both import the exact same functionality
 ```
 
-### Backwards Compatibility
+### Backwards compatibility
 
 Maintains full API compatibility:
 
-- **Same Exports**: Identical API surface as main package
-- **Same Types**: TypeScript definitions preserved
+- **Same exports**: Identical API surface as main package
+- **Same types**: TypeScript definitions preserved
 - **Same CSS**: Styling rules synchronized
-- **Same Behavior**: Functional parity guaranteed
+- **Same behavior**: Functional parity guaranteed
 
-## Use Cases
+## Use cases
 
-### CDN Distribution
+### CDN distribution
 
 Global script tag usage for quick prototyping:
 
@@ -233,7 +233,7 @@ Global script tag usage for quick prototyping:
 <link rel="stylesheet" href="https://unpkg.com/@tldraw/tldraw@latest/tldraw.css" />
 ```
 
-### Legacy Projects
+### Legacy projects
 
 Existing codebases that depend on `@tldraw/tldraw` naming:
 
@@ -244,7 +244,7 @@ import { Tldraw, Editor, createShapeId } from '@tldraw/tldraw'
 // No code changes required for migration
 ```
 
-### Version Monitoring
+### Version monitoring
 
 Applications that need to track tldraw version usage:
 
@@ -259,9 +259,9 @@ const libraryInfo = {
 // Useful for analytics, debugging, feature detection
 ```
 
-## Development Workflow
+## Development workflow
 
-### CSS Synchronization
+### CSS synchronization
 
 Automatic CSS file management during development:
 
@@ -273,7 +273,7 @@ yarn dev  # Monitors ../tldraw/tldraw.css for changes
 yarn build  # Copies CSS before building distributions
 ```
 
-### Testing Environment
+### Testing environment
 
 Jest configuration with correct testEnvironment path:
 
@@ -290,9 +290,9 @@ Jest configuration with correct testEnvironment path:
 }
 ```
 
-## Migration Guidance
+## Migration guidance
 
-### For New Projects
+### For new projects
 
 ```typescript
 // Recommended: Use main package
@@ -300,7 +300,7 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 ```
 
-### For Existing Projects
+### For existing projects
 
 ```typescript
 // Current: Legacy package (still supported)
@@ -312,32 +312,32 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 ```
 
-## Key Benefits
+## Key benefits
 
-### Backwards Compatibility
+### Backwards compatibility
 
-- **Zero Breaking Changes**: Existing code continues to work
-- **Gradual Migration**: Update imports at your own pace
-- **Feature Parity**: Identical functionality to main package
-- **Documentation Continuity**: Same API documentation applies
+- **Zero breaking changes**: Existing code continues to work
+- **Gradual migration**: Update imports at your own pace
+- **Feature parity**: Identical functionality to main package
+- **Documentation continuity**: Same API documentation applies
 
-### Global Usage
+### Global usage
 
-- **CDN Friendly**: Optimized for script tag inclusion
-- **Version Tracking**: Runtime version information available via globalThis
-- **Namespace Safety**: Avoids global namespace conflicts
-- **Browser Compatibility**: Works in all modern browsers
+- **CDN friendly**: Optimized for script tag inclusion
+- **Version tracking**: Runtime version information available via globalThis
+- **Namespace safety**: Avoids global namespace conflicts
+- **Browser compatibility**: Works in all modern browsers
 
 ### Maintenance
 
-- **Automated Sync**: CSS and exports stay current with main package via tsx build scripts
-- **Single Source**: No duplicate implementation to maintain
-- **Version Alignment**: Always matches main package version
-- **Testing Coverage**: Inherits test suite from main package
+- **Automated sync**: CSS and exports stay current with main package via tsx build scripts
+- **Single source**: No duplicate implementation to maintain
+- **Version alignment**: Always matches main package version
+- **Testing coverage**: Inherits test suite from main package
 
 ### Ecosystem
 
-- **NPM Compatibility**: Standard npm package structure
-- **Bundler Support**: Works with all major bundlers
-- **TypeScript Ready**: Full type safety maintained
+- **NPM compatibility**: Standard npm package structure
+- **Bundler support**: Works with all major bundlers
+- **TypeScript ready**: Full type safety maintained
 - **Documentation**: API docs generated automatically with reports in both api/temp/ and package root

@@ -1,6 +1,7 @@
 import {
 	Box,
 	DefaultFontFamilies,
+	ExtractShapeByProps,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
@@ -8,11 +9,13 @@ import {
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
+	openWindow,
 	preventDefault,
 	useEditor,
 	useReactor,
 	useValue,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
@@ -23,7 +26,7 @@ import { useEditableRichText } from './useEditableRichText'
 /** @public */
 export interface RichTextLabelProps {
 	shapeId: TLShapeId
-	type: string
+	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number
@@ -42,6 +45,7 @@ export interface RichTextLabelProps {
 	textHeight?: number
 	padding?: number
 	hasCustomTabBehavior?: boolean
+	showTextOutline?: boolean
 }
 
 /**
@@ -70,6 +74,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textWidth,
 	textHeight,
 	hasCustomTabBehavior,
+	showTextOutline = true,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
@@ -92,7 +97,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		'isDragging',
 		() => {
 			editor.getInstanceState()
-			isDragging.current = editor.inputs.isDragging
+			isDragging.current = editor.inputs.getIsDragging()
 		},
 		[editor]
 	)
@@ -109,10 +114,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			// We don't get the mouseup event later because we preventDefault
 			// so we have to do it manually.
 			const handlePointerUp = (e: TLEventInfo) => {
-				if (e.name !== 'pointer_up') return
+				if (e.name !== 'pointer_up' || !link) return
 
 				if (!isDragging.current) {
-					window.open(link, '_blank', 'noopener, noreferrer')
+					openWindow(link, '_blank', false)
 				}
 				editor.off('event', handlePointerUp)
 			}
@@ -127,7 +132,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`}
+			className={classNames(
+				`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`,
+				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+			)}
 			aria-hidden={!isEditing}
 			data-font={font}
 			data-align={align}
@@ -257,7 +265,10 @@ export function RichTextSVG({
 			y={bounds.minY}
 			width={bounds.w}
 			height={bounds.h}
-			className="tl-export-embed-styles tl-rich-text tl-rich-text-svg"
+			className={classNames(
+				'tl-export-embed-styles tl-rich-text tl-rich-text-svg',
+				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+			)}
 		>
 			<div style={wrapperStyle}>
 				<div dangerouslySetInnerHTML={{ __html: html }} style={style} />

@@ -1,5 +1,6 @@
 import { T } from '@tldraw/validate'
-import { VecModel, vecModelValidator } from '../misc/geometry-types'
+import { b64Vecs } from '../misc/b64Vecs'
+import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -8,34 +9,112 @@ import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
-/** @public */
+/**
+ * A segment of a draw shape representing either freehand drawing or straight line segments.
+ *
+ * @public
+ */
 export interface TLDrawShapeSegment {
+	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
-	points: VecModel[]
+	/** Base64-encoded points (x, y, z triplets stored as Float16) */
+	points: string
 }
 
-/** @public */
+/**
+ * Validator for draw shape segments ensuring proper structure and data types.
+ *
+ * @public
+ */
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
-	points: T.arrayOf(vecModelValidator),
+	points: T.string,
 })
 
-/** @public */
+/**
+ * Properties for the draw shape, which represents freehand drawing and sketching.
+ *
+ * @public
+ */
 export interface TLDrawShapeProps {
+	/** Color style for the drawing stroke */
 	color: TLDefaultColorStyle
+	/** Fill style for closed drawing shapes */
 	fill: TLDefaultFillStyle
+	/** Dash pattern style for the stroke */
 	dash: TLDefaultDashStyle
+	/** Size/thickness of the drawing stroke */
 	size: TLDefaultSizeStyle
+	/** Array of segments that make up the complete drawing path */
 	segments: TLDrawShapeSegment[]
+	/** Whether the drawing is complete (user finished drawing) */
 	isComplete: boolean
+	/** Whether the drawing path forms a closed shape */
 	isClosed: boolean
+	/** Whether this drawing was created with a pen/stylus device */
 	isPen: boolean
+	/** Scale factor applied to the drawing */
 	scale: number
+	/** Horizontal scale factor for lazy resize */
+	scaleX: number
+	/** Vertical scale factor for lazy resize */
+	scaleY: number
 }
 
-/** @public */
+/**
+ * A draw shape represents freehand drawing, sketching, and pen input on the canvas.
+ * Draw shapes are composed of segments that can be either smooth curves or straight lines.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const drawShape: TLDrawShape = {
+ *   id: createShapeId(),
+ *   typeName: 'shape',
+ *   type: 'draw',
+ *   x: 50,
+ *   y: 50,
+ *   rotation: 0,
+ *   index: 'a1',
+ *   parentId: 'page:page1',
+ *   isLocked: false,
+ *   opacity: 1,
+ *   props: {
+ *     color: 'black',
+ *     fill: 'none',
+ *     dash: 'solid',
+ *     size: 'm',
+ *     segments: [{
+ *       type: 'free',
+ *       points: [{ x: 0, y: 0, z: 0.5 }, { x: 20, y: 15, z: 0.6 }]
+ *     }],
+ *     isComplete: true,
+ *     isClosed: false,
+ *     isPen: false,
+ *     scale: 1
+ *   },
+ *   meta: {}
+ * }
+ * ```
+ */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
+/**
+ * Validation schema for draw shape properties.
+ *
+ * @public
+ * @example
+ * ```ts
+ * // Validate draw shape properties
+ * const props = {
+ *   color: 'red',
+ *   fill: 'solid',
+ *   segments: [{ type: 'free', points: [] }],
+ *   isComplete: true
+ * }
+ * const isValid = drawShapeProps.color.isValid(props.color)
+ * ```
+ */
 /** @public */
 export const drawShapeProps: RecordProps<TLDrawShape> = {
 	color: DefaultColorStyle,
@@ -47,16 +126,29 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isClosed: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	scaleX: T.nonZeroFiniteNumber,
+	scaleY: T.nonZeroFiniteNumber,
 }
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
 	AddScale: 2,
+	Base64: 3,
 })
 
+/**
+ * Version identifiers for draw shape migrations.
+ *
+ * @public
+ */
 export { Versions as drawShapeVersions }
 
-/** @public */
+/**
+ * Migration sequence for draw shape properties across different schema versions.
+ * Handles adding pen detection and scale properties to existing draw shapes.
+ *
+ * @public
+ */
 export const drawShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
@@ -93,5 +185,51 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				delete props.scale
 			},
 		},
+		{
+			id: Versions.Base64,
+			up: (props) => {
+				props.segments = props.segments.map((segment: any) => {
+					return {
+						...segment,
+						// Only encode if points is an array (not already base64 string)
+						points:
+							typeof segment.points === 'string'
+								? segment.points
+								: b64Vecs.encodePoints(segment.points),
+					}
+				})
+				props.scaleX = props.scaleX ?? 1
+				props.scaleY = props.scaleY ?? 1
+			},
+			down: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					// Only decode if points is a string (not already VecModel[])
+					points: Array.isArray(segment.points)
+						? segment.points
+						: b64Vecs.decodePoints(segment.points),
+				}))
+				delete props.scaleX
+				delete props.scaleY
+			},
+		},
 	],
 })
+
+/**
+ * Compress legacy draw shape segments by converting VecModel[] points to base64 format.
+ * This function is useful for converting old draw shape data to the new compressed format.
+ *
+ * @public
+ */
+export function compressLegacySegments(
+	segments: {
+		type: 'free' | 'straight'
+		points: VecModel[]
+	}[]
+): TLDrawShapeSegment[] {
+	return segments.map((segment) => ({
+		...segment,
+		points: b64Vecs.encodePoints(segment.points),
+	}))
+}

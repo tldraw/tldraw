@@ -13,8 +13,9 @@
 		"repo": "tldraw/branching-chat-template",
 		"cli": {
 			"name": "Branching chat",
-			"description": "Create interactive chat trees using visual branching conversation interface with AI integration.",
-			"shortDescription": "A branching chat interface."
+			"description": "Chat with an AI using a branching conversation interface.",
+			"shortDescription": "A branching chat interface.",
+			"order": 6
 		},
 		"scripts": {
 			"lint": null
@@ -29,19 +30,20 @@
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
 		"@cloudflare/vite-plugin": "^1.13.2",
-		"ai": "^5.0.15",
+		"ai": "^5.0.63",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.37.1",
+		"zod": "^4.1.8"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250913.0",
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"typescript": "^5.8.3",
 		"vite": "^7.0.1"

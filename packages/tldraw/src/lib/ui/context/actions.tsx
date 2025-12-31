@@ -5,10 +5,8 @@ import {
 	Editor,
 	HALF_PI,
 	PageRecordType,
-	TLBookmarkShape,
+	Result,
 	TLEmbedShape,
-	TLFrameShape,
-	TLGroupShape,
 	TLImageShape,
 	TLShape,
 	TLShapeId,
@@ -24,6 +22,7 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -325,7 +324,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							.getSelectedShapes()
 							.filter(
 								(shape): shape is TLTextShape =>
-									editor.isShapeOfType<TLTextShape>(shape, 'text') && shape.props.autoSize === false
+									editor.isShapeOfType(shape, 'text') && shape.props.autoSize === false
 							)
 						editor.updateShapes(
 							shapes.map((shape) => {
@@ -360,7 +359,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = editor.getShape(ids[0])
-					if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
+					if (!shape || !editor.isShapeOfType(shape, 'embed')) {
 						console.error(warnMsg)
 						return
 					}
@@ -376,7 +375,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (editor.root.getCurrent()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
-					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
+					if (!(editor.inputs.getShiftKey() || editor.inputs.getCtrlKey())) {
 						const currentTool = editor.root.getCurrent()
 						if (currentTool && currentTool.getCurrent()?.id === 'idle') {
 							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
@@ -387,45 +386,38 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
-				onSelect(source) {
+				async onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.run(() => {
-						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.getSelectedShapes()
+					trackEvent('convert-to-bookmark', { source })
+					const shapes = editor.getSelectedShapes()
 
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of shapes) {
-							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-								continue
+					const markId = editor.markHistoryStoppingPoint('convert shapes to bookmark')
 
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
-							newPos.rot(shape.rotation)
-							const partial: TLShapePartial<TLBookmarkShape> = {
-								id: createShapeId(),
-								type: 'bookmark',
-								rotation: shape.rotation,
-								x: newPos.x,
-								y: newPos.y,
-								opacity: 1,
-								props: {
-									url: shape.props.url,
-								},
-							}
+					const creationPromises: Promise<Result<any, any>>[] = []
 
-							createList.push(partial)
-							deleteList.push(shape.id)
-						}
+					for (const shape of shapes) {
+						if (!shape || !editor.isShapeOfType(shape, 'embed') || !shape.props.url) continue
 
-						editor.markHistoryStoppingPoint('convert shapes to bookmark')
+						const center = editor.getShapePageBounds(shape)?.center
 
-						// Should be able to create the shape since we're about to delete the other other
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
+						if (!center) continue
+						editor.deleteShapes([shape.id])
+
+						creationPromises.push(
+							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
+								if (!res.ok) {
+									throw new Error(res.error)
+								}
+								return res
+							})
+						)
+					}
+
+					await Promise.all(creationPromises).catch((error) => {
+						editor.bailToMark(markId)
+						console.error(error)
 					})
 				},
 			},
@@ -445,7 +437,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const createList: TLShapePartial[] = []
 						const deleteList: TLShapeId[] = []
 						for (const shape of shapes) {
-							if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+							if (!editor.isShapeOfType(shape, 'bookmark')) continue
 
 							const { url } = shape.props
 
@@ -556,7 +548,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('group-shapes', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'group')) {
 						editor.markHistoryStoppingPoint('ungroup')
 						editor.ungroupShapes(editor.getSelectedShapeIds())
 					} else {
@@ -576,7 +568,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (
 						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
 					) {
 						editor.markHistoryStoppingPoint('remove-frame')
 						removeFrame(
@@ -594,7 +586,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'frame')) {
 						editor.markHistoryStoppingPoint('fit-frame-to-content')
 						fitFrameToContent(editor, onlySelectedShape.id)
 					}
@@ -981,7 +973,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							helpers.paste(
 								clipboardItems,
 								source,
-								source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
+								source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
 							)
 						})
 						.catch(() => {
@@ -1045,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					const isFine = editor.inputs.altKey
+					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-cw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-cw')
 					editor.run(() => {
@@ -1068,7 +1060,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					const isFine = editor.inputs.altKey
+					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-ccw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-ccw')
 					editor.run(() => {
@@ -1100,7 +1092,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
-					editor.zoomIn(editor.inputs.currentScreenPoint, {
+					editor.zoomIn(editor.inputs.getCurrentScreenPoint(), {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
@@ -1124,7 +1116,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
-					editor.zoomOut(editor.inputs.currentScreenPoint, {
+					editor.zoomOut(editor.inputs.getCurrentScreenPoint(), {
 						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
@@ -1345,6 +1337,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-focus-mode',
+				label: {
+					default: 'action.toggle-focus-mode',
+					menu: 'action.toggle-focus-mode.menu',
+				},
+				readonlyOk: true,
+				kbd: 'cmd+.,ctrl+.',
+				checkbox: true,
+				onSelect(source) {
+					// this needs to be deferred because it causes the menu
+					// UI to unmount which puts us in a dodgy state
+					editor.timers.requestAnimationFrame(() => {
+						editor.run(() => {
+							trackEvent('toggle-focus-mode', { source })
+							helpers.clearDialogs()
+							helpers.clearToasts()
+							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
+						})
+					})
+				},
+			},
+			{
 				id: 'toggle-grid',
 				label: {
 					default: 'action.toggle-grid',
@@ -1478,6 +1492,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'select-fill-lined-fill',
+				label: 'fill-style.lined-fill',
+				kbd: 'alt+shift+f',
+				onSelect(source) {
+					const style = DefaultFillStyle
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('change-fill')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'lined-fill')
+						}
+						editor.setStyleForNextShapes(style, 'lined-fill')
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'lined-fill' })
+				},
+			},
+			{
 				id: 'flatten-to-image',
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',
@@ -1565,8 +1595,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
 						onlySelectedShape &&
-						(editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image') ||
-							editor.isShapeOfType<TLVideoShape>(onlySelectedShape, 'video'))
+						(editor.isShapeOfType(onlySelectedShape, 'image') ||
+							editor.isShapeOfType(onlySelectedShape, 'video'))
 					) {
 						const firstToolbarButton = editor
 							.getContainer()

@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
-import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import test from '../fixtures/fixtures'
+import { setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Style selection behaviour', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test('selecting a style hints the button', async ({ isMobile, stylePanel, toolbar }) => {
 		const { blue, black } = stylePanel.colors
 		const { pattern, none } = stylePanel.fill
@@ -114,7 +114,7 @@ test.describe('Style selection behaviour', () => {
 })
 
 test.describe('mobile style panel', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test('opens and closes as expected', async ({ isMobile, page, toolbar, stylePanel }) => {
 		test.skip(!isMobile, 'only run on mobile')
 

@@ -136,7 +136,7 @@ Pass your components overrides to the `components` prop.
 
 ## Tight examples and use-case examples
 
-There are two types of examples: **tight** examples that show a specific use of the tldraw SDK, and **use-case** examples that shown some sliver of a user experience that involves the SDK. For example, a tight example might show how to toggle dark mode on and off programatically, while a use-case example may show how to edit a PDF.
+There are two types of examples: **tight** examples that show a specific use of the tldraw SDK, and **use-case** examples that show some sliver of a user experience that involves the SDK. For example, a tight example might show how to toggle dark mode on and off programmatically, while a use-case example may show how to edit a PDF.
 
 When writing a **tight** example, you should narrow the focus of the example as much as possible. Avoid styling unless absolutely necessary. These examples are meant to be _read_ rather than actually used. Any extraneous code may be mistaken for necessary code and so should either be removed or minimized.
 

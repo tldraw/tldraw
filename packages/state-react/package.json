@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state-react",
 	"description": "tldraw infinite canvas SDK (react bindings for state).",
-	"version": "4.0.1",
+	"version": "4.2.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -28,6 +28,7 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
@@ -47,17 +48,19 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@testing-library/react": "^15.0.7",
+		"@testing-library/dom": "^10.0.0",
+		"@testing-library/react": "^16.0.0",
 		"@types/lodash": "^4.17.14",
-		"@types/react": "^18.3.18",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"lodash": "^4.17.21",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"vitest": "^3.2.4"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"typedoc": {
 		"readmeFile": "none",

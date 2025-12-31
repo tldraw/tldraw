@@ -20,7 +20,36 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
+/**
+ * Validator for image assets. Validates the structure and properties of TLImageAsset records
+ * to ensure data integrity when image assets are stored or retrieved from the tldraw store.
+ *
+ * @example
+ * ```ts
+ * import { imageAssetValidator } from '@tldraw/tlschema'
+ *
+ * const imageAsset = {
+ *   id: 'asset:image123',
+ *   typeName: 'asset',
+ *   type: 'image',
+ *   props: {
+ *     w: 800,
+ *     h: 600,
+ *     name: 'photo.jpg',
+ *     isAnimated: false,
+ *     mimeType: 'image/jpeg',
+ *     src: 'https://example.com/photo.jpg',
+ *     fileSize: 156000
+ *   },
+ *   meta: {}
+ * }
+ *
+ * // Validate the asset
+ * const isValid = imageAssetValidator.validate(imageAsset)
+ * ```
+ *
+ * @public
+ */
 export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
 	T.object({
@@ -42,9 +71,38 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 	MakeFileSizeOptional: 5,
 } as const)
 
+/**
+ * Migration version identifiers for image assets. These define the different schema versions
+ * that image assets have gone through during the evolution of the tldraw data model.
+ *
+ * @example
+ * ```ts
+ * import { imageAssetVersions } from '@tldraw/tlschema'
+ *
+ * // Access specific version IDs
+ * console.log(imageAssetVersions.AddIsAnimated) // Version when isAnimated was added
+ * console.log(imageAssetVersions.RenameWidthHeight) // Version when width/height became w/h
+ * ```
+ *
+ * @public
+ */
 export { Versions as imageAssetVersions }
 
-/** @public */
+/**
+ * Migration sequence for image assets. Handles the evolution of the image asset schema
+ * over time, providing both forward (up) and backward (down) migration functions to
+ * maintain compatibility across different versions of the tldraw data model.
+ *
+ * The sequence includes migrations for:
+ * - Adding the `isAnimated` property to track animated images
+ * - Renaming `width`/`height` properties to shorter `w`/`h` names
+ * - Ensuring URLs are valid format
+ * - Adding file size tracking
+ * - Making file size optional
+ *
+ *
+ * @public
+ */
 export const imageAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.image',
 	recordType: 'asset',

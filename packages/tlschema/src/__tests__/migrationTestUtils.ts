@@ -1,4 +1,4 @@
-import { Migration, MigrationId } from '@tldraw/store'
+import { devFreeze, Migration, MigrationId } from '@tldraw/store'
 import { mockUniqueId, structuredClone } from '@tldraw/utils'
 import { vi } from 'vitest'
 import { createTLSchema } from '../createTLSchema'
@@ -25,8 +25,14 @@ export function getTestMigration(migrationId: MigrationId) {
 		id: migrationId,
 		up: (stuff: any) => {
 			nextNanoId = 0
-			const result = structuredClone(stuff)
-			return migration.up(result) ?? result
+			if (migration.scope === 'record' || migration.scope === 'store') {
+				const result = structuredClone(stuff)
+				return migration.up(result) ?? result
+			}
+			const storage =
+				typeof stuff.entries === 'function' ? stuff : new Map(Object.entries(stuff).map(devFreeze))
+			migration.up(storage)
+			return typeof stuff.entries === 'function' ? storage : Object.fromEntries(storage.entries())
 		},
 		down: (stuff: any) => {
 			nextNanoId = 0

@@ -1,12 +1,4 @@
-import {
-	TLBookmarkShape,
-	TLEmbedShape,
-	TLFrameShape,
-	TLImageShape,
-	TLPageId,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { TLPageId, useEditor, useValue } from '@tldraw/editor'
 import { supportsDownloadingOriginal } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -64,7 +56,7 @@ export function FlattenMenuItem() {
 			const selectedShapeIds = editor.getSelectedShapeIds()
 			if (selectedShapeIds.length === 0) return false
 			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape && editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image')) {
+			if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'image')) {
 				return false
 			}
 			return true
@@ -117,7 +109,7 @@ export function RemoveFrameMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			return selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+			return selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
 		},
 		[editor]
 	)
@@ -135,7 +127,7 @@ export function FitFrameToContentMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return (
-				editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame') &&
+				editor.isShapeOfType(onlySelectedShape, 'frame') &&
 				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 			)
 		},
@@ -190,7 +182,9 @@ export function UnlockAllMenuItem() {
 /** @public @react */
 export function ZoomTo100MenuItem() {
 	const editor = useEditor()
-	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getZoomLevel() === 1, [editor])
+	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getEfficientZoomLevel() === 1, [
+		editor,
+	])
 
 	return <TldrawUiMenuActionItem actionId="zoom-to-100" noClose disabled={isZoomedTo100} />
 }
@@ -482,11 +476,11 @@ export function MoveToPageMenu() {
 
 							if (toPage) {
 								addToast({
-									title: 'Changed Page',
+									title: 'Changed page',
 									description: `Moved to ${toPage.name}.`,
 									actions: [
 										{
-											label: 'Go Back',
+											label: 'Go back',
 											type: 'primary',
 											onClick: () => {
 												editor.markHistoryStoppingPoint('change-page')
@@ -518,7 +512,7 @@ export function ConvertToBookmarkMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
-				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
+				editor.isShapeOfType(onlySelectedShape, 'embed') &&
 				onlySelectedShape.props.url &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)
 			)
@@ -542,7 +536,7 @@ export function ConvertToEmbedMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
-				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
+				editor.isShapeOfType(onlySelectedShape, 'bookmark') &&
 				onlySelectedShape.props.url &&
 				getEmbedDefinition(onlySelectedShape.props.url) &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)

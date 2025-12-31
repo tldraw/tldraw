@@ -6,6 +6,7 @@ import {
 	convertSimpleShapeToTldrawShape,
 } from '../format/convertSimpleShapeToTldrawShape'
 import { SimpleShapeSchema } from '../format/SimpleShape'
+import { toSimpleShapeId } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -42,7 +43,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		const { update } = action
 
 		// Ensure the shape ID refers to a real shape
-		const shapeId = helpers.ensureShapeIdExists(update.shapeId)
+		const shapeId = helpers.ensureShapeIdExists(toSimpleShapeId(update.shapeId))
 		if (!shapeId) return null
 		update.shapeId = shapeId
 
@@ -53,6 +54,22 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			}
 			if (update.toId) {
 				update.toId = helpers.ensureShapeIdExists(update.toId)
+			}
+
+			if ('x1' in update) {
+				update.x1 = helpers.ensureValueIsNumber(update.x1) ?? 0
+			}
+			if ('y1' in update) {
+				update.y1 = helpers.ensureValueIsNumber(update.y1) ?? 0
+			}
+			if ('x2' in update) {
+				update.x2 = helpers.ensureValueIsNumber(update.x2) ?? 0
+			}
+			if ('y2' in update) {
+				update.y2 = helpers.ensureValueIsNumber(update.y2) ?? 0
+			}
+			if ('bend' in update) {
+				update.bend = helpers.ensureValueIsNumber(update.bend) ?? 0
 			}
 		}
 

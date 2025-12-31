@@ -48,8 +48,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const url =
-		'https://tldraw.dev/pricing?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+	const url = 'https://tldraw.dev/pricing?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
 
 	return (
 		<div
@@ -70,7 +69,9 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 					preventDefault(e)
 				}}
 				title="The tldraw SDK requires a license key to work in production. You can get a free 100-day trial license at tldraw.dev/pricing."
-				onClick={() => runtime.openWindow(url, '_blank')}
+				onClick={() => {
+					runtime.openWindow(url, '_blank', true)
+				}} // allow referrer
 			>
 				Get a license for production
 			</button>
@@ -96,7 +97,7 @@ const WatermarkInner = memo(function WatermarkInner({
 	usePassThroughWheelEvents(ref)
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
-	const url = 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+	const url = 'https://tldraw.dev/?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
 
 	if (isUnlicensed) {
 		return <UnlicensedWatermark isDebugMode={isDebugMode} isMobile={isMobile} />
@@ -120,7 +121,9 @@ const WatermarkInner = memo(function WatermarkInner({
 					preventDefault(e)
 				}}
 				title="Build infinite canvas applications with the tldraw SDK. Learn more at https://tldraw.dev."
-				onClick={() => runtime.openWindow(url, '_blank')}
+				onClick={() => {
+					runtime.openWindow(url, '_blank')
+				}}
 				style={{ mask: maskCss, WebkitMask: maskCss }}
 			/>
 		</div>
@@ -208,22 +211,22 @@ To remove the watermark, please purchase a license at tldraw.dev.
 }
 
 @media (hover: hover) {
-	.${className}[data-licensed='false'] > button {
+	.${className} > button {
 		pointer-events: none;
 	}
 
-	.${className}[data-licensed='false']:hover {
+	.${className}:hover {
 		background-color: var(--tl-color-background);
 		transition: background-color 0.2s ease-in-out;
 		transition-delay: 0.32s;
 	}
 
-	.${className}[data-licensed='false']:hover > button {
+	.${className}:hover > button {
 		animation: ${className}_delayed_link 0.2s forwards ease-in-out;
 		animation-delay: 0.32s;
 	}
 
-	.${className}[data-licensed='false'] > button:focus-visible {
+	.${className} > button:focus-visible {
 		opacity: 1;
 	}
 }
