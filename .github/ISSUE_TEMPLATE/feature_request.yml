@@ -1,18 +1,18 @@
 name: Feature request
-description: File a feature request
-title: '[Feature]: '
-labels: ['enhancement']
+description: Suggest a new feature or improvement
+title: ''
+labels: ['feature']
 assignees: []
 body:
   - type: markdown
     attributes:
       value: |
-        Have an idea for a feature or change in tldraw?
+        Have an idea for a feature or improvement in tldraw? We'd love to hear it!
   - type: textarea
     id: description
     attributes:
       label: What's the feature?
-      description: Describe the feature, who it would help, and link to any examples from other apps.
+      description: Describe the feature, the problem it solves, and any examples from other apps.
     validations:
       required: true
   - type: dropdown
@@ -20,9 +20,9 @@ body:
     attributes:
       label: Where would you like this feature?
       options:
-        - The developer package
-        - The tldraw.com website
-        - The makereal.tldraw.com website
+        - tldraw SDK (@tldraw/tldraw npm package)
+        - tldraw.com
+        - makereal.tldraw.com
     validations:
       required: true
   - type: input
