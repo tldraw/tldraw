@@ -257,8 +257,9 @@ export interface TLEditorOptions {
 	/**
 	 * Called when content is dropped on the canvas. Provides the page position
 	 * where the drop occurred and the underlying drag event object.
+	 * Return true to prevent default drop handling (files, URLs, etc.)
 	 */
-	onDropOnCanvas?(options: { point: VecLike; event: React.DragEvent<Element> }): void
+	onDropOnCanvas?(options: { point: VecLike; event: React.DragEvent<Element> }): boolean
 }
 
 /**

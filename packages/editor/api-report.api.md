@@ -3596,7 +3596,7 @@ export interface TLEditorOptions {
     onDropOnCanvas?(options: {
         event: React_2.DragEvent<Element>;
         point: VecLike;
-    }): void;
+    }): boolean;
     // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];

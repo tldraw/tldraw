@@ -106,7 +106,8 @@ export function useCanvasEvents() {
 
 				// Call the custom onDropOnCanvas callback if provided
 				if ((editor as any)._onDropOnCanvas) {
-					;(editor as any)._onDropOnCanvas({ point: pagePoint, event: e })
+					const handled = (editor as any)._onDropOnCanvas({ point: pagePoint, event: e })
+					if (handled) return
 				}
 
 				if (e.dataTransfer?.files?.length) {
