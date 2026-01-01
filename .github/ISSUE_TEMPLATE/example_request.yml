@@ -1,5 +1,5 @@
-name: Example Request
-description: Submit a request for an example
+name: Example request
+description: Request a code example for the tldraw SDK
 title: ''
 labels: ['examples']
 assignees: []
@@ -7,12 +7,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Need an example of how to do something with tldraw?
+        Need an example of how to do something with tldraw? We're happy to help!
   - type: textarea
     id: description
     attributes:
       label: What's the example?
-      description: Please describe the example. What would you like to see?
+      description: Describe what you're trying to build or the use case you'd like to see demonstrated.
     validations:
       required: true
   - type: checkboxes

@@ -1,5 +1,5 @@
-name: Bug Report
-description: File a bug report
+name: Bug report
+description: Report something that isn't working as expected
 title: ''
 labels: ['bug']
 assignees: []
@@ -12,14 +12,15 @@ body:
     id: what-happened
     attributes:
       label: What happened?
-      description: Also tell us, what did you expect to happen?
+      description: Describe the bug and what you expected to happen instead.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
       label: How can we reproduce the bug?
-      description: If you can make the bug happen again, please share the steps involved. If possible please also include a screenshot or a screen recording to help us better understand and resolve the issue. You can [fork this sandbox](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx) to make a reproduction.
+      description: |
+        Please share the steps to reproduce this bug. A [StackBlitz reproduction](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx) or screen recording helps us fix it faster.
     validations:
       required: false
   - type: dropdown
@@ -32,18 +33,15 @@ body:
         - Chrome
         - Safari
         - Microsoft Edge
-        - VS Code
   - type: dropdown
     id: product
     attributes:
       label: Where did this happen?
       options:
-        - The developer package
+        - tldraw SDK (@tldraw/tldraw npm package)
         - tldraw.com
-        - tldraw.dev
-        - makereal.tldraw.com
-        - tldraw.com
-        - VS Code / Cursor extension
+        - tldraw.dev (documentation site)
+        - VS Code extension
         - Obsidian plugin
     validations:
       required: true
