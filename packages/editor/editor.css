@@ -941,10 +941,9 @@ input,
 	text-align: right;
 }
 
-/* Make paragraphs inside list items inline so they stay on same line as marker */
-/* Applied to both LTR and RTL for consistent marker-text alignment */
-.tl-rich-text li:dir(rtl)>p,
-.tl-rich-text li:dir(ltr)>p {
+/* Make paragraphs inside RTL list items inline so they stay on same line as marker */
+/* Only needed for RTL because it uses list-style-position: inside */
+.tl-rich-text li:dir(rtl)>p {
 	display: inline;
 }
 
