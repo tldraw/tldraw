@@ -1,7 +1,7 @@
 name: Bug Report
 description: File a bug report
-title: '[Bug]: '
-labels: ['bug', 'triage']
+title: 'Bug: '
+labels: ['bug']
 assignees: []
 body:
   - type: markdown
@@ -39,10 +39,12 @@ body:
       label: Where did this happen?
       options:
         - The developer package
-        - The tldraw.com website
-        - The tldraw.dev website
-        - The makereal.tldraw.com website
-        - The VS Code extension
+        - tldraw.com
+        - tldraw.dev
+        - makereal.tldraw.com
+        - tldraw.com
+        - VS Code / Cursor extension
+        - Obsidian plugin
     validations:
       required: true
   - type: input

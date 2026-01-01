@@ -1,7 +1,7 @@
 name: Example Request
 description: Submit a request for an example
-title: '[Example Request]: '
-labels: ['Example Request']
+title: 'Example: '
+labels: ['examples']
 assignees: []
 body:
   - type: markdown
