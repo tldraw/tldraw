@@ -891,55 +891,60 @@ input,
 
 .tl-rich-text ul,
 .tl-rich-text ol {
-	text-align: start;
+	text-align: left;
 	margin: 0;
-	padding-inline-start: 1ch;
-	/* Use inside position so markers follow text direction */
-	list-style-position: inside;
-	list-style: disc inside;
-}
-
-.tl-rich-text ol {
-	list-style: decimal inside;
+	padding-left: 3.25ch;
+	/* Some resets, like Tailwind, nix the list styling. */
+	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
-	padding-inline-start: 4.25ch;
+	padding-left: 4.25ch;
 }
 
 .tl-rich-text ol:has(> li:nth-child(100)) {
-	padding-inline-start: 5.25ch;
+	padding-left: 5.25ch;
 }
 
-/* Nested list marker differentiation - restore browser-like visual hierarchy */
-/* Unordered lists: disc → circle → square */
-.tl-rich-text ul ul {
-	list-style-type: circle;
+/* RTL support: scope all RTL-specific styling to :dir(rtl) */
+/* :dir() matches computed direction, not just the dir attribute */
+/* Use list-style-position: inside so markers follow text direction in RTL */
+.tl-rich-text ul:dir(rtl),
+.tl-rich-text ol:dir(rtl) {
+	direction: rtl;
+	text-align: right;
+	padding-left: 0;
+	padding-right: 3.25ch;
+	list-style-position: inside;
 }
 
-.tl-rich-text ul ul ul {
-	list-style-type: square;
+.tl-rich-text ol:dir(rtl):has(> li:nth-child(10)) {
+	padding-left: 0;
+	padding-right: 4.25ch;
 }
 
-/* Ordered lists: decimal → lower-alpha → lower-roman */
-.tl-rich-text ol ol {
-	list-style-type: lower-alpha;
+.tl-rich-text ol:dir(rtl):has(> li:nth-child(100)) {
+	padding-left: 0;
+	padding-right: 5.25ch;
 }
 
-.tl-rich-text ol ol ol {
-	list-style-type: lower-roman;
+/* Reset LTR direction for nested LTR content within RTL lists */
+/* Prevents incorrect direction inheritance when RTL list contains LTR nested lists */
+.tl-rich-text li:dir(ltr) {
+	direction: ltr;
+	text-align: left;
 }
 
-/* RTL support: When list items contain RTL content (computed direction is RTL) */
-/* :dir(rtl) matches based on computed direction, not just attribute value */
-.tl-rich-text li:has(p:dir(rtl)),
-.tl-rich-text li:has(p[dir='rtl']) {
+/* RTL list items: ensure proper direction for RTL content */
+.tl-rich-text li:dir(rtl) {
 	direction: rtl;
 	text-align: right;
 }
 
 /* Make paragraphs inside list items inline so they stay on same line as marker */
-.tl-rich-text li>p {
+/* Applied to both LTR and RTL for consistent marker-text alignment */
+.tl-rich-text li:dir(rtl)>p,
+.tl-rich-text li:dir(ltr)>p {
 	display: inline;
 }
 
