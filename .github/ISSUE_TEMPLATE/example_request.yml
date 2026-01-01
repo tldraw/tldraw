@@ -1,7 +1,8 @@
 name: Example request
-description: Request a code example for the tldraw SDK
+description: Submit a request for an example
+type: Example
 title: ''
-labels: ['examples']
+labels: []
 assignees: []
 body:
   - type: markdown

@@ -1,7 +1,8 @@
-name: Bug report
-description: Report something that isn't working as expected
+name: Bug Report
+description: File a bug report
+type: Bug
 title: ''
-labels: ['bug']
+labels: []
 assignees: []
 body:
   - type: markdown
