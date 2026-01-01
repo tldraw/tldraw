@@ -1,4 +1,4 @@
-import { TLGeoShape, TLShape, createShapeId, toRichText } from '@tldraw/editor'
+import { TLShape, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -146,7 +146,7 @@ describe('with hitLabels=true', () => {
 	it('hits geo shape label behind overlapping hollow shape', () => {
 		// label is empty
 		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, opts)?.id).toBe(ids.box3)
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			id: ids.box2,
 			type: 'geo',
 			props: { richText: toRichText('hello') },

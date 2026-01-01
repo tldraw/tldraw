@@ -1,4 +1,4 @@
-import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
+import { compressLegacySegments, createShapeId, Vec, VecModel } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
@@ -38,7 +38,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 
 	override getInfo(action: Streaming<PenAction>) {
 		return {
-			icon: null, //'pencil' as const,
+			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}
@@ -46,8 +46,12 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 	override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 		if (!action.points) return action
 
+		// Don't include the final point if we're still streaming.
+		// Its numbers might be incomplete.
+		const points = action.complete ? action.points : action.points.slice(0, -1)
+
 		// This is a complex action for the model, so validate the data it gives us
-		const validPoints = action.points
+		const validPoints = points
 			.map((point) => helpers.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
@@ -96,7 +100,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			return
 		}
 
-		const segments: TLDrawShapeSegment[] = [
+		const segments = compressLegacySegments([
 			{
 				type: 'free',
 				points: points.map((point) => ({
@@ -105,9 +109,9 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 					z: 0.75,
 				})),
 			},
-		]
+		])
 
-		this.agent.editor.createShape<TLDrawShape>({
+		this.agent.editor.createShape({
 			id: createShapeId(),
 			type: 'draw',
 			x: minX,

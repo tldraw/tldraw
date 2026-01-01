@@ -3,16 +3,20 @@ import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
-	TlaFile,
 	TlaSchema,
 	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
+	hasActiveFairyAccess,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import {
+	JsonChunkAssembler,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '@tldraw/sync-core'
 import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -23,10 +27,11 @@ import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject } from './utils/durableObjects'
+import { getFeatureFlag } from './utils/featureFlags'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
+import { getClerkClient } from './utils/tla/getAuth'
+import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
 
@@ -79,7 +84,68 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
-				this.userId = req.params.userId
+				const id = (this.userId = req.params.userId)
+				const user = await this.db
+					.selectFrom('user')
+					.where('id', '=', id)
+					.select('id')
+					.executeTakeFirst()
+				if (!user) {
+					// auth is checked in the main worker, before it gets here, so the clerk
+					// user definitely exists at this point.
+					const clerk = getClerkClient(this.env)
+					const clerkUser = await clerk.users.getUser(id)
+					assert(clerkUser, 'Clerk user not found')
+					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
+					await this.db.transaction().execute(async (tx) => {
+						// check that user wasn't added by another request in between the auth check and the snapshot deletion
+						if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
+							return
+						}
+						const now = Date.now()
+						await tx
+							.insertInto('user')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								email: clerkUser.emailAddresses[0].emailAddress,
+								avatar: clerkUser.imageUrl,
+								color: '___INIT___',
+								exportFormat: 'png',
+								exportTheme: 'light',
+								exportBackground: true,
+								exportPadding: true,
+								createdAt: now,
+								updatedAt: now,
+								flags: 'groups_backend',
+							})
+							.execute()
+						await tx
+							.insertInto('group')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								createdAt: now,
+								updatedAt: now,
+								isDeleted: false,
+								inviteSecret: null,
+							})
+							.execute()
+						await tx
+							.insertInto('group_user')
+							.values({
+								userId: id,
+								groupId: id,
+								createdAt: now,
+								updatedAt: now,
+								role: 'owner',
+								index: 'a1' as IndexKey,
+								userName: clerkUser.fullName ?? '',
+								userColor: '',
+							})
+							.execute()
+					})
+				}
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
@@ -102,6 +168,101 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
+		.post('/app/:userId/fairy/check-rate-limit', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+			const DEFAULT_WEEKLY_LIMIT = 25
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select(['weeklyUsage', 'weeklyLimit'])
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			const effectiveLimit = userFairies.weeklyLimit ?? DEFAULT_WEEKLY_LIMIT
+
+			if (effectiveLimit === 0) {
+				return Response.json({ error: 'Fairy access blocked' }, { status: 403 })
+			}
+
+			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
+
+			if (currentUsage >= effectiveLimit) {
+				return Response.json({ error: 'Weekly rate limit exceeded' }, { status: 429 })
+			}
+
+			return new Response(null, { status: 200 })
+		})
+		.post('/app/:userId/fairy/record-usage', async (req) => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const body = (await req.json()) as any
+			const { actualCost } = body
+
+			if (typeof actualCost !== 'number' || actualCost < 0 || !isFinite(actualCost)) {
+				return Response.json({ error: 'Invalid actualCost' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+
+			// Atomic increment using PostgreSQL JSONB operators
+			const result = await this.db
+				.updateTable('user_fairies')
+				.set({
+					weeklyUsage: sql`
+						jsonb_set(
+							COALESCE("weeklyUsage", '{}'::jsonb),
+							${sql.lit(`{${weekKey}}`)},
+							to_jsonb(COALESCE(("weeklyUsage"->>${sql.lit(weekKey)})::numeric, 0) + ${actualCost}::numeric)
+						)
+					`,
+				})
+				.where('userId', '=', this.userId)
+				.returning(sql<number>`("weeklyUsage"->>${sql.lit(weekKey)})::numeric`.as('totalUsage'))
+				.executeTakeFirst()
+
+			if (!result) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			return Response.json({ success: true, totalUsage: result.totalUsage })
+		})
+		.get('/app/:userId/fairy/has-access', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const flagEnabled = await getFeatureFlag(this.env, 'fairies')
+			if (!flagEnabled) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select(['fairyAccessExpiresAt', 'fairyLimit'])
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const hasAccess = hasActiveFairyAccess(
+				userFairies.fairyAccessExpiresAt ?? null,
+				userFairies.fairyLimit ?? null
+			)
+
+			return Response.json({ hasAccess })
+		})
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -156,11 +317,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private makeCrud(
 		client: PoolClient,
 		signal: AbortSignal,
-		perfHackHooks: PerfHackHooks
+		changeAccumulator: ChangeAccumulator
 	): SchemaCRUD<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
 		)
 	}
 
@@ -235,13 +396,24 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		serverWebSocket.addEventListener('message', (e) =>
+		const assembler = new JsonChunkAssembler()
+		serverWebSocket.addEventListener('message', (e) => {
+			const res = assembler.handleMessage(e.data.toString())
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('error' in res) {
+				this.captureException(res.error, { source: 'serverWebSocket "message" event, bad chunk' })
+				return
+			}
+
 			this.messageQueue.push(() =>
-				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
+				this.handleSocketMessage(serverWebSocket, res.stringified).catch((e) =>
 					this.captureException(e, { source: 'serverWebSocket "message" event' })
 				)
 			)
-		)
+		})
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
 		})
@@ -334,7 +506,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const client = await this.pool.connect()
 
 		try {
-			const newFiles = [] as TlaFile[]
+			const changeAccumulator: ChangeAccumulator = {
+				file: { added: [] },
+				user_fairies: { added: [], updated: [], removed: [] },
+				file_fairies: { added: [], updated: [], removed: [] },
+			}
 
 			await client.query('BEGIN')
 
@@ -345,7 +521,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
 
 			const controller = new AbortController()
-			const mutate = this.makeCrud(client, controller.signal, { newFiles })
+			const mutate = this.makeCrud(client, controller.signal, changeAccumulator)
 			try {
 				// new
 				const mutators = createMutators(this.userId!)
@@ -396,11 +572,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('COMMIT')
 
-			for (const file of newFiles) {
-				// if this is a legacy guest file, add it to the cache
-				this.cache?.addGuestFile(file)
-				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-			}
+			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
 		} catch (e) {
 			await client.query('ROLLBACK')
 			throw e
@@ -495,7 +667,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async __test__prepareForTest(userId: string, legacy: boolean) {
+	async __test__prepareForTest(userId: string) {
 		if (this.env.IS_LOCAL !== 'true') {
 			return
 		}
@@ -510,72 +682,88 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (!user) {
 				console.error('User not found', userId)
 				return
-			} else {
-				await tx
-					.updateTable('user')
-					.set({
-						flags: legacy ? '' : 'groups_backend',
-						allowAnalyticsCookie: null,
-						enhancedA11yMode: null,
-						colorScheme: null,
-						locale: null,
-						exportBackground: true,
-						exportPadding: true,
-						exportFormat: 'png',
-						inputMode: null,
-					} satisfies Omit<TlaUserPartial, 'id'>)
-					.where('id', '=', userId)
-					.execute()
 			}
-			await tx.deleteFrom('file_state').where('userId', '=', userId).execute()
-			await tx.deleteFrom('file').where('ownerId', '=', userId).execute()
-			await tx.deleteFrom('file').where('owningGroupId', '=', userId).execute()
-			await tx.deleteFrom('group').where('id', '=', userId).execute()
-			if (!legacy) {
-				await tx
-					.insertInto('group')
-					.values({
-						id: userId,
-						name: '',
-						createdAt: Date.now(),
-						updatedAt: Date.now(),
-						isDeleted: false,
-						inviteSecret: null,
-					})
-					.onConflict((oc) => oc.doNothing())
-					.execute()
-				await tx
-					.insertInto('group_user')
-					.values({
-						userId: userId,
-						groupId: userId,
-						createdAt: Date.now(),
-						updatedAt: Date.now(),
-						role: 'owner',
-						index: 'a1' as IndexKey,
-						userColor: '',
-						userName: '',
-					})
-					.onConflict((oc) => oc.doNothing())
-					.execute()
+
+			await tx
+				.updateTable('user')
+				.set({
+					flags: 'groups_backend',
+					allowAnalyticsCookie: null,
+					enhancedA11yMode: null,
+					colorScheme: null,
+					locale: null,
+					exportBackground: true,
+					exportPadding: true,
+					exportFormat: 'png',
+					inputMode: null,
+				} satisfies Omit<TlaUserPartial, 'id'>)
+				.where('id', '=', userId)
+				.execute()
+
+			// Get all groups the user is a member of and delete them
+			// CASCADE will automatically delete group_user, group_file, and owned files
+			const userGroups = await tx
+				.selectFrom('group_user')
+				.where('userId', '=', userId)
+				.select('groupId')
+				.execute()
+			const groupIds = userGroups.map((g) => g.groupId)
+
+			if (groupIds.length > 0) {
+				await tx.deleteFrom('group').where('id', 'in', groupIds).execute()
 			}
+
+			// Re-create the home group
+			await tx
+				.insertInto('group')
+				.values({
+					id: userId,
+					name: '',
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					isDeleted: false,
+					inviteSecret: null,
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
+			await tx
+				.insertInto('group_user')
+				.values({
+					userId: userId,
+					groupId: userId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					role: 'owner',
+					index: 'a1' as IndexKey,
+					userColor: '',
+					userName: '',
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
 		})
 
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
 
 	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
 		this.userId ??= userId
 
+		this.log.debug('migrating to groups', userId, inviteSecret)
 		// Call the Postgres migration function
 		const result = await sql<{
 			files_migrated: number
 			pinned_files_migrated: number
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
 
-		// Reboot the user's cache to pick up the new data structure
+		this.log.debug('migration result', result.rows[0])
+
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		this.log.debug('migration complete, user rebooted')
 
 		return result.rows[0]
 	}
@@ -586,6 +774,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
+		// Close all websocket connections to force reconnect with fresh data
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
 	}
 
 	async admin_getData(userId: string) {
@@ -629,4 +822,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		await this.db.destroy()
 	}
+}
+
+function getISOWeekKey(): string {
+	const now = new Date()
+	const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+	const dayNum = d.getUTCDay() || 7
+	// Move to Thursday of the ISO week (determines which year the week belongs to)
+	d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+	const year = d.getUTCFullYear()
+	const yearStart = new Date(Date.UTC(year, 0, 1))
+	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+	return `${year}-W${String(week).padStart(2, '0')}`
 }

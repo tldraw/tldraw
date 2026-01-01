@@ -54,6 +54,7 @@ describe('RoomSession state transitions', () => {
 		const initialSession: RoomSession<TLRecord, { userId: string }> = {
 			state: RoomSessionState.AwaitingConnectMessage,
 			sessionStartTime: Date.now(),
+			supportsStringAppend: true,
 			...baseSessionData,
 		}
 
@@ -67,6 +68,8 @@ describe('RoomSession state transitions', () => {
 			isReadonly: initialSession.isReadonly,
 			requiresLegacyRejection: initialSession.requiresLegacyRejection,
 			serializedSchema: mockSerializedSchema,
+			requiresDownMigrations: false,
+			supportsStringAppend: true,
 			lastInteractionTime: Date.now(),
 			debounceTimer: null,
 			outstandingDataMessages: [],
@@ -81,6 +84,7 @@ describe('RoomSession state transitions', () => {
 			meta: connectedSession.meta,
 			isReadonly: connectedSession.isReadonly,
 			requiresLegacyRejection: connectedSession.requiresLegacyRejection,
+			supportsStringAppend: connectedSession.supportsStringAppend,
 			cancellationTime: Date.now(),
 		}
 

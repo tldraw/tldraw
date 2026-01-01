@@ -24,7 +24,7 @@ export function DefaultMinimap() {
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
 
-	const minimapRef = React.useRef<MinimapManager>()
+	const minimapRef = React.useRef<MinimapManager | undefined>(undefined)
 
 	React.useEffect(() => {
 		try {

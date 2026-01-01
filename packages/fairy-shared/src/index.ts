@@ -1,50 +1,10 @@
 /* eslint-disable local/no-export-star */
 
-// Actions
-export * from './actions/AddDetailActionUtil'
-export * from './actions/AgentActionUtil'
-export * from './actions/AlignActionUtil'
-export * from './actions/BringToFrontActionUtil'
-export * from './actions/ClearActionUtil'
-export * from './actions/CountryInfoActionUtil'
-export * from './actions/CountShapesActionUtil'
-export * from './actions/CreateActionUtil'
-export * from './actions/DeleteActionUtil'
-export * from './actions/DistributeActionUtil'
-export * from './actions/FlyToBoundsActionUtil'
-export * from './actions/LabelActionUtil'
-export * from './actions/MessageActionUtil'
-export * from './actions/MoveActionUtil'
-export * from './actions/NoteToSelfActionUtil'
-export * from './actions/PenActionUtil'
-export * from './actions/PlaceActionUtil'
-export * from './actions/RandomWikipediaArticleActionUtil'
-export * from './actions/ResizeActionUtil'
-export * from './actions/ReviewActionUtil'
-export * from './actions/RotateActionUtil'
-export * from './actions/SendToBackActionUtil'
-export * from './actions/StackActionUtil'
-export * from './actions/ThinkActionUtil'
-export * from './actions/TodoListActionUtil'
-export * from './actions/UnknownActionUtil'
-export * from './actions/UpdateActionUtil'
-
-// Parts
-export * from './parts/BlurryShapesPartUtil'
-export * from './parts/ChatHistoryPartUtil'
-export * from './parts/ContextItemsPartUtil'
-export * from './parts/DataPartUtil'
-export * from './parts/MessagesPartUtil'
-export * from './parts/ModelNamePartUtil'
-export * from './parts/PeripheralShapesPartUtil'
-export * from './parts/PromptPartUtil'
-export * from './parts/ScreenshotPartUtil'
-export * from './parts/SelectedShapesPartUtil'
-export * from './parts/SystemPromptPartUtil'
-export * from './parts/TimePartUtil'
-export * from './parts/TodoListPartUtil'
-export * from './parts/UserActionHistoryPartUtil'
-export * from './parts/ViewportBoundsPartUtil'
+import { TLShapeId } from 'tldraw'
+import { AgentId, ProjectId, SimpleShapeId, TaskId } from './schema/id-schemas'
+import { AgentAction } from './types/AgentAction'
+import { AgentActionInfo } from './types/AgentActionInfo'
+import { FairyTask } from './types/FairyTask'
 
 // Format
 export type * from './format/BlurryShape'
@@ -52,14 +12,16 @@ export * from './format/convertFocusedShapeToTldrawShape'
 export * from './format/convertTldrawShapesToPeripheralShapes'
 export * from './format/convertTldrawShapeToBlurryShape'
 export * from './format/convertTldrawShapeToFocusedShape'
+export * from './format/FocusColor'
 export * from './format/FocusedShape'
-export type * from './format/PeripheralShapesCluster'
-export * from './format/SimpleColor'
-export * from './format/SimpleFill'
-export * from './format/SimpleFontSize'
-export * from './format/SimpleGeoShapeType'
+export * from './format/FocusFill'
+export * from './format/FocusFontSize'
+export * from './schema/id-schemas'
+export * from './types/FairyConfig'
 
 // Types (these are type-only exports)
+export type * from './format/OtherFairy'
+export type * from './format/PeripheralCluster'
 export type * from './types/AgentAction'
 export type * from './types/AgentActionInfo'
 export type * from './types/AgentInput'
@@ -70,36 +32,40 @@ export type * from './types/BaseAgentAction'
 export type * from './types/BasePromptPart'
 export type * from './types/ChatHistoryItem'
 export type * from './types/ContextItem'
-export type * from './types/FairyEntity'
+export type * from './types/FairyCanvasLint'
+export type * from './types/FairyMemoryLevel'
+export type * from './types/FairyProject'
+export type * from './types/FairyTask'
+export type * from './types/FairyWaitCondition'
+export type * from './types/FairyWork'
+export type * from './types/PersistedFairyConfig'
+export type * from './types/PersistedFairyState'
 export type * from './types/PromptPart'
 export type * from './types/Streaming'
-export type * from './types/TldrawFairyAgent'
-export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
+// Schemas and definitions
+export * from './schema/AgentActionSchemas'
+export * from './schema/buildResponseSchema'
+export * from './schema/PromptPartDefinitions'
+export * from './schema/PromptPartRegistry'
+export * from './types/FairyEntity'
+export * from './types/FairyOutfit'
 export * from './types/FairyPose'
-
-// Utils and Helpers
-export * from './actions/AgentActionUtils'
-export * from './AgentHelpers'
-export * from './parts/PromptPartUtils'
-
-// Models
-export * from './models'
-
-// Prompt
-export * from './prompt/buildMessages'
-export * from './prompt/buildSystemPrompt'
-export * from './prompt/getModelName'
+export * from './types/FairyVariant'
 
 // Constants / Defaults
 export * from './constants'
-export * from './default-utils'
+export * from './models'
+export * from './schema/FairyModeDefinition'
+export * from './schema/FairySchema'
 
 // Icons
+export * from './icons/ActivityIcon'
 export * from './icons/AgentIcon'
 export * from './icons/AtIcon'
 export * from './icons/BrainIcon'
+export * from './icons/CancelIcon'
 export * from './icons/ChevronDownIcon'
 export * from './icons/ChevronRightIcon'
 export * from './icons/CommentIcon'
@@ -107,6 +73,8 @@ export * from './icons/CrossIcon'
 export * from './icons/CursorIcon'
 export * from './icons/EllipsisIcon'
 export * from './icons/EyeIcon'
+export * from './icons/IndentIcon'
+export * from './icons/LipsIcon'
 export * from './icons/NoteIcon'
 export * from './icons/PencilIcon'
 export * from './icons/RefreshIcon'
@@ -115,3 +83,37 @@ export * from './icons/SmallSpinner'
 export * from './icons/TargetIcon'
 export * from './icons/TickIcon'
 export * from './icons/TrashIcon'
+
+export function createAgentAction<T extends AgentAction>(action: T): T {
+	return action
+}
+
+export function createAgentActionInfo<T extends Partial<AgentActionInfo>>(info: T): T {
+	return info
+}
+
+export function createAgentTask<T extends FairyTask>(task: T): T {
+	return task
+}
+
+export function toSimpleShapeId(id: string): SimpleShapeId {
+	if (id.startsWith('shape:')) throw new Error('Invalid simple shape id')
+	return id as SimpleShapeId
+}
+
+export function toTldrawShapeId(id: string): TLShapeId {
+	if (!id.startsWith('shape:')) throw new Error('Invalid simple shape id')
+	return id as TLShapeId
+}
+
+export function toAgentId(id: string): AgentId {
+	return id as AgentId
+}
+
+export function toProjectId(id: string): ProjectId {
+	return id as ProjectId
+}
+
+export function toTaskId(id: string): TaskId {
+	return id as TaskId
+}

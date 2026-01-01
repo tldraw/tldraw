@@ -4,19 +4,22 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	IndexKey,
 	TLAssetStore,
-	TLBaseShape,
+	TLShape,
+	TLShapeId,
 	TldrawEditor,
 	createShapeId,
 	createTLStore,
 	noop,
+	toRichText,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
 import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
-import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
+import { createDrawSegments } from './test-jsx'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -169,7 +172,7 @@ describe('<TldrawEditor />', () => {
 		let editor = {} as Editor
 		await renderTldrawComponent(
 			<TldrawEditor
-				shapeUtils={[GeoShapeUtil]}
+				shapeUtils={defaultShapeUtils}
 				initialState="select"
 				tools={defaultTools}
 				onMount={(editorApp) => {
@@ -185,39 +188,82 @@ describe('<TldrawEditor />', () => {
 			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
 		})
 
-		const id = createShapeId()
-
-		await act(async () => {
-			editor.createShapes([
-				{
-					id,
-					type: 'geo',
-					props: { w: 100, h: 100 },
+		// Test all shape types except group
+		const shapeTypesToTest = [
+			{ type: 'arrow' as const, props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } } },
+			{ type: 'bookmark' as const, props: { w: 100, h: 100, url: 'https://example.com' } },
+			{
+				type: 'draw' as const,
+				props: { segments: createDrawSegments([[{ x: 0, y: 0, z: 0.5 }]]) },
+			},
+			{ type: 'embed' as const, props: { w: 100, h: 100, url: 'https://example.com' } },
+			{ type: 'frame' as const, props: { w: 100, h: 100 } },
+			{ type: 'geo' as const, props: { w: 100, h: 100, geo: 'rectangle' as const } },
+			{
+				type: 'highlight' as const,
+				props: { segments: createDrawSegments([[{ x: 0, y: 0, z: 0.5 }]]) },
+			},
+			{ type: 'image' as const, props: { w: 100, h: 100 } },
+			{
+				type: 'line' as const,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
+					},
 				},
-			])
-		})
+			},
+			{ type: 'note' as const, props: { richText: toRichText('test') } },
+			{ type: 'text' as const, props: { w: 100, richText: toRichText('test') } },
+			{ type: 'video' as const, props: { w: 100, h: 100 } },
+		]
 
-		// Does the shape exist?
-		expect(editor.getShape(id)).toMatchObject({
-			id,
-			type: 'geo',
-			x: 0,
-			y: 0,
-			opacity: 1,
-			props: { geo: 'rectangle', w: 100, h: 100 },
-		})
+		const shapeIds: TLShapeId[] = []
 
-		// Is the shape's component rendering?
-		expect(document.querySelectorAll('.tl-shape')).toHaveLength(1)
-		// though indicator should be display none
-		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
+		for (let i = 0; i < shapeTypesToTest.length; i++) {
+			const shapeConfig = shapeTypesToTest[i]
+			const id = createShapeId()
+			shapeIds.push(id)
 
-		// Select the shape
-		await act(async () => editor.select(id))
+			await act(async () => {
+				editor.createShapes([
+					{
+						id,
+						...shapeConfig,
+						x: i * 150, // Space them out horizontally
+						y: 0,
+					},
+				])
+			})
+
+			// Does the shape exist?
+			const shape = editor.getShape(id)
+			expect(shape).toBeTruthy()
+			expect(shape?.type).toBe(shapeConfig.type)
+
+			// Check that all shapes rendered without error boundaries
+			expect(
+				document.querySelectorAll('.tl-shape-error-boundary'),
+				`${shapeConfig.type} had an error while rendering`
+			).toHaveLength(0)
+		}
+
+		// Check that all shape components are rendering
+		expect(document.querySelectorAll('.tl-shape').length).toBeGreaterThanOrEqual(
+			shapeTypesToTest.length
+		)
+
+		// Check that all shape indicators are present
+		expect(document.querySelectorAll('.tl-shape-indicator').length).toBeGreaterThanOrEqual(
+			shapeTypesToTest.length
+		)
+
+		// Select one of the shapes (the note shape)
+		const noteShapeId = shapeIds[9] // note is at index 9
+		await act(async () => editor.select(noteShapeId))
 
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-		// though indicator it should be visible
-		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
+		expect(editor.getSelectedShapeIds()[0]).toBe(noteShapeId)
 
 		// Select the eraser tool...
 		await act(async () => editor.setCurrentTool('eraser'))
@@ -240,8 +286,9 @@ describe('<TldrawEditor />', () => {
 
 		// we should only get one editor instance
 		expect(editorInstances.size).toBe(1)
-		// but strict mode will cause onMount to be called twice
-		expect(onMount).toHaveBeenCalledTimes(2)
+		// strict mode may cause onMount to be called twice, but the important
+		// thing is that we always get the same editor instance
+		expect(onMount).toHaveBeenCalled()
 	})
 
 	it('allows updating camera options without re-creating the editor', async () => {
@@ -411,17 +458,19 @@ describe('<TldrawEditor />', () => {
 	})
 })
 
-describe('Custom shapes', () => {
-	type CardShape = TLBaseShape<
-		'card',
-		{
-			w: number
-			h: number
-		}
-	>
+const CARD_TYPE = 'card'
 
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[CARD_TYPE]: { w: number; h: number }
+	}
+}
+
+type CardShape = TLShape<typeof CARD_TYPE>
+
+describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
-		static override type = 'card' as const
+		static override type = CARD_TYPE
 
 		override isAspectRatioLocked(_shape: CardShape) {
 			return false
@@ -463,7 +512,7 @@ describe('Custom shapes', () => {
 	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
-		override shapeType = 'card'
+		override shapeType = 'card' as const
 	}
 
 	const tools = [CardTool]

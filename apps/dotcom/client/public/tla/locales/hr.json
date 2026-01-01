@@ -8,9 +8,6 @@
   "043973ec1f": {
     "translation": "Još uvijek imate problema? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "Otvori tldraw."
-  },
   "06b9281e39": {
     "translation": "Auto"
   },
@@ -23,11 +20,20 @@
   "08bd40c754": {
     "translation": "Račun"
   },
+  "0a91f7fa87": {
+    "translation": "Ova je datoteka dosegla ograničenje veličine i promjene se možda više neće moći spremiti. Uklonite dio sadržaja ili započnite novu datoteku."
+  },
+  "0ab1ef22a3": {
+    "translation": "Razgovarajte s grupom…"
+  },
   "0b27918290": {
     "translation": "File"
   },
   "0b9a4cde72": {
     "translation": "Izbornik datoteka"
+  },
+  "0befa10111": {
+    "translation": "Vile"
   },
   "0d1f2bb523": {
     "translation": "Pošalji povratne informacije"
@@ -35,11 +41,26 @@
   "110a4b01be": {
     "translation": "Objaviti"
   },
+  "11a755d598": {
+    "translation": "Stop"
+  },
+  "129b9e34ea": {
+    "translation": "Napusti grupu"
+  },
+  "12a6766ba1": {
+    "translation": "Otkvači datoteku"
+  },
   "12c8a9838c": {
     "translation": "Isprobajte tldraw SDK"
   },
   "13ddd375ad": {
     "translation": "Izvezi kao"
+  },
+  "146ffe2fd9": {
+    "translation": "Prikaži više"
+  },
+  "14d65465b7": {
+    "translation": "Izbriši grupu"
   },
   "181b90f889": {
     "translation": "Stvori datoteku"
@@ -50,20 +71,35 @@
   "1dd1c5fb7f": {
     "translation": "Danas"
   },
-  "20976e7bec": {
-    "translation": "Soba je puna"
+  "23f879f41a": {
+    "translation": "Dostignut je vaš tjedni limit korištenja vila. Bit će resetiran početkom sljedećeg tjedna."
   },
-  "21bfb2dc2e": {
-    "translation": "Ova soba se približava ograničenju veličine. Razmislite o uklanjanju dijela sadržaja ili pokretanju nove datoteke."
+  "243924bfd5": {
+    "translation": "Spavati"
+  },
+  "2445e5e347": {
+    "translation": "Stvori grupu"
   },
   "250ddea65c": {
     "translation": "O tldrawu"
   },
+  "269097080b": {
+    "translation": "Tvoje vile čekaju"
+  },
+  "275173253d": {
+    "translation": "Prizovi sve"
+  },
+  "284d5cd0dd": {
+    "translation": "Model:"
+  },
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
   },
-  "2deec2cb74": {
-    "translation": "Ova je soba dosegla ograničenje veličine i promjene se možda više neće moći spremiti. Uklonite dio sadržaja ili započnite novu datoteku."
+  "2c3ef76333": {
+    "translation": "Moje datoteke"
+  },
+  "30cd34258a": {
+    "translation": "Gomila <b>vile</b> došla je u tldraw za mjesec prosinac. Za daljnje istraživanje pronađite vilu i kliknite na nju."
   },
   "31246941ad": {
     "translation": "Morate se prijaviti da vidite ovu datoteku."
@@ -71,11 +107,41 @@
   "31418ce4ad": {
     "translation": "i18n: Oznaka nedostaje"
   },
+  "3209f407ed": {
+    "translation": "tri vile"
+  },
+  "32210b37e4": {
+    "translation": "Dodaj vezu"
+  },
+  "324a0f3182": {
+    "translation": "Natrag na tldraw"
+  },
   "335defdafe": {
     "translation": "Pokušajte osvježiti stranicu."
   },
+  "34140869c6": {
+    "translation": "U prosincu u tldraw dolazi mnoštvo vila. Molimo provjerite ponovno 1. prosinca."
+  },
   "344a7f427f": {
     "translation": "Urednik"
+  },
+  "34abfe7a0d": {
+    "translation": "Spavaj sve"
+  },
+  "34e34c43ec": {
+    "translation": "Upravljati"
+  },
+  "3596c1b1f7": {
+    "translation": "Prestani pratiti"
+  },
+  "3903aab323": {
+    "translation": "Prati"
+  },
+  "3b6c2b4caa": {
+    "translation": "Uvjeti pružanja usluge"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Nastavite s e-poštom"
   },
   "3bd1b98dbd": {
     "translation": "Nije moguće objaviti promjene."
@@ -92,14 +158,35 @@
   "44db318ee5": {
     "translation": "Zatražite pomoć na Discordu"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Vile</strong> su došle crtati za prosinac."
+  },
   "46137245cd": {
     "translation": "Hvala što nam pomažete poboljšati tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Nije odabrana nijedna vila"
+  },
+  "477df802ca": {
+    "translation": "Za nastavak uređivanja kopirajte datoteku u svoje datoteke."
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Prikvači datoteku"
+  },
+  "49049467ff": {
+    "translation": "Zalijepi URL tldraw datoteke..."
+  },
   "4908687e50": {
     "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
+  },
+  "49ee308734": {
+    "translation": "Ime"
+  },
+  "4c41e0bd95": {
+    "translation": "Odaberi sve"
   },
   "4d0d3ddec9": {
     "translation": "Ova stranica koristi kolačiće kako bi aplikacija funkcionirala i prikupljala analitičke podatke."
@@ -107,17 +194,26 @@
   "4d1c8263ba": {
     "translation": "Ponovno učitaj"
   },
+  "4da5988a2e": {
+    "translation": "Izbriši grupu…"
+  },
+  "4dab36ac83": {
+    "translation": "Više opcija"
+  },
+  "4e6fbf032b": {
+    "translation": "Jeste li sigurni da želite izbrisati ovu grupu? Ova se radnja ne može poništiti."
+  },
   "50db1b7e1e": {
     "translation": "Nije moguće poništiti objavu datoteke."
   },
   "517bb809d9": {
     "translation": "Izbornik stranice"
   },
+  "542248f0ba": {
+    "translation": "Ova datoteka je sada samo za čitanje"
+  },
   "54286b1d01": {
     "translation": "Dosegnuto je ograničenje broja suradnika"
-  },
-  "54d240fa41": {
-    "translation": "Molim te uspori."
   },
   "554a05155c": {
     "translation": "Još uvijek imate problema? <a>Prijavite problem</a>"
@@ -131,20 +227,26 @@
   "56c34c6410": {
     "translation": "Politika privatnosti"
   },
+  "5a2ccdc00a": {
+    "translation": "Iskorištavanje pozivnog koda nije uspjelo"
+  },
+  "5a86b22fa0": {
+    "translation": "Povucite datoteke ovdje, <create>izradite datoteku</create> ili <invite>kopirajte poveznicu za poziv</invite> da biste započeli."
+  },
   "5a95a425f7": {
-    "translation": "Udio"
-  },
-  "5bb6cf3b53": {
-    "translation": "Soba postaje velika"
-  },
-  "5bcc12ace8": {
-    "translation": "Ova soba je sada samo za čitanje"
+    "translation": "Dijeli"
   },
   "5bec508475": {
     "translation": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
   },
+  "5c6fe42bc2": {
+    "translation": "Poništi ovu vezu i stvori novu."
+  },
   "5d26ae7550": {
     "translation": "Nismo uspjeli prenijeti dio sadržaja koji ste izradili prije nego što ste se prijavili."
+  },
+  "5ea8bb44be": {
+    "translation": "Pozvani ste da se pridružite grupi:"
   },
   "5f3c333678": {
     "translation": "Povratne informacije poslane"
@@ -155,14 +257,38 @@
   "61057a0c84": {
     "translation": "Kasnije"
   },
+  "61daf2e53d": {
+    "translation": "Razgovarajte s {name}…"
+  },
   "625fd29749": {
     "translation": "Starije"
+  },
+  "639bae9ac6": {
+    "translation": "vas"
+  },
+  "6602bbeb29": {
+    "translation": "Vodič"
   },
   "6609dd239e": {
     "translation": "Nešto nije u redu"
   },
   "6637a98151": {
     "translation": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
+  },
+  "6832ac5936": {
+    "translation": "Unesite svoju adresu e-pošte"
+  },
+  "688761c83e": {
+    "translation": "Probuditi"
+  },
+  "68d390535e": {
+    "translation": "Unesite svoju poruku"
+  },
+  "6910bbdc82": {
+    "translation": "Ime vile"
+  },
+  "695c3e899d": {
+    "translation": "Vile za otklanjanje grešaka"
   },
   "6a26f54883": {
     "translation": "Pomoć"
@@ -172,6 +298,9 @@
   },
   "6dfc62f621": {
     "translation": "Slijedite ove korake za ručni uvoz sadržaja:"
+  },
+  "70222abcfc": {
+    "translation": "Postavke grupe"
   },
   "70a6facb9d": {
     "translation": "Ovaj tjedan"
@@ -200,8 +329,17 @@
   "764671e008": {
     "translation": "Razgovarajte s nama na Discordu"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw je besplatna online bijela ploča. Izradite račun za spremanje datoteka i suradnju s prijateljima."
+  },
   "777f9e90cf": {
     "translation": "Neispravan zahtjev."
+  },
+  "77f0abf1aa": {
+    "translation": "Pozvani ste na <strong>crtanje vila</strong>"
+  },
+  "7827371d1a": {
+    "translation": "Ova anonimna tldraw datoteka za više igrača sada je samo za čitanje. Za nastavak uređivanja prijavite se i kopirajte je u svoje datoteke."
   },
   "78e9815992": {
     "translation": "Shvatio/la sam"
@@ -209,14 +347,23 @@
   "797799f35e": {
     "translation": "Pošaljite problem na GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Vila je mali čovjek koji može raditi s vama na platnu. Vile mogu raditi same ili u timu. Ne postoje granice onome što vila može učiniti. Nitko ne zna odakle su došle."
+  },
   "7b1329f5ca": {
     "translation": "Korisnički priručnik"
   },
   "7be10fc592": {
     "translation": "Vrati verziju"
   },
+  "7c0747a5df": {
+    "translation": "Otvori tldraw"
+  },
   "7cb5f8b4a5": {
     "translation": "Zaboraviti"
+  },
+  "7cfe6c43dc": {
+    "translation": "Napusti grupu…"
   },
   "7daeced9ff": {
     "translation": "Objavi promjene"
@@ -230,6 +377,12 @@
   "815e116a2e": {
     "translation": "Imate li grešku, problem ili ideju za tldraw? Javite nam! Ispunite ovaj obrazac i po potrebi ćemo vam se javiti putem e-pošte. Također možete <discord>razgovarati s nama na Discordu</discord> ili <github>postaviti problem na GitHubu</github>."
   },
+  "81aa2078d1": {
+    "translation": "Obriši sve"
+  },
+  "83218ac34c": {
+    "translation": "Dobrodošli"
+  },
   "85a082de1b": {
     "translation": "Osvježite stranicu kako biste dobili najnoviju verziju tldraw-a."
   },
@@ -239,11 +392,29 @@
   "86c66437fd": {
     "translation": "Preimenuj datoteku"
   },
-  "8b1946f965": {
-    "translation": "Za nastavak uređivanja kopirajte sobu u svoje datoteke."
+  "8726ef8909": {
+    "translation": "Tvrdi reset"
+  },
+  "88e83b88c5": {
+    "translation": "Kupite paket za vile"
+  },
+  "8ad4303b83": {
+    "translation": "Ne hvala"
+  },
+  "8be569f100": {
+    "translation": "jednokratno plaćanje"
+  },
+  "8c2d3d730c": {
+    "translation": "Provjerite svoju e-poštu za kod za potvrdu."
+  },
+  "8cf04a9734": {
+    "translation": "Dom"
   },
   "8eb2c00e96": {
     "translation": "Podijeljeno s vama"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Oko"
   },
   "8ff3d0a705": {
     "translation": "Stopa ograničena"
@@ -257,20 +428,44 @@
   "91e49bb0eb": {
     "translation": "Kopiraj u moje datoteke"
   },
+  "930390d222": {
+    "translation": "Kopirana je poveznica za poziv"
+  },
+  "94186070ef": {
+    "translation": "Poništi odabir"
+  },
+  "9489b2f82a": {
+    "translation": "Već ste član ove grupe"
+  },
+  "94966d9074": {
+    "translation": "Poslati"
+  },
+  "95aacd4d4a": {
+    "translation": "Prijava putem Googlea"
+  },
   "95d2109dc8": {
     "translation": "Izgradite s tldraw SDK-om"
   },
   "96165d6df5": {
     "translation": "Ovaj mjesec"
   },
+  "985a4b720f": {
+    "translation": "Uvjeti korištenja"
+  },
+  "98c997a27e": {
+    "translation": "Dodaj vezu do datoteke"
+  },
   "9914a0ce04": {
     "translation": "Svjetlo"
   },
+  "9953e9946b": {
+    "translation": "Prikaz za otklanjanje pogrešaka"
+  },
+  "9b33f5c63c": {
+    "translation": "Niste primili kôd? <resend>Ponovno pošalji</resend>."
+  },
   "9bef626805": {
     "translation": "Izbriši datoteku"
-  },
-  "9c258b8f88": {
-    "translation": "Ova anonimna tldraw soba za više igrača sada je samo za čitanje. Za nastavak uređivanja, prijavite se i kopirajte je u svoje datoteke."
   },
   "9ceb927baa": {
     "translation": "Objavite ovu datoteku"
@@ -296,17 +491,32 @@
   "a239905023": {
     "translation": "Izvoz slike"
   },
+  "a286d9991c": {
+    "translation": "Pridruži se"
+  },
   "a3debabee7": {
     "translation": "Politika kolačića"
   },
   "a4d3b161ce": {
     "translation": "Pošalji"
   },
+  "a603905470": {
+    "translation": "Otklanjanje pogrešaka"
+  },
   "a6cc403d56": {
     "translation": "Svatko s vezom"
   },
   "a768caa988": {
     "translation": "Analitika"
+  },
+  "a8873770ab": {
+    "translation": "Datoteka postaje velika"
+  },
+  "a8de4c27a8": {
+    "translation": "Dosegnut je tjedni limit vila"
+  },
+  "a917baaf14": {
+    "translation": "Novi razgovor"
   },
   "a9ded1e5ce": {
     "translation": "Pozadina"
@@ -321,8 +531,23 @@
   "b028909917": {
     "translation": "Gostujući korisnik"
   },
+  "b2c3c2e30c": {
+    "translation": "Datoteka je puna"
+  },
+  "b34a671e2c": {
+    "translation": "Vrijeme odgovora zapisnika"
+  },
+  "b357b524e7": {
+    "translation": "E-mail adresa"
+  },
+  "b3d2db69fe": {
+    "translation": "URL datoteke"
+  },
   "b6d4223e60": {
     "translation": "Prijavite se"
+  },
+  "b6f4a2ec63": {
+    "translation": "Vlasnik"
   },
   "b758336699": {
     "translation": "Kopiraj vezu"
@@ -330,8 +555,8 @@
   "ba0318cb81": {
     "translation": "Prijavite se za dijeljenje"
   },
-  "bb792693e2": {
-    "translation": "Otkvači"
+  "bb93a7590f": {
+    "translation": "Prihvati i pridruži se grupi"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Prijenos .tldr datoteke…} few {} other {Prijenos {uploaded} od {total} .tldr datoteka…}}"
@@ -339,17 +564,35 @@
   "bc88b0e89e": {
     "translation": "Dijeli {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Učitajte .tldr datoteke"
+  "be4f1c62d3": {
+    "translation": "Zumiraj do vile"
   },
   "c2276c9127": {
     "translation": "Saznajte više o dijeljenju."
   },
+  "c28aed8348": {
+    "translation": "Dopustite <cookies>analytics</cookies> kako biste nam pomogli poboljšati tldraw."
+  },
   "c303bd1095": {
     "translation": "Nije moguće objaviti datoteku."
   },
+  "c3bf447eab": {
+    "translation": "Otvoriti"
+  },
+  "c3eb5c3b90": {
+    "translation": "Razumijem"
+  },
   "c4b39a1cc3": {
     "translation": "Osnovni kolačići"
+  },
+  "c54a624f46": {
+    "translation": "Prihvati poziv"
+  },
+  "c6155aaecc": {
+    "translation": "Naziv grupe"
+  },
+  "c64518704c": {
+    "translation": "Upotreba"
   },
   "c655b27b1e": {
     "translation": "i18n: Dugi niz"
@@ -357,8 +600,14 @@
   "c6a00f137b": {
     "translation": "Pozvati"
   },
+  "c74ea6dbff": {
+    "translation": "Prikaži manje"
+  },
   "c87aacf567": {
     "translation": "Odjavi se"
+  },
+  "c9cc8cce24": {
+    "translation": "Uštedjeti"
   },
   "cceaefbc20": {
     "translation": "Podijelite ovu datoteku"
@@ -366,14 +615,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Ova datoteka se približava ograničenju veličine. Razmislite o uklanjanju dijela sadržaja ili pokretanju nove datoteke."
+  },
+  "ce1424d44b": {
+    "translation": "Već imaš vilinski pristup!"
+  },
   "cea291e45e": {
     "translation": "Saznajte više o objavljivanju."
   },
   "d3d2e61733": {
     "translation": "Zatvoriti"
   },
+  "d46632fe1f": {
+    "translation": "Previše zahtjeva. Molimo usporite."
+  },
   "d4bbf74f3e": {
     "translation": "Uključi/isključi bočnu traku"
+  },
+  "d638a3344b": {
+    "translation": "Prije nego što započnete, molimo vas da prihvatite naše <tos>uvjete korištenja</tos> i <privacy>pravila privatnosti</privacy>."
   },
   "d721757161": {
     "translation": "Tema"
@@ -381,23 +642,59 @@
   "d876a9fe1a": {
     "translation": "Pokušajte ponovno"
   },
+  "d88ad2dc74": {
+    "translation": "Prihvati i nastavi"
+  },
   "d9100f3e10": {
     "translation": "Idite ovdje da vidite sadržaj"
+  },
+  "d9bfb9789a": {
+    "translation": "Omogući vile"
+  },
+  "d9e35d0f55": {
+    "translation": "Dosegli ste maksimalan broj grupa. Morate izbrisati stare grupe prije nego što stvorite nove."
   },
   "dbbebf3c03": {
     "translation": "Samo na poziv"
   },
+  "dc30bc0c79": {
+    "translation": "Jasan"
+  },
+  "dcdaa754fe": {
+    "translation": "Nevažeći URL datoteke tldraw"
+  },
+  "df6ff49394": {
+    "translation": "Vile su <strong>privremena</strong> značajka. 1. siječnja 2026. sve vile bit će uklonjene iz aplikacije. Možda će se jednog dana ponovno vratiti. Vaša kupnja je za pristup vilama samo za prosinac 2025."
+  },
   "dfdb78a4e4": {
     "translation": "Oznake za otklanjanje pogrešaka aplikacije"
+  },
+  "e062622261": {
+    "translation": "Odaberite"
+  },
+  "e0c88179b3": {
+    "translation": "Pozovi članove"
+  },
+  "e2198d6228": {
+    "translation": "Kopiraj poveznicu za pozivnicu"
   },
   "e2ae80a510": {
     "translation": "Pravni sažetak"
   },
+  "e3afed0047": {
+    "translation": "Administrator"
+  },
   "e404559826": {
     "translation": "Uvjeti usluge"
   },
-  "e78e14c5f1": {
-    "translation": "Pin"
+  "e43ec38a93": {
+    "translation": "Idi na"
+  },
+  "e81c4e4f2b": {
+    "translation": "ili"
+  },
+  "ea0626ac5a": {
+    "translation": "Opasna zona"
   },
   "ea4788705e": {
     "translation": "Otkazati"
@@ -420,8 +717,17 @@
   "ede55d955f": {
     "translation": "Pročitajte našu <a>pravila o kolačićima</a> kako biste saznali više."
   },
+  "eee6f05922": {
+    "translation": "Raspustiti"
+  },
+  "ef53538ae4": {
+    "translation": "Članovi"
+  },
   "ef7de3f485": {
     "translation": "odabrano"
+  },
+  "efde983742": {
+    "translation": "Prizovi"
   },
   "f09b16bc5f": {
     "translation": "Kolačiće koristimo kako bismo vas održali prijavljenima, sinkronizirali vaše datoteke i prikupljali analitičke podatke koji će nam pomoći da poboljšamo tldraw."
@@ -429,17 +735,23 @@
   "f0e8bff6f9": {
     "translation": "Korisničke postavke"
   },
+  "f1206f9fad": {
+    "translation": "Konfigurirati"
+  },
   "f2569594b2": {
     "translation": "Ove kolačiće koristimo za spremanje vaših datoteka i postavki."
   },
   "f2a6c498fb": {
     "translation": "Izbrisati"
   },
-  "f43fb62093": {
-    "translation": "Povratak na tldraw."
-  },
   "f4f70727dc": {
     "translation": "Postavke"
+  },
+  "f714e36843": {
+    "translation": "Jeste li sigurni da želite napustiti ovu grupu?"
+  },
+  "fa2ead697d": {
+    "translation": "Pravila o privatnosti"
   },
   "fb15c53f22": {
     "translation": "Gledatelj"
@@ -449,6 +761,9 @@
   },
   "fed5ec05eb": {
     "translation": "Kopirana veza"
+  },
+  "ff7a814974": {
+    "translation": "Dodaj poveznicu na datoteku…"
   },
   "ffcd73e997": {
     "translation": "Uvoz datoteke…"

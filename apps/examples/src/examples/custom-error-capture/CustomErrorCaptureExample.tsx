@@ -35,6 +35,7 @@ const components: TLEditorComponents = {
 				onClick={() => {
 					// [6]
 					editor.createShape({
+						// @ts-expect-error
 						type: 'does-not-exist',
 					})
 				}}

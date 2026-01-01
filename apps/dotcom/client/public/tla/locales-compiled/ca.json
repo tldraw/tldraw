@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Obriu tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -51,6 +45,18 @@
       "value": "Compte"
     }
   ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Aquest fitxer ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimineu part del contingut o comenceu un fitxer nou."
+    }
+  ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Parla amb el grup…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Menú Fitxer"
+    }
+  ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Fades"
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,24 @@
       "value": "Publicar"
     }
   ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Atura"
+    }
+  ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Sortir del grup"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Desfixar fitxer"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +115,18 @@
     {
       "type": 0,
       "value": "Exporta com a"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Mostra'n més"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Suprimeix el grup"
     }
   ],
   "181b90f889": [
@@ -105,16 +147,22 @@
       "value": "Avui"
     }
   ],
-  "20976e7bec": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "La sala és plena"
+      "value": "S'ha assolit el límit d'ús setmanal de fades. Es restablirà a principis de la setmana vinent."
     }
   ],
-  "21bfb2dc2e": [
+  "243924bfd5": [
     {
       "type": 0,
-      "value": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
+      "value": "Dormir"
+    }
+  ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Crea un grup"
     }
   ],
   "250ddea65c": [
@@ -123,16 +171,54 @@
       "value": "Sobre tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Les teves fades t'esperen"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Convoca tots"
+    }
+  ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
       "value": "La càrrega ha fallat"
     }
   ],
-  "2deec2cb74": [
+  "2c3ef76333": [
     {
       "type": 0,
-      "value": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
+      "value": "Els meus fitxers"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "Un grup de "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fades"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " han vingut a tldraw durant el mes de desembre. Per investigar més a fons, busqueu la fada i feu-hi clic."
     }
   ],
   "31246941ad": [
@@ -147,16 +233,76 @@
       "value": "i18n: Ressaltar que falta"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tres fades"
+    }
+  ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Afegeix un enllaç"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Torna a tldraw"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Si us plau, prova d'actualitzar la pàgina."
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Un grup de fades arriba al sorteig durant el mes de desembre. Si us plau, torneu a consultar l'1 de desembre."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Dormir tots"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Gestiona"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Deixar de seguir"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Segueix"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Condicions del servei"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Continua amb el correu electrònic"
     }
   ],
   "3bd1b98dbd": [
@@ -189,10 +335,42 @@
       "value": "Obteniu ajuda a Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "type": 0,
+      "value": "Les "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fades"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " han vingut a dibuixar durant el mes de desembre."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Gràcies per ajudar-nos a millorar tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "No s'ha seleccionat cap fada"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Per continuar editant, copieu el fitxer als vostres fitxers."
     }
   ],
   "47839e47a5": [
@@ -201,10 +379,34 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Fitxer fixat"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Enganxa l'URL del fitxer tldraw..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Esteu segur que voleu oblidar aquest fitxer?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Nom"
+    }
+  ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Selecciona-ho tot"
     }
   ],
   "4d0d3ddec9": [
@@ -219,6 +421,24 @@
       "value": "Torna a carregar"
     }
   ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Suprimeix el grup…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Més opcions"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -231,16 +451,16 @@
       "value": "Menú de pàgina"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Aquest fitxer ara és de només lectura"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "S'ha arribat al límit de col·laboradors"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Si us plau, alentiu."
     }
   ],
   "554a05155c": [
@@ -277,22 +497,50 @@
       "value": "Política de privadesa"
     }
   ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "No s'ha pogut bescanviar el codi d'invitació"
+    }
+  ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Arrossega els fitxers aquí, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "crea un fitxer"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " o "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copia l'enllaç d'invitació"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " per començar."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
       "value": "Comparteix"
-    }
-  ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "L'habitació s'està fent gran"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Aquesta sala ara és de només lectura"
     }
   ],
   "5bec508475": [
@@ -301,10 +549,22 @@
       "value": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
     }
   ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Revoca aquest enllaç i crea'n un de nou."
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
       "value": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Has estat convidat a unir-te al grup:"
     }
   ],
   "5f3c333678": [
@@ -325,10 +585,36 @@
       "value": "Més tard"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Parla amb "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
       "value": "Més vell"
+    }
+  ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "tu"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Guia"
     }
   ],
   "6609dd239e": [
@@ -341,6 +627,36 @@
     {
       "type": 0,
       "value": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Introdueix la teva adreça electrònica"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Despertar"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Introdueix el teu missatge"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Nom de la fada"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Depurar fades"
     }
   ],
   "6a26f54883": [
@@ -359,6 +675,12 @@
     {
       "type": 0,
       "value": "Seguiu aquests passos per importar el contingut manualment:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Configuració del grup"
     }
   ],
   "70a6facb9d": [
@@ -415,10 +737,38 @@
       "value": "Torneu a carregar"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw és una pissarra blanca en línia gratuïta. Crea un compte per desar els teus fitxers i treballar amb els teus amics."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Sol·licitud no vàlida."
+    }
+  ],
+  "77f0abf1aa": [
+    {
+      "type": 0,
+      "value": "T'han convidat a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "dibuixar fades"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Aquest fitxer multijugador anònim de tldraw ara és de només lectura. Per continuar editant-lo, inicia la sessió i copia'l als teus fitxers."
     }
   ],
   "78e9815992": [
@@ -433,6 +783,12 @@
       "value": "Envieu un problema a GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Una fada és un petit noi que pot treballar amb tu al llenç. Les fades poden treballar soles o en equip. No hi ha límit al que pot fer una fada. Ningú sap d'on ve."
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -445,10 +801,22 @@
       "value": "Restaurar versió"
     }
   ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Obre tldraw"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Oblida't"
+    }
+  ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Sortir del grup…"
     }
   ],
   "7daeced9ff": [
@@ -503,6 +871,18 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Esborra-ho tot"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Benvingut/da"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -529,16 +909,52 @@
       "value": "Canvia el nom del fitxer"
     }
   ],
-  "8b1946f965": [
+  "8726ef8909": [
     {
       "type": 0,
-      "value": "Per continuar editant, copieu la sala als vostres fitxers."
+      "value": "Restabliment complet"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Compra el paquet de fades"
+    }
+  ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "No, gràcies."
+    }
+  ],
+  "8be569f100": [
+    {
+      "type": 0,
+      "value": "pagament únic"
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Revisa el teu correu electrònic per obtenir un codi de verificació."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Inici"
     }
   ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Compartit amb tu"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Sobre"
     }
   ],
   "8ff3d0a705": [
@@ -565,6 +981,36 @@
       "value": "Copia als meus fitxers"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Enllaç d'invitació copiat"
+    }
+  ],
+  "94186070ef": [
+    {
+      "type": 0,
+      "value": "Desselecciona"
+    }
+  ],
+  "9489b2f82a": [
+    {
+      "type": 0,
+      "value": "Ja ets membre d'aquest grup"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Enviar"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Inicia la sessió amb Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,22 +1023,54 @@
       "value": "Aquest mes"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Condicions d'ús"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Afegeix un enllaç de fitxer"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Llum"
     }
   ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Vista de depuració"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "No has rebut cap codi? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Torna a enviar"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "9bef626805": [
     {
       "type": 0,
       "value": "Esborra el fitxer"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Aquesta sala multijugador anònima de tldraw ara és de només lectura. Per continuar editant-la, inicia la sessió i copia-la als teus fitxers."
     }
   ],
   "9ceb927baa": [
@@ -643,6 +1121,12 @@
       "value": "Exportar imatge"
     }
   ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Uneix-te"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -655,6 +1139,12 @@
       "value": "Envia"
     }
   ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Depuració"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -665,6 +1155,24 @@
     {
       "type": 0,
       "value": "Analítica"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "El fitxer s'està fent gran"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "S'ha arribat al límit setmanal de fades"
+    }
+  ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nou xat"
     }
   ],
   "a9ded1e5ce": [
@@ -697,10 +1205,40 @@
       "value": "Usuari convidat"
     }
   ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "El fitxer està ple"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Temps de resposta del registre"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Adreça electrònica"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL del fitxer"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Inicia sessió"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "propietari"
     }
   ],
   "b758336699": [
@@ -715,10 +1253,10 @@
       "value": "Inicia la sessió per compartir"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Desenganxa"
+      "value": "Accepta i uneix-te al grup"
     }
   ],
   "bbbcefd7ce": [
@@ -773,10 +1311,10 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
+  "be4f1c62d3": [
     {
       "type": 0,
-      "value": "Carregueu fitxers .tldr"
+      "value": "Zoom a la fada"
     }
   ],
   "c2276c9127": [
@@ -785,16 +1323,66 @@
       "value": "Més informació sobre com compartir."
     }
   ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Permet que "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " ens ajudi a millorar tldraw."
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "No es pot publicar el fitxer."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Obre"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Ho entenc"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Galetes essencials"
+    }
+  ],
+  "c54a624f46": [
+    {
+      "type": 0,
+      "value": "Accepta la invitació"
+    }
+  ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Nom del grup"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Ús"
     }
   ],
   "c655b27b1e": [
@@ -809,10 +1397,22 @@
       "value": "Convidar"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Mostra menys"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Tanca la sessió"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Desa"
     }
   ],
   "cceaefbc20": [
@@ -827,6 +1427,18 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Aquest fitxer s'està acostant al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o començar un fitxer nou."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Ja tens accés de fada!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -839,10 +1451,50 @@
       "value": "Tancar"
     }
   ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Massa sol·licituds. Si us plau, afluixa."
+    }
+  ],
   "d4bbf74f3e": [
     {
       "type": 0,
       "value": "Canvia la barra lateral"
+    }
+  ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Abans de començar, si us plau, accepteu les nostres "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "condicions d'ús"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " i la "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "política de privacitat"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "d721757161": [
@@ -857,10 +1509,28 @@
       "value": "Torna-ho a provar"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Accepta i continua"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Entra aquí per veure el contingut"
+    }
+  ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Habilita les fades"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Heu arribat al nombre màxim de grups. Heu de suprimir els grups antics abans de crear-ne de nous."
     }
   ],
   "dbbebf3c03": [
@@ -869,10 +1539,60 @@
       "value": "Només convidar"
     }
   ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Clar"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "URL de fitxer tldraw no vàlida"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Les fades són una funció "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "temporal"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". L'1 de gener de 2026, totes les fades s'eliminaran de l'aplicació. Potser algun dia tornaran a aparèixer. La teva compra és per accedir a les fades només durant el desembre de 2025."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Senyals de depuració d'aplicacions"
+    }
+  ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Selecciona"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Convida membres"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copia l'enllaç d'invitació"
     }
   ],
   "e2ae80a510": [
@@ -881,16 +1601,34 @@
       "value": "Resum legal"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Administrador"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Condicions del servei"
     }
   ],
-  "e78e14c5f1": [
+  "e43ec38a93": [
     {
       "type": 0,
-      "value": "Pin"
+      "value": "Anar a"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "o"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Zona de perill"
     }
   ],
   "ea4788705e": [
@@ -949,10 +1687,28 @@
       "value": " per obtenir més informació."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Dissoldre"
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Membres"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
       "value": "seleccionat"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Invocar"
     }
   ],
   "f09b16bc5f": [
@@ -967,6 +1723,12 @@
       "value": "Configuració de l'usuari"
     }
   ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configura"
+    }
+  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -979,16 +1741,22 @@
       "value": "Suprimeix"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Torna a tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Configuració"
+    }
+  ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu sortir d'aquest grup?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Política de privacitat"
     }
   ],
   "fb15c53f22": [
@@ -1007,6 +1775,12 @@
     {
       "type": 0,
       "value": "Enllaç copiat"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Afegeix un enllaç de fitxer…"
     }
   ],
   "ffcd73e997": [

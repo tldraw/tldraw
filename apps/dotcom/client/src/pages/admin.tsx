@@ -1,12 +1,21 @@
-import { TlaFile, TlaUser, ZStoreData } from '@tldraw/dotcom-shared'
+import {
+	FeatureFlagValue,
+	MAX_FAIRY_COUNT,
+	TlaFile,
+	TlaUser,
+	userHasFlag,
+	ZStoreData,
+} from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { fetch } from 'tldraw'
+import { fetch, useValue } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
+import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
+import { saveMigrationLog } from './migrationLogsDB'
 
-// Helper component for structured data display
+// Helper component for structured data display.
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
 	const [copied, setCopied] = useState(false)
 
@@ -204,6 +213,7 @@ export function Component() {
 								onClick={doReboot}
 								variant="warning"
 								isLoading={isRebooting}
+								className={styles.userActionButton}
 							>
 								Force Reboot
 							</TlaButton>
@@ -213,7 +223,7 @@ export function Component() {
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							didMigrate={(data.user[0] as TlaUser).flags.includes('groups_backend')}
+							didMigrate={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
@@ -226,6 +236,24 @@ export function Component() {
 						<StructuredDataDisplay data={replicatorData} />
 					</section>
 				)}
+
+				{/* Batch Migration Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Batch Migration</h3>
+					<BatchMigrateUsersToGroups />
+				</section>
+
+				{/* Fairy Invites Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Fairy Invites</h3>
+					<FairyInvites />
+				</section>
+
+				{/* Feature Flags Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Feature Flags</h3>
+					<FeatureFlags />
+				</section>
 
 				{/* File Operations Section */}
 				<section className={styles.adminSection}>
@@ -244,6 +272,596 @@ export function Component() {
 					<DeleteUser />
 				</section>
 			</main>
+		</div>
+	)
+}
+
+function FairyInvites() {
+	const app = useApp()
+	const user = useValue('user', () => app.getUser(), [app])
+	const [invites, setInvites] = useState<
+		Array<{
+			id: string
+			fairyLimit: number
+			maxUses: number
+			currentUses: number
+			createdAt: number
+			description: string | null
+			redeemedBy: string[]
+		}>
+	>([])
+	const [maxUses, setMaxUses] = useState(1)
+	const [inviteDescription, setInviteDescription] = useState('')
+	const [accessEmail, setAccessEmail] = useState('')
+	const [isCreating, setIsCreating] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
+	const [isEnabling, setIsEnabling] = useState(false)
+	const [isRemovingForMe, setIsRemovingForMe] = useState(false)
+	const [isGranting, setIsGranting] = useState(false)
+	const [isRemoving, setIsRemoving] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [isTableExpanded, setIsTableExpanded] = useState(false)
+	const [limitEmail, setLimitEmail] = useState('')
+	const [limit, setLimit] = useState<number | ''>('')
+	const [isSettingLimit, setIsSettingLimit] = useState(false)
+
+	const loadInvites = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy-invites')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setInvites(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load invites')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		loadInvites()
+	}, [loadInvites])
+
+	const createInvite = useCallback(async () => {
+		if (maxUses < 0) {
+			setError('Max uses must be 0 (unlimited) or greater')
+			return
+		}
+
+		setIsCreating(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy-invites', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ maxUses, description: inviteDescription || null }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const invite = await res.json()
+			setSuccessMessage(`Invite created: ${invite.id}`)
+			setInviteDescription('')
+			setIsTableExpanded(true)
+			await loadInvites()
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to create invite')
+		} finally {
+			setIsCreating(false)
+		}
+	}, [maxUses, inviteDescription, loadInvites])
+
+	const deleteInvite = useCallback(
+		async (id: string) => {
+			if (!window.confirm(`Delete invite ${id}?`)) {
+				return
+			}
+
+			setError(null)
+			setSuccessMessage(null)
+			try {
+				const res = await fetch(`/api/app/admin/fairy-invites/${id}`, {
+					method: 'DELETE',
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				setSuccessMessage('Invite deleted')
+				await loadInvites()
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to delete invite')
+			}
+		},
+		[loadInvites]
+	)
+
+	const grantAccess = useCallback(async () => {
+		if (!accessEmail || !accessEmail.includes('@')) {
+			setError('Please enter a valid email address')
+			return
+		}
+
+		setIsGranting(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/grant-access', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: accessEmail }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage(`Fairy access granted to ${accessEmail}!`)
+			setAccessEmail('')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to grant fairy access')
+		} finally {
+			setIsGranting(false)
+		}
+	}, [accessEmail])
+
+	const enableForMe = useCallback(async () => {
+		setIsEnabling(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/enable-for-me', {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage('Fairy access enabled!')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to enable fairy access')
+		} finally {
+			setIsEnabling(false)
+		}
+	}, [])
+
+	const removeForMe = useCallback(async () => {
+		if (!user?.email) {
+			setError('No user email found')
+			return
+		}
+
+		setIsRemovingForMe(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/remove-access', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: user.email }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage('Fairy access removed!')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
+		} finally {
+			setIsRemovingForMe(false)
+		}
+	}, [user?.email])
+
+	const removeFairyAccess = useCallback(async () => {
+		if (!accessEmail || !accessEmail.includes('@')) {
+			setError('Please enter a valid email address')
+			return
+		}
+
+		if (!window.confirm(`Remove fairy access from ${accessEmail}?`)) {
+			return
+		}
+
+		setIsRemoving(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/remove-access', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: accessEmail }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage(`Fairy access removed from ${accessEmail}!`)
+			setAccessEmail('')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
+		} finally {
+			setIsRemoving(false)
+		}
+	}, [accessEmail])
+
+	const setWeeklyLimit = useCallback(
+		async (newLimit: number) => {
+			if (!limitEmail) {
+				setError('Email is required')
+				return
+			}
+
+			setIsSettingLimit(true)
+			setError(null)
+			setSuccessMessage(null)
+			try {
+				const res = await fetch('/api/app/admin/fairy/set-weekly-limit', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email: limitEmail, limit: newLimit }),
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				setSuccessMessage(`Weekly limit set to ${newLimit === 0 ? 'blocked' : `$${newLimit}`}`)
+				setLimitEmail('')
+				setLimit('')
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to set weekly limit')
+			} finally {
+				setIsSettingLimit(false)
+			}
+		},
+		[limitEmail]
+	)
+
+	const handleSetCustomLimit = useCallback(async () => {
+		if (limit === '') {
+			setError('Please enter a limit value')
+			return
+		}
+		await setWeeklyLimit(Number(limit))
+	}, [limit, setWeeklyLimit])
+
+	const handleBlock = useCallback(async () => {
+		await setWeeklyLimit(0)
+	}, [setWeeklyLimit])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+
+			<h4 className="tla-text_ui__medium">Enable Fairies for Current User</h4>
+			<p className="tla-text_ui__small">
+				Quick access toggle for development. Grants {MAX_FAIRY_COUNT} fairies with 1 year
+				expiration.
+			</p>
+			<div className={styles.fairyButtonContainer}>
+				<TlaButton onClick={enableForMe} variant="primary" isLoading={isEnabling}>
+					Enable fairies for me
+				</TlaButton>
+				<TlaButton
+					onClick={removeForMe}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isRemovingForMe}
+				>
+					Remove access for me
+				</TlaButton>
+			</div>
+
+			<h4 className="tla-text_ui__medium">Manage Fairy Access</h4>
+			<p className="tla-text_ui__small">
+				Grant or remove fairy access by email. Granting access will give {MAX_FAIRY_COUNT} fairies.
+			</p>
+			<div className={`${styles.downloadContainer} ${styles.fairyAccessContainer}`}>
+				<div>
+					<label htmlFor="accessEmail">Email:</label>
+					<input
+						id="accessEmail"
+						type="email"
+						placeholder="user@example.com"
+						value={accessEmail}
+						onChange={(e) => setAccessEmail(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
+					Grant Access
+				</TlaButton>
+				<TlaButton
+					onClick={removeFairyAccess}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isRemoving}
+				>
+					Remove Access
+				</TlaButton>
+			</div>
+
+			<h4 className="tla-text_ui__medium">Manage weekly limits</h4>
+			<p className="tla-text_ui__small">
+				Set per-user weekly usage limits. Default is $25 per week.
+			</p>
+			<div className={`${styles.downloadContainer} ${styles.fairyAccessContainer}`}>
+				<div>
+					<label htmlFor="limitEmail">Email:</label>
+					<input
+						id="limitEmail"
+						type="text"
+						placeholder="user@example.com"
+						value={limitEmail}
+						onChange={(e) => setLimitEmail(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<div>
+					<label htmlFor="customLimit">New limit:</label>
+					<input
+						id="customLimit"
+						type="number"
+						placeholder="25"
+						value={limit}
+						onChange={(e) => setLimit(e.target.value === '' ? '' : Number(e.target.value))}
+						min={0}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<TlaButton onClick={handleSetCustomLimit} variant="primary" isLoading={isSettingLimit}>
+					Set custom limit
+				</TlaButton>
+				<TlaButton
+					onClick={handleBlock}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isSettingLimit}
+				>
+					Block
+				</TlaButton>
+			</div>
+
+			<h4 className="tla-text_ui__medium">Create Invite Code</h4>
+			<p className="tla-text_ui__small">
+				Create an invite code that grants {MAX_FAIRY_COUNT} fairies. Max uses: how many users can
+				redeem this code (0 = unlimited).
+			</p>
+			<div className={styles.downloadContainer}>
+				<div>
+					<label htmlFor="inviteDescription">Description:</label>
+					<input
+						id="inviteDescription"
+						type="text"
+						placeholder="Optional description"
+						value={inviteDescription}
+						onChange={(e) => setInviteDescription(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyDescriptionInput}`}
+					/>
+				</div>
+				<div>
+					<label htmlFor="maxUses">Max uses:</label>
+					<input
+						id="maxUses"
+						type="number"
+						placeholder="1"
+						value={maxUses}
+						onChange={(e) => setMaxUses(Number(e.target.value))}
+						min={0}
+						className={`${styles.searchInput} ${styles.fairyMaxUsesInput}`}
+					/>
+				</div>
+				<TlaButton onClick={createInvite} variant="primary" isLoading={isCreating}>
+					Create Invite
+				</TlaButton>
+			</div>
+
+			<div className={styles.invitesTableContainer}>
+				<TlaButton
+					onClick={() => setIsTableExpanded(!isTableExpanded)}
+					variant="secondary"
+					className={styles.toggleTableButton}
+				>
+					{isTableExpanded ? '▼' : '▶'} {isTableExpanded ? 'Hide' : 'Show'} {invites.length} invite
+					{invites.length !== 1 ? 's' : ''}
+				</TlaButton>
+
+				{isTableExpanded && (
+					<>
+						{isLoading ? (
+							<p className="tla-text_ui__small">Loading invites...</p>
+						) : invites.length === 0 ? (
+							<p className="tla-text_ui__small">No invites yet</p>
+						) : (
+							<table className={styles.invitesTable}>
+								<thead>
+									<tr>
+										<th>ID</th>
+										<th>Description</th>
+										<th>Fairy Limit</th>
+										<th>Uses</th>
+										<th>Redeemed By</th>
+										<th>Created</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{[...invites]
+										.sort((a, b) => b.createdAt - a.createdAt)
+										.map((invite) => (
+											<tr key={invite.id}>
+												<td>{invite.id}</td>
+												<td>{invite.description || '-'}</td>
+												<td>{invite.fairyLimit}</td>
+												<td>
+													{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
+												</td>
+												<td>
+													{invite.redeemedBy && invite.redeemedBy.length > 0
+														? invite.redeemedBy.join(', ')
+														: '-'}
+												</td>
+												<td>{new Date(invite.createdAt).toLocaleString()}</td>
+												<td className={styles.tableActions}>
+													<TlaButton
+														onClick={() => {
+															const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
+															navigator.clipboard.writeText(inviteUrl)
+															setSuccessMessage('Link copied to clipboard!')
+														}}
+														variant="secondary"
+													>
+														Copy link
+													</TlaButton>
+													<TlaButton
+														onClick={() => deleteInvite(invite.id)}
+														variant="warning"
+														className={styles.deleteButton}
+													>
+														Delete
+													</TlaButton>
+												</td>
+											</tr>
+										))}
+								</tbody>
+							</table>
+						)}
+					</>
+				)}
+			</div>
+		</div>
+	)
+}
+
+function FeatureFlags() {
+	const [flags, setFlags] = useState<Record<string, FeatureFlagValue>>({})
+	const [isLoading, setIsLoading] = useState(true)
+	const [isSaving, setIsSaving] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const loadFlags = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/feature-flags')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = await res.json()
+			setFlags(data)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load flags')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		loadFlags()
+	}, [loadFlags])
+
+	const toggleFlag = useCallback(async (flag: string, enabled: boolean) => {
+		const action = enabled ? 'enable' : 'disable'
+		if (!window.confirm(`Are you sure you want to ${action} "${flag}" for ALL users?`)) {
+			return
+		}
+
+		setIsSaving(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/feature-flags', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ flag, enabled }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setFlags((prev) => ({ ...prev, [flag]: { ...prev[flag], enabled } }))
+			setSuccessMessage(`${flag} ${enabled ? 'enabled' : 'disabled'}`)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to update flag')
+		} finally {
+			setIsSaving(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+
+			<p className={`tla-text_ui__small ${styles.featureFlagsNote}`}>
+				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
+			</p>
+			<p className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
+				Unchecking these flags will completely disable the feature for everyone, regardless of their
+				individual access settings.
+			</p>
+
+			{isLoading ? (
+				<p className="tla-text_ui__small">Loading flags...</p>
+			) : (
+				<div className={styles.featureFlagsContainer}>
+					{Object.entries(flags)
+						.sort(([a], [b]) => a.localeCompare(b))
+						.map(([flagName, flagValue]) => {
+							const label = flagName
+								.split('_')
+								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+								.join(' ')
+							return (
+								<div key={flagName} className={styles.featureFlagItem}>
+									<label htmlFor={flagName} className={styles.featureFlagLabel}>
+										<input
+											id={flagName}
+											type="checkbox"
+											checked={flagValue.enabled}
+											onChange={(e) => toggleFlag(flagName, e.target.checked)}
+											disabled={isSaving}
+										/>
+										<span className="tla-text_ui__small">
+											<strong>{label}</strong>
+										</span>
+									</label>
+									{flagValue.description && (
+										<span className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
+											{flagValue.description}
+										</span>
+									)}
+								</div>
+							)
+						})}
+				</div>
+			)}
 		</div>
 	)
 }
@@ -411,7 +1029,7 @@ function MigrateUserToGroups({
 	onSuccessMessage,
 	didMigrate,
 }: {
-	inputRef: RefObject<HTMLInputElement>
+	inputRef: RefObject<HTMLInputElement | null>
 	onSuccess(): void
 	onError(error: string): void
 	onSuccessMessage(message: string): void
@@ -473,6 +1091,268 @@ function MigrateUserToGroups({
 			>
 				{isMigrating ? 'Migrating...' : 'Migrate to Groups'}
 			</TlaButton>
+		</div>
+	)
+}
+
+function BatchMigrateUsersToGroups() {
+	const [isMigrating, setIsMigrating] = useState(false)
+	const [progressLog, setProgressLog] = useState<string[]>([])
+	const [error, setError] = useState(null as string | null)
+	const [isComplete, setIsComplete] = useState(false)
+	const [stats, setStats] = useState(
+		{} as {
+			successCount: number
+			failureCount: number
+			totalUsers: number
+			usersToMigrate: number
+			progress: number
+		}
+	)
+	const [unmigratedCount, setUnmigratedCount] = useState<number | null>(null)
+	const [isLoadingCount, setIsLoadingCount] = useState(false)
+	const [eventSource, setEventSource] = useState<EventSource | null>(null)
+	const [sleepMs, setSleepMs] = useState(100)
+	const logContainerRef = useRef<HTMLDivElement>(null)
+	const shouldContinueRef = useRef(true)
+
+	// Cleanup EventSource on unmount
+	useEffect(() => {
+		return () => {
+			if (eventSource) {
+				eventSource.close()
+			}
+		}
+	}, [eventSource])
+
+	// Auto-scroll log container to bottom when new entries are added
+	useEffect(() => {
+		if (logContainerRef.current) {
+			logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
+		}
+	}, [progressLog])
+
+	const fetchUnmigratedCount = useCallback(async () => {
+		setIsLoadingCount(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/unmigrated_users_count')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = await res.json()
+			setUnmigratedCount(data.count)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to fetch count')
+		} finally {
+			setIsLoadingCount(false)
+		}
+	}, [])
+
+	const stopMigration = useCallback(() => {
+		shouldContinueRef.current = false
+		if (eventSource) {
+			eventSource.close()
+			setEventSource(null)
+			setIsMigrating(false)
+		}
+	}, [eventSource])
+
+	const onMigrate = useCallback(async () => {
+		const migrationMessage = `Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
+
+		if (!window.confirm(migrationMessage)) {
+			return
+		}
+
+		setIsMigrating(true)
+		shouldContinueRef.current = true
+		setError(null)
+		setProgressLog([])
+		setIsComplete(false)
+		setStats({ successCount: 0, failureCount: 0, totalUsers: 0, usersToMigrate: 0, progress: 0 })
+
+		const startBatch = () => {
+			return new Promise<void>((resolve, reject) => {
+				try {
+					const params = new URLSearchParams({
+						sleepMs: sleepMs.toString(),
+					})
+					const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
+					setEventSource(es)
+
+					es.onmessage = async (event) => {
+						const data = JSON.parse(event.data)
+
+						const timestamp = new Date(data.timestamp).toLocaleTimeString()
+						const logEntry = `[${timestamp}] ${data.message}`
+
+						// Keep only the last 500 log entries to prevent memory issues
+						setProgressLog((prev) => {
+							const updated = [...prev, logEntry]
+							return updated.length > 500 ? updated.slice(-500) : updated
+						})
+
+						// Save failure events to IndexedDB
+						if (data.step === 'failure') {
+							try {
+								await saveMigrationLog(data)
+							} catch (err) {
+								console.error('Failed to save migration log to IndexedDB:', err)
+							}
+						}
+
+						// Update stats from details
+						if (data.details) {
+							setStats(data.details)
+						}
+
+						if (data.type === 'complete') {
+							es.close()
+							setEventSource(null)
+							if (data.hasMore && shouldContinueRef.current) {
+								// Start next batch
+								setTimeout(() => startBatch().then(resolve).catch(reject), 100)
+							} else {
+								setIsComplete(true)
+								setIsMigrating(false)
+								resolve()
+							}
+						} else if (data.type === 'error') {
+							setError(data.message)
+							setIsMigrating(false)
+							es.close()
+							setEventSource(null)
+							reject(new Error(data.message))
+						}
+					}
+
+					es.onerror = () => {
+						setError('Connection failed')
+						setIsMigrating(false)
+						es.close()
+						setEventSource(null)
+						reject(new Error('Connection failed'))
+					}
+				} catch (err) {
+					setError(err instanceof Error ? err.message : 'Unknown error occurred')
+					setIsMigrating(false)
+					setEventSource(null)
+					reject(err)
+				}
+			})
+		}
+
+		try {
+			await startBatch()
+		} catch (_err) {
+			// Error already handled in startBatch
+		}
+	}, [sleepMs])
+
+	return (
+		<div className={styles.dangerZone}>
+			<h4 className="tla-text_ui__medium">Migrate All Users to Groups Backend</h4>
+
+			{/* Unmigrated Users Count */}
+			<div className={styles.countContainer}>
+				<TlaButton
+					onClick={fetchUnmigratedCount}
+					variant="secondary"
+					isLoading={isLoadingCount}
+					disabled={isMigrating}
+				>
+					Check Unmigrated Users Count
+				</TlaButton>
+				{unmigratedCount !== null && (
+					<span className={styles.countDisplay}>
+						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} need migration
+					</span>
+				)}
+			</div>
+
+			<p className="tla-text_ui__small">
+				This will migrate all users who don&apos;t have the groups_backend flag. The process will
+				run sequentially (one user at a time) and report progress in real-time. Configure the sleep
+				duration (milliseconds to wait between each user migration) below.
+			</p>
+
+			{error && <div className={styles.errorMessage}>{error}</div>}
+
+			{/* Configuration Inputs */}
+			<div className={styles.configContainer}>
+				<div>
+					<label htmlFor="sleepMs">Sleep between migrations (ms):</label>
+					<input
+						id="sleepMs"
+						type="number"
+						value={sleepMs}
+						onChange={(e) => setSleepMs(Number(e.target.value))}
+						disabled={isMigrating}
+						min={0}
+						className={`${styles.searchInput} ${styles.sleepInput}`}
+					/>
+				</div>
+			</div>
+
+			{/* Stats Display */}
+			{stats.totalUsers > 0 && (
+				<div className={styles.statsContainer}>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Total Users:</span>
+						<span className={styles.statValue}>{stats.totalUsers}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Users to Migrate:</span>
+						<span className={styles.statValue}>{stats.usersToMigrate}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Succeeded:</span>
+						<span className={styles.statValue}>{stats.successCount}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Failed:</span>
+						<span className={styles.statValue}>{stats.failureCount}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Progress:</span>
+						<span className={styles.statValue}>{(stats.progress * 100).toFixed(2)}%</span>
+					</div>
+				</div>
+			)}
+
+			<div className={styles.deleteContainer}>
+				<TlaButton
+					onClick={isMigrating ? stopMigration : onMigrate}
+					variant="warning"
+					className={styles.deleteButton}
+					disabled={!isMigrating && isLoadingCount}
+				>
+					{isMigrating ? 'Stop Migration' : 'Start Batch Migration'}
+				</TlaButton>
+			</div>
+
+			{isComplete && (
+				<div className={styles.successMessage}>
+					Migration completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''}{' '}
+					migrated successfully, {stats.failureCount} failed
+				</div>
+			)}
+
+			{/* Progress Log */}
+			{progressLog.length > 0 && (
+				<div className={styles.progressLog}>
+					<h5>Migration Progress:</h5>
+					<div ref={logContainerRef} className={styles.logContainer}>
+						{progressLog.map((log, index) => (
+							<div key={index} className={styles.logEntry}>
+								{log}
+							</div>
+						))}
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

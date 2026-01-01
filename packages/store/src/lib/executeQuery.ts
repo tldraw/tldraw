@@ -37,44 +37,69 @@ export type QueryValueMatcher<T> = { eq: T } | { neq: T } | { gt: number }
  * const notByAuthor: QueryExpression<Book> = {
  *   authorId: { neq: 'author:tolkien' }
  * }
+ *
+ * // Query with nested properties
+ * const nestedQuery: QueryExpression<Book> = {
+ *   metadata: { sessionId: { eq: 'session:alpha' } }
+ * }
  * ```
  *
  * @public
  */
+/** @public */
 export type QueryExpression<R extends object> = {
-	[k in keyof R & string]?: QueryValueMatcher<R[k]>
-	// todo: handle nesting
-	// | (R[k] extends object ? { match: QueryExpression<R[k]> } : never)
+	[k in keyof R & string]?: R[k] extends string | number | boolean | null | undefined
+		? QueryValueMatcher<R[k]>
+		: R[k] extends object
+			? QueryExpression<R[k]>
+			: QueryValueMatcher<R[k]>
 }
 
-/**
- * Tests whether an object matches the given query expression by checking each property
- * against its corresponding matcher criteria.
- *
- * @param query - The query expression containing matching criteria for object properties
- * @param object - The object to test against the query
- * @returns True if the object matches all criteria in the query, false otherwise
- *
- * @example
- * ```ts
- * const book = { title: '1984', publishedYear: 1949, inStock: true }
- * const query = { publishedYear: { gt: 1945 }, inStock: { eq: true } }
- *
- * const matches = objectMatchesQuery(query, book) // true
- * ```
- *
- * @public
- */
+function isQueryValueMatcher(value: unknown): value is QueryValueMatcher<unknown> {
+	if (typeof value !== 'object' || value === null) return false
+	return 'eq' in value || 'neq' in value || 'gt' in value
+}
+
+function extractMatcherPaths(
+	query: QueryExpression<any>,
+	prefix: string = ''
+): Array<{ path: string; matcher: QueryValueMatcher<any> }> {
+	const paths: Array<{ path: string; matcher: QueryValueMatcher<any> }> = []
+
+	for (const [key, value] of Object.entries(query)) {
+		const currentPath = prefix ? `${prefix}\\${key}` : key
+
+		if (isQueryValueMatcher(value)) {
+			// It's a direct matcher
+			paths.push({ path: currentPath, matcher: value })
+		} else if (typeof value === 'object' && value !== null) {
+			// It's a nested query - recurse into it
+			paths.push(...extractMatcherPaths(value as QueryExpression<any>, currentPath))
+		}
+	}
+
+	return paths
+}
+
 export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, object: T) {
-	for (const [key, _matcher] of Object.entries(query)) {
-		const matcher = _matcher as QueryValueMatcher<T>
+	for (const [key, matcher] of Object.entries(query)) {
 		const value = object[key as keyof T]
+
 		// if you add matching logic here, make sure you also update executeQuery,
 		// where initial data is pulled out of the indexes, since that requires different
 		// matching logic
-		if ('eq' in matcher && value !== matcher.eq) return false
-		if ('neq' in matcher && value === matcher.neq) return false
-		if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
+		if (isQueryValueMatcher(matcher)) {
+			if ('eq' in matcher && value !== matcher.eq) return false
+			if ('neq' in matcher && value === matcher.neq) return false
+			if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
+			continue
+		}
+
+		// It's a nested query
+		if (typeof value !== 'object' || value === null) return false
+		if (!objectMatchesQuery(matcher as QueryExpression<any>, value as any)) {
+			return false
+		}
 	}
 	return true
 }
@@ -100,6 +125,11 @@ export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, 
  * const otherBookIds = executeQuery(store, 'book', {
  *   authorId: { neq: 'author:tolkien' }
  * })
+ *
+ * // Query with nested properties
+ * const nestedQueryIds = executeQuery(store, 'book', {
+ *   metadata: { sessionId: { eq: 'session:alpha' } }
+ * })
  * ```
  *
  * @public
@@ -109,37 +139,49 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	typeName: TypeName,
 	query: QueryExpression<Extract<R, { typeName: TypeName }>>
 ): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
-	const matchIds = Object.fromEntries(Object.keys(query).map((key) => [key, new Set()]))
+	type S = Extract<R, { typeName: TypeName }>
 
-	for (const [k, matcher] of Object.entries(query)) {
+	// Extract all paths with matchers (flattens nested queries)
+	const matcherPaths = extractMatcherPaths(query)
+
+	// Build a set of matching IDs for each path
+	const matchIds = Object.fromEntries(matcherPaths.map(({ path }) => [path, new Set<IdOf<S>>()]))
+
+	// For each path, use the index to find matching IDs
+	for (const { path, matcher } of matcherPaths) {
+		const index = store.index(typeName, path as any)
+
 		if ('eq' in matcher) {
-			const index = store.index(typeName, k as any)
 			const ids = index.get().get(matcher.eq)
 			if (ids) {
 				for (const id of ids) {
-					matchIds[k].add(id)
+					matchIds[path].add(id)
 				}
 			}
 		} else if ('neq' in matcher) {
-			const index = store.index(typeName, k as any)
 			for (const [value, ids] of index.get()) {
 				if (value !== matcher.neq) {
 					for (const id of ids) {
-						matchIds[k].add(id)
+						matchIds[path].add(id)
 					}
 				}
 			}
 		} else if ('gt' in matcher) {
-			const index = store.index(typeName, k as any)
 			for (const [value, ids] of index.get()) {
-				if (value > matcher.gt) {
+				if (typeof value === 'number' && value > matcher.gt) {
 					for (const id of ids) {
-						matchIds[k].add(id)
+						matchIds[path].add(id)
 					}
 				}
 			}
 		}
+
+		// Short-circuit if this set is empty - intersection will be empty
+		if (matchIds[path].size === 0) {
+			return new Set()
+		}
 	}
 
-	return intersectSets(Object.values(matchIds)) as Set<IdOf<Extract<R, { typeName: TypeName }>>>
+	// Intersect all the match sets
+	return intersectSets(Object.values(matchIds)) as Set<IdOf<S>>
 }

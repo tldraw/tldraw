@@ -1,7 +1,8 @@
 import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { vi } from 'vitest'
-import { TestEditor } from './TestEditor'
 import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
+import { base64ToPoints } from './test-jsx'
+import { TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
 
@@ -77,7 +78,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const segment = shape.props.segments[0]
 			expect(segment.type).toBe('straight')
 
-			const points = segment.points
+			const points = base64ToPoints(segment.points)
 			expect(points.length).toBe(2)
 		})
 
@@ -176,8 +177,9 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			expect(segment.points[1].x).toBeCloseTo(snappedX)
-			expect(segment.points[1].y).toBeCloseTo(snappedY)
+			const points = base64ToPoints(segment.points)
+			expect(points[1].x).toBeCloseTo(snappedX)
+			expect(points[1].y).toBeCloseTo(snappedY)
 		})
 
 		it('Doesnt snap to 15 degree angle when cmd is held', () => {
@@ -190,8 +192,9 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			expect(segment.points[1].x).toBeCloseTo(x)
-			expect(segment.points[1].y).toBeCloseTo(y)
+			const points = base64ToPoints(segment.points)
+			expect(points[1].x).toBeCloseTo(x)
+			expect(points[1].y).toBeCloseTo(y)
 		})
 
 		it('Snaps to start or end of straight segments in self when shift + cmd is held', () => {
@@ -209,13 +212,15 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const point1 = last(segment1.points)!
+			const points1 = base64ToPoints(segment1.points)
+			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const point2 = last(segment2.points)!
+			const points2 = base64ToPoints(segment2.points)
+			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
 
@@ -234,13 +239,15 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const point1 = last(segment1.points)!
+			const points1 = base64ToPoints(segment1.points)
+			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const point2 = last(segment2.points)!
+			const points2 = base64ToPoints(segment2.points)
+			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
 

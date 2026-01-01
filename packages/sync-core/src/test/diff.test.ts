@@ -408,6 +408,155 @@ describe('array diffing comprehensive', () => {
 	})
 })
 
+describe('string appending', () => {
+	describe('basic string appending', () => {
+		it('should handle string appends', () => {
+			const prev = { text: 'Hello' }
+			const next = { text: 'Hello world' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Append, ' world', 5],
+			})
+		})
+
+		it('should handle empty string to non-empty', () => {
+			const prev = { text: '' }
+			const next = { text: 'Hello' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Append, 'Hello', 0],
+			})
+		})
+
+		it('should use put when string is replaced (not appended)', () => {
+			const prev = { text: 'Hello' }
+			const next = { text: 'Goodbye' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Put, 'Goodbye'],
+			})
+		})
+
+		it('should use put when string is shortened', () => {
+			const prev = { text: 'Hello world' }
+			const next = { text: 'Hello' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Put, 'Hello'],
+			})
+		})
+
+		it('should handle identical strings', () => {
+			const prev = { text: 'Hello' }
+			const next = { text: 'Hello' }
+
+			expect(diffRecord(prev, next)).toBeNull()
+		})
+
+		it('should handle large text append', () => {
+			const prev = { text: 'Start' }
+			const longText = ' '.repeat(1000) + 'end'
+			const next = { text: 'Start' + longText }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({
+				text: [ValueOpType.Append, longText, 5],
+			})
+		})
+	})
+
+	describe('string appending in nested props', () => {
+		it('should handle string appending in nested props', () => {
+			const prev = { id: 'test:1', props: { label: 'Hello' } }
+			const next = { id: 'test:1', props: { label: 'Hello world' } }
+
+			expect(diffRecord(prev, next)).toEqual({
+				props: [ValueOpType.Patch, { label: [ValueOpType.Append, ' world', 5] }],
+			})
+		})
+
+		it('should combine string appending with other property changes', () => {
+			const prev = { text: 'Hello', x: 100 }
+			const next = { text: 'Hello world', x: 200 }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Append, ' world', 5],
+				x: [ValueOpType.Put, 200],
+			})
+		})
+	})
+
+	describe('apply string appending', () => {
+		it('should apply append operations correctly', () => {
+			const obj = { text: 'Hello' }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Append, ' world', 5],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toEqual({ text: 'Hello world' })
+			expect(result).not.toBe(obj)
+		})
+
+		it('should handle append from empty string', () => {
+			const obj = { text: '' }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Append, 'Hello', 0],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toEqual({ text: 'Hello' })
+		})
+
+		it('should ignore append operation with wrong offset', () => {
+			const obj = { text: 'Hello' }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Append, ' world', 10], // Wrong offset
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // No change, same reference
+		})
+
+		it('should ignore append operation on non-string value', () => {
+			const obj = { text: 123 }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Append, ' world', 3],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // No change, same reference
+		})
+
+		it('should handle multiple stream operations', () => {
+			const obj = { a: 'Hello', b: 'Foo' }
+			const diff: ObjectDiff = {
+				a: [ValueOpType.Append, ' world', 5],
+				b: [ValueOpType.Append, 'bar', 3],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toEqual({ a: 'Hello world', b: 'Foobar' })
+		})
+
+		it('should integrate with network diff workflow', () => {
+			const prev = { id: 'shape:1', type: 'text', text: 'Hello' }
+			const next = { id: 'shape:1', type: 'text', text: 'Hello world' }
+
+			const recordsDiff = {
+				added: {},
+				updated: { 'shape:1': [prev, next] },
+				removed: {},
+			}
+
+			const networkDiff = getNetworkDiff(recordsDiff)
+			expect(networkDiff).toEqual({
+				'shape:1': [RecordOpType.Patch, { text: [ValueOpType.Append, ' world', 5] }],
+			})
+		})
+	})
+})
+
 describe('applyObjectDiff comprehensive', () => {
 	describe('basic operations', () => {
 		it('should create new object when changes are needed', () => {
@@ -579,6 +728,57 @@ describe('complex scenarios', () => {
 			'shape:1': [RecordOpType.Put, shape1],
 			'shape:2': [RecordOpType.Patch, { x: [ValueOpType.Put, 300] }],
 			'shape:3': [RecordOpType.Remove],
+		})
+	})
+})
+
+describe('nested key primitive value bug', () => {
+	it('should handle string changes in nested keys', () => {
+		// This tests the bug where nested keys (like 'props') with primitive values
+		// are silently dropped instead of being diffed properly
+		const prev = { id: 'shape:1', props: 'hello' }
+		const next = { id: 'shape:1', props: 'world' }
+
+		const diff = diffRecord(prev, next)
+
+		// The diff should contain a 'put' operation for props
+		expect(diff).toEqual({
+			props: [ValueOpType.Put, 'world'],
+		})
+	})
+
+	it('should handle string appending in nested keys', () => {
+		const prev = { id: 'shape:1', props: 'hello' }
+		const next = { id: 'shape:1', props: 'hello world' }
+
+		const diff = diffRecord(prev, next)
+
+		// The diff should contain an 'append' operation for props
+		expect(diff).toEqual({
+			props: [ValueOpType.Append, ' world', 5],
+		})
+	})
+
+	it('should handle number changes in nested keys', () => {
+		const prev = { id: 'shape:1', props: 42 }
+		const next = { id: 'shape:1', props: 100 }
+
+		const diff = diffRecord(prev, next)
+
+		expect(diff).toEqual({
+			props: [ValueOpType.Put, 100],
+		})
+	})
+
+	it('should still handle object changes in nested keys normally', () => {
+		const prev = { id: 'shape:1', props: { color: 'red' } }
+		const next = { id: 'shape:1', props: { color: 'blue' } }
+
+		const diff = diffRecord(prev, next)
+
+		// Objects in nested keys should still use patch
+		expect(diff).toEqual({
+			props: [ValueOpType.Patch, { color: [ValueOpType.Put, 'blue'] }],
 		})
 	})
 })

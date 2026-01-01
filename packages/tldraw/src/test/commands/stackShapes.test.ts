@@ -62,28 +62,54 @@ describe('distributeShapes command', () => {
 
 	describe('when stacking horizontally', () => {
 		it('stacks the shapes based on the editors adjacentShapeMargin', () => {
-			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			// @ts-expect-error
-			editor.options.adjacentShapeMargin = 1
-			editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal')
+			// Create a new editor with custom adjacentShapeMargin option
+			const customEditor = new TestEditor({ options: { adjacentShapeMargin: 1 } })
+			customEditor.createShapes([
+				{
+					id: ids.boxA,
+					type: 'geo',
+					x: 0,
+					y: 0,
+				},
+				{
+					id: ids.boxB,
+					type: 'geo',
+					x: 100,
+					y: 100,
+				},
+				{
+					id: ids.boxC,
+					type: 'geo',
+					x: 400,
+					y: 400,
+				},
+				{
+					id: ids.boxD,
+					type: 'geo',
+					x: 700,
+					y: 700,
+				},
+			])
+			customEditor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			customEditor.stackShapes(customEditor.getSelectedShapeIds(), 'horizontal')
 			vi.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
-			editor.expectShapeToMatch({
+			customEditor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			editor.expectShapeToMatch({
+			customEditor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 101,
 				y: 100,
 			})
-			editor.expectShapeToMatch({
+			customEditor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 202,
 				y: 400,
 			})
-			editor.expectShapeToMatch({
+			customEditor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 303,
 				y: 700,

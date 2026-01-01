@@ -88,7 +88,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 			) : (
 				<TlaAnonLayout>
 					<BoardHistoryLog
-						data={allTimestamps}
+						data={allTimestamps.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
 						hasMore={hasMore}
 						onLoadMore={handleLoadMore}
 						isLoading={isLoading}

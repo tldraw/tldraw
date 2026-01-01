@@ -23,6 +23,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
+		'https://clerk-telemetry.com',
 		// zero
 		'https://*.zero.tldraw.com',
 		'https://zero.tldraw.com',
@@ -33,9 +34,18 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
 		'https://fonts.googleapis.com',
+		// paddle
+		'https://*.paddle.com',
+		// profitwell (loaded by paddle)
+		'https://public.profitwell.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
-	'frame-src': [`'self'`, `https:`],
+	'frame-src': [
+		`'self'`,
+		`https:`,
+		// paddle checkout
+		'https://*.paddle.com',
+	],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
@@ -52,15 +62,26 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
+		// paddle
+		'https://*.paddle.com',
+		// profitwell (loaded by paddle)
+		'https://public.profitwell.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
-	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
+	'style-src': [
+		`'self'`,
+		`'unsafe-inline'`,
+		`https://fonts.googleapis.com`,
+		`https://*.paddle.com`,
+	],
 	'style-src-elem': [
 		`'self'`,
 		`'unsafe-inline'`,
 		`https://fonts.googleapis.com`,
 		// embeds that have styles
 		'https://github.githubassets.com',
+		// paddle
+		'https://*.paddle.com',
 	],
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }

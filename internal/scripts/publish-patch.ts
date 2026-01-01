@@ -69,7 +69,7 @@ async function main() {
 
 	// create and push a new tag
 	await exec('git', ['commit', '-m', `${tag} [skip ci]`])
-	await exec('git', ['tag', '-f', tag])
+	await exec('git', ['tag', '-a', tag, '-m', tag, '-f'])
 	await exec('git', ['push', '--follow-tags'])
 
 	// Generate changelog and create GitHub release

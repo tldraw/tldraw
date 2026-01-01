@@ -99,6 +99,8 @@ export {
 	type TLBindingId,
 	type TLBindingUpdate,
 	type TLDefaultBinding,
+	type TLGlobalBindingPropsMap,
+	type TLIndexedBindings,
 	type TLUnknownBinding,
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
@@ -146,7 +148,11 @@ export {
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
+	type ExtractShapeByProps,
+	type TLCreateShapePartial,
 	type TLDefaultShape,
+	type TLGlobalShapePropsMap,
+	type TLIndexedShapes,
 	type TLParentId,
 	type TLShape,
 	type TLShapeId,
@@ -185,6 +191,7 @@ export {
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
+	compressLegacySegments,
 	drawShapeMigrations,
 	drawShapeProps,
 	type TLDrawShape,
@@ -262,6 +269,7 @@ export {
 	defaultColorNames,
 	DefaultColorStyle,
 	DefaultColorThemePalette,
+	DefaultLabelColorStyle,
 	getColorValue,
 	getDefaultColorTheme,
 	type TLDefaultColorStyle,
@@ -306,3 +314,5 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export { b64Vecs } from './misc/b64Vecs'

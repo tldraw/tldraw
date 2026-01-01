@@ -41,16 +41,19 @@ export const ShapeFill = React.memo(function ShapeFill({
 		case 'pattern': {
 			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
+		case 'lined-fill': {
+			return <path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+		}
 	}
 })
 
 export function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 
-	const teenyTiny = editor.getZoomLevel() <= 0.18
+	const teenyTiny = zoomLevel <= 0.18
 
 	return (
 		<>

@@ -1,11 +1,4 @@
-import {
-	isAccelKey,
-	StateNode,
-	TLFrameShape,
-	TLGroupShape,
-	TLPointerEventInfo,
-	TLShapeId,
-} from '@tldraw/editor'
+import { isAccelKey, StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -17,9 +10,7 @@ export class Pointing extends StateNode {
 
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
-		const {
-			inputs: { currentPagePoint },
-		} = this.editor
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const erasing = new Set<TLShapeId>()
 
@@ -27,10 +18,7 @@ export class Pointing extends StateNode {
 
 		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
-			if (
-				this.editor.isShapeOrAncestorLocked(shape) ||
-				this.editor.isShapeOfType<TLGroupShape>(shape, 'group')
-			) {
+			if (this.editor.isShapeOrAncestorLocked(shape) || this.editor.isShapeOfType(shape, 'group')) {
 				continue
 			}
 
@@ -42,10 +30,7 @@ export class Pointing extends StateNode {
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
 				// If we've hit a frame after hitting any other shape, stop here
-				if (
-					this.editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') &&
-					erasing.size > initialSize
-				) {
+				if (this.editor.isShapeOfType(hitShape, 'frame') && erasing.size > initialSize) {
 					break
 				}
 
@@ -82,7 +67,7 @@ export class Pointing extends StateNode {
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this._isHoldingAccelKey) return
 
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.startErasing(info)
 		}
 	}

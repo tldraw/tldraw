@@ -28,7 +28,7 @@ async function main() {
 
 	const discord = new Discord({
 		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
-		totalSteps: 3,
+		totalSteps: 4,
 		shouldNotify: true,
 	})
 	await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
@@ -50,13 +50,26 @@ async function main() {
 
 	await discord.step('Creating hotfix PR and waiting for checks to pass', async () => {
 		const prTitle = `[HOTFIX] ${pr.title}`
+
+		// Extract API changes section from original PR if present
+		const apiChangesHeader = '### API changes'
+		let apiChangesSection = ''
+		if (pr.body?.includes(apiChangesHeader)) {
+			const bodyAfterHeader = pr.body.split(apiChangesHeader)[1]
+			// Extract until next ### header or end of body
+			const nextHeaderIndex = bodyAfterHeader.indexOf('\n###')
+			apiChangesSection =
+				nextHeaderIndex > -1 ? bodyAfterHeader.slice(0, nextHeaderIndex) : bodyAfterHeader
+			apiChangesSection = `\n\n${apiChangesHeader}\n${apiChangesSection.trim()}\n`
+		}
+
 		const prBody = `This is an automated hotfix PR for dotcom deployment.
 
 **Original PR:** [#${pr.number}](https://github.com/tldraw/tldraw/pull/${pr.number})
 **Original Title:** ${pr.title}
 **Original Author:** @${pr.user?.login}
 
-This PR cherry-picks the changes from the original PR to the hotfixes branch for immediate dotcom deployment.
+This PR cherry-picks the changes from the original PR to the hotfixes branch for immediate dotcom deployment.${apiChangesSection}
 
 /cc @${pr.user?.login}`
 
@@ -70,6 +83,9 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 		})
 
 		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
+		await discord.message(
+			`📝 Created hotfix PR: <https://github.com/tldraw/tldraw/pull/${createdPr.data.number}>`
+		)
 		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
 
 		// Maximum wait time: 15 minutes total (action timeout is 20 mins, we need buffer for Discord notification)
@@ -122,6 +138,10 @@ Original Author: @${pr.user?.login}`,
 				continue
 			}
 		}
+	})
+
+	await discord.step('Checks have passed, deploy will start soon', async () => {
+		// This step just provides user feedback after successful merge
 	})
 }
 

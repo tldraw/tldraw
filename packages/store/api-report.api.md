@@ -38,6 +38,33 @@ export class AtomMap<K, V> implements Map<K, V> {
 }
 
 // @public
+export class AtomSet<T> {
+    // (undocumented)
+    [Symbol.iterator](): Generator<T, undefined, unknown>;
+    // (undocumented)
+    [Symbol.toStringTag]: string;
+    constructor(name: string, keys?: Iterable<T>);
+    // (undocumented)
+    add(value: T): this;
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(value: T): boolean;
+    // (undocumented)
+    entries(): Generator<[T, T], undefined, unknown>;
+    // (undocumented)
+    forEach(callbackfn: (value: T, value2: T, set: AtomSet<T>) => void, thisArg?: any): void;
+    // (undocumented)
+    has(value: T): boolean;
+    // (undocumented)
+    keys(): Generator<T, undefined, unknown>;
+    // (undocumented)
+    get size(): number;
+    // (undocumented)
+    values(): Generator<T, undefined, unknown>;
+}
+
+// @public
 export interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>> {
     // (undocumented)
     readonly id: Id;
@@ -176,6 +203,10 @@ export type Migration = {
     readonly filter?: (record: UnknownRecord) => boolean;
     readonly scope: 'record';
     readonly up: (oldState: UnknownRecord) => UnknownRecord | void;
+} | {
+    readonly down?: never;
+    readonly scope: 'storage';
+    readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
 // @public
@@ -221,9 +252,9 @@ export function parseMigrationId(id: MigrationId): {
     version: number;
 };
 
-// @public
+// @public (undocumented)
 export type QueryExpression<R extends object> = {
-    [k in keyof R & string]?: QueryValueMatcher<R[k]>;
+    [k in keyof R & string]?: R[k] extends boolean | null | number | string | undefined ? QueryValueMatcher<R[k]> : R[k] extends object ? QueryExpression<R[k]> : QueryValueMatcher<R[k]>;
 };
 
 // @public
@@ -286,13 +317,13 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
 // @public
-export type RSIndex<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>;
+export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
 
 // @public
-export type RSIndexDiff<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], CollectionDiff<IdOf<R>>>;
+export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<R>>>;
 
 // @public
-export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], Set<IdOf<R>>>;
+export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;
 
 // @public
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
@@ -455,11 +486,9 @@ export class StoreQueries<R extends UnknownRecord> {
     // @internal
     constructor(recordMap: AtomMap<IdOf<R>, R>, history: Atom<number, RecordsDiff<R>>);
     // @internal
-    __uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+    __uncached_createIndex<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
-        typeName: TypeName;
-    }>, Property>;
+    }>>;
     exec<TypeName extends R['typeName']>(typeName: TypeName, query: QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>): Array<Extract<R, {
@@ -468,6 +497,16 @@ export class StoreQueries<R extends UnknownRecord> {
     filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed<number, RecordsDiff<Extract<R, {
         typeName: TypeName;
     }>>>;
+    // @internal (undocumented)
+    getAllIdsForType<TypeName extends R['typeName']>(typeName: TypeName): Set<IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>>;
+    // @internal (undocumented)
+    getRecordById<TypeName extends R['typeName']>(typeName: TypeName, id: IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>): Extract<R, {
+        typeName: TypeName;
+    }> | undefined;
     ids<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Set<IdOf<Extract<R, {
@@ -475,11 +514,9 @@ export class StoreQueries<R extends UnknownRecord> {
     }>>>, CollectionDiff<IdOf<Extract<R, {
         typeName: TypeName;
     }>>>>;
-    index<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+    index<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
-        typeName: TypeName;
-    }>, Property>;
+    }>>;
     record<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Extract<R, {
@@ -508,6 +545,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // @internal
     getType(typeName: string): RecordType<R, any>;
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
+    // (undocumented)
+    migrateStorage(storage: SynchronousStorage<R>): void;
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>, opts?: {
         mutateInputStore?: boolean;
     }): MigrationResult<SerializedStore<R>>;
@@ -620,6 +659,30 @@ export type StoreValidators<R extends UnknownRecord> = {
         typeName: K;
     }>>;
 };
+
+// @public
+export interface SynchronousRecordStorage<R extends UnknownRecord> {
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    entries(): Iterable<[string, R]>;
+    // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
+    keys(): Iterable<string>;
+    // (undocumented)
+    set(id: string, record: R): void;
+    // (undocumented)
+    values(): Iterable<R>;
+}
+
+// @public
+export interface SynchronousStorage<R extends UnknownRecord> extends SynchronousRecordStorage<R> {
+    // (undocumented)
+    getSchema(): SerializedSchema;
+    // (undocumented)
+    setSchema(schema: SerializedSchema): void;
+}
 
 // @public
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;

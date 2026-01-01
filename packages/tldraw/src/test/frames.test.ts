@@ -10,6 +10,7 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
+import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
 
@@ -639,9 +640,13 @@ describe('frame shapes', () => {
 
 		editor.setCurrentTool('select')
 
+		// Not with enter key
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
+		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
 
+		// Just with header click (tests against header's geometry)
+		editor.click(105, 95)
 		expect(editor.getCurrentPageState().editingShapeId).toBe(frameId)
 	})
 
@@ -849,6 +854,93 @@ describe('frame shapes', () => {
 		const insideFrameId = dragCreateFrame({ down: [50, 50], move: [600, 600], up: [600, 600] })
 		expect(editor.getSortedChildIdsForParent(insideFrameId)).toStrictEqual([rectAId, rectBId])
 		expect(editor.getSortedChildIdsForParent(outsideFrameId)).toStrictEqual([insideFrameId])
+	})
+
+	describe('resizeChildren configuration option', () => {
+		it('has default canResizeChildren behavior as false', () => {
+			const frameUtil = editor.getShapeUtil<TLFrameShape>('frame') as FrameShapeUtil
+			expect(frameUtil.options.resizeChildren).toBe(false)
+			expect(frameUtil.canResizeChildren()).toBe(false)
+		})
+
+		it('can be configured to allow resizing children', () => {
+			const ConfiguredFrameShapeUtil = FrameShapeUtil.configure({ resizeChildren: true })
+			const configuredFrameUtil = new ConfiguredFrameShapeUtil(editor)
+			expect(configuredFrameUtil.options.resizeChildren).toBe(true)
+			expect(configuredFrameUtil.canResizeChildren()).toBe(true)
+		})
+
+		it('can be configured to disallow resizing children', () => {
+			const ConfiguredFrameShapeUtil = FrameShapeUtil.configure({ resizeChildren: false })
+			const configuredFrameUtil = new ConfiguredFrameShapeUtil(editor)
+			expect(configuredFrameUtil.options.resizeChildren).toBe(false)
+			expect(configuredFrameUtil.canResizeChildren()).toBe(false)
+		})
+
+		it('maintains other options when configuring resizeChildren', () => {
+			const ConfiguredFrameShapeUtil = FrameShapeUtil.configure({
+				resizeChildren: true,
+				showColors: true,
+			})
+			const configuredFrameUtil = new ConfiguredFrameShapeUtil(editor)
+			expect(configuredFrameUtil.options.resizeChildren).toBe(true)
+			expect(configuredFrameUtil.options.showColors).toBe(true)
+		})
+
+		it('resizes children when configured with resizeChildren: true', () => {
+			// Create a frame with a child shape using a configured frame util
+			editor.setCurrentTool('frame')
+			editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+
+			const frameId = editor.getOnlySelectedShape()!.id
+
+			// Add a child shape
+			editor.setCurrentTool('geo')
+			editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
+
+			const childId = editor.getOnlySelectedShape()!.id
+
+			// Get initial bounds
+			const initialChildBounds = editor.getShapePageBounds(childId)!
+
+			// Create a new editor with configured frame util that allows resizing children
+			const configuredEditor = new TestEditor({
+				shapeUtils: [FrameShapeUtil.configure({ resizeChildren: true })],
+			})
+
+			// Create the same frame and child in the new editor
+			configuredEditor.createShapes([
+				{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{
+					id: childId,
+					type: 'geo',
+					parentId: frameId,
+					x: 125,
+					y: 125,
+					props: { w: 50, h: 50 },
+				},
+			])
+
+			// Resize the frame to half size
+			configuredEditor.select(frameId)
+			configuredEditor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
+
+			// Verify the frame was resized
+			const resizedFrameBounds = configuredEditor.getShapePageBounds(frameId)!
+			expect(resizedFrameBounds).toCloselyMatchObject({
+				x: 100,
+				y: 100,
+				w: 50,
+				h: 50,
+			})
+
+			// Verify the child was also resized
+			const resizedChildBounds = configuredEditor.getShapePageBounds(childId)!
+			expect(resizedChildBounds.w).toBeCloseTo(initialChildBounds.w * 0.5)
+			expect(resizedChildBounds.h).toBeCloseTo(initialChildBounds.h * 0.5)
+
+			configuredEditor.dispose()
+		})
 	})
 })
 
@@ -1363,13 +1455,13 @@ describe('Unparenting behavior', () => {
 
 		// When the shape has a fill, it should not fall out of the frame
 		editor.undo()
-		editor.updateShape<TLGeoShape>({ ...largeRect, props: { fill: 'solid' } })
+		editor.updateShape({ ...largeRect, props: { fill: 'solid' } })
 		dragOntoFrame()
 		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
 
 		// When the shape has a label and that label is on top of the frame, it should not fall out of the frame
 		editor.undo()
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			...largeRect,
 			props: { fill: 'none', richText: toRichText('hello') },
 		})

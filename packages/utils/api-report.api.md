@@ -319,9 +319,7 @@ export function modulate(value: number, rangeA: number[], rangeB: number[], clam
 export const noop: () => void;
 
 // @internal
-export function objectMapEntries<Key extends string, Value>(object: {
-    [K in Key]: Value;
-}): Array<[Key, Value]>;
+export function objectMapEntries<Obj extends object>(object: Obj): Array<[keyof Obj, Obj[keyof Obj]]>;
 
 // @internal
 export function objectMapEntriesIterable<Key extends string, Value>(object: {
@@ -420,10 +418,15 @@ export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 export const Result: {
     err<E>(error: E): ErrorResult<E>;
     ok<T>(value: T): OkResult<T>;
+    all<T>(results: Result<T, any>[]): Result<T[], any>;
 };
 
 // @internal
-export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+export function retry<T>(fn: (args: {
+    attempt: number;
+    remaining: number;
+    total: number;
+}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
     abortSignal?: AbortSignal;
     attempts?: number;
     matchError?(error: unknown): boolean;

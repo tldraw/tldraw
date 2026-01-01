@@ -2,6 +2,7 @@ import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
+import { SimpleShapeIdSchema } from '../types/ids-schema'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -9,7 +10,7 @@ const DeleteAction = z
 	.object({
 		_type: z.literal('delete'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
 

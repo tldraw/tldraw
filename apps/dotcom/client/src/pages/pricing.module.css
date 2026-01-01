@@ -1,0 +1,283 @@
+.container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	font-size: 16px;
+	background-color: var(--tl-color-background);
+	overflow: auto;
+	line-height: 1.6;
+	margin: 0;
+	color: var(--tl-color-text);
+}
+
+.container p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.content {
+	max-width: 540px;
+	width: 100%;
+	position: relative;
+}
+
+.homeButton {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px 12px;
+	color: var(--tl-color-text-3);
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+@media (hover: hover) {
+	.homeButton:hover {
+		color: var(--tl-color-text-1);
+		background-color: var(--tl-color-hover);
+	}
+}
+
+.logo {
+	width: 120px;
+	height: 32px;
+	background-color: var(--tl-color-text);
+	mask: url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat;
+	-webkit-mask: url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat;
+}
+
+.pricingContentWrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 21px;
+}
+
+.pricingContentWrapper p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.pricingContentWrapper .footer {
+	display: flex;
+	align-items: center;
+	font-size: 12px;
+}
+
+.pricingDescriptionWrapper {
+	display: flex;
+	gap: 32px;
+	flex-direction: column;
+}
+
+.pricingCard {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-direction: column;
+	padding: 24px;
+	border: 1px solid var(--tl-color-muted-1);
+	border-radius: 8px;
+	background-color: var(--tl-color-panel);
+	gap: 24px;
+}
+
+.pricingCardContent {
+	display: flex;
+	align-items: center;
+	flex-direction: row;
+	width: 100%;
+	justify-content: space-between;
+	gap: 24px;
+}
+
+.pricingInfo {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.price {
+	font-size: 48px;
+	font-weight: 400;
+	line-height: 1;
+	color: var(--tl-color-text);
+}
+
+.priceDetails {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.priceDetail {
+	font-size: 14px;
+	line-height: 1.3;
+	color: var(--tl-color-text-3);
+}
+
+.fairyIcons {
+	position: relative;
+	display: flex;
+	gap: 0px;
+}
+
+.fairyIcons > :global(.fairy-sprite-container) {
+	height: 44px;
+	width: 44px;
+	z-index: 3;
+}
+
+.purchaseButton {
+	width: 100%;
+	height: 48px;
+	border: none;
+	border-radius: 8px;
+	background-color: #2d7ff9;
+	color: #ffffff;
+	font-size: 16px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.purchaseButton:hover {
+	background-color: #1d6fe8;
+}
+
+.purchaseButton:active {
+	background-color: #0d5fd7;
+}
+
+.footer {
+	display: flex;
+	justify-content: center;
+	gap: 24px;
+	font-size: 12px;
+	height: 20px;
+}
+
+.footerLink {
+	font-size: 12px;
+	color: var(--tl-color-text-3) !important;
+	text-decoration: none;
+}
+
+.footerLink:hover {
+	color: var(--tl-color-text-1) !important;
+	text-decoration: underline;
+}
+
+.dialogHeader {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.dialogFooter {
+	height: 40px;
+}
+
+.dialogBody {
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 21px;
+	overflow-y: auto;
+	max-height: 80vh;
+	padding: 64px 100px;
+	min-width: min(600px, 90vw);
+}
+
+.dialogBody > * {
+	max-width: 499px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.dialogBody p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.dialogBody .footer {
+	display: flex;
+	align-items: center;
+	font-size: 12px;
+}
+
+@media (max-width: 768px) {
+	.container {
+		padding: 16px;
+		padding-top: 32px;
+		align-items: center;
+		font-size: 14px;
+	}
+
+	.dialogBody {
+		padding: 32px 24px;
+		max-height: none;
+		min-width: 95vw;
+	}
+
+	.dialogHeader {
+		height: 32px;
+	}
+
+	.dialogFooter {
+		display: none;
+	}
+
+	.pricingContentWrapper {
+		gap: 24px;
+	}
+
+	.pricingCard {
+		padding: 16px;
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+
+	.fairyIcons > *:nth-of-type(2) {
+		position: absolute;
+		right: -9px;
+		top: -14px;
+		opacity: 0.5;
+		transform: scale(0.8);
+		z-index: 1;
+	}
+
+	.fairyIcons > *:nth-of-type(3) {
+		position: absolute;
+		right: 12px;
+		top: -6px;
+		opacity: 0.4;
+		transform: scale(0.9);
+		z-index: 2;
+	}
+
+	.price {
+		font-size: 40px;
+	}
+
+	.footer {
+		gap: 12px;
+		font-size: 12px;
+	}
+
+	.footerLink {
+		font-size: 12px;
+	}
+}

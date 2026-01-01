@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
 import { Editor, TLGeoShape } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { getAllShapeTypes, setup } from '../shared-e2e'
+import { getAllShapeTypes, setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('smoke tests', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 
 	test('create a shape on the canvas', async ({ page }) => {
 		await page.keyboard.press('r')

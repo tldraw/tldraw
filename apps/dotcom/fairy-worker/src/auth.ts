@@ -1,5 +1,6 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
+import { INTERNAL_BASE_URL } from './constants'
 import { Environment } from './environment'
 
 export async function requireAuth(
@@ -63,12 +64,57 @@ export async function requireAdminAccess(env: Environment, auth: { userId: strin
 	if (!auth?.userId) {
 		throw new StatusError(403, 'Unauthorized')
 	}
-	const user = await getClerkClient(env).users.getUser(auth.userId)
-	if (
-		!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
-		user.primaryEmailAddress?.verification?.status !== 'verified'
-	) {
+	const hasAdminStatus = await isAdmin(env, auth)
+	if (!hasAdminStatus) {
 		throw new StatusError(403, 'Unauthorized - @tldraw.com email required')
 	}
-	return user
+}
+
+export async function requireFairyAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		throw new StatusError(403, 'Unauthorized')
+	}
+	const hasFairyAccessValue = await hasFairyAccess(env, auth)
+	if (!hasFairyAccessValue) {
+		throw new StatusError(403, 'Unauthorized - fairy access required')
+	}
+}
+
+export async function isAdmin(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		return false
+	}
+	const user = await getClerkClient(env).users.getUser(auth.userId)
+	return !!(
+		user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') &&
+		user.primaryEmailAddress?.verification?.status === 'verified'
+	)
+}
+
+export async function hasFairyAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		return false
+	}
+
+	const userDoId = env.TL_USER.idFromName(auth.userId)
+	const userDo = env.TL_USER.get(userDoId)
+
+	try {
+		const response = await userDo.fetch(
+			`${INTERNAL_BASE_URL}/app/${auth.userId}/fairy/has-access`,
+			{
+				method: 'GET',
+			}
+		)
+
+		if (!response.ok) {
+			return false
+		}
+
+		const data = (await response.json()) as { hasAccess: boolean }
+		return data.hasAccess
+	} catch (error) {
+		console.error('Failed to check fairy access:', error)
+		return false
+	}
 }

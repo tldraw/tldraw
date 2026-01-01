@@ -116,6 +116,25 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
+export const user_fairies = table('user_fairies')
+	.columns({
+		userId: string(),
+		fairies: string(),
+		fairyLimit: number().optional(),
+		fairyAccessExpiresAt: number().optional(),
+		weeklyUsage: string(),
+		weeklyLimit: number().optional(),
+	})
+	.primaryKey('userId')
+
+export const file_fairies = table('file_fairies')
+	.columns({
+		fileId: string(),
+		userId: string(),
+		fairyState: string(),
+	})
+	.primaryKey('fileId', 'userId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -227,7 +246,33 @@ export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
 	groupId: TlaGroupFile['groupId']
 }
 
-export type TlaRow = TlaFile | TlaFileState | TlaUser | TlaGroup | TlaGroupUser | TlaGroupFile
+export type TlaUserFairyPartial = Partial<TlaUserFairy> & {
+	userId: TlaUserFairy['userId']
+}
+
+export type TlaFileFairyPartial = Partial<TlaFileFairy> & {
+	fileId: TlaFileFairy['fileId']
+	userId: TlaFileFairy['userId']
+}
+
+export type TlaRow =
+	| TlaFile
+	| TlaFileState
+	| TlaUser
+	| TlaGroup
+	| TlaGroupUser
+	| TlaGroupFile
+	| TlaUserFairy
+	| TlaFileFairy
+export type TlaRowPartial =
+	| TlaFilePartial
+	| TlaFileStatePartial
+	| TlaUserPartial
+	| TlaGroupPartial
+	| TlaGroupUserPartial
+	| TlaGroupFilePartial
+	| TlaUserFairyPartial
+	| TlaFileFairyPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -260,6 +305,32 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+// Override for user_fairies with proper JSONB types for Kysely
+export interface TlaUserFairyDB extends Omit<TlaUserFairy, 'weeklyUsage'> {
+	weeklyUsage: Record<string, number> // JSONB: { "2025-W48": 12.34 }
+}
+
+// Override for fairy_invite with proper JSONB types for Kysely
+export interface TlaFairyInviteDB extends Omit<TlaFairyInvite, 'redeemedBy'> {
+	redeemedBy: string[] // JSONB: ["email1@example.com", "email2@example.com"]
+}
+
+// paddle_transactions is backend-only, not part of Zero schema
+export interface TlaPaddleTransaction {
+	eventId: string
+	transactionId: string
+	eventType: string
+	status: string
+	userId: string | null
+	processed: boolean
+	processedAt: number | null
+	processingError: string | null
+	eventData: Record<string, unknown>
+	occurredAt: number
+	receivedAt: number
+	updatedAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -267,12 +338,17 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
+	user_fairies: TlaUserFairyDB
+	file_fairies: TlaFileFairy
+	fairy_invite: TlaFairyInviteDB
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	file_fairy_messages: TlaFileFairyMessage
+	paddle_transactions: TlaPaddleTransaction
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file],
+	tables: [user, file, file_state, group, group_user, group_file, user_fairies, file_fairies],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
@@ -289,6 +365,29 @@ export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
+export type TlaUserFairy = Row<typeof schema.tables.user_fairies>
+export type TlaFileFairy = Row<typeof schema.tables.file_fairies>
+
+// file_fairy_messages is backend-only, not part of Zero schema
+export interface TlaFileFairyMessage {
+	id: string
+	fileId: string
+	userId: string
+	message: string
+	createdAt: number
+	updatedAt: number
+}
+
+// fairy_invite is backend-only, not part of Zero schema
+export interface TlaFairyInvite {
+	id: string
+	fairyLimit: number
+	maxUses: number
+	currentUses: number
+	createdAt: number
+	description: string | null
+	redeemedBy: string[] // Array of emails
+}
 
 interface AuthData {
 	sub: string | null
@@ -379,5 +478,5 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	} satisfies PermissionsConfig<AuthData, TlaSchema>
 })
 
-export const TlaFlags = stringEnum('groups_backend')
+export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
 export type TlaFlags = keyof typeof TlaFlags

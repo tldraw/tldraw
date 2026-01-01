@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { TLDrawShape, TLGeoShape, getColorValue, getDefaultColorTheme, useEditor } from 'tldraw'
+import { getColorValue, getDefaultColorTheme, getPointsFromDrawSegment, useEditor } from 'tldraw'
 
 export function CustomRenderer() {
 	const editor = useEditor()
@@ -58,14 +58,15 @@ export function CustomRenderer() {
 				const transform = editor.getShapePageTransform(shape.id)
 				ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
 
-				if (editor.isShapeOfType<TLDrawShape>(shape, 'draw')) {
+				if (editor.isShapeOfType(shape, 'draw')) {
 					// Draw a freehand shape
 					for (const segment of shape.props.segments) {
-						ctx.moveTo(segment.points[0].x, segment.points[0].y)
+						const points = getPointsFromDrawSegment(segment, shape.props.scaleX, shape.props.scaleY)
+						ctx.moveTo(points[0].x, points[0].y)
 						if (segment.type === 'straight') {
-							ctx.lineTo(segment.points[1].x, segment.points[1].y)
+							ctx.lineTo(points[1].x, points[1].y)
 						} else {
-							for (const point of segment.points.slice(1)) {
+							for (const point of points.slice(1)) {
 								ctx.lineTo(point.x, point.y)
 							}
 						}
@@ -77,7 +78,7 @@ export function CustomRenderer() {
 						ctx.fillStyle = getColorValue(theme, shape.props.color, 'semi')
 						ctx.fill()
 					}
-				} else if (editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
+				} else if (editor.isShapeOfType(shape, 'geo')) {
 					// Draw a geo shape
 					const bounds = editor.getShapeGeometry(shape).bounds
 					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')

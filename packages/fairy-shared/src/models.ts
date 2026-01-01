@@ -1,6 +1,3 @@
-export const DEFAULT_MODEL_NAME = 'claude-4.5-sonnet'
-
-export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
 export interface AgentModelDefinition {
@@ -12,74 +9,121 @@ export interface AgentModelDefinition {
 	thinking?: boolean
 }
 
-/**
- * Get the full information about a model from its name.
- * @param modelName - The name of the model.
- * @returns The full definition of the model.
- */
-export function getAgentModelDefinition(modelName: AgentModelName): AgentModelDefinition {
-	const definition = AGENT_MODEL_DEFINITIONS[modelName]
-	if (!definition) {
-		throw new Error(`Model ${modelName} not found`)
-	}
-	return definition
-}
-
 export const AGENT_MODEL_DEFINITIONS = {
-	// Strongly recommended
-	'claude-4.5-sonnet': {
-		name: 'claude-4.5-sonnet',
+	'gemini-3-pro-preview': {
+		name: 'gemini-3-pro-preview',
+		id: 'gemini-3-pro-preview',
+		provider: 'google',
+	},
+
+	'claude-sonnet-4-5': {
+		name: 'claude-sonnet-4-5',
 		id: 'claude-sonnet-4-5',
 		provider: 'anthropic',
 	},
 
-	// Recommended
-	'claude-4-sonnet': {
-		name: 'claude-4-sonnet',
-		id: 'claude-sonnet-4-0',
+	'claude-haiku-4-5': {
+		name: 'claude-haiku-4-5',
+		id: 'claude-haiku-4-5',
 		provider: 'anthropic',
 	},
 
-	// Recommended
-	'claude-3.5-sonnet': {
-		name: 'claude-3.5-sonnet',
-		id: 'claude-3-5-sonnet-latest',
-		provider: 'anthropic',
+	'gpt-5.1': {
+		name: 'gpt-5.1',
+		id: 'gpt-5.1',
+		provider: 'openai',
 	},
-
-	// Recommended
-	// 'gemini-2.5-flash': {
-	// 	name: 'gemini-2.5-flash',
-	// 	id: 'gemini-2.5-flash',
-	// 	provider: 'google',
-	// },
-
-	// Not recommended
-	// 'gemini-2.5-pro': {
-	// 	name: 'gemini-2.5-pro',
-	// 	id: 'gemini-2.5-pro',
-	// 	provider: 'google',
-	// 	thinking: true,
-	// },
-
-	// Not recommended
-	// 'gpt-5': {
-	// 	name: 'gpt-5',
-	// 	id: 'gpt-5-2025-08-07',
-	// 	provider: 'openai',
-	// },
-
-	// Mildly recommended
-	// 'gpt-4.1': {
-	// 	name: 'gpt-4.1',
-	// 	id: 'gpt-4.1-2025-04-14',
-	// 	provider: 'openai',
-	// },
-
-	// Mildly recommended
-	// 'gpt-4o': {
-	// 	name: 'gpt-4o',
-	// 	id: 'gpt-4o',
-	// 	provider: 'openai',
-	// },
 } as const
+
+export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
+
+const FALLBACK_MODEL_NAME = 'claude-sonnet-4-5' as AgentModelName
+
+function isValidModelName(value: string | undefined): value is AgentModelName {
+	return !!value && value in AGENT_MODEL_DEFINITIONS
+}
+
+function getBuildTimeDefault(): AgentModelName {
+	const buildTimeValue =
+		typeof process !== 'undefined' ? (process.env?.FAIRY_MODEL as string | undefined) : undefined
+	return isValidModelName(buildTimeValue) ? buildTimeValue : FALLBACK_MODEL_NAME
+}
+
+const BUILD_DEFAULT_MODEL_NAME = getBuildTimeDefault()
+
+export const DEFAULT_MODEL_NAME = BUILD_DEFAULT_MODEL_NAME //'gemini-3-pro-preview'
+
+export function getDefaultModelName(env?: { FAIRY_MODEL?: string }): AgentModelName {
+	const runtimeValue = env?.FAIRY_MODEL
+	return isValidModelName(runtimeValue) ? runtimeValue : BUILD_DEFAULT_MODEL_NAME
+}
+
+export const TIER_THRESHOLD = 200_000
+
+export interface ModelPricingInfo {
+	uncachedInputPrice: number
+	cacheReadInputPrice: number | null // null means caching not supported
+	outputPrice: number
+	cacheWriteInputPrice: number | null // null means caching not supported
+}
+
+/**
+ * Get pricing for a specific model based on prompt token count.
+ * Some models have tiered pricing based on prompt size.
+ * @param modelName - The model name
+ * @param inputTokens - The number of prompt tokens for this request
+ * @returns Pricing per million tokens: { uncachedInputPrice, cacheReadInputPrice, cacheWriteInputPrice, outputPrice }
+ */
+export function getModelPricingInfo(
+	modelName: AgentModelName,
+	inputTokens: number
+): ModelPricingInfo {
+	switch (modelName) {
+		case 'gemini-3-pro-preview':
+			if (inputTokens <= TIER_THRESHOLD) {
+				return {
+					uncachedInputPrice: 2,
+					cacheReadInputPrice: 0.2,
+					cacheWriteInputPrice: null,
+					outputPrice: 12,
+				}
+			} else {
+				return {
+					uncachedInputPrice: 4,
+					cacheReadInputPrice: 0.4,
+					cacheWriteInputPrice: null,
+					outputPrice: 18,
+				}
+			}
+		case 'claude-sonnet-4-5':
+			if (inputTokens <= TIER_THRESHOLD) {
+				return {
+					uncachedInputPrice: 3,
+					cacheReadInputPrice: 0.3,
+					cacheWriteInputPrice: 3.75,
+					outputPrice: 15,
+				}
+			} else {
+				return {
+					uncachedInputPrice: 6,
+					cacheReadInputPrice: 0.6,
+					cacheWriteInputPrice: 7.5,
+					outputPrice: 22.5,
+				}
+			}
+		case 'claude-haiku-4-5':
+			return {
+				uncachedInputPrice: 1,
+				cacheReadInputPrice: 0.1,
+				cacheWriteInputPrice: 1.25,
+				outputPrice: 5,
+			}
+		case 'gpt-5.1':
+			return {
+				uncachedInputPrice: 1.25,
+				cacheReadInputPrice: 0.125,
+				cacheWriteInputPrice: null,
+				outputPrice: 10,
+			}
+	}
+}

@@ -17,21 +17,21 @@ import {
 	VecLike,
 } from '@tldraw/editor'
 import { FONT_SIZES } from 'tldraw'
+import { getDummyBounds } from './convertTldrawShapeToFocusedShape'
+import { asColor } from './FocusColor'
 import {
 	FocusedArrowShape,
 	FocusedDrawShape,
 	FocusedGeoShape,
+	FocusedGeoType,
 	FocusedLineShape,
 	FocusedNoteShape,
 	FocusedShape,
 	FocusedTextShape,
 	FocusedUnknownShape,
 } from './FocusedShape'
-import { asColor } from './SimpleColor'
-import { convertSimpleFillToTldrawFill } from './SimpleFill'
-import { convertSimpleFontSizeToTldrawFontSizeAndScale } from './SimpleFontSize'
-import { SimpleGeoShapeType } from './SimpleGeoShapeType'
-import { getDummyBounds } from './convertTldrawShapeToFocusedShape'
+import { convertFocusFillToTldrawFill } from './FocusFill'
+import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
@@ -80,8 +80,11 @@ export function convertFocusedShapeToTldrawShape(
 		case 'note': {
 			return convertNoteShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
-		case 'draw': {
+		case 'pen': {
 			return convertDrawShapeToTldrawShape(editor, focusedShape, { defaultShape })
+		}
+		case 'image': {
+			throw new Error('Image shapes cannot be created by agent via the create action')
 		}
 		case 'unknown': {
 			return convertUnknownShapeToTldrawShape(editor, focusedShape, { defaultShape })
@@ -90,6 +93,10 @@ export function convertFocusedShapeToTldrawShape(
 }
 
 export function convertSimpleIdToTldrawId(id: string): TLShapeId {
+	// If the ID already has the "shape:" prefix, return it as-is to avoid double-prefixing
+	if (id.startsWith('shape:')) {
+		return id as TLShapeId
+	}
 	return ('shape:' + id) as TLShapeId
 }
 
@@ -97,18 +104,16 @@ export function convertSimpleTypeToTldrawType(
 	type: FocusedShape['_type']
 ): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
 	if (type in SIMPLE_TO_GEO_TYPES) {
-		return convertSimpleGeoTypeToTldrawGeoGeoType(type as SimpleGeoShapeType) as TLGeoShapeGeoStyle
+		return convertSimpleGeoTypeToTldrawGeoGeoType(type as FocusedGeoType) as TLGeoShapeGeoStyle
 	}
 	return type as TLDefaultShape['type'] | 'unknown'
 }
 
-export function convertSimpleGeoTypeToTldrawGeoGeoType(
-	type: SimpleGeoShapeType
-): TLGeoShapeGeoStyle {
+export function convertSimpleGeoTypeToTldrawGeoGeoType(type: FocusedGeoType): TLGeoShapeGeoStyle {
 	return SIMPLE_TO_GEO_TYPES[type]
 }
 
-export const SIMPLE_TO_GEO_TYPES: Record<SimpleGeoShapeType, TLGeoShapeGeoStyle> = {
+export const SIMPLE_TO_GEO_TYPES: Record<FocusedGeoType, TLGeoShapeGeoStyle> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -135,7 +140,7 @@ function convertTextShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedTextShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLTextShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultTextShape = defaultShape as TLTextShape
 
@@ -145,7 +150,7 @@ function convertTextShapeToTldrawShape(
 
 	if (focusedShape.fontSize) {
 		const { textSize: calculatedTextSize, scale: calculatedScale } =
-			convertSimpleFontSizeToTldrawFontSizeAndScale(focusedShape.fontSize)
+			convertFocusFontSizeToTldrawFontSize(focusedShape.fontSize)
 		textSize = calculatedTextSize
 		scale = calculatedScale
 	} else if (defaultTextShape.props?.size) {
@@ -153,10 +158,13 @@ function convertTextShapeToTldrawShape(
 		scale = defaultTextShape.props.scale ?? 1
 	}
 
+	// If maxWidth is provided as a number, enable wrapping (autoSize = false)
+	// Otherwise (undefined or null), preserve existing autoSize behavior
+	// Check for undefined first to distinguish "not provided" from "explicitly null"
 	const autoSize =
-		focusedShape.wrap === undefined
-			? (defaultTextShape.props?.autoSize ?? true)
-			: !focusedShape.wrap
+		focusedShape.maxWidth !== undefined && focusedShape.maxWidth !== null
+			? false
+			: (defaultTextShape.props?.autoSize ?? true)
 	const font = defaultTextShape.props?.font ?? 'draw'
 
 	let richText
@@ -205,7 +213,10 @@ function convertTextShapeToTldrawShape(
 			color: asColor(focusedShape.color ?? defaultTextShape.props?.color ?? 'black'),
 			textAlign,
 			autoSize,
-			w: focusedShape.width ?? defaultTextShape.props?.w ?? 100,
+			w:
+				focusedShape.maxWidth !== undefined && focusedShape.maxWidth !== null
+					? focusedShape.maxWidth
+					: (defaultTextShape.props?.w ?? 100),
 			font,
 		},
 		meta: {
@@ -280,7 +291,7 @@ function convertLineShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedLineShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLLineShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultLineShape = defaultShape as TLLineShape
 
@@ -335,7 +346,7 @@ function convertArrowShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedArrowShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape; bindings?: TLBindingCreate[] } {
+): { shape: TLArrowShape; bindings?: TLBindingCreate[] } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultArrowShape = defaultShape as TLArrowShape
 
@@ -447,7 +458,7 @@ function convertGeoShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedGeoShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLGeoShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const shapeType = convertSimpleGeoTypeToTldrawGeoGeoType(focusedShape._type)
 	const defaultGeoShape = defaultShape as TLGeoShape
@@ -465,11 +476,11 @@ function convertGeoShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertSimpleFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill) ?? 'none'
 	} else if (defaultGeoShape.props?.fill) {
 		fill = defaultGeoShape.props.fill
 	} else {
-		fill = convertSimpleFillToTldrawFill('none')
+		fill = convertFocusFillToTldrawFill('none')
 	}
 
 	return {
@@ -512,7 +523,7 @@ function convertNoteShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedNoteShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLNoteShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 
 	const defaultNoteShape = defaultShape as TLNoteShape
@@ -563,22 +574,23 @@ function convertDrawShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedDrawShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape | null } {
+): { shape: TLDrawShape | null } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultDrawShape = defaultShape as TLDrawShape
 
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertSimpleFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill) ?? 'none'
 	} else if (defaultDrawShape.props?.fill) {
 		fill = defaultDrawShape.props.fill
 	} else {
-		fill = convertSimpleFillToTldrawFill('none')
+		fill = convertFocusFillToTldrawFill('none')
 	}
 
-	const segments = defaultDrawShape.props?.segments ?? []
-	if (segments.length === 0) {
+	const segments = defaultDrawShape.props?.segments
+
+	if (!segments || segments.length === 0) {
 		return { shape: null }
 	}
 
@@ -595,6 +607,15 @@ function convertDrawShapeToTldrawShape(
 			isLocked: defaultDrawShape.isLocked ?? false,
 			opacity: defaultDrawShape.opacity ?? 1,
 			props: {
+				dash: defaultDrawShape.props?.dash ?? 'draw',
+				size: defaultDrawShape.props?.size ?? 's',
+				segments,
+				isComplete: defaultDrawShape.props?.isComplete ?? true,
+				isClosed: defaultDrawShape.props?.isClosed ?? false,
+				isPen: defaultDrawShape.props?.isPen ?? false,
+				scale: defaultDrawShape.props?.scale ?? 1,
+				scaleX: defaultDrawShape.props?.scaleX ?? 1,
+				scaleY: defaultDrawShape.props?.scaleY ?? 1,
 				color: asColor(focusedShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill,
 			},
@@ -624,7 +645,7 @@ function convertUnknownShapeToTldrawShape(
 			parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultShape.isLocked ?? false,
 			opacity: defaultShape.opacity ?? 1,
-			props: defaultShape.props ?? {},
+			props: defaultShape.props ?? ({} as any),
 			meta: {
 				note: focusedShape.note ?? defaultShape.meta?.note ?? '',
 			},

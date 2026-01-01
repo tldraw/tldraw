@@ -60,11 +60,13 @@ const env = makeEnv([
 	'CLERK_SECRET_KEY',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
+	'FAIRY_MODEL',
 	'FAIRY_WORKER',
 	'FAIRY_WORKER_SENTRY_DSN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
+	'DISCORD_FAIRY_PURCHASE_WEBHOOK_URL',
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
 	'GOOGLE_API_KEY',
@@ -73,6 +75,8 @@ const env = makeEnv([
 	'IMAGE_WORKER',
 	'MULTIPLAYER_SERVER',
 	'OPENAI_API_KEY',
+	'PADDLE_ENVIRONMENT',
+	'PADDLE_WEBHOOK_SECRET',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
@@ -87,6 +91,8 @@ const env = makeEnv([
 	'VERCEL_PROJECT_ID',
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
+	'PADDLE_CLIENT_TOKEN',
+	'PADDLE_FAIRY_PRICE_ID',
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
@@ -96,6 +102,9 @@ const env = makeEnv([
 const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
 const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
 
+// pierre is not in production yet, so get the key directly from process.env
+const pierreKey = process.env.PIERRE_KEY ?? ''
+
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
 		? 'https://clerk.tldraw.com/.well-known/jwks.json'
@@ -104,7 +113,8 @@ const clerkJWKSUrl =
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
-	totalSteps: 8,
+	totalSteps: previewId ? 10 : 9,
+	messagePrefix: '[DOTCOM]',
 })
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
@@ -228,6 +238,7 @@ async function prepareDotcomApp() {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
+			FAIRY_MODEL: env.FAIRY_MODEL,
 			FAIRY_WORKER: env.FAIRY_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			ZERO_SERVER: getZeroUrl(),
@@ -238,6 +249,9 @@ async function prepareDotcomApp() {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SUPABASE_URL: env.SUPABASE_LITE_URL,
 			TLDRAW_ENV: env.TLDRAW_ENV,
+			PADDLE_CLIENT_TOKEN: env.PADDLE_CLIENT_TOKEN,
+			PADDLE_ENVIRONMENT: env.PADDLE_ENVIRONMENT,
+			PADDLE_FAIRY_PRICE_ID: env.PADDLE_FAIRY_PRICE_ID,
 		},
 	})
 }
@@ -269,11 +283,31 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 let didUpdateFairyWorker = false
 async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-fairy`
+	const multiplayerWorkerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateFairyWorker) {
 		await setWranglerPreviewConfig(fairyWorker, {
 			name: workerId,
 			customDomain: `${previewId}-fairy.tldraw.xyz`,
 		})
+
+		// Add TL_USER DO binding for preview
+		const wranglerPath = path.join(fairyWorker, 'wrangler.toml')
+		let wranglerContent = fs.readFileSync(wranglerPath, 'utf-8')
+		const doBinding = `[env.preview.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "${multiplayerWorkerId}" },
+]`
+
+		// Replace preview DO section
+		const previewDORegex = /\[env\.preview\.durable_objects\]\s*bindings\s*=\s*\[[^\]]*\]/
+		if (previewDORegex.test(wranglerContent)) {
+			wranglerContent = wranglerContent.replace(previewDORegex, doBinding)
+		} else {
+			wranglerContent += `\n${doBinding}\n`
+		}
+		fs.writeFileSync(wranglerPath, wranglerContent)
+
 		didUpdateFairyWorker = true
 	}
 
@@ -288,6 +322,7 @@ async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
 			ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
 			GOOGLE_API_KEY: env.GOOGLE_API_KEY,
 			OPENAI_API_KEY: env.OPENAI_API_KEY,
+			FAIRY_MODEL: env.FAIRY_MODEL,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
 		},
@@ -333,6 +368,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
+			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
@@ -341,9 +377,12 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
+			DISCORD_FAIRY_PURCHASE_WEBHOOK_URL: env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
 			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
 			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
+			PADDLE_WEBHOOK_SECRET: env.PADDLE_WEBHOOK_SECRET,
+			PADDLE_ENVIRONMENT: env.PADDLE_ENVIRONMENT,
 		},
 		sentry: {
 			project: 'tldraw-sync',

@@ -4,7 +4,7 @@ import styles from '../sidebar.module.css'
 export function TlaSidebarWorkspaceLink() {
 	return (
 		<div className={styles.sidebarWorkspaceButton} data-testid="tla-sidebar-workspace-link">
-			<TlaLogo />
+			<TlaLogo data-testid="tla-sidebar-logo-icon" />
 		</div>
 	)
 }

@@ -155,6 +155,7 @@ export const DEFAULT_TRANSLATION = {
 	'fill-style.solid': 'Solid',
 	'fill-style.pattern': 'Pattern',
 	'fill-style.fill': 'Fill',
+	'fill-style.lined-fill': 'Lined fill',
 	'dash-style.dashed': 'Dashed',
 	'dash-style.dotted': 'Dotted',
 	'dash-style.draw': 'Draw',

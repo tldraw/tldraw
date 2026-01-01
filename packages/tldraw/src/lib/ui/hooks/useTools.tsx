@@ -4,13 +4,13 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	getIndicesBetween,
-	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	toRichText,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconJsx } from '../components/primitives/TldrawUiIcon'
 import { useA11y } from '../context/a11y'
@@ -195,7 +195,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const [start, end] = getIndicesBetween(null, null, 2)
-							editor.createShape<TLLineShape>({
+							editor.createShape({
 								id,
 								type: 'line',
 								props: {
@@ -240,8 +240,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						createShape: (id) =>
 							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
 						onDragEnd: (id) => {
-							editor.setEditingShape(id)
-							editor.emit('select-all-text', { shapeId: id })
+							startEditingShapeWithRichText(editor, id, { selectAll: true })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'text' })
@@ -270,8 +269,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => editor.createShape({ id, type: 'note' }),
 						onDragEnd: (id) => {
-							editor.setEditingShape(id)
-							editor.emit('select-all-text', { shapeId: id })
+							startEditingShapeWithRichText(editor, id, { selectAll: true })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'note' })
@@ -361,7 +359,7 @@ export function onDragFromToolbarToCreateShape(
 	info: TLPointerEventInfo,
 	opts: OnDragFromToolbarToCreateShapesOpts
 ) {
-	const { x, y } = editor.inputs.currentPagePoint
+	const { x, y } = editor.inputs.getCurrentPagePoint()
 
 	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
 	editor.setCurrentTool('select.translating')
