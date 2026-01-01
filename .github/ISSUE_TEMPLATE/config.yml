@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
-  - name: tldraw docs
+  - name: Documentation
     url: https://tldraw.dev
-    about: Looking for help with the tldraw library? Try the tldraw docs!
+    about: Looking for help with the tldraw SDK? Check out the docs.
+  - name: Discord
+    url: https://discord.com/invite/SBBEVCA4PG
+    about: Chat with the community and get help from other developers.
