@@ -329,10 +329,10 @@ unsubscribe()
 
 Filter options narrow what changes you receive:
 
-| Filter   | Values                                       | Description                     |
-| -------- | -------------------------------------------- | ------------------------------- |
-| `source` | `'user'`, `'remote'`, `'all'`                | Who made the change             |
-| `scope`  | `'document'`, `'session'`, `'presence'`, `'all'` | What type of data changed       |
+| Filter   | Values                                           | Description               |
+| -------- | ------------------------------------------------ | ------------------------- |
+| `source` | `'user'`, `'remote'`, `'all'`                    | Who made the change       |
+| `scope`  | `'document'`, `'session'`, `'presence'`, `'all'` | What type of data changed |
 
 For sync, you typically want `source: 'user'` (only local changes) and `scope: 'document'` (only persistent data).
 

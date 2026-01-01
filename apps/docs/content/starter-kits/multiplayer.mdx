@@ -137,29 +137,29 @@ In the code example below, we add authentication to asset uploads:
 ```tsx
 // Custom asset store with authentication
 export const authenticatedAssetStore: TLAssetStore = {
-  async upload(asset, file) {
-    const id = uniqueId()
-    const objectName = `${id}-${file.name}`.replace(/[^a-zA-Z0-9.]/g, '-')
+	async upload(asset, file) {
+		const id = uniqueId()
+		const objectName = `${id}-${file.name}`.replace(/[^a-zA-Z0-9.]/g, '-')
 
-    const response = await fetch(`/api/uploads/${objectName}`, {
-      method: 'POST',
-      body: file,
-      headers: {
-        'Authorization': `Bearer ${getAuthToken()}`,
-        'X-User-ID': getCurrentUserId(),
-      },
-    })
+		const response = await fetch(`/api/uploads/${objectName}`, {
+			method: 'POST',
+			body: file,
+			headers: {
+				Authorization: `Bearer ${getAuthToken()}`,
+				'X-User-ID': getCurrentUserId(),
+			},
+		})
 
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`)
-    }
+		if (!response.ok) {
+			throw new Error(`Upload failed: ${response.statusText}`)
+		}
 
-    return { src: `/api/uploads/${objectName}` }
-  },
+		return { src: `/api/uploads/${objectName}` }
+	},
 
-  resolve(asset) {
-    return `${asset.props.src}?token=${getAuthToken()}`
-  },
+	resolve(asset) {
+		return `${asset.props.src}?token=${getAuthToken()}`
+	},
 }
 ```
 
