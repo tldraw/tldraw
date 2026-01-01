@@ -86,7 +86,6 @@ Labels with `⚙️` in their description are automation triggers, primarily for
 - Various deploy triggers (`*-hotfix-please`, `*-preview-please`)
 
 ### Label best practices
-
 - Don't over-label: 1-2 labels per issue is ideal
 - Use `More Info Needed` and comment asking for details if issue is incomplete
 - Apply `good first issue` to well-scoped issues with clear acceptance criteria
