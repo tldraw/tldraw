@@ -17,18 +17,35 @@ jobs:
       contents: read
       issues: write
       id-token: write
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
+      - name: Get issue details
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue view ${{ env.ISSUE_NUMBER }} --json title,body,labels,state > /tmp/issue.json
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/issue.json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Triage Issue with Claude
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            You are an issue triage bot for the tldraw repository. A new issue has been created and you need to evaluate and tidy it up.
+            You are an issue triage bot for the tldraw repository. You need to evaluate and tidy up issue #${{ env.ISSUE_NUMBER }}.
+
+            ## Issue details
+            ```json
+            ${{ steps.issue.outputs.details }}
+            ```
 
             ## Your tasks
 
