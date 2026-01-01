@@ -1,6 +1,6 @@
 name: Example Request
 description: Submit a request for an example
-title: 'Example: '
+title: ''
 labels: ['examples']
 assignees: []
 body:
