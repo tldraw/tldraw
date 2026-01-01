@@ -102,13 +102,20 @@ export function useCanvasEvents() {
 				preventDefault(e)
 				e.stopPropagation()
 
+				const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+
+				// Call the custom onDropOnCanvas callback if provided
+				if ((editor as any)._onDropOnCanvas) {
+					;(editor as any)._onDropOnCanvas({ point: pagePoint, event: e })
+				}
+
 				if (e.dataTransfer?.files?.length) {
 					const files = Array.from(e.dataTransfer.files)
 
 					await editor.putExternalContent({
 						type: 'files',
 						files,
-						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+						point: pagePoint,
 					})
 					return
 				}
@@ -118,7 +125,7 @@ export function useCanvasEvents() {
 					await editor.putExternalContent({
 						type: 'url',
 						url,
-						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+						point: pagePoint,
 					})
 					return
 				}
