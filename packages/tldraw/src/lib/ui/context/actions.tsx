@@ -1124,7 +1124,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-to-100',
 				label: 'action.zoom-to-100',
-				icon: 'reset-zoom',
 				kbd: 'shift+0',
 				readonlyOk: true,
 				onSelect(source) {
