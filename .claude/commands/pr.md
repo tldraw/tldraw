@@ -2,6 +2,8 @@ First, if we're on main, create a new branch with a descriptive name.
 
 Next, commit all changes. All unignored files should be committable unless it _really_ seems like we should not be committing these files. Be sure that we don't commit any API keys or other explicitly private things.
 
+Consider the user's comments: $ARGUMENTS
+
 ### Dealing with problems
 
 Committing will automatically run the linter, no need to separately run typechecks, linters, or formatters. Fix any lint or type errors that arise, unless they would involve meaningful changes to the code, in which case please notify the user using the 🚨 emoji. Never force commit or force push.
@@ -76,6 +78,10 @@ If the PR introduces changes to the api-report.md, you must also include an API 
 - Added new `Editor.logSelectedShapes` method that will log the details of selected shapes.
 - Breaking! Removed `Editor.freeze` method.
 ```
+
+### Related issues
+
+If a bug fix or feature implementation, search issues to find relevant issues that are addressed by this PR.
 
 ## Tips
 

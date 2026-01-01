@@ -1,7 +1,8 @@
 name: Example request
-description: Request a code example for the tldraw SDK
+description: Submit a request for an example
+type: Example
 title: ''
-labels: ['examples']
+labels: []
 assignees: []
 body:
   - type: markdown
@@ -12,14 +13,6 @@ body:
     id: description
     attributes:
       label: What's the example?
-      description: Describe what you're trying to build or the use case you'd like to see demonstrated.
+      description: Describe the example or the use case you'd like to see demonstrated.
     validations:
       required: true
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/tldraw/tldraw/blob/main/CODE_OF_CONDUCT.md)
-      options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true

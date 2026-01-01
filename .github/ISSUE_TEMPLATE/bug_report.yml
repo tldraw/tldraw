@@ -1,7 +1,8 @@
 name: Bug report
-description: Report something that isn't working as expected
+description: File a bug report
+type: Bug
 title: ''
-labels: ['bug']
+labels: []
 assignees: []
 body:
   - type: markdown
@@ -25,6 +26,8 @@ body:
       required: false
   - type: dropdown
     id: browsers
+    validations:
+      required: false
     attributes:
       label: What browsers are you seeing the problem on?
       multiple: true
@@ -45,19 +48,3 @@ body:
         - Obsidian plugin
     validations:
       required: true
-  - type: input
-    id: contact
-    attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
-    validations:
-      required: false
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/tldraw/tldraw/blob/main/CODE_OF_CONDUCT.md)
-      options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
