@@ -1,4 +1,4 @@
-import { createShapeId, Tldraw, TLEditorComponents, TLShapeId, toRichText, useEditor } from 'tldraw'
+import { createShapeId, Tldraw, TldrawUiButton, TLShapeId, toRichText, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -46,30 +46,19 @@ function ControlPanel() {
 	}
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: 12,
-				left: 12,
-				padding: 12,
-				borderRadius: 8,
-				backgroundColor: 'white',
-				boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-				display: 'flex',
-				gap: 8,
-				zIndex: 999,
-				pointerEvents: 'all',
-			}}
-			onPointerDown={(e) => e.stopPropagation()}
-		>
-			<button onClick={handleScatter}>Scatter</button>
-			<button onClick={handleReset}>Reset</button>
+		<div className="tlui-menu">
+			<TldrawUiButton type="normal" onClick={handleScatter}>
+				Scatter
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" onClick={handleReset}>
+				Reset
+			</TldrawUiButton>
 		</div>
 	)
 }
 
-const components: TLEditorComponents = {
-	InFrontOfTheCanvas: ControlPanel,
+const components = {
+	TopPanel: ControlPanel,
 }
 
 // [4]
