@@ -33,7 +33,7 @@ This is from Release [DATE] project.
 When creating issues for bugs that still exist:
 
 ```
-gh issue create --title "Bug: [description]" --body "$(cat <<'EOF'
+gh issue create --repo tldraw/tldraw --type "Bug" --title "[description in sentence case]" --body "$(cat <<'EOF'
 ## Description
 [What the bug is]
 
@@ -111,7 +111,7 @@ gh pr list --repo tldraw/tldraw --search "KEYWORDS" --state merged --limit 20
 
 ```bash
 # Create issue for a bug that still exists
-gh issue create --repo tldraw/tldraw --title "Bug: [description]" --body "$(cat <<'EOF'
+gh issue create --repo tldraw/tldraw --type "Bug" --title "[description in sentence case]" --body "$(cat <<'EOF'
 ## Description
 [What the bug is]
 
@@ -125,9 +125,6 @@ gh issue create --repo tldraw/tldraw --title "Bug: [description]" --body "$(cat 
 From Release QA project: [DATE]
 EOF
 )"
-
-# Create issue with labels
-gh issue create --repo tldraw/tldraw --title "Bug: [description]" --label "bug" --body "..."
 ```
 
 ### Mark items in the file

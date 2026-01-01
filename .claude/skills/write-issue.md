@@ -7,7 +7,7 @@ This skill describes the standards for writing and maintaining issues in the tld
 ### Format
 
 - **Sentence case**: Use sentence case for all titles (capitalize only the first word and proper nouns)
-- **No type prefixes**: Never include type labels in titles like `Bug:`, `Feature:`, `[Bug]`, `Example:`, `RFC:`, `Chore:`, `perf:`. Use GitHub labels instead.
+- **No type prefixes**: Never include type prefixes in titles like `Bug:`, `Feature:`, `[Bug]`, `Example:`, `RFC:`, `Chore:`, `perf:`. Use GitHub issue types instead.
 - **Imperative mood for enhancements**: Use imperative verbs for feature requests and enhancements (e.g., "Add padding option to zoomToFit" not "Adding padding option")
 - **Descriptive for bugs**: Describe the symptom clearly (e.g., "Arrow bindings break with rotated shapes" not "arrow bug")
 - **Specific and actionable**: Titles should describe what the issue is about specifically enough that someone can understand it without reading the body
@@ -41,45 +41,52 @@ When cleaning up titles, apply these transformations:
 4. Be specific: `Problem` → `[Describe the actual problem]`
 5. Translate non-English: Translate to English if the title is in another language
 
+## Issue types
+
+Every issue should have a **type** set via the `--type` flag when creating with `gh issue create`:
+
+| Type      | Use for                             |
+| --------- | ----------------------------------- |
+| `Bug`     | Something isn't working as expected |
+| `Feature` | New capability or improvement       |
+| `Example` | Request for a new SDK example       |
+| `Task`    | Internal task or chore              |
+
+These types are defined in `.github/ISSUE_TEMPLATE/` and are separate from labels.
+
 ## Labels
 
-### Required labels
+Labels are used for additional metadata, not for categorizing issue types.
 
-Every issue should have at least one **type label**:
+### Common labels
 
-| Label         | Use for                               |
-| ------------- | ------------------------------------- |
-| `bug`         | Something isn't working as expected   |
-| `enhancement` | Improvement to existing functionality |
-| `feature`     | New capability or feature             |
-| `examples`    | Request for a new SDK example         |
-| `docs`        | Documentation improvements            |
-| `chore`       | Maintenance tasks, dependency updates |
-| `performance` | Performance improvements              |
+| Label              | Use for                                             |
+| ------------------ | --------------------------------------------------- |
+| `good first issue` | Good for newcomers                                  |
+| `More Info Needed` | Issue requires additional information from reporter |
+| `sdk`              | Affects the tldraw SDK                              |
+| `dotcom`           | Related to tldraw.com                               |
+| `a11y`             | Related to accessibility                            |
+| `performance`      | Improve performance of an existing feature          |
+| `docs`             | Changes only affect documentation                   |
+| `api`              | API change                                          |
+| `e2e-tests`        | Related to end-to-end tests                         |
+| `translations`     | Updating translations                               |
 
-### Optional labels
+### Automation labels (do not apply manually to issues)
 
-| Label              | Use for                                  |
-| ------------------ | ---------------------------------------- |
-| `good first issue` | Simple issues good for new contributors  |
-| `More Info Needed` | Issue lacks details needed to act on it  |
-| `sdk`              | Affects the tldraw SDK                   |
-| `dotcom`           | Related to tldraw.com                    |
-| `a11y`             | Accessibility-related                    |
-| `internal`         | Internal changes only                    |
-| `keep`             | Prevents stale bot from closing          |
-| `stale`            | Automatically applied to inactive issues |
+Labels with `⚙️` in their description are automation triggers, primarily for pull requests:
 
-### Automation labels (do not apply manually)
-
-Labels starting with special characters are for automation. These are for use with in pull requests:
-
-- Labels with descriptions starting with `⚙️` are automation triggers
-- Examples: `update-snapshots`, `publish-packages`, `stale`
+- `keep` - Prevents issue from being marked stale or closed
+- `stale` - Applied automatically to issues inactive for 150 days
+- `update-snapshots` - Regenerates Playwright snapshots
+- `publish-packages` - Publishes branch packages to npm
+- `major`, `minor`, `skip-release` - Version control
+- `internal`, `other` - Changelog categorization
+- Various deploy triggers (`*-hotfix-please`, `*-preview-please`)
 
 ### Label best practices
 
-- Apply the most specific type label (prefer `feature` over `enhancement` for new capabilities)
 - Don't over-label: 1-2 labels per issue is ideal
 - Use `More Info Needed` and comment asking for details if issue is incomplete
 - Apply `good first issue` to well-scoped issues with clear acceptance criteria
@@ -113,7 +120,7 @@ Labels starting with special characters are for automation. These are for use wi
 ### New issues
 
 1. Verify the issue has enough information to act on
-2. Apply appropriate type label(s)
+2. Ensure the issue has the appropriate type set
 3. Clean up title if needed (remove prefixes, fix case, improve clarity)
 4. Add `More Info Needed` label and comment if details are missing
 5. Add `good first issue` if appropriate
