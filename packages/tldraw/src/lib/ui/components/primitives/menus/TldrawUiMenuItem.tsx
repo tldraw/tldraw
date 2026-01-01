@@ -134,7 +134,7 @@ export function TldrawUiMenuItem<
 						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
 						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
-						{icon && <TldrawUiButtonIcon icon={icon} small />}
+						{icon && sourceId !== 'zoom-menu' && <TldrawUiButtonIcon icon={icon} small />}
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuItem>
 			)
