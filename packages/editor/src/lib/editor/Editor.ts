@@ -1,12 +1,4 @@
-import {
-	Atom,
-	EMPTY_ARRAY,
-	atom,
-	computed,
-	react,
-	transact,
-	unsafe__withoutCapture,
-} from '@tldraw/state'
+import { Atom, EMPTY_ARRAY, atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
@@ -41,7 +33,6 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
-	TLInstancePresence,
 	TLPage,
 	TLPageId,
 	TLParentId,
@@ -81,8 +72,6 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
-	last,
-	lerp,
 	maxBy,
 	minBy,
 	sortById,
@@ -102,13 +91,10 @@ import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBin
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_CAMERA_OPTIONS,
-	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
 	MIDDLE_MOUSE_BUTTON,
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
-	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImage } from '../exports/getSvgAsImage'
@@ -122,7 +108,7 @@ import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
-import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import { PI, approximately, areAnglesCompatible, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
@@ -142,6 +128,7 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { CameraManager } from './managers/CameraManager/CameraManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager/FocusManager'
@@ -307,11 +294,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		})
 
+		this.camera = new CameraManager(this, cameraOptions)
+
 		this.snaps = new SnapManager(this)
 
 		this.disposables.add(this.timers.dispose)
-
-		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
 		this._textOptions = atom('text options', textOptions ?? null)
 
@@ -1072,6 +1059,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 */
 	protected readonly history: HistoryManager<TLRecord>
+
+	/**
+	 * A manager for the editor's camera.
+	 *
+	 * @public
+	 */
+	readonly camera: CameraManager
 
 	/**
 	 * Undo to the last mark.
@@ -2656,8 +2650,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private _unsafe_getCameraId() {
-		return CameraRecordType.createId(this.getCurrentPageId())
+	_unsafe_getCameraId() {
+		return this.camera._unsafe_getCameraId()
 	}
 
 	/**
@@ -2666,67 +2660,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCamera(): TLCamera {
-		const baseCamera = this.store.get(this._unsafe_getCameraId())!
-		if (this._isLockedOnFollowingUser.get()) {
-			const followingCamera = this.getCameraForFollowing()
-			if (followingCamera) {
-				return { ...baseCamera, ...followingCamera }
-			}
-		}
-		return baseCamera
+		return this.camera.getCamera()
 	}
 
-	private _getFollowingPresence(targetUserId: string | null) {
-		const visited = [this.user.getId()]
-		const collaborators = this.getCollaborators()
-		let leaderPresence = null as null | TLInstancePresence
-		while (targetUserId && !visited.includes(targetUserId)) {
-			leaderPresence = collaborators.find((c) => c.userId === targetUserId) ?? null
-			targetUserId = leaderPresence?.followingUserId ?? null
-			if (leaderPresence) {
-				visited.push(leaderPresence.userId)
-			}
-		}
-		return leaderPresence
+	_getFollowingPresence(targetUserId: string | null) {
+		return this.camera._getFollowingPresence(targetUserId)
 	}
 
 	@computed
-	private getViewportPageBoundsForFollowing(): null | Box {
-		const leaderPresence = this._getFollowingPresence(this.getInstanceState().followingUserId)
-
-		if (!leaderPresence?.camera || !leaderPresence?.screenBounds) return null
-
-		// Fit their viewport inside of our screen bounds
-		// 1. calculate their viewport in page space
-		const { w: lw, h: lh } = leaderPresence.screenBounds
-		const { x: lx, y: ly, z: lz } = leaderPresence.camera
-		const theirViewport = new Box(-lx, -ly, lw / lz, lh / lz)
-
-		// resize our screenBounds to contain their viewport
-		const ourViewport = this.getViewportScreenBounds().clone()
-		const ourAspectRatio = ourViewport.width / ourViewport.height
-
-		ourViewport.width = theirViewport.width
-		ourViewport.height = ourViewport.width / ourAspectRatio
-		if (ourViewport.height < theirViewport.height) {
-			ourViewport.height = theirViewport.height
-			ourViewport.width = ourViewport.height * ourAspectRatio
-		}
-
-		ourViewport.center = theirViewport.center
-		return ourViewport
+	getViewportPageBoundsForFollowing(): null | Box {
+		return this.camera.getViewportPageBoundsForFollowing()
 	}
 
 	@computed
-	private getCameraForFollowing(): null | { x: number; y: number; z: number } {
-		const viewport = this.getViewportPageBoundsForFollowing()
-		if (!viewport) return null
-
-		return {
-			x: -viewport.x,
-			y: -viewport.y,
-			z: this.getViewportScreenBounds().w / viewport.width,
-		}
+	getCameraForFollowing(): null | { x: number; y: number; z: number } {
+		return this.camera.getCameraForFollowing()
 	}
 
 	/**
@@ -2735,10 +2683,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getZoomLevel() {
-		return this.getCamera().z
+		return this.camera.getZoomLevel()
 	}
-
-	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
 	 * Get the debounced zoom level. When the camera is moving, this returns the zoom level
@@ -2751,15 +2697,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getDebouncedZoomLevel() {
-		if (this.options.debouncedZoom) {
-			if (this.getCameraState() === 'idle') {
-				return this.getZoomLevel()
-			} else {
-				return this._debouncedZoomLevel.get()
-			}
-		}
-
-		return this.getZoomLevel()
+		return this.camera.getDebouncedZoomLevel()
 	}
 
 	@computed private _getAboveDebouncedZoomThreshold() {
@@ -2794,44 +2732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public */
 	getInitialZoom() {
-		const cameraOptions = this.getCameraOptions()
-		// If no camera constraints are provided, the default zoom is 100%
-		if (!cameraOptions.constraints) return 1
-
-		// When defaultZoom is default, the default zoom is 100%
-		if (cameraOptions.constraints.initialZoom === 'default') return 1
-
-		const { zx, zy } = getCameraFitXFitY(this, cameraOptions)
-
-		switch (cameraOptions.constraints.initialZoom) {
-			case 'fit-min': {
-				return Math.max(zx, zy)
-			}
-			case 'fit-max': {
-				return Math.min(zx, zy)
-			}
-			case 'fit-x': {
-				return zx
-			}
-			case 'fit-y': {
-				return zy
-			}
-			case 'fit-min-100': {
-				return Math.min(1, Math.max(zx, zy))
-			}
-			case 'fit-max-100': {
-				return Math.min(1, Math.min(zx, zy))
-			}
-			case 'fit-x-100': {
-				return Math.min(1, zx)
-			}
-			case 'fit-y-100': {
-				return Math.min(1, zy)
-			}
-			default: {
-				throw exhaustiveSwitchError(cameraOptions.constraints.initialZoom)
-			}
-		}
+		return this.camera.getInitialZoom()
 	}
 
 	/**
@@ -2844,47 +2745,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public */
 	getBaseZoom() {
-		const cameraOptions = this.getCameraOptions()
-		// If no camera constraints are provided, the default zoom is 100%
-		if (!cameraOptions.constraints) return 1
-
-		// When defaultZoom is default, the default zoom is 100%
-		if (cameraOptions.constraints.baseZoom === 'default') return 1
-
-		const { zx, zy } = getCameraFitXFitY(this, cameraOptions)
-
-		switch (cameraOptions.constraints.baseZoom) {
-			case 'fit-min': {
-				return Math.max(zx, zy)
-			}
-			case 'fit-max': {
-				return Math.min(zx, zy)
-			}
-			case 'fit-x': {
-				return zx
-			}
-			case 'fit-y': {
-				return zy
-			}
-			case 'fit-min-100': {
-				return Math.min(1, Math.max(zx, zy))
-			}
-			case 'fit-max-100': {
-				return Math.min(1, Math.min(zx, zy))
-			}
-			case 'fit-x-100': {
-				return Math.min(1, zx)
-			}
-			case 'fit-y-100': {
-				return Math.min(1, zy)
-			}
-			default: {
-				throw exhaustiveSwitchError(cameraOptions.constraints.baseZoom)
-			}
-		}
+		return this.camera.getBaseZoom()
 	}
-
-	private _cameraOptions = atom('camera options', DEFAULT_CAMERA_OPTIONS)
 
 	/**
 	 * Get the current camera options.
@@ -2896,7 +2758,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 *  @public */
 	getCameraOptions() {
-		return this._cameraOptions.get()
+		return this.camera.getCameraOptions()
 	}
 
 	/**
@@ -2912,18 +2774,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public */
 	setCameraOptions(opts: Partial<TLCameraOptions>) {
-		const next = structuredClone({
-			...this._cameraOptions.__unsafe__getWithoutCapture(),
-			...opts,
-		})
-		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
-		this._cameraOptions.set(next)
-		this.setCamera(this.getCamera())
+		this.camera.setCameraOptions(opts)
 		return this
 	}
 
 	/** @internal */
-	private getConstrainedCamera(
+	getConstrainedCamera(
 		point: VecLike,
 		opts?: TLCameraMoveOptions
 	): {
@@ -2931,203 +2787,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		y: number
 		z: number
 	} {
-		const currentCamera = this.getCamera()
-
-		let { x, y, z = currentCamera.z } = point
-
-		// If force is true, then we'll set the camera to the point regardless of
-		// the camera options, so that we can handle gestures that permit elasticity
-		// or decay, or animations that occur while the camera is locked.
-		if (!opts?.force) {
-			// Apply any adjustments based on the camera options
-
-			const cameraOptions = this.getCameraOptions()
-
-			const zoomMin = cameraOptions.zoomSteps[0]
-			const zoomMax = last(cameraOptions.zoomSteps)!
-
-			const vsb = this.getViewportScreenBounds()
-
-			// If bounds are provided, then we'll keep those bounds on screen
-			if (cameraOptions.constraints) {
-				const { constraints } = cameraOptions
-
-				// Clamp padding to half the viewport size on either dimension
-				const py = Math.min(constraints.padding.y, vsb.w / 2)
-				const px = Math.min(constraints.padding.x, vsb.h / 2)
-
-				// Expand the bounds by the padding
-				const bounds = Box.From(cameraOptions.constraints.bounds)
-
-				// For each axis, the "natural zoom" is the zoom at
-				// which the expanded bounds (with padding) would fit
-				// the current viewport screen bounds. Paddings are
-				// equal to screen pixels at 100%
-				// The min and max zooms are factors of the smaller natural zoom axis
-
-				const zx = (vsb.w - px * 2) / bounds.w
-				const zy = (vsb.h - py * 2) / bounds.h
-
-				const baseZoom = this.getBaseZoom()
-				const maxZ = zoomMax * baseZoom
-				const minZ = zoomMin * baseZoom
-
-				if (opts?.reset) {
-					z = this.getInitialZoom()
-				}
-
-				if (z < minZ || z > maxZ) {
-					// We're trying to zoom out past the minimum zoom level,
-					// or in past the maximum zoom level, so stop the camera
-					// but keep the current center
-					const { x: cx, y: cy, z: cz } = currentCamera
-					const cxA = -cx + vsb.w / cz / 2
-					const cyA = -cy + vsb.h / cz / 2
-					z = clamp(z, minZ, maxZ)
-					const cxB = -cx + vsb.w / z / 2
-					const cyB = -cy + vsb.h / z / 2
-					x = cx + cxB - cxA
-					y = cy + cyB - cyA
-				}
-
-				// Calculate available space
-				const minX = px / z - bounds.x
-				const minY = py / z - bounds.y
-				const freeW = (vsb.w - px * 2) / z - bounds.w
-				const freeH = (vsb.h - py * 2) / z - bounds.h
-				const originX = minX + freeW * constraints.origin.x
-				const originY = minY + freeH * constraints.origin.y
-
-				const behaviorX =
-					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.x
-				const behaviorY =
-					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.y
-
-				// x axis
-
-				if (opts?.reset) {
-					// Reset the camera according to the origin
-					x = originX
-					y = originY
-				} else {
-					// Apply constraints to the camera
-					switch (behaviorX) {
-						case 'fixed': {
-							// Center according to the origin
-							x = originX
-							break
-						}
-						case 'contain': {
-							// When below fit zoom, center the camera
-							if (z < zx) x = originX
-							// When above fit zoom, keep the bounds within padding distance of the viewport edge
-							else x = clamp(x, minX + freeW, minX)
-							break
-						}
-						case 'inside': {
-							// When below fit zoom, constrain the camera so that the bounds stay completely within the viewport
-							if (z < zx) x = clamp(x, minX, (vsb.w - px) / z - bounds.w)
-							// When above fit zoom, keep the bounds within padding distance of the viewport edge
-							else x = clamp(x, minX + freeW, minX)
-							break
-						}
-						case 'outside': {
-							// Constrain the camera so that the bounds never leaves the viewport
-							x = clamp(x, px / z - bounds.w, (vsb.w - px) / z)
-							break
-						}
-						case 'free': {
-							// noop, use whatever x is provided
-							break
-						}
-						default: {
-							throw exhaustiveSwitchError(behaviorX)
-						}
-					}
-
-					// y axis
-
-					switch (behaviorY) {
-						case 'fixed': {
-							y = originY
-							break
-						}
-						case 'contain': {
-							if (z < zy) y = originY
-							else y = clamp(y, minY + freeH, minY)
-							break
-						}
-						case 'inside': {
-							if (z < zy) y = clamp(y, minY, (vsb.h - py) / z - bounds.h)
-							else y = clamp(y, minY + freeH, minY)
-							break
-						}
-						case 'outside': {
-							y = clamp(y, py / z - bounds.h, (vsb.h - py) / z)
-							break
-						}
-						case 'free': {
-							// noop, use whatever x is provided
-							break
-						}
-						default: {
-							throw exhaustiveSwitchError(behaviorY)
-						}
-					}
-				}
-			} else {
-				// constrain the zoom, preserving the center
-				if (z > zoomMax || z < zoomMin) {
-					const { x: cx, y: cy, z: cz } = currentCamera
-					z = clamp(z, zoomMin, zoomMax)
-					x = cx + (-cx + vsb.w / z / 2) - (-cx + vsb.w / cz / 2)
-					y = cy + (-cy + vsb.h / z / 2) - (-cy + vsb.h / cz / 2)
-				}
-			}
-		}
-
-		return { x, y, z }
+		return this.camera.getConstrainedCamera(point, opts)
 	}
 
 	/** @internal */
-	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
-		const currentCamera = this.getCamera()
-
-		const { x, y, z } = this.getConstrainedCamera(point, opts)
-
-		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) {
-			return this
-		}
-
-		transact(() => {
-			const camera = { ...currentCamera, x, y, z }
-			this.run(
-				() => {
-					this.store.put([camera]) // include id and meta here
-				},
-				{ history: 'ignore' }
-			)
-
-			// Dispatch a new pointer move because the pointer's page will have changed
-			// (its screen position will compute to a new page position given the new camera position)
-			const currentScreenPoint = this.inputs.getCurrentScreenPoint()
-			const currentPagePoint = this.inputs.getCurrentPagePoint()
-
-			// compare the next page point (derived from the current camera) to the current page point
-			if (
-				currentScreenPoint.x / z - x !== currentPagePoint.x ||
-				currentScreenPoint.y / z - y !== currentPagePoint.y
-			) {
-				// If it's changed, dispatch a pointer event
-				this.updatePointer({
-					immediate: opts?.immediate,
-					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				})
-			}
-
-			this._tickCameraState()
-		})
-
+	_setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
+		this.camera._setCamera(point, opts)
 		return this
 	}
 
@@ -3147,39 +2812,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
-		if (isLocked && !opts?.force) return this
-
-		// Stop any camera animations
-		this.stopCameraAnimation()
-
-		// Stop following any user
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
-
-		const _point = Vec.Cast(point)
-
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
-
-		const camera = this.getConstrainedCamera(_point, opts)
-
-		if (opts?.animation) {
-			const { width, height } = this.getViewportScreenBounds()
-			this._animateToViewport(
-				new Box(-camera.x, -camera.y, width / camera.z, height / camera.z),
-				opts
-			)
-		} else {
-			this._setCamera(camera, {
-				...opts,
-				// we already did the constraining, so we don't need to do it again
-				force: true,
-			})
-		}
-
+		this.camera.setCamera(point, opts)
 		return this
 	}
 
@@ -3198,11 +2831,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
-
-		const { width: pw, height: ph } = this.getViewportPageBounds()
-		this.setCamera(new Vec(-(point.x - pw / 2), -(point.y - ph / 2), this.getCamera().z), opts)
+		this.camera.centerOnPoint(point, opts)
 		return this
 	}
 
@@ -3220,10 +2849,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToFit(opts?: TLCameraMoveOptions): this {
-		const ids = [...this.getCurrentPageShapeIds()]
-		if (ids.length <= 0) return this
-		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-		this.zoomToBounds(pageBounds, opts)
+		this.camera.zoomToFit(opts)
 		return this
 	}
 
@@ -3243,28 +2869,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		const { isLocked, constraints: constraints } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
-
-		const currentCamera = this.getCamera()
-		const { x: cx, y: cy, z: cz } = currentCamera
-		const { x, y } = point
-
-		let z = 1
-
-		if (constraints) {
-			// For non-infinite fit, we'll set the camera to the natural zoom level...
-			// unless it's already there, in which case we'll set zoom to 100%
-			const initialZoom = this.getInitialZoom()
-			if (cz !== initialZoom) {
-				z = initialZoom
-			}
-		}
-
-		this.setCamera(
-			new Vec(cx + (x / z - x) - (x / cz - x), cy + (y / z - y) - (y / cz - y), z),
-			opts
-		)
+		this.camera.resetZoom(point, opts)
 		return this
 	}
 
@@ -3284,32 +2889,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomIn(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
-
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-
-		const { zoomSteps } = this.getCameraOptions()
-		if (zoomSteps !== null && zoomSteps.length > 1) {
-			const baseZoom = this.getBaseZoom()
-			let zoom = last(zoomSteps)! * baseZoom
-			for (let i = 1; i < zoomSteps.length; i++) {
-				const z1 = zoomSteps[i - 1] * baseZoom
-				const z2 = zoomSteps[i] * baseZoom
-				if (z2 - cz <= (z2 - z1) / 2) continue
-				zoom = z2
-				break
-			}
-			this.setCamera(
-				new Vec(
-					cx + (point.x / zoom - point.x) - (point.x / cz - point.x),
-					cy + (point.y / zoom - point.y) - (point.y / cz - point.y),
-					zoom
-				),
-				opts
-			)
-		}
-
+		this.camera.zoomIn(point, opts)
 		return this
 	}
 
@@ -3329,32 +2909,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomOut(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
-
-		const { zoomSteps } = this.getCameraOptions()
-		if (zoomSteps !== null && zoomSteps.length > 1) {
-			const baseZoom = this.getBaseZoom()
-			const { x: cx, y: cy, z: cz } = this.getCamera()
-			// start at the max
-			let zoom = zoomSteps[0] * baseZoom
-			for (let i = zoomSteps.length - 1; i > 0; i--) {
-				const z1 = zoomSteps[i - 1] * baseZoom
-				const z2 = zoomSteps[i] * baseZoom
-				if (z2 - cz >= (z2 - z1) / 2) continue
-				zoom = z1
-				break
-			}
-			this.setCamera(
-				new Vec(
-					cx + (point.x / zoom - point.x) - (point.x / cz - point.x),
-					cy + (point.y / zoom - point.y) - (point.y / cz - point.y),
-					zoom
-				),
-				opts
-			)
-		}
-
+		this.camera.zoomOut(point, opts)
 		return this
 	}
 
@@ -3372,16 +2927,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToSelection(opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
-
-		const selectionPageBounds = this.getSelectionPageBounds()
-		if (selectionPageBounds) {
-			this.zoomToBounds(selectionPageBounds, {
-				targetZoom: Math.max(1, this.getZoomLevel()),
-				...opts,
-			})
-		}
+		this.camera.zoomToSelection(opts)
 		return this
 	}
 
@@ -3394,23 +2940,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		padding = 16,
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	) {
-		const selectionPageBounds = this.getSelectionPageBounds()
-		const viewportPageBounds = this.getViewportPageBounds()
-		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-			const eb = selectionPageBounds
-				.clone()
-				// Expand the bounds by the padding
-				.expandBy(padding / this.getZoomLevel())
-				// then expand the bounds to include the viewport bounds
-				.expand(viewportPageBounds)
-
-			// then use the difference between the centers to calculate the offset
-			const nextBounds = viewportPageBounds.clone().translate({
-				x: (eb.center.x - viewportPageBounds.center.x) * 2,
-				y: (eb.center.y - viewportPageBounds.center.y) * 2,
-			})
-			this.zoomToBounds(nextBounds, opts)
-		}
+		this.camera.zoomToSelectionIfOffscreen(padding, opts)
 	}
 
 	/**
@@ -3432,39 +2962,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		bounds: BoxLike,
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	): this {
-		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()
-		if (cameraOptions.isLocked && !opts?.force) return this
-
-		const viewportScreenBounds = this.getViewportScreenBounds()
-
-		const inset = opts?.inset ?? Math.min(ZOOM_TO_FIT_PADDING, viewportScreenBounds.width * 0.28)
-
-		const baseZoom = this.getBaseZoom()
-		const zoomMin = cameraOptions.zoomSteps[0]
-		const zoomMax = last(cameraOptions.zoomSteps)!
-
-		let zoom = clamp(
-			Math.min(
-				(viewportScreenBounds.width - inset) / bounds.w,
-				(viewportScreenBounds.height - inset) / bounds.h
-			),
-			zoomMin * baseZoom,
-			zoomMax * baseZoom
-		)
-
-		if (opts?.targetZoom !== undefined) {
-			zoom = Math.min(opts.targetZoom, zoom)
-		}
-
-		this.setCamera(
-			new Vec(
-				-bounds.x + (viewportScreenBounds.width - bounds.w * zoom) / 2 / zoom,
-				-bounds.y + (viewportScreenBounds.height - bounds.h * zoom) / 2 / zoom,
-				zoom
-			),
-			opts
-		)
-
+		this.camera.zoomToBounds(bounds, opts)
 		return this
 	}
 
@@ -3479,96 +2977,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopCameraAnimation(): this {
-		this.emit('stop-camera-animation')
+		this.camera.stopCameraAnimation()
 		return this
 	}
 
 	/** @internal */
-	private _viewportAnimation = null as null | {
-		elapsed: number
-		duration: number
-		easing(t: number): number
-		start: Box
-		end: Box
+	_animateViewport(ms: number): void {
+		this.camera._animateViewport(ms)
 	}
 
 	/** @internal */
-	private _animateViewport(ms: number): void {
-		if (!this._viewportAnimation) return
-
-		this._viewportAnimation.elapsed += ms
-
-		const { elapsed, easing, duration, start, end } = this._viewportAnimation
-
-		if (elapsed > duration) {
-			this.off('tick', this._animateViewport)
-			this._viewportAnimation = null
-			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
-			return
-		}
-
-		const remaining = duration - elapsed
-		const t = easing(1 - remaining / duration)
-
-		const left = start.minX + (end.minX - start.minX) * t
-		const top = start.minY + (end.minY - start.minY) * t
-		const right = start.maxX + (end.maxX - start.maxX) * t
-
-		this._setCamera(new Vec(-left, -top, this.getViewportScreenBounds().width / (right - left)), {
-			force: true,
-		})
-	}
-
-	/** @internal */
-	private _animateToViewport(
+	_animateToViewport(
 		targetViewportPage: Box,
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
 	) {
-		const { animation, ...rest } = opts
-		if (!animation) return
-		const { duration = 0, easing = EASINGS.easeInOutCubic } = animation
-		const animationSpeed = this.user.getAnimationSpeed()
-		const viewportPageBounds = this.getViewportPageBounds()
-
-		// If we have an existing animation, then stop it
-		this.stopCameraAnimation()
-
-		// also stop following any user
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
-
-		if (duration === 0 || animationSpeed === 0) {
-			// If we have no animation, then skip the animation and just set the camera
-			return this._setCamera(
-				new Vec(
-					-targetViewportPage.x,
-					-targetViewportPage.y,
-					this.getViewportScreenBounds().width / targetViewportPage.width
-				),
-				{ ...rest }
-			)
-		}
-
-		// Set our viewport animation
-		this._viewportAnimation = {
-			elapsed: 0,
-			duration: duration / animationSpeed,
-			easing,
-			start: viewportPageBounds.clone(),
-			end: targetViewportPage.clone(),
-		}
-
-		// If we ever get a "stop-camera-animation" event, we stop
-		this.once('stop-camera-animation', () => {
-			this.off('tick', this._animateViewport)
-			this._viewportAnimation = null
-		})
-
-		// On each tick, animate the viewport
-		this.on('tick', this._animateViewport)
-
-		return this
+		this.camera._animateToViewport(targetViewportPage, opts)
 	}
 
 	/**
@@ -3591,44 +3014,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			force?: boolean
 		}
 	): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
-
-		const animationSpeed = this.user.getAnimationSpeed()
-		if (animationSpeed === 0) return this
-
-		this.stopCameraAnimation()
-
-		const {
-			speed,
-			friction = this.options.cameraSlideFriction,
-			direction,
-			speedThreshold = 0.01,
-		} = opts
-		let currentSpeed = Math.min(speed, 1)
-
-		const cancel = () => {
-			this.off('tick', moveCamera)
-			this.off('stop-camera-animation', cancel)
-		}
-
-		this.once('stop-camera-animation', cancel)
-
-		const moveCamera = (elapsed: number) => {
-			const { x: cx, y: cy, z: cz } = this.getCamera()
-			const movementVec = Vec.Mul(direction, (currentSpeed * elapsed) / cz)
-
-			// Apply friction
-			currentSpeed *= 1 - friction
-			if (currentSpeed < speedThreshold) {
-				cancel()
-			} else {
-				this._setCamera(new Vec(cx + movementVec.x, cy + movementVec.y, cz))
-			}
-		}
-
-		this.on('tick', moveCamera)
-
+		this.camera.slideCamera(opts)
 		return this
 	}
 
@@ -3646,46 +3032,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToUser(userId: string, opts: TLCameraMoveOptions = { animation: { duration: 500 } }): this {
-		const presence = this.getCollaborators().find((c) => c.userId === userId)
-
-		if (!presence) return this
-
-		const cursor = presence.cursor
-		if (!cursor) return this
-
-		this.run(() => {
-			// If we're following someone, stop following them
-			if (this.getInstanceState().followingUserId !== null) {
-				this.stopFollowingUser()
-			}
-
-			// If we're not on the same page, move to the page they're on
-			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
-			if (!isOnSamePage) {
-				this.setCurrentPage(presence.currentPageId)
-			}
-
-			// Only animate the camera if the user is on the same page as us
-			if (opts && opts.animation && !isOnSamePage) {
-				opts.animation = undefined
-			}
-
-			this.centerOnPoint(cursor, opts)
-
-			// Highlight the user's cursor
-			const { highlightedUserIds } = this.getInstanceState()
-			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
-
-			// Unhighlight the user's cursor after a few seconds
-			this.timers.setTimeout(() => {
-				const highlightedUserIds = [...this.getInstanceState().highlightedUserIds]
-				const index = highlightedUserIds.indexOf(userId)
-				if (index < 0) return
-				highlightedUserIds.splice(index, 1)
-				this.updateInstanceState({ highlightedUserIds })
-			}, this.options.collaboratorIdleTimeoutMs)
-		})
-
+		this.camera.zoomToUser(userId, opts)
 		return this
 	}
 
@@ -3710,60 +3057,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateViewportScreenBounds(screenBounds: Box | HTMLElement, center = false): this {
-		if (!(screenBounds instanceof Box)) {
-			const rect = screenBounds.getBoundingClientRect()
-			screenBounds = new Box(
-				rect.left || rect.x,
-				rect.top || rect.y,
-				Math.max(rect.width, 1),
-				Math.max(rect.height, 1)
-			)
-		} else {
-			screenBounds.width = Math.max(screenBounds.width, 1)
-			screenBounds.height = Math.max(screenBounds.height, 1)
-		}
-
-		const insets = [
-			// top
-			screenBounds.minY !== 0,
-			// right
-			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
-			// bottom
-			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
-			// left
-			screenBounds.minX !== 0,
-		]
-
-		const { _willSetInitialBounds } = this
-
-		this._willSetInitialBounds = false
-
-		const { screenBounds: prevScreenBounds, insets: prevInsets } = this.getInstanceState()
-		if (screenBounds.equals(prevScreenBounds) && insets.every((v, i) => v === prevInsets[i])) {
-			// nothing to do
-			return this
-		}
-
-		if (_willSetInitialBounds) {
-			// If we have just received the initial bounds, don't center the camera.
-			this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-			this.emit('resize', screenBounds.toJson())
-			this.setCamera(this.getCamera())
-		} else {
-			if (center && !this.getInstanceState().followingUserId) {
-				// Get the page center before the change, make the change, and restore it
-				const before = this.getViewportPageBounds().center
-				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-				this.emit('resize', screenBounds.toJson())
-				this.centerOnPoint(before)
-			} else {
-				// Otherwise,
-				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-				this.emit('resize', screenBounds.toJson())
-				this._setCamera(Vec.From({ ...this.getCamera() }))
-			}
-		}
-
+		this.camera.updateViewportScreenBounds(screenBounds, center)
 		return this
 	}
 
@@ -3773,8 +3067,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getViewportScreenBounds() {
-		const { x, y, w, h } = this.getInstanceState().screenBounds
-		return new Box(x, y, w, h)
+		return this.camera.getViewportScreenBounds()
 	}
 
 	/**
@@ -3793,9 +3086,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getViewportPageBounds() {
-		const { w, h } = this.getViewportScreenBounds()
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-		return new Box(-cx, -cy, w / cz, h / cz)
+		return this.camera.getViewportPageBounds()
 	}
 
 	/**
@@ -3811,13 +3102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	screenToPage(point: VecLike) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
-		return new Vec(
-			(point.x - screenBounds.x) / cz - cx,
-			(point.y - screenBounds.y) / cz - cy,
-			point.z ?? 0.5
-		)
+		return this.camera.screenToPage(point)
 	}
 
 	/**
@@ -3833,13 +3118,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
-		return new Vec(
-			(point.x + cx) * cz + screenBounds.x,
-			(point.y + cy) * cz + screenBounds.y,
-			point.z ?? 0.5
-		)
+		return this.camera.pageToScreen(point)
 	}
 
 	/**
@@ -3855,8 +3134,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToViewport(point: VecLike) {
-		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
-		return new Vec((point.x + cx) * cz, (point.y + cy) * cz, point.z ?? 0.5)
+		return this.camera.pageToViewport(point)
 	}
 	// Collaborators
 
@@ -3901,9 +3179,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// Following
 
-	// When we are 'locked on' to a user, our camera is derived from their camera.
-	private _isLockedOnFollowingUser = atom('isLockedOnFollowingUser', false)
-
 	/**
 	 * Start viewport-following a user.
 	 *
@@ -3917,131 +3192,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	startFollowingUser(userId: string): this {
-		// if we were already following someone, stop following them
-		this.stopFollowingUser()
-
-		const thisUserId = this.user.getId()
-
-		if (!thisUserId) {
-			console.warn('You should set the userId for the current instance before following a user')
-			// allow to continue since it's probably fine most of the time.
-		}
-
-		const leaderPresence = this._getFollowingPresence(userId)
-
-		if (!leaderPresence) {
-			return this
-		}
-
-		const latestLeaderPresence = computed('latestLeaderPresence', () => {
-			return this._getFollowingPresence(userId)
-		})
-
-		transact(() => {
-			this.updateInstanceState({ followingUserId: userId }, { history: 'ignore' })
-
-			// we listen for page changes separately from the 'moveTowardsUser' tick
-			const dispose = react('update current page', () => {
-				const leaderPresence = latestLeaderPresence.get()
-				if (!leaderPresence) {
-					this.stopFollowingUser()
-					return
-				}
-				if (
-					leaderPresence.currentPageId !== this.getCurrentPageId() &&
-					this.getPage(leaderPresence.currentPageId)
-				) {
-					// if the page changed, switch page
-					this.run(
-						() => {
-							// sneaky store.put here, we can't go through setCurrentPage because it calls stopFollowingUser
-							this.store.put([
-								{ ...this.getInstanceState(), currentPageId: leaderPresence.currentPageId },
-							])
-							this._isLockedOnFollowingUser.set(true)
-						},
-						{ history: 'ignore' }
-					)
-				}
-			})
-
-			const cancel = () => {
-				dispose()
-				this._isLockedOnFollowingUser.set(false)
-				this.off('frame', moveTowardsUser)
-				this.off('stop-following', cancel)
-			}
-
-			const moveTowardsUser = () => {
-				// Stop following if we can't find the user
-				const leaderPresence = latestLeaderPresence.get()
-				if (!leaderPresence) {
-					this.stopFollowingUser()
-					return
-				}
-
-				if (this._isLockedOnFollowingUser.get()) return
-
-				const animationSpeed = this.user.getAnimationSpeed()
-
-				if (animationSpeed === 0) {
-					this._isLockedOnFollowingUser.set(true)
-					return
-				}
-
-				const targetViewport = this.getViewportPageBoundsForFollowing()
-				if (!targetViewport) {
-					this.stopFollowingUser()
-					return
-				}
-				const currentViewport = this.getViewportPageBounds()
-
-				const diffX =
-					Math.abs(targetViewport.minX - currentViewport.minX) +
-					Math.abs(targetViewport.maxX - currentViewport.maxX)
-				const diffY =
-					Math.abs(targetViewport.minY - currentViewport.minY) +
-					Math.abs(targetViewport.maxY - currentViewport.maxY)
-
-				// Stop chasing if we're close enough!
-				if (
-					diffX < this.options.followChaseViewportSnap &&
-					diffY < this.options.followChaseViewportSnap
-				) {
-					this._isLockedOnFollowingUser.set(true)
-					return
-				}
-
-				// Chase the user's viewport!
-				// Interpolate between the current viewport and the target viewport based on animation speed.
-				// This will produce an 'ease-out' effect.
-				const t = clamp(animationSpeed * 0.5, 0.1, 0.8)
-
-				const nextViewport = new Box(
-					lerp(currentViewport.minX, targetViewport.minX, t),
-					lerp(currentViewport.minY, targetViewport.minY, t),
-					lerp(currentViewport.width, targetViewport.width, t),
-					lerp(currentViewport.height, targetViewport.height, t)
-				)
-
-				const nextCamera = new Vec(
-					-nextViewport.x,
-					-nextViewport.y,
-					this.getViewportScreenBounds().width / nextViewport.width
-				)
-
-				// Update the camera!
-				this.stopCameraAnimation()
-				this._setCamera(nextCamera)
-			}
-
-			this.once('stop-following', cancel)
-			this.addListener('frame', moveTowardsUser)
-
-			// call once to start synchronously
-			moveTowardsUser()
-		})
-
+		this.camera.startFollowingUser(userId)
 		return this
 	}
 
@@ -4055,17 +3206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
-		this.run(
-			() => {
-				// commit the current camera to the store
-				this.store.put([this.getCamera()])
-				// this must happen after the camera is committed
-				this._isLockedOnFollowingUser.set(false)
-				this.updateInstanceState({ followingUserId: null })
-				this.emit('stop-following')
-			},
-			{ history: 'ignore' }
-		)
+		this.camera.stopFollowingUser()
 		return this
 	}
 
@@ -4167,22 +3308,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// unmount / remount in the DOM, which is expensive; and computing visibility is
 	// also expensive in large projects. For this reason, we use a second bounding
 	// box just for rendering, and we only update after the camera stops moving.
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
-	private _cameraStateTimeoutRemaining = 0
-	private _decayCameraStateTimeout(elapsed: number) {
-		this._cameraStateTimeoutRemaining -= elapsed
-		if (this._cameraStateTimeoutRemaining > 0) return
-		this.off('tick', this._decayCameraStateTimeout)
-		this._cameraState.set('idle')
+	_decayCameraStateTimeout(elapsed: number) {
+		this.camera._decayCameraStateTimeout(elapsed)
 	}
-	private _tickCameraState() {
-		// always reset the timeout
-		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
-		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
-		this._cameraState.set('moving')
-		this._debouncedZoomLevel.set(unsafe__withoutCapture(() => this.getCamera().z))
-		this.on('tick', this._decayCameraStateTimeout)
+	_tickCameraState() {
+		this.camera._tickCameraState()
 	}
 
 	/**
@@ -4196,7 +3326,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCameraState() {
-		return this._cameraState.get()
+		return this.camera.getCameraState()
 	}
 
 	/**
@@ -9826,11 +8956,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _zoomToFitPageContentAt100Percent() {
-		const bounds = this.getCurrentPageBounds()
-		if (bounds) {
-			this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
-		}
+	_zoomToFitPageContentAt100Percent() {
+		this.camera._zoomToFitPageContentAt100Percent()
 	}
 	private _navigateToDeepLink(deepLink: TLDeepLink) {
 		this.run(() => {
@@ -10331,7 +9458,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const instanceState = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const pageState = this.store.get(this._getCurrentPageStateId())!
-		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()!
+		const cameraOptions = this.getCameraOptions()
 
 		switch (type) {
 			case 'pinch': {
