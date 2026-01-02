@@ -1,0 +1,14 @@
+name: Task
+description: Create a task
+type: Task
+title: ''
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the task.
+    validations:
+      required: true

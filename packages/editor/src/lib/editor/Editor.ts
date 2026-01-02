@@ -8248,7 +8248,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
-		const pageBounds = Box.Common(compact(shapesToGroup.map((id) => this.getShapePageBounds(id))))
+		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
+		const pageBounds = Box.Common(childBounds)
+
+		if (!pageBounds.isValid()) {
+			throw Error(`Editor.groupShapes: group bounds are invalid (NaN).`)
+		}
 
 		const { x, y } = pageBounds.point
 
@@ -10350,6 +10355,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.interrupt()
 						}
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 					case 'pinch': {
@@ -10384,6 +10390,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 					case 'pinch_end': {
@@ -10410,6 +10417,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						}
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 				}
@@ -10465,6 +10473,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.root.handleEvent(info)
+							this.emit('event', info)
 							return
 						}
 						case 'pan': {
@@ -10473,6 +10483,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.root.handleEvent(info)
+							this.emit('event', info)
 							return
 						}
 					}
