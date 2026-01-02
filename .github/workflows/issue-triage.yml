@@ -40,50 +40,37 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            You are an issue triage bot for the tldraw repository. You need to evaluate and tidy up issue #${{ env.ISSUE_NUMBER }}.
+            You are an issue triage bot for the tldraw repository. Evaluate and label issue #${{ env.ISSUE_NUMBER }}.
 
             ## Issue details
             ```json
             ${{ steps.issue.outputs.details }}
             ```
 
-            ## Your tasks
+            ## Tasks
 
-            ### 1. Evaluate the title and body
-            - If the title and body are clear and acceptable, leave them as-is
-            - Only suggest improvements if there are significant clarity issues
+            ### 1. Classify the issue type
+            Determine if this is a:
+            - **Bug**: Something is broken or not working as designed (crashes, rendering errors, data loss)
+            - **Improvement**: A request to enhance existing behavior (UX preferences, "I wish X worked like Y")
+            - **Feature**: A request for entirely new functionality
+            - **Task**: Internal team task
+            - **Example**: Request for a new SDK example
 
-            ### 2. Evaluate and assign the correct Type
-            The issue template system uses these types:
-            - **Bug**: Actual bugs where something is broken or not working as designed
-            - **Feature**: New feature requests or enhancements
-            - **Task**: Internal tasks for the team
-            - **Example**: Requests for new SDK examples
+            IMPORTANT: Many issues filed as "bugs" are actually improvement requests. A true bug is something objectively broken. "The menu should be on the left" or "I don't like the animation" are improvements, not bugs.
 
-            Important: Distinguish between TRUE bugs and UX preferences disguised as bugs:
-            - TRUE BUG: "Clicking save crashes the app" or "Text doesn't render correctly"
-            - NOT A BUG (UX preference): "I don't like the color of the button" or "The menu should be on the left instead of right"
-
-            If an issue is filed as a Bug but is actually a UX preference or feature request, update the type accordingly.
-
-            ### 3. Apply appropriate labels
-            Use these labels as appropriate:
-            - `sdk` - Affects the tldraw SDK (@tldraw/tldraw package)
+            ### 2. Apply labels
+            Add appropriate labels using `gh issue edit --add-label`:
+            - `sdk` - Affects @tldraw/tldraw package
             - `dotcom` - Related to tldraw.com
-            - `docs` - Changes only affect documentation
-            - `examples` - Request for a new SDK example
-            - `performance` - Performance-related issues
-            - `a11y` - Accessibility-related issues
-            - `bugfix` - For confirmed bug fixes
-            - `feature` - For new features
-            - `improvement` - For product improvements
-            - `More Info Needed` - If the issue lacks critical information needed to understand or reproduce
-
-            ### 4. For TRUE bug reports, research the codebase
-            If this is a genuine bug report (not a UX preference), use your Explore capability to:
-            - Search the codebase for relevant files and code paths
-            - Identify where the bug might originate
-            - Look for related code, tests, or previous fixes
+            - `docs` - Documentation changes
+            - `examples` - SDK example requests
+            - `performance` - Performance issues
+            - `a11y` - Accessibility issues
+            - `bugfix` - Confirmed bugs (use only for TRUE bugs)
+            - `feature` - New features
+            - `improvement` - Product improvements (use this for UX preferences)
+            - `More Info Needed` - Issue lacks critical info to understand/reproduce
 
             ## Output format
             After your analysis:
@@ -93,5 +80,7 @@ jobs:
 
             IMPORTANT: Do NOT add comments to the issue. Only update labels and metadata.
 
-            Use the GitHub CLI (`gh`) to make any changes to the issue.
-          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*),Read,Glob,Grep,Task"'
+            ## Execution order
+            1. Read the issue and classify it
+            2. Add labels with `gh issue edit`
+          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*),Read,Glob,Grep,Task,Write"'
