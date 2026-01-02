@@ -129,6 +129,8 @@ gh issue edit <issue-number> --repo tldraw/tldraw --milestone "Milestone Name"
 
 Only assign a milestone if there's a clear fit. Most issues won't need a milestone.
 
+**Important**: NEVER include "Generated with Claude Code", "Co-Authored-By: Claude", or any other AI attribution notes in the issue title or body.
+
 7. **Share the issue URL** with the user immediately after creation
 
 ### Step 4: Deep research with subagent
