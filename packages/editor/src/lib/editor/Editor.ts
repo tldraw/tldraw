@@ -8984,6 +8984,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		url: null,
 		tldraw: null,
 		excalidraw: null,
+		drop: null,
 	}
 
 	/**
