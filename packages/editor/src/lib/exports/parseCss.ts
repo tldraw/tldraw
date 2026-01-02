@@ -108,5 +108,5 @@ export function parseCssValueUrls(value: string) {
 	return Array.from(value.matchAll(urlsRegex), (m) => ({
 		original: m[0],
 		url: m[1] || m[2] || m[3],
-	}))
+	})).filter((m) => !m.url.startsWith('#'))
 }
