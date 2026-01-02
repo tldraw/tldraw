@@ -99,20 +99,13 @@ jobs:
 
             Only assign a milestone if there's a clear fit. Most issues won't need a milestone.
 
-            ### 4. For TRUE bug reports, research the codebase
-            If this is a genuine bug report (not a UX preference), use your Explore capability to:
-            - Search the codebase for relevant files and code paths
-            - Identify where the bug might originate
-            - Look for related code, tests, or previous fixes
-            - Add a comment with your findings to help developers investigate
-
             ## Output format
             After your analysis:
             1. If labels need to be added, use `gh issue edit --add-label` to add them
             2. If the type needs to be set or changed, use `gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} -X PATCH -f type="TypeName"`
             3. If a milestone applies, use `gh issue edit --milestone "Milestone Name"` to assign it
-            4. For bug reports, add a comment with your research findings using `gh issue comment`
-            5. If no changes are needed, you can simply acknowledge the issue is well-formed
+
+            IMPORTANT: Do NOT add comments to the issue. Only update labels, type, and milestone.
 
             Use the GitHub CLI (`gh`) to make any changes to the issue.
-          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*),Read,Glob,Grep,Task"'
+          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*)"'
