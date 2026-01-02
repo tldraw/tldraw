@@ -10468,7 +10468,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 							}
 
-							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
+							// Apply zoom direction preference
+							const isZoomDirectionInverted =
+								this.user.getUserPreferences().isZoomDirectionInverted ?? false
+							const finalDelta = isZoomDirectionInverted ? -delta : delta
+
+							const zoom = cz + (finalDelta ?? 0) * zoomSpeed * cz
 							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
 								immediate: true,
 							})
