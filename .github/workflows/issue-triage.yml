@@ -72,29 +72,15 @@ jobs:
             - `improvement` - Product improvements (use this for UX preferences)
             - `More Info Needed` - Issue lacks critical info to understand/reproduce
 
-            ### 3. Research the codebase (for bugs and improvements)
-            For bugs and improvements, research the codebase to identify:
-            - Relevant files and code paths
-            - Where the issue likely originates
-            - Related code, tests, or previous fixes
+            ## Output format
+            After your analysis:
+            1. If labels need to be added, use `gh issue edit` to add them
+            2. If the type needs to be changed, update it accordingly
+            3. If no changes are needed, you can simply acknowledge the issue is well-formed
 
-            Keep research focused - identify 3-5 key files maximum.
-
-            ### 4. Add a comment with findings
-            Write a brief comment summarizing:
-            - What type of issue this is and why
-            - Key files involved (with line numbers if helpful)
-            - Suggested approach (1-2 sentences)
-
-            IMPORTANT for comments:
-            - Write the comment to /tmp/comment.md first using Write tool
-            - Then post with: gh issue comment ${{ env.ISSUE_NUMBER }} --body-file /tmp/comment.md
-            - Keep comments concise (under 500 words)
-            - Use simple markdown (headers, bullets, bold) - avoid complex code blocks
+            IMPORTANT: Do NOT add comments to the issue. Only update labels and metadata.
 
             ## Execution order
             1. Read the issue and classify it
             2. Add labels with `gh issue edit`
-            3. Research codebase if needed
-            4. Write and post comment
           claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*),Read,Glob,Grep,Task,Write"'

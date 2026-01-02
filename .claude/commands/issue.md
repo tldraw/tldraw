@@ -11,6 +11,7 @@ $ARGUMENTS
 ### Step 1: Initial investigation
 
 First, do a quick investigation of the codebase to understand the problem area:
+
 - Search for relevant files, functions, or patterns mentioned in the issue description
 - Identify the likely affected code areas
 - Note any obvious causes or related code
@@ -80,6 +81,11 @@ gh issue create --repo tldraw/tldraw \
   --type "Bug"  # or: Feature, Example, Task
 ```
 
+**Important**:
+
+- ALWAYS include the `--type` flag with one of: Bug, Feature, Example, Task
+- NEVER include "Generated with Claude Code", "Co-Authored-By: Claude", or any other AI attribution notes in the issue title or body
+
 5. **Share the issue URL** with the user immediately after creation
 
 ### Step 4: Deep research with subagent
@@ -108,6 +114,7 @@ gh issue comment <issue-number> --repo tldraw/tldraw --body "Research findings..
 ```
 
 The comment should include:
+
 - **Relevant files**: List specific files and line numbers
 - **Root cause analysis**: What's causing the issue (for bugs)
 - **Architecture context**: How the affected system works
