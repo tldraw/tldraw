@@ -1,32 +1,18 @@
-import {
-	Atom,
-	EMPTY_ARRAY,
-	atom,
-	computed,
-	react,
-	transact,
-	unsafe__withoutCapture,
-} from '@tldraw/state'
-import {
-	CameraRecordType,
-	TLCamera,
-	TLInstancePresence,
-	TLINSTANCE_ID,
-	TLPageId,
-} from '@tldraw/tlschema'
-import { compact, exhaustiveSwitchError, last, lerp } from '@tldraw/utils'
-import { Box, BoxLike } from '../../../primitives/Box'
-import { Vec, VecLike } from '../../../primitives/Vec'
-import { EASINGS } from '../../../primitives/easings'
-import { approximately, clamp } from '../../../primitives/utils'
+import { atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
+import { CameraRecordType, TLCamera, TLINSTANCE_ID, TLInstancePresence } from '@tldraw/tlschema'
+import { compact, exhaustiveSwitchError, last, lerp, structuredClone } from '@tldraw/utils'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	INTERNAL_POINTER_IDS,
 	ZOOM_TO_FIT_PADDING,
 } from '../../../constants'
-import { TLCameraOptions, TLCameraMoveOptions } from '../../types/misc-types'
+import { Box, BoxLike } from '../../../primitives/Box'
+import { Vec, VecLike } from '../../../primitives/Vec'
+import { EASINGS } from '../../../primitives/easings'
+import { approximately, clamp } from '../../../primitives/utils'
 import type { Editor } from '../../Editor'
+import { TLCameraMoveOptions, TLCameraOptions } from '../../types/misc-types'
 
 /** @public */
 export class CameraManager {
