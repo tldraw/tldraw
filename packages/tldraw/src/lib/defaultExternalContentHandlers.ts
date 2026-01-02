@@ -526,7 +526,18 @@ export async function defaultHandleExternalTextContent(
 		p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 	}
 
-	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
+	const viewportBounds = editor.getViewportPageBounds()
+	let newX = p.x - w / 2
+
+	if (newX + w > viewportBounds.maxX - 20) {
+		newX = viewportBounds.maxX - w - 20
+	}
+
+	if (newX < viewportBounds.minX + 20) {
+		newX = viewportBounds.minX + 20
+	}
+
+	const newPoint = maybeSnapToGrid(new Vec(newX, p.y - h / 2), editor)
 	const shapeId = createShapeId()
 
 	// Allow this to trigger the max shapes reached alert
