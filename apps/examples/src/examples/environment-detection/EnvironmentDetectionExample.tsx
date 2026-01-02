@@ -16,8 +16,8 @@ function EnvironmentInfo() {
 		<div className="tlui-menu environment-info">
 			{/* [4] Static detection with tlenv */}
 			<div>
-				<strong>Platform (tlenv):</strong> {tlenv.isDarwin && 'macOS'}
-				{tlenv.isIos && 'iOS'}
+				<strong>Platform (tlenv):</strong> {tlenv.isIos && 'iOS'}
+				{tlenv.isDarwin && !tlenv.isIos && 'macOS'}
 				{tlenv.isAndroid && 'Android'}
 				{!tlenv.isDarwin && !tlenv.isIos && !tlenv.isAndroid && 'Other'}
 			</div>
@@ -77,7 +77,8 @@ This example demonstrates environment detection using tlenv and tlenvReactive.
     while mouse can use smaller buttons (32px)
 
 [4] Display static environment detection with tlenv - platform (isDarwin, isIos, isAndroid)
-    and browser (isSafari, isFirefox, isChromeForIos)
+    and browser (isSafari, isFirefox, isChromeForIos). Note: isIos is checked before isDarwin
+    because iPadOS reports as Mac, making both isDarwin and isIos true on iPads.
 
 [5] Display reactive pointer detection that updates when input method changes
 
