@@ -13,11 +13,13 @@ Detect platform, browser, and input device type.
 This example demonstrates tldraw's environment detection APIs for building platform-aware and device-adaptive interfaces:
 
 **Static detection (tlenv):**
+
 - Platform detection (macOS, Windows, iOS, Android)
 - Browser detection (Safari, Firefox, Chrome)
 - Platform-specific keyboard shortcuts (Cmd vs Ctrl)
 
 **Reactive detection (tlenvReactive with useValue):**
+
 - Pointer type detection (coarse/fine) - can change mid-session on hybrid devices
 - Real-time updates when switching between touch and mouse input
 
