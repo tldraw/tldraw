@@ -513,7 +513,7 @@ export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePan
 // @public (undocumented)
 export interface CenteredTopPanelContainerProps {
     // (undocumented)
-    children: ReactNode;
+    children?: ReactNode;
     // (undocumented)
     ignoreRightWidth?: number;
     // (undocumented)

@@ -955,8 +955,8 @@
 	color: var(--tl-color-background);
 	background-color: var(--tl-color-text);
 	border: none;
-	width: 40px;
-	height: 40px;
+	width: 32px;
+	height: 32px;
 	align-items: center;
 	justify-content: center;
 	border-radius: 99px;
