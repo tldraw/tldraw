@@ -1,0 +1,125 @@
+# Create and research a GitHub issue
+
+Create a new GitHub issue on tldraw/tldraw based on the user's description, then research it thoroughly.
+
+## User's issue description
+
+$ARGUMENTS
+
+## Instructions
+
+### Step 1: Initial investigation
+
+First, do a quick investigation of the codebase to understand the problem area:
+- Search for relevant files, functions, or patterns mentioned in the issue description
+- Identify the likely affected code areas
+- Note any obvious causes or related code
+
+### Step 2: Capture screenshots (for bugs)
+
+If this is a bug report and it can be visually demonstrated, try to capture screenshots:
+
+1. **Check if dev server is running** (or start it):
+   - `localhost:5420` - Examples app (`yarn dev`)
+   - `localhost:3000` - tldraw.com app (`yarn dev-app`)
+   - `localhost:3001` - Docs site (`yarn dev-docs`)
+
+2. **Use the dev-browser skill** to navigate and screenshot:
+   - Navigate to the relevant example or page
+   - Reproduce the bug visually if possible
+   - Take a screenshot showing the issue
+
+3. **Upload screenshots** to the issue:
+   - Use `gh issue edit` to add images after creating the issue, or
+   - Upload to GitHub and include the URL in the issue body
+
+If screenshots aren't feasible (e.g., the bug is non-visual, or reproduction is complex), skip this step and note in the issue what behavior to look for.
+
+### Step 3: Create the issue
+
+Create the issue on GitHub following the standards in `.claude/skills/write-issue.md`:
+
+1. **Determine the issue type**:
+   - `Bug` - Something isn't working as expected
+   - `Feature` - New capability or improvement
+   - `Example` - Request for a new SDK example
+   - `Task` - Internal task or chore
+
+2. **Write a clear title** following these rules:
+   - Use sentence case (capitalize only first word and proper nouns)
+   - No type prefixes like `Bug:`, `Feature:`, `[Bug]`
+   - For bugs: describe the symptom (e.g., "Arrow bindings break with rotated shapes")
+   - For features/enhancements: use imperative mood (e.g., "Add padding option to zoomToFit")
+
+3. **Write a descriptive body**:
+
+   For **bugs**:
+   - Clear description of what's wrong
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Environment details (browser, OS, tldraw version) when relevant
+   - Screenshots or recordings if applicable
+
+   For **features/enhancements**:
+   - Problem statement: What problem does this solve?
+   - Proposed solution: How should it work?
+   - Alternatives considered
+   - Use cases: Who benefits and how?
+
+   For **examples**:
+   - What API or pattern should be demonstrated
+   - Why it's useful / when developers need this
+   - Suggested approach if possible
+
+4. **Create the issue** using `gh issue create`:
+
+```bash
+gh issue create --repo tldraw/tldraw \
+  --title "Your title here" \
+  --body "Your body here" \
+  --type "Bug"  # or: Feature, Example, Task
+```
+
+5. **Share the issue URL** with the user immediately after creation
+
+### Step 4: Deep research with subagent
+
+After creating the issue and sharing the link, use the Task tool to launch a research subagent:
+
+```
+Use the Task tool with subagent_type="Explore" to do a thorough investigation:
+
+- Search comprehensively for all code related to this issue
+- Identify the exact files and line numbers involved
+- Look for similar patterns, past fixes, or related issues
+- Understand the architecture and data flow
+- Consider edge cases and potential side effects
+- Brainstorm possible solutions with tradeoffs
+
+The subagent should be very thorough (specify this in the prompt).
+```
+
+### Step 5: Comment on the issue with findings
+
+Once the research subagent completes, add a comment to the issue with the findings:
+
+```bash
+gh issue comment <issue-number> --repo tldraw/tldraw --body "Research findings..."
+```
+
+The comment should include:
+- **Relevant files**: List specific files and line numbers
+- **Root cause analysis**: What's causing the issue (for bugs)
+- **Architecture context**: How the affected system works
+- **Potential solutions**: 2-3 approaches with tradeoffs
+- **Related code**: Links to relevant functions, types, or patterns
+- **Considerations**: Edge cases, breaking changes, testing needs
+
+Format the comment as a helpful research summary that would help someone pick up this issue.
+
+## Notes
+
+- Always create the issue first, then do the deep research
+- Share the issue link immediately so the user can see it while research continues
+- The research comment should be thorough but actionable
+- Use code blocks and file:line references for easy navigation
