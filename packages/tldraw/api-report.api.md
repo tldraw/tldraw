@@ -1076,9 +1076,6 @@ export interface DefaultToolbarProps {
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
 
 // @public (undocumented)
-export function DefaultTopPanel(): JSX.Element;
-
-// @public (undocumented)
 export const DefaultVideoToolbar: NamedExoticComponent<TLUiVideoToolbarProps>;
 
 // @public (undocumented)
