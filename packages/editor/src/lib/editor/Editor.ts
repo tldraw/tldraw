@@ -10030,15 +10030,3 @@ function withIsolatedShapes<T>(
 		throw result.error
 	}
 }
-
-function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
-	if (!cameraOptions.constraints) throw Error('Should have constraints here')
-	const {
-		padding: { x: px, y: py },
-	} = cameraOptions.constraints
-	const vsb = editor.getViewportScreenBounds()
-	const bounds = Box.From(cameraOptions.constraints.bounds)
-	const zx = (vsb.w - px * 2) / bounds.w
-	const zy = (vsb.h - py * 2) / bounds.h
-	return { zx, zy }
-}
