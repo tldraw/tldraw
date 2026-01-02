@@ -84,14 +84,14 @@ jobs:
             - Search the codebase for relevant files and code paths
             - Identify where the bug might originate
             - Look for related code, tests, or previous fixes
-            - Add a comment with your findings to help developers investigate
 
             ## Output format
             After your analysis:
             1. If labels need to be added, use `gh issue edit` to add them
             2. If the type needs to be changed, update it accordingly
-            3. For bug reports, add a comment with your research findings
-            4. If no changes are needed, you can simply acknowledge the issue is well-formed
+            3. If no changes are needed, you can simply acknowledge the issue is well-formed
+
+            IMPORTANT: Do NOT add comments to the issue. Only update labels and metadata.
 
             Use the GitHub CLI (`gh`) to make any changes to the issue.
           claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*),Read,Glob,Grep,Task"'
