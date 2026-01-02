@@ -204,25 +204,6 @@ button.topLeftInputNameWidthSetter {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
 
-.offlineIndicatorWrapper {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	padding-top: 3px;
-	height: fit-content;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-}
-
-@media (max-width: 1080px) {
-	.offlineIndicatorWrapper {
-		padding-top: 44px;
-	}
-}
-
 /* ------------------- Top right ------------------ */
 
 .topRightPanel {
