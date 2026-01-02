@@ -1,0 +1,97 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to triage (for testing)'
+        required: true
+        type: number
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get issue details
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue view ${{ env.ISSUE_NUMBER }} --json title,body,labels,state > /tmp/issue.json
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/issue.json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Triage Issue with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are an issue triage bot for the tldraw repository. You need to evaluate and tidy up issue #${{ env.ISSUE_NUMBER }}.
+
+            ## Issue details
+            ```json
+            ${{ steps.issue.outputs.details }}
+            ```
+
+            ## Your tasks
+
+            ### 1. Evaluate the title and body
+            - If the title and body are clear and acceptable, leave them as-is
+            - Only suggest improvements if there are significant clarity issues
+
+            ### 2. Evaluate and assign the correct Type
+            The issue template system uses these types:
+            - **Bug**: Actual bugs where something is broken or not working as designed
+            - **Feature**: New feature requests or enhancements
+            - **Task**: Internal tasks for the team
+            - **Example**: Requests for new SDK examples
+
+            Important: Distinguish between TRUE bugs and UX preferences disguised as bugs:
+            - TRUE BUG: "Clicking save crashes the app" or "Text doesn't render correctly"
+            - NOT A BUG (UX preference): "I don't like the color of the button" or "The menu should be on the left instead of right"
+
+            If an issue is filed as a Bug but is actually a UX preference or feature request, update the type accordingly.
+
+            ### 3. Apply appropriate labels
+            Use these labels as appropriate:
+            - `sdk` - Affects the tldraw SDK (@tldraw/tldraw package)
+            - `dotcom` - Related to tldraw.com
+            - `docs` - Changes only affect documentation
+            - `examples` - Request for a new SDK example
+            - `performance` - Performance-related issues
+            - `a11y` - Accessibility-related issues
+            - `bugfix` - For confirmed bug fixes
+            - `feature` - For new features
+            - `improvement` - For product improvements
+            - `More Info Needed` - If the issue lacks critical information needed to understand or reproduce
+
+            ### 4. For TRUE bug reports, research the codebase
+            If this is a genuine bug report (not a UX preference), use your Explore capability to:
+            - Search the codebase for relevant files and code paths
+            - Identify where the bug might originate
+            - Look for related code, tests, or previous fixes
+            - Add a comment with your findings to help developers investigate
+
+            ## Output format
+            After your analysis:
+            1. If labels need to be added, use `gh issue edit` to add them
+            2. If the type needs to be changed, update it accordingly
+            3. For bug reports, add a comment with your research findings
+            4. If no changes are needed, you can simply acknowledge the issue is well-formed
+
+            Use the GitHub CLI (`gh`) to make any changes to the issue.
+          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*),Read,Glob,Grep,Task"'
