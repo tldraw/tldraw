@@ -1939,6 +1939,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 export function HighlightToolbarItem(): JSX.Element;
 
 // @public (undocumented)
+export const iconTypes: readonly ["align-bottom", "align-center-horizontal", "align-center-vertical", "align-left", "align-right", "align-top", "alt", "arrow-arc", "arrow-cycle", "arrow-elbow", "arrow-left", "arrowhead-arrow", "arrowhead-bar", "arrowhead-diamond", "arrowhead-dot", "arrowhead-none", "arrowhead-square", "arrowhead-triangle-inverted", "arrowhead-triangle", "blob", "bold", "bookmark", "bring-forward", "bring-to-front", "broken", "bulletList", "check-circle", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-ne", "chevrons-sw", "clipboard-copied", "clipboard-copy", "code", "color", "comment", "corners", "crop", "cross-2", "cross-circle", "dash-dashed", "dash-dotted", "dash-draw", "dash-solid", "disconnected", "discord", "distribute-horizontal", "distribute-vertical", "dot", "dots-horizontal", "dots-vertical", "download", "drag-handle-dots", "duplicate", "edit", "external-link", "fill-fill", "fill-none", "fill-pattern", "fill-semi", "fill-solid", "follow", "following", "font-draw", "font-mono", "font-sans", "font-serif", "geo-arrow-down", "geo-arrow-left", "geo-arrow-right", "geo-arrow-up", "geo-check-box", "geo-cloud", "geo-diamond", "geo-ellipse", "geo-heart", "geo-hexagon", "geo-octagon", "geo-oval", "geo-pentagon", "geo-rectangle", "geo-rhombus-2", "geo-rhombus", "geo-star", "geo-trapezoid", "geo-triangle", "geo-x-box", "github", "group", "heading", "help-circle", "highlight", "horizontal-align-end", "horizontal-align-middle", "horizontal-align-start", "info-circle", "italic", "leading", "link", "list", "lock", "manual", "menu", "minus", "mixed", "pack", "plus", "question-mark-circle", "question-mark", "redo", "reset-zoom", "rotate-ccw", "rotate-cw", "send-backward", "send-to-back", "share-1", "size-extra-large", "size-large", "size-medium", "size-small", "spline-cubic", "spline-line", "stack-horizontal", "stack-vertical", "status-offline", "stretch-horizontal", "stretch-vertical", "strike", "text-align-center", "text-align-left", "text-align-right", "toggle-off", "toggle-on", "tool-arrow", "tool-eraser", "tool-frame", "tool-hand", "tool-highlight", "tool-laser", "tool-line", "tool-media", "tool-note", "tool-pencil", "tool-pointer", "tool-screenshot", "tool-text", "trash", "twitter", "underline", "undo", "ungroup", "unlock", "vertical-align-end", "vertical-align-middle", "vertical-align-start", "warning-triangle", "zoom-in", "zoom-out"];
+
+// @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(): boolean;
@@ -3361,6 +3364,9 @@ export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen, }: TL
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX.Element;
 
 // @public (undocumented)
+export function TldrawUiDropdownMenuSubContent({ id, alignOffset, sideOffset, size, children, }: TLUiDropdownMenuSubContentProps): JSX.Element;
+
+// @public (undocumented)
 export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX.Element;
 
 // @public (undocumented)
@@ -3449,6 +3455,21 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 
 // @public
 export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
+
+// @public
+export function TldrawUiSelect({ id, value, onValueChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel, }: TLUiSelectProps): JSX.Element;
+
+// @public
+export function TldrawUiSelectContent({ children, side, align, className, }: TLUiSelectContentProps): JSX.Element;
+
+// @public
+export function TldrawUiSelectItem({ value, label, icon, disabled, className, }: TLUiSelectItemProps): JSX.Element;
+
+// @public
+export const TldrawUiSelectTrigger: React_2.ForwardRefExoticComponent<TLUiSelectTriggerProps & React_2.RefAttributes<HTMLButtonElement>>;
+
+// @public
+export function TldrawUiSelectValue({ placeholder, icon, children }: TLUiSelectValueProps): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUiSlider: React_3.ForwardRefExoticComponent<TLUiSliderProps & React_3.RefAttributes<HTMLDivElement>>;
@@ -3941,6 +3962,20 @@ export interface TLUiDropdownMenuRootProps {
     id: string;
     // (undocumented)
     modal?: boolean;
+}
+
+// @public (undocumented)
+export interface TLUiDropdownMenuSubContentProps {
+    // (undocumented)
+    alignOffset?: number;
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    sideOffset?: number;
+    // (undocumented)
+    size?: 'medium' | 'small' | 'tiny' | 'wide';
 }
 
 // @public (undocumented)
@@ -4521,6 +4556,70 @@ export interface TLUiQuickActionsProps {
 export interface TLUiRichTextToolbarProps {
     // (undocumented)
     children?: React_3.ReactNode;
+}
+
+// @public (undocumented)
+export interface TLUiSelectContentProps {
+    // (undocumented)
+    align?: 'center' | 'end' | 'start';
+    // (undocumented)
+    children: React_2.ReactNode;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    side?: 'bottom' | 'top';
+}
+
+// @public (undocumented)
+export interface TLUiSelectItemProps {
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    value: string;
+}
+
+// @public (undocumented)
+export interface TLUiSelectProps {
+    // (undocumented)
+    'aria-label'?: string;
+    // (undocumented)
+    'data-testid'?: string;
+    // (undocumented)
+    children: React_2.ReactNode;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    onValueChange(value: string): void;
+    // (undocumented)
+    value: string;
+}
+
+// @public (undocumented)
+export interface TLUiSelectTriggerProps {
+    // (undocumented)
+    children: React_2.ReactNode;
+    // (undocumented)
+    className?: string;
+}
+
+// @public (undocumented)
+export interface TLUiSelectValueProps {
+    // (undocumented)
+    children?: React_2.ReactNode;
+    // (undocumented)
+    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
+    // (undocumented)
+    placeholder?: string;
 }
 
 // @public (undocumented)

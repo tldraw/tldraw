@@ -399,6 +399,7 @@ export {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
 	TldrawUiDropdownMenuTrigger,
 	type TLUiDropdownMenuCheckboxItemProps,
@@ -406,6 +407,7 @@ export {
 	type TLUiDropdownMenuGroupProps,
 	type TLUiDropdownMenuItemProps,
 	type TLUiDropdownMenuRootProps,
+	type TLUiDropdownMenuSubContentProps,
 	type TLUiDropdownMenuSubProps,
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
@@ -425,6 +427,18 @@ export {
 	type TLUiPopoverProps,
 	type TLUiPopoverTriggerProps,
 } from './lib/ui/components/primitives/TldrawUiPopover'
+export {
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	type TLUiSelectContentProps,
+	type TLUiSelectItemProps,
+	type TLUiSelectProps,
+	type TLUiSelectTriggerProps,
+	type TLUiSelectValueProps,
+} from './lib/ui/components/primitives/TldrawUiSelect'
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 export {
 	TldrawUiToolbar,
@@ -666,7 +680,7 @@ export {
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,
 } from './lib/ui/hooks/useTranslation/useTranslation'
-export { type TLUiIconType } from './lib/ui/icon-types'
+export { iconTypes, type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'
 export { TldrawUi, TldrawUiInFrontOfTheCanvas, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
