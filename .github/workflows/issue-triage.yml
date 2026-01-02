@@ -44,7 +44,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            You are an issue triage bot for the tldraw repository. Evaluate and label issue #${{ env.ISSUE_NUMBER }}.
+            You are an issue triage bot for the tldraw repository. Tidy up issue #${{ env.ISSUE_NUMBER }}.
 
             ## Issue details
             ```json
@@ -53,7 +53,24 @@ jobs:
 
             ## Tasks
 
-            ### 1. Classify the issue type
+            ### 1. Improve the title (if needed)
+            - Make sure the title is clear and descriptive
+            - Use sentence case (capitalize only first word and proper nouns)
+            - For bugs: describe the symptom (e.g., "Arrow bindings break with rotated shapes")
+            - For features: use imperative mood (e.g., "Add padding option to zoomToFit")
+            - If the title is already good, leave it as-is
+
+            ### 2. Improve the body (if needed)
+            - If the issue is written in a language other than English, add an English translation at the top of the body (keep the original text below)
+            - Make sure the body has enough context to understand the issue
+            - If the body is already good, leave it as-is
+
+            To update the title or body:
+            ```bash
+            gh issue edit ${{ env.ISSUE_NUMBER }} --title "New title" --body "New body"
+            ```
+
+            ### 3. Set the issue type
             Determine if this is a:
             - **Bug**: Something is broken or not working as designed (crashes, rendering errors, data loss)
             - **Feature**: A request for new functionality or enhancements (including UX preferences like "I wish X worked like Y")
@@ -64,15 +81,13 @@ jobs:
             - TRUE BUG: "Clicking save crashes the app" or "Text doesn't render correctly"
             - NOT A BUG (use Feature): "I don't like the color of the button" or "The menu should be on the left instead of right"
 
-            If an issue is filed as a Bug but is actually a UX preference or feature request, update the type to Feature.
-
-            To set or change the issue type, use the GitHub API:
+            To set or change the issue type:
             ```bash
             gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} -X PATCH -f type="Bug"
             ```
             Replace "Bug" with the appropriate type (Bug, Feature, Task, or Example).
 
-            ### 2. Apply appropriate labels
+            ### 4. Apply appropriate labels
             Use these labels as appropriate:
             - `sdk` - Affects the tldraw SDK (@tldraw/tldraw package)
             - `dotcom` - Related to tldraw.com
@@ -85,7 +100,7 @@ jobs:
             - `improvement` - For product improvements
             - `More Info Needed` - If the issue lacks critical information needed to understand or reproduce
 
-            ### 3. Assign a milestone (if appropriate)
+            ### 5. Assign a milestone (if appropriate)
             If the issue clearly fits one of these milestones, assign it. Otherwise, leave the milestone empty.
 
             Available milestones:
@@ -100,12 +115,5 @@ jobs:
             Only assign a milestone if there's a clear fit. Most issues won't need a milestone.
 
             ## Output format
-            After your analysis:
-            1. If labels need to be added, use `gh issue edit --add-label` to add them
-            2. If the type needs to be set or changed, use `gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} -X PATCH -f type="TypeName"`
-            3. If a milestone applies, use `gh issue edit --milestone "Milestone Name"` to assign it
-
-            IMPORTANT: Do NOT add comments to the issue. Only update labels, type, and milestone.
-
-            Use the GitHub CLI (`gh`) to make any changes to the issue.
+            Use the GitHub CLI (`gh`) to make any changes. Do NOT add comments to the issue.
           claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*)"'
