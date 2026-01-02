@@ -13,7 +13,7 @@ function EnvironmentInfo() {
 	const buttonSize = isCoarsePointer ? '48px' : '32px'
 
 	return (
-		<div className="environment-info">
+		<div className="tlui-menu environment-info">
 			{/* [4] Static detection with tlenv */}
 			<div>
 				<strong>Platform (tlenv):</strong> {tlenv.isDarwin && 'macOS'}
@@ -39,7 +39,6 @@ function EnvironmentInfo() {
 			{/* [6] Adaptive button based on pointer type */}
 			<TldrawUiButton
 				type="normal"
-				className="adaptive-button"
 				style={{
 					width: buttonSize,
 					height: buttonSize,

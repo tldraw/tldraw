@@ -1,17 +1,10 @@
 .environment-info {
-	pointer-events: all;
 	position: absolute;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 8px;
 	top: 60px;
 	left: 8px;
 	padding: 8px;
-	background: white;
-	border: 1px solid #ccc;
-	font-size: 12px;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.adaptive-button {
-	transition: all 0.2s;
 }
