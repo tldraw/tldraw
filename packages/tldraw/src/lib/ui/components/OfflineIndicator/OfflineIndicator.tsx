@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
@@ -7,9 +6,8 @@ export function OfflineIndicator() {
 	const msg = useTranslation()
 
 	return (
-		<div className={classNames('tlui-offline-indicator')}>
-			{msg('status.offline')}
-			<TldrawUiIcon label={msg('status.offline')} icon="status-offline" small />
-		</div>
+		<button className="tlui-offline-indicator" title={msg('status.offline')}>
+			<TldrawUiIcon icon="status-offline" label={msg('status.offline')} />
+		</button>
 	)
 }
