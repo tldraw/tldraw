@@ -115,7 +115,21 @@ gh api graphql -f query='
 '
 ```
 
-6. **Share the issue URL** with the user immediately after creation
+6. **Assign a milestone** (if appropriate):
+
+If the issue clearly fits one of these milestones, assign it. Otherwise, leave the milestone empty.
+
+Available milestones:
+- **Improve developer resources**: For examples, documentation, improved code comments, starter kits, and `npm create tldraw` improvements
+- **Improve automations**: For GitHub Actions, review bots, CI/CD, and other automation improvements
+
+```bash
+gh issue edit <issue-number> --repo tldraw/tldraw --milestone "Milestone Name"
+```
+
+Only assign a milestone if there's a clear fit. Most issues won't need a milestone.
+
+7. **Share the issue URL** with the user immediately after creation
 
 ### Step 4: Deep research with subagent
 
