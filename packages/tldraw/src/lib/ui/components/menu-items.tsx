@@ -616,6 +616,23 @@ export function ToggleEdgeScrollingItem() {
 }
 
 /** @public @react */
+export function ToggleRightClickToDragItem() {
+	const editor = useEditor()
+	const isRightClickToDrag = useValue(
+		'isRightClickToDrag',
+		() => editor.user.getIsRightClickToDrag(),
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuActionCheckboxItem
+			actionId="toggle-right-click-to-drag"
+			checked={isRightClickToDrag}
+		/>
+	)
+}
+
+/** @public @react */
 export function ToggleReduceMotionItem() {
 	const editor = useEditor()
 	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])

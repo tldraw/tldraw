@@ -103,6 +103,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.enhanced-a11y-mode': 'Toggle enhanced accessibility mode',
 	'action.toggle-edge-scrolling.menu': 'Edge scrolling',
 	'action.toggle-edge-scrolling': 'Toggle edge scrolling',
+	'action.toggle-right-click-to-drag.menu': 'Drag on right-click',
+	'action.toggle-right-click-to-drag': 'Toggle drag on right-click',
 	'action.toggle-debug-mode.menu': 'Debug mode',
 	'action.toggle-debug-mode': 'Toggle debug mode',
 	'action.toggle-focus-mode.menu': 'Focus mode',
