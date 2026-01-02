@@ -138,6 +138,7 @@ export {
 	type TLRenderingShape,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export { CameraManager } from './lib/editor/managers/CameraManager/CameraManager'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export {

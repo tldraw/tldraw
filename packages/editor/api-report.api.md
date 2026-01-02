@@ -57,6 +57,7 @@ import { TLBindingId } from '@tldraw/tlschema';
 import { TLBindingUpdate } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCameraId } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
@@ -400,6 +401,86 @@ export class Box {
 
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
+
+// @public (undocumented)
+export class CameraManager {
+    constructor(editor: Editor, cameraOptions?: Partial<TLCameraOptions>);
+    // @internal (undocumented)
+    _animateToViewport(targetViewportPage: Box, opts?: TLCameraMoveOptions): this | undefined;
+    // @internal (undocumented)
+    _animateViewport(ms: number): void;
+    centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
+    // @internal (undocumented)
+    _decayCameraStateTimeout(elapsed: number): void;
+    getBaseZoom(): number;
+    getCamera(): TLCamera;
+    // @internal (undocumented)
+    _getCameraFitXFitY(cameraOptions: TLCameraOptions): {
+        zx: number;
+        zy: number;
+    };
+    // (undocumented)
+    getCameraForFollowing(): {
+        x: number;
+        y: number;
+        z: number;
+    } | null;
+    getCameraOptions(): TLCameraOptions;
+    getCameraState(): "idle" | "moving";
+    // @internal (undocumented)
+    getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): {
+        x: number;
+        y: number;
+        z: number;
+    };
+    getDebouncedZoomLevel(): number;
+    // (undocumented)
+    _getFollowingPresence(targetUserId: null | string): null | TLInstancePresence;
+    getInitialZoom(): number;
+    getViewportPageBounds(): Box;
+    // (undocumented)
+    getViewportPageBoundsForFollowing(): Box | null;
+    getViewportScreenBounds(): Box;
+    getZoomLevel(): number;
+    pageToScreen(point: VecLike): Vec;
+    pageToViewport(point: VecLike): Vec;
+    resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
+    screenToPage(point: VecLike): Vec;
+    setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
+    // @internal (undocumented)
+    _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
+    setCameraOptions(opts: Partial<TLCameraOptions>): this;
+    slideCamera(opts?: {
+        direction: VecLike;
+        force?: boolean;
+        friction?: number;
+        speed: number;
+        speedThreshold?: number;
+    }): this;
+    startFollowingUser(userId: string): this;
+    stopCameraAnimation(): this;
+    stopFollowingUser(): this;
+    // @internal (undocumented)
+    _tickCameraState(): void;
+    // @internal (undocumented)
+    _unsafe_getCameraId(): TLCameraId;
+    updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
+    zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
+    zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
+    zoomToBounds(bounds: BoxLike, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): this;
+    zoomToFit(opts?: TLCameraMoveOptions): this;
+    // @internal (undocumented)
+    _zoomToFitPageContentAt100Percent(): void;
+    zoomToSelection(opts?: TLCameraMoveOptions): this;
+    zoomToSelectionIfOffscreen(padding?: number, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): void;
+    zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
+}
 
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
@@ -809,6 +890,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
+    _animateToViewport(targetViewportPage: Box, opts?: TLCameraMoveOptions): void;
+    // @internal (undocumented)
+    _animateViewport(ms: number): void;
+    // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         extras?: Record<string, unknown>;
         origin: string;
@@ -827,6 +912,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    readonly camera: CameraManager;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
         binding: {
@@ -1119,6 +1205,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
     createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
+    // (undocumented)
+    _decayCameraStateTimeout(elapsed: number): void;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
@@ -1195,6 +1283,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getBindingUtil<T extends BindingUtil>(type: T extends BindingUtil<infer R> ? R['type'] : string): T;
     getCamera(): TLCamera;
+    // (undocumented)
+    getCameraForFollowing(): {
+        x: number;
+        y: number;
+        z: number;
+    } | null;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
     // (undocumented)
@@ -1203,6 +1297,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
+    // @internal (undocumented)
+    getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): {
+        x: number;
+        y: number;
+        z: number;
+    };
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
@@ -1232,6 +1332,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
+    // (undocumented)
+    _getFollowingPresence(targetUserId: null | string): TLInstancePresence | null;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
@@ -1324,6 +1426,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
+    // (undocumented)
+    getViewportPageBoundsForFollowing(): Box | null;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
@@ -1452,6 +1556,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
+    // @internal (undocumented)
+    _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(opts: Partial<TLCameraOptions>): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
@@ -1499,6 +1605,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    // (undocumented)
+    _tickCameraState(): void;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -1524,6 +1632,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(shapes: TLShape[], opts?: Partial<{
         select: boolean;
     }>): this;
+    // @internal (undocumented)
+    _unsafe_getCameraId(): TLCameraId;
     updateAssets(assets: TLAssetPartial[]): this;
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
     updateBindings(partials: (null | TLBindingUpdate | undefined)[]): this;
@@ -1557,6 +1667,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         targetZoom?: number;
     } & TLCameraMoveOptions): this;
     zoomToFit(opts?: TLCameraMoveOptions): this;
+    // (undocumented)
+    _zoomToFitPageContentAt100Percent(): void;
     zoomToSelection(opts?: TLCameraMoveOptions): this;
     zoomToSelectionIfOffscreen(padding?: number, opts?: {
         inset?: number;
