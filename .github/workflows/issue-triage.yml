@@ -56,16 +56,15 @@ jobs:
             ### 1. Classify the issue type
             Determine if this is a:
             - **Bug**: Something is broken or not working as designed (crashes, rendering errors, data loss)
-            - **Improvement**: A request to enhance existing behavior (UX preferences, "I wish X worked like Y")
-            - **Feature**: A request for entirely new functionality
+            - **Feature**: A request for new functionality or enhancements (including UX preferences like "I wish X worked like Y")
             - **Task**: Internal team task
             - **Example**: Request for a new SDK example
 
             Important: Distinguish between TRUE bugs and UX preferences disguised as bugs:
             - TRUE BUG: "Clicking save crashes the app" or "Text doesn't render correctly"
-            - NOT A BUG (UX preference): "I don't like the color of the button" or "The menu should be on the left instead of right"
+            - NOT A BUG (use Feature): "I don't like the color of the button" or "The menu should be on the left instead of right"
 
-            If an issue is filed as a Bug but is actually a UX preference or feature request, update the type accordingly.
+            If an issue is filed as a Bug but is actually a UX preference or feature request, update the type to Feature.
 
             To set or change the issue type, use the GitHub API:
             ```bash
