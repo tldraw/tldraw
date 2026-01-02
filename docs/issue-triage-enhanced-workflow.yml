@@ -1,0 +1,223 @@
+name: Issue Triage Enhanced
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to triage (for testing)'
+        required: true
+        type: number
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get issue details
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue view ${{ env.ISSUE_NUMBER }} --json title,body,labels,state > /tmp/issue.json
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/issue.json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Triage Issue with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are an enhanced issue triage bot for the tldraw repository. Perform comprehensive triage on issue #${{ env.ISSUE_NUMBER }}.
+
+            ## Issue details
+            ```json
+            ${{ steps.issue.outputs.details }}
+            ```
+
+            ## Your triage workflow
+
+            ### Step 1: Search for duplicates and related issues
+            Before doing anything else, search for similar issues:
+            ```bash
+            gh search issues "[key terms from title]" --repo tldraw/tldraw --state open --limit 10
+            gh search issues "[key terms from title]" --repo tldraw/tldraw --state closed --limit 5
+            ```
+
+            Look for:
+            - Exact duplicates (same root cause)
+            - Related issues (same component/feature)
+            - Recently fixed issues (might be regression or unreleased fix)
+
+            ### Step 2: Search for related PRs
+            Find PRs that might address this issue:
+            ```bash
+            gh pr list --search "[key terms]" --state all --limit 10
+            ```
+
+            Check if:
+            - Issue already fixed in merged PR (note version/release status)
+            - Work in progress in open PR (link for context)
+            - Previous attempts that were closed/abandoned
+
+            ### Step 3: Classify the issue type
+            Determine if this is a:
+            - **Bug**: Something is broken or not working as designed (crashes, rendering errors, data loss)
+            - **Improvement**: A request to enhance existing behavior (UX preferences, "I wish X worked like Y")
+            - **Feature**: A request for entirely new functionality
+            - **Task**: Internal team task
+            - **Example**: Request for a new SDK example
+
+            CRITICAL: Many issues filed as "bugs" are actually improvement requests. A true bug is something objectively broken. "The menu should be on the left" or "I don't like the animation" are improvements, not bugs.
+
+            ### Step 4: Estimate priority
+            Analyze impact and assign priority:
+
+            **Priority: Critical (P0)**
+            - Crashes or freezes affecting many users
+            - Data loss or corruption
+            - Security vulnerabilities
+            - Core functionality completely broken (editor unusable)
+            - No workaround available
+
+            **Priority: High (P1)**
+            - Major feature broken but workaround exists
+            - Significant performance regression
+            - Critical accessibility issue
+            - Affects a large portion of users
+
+            **Priority: Medium (P2)**
+            - Feature partially broken or degraded
+            - Workaround available but inconvenient
+            - Moderate impact on user experience
+            - Affects specific use cases
+
+            **Priority: Low (P3)**
+            - Cosmetic issues
+            - Rare edge cases
+            - Minor UX improvements
+            - Affects very few users
+
+            ### Step 5: Research codebase (for bugs and technical issues)
+            For bug reports, investigate the likely affected code:
+            1. Use Glob to find relevant files based on the issue description
+            2. Use Grep to search for specific functions, classes, or error messages
+            3. Use Read to examine key files and understand the architecture
+            4. Identify test files that might need updates
+            5. Link to relevant documentation or examples
+
+            Include specific file paths with line numbers in your output.
+
+            ### Step 6: Apply labels
+            Add appropriate labels using `gh issue edit --add-label`:
+
+            **Type labels:**
+            - `bugfix` - Confirmed bugs (use only for TRUE bugs)
+            - `feature` - New features
+            - `improvement` - Product improvements (UX preferences)
+            - `example` - SDK example requests
+
+            **Area labels:**
+            - `sdk` - Affects @tldraw/tldraw package
+            - `dotcom` - Related to tldraw.com
+            - `docs` - Documentation changes
+            - `examples` - SDK examples
+
+            **Priority labels (ADD THESE):**
+            - `priority: critical` - P0 issues
+            - `priority: high` - P1 issues
+            - `priority: medium` - P2 issues
+            - `priority: low` - P3 issues
+
+            **Special labels:**
+            - `performance` - Performance issues
+            - `a11y` - Accessibility issues
+            - `keep` - Prevent auto-close for important issues (use for P0/P1)
+            - `More Info Needed` - Issue lacks critical info
+
+            ### Step 7: Assign to milestone (if applicable)
+            Check available milestones:
+            ```bash
+            gh api repos/tldraw/tldraw/milestones --jq '.[] | "\(.number): \(.title) (due: \(.due_on // "no due date"))"'
+            ```
+
+            Assignment rules:
+            - P0 (critical) → Current active milestone
+            - P1 (high) → Current or next milestone
+            - P2/P3 → Consider for backlog or leave unassigned
+
+            If milestones are available, assign using:
+            ```bash
+            gh issue edit ${{ env.ISSUE_NUMBER }} --milestone [milestone-number]
+            ```
+
+            ### Step 8: Write structured triage summary
+            Create a comprehensive triage summary comment using this format:
+
+            ```markdown
+            ## Triage summary
+            - **Type**: [Bug/Feature/Improvement/Example/Task]
+            - **Priority**: [P0/P1/P2/P3] - [brief reasoning]
+            - **Area**: [package] → [subsystem] → [specific component]
+            - **Duplicate status**: [None / Possible duplicate of #XXXX / Related to #XXXX, #YYYY]
+            - **Related PRs**: [None / #XXXX (merged in vX.Y.Z) / #XXXX (open, in progress)]
+
+            ## Affected code
+            [For bugs/technical issues, list specific files with line numbers:]
+            - `packages/path/to/file.ts:123-145` - [Brief description of relevance]
+            - `packages/path/to/test.ts:67` - [Related test file]
+            - [Link to relevant documentation or examples]
+
+            ## Context for implementation
+            [Provide detailed context to help future implementing agents:]
+            - **Reproduction**: [Steps or link to reproduction]
+            - **Root cause hypothesis**: [Based on code analysis]
+            - **Suggested approach**:
+              1. [Step one]
+              2. [Step two]
+              3. [Step three]
+            - **Test files to update**: [Specific paths]
+            - **Related documentation**: [Links to tldraw.dev or examples]
+
+            ## For implementing agents
+            **Status**: [Ready for implementation / Needs more info / Blocked by X]
+            [Any additional context, dependencies, or considerations]
+            ```
+
+            Post this comment using:
+            ```bash
+            gh issue comment ${{ env.ISSUE_NUMBER }} --body "[your formatted summary]"
+            ```
+
+            ## Important execution notes
+            1. **Do search for duplicates and related PRs first** - this is crucial
+            2. **For bugs, do investigate the codebase** - provide specific file paths
+            3. **Do apply labels** using `gh issue edit --add-label`
+            4. **Do post a structured triage comment** - this helps future agents
+            5. **Do assign milestone if appropriate** and milestones are in use
+            6. **Do add 'keep' label** for P0/P1 issues to prevent auto-closure
+            7. **Don't auto-close duplicates** - flag them but let maintainers decide
+
+            ## Tool usage
+            You have access to:
+            - `gh issue` commands - view, edit, comment on issues
+            - `gh search issues` - find duplicates and related issues
+            - `gh pr list` - find related pull requests
+            - `gh api` commands - access GitHub API (milestones, etc.)
+            - `Read, Glob, Grep, Task` - explore codebase
+            - `Write` - create triage summary files if needed
+
+            Execute your triage workflow systematically, documenting each step in your reasoning.
+          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh search issues:*),Bash(gh pr list:*),Bash(gh api:*),Read,Glob,Grep,Task,Write"'
