@@ -31,8 +31,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh issue view ${{ env.ISSUE_NUMBER }} --json title,body,labels,state > /tmp/issue.json
+          # Fetch issue type via API (not yet supported in gh CLI)
+          ISSUE_TYPE=$(gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} --jq '.type.name // "none"')
+          # Merge the type into the JSON
+          jq --arg type "$ISSUE_TYPE" '. + {issueType: $type}' /tmp/issue.json > /tmp/issue_with_type.json
           echo "details<<EOF" >> $GITHUB_OUTPUT
-          cat /tmp/issue.json >> $GITHUB_OUTPUT
+          cat /tmp/issue_with_type.json >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Triage Issue with Claude
@@ -66,6 +70,12 @@ jobs:
 
             If an issue is filed as a Bug but is actually a UX preference or feature request, update the type accordingly.
 
+            To set or change the issue type, use the GitHub API:
+            ```bash
+            gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} -X PATCH -f type="Bug"
+            ```
+            Replace "Bug" with the appropriate type (Bug, Feature, Task, or Example).
+
             ### 3. Apply appropriate labels
             Use these labels as appropriate:
             - `sdk` - Affects the tldraw SDK (@tldraw/tldraw package)
@@ -88,9 +98,9 @@ jobs:
 
             ## Output format
             After your analysis:
-            1. If labels need to be added, use `gh issue edit` to add them
-            2. If the type needs to be changed, update it accordingly
-            3. For bug reports, add a comment with your research findings
+            1. If labels need to be added, use `gh issue edit --add-label` to add them
+            2. If the type needs to be set or changed, use `gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} -X PATCH -f type="TypeName"`
+            3. For bug reports, add a comment with your research findings using `gh issue comment`
             4. If no changes are needed, you can simply acknowledge the issue is well-formed
 
             Use the GitHub CLI (`gh`) to make any changes to the issue.
