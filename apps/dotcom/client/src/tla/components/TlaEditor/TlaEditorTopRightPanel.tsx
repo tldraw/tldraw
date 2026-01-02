@@ -9,9 +9,7 @@ import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
-	OfflineIndicator,
 	PeopleMenu,
-	useCollaborationStatus,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -45,12 +43,10 @@ export function TlaEditorTopRightPanel({
 	const fileId = useCurrentFileId()
 	const trackEvent = useTldrawAppUiEvents()
 	const { addDialog } = useDialogs()
-	const collaborationStatus = useCollaborationStatus()
 
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
-				{collaborationStatus === 'offline' && <OfflineIndicator />}
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
@@ -72,7 +68,6 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			{collaborationStatus === 'offline' && <OfflineIndicator />}
 			<PeopleMenu />
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
