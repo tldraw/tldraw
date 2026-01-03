@@ -134,25 +134,52 @@ export class AgentHelpers {
 	 * Apply the offset of this request to a shape partial.
 	 */
 	applyOffsetToShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
-		if ('x' in shape && shape.x !== undefined) {
-			return { ...shape, x: shape.x + this.offset.x }
+		const newShape = { ...shape }
+		if ('x' in newShape && newShape.x !== undefined) {
+			newShape.x = newShape.x + this.offset.x
 		}
-		if ('y' in shape && shape.y !== undefined) {
-			return { ...shape, y: shape.y + this.offset.y }
+		if ('y' in newShape && newShape.y !== undefined) {
+			newShape.y = newShape.y + this.offset.y
 		}
-		if ('x1' in shape && shape.x1 !== undefined) {
-			return { ...shape, x1: shape.x1 + this.offset.x }
+		if ('x1' in newShape && newShape.x1 !== undefined) {
+			newShape.x1 = newShape.x1 + this.offset.x
 		}
-		if ('y1' in shape && shape.y1 !== undefined) {
-			return { ...shape, y1: shape.y1 + this.offset.y }
+		if ('y1' in newShape && newShape.y1 !== undefined) {
+			newShape.y1 = newShape.y1 + this.offset.y
 		}
-		if ('x2' in shape && shape.x2 !== undefined) {
-			return { ...shape, x2: shape.x2 + this.offset.x }
+		if ('x2' in newShape && newShape.x2 !== undefined) {
+			newShape.x2 = newShape.x2 + this.offset.x
 		}
-		if ('y2' in shape && shape.y2 !== undefined) {
-			return { ...shape, y2: shape.y2 + this.offset.y }
+		if ('y2' in newShape && newShape.y2 !== undefined) {
+			newShape.y2 = newShape.y2 + this.offset.y
 		}
-		return shape
+		return newShape
+	}
+
+	/**
+	 * Remove the offset of this request from a shape partial.
+	 */
+	removeOffsetFromShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
+		const newShape = { ...shape }
+		if ('x' in newShape && typeof newShape.x === 'number') {
+			newShape.x = newShape.x - this.offset.x
+		}
+		if ('y' in newShape && typeof newShape.y === 'number') {
+			newShape.y = newShape.y - this.offset.y
+		}
+		if ('x1' in newShape && typeof newShape.x1 === 'number') {
+			newShape.x1 = newShape.x1 - this.offset.x
+		}
+		if ('y1' in newShape && typeof newShape.y1 === 'number') {
+			newShape.y1 = newShape.y1 - this.offset.y
+		}
+		if ('x2' in newShape && typeof newShape.x2 === 'number') {
+			newShape.x2 = newShape.x2 - this.offset.x
+		}
+		if ('y2' in newShape && typeof newShape.y2 === 'number') {
+			newShape.y2 = newShape.y2 - this.offset.y
+		}
+		return newShape
 	}
 
 	/**

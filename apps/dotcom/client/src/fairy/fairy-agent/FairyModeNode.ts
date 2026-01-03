@@ -66,8 +66,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 		},
 		onPromptStart(agent, request) {
-			// one-shotting fairies get lints on shapes created over the course of the prompt, new user prompts reset this
-			// This handles cases where a prompt starts while already in one-shotting mode (e.g., continuation, interrupt)
+			// Ensure all partially created shapes are now unlocked
+			agent.lints.unlockCreatedShapes()
+
+			// One-shotting fairies get lints on shapes created over the course of the prompt, new user prompts reset this
 			if (request.source === 'user') {
 				agent.lints.clearCreatedShapes()
 			}
@@ -97,6 +99,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.mode.setMode('one-shotting-pausing')
 		},
 		onExit(agent, toMode) {
+			agent.lints.unlockCreatedShapes()
 			if (toMode !== 'one-shotting-pausing') {
 				agent.userAction.clearHistory()
 				agent.todos.reset()
@@ -135,10 +138,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-drone']: {
 		onEnter(agent) {
+			agent.lints.clearCreatedShapes()
 			agent.userAction.clearHistory()
 			agent.todos.reset()
 		},
 		onExit(agent) {
+			agent.lints.unlockCreatedShapes()
 			agent.userAction.clearHistory()
 			agent.todos.reset()
 		},
@@ -155,10 +160,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-solo']: {
 		onEnter(agent) {
+			agent.lints.clearCreatedShapes()
 			agent.userAction.clearHistory()
 			agent.todos.flush()
 		},
 		onExit(agent) {
+			agent.lints.unlockCreatedShapes()
 			// Wipe todo list after finishing a task
 			agent.userAction.clearHistory()
 			agent.todos.flush()
@@ -312,10 +319,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-orchestrator']: {
 		onEnter(agent) {
+			agent.lints.clearCreatedShapes()
 			agent.userAction.clearHistory()
 			agent.todos.reset()
 		},
 		onExit(agent) {
+			agent.lints.unlockCreatedShapes()
 			agent.userAction.clearHistory()
 			agent.todos.reset()
 		},

@@ -1,12 +1,12 @@
 import {
-	convertFocusedShapeToTldrawShape,
+	convertPartialFocusedShapeToTldrawShape,
 	CreateAction,
 	createAgentActionInfo,
 	FocusedShape,
 	SIMPLE_TO_GEO_TYPES,
 	Streaming,
 } from '@tldraw/fairy-shared'
-import { IndexKey, toRichText } from 'tldraw'
+import { IndexKey, TLShape, toRichText } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -22,14 +22,14 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 
 	override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return action
-
 		const { shape } = action
 
 		if (!shape) return null
 
 		// Ensure the created shape has a unique ID
-		shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
+		if (shape.shapeId) {
+			shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
+		}
 
 		// If the shape is an arrow, ensure the from and to IDs are real shapes
 		if (shape._type === 'arrow') {
@@ -45,21 +45,25 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 
 	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return
-		if (!this.agent) return
 		const { editor } = this.agent
 
 		// Translate the shape back to the chat's position
-		action.shape = helpers.removeOffsetFromShape(action.shape)
+		const shape = action.shape ? helpers.removeOffsetFromShapePartial(action.shape) : undefined
 
-		const result = convertFocusedShapeToTldrawShape(editor, action.shape, {
-			defaultShape: getDefaultShape(action.shape._type),
-		})
+		const result = shape?._type
+			? convertPartialFocusedShapeToTldrawShape(editor, shape, {
+					defaultShape: getDefaultShape(shape._type, action.complete),
+					complete: action.complete,
+				})
+			: { shape: null }
 
 		if (!result.shape) {
-			this.agent.schedule({ data: [`Creating shape ${action.shape.shapeId} failed.`] })
+			if (action.complete) {
+				this.agent.schedule({ data: [`Creating shape ${action.shape.shapeId} failed.`] })
+			}
 			return
 		}
+
 		editor.createShape(result.shape)
 
 		// Handle arrow bindings if they exist
@@ -82,11 +86,12 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 }
 
-function getDefaultShape(shapeType: FocusedShape['_type']) {
+function getDefaultShape(shapeType: FocusedShape['_type'], complete: boolean): Partial<TLShape> {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
-	return isGeo
+	const defaultShape = isGeo
 		? SHAPE_DEFAULTS.geo
 		: (SHAPE_DEFAULTS[shapeType as keyof typeof SHAPE_DEFAULTS] ?? SHAPE_DEFAULTS.unknown)
+	return complete ? defaultShape : { ...defaultShape, isLocked: true }
 }
 
 const SHARED_DEFAULTS = {
@@ -94,7 +99,7 @@ const SHARED_DEFAULTS = {
 	opacity: 1,
 	rotation: 0,
 	meta: {},
-}
+} as const
 
 const SHAPE_DEFAULTS = {
 	text: {
@@ -199,4 +204,4 @@ const SHAPE_DEFAULTS = {
 		...SHARED_DEFAULTS,
 		props: {},
 	},
-}
+} as const

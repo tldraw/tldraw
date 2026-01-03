@@ -929,17 +929,18 @@ export class FairyAgent {
 								return
 							}
 
-							// helpers the agent's action
-							const transformedAction = actionUtil.sanitizeAction(action, helpers)
-							if (!transformedAction) {
-								incompleteDiff = null
-								return
-							}
-
 							// If there was a diff from an incomplete action, revert it so that we can reapply the action
 							if (incompleteDiff) {
 								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+								agent.lints.trackShapesFromDiff(inversePrevDiff)
 								editor.store.applyDiff(inversePrevDiff)
+								incompleteDiff = null
+							}
+
+							// Sanitize the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, helpers)
+							if (!transformedAction) {
+								return
 							}
 
 							// Apply the action to the app and editor
@@ -949,11 +950,12 @@ export class FairyAgent {
 								actionPromises.push(promise)
 							}
 
+							// Track shapes created by this complete action for lint detection
+							agent.lints.trackShapesFromDiff(diff)
+
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
 								incompleteDiff = null
-								// Track shapes created by this complete action for lint detection
-								agent.lints.trackShapesFromDiff(diff)
 							} else {
 								incompleteDiff = diff
 							}

@@ -274,6 +274,22 @@ export class FairyAgentLintManager extends BaseFairyAgentManager {
 	}
 
 	// ============================================================================
+	// Automatic Lint Fixing
+	// ============================================================================
+	/**
+	 * Ensure all created shapes are unlocked.
+	 */
+	unlockCreatedShapes(): void {
+		const { editor } = this.agent
+		const partials = this.getCreatedShapes().map((shape) => ({
+			id: shape.id,
+			type: shape.type,
+			isLocked: false,
+		}))
+		editor.run(() => editor.updateShapes(partials), { ignoreShapeLock: true })
+	}
+
+	// ============================================================================
 	// Helper Functions
 	// ============================================================================
 
