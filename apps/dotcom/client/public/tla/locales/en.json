@@ -119,6 +119,9 @@
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
+  "33871b6190": {
+    "translation": "What's new"
+  },
   "34140869c6": {
     "translation": "A flutter of fairies is coming to tldraw for the month of December. Please check back on December 1st."
   },
@@ -464,6 +467,9 @@
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
   },
+  "9b7c522932": {
+    "translation": "No updates available"
+  },
   "9bef626805": {
     "translation": "Delete file"
   },
@@ -743,6 +749,9 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f3fabbf3c5": {
+    "translation": "See all updates"
   },
   "f4f70727dc": {
     "translation": "Settings"

@@ -201,5 +201,6 @@ export function createMockUser(
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
 		allowAnalyticsCookie: false,
+		whatsNewSeenVersion: null,
 	}
 }

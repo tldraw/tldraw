@@ -52,6 +52,7 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getWhatsNewEntries } from './utils/whatsNew'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -128,7 +129,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/publish/:roomId', getPublishedFile)
-	.get('/app/uploads/:objectName', async (request, env, ctx) => {
+	.get('/app/uploads/:objectName+', async (request, env, ctx) => {
 		return handleUserAssetGet({
 			request,
 			bucket: env.UPLOADS,
@@ -140,6 +141,17 @@ const router = createRouter<Environment>()
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.post('/app/fairy-invite/redeem', redeemFairyInvite)
+	.get('/app/whats-new', async (req, env) => {
+		try {
+			const url = new URL(req.url)
+			const limitParam = url.searchParams.get('limit')
+			const limit = limitParam ? parseInt(limitParam, 10) : undefined
+			const entries = await getWhatsNewEntries(env, limit)
+			return json(entries)
+		} catch {
+			return json([])
+		}
+	})
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {

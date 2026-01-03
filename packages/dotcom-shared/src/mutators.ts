@@ -263,6 +263,13 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
+			updateWhatsNewSeenVersion: async (tx, { version }: { version: string }) => {
+				assert(version, ZErrorCode.bad_request)
+				await tx.mutate.user.update({
+					id: userId,
+					whatsNewSeenVersion: version,
+				})
+			},
 			updateFairyConfig: async (tx, { id, properties }: { id: string; properties: object }) => {
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
 				assert(current, ZErrorCode.forbidden) // Must have user_fairies row

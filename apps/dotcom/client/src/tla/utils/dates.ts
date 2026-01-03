@@ -1,5 +1,14 @@
 import { FormatDateOptions } from '../utils/i18n'
 
+/**
+ * Extract date parts from ISO string and create local date (ignore timezone).
+ * Used for date-only values where we don't want timezone conversion.
+ */
+export function parseDateOnly(dateStr: string): Date {
+	const isoDate = new Date(dateStr)
+	return new Date(isoDate.getUTCFullYear(), isoDate.getUTCMonth(), isoDate.getUTCDate())
+}
+
 export function getRelevantDates() {
 	const now = new Date()
 
