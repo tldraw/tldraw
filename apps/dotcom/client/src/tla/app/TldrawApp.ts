@@ -885,6 +885,7 @@ export class TldrawApp {
 				isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 				isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 				enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
+				isZoomDirectionInverted: restOfPreferences.isZoomDirectionInverted ?? null,
 			})
 
 			opts.trackEvent('create-user', { source: 'app' })

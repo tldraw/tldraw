@@ -98,6 +98,8 @@
 	"action.enhanced-a11y-mode": "Toggle enhanced accessibility mode",
 	"action.toggle-edge-scrolling.menu": "Edge scrolling",
 	"action.toggle-edge-scrolling": "Toggle edge scrolling",
+	"action.toggle-invert-zoom.menu": "Invert zoom",
+	"action.toggle-invert-zoom": "Toggle invert zoom",
 	"action.toggle-debug-mode.menu": "Debug mode",
 	"action.toggle-debug-mode": "Toggle debug mode",
 	"action.toggle-focus-mode.menu": "Focus mode",
