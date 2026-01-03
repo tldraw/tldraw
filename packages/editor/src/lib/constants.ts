@@ -33,3 +33,6 @@ export const MIDDLE_MOUSE_BUTTON = 1
 export const STYLUS_ERASER_BUTTON = 5
 
 export const ZOOM_TO_FIT_PADDING = 128
+
+/** @internal */
+export const DEFAULT_SNAP_THRESHOLD = 8

@@ -103,6 +103,7 @@ import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defa
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
+	DEFAULT_SNAP_THRESHOLD,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
 	MIDDLE_MOUSE_BUTTON,
@@ -230,6 +231,11 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * The snap threshold in screen pixels. This is the maximum distance in screen space
+	 * at which snapping will occur. Defaults to 8.
+	 */
+	snapThreshold?: number
 	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
@@ -284,6 +290,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		snapThreshold,
 		textOptions,
 		initialState,
 		autoFocus,
@@ -312,6 +319,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose)
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+
+		this._snapThreshold = atom('snap threshold', snapThreshold ?? DEFAULT_SNAP_THRESHOLD)
 
 		this._textOptions = atom('text options', textOptions ?? null)
 
@@ -2919,6 +2928,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera())
+		return this
+	}
+
+	private _snapThreshold!: Atom<number>
+
+	/**
+	 * Get the current snap threshold.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getSnapThreshold()
+	 * ```
+	 *
+	 * @public
+	 */
+	getSnapThreshold() {
+		return this._snapThreshold.get()
+	}
+
+	/**
+	 * Set the snap threshold in screen pixels.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setSnapThreshold(16)
+	 * ```
+	 *
+	 * @param threshold - The snap threshold to set.
+	 *
+	 * @public
+	 */
+	setSnapThreshold(threshold: number) {
+		this._snapThreshold.set(threshold)
 		return this
 	}
 
