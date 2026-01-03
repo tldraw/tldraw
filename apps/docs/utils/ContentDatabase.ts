@@ -180,6 +180,7 @@ export class ContentDatabase {
 	private _sidebarContentLinks: SidebarContentLink[] | undefined
 	private _sidebarReferenceContentLinks: SidebarContentLink[] | undefined
 	private _sidebarExamplesContentLinks: SidebarContentLink[] | undefined
+	private _sidebarStarterKitsContentLinks: SidebarContentLink[] | undefined
 
 	async getSidebarContentList({
 		sectionId,
@@ -197,7 +198,9 @@ export class ContentDatabase {
 				? this._sidebarExamplesContentLinks
 				: sectionId === 'reference'
 					? this._sidebarReferenceContentLinks
-					: this._sidebarContentLinks
+					: sectionId === 'starter-kits'
+						? this._sidebarStarterKitsContentLinks
+						: this._sidebarContentLinks
 		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
 			links = cachedLinks
@@ -227,6 +230,13 @@ export class ContentDatabase {
 				if (
 					(sectionId === 'examples' && section.id !== 'examples') ||
 					(sectionId !== 'examples' && section.id === 'examples')
+				) {
+					continue
+				}
+
+				if (
+					(sectionId === 'starter-kits' && section.id !== 'starter-kits') ||
+					(sectionId !== 'starter-kits' && section.id === 'starter-kits')
 				) {
 					continue
 				}
@@ -310,6 +320,8 @@ export class ContentDatabase {
 					this._sidebarExamplesContentLinks = links
 				} else if (sectionId === 'reference') {
 					this._sidebarReferenceContentLinks = links
+				} else if (sectionId === 'starter-kits') {
+					this._sidebarStarterKitsContentLinks = links
 				} else {
 					this._sidebarContentLinks = links
 				}
