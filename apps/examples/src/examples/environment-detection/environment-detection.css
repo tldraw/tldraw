@@ -1,0 +1,10 @@
+.environment-info {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 8px;
+	top: 60px;
+	left: 8px;
+	padding: 8px;
+}
