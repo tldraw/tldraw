@@ -513,7 +513,7 @@ export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePan
 // @public (undocumented)
 export interface CenteredTopPanelContainerProps {
     // (undocumented)
-    children: ReactNode;
+    children?: ReactNode;
     // (undocumented)
     ignoreRightWidth?: number;
     // (undocumented)
@@ -1074,9 +1074,6 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
-
-// @public (undocumented)
-export function DefaultTopPanel(): JSX.Element;
 
 // @public (undocumented)
 export const DefaultVideoToolbar: NamedExoticComponent<TLUiVideoToolbarProps>;

@@ -42,7 +42,6 @@ import {
 } from '../components/Toolbar/DefaultRichTextToolbar'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultVideoToolbar } from '../components/Toolbar/DefaultVideoToolbar'
-import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 
@@ -117,7 +116,7 @@ export function TldrawUiComponentsProvider({
 					MenuPanel: DefaultMenuPanel,
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
-					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					TopPanel: null,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
 					A11y: DefaultA11yAnnouncer,
