@@ -2,6 +2,7 @@ import { useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
 import { Select as _Select } from 'radix-ui'
 import * as React from 'react'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
@@ -9,9 +10,10 @@ import { TldrawUiIcon } from './TldrawUiIcon'
 
 /** @public */
 export interface TLUiSelectProps {
-	id?: string
+	id: string
 	value: string
 	onValueChange(value: string): void
+	onOpenChange?(isOpen: boolean): void
 	disabled?: boolean
 	className?: string
 	children: React.ReactNode
@@ -24,7 +26,7 @@ export interface TLUiSelectProps {
  *
  * @example
  * ```tsx
- * <TldrawUiSelect value={value} onValueChange={setValue}>
+ * <TldrawUiSelect id="my-select" value={value} onValueChange={setValue}>
  *   <TldrawUiSelectTrigger>
  *     <TldrawUiSelectValue placeholder="Select..." />
  *   </TldrawUiSelectTrigger>
@@ -42,14 +44,24 @@ export function TldrawUiSelect({
 	id,
 	value,
 	onValueChange,
+	onOpenChange,
 	disabled,
 	className,
 	children,
 	'data-testid': dataTestId,
 	'aria-label': ariaLabel,
 }: TLUiSelectProps) {
+	const [open, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
+
 	return (
-		<_Select.Root value={value} onValueChange={onValueChange} disabled={disabled} dir="ltr">
+		<_Select.Root
+			value={value}
+			onValueChange={onValueChange}
+			onOpenChange={handleOpenChange}
+			open={open}
+			disabled={disabled}
+			dir="ltr"
+		>
 			<div
 				id={id}
 				className={classNames('tlui-select', className)}

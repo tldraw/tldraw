@@ -3457,7 +3457,7 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public
-export function TldrawUiSelect({ id, value, onValueChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel, }: TLUiSelectProps): JSX.Element;
+export function TldrawUiSelect({ id, value, onValueChange, onOpenChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel, }: TLUiSelectProps): JSX.Element;
 
 // @public
 export function TldrawUiSelectContent({ children, side, align, className, }: TLUiSelectContentProps): JSX.Element;
@@ -4597,7 +4597,9 @@ export interface TLUiSelectProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    id?: string;
+    id: string;
+    // (undocumented)
+    onOpenChange?(isOpen: boolean): void;
     // (undocumented)
     onValueChange(value: string): void;
     // (undocumented)

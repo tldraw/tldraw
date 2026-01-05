@@ -145,7 +145,7 @@ function UiShowcase() {
 			<section>
 				<h3>Select</h3>
 				<div className="ui-row">
-					<TldrawUiSelect value={selectValue} onValueChange={setSelectValue}>
+					<TldrawUiSelect id="size-select-icons" value={selectValue} onValueChange={setSelectValue}>
 						<TldrawUiSelectTrigger>
 							<TldrawUiSelectValue placeholder="Select size...">{selectValue}</TldrawUiSelectValue>
 						</TldrawUiSelectTrigger>
@@ -155,7 +155,7 @@ function UiShowcase() {
 							<TldrawUiSelectItem value="large" label="Large" icon="size-large" />
 						</TldrawUiSelectContent>
 					</TldrawUiSelect>
-					<TldrawUiSelect value={selectValue} onValueChange={setSelectValue}>
+					<TldrawUiSelect id="size-select" value={selectValue} onValueChange={setSelectValue}>
 						<TldrawUiSelectTrigger>
 							<TldrawUiSelectValue placeholder="Select...">{selectValue}</TldrawUiSelectValue>
 						</TldrawUiSelectTrigger>
@@ -165,7 +165,12 @@ function UiShowcase() {
 							<TldrawUiSelectItem value="large" label="Large" />
 						</TldrawUiSelectContent>
 					</TldrawUiSelect>
-					<TldrawUiSelect value={selectValue} onValueChange={setSelectValue} disabled>
+					<TldrawUiSelect
+						id="size-select-disabled"
+						value={selectValue}
+						onValueChange={setSelectValue}
+						disabled
+					>
 						<TldrawUiSelectTrigger>
 							<TldrawUiSelectValue placeholder="Select...">{selectValue}</TldrawUiSelectValue>
 						</TldrawUiSelectTrigger>
