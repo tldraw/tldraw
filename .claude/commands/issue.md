@@ -6,7 +6,7 @@ argument-hint: '[description]'
 
 # Create and research a GitHub issue
 
-Create a new GitHub issue on tldraw/tldraw based on the user's description, then research it thoroughly.
+Create a new GitHub issue on the `tldraw/tldraw` repo based on the user's description, then research it thoroughly.
 
 ## User's issue description
 
