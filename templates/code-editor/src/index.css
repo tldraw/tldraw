@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family:
+		'Inter',
+		system-ui,
+		-apple-system,
+		sans-serif;
+	overscroll-behavior: none;
+}
+
+#root {
+	width: 100%;
+	height: 100vh;
+}
+
+/* Main split layout */
+.editor-container {
+	display: flex;
+	height: 100vh;
+	width: 100%;
+}
+
+/* Code panel (left side) */
+.code-panel {
+	flex: 0 0 40%;
+	display: flex;
+	flex-direction: column;
+	background: #1e1e1e;
+	color: #d4d4d4;
+	border-right: 1px solid #333;
+	overflow: hidden;
+}
+
+/* Canvas panel (right side) */
+.canvas-panel {
+	flex: 1;
+	position: relative;
+}
+
+/* Error banner */
+.error-banner {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px;
+	background: #5c1f1f;
+	border-bottom: 1px solid #ff6b6b;
+	flex-shrink: 0;
+}
+
+.error-message {
+	flex: 1;
+	font-size: 13px;
+	color: #ffb3b3;
+	font-family: 'Inter', system-ui, sans-serif;
+}
+
+.error-dismiss {
+	background: transparent;
+	border: none;
+	color: #ffb3b3;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	transition: background 0.15s ease;
+}
+
+.error-dismiss:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+/* Toolbar */
+.code-toolbar {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 12px;
+	background: #252526;
+	border-bottom: 1px solid #333;
+	flex-shrink: 0;
+}
+
+.toolbar-button {
+	padding: 6px 12px;
+	background: #3c3c3c;
+	color: #d4d4d4;
+	border: 1px solid #555;
+	border-radius: 4px;
+	cursor: pointer;
+	font-family: 'Inter', system-ui, sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	transition: background 0.15s ease;
+}
+
+.toolbar-button:hover:not(:disabled) {
+	background: #4a4a4a;
+}
+
+.toolbar-button:active:not(:disabled) {
+	background: #333;
+}
+
+.toolbar-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.toolbar-button-primary {
+	background: #0e639c;
+	border-color: #0e639c;
+	color: #fff;
+}
+
+.toolbar-button-primary:hover:not(:disabled) {
+	background: #1177bb;
+}
+
+.toolbar-button-primary:active:not(:disabled) {
+	background: #0d5a8f;
+}
+
+.toolbar-select {
+	padding: 6px 8px;
+	background: #3c3c3c;
+	color: #d4d4d4;
+	border: 1px solid #555;
+	border-radius: 4px;
+	cursor: pointer;
+	font-family: 'Inter', system-ui, sans-serif;
+	font-size: 13px;
+}
+
+.toolbar-select:hover {
+	background: #4a4a4a;
+}
+
+.toolbar-hint {
+	margin-left: auto;
+	font-size: 12px;
+	color: #858585;
+}
+
+/* Code editor wrapper */
+.code-editor-wrapper {
+	flex: 1;
+	position: relative;
+	overflow: auto;
+}
+
+/* Syntax highlighting overlay */
+.code-highlight-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	pointer-events: none;
+	font-family: 'JetBrains Mono', 'Fira Code', monospace;
+	font-size: 14px;
+	line-height: 1.5;
+	tab-size: 2;
+	overflow: hidden;
+}
+
+/* Actual textarea */
+.code-editor {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	padding: 16px;
+	background: transparent;
+	color: transparent;
+	caret-color: #d4d4d4;
+	font-family: 'JetBrains Mono', 'Fira Code', monospace;
+	font-size: 14px;
+	line-height: 1.5;
+	border: none;
+	outline: none;
+	resize: none;
+	tab-size: 2;
+	overflow: auto;
+	white-space: pre;
+}
+
+.code-editor::selection {
+	background: rgba(38, 79, 120, 0.5);
+}
+
+/* Scrollbar styling for code panel */
+.code-editor-wrapper::-webkit-scrollbar,
+.code-editor::-webkit-scrollbar {
+	width: 14px;
+	height: 14px;
+}
+
+.code-editor-wrapper::-webkit-scrollbar-track,
+.code-editor::-webkit-scrollbar-track {
+	background: #1e1e1e;
+}
+
+.code-editor-wrapper::-webkit-scrollbar-thumb,
+.code-editor::-webkit-scrollbar-thumb {
+	background: #424242;
+	border-radius: 7px;
+	border: 3px solid #1e1e1e;
+}
+
+.code-editor-wrapper::-webkit-scrollbar-thumb:hover,
+.code-editor::-webkit-scrollbar-thumb:hover {
+	background: #4e4e4e;
+}

@@ -10678,6 +10678,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prismjs@npm:^1.26.0":
+  version: 1.26.5
+  resolution: "@types/prismjs@npm:1.26.5"
+  checksum: 10/617099479db9550119d0f84272dc79d64b2cf3e0d7a17167fe740d55fdf0f155697d935409464392d164e62080c2c88d649cf4bc4fdd30a87127337536657277
+  languageName: node
+  linkType: hard
+
 "@types/proper-lockfile@npm:^4.1.4":
   version: 4.1.4
   resolution: "@types/proper-lockfile@npm:4.1.4"
@@ -24123,6 +24130,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prism-react-renderer@npm:^2.3.1":
+  version: 2.4.1
+  resolution: "prism-react-renderer@npm:2.4.1"
+  dependencies:
+    "@types/prismjs": "npm:^1.26.0"
+    clsx: "npm:^2.0.0"
+  peerDependencies:
+    react: ">=16.0.0"
+  checksum: 10/f76ea89b8b18c477eb74e9ddda2571b5c4d21142731f6733160723aa03567b17df315d7db68ffb1122c199750ece65578ecacb488559229b26db5474d6aae55b
+  languageName: node
+  linkType: hard
+
 "proc-log@npm:^3.0.0":
   version: 3.0.0
   resolution: "proc-log@npm:3.0.0"
@@ -27981,6 +28000,22 @@ __metadata:
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     zod: "npm:^4.1.8"
+  languageName: unknown
+  linkType: soft
+
+"tldraw-code-editor@workspace:templates/code-editor":
+  version: 0.0.0-use.local
+  resolution: "tldraw-code-editor@workspace:templates/code-editor"
+  dependencies:
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    prism-react-renderer: "npm:^2.3.1"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
   languageName: unknown
   linkType: soft
 
