@@ -58,7 +58,7 @@ export class SnapManager {
 	}
 
 	@computed getSnapThreshold() {
-		return this.editor.getSnapThreshold() / this.editor.getZoomLevel()
+		return this.editor.options.snapThreshold / this.editor.getZoomLevel()
 	}
 
 	// TODO: make this an incremental derivation
