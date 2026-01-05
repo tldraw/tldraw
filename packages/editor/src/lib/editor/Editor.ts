@@ -7,7 +7,6 @@ import {
 	react,
 	transact,
 	unsafe__withoutCapture,
-	whyAmIRunning,
 } from '@tldraw/state'
 import {
 	ComputedCache,
@@ -2746,7 +2745,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_cullingBounds = computed<Box | null>('cullingBounds', (prev) => {
 		// Track page changes by referencing pageId (creates reactive dependency)
 		this.getCurrentPageId()
-		whyAmIRunning()
 		const viewport = this.getViewportPageBounds()
 
 		// Recalculate if first run or viewport moved outside bounds

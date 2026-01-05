@@ -57,9 +57,7 @@ export function notVisibleShapes(editor: Editor) {
 		}
 
 		// If there are more or less shapes, we know there's a change
-		if (prevValue.size !== nextValue.size) {
-			return nextValue
-		}
+		if (prevValue.size !== nextValue.size) return nextValue
 
 		// If any of the old shapes are not in the new set, we know there's a change
 		for (const prev of prevValue) {
