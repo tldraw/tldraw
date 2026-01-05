@@ -11,11 +11,8 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
-import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
-import { AgentHelpers } from '../../shared/AgentHelpers'
-import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { SimpleShape } from '../../shared/format/SimpleShape'
-import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
+import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
@@ -31,7 +28,10 @@ import {
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
+import { AgentActionUtil } from '../actions/AgentActionUtil'
+import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../agent-utils'
+import { AgentHelpers } from '../AgentHelpers'
+import { PromptPartUtil } from '../parts/PromptPartUtil'
 import { $agentsAtom } from './agentsAtom'
 
 export interface TldrawAgentOptions {

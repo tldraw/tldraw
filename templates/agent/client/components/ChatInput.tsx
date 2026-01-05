@@ -1,11 +1,11 @@
 import { FormEventHandler, useState } from 'react'
 import { Editor, useValue } from 'tldraw'
-import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../worker/models'
+import { AtIcon } from '../../shared/icons/AtIcon'
+import { BrainIcon } from '../../shared/icons/BrainIcon'
+import { ChevronDownIcon } from '../../shared/icons/ChevronDownIcon'
+import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../shared/models'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { ContextItemTag } from './ContextItemTag'
-import { AtIcon } from './icons/AtIcon'
-import { BrainIcon } from './icons/BrainIcon'
-import { ChevronDownIcon } from './icons/ChevronDownIcon'
 import { SelectionTag } from './SelectionTag'
 
 export function ChatInput({

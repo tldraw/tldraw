@@ -1,18 +1,19 @@
-import { getPromptPartUtilsRecord } from '../../shared/AgentUtils'
+import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
+import { getPromptPartDefinition } from '../../shared/schema/PromptPartRegistry'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../models'
 
 /**
- * Get the selected model name from a prompt.
+ * Get the selected model name from a prompt using shared definitions.
  */
 export function getModelName(prompt: AgentPrompt): AgentModelName {
-	const utils = getPromptPartUtilsRecord()
-
 	for (const part of Object.values(prompt)) {
-		const util = utils[part.type]
-		if (!util) continue
-		const modelName = util.getModelName(part)
-		if (modelName) return modelName
+		const definition = getPromptPartDefinition(part.type)
+
+		// Check if this definition provides a model name
+		if (definition.getModelName) {
+			const modelName = definition.getModelName(part as any)
+			if (modelName) return modelName
+		}
 	}
 
 	return DEFAULT_MODEL_NAME
