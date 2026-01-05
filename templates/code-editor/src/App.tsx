@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Editor, useValue } from 'tldraw'
 import { CanvasPanel } from './components/CanvasPanel'
 import { CodeEditor } from './components/CodeEditor'
@@ -82,15 +83,22 @@ export default function App() {
 
 	return (
 		<div className="editor-container">
-			<CodeEditor
-				onRun={handleRun}
-				onClear={handleClear}
-				isExecuting={isExecuting}
-				generatedShapeCount={generatedShapeCount}
-				error={error}
-				onDismissError={() => setError(null)}
-			/>
-			<CanvasPanel onMount={handleEditorMount} />
+			<PanelGroup direction="horizontal">
+				<Panel defaultSize={40} minSize={35} maxSize={80}>
+					<CodeEditor
+						onRun={handleRun}
+						onClear={handleClear}
+						isExecuting={isExecuting}
+						generatedShapeCount={generatedShapeCount}
+						error={error}
+						onDismissError={() => setError(null)}
+					/>
+				</Panel>
+				<PanelResizeHandle className="resize-handle" />
+				<Panel minSize={20}>
+					<CanvasPanel onMount={handleEditorMount} />
+				</Panel>
+			</PanelGroup>
 		</div>
 	)
 }

@@ -24956,6 +24956,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-resizable-panels@npm:2.0.23":
+  version: 2.0.23
+  resolution: "react-resizable-panels@npm:2.0.23"
+  peerDependencies:
+    react: ^16.14.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.14.0 || ^17.0.0 || ^18.0.0
+  checksum: 10/a36016576bf67f84fad5308f6f25176a7149bf12b9c697474dba80d40a03ab47835fbda7e1d329f70c62534e1f6773dbaeb70173ded7203036da2aae1374f653
+  languageName: node
+  linkType: hard
+
 "react-router-dom@npm:^6.28.2":
   version: 6.30.1
   resolution: "react-router-dom@npm:6.30.1"
@@ -28013,6 +28023,7 @@ __metadata:
     prism-react-renderer: "npm:^2.3.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
+    react-resizable-panels: "npm:2.0.23"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"

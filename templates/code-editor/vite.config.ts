@@ -10,4 +10,8 @@ export default defineConfig({
 			/* EXCLUDE_FROM_TEMPLATE_EXPORT_END */
 		),
 	],
+	optimizeDeps: {
+		force: true,
+		include: ['react-resizable-panels'],
+	},
 })

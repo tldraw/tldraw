@@ -22,26 +22,41 @@ body {
 
 /* Main split layout */
 .editor-container {
-	display: flex;
 	height: 100vh;
 	width: 100%;
 }
 
 /* Code panel (left side) */
 .code-panel {
-	flex: 0 0 40%;
 	display: flex;
 	flex-direction: column;
 	background: #1e1e1e;
 	color: #d4d4d4;
-	border-right: 1px solid #333;
+	height: 100%;
 	overflow: hidden;
+}
+
+/* Resize handle */
+.resize-handle {
+	width: 4px;
+	background: #333;
+	cursor: col-resize;
+	transition: background 0.15s ease;
+}
+
+.resize-handle:hover {
+	background: #555;
+}
+
+.resize-handle:active {
+	background: #0e639c;
 }
 
 /* Canvas panel (right side) */
 .canvas-panel {
-	flex: 1;
 	position: relative;
+	height: 100%;
+	width: 100%;
 }
 
 /* Error banner */
