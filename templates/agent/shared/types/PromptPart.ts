@@ -1,6 +1,6 @@
-import { PROMPT_PART_UTILS } from '../AgentUtils'
-import { PromptPartUtilConstructor } from '../parts/PromptPartUtil'
+import { PromptPartDefinition } from '../schema/PromptPartDefinitions'
+import { PROMPT_PART_DEFINITIONS } from '../schema/PromptPartRegistry'
 
-type ExtractPromptPartType<T> = T extends PromptPartUtilConstructor<infer U> ? U : never
+type ExtractPromptPartType<T> = T extends PromptPartDefinition<infer U> ? U : never
 
-export type PromptPart = ExtractPromptPartType<(typeof PROMPT_PART_UTILS)[number]>
+export type PromptPart = ExtractPromptPartType<(typeof PROMPT_PART_DEFINITIONS)[number]>

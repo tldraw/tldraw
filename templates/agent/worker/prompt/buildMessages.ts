@@ -1,19 +1,19 @@
 import { ModelMessage, UserContent } from 'ai'
-import { getPromptPartUtilsRecord } from '../../shared/AgentUtils'
+import { buildMessagesFromPart } from '../../shared/schema/buildMessagesFromDefinitions'
 import { AgentMessage } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
-	const utils = getPromptPartUtilsRecord()
 	const allMessages: AgentMessage[] = []
 
+	// Build messages from each prompt part using shared definitions
 	for (const part of Object.values(prompt)) {
-		const util = utils[part.type]
-		const messages = util.buildMessages(part)
+		const messages = buildMessagesFromPart(part)
 		allMessages.push(...messages)
 	}
 
-	allMessages.sort((a, b) => b.priority - a.priority)
+	// Sort by priority (higher priority = later in prompt)
+	allMessages.sort((a, b) => a.priority - b.priority)
 
 	return toModelMessages(allMessages)
 }
