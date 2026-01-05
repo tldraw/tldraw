@@ -1,3 +1,9 @@
+---
+title: 'Clean copy'
+description: 'Reimplement the current branch on a new branch with a clean, narrative-quality git commit history'
+argument-hint: '[new-branch-name]'
+---
+
 Reimplement the current branch on a new branch with a clean, narrative-quality git commit history suitable for reviewer comprehension.
 
 **New Branch Name**. Decide on the new branch name. The name should be $ARGUMENTS or, if this is not provided, it should be `{source_branch_name}-clean`.
