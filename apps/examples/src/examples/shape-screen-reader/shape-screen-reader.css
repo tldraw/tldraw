@@ -1,0 +1,23 @@
+.card-shape {
+	padding: var(--tl-space-5);
+	background-color: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tl-shadow-1);
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-3);
+}
+
+.card-shape__title {
+	font-size: 18px;
+	font-weight: bold;
+	color: var(--tl-color-text-1);
+}
+
+.card-shape__description {
+	font-size: 14px;
+	color: var(--tl-color-text-3);
+	line-height: 1.5;
+}
+
