@@ -96,20 +96,18 @@ const components: TLComponents = {
 	},
 }
 
-const textOptions = {
-	tipTapConfig: {
-		extensions: [StarterKit, Outline],
+const options = {
+	textOptions: {
+		tipTapConfig: {
+			extensions: [StarterKit, Outline],
+		},
 	},
 }
 
 export default function OutlinedTextExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="outlined-text-example"
-				components={components}
-				textOptions={textOptions}
-			/>
+			<Tldraw persistenceKey="outlined-text-example" components={components} options={options} />
 		</div>
 	)
 }

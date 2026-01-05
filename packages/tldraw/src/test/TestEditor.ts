@@ -106,10 +106,14 @@ export class TestEditor extends Editor {
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
-			textOptions: {
-				addFontsFromNode: defaultAddFontsFromNode,
-				tipTapConfig: {
-					extensions: tipTapDefaultExtensions,
+			options: {
+				...options.options,
+				textOptions: {
+					addFontsFromNode: defaultAddFontsFromNode,
+					tipTapConfig: {
+						extensions: tipTapDefaultExtensions,
+					},
+					...options.options?.textOptions,
 				},
 			},
 		})

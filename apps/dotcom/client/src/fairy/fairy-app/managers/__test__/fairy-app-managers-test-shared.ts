@@ -18,10 +18,12 @@ export function createTestEditor() {
 		tools: [],
 		store: createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils }),
 		getContainer: () => document.body,
-		textOptions: {
-			addFontsFromNode: defaultAddFontsFromNode,
-			tipTapConfig: {
-				extensions: tipTapDefaultExtensions,
+		options: {
+			textOptions: {
+				addFontsFromNode: defaultAddFontsFromNode,
+				tipTapConfig: {
+					extensions: tipTapDefaultExtensions,
+				},
 			},
 		},
 	})

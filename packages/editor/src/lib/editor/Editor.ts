@@ -230,7 +230,6 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
@@ -284,7 +283,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
-		textOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -313,7 +311,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
-		this._textOptions = atom('text options', textOptions ?? null)
+		this._textOptions = atom('text options', options?.textOptions ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())

@@ -72,7 +72,7 @@ export function TldrawViewer({
 					shapeUtils={defaultShapeUtils}
 					bindingUtils={defaultBindingUtils}
 					tools={tools}
-					textOptions={defaultTextOptions}
+					options={defaultOptions}
 					assetUrls={defaultEditorAssetUrls}
 					initialState="inspect"
 				/>
@@ -87,9 +87,11 @@ class InspectTool extends StateNode {
 
 const tools = [InspectTool]
 
-const defaultTextOptions = {
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const defaultOptions = {
+	textOptions: {
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
+		addFontsFromNode: defaultAddFontsFromNode,
 	},
-	addFontsFromNode: defaultAddFontsFromNode,
 }

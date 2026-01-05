@@ -105,10 +105,12 @@ export class FuzzEditor extends RandomSource {
 			initialState: 'select',
 			store,
 			getContainer: () => document.createElement('div'),
-			textOptions: {
-				addFontsFromNode: defaultAddFontsFromNode,
-				tipTapConfig: {
-					extensions: tipTapDefaultExtensions,
+			options: {
+				textOptions: {
+					addFontsFromNode: defaultAddFontsFromNode,
+					tipTapConfig: {
+						extensions: tipTapDefaultExtensions,
+					},
 				},
 			},
 		})

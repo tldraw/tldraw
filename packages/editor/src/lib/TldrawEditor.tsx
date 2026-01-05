@@ -44,7 +44,6 @@ import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -166,11 +165,6 @@ export interface TldrawEditorBaseProps {
 	 * Camera options for the editor.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-
-	/**
-	 * Text options for the editor.
-	 */
-	textOptions?: TLTextOptions
 
 	/**
 	 * Options for the editor.
@@ -398,7 +392,6 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
-	textOptions,
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
@@ -458,7 +451,6 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
-				textOptions,
 				options,
 				licenseKey,
 				getShapeVisibility,
@@ -497,7 +489,6 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			getShapeVisibility,
-			textOptions,
 			assetUrls,
 		]
 	)

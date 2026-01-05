@@ -112,7 +112,7 @@ export function Tldraw(props: TldrawProps) {
 		bindingUtils = [],
 		tools = [],
 		embeds,
-		textOptions,
+		options,
 		...rest
 	} = props
 
@@ -174,13 +174,21 @@ export function Tldraw(props: TldrawProps) {
 	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {
 			addFontsFromNode: defaultAddFontsFromNode,
-			...textOptions,
+			...options?.textOptions,
 			tipTapConfig: {
 				extensions: tipTapDefaultExtensions,
-				...textOptions?.tipTapConfig,
+				...options?.textOptions?.tipTapConfig,
 			},
 		}
-	}, [textOptions])
+	}, [options?.textOptions])
+
+	const optionsWithDefaults = useMemo(
+		() => ({
+			...options,
+			textOptions: textOptionsWithDefaults,
+		}),
+		[options, textOptionsWithDefaults]
+	)
 
 	const mediaMimeTypes = useMemo(
 		() => [..._imageMimeTypes, ..._videoMimeTypes],
@@ -210,7 +218,7 @@ export function Tldraw(props: TldrawProps) {
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
 					tools={toolsWithDefaults}
-					textOptions={textOptionsWithDefaults}
+					options={optionsWithDefaults}
 					assetUrls={assets}
 				>
 					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
