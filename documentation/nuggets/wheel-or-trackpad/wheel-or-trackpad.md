@@ -191,12 +191,6 @@ The tradeoff is onboarding friction. New users who scroll and get the wrong beha
 
 Browser vendors could solve this properly by adding device information to wheel events. Until then, asking users beats guessing.
 
-## Key files
-
-- `packages/editor/src/lib/editor/Editor.ts:10417-10480` — Wheel event handling and behavior switching
-- `packages/editor/src/lib/config/TLUserPreferences.ts` — inputMode preference definition
-- `packages/tldraw/src/lib/ui/components/InputModeMenu.tsx` — Preference UI
-
 ## Related
 
 - [Pinch gesture disambiguation](./pinch-gesture.md) — How two-finger trackpad gestures distinguish zoom from pan

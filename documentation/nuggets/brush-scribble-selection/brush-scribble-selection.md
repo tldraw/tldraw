@@ -181,11 +181,3 @@ The brush or scribble continues to select shapes as they scroll into view, makin
 Brush selection shows a translucent rectangle overlay. Scribble selection shows a fading polyline that follows your path—the same scribble effect used for eraser feedback. Both provide immediate visual feedback about what you're selecting, updating the actual selection on every pointer move.
 
 The algorithms are different because the visual metaphor is different. A rectangle is defined by two corners. A lasso is defined by a path. Trying to unify them would either limit the lasso to a convex hull (losing the "draw through shapes" feel) or require complex polygon intersection for the rectangle (slower than edge testing). Each metaphor gets the algorithm that makes it feel right.
-
-## Key files
-
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts` — Rectangular brush selection state
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/ScribbleBrushing.ts` — Freeform scribble selection state
-- `packages/editor/src/lib/primitives/geometry/Geometry2d.ts:146` — `hitTestLineSegment()` base implementation
-- `packages/editor/src/lib/primitives/Box.ts` — Rectangle intersection via `contains()` and `collides()`
-- `packages/editor/src/lib/editor/managers/ScribbleManager/ScribbleManager.ts` — Scribble visual feedback system

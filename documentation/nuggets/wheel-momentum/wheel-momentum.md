@@ -109,11 +109,6 @@ Possible future improvements:
 
 For now, timestamp detection works reliably with the current use-gesture version (10.3.1). The workaround has survived several minor version updates, suggesting the phantom event behavior is stable even if undocumented.
 
-## Key files
-
-- `packages/editor/src/lib/hooks/useGestureEvents.ts:52-76` — The `isWheelEndEvent` function and explanatory comment
-- `packages/editor/src/lib/utils/normalizeWheel.ts` — Wheel delta normalization (runs after phantom filtering)
-
 ## Related
 
 - [Pinch gesture disambiguation](./pinch-gesture.md) — Similar disambiguation for two-finger gestures

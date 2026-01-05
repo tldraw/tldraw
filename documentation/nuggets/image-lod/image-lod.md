@@ -147,10 +147,3 @@ Not everything goes through the LOD system. The resolver returns the original UR
 This system balances multiple concerns: initial load speed, visual quality during interaction, network bandwidth, and browser cache efficiency. The power-of-two stepping ensures cache hits across zoom operations. The debouncing prevents network thrashing and visual flickering. The network-aware scaling keeps the app responsive on slow connections. And the format negotiation delivers smaller files without any manual configuration.
 
 The main limitation is the 500ms debounce delay—users zooming in on an image see the lower resolution briefly before the higher resolution loads. This feels better than constant flickering, but it's still a visible transition. Faster networks and browser preloading could reduce this delay, but then you risk wasting bandwidth on images the user zooms past. Every multiplier in that resolution formula is a tradeoff.
-
-## Key files
-
-- `packages/tldraw/src/lib/shapes/shared/useImageOrVideoAsset.ts` — Client-side resolution selection and debouncing
-- `packages/editor/src/lib/editor/Editor.ts` — Efficient zoom level calculation and power-of-two stepping
-- `apps/dotcom/client/src/utils/multiplayerAssetStore.ts` — Production asset resolver with network-aware scaling
-- `apps/dotcom/image-resize-worker/src/worker.ts` — Cloudflare image transformation and format negotiation

@@ -112,10 +112,6 @@ The 150ms delay is an empirical fix—tuned through testing rather than derived 
 
 It's not elegant. But it's the difference between "this app is broken" and "this app does what I expect."
 
-## Key files
-
-- `packages/editor/src/lib/editor/Editor.ts` — Modifier delay implementation in `_flushEventForTick` (lines 10291-10321)
-
 ## Related
 
 - [Click detection state machine](../click-state-machine/click-state-machine.md) — Race condition prevention in click sequences

@@ -156,11 +156,3 @@ Edge-based routing shows that understanding your problem domain can eliminate en
 The coordinate transformation pattern—normalize to canonical cases, process, transform back—cuts implementation cost dramatically. Anytime you're duplicating logic for rotational variants, ask if transforms can collapse the cases.
 
 Working in expanded/simplified geometry then refining to precise geometry is faster than handling all edge cases upfront. Physics engines, graphics pipelines, and now connector routing all benefit from this two-phase approach.
-
-## Key files
-
-- `packages/tldraw/src/lib/shapes/arrow/elbow/getElbowArrowInfo.tsx` — Main routing algorithm
-- `packages/tldraw/src/lib/shapes/arrow/elbow/routes/elbowArrowRoutes.tsx` — Route functions for all 4 primary directions
-- `packages/tldraw/src/lib/shapes/arrow/elbow/routes/ElbowArrowWorkingInfo.ts` — Transform handling for rotations/flips
-- `packages/tldraw/src/lib/shapes/arrow/elbow/routes/routeArrowWithAutoEdgePicking.tsx` — Edge selection and route picking
-- `packages/tldraw/src/lib/shapes/arrow/elbow/definitions.ts` — Type definitions for routes, edges, terminals

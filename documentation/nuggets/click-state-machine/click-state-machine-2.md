@@ -75,9 +75,3 @@ This matters because fingers and mice drift during clicks. A double-click should
 We could have just fired the event once on pointer up. But that creates a tradeoff between responsiveness and correctness. Fire too early and you might act on what turns out to be a drag. Wait too long and the UI feels sluggish.
 
 Three phases let different parts of the system choose their own tradeoff. Fast visual feedback on `down`, confident state updates on `up`, final actions on `settle`. Each handler picks the phase that matches what it's trying to do.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.ts` — Phase emission logic (lines 99-222)
-- `packages/editor/src/lib/editor/types/event-types.ts` — TLClickEventInfo type definition (line 73)
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/Idle.ts` — Example of phase filtering in tools (lines 169-356)

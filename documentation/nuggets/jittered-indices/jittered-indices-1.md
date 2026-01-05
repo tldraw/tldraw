@@ -95,9 +95,3 @@ This runs in O(jitterBits) time—for 30 bits of jitter, we call the base fracti
 ## A small cost for a big win
 
 Three extra characters per index is a trivial cost. The flickering z-order bugs were genuinely confusing for users—shapes would appear to jump between layers unpredictably, and different users would see different stacking orders for the same document. The randomness eliminates this entire class of problem while remaining invisible to users.
-
-## Key files
-
-- `packages/utils/src/lib/reordering.ts` — Index generation with jitter
-- `packages/editor/src/lib/utils/reorderShapes.ts` — Shape reordering operations
-- `packages/editor/src/lib/utils/reparenting.ts` — Index assignment when reparenting shapes

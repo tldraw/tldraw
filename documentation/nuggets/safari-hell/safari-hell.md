@@ -240,13 +240,3 @@ This is a hard constraint—there's no CSS or JavaScript to disable the zoom beh
 These workarounds share a pattern: Safari's behavior is usually defensible from a security, performance, or UX perspective, but the constraints make building certain kinds of apps harder. iOS doesn't fire `beforeunload` because it can't guarantee the event will complete before the tab closes. Clipboard operations must be synchronous to prevent abuse. Font loading in SVG images doesn't have a ready event because it's genuinely hard to detect in WebKit's architecture.
 
 The solutions range from elegant (feature detection and graceful degradation) to hacky (sleeping 250ms and hoping fonts loaded). When Safari has no proper API, you work around the edges. The key is knowing which quirks exist so you can recognize them when they break your app.
-
-## Key files
-
-- `packages/editor/src/lib/globals/environment.ts` — Browser detection (tlenv.isSafari, tlenv.isIos)
-- `packages/editor/src/lib/hooks/useFixSafariDoubleTapZoomPencilEvents.ts` — Apple Pencil handling
-- `packages/editor/src/lib/hooks/useGestureEvents.ts` — Pinch gesture detection
-- `packages/editor/src/lib/components/default-components/DefaultCanvas.tsx` — Text outline and reflow fixes
-- `packages/editor/src/lib/exports/getSvgAsImage.ts` — SVG font loading delay
-- `packages/tldraw/src/lib/shapes/shared/useEditablePlainText.ts` — Caret visibility fix
-- `packages/editor/src/lib/utils/browserCanvasMaxSize.ts` — Canvas size limits

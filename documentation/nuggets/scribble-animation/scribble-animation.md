@@ -243,11 +243,3 @@ The delay queue pattern applies anywhere you need bounded visual feedback that f
 - **Debug overlays**: Frame timing graphs that scroll left as new data arrives
 
 The key insight is that you don't need complex animation logic. A simple queue with time-based removal gives you smooth, responsive visual feedback with predictable performance characteristics. The "animation" is just an emergent property of how you manage the buffer.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/ScribbleManager/ScribbleManager.ts` — State machine and point management
-- `packages/tldraw/src/lib/canvas/TldrawScribble.tsx` — Variable-width SVG rendering using getStroke
-- `packages/editor/src/lib/components/default-components/DefaultScribble.tsx` — Simple constant-width trail rendering
-- `packages/tldraw/src/lib/tools/EraserTool/childStates/Erasing.ts` — Eraser tool trail usage
-- `packages/tldraw/src/lib/tools/LaserTool/childStates/Lasering.ts` — Laser tool with delay configuration

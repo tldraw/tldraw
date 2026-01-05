@@ -189,9 +189,3 @@ This technique works because data URI cursors are widely supported and SVG is fl
 The cost is that every cursor update constructs a new data URI string. This happens on hover and during resize, potentially many times per second. But string construction is fast, and browsers cache cursor rendering, so the overhead is negligible compared to the rest of the resize operation.
 
 We also don't get native cursor rendering. The browser's built-in cursors are pixel-perfect at their intended size. Our SVG cursors scale with DPI but might look slightly different across browsers. That's a worthwhile tradeoff for correct rotation at any angle.
-
-## Key files
-
-- packages/editor/src/lib/hooks/useCursor.ts — `getCursorCss` function and cursor definitions
-- packages/tldraw/src/lib/tools/SelectTool/childStates/Resizing.ts — `updateCursor` with flip logic
-- packages/tldraw/src/lib/tools/SelectTool/childStates/PointingResizeHandle.ts — Cursor on hover

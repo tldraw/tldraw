@@ -143,10 +143,3 @@ Each cloud with a different ID has differently-shaped bumps, but the same cloud 
 The xorshift algorithm is lightweight—just a few bitwise operations per call. For draw-style shapes, we might call `random()` hundreds of times per shape during rendering. A heavyweight PRNG like Mersenne Twister would be overkill.
 
 Xorshift isn't cryptographically secure, but we don't need that. We just need shapes that look hand-drawn and stay stable. Visual quality matters more than mathematical properties, and xorshift passes the basic statistical tests that matter for our use case.
-
-## Key files
-
-- `packages/utils/src/lib/number.ts` — The `rng()` function with xorshift implementation
-- `packages/tldraw/src/lib/shapes/shared/PathBuilder.tsx` — `toDrawD()` method applying random offsets
-- `packages/tldraw/src/lib/shapes/geo/components/GeoShapeBody.tsx` — Connecting shape IDs to random seeds
-- `packages/tldraw/src/lib/shapes/geo/getGeoShapePath.ts` — Cloud shape generation with seeded wiggling

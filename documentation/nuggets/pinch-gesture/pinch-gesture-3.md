@@ -89,8 +89,3 @@ The Safari trackpad shortcut saves a few milliseconds of latency on desktop. The
 The momentum filtering prevents a visible glitch. That extra event arriving 140ms after the user stopped scrolling would cause the viewport to jump noticeably. The timestamp check is clunky—we're working around library behavior we can't control—but the alternative is accepting the glitch.
 
 Both workarounds are small. They don't change the architecture. The state machine still handles all touch screen input. The wheel handler still processes scroll events. But these edge cases would be user-visible bugs without explicit handling, and they're the kind of thing you don't notice until you ship and people start using trackpads on Safari or scrolling quickly on any platform with @use-gesture.
-
-## Key files
-
-- packages/editor/src/lib/hooks/useGestureEvents.ts — Main pinch state machine and gesture handlers
-- packages/editor/src/lib/editor/Editor.ts — Pinch event processing and camera updates

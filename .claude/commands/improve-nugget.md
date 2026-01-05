@@ -88,6 +88,26 @@ After:
 
 Save the improved draft as the next numbered file (e.g., if improving `arc-arrows-2.md`, create `arc-arrows-3.md`).
 
+**Important**: Add a `draft-notes` field to the frontmatter explaining what changed in this draft. For example:
+
+```yaml
+---
+title: Arc arrows
+created_at: 12/20/2024
+updated_at: 12/21/2024
+draft-notes: 'Updated to be more clever about the opening. Removed AI tells like "robust" and "seamless". Tightened prose in edge cases section.'
+keywords:
+  - arrows
+  - arcs
+---
+```
+
+The draft-notes should briefly describe:
+
+- What major changes were made
+- Which specific issues were fixed
+- What approach was taken to improve scores
+
 The improved draft should then be evaluated fresh using the evaluate-nugget skill. Use a separate evaluation pass—don't self-evaluate immediately after improving.
 
 ## Improvement cycle

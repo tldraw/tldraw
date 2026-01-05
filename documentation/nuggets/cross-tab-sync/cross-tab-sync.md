@@ -143,15 +143,3 @@ window.addEventListener('storage', handleStorageEvent)
 ```
 
 The `storage` event fires when localStorage changes in a different tab. Same-tab changes don't trigger it, so there's no loop. This is simpler than BroadcastChannel but only works for small, JSON-serializable values.
-
-## Key files
-
-- `packages/editor/src/lib/utils/sync/TLLocalSyncClient.ts` — Main cross-tab sync implementation
-- `packages/editor/src/lib/utils/sync/LocalIndexedDb.ts` — IndexedDB persistence layer
-- `packages/state/src/lib/localStorageAtom.ts` — localStorage atoms with cross-tab sync for preferences
-- `packages/editor/src/lib/config/TLSessionStateSnapshot.ts` — Session state handling
-
-## Related
-
-- [Signals](./signals.md) — How the reactive store system works
-- [Sync](./sync.md) — Real-time collaboration over the network

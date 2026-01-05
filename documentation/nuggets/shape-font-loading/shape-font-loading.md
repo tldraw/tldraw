@@ -176,12 +176,3 @@ This is fine for tldraw's use case. Shapes mount synchronously during React's re
 The pattern also delays processing by one microtask. For fonts, this is negligible—network time dominates. But if immediate execution matters, batching adds unwanted latency.
 
 Despite these constraints, microtask batching is remarkably effective for its specific problem: coordinating duplicate synchronous requests. One timing trick eliminates redundant work and flicker.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/FontManager/FontManager.ts` — Core batching and state management
-- `packages/editor/src/lib/components/Shape.tsx` — Reactive font tracking per shape (lines 46-51)
-- `packages/editor/src/lib/editor/shapes/ShapeUtil.ts` — Base `getFontFaces` method
-- `packages/tldraw/src/lib/shapes/text/TextShapeUtil.tsx` — Example font declaration for text shapes
-- `packages/tldraw/src/lib/shapes/shared/defaultFonts.tsx` — Default font face definitions
-- `packages/editor/src/lib/utils/richText.ts` — `getFontsFromRichText` for extracting fonts from rich text

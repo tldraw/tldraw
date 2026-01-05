@@ -188,11 +188,3 @@ We chose this tradeoff because unmounting culled shapes makes React's reconcilia
 If you're building on tldraw and memory becomes an issue with very large documents, you could experiment with removing culled shapes from the DOM entirely. You'd need to handle the reconciliation cost, probably by batching culled shape updates and throttling them to avoid constant mounting/unmounting as the user pans.
 
 For our use cases—whiteboards with hundreds to low thousands of shapes—keeping them mounted is the right choice.
-
-## Key files
-
-- `/packages/editor/src/lib/editor/Editor.ts` — `getRenderingShapes` (lines 4212-4226) with the "past you" comment
-- `/packages/editor/src/lib/editor/Editor.ts` — `getCulledShapes` (lines 5137-5151)
-- `/packages/editor/src/lib/editor/derivations/notVisibleShapes.ts` — Viewport culling computation
-- `/packages/editor/src/lib/components/Shape.tsx` — Display toggle in `useQuickReactor` (lines 121-136)
-- `/packages/editor/src/lib/components/Shape.tsx` — Z-index application in `useLayoutEffect` (lines 107-119)

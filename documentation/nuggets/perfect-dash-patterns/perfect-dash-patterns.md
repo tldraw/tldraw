@@ -97,9 +97,3 @@ Dotted lines use the same approach with a twist: the "dash" is nearly invisible 
 `PathBuilder` applies this to complex shapes by treating each edge separately. A rectangle's four sides each get their own dash calculation rather than flowing the pattern around corners.
 
 The cost is computational—we're calculating lengths and offsets for every dashed path at render time. But shapes end up looking designed rather than mechanically generated, and for a drawing tool, that's worth it.
-
-## Key files
-
-- `/packages/editor/src/lib/editor/shapes/shared/getPerfectDashProps.ts` — The dash calculation algorithm
-- `/packages/tldraw/src/lib/shapes/shared/PathBuilder.tsx` — Integration with shape rendering (see `toDashedSvg` method)
-- `/packages/editor/src/lib/editor/shapes/group/DashedOutlineBox.tsx` — Usage example for selection outlines

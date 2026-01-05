@@ -156,8 +156,3 @@ The effective scale gets embedded in PNG metadata so that tools can correctly in
 When clamping occurs, exports succeed but at reduced resolution. A 20,000×10,000 pixel export that exceeds Chrome's 32,767 width limit gets scaled down proportionally. Users get a working export rather than a silent failure or blank image.
 
 This is a reasonable tradeoff for a problem most users never encounter. The limits affect extreme cases—exporting massive documents at high DPI, or capturing wide panoramic views. For typical exports, the safe-size fast path means zero overhead.
-
-## Key files
-
-- `packages/editor/src/lib/utils/browserCanvasMaxSize.ts` — Probing and clamping implementation
-- `packages/editor/src/lib/exports/getSvgAsImage.ts` — Export code that applies clamping

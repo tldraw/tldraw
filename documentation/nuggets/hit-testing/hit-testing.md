@@ -195,12 +195,3 @@ The distance-based approach trades memory for correctness and flexibility. Each 
 The approach also requires more complex geometry implementations. Simple boolean containment is easier to understand and implement. But the signed distance pattern handles filled shapes, hollow shapes, touch margins, and overlapping hollow shapes with the same unified algorithm. What looks like added complexity actually eliminates special cases.
 
 The key insight applies beyond hit testing: when you need to distinguish "inside" from "near the edge," a signed distance tells you everything a boolean can and more. The cost is the geometry calculation, but cache that once and you get fast, flexible hit testing that handles edge cases elegantly.
-
-## Key files
-
-- `packages/editor/src/lib/editor/Editor.ts:5198` — `getShapeAtPoint()` main entry point
-- `packages/editor/src/lib/primitives/geometry/Geometry2d.ts` — Base geometry class with `distanceToPoint()`
-- `packages/editor/src/lib/primitives/geometry/Polyline2d.ts` — Open path geometry
-- `packages/editor/src/lib/primitives/geometry/Polygon2d.ts` — Closed shape geometry
-- `packages/editor/src/lib/primitives/geometry/Group2d.ts` — Compound geometry for shapes with labels
-- `packages/editor/src/lib/primitives/utils.ts:319` — `pointInPolygon()` winding number implementation

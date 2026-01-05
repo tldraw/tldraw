@@ -180,9 +180,3 @@ The core tension in this system is between URL-safety and readability. Standard 
 We want `?d=v-342.178.1920.1080` because humans look at these URLs. They share them in messages, edit them by hand, recognize patterns. The choice to keep dots unencoded—and manually encode only the dots that cause ambiguity—is a design decision that trades some complexity for user experience.
 
 This is the recurring pattern in tldraw: optimizing for humans, not just machines. The URLs could be shorter, more efficient, less ambiguous. But they'd be worse to use. Sometimes "worse is better" really means worse.
-
-## Key files
-
-- `/packages/editor/src/lib/utils/deepLinks.ts` - Encoding and decoding functions
-- `/packages/editor/src/lib/editor/Editor.ts` - Navigation methods (`navigateToDeepLink`, `createDeepLink`, `registerDeepLinkListener`)
-- `/packages/editor/src/lib/TldrawEditor.tsx` - Deep link prop handling on mount

@@ -1133,66 +1133,6 @@ private isActing = false
 
 Prevents agent's own actions from being recorded as user actions.
 
-## Key files
-
-**Main agent class:**
-`templates/agent/client/agent/TldrawAgent.ts` (983 lines)
-
-- Core agent orchestration
-- Request handling and multi-turn loops
-- State management with reactive atoms
-- Action execution and history tracking
-
-**Coordinate transformation helpers:**
-`templates/agent/shared/AgentHelpers.ts` (503 lines)
-
-- Offset calculations (applyOffsetToVec, removeOffsetFromVec)
-- Coordinate rounding with diff tracking
-- Shape ID validation and uniqueness
-- Type validation (ensureValueIsNumber, etc)
-- Sanitization helpers
-
-**Utility registry:**
-`templates/agent/shared/AgentUtils.ts` (150 lines)
-
-- PROMPT_PART_UTILS array (15 utilities)
-- AGENT_ACTION_UTILS array (27 utilities)
-- Factory functions to instantiate utilities
-
-**Shape format definitions:**
-
-- `templates/agent/shared/format/BlurryShape.ts` (12 lines) - Minimal viewport format
-- `templates/agent/shared/format/SimpleShape.ts` (153 lines) - Full detail format
-- `templates/agent/shared/format/PeripheralShapesCluster.ts` (7 lines) - Out-of-viewport format
-
-**Format converters:**
-
-- `templates/agent/shared/format/convertTldrawShapeToBlurryShape.ts` - TLShape → BlurryShape
-- `templates/agent/shared/format/convertTldrawShapesToPeripheralShapes.ts` - TLShape[] → clusters
-- `templates/agent/shared/format/convertSimpleShapeToTldrawShape.ts` - SimpleShape → TLShape
-- `templates/agent/shared/format/convertTldrawShapeToSimpleShape.ts` - TLShape → SimpleShape
-
-**Prompt parts (what model sees):**
-
-- `templates/agent/shared/parts/ScreenshotPartUtil.ts` - JPEG viewport capture
-- `templates/agent/shared/parts/BlurryShapesPartUtil.ts` - Shapes in viewport
-- `templates/agent/shared/parts/PeripheralShapesPartUtil.ts` - Shapes outside viewport
-- `templates/agent/shared/parts/PromptPartUtil.ts` - Base class
-
-**Action utilities (what model can do):**
-
-- `templates/agent/shared/actions/AgentActionUtil.ts` - Base class
-- `templates/agent/shared/actions/CreateActionUtil.ts` - Create shapes
-- `templates/agent/shared/actions/AddDetailActionUtil.ts` - Schedule follow-up
-- `templates/agent/shared/actions/TodoListActionUtil.ts` - Manage todo items
-- `templates/agent/shared/actions/RandomWikipediaArticleActionUtil.ts` - External API + data passing
-
-**Streaming infrastructure:**
-
-- `templates/agent/worker/worker.ts` - Cloudflare worker entry point
-- `templates/agent/worker/do/AgentService.ts` - Model streaming orchestration
-- `templates/agent/worker/do/closeAndParseJson.ts` - Incomplete JSON parsing
-
 ## Performance and token optimization
 
 **Screenshot constraints:**
