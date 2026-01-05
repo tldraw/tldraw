@@ -35,13 +35,6 @@
 		"sidebar_behavior": "show-links"
 	},
 	{
-		"id": "packages",
-		"title": "Packages",
-		"description": "Documentation for tldraw's core packages and modules.",
-		"categories": [],
-		"sidebar_behavior": "show-links"
-	},
-	{
 		"id": "changelog",
 		"title": "Changelog",
 		"description": "Release notes and version history for tldraw.",
