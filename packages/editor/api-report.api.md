@@ -731,6 +731,7 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
+    readonly zoomToFitPadding: 128;
 };
 
 // @public (undocumented)
@@ -3506,6 +3507,7 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
+    readonly zoomToFitPadding: number;
 }
 
 // @public (undocumented)

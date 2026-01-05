@@ -103,6 +103,13 @@ export interface TldrawOptions {
 	 * When false, the spacebar will not pan the camera.
 	 */
 	readonly spacebarPanning: boolean
+	/**
+	 * The default padding (in pixels) used when zooming to fit content in the viewport.
+	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
+	 * The actual padding used is the minimum of this value and 28% of the viewport width.
+	 * Defaults to 128 pixels.
+	 */
+	readonly zoomToFitPadding: number
 }
 
 /** @public */
@@ -158,4 +165,5 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	zoomToFitPadding: 128,
 } as const satisfies TldrawOptions
