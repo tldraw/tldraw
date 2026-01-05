@@ -1,3 +1,9 @@
+---
+title: 'Create GitHub Issue'
+description: 'Create a GitHub issue from a description'
+argument-hint: '[description]'
+---
+
 # Create and research a GitHub issue
 
 Create a new GitHub issue on tldraw/tldraw based on the user's description, then research it thoroughly.
@@ -120,6 +126,7 @@ gh api graphql -f query='
 If the issue clearly fits one of these milestones, assign it. Otherwise, leave the milestone empty.
 
 Available milestones:
+
 - **Improve developer resources**: For examples, documentation, improved code comments, starter kits, and `npm create tldraw` improvements
 - **Improve automations**: For GitHub Actions, review bots, CI/CD, and other automation improvements
 
