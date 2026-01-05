@@ -2750,12 +2750,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Recalculate if first run or viewport moved outside bounds
 		// (page changes trigger re-run via getCurrentPageId dependency)
 		if (isUninitialized(prev) || !prev || !prev.contains(viewport)) {
-			return calculateCullingBounds(viewport)
+			return calculateCullingBounds(viewport, this.options.cullingMargin)
 		}
 
 		// Also recalculate if bounds are too large (e.g., after zooming in)
 		// If new bounds would be less than half the area of current bounds, recalculate
-		const newBounds = calculateCullingBounds(viewport)
+		const newBounds = calculateCullingBounds(viewport, this.options.cullingMargin)
 		const newArea = newBounds.width * newBounds.height
 		const prevArea = prev.width * prev.height
 		if (newArea < prevArea / 2) {

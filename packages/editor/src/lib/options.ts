@@ -103,6 +103,12 @@ export interface TldrawOptions {
 	 * When false, the spacebar will not pan the camera.
 	 */
 	readonly spacebarPanning: boolean
+	/**
+	 * Margin percentage for expanding culling bounds around viewport.
+	 * This reduces recalculation frequency during pan/zoom operations.
+	 * A value of 0.2 means 20% of viewport width/height is added as margin.
+	 */
+	readonly cullingMargin: number
 }
 
 /** @public */
@@ -158,4 +164,5 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	cullingMargin: 0.2,
 } as const satisfies TldrawOptions

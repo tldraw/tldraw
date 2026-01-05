@@ -556,9 +556,6 @@ export class CubicSpline2d extends Geometry2d {
     get segments(): CubicBezier2d[];
 }
 
-// @internal
-export const CULLING_MARGIN = 0.2;
-
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
@@ -686,6 +683,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
     readonly createTextOnCanvasDoubleClick: true;
+    readonly cullingMargin: 0.2;
     readonly debouncedZoom: true;
     readonly debouncedZoomThreshold: 500;
     readonly defaultSvgPadding: 32;
@@ -3449,6 +3447,7 @@ export interface TldrawOptions {
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
     readonly createTextOnCanvasDoubleClick: boolean;
+    readonly cullingMargin: number;
     readonly debouncedZoom: boolean;
     readonly debouncedZoomThreshold: number;
     // (undocumented)

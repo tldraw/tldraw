@@ -1,21 +1,16 @@
 import { Box } from '../../primitives/Box'
 
 /**
- * Margin percentage for expanding culling bounds around viewport.
- * @internal
- */
-export const CULLING_MARGIN = 0.2
-
-/**
  * Calculate expanded viewport bounds for culling decisions.
  * Expands bounds by margin to reduce recalculation frequency during pan/zoom.
  *
  * @param viewportBounds - The current viewport bounds
+ * @param margin - Margin percentage (e.g., 0.2 for 20%)
  * @returns Expanded Box with margins applied to all sides
  */
-export function calculateCullingBounds(viewportBounds: Box): Box {
-	const horizontalMargin = viewportBounds.width * CULLING_MARGIN
-	const verticalMargin = viewportBounds.height * CULLING_MARGIN
+export function calculateCullingBounds(viewportBounds: Box, margin: number): Box {
+	const horizontalMargin = viewportBounds.width * margin
+	const verticalMargin = viewportBounds.height * margin
 
 	return new Box(
 		viewportBounds.x - horizontalMargin,

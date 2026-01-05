@@ -1,7 +1,6 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
-	CULLING_MARGIN,
 	RecordProps,
 	T,
 	TLShape,
@@ -74,12 +73,13 @@ it('lists shapes in viewport', () => {
 	// D is outside of the viewport, so it's clipped
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.D]))
 
-	// Move the camera far enough that shape A is outside culling bounds (viewport + CULLING_MARGIN)
+	// Move the camera far enough that shape A is outside culling bounds (viewport + cullingMargin)
 	// Shape A is at (100,100) with size (100,100), so right edge at 200
 	// Need to pan so viewport.x exceeds shape right edge + horizontal margin
 	const viewportBounds = editor.getViewportScreenBounds()
-	const horizontalMargin = viewportBounds.w * CULLING_MARGIN
-	const verticalMargin = viewportBounds.h * CULLING_MARGIN
+	const cullingMargin = editor.options.cullingMargin
+	const horizontalMargin = viewportBounds.w * cullingMargin
+	const verticalMargin = viewportBounds.h * cullingMargin
 	editor.pan({ x: -(200 + horizontalMargin + 100), y: -(200 + verticalMargin + 100) })
 	vi.advanceTimersByTime(500)
 
@@ -104,11 +104,11 @@ it('lists shapes in viewport', () => {
 const shapeSize = 100
 const numberOfShapes = 100
 
-function getChangeOutsideBounds(viewportSize: number) {
+function getChangeOutsideBounds(viewportSize: number, marginRatio: number) {
 	const changeDirection = Math.random() > 0.5 ? 1 : -1
 	const maxChange = 1000
 	const changeAmount = 1 + Math.random() * maxChange
-	const cullingMargin = viewportSize * CULLING_MARGIN
+	const cullingMargin = viewportSize * marginRatio
 	if (changeDirection === 1) {
 		// We need to get past the viewport size + culling margin and then add a bit more
 		return viewportSize + cullingMargin + changeAmount
@@ -118,16 +118,16 @@ function getChangeOutsideBounds(viewportSize: number) {
 	}
 }
 
-function getChangeInsideBounds(viewportSize: number) {
+function getChangeInsideBounds(viewportSize: number, marginRatio: number) {
 	// With culling bounds, shapes can be slightly outside viewport and still visible
 	// Range: from -(margin + shapeSize) to (viewportSize + margin)
-	const cullingMargin = viewportSize * CULLING_MARGIN
+	const cullingMargin = viewportSize * marginRatio
 	const minPos = -(cullingMargin + shapeSize)
 	const maxPos = viewportSize + cullingMargin
 	return minPos + Math.random() * (maxPos - minPos)
 }
 
-function createFuzzShape(viewport: Box) {
+function createFuzzShape(viewport: Box, marginRatio: number) {
 	const id = createShapeId()
 	if (Math.random() > 0.5) {
 		const positionChange = Math.random()
@@ -142,10 +142,14 @@ function createFuzzShape(viewport: Box) {
 			type: 'geo',
 			x:
 				viewport.x +
-				(xOutsideBounds ? getChangeOutsideBounds(viewport.w) : getChangeInsideBounds(viewport.w)),
+				(xOutsideBounds
+					? getChangeOutsideBounds(viewport.w, marginRatio)
+					: getChangeInsideBounds(viewport.w, marginRatio)),
 			y:
 				viewport.y +
-				(yOutsideBounds ? getChangeOutsideBounds(viewport.h) : getChangeInsideBounds(viewport.h)),
+				(yOutsideBounds
+					? getChangeOutsideBounds(viewport.h, marginRatio)
+					: getChangeInsideBounds(viewport.h, marginRatio)),
 			props: { w: shapeSize, h: shapeSize },
 		})
 		return { isCulled: true, id }
@@ -154,8 +158,8 @@ function createFuzzShape(viewport: Box) {
 		editor.createShape({
 			id,
 			type: 'geo',
-			x: viewport.x + getChangeInsideBounds(viewport.w),
-			y: viewport.y + getChangeInsideBounds(viewport.h),
+			x: viewport.x + getChangeInsideBounds(viewport.w, marginRatio),
+			y: viewport.y + getChangeInsideBounds(viewport.h, marginRatio),
 			props: { w: shapeSize, h: shapeSize },
 		})
 		return { isCulled: false, id }
@@ -164,9 +168,10 @@ function createFuzzShape(viewport: Box) {
 
 it('correctly calculates the culled shapes when adding and deleting shapes', () => {
 	const viewport = editor.getViewportPageBounds()
+	const marginRatio = editor.options.cullingMargin
 	const shapes: Array<TLShapeId | undefined> = []
 	for (let i = 0; i < numberOfShapes; i++) {
-		const { isCulled, id } = createFuzzShape(viewport)
+		const { isCulled, id } = createFuzzShape(viewport, marginRatio)
 		shapes.push(id)
 		if (isCulled) {
 			expect(editor.getCulledShapes()).toContain(id)
@@ -312,9 +317,10 @@ it('reduces recalculation frequency with culling bounds during pan', () => {
 	editor.getCulledShapes()
 	boundsUpdateCount++ // Initial bounds set
 
-	// Perform multiple small pan movements that cumulatively exceed CULLING_MARGIN
+	// Perform multiple small pan movements that cumulatively exceed cullingMargin
 	const viewportBounds = editor.getViewportScreenBounds()
-	const horizontalMargin = viewportBounds.w * CULLING_MARGIN
+	const cullingMargin = editor.options.cullingMargin
+	const horizontalMargin = viewportBounds.w * cullingMargin
 	const panCount = 15
 	// Pan distance that will eventually exceed margin but takes multiple pans to do so
 	const panDistance = (horizontalMargin * 1.5) / panCount // Total pans exceed margin by 50%
@@ -331,8 +337,44 @@ it('reduces recalculation frequency with culling bounds during pan', () => {
 		}
 	}
 
-	// Panning multiple times should only trigger bounds update when exceeding CULLING_MARGIN
+	// Panning multiple times should only trigger bounds update when exceeding cullingMargin
 	// Should be significantly less than panCount
 	expect(boundsUpdateCount).toBeLessThan(panCount)
 	expect(boundsUpdateCount).toBeGreaterThan(1)
+})
+
+it('respects custom cullingMargin option', () => {
+	// Create an editor with a larger culling margin
+	const customMargin = 0.5 // 50% margin instead of default 20%
+	const customEditor = new TestEditor({
+		shapeUtils: [UncullableShapeUtil],
+		options: { cullingMargin: customMargin },
+	})
+	customEditor.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
+
+	const viewportBounds = customEditor.getViewportScreenBounds()
+	const horizontalMargin = viewportBounds.w * customMargin // 900px
+
+	// Create a shape that would be culled with default margin (20%) but not with 50%
+	// Place it just beyond the default margin but within the custom margin
+	const shapeId = createShapeId()
+	customEditor.createShape({
+		id: shapeId,
+		type: 'geo',
+		// Place shape at x = -400 (beyond 20% margin of 360px, but within 50% margin of 900px)
+		x: -400,
+		y: 100,
+		props: { w: 100, h: 100 },
+	})
+
+	// With 50% margin, this shape should NOT be culled
+	expect(customEditor.getCulledShapes()).not.toContain(shapeId)
+
+	// Now pan far enough that the shape is outside even the 50% margin
+	// Negative x pan moves viewport right in page space, pushing shape out of view to the left
+	customEditor.pan({ x: -(horizontalMargin + 500), y: 0 })
+	vi.advanceTimersByTime(500)
+
+	// Now the shape should be culled
+	expect(customEditor.getCulledShapes()).toContain(shapeId)
 })

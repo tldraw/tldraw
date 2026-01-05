@@ -131,7 +131,6 @@ export {
 	type BindingOnShapeIsolateOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
-export { CULLING_MARGIN } from './lib/editor/derivations/calculateCullingBounds'
 export {
 	Editor,
 	type TLEditorOptions,
