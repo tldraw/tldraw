@@ -418,10 +418,6 @@ a {
 
 /* ------------------- People Menu ------------------- */
 
-.tlui-layout[data-breakpoint='0'] .tlui-offline-indicator {
-	margin-top: 4px;
-}
-
 /* Document Name */
 
 .tlui-document-name__inner {
