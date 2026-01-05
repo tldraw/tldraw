@@ -2743,7 +2743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	_cullingBounds = computed<Box | null>('cullingBounds', (prev) => {
-		// Track page changes by referencing pageId (creates reactive dependency)
+		// We need to recalculate the bounds when the page changes
 		this.getCurrentPageId()
 		const viewport = this.getViewportPageBounds()
 

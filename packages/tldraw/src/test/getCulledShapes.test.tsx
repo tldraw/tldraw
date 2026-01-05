@@ -1,6 +1,7 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	CULLING_MARGIN,
 	RecordProps,
 	T,
 	TLShape,
@@ -10,8 +11,6 @@ import {
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
-
-const CULLING_MARGIN = 0.2
 
 const UNCULLABLE_TYPE = 'uncullable'
 

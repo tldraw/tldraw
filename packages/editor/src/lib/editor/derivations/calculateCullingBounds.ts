@@ -1,6 +1,10 @@
 import { Box } from '../../primitives/Box'
 
-const CULLING_MARGIN = 0.2
+/**
+ * Margin percentage for expanding culling bounds around viewport.
+ * @internal
+ */
+export const CULLING_MARGIN = 0.2
 
 /**
  * Calculate expanded viewport bounds for culling decisions.
