@@ -5,7 +5,7 @@ description: Improve a nugget draft based on its evaluation scores. Use this whe
 
 # Improving nuggets
 
-This skill improves a nugget draft based on its evaluation scores.
+This command improves a nugget draft based on its evaluation scores.
 
 ## When to improve
 

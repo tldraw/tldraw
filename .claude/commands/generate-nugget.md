@@ -5,7 +5,7 @@ description: Generate a nugget draft from raw notes. Use this when creating a ne
 
 # Generating nuggets
 
-This skill creates a nugget draft from raw notes.
+This command creates a nugget draft from raw notes.
 
 ## Input files
 

@@ -5,7 +5,7 @@ description: Evaluate a nugget draft and record scores in its frontmatter. Use t
 
 # Evaluating nuggets
 
-This skill evaluates a nugget draft and records scores in its frontmatter.
+This command evaluates a nugget draft and records scores in its frontmatter.
 
 ## Scoring criteria
 
