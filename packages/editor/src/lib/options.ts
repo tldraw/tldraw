@@ -103,6 +103,10 @@ export interface TldrawOptions {
 	 * When false, the spacebar will not pan the camera.
 	 */
 	readonly spacebarPanning: boolean
+	/**
+	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
+	 */
+	readonly snapThreshold: number
 }
 
 /** @public */
@@ -158,4 +162,5 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	snapThreshold: 8,
 } as const satisfies TldrawOptions
