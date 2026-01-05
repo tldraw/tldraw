@@ -1,4 +1,5 @@
 import { ComponentType, Fragment } from 'react'
+import { TLCameraOptions } from './editor/types/misc-types'
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -107,6 +108,11 @@ export interface TldrawOptions {
 	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
 	 */
 	readonly snapThreshold: number
+	/**
+	 * Options for the editor's camera. These are the initial camera options.
+	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
+	 */
+	readonly cameraOptions?: Partial<TLCameraOptions>
 }
 
 /** @public */

@@ -23,7 +23,6 @@ import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -161,11 +160,6 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
-
-	/**
-	 * Camera options for the editor.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
 	 * Text options for the editor.
@@ -397,7 +391,6 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
-	cameraOptions,
 	textOptions,
 	options,
 	licenseKey,
@@ -428,7 +421,6 @@ function TldrawEditorWithReadyStore({
 		initialState,
 
 		// for these, it's because we keep them up to date in a separate effect:
-		cameraOptions,
 		deepLinks,
 	})
 
@@ -437,15 +429,13 @@ function TldrawEditorWithReadyStore({
 			autoFocus: autoFocus && !noAutoFocus(),
 			inferDarkMode,
 			initialState,
-			cameraOptions,
 			deepLinks,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks])
+	}, [autoFocus, inferDarkMode, initialState, deepLinks])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks } =
-				editorOptionsRef.current
+			const { autoFocus, inferDarkMode, initialState, deepLinks } = editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -457,7 +447,6 @@ function TldrawEditorWithReadyStore({
 				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				inferDarkMode,
-				cameraOptions,
 				textOptions,
 				options,
 				licenseKey,
@@ -511,10 +500,10 @@ function TldrawEditorWithReadyStore({
 
 	// keep the editor up to date with the latest camera options
 	useLayoutEffect(() => {
-		if (editor && cameraOptions) {
-			editor.setCameraOptions(cameraOptions)
+		if (editor && options?.cameraOptions) {
+			editor.setCameraOptions(options.cameraOptions)
 		}
-	}, [editor, cameraOptions])
+	}, [editor, options?.cameraOptions])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
