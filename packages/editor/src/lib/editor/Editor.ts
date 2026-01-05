@@ -3,9 +3,11 @@ import {
 	EMPTY_ARRAY,
 	atom,
 	computed,
+	isUninitialized,
 	react,
 	transact,
 	unsafe__withoutCapture,
+	whyAmIRunning,
 } from '@tldraw/state'
 import {
 	ComputedCache,
@@ -139,6 +141,7 @@ import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
+import { calculateCullingBounds } from './derivations/calculateCullingBounds'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
@@ -2739,6 +2742,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
+
+	_cullingBounds = computed<Box | null>('cullingBounds', (prev) => {
+		// Track page changes by referencing pageId (creates reactive dependency)
+		this.getCurrentPageId()
+		whyAmIRunning()
+		const viewport = this.getViewportPageBounds()
+
+		// Recalculate if first run or viewport moved outside bounds
+		// (page changes trigger re-run via getCurrentPageId dependency)
+		if (isUninitialized(prev) || !prev || !prev.contains(viewport)) {
+			console.log('[cullingBounds] Recalculating - viewport outside bounds or page changed')
+			return calculateCullingBounds(viewport)
+		}
+
+		// Also recalculate if bounds are too large (e.g., after zooming in)
+		// If new bounds would be less than half the area of current bounds, recalculate
+		const newBounds = calculateCullingBounds(viewport)
+		const newArea = newBounds.width * newBounds.height
+		const prevArea = prev.width * prev.height
+		if (newArea < prevArea / 2) {
+			console.log('[cullingBounds] Recalculating - bounds too large after zoom in')
+			return newBounds
+		}
+
+		console.log('[cullingBounds] Returning cached bounds')
+		return prev
+	})
 
 	/**
 	 * Get the debounced zoom level. When the camera is moving, this returns the zoom level

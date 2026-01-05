@@ -1119,6 +1119,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
     createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
+    // (undocumented)
+    _cullingBounds: Computed<Box | null, unknown>;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {

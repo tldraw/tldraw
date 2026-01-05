@@ -11,6 +11,8 @@ import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
+const CULLING_MARGIN = 0.2
+
 const UNCULLABLE_TYPE = 'uncullable'
 
 declare module '@tldraw/tlschema' {
@@ -73,12 +75,17 @@ it('lists shapes in viewport', () => {
 	// D is outside of the viewport, so it's clipped
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.D]))
 
-	// Move the camera 201 pixels to the right and 201 pixels down
-	editor.pan({ x: -201, y: -201 })
+	// Move the camera far enough that shape A is outside culling bounds (viewport + CULLING_MARGIN)
+	// Shape A is at (100,100) with size (100,100), so right edge at 200
+	// Need to pan so viewport.x exceeds shape right edge + horizontal margin
+	const viewportBounds = editor.getViewportScreenBounds()
+	const horizontalMargin = viewportBounds.w * CULLING_MARGIN
+	const verticalMargin = viewportBounds.h * CULLING_MARGIN
+	editor.pan({ x: -(200 + horizontalMargin + 100), y: -(200 + verticalMargin + 100) })
 	vi.advanceTimersByTime(500)
 
-	// A is now outside of the viewport, like D
-	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.D]))
+	// A is now outside of the culling bounds, but D is within expanded bounds so not culled yet
+	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A]))
 
 	editor.pan({ x: -900, y: -900 })
 	vi.advanceTimersByTime(500)
@@ -102,18 +109,23 @@ function getChangeOutsideBounds(viewportSize: number) {
 	const changeDirection = Math.random() > 0.5 ? 1 : -1
 	const maxChange = 1000
 	const changeAmount = 1 + Math.random() * maxChange
+	const cullingMargin = viewportSize * CULLING_MARGIN
 	if (changeDirection === 1) {
-		// We need to get past the viewport size and then add a bit more
-		return viewportSize + changeAmount
+		// We need to get past the viewport size + culling margin and then add a bit more
+		return viewportSize + cullingMargin + changeAmount
 	} else {
-		// We also need to take the shape size into account
-		return -changeAmount - shapeSize
+		// We also need to take the shape size and culling margin into account
+		return -cullingMargin - changeAmount - shapeSize
 	}
 }
 
 function getChangeInsideBounds(viewportSize: number) {
-	// We can go from -shapeSize to viewportSize
-	return -shapeSize + Math.random() * (viewportSize + shapeSize)
+	// With culling bounds, shapes can be slightly outside viewport and still visible
+	// Range: from -(margin + shapeSize) to (viewportSize + margin)
+	const cullingMargin = viewportSize * CULLING_MARGIN
+	const minPos = -(cullingMargin + shapeSize)
+	const maxPos = viewportSize + cullingMargin
+	return minPos + Math.random() * (maxPos - minPos)
 }
 
 function createFuzzShape(viewport: Box) {
@@ -279,4 +291,49 @@ it('respects canCull override - shapes that cannot be culled are never culled', 
 
 	// The uncullable shape should NOT be culled even though it's outside the viewport
 	expect(culledShapes).not.toContain(uncullableShapeId)
+})
+
+it('reduces recalculation frequency with culling bounds during pan', () => {
+	// Create 1000 shapes spread across a large area
+	const areaSize = 10000
+	for (let i = 0; i < 1000; i++) {
+		editor.createShape({
+			type: 'geo',
+			x: Math.random() * areaSize,
+			y: Math.random() * areaSize,
+			props: { w: 100, h: 100 },
+		})
+	}
+
+	// Track actual culling bounds changes (not just check calls)
+	let boundsUpdateCount = 0
+	let lastBounds = editor._cullingBounds.get()
+
+	// Get initial culled shapes to establish baseline
+	editor.getCulledShapes()
+	boundsUpdateCount++ // Initial bounds set
+
+	// Perform multiple small pan movements that cumulatively exceed CULLING_MARGIN
+	const viewportBounds = editor.getViewportScreenBounds()
+	const horizontalMargin = viewportBounds.w * CULLING_MARGIN
+	const panCount = 15
+	// Pan distance that will eventually exceed margin but takes multiple pans to do so
+	const panDistance = (horizontalMargin * 1.5) / panCount // Total pans exceed margin by 50%
+
+	for (let i = 0; i < panCount; i++) {
+		editor.pan({ x: -panDistance, y: 0 })
+		editor.getCulledShapes() // Trigger culling check
+
+		// Check if culling bounds actually changed
+		const currentBounds = editor._cullingBounds.get()
+		if (currentBounds !== lastBounds) {
+			boundsUpdateCount++
+			lastBounds = currentBounds
+		}
+	}
+
+	// Panning multiple times should only trigger bounds update when exceeding CULLING_MARGIN
+	// Should be significantly less than panCount
+	expect(boundsUpdateCount).toBeLessThan(panCount)
+	expect(boundsUpdateCount).toBeGreaterThan(1)
 })
