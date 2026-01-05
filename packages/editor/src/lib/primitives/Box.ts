@@ -180,6 +180,15 @@ export class Box {
 		return new Vec(this.w, this.h)
 	}
 
+	isValid() {
+		return (
+			Number.isFinite(this.x) &&
+			Number.isFinite(this.y) &&
+			Number.isFinite(this.w) &&
+			Number.isFinite(this.h)
+		)
+	}
+
 	toFixed() {
 		this.x = toPrecision(this.x)
 		this.y = toPrecision(this.y)
