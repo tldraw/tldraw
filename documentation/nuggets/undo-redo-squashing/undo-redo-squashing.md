@@ -280,13 +280,6 @@ This also handles nested operations naturally. If a tool calls a helper that mak
 
 The tradeoff is that you need to create marks at the right places. Forget a mark before a user interaction and changes from different interactions might merge together. But in practice, the pattern is consistent: mark at the start of any user-initiated change.
 
-## Key files
-
-- `packages/editor/src/lib/editor/managers/HistoryManager/HistoryManager.ts` — The history manager implementation
-- `packages/store/src/lib/RecordsDiff.ts` — Diff types and the squashRecordDiffsMutable function
-- `packages/editor/src/lib/editor/types/history-types.ts` — TLHistoryEntry and TLHistoryBatchOptions types
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/Translating.ts` — Example of mark usage in a tool
-
 ## Related
 
 - [Sync](./sync.md) — How diffs are used for real-time synchronization

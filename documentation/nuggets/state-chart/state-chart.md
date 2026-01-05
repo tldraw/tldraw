@@ -372,13 +372,3 @@ XState is the standard choice for state machines in JavaScript. We considered it
 **Type safety was easier to achieve.** TypeScript's inference works naturally with our class hierarchy. Each state knows its parent's type, has typed access to the editor, and gets proper autocomplete for event handlers. Getting equivalent type safety with XState requires more ceremony.
 
 The tradeoff is maintaining our own implementation. But StateNode is around 300 lines of code, well-tested, and hasn't needed significant changes since it was written. For our use case, the simplicity and performance benefits outweighed the power of a general-purpose state machine library. If we needed features like state machine visualization, time-travel debugging, or actor orchestration, the calculus might be different.
-
-## Key files
-
-- packages/editor/src/lib/editor/tools/StateNode.ts — Base class for all tools and states
-- packages/editor/src/lib/editor/types/event-types.ts — Event type definitions and handler mappings
-- packages/tldraw/src/lib/tools/SelectTool/SelectTool.ts — Complex tool with 18 child states
-- packages/tldraw/src/lib/tools/SelectTool/childStates/Idle.ts — Main entry state handling pointer down
-- packages/tldraw/src/lib/tools/SelectTool/childStates/Brushing.ts — Brush selection state
-- packages/tldraw/src/lib/tools/EraserTool/EraserTool.ts — Simple tool with 3 states
-- packages/editor/src/lib/editor/Editor.ts — Root state machine management (search for `setCurrentTool`)

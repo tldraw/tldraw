@@ -93,9 +93,3 @@ const threshold = this.editor.getInstanceState().isCoarsePointer
 ```
 
 Fingers wobble. A 4-pixel movement during a mouse click is probably intentional—you're starting to drag. But during a finger tap, 4 pixels of movement is just your finger's natural imprecision. We give touch input a 6-pixel threshold so taps aren't misinterpreted as drags.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.ts` — Race condition prevention (lines 30-76), spatial constraints (lines 103-108, 196-211)
-- `packages/editor/src/lib/options.ts` — Timeout and threshold configuration (lines 115-118)
-- `packages/utils/src/lib/id.ts` — uniqueId implementation using nanoid

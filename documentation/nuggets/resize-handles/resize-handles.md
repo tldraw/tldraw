@@ -199,11 +199,3 @@ The scale origin is still rotated to page space, but it's the center of the boun
 You could skip all this and just resize in screen space. The shape would grow in the direction you drag. But it would feel wrong—subtly at first, then obviously when you try to make a rotated shape slightly taller or snap it to a grid. The resize would fight the shape's orientation instead of respecting it.
 
 Getting this right takes careful coordinate transforms, dynamic cursor generation, and a bunch of special cases. But the result is that rotated shapes resize exactly like you'd expect. The complexity is hidden; the UX is simple.
-
-## Key files
-
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/Resizing.ts` — Scale calculation and cursor updates
-- `packages/editor/src/lib/hooks/useCursor.ts` — SVG cursor generation with rotation
-- `packages/editor/src/lib/primitives/Box.ts:666` — Handle name rotation function
-- `packages/tldraw/src/lib/tools/SelectTool/childStates/PointingResizeHandle.ts` — Initial cursor setup on hover
-- `packages/tldraw/src/lib/canvas/TldrawSelectionForeground.tsx` — Handle rendering and visibility

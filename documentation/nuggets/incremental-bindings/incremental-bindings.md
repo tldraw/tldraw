@@ -167,13 +167,6 @@ The tradeoff is memory and complexity. You store the previous index value plus a
 
 But the complexity is real. History buffers, epoch tracking, fallback logic—these aren't free. The pattern works for frequently-updated derived state in interactive applications. It would be overkill for data that rarely changes or where full recomputation is cheap. The same approach powers other indexes and queries across the editor: shape culling, selection queries, anything where you need fast lookups on data that changes incrementally.
 
-## Key files
-
-- packages/editor/src/lib/editor/derivations/bindingsIndex.ts - The bindings index computed signal
-- packages/store/src/lib/StoreQueries.ts - The `filterHistory` method that provides typed diff history
-- packages/state/src/lib/HistoryBuffer.ts - The circular buffer storing epoch ranges and diffs
-- packages/state/src/lib/Computed.ts - The computed signal implementation with `lastComputedEpoch` support
-
 ## Related
 
 - [Signals](./signals.md) - The reactive system that powers incremental computation

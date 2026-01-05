@@ -91,10 +91,3 @@ Both systems use the same `average` and `precise` helpers and the same quadratic
 ## Performance in practice
 
 The algorithm is linear in the number of points—one string concatenation per point. String concatenation in JavaScript is highly optimized, and the resulting path string is parsed once by the browser's SVG engine. For typical strokes (tens to hundreds of points), this runs in microseconds. The real performance cost is in the SVG rendering itself, not the path generation.
-
-## Key files
-
-- `packages/editor/src/lib/utils/getSvgPathFromPoints.ts` — Point array to SVG path conversion
-- `packages/editor/src/lib/primitives/utils.ts` — The `average` and `precise` helpers
-- `packages/tldraw/src/lib/shapes/shared/freehand/svg.ts` — Variant for stroke points with pressure data
-- `packages/editor/src/lib/components/default-components/DefaultScribble.tsx` — Usage in scribble rendering

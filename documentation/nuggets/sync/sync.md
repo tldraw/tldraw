@@ -187,15 +187,6 @@ This is powerful for features like:
 
 The client doesn't need to implement these checks. It optimistically assumes success, and the server corrects it when necessary.
 
-## Key files
-
-- `packages/sync-core/src/lib/TLSyncClient.ts` — Client-side sync state machine with rebase logic
-- `packages/sync-core/src/lib/TLSyncRoom.ts` — Server-side room management and conflict resolution
-- `packages/sync-core/src/lib/diff.ts` — Diff computation and application
-- `packages/sync-core/src/lib/protocol.ts` — Message types and protocol constants
-- `packages/sync/src/lib/useSync.ts` — React hook for sync integration
-- `apps/dotcom/sync-worker/src/TLDrawDurableObject.ts` — Production sync backend on Cloudflare Workers
-
 ## Related
 
 - [Cross-tab synchronization](./cross-tab-sync.md) — Local sync between browser tabs

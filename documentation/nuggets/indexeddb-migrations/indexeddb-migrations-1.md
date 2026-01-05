@@ -255,15 +255,6 @@ Migration code is hard to test because you need real data in old formats. tldraw
 
 The migration system also validates records after transformation. Even if a migration runs without throwing, invalid output fails validation and returns an error rather than persisting bad data.
 
-## Key files
-
-- `packages/editor/src/lib/utils/sync/LocalIndexedDb.ts` — IndexedDB persistence and database structure
-- `packages/store/src/lib/StoreSchema.ts` — Store schema and migration application
-- `packages/store/src/lib/migrate.ts` — Migration types, sorting, and execution
-- `packages/tlschema/src/store-migrations.ts` — Store-level migrations for tldraw's data model
-- `packages/editor/src/lib/utils/sync/TLLocalSyncClient.ts` — Loads data and applies migrations
-- `packages/editor/src/lib/utils/sync/hardReset.ts` — Nuclear reset option
-
 ## Related
 
 - [Cross-tab synchronization](./cross-tab-sync.md) — Schema version handling between tabs

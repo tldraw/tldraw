@@ -810,30 +810,8 @@ Two modes:
 
 Different shapes handle these modes differently in their ShapeUtil implementations.
 
-## Key files and line numbers
-
-- `/packages/tldraw/src/lib/tools/SelectTool/childStates/Resizing.ts`
-  - Lines 213-427: `updateShapes()` method with core resize logic
-  - Lines 315-323: Scale calculation in shape space
-  - Lines 304-308: Scale origin calculation
-  - Lines 332-354: Aspect ratio locking
-  - Lines 432-467: Cursor update with flip handling
-  - Lines 568-586: Handle rotation function
-  - Lines 475-563: Snapshot creation with handle offset calculation
-
-- `/packages/editor/src/lib/hooks/useCursor.ts`
-  - Lines 12-34: SVG cursor generation
-  - Lines 8-10: SVG cursor definitions
-  - Lines 50-60: Cursor type mapping
-  - Lines 72-88: Cursor application
-
-- `/packages/editor/src/lib/primitives/Box.ts`
-  - Lines 654-673: Handle rotation function
-  - Lines 274-293: Handle point calculation
-
-- `/packages/tldraw/src/lib/tools/SelectTool/childStates/PointingResizeHandle.ts`
-  - Lines 28-35: Cursor update on hover
-  - Lines 3-17: Cursor type mapping
+- Lines 28-35: Cursor update on hover
+- Lines 3-17: Cursor type mapping
 
 - `/packages/tldraw/src/lib/canvas/TldrawSelectionForeground.tsx`
   - Lines 66-86: Handle size calculations

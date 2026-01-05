@@ -141,13 +141,3 @@ iOS touch events from the same browser use the standard path. Two fingers on an 
 While in "not sure", no events dispatch. This creates a delay—up to 24 pixels of finger spread or 16 pixels of movement—before the camera responds.
 
 In practice, this is imperceptible. Most users move their fingers decisively enough that the state machine resolves within a frame or two. The alternative—guessing wrong and triggering expensive operations when the user wanted cheap ones—creates noticeable jank. A few milliseconds of latency beats a janky experience.
-
-## Key files
-
-- packages/editor/src/lib/hooks/useGestureEvents.ts - Pinch state machine and gesture handlers
-
-## Related
-
-- [Click detection state machine](./click-state-machine.md) - Single/double/triple/quadruple click disambiguation using states
-- [Tools as state machines](./state-chart.md) - How tools use hierarchical state machines for complex interactions
-- [Wheel momentum filtering](./wheel-momentum.md) - Detecting and filtering spurious scroll events

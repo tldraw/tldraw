@@ -108,9 +108,3 @@ The edge scroll manager runs on every editor tick while these conditions are met
 The combination of pointer width compensation, two-phase acceleration, and proximity-based speed control creates edge scrolling that feels invisible when it works. Touch users don't notice that the system compensates for their imprecise input. Mouse users don't accidentally trigger it. The cubic ease-in prevents jarring transitions.
 
 The implementation is straightforward—a few dozen lines of math—but getting the constants right (8-pixel zone, 200ms delay, 200ms ease, 12-pixel touch width, 0.612 small screen factor) required real-world testing. Change any one of these and the feel degrades noticeably.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.ts` — Main implementation
-- `packages/editor/src/lib/options.ts:136` — Configuration defaults (`edgeScrollDelay`, `edgeScrollSpeed`, etc.)
-- `packages/editor/src/lib/primitives/easings.ts:7` — `easeInCubic` function

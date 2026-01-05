@@ -114,19 +114,4 @@ The three-tier shape format means we're maintaining three parallel representatio
 
 The sanitization layer is defensive programming taken to an extreme. We're essentially assuming the model will make mistakes and building infrastructure to catch them. This is pragmatic given current model capabilities, but adds latency and code complexity.
 
-## Key files
-
-The agent template lives in `templates/agent/`:
-
-| Component          | Location                      |
-| ------------------ | ----------------------------- |
-| Main agent class   | `client/agent/TldrawAgent.ts` |
-| Coordinate helpers | `shared/AgentHelpers.ts`      |
-| Utility registry   | `shared/AgentUtils.ts`        |
-| Prompt parts       | `shared/parts/*.ts`           |
-| Action utilities   | `shared/actions/*.ts`         |
-| Shape formats      | `shared/format/*.ts`          |
-| Worker entry       | `worker/worker.ts`            |
-| Streaming service  | `worker/do/AgentService.ts`   |
-
 The architecture is intentionally modular. We expect the agent's capabilities to grow over time, and the utility system makes that growth manageable. Each new feature is isolated, testable, and doesn't require understanding the entire system.

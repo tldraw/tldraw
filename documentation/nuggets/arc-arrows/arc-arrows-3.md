@@ -188,9 +188,3 @@ But the arrows stay visible, stay editable, and stay functional. Users can fix t
 This is the real goal of edge case handling: ensure nothing breaks. The math might produce degenerate cases, but the user experience degrades gracefully. Every configuration yields a renderable arrow with well-defined geometry. Edge cases are noticeable but not catastrophic.
 
 The polish comes from handling enough edge cases that most users never encounter broken states. But when they do push the system into unusual configurations—because they're exploring, experimenting, or making something weird—the canvas keeps working.
-
-## Key files
-
-- packages/tldraw/src/lib/shapes/arrow/curved-arrow.ts — Arc calculation with edge case handling
-- packages/tldraw/src/lib/shapes/arrow/shared.ts — Shape relationship detection and binding utilities
-- packages/tldraw/src/lib/shapes/arrow/arrow-types.ts — Arc info structure and validity flags

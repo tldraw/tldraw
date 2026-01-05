@@ -196,9 +196,3 @@ Using `visibility: hidden` instead of `display: none` is critical—the browser 
 Most text measurements use the simple path: set `innerHTML`, call `getBoundingClientRect()`, done. The character-by-character span measurement is slow—hundreds of DOM calls per paragraph—but it only runs during SVG export, not during interactive editing.
 
 The Range API trick is the key insight: browsers expose character-level layout information, but most developers don't know this API exists. If you need to understand how text wrapped or position individual words, measuring characters with ranges is the only way.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/TextManager/TextManager.ts` — `measureElementTextNodeSpans` using Range API
-- `packages/tldraw/src/lib/shapes/shared/SvgTextLabel.tsx` — SVG export using span measurement
-- `packages/editor/editor.css` — Hidden `.tl-text-measure` element styling

@@ -180,11 +180,3 @@ Both preserve React state, so `display: none` gives you the same state preservat
 The insight here isn't complex: `display: none` preserves React component state while avoiding layout and paint costs. But it's counterintuitive. The obvious optimization for viewport culling is to remove offscreen elements from the DOM entirely. That works fine for stateless components—images, icons, read-only text. But for stateful components—text inputs, form fields, interactive widgets—it destroys the very state users are creating.
 
 This matters beyond tldraw. Virtual scrollers, infinite lists, map viewers, any large-scale React UI that toggles visibility of stateful components faces the same tradeoff. If you're culling based on viewport and your components have meaningful local state, `display: none` is the better primitive. It's simple, preserves state, and avoids the expensive parts of rendering. The memory cost of keeping components mounted is usually negligible compared to the UX cost of losing user state.
-
-## Key files
-
-- `packages/editor/src/lib/editor/derivations/notVisibleShapes.ts` — Core culling logic and incremental computation
-- `packages/editor/src/lib/editor/Editor.ts` — `getCulledShapes` method filtering for selection and editing state
-- `packages/editor/src/lib/components/Shape.tsx` — Display property toggling based on culling state
-- `packages/editor/src/lib/editor/shapes/ShapeUtil.ts` — `canCull` override point for custom shapes
-- `packages/tldraw/src/test/getCulledShapes.test.tsx` — Comprehensive culling tests including arrow bindings

@@ -123,9 +123,3 @@ The user's original gesture—connecting two points with a certain curvature—s
 Without this distinction, you'd have to pick: either arrows that pass through shape centers (visually wrong) or arrows whose curvature changes as shapes move (logically wrong). The two-arc system gives you stable curvature and correct visual attachment.
 
 The tradeoff is implementation complexity. The code has to track both arcs, coordinate between handle space and body space, and handle edge cases like overlapping shapes where intersections might fail. But that complexity is contained—the rest of the system just sees a stable arrow that behaves predictably.
-
-## Key files
-
-- packages/tldraw/src/lib/shapes/arrow/curved-arrow.ts — `getCurvedArrowInfo` computes both arcs
-- packages/tldraw/src/lib/shapes/arrow/arrow-types.ts — Type definitions for `TLArcArrowInfo`, `TLArcInfo`
-- packages/tldraw/src/lib/shapes/arrow/shared.ts — Binding and terminal utilities

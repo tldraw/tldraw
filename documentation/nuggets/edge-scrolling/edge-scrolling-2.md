@@ -91,9 +91,3 @@ Edge scrolling is maybe 50 lines of math, but the feel depends entirely on the c
 Change any of these and the feel degrades. The 200ms delay in particular required testing—100ms felt twitchy, 300ms felt unresponsive. These numbers aren't derivable from first principles; they come from watching people use the feature and adjusting until it disappeared.
 
 That's the goal for edge scrolling: invisibility. When it works, touch users don't notice the pointer width compensation. Mouse users don't accidentally trigger it. The cubic ease-in prevents jarring transitions. You just drag things around and the canvas moves when you need it to.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/EdgeScrollManager/EdgeScrollManager.ts` — Main implementation
-- `packages/editor/src/lib/options.ts:136` — Configuration defaults
-- `packages/editor/src/lib/primitives/easings.ts:7` — Cubic easing function

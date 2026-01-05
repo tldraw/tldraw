@@ -168,10 +168,3 @@ const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
 This prevents XSS attacks via `javascript:` URLs. When user input flows into `href` attributes, validation ensures only safe protocols are allowed. Similar patterns protect against prototype pollution, SQL injection in query parameters, and other injection attacks.
 
 By validating at boundaries—when data enters from storage, network, or user input—you create a trust boundary where everything inside your application has known-good properties. This is more robust than trying to sanitize data at every use site.
-
-## Key files
-
-- `packages/validate/src/lib/validation.ts` — Core validation implementation with incremental validation
-- `packages/tlschema/src/shapes/` — Shape validators showing real-world usage
-- `packages/store/src/lib/Store.ts` — Store integration that validates on every update
-- `packages/store/src/lib/RecordType.ts` — Record type wrapper that uses `validateUsingKnownGoodVersion`

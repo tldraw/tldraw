@@ -105,8 +105,3 @@ The naive counter approach has hidden states. When `clickCount` is 2, you don't 
 With explicit states, each situation is named and handled separately. Adding quintuple-click support would mean adding one new state and two transitions—no refactoring of existing logic.
 
 The state machine also makes testing straightforward. We can verify each transition independently, mock timers to test timeouts without real delays, and check that stale timeouts don't dispatch incorrect events.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.ts` — The full state machine implementation
-- `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.test.ts` — Comprehensive test suite

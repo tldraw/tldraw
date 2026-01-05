@@ -181,12 +181,3 @@ These optimizations compound. A typical interaction—dragging a shape—trigger
 3. No React re-renders unless content actually changed
 
 The DOM structure stays stable. React's reconciler does minimal work. The browser compositor handles visual updates. Performance is good enough that most users never think about it—which is exactly the point.
-
-## Key files
-
-- `packages/editor/src/lib/components/Shape.tsx` — Shape rendering with two-stage updates
-- `packages/editor/src/lib/components/default-components/DefaultCanvas.tsx` — Canvas layer structure
-- `packages/state-react/src/lib/useStateTracking.ts` — Reactive render tracking
-- `packages/state-react/src/lib/useValue.ts` — Signal subscription hook
-- `packages/state-react/src/lib/useQuickReactor.ts` — Immediate reactive effects
-- `packages/editor/src/lib/editor/derivations/notVisibleShapes.ts` — Viewport culling

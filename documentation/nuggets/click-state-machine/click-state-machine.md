@@ -169,9 +169,3 @@ Touch input uses a larger threshold (6 pixels) because fingers are imprecise. Mo
 With explicit states, the logic becomes auditable. You can trace exactly how `idle` becomes `pendingTriple`—it's a defined transition, not an emergent property of nested conditionals. Adding new behavior means adding states and transitions, not untangling boolean combinations.
 
 The approach does require more code than the naive version. But that code is comprehensible, testable, and doesn't break when requirements change. For input handling—where subtle bugs create maddening user experiences—that tradeoff is worthwhile.
-
-## Key files
-
-- `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.ts` — State machine implementation
-- `packages/editor/src/lib/options.ts` — Timing configuration (doubleClickDurationMs, multiClickDurationMs)
-- `packages/editor/src/lib/editor/types/event-types.ts` — TLClickEventInfo and phase definitions

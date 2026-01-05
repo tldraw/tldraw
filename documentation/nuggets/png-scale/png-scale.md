@@ -193,10 +193,3 @@ for (const item of items) {
 The tradeoff is that it only works in Chromium browsers. For Firefox and Safari, you need fallback handling. But for apps where precision matters and the majority of users are on Chrome, it's worth implementing.
 
 PNG chunk manipulation is also useful outside the clipboard. You can read and write `pHYs`, `tEXt` (text metadata), `eXIf` (EXIF data), or custom chunks without re-encoding the image. The binary format is well-documented and stable.
-
-## Key files
-
-- `packages/utils/src/lib/media/png.ts` - PNG chunk parsing and writing
-- `packages/utils/src/lib/media/media.ts` - Image size calculation with pHYs support
-- `packages/tldraw/src/lib/utils/clipboard.ts` - Custom MIME type definitions
-- `packages/editor/src/lib/exports/getSvgAsImage.ts` - PNG export with pHYs injection

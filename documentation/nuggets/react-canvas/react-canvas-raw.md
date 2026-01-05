@@ -795,22 +795,3 @@ Each shape is wrapped in an error boundary to prevent one broken shape from cras
 4. **Embeds**: iframes, videos work natively without custom implementation
 5. **Debugging**: Standard browser DevTools work for inspecting shapes
 6. **Styling**: CSS works normally, no custom styling system needed
-
-## Key files reference
-
-- `/packages/editor/src/lib/components/Shape.tsx` - Two-stage shape rendering
-- `/packages/editor/src/lib/components/default-components/DefaultCanvas.tsx` - Canvas structure and camera positioning
-- `/packages/state-react/src/lib/useStateTracking.ts` - Reactive render tracking
-- `/packages/state-react/src/lib/useValue.ts` - Signal subscription
-- `/packages/state-react/src/lib/useQuickReactor.ts` - Immediate reactive effects
-- `/packages/state-react/src/lib/useReactor.ts` - Throttled reactive effects
-- `/packages/editor/src/lib/editor/derivations/notVisibleShapes.ts` - Viewport culling
-- `/packages/editor/src/lib/editor/Editor.ts` - getRenderingShapes, getCulledShapes (lines 4073-4226, 5125-5151)
-- `/packages/editor/src/lib/utils/areShapesContentEqual.ts` - Custom memoization
-- `/packages/editor/src/lib/primitives/Mat.ts` - Matrix transformations
-- `/packages/editor/src/lib/primitives/Box.ts` - Bounding box operations
-- `/packages/editor/src/lib/primitives/utils.ts` - toDomPrecision utility
-- `/packages/editor/src/lib/utils/dom.ts` - setStyleProperty helper
-- `/packages/editor/src/lib/options.ts` - Configuration constants
-- `/packages/utils/src/lib/number.ts` - modulate, lerp utilities
-- `/packages/state/src/lib/EffectScheduler.ts` - Core reactivity scheduler

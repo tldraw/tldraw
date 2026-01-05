@@ -11,13 +11,8 @@ keywords:
   - detection
 status: draft
 date: 01/05/2026
-generation-notes: Second draft. Reframed to lead with user experience problem.
+generation-notes: Third draft. Minor refinements to flow and conclusion structure.
 order: 1
-readability: 9
-voice: 10
-potential: 8
-accuracy: 10
-notes: 'Excellent voice with honest tone. Strong opening grounds reader in problem. Thorough analysis of why heuristics fail has broad applicability.'
 ---
 
 # Wheel or trackpad?
@@ -26,7 +21,7 @@ Try this: open any canvas app and scroll.
 
 Did the canvas scroll in the right direction?
 
-If you're on a laptop trackpad, you probably expected scrolling to pan the camera, moving the content around pushing paper across a desk. If you're using a mouse wheel, you probably expected to zoom, with each wheel movement bringing you closer or further from the canvas.
+If you're on a laptop trackpad, you probably expected scrolling to pan the camera, moving the content around like pushing paper across a desk. If you're using a mouse wheel, you probably expected to zoom, with each wheel movement bringing you closer or further from the canvas.
 
 Unfortunately, both gestures fire the exact same browser event. The browser doesn't tell us which device you're using. And if we guess wrong, the canvas feels broken.
 
@@ -88,17 +83,13 @@ Even with the right preference set, sometimes you need the opposite behavior. Ho
 
 This pattern is familiar from other canvas applications. It means you don't have to change preferences just because you occasionally need the other behavior.
 
-## The real cost
+## The tradeoff
 
-The tradeoff is onboarding friction. A new user scrolls, gets the wrong behavior, and has to find the preference to fix it. That's a bad first impression.
+The cost is onboarding friction. A new user scrolls, gets the wrong behavior, and has to find the preference to fix it. That's a bad first impression.
 
 But the alternative—guessing wrong unpredictably—creates ongoing friction. Users can never develop muscle memory when the same gesture sometimes pans and sometimes zooms. One preference change beats a thousand moments of confusion.
 
-## What would actually fix this
-
-Browser vendors could expose device information on wheel events. A simple `inputDeviceType` property would let applications respond correctly without asking users to configure anything.
-
-Until that happens, we'll keep asking. It's not elegant, but it's honest—and honesty builds more trust than clever heuristics that sometimes fail.
+Browser vendors could fix this by exposing device information on wheel events. A simple `inputDeviceType` property would let applications respond correctly without asking users to configure anything. Until that happens, we'll keep asking. It's not elegant, but it's honest—and honesty builds more trust than clever heuristics that sometimes fail.
 
 ## Related
 
