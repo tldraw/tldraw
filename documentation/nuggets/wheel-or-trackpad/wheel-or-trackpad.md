@@ -11,6 +11,7 @@ keywords:
   - detection
 status: published
 date: 12/20/2025
+generation-notes: First draft.
 order: 1
 ---
 
