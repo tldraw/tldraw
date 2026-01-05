@@ -15,6 +15,7 @@ These components can be used to build custom panels, dialogs, and interfaces tha
 tldraw's design system.
 
 The primitives shown include:
+
 - **Buttons**: `TldrawUiButton` with various types (normal, primary, danger, icon)
 - **Dropdown menus**: `TldrawUiDropdownMenu*` components for menus with items and submenus
 - **Select**: `TldrawUiSelect` for dropdown selection
