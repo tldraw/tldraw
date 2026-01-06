@@ -615,9 +615,6 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 // @internal (undocumented)
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
-// @internal (undocumented)
-export const DEFAULT_SNAP_THRESHOLD = 8;
-
 // @public (undocumented)
 export function DefaultBackground(): JSX.Element;
 
@@ -735,6 +732,7 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
+    readonly zoomToFitPadding: 128;
 };
 
 // @public (undocumented)
@@ -3511,6 +3509,7 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
+    readonly zoomToFitPadding: number;
 }
 
 // @public (undocumented)
