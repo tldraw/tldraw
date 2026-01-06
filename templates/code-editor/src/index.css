@@ -111,61 +111,114 @@ body {
 
 .toolbar-button {
 	padding: 6px 12px;
-	background: #3c3c3c;
-	color: #d4d4d4;
+	background: #333;
+	color: #ccc;
 	border: 1px solid #555;
-	border-radius: 4px;
+	border-radius: 2px;
 	cursor: pointer;
-	font-family: 'Inter', system-ui, sans-serif;
-	font-size: 13px;
-	font-weight: 500;
-	transition: background 0.15s ease;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 12px;
+	font-weight: 400;
+	letter-spacing: 0.02em;
 }
 
 .toolbar-button:hover:not(:disabled) {
-	background: #4a4a4a;
+	background: #444;
+	color: #fff;
 }
 
 .toolbar-button:active:not(:disabled) {
-	background: #333;
+	background: #222;
 }
 
 .toolbar-button:disabled {
-	opacity: 0.5;
+	opacity: 0.35;
 	cursor: not-allowed;
 }
 
 .toolbar-button-primary {
-	background: #0e639c;
-	border-color: #0e639c;
-	color: #fff;
+	background: #fff;
+	color: #000;
+	border-color: #fff;
 }
 
 .toolbar-button-primary:hover:not(:disabled) {
-	background: #1177bb;
+	background: #ddd;
+	border-color: #ddd;
 }
 
 .toolbar-button-primary:active:not(:disabled) {
-	background: #0d5a8f;
+	background: #bbb;
+	border-color: #bbb;
 }
 
-.toolbar-select {
-	padding: 6px 8px;
-	background: #3c3c3c;
-	color: #d4d4d4;
+.toolbar-dropdown {
+	position: relative;
+}
+
+.toolbar-dropdown-trigger {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
+	background: #333;
+	color: #ccc;
 	border: 1px solid #555;
-	border-radius: 4px;
+	border-radius: 2px;
 	cursor: pointer;
-	font-family: 'Inter', system-ui, sans-serif;
-	font-size: 13px;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.02em;
 }
 
-.toolbar-select:hover {
-	background: #4a4a4a;
+.toolbar-dropdown-trigger:hover {
+	background: #444;
+	color: #fff;
+}
+
+.toolbar-dropdown-trigger svg {
+	opacity: 0.6;
+}
+
+.toolbar-dropdown-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	min-width: 100%;
+	background: #2a2a2a;
+	border: 1px solid #555;
+	border-radius: 2px;
+	z-index: 100;
+	display: flex;
+	flex-direction: column;
+}
+
+.toolbar-dropdown-item {
+	padding: 8px 12px;
+	background: none;
+	border: none;
+	color: #ccc;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.02em;
+	text-align: left;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.toolbar-dropdown-item:hover {
+	background: #444;
+	color: #fff;
+}
+
+.toolbar-dropdown-item.selected {
+	background: #3a3a3a;
+	color: #fff;
 }
 
 .toolbar-hint {
 	margin-left: auto;
+	font-family: 'Inter', system-ui, sans-serif;
 	font-size: 12px;
 	color: #858585;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { examples } from '../lib/examples'
 
 interface ToolbarProps {
@@ -20,8 +20,21 @@ export function Toolbar({
 	generatedShapeCount,
 }: ToolbarProps) {
 	const [selectedExample, setSelectedExample] = useState<string>('Basic shapes')
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+	const dropdownRef = useRef<HTMLDivElement>(null)
 	const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
 	const shortcut = isMac ? '⌘+Enter' : 'Ctrl+Enter'
+
+	useEffect(() => {
+		if (!isDropdownOpen) return
+		function handleClickOutside(e: MouseEvent) {
+			if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+				setIsDropdownOpen(false)
+			}
+		}
+		document.addEventListener('click', handleClickOutside)
+		return () => document.removeEventListener('click', handleClickOutside)
+	}, [isDropdownOpen])
 
 	return (
 		<div className="code-toolbar">
@@ -40,26 +53,38 @@ export function Toolbar({
 				disabled={generatedShapeCount === 0}
 				title={`Clear generated shapes (${generatedShapeCount} shapes)`}
 			>
-				Clear {generatedShapeCount > 0 && `(${generatedShapeCount})`}
+				Clear
 			</button>
 
-			<select
-				className="toolbar-select"
-				value={selectedExample}
-				onChange={(e) => {
-					const exampleName = e.target.value
-					if (exampleName && examples[exampleName]) {
-						setSelectedExample(exampleName)
-						onLoadExample(examples[exampleName])
-					}
-				}}
-			>
-				{Object.keys(examples).map((name) => (
-					<option key={name} value={name}>
-						{name}
-					</option>
-				))}
-			</select>
+			<div className="toolbar-dropdown" ref={dropdownRef}>
+				<button
+					className="toolbar-dropdown-trigger"
+					onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+				>
+					{selectedExample}
+					<svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor">
+						<path d="M0 0l4 5 4-5z" />
+					</svg>
+				</button>
+				{isDropdownOpen && (
+					<div className="toolbar-dropdown-menu">
+						{Object.keys(examples).map((name) => (
+							<button
+								key={name}
+								className={`toolbar-dropdown-item ${name === selectedExample ? 'selected' : ''}`}
+								onClick={(e) => {
+									e.stopPropagation()
+									setSelectedExample(name)
+									onLoadExample(examples[name])
+									setIsDropdownOpen(false)
+								}}
+							>
+								{name}
+							</button>
+						))}
+					</div>
+				)}
+			</div>
 
 			<div className="toolbar-hint">{shortcut} to run</div>
 		</div>
