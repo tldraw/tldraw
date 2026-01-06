@@ -1,10 +1,7 @@
 .environment-info {
-	position: absolute;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 8px;
 	margin: 8px;
-	top: 60px;
-	left: 8px;
-	padding: 8px;
+	padding: 12px;
 }

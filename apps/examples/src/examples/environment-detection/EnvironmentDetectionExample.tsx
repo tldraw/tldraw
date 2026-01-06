@@ -1,4 +1,4 @@
-import { Tldraw, TldrawUiButton, tlenv, tlenvReactive, useValue } from 'tldraw'
+import { Tldraw, TldrawUiButton, TldrawUiIcon, tlenv, tlenvReactive, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './environment-detection.css'
 
@@ -42,10 +42,11 @@ function EnvironmentInfo() {
 				style={{
 					width: buttonSize,
 					height: buttonSize,
+					border: '1px solid var(--tl-color-text-3)',
 				}}
 				onClick={() => alert(`Button size: ${buttonSize}`)}
 			>
-				{buttonSize}
+				<TldrawUiIcon icon="dot" label="Dot" />
 			</TldrawUiButton>
 		</div>
 	)
@@ -57,7 +58,7 @@ export default function RequestEnvironmentDetectionWithTlenvAndTlenvreactiveExam
 			<Tldraw
 				components={{
 					// [7]
-					InFrontOfTheCanvas: EnvironmentInfo,
+					TopPanel: EnvironmentInfo,
 				}}
 			/>
 		</div>
