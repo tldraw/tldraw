@@ -615,6 +615,9 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 // @internal (undocumented)
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
+// @internal (undocumented)
+export const DEFAULT_SNAP_THRESHOLD = 8;
+
 // @public (undocumented)
 export function DefaultBackground(): JSX.Element;
 
@@ -725,6 +728,7 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
@@ -3496,6 +3500,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)

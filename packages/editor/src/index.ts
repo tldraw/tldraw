@@ -120,7 +120,12 @@ export {
 	userTypeValidator,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
-export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
+export {
+	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_CAMERA_OPTIONS,
+	DEFAULT_SNAP_THRESHOLD,
+	SIDES,
+} from './lib/constants'
 export {
 	BindingUtil,
 	type BindingOnChangeOptions,
