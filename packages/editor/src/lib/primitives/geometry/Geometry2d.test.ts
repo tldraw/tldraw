@@ -456,6 +456,37 @@ describe('Group2d getBoundsVertices', () => {
 	})
 })
 
+describe('distanceToLineSegment', () => {
+	test('returns actual distance, not squared distance', () => {
+		// A 10x10 rectangle at origin
+		const rect = new Rectangle2d({ width: 10, height: 10, isFilled: false })
+
+		// Line segment 5 units above the top edge (from (0, -5) to (10, -5))
+		const distance = rect.distanceToLineSegment(new Vec(0, -5), new Vec(10, -5))
+
+		// Distance should be 5, not 25 (squared)
+		expect(distance).toBe(5)
+	})
+
+	test('returns 0 when line segment intersects geometry', () => {
+		const rect = new Rectangle2d({ width: 10, height: 10, isFilled: false })
+
+		// Line segment that crosses through the rectangle
+		const distance = rect.distanceToLineSegment(new Vec(-5, 5), new Vec(15, 5))
+
+		expect(distance).toBe(0)
+	})
+
+	test('returns negative distance when inside filled geometry', () => {
+		const rect = new Rectangle2d({ width: 10, height: 10, isFilled: true })
+
+		// Line segment entirely inside the rectangle
+		const distance = rect.distanceToLineSegment(new Vec(3, 5), new Vec(7, 5))
+
+		expect(distance).toBeLessThan(0)
+	})
+})
+
 function expectApproxMatch(a: VecLike, b: VecLike) {
 	expect(a.x).toBeCloseTo(b.x, 0.0001)
 	expect(a.y).toBeCloseTo(b.y, 0.0001)
