@@ -12,6 +12,7 @@
 
 import { execSync } from 'child_process'
 import * as fs from 'fs'
+import * as os from 'os'
 import * as path from 'path'
 import { validateSkill } from './quick-validate'
 
@@ -72,13 +73,13 @@ function packageSkill(skillPath: string, outputDir?: string): string | null {
 
 	const skillFilename = path.join(resolvedOutputDir, `${skillName}.skill`)
 
+	let tempDir: string | null = null
 	try {
 		// Get all files in the skill directory
 		const files = getAllFiles(resolvedSkillPath)
-		const parentDir = path.dirname(resolvedSkillPath)
 
-		// Create a temporary directory for the zip structure
-		const tempDir = fs.mkdtempSync('/tmp/skill-package-')
+		// Create a temporary directory for the zip structure (cross-platform)
+		tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-package-'))
 		const tempSkillDir = path.join(tempDir, skillName)
 		fs.mkdirSync(tempSkillDir, { recursive: true })
 
@@ -106,6 +107,14 @@ function packageSkill(skillPath: string, outputDir?: string): string | null {
 		console.log(`\n✅ Successfully packaged skill to: ${skillFilename}`)
 		return skillFilename
 	} catch (err) {
+		// Cleanup temp directory on error
+		if (tempDir && fs.existsSync(tempDir)) {
+			try {
+				fs.rmSync(tempDir, { recursive: true })
+			} catch {
+				// Ignore cleanup errors
+			}
+		}
 		console.log(`❌ Error creating .skill file: ${err}`)
 		return null
 	}

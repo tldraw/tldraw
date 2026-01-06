@@ -47,7 +47,7 @@ If screenshots aren't feasible (e.g., the bug is non-visual, or reproduction is 
 
 ### Step 3: Create the issue
 
-Create the issue on GitHub following the standards in @.claude/skills/write-issue.md.
+Create the issue on GitHub following the standards in @.claude/skills/write-issue/SKILL.md.
 
 1. **Determine the issue type**:
    - `Bug` - Something isn't working as expected

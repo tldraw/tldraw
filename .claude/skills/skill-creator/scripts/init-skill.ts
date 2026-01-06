@@ -138,7 +138,28 @@ function fillTemplate(template: string, skillName: string, skillTitle: string): 
 		.replace(/\{\{skill_title\}\}/g, skillTitle)
 }
 
+function validateSkillName(skillName: string): string | null {
+	// Check for valid hyphen-case format
+	if (!/^[a-z0-9-]+$/.test(skillName)) {
+		return `Name '${skillName}' should be hyphen-case (lowercase letters, digits, and hyphens only)`
+	}
+	if (skillName.startsWith('-') || skillName.endsWith('-') || skillName.includes('--')) {
+		return `Name '${skillName}' cannot start/end with hyphen or contain consecutive hyphens`
+	}
+	if (skillName.length > 64) {
+		return `Name is too long (${skillName.length} characters). Maximum is 64 characters.`
+	}
+	return null
+}
+
 function initSkill(skillName: string, basePath: string): string | null {
+	// Validate skill name format
+	const nameError = validateSkillName(skillName)
+	if (nameError) {
+		console.log(`❌ Error: ${nameError}`)
+		return null
+	}
+
 	const skillDir = path.resolve(basePath, skillName)
 
 	// Check if directory already exists

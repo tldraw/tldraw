@@ -25,7 +25,7 @@ model: opus
 
 **If no PR exists:**
 
-Create a new PR following the standards in @.claude/skills/write-pr.md
+Create a new PR following the standards in @.claude/skills/write-pr/SKILL.md
 
 **If a PR already exists:**
 

@@ -67,7 +67,10 @@ export function validateSkill(skillPath: string): ValidationResult {
 
 	// Validate name
 	const name = frontmatter.name.trim()
-	if (name) {
+	if (!name) {
+		return { valid: false, message: 'Name cannot be empty or whitespace-only' }
+	}
+	{
 		if (!/^[a-z0-9-]+$/.test(name)) {
 			return {
 				valid: false,
@@ -90,7 +93,10 @@ export function validateSkill(skillPath: string): ValidationResult {
 
 	// Validate description
 	const description = frontmatter.description.trim()
-	if (description) {
+	if (!description) {
+		return { valid: false, message: 'Description cannot be empty or whitespace-only' }
+	}
+	{
 		if (description.includes('<') || description.includes('>')) {
 			return { valid: false, message: 'Description cannot contain angle brackets (< or >)' }
 		}
