@@ -180,7 +180,7 @@ export function Tldraw(props: TldrawProps) {
 
 	// Merge deprecated textOptions prop with options.textOptions
 	// options.textOptions takes precedence over the deprecated textOptions prop
-	const _mergedTextOptions = options?.textOptions ?? _textOptions
+	const _mergedTextOptions = options?.text ?? _textOptions
 	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {
 			addFontsFromNode: defaultAddFontsFromNode,

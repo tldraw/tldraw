@@ -112,7 +112,7 @@ export interface TldrawOptions {
 	 * Options for the editor's text rendering. These include TipTap configuration and
 	 * font handling. These are the initial text options and cannot be changed at runtime.
 	 */
-	readonly textOptions?: TLTextOptions
+	readonly text: TLTextOptions
 }
 
 /** @public */
@@ -169,4 +169,5 @@ export const defaultTldrawOptions = {
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
 	snapThreshold: 8,
+	text: {},
 } as const satisfies TldrawOptions

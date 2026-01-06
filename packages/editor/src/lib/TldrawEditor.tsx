@@ -265,7 +265,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		if (!_textOptions) return _options
 		return {
 			..._options,
-			textOptions: _options?.textOptions ?? _textOptions,
+			text: _options?.text ?? _textOptions,
 		}
 	}, [_options, _textOptions])
 

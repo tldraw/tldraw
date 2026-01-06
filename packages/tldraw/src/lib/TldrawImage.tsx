@@ -58,7 +58,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
 }
 
 const defaultOptions: Partial<TldrawOptions> = {
-	textOptions: {
+	text: {
 		tipTapConfig: {
 			extensions: tipTapDefaultExtensions,
 		},
@@ -120,8 +120,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			...defaultOptions,
 			..._options,
 			textOptions: {
-				...defaultOptions.textOptions,
-				..._options?.textOptions,
+				...defaultOptions.text,
+				..._options?.text,
 			},
 		}),
 		[_options]

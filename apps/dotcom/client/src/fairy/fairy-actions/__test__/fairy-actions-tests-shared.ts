@@ -20,7 +20,7 @@ export function createTestEditor() {
 		store: createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils }),
 		getContainer: () => document.body,
 		options: {
-			textOptions: {
+			text: {
 				addFontsFromNode: defaultAddFontsFromNode,
 				tipTapConfig: {
 					extensions: tipTapDefaultExtensions,

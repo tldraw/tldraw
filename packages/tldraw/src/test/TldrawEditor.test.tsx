@@ -30,7 +30,7 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 }
 
 const options = {
-	textOptions: {
+	text: {
 		addFontsFromNode: defaultAddFontsFromNode,
 		tipTapConfig: {
 			extensions: tipTapDefaultExtensions,

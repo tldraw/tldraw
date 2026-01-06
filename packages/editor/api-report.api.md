@@ -731,6 +731,7 @@ export const defaultTldrawOptions: {
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
+    readonly text: {};
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
@@ -3504,7 +3505,7 @@ export interface TldrawOptions {
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
-    readonly textOptions?: TLTextOptions;
+    readonly text: TLTextOptions;
     // (undocumented)
     readonly textShadowLod: number;
     // (undocumented)

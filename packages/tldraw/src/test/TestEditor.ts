@@ -108,12 +108,12 @@ export class TestEditor extends Editor {
 			initialState: 'select',
 			options: {
 				...options.options,
-				textOptions: {
+				text: {
 					addFontsFromNode: defaultAddFontsFromNode,
 					tipTapConfig: {
 						extensions: tipTapDefaultExtensions,
 					},
-					...options.options?.textOptions,
+					...options.options?.text,
 				},
 			},
 		})
