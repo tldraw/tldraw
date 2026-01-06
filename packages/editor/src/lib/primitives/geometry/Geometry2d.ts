@@ -133,14 +133,17 @@ export abstract class Geometry2d {
 				if (linesIntersect(A, B, p, next)) return 0
 			}
 			q = Vec.NearestPointOnLineSegment(A, B, p, true)
-			d = Vec.Dist(p, q)
+			d = Vec.Dist2(p, q)
 			if (d < dist) {
 				dist = d
 				nearest = q
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
-		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
+		if (this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices)) {
+			dist *= -1
+		}
+		return Math.sqrt(dist)
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0, filters?: Geometry2dFilters): boolean {
