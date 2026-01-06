@@ -304,9 +304,7 @@ describe('<TldrawEditor />', () => {
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(false)
 
-		renderer.rerender(
-			<TldrawEditor onMount={onMount} options={{ cameraOptions: { isLocked: true } }} />
-		)
+		renderer.rerender(<TldrawEditor onMount={onMount} options={{ camera: { isLocked: true } }} />)
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(true)
 	})

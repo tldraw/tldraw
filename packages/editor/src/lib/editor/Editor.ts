@@ -317,7 +317,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._cameraOptions.set({
 			...DEFAULT_CAMERA_OPTIONS,
 			...cameraOptions,
-			...options?.cameraOptions,
+			...options?.camera,
 		})
 
 		this._textOptions = atom('text options', textOptions ?? null)

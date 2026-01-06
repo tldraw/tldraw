@@ -1,4 +1,5 @@
 import { ComponentType, Fragment } from 'react'
+import { DEFAULT_CAMERA_OPTIONS } from './constants'
 import { TLCameraOptions } from './editor/types/misc-types'
 
 /**
@@ -112,7 +113,7 @@ export interface TldrawOptions {
 	 * Options for the editor's camera. These are the initial camera options.
 	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
 	 */
-	readonly cameraOptions?: Partial<TLCameraOptions>
+	readonly camera: Partial<TLCameraOptions>
 }
 
 /** @public */
@@ -169,4 +170,5 @@ export const defaultTldrawOptions = {
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
 	snapThreshold: 8,
+	camera: DEFAULT_CAMERA_OPTIONS,
 } as const satisfies TldrawOptions

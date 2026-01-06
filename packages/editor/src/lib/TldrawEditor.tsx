@@ -399,6 +399,7 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	cameraOptions,
 	textOptions,
 	options,
@@ -514,10 +515,10 @@ function TldrawEditorWithReadyStore({
 	// keep the editor up to date with the latest camera options
 	// options.cameraOptions takes precedence over the deprecated cameraOptions prop
 	useLayoutEffect(() => {
-		if (editor && (cameraOptions || options?.cameraOptions)) {
-			editor.setCameraOptions({ ...cameraOptions, ...options?.cameraOptions })
+		if (editor && (cameraOptions || options?.camera)) {
+			editor.setCameraOptions({ ...cameraOptions, ...options?.camera })
 		}
-	}, [editor, cameraOptions, options?.cameraOptions])
+	}, [editor, cameraOptions, options?.camera])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
