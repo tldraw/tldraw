@@ -119,6 +119,8 @@ export function Tldraw(props: TldrawProps) {
 		tools = [],
 		embeds,
 		options,
+		// needs to be here for backwards compatibility with TldrawEditor
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		...rest
 	} = props
