@@ -3,14 +3,13 @@ import { Tldraw, TldrawUiButton, useA11y, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './screen-reader-announcements.css'
 
-// [1]
 function CustomAnnouncementPanel() {
 	const editor = useEditor()
-	// [2]
+	// [1]
 	const a11y = useA11y()
 	const [isEnabled, setIsEnabled] = useState(false)
 
-	// [4]
+	// [2]
 	const handleActionConfirmation = () => {
 		const selectedShapes = editor.getSelectedShapes()
 		if (selectedShapes.length > 0) {
@@ -27,7 +26,7 @@ function CustomAnnouncementPanel() {
 		}
 	}
 
-	// [5]
+	// [3]
 	const handleValidation = () => {
 		const selectedShapes = editor.getSelectedShapes()
 		if (selectedShapes.length === 0) {
@@ -54,7 +53,7 @@ function CustomAnnouncementPanel() {
 		}
 	}
 
-	// [6]
+	// [4]
 	const handleToggle = () => {
 		const newState = !isEnabled
 		setIsEnabled(newState)
@@ -84,7 +83,6 @@ export default function ScreenReaderAnnouncementsExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				components={{
-					// [3]
 					TopPanel: CustomAnnouncementPanel,
 				}}
 			/>
@@ -94,27 +92,20 @@ export default function ScreenReaderAnnouncementsExample() {
 
 /*
 [1]
-Define the custom panel component outside the main export. This component demonstrates
-the useA11y() hook for creating screen reader announcements.
-
-[2]
 The useA11y() hook provides access to the accessibility manager. It must be called
 within a component that's rendered inside the Tldraw component.
 
-[3]
-Override the TopPanel component to add our custom announcement demonstration panel.
-
-[4]
+[2]
 Polite announcements are used for informational messages that don't require immediate
 attention. They wait for the screen reader to finish its current announcement before
 speaking. This is appropriate for action confirmations and status updates.
 
-[5]
+[3]
 Assertive announcements are used for critical messages that need immediate attention,
 such as validation errors. They interrupt the current screen reader output to ensure
 the user hears the message right away.
 
-[6]
+[4]
 State change announcements help keep users informed about the current state of the
 application. Use polite priority for state changes unless they're critical.
 */
