@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eux
 
+SCRIPT_DIR=$(dirname "$0")
+REPO_ROOT=$(realpath "$SCRIPT_DIR/../../..")
+cd "$REPO_ROOT"
+
 if [[ "$VERCEL_ENV" == "production" ]] ; then
   echo "Always build on production";
   exit 1;
@@ -13,4 +17,4 @@ if [[ "$VERCEL_GIT_COMMIT_REF" == "main" ]] ; then
 fi
 
 ## on PR builds, only rebuild if the analytics directory changed
-git diff HEAD^ HEAD --quiet ./apps/analytics
+git diff HEAD^ HEAD --quiet -- "./apps/analytics/"
