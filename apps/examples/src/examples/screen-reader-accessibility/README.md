@@ -33,4 +33,3 @@ The example shows three common use cases:
 - **State change announcements**: Announce state changes to keep users informed of the current application state.
 
 The announcements are rendered in an off-screen ARIA live region by the `DefaultA11yAnnouncer` component, making them accessible to screen readers without cluttering the visual interface.
-
