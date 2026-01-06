@@ -30,8 +30,8 @@ body {
 .code-panel {
 	display: flex;
 	flex-direction: column;
-	background: #1e1e1e;
-	color: #d4d4d4;
+	background: #1f2430;
+	color: #cbccc6;
 	height: 100%;
 	overflow: hidden;
 }
@@ -39,17 +39,17 @@ body {
 /* Resize handle */
 .resize-handle {
 	width: 4px;
-	background: #333;
+	background: #101521;
 	cursor: col-resize;
 	transition: background 0.15s ease;
 }
 
 .resize-handle:hover {
-	background: #555;
+	background: #34455a;
 }
 
 .resize-handle:active {
-	background: #0e639c;
+	background: #ffcc66;
 }
 
 /* Canvas panel (right side) */
@@ -168,16 +168,16 @@ body {
 	gap: 8px;
 	align-items: center;
 	padding: 12px;
-	background: #252526;
-	border-bottom: 1px solid #333;
+	background: #1a1f29;
+	border-bottom: 1px solid #101521;
 	flex-shrink: 0;
 }
 
 .toolbar-button {
 	padding: 6px 12px;
-	background: #333;
-	color: #ccc;
-	border: 1px solid #555;
+	background: #232834;
+	color: #cbccc6;
+	border: 1px solid #101521;
 	border-radius: 2px;
 	cursor: pointer;
 	font-family: 'JetBrains Mono', monospace;
@@ -187,12 +187,12 @@ body {
 }
 
 .toolbar-button:hover:not(:disabled) {
-	background: #444;
-	color: #fff;
+	background: #34455a;
+	color: #cbccc6;
 }
 
 .toolbar-button:active:not(:disabled) {
-	background: #222;
+	background: #191e2a;
 }
 
 .toolbar-button:disabled {
@@ -207,13 +207,15 @@ body {
 }
 
 .toolbar-button-primary:hover:not(:disabled) {
-	background: #ddd;
-	border-color: #ddd;
+	background: #e8eaed;
+	color: #000;
+	border-color: #1a1f29;
 }
 
 .toolbar-button-primary:active:not(:disabled) {
-	background: #bbb;
-	border-color: #bbb;
+	background: #d0d4d9;
+	color: #000;
+	border-color: #101521;
 }
 
 .toolbar-dropdown {
@@ -225,9 +227,9 @@ body {
 	align-items: center;
 	gap: 8px;
 	padding: 6px 10px;
-	background: #333;
-	color: #ccc;
-	border: 1px solid #555;
+	background: #232834;
+	color: #cbccc6;
+	border: 1px solid #101521;
 	border-radius: 2px;
 	cursor: pointer;
 	font-family: 'JetBrains Mono', monospace;
@@ -236,8 +238,8 @@ body {
 }
 
 .toolbar-dropdown-trigger:hover {
-	background: #444;
-	color: #fff;
+	background: #34455a;
+	color: #cbccc6;
 }
 
 .toolbar-dropdown-trigger svg {
@@ -249,8 +251,8 @@ body {
 	top: calc(100% + 4px);
 	left: 0;
 	min-width: 100%;
-	background: #2a2a2a;
-	border: 1px solid #555;
+	background: #1f2430;
+	border: 1px solid #101521;
 	border-radius: 2px;
 	z-index: 100;
 	display: flex;
@@ -261,7 +263,7 @@ body {
 	padding: 8px 12px;
 	background: none;
 	border: none;
-	color: #ccc;
+	color: #cbccc6;
 	font-family: 'JetBrains Mono', monospace;
 	font-size: 12px;
 	letter-spacing: 0.02em;
@@ -271,20 +273,20 @@ body {
 }
 
 .toolbar-dropdown-item:hover {
-	background: #444;
-	color: #fff;
+	background: #34455a;
+	color: #cbccc6;
 }
 
 .toolbar-dropdown-item.selected {
-	background: #3a3a3a;
-	color: #fff;
+	background: #232834;
+	color: #cbccc6;
 }
 
 .toolbar-hint {
 	margin-left: auto;
 	font-family: 'Inter', system-ui, sans-serif;
 	font-size: 12px;
-	color: #858585;
+	color: #5c6773;
 }
 
 /* Code editor wrapper (Monaco container) */
@@ -293,4 +295,151 @@ body {
 	position: relative;
 	overflow: hidden;
 	min-height: 0; /* Important for flexbox to allow shrinking */
+}
+
+/* Monaco line numbers */
+.code-editor-wrapper .line-numbers {
+	opacity: 0.33;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px !important;
+	min-width: 32px;
+}
+
+.theme-toggle svg {
+	flex-shrink: 0;
+}
+
+/* Light theme overrides */
+.code-panel.theme-light {
+	background: #fafafa;
+	color: #5c6166;
+}
+
+.theme-light .code-toolbar {
+	background: #f3f3f3;
+	border-bottom-color: #e0e0e0;
+}
+
+.theme-light .toolbar-button {
+	background: #ffffff;
+	color: #5c6166;
+	border-color: #e0e0e0;
+}
+
+.theme-light .toolbar-button:hover:not(:disabled) {
+	background: #e8e8e8;
+	color: #5c6166;
+}
+
+.theme-light .toolbar-button:active:not(:disabled) {
+	background: #d0d0d0;
+}
+
+.theme-light .toolbar-button-primary {
+	background: #5c6166;
+	color: #ffffff;
+	border-color: #5c6166;
+}
+
+.theme-light .toolbar-button-primary:hover:not(:disabled) {
+	background: #6e7378;
+	color: #ffffff;
+	border-color: #fafafa;
+}
+
+.theme-light .toolbar-button-primary:active:not(:disabled) {
+	background: #787d82;
+	color: #ffffff;
+	border-color: #fafafa;
+}
+
+.theme-light .toolbar-dropdown-trigger {
+	background: #ffffff;
+	color: #5c6166;
+	border-color: #e0e0e0;
+}
+
+.theme-light .toolbar-dropdown-trigger:hover {
+	background: #e8e8e8;
+	color: #5c6166;
+}
+
+.theme-light .toolbar-dropdown-menu {
+	background: #fafafa;
+	border-color: #e0e0e0;
+}
+
+.theme-light .toolbar-dropdown-item {
+	color: #5c6166;
+}
+
+.theme-light .toolbar-dropdown-item:hover {
+	background: #e8e8e8;
+	color: #5c6166;
+}
+
+.theme-light .toolbar-dropdown-item.selected {
+	background: #d1e4f4;
+	color: #5c6166;
+}
+
+.theme-light .toolbar-hint {
+	color: #9199a1;
+}
+
+.theme-light .error-panel {
+	background: #fff0f0;
+	border-bottom-color: #ffcccc;
+}
+
+.theme-light .error-panel-header {
+	background: #ffe0e0;
+	border-bottom-color: #ffcccc;
+}
+
+.theme-light .error-panel-title {
+	color: #cc0000;
+}
+
+.theme-light .error-message {
+	color: #990000;
+}
+
+.theme-light .error-location {
+	color: #cc0000;
+}
+
+.theme-light .error-stack {
+	background: #fff5f5;
+	color: #993333;
+}
+
+.theme-light .error-dismiss {
+	color: #cc0000;
+}
+
+.theme-light .error-dismiss:hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+/* Light theme resize handle - applied via sibling selector from App */
+.theme-light + .resize-handle,
+.code-panel.theme-light ~ .resize-handle {
+	background: #e0e0e0;
+}
+
+.theme-light + .resize-handle:hover,
+.code-panel.theme-light ~ .resize-handle:hover {
+	background: #d1e4f4;
+}
+
+.theme-light + .resize-handle:active,
+.code-panel.theme-light ~ .resize-handle:active {
+	background: #ff9940;
 }

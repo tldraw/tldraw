@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { examples } from '../lib/examples'
 
 interface ToolbarProps {
@@ -7,6 +7,7 @@ interface ToolbarProps {
 	onLoadExample: (code: string) => void
 	isExecuting: boolean
 	generatedShapeCount: number
+	children?: ReactNode
 }
 
 /**
@@ -18,6 +19,7 @@ export function Toolbar({
 	onLoadExample,
 	isExecuting,
 	generatedShapeCount,
+	children,
 }: ToolbarProps) {
 	const [selectedExample, setSelectedExample] = useState<string>('Basic shapes')
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -85,6 +87,8 @@ export function Toolbar({
 					</div>
 				)}
 			</div>
+
+			{children}
 
 			<div className="toolbar-hint">{shortcut} to run</div>
 		</div>
