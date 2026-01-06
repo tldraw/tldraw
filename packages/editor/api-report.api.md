@@ -3394,6 +3394,8 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    // @deprecated
+    textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }

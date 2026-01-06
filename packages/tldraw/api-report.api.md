@@ -147,6 +147,7 @@ import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
@@ -3210,6 +3211,8 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
     embeds?: TLEmbedDefinition[];
+    // @deprecated
+    textOptions?: TLTextOptions;
 }
 
 // @public (undocumented)

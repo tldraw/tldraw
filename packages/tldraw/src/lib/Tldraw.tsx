@@ -91,6 +91,12 @@ export interface TldrawBaseProps
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
 	 */
 	embeds?: TLEmbedDefinition[]
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.textOptions` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /** @public */
@@ -113,6 +119,7 @@ export function Tldraw(props: TldrawProps) {
 		tools = [],
 		embeds,
 		options,
+		textOptions: _textOptions,
 		...rest
 	} = props
 
@@ -171,16 +178,19 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
 
+	// Merge deprecated textOptions prop with options.textOptions
+	// options.textOptions takes precedence over the deprecated textOptions prop
+	const _mergedTextOptions = options?.textOptions ?? _textOptions
 	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {
 			addFontsFromNode: defaultAddFontsFromNode,
-			...options?.textOptions,
+			..._mergedTextOptions,
 			tipTapConfig: {
 				extensions: tipTapDefaultExtensions,
-				...options?.textOptions?.tipTapConfig,
+				..._mergedTextOptions?.tipTapConfig,
 			},
 		}
-	}, [options?.textOptions])
+	}, [_mergedTextOptions])
 
 	const optionsWithDefaults = useMemo(
 		() => ({

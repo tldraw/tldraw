@@ -44,6 +44,7 @@ import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
+import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -172,6 +173,13 @@ export interface TldrawEditorBaseProps {
 	options?: Partial<TldrawOptions>
 
 	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.textOptions` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
+
+	/**
 	 * The license key.
 	 */
 	licenseKey?: string
@@ -242,6 +250,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	className,
 	user: _user,
 	options: _options,
+	textOptions: _textOptions,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -249,6 +258,16 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
+
+	// Merge deprecated textOptions prop with options.textOptions
+	// options.textOptions takes precedence over the deprecated textOptions prop
+	const mergedOptions = useMemo(() => {
+		if (!_textOptions) return _options
+		return {
+			..._options,
+			textOptions: _options?.textOptions ?? _textOptions,
+		}
+	}, [_options, _textOptions])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -259,7 +278,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
-		options: useShallowObjectIdentity(_options),
+		options: useShallowObjectIdentity(mergedOptions),
 	}
 
 	return (
