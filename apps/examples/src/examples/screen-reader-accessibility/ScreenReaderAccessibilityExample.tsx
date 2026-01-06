@@ -59,22 +59,9 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		const { title, description } = shape.props
 
 		return (
-			<HTMLContainer
-				style={{
-					padding: '16px',
-					backgroundColor: '#ffffff',
-					border: '1px solid #e0e0e0',
-					borderRadius: '8px',
-					boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-					display: 'flex',
-					flexDirection: 'column',
-					gap: '8px',
-				}}
-			>
-				<div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a1a1a' }}>{title}</div>
-				{description && (
-					<div style={{ fontSize: '14px', color: '#666', lineHeight: '1.5' }}>{description}</div>
-				)}
+			<HTMLContainer className="card-shape">
+				<div className="card-shape-title">{title}</div>
+				{description && <div className="card-shape-description">{description}</div>}
 			</HTMLContainer>
 		)
 	}
