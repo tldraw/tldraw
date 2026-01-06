@@ -952,16 +952,15 @@
 
 .tlui-offline-indicator {
 	display: flex;
-	flex-direction: row;
-	gap: var(--tl-space-3);
-	color: var(--tl-color-text);
-	background-color: var(--tl-color-low);
-	border: 3px solid var(--tl-color-background);
-	padding: 0px var(--tl-space-5);
-	height: 42px;
+	color: var(--tl-color-background);
+	background-color: var(--tl-color-text);
+	border: none;
+	width: 32px;
+	height: 32px;
 	align-items: center;
 	justify-content: center;
 	border-radius: 99px;
+	cursor: default;
 	opacity: 0;
 	animation: tl-fade-in;
 	animation-duration: 0.12s;

@@ -104,6 +104,10 @@ export interface TldrawOptions {
 	 */
 	readonly spacebarPanning: boolean
 	/**
+	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
+	 */
+	readonly snapThreshold: number
+	/**
 	 * Margin percentage for expanding culling bounds around viewport.
 	 * This reduces recalculation frequency during pan/zoom operations.
 	 * A value of 0.2 means 20% of viewport width/height is added as margin.
@@ -164,5 +168,6 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	snapThreshold: 8,
 	cullingMargin: 0.2,
 } as const satisfies TldrawOptions

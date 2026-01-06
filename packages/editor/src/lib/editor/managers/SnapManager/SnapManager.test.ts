@@ -64,6 +64,7 @@ describe('SnapManager', () => {
 	beforeEach(() => {
 		editor = {
 			getZoomLevel: vi.fn(() => 1),
+			options: { snapThreshold: 8 },
 			getViewportPageBounds: vi.fn(() => new Box(0, 0, 1000, 1000)),
 			getSelectedShapeIds: vi.fn(() => []),
 			getSelectedShapes: vi.fn(() => []),
@@ -247,6 +248,17 @@ describe('SnapManager', () => {
 		it('should handle very large zoom levels', () => {
 			editor.getZoomLevel.mockReturnValue(10)
 			expect(snapManager.getSnapThreshold()).toBe(0.8)
+		})
+
+		it('should use custom snap threshold when configured', () => {
+			;(editor as any).options = { snapThreshold: 16 }
+			editor.getZoomLevel.mockReturnValue(1)
+			const customSnapManager = new SnapManager(editor)
+			expect(customSnapManager.getSnapThreshold()).toBe(16)
+
+			editor.getZoomLevel.mockReturnValue(2)
+			const customSnapManager2 = new SnapManager(editor)
+			expect(customSnapManager2.getSnapThreshold()).toBe(8)
 		})
 	})
 
