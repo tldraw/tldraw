@@ -41,7 +41,7 @@ body {
 	width: 4px;
 	background: #101521;
 	cursor: col-resize;
-	transition: background 0.15s ease;
+	margin-left: -1px;
 }
 
 .resize-handle:hover {
@@ -462,18 +462,15 @@ body {
 	background: rgba(0, 0, 0, 0.05);
 }
 
-/* Light theme resize handle - applied via sibling selector from App */
-.theme-light + .resize-handle,
-.code-panel.theme-light ~ .resize-handle {
-	background: #e0e0e0;
+/* Light theme resize handle */
+.editor-container.theme-light .resize-handle {
+	background: #d0d0d0;
 }
 
-.theme-light + .resize-handle:hover,
-.code-panel.theme-light ~ .resize-handle:hover {
+.editor-container.theme-light .resize-handle:hover {
 	background: #d1e4f4;
 }
 
-.theme-light + .resize-handle:active,
-.code-panel.theme-light ~ .resize-handle:active {
+.editor-container.theme-light .resize-handle:active {
 	background: #ff9940;
 }

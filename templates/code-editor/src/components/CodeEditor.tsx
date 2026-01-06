@@ -13,10 +13,11 @@ interface CodeEditorProps {
 	generatedShapeCount: number
 	error: ExecutionError | null
 	onDismissError: () => void
+	isDarkTheme: boolean
+	onThemeToggle: () => void
 }
 
 const STORAGE_KEY = 'code-editor-code'
-const THEME_STORAGE_KEY = 'code-editor-theme'
 const LIVE_MODE_STORAGE_KEY = 'code-editor-live-mode'
 const DEBOUNCE_MS = 500
 
@@ -263,6 +264,8 @@ export function CodeEditor({
 	generatedShapeCount,
 	error,
 	onDismissError,
+	isDarkTheme,
+	onThemeToggle,
 }: CodeEditorProps) {
 	// Load code from localStorage or use default
 	const [code, setCode] = useState(() => {
@@ -270,16 +273,6 @@ export function CodeEditor({
 			return localStorage.getItem(STORAGE_KEY) || defaultCode
 		} catch {
 			return defaultCode
-		}
-	})
-
-	// Load theme preference from localStorage, default to dark
-	const [isDarkTheme, setIsDarkTheme] = useState(() => {
-		try {
-			const saved = localStorage.getItem(THEME_STORAGE_KEY)
-			return saved !== 'light'
-		} catch {
-			return true
 		}
 	})
 
@@ -411,18 +404,13 @@ export function CodeEditor({
 		monaco.editor.defineTheme('ayu-light', ayuLightTheme)
 	}, [])
 
-	const toggleTheme = useCallback(() => {
-		const newIsDark = !isDarkTheme
-		setIsDarkTheme(newIsDark)
-		try {
-			localStorage.setItem(THEME_STORAGE_KEY, newIsDark ? 'dark' : 'light')
-		} catch {
-			// Ignore storage errors
-		}
+	const handleThemeToggle = useCallback(() => {
+		onThemeToggle()
 		if (monacoRef.current) {
-			monacoRef.current.editor.setTheme(newIsDark ? 'ayu-mirage' : 'ayu-light')
+			// Toggle to the opposite theme (since isDarkTheme will change after onThemeToggle)
+			monacoRef.current.editor.setTheme(isDarkTheme ? 'ayu-light' : 'ayu-mirage')
 		}
-	}, [isDarkTheme])
+	}, [isDarkTheme, onThemeToggle])
 
 	const toggleLiveMode = useCallback(() => {
 		const newIsLive = !isLiveMode
@@ -518,7 +506,7 @@ export function CodeEditor({
 				</button>
 				<button
 					className="toolbar-button theme-toggle"
-					onClick={toggleTheme}
+					onClick={handleThemeToggle}
 					aria-label={isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme'}
 				>
 					{isDarkTheme ? (

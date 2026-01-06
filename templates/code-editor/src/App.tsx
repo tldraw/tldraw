@@ -5,6 +5,8 @@ import { CanvasPanel } from './components/CanvasPanel'
 import { CodeEditor } from './components/CodeEditor'
 import { ExecutionError, executeCode } from './lib/code-executor'
 
+const THEME_STORAGE_KEY = 'code-editor-theme'
+
 /**
  * Main app component with split-view layout.
  * Manages editor state and coordinates between code panel and canvas.
@@ -13,6 +15,16 @@ export default function App() {
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const [isExecuting, setIsExecuting] = useState(false)
 	const [error, setError] = useState<ExecutionError | null>(null)
+
+	// Theme state lifted to App for styling the resize handle
+	const [isDarkTheme, setIsDarkTheme] = useState(() => {
+		try {
+			const saved = localStorage.getItem(THEME_STORAGE_KEY)
+			return saved !== 'light'
+		} catch {
+			return true
+		}
+	})
 
 	// Get count of generated shapes reactively
 	const generatedShapeCount = useValue(
@@ -85,7 +97,7 @@ export default function App() {
 	}
 
 	return (
-		<div className="editor-container">
+		<div className={`editor-container ${isDarkTheme ? 'theme-dark' : 'theme-light'}`}>
 			<PanelGroup direction="horizontal">
 				<Panel defaultSize={40} minSize={30} maxSize={80}>
 					<CodeEditor
@@ -95,6 +107,16 @@ export default function App() {
 						generatedShapeCount={generatedShapeCount}
 						error={error}
 						onDismissError={() => setError(null)}
+						isDarkTheme={isDarkTheme}
+						onThemeToggle={() => {
+							const newIsDark = !isDarkTheme
+							setIsDarkTheme(newIsDark)
+							try {
+								localStorage.setItem(THEME_STORAGE_KEY, newIsDark ? 'dark' : 'light')
+							} catch {
+								// Ignore storage errors
+							}
+						}}
 					/>
 				</Panel>
 				<PanelResizeHandle className="resize-handle" />
