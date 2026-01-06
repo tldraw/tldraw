@@ -59,29 +59,82 @@ body {
 	width: 100%;
 }
 
-/* Error banner */
-.error-banner {
+/* Error panel */
+.error-panel {
+	background: #2d1515;
+	border-bottom: 1px solid #5c2828;
+	flex-shrink: 0;
+	font-family: 'Inter', system-ui, sans-serif;
+}
+
+.error-panel-header {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	justify-content: space-between;
+	padding: 8px 12px;
+	background: #3d1f1f;
+	border-bottom: 1px solid #5c2828;
+}
+
+.error-panel-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: #ff8080;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.error-panel-content {
 	padding: 12px;
-	background: #5c1f1f;
-	border-bottom: 1px solid #ff6b6b;
-	flex-shrink: 0;
+	max-height: 150px;
+	overflow-y: auto;
 }
 
 .error-message {
-	flex: 1;
 	font-size: 13px;
 	color: #ffb3b3;
-	font-family: 'Inter', system-ui, sans-serif;
+	line-height: 1.5;
+	word-break: break-word;
+}
+
+.error-location {
+	color: #ff8080;
+	font-weight: 500;
+}
+
+.error-stack-details {
+	margin-top: 8px;
+}
+
+.error-stack-details summary {
+	font-size: 11px;
+	color: #888;
+	cursor: pointer;
+	user-select: none;
+}
+
+.error-stack-details summary:hover {
+	color: #aaa;
+}
+
+.error-stack {
+	margin: 8px 0 0 0;
+	padding: 8px;
+	background: #1a1010;
+	border-radius: 4px;
+	font-size: 11px;
+	font-family: 'JetBrains Mono', monospace;
+	color: #cc9999;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	word-break: break-all;
 }
 
 .error-dismiss {
 	background: transparent;
 	border: none;
-	color: #ffb3b3;
-	font-size: 20px;
+	color: #ff8080;
+	font-size: 18px;
 	line-height: 1;
 	cursor: pointer;
 	padding: 0;
@@ -96,6 +149,17 @@ body {
 
 .error-dismiss:hover {
 	background: rgba(255, 255, 255, 0.1);
+}
+
+/* Monaco error line highlighting */
+.error-line-highlight {
+	background: rgba(255, 0, 0, 0.15) !important;
+}
+
+.error-glyph-margin {
+	background: #ff4444;
+	border-radius: 50%;
+	margin-left: 5px;
 }
 
 /* Toolbar */
@@ -223,81 +287,10 @@ body {
 	color: #858585;
 }
 
-/* Code editor wrapper */
+/* Code editor wrapper (Monaco container) */
 .code-editor-wrapper {
 	flex: 1;
 	position: relative;
 	overflow: hidden;
-}
-
-/* Syntax highlighting overlay */
-.code-highlight-container {
-	position: absolute;
-	top: 0;
-	left: 0;
-	/* width is set dynamically via JS to match textarea's clientWidth */
-	pointer-events: none;
-	font-family: 'JetBrains Mono', 'Fira Code', monospace;
-	font-size: 14px;
-	line-height: 1.5;
-	tab-size: 2;
-	overflow: hidden; /* Don't scroll independently - we sync position via JS */
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-}
-
-.code-highlight-container pre {
-	white-space: pre-wrap !important;
-	overflow-wrap: break-word !important;
-}
-
-/* Actual textarea */
-.code-editor {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	padding: 16px;
-	background: transparent;
-	color: transparent;
-	caret-color: #d4d4d4;
-	font-family: 'JetBrains Mono', 'Fira Code', monospace;
-	font-size: 14px;
-	line-height: 1.5;
-	border: none;
-	outline: none;
-	resize: none;
-	tab-size: 2;
-	overflow: auto;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-}
-
-.code-editor::selection {
-	background: rgba(38, 79, 120, 0.5);
-}
-
-/* Scrollbar styling for code panel */
-.code-editor-wrapper::-webkit-scrollbar,
-.code-editor::-webkit-scrollbar {
-	width: 14px;
-	height: 14px;
-}
-
-.code-editor-wrapper::-webkit-scrollbar-track,
-.code-editor::-webkit-scrollbar-track {
-	background: #1e1e1e;
-}
-
-.code-editor-wrapper::-webkit-scrollbar-thumb,
-.code-editor::-webkit-scrollbar-thumb {
-	background: #424242;
-	border-radius: 7px;
-	border: 3px solid #1e1e1e;
-}
-
-.code-editor-wrapper::-webkit-scrollbar-thumb:hover,
-.code-editor::-webkit-scrollbar-thumb:hover {
-	background: #4e4e4e;
+	min-height: 0; /* Important for flexbox to allow shrinking */
 }

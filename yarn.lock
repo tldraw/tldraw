@@ -4364,6 +4364,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@monaco-editor/loader@npm:^1.5.0":
+  version: 1.7.0
+  resolution: "@monaco-editor/loader@npm:1.7.0"
+  dependencies:
+    state-local: "npm:^1.0.6"
+  checksum: 10/7ee7406f0a7036e2638430d151c65593dcce88e3f344e2e19556c284c23c1b51d5edb08b8c15a6454aaa62f5af459a296db76b9543686e2ea5037c54723d2f2d
+  languageName: node
+  linkType: hard
+
+"@monaco-editor/react@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "@monaco-editor/react@npm:4.7.0"
+  dependencies:
+    "@monaco-editor/loader": "npm:^1.5.0"
+  peerDependencies:
+    monaco-editor: ">= 0.25.0 < 1"
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/d72392c4ed6faf8d830ba43421461e1b767b5978edba0739457d7781aa9533c66982be7f59bb156a77a2b578eddfb4711f50e0d84f0f0d25d28b5ab11140f5cc
+  languageName: node
+  linkType: hard
+
 "@napi-rs/canvas-android-arm64@npm:0.1.65":
   version: 0.1.65
   resolution: "@napi-rs/canvas-android-arm64@npm:0.1.65"
@@ -10675,13 +10697,6 @@ __metadata:
   version: 3.0.2
   resolution: "@types/picomatch@npm:3.0.2"
   checksum: 10/da4e0e0f4437576dfd59b94f5868f89a2bd5ce4aaa57eb5dc601818885ac7bd03ccb3e8d3402a6820e5a3d63c86c7030031a5fdc67a0598d0675dea912b6512e
-  languageName: node
-  linkType: hard
-
-"@types/prismjs@npm:^1.26.0":
-  version: 1.26.5
-  resolution: "@types/prismjs@npm:1.26.5"
-  checksum: 10/617099479db9550119d0f84272dc79d64b2cf3e0d7a17167fe740d55fdf0f155697d935409464392d164e62080c2c88d649cf4bc4fdd30a87127337536657277
   languageName: node
   linkType: hard
 
@@ -22059,6 +22074,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"monaco-editor@npm:^0.52.2":
+  version: 0.52.2
+  resolution: "monaco-editor@npm:0.52.2"
+  checksum: 10/0d4962d69ffa0a8df040faa9c582cef1893fa3fb617feca8f1425c5e670e74c2856104b9a2b01cbda0103a5e5f92f58843206bc9a0e070471c0c1270d7f52a96
+  languageName: node
+  linkType: hard
+
 "moo-color@npm:^1.0.2":
   version: 1.0.3
   resolution: "moo-color@npm:1.0.3"
@@ -24127,18 +24149,6 @@ __metadata:
   dependencies:
     parse-ms: "npm:^4.0.0"
   checksum: 10/a65a1d81560867f4f7128862fdbf0e1c2d3c5607bf75cae7758bf8111e2c4b744be46e084704125a38ba918bb43defa7a53aaff0f48c5c2d95367d3148c980d9
-  languageName: node
-  linkType: hard
-
-"prism-react-renderer@npm:^2.3.1":
-  version: 2.4.1
-  resolution: "prism-react-renderer@npm:2.4.1"
-  dependencies:
-    "@types/prismjs": "npm:^1.26.0"
-    clsx: "npm:^2.0.0"
-  peerDependencies:
-    react: ">=16.0.0"
-  checksum: 10/f76ea89b8b18c477eb74e9ddda2571b5c4d21142731f6733160723aa03567b17df315d7db68ffb1122c199750ece65578ecacb488559229b26db5474d6aae55b
   languageName: node
   linkType: hard
 
@@ -27068,6 +27078,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"state-local@npm:^1.0.6":
+  version: 1.0.7
+  resolution: "state-local@npm:1.0.7"
+  checksum: 10/1d956043e270861d40a639ff3457938cf61dbc7e25209d21b55060d8dfaf74742b8a1e525ed6fcb0c2d89b7d3e305bb8589bf27392012889456b3ad82a4b7d0a
+  languageName: node
+  linkType: hard
+
 "statuses@npm:2.0.1, statuses@npm:^2.0.1":
   version: 2.0.1
   resolution: "statuses@npm:2.0.1"
@@ -28017,10 +28034,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-code-editor@workspace:templates/code-editor"
   dependencies:
+    "@monaco-editor/react": "npm:^4.7.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
-    prism-react-renderer: "npm:^2.3.1"
+    monaco-editor: "npm:^0.52.2"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     react-resizable-panels: "npm:2.0.23"

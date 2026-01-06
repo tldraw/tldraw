@@ -1,5 +1,8 @@
-import { Highlight, themes } from 'prism-react-renderer'
-import { useEffect, useRef, useState } from 'react'
+import Editor, { Monaco, OnMount } from '@monaco-editor/react'
+import type { editor } from 'monaco-editor'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ExecutionError } from '../lib/code-executor'
+import { editorTypeDefinitions } from '../lib/editor-types'
 import { defaultCode } from '../lib/examples'
 import { Toolbar } from './Toolbar'
 
@@ -8,14 +11,14 @@ interface CodeEditorProps {
 	onClear: () => void
 	isExecuting: boolean
 	generatedShapeCount: number
-	error: string | null
+	error: ExecutionError | null
 	onDismissError: () => void
 }
 
 const STORAGE_KEY = 'code-editor-code'
 
 /**
- * Code editor panel with syntax highlighting and keyboard shortcuts.
+ * Code editor panel with Monaco editor, TypeScript intellisense, and inline error display.
  * Persists code to localStorage between sessions.
  */
 export function CodeEditor({
@@ -35,42 +38,9 @@ export function CodeEditor({
 		}
 	})
 
-	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const highlightRef = useRef<HTMLDivElement>(null)
-	const wrapperRef = useRef<HTMLDivElement>(null)
-
-	const preRef = useRef<HTMLPreElement>(null)
-
-	// Sync overlay position using transform (no separate scroll)
-	const syncPosition = () => {
-		if (textareaRef.current && preRef.current) {
-			const { scrollTop, scrollLeft } = textareaRef.current
-			preRef.current.style.transform = `translate(${-scrollLeft}px, ${-scrollTop}px)`
-		}
-	}
-
-	// Match overlay width to textarea's content width (offsetWidth - scrollbar)
-	const syncWidth = () => {
-		if (textareaRef.current && highlightRef.current) {
-			const scrollbarWidth = textareaRef.current.offsetWidth - textareaRef.current.clientWidth
-			highlightRef.current.style.width = `calc(100% - ${scrollbarWidth}px)`
-		}
-	}
-
-	// Re-sync on resize
-	useEffect(() => {
-		const wrapper = wrapperRef.current
-		if (!wrapper) return
-
-		const observer = new ResizeObserver(() => {
-			requestAnimationFrame(syncWidth)
-		})
-
-		observer.observe(wrapper)
-		syncWidth()
-
-		return () => observer.disconnect()
-	}, [])
+	const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+	const monacoRef = useRef<Monaco | null>(null)
+	const decorationsRef = useRef<editor.IEditorDecorationsCollection | null>(null)
 
 	// Save code to localStorage when it changes
 	useEffect(() => {
@@ -81,40 +51,111 @@ export function CodeEditor({
 		}
 	}, [code])
 
-	// Auto-focus textarea on mount
+	// Update error decorations when error changes
 	useEffect(() => {
-		textareaRef.current?.focus()
-	}, [])
+		if (!editorRef.current || !monacoRef.current) return
 
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		// Handle Cmd/Ctrl+Enter to run code
-		if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-			e.preventDefault()
-			onRun(code)
-			return
+		const monaco = monacoRef.current
+		const ed = editorRef.current
+		const model = ed.getModel()
+		if (!model) return
+
+		// Clear previous decorations
+		if (decorationsRef.current) {
+			decorationsRef.current.clear()
 		}
 
-		// Handle Tab key to insert spaces instead of switching focus
-		if (e.key === 'Tab') {
-			e.preventDefault()
-			const target = e.currentTarget
-			const start = target.selectionStart
-			const end = target.selectionEnd
+		// Clear previous markers
+		monaco.editor.setModelMarkers(model, 'code-executor', [])
 
-			// Insert 2 spaces
-			const newCode = code.substring(0, start) + '  ' + code.substring(end)
-			setCode(newCode)
+		if (error && error.line) {
+			// Add error marker for the problems panel / squiggly line
+			monaco.editor.setModelMarkers(model, 'code-executor', [
+				{
+					startLineNumber: error.line,
+					startColumn: error.column || 1,
+					endLineNumber: error.line,
+					endColumn: model.getLineMaxColumn(error.line),
+					message: error.message,
+					severity: monaco.MarkerSeverity.Error,
+				},
+			])
 
-			// Move cursor after the inserted spaces
-			setTimeout(() => {
-				target.selectionStart = target.selectionEnd = start + 2
-			}, 0)
+			// Add line decoration (highlight the entire line)
+			decorationsRef.current = ed.createDecorationsCollection([
+				{
+					range: new monaco.Range(error.line, 1, error.line, 1),
+					options: {
+						isWholeLine: true,
+						className: 'error-line-highlight',
+						glyphMarginClassName: 'error-glyph-margin',
+					},
+				},
+			])
+
+			// Reveal the error line
+			ed.revealLineInCenter(error.line)
 		}
-	}
+	}, [error])
+
+	const handleEditorMount: OnMount = useCallback(
+		(ed, monaco) => {
+			editorRef.current = ed
+			monacoRef.current = monaco
+
+			// Configure JavaScript/TypeScript defaults for better intellisense
+			monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+				noSemanticValidation: false,
+				noSyntaxValidation: false,
+			})
+
+			monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+				target: monaco.languages.typescript.ScriptTarget.ESNext,
+				allowNonTsExtensions: true,
+				moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+				module: monaco.languages.typescript.ModuleKind.ESNext,
+				noEmit: true,
+				lib: ['esnext'],
+			})
+
+			// Add our custom type definitions for the editor and api objects
+			monaco.languages.typescript.javascriptDefaults.addExtraLib(
+				editorTypeDefinitions,
+				'ts:editor-api.d.ts'
+			)
+
+			// Add keyboard shortcut for running code
+			ed.addAction({
+				id: 'run-code',
+				label: 'Run Code',
+				keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+				run: () => {
+					const currentCode = ed.getValue()
+					onRun(currentCode)
+				},
+			})
+
+			// Focus the editor
+			ed.focus()
+		},
+		[onRun]
+	)
+
+	const handleEditorChange = useCallback(
+		(value: string | undefined) => {
+			setCode(value || '')
+			// Clear error when code changes
+			onDismissError()
+		},
+		[onDismissError]
+	)
 
 	const handleLoadExample = (exampleCode: string) => {
 		setCode(exampleCode)
-		textareaRef.current?.focus()
+		if (editorRef.current) {
+			editorRef.current.setValue(exampleCode)
+			editorRef.current.focus()
+		}
 	}
 
 	return (
@@ -128,44 +169,56 @@ export function CodeEditor({
 			/>
 
 			{error && (
-				<div className="error-banner">
-					<span className="error-message">{error}</span>
-					<button className="error-dismiss" onClick={onDismissError} aria-label="Dismiss error">
-						×
-					</button>
+				<div className="error-panel">
+					<div className="error-panel-header">
+						<span className="error-panel-title">Error</span>
+						<button className="error-dismiss" onClick={onDismissError} aria-label="Dismiss error">
+							×
+						</button>
+					</div>
+					<div className="error-panel-content">
+						<div className="error-message">
+							{error.line && <span className="error-location">Line {error.line}: </span>}
+							{error.message}
+						</div>
+						{error.stack && (
+							<details className="error-stack-details">
+								<summary>Stack trace</summary>
+								<pre className="error-stack">{error.stack}</pre>
+							</details>
+						)}
+					</div>
 				</div>
 			)}
 
-			<div className="code-editor-wrapper" ref={wrapperRef}>
-				{/* Syntax highlighted overlay */}
-				<div className="code-highlight-container" ref={highlightRef} aria-hidden="true">
-					<Highlight theme={themes.vsDark} code={code} language="javascript">
-						{({ className, style, tokens, getLineProps, getTokenProps }) => (
-							<pre ref={preRef} className={className} style={{ ...style, margin: 0, padding: 16 }}>
-								{tokens.map((line, i) => (
-									<div key={i} {...getLineProps({ line })}>
-										{line.map((token, key) => (
-											<span key={key} {...getTokenProps({ token })} />
-										))}
-									</div>
-								))}
-							</pre>
-						)}
-					</Highlight>
-				</div>
-
-				{/* Actual textarea for editing */}
-				<textarea
-					ref={textareaRef}
-					className="code-editor"
+			<div className="code-editor-wrapper">
+				<Editor
+					height="100%"
+					defaultLanguage="javascript"
 					value={code}
-					onChange={(e) => setCode(e.target.value)}
-					onKeyDown={handleKeyDown}
-					onScroll={syncPosition}
-					spellCheck={false}
-					autoCapitalize="off"
-					autoComplete="off"
-					autoCorrect="off"
+					onChange={handleEditorChange}
+					onMount={handleEditorMount}
+					theme="vs-dark"
+					options={{
+						fontSize: 14,
+						fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+						lineHeight: 1.5,
+						minimap: { enabled: false },
+						scrollBeyondLastLine: false,
+						automaticLayout: true,
+						tabSize: 2,
+						wordWrap: 'on',
+						padding: { top: 16 },
+						glyphMargin: true,
+						folding: true,
+						lineNumbers: 'on',
+						renderLineHighlight: 'line',
+						suggestOnTriggerCharacters: true,
+						quickSuggestions: true,
+						parameterHints: { enabled: true },
+						formatOnPaste: true,
+						formatOnType: true,
+					}}
 				/>
 			</div>
 		</div>

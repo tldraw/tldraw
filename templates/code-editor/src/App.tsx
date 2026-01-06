@@ -3,7 +3,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Editor, useValue } from 'tldraw'
 import { CanvasPanel } from './components/CanvasPanel'
 import { CodeEditor } from './components/CodeEditor'
-import { executeCode } from './lib/code-executor'
+import { ExecutionError, executeCode } from './lib/code-executor'
 
 /**
  * Main app component with split-view layout.
@@ -12,7 +12,7 @@ import { executeCode } from './lib/code-executor'
 export default function App() {
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const [isExecuting, setIsExecuting] = useState(false)
-	const [error, setError] = useState<string | null>(null)
+	const [error, setError] = useState<ExecutionError | null>(null)
 
 	// Get count of generated shapes reactively
 	const generatedShapeCount = useValue(
@@ -54,7 +54,10 @@ export default function App() {
 				setError(result.error)
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : String(err))
+			setError({
+				message: err instanceof Error ? err.message : String(err),
+				stack: err instanceof Error ? err.stack : undefined,
+			})
 		} finally {
 			setIsExecuting(false)
 		}
