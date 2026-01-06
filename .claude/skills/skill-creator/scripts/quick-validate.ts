@@ -39,8 +39,8 @@ export function validateSkill(skillPath: string): ValidationResult {
 		return { valid: false, message: 'No YAML frontmatter found' }
 	}
 
-	// Extract frontmatter
-	const match = content.match(/^---\n([\s\S]*?)\n---/)
+	// Extract frontmatter (handle both LF and CRLF line endings)
+	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/)
 	if (!match) {
 		return { valid: false, message: 'Invalid frontmatter format' }
 	}
