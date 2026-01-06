@@ -83,6 +83,7 @@ Start with: "In order to X, this PR does Y."
 
 - Write brief notes describing user-facing changes
 - Use imperative mood: "Add...", "Fix...", "Remove..."
+- Omit this section entirely for internal work (CI, tooling, tests, etc.) that has no user-facing impact
 
 ## API changes section
 
