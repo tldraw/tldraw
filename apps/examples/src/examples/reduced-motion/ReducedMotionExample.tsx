@@ -103,7 +103,7 @@ const MotionToggle = track(function MotionToggle() {
 
 // [6]
 const components: TLComponents = {
-	SharePanel: MotionToggle,
+	InFrontOfTheCanvas: MotionToggle,
 }
 
 export default function ReducedMotionExample() {

@@ -52,6 +52,9 @@
 
 /* Motion toggle */
 .motion-toggle {
+	position: absolute;
+	top: 100px;
+	left: 20px;
 	display: flex;
 	gap: 8px;
 	align-items: center;
