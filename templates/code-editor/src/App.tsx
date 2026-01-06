@@ -84,7 +84,7 @@ export default function App() {
 	return (
 		<div className="editor-container">
 			<PanelGroup direction="horizontal">
-				<Panel defaultSize={40} minSize={35} maxSize={80}>
+				<Panel defaultSize={40} minSize={30} maxSize={80}>
 					<CodeEditor
 						onRun={handleRun}
 						onClear={handleClear}

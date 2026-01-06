@@ -37,14 +37,40 @@ export function CodeEditor({
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const highlightRef = useRef<HTMLDivElement>(null)
+	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	// Sync scroll position between textarea and highlight overlay
-	const handleScroll = () => {
-		if (textareaRef.current && highlightRef.current) {
-			highlightRef.current.scrollTop = textareaRef.current.scrollTop
-			highlightRef.current.scrollLeft = textareaRef.current.scrollLeft
+	const preRef = useRef<HTMLPreElement>(null)
+
+	// Sync overlay position using transform (no separate scroll)
+	const syncPosition = () => {
+		if (textareaRef.current && preRef.current) {
+			const { scrollTop, scrollLeft } = textareaRef.current
+			preRef.current.style.transform = `translate(${-scrollLeft}px, ${-scrollTop}px)`
 		}
 	}
+
+	// Match overlay width to textarea's content width (offsetWidth - scrollbar)
+	const syncWidth = () => {
+		if (textareaRef.current && highlightRef.current) {
+			const scrollbarWidth = textareaRef.current.offsetWidth - textareaRef.current.clientWidth
+			highlightRef.current.style.width = `calc(100% - ${scrollbarWidth}px)`
+		}
+	}
+
+	// Re-sync on resize
+	useEffect(() => {
+		const wrapper = wrapperRef.current
+		if (!wrapper) return
+
+		const observer = new ResizeObserver(() => {
+			requestAnimationFrame(syncWidth)
+		})
+
+		observer.observe(wrapper)
+		syncWidth()
+
+		return () => observer.disconnect()
+	}, [])
 
 	// Save code to localStorage when it changes
 	useEffect(() => {
@@ -110,12 +136,12 @@ export function CodeEditor({
 				</div>
 			)}
 
-			<div className="code-editor-wrapper">
+			<div className="code-editor-wrapper" ref={wrapperRef}>
 				{/* Syntax highlighted overlay */}
 				<div className="code-highlight-container" ref={highlightRef} aria-hidden="true">
 					<Highlight theme={themes.vsDark} code={code} language="javascript">
 						{({ className, style, tokens, getLineProps, getTokenProps }) => (
-							<pre className={className} style={{ ...style, margin: 0, padding: 16 }}>
+							<pre ref={preRef} className={className} style={{ ...style, margin: 0, padding: 16 }}>
 								{tokens.map((line, i) => (
 									<div key={i} {...getLineProps({ line })}>
 										{line.map((token, key) => (
@@ -135,7 +161,7 @@ export function CodeEditor({
 					value={code}
 					onChange={(e) => setCode(e.target.value)}
 					onKeyDown={handleKeyDown}
-					onScroll={handleScroll}
+					onScroll={syncPosition}
 					spellCheck={false}
 					autoCapitalize="off"
 					autoComplete="off"

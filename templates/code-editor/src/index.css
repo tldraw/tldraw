@@ -227,7 +227,7 @@ body {
 .code-editor-wrapper {
 	flex: 1;
 	position: relative;
-	overflow: auto;
+	overflow: hidden;
 }
 
 /* Syntax highlighting overlay */
@@ -235,14 +235,13 @@ body {
 	position: absolute;
 	top: 0;
 	left: 0;
-	right: 0;
-	bottom: 0;
+	/* width is set dynamically via JS to match textarea's clientWidth */
 	pointer-events: none;
 	font-family: 'JetBrains Mono', 'Fira Code', monospace;
 	font-size: 14px;
 	line-height: 1.5;
 	tab-size: 2;
-	overflow: auto;
+	overflow: hidden; /* Don't scroll independently - we sync position via JS */
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
 }
