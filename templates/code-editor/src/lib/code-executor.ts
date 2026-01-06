@@ -100,7 +100,6 @@ export async function executeCode(code: string, editor: Editor): Promise<Executi
 		const stack = isError ? error.stack : undefined
 		const location = isError ? parseErrorLocation(error, code) : {}
 
-		// Log to console for debugging
 		console.error('Code execution error:', error)
 
 		return {

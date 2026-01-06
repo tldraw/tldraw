@@ -1,4 +1,12 @@
-import { Editor, Tldraw, TLHandlesProps, useEditor, useValue } from 'tldraw'
+import { useEffect, useState } from 'react'
+import {
+	Editor,
+	Tldraw,
+	TLErrorFallbackComponent,
+	TLHandlesProps,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import { BezierCurveShapeUtil } from '../lib/CubicBezierShape'
 
@@ -51,18 +59,63 @@ function CustomHandles({ children }: TLHandlesProps) {
 const customShapeUtils = [BezierCurveShapeUtil]
 
 /**
+ * Auto-recovering error fallback that clears bad state and remounts.
+ */
+function RecoveringErrorFallback({ error }: { error: unknown; editor?: Editor }) {
+	useEffect(() => {
+		console.error('Tldraw error, auto-recovering:', error)
+
+		// Clear persisted state that may contain invalid data
+		try {
+			const keysToRemove: string[] = []
+			for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i)
+				if (key?.startsWith('TLDRAW_DOCUMENT_v2code-editor')) {
+					keysToRemove.push(key)
+				}
+			}
+			keysToRemove.forEach((key) => localStorage.removeItem(key))
+		} catch {
+			// Ignore storage errors
+		}
+
+		// Trigger recovery
+		window.dispatchEvent(new CustomEvent('tldraw-recover'))
+	}, [error])
+
+	return (
+		<div
+			className="canvas-panel"
+			style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+		>
+			<span style={{ color: '#666' }}>Recovering...</span>
+		</div>
+	)
+}
+
+/**
  * Canvas panel component that wraps the tldraw editor.
  * Configures the editor on mount to mark generated shapes.
  */
 export function CanvasPanel({ onMount }: CanvasPanelProps) {
+	const [key, setKey] = useState(0)
+
+	useEffect(() => {
+		const handleRecover = () => setKey((k) => k + 1)
+		window.addEventListener('tldraw-recover', handleRecover)
+		return () => window.removeEventListener('tldraw-recover', handleRecover)
+	}, [])
+
 	return (
 		<div className="canvas-panel">
 			<Tldraw
+				key={key}
 				persistenceKey="code-editor"
 				onMount={onMount}
 				shapeUtils={customShapeUtils}
 				components={{
 					Handles: CustomHandles,
+					ErrorFallback: RecoveringErrorFallback as TLErrorFallbackComponent,
 				}}
 			/>
 		</div>
