@@ -1,6 +1,7 @@
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
-import { getPromptPartDefinition } from '../../shared/schema/PromptPartRegistry'
+import '../../shared/schema/PromptPartDefinitions' // Import to ensure all prompt part definitions are registered
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { getPromptPartDefinition } from '../../shared/types/PromptPart'
 
 /**
  * Get the selected model name from a prompt using shared definitions.

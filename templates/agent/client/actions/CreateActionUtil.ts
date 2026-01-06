@@ -7,82 +7,84 @@ import { SimpleShape } from '../../shared/format/SimpleShape'
 import { CreateAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
 
-export class CreateActionUtil extends AgentActionUtil<CreateAction> {
-	static override type = 'create' as const
+export const CreateActionUtil = registerActionUtil(
+	class CreateActionUtil extends AgentActionUtil<CreateAction> {
+		static override type = 'create' as const
 
-	override getInfo(action: Streaming<CreateAction>) {
-		return {
-			icon: 'pencil' as const,
-			description: action.intent ?? '',
-		}
-	}
-
-	override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return action
-
-		const { shape } = action
-
-		// Ensure the created shape has a unique ID
-		shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
-
-		// If the shape is an arrow, ensure the from and to IDs are real shapes
-		if (shape._type === 'arrow') {
-			if (shape.fromId) {
-				shape.fromId = helpers.ensureShapeIdExists(shape.fromId)
-			}
-			if (shape.toId) {
-				shape.toId = helpers.ensureShapeIdExists(shape.toId)
-			}
-			if ('x1' in shape) {
-				shape.x1 = helpers.ensureValueIsNumber(shape.x1) ?? 0
-			}
-			if ('y1' in shape) {
-				shape.y1 = helpers.ensureValueIsNumber(shape.y1) ?? 0
-			}
-			if ('x2' in shape) {
-				shape.x2 = helpers.ensureValueIsNumber(shape.x2) ?? 0
-			}
-			if ('y2' in shape) {
-				shape.y2 = helpers.ensureValueIsNumber(shape.y2) ?? 0
-			}
-			if ('bend' in shape) {
-				shape.bend = helpers.ensureValueIsNumber(shape.bend) ?? 0
+		override getInfo(action: Streaming<CreateAction>) {
+			return {
+				icon: 'pencil' as const,
+				description: action.intent ?? '',
 			}
 		}
 
-		return action
-	}
+		override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
+			if (!action.complete) return action
 
-	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return
-		if (!this.agent) return
-		const { editor } = this.agent
+			const { shape } = action
 
-		// Translate the shape back to the chat's position
-		action.shape = helpers.removeOffsetFromShape(action.shape)
+			// Ensure the created shape has a unique ID
+			shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
 
-		const result = convertSimpleShapeToTldrawShape(editor, action.shape, {
-			defaultShape: getDefaultShape(action.shape._type),
-		})
+			// If the shape is an arrow, ensure the from and to IDs are real shapes
+			if (shape._type === 'arrow') {
+				if (shape.fromId) {
+					shape.fromId = helpers.ensureShapeIdExists(shape.fromId)
+				}
+				if (shape.toId) {
+					shape.toId = helpers.ensureShapeIdExists(shape.toId)
+				}
+				if ('x1' in shape) {
+					shape.x1 = helpers.ensureValueIsNumber(shape.x1) ?? 0
+				}
+				if ('y1' in shape) {
+					shape.y1 = helpers.ensureValueIsNumber(shape.y1) ?? 0
+				}
+				if ('x2' in shape) {
+					shape.x2 = helpers.ensureValueIsNumber(shape.x2) ?? 0
+				}
+				if ('y2' in shape) {
+					shape.y2 = helpers.ensureValueIsNumber(shape.y2) ?? 0
+				}
+				if ('bend' in shape) {
+					shape.bend = helpers.ensureValueIsNumber(shape.bend) ?? 0
+				}
+			}
 
-		editor.createShape(result.shape)
+			return action
+		}
 
-		// Handle arrow bindings if they exist
-		if (result.bindings) {
-			for (const binding of result.bindings) {
-				editor.createBinding({
-					type: binding.type,
-					fromId: binding.fromId,
-					toId: binding.toId,
-					props: binding.props,
-					meta: binding.meta,
-				})
+		override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
+			if (!action.complete) return
+			if (!this.agent) return
+			const { editor } = this.agent
+
+			// Translate the shape back to the chat's position
+			action.shape = helpers.removeOffsetFromShape(action.shape)
+
+			const result = convertSimpleShapeToTldrawShape(editor, action.shape, {
+				defaultShape: getDefaultShape(action.shape._type),
+			})
+
+			editor.createShape(result.shape)
+
+			// Handle arrow bindings if they exist
+			if (result.bindings) {
+				for (const binding of result.bindings) {
+					editor.createBinding({
+						type: binding.type,
+						fromId: binding.fromId,
+						toId: binding.toId,
+						props: binding.props,
+						meta: binding.meta,
+					})
+				}
 			}
 		}
 	}
-}
+)
 
 function getDefaultShape(shapeType: SimpleShape['_type']) {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES

@@ -1,15 +1,55 @@
 import { Editor } from 'tldraw'
+import { AgentAction } from '../../shared/types/AgentAction'
 import { BaseAgentAction } from '../../shared/types/BaseAgentAction'
 import { ChatHistoryInfo } from '../../shared/types/ChatHistoryInfo'
 import { Streaming } from '../../shared/types/Streaming'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
 
+// ============================================================================
+// Registry
+// ============================================================================
+
+const registry = new Map<string, AgentActionUtilConstructor<any>>()
+
+/**
+ * Register an agent action util class. Call this after defining each util class.
+ */
+export function registerActionUtil<T extends AgentActionUtilConstructor<any>>(util: T): T {
+	if (registry.has(util.type)) {
+		throw new Error(`Agent action util already registered: ${util.type}`)
+	}
+	registry.set(util.type, util)
+	return util
+}
+
+/**
+ * Get all registered agent action util classes.
+ */
+export function getAllActionUtils(): AgentActionUtilConstructor<any>[] {
+	return Array.from(registry.values())
+}
+
+/**
+ * Get an object containing instantiated agent action utils for an agent.
+ */
+export function getAgentActionUtilsRecord(agent: TldrawAgent) {
+	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	for (const util of registry.values()) {
+		object[util.type as AgentAction['_type']] = new util(agent)
+	}
+	return object
+}
+
+// ============================================================================
+// Base Class
+// ============================================================================
+
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
-	protected agent?: TldrawAgent
-	protected editor?: Editor
+	agent?: TldrawAgent
+	editor?: Editor
 
 	constructor(agent?: TldrawAgent) {
 		this.agent = agent
@@ -48,17 +88,9 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	savesToHistory(): boolean {
 		return true
 	}
-
-	/**
-	 * Build a system message that gets concatenated with the other system messages.
-	 * @returns The system message, or null to not add anything to the system message.
-	 */
-	buildSystemPrompt(): string | null {
-		return null
-	}
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
+	new (agent: TldrawAgent): AgentActionUtil<T>
 	type: T['_type']
 }
