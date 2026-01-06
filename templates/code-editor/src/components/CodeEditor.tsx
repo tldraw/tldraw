@@ -284,6 +284,8 @@ export function CodeEditor({
 	const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 	const monacoRef = useRef<Monaco | null>(null)
 	const decorationsRef = useRef<editor.IEditorDecorationsCollection | null>(null)
+	const onRunRef = useRef(onRun)
+	onRunRef.current = onRun
 
 	// Save code to localStorage when it changes
 	useEffect(() => {
@@ -360,43 +362,44 @@ export function CodeEditor({
 		}
 	}, [isDarkTheme])
 
-	const handleEditorMount: OnMount = useCallback(
-		(ed, monaco) => {
-			editorRef.current = ed
-			monacoRef.current = monaco
+	const handleEditorMount: OnMount = useCallback((ed, monaco) => {
+		editorRef.current = ed
+		monacoRef.current = monaco
 
-			// Configure TypeScript defaults for good intellisense with our custom types
-			monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-				noSemanticValidation: false,
-				noSyntaxValidation: false,
-			})
+		// Configure TypeScript defaults for good intellisense with our custom types
+		monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+			noSemanticValidation: false,
+			noSyntaxValidation: false,
+		})
 
-			monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-				target: monaco.languages.typescript.ScriptTarget.ESNext,
-				allowNonTsExtensions: true,
-				noEmit: true,
-				strict: false,
-				noImplicitAny: false,
-				strictNullChecks: false,
-			})
+		monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+			target: monaco.languages.typescript.ScriptTarget.ESNext,
+			allowNonTsExtensions: true,
+			noEmit: true,
+			strict: false,
+			noImplicitAny: false,
+			strictNullChecks: false,
+		})
 
-			// Add our custom type definitions for the editor and api objects
-			monaco.languages.typescript.typescriptDefaults.addExtraLib(
-				editorTypeDefinitions,
-				'ts:editor-api.d.ts'
-			)
+		// Add our custom type definitions for the editor and api objects
+		monaco.languages.typescript.typescriptDefaults.addExtraLib(
+			editorTypeDefinitions,
+			'ts:editor-api.d.ts'
+		)
 
-			// Add keyboard shortcut for running code (Cmd/Ctrl+Enter)
-			ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+		// Add keyboard shortcut for running code (Cmd/Ctrl+Enter)
+		ed.onKeyDown((e) => {
+			if ((e.metaKey || e.ctrlKey) && e.keyCode === monaco.KeyCode.Enter) {
+				e.preventDefault()
+				e.stopPropagation()
 				const currentCode = ed.getValue()
-				onRun(currentCode)
-			})
+				onRunRef.current(currentCode)
+			}
+		})
 
-			// Focus the editor
-			ed.focus()
-		},
-		[onRun]
-	)
+		// Focus the editor
+		ed.focus()
+	}, [])
 
 	const handleEditorChange = useCallback(
 		(value: string | undefined) => {

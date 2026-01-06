@@ -257,11 +257,9 @@ const interval = setInterval(() => {
   // Stop after 5 seconds
   if (frame > 100) {
     clearInterval(interval)
-    console.log('Animation complete!')
   }
 }, 50)
-
-console.log('Wave animation started...')`,
+`,
 
 	'Color cycle': `// Cycle colors on shapes over time
 // Creates shapes that change color every second
