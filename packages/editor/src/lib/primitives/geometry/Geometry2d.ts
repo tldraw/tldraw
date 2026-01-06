@@ -141,10 +141,7 @@ export abstract class Geometry2d {
 		}
 		if (!nearest) throw Error('nearest point not found')
 		dist = Math.sqrt(dist) // return the actual distance, not the squared distance
-		if (this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices)) {
-			return -dist
-		}
-		return dist
+		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0, filters?: Geometry2dFilters): boolean {
