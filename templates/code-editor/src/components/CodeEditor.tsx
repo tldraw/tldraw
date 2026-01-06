@@ -345,6 +345,9 @@ export function CodeEditor({
 			if (!hasErrors) {
 				lastExecutedCodeRef.current = currentCode
 				onRunRef.current(currentCode)
+			} else {
+				// Clear so fixing code back to previous valid state will still run
+				lastExecutedCodeRef.current = null
 			}
 		}, DEBOUNCE_MS)
 

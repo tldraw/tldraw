@@ -21,34 +21,25 @@ api.createText(100, 300, 'Made with code!', {
   color: 'violet'
 })`,
 
-	'Grid pattern': `const colors = ['blue', 'red', 'green', 'orange', 'violet']
-const shapeIds = []
+	'Grid pattern': `// Create a colorful grid of shapes
+const colors = ['blue', 'red', 'green', 'orange', 'violet']
+const rows = 4
+const cols = 5
+const size = 60
+const gap = 20
 
-for (let i = 0; i < 5; i++) {
-  const id = api.createCircle(150 + i * 120, 200, 40, {
-    color: colors[i],
-    fill: 'solid'
-  })
-  shapeIds.push(id)
-}
+for (let row = 0; row < rows; row++) {
+  for (let col = 0; col < cols; col++) {
+    const x = 100 + col * (size + gap)
+    const y = 100 + row * (size + gap)
+    const color = colors[(row + col) % colors.length]
 
-let frame = 0
-const interval = setInterval(() => {
-  frame++
-
-  shapeIds.forEach((id, i) => {
-    const shape = editor.getShape(id)
-    if (!shape) return
-
-    const offset = Math.sin((frame + i * 20) * 0.1) * 50
-
-    editor.updateShapes([{
-      id: id,
-      type: 'geo',
-      y: 200 + offset - 40
-    }])
-  })
-}, 50)`,
+    api.createRect(x, y, size, size, {
+      color: color,
+      fill: 'solid'
+    })
+  }
+}`,
 
 	'Connected nodes': `// Create nodes with arrows connecting them
 // Node dimensions
