@@ -808,7 +808,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, textOptions, initialState, autoFocus, inferDarkMode, options, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -3382,6 +3382,8 @@ export interface TldrawEditorBaseProps {
     };
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+    // @deprecated
+    cameraOptions?: Partial<TLCameraOptions>;
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
@@ -3589,6 +3591,8 @@ export interface TLEditorComponents {
 export interface TLEditorOptions {
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
+    // @deprecated
+    cameraOptions?: Partial<TLCameraOptions>;
     // (undocumented)
     fontAssetUrls?: {
         [key: string]: string | undefined;

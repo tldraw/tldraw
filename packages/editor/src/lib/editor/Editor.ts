@@ -226,6 +226,12 @@ export interface TLEditorOptions {
 	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
 	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
@@ -279,6 +285,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		bindingUtils,
 		tools,
 		getContainer,
+		cameraOptions,
 		textOptions,
 		initialState,
 		autoFocus,
@@ -306,7 +313,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(this.timers.dispose)
 
-		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...options?.cameraOptions })
+		// Merge camera options: options.cameraOptions takes precedence over deprecated cameraOptions prop
+		this._cameraOptions.set({
+			...DEFAULT_CAMERA_OPTIONS,
+			...cameraOptions,
+			...options?.cameraOptions,
+		})
 
 		this._textOptions = atom('text options', textOptions ?? null)
 

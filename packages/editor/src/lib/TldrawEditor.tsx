@@ -23,6 +23,7 @@ import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -160,6 +161,13 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * Camera options for the editor.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
 	 * Text options for the editor.
@@ -391,6 +399,7 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	cameraOptions,
 	textOptions,
 	options,
 	licenseKey,
@@ -421,6 +430,7 @@ function TldrawEditorWithReadyStore({
 		initialState,
 
 		// for these, it's because we keep them up to date in a separate effect:
+		cameraOptions,
 		deepLinks,
 	})
 
@@ -429,13 +439,15 @@ function TldrawEditorWithReadyStore({
 			autoFocus: autoFocus && !noAutoFocus(),
 			inferDarkMode,
 			initialState,
+			cameraOptions,
 			deepLinks,
 		}
-	}, [autoFocus, inferDarkMode, initialState, deepLinks])
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, deepLinks } = editorOptionsRef.current
+			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks } =
+				editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -447,6 +459,7 @@ function TldrawEditorWithReadyStore({
 				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				inferDarkMode,
+				cameraOptions,
 				textOptions,
 				options,
 				licenseKey,
@@ -499,11 +512,12 @@ function TldrawEditorWithReadyStore({
 	}, [editor, deepLinks])
 
 	// keep the editor up to date with the latest camera options
+	// options.cameraOptions takes precedence over the deprecated cameraOptions prop
 	useLayoutEffect(() => {
-		if (editor && options?.cameraOptions) {
-			editor.setCameraOptions(options.cameraOptions)
+		if (editor && (cameraOptions || options?.cameraOptions)) {
+			editor.setCameraOptions({ ...cameraOptions, ...options?.cameraOptions })
 		}
-	}, [editor, options?.cameraOptions])
+	}, [editor, cameraOptions, options?.cameraOptions])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
