@@ -125,6 +125,9 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				editor.on('tick', resolveAssetAfterAWhile)
 				cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
 			} else {
+				// If we were previously debouncing while the camera was moving, make sure to
+				// cancel that listener before resolving immediately (prevents stale updates).
+				cancelDebounceFn?.()
 				resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
 			}
 		})
