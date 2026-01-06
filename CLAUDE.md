@@ -246,5 +246,3 @@ ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
 
 # cursor-rules-integration
-
-When writing examples, be sure to read the `./apps/examples/writing-examples.md` file for proper example patterns and conventions.
