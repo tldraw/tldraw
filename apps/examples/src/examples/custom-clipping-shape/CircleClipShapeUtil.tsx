@@ -77,7 +77,7 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		const centerY = shape.props.h / 2
 		const outerRadius = Math.min(shape.props.w, shape.props.h) / 2
 		const clipRadius = outerRadius - STROKE_WIDTH / 2
-		const segments = clamp(Math.round((PI2 * clipRadius) / 8), 3, 100) // More segments = smoother circle
+		const segments = clamp(Math.round((PI2 * clipRadius) / 8), 3, 360) // More segments = smoother circle
 
 		const points: Vec[] = []
 		for (let i = 0; i < segments; i++) {
