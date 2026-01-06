@@ -41,7 +41,7 @@ body {
 	width: 4px;
 	background: #101521;
 	cursor: col-resize;
-	margin-left: -0.5px;
+	margin-left: -0.75px;
 }
 
 .resize-handle:hover {
