@@ -63,3 +63,5 @@ Committing automatically runs the linter. Fix any lint/type errors unless they r
 🚨 I can't create/update this PR because [reason]. Would you like me to [suggestion]?
 
 Never force commit or force push.
+
+**Important**: NEVER include "Generated with Claude Code", "Co-Authored-By: Claude", or any other AI attribution in commit messages, PR titles, or PR descriptions.

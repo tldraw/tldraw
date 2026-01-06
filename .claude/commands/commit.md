@@ -55,5 +55,6 @@ Do NOT:
 - Use `--amend` unless explicitly requested
 - Skip hooks with `--no-verify`
 - Commit files that look like secrets (.env, credentials, API keys)
+- Include "Generated with Claude Code", "Co-Authored-By: Claude", or any AI attribution
 
 If the commit fails due to pre-commit hooks, fix the issues and try again.
