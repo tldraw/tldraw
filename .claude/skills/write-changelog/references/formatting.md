@@ -88,13 +88,13 @@ Every patch release must have a description.
 
 ```yaml
 ---
-title: 'v4.3'
+title: 'v4.3.0'
 created_at: 12/19/2024
 updated_at: 12/19/2024
 keywords:
   - changelog
   - release
-  - v4.3
+  - v4.3.0
   - feature-keyword
   - another-keyword
 ---

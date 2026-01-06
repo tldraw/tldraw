@@ -1,10 +1,10 @@
-Update the changelog file at `apps/docs/content/changelog/next.mdx` based on PRs merged to main since the previous release.
+Update the release notes file at `apps/docs/content/releases/next.mdx` based on PRs merged to main since the previous release.
 
 Use the `write-changelog` skill for formatting guidelines and structural knowledge.
 
 ## Process
 
-1. **Determine versions** - Read `next.mdx` frontmatter to get the upcoming version, then calculate the previous release branch (e.g., v4.3 means previous is v4.2.x)
+1. **Determine versions** - Read `next.mdx` frontmatter to get the upcoming version, then calculate the previous release branch (e.g., v4.3.0 means previous is v4.2.x)
 
 2. **Find new PRs** - Use git to find commits on main not on the release branch:
    ```bash

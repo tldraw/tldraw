@@ -1,4 +1,4 @@
-# Changelog examples
+# Release note examples
 
 ## Minor release structure
 
@@ -74,23 +74,23 @@ When adding a new release to the index:
 ```markdown
 ## v4.x
 
-- [v4.3](/changelog/v4.3) - SQLite sync storage, new hit testing APIs
-- [v4.2](/changelog/v4.2) - Performance improvements, arrow binding fixes
-- [v4.1](/changelog/v4.1) - Collaborative cursors, undo stack improvements
-- [v4.0](/changelog/v4.0) - Major sync overhaul, new binding system
+- [v4.3.0](/releases/v4.3.0) - SQLite sync storage, new hit testing APIs
+- [v4.2.0](/releases/v4.2.0) - Performance improvements, arrow binding fixes
+- [v4.1.0](/releases/v4.1.0) - Collaborative cursors, undo stack improvements
+- [v4.0.0](/releases/v4.0.0) - Major sync overhaul, new binding system
 ```
 
 ## next.mdx structure
 
 ```markdown
 ---
-title: 'v4.4'
+title: 'v4.4.0'
 created_at: 01/15/2025
 updated_at: 01/15/2025
 keywords:
   - changelog
   - release
-  - v4.4
+  - v4.4.0
 ---
 
 # Next release

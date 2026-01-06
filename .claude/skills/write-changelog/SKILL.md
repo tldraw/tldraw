@@ -1,13 +1,13 @@
 ---
 name: write-changelog
-description: Writing and maintaining the changelog in `apps/docs/content/changelog/`. Use when creating changelog entries, updating release notes, or when guidance on changelog structure is needed. Triggers on changelog writing tasks, release documentation, or PR categorization for changelogs.
+description: Writing and maintaining release notes in `apps/docs/content/releases/`. Use when creating changelog entries, updating release notes, or when guidance on release documentation structure is needed. Triggers on changelog writing tasks, release documentation, or PR categorization for changelogs.
 ---
 
-# Writing changelogs
+# Writing release notes
 
-## Changelog location
+## Location
 
-All changelog files live in `apps/docs/content/changelog/`.
+All release files live in `apps/docs/content/releases/`.
 
 ## File roles
 
@@ -15,13 +15,13 @@ All changelog files live in `apps/docs/content/changelog/`.
 | ---- | ------- |
 | `index.mdx` | Landing page listing all releases by major version |
 | `next.mdx` | Accumulates changes for the upcoming release |
-| `vX.Y.mdx` | Historical releases (immutable except for patch additions) |
+| `vX.Y.0.mdx` | Historical releases (immutable except for patch additions) |
 
 ## Core workflow
 
 ### Adding entries to next.mdx
 
-1. **Find new PRs** - Get the upcoming version from `next.mdx` frontmatter (e.g., "v4.3"), then find commits since the previous release:
+1. **Find new PRs** - Get the upcoming version from `next.mdx` frontmatter (e.g., "v4.3.0"), then find commits since the previous release:
    ```bash
    git log origin/main ^origin/v4.2.x --oneline
    ```
@@ -37,7 +37,7 @@ All changelog files live in `apps/docs/content/changelog/`.
 
 ### Publishing a release
 
-1. Rename `next.mdx` to `vX.Y.mdx`
+1. Rename `next.mdx` to `vX.Y.0.mdx`
 2. Increment `order` in frontmatter
 3. Create new `next.mdx` for the next version
 4. Update `index.mdx` with the new release
@@ -68,4 +68,4 @@ Semi-casual and confident. Professional but not stodgy.
 ## References
 
 - **Formatting conventions**: See `references/formatting.md` for section structure, entry format, PR links, and frontmatter
-- **Examples**: See `references/examples.md` for complete changelog entry examples
+- **Examples**: See `references/examples.md` for complete release note examples
