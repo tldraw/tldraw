@@ -3,8 +3,10 @@ import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
+import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
 import { PeopleMenuMore } from './PeopleMenuMore'
@@ -29,6 +31,12 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
 	const breakpoint = useBreakpoint()
 	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
+
+	const collaborationStatus = useCollaborationStatus()
+
+	if (collaborationStatus === 'offline') {
+		return <OfflineIndicator />
+	}
 
 	if (!userIds.length) return null
 

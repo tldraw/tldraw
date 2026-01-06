@@ -18,6 +18,7 @@ async function main() {
 			'yarn',
 			[
 				'eslint',
+				'--cache',
 				'--report-unused-disable-directives',
 				'--no-error-on-unmatched-pattern',
 				'--quiet',
