@@ -117,6 +117,31 @@ export type AcceptInviteResponseBody =
 			message: string
 	  }
 
+export interface WhatsNewEntry {
+	schemaVersion: number
+	version: string
+	title: string
+	date: string
+	/** Short description shown in the What's New dialog popup */
+	description: string
+	/** Optional long description shown on /whats-new page. Falls back to description if not provided. */
+	fullDescription?: string
+	/** Priority level: "regular" for normal updates, "important" for updates that auto-show to all users */
+	priority?: 'regular' | 'important'
+}
+
+export interface WhatsNewImage {
+	name: string
+	objectName: string
+	url: string
+	size: number
+	uploaded: Date
+}
+
+export type WhatsNewDeleteImageResponse =
+	| { success: true }
+	| { success: false; error: string; usedIn?: string[] }
+
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]

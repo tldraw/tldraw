@@ -125,6 +125,7 @@ test("non-react routes don't match", () => {
 	expect('/').toMatchAny(allVercelRouterPatterns)
 	expect('/new').toMatchAny(allVercelRouterPatterns)
 	expect('/pricing').toMatchAny(allVercelRouterPatterns)
+	expect('/whats-new').toMatchAny(allVercelRouterPatterns)
 	expect('/r/whatever').toMatchAny(allVercelRouterPatterns)
 	expect('/r/whatever/').toMatchAny(allVercelRouterPatterns)
 

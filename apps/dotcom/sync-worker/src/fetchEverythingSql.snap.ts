@@ -39,7 +39,8 @@ SELECT
   "id"::text as "20",
   "inputMode"::text as "21",
   "locale"::text as "22",
-  "name"::text as "23"
+  "name"::text as "23",
+  "whatsNewSeenVersion"::text as "24"
 FROM public."user"
 WHERE "id" = $1
 UNION ALL
@@ -68,7 +69,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM my_file_states
 UNION ALL
 SELECT
@@ -96,7 +98,8 @@ SELECT
   "publishedSlug"::text as "20",
   "sharedLinkType"::text as "21",
   "thumbnail"::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM all_files
 UNION ALL
 SELECT
@@ -124,7 +127,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM group_file_ownership
 UNION ALL
 SELECT
@@ -152,7 +156,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM my_groups
 UNION ALL
 SELECT
@@ -180,7 +185,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM all_group_users
 UNION ALL
 SELECT
@@ -208,7 +214,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM my_fairies
 UNION ALL
 SELECT
@@ -236,7 +243,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM file_fairies
 UNION ALL
 SELECT
@@ -264,7 +272,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 FROM public."user_mutation_number"
 WHERE "userId" = $1
 UNION ALL
@@ -293,7 +302,8 @@ SELECT
   null::text as "20",
   null::text as "21",
   null::text as "22",
-  null::text as "23"
+  null::text as "23",
+  null::text as "24"
 `
 
 export const columnNamesByAlias = {
@@ -322,6 +332,7 @@ export const columnNamesByAlias = {
 		'21': 'inputMode',
 		'22': 'locale',
 		'23': 'name',
+		'24': 'whatsNewSeenVersion',
 	},
 	file_state: {
 		'0': 'isFileOwner',

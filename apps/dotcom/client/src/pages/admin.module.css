@@ -15,6 +15,47 @@
 	background-color: var(--tla-color-panel);
 }
 
+.tabBar {
+	display: flex;
+	gap: 4px;
+	padding: 0 32px;
+	background-color: var(--tla-color-panel);
+	border-bottom: 1px solid var(--tla-color-border);
+	overflow-x: auto;
+}
+
+.tabButton {
+	padding: 12px 20px;
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	color: var(--tla-color-text-3);
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: all 0.15s ease;
+}
+
+.tabButton:hover {
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-low);
+}
+
+.tabButtonActive {
+	padding: 12px 20px;
+	background: none;
+	border: none;
+	border-bottom: 2px solid var(--tla-color-primary);
+	color: var(--tla-color-text-1);
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
 .adminContent {
 	flex: 1;
 	padding: 24px 32px;
@@ -51,6 +92,13 @@
 
 .searchInput:focus {
 	border-color: var(--tla-color-primary);
+}
+
+.searchInput:is(textarea) {
+	height: auto;
+	padding: 12px;
+	resize: vertical;
+	line-height: 1.5;
 }
 
 .errorMessage {
@@ -433,4 +481,320 @@
 	.summaryGrid {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* What's New */
+.whatsNewForm {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.formField {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.formField input,
+.formField textarea {
+	width: 100%;
+}
+
+.formField label {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tla-color-text-2);
+}
+
+.radioGroup {
+	display: flex;
+	gap: 16px;
+}
+
+.radioGroup label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.bulletList {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bulletItem {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.formActions {
+	display: flex;
+	gap: 12px;
+	margin-top: 8px;
+}
+
+.editingSection {
+	margin: 16px 0;
+	padding: 16px;
+	border-radius: var(--tla-radius-2);
+	max-width: 1400px;
+}
+
+.entriesList {
+	margin-top: 24px;
+}
+
+.entryCard {
+	padding: 16px;
+	border-radius: var(--tla-radius-2);
+	margin-top: 12px;
+	border: 1px solid var(--tla-color-border);
+}
+
+.entryHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 12px;
+}
+
+.entryActions {
+	display: flex;
+	gap: 8px;
+}
+
+.entryItems {
+	margin: 8px 0 0 20px;
+	padding: 0;
+	list-style: disc;
+}
+
+.entryItems li {
+	margin: 4px 0;
+	color: var(--tla-color-text-2);
+}
+
+/* What's New Form Layout */
+.whatsNewFormLayout {
+	display: grid;
+	grid-template-columns: 400px 1fr;
+	gap: 48px;
+	align-items: start;
+	width: 1200px;
+}
+
+.whatsNewFormFields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.whatsNewPreviews {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	position: sticky;
+	top: 20px;
+}
+
+.whatsNewPreview {
+	border: 2px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-3);
+	padding: 24px;
+	background-color: var(--tla-color-panel);
+}
+
+.whatsNewPreviewDialog {
+	width: 460px;
+	padding: 0;
+}
+
+.whatsNewPreviewDialog .whatsNewPreviewLabel {
+	padding: 24px 24px 0 24px;
+}
+
+.whatsNewPreviewLabel {
+	font-size: 14px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--tla-color-primary);
+	margin-bottom: 16px;
+}
+
+.whatsNewPreviewTitle {
+	font-size: 20px;
+	font-weight: 600;
+	margin-bottom: 20px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	color: var(--tla-color-text-1);
+}
+
+.whatsNewPreviewDate {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--tla-color-text-3);
+}
+
+.whatsNewPreviewContent {
+	font-size: 14px;
+	color: var(--tla-color-text-1);
+	line-height: 1.6;
+}
+
+.whatsNewPreviewDivider {
+	height: 1px;
+	background-color: var(--tla-color-divider);
+	margin: 20px 0;
+}
+
+.markdownHelper {
+	font-size: 11px;
+	color: var(--tla-color-text-3);
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+.autoShowBadge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--tla-color-primary);
+	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-2);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Markdown styles for preview */
+.whatsNewPreviewContent :global(p) {
+	margin: 0 0 12px 0;
+}
+
+.whatsNewPreviewContent :global(p:last-child) {
+	margin-bottom: 0;
+}
+
+.whatsNewPreviewContent :global(ul),
+.whatsNewPreviewContent :global(ol) {
+	margin: 0 0 12px 0;
+	padding-left: 20px;
+}
+
+.whatsNewPreviewContent :global(li) {
+	margin-bottom: 6px;
+}
+
+.whatsNewPreviewContent :global(strong) {
+	font-weight: 600;
+}
+
+.whatsNewPreviewContent :global(em) {
+	font-style: italic;
+}
+
+.whatsNewPreviewContent :global(code) {
+	background: var(--tla-color-low);
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-family: monospace;
+	font-size: 13px;
+}
+
+.whatsNewPreviewContent :global(a) {
+	color: var(--tla-color-primary);
+	text-decoration: none;
+}
+
+.whatsNewPreviewContent :global(a:hover) {
+	text-decoration: underline;
+}
+
+/* Image Gallery */
+.imageGalleryContainer {
+	margin-top: 12px;
+	max-height: 600px;
+	overflow-y: auto;
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+	background-color: var(--tla-color-contrast);
+}
+
+.imageGalleryItem {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px;
+	border-bottom: 1px solid var(--tla-color-border);
+}
+
+.imageGalleryItem:last-child {
+	border-bottom: none;
+}
+
+.imageGalleryThumbnailWrapper {
+	position: relative;
+	flex-shrink: 0;
+	overflow: visible;
+}
+
+.imageGalleryThumbnail {
+	width: 80px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.imageViewerBackdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	cursor: pointer;
+}
+
+.imageViewerImage {
+	max-width: 90vw;
+	max-height: 90vh;
+	object-fit: contain;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+	cursor: default;
+}
+
+.imageGalleryInfo {
+	flex: 1;
+	min-width: 0;
+	font-size: 12px;
+	color: var(--tla-color-text-3);
+}
+
+.imageGalleryName {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.imageGalleryActions {
+	display: flex;
+	gap: 8px;
+	flex-shrink: 0;
 }

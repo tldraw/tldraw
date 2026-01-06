@@ -325,6 +325,23 @@ id = "7b7422a178e641b19a846bfec912e399"
 binding = "FEATURE_FLAGS"
 id = "cf1dc78773ec48e5a44b184fd4734094"
 
+#################### What's New KV store ####################
+[[env.dev.kv_namespaces]]
+binding = "WHATS_NEW"
+id = "TODO"
+
+[[env.preview.kv_namespaces]]
+binding = "WHATS_NEW"
+id = "TODO"
+
+[[env.staging.kv_namespaces]]
+binding = "WHATS_NEW"
+id = "TODO"
+
+[[env.production.kv_namespaces]]
+binding = "WHATS_NEW"
+id = "TODO"
+
 #################### Version metadata ####################
 [version_metadata]
 binding = "CF_VERSION_METADATA"

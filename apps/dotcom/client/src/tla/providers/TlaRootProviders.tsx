@@ -32,6 +32,8 @@ import { FairyInviteHandler } from '../components/FairyInviteHandler'
 import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaWhatsNewAutoShowHandler } from '../components/TlaWhatsNew/TlaWhatsNewAutoShowHandler'
+import { TlaWhatsNewFetcher } from '../components/TlaWhatsNew/TlaWhatsNewFetcher'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
@@ -185,6 +187,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<PutToastsInApp />
 					<FairyInviteHandler />
 					<GroupInviteHandler />
+					<TlaWhatsNewAutoShowHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -254,6 +257,7 @@ function SignedInProvider({
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
 				<FeatureFlagsFetcher />
+				<TlaWhatsNewFetcher />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -265,6 +269,7 @@ function SignedInProvider({
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
 					<FeatureFlagsFetcher />
+					<TlaWhatsNewFetcher />
 					<SignedInAnalytics />
 					{children}
 				</ThemeContainer>

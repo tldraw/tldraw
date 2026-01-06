@@ -14,6 +14,7 @@ import {
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
+	WhatsNewMenuGroup,
 } from '../../menu-items/menu-items'
 import styles from '../sidebar.module.css'
 
@@ -22,13 +23,14 @@ const messages = defineMessages({
 })
 
 export function TlaSidebarHelpMenu() {
-	const msg = useMsg(messages.help)
+	const helpLbl = useMsg(messages.help)
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`help-menu-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<button
-						title={msg}
+						title={helpLbl}
 						data-testid="tla-sidebar-help-menu-trigger"
 						className={classNames(styles.sidebarHelpMenuTrigger, styles.hoverable)}
 					>
@@ -38,6 +40,9 @@ export function TlaSidebarHelpMenu() {
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={10}>
 					<TldrawUiMenuGroup id="support">
 						<UserManualMenuItem />
+					</TldrawUiMenuGroup>
+					<WhatsNewMenuGroup />
+					<TldrawUiMenuGroup id="support-2">
 						<GiveUsFeedbackMenuItem />
 						<DotDevMenuItem />
 					</TldrawUiMenuGroup>

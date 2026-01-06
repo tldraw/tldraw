@@ -341,11 +341,26 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	color: var(--tla-color-text-1);
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	position: relative;
 }
 
 .sidebarUserSettingsIcon {
 	margin-right: 16px;
 	color: var(--tla-color-text-3);
+}
+
+.whatsNewMenuGroup :global(.tlui-button__label)::after {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background-color: #2d7ff9;
+	border-radius: 50%;
+	margin-left: 6px;
+	vertical-align: middle;
 }
 
 @media (hover: hover) {
@@ -1032,4 +1047,16 @@
 
 [data-no-animation='true'] * {
 	animation-duration: 0s !important;
+}
+
+/* What's new indicator */
+:global(.whats-new-has-update .tlui-button__label)::after {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background-color: #2d7ff9;
+	border-radius: 50%;
+	margin-left: 6px;
+	vertical-align: middle;
 }
