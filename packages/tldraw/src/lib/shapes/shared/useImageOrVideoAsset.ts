@@ -107,8 +107,9 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				exportIsReady() // let the SVG export know we're ready for export
 			}
 
-			// If we already resolved the URL, debounce fetching potentially multiple image variations.
-			if (didAlreadyResolve.current) {
+			// Debounce fetching potentially multiple image variations while the camera is moving (zooming).
+			// Don't debounce when the asset changes (e.g. assetId update) - resolve immediately.
+			if (didAlreadyResolve.current && editor.getCameraState() === 'moving') {
 				let tick = 0
 
 				const resolveAssetAfterAWhile = () => {
