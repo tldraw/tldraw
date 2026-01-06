@@ -100,7 +100,8 @@ export default defineConfig({
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
-		stdout: 'pipe',
-		stderr: 'pipe',
+		// Uncomment if you need to see the server output:
+		// stdout: 'pipe',
+		// stderr: 'pipe',
 	},
 })
