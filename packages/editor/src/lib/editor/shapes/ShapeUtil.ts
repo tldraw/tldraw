@@ -324,7 +324,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @example
 	 * ```ts
 	 * override getClipPath(shape: MyShape): Vec[] | undefined {
-	 *   const strokeWidth = 2
+	 *   const strokeWidth = 3
 	 *   const inset = strokeWidth / 2
 	 *   // Return points inset by half the stroke width
 	 *   return [

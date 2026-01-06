@@ -32,7 +32,7 @@ export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 
 // The stroke width used when rendering the circle
-const STROKE_WIDTH = 3
+const STROKE_WIDTH = 2
 
 export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 	static override type = CIRCLE_CLIP_TYPE
@@ -242,7 +242,7 @@ describe('CircleClipShapeUtil', () => {
 			// The clip path is inset by half the stroke width (STROKE_WIDTH / 2 = 1)
 			const centerX = 100 // shape.props.w / 2
 			const centerY = 100 // shape.props.h / 2
-			const clipRadius = 100 - STROKE_WIDTH // min(w, h) / 2 - STROKE_WIDTH / 2 = 100 - 1
+			const clipRadius = 99 // min(w, h) / 2 - STROKE_WIDTH / 2 = 100 - 1
 
 			clipPath.forEach((point) => {
 				const distance = Math.sqrt(Math.pow(point.x - centerX, 2) + Math.pow(point.y - centerY, 2))
