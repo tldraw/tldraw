@@ -2746,20 +2746,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// We need to recalculate the bounds when the page changes
 		this.getCurrentPageId()
 		const viewport = this.getViewportPageBounds()
+		const margin = this.options.cullingMargin
 
 		// Recalculate if first run or viewport moved outside bounds
 		// (page changes trigger re-run via getCurrentPageId dependency)
 		if (isUninitialized(prev) || !prev || !prev.contains(viewport)) {
-			return calculateCullingBounds(viewport, this.options.cullingMargin)
+			return calculateCullingBounds(viewport, margin)
 		}
 
-		// Also recalculate if bounds are too large (e.g., after zooming in)
-		// If new bounds would be less than half the area of current bounds, recalculate
-		const newBounds = calculateCullingBounds(viewport, this.options.cullingMargin)
-		const newArea = newBounds.width * newBounds.height
-		const prevArea = prev.width * prev.height
-		if (newArea < prevArea / 2) {
-			return newBounds
+		// Recalc if bounds have grown too large (margins >2x ideal after zooming in)
+		// Ideal culling bounds: viewport * (1 + 2 * margin), cutoff: viewport * (1 + 4 * margin)
+		const maxWidth = viewport.width * (1 + 4 * margin)
+		const maxHeight = viewport.height * (1 + 4 * margin)
+		if (prev.width > maxWidth || prev.height > maxHeight) {
+			return calculateCullingBounds(viewport, margin)
 		}
 
 		return prev
