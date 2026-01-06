@@ -218,6 +218,29 @@ body {
 	border-color: #101521;
 }
 
+.live-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px !important;
+	min-width: 32px;
+}
+
+.live-toggle svg {
+	flex-shrink: 0;
+}
+
+.live-toggle.active {
+	background: #3d8c40;
+	color: #d4ffd6;
+	border-color: #2d6b2f;
+}
+
+.live-toggle.active:hover:not(:disabled) {
+	background: #4a9e4d;
+	color: #ffffff;
+}
+
 .toolbar-dropdown {
 	position: relative;
 }
@@ -357,6 +380,17 @@ body {
 	background: #787d82;
 	color: #ffffff;
 	border-color: #fafafa;
+}
+
+.theme-light .live-toggle.active {
+	background: #4caf50;
+	color: #e8ffe8;
+	border-color: #388e3c;
+}
+
+.theme-light .live-toggle.active:hover:not(:disabled) {
+	background: #5cb85c;
+	color: #ffffff;
 }
 
 .theme-light .toolbar-dropdown-trigger {

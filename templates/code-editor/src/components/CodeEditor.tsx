@@ -17,6 +17,8 @@ interface CodeEditorProps {
 
 const STORAGE_KEY = 'code-editor-code'
 const THEME_STORAGE_KEY = 'code-editor-theme'
+const LIVE_MODE_STORAGE_KEY = 'code-editor-live-mode'
+const DEBOUNCE_MS = 500
 
 // Ayu Light theme definition
 const ayuLightTheme: editor.IStandaloneThemeData = {
@@ -281,11 +283,29 @@ export function CodeEditor({
 		}
 	})
 
+	// Load live mode preference from localStorage, default to off
+	const [isLiveMode, setIsLiveMode] = useState(() => {
+		try {
+			return localStorage.getItem(LIVE_MODE_STORAGE_KEY) === 'true'
+		} catch {
+			return false
+		}
+	})
+
+	// Track which example is selected (null if user has edited code)
+	const [selectedExample, setSelectedExample] = useState<string | null>('Basic shapes')
+
 	const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 	const monacoRef = useRef<Monaco | null>(null)
 	const decorationsRef = useRef<editor.IEditorDecorationsCollection | null>(null)
 	const onRunRef = useRef(onRun)
 	onRunRef.current = onRun
+	const isLiveModeRef = useRef(isLiveMode)
+	isLiveModeRef.current = isLiveMode
+	const isExecutingRef = useRef(isExecuting)
+	isExecutingRef.current = isExecuting
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const lastExecutedCodeRef = useRef<string | null>(null)
 
 	// Save code to localStorage when it changes
 	useEffect(() => {
@@ -295,6 +315,45 @@ export function CodeEditor({
 			console.warn('Failed to save code to localStorage:', error)
 		}
 	}, [code])
+
+	// Live mode: auto-run code when it changes and compiles without errors
+	useEffect(() => {
+		if (!isLiveMode) return
+
+		// Clear any pending debounce timer
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current)
+		}
+
+		debounceTimerRef.current = setTimeout(() => {
+			if (!isLiveModeRef.current || !editorRef.current || !monacoRef.current) return
+			if (isExecutingRef.current) return
+
+			const model = editorRef.current.getModel()
+			if (!model) return
+
+			const currentCode = editorRef.current.getValue()
+
+			// Skip if we already executed this exact code
+			if (currentCode === lastExecutedCodeRef.current) return
+
+			// Get TypeScript diagnostics
+			const markers = monacoRef.current.editor.getModelMarkers({ resource: model.uri })
+			const hasErrors = markers.some((m) => m.severity === monacoRef.current!.MarkerSeverity.Error)
+
+			// Only run if no TypeScript errors
+			if (!hasErrors) {
+				lastExecutedCodeRef.current = currentCode
+				onRunRef.current(currentCode)
+			}
+		}, DEBOUNCE_MS)
+
+		return () => {
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current)
+			}
+		}
+	}, [code, isLiveMode])
 
 	// Update error decorations when error changes
 	useEffect(() => {
@@ -362,6 +421,16 @@ export function CodeEditor({
 		}
 	}, [isDarkTheme])
 
+	const toggleLiveMode = useCallback(() => {
+		const newIsLive = !isLiveMode
+		setIsLiveMode(newIsLive)
+		try {
+			localStorage.setItem(LIVE_MODE_STORAGE_KEY, String(newIsLive))
+		} catch {
+			// Ignore storage errors
+		}
+	}, [isLiveMode])
+
 	const handleEditorMount: OnMount = useCallback((ed, monaco) => {
 		editorRef.current = ed
 		monacoRef.current = monaco
@@ -410,7 +479,8 @@ export function CodeEditor({
 		[onDismissError]
 	)
 
-	const handleLoadExample = (exampleCode: string) => {
+	const handleLoadExample = (name: string, exampleCode: string) => {
+		setSelectedExample(name)
 		setCode(exampleCode)
 		if (editorRef.current) {
 			editorRef.current.setValue(exampleCode)
@@ -429,9 +499,20 @@ export function CodeEditor({
 				onClear={onClear}
 				onLoadExample={handleLoadExample}
 				isExecuting={isExecuting}
+				isLiveMode={isLiveMode}
 				generatedShapeCount={generatedShapeCount}
-				currentCode={code}
+				selectedExample={selectedExample}
 			>
+				<button
+					className={`toolbar-button live-toggle ${isLiveMode ? 'active' : ''}`}
+					onClick={toggleLiveMode}
+					aria-label={isLiveMode ? 'Disable live mode' : 'Enable live mode'}
+					title={isLiveMode ? 'Live mode on (auto-runs on valid changes)' : 'Live mode off'}
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M8 5v14l11-7z" />
+					</svg>
+				</button>
 				<button
 					className="toolbar-button theme-toggle"
 					onClick={toggleTheme}

@@ -4,19 +4,12 @@ import { examples } from '../lib/examples'
 interface ToolbarProps {
 	onRun: () => void
 	onClear: () => void
-	onLoadExample: (code: string) => void
+	onLoadExample: (name: string, code: string) => void
 	isExecuting: boolean
+	isLiveMode: boolean
 	generatedShapeCount: number
-	currentCode: string
+	selectedExample: string | null
 	children?: ReactNode
-}
-
-// Find which example matches the current code, or null if none match
-function findMatchingExample(code: string): string | null {
-	for (const [name, exampleCode] of Object.entries(examples)) {
-		if (code === exampleCode) return name
-	}
-	return null
 }
 
 /**
@@ -27,11 +20,11 @@ export function Toolbar({
 	onClear,
 	onLoadExample,
 	isExecuting,
+	isLiveMode,
 	generatedShapeCount,
-	currentCode,
+	selectedExample,
 	children,
 }: ToolbarProps) {
-	const matchingExample = findMatchingExample(currentCode)
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
@@ -53,10 +46,10 @@ export function Toolbar({
 			<button
 				className="toolbar-button toolbar-button-primary"
 				onClick={onRun}
-				disabled={isExecuting}
+				disabled={isExecuting && !isLiveMode}
 				title={`Run code (${shortcut})`}
 			>
-				{isExecuting ? 'Running...' : 'Run'}
+				{isExecuting && !isLiveMode ? 'Running...' : 'Run'}
 			</button>
 
 			<button
@@ -73,7 +66,7 @@ export function Toolbar({
 					className="toolbar-dropdown-trigger"
 					onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 				>
-					{matchingExample ?? 'Examples'}
+					{selectedExample ?? 'Examples'}
 					<svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor">
 						<path d="M0 0l4 5 4-5z" />
 					</svg>
@@ -83,10 +76,10 @@ export function Toolbar({
 						{Object.keys(examples).map((name) => (
 							<button
 								key={name}
-								className={`toolbar-dropdown-item ${name === matchingExample ? 'selected' : ''}`}
+								className={`toolbar-dropdown-item ${name === selectedExample ? 'selected' : ''}`}
 								onClick={(e) => {
 									e.stopPropagation()
-									onLoadExample(examples[name])
+									onLoadExample(name, examples[name])
 									setIsDropdownOpen(false)
 								}}
 							>
