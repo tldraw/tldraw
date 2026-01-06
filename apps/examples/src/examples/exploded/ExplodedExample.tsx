@@ -40,7 +40,7 @@ const defaultComponents = {
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]
 const defaultOptions = {
-	textOptions: {
+	text: {
 		tipTapConfig: {
 			extensions: tipTapDefaultExtensions,
 		},

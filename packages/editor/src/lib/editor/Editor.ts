@@ -231,6 +231,12 @@ export interface TLEditorOptions {
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
 	options?: Partial<TldrawOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
@@ -286,13 +292,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		initialState,
 		autoFocus,
 		inferDarkMode,
-		options,
+		options: _options,
+		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+
+		// Merge deprecated textOptions prop with options.text
+		// options.text takes precedence over the deprecated textOptions prop
+		const options = _textOptions ? { ..._options, text: _options?.text ?? _textOptions } : _options
 
 		this.options = { ...defaultTldrawOptions, ...options }
 

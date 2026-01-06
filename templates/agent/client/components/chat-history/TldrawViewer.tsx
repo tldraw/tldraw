@@ -88,7 +88,7 @@ class InspectTool extends StateNode {
 const tools = [InspectTool]
 
 const defaultOptions = {
-	textOptions: {
+	text: {
 		tipTapConfig: {
 			extensions: tipTapDefaultExtensions,
 		},

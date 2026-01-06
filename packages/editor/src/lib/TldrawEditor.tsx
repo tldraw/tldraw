@@ -175,7 +175,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Text options for the editor.
 	 *
-	 * @deprecated Use `options.textOptions` instead. This prop will be removed in a future release.
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
 

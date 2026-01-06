@@ -132,7 +132,7 @@ const textOptions: Partial<TLTextOptions> = {
 	},
 }
 
-const options = { textOptions }
+const options = { text: textOptions }
 
 export default function RichTextFontExtensionExample() {
 	const fontFaces = Object.values(extensionFontFamilies)

@@ -94,7 +94,7 @@ export interface TldrawBaseProps
 	/**
 	 * Text options for the editor.
 	 *
-	 * @deprecated Use `options.textOptions` instead. This prop will be removed in a future release.
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
 }
@@ -195,7 +195,7 @@ export function Tldraw(props: TldrawProps) {
 	const optionsWithDefaults = useMemo(
 		() => ({
 			...options,
-			textOptions: textOptionsWithDefaults,
+			text: textOptionsWithDefaults,
 		}),
 		[options, textOptionsWithDefaults]
 	)

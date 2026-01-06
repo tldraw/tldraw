@@ -119,7 +119,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		() => ({
 			...defaultOptions,
 			..._options,
-			textOptions: {
+			text: {
 				...defaultOptions.text,
 				..._options?.text,
 			},

@@ -94,7 +94,7 @@ const components: TLComponents = {
 }
 
 const options = {
-	textOptions: {
+	text: {
 		tipTapConfig: {
 			extensions: [StarterKit, Wavy],
 		},
