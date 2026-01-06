@@ -32,7 +32,7 @@ export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 
 // The stroke width used when rendering the circle
-const STROKE_WIDTH = 2
+const STROKE_WIDTH = 3
 
 export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 	static override type = CIRCLE_CLIP_TYPE
