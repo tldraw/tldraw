@@ -19,7 +19,7 @@ export function Toolbar({
 	isExecuting,
 	generatedShapeCount,
 }: ToolbarProps) {
-	const [selectedExample, setSelectedExample] = useState<string>('')
+	const [selectedExample, setSelectedExample] = useState<string>('Basic shapes')
 	const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC')
 	const shortcut = isMac ? '⌘+Enter' : 'Ctrl+Enter'
 
@@ -54,9 +54,6 @@ export function Toolbar({
 					}
 				}}
 			>
-				<option value="" disabled>
-					Load example...
-				</option>
 				{Object.keys(examples).map((name) => (
 					<option key={name} value={name}>
 						{name}

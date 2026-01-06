@@ -52,25 +52,37 @@ for (let i = 0; i < 20; i++) {
 }`,
 
 	'Connected nodes': `// Create nodes with arrows connecting them
-const node1 = api.createRect(100, 200, 100, 80, {
+// Node dimensions
+const nodeW = 120
+const nodeH = 80
+
+// Create three nodes in a triangle layout
+const node1 = api.createRect(100, 150, nodeW, nodeH, {
   color: 'blue',
   fill: 'solid'
 })
 
-const node2 = api.createRect(300, 200, 100, 80, {
+const node2 = api.createRect(350, 150, nodeW, nodeH, {
   color: 'red',
   fill: 'solid'
 })
 
-const node3 = api.createRect(200, 350, 100, 80, {
+const node3 = api.createRect(225, 300, nodeW, nodeH, {
   color: 'green',
   fill: 'solid'
 })
 
-// Connect the nodes with arrows
-api.createArrow(150, 200, 350, 200)
-api.createArrow(150, 280, 250, 350)
-api.createArrow(350, 280, 250, 350)`,
+// Calculate center points for arrow connections
+// Node 1 center: (160, 190), Node 2 center: (410, 190), Node 3 center: (285, 340)
+
+// Connect node 1 to node 2 (horizontal)
+api.createArrow(100 + nodeW, 150 + nodeH/2, 350, 150 + nodeH/2)
+
+// Connect node 1 to node 3 (diagonal down-left to down-right)
+api.createArrow(100 + nodeW/2, 150 + nodeH, 225 + nodeW/2, 300)
+
+// Connect node 2 to node 3 (diagonal down-right to down-left)
+api.createArrow(350 + nodeW/2, 150 + nodeH, 225 + nodeW/2, 300)`,
 
 	'Spiral pattern': `// Create a colorful spiral
 const colors = ['blue', 'violet', 'red', 'orange', 'green']
