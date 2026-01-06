@@ -20,7 +20,7 @@ export function Toolbar({
 	generatedShapeCount,
 }: ToolbarProps) {
 	const [selectedExample, setSelectedExample] = useState<string>('Basic shapes')
-	const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC')
+	const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
 	const shortcut = isMac ? '⌘+Enter' : 'Ctrl+Enter'
 
 	return (

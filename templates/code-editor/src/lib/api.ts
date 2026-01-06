@@ -1,4 +1,18 @@
-import { createShapeId, Editor, TLShapeId, toRichText } from 'tldraw'
+import {
+	createShapeId,
+	Editor,
+	TLBinding,
+	TLBindingCreate,
+	TLBindingId,
+	TLBindingUpdate,
+	TLCamera,
+	TLCameraMoveOptions,
+	TLShape,
+	TLShapeId,
+	toRichText,
+	Vec,
+	VecLike,
+} from 'tldraw'
 
 /**
  * Curated API for the code editor.
@@ -180,6 +194,292 @@ export function createEditorAPI(editor: Editor) {
 		 */
 		getGeneratedShapes() {
 			return editor.getCurrentPageShapes().filter((shape) => shape.meta.generated === true)
+		},
+
+		/**
+		 * Get the current camera position and zoom level.
+		 * @returns The current camera state
+		 *
+		 * @example
+		 * const camera = api.getCamera()
+		 * console.log('Camera:', camera.x, camera.y, camera.z)
+		 */
+		getCamera(): TLCamera {
+			return editor.getCamera()
+		},
+
+		/**
+		 * Set the camera position and zoom level.
+		 * @param point - The new camera position (x, y) and optional zoom (z)
+		 * @param options - Optional camera move options (animation, force, etc.)
+		 *
+		 * @example
+		 * api.setCamera({ x: 0, y: 0, z: 1 })
+		 * api.setCamera({ x: 100, y: 200 }, { animation: { duration: 500 } })
+		 */
+		setCamera(point: VecLike, options?: TLCameraMoveOptions): void {
+			editor.setCamera(point, options)
+		},
+
+		/**
+		 * Center the camera on a point in page space.
+		 * @param point - The point in page space to center on
+		 * @param options - Optional camera move options
+		 *
+		 * @example
+		 * api.centerOnPoint({ x: 100, y: 100 })
+		 * api.centerOnPoint({ x: 200, y: 300 }, { animation: { duration: 300 } })
+		 */
+		centerOnPoint(point: VecLike, options?: TLCameraMoveOptions): void {
+			editor.centerOnPoint(point, options)
+		},
+
+		/**
+		 * Zoom the camera in.
+		 * @param point - Optional screen point to zoom in on (defaults to viewport center)
+		 * @param options - Optional camera move options
+		 *
+		 * @example
+		 * api.zoomIn()
+		 * api.zoomIn({ x: 400, y: 300 }, { animation: { duration: 200 } })
+		 */
+		zoomIn(point?: VecLike, options?: TLCameraMoveOptions): void {
+			if (point) {
+				editor.zoomIn(Vec.Cast(point), options)
+			} else {
+				editor.zoomIn(undefined, options)
+			}
+		},
+
+		/**
+		 * Zoom the camera out.
+		 * @param point - Optional screen point to zoom out on (defaults to viewport center)
+		 * @param options - Optional camera move options
+		 *
+		 * @example
+		 * api.zoomOut()
+		 * api.zoomOut({ x: 400, y: 300 }, { animation: { duration: 200 } })
+		 */
+		zoomOut(point?: VecLike, options?: TLCameraMoveOptions): void {
+			if (point) {
+				editor.zoomOut(Vec.Cast(point), options)
+			} else {
+				editor.zoomOut(undefined, options)
+			}
+		},
+
+		/**
+		 * Zoom the camera to fit all content on the current page.
+		 * @param options - Optional camera move options
+		 *
+		 * @example
+		 * api.zoomToFit()
+		 * api.zoomToFit({ animation: { duration: 500 } })
+		 */
+		zoomToFit(options?: TLCameraMoveOptions): void {
+			editor.zoomToFit(options)
+		},
+
+		/**
+		 * Zoom the camera to fit the current selection.
+		 * @param options - Optional camera move options
+		 *
+		 * @example
+		 * api.zoomToSelection()
+		 * api.zoomToSelection({ animation: { duration: 300 } })
+		 */
+		zoomToSelection(options?: TLCameraMoveOptions): void {
+			editor.zoomToSelection(options)
+		},
+
+		/**
+		 * Reset the zoom level to 100% (or initial zoom if constraints are set).
+		 * @param point - Optional screen point to zoom on (defaults to viewport center)
+		 * @param options - Optional camera move options
+		 *
+		 * @example
+		 * api.resetZoom()
+		 * api.resetZoom({ x: 400, y: 300 }, { animation: { duration: 200 } })
+		 */
+		resetZoom(point?: VecLike, options?: TLCameraMoveOptions): void {
+			if (point) {
+				editor.resetZoom(Vec.Cast(point), options)
+			} else {
+				editor.resetZoom(undefined, options)
+			}
+		},
+
+		/**
+		 * Get all bindings on the current page.
+		 * @returns Array of all bindings
+		 *
+		 * @example
+		 * const bindings = api.getAllBindings()
+		 * console.log('Total bindings:', bindings.length)
+		 */
+		getAllBindings(): TLBinding[] {
+			return editor.store.query.records('binding').get()
+		},
+
+		/**
+		 * Get bindings from a specific shape (where the shape is the source).
+		 * @param shape - The shape or shape ID
+		 * @param type - Optional binding type to filter by
+		 * @returns Array of bindings from the shape
+		 *
+		 * @example
+		 * const bindings = api.getBindingsFromShape(shapeId)
+		 * const arrowBindings = api.getBindingsFromShape(shapeId, 'arrow')
+		 */
+		getBindingsFromShape<Binding extends TLBinding = TLBinding>(
+			shape: TLShape | TLShapeId,
+			type?: Binding['type']
+		): Binding[] {
+			if (type) {
+				return editor.getBindingsFromShape(shape, type) as unknown as Binding[]
+			}
+			return editor
+				.getBindingsInvolvingShape(shape)
+				.filter((b) => b.fromId === (typeof shape === 'string' ? shape : shape.id)) as Binding[]
+		},
+
+		/**
+		 * Get bindings to a specific shape (where the shape is the target).
+		 * @param shape - The shape or shape ID
+		 * @param type - Optional binding type to filter by
+		 * @returns Array of bindings to the shape
+		 *
+		 * @example
+		 * const bindings = api.getBindingsToShape(shapeId)
+		 * const arrowBindings = api.getBindingsToShape(shapeId, 'arrow')
+		 */
+		getBindingsToShape<Binding extends TLBinding = TLBinding>(
+			shape: TLShape | TLShapeId,
+			type?: Binding['type']
+		): Binding[] {
+			if (type) {
+				return editor.getBindingsToShape(shape, type) as unknown as Binding[]
+			}
+			return editor
+				.getBindingsInvolvingShape(shape)
+				.filter((b) => b.toId === (typeof shape === 'string' ? shape : shape.id)) as Binding[]
+		},
+
+		/**
+		 * Get all bindings involving a specific shape (both from and to).
+		 * @param shape - The shape or shape ID
+		 * @param type - Optional binding type to filter by
+		 * @returns Array of bindings involving the shape
+		 *
+		 * @example
+		 * const bindings = api.getBindingsInvolvingShape(shapeId)
+		 * const arrowBindings = api.getBindingsInvolvingShape(shapeId, 'arrow')
+		 */
+		getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(
+			shape: TLShape | TLShapeId,
+			type?: Binding['type']
+		): Binding[] {
+			return editor.getBindingsInvolvingShape(shape, type) as Binding[]
+		},
+
+		/**
+		 * Create a single binding between two shapes.
+		 * @param partial - Partial binding data (type, fromId, toId are required)
+		 * @returns The created binding
+		 *
+		 * @example
+		 * const binding = api.createBinding({
+		 *   type: 'arrow',
+		 *   fromId: arrowShapeId,
+		 *   toId: targetShapeId,
+		 *   props: { terminal: 'end' }
+		 * })
+		 */
+		createBinding<Binding extends TLBinding = TLBinding>(
+			partial: TLBindingCreate<Binding>
+		): Binding | undefined {
+			editor.createBinding(partial)
+			// Return the created binding if we can find it
+			const fromShape = editor.getShape(partial.fromId)
+			if (!fromShape) return undefined
+			const bindings = editor.getBindingsFromShape(fromShape, partial.type)
+			return bindings[bindings.length - 1] as Binding | undefined
+		},
+
+		/**
+		 * Create multiple bindings at once.
+		 * @param partials - Array of partial binding data
+		 *
+		 * @example
+		 * api.createBindings([
+		 *   { type: 'arrow', fromId: arrow1, toId: shape1 },
+		 *   { type: 'arrow', fromId: arrow2, toId: shape2 }
+		 * ])
+		 */
+		createBindings<Binding extends TLBinding = TLBinding>(
+			partials: TLBindingCreate<Binding>[]
+		): void {
+			editor.createBindings(partials)
+		},
+
+		/**
+		 * Update a single binding.
+		 * @param partial - Partial binding update (id and type are required)
+		 *
+		 * @example
+		 * api.updateBinding({
+		 *   id: bindingId,
+		 *   type: 'arrow',
+		 *   props: { terminal: 'start' }
+		 * })
+		 */
+		updateBinding<Binding extends TLBinding = TLBinding>(partial: TLBindingUpdate<Binding>): void {
+			editor.updateBinding(partial)
+		},
+
+		/**
+		 * Update multiple bindings at once.
+		 * @param partials - Array of partial binding updates
+		 *
+		 * @example
+		 * api.updateBindings([
+		 *   { id: binding1, type: 'arrow', props: { terminal: 'start' } },
+		 *   { id: binding2, type: 'arrow', props: { terminal: 'end' } }
+		 * ])
+		 */
+		updateBindings<Binding extends TLBinding = TLBinding>(
+			partials: TLBindingUpdate<Binding>[]
+		): void {
+			editor.updateBindings(partials)
+		},
+
+		/**
+		 * Delete a single binding.
+		 * @param binding - The binding or binding ID to delete
+		 * @param options - Optional deletion options
+		 *
+		 * @example
+		 * api.deleteBinding(bindingId)
+		 * api.deleteBinding(binding, { isolateShapes: true })
+		 */
+		deleteBinding(binding: TLBinding | TLBindingId, options?: { isolateShapes?: boolean }): void {
+			editor.deleteBinding(binding, options)
+		},
+
+		/**
+		 * Delete multiple bindings at once.
+		 * @param bindings - Array of bindings or binding IDs to delete
+		 * @param options - Optional deletion options
+		 *
+		 * @example
+		 * api.deleteBindings([binding1, binding2])
+		 * api.deleteBindings([bindingId1, bindingId2], { isolateShapes: true })
+		 */
+		deleteBindings(
+			bindings: (TLBinding | TLBindingId)[],
+			options?: { isolateShapes?: boolean }
+		): void {
+			editor.deleteBindings(bindings, options)
 		},
 	}
 }

@@ -36,6 +36,15 @@ export function CodeEditor({
 	})
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const highlightRef = useRef<HTMLDivElement>(null)
+
+	// Sync scroll position between textarea and highlight overlay
+	const handleScroll = () => {
+		if (textareaRef.current && highlightRef.current) {
+			highlightRef.current.scrollTop = textareaRef.current.scrollTop
+			highlightRef.current.scrollLeft = textareaRef.current.scrollLeft
+		}
+	}
 
 	// Save code to localStorage when it changes
 	useEffect(() => {
@@ -103,7 +112,7 @@ export function CodeEditor({
 
 			<div className="code-editor-wrapper">
 				{/* Syntax highlighted overlay */}
-				<div className="code-highlight-container" aria-hidden="true">
+				<div className="code-highlight-container" ref={highlightRef} aria-hidden="true">
 					<Highlight theme={themes.vsDark} code={code} language="javascript">
 						{({ className, style, tokens, getLineProps, getTokenProps }) => (
 							<pre className={className} style={{ ...style, margin: 0, padding: 16 }}>
@@ -126,6 +135,7 @@ export function CodeEditor({
 					value={code}
 					onChange={(e) => setCode(e.target.value)}
 					onKeyDown={handleKeyDown}
+					onScroll={handleScroll}
 					spellCheck={false}
 					autoCapitalize="off"
 					autoComplete="off"

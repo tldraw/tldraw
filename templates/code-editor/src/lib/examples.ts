@@ -101,27 +101,57 @@ for (let i = 0; i < 50; i++) {
   })
 }`,
 
-	'Using raw editor API': `// You can also use the editor directly for full control
-const shapes = editor.getCurrentPageShapes()
-console.log('Total shapes:', shapes.length)
+	'Camera controls': `// Animated shape sequence with camera following
+// Creates shapes in a pentagon constellation pattern
 
-// Create a shape with the raw API
-// Important: Set meta.generated = true to allow clearing!
-editor.createShapes([{
-  type: 'text',
-  x: 200,
-  y: 100,
-  props: {
-    text: 'Direct from editor!',
-    size: 'xl',
-    color: 'violet'
-  },
-  meta: { generated: true }
-}])
+const centerX = 400
+const centerY = 300
+const radius = 180
 
-// You can also manipulate existing shapes
-const generatedShapes = api.getGeneratedShapes()
-console.log('Generated shapes:', generatedShapes.length)`,
+// Pentagon vertices with different shapes and colors
+const shapes = [
+  { angle: -90, geo: 'diamond', color: 'violet', size: 50 },
+  { angle: -18, geo: 'hexagon', color: 'blue', size: 55 },
+  { angle: 54, geo: 'octagon', color: 'green', size: 60 },
+  { angle: 126, geo: 'star', color: 'orange', size: 65 },
+  { angle: 198, geo: 'pentagon', color: 'red', size: 58 },
+]
+
+// Start super zoomed in on first shape position
+const firstAngle = shapes[0].angle * (Math.PI / 180)
+const firstX = centerX + Math.cos(firstAngle) * radius
+const firstY = centerY + Math.sin(firstAngle) * radius
+api.setCamera({ x: -firstX + 300, y: -firstY + 200, z: 4 })
+
+// Sequentially create shapes and follow with camera
+let delay = 300
+shapes.forEach((shape, i) => {
+  setTimeout(() => {
+    const angle = shape.angle * (Math.PI / 180)
+    const x = centerX + Math.cos(angle) * radius - shape.size / 2
+    const y = centerY + Math.sin(angle) * radius - shape.size / 2
+
+    api.createRect(x, y, shape.size, shape.size, {
+      color: shape.color,
+      fill: 'solid',
+      geo: shape.geo
+    })
+
+    // Camera follows with snappy animation
+    setTimeout(() => {
+      api.centerOnPoint(
+        { x: x + shape.size / 2, y: y + shape.size / 2 },
+        { animation: { duration: 250 } }
+      )
+    }, 50)
+  }, delay)
+  delay += 350
+})
+
+// Final zoom out to reveal the constellation
+setTimeout(() => {
+  api.zoomToFit({ animation: { duration: 500 } })
+}, delay + 200)`,
 }
 
 // The default example shown on first load
