@@ -2,86 +2,88 @@ import { Box, BoxModel } from 'tldraw'
 import { ViewportBoundsPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { AgentHelpers } from '../AgentHelpers'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, registerPromptPartUtil } from './PromptPartUtil'
 
-export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
-	static override type = 'viewportBounds' as const
+export const ViewportBoundsPartUtil = registerPromptPartUtil(
+	class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
+		static override type = 'viewportBounds' as const
 
-	override getPriority() {
-		return 75 // viewport should go after context bounds (low priority)
-	}
-
-	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
-		if (!this.agent) {
-			const emptyBounds = { x: 0, y: 0, w: 0, h: 0 }
-			return { type: 'viewportBounds', userBounds: emptyBounds, agentBounds: emptyBounds }
+		override getPriority() {
+			return 75 // viewport should go after context bounds (low priority)
 		}
 
-		const userBounds = this.agent.editor.getViewportPageBounds()
-		const offsetUserBounds = helpers.applyOffsetToBox(userBounds)
-		const offsetAgentBounds = helpers.applyOffsetToBox(request.bounds)
+		override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
+			if (!this.agent) {
+				const emptyBounds = { x: 0, y: 0, w: 0, h: 0 }
+				return { type: 'viewportBounds', userBounds: emptyBounds, agentBounds: emptyBounds }
+			}
 
-		return {
-			type: 'viewportBounds',
-			userBounds: helpers.roundBox(offsetUserBounds),
-			agentBounds: helpers.roundBox(offsetAgentBounds),
-		}
-	}
+			const userBounds = this.agent.editor.getViewportPageBounds()
+			const offsetUserBounds = helpers.applyOffsetToBox(userBounds)
+			const offsetAgentBounds = helpers.applyOffsetToBox(request.bounds)
 
-	override buildContent({ userBounds, agentBounds }: ViewportBoundsPart): string[] {
-		const agentViewportBounds = agentBounds
-
-		// Check if bounds are valid (non-zero dimensions)
-		if (
-			agentViewportBounds.w === 0 ||
-			agentViewportBounds.h === 0 ||
-			userBounds.w === 0 ||
-			userBounds.h === 0
-		)
-			return []
-
-		const doUserAndAgentShareViewport =
-			withinPercent(agentViewportBounds.x, userBounds.x, 5) &&
-			withinPercent(agentViewportBounds.y, userBounds.y, 5) &&
-			withinPercent(agentViewportBounds.w, userBounds.w, 5) &&
-			withinPercent(agentViewportBounds.h, userBounds.h, 5)
-
-		const agentViewportBoundsBox = Box.From(agentViewportBounds)
-		const currentUserViewportBoundsBox = Box.From(userBounds)
-
-		const agentContainsUser = agentViewportBoundsBox.contains(currentUserViewportBoundsBox)
-		const userContainsAgent = currentUserViewportBoundsBox.contains(agentViewportBoundsBox)
-
-		let relativeViewportDescription: string = ''
-
-		if (doUserAndAgentShareViewport) {
-			relativeViewportDescription = 'is the same as'
-		} else {
-			if (agentContainsUser) {
-				relativeViewportDescription = 'contains'
-			} else if (userContainsAgent) {
-				relativeViewportDescription = 'is contained by'
-			} else {
-				relativeViewportDescription = getRelativePositionDescription(
-					agentViewportBounds,
-					userBounds
-				)
+			return {
+				type: 'viewportBounds',
+				userBounds: helpers.roundBox(offsetUserBounds),
+				agentBounds: helpers.roundBox(offsetAgentBounds),
 			}
 		}
-		const response = [
-			`The bounds of the part of the canvas that you can currently see are:`,
-			JSON.stringify(agentBounds),
-			`The user's view is ${relativeViewportDescription} your view.`,
-		]
 
-		if (!doUserAndAgentShareViewport) {
-			// If the user and agent share a viewport, we don't need to say anything about the bounds
-			response.push(`The bounds of what the user can see are:`, JSON.stringify(userBounds))
+		override buildContent({ userBounds, agentBounds }: ViewportBoundsPart): string[] {
+			const agentViewportBounds = agentBounds
+
+			// Check if bounds are valid (non-zero dimensions)
+			if (
+				agentViewportBounds.w === 0 ||
+				agentViewportBounds.h === 0 ||
+				userBounds.w === 0 ||
+				userBounds.h === 0
+			)
+				return []
+
+			const doUserAndAgentShareViewport =
+				withinPercent(agentViewportBounds.x, userBounds.x, 5) &&
+				withinPercent(agentViewportBounds.y, userBounds.y, 5) &&
+				withinPercent(agentViewportBounds.w, userBounds.w, 5) &&
+				withinPercent(agentViewportBounds.h, userBounds.h, 5)
+
+			const agentViewportBoundsBox = Box.From(agentViewportBounds)
+			const currentUserViewportBoundsBox = Box.From(userBounds)
+
+			const agentContainsUser = agentViewportBoundsBox.contains(currentUserViewportBoundsBox)
+			const userContainsAgent = currentUserViewportBoundsBox.contains(agentViewportBoundsBox)
+
+			let relativeViewportDescription: string = ''
+
+			if (doUserAndAgentShareViewport) {
+				relativeViewportDescription = 'is the same as'
+			} else {
+				if (agentContainsUser) {
+					relativeViewportDescription = 'contains'
+				} else if (userContainsAgent) {
+					relativeViewportDescription = 'is contained by'
+				} else {
+					relativeViewportDescription = getRelativePositionDescription(
+						agentViewportBounds,
+						userBounds
+					)
+				}
+			}
+			const response = [
+				`The bounds of the part of the canvas that you can currently see are:`,
+				JSON.stringify(agentBounds),
+				`The user's view is ${relativeViewportDescription} your view.`,
+			]
+
+			if (!doUserAndAgentShareViewport) {
+				// If the user and agent share a viewport, we don't need to say anything about the bounds
+				response.push(`The bounds of what the user can see are:`, JSON.stringify(userBounds))
+			}
+
+			return response
 		}
-
-		return response
 	}
-}
+)
 
 function withinPercent(a: number, b: number, percent: number) {
 	const max = Math.max(Math.abs(a), Math.abs(b), 1)

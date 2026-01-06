@@ -2,34 +2,36 @@ import { TLShapeId } from 'tldraw'
 import { RotateAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
 
-export class RotateActionUtil extends AgentActionUtil<RotateAction> {
-	static override type = 'rotate' as const
+export const RotateActionUtil = registerActionUtil(
+	class RotateActionUtil extends AgentActionUtil<RotateAction> {
+		static override type = 'rotate' as const
 
-	override getInfo(action: Streaming<RotateAction>) {
-		return {
-			icon: 'cursor' as const,
-			description: action.intent ?? '',
-		}
-	}
-
-	override sanitizeAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
-		action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
-		return action
-	}
-
-	override applyAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
-		if (!this.agent) return
-
-		if (!action.shapeIds || !action.degrees || !action.originX || !action.originY) {
-			return
+		override getInfo(action: Streaming<RotateAction>) {
+			return {
+				icon: 'cursor' as const,
+				description: action.intent ?? '',
+			}
 		}
 
-		const origin = helpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
-		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
-		const radians = (action.degrees * Math.PI) / 180
+		override sanitizeAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
+			action.shapeIds = helpers.ensureShapeIdsExist(action.shapeIds ?? [])
+			return action
+		}
 
-		this.agent.editor.rotateShapesBy(shapeIds, radians, { center: origin })
+		override applyAction(action: Streaming<RotateAction>, helpers: AgentHelpers) {
+			if (!this.agent) return
+
+			if (!action.shapeIds || !action.degrees || !action.originX || !action.originY) {
+				return
+			}
+
+			const origin = helpers.removeOffsetFromVec({ x: action.originX, y: action.originY })
+			const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
+			const radians = (action.degrees * Math.PI) / 180
+
+			this.agent.editor.rotateShapesBy(shapeIds, radians, { center: origin })
+		}
 	}
-}
+)

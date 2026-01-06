@@ -1,6 +1,6 @@
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
-import { PromptPart } from '../types/PromptPart'
-import { getPromptPartDefinition } from './PromptPartRegistry'
+import { getPromptPartDefinition, PromptPart } from '../types/PromptPart'
+import './PromptPartDefinitions' // Import to ensure all prompt part definitions are registered
 
 /**
  * Build messages from a prompt part using its definition.

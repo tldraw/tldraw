@@ -3,14 +3,54 @@ import { AgentModelName } from '../../shared/models'
 import { AgentMessage, AgentMessageContent } from '../../shared/types/AgentMessage'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { BasePromptPart } from '../../shared/types/BasePromptPart'
+import { PromptPart } from '../../shared/types/PromptPart'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
+
+// ============================================================================
+// Registry
+// ============================================================================
+
+const registry = new Map<string, PromptPartUtilConstructor<any>>()
+
+/**
+ * Register a prompt part util class. Call this after defining each util class.
+ */
+export function registerPromptPartUtil<T extends PromptPartUtilConstructor<any>>(util: T): T {
+	if (registry.has(util.type)) {
+		throw new Error(`Prompt part util already registered: ${util.type}`)
+	}
+	registry.set(util.type, util)
+	return util
+}
+
+/**
+ * Get all registered prompt part util classes.
+ */
+export function getAllPromptPartUtils(): PromptPartUtilConstructor<any>[] {
+	return Array.from(registry.values())
+}
+
+/**
+ * Get an object containing instantiated prompt part utils for an agent.
+ */
+export function getPromptPartUtilsRecord(agent: TldrawAgent) {
+	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
+	for (const util of registry.values()) {
+		object[util.type as PromptPart['type']] = new util(agent)
+	}
+	return object
+}
+
+// ============================================================================
+// Base Class
+// ============================================================================
 
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
 
-	protected agent?: TldrawAgent
-	protected editor?: Editor
+	agent?: TldrawAgent
+	editor?: Editor
 
 	constructor(agent?: TldrawAgent) {
 		this.agent = agent
@@ -82,17 +122,9 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 
 		return [{ role: 'user', content: messageContent, priority: this.getPriority(part) }]
 	}
-
-	/**
-	 * Build a system message that gets concatenated with the other system messages.
-	 * @returns The system message, or null to not add anything to the system message.
-	 */
-	buildSystemPrompt(_part: T): string | null {
-		return null
-	}
 }
 
 export interface PromptPartUtilConstructor<T extends BasePromptPart = BasePromptPart> {
-	new (): PromptPartUtil<T>
+	new (agent: TldrawAgent): PromptPartUtil<T>
 	type: T['type']
 }

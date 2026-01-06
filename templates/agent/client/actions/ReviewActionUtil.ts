@@ -3,53 +3,55 @@ import { ReviewAction } from '../../shared/schema/AgentActionSchemas'
 import { AreaContextItem } from '../../shared/types/ContextItem'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
 
-export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
-	static override type = 'review' as const
+export const ReviewActionUtil = registerActionUtil(
+	class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
+		static override type = 'review' as const
 
-	override getInfo(action: Streaming<ReviewAction>) {
-		const label = action.complete ? 'Review' : 'Reviewing'
-		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		const description = `**${label}:** ${text ?? ''}`
+		override getInfo(action: Streaming<ReviewAction>) {
+			const label = action.complete ? 'Review' : 'Reviewing'
+			const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
+			const description = `**${label}:** ${text ?? ''}`
 
-		return {
-			icon: 'search' as const,
-			description,
-		}
-	}
-
-	override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {
-		if (!action.complete) return
-		if (!this.agent) return
-
-		const reviewBounds = helpers.removeOffsetFromBox({
-			x: action.x,
-			y: action.y,
-			w: action.w,
-			h: action.h,
-		})
-
-		const contextArea: AreaContextItem = {
-			type: 'area',
-			bounds: reviewBounds,
-			source: 'agent',
+			return {
+				icon: 'search' as const,
+				description,
+			}
 		}
 
-		// If the review area is outside the already-scheduled bounds, expand the bounds to include it
-		const scheduledRequest = this.agent.$scheduledRequest.get()
-		const bounds = scheduledRequest
-			? Box.From(scheduledRequest.bounds).union(reviewBounds)
-			: reviewBounds
+		override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {
+			if (!action.complete) return
+			if (!this.agent) return
 
-		// Schedule the review
-		this.agent.schedule({
-			bounds,
-			message: getReviewMessage(action.intent),
-			contextItems: [contextArea],
-		})
+			const reviewBounds = helpers.removeOffsetFromBox({
+				x: action.x,
+				y: action.y,
+				w: action.w,
+				h: action.h,
+			})
+
+			const contextArea: AreaContextItem = {
+				type: 'area',
+				bounds: reviewBounds,
+				source: 'agent',
+			}
+
+			// If the review area is outside the already-scheduled bounds, expand the bounds to include it
+			const scheduledRequest = this.agent.$scheduledRequest.get()
+			const bounds = scheduledRequest
+				? Box.From(scheduledRequest.bounds).union(reviewBounds)
+				: reviewBounds
+
+			// Schedule the review
+			this.agent.schedule({
+				bounds,
+				message: getReviewMessage(action.intent),
+				contextItems: [contextArea],
+			})
+		}
 	}
-}
+)
 
 function getReviewMessage(intent: string) {
 	return `Examine the actions that you (the agent) took since the most recent user message, with the intent: "${intent}". What's next?

@@ -28,10 +28,10 @@ import {
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
-import { AgentActionUtil } from '../actions/AgentActionUtil'
-import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../agent-utils'
+import { AgentActionUtil, getAgentActionUtilsRecord } from '../actions/AgentActionUtil'
 import { AgentHelpers } from '../AgentHelpers'
-import { PromptPartUtil } from '../parts/PromptPartUtil'
+import { AgentModeType, getAgentModeDefinition } from '../modes/AgentModeDefinitions'
+import { getPromptPartUtilsRecord, PromptPartUtil } from '../parts/PromptPartUtil'
 import { $agentsAtom } from './agentsAtom'
 
 export interface TldrawAgentOptions {
@@ -115,6 +115,12 @@ export class TldrawAgent {
 	$modelName = atom<AgentModelName>('modelName', DEFAULT_MODEL_NAME)
 
 	/**
+	 * An atom containing the current mode of the agent.
+	 * The mode determines what prompt parts and actions are available.
+	 */
+	$mode = atom<AgentModeType>('mode', 'default')
+
+	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ editor, id, onError }: TldrawAgentOptions) {
@@ -176,6 +182,30 @@ export class TldrawAgent {
 	 */
 	getPromptPartUtil(type: PromptPart['type']) {
 		return this.promptPartUtils[type]
+	}
+
+	/**
+	 * Get the current mode of the agent.
+	 * @returns The current mode type.
+	 */
+	getMode(): AgentModeType {
+		return this.$mode.get()
+	}
+
+	/**
+	 * Set the mode of the agent.
+	 * @param mode - The mode to set.
+	 */
+	setMode(mode: AgentModeType) {
+		this.$mode.set(mode)
+	}
+
+	/**
+	 * Get the mode definition for the current mode.
+	 * @returns The mode definition containing parts and actions.
+	 */
+	getModeDefinition() {
+		return getAgentModeDefinition(this.getMode())
 	}
 
 	/**
@@ -269,7 +299,13 @@ export class TldrawAgent {
 		const { promptPartUtils } = this
 		const transformedParts: PromptPart[] = []
 
-		for (const util of Object.values(promptPartUtils)) {
+		// Get available prompt part types from the current mode
+		const modeDefinition = this.getModeDefinition()
+		const availablePartTypes = modeDefinition.parts
+
+		for (const partType of availablePartTypes) {
+			const util = promptPartUtils[partType]
+			if (!util) continue
 			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
 			transformedParts.push(part)
@@ -738,6 +774,10 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
 
+	// Get available actions from the current mode
+	const modeDefinition = agent.getModeDefinition()
+	const availableActions = modeDefinition.actions
+
 	const requestPromise = (async () => {
 		const prompt = await agent.preparePrompt(request, helpers)
 		let incompleteDiff: RecordsDiff<TLRecord> | null = null
@@ -747,7 +787,13 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 				if (cancelled) break
 				editor.run(
 					() => {
+						const actionUtilType = agent.getAgentActionUtilType(action._type)
 						const actionUtil = agent.getAgentActionUtil(action._type)
+
+						// If the action is not in the mode's available actions, skip it
+						if (!(availableActions as string[]).includes(actionUtilType)) {
+							return
+						}
 
 						// helpers the agent's action
 						const transformedAction = actionUtil.sanitizeAction(action, helpers)
