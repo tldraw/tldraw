@@ -13,6 +13,7 @@ import {
 	Vec,
 	VecLike,
 } from 'tldraw'
+import { MyBezierCurveShape } from './CubicBezierShape'
 
 /**
  * Curated API for the code editor.
@@ -149,6 +150,55 @@ export function createEditorAPI(editor: Editor) {
 					props: {
 						start: { x: 0, y: 0 },
 						end: { x: toX - fromX, y: toY - fromY },
+						...options,
+					},
+					meta: { generated: true },
+				},
+			])
+			return id
+		},
+
+		/**
+		 * Create a cubic bezier curve shape.
+		 * @param x - X coordinate of the shape origin
+		 * @param y - Y coordinate of the shape origin
+		 * @param options - Control points for the curve (start, cp1, cp2, end relative to origin)
+		 * @returns The created shape ID
+		 *
+		 * @example
+		 * // Create a simple S-curve
+		 * api.createBezier(100, 100, {
+		 *   start: { x: 0, y: 0 },
+		 *   cp1: { x: 100, y: 0 },
+		 *   cp2: { x: 0, y: 200 },
+		 *   end: { x: 100, y: 200 }
+		 * })
+		 */
+		createBezier(
+			x: number,
+			y: number,
+			options: {
+				start?: VecLike
+				cp1?: VecLike
+				cp2?: VecLike
+				end?: VecLike
+			} = {}
+		): TLShapeId {
+			const id = createShapeId()
+			const defaultProps: MyBezierCurveShape['props'] = {
+				start: { x: 0, y: 0 },
+				cp1: { x: 0, y: 140 },
+				cp2: { x: 350, y: 300 },
+				end: { x: 400, y: 110 },
+			}
+			editor.createShapes([
+				{
+					id,
+					type: 'bezier-curve',
+					x,
+					y,
+					props: {
+						...defaultProps,
 						...options,
 					},
 					meta: { generated: true },

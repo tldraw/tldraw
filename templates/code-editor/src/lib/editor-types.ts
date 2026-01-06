@@ -143,6 +143,22 @@ interface EditorAPI {
   createArrow(fromX: number, fromY: number, toX: number, toY: number, options?: ShapeOptions): TLShapeId
 
   /**
+   * Create a cubic bezier curve shape with interactive handles.
+   * @param x - X coordinate of the shape origin
+   * @param y - Y coordinate of the shape origin
+   * @param options - Control points for the curve (start, cp1, cp2, end relative to origin)
+   * @returns The created shape ID
+   * @example
+   * api.createBezier(100, 100, {
+   *   start: { x: 0, y: 0 },
+   *   cp1: { x: 100, y: 0 },
+   *   cp2: { x: 0, y: 200 },
+   *   end: { x: 100, y: 200 }
+   * })
+   */
+  createBezier(x: number, y: number, options?: { start?: VecLike; cp1?: VecLike; cp2?: VecLike; end?: VecLike }): TLShapeId
+
+  /**
    * Clear all generated shapes from the canvas.
    * Hand-drawn shapes are preserved.
    */
@@ -362,6 +378,12 @@ interface Editor {
 
   /** Get selected shapes */
   getSelectedShapes(): TLShape[]
+
+  /** Set a shape as the editing shape (shows handles for bezier curves) */
+  setEditingShape(id: TLShapeId | null): void
+
+  /** Get the currently editing shape ID */
+  getEditingShapeId(): TLShapeId | null
 
   /** Create a binding */
   createBinding(partial: TLBindingCreate): void
