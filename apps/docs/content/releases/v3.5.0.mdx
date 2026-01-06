@@ -1,0 +1,67 @@
+---
+title: v3.5.0
+description: Examples
+author: tldraw
+date: 11/26/2024
+order: 44
+status: published
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.5.0)
+
+Welcome to the 3.5.0 release of tldraw. This month's SDK release improves grid snapping, some usability improvements around layering shapes, and more fine-grained controls around exporting.
+
+## What's new
+
+#### Snap to grid when creating shapes ([#4875](https://github.com/tldraw/tldraw/pull/4875))
+
+This PR makes sure that shapes snap to the grid when created. It adds a `maybeSnapToGrid` function, which can be used to push a shape onto the grid if grid mode is enabled, both when click-creating and when drag-creating.
+
+#### Smart `bringForward`/`sendBackward` ([#4851](https://github.com/tldraw/tldraw/pull/4851))
+
+Improved the 'bring forward' and 'send backward' actions by making them only consider nearby overlapping shapes when deciding the next ordering.
+
+#### Better support scale / quality in export utilities ([#4795](https://github.com/tldraw/tldraw/pull/4795))
+
+This helps better control the scale when using the image export utilities in tldraw. We now have the option to pass `scale` and `pixelRatio` to the export functions to give more fine-grained control.
+
+#### Improvements
+
+- Improve panning performance when we have many note shapes and when we are zoomed out [#4935](https://github.com/tldraw/tldraw/pull/4935)
+- Improve hovers on page menu [#4788](https://github.com/tldraw/tldraw/)
+- Allow custom React providers in SVG exports [#4991](https://github.com/tldraw/tldraw/pull/4991)
+- Make default color theme light. [#4796](https://github.com/tldraw/tldraw/pull/4796)
+- Improve right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979)
+
+#### API changes
+
+- Expose font sizes, stroke sizes API [#4940](https://github.com/tldraw/tldraw/pull/4940)
+- Add rate limiting socket close reason. [#4898](https://github.com/tldraw/tldraw/pull/4898)
+- Add option to disable text creation on double click [#4841](https://github.com/tldraw/tldraw/pull/4841)
+
+#### Bug Fix
+
+- Remove zooming to an editing shape if the shape is off-screen [#4872](https://github.com/tldraw/tldraw/pull/4872)
+- Fix shapes getting stuck in erasing state [#4861](https://github.com/tldraw/tldraw/pull/4861)
+- Fix id regression [#4849](https://github.com/tldraw/tldraw/pull/4849)pull/4788)
+- Keyboard shortcuts: fix up wrong size dialog on desktop [#4791](https://github.com/tldraw/tldraw/pull/4791)
+- Fix toast spacing [#4800](https://github.com/tldraw/tldraw/pull/4800)
+- Fix dragging on frame headings [#4794](https://github.com/tldraw/tldraw/pull/4794)
+- Make sure copy-as-png comes in at natural size [#4771](https://github.com/tldraw/tldraw/pull/4771)
+- Add store consistency checks during `mergeRemoteChanges` [#4833](https://github.com/tldraw/tldraw/pull/4833)
+- Fix Safari sleep crash [#4822](https://github.com/tldraw/tldraw/pull/4822)
+
+#### Authors: 13
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- [@Crysta1ightning](https://github.com/Crysta1ightning)
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Emmanuel Ferdman ([@emmanuel-ferdman](https://github.com/emmanuel-ferdman))
+- Judicael ([@judicaelandria](https://github.com/judicaelandria))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- Thien Nguyen ([@tatthien](https://github.com/tatthien))
+- Younsang Na ([@nayounsang](https://github.com/nayounsang))

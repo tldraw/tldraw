@@ -98,7 +98,6 @@ apps/dotcom/zero-cache/.schema.js
 sst-env.d.ts
 
 apps/docs/content/gen
-apps/docs/content/releases
 apps/docs/api
 
 .dev.vars
