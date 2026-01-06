@@ -69,6 +69,9 @@ function parseErrorLocation(error: Error, code: string): { line?: number; column
  * @returns Promise with execution result
  */
 export async function executeCode(code: string, editor: Editor): Promise<ExecutionResult> {
+	// Create a restore point before executing user code
+	const markId = editor.markHistoryStoppingPoint('code-execution')
+
 	try {
 		// Create the curated API for the code editor
 		const api = createEditorAPI(editor)
@@ -89,6 +92,9 @@ export async function executeCode(code: string, editor: Editor): Promise<Executi
 
 		return { success: true }
 	} catch (error) {
+		// Roll back to the restore point to recover from bad state
+		editor.bailToMark(markId)
+
 		const isError = error instanceof Error
 		const message = isError ? error.message : String(error)
 		const stack = isError ? error.stack : undefined
