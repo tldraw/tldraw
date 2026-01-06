@@ -61,7 +61,6 @@ import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // eslint-disable-next-line local/no-fairy-imports -- ok for types
 import { type FairyApp } from '../../../fairy/fairy-app/FairyApp'
-import { useFeatureFlags } from '../../hooks/useFeatureFlags'
 
 // Lazy load fairy components
 
@@ -79,9 +78,6 @@ const Fairies = lazy(() =>
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/fairy-canvas-ui/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
-const FairyHUDTeaser = lazy(() =>
-	import('../../../fairy/fairy-ui/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
-)
 const FairyAppContextProvider = lazy(() =>
 	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
 		default: m.FairyAppContextProvider,
@@ -96,12 +92,6 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
-
-	InFrontOfTheCanvas: () => (
-		<Suspense fallback={<div />}>
-			<FairyHUDTeaser />
-		</Suspense>
-	),
 }
 
 interface TlaEditorProps {
@@ -307,7 +297,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const hasFairyAccess = useFairyAccess()
 	const areFairiesEnabled = useAreFairiesEnabled()
 	const shouldShowFairies = useShouldShowFairies()
-	const { flags, isLoaded } = useFeatureFlags()
 
 	const RemoteFairiesDelayed = ({ enableForMe }: { enableForMe: boolean }) => {
 		const editor = useEditor()
@@ -331,12 +320,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		// This allows guests to see fairies on shared files without requiring login
 		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
 
-		const shouldShowTeaser =
-			isLoaded &&
-			flags.fairies.enabled &&
-			flags.fairies_purchase.enabled &&
-			!hasFairyAccess &&
-			areFairiesEnabled
 		return {
 			...components,
 			Overlays: () => {
@@ -361,31 +344,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 						{shouldShowFairyUI && hoistedFairyApp ? (
 							<Suspense fallback={<div />}>
 								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
-									{canControlFairies ? <FairyHUD /> : <FairyHUDTeaser />}
+									{canControlFairies ? <FairyHUD /> : null}
 								</FairyAppContextProvider>
 							</Suspense>
-						) : (
-							shouldShowTeaser && (
-								<Suspense fallback={<div />}>
-									<FairyHUDTeaser />
-								</Suspense>
-							)
-						)}
+						) : null}
 					</>
 				)
 			},
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [
-		isLoaded,
-		flags.fairies.enabled,
-		flags.fairies_purchase.enabled,
-		app,
-		hasFairyAccess,
-		areFairiesEnabled,
-		shouldShowFairies,
-		hoistedFairyApp,
-	])
+	}, [app, hasFairyAccess, areFairiesEnabled, shouldShowFairies, hoistedFairyApp])
 
 	return (
 		<TlaEditorWrapper>
