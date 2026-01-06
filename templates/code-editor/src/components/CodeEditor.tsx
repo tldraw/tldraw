@@ -548,29 +548,6 @@ export function CodeEditor({
 				</button>
 			</Toolbar>
 
-			{error && (
-				<div className="error-panel">
-					<div className="error-panel-header">
-						<span className="error-panel-title">Error</span>
-						<button className="error-dismiss" onClick={onDismissError} aria-label="Dismiss error">
-							×
-						</button>
-					</div>
-					<div className="error-panel-content">
-						<div className="error-message">
-							{error.line && <span className="error-location">Line {error.line}: </span>}
-							{error.message}
-						</div>
-						{error.stack && (
-							<details className="error-stack-details">
-								<summary>Stack trace</summary>
-								<pre className="error-stack">{error.stack}</pre>
-							</details>
-						)}
-					</div>
-				</div>
-			)}
-
 			<div className="code-editor-wrapper">
 				<Editor
 					height="100%"
@@ -605,6 +582,29 @@ export function CodeEditor({
 					}}
 				/>
 			</div>
+
+			{error && (
+				<div className="error-panel">
+					<div className="error-panel-header">
+						<span className="error-panel-title">Error</span>
+						<button className="error-dismiss" onClick={onDismissError} aria-label="Dismiss error">
+							×
+						</button>
+					</div>
+					<div className="error-panel-content">
+						<div className="error-message">
+							{error.line && <span className="error-location">Line {error.line}: </span>}
+							{error.message}
+						</div>
+						{error.stack && (
+							<details className="error-stack-details">
+								<summary>Stack trace</summary>
+								<pre className="error-stack">{error.stack}</pre>
+							</details>
+						)}
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
