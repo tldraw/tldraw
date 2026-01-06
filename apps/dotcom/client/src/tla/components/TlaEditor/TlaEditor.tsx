@@ -96,12 +96,6 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
-
-	InFrontOfTheCanvas: () => (
-		<Suspense fallback={<div />}>
-			<FairyHUDTeaser />
-		</Suspense>
-	),
 }
 
 interface TlaEditorProps {
@@ -331,7 +325,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		// This allows guests to see fairies on shared files without requiring login
 		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
 
+		// Only show teaser to signed-in users who don't have fairy access
 		const shouldShowTeaser =
+			app &&
 			isLoaded &&
 			flags.fairies.enabled &&
 			flags.fairies_purchase.enabled &&
