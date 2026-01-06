@@ -19,6 +19,7 @@ interface CodeEditorProps {
 
 const STORAGE_KEY = 'code-editor-code'
 const LIVE_MODE_STORAGE_KEY = 'code-editor-live-mode'
+const SELECTED_EXAMPLE_STORAGE_KEY = 'code-editor-selected-example'
 const DEBOUNCE_MS = 500
 
 // Ayu Light theme definition
@@ -286,7 +287,13 @@ export function CodeEditor({
 	})
 
 	// Track which example is selected (null if user has edited code)
-	const [selectedExample, setSelectedExample] = useState<string | null>('Basic shapes')
+	const [selectedExample, setSelectedExample] = useState<string | null>(() => {
+		try {
+			return localStorage.getItem(SELECTED_EXAMPLE_STORAGE_KEY)
+		} catch {
+			return 'Basic shapes'
+		}
+	})
 
 	const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 	const monacoRef = useRef<Monaco | null>(null)
@@ -473,6 +480,11 @@ export function CodeEditor({
 	const handleLoadExample = (name: string, exampleCode: string) => {
 		setSelectedExample(name)
 		setCode(exampleCode)
+		try {
+			localStorage.setItem(SELECTED_EXAMPLE_STORAGE_KEY, name)
+		} catch {
+			// Ignore storage errors
+		}
 		if (editorRef.current) {
 			editorRef.current.setValue(exampleCode)
 			editorRef.current.focus()
