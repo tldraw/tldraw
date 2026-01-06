@@ -5,3 +5,12 @@
 	margin: 8px;
 }
 
+.card-shape {
+	padding: '16px';
+	background-color: '#ffffff';
+	border: '1px solid var(--tl-color-border)';
+	border-radius: '8px';
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}

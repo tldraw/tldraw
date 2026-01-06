@@ -15,7 +15,6 @@ import './screen-reader-accessibility.css'
 
 const CARD_SHAPE_TYPE = 'note-card'
 
-// [1]
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
 		[CARD_SHAPE_TYPE]: { w: number; h: number; title: string; description: string }
@@ -24,7 +23,6 @@ declare module 'tldraw' {
 
 type CardShape = TLShape<typeof CARD_SHAPE_TYPE>
 
-// [2]
 export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	static override type = CARD_SHAPE_TYPE
 	static override props: RecordProps<CardShape> = {
@@ -43,7 +41,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		}
 	}
 
-	// [2]
+	// [1]
 	override getAriaDescriptor(shape: CardShape): string | undefined {
 		const { title, description } = shape.props
 		if (description) {
@@ -52,7 +50,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		return title
 	}
 
-	// [3]
+	// [2]
 	override getText(shape: CardShape): string | undefined {
 		return `${shape.props.title}\n${shape.props.description}`
 	}
@@ -81,19 +79,16 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		)
 	}
 
-	// [5]
 	indicator(shape: CardShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 }
 
-// [6]
 const customShapes = [CardShapeUtil]
 
-// [7]
 function CustomAnnouncementPanel() {
 	const editor = useEditor()
-	// [1]
+	// [3]
 	const a11y = useA11y()
 	const [isEnabled, setIsEnabled] = useState(false)
 
@@ -172,7 +167,6 @@ export default function ScreenReaderAccessibilityExample() {
 			<Tldraw
 				shapeUtils={customShapes}
 				components={{
-					// [12]
 					TopPanel: CustomAnnouncementPanel,
 				}}
 				onMount={(editor) => {
@@ -219,19 +213,19 @@ Introduction:
 This example demonstrates how to create accessible custom shapes and custom screen reader announcements in tldraw.
 
 [1]
-The useA11y() hook provides access to the accessibility manager. It must be called
-within a component that's rendered inside the Tldraw component.
-
-[2]
 The getAriaDescriptor() method provides accessibility-specific descriptions for screen readers.
-When a shape is selected, this description is announced to screen reader users. 
+When a shape is selected, this description is announced to screen reader users.
 This is different from getText() - getAriaDescriptor() is specifically
 for accessibility announcements, not for text extraction or search.
 
-[3]
+[2]
 The getText() method returns the visible text content of the shape. This is used for text
 extraction, search functionality, and as a fallback for accessibility if getAriaDescriptor()
 is not provided. It returns the title and description separated by a newline.
+
+[3]
+The useA11y() hook provides access to the accessibility manager. It must be called
+within a component that's rendered inside the Tldraw component.
 
 [4]
 Polite announcements are used for informational messages that don't require immediate
