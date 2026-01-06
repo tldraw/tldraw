@@ -1,5 +1,4 @@
 import { ComponentType, Fragment } from 'react'
-import { DEFAULT_SNAP_THRESHOLD, ZOOM_TO_FIT_PADDING } from './constants'
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -170,6 +169,6 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
-	zoomToFitPadding: ZOOM_TO_FIT_PADDING,
-	snapThreshold: DEFAULT_SNAP_THRESHOLD,
+	zoomToFitPadding: 128,
+	snapThreshold: 8,
 } as const satisfies TldrawOptions

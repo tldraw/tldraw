@@ -615,9 +615,6 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 // @internal (undocumented)
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
-// @internal (undocumented)
-export const DEFAULT_SNAP_THRESHOLD = 8;
-
 // @public (undocumented)
 export function DefaultBackground(): JSX.Element;
 
