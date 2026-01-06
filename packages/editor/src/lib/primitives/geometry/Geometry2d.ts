@@ -133,14 +133,13 @@ export abstract class Geometry2d {
 				if (linesIntersect(A, B, p, next)) return 0
 			}
 			q = Vec.NearestPointOnLineSegment(A, B, p, true)
-			d = Vec.Dist2(p, q)
+			d = Vec.Dist(p, q)
 			if (d < dist) {
 				dist = d
 				nearest = q
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
-		const distance = Math.sqrt(dist)
 		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices)
 			? -distance
 			: distance
