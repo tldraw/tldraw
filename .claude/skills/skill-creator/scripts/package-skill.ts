@@ -65,6 +65,15 @@ function packageSkill(skillPath: string, outputDir?: string): string | null {
 
 	// Determine output location
 	const skillName = path.basename(resolvedSkillPath)
+
+	// Validate directory name is safe for shell commands (same rules as skill names)
+	if (!/^[a-z0-9-]+$/.test(skillName)) {
+		console.log(
+			`❌ Error: Directory name '${skillName}' contains unsafe characters. Use only lowercase letters, digits, and hyphens.`
+		)
+		return null
+	}
+
 	const resolvedOutputDir = outputDir ? path.resolve(outputDir) : process.cwd()
 
 	if (!fs.existsSync(resolvedOutputDir)) {

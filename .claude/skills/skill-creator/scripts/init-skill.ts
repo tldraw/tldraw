@@ -170,9 +170,11 @@ function initSkill(skillName: string, basePath: string): string | null {
 
 	const skillTitle = titleCase(skillName)
 
+	let dirCreated = false
 	try {
 		// Create skill directory
 		fs.mkdirSync(skillDir, { recursive: true })
+		dirCreated = true
 		console.log(`✅ Created skill directory: ${skillDir}`)
 
 		// Create SKILL.md
@@ -215,6 +217,15 @@ function initSkill(skillName: string, basePath: string): string | null {
 
 		return skillDir
 	} catch (err) {
+		// Clean up partially created directory on failure
+		if (dirCreated && fs.existsSync(skillDir)) {
+			try {
+				fs.rmSync(skillDir, { recursive: true })
+				console.log(`🧹 Cleaned up partial directory: ${skillDir}`)
+			} catch {
+				// Ignore cleanup errors
+			}
+		}
 		console.log(`❌ Error: ${err}`)
 		return null
 	}
