@@ -5,6 +5,12 @@ permissions:
 
 on:
   pull_request:
+    paths:
+      - 'apps/analytics-worker/**'
+      - 'internal/scripts/deploy-analytics.ts'
+      - 'internal/scripts/lib/deploy.ts'
+      - '.github/workflows/deploy-analytics.yml'
+      - '.github/actions/setup/**'
   push:
     branches:
       - main
