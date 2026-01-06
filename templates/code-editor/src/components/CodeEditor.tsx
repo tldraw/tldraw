@@ -386,15 +386,10 @@ export function CodeEditor({
 				'ts:editor-api.d.ts'
 			)
 
-			// Add keyboard shortcut for running code
-			ed.addAction({
-				id: 'run-code',
-				label: 'Run Code',
-				keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
-				run: () => {
-					const currentCode = ed.getValue()
-					onRun(currentCode)
-				},
+			// Add keyboard shortcut for running code (Cmd/Ctrl+Enter)
+			ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+				const currentCode = ed.getValue()
+				onRun(currentCode)
 			})
 
 			// Focus the editor
@@ -421,13 +416,18 @@ export function CodeEditor({
 	}
 
 	return (
-		<div className={`code-panel ${isDarkTheme ? 'theme-dark' : 'theme-light'}`}>
+		<div
+			className={`code-panel ${isDarkTheme ? 'theme-dark' : 'theme-light'}`}
+			onKeyDown={(e) => e.stopPropagation()}
+			onKeyUp={(e) => e.stopPropagation()}
+		>
 			<Toolbar
 				onRun={() => onRun(code)}
 				onClear={onClear}
 				onLoadExample={handleLoadExample}
 				isExecuting={isExecuting}
 				generatedShapeCount={generatedShapeCount}
+				currentCode={code}
 			>
 				<button
 					className="toolbar-button theme-toggle"

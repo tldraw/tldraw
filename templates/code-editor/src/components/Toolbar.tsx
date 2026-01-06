@@ -7,7 +7,16 @@ interface ToolbarProps {
 	onLoadExample: (code: string) => void
 	isExecuting: boolean
 	generatedShapeCount: number
+	currentCode: string
 	children?: ReactNode
+}
+
+// Find which example matches the current code, or null if none match
+function findMatchingExample(code: string): string | null {
+	for (const [name, exampleCode] of Object.entries(examples)) {
+		if (code === exampleCode) return name
+	}
+	return null
 }
 
 /**
@@ -19,9 +28,10 @@ export function Toolbar({
 	onLoadExample,
 	isExecuting,
 	generatedShapeCount,
+	currentCode,
 	children,
 }: ToolbarProps) {
-	const [selectedExample, setSelectedExample] = useState<string>('Basic shapes')
+	const matchingExample = findMatchingExample(currentCode)
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
@@ -63,7 +73,7 @@ export function Toolbar({
 					className="toolbar-dropdown-trigger"
 					onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 				>
-					{selectedExample}
+					{matchingExample ?? 'Examples'}
 					<svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor">
 						<path d="M0 0l4 5 4-5z" />
 					</svg>
@@ -73,10 +83,9 @@ export function Toolbar({
 						{Object.keys(examples).map((name) => (
 							<button
 								key={name}
-								className={`toolbar-dropdown-item ${name === selectedExample ? 'selected' : ''}`}
+								className={`toolbar-dropdown-item ${name === matchingExample ? 'selected' : ''}`}
 								onClick={(e) => {
 									e.stopPropagation()
-									setSelectedExample(name)
 									onLoadExample(examples[name])
 									setIsDropdownOpen(false)
 								}}
