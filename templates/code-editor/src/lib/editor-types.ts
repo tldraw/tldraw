@@ -68,22 +68,27 @@ interface TLBindingUpdate<T = TLBinding> {
   meta?: Record<string, unknown>
 }
 
-type GeoColor = 'black' | 'blue' | 'green' | 'grey' | 'light-blue' | 'light-green' | 'light-red' | 'light-violet' | 'orange' | 'red' | 'violet' | 'white' | 'yellow'
-type GeoFill = 'none' | 'semi' | 'solid' | 'pattern'
-type GeoSize = 's' | 'm' | 'l' | 'xl'
-type GeoFont = 'draw' | 'sans' | 'serif' | 'mono'
-type GeoType = 'rectangle' | 'ellipse' | 'triangle' | 'diamond' | 'pentagon' | 'hexagon' | 'octagon' | 'star' | 'rhombus' | 'rhombus-2' | 'oval' | 'trapezoid' | 'arrow-right' | 'arrow-left' | 'arrow-up' | 'arrow-down' | 'x-box' | 'check-box' | 'cloud' | 'heart'
+/** Valid colors: 'black' | 'blue' | 'green' | 'grey' | 'light-blue' | 'light-green' | 'light-red' | 'light-violet' | 'orange' | 'red' | 'violet' | 'white' | 'yellow' */
+type GeoColor = string
+/** Valid fills: 'none' | 'semi' | 'solid' | 'pattern' */
+type GeoFill = string
+/** Valid sizes: 's' | 'm' | 'l' | 'xl' */
+type GeoSize = string
+/** Valid fonts: 'draw' | 'sans' | 'serif' | 'mono' */
+type GeoFont = string
+/** Valid geo types: 'cloud' | 'rectangle' | 'ellipse' | 'triangle' | 'diamond' | 'hexagon' | 'star' | 'rhombus' | 'oval' | 'trapezoid' | 'arrow-right' | 'arrow-left' | 'arrow-up' | 'arrow-down' | 'x-box' | 'check-box' | 'heart' */
+type GeoType = string
 
 interface ShapeOptions {
-  /** Shape color */
+  /** Shape color: 'black' | 'blue' | 'green' | 'grey' | 'light-blue' | 'light-green' | 'light-red' | 'light-violet' | 'orange' | 'red' | 'violet' | 'white' | 'yellow' */
   color?: GeoColor
-  /** Fill style */
+  /** Fill style: 'none' | 'semi' | 'solid' | 'pattern' */
   fill?: GeoFill
-  /** Size */
+  /** Size: 's' | 'm' | 'l' | 'xl' */
   size?: GeoSize
-  /** Font family */
+  /** Font family: 'draw' | 'sans' | 'serif' | 'mono' */
   font?: GeoFont
-  /** For geo shapes: the geometry type */
+  /** Geo type: 'cloud' | 'rectangle' | 'ellipse' | 'triangle' | 'diamond' | 'hexagon' | 'star' | 'rhombus' | 'oval' | 'trapezoid' | 'arrow-right' | 'arrow-left' | 'arrow-up' | 'arrow-down' | 'x-box' | 'check-box' | 'heart' */
   geo?: GeoType
 }
 

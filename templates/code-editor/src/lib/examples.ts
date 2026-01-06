@@ -21,35 +21,34 @@ api.createText(100, 300, 'Made with code!', {
   color: 'violet'
 })`,
 
-	'Grid pattern': `// Create a 5x5 grid of colorful squares
-const colors = ['blue', 'red', 'green', 'orange', 'violet']
+	'Grid pattern': `const colors = ['blue', 'red', 'green', 'orange', 'violet']
+const shapeIds = []
 
-for (let row = 0; row < 5; row++) {
-  for (let col = 0; col < 5; col++) {
-    api.createRect(
-      col * 120 + 50,
-      row * 120 + 50,
-      100,
-      100,
-      {
-        color: colors[row],
-        fill: 'semi'
-      }
-    )
-  }
-}`,
-
-	'Random circles': `// Create 20 random circles
-for (let i = 0; i < 20; i++) {
-  const x = Math.random() * 800 + 100
-  const y = Math.random() * 600 + 100
-  const radius = Math.random() * 40 + 20
-
-  api.createCircle(x, y, radius, {
-    color: ['blue', 'red', 'green', 'orange'][i % 4],
-    fill: 'semi'
+for (let i = 0; i < 5; i++) {
+  const id = api.createCircle(150 + i * 120, 200, 40, {
+    color: colors[i],
+    fill: 'solid'
   })
-}`,
+  shapeIds.push(id)
+}
+
+let frame = 0
+const interval = setInterval(() => {
+  frame++
+
+  shapeIds.forEach((id, i) => {
+    const shape = editor.getShape(id)
+    if (!shape) return
+
+    const offset = Math.sin((frame + i * 20) * 0.1) * 50
+
+    editor.updateShapes([{
+      id: id,
+      type: 'geo',
+      y: 200 + offset - 40
+    }])
+  })
+}, 50)`,
 
 	'Connected nodes': `// Create nodes with arrows connecting them
 // Node dimensions

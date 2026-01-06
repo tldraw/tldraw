@@ -365,23 +365,23 @@ export function CodeEditor({
 			editorRef.current = ed
 			monacoRef.current = monaco
 
-			// Configure JavaScript/TypeScript defaults for better intellisense
-			monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+			// Configure TypeScript defaults for good intellisense with our custom types
+			monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
 				noSemanticValidation: false,
 				noSyntaxValidation: false,
 			})
 
-			monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+			monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
 				target: monaco.languages.typescript.ScriptTarget.ESNext,
 				allowNonTsExtensions: true,
-				moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-				module: monaco.languages.typescript.ModuleKind.ESNext,
 				noEmit: true,
-				lib: ['esnext'],
+				strict: false,
+				noImplicitAny: false,
+				strictNullChecks: false,
 			})
 
 			// Add our custom type definitions for the editor and api objects
-			monaco.languages.typescript.javascriptDefaults.addExtraLib(
+			monaco.languages.typescript.typescriptDefaults.addExtraLib(
 				editorTypeDefinitions,
 				'ts:editor-api.d.ts'
 			)
@@ -487,7 +487,7 @@ export function CodeEditor({
 			<div className="code-editor-wrapper">
 				<Editor
 					height="100%"
-					defaultLanguage="javascript"
+					defaultLanguage="typescript"
 					value={code}
 					onChange={handleEditorChange}
 					beforeMount={handleBeforeMount}
@@ -514,6 +514,7 @@ export function CodeEditor({
 						parameterHints: { enabled: true },
 						formatOnPaste: true,
 						formatOnType: true,
+						fixedOverflowWidgets: true,
 					}}
 				/>
 			</div>
