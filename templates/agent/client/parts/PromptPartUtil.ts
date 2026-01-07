@@ -11,12 +11,14 @@ import { AgentHelpers } from '../AgentHelpers'
 // Registry
 // ============================================================================
 
-const registry = new Map<string, PromptPartUtilConstructor<any>>()
+const registry = new Map<string, PromptPartUtilConstructor<BasePromptPart>>()
 
 /**
  * Register a prompt part util class. Call this after defining each util class.
  */
-export function registerPromptPartUtil<T extends PromptPartUtilConstructor<any>>(util: T): T {
+export function registerPromptPartUtil<T extends PromptPartUtilConstructor<BasePromptPart>>(
+	util: T
+): T {
 	if (registry.has(util.type)) {
 		throw new Error(`Prompt part util already registered: ${util.type}`)
 	}
@@ -27,8 +29,8 @@ export function registerPromptPartUtil<T extends PromptPartUtilConstructor<any>>
 /**
  * Get all registered prompt part util classes.
  */
-export function getAllPromptPartUtils(): PromptPartUtilConstructor<any>[] {
-	return Array.from(registry.values())
+export function getAllPromptPartUtils(): PromptPartUtilConstructor<PromptPart>[] {
+	return Array.from(registry.values()) as PromptPartUtilConstructor<PromptPart>[]
 }
 
 /**
@@ -37,7 +39,7 @@ export function getAllPromptPartUtils(): PromptPartUtilConstructor<any>[] {
 export function getPromptPartUtilsRecord(agent: TldrawAgent) {
 	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	for (const util of registry.values()) {
-		object[util.type as PromptPart['type']] = new util(agent)
+		object[util.type as PromptPart['type']] = new util(agent) as PromptPartUtil<PromptPart>
 	}
 	return object
 }

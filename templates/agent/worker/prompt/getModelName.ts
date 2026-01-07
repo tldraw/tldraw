@@ -12,7 +12,7 @@ export function getModelName(prompt: AgentPrompt): AgentModelName {
 
 		// Check if this definition provides a model name
 		if (definition.getModelName) {
-			const modelName = definition.getModelName(part as any)
+			const modelName = definition.getModelName(part)
 			if (modelName) return modelName
 		}
 	}

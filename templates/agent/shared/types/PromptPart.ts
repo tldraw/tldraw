@@ -1,5 +1,6 @@
 import type { AgentModelName } from '../models'
 import type { AgentMessage } from './AgentMessage'
+import type { BasePromptPart } from './BasePromptPart'
 
 // ============================================================================
 // Prompt Part Definition Interface
@@ -9,7 +10,7 @@ import type { AgentMessage } from './AgentMessage'
  * A prompt part definition contains pure transformation functions for converting
  * prompt part data into messages, content, or system prompts.
  */
-export interface PromptPartDefinition<T extends { type: string }> {
+export interface PromptPartDefinition<T extends BasePromptPart> {
 	type: T['type']
 	priority?: number
 	buildContent?(part: T): string[]
@@ -25,7 +26,7 @@ export interface PromptPartDefinition<T extends { type: string }> {
  * Internal registry map for prompt part definitions.
  * Definitions register themselves when their module is imported.
  */
-const registry = new Map<string, PromptPartDefinition<any>>()
+const registry = new Map<string, PromptPartDefinition<BasePromptPart>>()
 
 /**
  * Register a prompt part definition. Call this as a side effect when defining
@@ -37,25 +38,25 @@ const registry = new Map<string, PromptPartDefinition<any>>()
  *   buildContent: (part) => [...],
  * })
  */
-export function registerPromptPart<T extends { type: string }>(
+export function registerPromptPart<T extends BasePromptPart>(
 	definition: PromptPartDefinition<T>
 ): PromptPartDefinition<T> {
 	if (registry.has(definition.type)) {
 		throw new Error(`Prompt part definition already registered: ${definition.type}`)
 	}
-	registry.set(definition.type, definition)
+	registry.set(definition.type, definition as PromptPartDefinition<BasePromptPart>)
 	return definition
 }
 
 /**
  * Get a prompt part definition by its type.
  */
-export function getPromptPartDefinition(type: string): PromptPartDefinition<any> {
+export function getPromptPartDefinition(type: string): PromptPartDefinition<PromptPart> {
 	const definition = registry.get(type)
 	if (!definition) {
 		throw new Error(`No prompt part definition found for type: ${type}`)
 	}
-	return definition
+	return definition as PromptPartDefinition<PromptPart>
 }
 
 /**
@@ -68,8 +69,8 @@ export function hasPromptPartDefinition(type: string): boolean {
 /**
  * Get all registered prompt part definitions.
  */
-export function getAllPromptPartDefinitions(): PromptPartDefinition<any>[] {
-	return Array.from(registry.values())
+export function getAllPromptPartDefinitions(): PromptPartDefinition<PromptPart>[] {
+	return Array.from(registry.values()) as PromptPartDefinition<PromptPart>[]
 }
 
 /**
@@ -95,9 +96,15 @@ type ExtractPromptPart<T> = T extends PromptPartDefinition<infer U> ? U : never
 /** Get all values from the definitions module that are PromptPartDefinitions */
 type DefinitionExports = (typeof AllDefinitions)[keyof typeof AllDefinitions]
 
+/** Filter to only PromptPartDefinition types (excludes type aliases and other exports) */
+export type PromptPartDefinitionType = Extract<
+	DefinitionExports,
+	PromptPartDefinition<BasePromptPart>
+>
+
 /**
  * Union of all prompt part types, automatically derived from exported definitions.
  * When you add a new definition export to PromptPartDefinitions.ts, this type
  * automatically includes it - no arrays or manual type updates needed!
  */
-export type PromptPart = ExtractPromptPart<DefinitionExports>
+export type PromptPart = ExtractPromptPart<PromptPartDefinitionType>
