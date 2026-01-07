@@ -20,3 +20,18 @@ Scope: Evaluate 15 unscored SDK feature docs
 
 ---
 
+## 2026-01-07 - evaluate: animation.mdx
+
+- **Document**: sdk-features/animation.mdx
+- **Action**: evaluated
+- **Scores**: 8/8/9/9 (readability/voice/completeness/accuracy)
+- **Changes made**:
+  - Added evaluation frontmatter with scores
+- **Learnings**:
+  - Animation source in packages/editor/src/lib/editor/Editor.ts
+  - EASINGS defined in packages/editor/src/lib/primitives/easings.ts
+  - Shape animations default to EASINGS.linear, camera to easeInOutCubic
+  - Examples: slideshow, camera-options exist
+
+---
+

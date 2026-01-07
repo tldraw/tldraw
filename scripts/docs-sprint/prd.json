@@ -24,7 +24,7 @@
 			"priority": 1,
 			"status": {
 				"sdk-features/actions.mdx": true,
-				"sdk-features/animation.mdx": false,
+				"sdk-features/animation.mdx": true,
 				"sdk-features/assets.mdx": false,
 				"sdk-features/bindings.mdx": false,
 				"sdk-features/camera.mdx": false,
