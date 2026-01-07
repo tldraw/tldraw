@@ -1,0 +1,7 @@
+# Documentation Sprint Progress
+
+Sprint initialized: 2026-01-07
+Scope: Evaluate 15 unscored SDK feature docs
+
+---
+
