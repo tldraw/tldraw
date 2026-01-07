@@ -1,0 +1,87 @@
+{
+	"project": "docs-sprint-001",
+	"description": "SDK Features documentation improvement sprint",
+	"branch": "docs/sprint-001",
+	"style_guide_version": "2025-01-07",
+
+	"required_reading": [".claude/skills/write-docs/SKILL.md"],
+
+	"articles": ["sdk-features/actions.mdx", "sdk-features/groups.mdx", "sdk-features/bindings.mdx"],
+
+	"stories": [
+		{
+			"id": "evaluate",
+			"priority": 1,
+			"title": "Evaluate documentation",
+			"instructions": "FIRST read .claude/skills/write-docs/SKILL.md to understand the voice standards. Then score the document on readability, voice, completeness, and accuracy. Verify code examples against actual API.",
+			"acceptance": [
+				"Scores written to frontmatter (readability, voice, completeness, accuracy)",
+				"Notes field populated with specific observations",
+				"Priority fixes identified if any score < 8"
+			],
+			"status": {
+				"sdk-features/actions.mdx": false,
+				"sdk-features/groups.mdx": false,
+				"sdk-features/bindings.mdx": false
+			}
+		},
+		{
+			"id": "improve",
+			"priority": 2,
+			"title": "Improve documentation",
+			"instructions": "FIRST read .claude/skills/write-docs/SKILL.md for voice guidelines. Address priority fixes from evaluation. Focus on lowest scores first. Eliminate AI writing tells.",
+			"acceptance": [
+				"All scores 8+",
+				"No AI writing tells",
+				"Code verified against source",
+				"Re-evaluated after changes"
+			],
+			"depends_on": "evaluate",
+			"status": {
+				"sdk-features/actions.mdx": false,
+				"sdk-features/groups.mdx": false,
+				"sdk-features/bindings.mdx": false
+			}
+		},
+		{
+			"id": "update",
+			"priority": 3,
+			"title": "Update for code changes",
+			"instructions": "Sync documentation with recent API changes. Compare doc content to current codebase.",
+			"acceptance": [
+				"All code snippets use current API",
+				"updated_at frontmatter updated",
+				"Accuracy score maintained"
+			],
+			"depends_on": "improve",
+			"status": {
+				"sdk-features/actions.mdx": false,
+				"sdk-features/groups.mdx": false,
+				"sdk-features/bindings.mdx": false
+			}
+		}
+	],
+
+	"story_definitions": {
+		"evaluate": {
+			"description": "Score a document on 4 dimensions and write findings to frontmatter",
+			"workflow": "Use /evaluate-docs command pattern"
+		},
+		"improve": {
+			"description": "Improve a document based on evaluation scores and notes",
+			"workflow": "Use /improve-docs command pattern"
+		},
+		"write": {
+			"description": "Create a new documentation article from scratch",
+			"workflow": "Use /docs command pattern with thorough code research"
+		},
+		"update": {
+			"description": "Update existing doc to reflect recent code changes",
+			"workflow": "Compare doc content against current codebase, update outdated sections"
+		},
+		"apply-style": {
+			"description": "Apply style guide updates across documents",
+			"workflow": "Check for voice guideline violations, update to current standards"
+		}
+	}
+}
