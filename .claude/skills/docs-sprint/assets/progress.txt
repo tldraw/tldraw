@@ -1,9 +1,10 @@
 # Docs Sprint Progress Log
 
-**Project**: docs-sprint-001
+**Project**: docs-sprint-evaluate-all
 **Role**: Autonomous SDK Documentation Agent
 **Started**: 2025-01-07
-**Branch**: docs/sprint-001
+**Branch**: sprint-evaluate-docs-2025-01-07
+**Scope**: Evaluate all unscored SDK Features documentation
 
 ---
 
@@ -31,9 +32,9 @@ _Add reusable patterns here as you discover them. These persist across iteration
 ## Key Files
 
 **Sprint System**:
-- Tasks: `scripts/docs-sprint/prd.json`
-- Instructions: `scripts/docs-sprint/prompt.md`
-- This log: `scripts/docs-sprint/progress.txt`
+- Tasks: `.claude/skills/docs-sprint/assets/prd.json`
+- Skill: `.claude/skills/docs-sprint/SKILL.md`
+- This log: `.claude/skills/docs-sprint/assets/progress.txt`
 
 **Style Guides**:
 - Voice: `.claude/skills/write-docs/SKILL.md`
@@ -61,3 +62,4 @@ _List new docs created_
 ## Iteration Log
 
 _Agent appends entries below after each completed story:_
+

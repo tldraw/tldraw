@@ -50,11 +50,11 @@ Run `/docs-loop` to continue the sprint.
 
 ## Implementation
 
-1. Read `scripts/docs-sprint/prd.json`
+1. Read `.claude/skills/docs-sprint/assets/prd.json`
 2. Build the article × story matrix from status objects
 3. Count completed/pending/blocked per story
 4. Identify next eligible work item (respecting dependencies)
-5. Read `scripts/docs-sprint/progress.txt` for recent learnings
+5. Read `.claude/skills/docs-sprint/assets/progress.txt` for recent learnings
 6. Scan sdk-features frontmatter for current scores
 7. Present summary
 
