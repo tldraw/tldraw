@@ -1,16 +1,19 @@
 ---
-title: 'Create GitHub Issue'
-description: 'Create a GitHub issue from a description'
-argument-hint: '[description]'
+description: Create a GitHub issue from a description
+argument-hint: [description]
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(yarn dev), Bash(yarn dev-app), Bash(yarn dev-docs), Task(Explore), Skill(dev-browser:dev-browser)
+model: opus
 ---
 
 # Create and research a GitHub issue
 
 Create a new GitHub issue on the `tldraw/tldraw` repo based on the user's description, then research it thoroughly.
 
-## User's issue description
+## Context
 
-$ARGUMENTS
+- User's issue description: $ARGUMENTS
+- Current branch: !`git branch --show-current`
+- Recent issues: !`gh issue list --repo tldraw/tldraw --limit 5 --json number,title --jq '.[] | "#\(.number) \(.title)"'`
 
 ## Instructions
 
@@ -44,7 +47,7 @@ If screenshots aren't feasible (e.g., the bug is non-visual, or reproduction is 
 
 ### Step 3: Create the issue
 
-Create the issue on GitHub following the standards in `.claude/skills/write-issue.md`:
+Create the issue on GitHub following the standards in @.claude/skills/write-issue/SKILL.md.
 
 1. **Determine the issue type**:
    - `Bug` - Something isn't working as expected

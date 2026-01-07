@@ -122,3 +122,6 @@ license-report.md
 
 # TypeScript profiling
 .ts-profile
+
+# ESLint cache
+.eslintcache
