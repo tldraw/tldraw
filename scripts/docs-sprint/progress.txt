@@ -63,3 +63,17 @@ Scope: Evaluate 15 unscored SDK feature docs
 
 ---
 
+## 2026-01-07 - evaluate: camera.mdx
+
+- **Document**: sdk-features/camera.mdx
+- **Action**: evaluated
+- **Scores**: 9/8/10/9 (readability/voice/completeness/accuracy)
+- **Changes made**:
+  - Added evaluation frontmatter with scores
+- **Learnings**:
+  - TLCameraOptions at packages/editor/src/lib/editor/types/misc-types.ts:93-111
+  - TLCameraConstraints at misc-types.ts:114+
+  - Six examples: camera-options, image-annotator, slideshow, lock-camera-zoom, zoom-to-bounds, scroll
+
+---
+

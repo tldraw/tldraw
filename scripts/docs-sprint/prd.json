@@ -27,7 +27,7 @@
 				"sdk-features/animation.mdx": true,
 				"sdk-features/assets.mdx": true,
 				"sdk-features/bindings.mdx": true,
-				"sdk-features/camera.mdx": false,
+				"sdk-features/camera.mdx": true,
 				"sdk-features/clipboard.mdx": false,
 				"sdk-features/coordinates.mdx": false,
 				"sdk-features/culling.mdx": false,
