@@ -5,3 +5,18 @@ Scope: Evaluate 15 unscored SDK feature docs
 
 ---
 
+## 2026-01-07 - evaluate: actions.mdx
+
+- **Document**: sdk-features/actions.mdx
+- **Action**: evaluated
+- **Scores**: 8/8/9/8 (readability/voice/completeness/accuracy)
+- **Changes made**:
+  - Added evaluation frontmatter with scores
+- **Learnings**:
+  - Actions source is in packages/tldraw/src/lib/ui/context/actions.tsx
+  - Helpers defined in packages/tldraw/src/lib/ui/overrides.ts via useDefaultHelpers()
+  - ~70 default actions defined (doc says ~80, close enough)
+  - Examples exist at apps/examples/src/examples/action-overrides
+
+---
+
