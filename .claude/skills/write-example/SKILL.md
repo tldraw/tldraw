@@ -48,13 +48,13 @@ Detailed explanation of the example. Include code snippets here if they help exp
 
 ### Frontmatter fields
 
-| Field      | Description                                                    |
-| ---------- | -------------------------------------------------------------- |
-| title      | Sentence case, corresponds to folder name                      |
-| component  | Relative path to example file                                  |
-| category   | One of the valid category IDs (see below)                      |
-| priority   | Display order within category (lower = higher)                 |
-| keywords   | Search terms (avoid obvious terms like "tldraw")               |
+| Field     | Description                                      |
+| --------- | ------------------------------------------------ |
+| title     | Sentence case, corresponds to folder name        |
+| component | Relative path to example file                    |
+| category  | One of the valid category IDs (see below)        |
+| priority  | Display order within category (lower = higher)   |
+| keywords  | Search terms (avoid obvious terms like "tldraw") |
 
 ### Valid categories
 
@@ -83,6 +83,7 @@ export default function MyExampleExample() {
 ```
 
 **Requirements:**
+
 - Must have a default export React component
 - Use `tldraw__editor` class for full-page examples
 - Import `tldraw/tldraw.css` for styles
