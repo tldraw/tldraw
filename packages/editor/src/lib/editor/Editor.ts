@@ -108,7 +108,6 @@ import {
 	MIDDLE_MOUSE_BUTTON,
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
-	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImage } from '../exports/getSvgAsImage'
@@ -3377,10 +3376,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (selectionPageBounds) {
-			this.zoomToBounds(selectionPageBounds, {
-				targetZoom: Math.max(1, this.getZoomLevel()),
-				...opts,
-			})
+			const currentZoom = this.getZoomLevel()
+			// If already at 100%, zoom to fit the selection in the viewport
+			// Otherwise, zoom to 100% centered on the selection
+			if (Math.abs(currentZoom - 1) < 0.01) {
+				this.zoomToBounds(selectionPageBounds, opts)
+			} else {
+				this.zoomToBounds(selectionPageBounds, {
+					targetZoom: 1,
+					...opts,
+				})
+			}
 		}
 		return this
 	}
@@ -3437,7 +3443,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = opts?.inset ?? Math.min(ZOOM_TO_FIT_PADDING, viewportScreenBounds.width * 0.28)
+		const inset =
+			opts?.inset ?? Math.min(this.options.zoomToFitPadding, viewportScreenBounds.width * 0.28)
 
 		const baseZoom = this.getBaseZoom()
 		const zoomMin = cameraOptions.zoomSteps[0]
@@ -8248,7 +8255,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
-		const pageBounds = Box.Common(compact(shapesToGroup.map((id) => this.getShapePageBounds(id))))
+		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
+		const pageBounds = Box.Common(childBounds)
+
+		if (!pageBounds.isValid()) {
+			throw Error(`Editor.groupShapes: group bounds are invalid (NaN).`)
+		}
 
 		const { x, y } = pageBounds.point
 
@@ -10350,6 +10362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.interrupt()
 						}
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 					case 'pinch': {
@@ -10384,6 +10397,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 					case 'pinch_end': {
@@ -10410,6 +10424,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						}
 
+						this.emit('event', info)
 						return // Stop here!
 					}
 				}
@@ -10465,6 +10480,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.root.handleEvent(info)
+							this.emit('event', info)
 							return
 						}
 						case 'pan': {
@@ -10473,6 +10490,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.root.handleEvent(info)
+							this.emit('event', info)
 							return
 						}
 					}
