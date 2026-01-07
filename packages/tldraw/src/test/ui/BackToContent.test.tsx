@@ -49,7 +49,7 @@ describe('BackToContent button', () => {
 
 		// Now the button should appear
 		await waitFor(() => {
-			expect(screen.queryByTestId('helper-buttons.back-to-content')).toBeDefined()
+			expect(screen.queryByTestId('helper-buttons.back-to-content')).not.toBeNull()
 		})
 	})
 
@@ -76,7 +76,7 @@ describe('BackToContent button', () => {
 
 		// Button should still appear even though selected shapes aren't culled
 		await waitFor(() => {
-			expect(screen.queryByTestId('helper-buttons.back-to-content')).toBeDefined()
+			expect(screen.queryByTestId('helper-buttons.back-to-content')).not.toBeNull()
 		})
 	})
 
