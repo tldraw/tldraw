@@ -5,13 +5,13 @@ import './AgentActionSchemas' // Import the schemas module to ensure all schemas
 export function buildResponseSchema(actionTypes: AgentAction['_type'][]) {
 	const actionSchemas = actionTypes
 		.map((type) => getActionSchema(type))
-		.filter((schema): schema is z.ZodType => schema !== undefined)
+		.filter((schema) => schema !== undefined)
 
 	if (actionSchemas.length === 0) {
 		throw new Error('No action schemas found for the provided action types')
 	}
 
-	const actionSchema = z.union(actionSchemas as any)
+	const actionSchema = z.union(actionSchemas)
 	const schema = z.object({
 		actions: z.array(actionSchema),
 	})

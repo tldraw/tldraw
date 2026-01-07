@@ -5,10 +5,18 @@ import z from 'zod'
 // ============================================================================
 
 /**
+ * Shape constraint for action schemas - must have a _type literal field.
+ */
+interface ActionSchemaShape {
+	_type: z.ZodLiteral<string>
+	[key: string]: z.ZodType
+}
+
+/**
  * Internal registry for action schemas.
  * Schemas register themselves when their module is imported.
  */
-const registry = new Map<string, z.ZodType>()
+const registry = new Map<string, z.ZodObject<ActionSchemaShape>>()
 
 /**
  * Register an action schema. Call this when defining each action.
@@ -22,14 +30,16 @@ const registry = new Map<string, z.ZodType>()
  *   }).meta({ title: 'My Action', description: '...' })
  * )
  */
-export function registerActionSchema<T extends z.ZodType>(schema: T): T {
+export function registerActionSchema<S extends ActionSchemaShape, T extends z.ZodObject<S>>(
+	schema: T
+): T {
 	// Extract the _type literal from the schema using Zod 4's structure
 	// In Zod 4, object schemas have a .shape property with the fields
-	const shape = (schema as any).shape
-	const typeField = shape?._type
+	const shape = schema.shape
+	const typeField = shape._type
 
 	// In Zod 4, z.literal has a .value property that returns the literal value
-	const typeLiteral = typeField?.value
+	const typeLiteral = typeField.value
 
 	if (!typeLiteral) {
 		throw new Error('Action schema must have a _type literal field')
@@ -47,15 +57,15 @@ export function registerActionSchema<T extends z.ZodType>(schema: T): T {
  * Get all registered action schemas.
  * Use this in buildResponseSchema() to construct the union.
  */
-export function getAllActionSchemas(): z.ZodType[] {
-	return Array.from(registry.values())
+export function getAllActionSchemas(): AgentActionSchema[] {
+	return Array.from(registry.values()) as AgentActionSchema[]
 }
 
 /**
  * Get an action schema by its _type value.
  */
-export function getActionSchema(type: string): z.ZodType | undefined {
-	return registry.get(type)
+export function getActionSchema(type: string): AgentActionSchema | undefined {
+	return registry.get(type) as AgentActionSchema | undefined
 }
 
 /**
@@ -82,11 +92,11 @@ type ExtractZodType<T> = T extends z.ZodType<infer U> ? U : never
 type SchemaExports = (typeof AllSchemas)[keyof typeof AllSchemas]
 
 /** Filter to only Zod types (excludes the type aliases) */
-type ZodSchemaExports = Extract<SchemaExports, z.ZodType>
+export type AgentActionSchema = Extract<SchemaExports, z.ZodType>
 
 /**
  * Union of all agent action types, automatically derived from exported schemas.
  * When you add a new action schema export to AgentActionSchemas.ts, this type
  * automatically includes it - no arrays or manual type updates needed!
  */
-export type AgentAction = ExtractZodType<ZodSchemaExports>
+export type AgentAction = ExtractZodType<AgentActionSchema>

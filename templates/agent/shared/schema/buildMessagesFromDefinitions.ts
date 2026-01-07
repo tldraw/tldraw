@@ -11,7 +11,7 @@ export function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
 
 	// If the definition has a custom buildMessages function, use it
 	if (definition.buildMessages) {
-		return definition.buildMessages(part as any)
+		return definition.buildMessages(part)
 	}
 
 	// Otherwise, use the default logic with buildContent
@@ -25,7 +25,7 @@ function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 	const definition = getPromptPartDefinition(part.type)
 
 	// Get content strings from the definition
-	const content = definition.buildContent ? definition.buildContent(part as any) : []
+	const content = definition.buildContent ? definition.buildContent(part) : []
 
 	if (!content || content.length === 0) {
 		return []

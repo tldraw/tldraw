@@ -10,12 +10,14 @@ import { AgentHelpers } from '../AgentHelpers'
 // Registry
 // ============================================================================
 
-const registry = new Map<string, AgentActionUtilConstructor<any>>()
+const registry = new Map<string, AgentActionUtilConstructor<BaseAgentAction>>()
 
 /**
  * Register an agent action util class. Call this after defining each util class.
  */
-export function registerActionUtil<T extends AgentActionUtilConstructor<any>>(util: T): T {
+export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgentAction>>(
+	util: T
+): T {
 	if (registry.has(util.type)) {
 		throw new Error(`Agent action util already registered: ${util.type}`)
 	}
@@ -26,8 +28,8 @@ export function registerActionUtil<T extends AgentActionUtilConstructor<any>>(ut
 /**
  * Get all registered agent action util classes.
  */
-export function getAllActionUtils(): AgentActionUtilConstructor<any>[] {
-	return Array.from(registry.values())
+export function getAllActionUtils(): AgentActionUtilConstructor<AgentAction>[] {
+	return Array.from(registry.values()) as AgentActionUtilConstructor<AgentAction>[]
 }
 
 /**
@@ -36,7 +38,7 @@ export function getAllActionUtils(): AgentActionUtilConstructor<any>[] {
 export function getAgentActionUtilsRecord(agent: TldrawAgent) {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	for (const util of registry.values()) {
-		object[util.type as AgentAction['_type']] = new util(agent)
+		object[util.type as AgentAction['_type']] = new util(agent) as AgentActionUtil<AgentAction>
 	}
 	return object
 }
