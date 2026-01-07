@@ -626,7 +626,7 @@ export const embedShapePermissionDefaults = {
 	// [REASON] We want to allow embeds to link back to their original sites (e.g. YouTube).
 	'allow-popups': true,
 	// [MDN] Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
-	// [REASON] We shouldn't allow popups as a embed could pretend to be us by opening a mocked version of tldraw. This is very unobvious when it is performed as an action within our app.
+	// [REASON] We shouldn't allow popups as an embed could pretend to be us by opening a mocked version of tldraw. This is very unobvious when it is performed as an action within our app.
 	'allow-popups-to-escape-sandbox': false,
 	// [MDN] Lets the resource start a presentation session.
 	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
