@@ -1,0 +1,156 @@
+/* Spectrogram frame body - matches normal frame style */
+.spectrogram-frame__body {
+	fill: white;
+	stroke: var(--color-text-3);
+	stroke-width: calc(1px / var(--tl-zoom));
+}
+
+/* Header container - matches normal frame heading */
+.spectrogram-frame__header {
+	position: absolute;
+	top: -28px;
+	left: -1px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 6px;
+	background: var(--color-background);
+	border-radius: 4px;
+	color: var(--color-text-1);
+	font-size: 12px;
+	font-family: var(--tl-font-family);
+	pointer-events: all;
+}
+
+/* Play button */
+.spectrogram-frame__play-button {
+	width: 20px;
+	height: 20px;
+	border: 1px solid var(--color-text-3);
+	border-radius: 4px;
+	background: var(--color-background);
+	color: var(--color-text-1);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 9px;
+	transition: background 0.15s;
+}
+
+.spectrogram-frame__play-button:hover:not(:disabled) {
+	background: var(--color-muted-2);
+}
+
+.spectrogram-frame__play-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Frame name */
+.spectrogram-frame__name {
+	font-weight: 500;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--color-text-1);
+}
+
+/* Duration display */
+.spectrogram-frame__duration {
+	opacity: 0.6;
+	font-size: 11px;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Playhead line */
+.spectrogram-frame__playhead {
+	position: absolute;
+	top: 0;
+	width: 2px;
+	background: #ef4444;
+	pointer-events: none;
+	z-index: 1;
+	box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+}
+
+/* Waveform container */
+.spectrogram-frame__waveform-container {
+	position: absolute;
+	left: 0;
+	background: var(--color-background);
+	border-radius: 4px;
+	overflow: hidden;
+	border: 1px solid var(--color-text-3);
+}
+
+/* Waveform canvas */
+.spectrogram-frame__waveform {
+	display: block;
+}
+
+/* Frequency ticks container (Y-axis) */
+.spectrogram-frame__freq-ticks {
+	position: absolute;
+	left: -40px;
+	top: 0;
+	width: 36px;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* Time ticks container (X-axis) */
+.spectrogram-frame__time-ticks {
+	position: absolute;
+	left: 0;
+	height: 20px;
+	pointer-events: none;
+}
+
+/* Individual tick */
+.spectrogram-frame__tick {
+	position: absolute;
+	display: flex;
+	align-items: center;
+}
+
+/* Frequency tick (horizontal line + label on left) */
+.spectrogram-frame__tick--freq {
+	right: 0;
+	transform: translateY(-50%);
+	flex-direction: row;
+	gap: 4px;
+}
+
+.spectrogram-frame__tick--freq::after {
+	content: '';
+	width: 6px;
+	height: 1px;
+	background: var(--color-text-3);
+}
+
+/* Time tick (vertical line + label below) */
+.spectrogram-frame__tick--time {
+	top: 0;
+	transform: translateX(-50%);
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+.spectrogram-frame__tick--time::before {
+	content: '';
+	width: 1px;
+	height: 6px;
+	background: var(--color-text-3);
+}
+
+/* Tick label */
+.spectrogram-frame__tick-label {
+	font-size: 9px;
+	font-family: var(--tl-font-family);
+	color: var(--color-text-2);
+	white-space: nowrap;
+}
