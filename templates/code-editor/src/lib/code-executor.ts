@@ -74,15 +74,15 @@ export async function executeCode(code: string, editor: Editor): Promise<Executi
 
 	try {
 		// Create the curated API for the code editor
-		const api = createEditorAPI(editor)
+		const canvas = createEditorAPI(editor)
 
 		// Execute code in a transaction for atomic updates
 		let result: unknown
 		editor.run(() => {
 			// Create a function with controlled scope
-			// Only editor and api are available, not window or document
-			const fn = new Function('editor', 'api', code)
-			result = fn(editor, api)
+			// Only editor and canvas are available, not window or document
+			const fn = new Function('editor', 'canvas', code)
+			result = fn(editor, canvas)
 		})
 
 		// Handle async results if the user code returns a promise

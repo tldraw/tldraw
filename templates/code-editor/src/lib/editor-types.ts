@@ -106,7 +106,7 @@ interface EditorAPI {
    * @param options - Additional shape properties
    * @returns The created shape ID
    * @example
-   * api.createRect(100, 100, 200, 150, { color: 'blue', fill: 'solid' })
+   * canvas.createRect(100, 100, 200, 150, { color: 'blue', fill: 'solid' })
    */
   createRect(x: number, y: number, w: number, h: number, options?: ShapeOptions): TLShapeId
 
@@ -118,7 +118,7 @@ interface EditorAPI {
    * @param options - Additional shape properties
    * @returns The created shape ID
    * @example
-   * api.createCircle(300, 200, 50, { color: 'red', fill: 'semi' })
+   * canvas.createCircle(300, 200, 50, { color: 'red', fill: 'semi' })
    */
   createCircle(x: number, y: number, radius: number, options?: ShapeOptions): TLShapeId
 
@@ -130,7 +130,7 @@ interface EditorAPI {
    * @param options - Additional shape properties
    * @returns The created shape ID
    * @example
-   * api.createText(100, 100, 'Hello World!', { color: 'violet', size: 'xl' })
+   * canvas.createText(100, 100, 'Hello World!', { color: 'violet', size: 'xl' })
    */
   createText(x: number, y: number, text: string, options?: ShapeOptions): TLShapeId
 
@@ -143,7 +143,7 @@ interface EditorAPI {
    * @param options - Additional shape properties
    * @returns The created shape ID
    * @example
-   * api.createArrow(100, 100, 300, 200, { color: 'blue' })
+   * canvas.createArrow(100, 100, 300, 200, { color: 'blue' })
    */
   createArrow(fromX: number, fromY: number, toX: number, toY: number, options?: ShapeOptions): TLShapeId
 
@@ -154,7 +154,7 @@ interface EditorAPI {
    * @param options - Control points for the curve (start, cp1, cp2, end relative to origin)
    * @returns The created shape ID
    * @example
-   * api.createBezier(100, 100, {
+   * canvas.createBezier(100, 100, {
    *   start: { x: 0, y: 0 },
    *   cp1: { x: 100, y: 0 },
    *   cp2: { x: 0, y: 200 },
@@ -192,8 +192,8 @@ interface EditorAPI {
    * @param point - The new camera position (x, y) and optional zoom (z)
    * @param options - Optional camera move options
    * @example
-   * api.setCamera({ x: 0, y: 0, z: 1 })
-   * api.setCamera({ x: 100, y: 200 }, { animation: { duration: 500 } })
+   * canvas.setCamera({ x: 0, y: 0, z: 1 })
+   * canvas.setCamera({ x: 100, y: 200 }, { animation: { duration: 500 } })
    */
   setCamera(point: VecLike, options?: TLCameraMoveOptions): void
 
@@ -202,7 +202,7 @@ interface EditorAPI {
    * @param point - The point to center on
    * @param options - Optional camera move options
    * @example
-   * api.centerOnPoint({ x: 100, y: 100 })
+   * canvas.centerOnPoint({ x: 100, y: 100 })
    */
   centerOnPoint(point: VecLike, options?: TLCameraMoveOptions): void
 
@@ -419,7 +419,7 @@ interface Editor {
 }
 
 /** The curated API for creating shapes and controlling the canvas */
-declare const api: EditorAPI
+declare const canvas: EditorAPI
 
 /** The full tldraw Editor instance */
 declare const editor: Editor

@@ -11,7 +11,7 @@ const shapeIds = []
 
 // Create a row of circles
 for (let i = 0; i < 5; i++) {
-  const id = api.createCircle(150 + i * 120, 200, 40, {
+  const id = canvas.createCircle(150 + i * 120, 200, 40, {
     color: colors[i],
     fill: 'solid'
   })
@@ -39,7 +39,7 @@ const interval = setInterval(() => {
   })
 }, 50)
 
-api.zoomToFit({ animation: { duration: 400 } })
+canvas.zoomToFit({ animation: { duration: 400 } })
 `,
 
 	'Color cycle': `// Creates shapes that change color every second
@@ -49,7 +49,7 @@ const shapeIds = []
 // Create a 3x3 grid of shapes
 for (let row = 0; row < 3; row++) {
   for (let col = 0; col < 3; col++) {
-    const id = api.createRect(
+    const id = canvas.createRect(
       100 + col * 120,
       100 + row * 120,
       100,
@@ -83,7 +83,7 @@ setTimeout(() => {
   clearInterval(interval)
 }, 10000)
 
-api.zoomToFit({ animation: { duration: 400 } })`,
+canvas.zoomToFit({ animation: { duration: 400 } })`,
 
 	'Camera controls': `// Generate shapes and get camera to follow
 
@@ -104,7 +104,7 @@ const shapes = [
 const firstAngle = shapes[0].angle * (Math.PI / 180)
 const firstX = centerX + Math.cos(firstAngle) * radius
 const firstY = centerY + Math.sin(firstAngle) * radius
-api.setCamera({ x: -firstX + 300, y: -firstY + 200, z: 4 })
+canvas.setCamera({ x: -firstX + 300, y: -firstY + 200, z: 4 })
 
 // Sequentially create shapes and follow with camera
 let delay = 300
@@ -114,7 +114,7 @@ shapes.forEach((shape, i) => {
     const x = centerX + Math.cos(angle) * radius - shape.size / 2
     const y = centerY + Math.sin(angle) * radius - shape.size / 2
 
-    api.createRect(x, y, shape.size, shape.size, {
+    canvas.createRect(x, y, shape.size, shape.size, {
       color: shape.color,
       fill: 'solid',
       geo: shape.geo
@@ -122,7 +122,7 @@ shapes.forEach((shape, i) => {
 
     // Snappy camera animation
     setTimeout(() => {
-      api.centerOnPoint(
+      canvas.centerOnPoint(
         { x: x + shape.size / 2, y: y + shape.size / 2 },
         { animation: { duration: 250 } }
       )
@@ -133,7 +133,7 @@ shapes.forEach((shape, i) => {
 
 // Zoom out at the end to reveal the pentagon formation
 setTimeout(() => {
-  api.zoomToFit({ animation: { duration: 500 } })
+  canvas.zoomToFit({ animation: { duration: 500 } })
 }, delay + 200)`,
 
 	'Bezier curve': `// Here's a flower made using bezier curves
@@ -155,7 +155,7 @@ for (let i = 0; i < 6; i++) {
   const ndy = Math.sin(nextAngle)
 
   // Each petal curves outward and back
-  api.createBezier(cx, cy, {
+  canvas.createBezier(cx, cy, {
     start: { x: 0, y: 0 },
     cp1: { x: dx * size * 1.8, y: dy * size * 1.8 },
     cp2: { x: ndx * size * 1.8, y: ndy * size * 1.8 },
@@ -174,7 +174,7 @@ for (let i = 0; i < 6; i++) {
   const ndy = Math.sin(nextAngle)
 
   // Smaller petal inside each outer petal
-  api.createBezier(cx, cy, {
+  canvas.createBezier(cx, cy, {
     start: { x: 0, y: 0 },
     cp1: { x: dx * size * 0.9, y: dy * size * 0.9 },
     cp2: { x: ndx * size * 0.9, y: ndy * size * 0.9 },
@@ -182,7 +182,7 @@ for (let i = 0; i < 6; i++) {
   })
 }
 
-api.zoomToFit({ animation: { duration: 400 } })`,
+canvas.zoomToFit({ animation: { duration: 400 } })`,
 }
 
 // The default example shown on first load

@@ -101,6 +101,7 @@ export default function App() {
 			<PanelGroup direction="horizontal">
 				<Panel defaultSize={40} minSize={30} maxSize={80}>
 					<CodeEditor
+						editor={editor}
 						onRun={handleRun}
 						onClear={handleClear}
 						isExecuting={isExecuting}

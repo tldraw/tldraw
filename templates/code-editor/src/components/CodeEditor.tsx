@@ -1,12 +1,15 @@
 import Editor, { BeforeMount, Monaco, OnMount } from '@monaco-editor/react'
 import type { editor } from 'monaco-editor'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { JsonObject, Editor as TldrawEditor, useValue } from 'tldraw'
 import { ExecutionError } from '../lib/code-executor'
 import { editorTypeDefinitions } from '../lib/editor-types'
-import { defaultCode } from '../lib/examples'
+import { defaultCode, examples } from '../lib/examples'
+import { darkTheme, lightTheme } from './themes'
 import { Toolbar } from './Toolbar'
 
 interface CodeEditorProps {
+	editor: TldrawEditor | null
 	onRun: (code: string) => Promise<void>
 	onClear: () => void
 	isExecuting: boolean
@@ -17,248 +20,14 @@ interface CodeEditorProps {
 	onThemeToggle: () => void
 }
 
-const STORAGE_KEY = 'code-editor-code'
-const LIVE_MODE_STORAGE_KEY = 'code-editor-live-mode'
-const SELECTED_EXAMPLE_STORAGE_KEY = 'code-editor-selected-example'
 const DEBOUNCE_MS = 500
 
-// Ayu Light theme definition
-const ayuLightTheme: editor.IStandaloneThemeData = {
-	base: 'vs',
-	inherit: false,
-	rules: [
-		// Base
-		{ token: '', foreground: '5c6166', background: 'fafafa' },
-
-		// Comments
-		{ token: 'comment', foreground: '787b80', fontStyle: 'italic' },
-		{ token: 'comment.js', foreground: '787b80', fontStyle: 'italic' },
-		{ token: 'comment.line', foreground: '787b80', fontStyle: 'italic' },
-		{ token: 'comment.block', foreground: '787b80', fontStyle: 'italic' },
-
-		// Strings
-		{ token: 'string', foreground: '86b300' },
-		{ token: 'string.js', foreground: '86b300' },
-		{ token: 'string.quoted', foreground: '86b300' },
-		{ token: 'string.template', foreground: '86b300' },
-
-		// Numbers
-		{ token: 'number', foreground: 'a37acc' },
-		{ token: 'number.js', foreground: 'a37acc' },
-		{ token: 'constant.numeric', foreground: 'a37acc' },
-
-		// Keywords
-		{ token: 'keyword', foreground: 'fa8d3e' },
-		{ token: 'keyword.js', foreground: 'fa8d3e' },
-		{ token: 'keyword.control', foreground: 'fa8d3e' },
-		{ token: 'keyword.operator', foreground: 'ed9366' },
-		{ token: 'keyword.other', foreground: 'fa8d3e' },
-		{ token: 'storage', foreground: 'fa8d3e' },
-		{ token: 'storage.type', foreground: 'fa8d3e' },
-
-		// Operators
-		{ token: 'operator', foreground: 'ed9366' },
-		{ token: 'delimiter', foreground: '5c616680' },
-		{ token: 'delimiter.bracket', foreground: '5c616680' },
-		{ token: 'delimiter.parenthesis', foreground: '5c616680' },
-
-		// Functions
-		{ token: 'entity.name.function', foreground: 'f2ae49' },
-		{ token: 'support.function', foreground: 'f2ae49' },
-		{ token: 'function', foreground: 'f2ae49' },
-		{ token: 'identifier.js', foreground: '5c6166' },
-
-		// Variables & Identifiers
-		{ token: 'variable', foreground: '5c6166' },
-		{ token: 'variable.parameter', foreground: 'a37acc' },
-		{ token: 'variable.other', foreground: '5c6166' },
-		{ token: 'identifier', foreground: '5c6166' },
-
-		// Constants
-		{ token: 'constant', foreground: 'a37acc' },
-		{ token: 'constant.language', foreground: 'a37acc' },
-		{ token: 'constant.language.boolean', foreground: 'a37acc' },
-		{ token: 'constant.language.null', foreground: 'a37acc' },
-		{ token: 'constant.language.undefined', foreground: 'a37acc' },
-
-		// Types & Classes
-		{ token: 'type', foreground: '399ee6' },
-		{ token: 'type.identifier', foreground: '399ee6' },
-		{ token: 'entity.name.type', foreground: '399ee6' },
-		{ token: 'entity.name.class', foreground: '399ee6' },
-		{ token: 'class', foreground: '399ee6' },
-		{ token: 'interface', foreground: '399ee6' },
-		{ token: 'support.class', foreground: '399ee6' },
-		{ token: 'support.type', foreground: '399ee6' },
-
-		// HTML/JSX Tags
-		{ token: 'tag', foreground: '55b4d4' },
-		{ token: 'tag.js', foreground: '55b4d4' },
-		{ token: 'metatag', foreground: '55b4d4' },
-		{ token: 'attribute.name', foreground: 'f2ae49' },
-		{ token: 'attribute.value', foreground: '86b300' },
-
-		// Regex
-		{ token: 'regexp', foreground: '4cbf99' },
-		{ token: 'string.regexp', foreground: '4cbf99' },
-
-		// Special
-		{ token: 'meta.brace', foreground: '5c616680' },
-		{ token: 'punctuation', foreground: '5c616680' },
-	],
-	colors: {
-		'editor.background': '#fafafa',
-		'editor.foreground': '#5c6166',
-		'editor.lineHighlightBackground': '#f0f0f0',
-		'editor.lineHighlightBorder': '#f0f0f0',
-		'editor.selectionBackground': '#d1e4f4',
-		'editor.inactiveSelectionBackground': '#e8e8e8',
-		'editorLineNumber.foreground': '#9199a1',
-		'editorLineNumber.activeForeground': '#5c6166',
-		'editorCursor.foreground': '#ff9940',
-		'editorWhitespace.foreground': '#d9d9d9',
-		'editorIndentGuide.background': '#e8e8e8',
-		'editorIndentGuide.activeBackground': '#d0d0d0',
-		'editorGutter.background': '#f3f3f3',
-		'editorWidget.background': '#fafafa',
-		'editorWidget.border': '#e0e0e0',
-		'editorSuggestWidget.background': '#fafafa',
-		'editorSuggestWidget.border': '#e0e0e0',
-		'editorSuggestWidget.selectedBackground': '#d1e4f4',
-		'editorHoverWidget.background': '#fafafa',
-		'editorHoverWidget.border': '#e0e0e0',
-		'input.background': '#ffffff',
-		'input.border': '#e0e0e0',
-		focusBorder: '#ff994033',
-		'list.activeSelectionBackground': '#d1e4f4',
-		'list.hoverBackground': '#e8e8e8',
-		'scrollbarSlider.background': '#9199a133',
-		'scrollbarSlider.hoverBackground': '#9199a155',
-		'scrollbarSlider.activeBackground': '#9199a177',
-	},
-}
-
-// Ayu Mirage Bordered theme definition
-const ayuMirageTheme: editor.IStandaloneThemeData = {
-	base: 'vs-dark',
-	inherit: false,
-	rules: [
-		// Base
-		{ token: '', foreground: 'cbccc6', background: '1f2430' },
-
-		// Comments
-		{ token: 'comment', foreground: '5c6773', fontStyle: 'italic' },
-		{ token: 'comment.js', foreground: '5c6773', fontStyle: 'italic' },
-		{ token: 'comment.line', foreground: '5c6773', fontStyle: 'italic' },
-		{ token: 'comment.block', foreground: '5c6773', fontStyle: 'italic' },
-
-		// Strings
-		{ token: 'string', foreground: 'bae67e' },
-		{ token: 'string.js', foreground: 'bae67e' },
-		{ token: 'string.quoted', foreground: 'bae67e' },
-		{ token: 'string.template', foreground: 'bae67e' },
-
-		// Numbers
-		{ token: 'number', foreground: 'ffcc66' },
-		{ token: 'number.js', foreground: 'ffcc66' },
-		{ token: 'constant.numeric', foreground: 'ffcc66' },
-
-		// Keywords
-		{ token: 'keyword', foreground: 'ffa759' },
-		{ token: 'keyword.js', foreground: 'ffa759' },
-		{ token: 'keyword.control', foreground: 'ffa759' },
-		{ token: 'keyword.operator', foreground: 'f29e74' },
-		{ token: 'keyword.other', foreground: 'ffa759' },
-		{ token: 'storage', foreground: 'ffa759' },
-		{ token: 'storage.type', foreground: 'ffa759' },
-
-		// Operators
-		{ token: 'operator', foreground: 'f29e74' },
-		{ token: 'delimiter', foreground: 'cbccc6b3' },
-		{ token: 'delimiter.bracket', foreground: 'cbccc6b3' },
-		{ token: 'delimiter.parenthesis', foreground: 'cbccc6b3' },
-
-		// Functions
-		{ token: 'entity.name.function', foreground: 'ffd580' },
-		{ token: 'support.function', foreground: 'ffd580' },
-		{ token: 'function', foreground: 'ffd580' },
-		{ token: 'identifier.js', foreground: 'cbccc6' },
-
-		// Variables & Identifiers
-		{ token: 'variable', foreground: 'cbccc6' },
-		{ token: 'variable.parameter', foreground: 'd4bfff' },
-		{ token: 'variable.other', foreground: 'cbccc6' },
-		{ token: 'identifier', foreground: 'cbccc6' },
-
-		// Constants
-		{ token: 'constant', foreground: 'ffcc66' },
-		{ token: 'constant.language', foreground: 'ffcc66' },
-		{ token: 'constant.language.boolean', foreground: 'ffcc66' },
-		{ token: 'constant.language.null', foreground: 'ffcc66' },
-		{ token: 'constant.language.undefined', foreground: 'ffcc66' },
-
-		// Types & Classes
-		{ token: 'type', foreground: '73d0ff' },
-		{ token: 'type.identifier', foreground: '73d0ff' },
-		{ token: 'entity.name.type', foreground: '73d0ff' },
-		{ token: 'entity.name.class', foreground: '73d0ff' },
-		{ token: 'class', foreground: '73d0ff' },
-		{ token: 'interface', foreground: '73d0ff' },
-		{ token: 'support.class', foreground: '73d0ff' },
-		{ token: 'support.type', foreground: '73d0ff' },
-
-		// HTML/JSX Tags
-		{ token: 'tag', foreground: '5ccfe6' },
-		{ token: 'tag.js', foreground: '5ccfe6' },
-		{ token: 'metatag', foreground: '5ccfe6' },
-		{ token: 'attribute.name', foreground: 'ffd580' },
-		{ token: 'attribute.value', foreground: 'bae67e' },
-
-		// Regex
-		{ token: 'regexp', foreground: '95e6cb' },
-		{ token: 'string.regexp', foreground: '95e6cb' },
-
-		// Special
-		{ token: 'meta.brace', foreground: 'cbccc6b3' },
-		{ token: 'punctuation', foreground: 'cbccc6b3' },
-	],
-	colors: {
-		'editor.background': '#1f2430',
-		'editor.foreground': '#cbccc6',
-		'editor.lineHighlightBackground': '#191e2a',
-		'editor.lineHighlightBorder': '#191e2a',
-		'editor.selectionBackground': '#34455a',
-		'editor.inactiveSelectionBackground': '#2d3b4d',
-		'editorLineNumber.foreground': '#707a8c',
-		'editorLineNumber.activeForeground': '#cbccc6',
-		'editorCursor.foreground': '#ffcc66',
-		'editorWhitespace.foreground': '#3e4b59',
-		'editorIndentGuide.background': '#3e4b59',
-		'editorIndentGuide.activeBackground': '#5c6773',
-		'editorGutter.background': '#1a1f29',
-		'editorWidget.background': '#1f2430',
-		'editorWidget.border': '#101521',
-		'editorSuggestWidget.background': '#1f2430',
-		'editorSuggestWidget.border': '#101521',
-		'editorSuggestWidget.selectedBackground': '#34455a',
-		'editorHoverWidget.background': '#1f2430',
-		'editorHoverWidget.border': '#101521',
-		'input.background': '#1a1f29',
-		'input.border': '#101521',
-		focusBorder: '#ffcc6633',
-		'list.activeSelectionBackground': '#34455a',
-		'list.hoverBackground': '#2d3b4d',
-		'scrollbarSlider.background': '#707a8c33',
-		'scrollbarSlider.hoverBackground': '#707a8c55',
-		'scrollbarSlider.activeBackground': '#707a8c77',
-	},
-}
-
 /**
- * Code editor panel with Monaco editor, TypeScript intellisense, and inline error display.
- * Persists code to localStorage between sessions.
+ * Code editor panel with Monaco editor and TypeScript intellisense.
+ * State is persisted via tldraw's document meta (uses persistenceKey).
  */
 export function CodeEditor({
+	editor,
 	onRun,
 	onClear,
 	isExecuting,
@@ -268,34 +37,40 @@ export function CodeEditor({
 	isDarkTheme,
 	onThemeToggle,
 }: CodeEditorProps) {
-	// Load code from localStorage or use default
-	const [code, setCode] = useState(() => {
-		try {
-			return localStorage.getItem(STORAGE_KEY) || defaultCode
-		} catch {
-			return defaultCode
-		}
-	})
+	// Read code from document meta (reactive via useValue)
+	const code = useValue(
+		'code',
+		() => (editor?.getDocumentSettings().meta?.code as string) ?? defaultCode,
+		[editor]
+	)
 
-	// Load live mode preference from localStorage, default to off
-	const [isLiveMode, setIsLiveMode] = useState(() => {
-		try {
-			return localStorage.getItem(LIVE_MODE_STORAGE_KEY) === 'true'
-		} catch {
-			return false
-		}
-	})
+	// Read live mode preference from document meta
+	const isLiveMode = useValue(
+		'isLiveMode',
+		() => (editor?.getDocumentSettings().meta?.isLiveMode as boolean) ?? false,
+		[editor]
+	)
 
-	// Track which example is selected (null if user has edited code)
-	const [selectedExample, setSelectedExample] = useState<string | null>(() => {
-		try {
-			return localStorage.getItem(SELECTED_EXAMPLE_STORAGE_KEY)
-		} catch {
-			return 'Basic shapes'
+	// Derive selected example by matching code against known examples
+	const selectedExample = useMemo(() => {
+		for (const [name, exampleCode] of Object.entries(examples)) {
+			if (code === exampleCode) return name
 		}
-	})
+		return null
+	}, [code])
 
-	const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+	// Helper to update document meta
+	const updateMeta = useCallback(
+		(updates: Partial<JsonObject>) => {
+			if (!editor) return
+			editor.updateDocumentSettings({
+				meta: { ...editor.getDocumentSettings().meta, ...updates },
+			})
+		},
+		[editor]
+	)
+
+	const monacoEditorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 	const monacoRef = useRef<Monaco | null>(null)
 	const decorationsRef = useRef<editor.IEditorDecorationsCollection | null>(null)
 	const onRunRef = useRef(onRun)
@@ -307,46 +82,31 @@ export function CodeEditor({
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const lastExecutedCodeRef = useRef<string | null>(null)
 
-	// Save code to localStorage when it changes
-	useEffect(() => {
-		try {
-			localStorage.setItem(STORAGE_KEY, code)
-		} catch (error) {
-			console.warn('Failed to save code to localStorage:', error)
-		}
-	}, [code])
-
-	// Live mode: auto-run code when it changes and compiles without errors
+	// Live mode: auto-run code after debounce if it compiles without errors
 	useEffect(() => {
 		if (!isLiveMode) return
 
-		// Clear any pending debounce timer
 		if (debounceTimerRef.current) {
 			clearTimeout(debounceTimerRef.current)
 		}
 
 		debounceTimerRef.current = setTimeout(() => {
-			if (!isLiveModeRef.current || !editorRef.current || !monacoRef.current) return
+			if (!isLiveModeRef.current || !monacoEditorRef.current || !monacoRef.current) return
 			if (isExecutingRef.current) return
 
-			const model = editorRef.current.getModel()
+			const model = monacoEditorRef.current.getModel()
 			if (!model) return
 
-			const currentCode = editorRef.current.getValue()
-
-			// Skip if we already executed this exact code
+			const currentCode = monacoEditorRef.current.getValue()
 			if (currentCode === lastExecutedCodeRef.current) return
 
-			// Get TypeScript diagnostics
 			const markers = monacoRef.current.editor.getModelMarkers({ resource: model.uri })
 			const hasErrors = markers.some((m) => m.severity === monacoRef.current!.MarkerSeverity.Error)
 
-			// Only run if no TypeScript errors
 			if (!hasErrors) {
 				lastExecutedCodeRef.current = currentCode
 				onRunRef.current(currentCode)
 			} else {
-				// Clear so fixing code back to previous valid state will still run
 				lastExecutedCodeRef.current = null
 			}
 		}, DEBOUNCE_MS)
@@ -358,25 +118,21 @@ export function CodeEditor({
 		}
 	}, [code, isLiveMode])
 
-	// Update error decorations when error changes
+	// Show error decorations in Monaco editor
 	useEffect(() => {
-		if (!editorRef.current || !monacoRef.current) return
+		if (!monacoEditorRef.current || !monacoRef.current) return
 
 		const monaco = monacoRef.current
-		const ed = editorRef.current
+		const ed = monacoEditorRef.current
 		const model = ed.getModel()
 		if (!model) return
 
-		// Clear previous decorations
 		if (decorationsRef.current) {
 			decorationsRef.current.clear()
 		}
-
-		// Clear previous markers
 		monaco.editor.setModelMarkers(model, 'code-executor', [])
 
-		if (error && error.line) {
-			// Add error marker for the problems panel / squiggly line
+		if (error?.line) {
 			monaco.editor.setModelMarkers(model, 'code-executor', [
 				{
 					startLineNumber: error.line,
@@ -388,7 +144,6 @@ export function CodeEditor({
 				},
 			])
 
-			// Add line decoration (highlight the entire line)
 			decorationsRef.current = ed.createDecorationsCollection([
 				{
 					range: new monaco.Range(error.line, 1, error.line, 1),
@@ -400,40 +155,30 @@ export function CodeEditor({
 				},
 			])
 
-			// Reveal the error line
 			ed.revealLineInCenter(error.line)
 		}
 	}, [error])
 
 	const handleBeforeMount: BeforeMount = useCallback((monaco) => {
-		// Define both themes before editor mounts
-		monaco.editor.defineTheme('ayu-mirage', ayuMirageTheme)
-		monaco.editor.defineTheme('ayu-light', ayuLightTheme)
+		monaco.editor.defineTheme('dark', darkTheme)
+		monaco.editor.defineTheme('light', lightTheme)
 	}, [])
 
 	const handleThemeToggle = useCallback(() => {
 		onThemeToggle()
 		if (monacoRef.current) {
-			// Toggle to the opposite theme (since isDarkTheme will change after onThemeToggle)
-			monacoRef.current.editor.setTheme(isDarkTheme ? 'ayu-light' : 'ayu-mirage')
+			monacoRef.current.editor.setTheme(isDarkTheme ? 'light' : 'dark')
 		}
 	}, [isDarkTheme, onThemeToggle])
 
 	const toggleLiveMode = useCallback(() => {
-		const newIsLive = !isLiveMode
-		setIsLiveMode(newIsLive)
-		try {
-			localStorage.setItem(LIVE_MODE_STORAGE_KEY, String(newIsLive))
-		} catch {
-			// Ignore storage errors
-		}
-	}, [isLiveMode])
+		updateMeta({ isLiveMode: !isLiveMode })
+	}, [isLiveMode, updateMeta])
 
 	const handleEditorMount: OnMount = useCallback((ed, monaco) => {
-		editorRef.current = ed
+		monacoEditorRef.current = ed
 		monacoRef.current = monaco
 
-		// Configure TypeScript defaults for good intellisense with our custom types
 		monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
 			noSemanticValidation: false,
 			noSyntaxValidation: false,
@@ -448,48 +193,41 @@ export function CodeEditor({
 			strictNullChecks: false,
 		})
 
-		// Add our custom type definitions for the editor and api objects
 		monaco.languages.typescript.typescriptDefaults.addExtraLib(
 			editorTypeDefinitions,
 			'ts:editor-api.d.ts'
 		)
 
-		// Add keyboard shortcut for running code (Cmd/Ctrl+Enter)
+		// Cmd/Ctrl+Enter runs code
 		ed.onKeyDown((e) => {
 			if ((e.metaKey || e.ctrlKey) && e.keyCode === monaco.KeyCode.Enter) {
 				e.preventDefault()
 				e.stopPropagation()
-				const currentCode = ed.getValue()
-				onRunRef.current(currentCode)
+				onRunRef.current(ed.getValue())
 			}
 		})
 
-		// Focus the editor
 		ed.focus()
 	}, [])
 
 	const handleEditorChange = useCallback(
 		(value: string | undefined) => {
-			setCode(value || '')
-			// Clear error when code changes
+			updateMeta({ code: value || '' })
 			onDismissError()
 		},
-		[onDismissError]
+		[updateMeta, onDismissError]
 	)
 
-	const handleLoadExample = (name: string, exampleCode: string) => {
-		setSelectedExample(name)
-		setCode(exampleCode)
-		try {
-			localStorage.setItem(SELECTED_EXAMPLE_STORAGE_KEY, name)
-		} catch {
-			// Ignore storage errors
-		}
-		if (editorRef.current) {
-			editorRef.current.setValue(exampleCode)
-			editorRef.current.focus()
-		}
-	}
+	const handleLoadExample = useCallback(
+		(_name: string, exampleCode: string) => {
+			updateMeta({ code: exampleCode })
+			if (monacoEditorRef.current) {
+				monacoEditorRef.current.setValue(exampleCode)
+				monacoEditorRef.current.focus()
+			}
+		},
+		[updateMeta]
+	)
 
 	return (
 		<div
@@ -556,7 +294,7 @@ export function CodeEditor({
 					onChange={handleEditorChange}
 					beforeMount={handleBeforeMount}
 					onMount={handleEditorMount}
-					theme={isDarkTheme ? 'ayu-mirage' : 'ayu-light'}
+					theme={isDarkTheme ? 'dark' : 'light'}
 					options={{
 						fontSize: 14,
 						fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
