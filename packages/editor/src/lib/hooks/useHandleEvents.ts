@@ -79,10 +79,32 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 			})
 		}
 
+		const onPointerCancel = (e: React.PointerEvent) => {
+			if (editor.wasEventAlreadyHandled(e)) return
+
+			const target = loopToHtmlElement(e.currentTarget)
+			releasePointerCapture(target, e)
+
+			const { shape, handle } = getHandle(editor, id, handleId)
+
+			if (!handle) return
+
+			editor.dispatch({
+				type: 'pointer',
+				target: 'handle',
+				handle,
+				shape,
+				name: 'pointer_up',
+				...getPointerInfo(editor, e),
+				button: 0,
+			})
+		}
+
 		return {
 			onPointerDown,
 			onPointerMove,
 			onPointerUp,
+			onPointerCancel,
 		}
 	}, [editor, id, handleId])
 }

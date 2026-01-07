@@ -36,11 +36,13 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 
 				function releaseCapture() {
 					elm.removeEventListener('pointerup', releaseCapture)
+					elm.removeEventListener('pointercancel', releaseCapture)
 					releasePointerCapture(elm, e)
 				}
 
 				setPointerCapture(elm, e)
 				elm.addEventListener('pointerup', releaseCapture)
+				elm.addEventListener('pointercancel', releaseCapture)
 
 				editor.dispatch({
 					name: 'pointer_down',
@@ -84,10 +86,24 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 				})
 			}
 
+			const onPointerCancel: React.PointerEventHandler = (e) => {
+				if (editor.wasEventAlreadyHandled(e)) return
+
+				editor.dispatch({
+					name: 'pointer_up',
+					type: 'pointer',
+					target: 'selection',
+					handle,
+					...getPointerInfo(editor, e),
+					button: 0,
+				})
+			}
+
 			return {
 				onPointerDown,
 				onPointerMove,
 				onPointerUp,
+				onPointerCancel,
 			}
 		},
 		[editor, handle]

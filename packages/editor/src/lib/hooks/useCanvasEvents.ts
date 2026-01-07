@@ -52,6 +52,26 @@ export function useCanvasEvents() {
 				})
 			}
 
+			function onPointerCancel(e: React.PointerEvent) {
+				if (editor.wasEventAlreadyHandled(e)) return
+
+				// pointercancel fires when the browser decides to take over pointer handling
+				// (e.g., for scrolling, zooming, or other system gestures). This commonly happens
+				// on mobile/tablet devices during rapid pen input. We treat it as a pointer_up
+				// to properly end any ongoing interaction like drawing.
+				releasePointerCapture(e.currentTarget, e)
+
+				editor.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_up',
+					...getPointerInfo(editor, e),
+					// pointercancel doesn't have a meaningful button value, so we use 0
+					// (primary button) since that's what most interactions use
+					button: 0,
+				})
+			}
+
 			function onPointerEnter(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
@@ -132,6 +152,7 @@ export function useCanvasEvents() {
 			return {
 				onPointerDown,
 				onPointerUp,
+				onPointerCancel,
 				onPointerEnter,
 				onPointerLeave,
 				onDragOver,

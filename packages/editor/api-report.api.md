@@ -4770,6 +4770,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences>;
 
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
+    onPointerCancel: PointerEventHandler<Element>;
     onPointerDown: PointerEventHandler<Element>;
     onPointerMove: (e: React.PointerEvent) => void;
     onPointerUp: PointerEventHandler<Element>;
