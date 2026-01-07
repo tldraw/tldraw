@@ -21,7 +21,6 @@ import {
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
-	ToggleInvertZoomItem,
 	ToggleLockMenuItem,
 	TogglePasteAtCursorItem,
 	ToggleSnapModeItem,
@@ -162,7 +161,6 @@ export function PreferencesGroup() {
 					<ToggleWrapModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
-					<ToggleInvertZoomItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />

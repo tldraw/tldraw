@@ -320,7 +320,7 @@ export const DEFAULT_TRANSLATION = {
 	'menu.language': 'Language',
 	'menu.preferences': 'Preferences',
 	'menu.view': 'View',
-	'menu.input-mode': 'Input mode',
+	'menu.input-device': 'Input device',
 	'context-menu.title': 'Context menu',
 	'context-menu.edit': 'Edit',
 	'context-menu.arrange': 'Arrange',

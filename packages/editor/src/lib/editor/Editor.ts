@@ -10468,9 +10468,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 							}
 
-							// Apply zoom direction preference
+							// because we can't for sure detect whether a user is using a mouse or a trackpad,
+							// we need to check the input mode preference, and only invert the zoom direction
+							// if the user has specifically set it to a mouse.
 							const isZoomDirectionInverted =
-								this.user.getUserPreferences().isZoomDirectionInverted ?? false
+								(this.user.getUserPreferences().isZoomDirectionInverted && inputMode === 'mouse') ??
+								false
 							const deltaValue = delta ?? 0
 							const finalDelta = isZoomDirectionInverted ? -deltaValue : deltaValue
 
