@@ -5,7 +5,6 @@ import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	INTERNAL_POINTER_IDS,
-	ZOOM_TO_FIT_PADDING,
 } from '../../../constants'
 import { Box, BoxLike } from '../../../primitives/Box'
 import { Vec, VecLike } from '../../../primitives/Vec'
@@ -516,7 +515,8 @@ export class CameraManager {
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = opts?.inset ?? Math.min(ZOOM_TO_FIT_PADDING, viewportScreenBounds.width * 0.28)
+		const inset =
+			opts?.inset ?? Math.min(this.editor.options.zoomToFitPadding, viewportScreenBounds.width * 0.28)
 
 		const baseZoom = this.getBaseZoom()
 		const zoomMin = cameraOptions.zoomSteps[0]
@@ -543,6 +543,7 @@ export class CameraManager {
 			),
 			opts
 		)
+
 		return this
 	}
 
@@ -554,6 +555,7 @@ export class CameraManager {
 	 * @example
 	 * ```ts
 	 * editor.zoomToSelection()
+	 * editor.zoomToSelection({ animation: { duration: 200 } })
 	 * ```
 	 *
 	 * @param opts - The camera move options.
@@ -566,10 +568,17 @@ export class CameraManager {
 
 		const selectionPageBounds = this.editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
-			this.zoomToBounds(selectionPageBounds, {
-				targetZoom: Math.max(1, this.getZoomLevel()),
-				...opts,
-			})
+			const currentZoom = this.getZoomLevel()
+			// If already at 100%, zoom to fit the selection in the viewport
+			// Otherwise, zoom to 100% centered on the selection
+			if (Math.abs(currentZoom - 1) < 0.01) {
+				this.zoomToBounds(selectionPageBounds, opts)
+			} else {
+				this.zoomToBounds(selectionPageBounds, {
+					targetZoom: 1,
+					...opts,
+				})
+			}
 		}
 		return this
 	}
