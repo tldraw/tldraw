@@ -49,3 +49,17 @@ Scope: Evaluate 15 unscored SDK feature docs
 
 ---
 
+## 2026-01-07 - evaluate: bindings.mdx
+
+- **Document**: sdk-features/bindings.mdx
+- **Action**: evaluated
+- **Scores**: 9/8/9/9 (readability/voice/completeness/accuracy)
+- **Changes made**:
+  - Added evaluation frontmatter with scores
+- **Learnings**:
+  - BindingUtil at packages/editor/src/lib/editor/bindings/BindingUtil.ts:131
+  - Isolation callbacks well documented (lines 79-100 in source)
+  - Three examples: sticker-bindings, pin-bindings, layout-bindings
+
+---
+
