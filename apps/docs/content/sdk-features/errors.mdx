@@ -12,11 +12,6 @@ keywords:
 reviewed_by: steveruizok
 status: published
 date: 12/22/2025
-readability: 8
-voice: 9
-completeness: 9
-accuracy: 9
-notes: 'Improved completeness with error annotations section and API reference table. Fixed accuracy: updated type signatures to match source code. Enhanced code examples with proper TypeScript typing.'
 ---
 
 The editor uses multiple layers of React error boundaries to isolate failures. When a shape throws during render, only that shape shows a fallback. The rest of the editor keeps working. This matters because custom shapes are a common extension point, and third-party code should not crash the whole experience.

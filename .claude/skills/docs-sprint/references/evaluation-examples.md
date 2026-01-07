@@ -2,19 +2,26 @@
 
 Reference examples showing how to evaluate and score documentation.
 
+Evaluations are stored in `assets/evaluations.json`, not in document frontmatter. This keeps published docs clean and provides a single source of truth for all scores.
+
 ## Example evaluation: signals.mdx
 
 This document scored well across all dimensions:
 
-```yaml
-readability: 9
-voice: 9
-completeness: 9
-accuracy: 8
-notes: 'Excellent coverage with improved debugging examples showing console output. isComputed listed in API table but not exported from @tldraw/state. Good use of unsafe__withoutCapture section.'
+```json
+"sdk-features/signals.mdx": {
+  "readability": 9,
+  "voice": 9,
+  "completeness": 9,
+  "accuracy": 8,
+  "evaluated_at": "01/07/2026",
+  "notes": "Excellent coverage with improved debugging examples showing console output. isComputed listed in API table but not exported from @tldraw/state. Good use of unsafe__withoutCapture section.",
+  "evaluator_notes": null
+}
 ```
 
 **Why it scored well**:
+
 - Clear section progression from basic concepts to advanced usage
 - Code examples are minimal and illustrative
 - API reference table at the end
@@ -23,15 +30,20 @@ notes: 'Excellent coverage with improved debugging examples showing console outp
 
 ## Example evaluation: tools.mdx
 
-```yaml
-readability: 8
-voice: 8
-completeness: 9
-accuracy: 8
-notes: 'Well-structured with good code examples. StateNode properties table helpful. Dynamic tool registration example is accurate. Minor inconsistency at line 56 about custom root state vs tools prop.'
+```json
+"sdk-features/tools.mdx": {
+  "readability": 8,
+  "voice": 8,
+  "completeness": 9,
+  "accuracy": 8,
+  "evaluated_at": "01/07/2026",
+  "notes": "Well-structured with good code examples. StateNode properties table helpful. Dynamic tool registration example is accurate. Minor inconsistency at line 56 about custom root state vs tools prop.",
+  "evaluator_notes": null
+}
 ```
 
 **What kept it from 9+**:
+
 - Minor voice issues (some hedging)
 - One inconsistency flagged for accuracy
 
@@ -40,6 +52,7 @@ notes: 'Well-structured with good code examples. StateNode properties table help
 ### Readability
 
 **9-10**: Flows naturally, scannable, perfect structure
+
 ```markdown
 // Good: Clear, direct
 Groups are logical containers that combine shapes into a single unit.
@@ -57,6 +70,7 @@ single unit that can be selected.
 ### Voice
 
 **9-10**: Perfect tldraw voice, no AI tells
+
 ```markdown
 // Good: Direct, code-first
 Need to group shapes? Use `editor.groupShapes()`:
@@ -71,8 +85,10 @@ Grouping plays a crucial role in organizing shapes effectively.
 ### Completeness
 
 **9-10**: Comprehensive coverage, good examples, links to more
+
 ```markdown
 // Good: Shows the key concepts, links to examples
+
 ## Related examples
 
 - **[Custom tools](link)** - Creating a custom drawing tool
@@ -84,6 +100,7 @@ Grouping plays a crucial role in organizing shapes effectively.
 ### Accuracy
 
 **9-10**: All code works, APIs verified against source
+
 ```markdown
 // Verify against actual source
 // packages/editor/src/lib/editor/Editor.ts:1234
@@ -95,33 +112,36 @@ groupShapes(shapes: TLShape[] | TLShapeId[]): this
 
 ## Priority fixes format
 
-When any score is below 8, identify fixes:
+When any score is below 8, identify fixes in the `notes` field:
 
 ```
 PRIORITY_FIXES:
-
-1. [Most impactful fix] - e.g., "Fix broken code example at line 45"
-2. [Second priority] - e.g., "Remove hedging language in overview"
-3. [Third priority] - e.g., "Add link to related example"
+1. Fix broken code example at line 45
+2. Remove hedging language in overview
+3. Add link to related example
 ```
 
-## Frontmatter format
+## Evaluation JSON schema
 
-Always write scores and notes to frontmatter:
+Write evaluations to `assets/evaluations.json`:
 
-```yaml
----
-title: Feature name
-created_at: MM/DD/YYYY
-updated_at: MM/DD/YYYY
-keywords:
-  - keyword1
-status: published
-date: MM/DD/YYYY
-readability: 8
-voice: 7
-completeness: 9
-accuracy: 8
-notes: 'Brief assessment. What works, what needs improvement. Max 120 words.'
----
+```json
+{
+	"sdk-features/feature-name.mdx": {
+		"readability": 8,
+		"voice": 7,
+		"completeness": 9,
+		"accuracy": 8,
+		"evaluated_at": "01/07/2026",
+		"notes": "Agent assessment. What works, what needs improvement. Include PRIORITY_FIXES if any score < 8.",
+		"evaluator_notes": "Human reviewer comments (optional, added manually)."
+	}
+}
 ```
+
+**Fields**:
+
+- `readability`, `voice`, `completeness`, `accuracy` — Scores 0-10
+- `evaluated_at` — Date of evaluation (MM/DD/YYYY)
+- `notes` — Agent's assessment from the evaluation
+- `evaluator_notes` — Human reviewer notes (null until manually added)

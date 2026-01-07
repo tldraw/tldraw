@@ -11,11 +11,6 @@ keywords:
   - nesting
 status: published
 date: 12/28/2025
-readability: 9
-voice: 9
-completeness: 9
-accuracy: 9
-notes: 'Strong documentation with clear structure. Correctly explains getShapeAncestors order (root-to-parent). Hidden shapes section now accurately describes the getShapeVisibility callback requirement.'
 ---
 
 Every shape in tldraw has a parent. A shape's parent is either the page it lives on or another shape that contains it. This parent-child relationship creates a hierarchy that affects how shapes move, transform, and render. Groups and frames use this hierarchy to contain other shapes; the editor tracks this hierarchy to manage transforms, selection, and rendering order.

@@ -14,11 +14,6 @@ keywords:
   - tool lock
 status: published
 date: 12/20/2025
-readability: 8
-voice: 8
-completeness: 9
-accuracy: 8
-notes: 'Well-structured with good code examples. StateNode properties table helpful. Dynamic tool registration example is accurate. Minor inconsistency at line 56 about custom root state vs tools prop.'
 ---
 
 Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode like selecting shapes, drawing, or panning the canvas. Tools are implemented as state machines using the `StateNode` class, which provides a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to mouse movements and clicks.

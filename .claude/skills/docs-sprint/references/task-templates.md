@@ -8,63 +8,54 @@ The most common pattern: evaluate all docs, then improve any with low scores.
 
 ```json
 {
-  "project": "docs-sprint-001",
-  "description": "Evaluate and improve SDK documentation",
-  "branch": "docs/sprint-001",
-  "style_guide_version": "2025-01-07",
+	"project": "docs-sprint-001",
+	"description": "Evaluate and improve SDK documentation",
+	"branch": "docs/sprint-001",
+	"style_guide_version": "2025-01-07",
 
-  "articles": [
-    "sdk-features/actions.mdx",
-    "sdk-features/groups.mdx",
-    "sdk-features/bindings.mdx"
-  ],
+	"articles": ["sdk-features/actions.mdx", "sdk-features/groups.mdx", "sdk-features/bindings.mdx"],
 
-  "stories": [
-    {
-      "id": "evaluate",
-      "priority": 1,
-      "title": "Evaluate documentation",
-      "instructions": "Score on readability, voice, completeness, accuracy. Verify code against source.",
-      "acceptance": [
-        "Scores in frontmatter",
-        "Notes populated",
-        "Priority fixes if score < 8"
-      ],
-      "status": {
-        "sdk-features/actions.mdx": false,
-        "sdk-features/groups.mdx": false,
-        "sdk-features/bindings.mdx": false
-      }
-    },
-    {
-      "id": "improve",
-      "priority": 2,
-      "title": "Improve documentation",
-      "instructions": "Address priority fixes. Focus on lowest scores first.",
-      "acceptance": [
-        "All scores 8+",
-        "No AI tells",
-        "Re-evaluated after changes"
-      ],
-      "depends_on": "evaluate",
-      "status": {
-        "sdk-features/actions.mdx": false,
-        "sdk-features/groups.mdx": false,
-        "sdk-features/bindings.mdx": false
-      }
-    }
-  ],
+	"stories": [
+		{
+			"id": "evaluate",
+			"priority": 1,
+			"title": "Evaluate documentation",
+			"instructions": "Score on readability, voice, completeness, accuracy. Verify code against source.",
+			"acceptance": [
+				"Scores and evaluator notes in evaluations.json",
+				"Priority fixes if score < 8"
+			],
+			"status": {
+				"sdk-features/actions.mdx": false,
+				"sdk-features/groups.mdx": false,
+				"sdk-features/bindings.mdx": false
+			}
+		},
+		{
+			"id": "improve",
+			"priority": 2,
+			"title": "Improve documentation",
+			"instructions": "Address priority fixes. Focus on lowest scores first.",
+			"acceptance": ["All scores 8+", "No AI tells", "Re-evaluated after changes"],
+			"depends_on": "evaluate",
+			"status": {
+				"sdk-features/actions.mdx": false,
+				"sdk-features/groups.mdx": false,
+				"sdk-features/bindings.mdx": false
+			}
+		}
+	],
 
-  "story_definitions": {
-    "evaluate": {
-      "description": "Score a document on 4 dimensions",
-      "workflow": "Use /evaluate-docs pattern"
-    },
-    "improve": {
-      "description": "Improve based on scores and notes",
-      "workflow": "Use /improve-docs pattern"
-    }
-  }
+	"story_definitions": {
+		"evaluate": {
+			"description": "Score a document on 4 dimensions",
+			"workflow": "Use /evaluate-docs pattern"
+		},
+		"improve": {
+			"description": "Improve based on scores and notes",
+			"workflow": "Use /improve-docs pattern"
+		}
+	}
 }
 ```
 
@@ -74,47 +65,43 @@ For thorough documentation refresh including API verification.
 
 ```json
 {
-  "articles": [
-    "sdk-features/editor.mdx",
-    "sdk-features/shapes.mdx",
-    "sdk-features/tools.mdx"
-  ],
+	"articles": ["sdk-features/editor.mdx", "sdk-features/shapes.mdx", "sdk-features/tools.mdx"],
 
-  "stories": [
-    {
-      "id": "evaluate",
-      "priority": 1,
-      "title": "Evaluate documentation",
-      "status": {
-        "sdk-features/editor.mdx": false,
-        "sdk-features/shapes.mdx": false,
-        "sdk-features/tools.mdx": false
-      }
-    },
-    {
-      "id": "improve",
-      "priority": 2,
-      "title": "Improve documentation",
-      "depends_on": "evaluate",
-      "status": {
-        "sdk-features/editor.mdx": false,
-        "sdk-features/shapes.mdx": false,
-        "sdk-features/tools.mdx": false
-      }
-    },
-    {
-      "id": "update",
-      "priority": 3,
-      "title": "Sync with codebase",
-      "instructions": "Verify all code snippets against current API. Update outdated sections.",
-      "depends_on": "improve",
-      "status": {
-        "sdk-features/editor.mdx": false,
-        "sdk-features/shapes.mdx": false,
-        "sdk-features/tools.mdx": false
-      }
-    }
-  ]
+	"stories": [
+		{
+			"id": "evaluate",
+			"priority": 1,
+			"title": "Evaluate documentation",
+			"status": {
+				"sdk-features/editor.mdx": false,
+				"sdk-features/shapes.mdx": false,
+				"sdk-features/tools.mdx": false
+			}
+		},
+		{
+			"id": "improve",
+			"priority": 2,
+			"title": "Improve documentation",
+			"depends_on": "evaluate",
+			"status": {
+				"sdk-features/editor.mdx": false,
+				"sdk-features/shapes.mdx": false,
+				"sdk-features/tools.mdx": false
+			}
+		},
+		{
+			"id": "update",
+			"priority": 3,
+			"title": "Sync with codebase",
+			"instructions": "Verify all code snippets against current API. Update outdated sections.",
+			"depends_on": "improve",
+			"status": {
+				"sdk-features/editor.mdx": false,
+				"sdk-features/shapes.mdx": false,
+				"sdk-features/tools.mdx": false
+			}
+		}
+	]
 }
 ```
 
@@ -123,6 +110,7 @@ For thorough documentation refresh including API verification.
 To add an article to an existing sprint:
 
 1. Add to `articles` array:
+
 ```json
 "articles": [
   "sdk-features/actions.mdx",
@@ -131,6 +119,7 @@ To add an article to an existing sprint:
 ```
 
 2. Add to each story's `status` with `false`:
+
 ```json
 "stories": [
   {
@@ -158,29 +147,26 @@ For creating new documentation from scratch.
 
 ```json
 {
-  "articles": [
-    "sdk-features/new-feature-1.mdx",
-    "sdk-features/new-feature-2.mdx"
-  ],
+	"articles": ["sdk-features/new-feature-1.mdx", "sdk-features/new-feature-2.mdx"],
 
-  "stories": [
-    {
-      "id": "write",
-      "priority": 1,
-      "title": "Write new documentation",
-      "instructions": "Research feature in codebase. Create doc following voice guide.",
-      "acceptance": [
-        "Overview explains what and why",
-        "Key concepts with code snippets",
-        "Links to examples",
-        "Initial scores 8+"
-      ],
-      "status": {
-        "sdk-features/new-feature-1.mdx": false,
-        "sdk-features/new-feature-2.mdx": false
-      }
-    }
-  ]
+	"stories": [
+		{
+			"id": "write",
+			"priority": 1,
+			"title": "Write new documentation",
+			"instructions": "Research feature in codebase. Create doc following voice guide.",
+			"acceptance": [
+				"Overview explains what and why",
+				"Key concepts with code snippets",
+				"Links to examples",
+				"Initial scores 8+"
+			],
+			"status": {
+				"sdk-features/new-feature-1.mdx": false,
+				"sdk-features/new-feature-2.mdx": false
+			}
+		}
+	]
 }
 ```
 
@@ -190,30 +176,22 @@ Apply style updates across existing docs.
 
 ```json
 {
-  "articles": [
-    "sdk-features/actions.mdx",
-    "sdk-features/groups.mdx",
-    "sdk-features/bindings.mdx"
-  ],
+	"articles": ["sdk-features/actions.mdx", "sdk-features/groups.mdx", "sdk-features/bindings.mdx"],
 
-  "stories": [
-    {
-      "id": "apply-style",
-      "priority": 1,
-      "title": "Apply style guide updates",
-      "instructions": "Fix hedging, passive voice, AI tells, Title Case headings.",
-      "acceptance": [
-        "No Title Case headings",
-        "No AI writing tells",
-        "Voice score 8+"
-      ],
-      "status": {
-        "sdk-features/actions.mdx": false,
-        "sdk-features/groups.mdx": false,
-        "sdk-features/bindings.mdx": false
-      }
-    }
-  ]
+	"stories": [
+		{
+			"id": "apply-style",
+			"priority": 1,
+			"title": "Apply style guide updates",
+			"instructions": "Fix hedging, passive voice, AI tells, Title Case headings.",
+			"acceptance": ["No Title Case headings", "No AI writing tells", "Voice score 8+"],
+			"status": {
+				"sdk-features/actions.mdx": false,
+				"sdk-features/groups.mdx": false,
+				"sdk-features/bindings.mdx": false
+			}
+		}
+	]
 }
 ```
 
