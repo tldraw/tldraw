@@ -1,10 +1,19 @@
+---
+description: Create a GitHub issue from a description
+argument-hint: [description]
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(yarn dev), Bash(yarn dev-app), Bash(yarn dev-docs), Task(Explore), Skill(dev-browser:dev-browser)
+model: opus
+---
+
 # Create and research a GitHub issue
 
-Create a new GitHub issue on tldraw/tldraw based on the user's description, then research it thoroughly.
+Create a new GitHub issue on the `tldraw/tldraw` repo based on the user's description, then research it thoroughly.
 
-## User's issue description
+## Context
 
-$ARGUMENTS
+- User's issue description: $ARGUMENTS
+- Current branch: !`git branch --show-current`
+- Recent issues: !`gh issue list --repo tldraw/tldraw --limit 5 --json number,title --jq '.[] | "#\(.number) \(.title)"'`
 
 ## Instructions
 
@@ -38,7 +47,7 @@ If screenshots aren't feasible (e.g., the bug is non-visual, or reproduction is 
 
 ### Step 3: Create the issue
 
-Create the issue on GitHub following the standards in `.claude/skills/write-issue.md`:
+Create the issue on GitHub following the standards in @.claude/skills/write-issue/SKILL.md.
 
 1. **Determine the issue type**:
    - `Bug` - Something isn't working as expected
@@ -77,16 +86,62 @@ Create the issue on GitHub following the standards in `.claude/skills/write-issu
 ```bash
 gh issue create --repo tldraw/tldraw \
   --title "Your title here" \
-  --body "Your body here" \
-  --type "Bug"  # or: Feature, Example, Task
+  --body "Your body here"
 ```
 
-**Important**:
+5. **Set the issue type** via the GitHub API (the `--type` flag is not supported in all gh versions):
 
-- ALWAYS include the `--type` flag with one of: Bug, Feature, Example, Task
-- NEVER include "Generated with Claude Code", "Co-Authored-By: Claude", or any other AI attribution notes in the issue title or body
+```bash
+# Get the issue number from the URL returned by gh issue create
+# Then set the type using the GraphQL API:
+gh api graphql -f query='
+  mutation {
+    updateIssue(input: {
+      id: "<issue-node-id>",
+      issueTypeId: "<type-id>"
+    }) {
+      issue { id }
+    }
+  }
+'
+```
 
-5. **Share the issue URL** with the user immediately after creation
+To get the issue node ID and available type IDs:
+
+```bash
+# Get issue node ID
+gh issue view <issue-number> --repo tldraw/tldraw --json id --jq '.id'
+
+# List available issue types for the repo
+gh api graphql -f query='
+  query {
+    repository(owner: "tldraw", name: "tldraw") {
+      issueTypes(first: 10) {
+        nodes { id name }
+      }
+    }
+  }
+'
+```
+
+6. **Assign a milestone** (if appropriate):
+
+If the issue clearly fits one of these milestones, assign it. Otherwise, leave the milestone empty.
+
+Available milestones:
+
+- **Improve developer resources**: For examples, documentation, improved code comments, starter kits, and `npm create tldraw` improvements
+- **Improve automations**: For GitHub Actions, review bots, CI/CD, and other automation improvements
+
+```bash
+gh issue edit <issue-number> --repo tldraw/tldraw --milestone "Milestone Name"
+```
+
+Only assign a milestone if there's a clear fit. Most issues won't need a milestone.
+
+**Important**: NEVER include "Generated with Claude Code", "Co-Authored-By: Claude", or any other AI attribution notes in the issue title or body.
+
+7. **Share the issue URL** with the user immediately after creation
 
 ### Step 4: Deep research with subagent
 

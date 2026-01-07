@@ -573,7 +573,6 @@ export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,
 } from './lib/ui/components/TopPanel/CenteredTopPanelContainer'
-export { DefaultTopPanel } from './lib/ui/components/TopPanel/DefaultTopPanel'
 export {
 	DefaultZoomMenu,
 	type TLUiZoomMenuProps,
