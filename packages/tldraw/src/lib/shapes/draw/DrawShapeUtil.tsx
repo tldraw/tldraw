@@ -260,7 +260,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 			const zoomLevel = zoomOverride ?? editor.getEfficientZoomLevel()
 			// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
 			// Chrome doesn't render anything otherwise.
-			return zoomLevel < 0.2 ? 0 : 0.1
+			return zoomLevel < 0.2 ? 9 : 0.1
 		},
 		[editor, zoomOverride]
 	)
