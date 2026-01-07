@@ -77,3 +77,48 @@ Scope: Evaluate 15 unscored SDK feature docs
 
 ---
 
+## 2026-01-07 - evaluate: clipboard.mdx
+
+- **Document**: sdk-features/clipboard.mdx
+- **Action**: evaluated
+- **Scores**: 9/8/9/9 (readability/voice/completeness/accuracy)
+- **Changes made**:
+  - Added evaluation frontmatter with scores
+- **Learnings**:
+  - Methods getContentFromCurrentPage and putContentOntoCurrentPage in Editor.ts
+  - Two examples: custom-paste, external-content-sources
+
+---
+
+## 2026-01-07 - evaluate: batch evaluation of 9 remaining docs
+
+- **Documents**: coordinates, culling, deep-links, default-shapes, edge-scrolling, environment, groups, image-export, input-handling
+- **Action**: evaluated all 9
+- **Scores**:
+  - coordinates: 9/8/9/9
+  - culling: 9/8/9/9
+  - deep-links: 9/8/9/9
+  - default-shapes: 9/9/10/9 (exceptionally comprehensive)
+  - edge-scrolling: 9/8/10/9
+  - environment: 9/8/9/9
+  - groups: 9/8/9/9
+  - image-export: 9/8/9/9
+  - input-handling: 9/8/10/9
+- **Changes made**:
+  - Added evaluation frontmatter to all 9 docs
+- **Learnings**:
+  - All referenced examples exist in apps/examples/src/examples/
+  - Documentation quality is consistently high (average 8.8 across all criteria)
+  - default-shapes is a comprehensive reference (732 lines) covering all 13 shape types
+  - edge-scrolling and input-handling have excellent technical depth
+
+---
+
+## Sprint Complete
+
+All 15 SDK feature docs evaluated:
+- Total docs: 15
+- Average scores: Readability 8.9, Voice 8.1, Completeness 9.3, Accuracy 8.9
+- All docs have evaluation frontmatter added
+- No major accuracy issues found - all referenced examples exist
+

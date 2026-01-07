@@ -28,16 +28,16 @@
 				"sdk-features/assets.mdx": true,
 				"sdk-features/bindings.mdx": true,
 				"sdk-features/camera.mdx": true,
-				"sdk-features/clipboard.mdx": false,
-				"sdk-features/coordinates.mdx": false,
-				"sdk-features/culling.mdx": false,
-				"sdk-features/deep-links.mdx": false,
-				"sdk-features/default-shapes.mdx": false,
-				"sdk-features/edge-scrolling.mdx": false,
-				"sdk-features/environment.mdx": false,
-				"sdk-features/groups.mdx": false,
-				"sdk-features/image-export.mdx": false,
-				"sdk-features/input-handling.mdx": false
+				"sdk-features/clipboard.mdx": true,
+				"sdk-features/coordinates.mdx": true,
+				"sdk-features/culling.mdx": true,
+				"sdk-features/deep-links.mdx": true,
+				"sdk-features/default-shapes.mdx": true,
+				"sdk-features/edge-scrolling.mdx": true,
+				"sdk-features/environment.mdx": true,
+				"sdk-features/groups.mdx": true,
+				"sdk-features/image-export.mdx": true,
+				"sdk-features/input-handling.mdx": true
 			}
 		}
 	]
