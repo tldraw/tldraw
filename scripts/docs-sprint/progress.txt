@@ -35,3 +35,17 @@ Scope: Evaluate 15 unscored SDK feature docs
 
 ---
 
+## 2026-01-07 - evaluate: assets.mdx
+
+- **Document**: sdk-features/assets.mdx
+- **Action**: evaluated
+- **Scores**: 9/8/9/9 (readability/voice/completeness/accuracy)
+- **Changes made**:
+  - Added evaluation frontmatter with scores
+- **Learnings**:
+  - TLAssetStore interface at packages/tlschema/src/TLStore.ts:169
+  - TLAssetContext at packages/tlschema/src/TLStore.ts:107-133
+  - Five examples: hosted-images, local-images, local-videos, asset-props, static-assets
+
+---
+

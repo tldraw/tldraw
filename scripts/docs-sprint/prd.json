@@ -25,7 +25,7 @@
 			"status": {
 				"sdk-features/actions.mdx": true,
 				"sdk-features/animation.mdx": true,
-				"sdk-features/assets.mdx": false,
+				"sdk-features/assets.mdx": true,
 				"sdk-features/bindings.mdx": false,
 				"sdk-features/camera.mdx": false,
 				"sdk-features/clipboard.mdx": false,
