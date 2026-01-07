@@ -11,6 +11,11 @@ keywords:
   - hit testing
 status: published
 date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable while allowing complex per-shape behavior. Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
@@ -110,13 +115,64 @@ onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
 }
 ```
 
+### Static properties
+
+ShapeUtil classes use static properties for type registration and schema configuration:
+
+```typescript
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+
+	// Define props validators (including style props)
+	static override props = {
+		w: T.number,
+		h: T.number,
+		color: DefaultColorStyle, // StyleProp instances are recognized automatically
+	}
+
+	// Define migrations for schema evolution
+	static override migrations = defineMigrations({
+		currentVersion: 1,
+		migrators: {
+			1: {
+				up: (shape) => ({ ...shape, props: { ...shape.props, newProp: 'default' } }),
+				down: (shape) => {
+					const { newProp, ...rest } = shape.props
+					return { ...shape, props: rest }
+				},
+			},
+		},
+	})
+}
+```
+
+### Configuring built-in shapes
+
+Use [ShapeUtil.configure](?) to customize options on built-in shape utilities without subclassing them:
+
+```typescript
+import { GeoShapeUtil, Tldraw } from 'tldraw'
+
+// Create a configured version with custom options
+const ConfiguredGeoShapeUtil = GeoShapeUtil.configure({
+	canCrop: false,
+	hideSelectionBoundsFg: true,
+})
+
+function App() {
+	return <Tldraw shapeUtils={[ConfiguredGeoShapeUtil]} />
+}
+```
+
+This is useful for changing behavior like `canCrop`, `canResize`, or `canEdit` without creating a full custom ShapeUtil.
+
 ### Registering ShapeUtils
 
 Register custom ShapeUtils when initializing tldraw by passing them to the `shapeUtils` prop. The editor creates one instance of each ShapeUtil and uses it for all shapes of that type.
 
 ## Geometry system
 
-The geometry system provides mathematical representations of shapes for hit testing, bounds calculation, snapping, and collision detection. Every ShapeUtil returns a `Geometry2d` instance from its `getGeometry` method. The system includes geometry classes for common shapes: `Rectangle2d` for axis-aligned rectangles, `Ellipse2d` for circles and ellipses, `Polygon2d` for arbitrary closed polygons, `Polyline2d` for open paths, `Arc2d` for circular arcs, `Stadium2d` for rounded rectangles, and `Group2d` for composite geometry.
+The geometry system provides mathematical representations of shapes for hit testing, bounds calculation, snapping, and collision detection. Every ShapeUtil returns a [Geometry2d](?) instance from its `getGeometry` method. The system includes geometry classes for common shapes: [Rectangle2d](?) for axis-aligned rectangles, [Circle2d](?) for true circles (with center and radius), [Ellipse2d](?) for ellipses with different width/height, [Polygon2d](?) for arbitrary closed polygons, [Polyline2d](?) for open paths, [Arc2d](?) for circular arcs, [Stadium2d](?) for rounded rectangles, and [Group2d](?) for composite geometry.
 
 ### Key geometry operations
 

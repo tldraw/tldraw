@@ -10,6 +10,11 @@ keywords:
   - precision
 status: published
 date: 12/20/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 When you move or resize shapes, tldraw snaps them to key geometry on nearby shapes. This helps users achieve precise alignment without manual measurement.
@@ -151,6 +156,8 @@ Align snapping (`snapType: 'align'`) snaps to align with nearby points on both x
 
 Each handle uses one snap type based on its `snapType` property. Snap points always have higher priority than outlines.
 
+> **Note:** The older `canSnap` property on handles is deprecated. Use `snapType: 'point'` or `snapType: 'align'` instead.
+
 ### Snapping handles
 
 Tools call `snapHandle()` to snap a handle position:
@@ -188,5 +195,5 @@ Indicators are cleared automatically when dragging stops or when you call `clear
 
 For working examples of custom snapping, see:
 
-- [Custom bounds snapping](/examples/shapes/tools/bounds-snapping-shape): Create shapes with custom snap geometry so they snap to specific points, like playing cards that stack with visible icons.
-- [Custom relative snapping](/examples/shapes/tools/custom-relative-snapping): Customize snapping behavior between shapes using getBoundsSnapGeometry.
+- [Custom bounds snapping](/examples/bounds-snapping-shape): Create shapes with custom snap geometry so they snap to specific points, like playing cards that stack with visible icons.
+- [Custom relative snapping](/examples/custom-relative-snapping): Customize snapping behavior between shapes using getBoundsSnapGeometry.

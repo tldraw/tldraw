@@ -10,6 +10,11 @@ keywords:
   - customization
 status: published
 date: 12/29/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The `@tldraw/tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
@@ -83,7 +88,7 @@ Components access editor functionality through specialized hooks.
 
 `useRelevantStyles` determines which styles are relevant to the current selection and returns their values. It powers the style panel.
 
-`useBreakpoint` returns the current responsive breakpoint (mobile, tablet, desktop), allowing components to adapt their layout.
+`useBreakpoint` returns a numeric breakpoint index (0-7) that maps to the `PORTRAIT_BREAKPOINT` enum. Compare against values like `PORTRAIT_BREAKPOINT.MOBILE` or `PORTRAIT_BREAKPOINT.TABLET_SM` to adapt layout for different screen sizes.
 
 These hooks encapsulate common UI patterns and keep your custom components in sync with editor state.
 

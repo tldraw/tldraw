@@ -10,6 +10,11 @@ keywords:
   - download
 status: published
 date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The editor handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports are fully self-contained: the editor embeds fonts, inlines styles, and converts media elements to data URLs.
@@ -47,7 +52,9 @@ The `pixelRatio` option controls output resolution. For high-DPI displays, use a
 
 ## Export options
 
-All export methods accept a [TLImageExportOptions](?) object:
+SVG export methods (`getSvgElement`, `getSvgString`) accept [TLSvgExportOptions](?). Raster export methods (`toImage`, `toImageDataUrl`) accept [TLImageExportOptions](?), which extends `TLSvgExportOptions` with format-specific options.
+
+**Shared options (all export methods):**
 
 | Option                | Description                                                                                                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -55,11 +62,16 @@ All export methods accept a [TLImageExportOptions](?) object:
 | `scale`               | Logical scale multiplier. A scale of 2 doubles the SVG size.                                                                                                                                           |
 | `pixelRatio`          | For SVG exports, passed to the asset store so it can provide appropriately sized assets. For raster exports, multiplies output dimensions. Defaults to `undefined` for SVG and `2` for raster formats. |
 | `background`          | Whether to include the background color. If `false`, the export is transparent (for formats that support it).                                                                                          |
-| `padding`             | Space in pixels around the shape bounds. Defaults to 32. Skipped when exporting a single frame or shapes within an image.                                                                              |
+| `padding`             | Space in pixels around the shape bounds. Defaults to 32. When exporting a single frame, padding is not applied (the frame itself serves as the boundary). When exporting shapes inside an image shape, padding is also skipped.                                                                              |
 | `darkMode`            | Whether to render in dark mode. Defaults to the current theme setting.                                                                                                                                 |
-| `quality`             | Compression quality for lossy formats (JPEG, WebP) as a number between 0 and 1.                                                                                                                        |
-| `format`              | Output format: `'svg'`, `'png'`, `'jpeg'`, or `'webp'`. Defaults to `'png'`.                                                                                                                           |
-| `preserveAspectRatio` | The SVG `preserveAspectRatio` attribute. Only applies to SVG exports.                                                                                                                                  |
+| `preserveAspectRatio` | The SVG `preserveAspectRatio` attribute.                                                                                                                                                               |
+
+**Raster-only options (toImage, toImageDataUrl):**
+
+| Option    | Description                                                                      |
+| --------- | -------------------------------------------------------------------------------- |
+| `format`  | Output format: `'svg'`, `'png'`, `'jpeg'`, or `'webp'`. Defaults to `'png'`.     |
+| `quality` | Compression quality for lossy formats (JPEG, WebP) as a number between 0 and 1.  |
 
 ## Editor export methods
 
@@ -114,6 +126,21 @@ const result = await editor.toImageDataUrl(shapes, { format: 'png' })
 const img = document.createElement('img')
 img.src = result.url
 ```
+
+## Error handling
+
+All export methods return `undefined` if the export fails (for example, if there are no shapes to export or if the browser canvas limits are exceeded). Always check the result:
+
+```typescript
+const result = await editor.toImage(shapes, { format: 'png' })
+if (!result) {
+	console.error('Export failed')
+	return
+}
+// result.blob is available
+```
+
+The raster conversion automatically clamps dimensions to stay within browser canvas limits, which vary by platform but are typically around 16k x 16k pixels. Very large exports at high pixel ratios may fail if they exceed these limits.
 
 ## Related examples
 

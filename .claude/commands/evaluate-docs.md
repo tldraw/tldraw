@@ -1,4 +1,12 @@
+---
+description: Review a documentation file.
+argument-hint: <path to document>
+model: opus
+---
+
 Review and improve the documentation at: $ARGUMENTS
+
+Relevant skills: `write-docs`.
 
 ## Instructions
 
@@ -66,6 +74,6 @@ PRIORITY_FIXES:
 2. [Second most important]
 3. [Third most important]
 
-Write your scores into the frontmatter of the document under the `readability`, `voice`, `completeness`, and `accuracy` properties. Write your notes (<120 words) into the frontmatter of the document under the `notes` property.
+Write your scores into the frontmatter of the document under the `readability`, `voice`, `completeness`, and `accuracy` properties. Write your notes (<200 words) into the frontmatter of the document under the `notes` property. Your notes should be focused on additional areas for improvement, especially inaccuracies.
 
 Report back to the user your results.

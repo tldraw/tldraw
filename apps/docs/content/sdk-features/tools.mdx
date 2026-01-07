@@ -14,21 +14,26 @@ keywords:
   - tool lock
 status: published
 date: 12/20/2025
+readability: 8
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
-Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode like selecting shapes, drawing, or panning the canvas. Tools are implemented as state machines using the `StateNode` class, which provides a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to mouse movements and clicks.
+Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode—selecting shapes, drawing, or panning the canvas. You implement tools as state machines using the `StateNode` class, which gives you a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to your mouse movements and clicks.
 
-The state machine architecture enables tools to handle multi-step interactions cleanly. For example, when using the select tool to resize a shape, the tool transitions through multiple states: idle, pointing the resize handle, and actively resizing. Each state handles different events and can transition to other states based on user input. This pattern keeps tool logic organized and makes complex interactions manageable.
+The state machine architecture lets you handle multi-step interactions cleanly. For example, when you use the select tool to resize a shape, the tool transitions through multiple states: idle, pointing the resize handle, and actively resizing. Each state handles different events and can transition to other states based on user input. This pattern keeps your tool logic organized and makes complex interactions manageable.
 
 ## How it works
 
 Tools are organized in a hierarchical state machine where each node can handle events and contain child states. The editor creates a root state that contains all tools as children. When an input event occurs, it flows down from the root through the currently active tool and its active child state.
 
-The `StateNode` class provides the foundation for this system. Each state node has an id, optional children, and methods for handling events. State nodes come in three types: root nodes that contain tools, branch nodes that have child states, and leaf nodes that perform actual work. Tools themselves are typically branch nodes with child states representing different phases of an interaction.
+The [StateNode](?) class provides the foundation for this system. Each state node has an id, optional children, and methods for handling events. State nodes come in three types: root nodes that contain tools, branch nodes that have child states, and leaf nodes that perform actual work. Tools themselves are typically branch nodes with child states representing different phases of an interaction.
 
 When a state becomes active, its `onEnter` method runs. When it becomes inactive, its `onExit` method runs. Between these lifecycle events, the state handles input through event methods like `onPointerDown`, `onPointerMove`, and `onKeyDown`. If a state doesn't handle an event, it passes through without effect. Child states receive events after their parent, allowing both to respond.
 
-Transitions between states happen explicitly through the `transition` method. When the select tool's idle state detects a pointer down on a shape, it calls `this.parent.transition('pointing_shape', info)` to move to the pointing state. The transition triggers the appropriate exit and enter handlers, maintaining clean state boundaries.
+You trigger transitions between states explicitly through the `transition` method. When the select tool's idle state detects a pointer down on a shape, it calls `this.parent.transition('pointing_shape', info)` to move to the pointing state. The transition triggers the appropriate exit and enter handlers, maintaining clean state boundaries.
 
 ## Key concepts
 
@@ -181,7 +186,7 @@ Use the `overrides` prop to modify which tools appear in the UI. The `tools` fun
 import { Tldraw, TLUiOverrides } from 'tldraw'
 
 const overrides: TLUiOverrides = {
-	tools(editor, tools) {
+	tools(editor, tools, helpers) {
 		// Remove the text tool from the toolbar
 		delete tools.text
 		return tools
@@ -208,7 +213,7 @@ class MyTool extends StateNode {
 }
 
 const overrides: TLUiOverrides = {
-	tools(editor, tools) {
+	tools(editor, tools, helpers) {
 		tools['my-tool'] = {
 			id: 'my-tool',
 			icon: 'my-icon',

@@ -20,6 +20,11 @@ keywords:
   - group
 status: published
 date: 12/25/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 10
+notes: "Passive constructions remain (\"are created through\", \"is computed as\"). Could link to more examples."
 ---
 
 The tldraw package includes thirteen shape types that cover common diagramming and whiteboarding needs. Each shape type has a corresponding [ShapeUtil](?) that defines its rendering, geometry, and interaction behavior. You can use these shapes as-is, configure their behavior through options, or use them as reference when building custom shapes.
@@ -542,15 +547,17 @@ Properties:
 
 Configuration options:
 
-| Option       | Type      | Default | Description                                                                                     |
-| ------------ | --------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `showColors` | `boolean` | `false` | When true, frames display colored borders and header backgrounds based on the `color` property. |
+| Option           | Type      | Default | Description                                                                                     |
+| ---------------- | --------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `showColors`     | `boolean` | `false` | When true, frames display colored borders and header backgrounds based on the `color` property. |
+| `resizeChildren` | `boolean` | `false` | When true, resizing the frame also scales the frame's children proportionally.                  |
 
 When `showColors` is enabled, the frame's `color` property becomes a style that users can change from the style panel. When disabled, all frames appear with the same neutral styling.
 
 ```tsx
 const ConfiguredFrameUtil = FrameShapeUtil.configure({
 	showColors: true,
+	resizeChildren: true,
 })
 ```
 

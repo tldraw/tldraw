@@ -1,4 +1,12 @@
+---
+description: Review and improve a documentation file.
+argument-hint: <path to document>
+model: opus
+---
+
 Write or update SDK documentation based on: $ARGUMENTS
+
+Relevant skills: `write-docs`.
 
 ## Overview
 

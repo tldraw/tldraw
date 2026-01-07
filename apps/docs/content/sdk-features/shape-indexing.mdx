@@ -10,6 +10,11 @@ keywords:
   - layers
 status: published
 date: 12/20/2025
+readability: 8
+voice: 9
+completeness: 9
+accuracy: 10
+notes: "Minor repetition in collaboration section about jittering."
 ---
 
 Every shape in tldraw has an `index` property that determines its visual stacking order (z-order) on the canvas. Shapes with higher index values appear in front of shapes with lower values. The index system uses string-based fractional indexing, which allows efficient reordering and supports real-time collaboration.
@@ -41,16 +46,16 @@ import {
 } from '@tldraw/utils'
 
 // Generate a single index between two existing indices
-const between = getIndexBetween('a1' as IndexKey, 'a3' as IndexKey) // 'a2'
+const between = getIndexBetween('a1' as IndexKey, 'a3' as IndexKey) // e.g. 'a2'
 
 // Generate indices above or below an existing index
-const above = getIndexAbove('a1' as IndexKey) // 'a2'
-const below = getIndexBelow('a2' as IndexKey) // 'a1'
+const above = getIndexAbove('a1' as IndexKey) // e.g. 'a2'
+const below = getIndexBelow('a2' as IndexKey) // e.g. 'a1'
 
-// Generate multiple indices at once
-const multipleAbove = getIndicesAbove('a0' as IndexKey, 3) // ['a1', 'a2', 'a3']
-const multipleBelow = getIndicesBelow('a2' as IndexKey, 2) // ['a1', 'a0V']
-const multipleBetween = getIndicesBetween('a0' as IndexKey, 'a2' as IndexKey, 2) // ['a0V', 'a1']
+// Generate multiple indices at once (exact values vary due to jittering)
+const multipleAbove = getIndicesAbove('a0' as IndexKey, 3)
+const multipleBelow = getIndicesBelow('a2' as IndexKey, 2)
+const multipleBetween = getIndicesBetween('a0' as IndexKey, 'a2' as IndexKey, 2)
 
 // Sort objects by their index property
 const shapes = [{ index: 'a2' as IndexKey }, { index: 'a1' as IndexKey }]

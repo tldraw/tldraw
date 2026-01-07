@@ -10,6 +10,11 @@ keywords:
   - cleanup
 status: published
 date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 Side effects are lifecycle hooks that run when records are created, updated, or deleted. You can use them to intercept and modify records, validate changes, or react to completed operations by updating related data.
@@ -85,19 +90,6 @@ editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => 
 		return prev // Block the change by returning the previous record
 	}
 	return next
-})
-```
-
-### Cleaning up related records
-
-After handlers are useful for maintaining referential integrity. When a shape is deleted, you can clean up related bindings:
-
-```typescript
-editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {
-	const bindings = editor.getBindingsInvolvingShape(shape.id)
-	if (bindings.length) {
-		editor.deleteBindings(bindings)
-	}
 })
 ```
 

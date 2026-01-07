@@ -13,7 +13,11 @@ keywords:
   - storage
 status: published
 date: 12/29/2025
-notes: Excellent progressive disclosure and voice. Verify example links. Could mention synced-remote connectionStatus and snapshot prop with persistenceKey.
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 10
+notes: ""
 ---
 
 In tldraw, persistence means storing the editor's state to a database and restoring it later. The SDK provides several approaches: automatic local persistence with a single prop, manual snapshots for custom storage backends, and a migration system for handling schema changes.
@@ -217,13 +221,13 @@ export default function App() {
 
 The editor shows appropriate UI for each status. The possible values are:
 
-| Status          | Meaning                           |
-| --------------- | --------------------------------- |
-| `loading`       | Store is being loaded             |
-| `error`         | Loading failed                    |
-| `not-synced`    | Store created without persistence |
-| `synced-local`  | Store loaded from local storage   |
-| `synced-remote` | Store synced with remote server   |
+| Status          | Meaning                                                               |
+| --------------- | --------------------------------------------------------------------- |
+| `loading`       | Store is being loaded                                                 |
+| `error`         | Loading failed                                                        |
+| `not-synced`    | Store created without persistence                                     |
+| `synced-local`  | Store loaded from local storage                                       |
+| `synced-remote` | Store synced with remote server (includes `connectionStatus` field)   |
 
 ## Listening for changes
 

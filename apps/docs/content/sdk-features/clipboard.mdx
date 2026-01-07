@@ -10,6 +10,11 @@ keywords:
   - content
 status: published
 date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The clipboard lets you copy, cut, and paste shapes within a single editor or between different editor instances. When you copy shapes, the editor serializes them along with their bindings and assets into a [TLContent](?) object. This format preserves document structure and relationships so shapes paste correctly elsewhere.
@@ -111,6 +116,35 @@ The editor uses `preservePosition` internally when moving shapes between pages, 
 Shape and binding IDs get remapped during paste to prevent collisions with existing shapes. The editor creates a mapping from old IDs to new IDs, then updates all references throughout the pasted content: parent-child relationships, binding endpoints, and asset references all get the new IDs.
 
 The `preserveIds` option disables remapping. This is useful when duplicating pages where you need to maintain specific IDs.
+
+## External content handling
+
+For non-tldraw content (images, URLs, plain text), use [Editor#putExternalContent](?) to route it through registered handlers:
+
+```ts
+// Paste files at a specific point
+await editor.putExternalContent({
+	type: 'files',
+	files: droppedFiles,
+	point: { x: 100, y: 200 },
+})
+
+// Paste a URL
+await editor.putExternalContent({
+	type: 'url',
+	url: 'https://example.com/image.png',
+	point: editor.inputs.getCurrentPagePoint(),
+})
+
+// Paste text
+await editor.putExternalContent({
+	type: 'text',
+	text: 'Hello world',
+	point: { x: 100, y: 100 },
+})
+```
+
+Register custom handlers with [Editor#registerExternalContentHandler](?) to customize how different content types are processed. See [External content](/sdk-features/external-content) for details on the handler system.
 
 ## Related examples
 

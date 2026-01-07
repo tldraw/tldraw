@@ -11,6 +11,11 @@ keywords:
   - nesting
 status: published
 date: 12/28/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 Every shape in tldraw has a parent. A shape's parent is either the page it lives on or another shape that contains it. This parent-child relationship creates a hierarchy that affects how shapes move, transform, and render. Groups and frames use this hierarchy to contain other shapes; the editor tracks this hierarchy to manage transforms, selection, and rendering order.
@@ -45,7 +50,7 @@ if (isShapeId(shape.parentId)) {
 
 ## Getting a shape's parent
 
-Use `editor.getShapeParent()` to get the parent shape. It returns `undefined` if the shape is directly on a page:
+Use [Editor#getShapeParent](?) to get the parent shape. It returns `undefined` if the shape is directly on a page:
 
 ```typescript
 const parent = editor.getShapeParent(myShape)
@@ -59,7 +64,7 @@ if (parent) {
 
 ## Getting ancestors
 
-The ancestor chain is the path from a shape up to the page. Use `editor.getShapeAncestors()` to get all ancestors in order from the root to the immediate parent:
+The ancestor chain is the path from a shape up to the page. Use [Editor#getShapeAncestors](?) to get all ancestors in order from the root to the immediate parent:
 
 ```typescript
 // For a deeply nested shape:
@@ -72,7 +77,7 @@ The array is ordered from root ancestor to immediate parent. The page itself is 
 
 ### Finding a specific ancestor
 
-Use `editor.findShapeAncestor()` to find the first ancestor matching a condition:
+Use [Editor#findShapeAncestor](?) to find the first ancestor matching a condition:
 
 ```typescript
 // Find the containing frame
@@ -84,7 +89,7 @@ const lockedAncestor = editor.findShapeAncestor(myShape, (ancestor) => ancestor.
 
 ### Checking for a specific ancestor
 
-Use `editor.hasAncestor()` to check if a shape is inside a specific container:
+Use [Editor#hasAncestor](?) to check if a shape is inside a specific container:
 
 ```typescript
 if (editor.hasAncestor(myShape, frameId)) {
@@ -94,7 +99,7 @@ if (editor.hasAncestor(myShape, frameId)) {
 
 ### Finding the common ancestor
 
-When working with multiple shapes, use `editor.findCommonAncestor()` to find their nearest shared parent:
+When working with multiple shapes, use [Editor#findCommonAncestor](?) to find their nearest shared parent:
 
 ```typescript
 const shapeIds = [shapeA, shapeB, shapeC]
@@ -116,7 +121,7 @@ const commonFrame = editor.findCommonAncestor(shapeIds, (shape) => shape.type ==
 
 ## Getting children
 
-Use `editor.getSortedChildIdsForParent()` to get a shape's children in z-index order:
+Use [Editor#getSortedChildIdsForParent](?) to get a shape's children in z-index order:
 
 ```typescript
 const childIds = editor.getSortedChildIdsForParent(groupId)
@@ -131,7 +136,7 @@ const topLevelShapes = editor.getSortedChildIdsForParent(editor.getCurrentPageId
 
 ### Visiting descendants
 
-For recursive traversal, use `editor.visitDescendants()`:
+For recursive traversal, use [Editor#visitDescendants](?):
 
 ```typescript
 editor.visitDescendants(frameId, (childId) => {
@@ -141,7 +146,7 @@ editor.visitDescendants(frameId, (childId) => {
 })
 ```
 
-To collect all descendants including the shape itself:
+To collect all descendants including the shape itself, use [Editor#getShapeAndDescendantIds](?):
 
 ```typescript
 const allIds = editor.getShapeAndDescendantIds([frameId])
@@ -150,7 +155,7 @@ const allIds = editor.getShapeAndDescendantIds([frameId])
 
 ## Reparenting shapes
 
-Use `editor.reparentShapes()` to move shapes into a new parent. This preserves the shapes' page positions—only their local coordinates change to match the new parent's coordinate space:
+Use [Editor#reparentShapes](?) to move shapes into a new parent. This preserves the shapes' page positions—only their local coordinates change to match the new parent's coordinate space:
 
 ```typescript
 // Move shapes into a frame
@@ -176,10 +181,10 @@ Parent-child relationships affect coordinate systems. A child shape's `x` and `y
 To convert between coordinate systems:
 
 ```typescript
-// Convert a page point to a shape's local space
+// Convert a page point to a shape's local space ([Editor#getPointInShapeSpace](?))
 const localPoint = editor.getPointInShapeSpace(parentShape, pagePoint)
 
-// Get a shape's position in page coordinates
+// Get a shape's position in page coordinates ([Editor#getShapePageTransform](?))
 const pageTransform = editor.getShapePageTransform(childShape)
 const pagePoint = pageTransform.point()
 ```
@@ -190,7 +195,7 @@ For more about coordinate systems and transforms, see [Coordinates](/docs/sdk-fe
 
 ## Checking page membership
 
-Use `editor.isShapeInPage()` to check if a shape is on a specific page (even if nested):
+Use [Editor#isShapeInPage](?) to check if a shape is on a specific page (even if nested):
 
 ```typescript
 if (editor.isShapeInPage(myShape, pageId)) {
@@ -198,7 +203,7 @@ if (editor.isShapeInPage(myShape, pageId)) {
 }
 ```
 
-To get the page a shape belongs to:
+To get the page a shape belongs to, use [Editor#getAncestorPageId](?):
 
 ```typescript
 const pageId = editor.getAncestorPageId(myShape)
@@ -206,7 +211,7 @@ const pageId = editor.getAncestorPageId(myShape)
 
 ## Locked ancestors
 
-A shape is effectively locked if any of its ancestors are locked. Use `editor.isShapeOrAncestorLocked()` to check:
+A shape is effectively locked if any of its ancestors are locked. Use [Editor#isShapeOrAncestorLocked](?) to check:
 
 ```typescript
 if (editor.isShapeOrAncestorLocked(myShape)) {
@@ -218,7 +223,7 @@ This is what the editor uses internally to determine if shapes should respond to
 
 ## Hidden shapes
 
-The editor can track shape visibility through `editor.isShapeHidden()`. This only works if you provide a `getShapeVisibility` callback when creating the editor:
+The editor can track shape visibility through [Editor#isShapeHidden](?). This only works if you provide a `getShapeVisibility` callback when creating the editor:
 
 ```typescript
 const editor = new Editor({

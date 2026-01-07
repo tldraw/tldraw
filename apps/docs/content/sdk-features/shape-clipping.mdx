@@ -11,6 +11,11 @@ keywords:
   - children
 status: published
 date: 12/28/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 Shape clipping lets parent shapes mask their children so content outside the parent's boundary is hidden. Frames are the primary example—drop shapes into a frame and they're cropped to the frame's edges. Custom shapes can define their own clip boundaries using any polygon.
@@ -73,6 +78,8 @@ class MyClipShapeUtil extends ShapeUtil<MyClipShape> {
 ```
 
 The returned points define a polygon in the shape's local coordinate space. The editor transforms these points to page space before applying the clip. Return `undefined` to disable clipping entirely.
+
+> **Note for stroked shapes:** If your clipping shape has a stroke, consider insetting the clip path by half the stroke width so children are clipped to the inner boundary rather than the outer edge of the stroke. This prevents children from overlapping with the stroke itself.
 
 ### Selective clipping
 

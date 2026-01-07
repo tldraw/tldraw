@@ -12,6 +12,11 @@ keywords:
   - alt text
 status: published
 date: 12/29/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: Strong doc with good example links. Line 104 "can provide" and line 172 "prefer or require" are minor hedging. Best practices section has five items (three-item-list-adjacent).
 ---
 
 Tldraw includes accessibility features for keyboards and assistive technologies. The SDK announces shape selections to screen readers, supports keyboard navigation between shapes, respects reduced motion preferences, and provides hooks for custom shapes to supply descriptive text.
@@ -51,6 +56,8 @@ export default function App() {
 
 The `priority` option accepts `'polite'` or `'assertive'`. Polite announcements wait for a pause in speech, while assertive announcements interrupt immediately.
 
+> See the [screen reader accessibility example](/examples/ui/screen-reader-accessibility) for custom shape descriptions and announcements.
+
 ## Keyboard navigation
 
 Users can navigate between shapes using the keyboard. Tab moves focus to the next shape in reading order, and Shift+Tab moves to the previous shape. Arrow keys with Ctrl/Cmd move selection to the nearest shape in that direction.
@@ -61,11 +68,11 @@ A "Skip to main content" link appears when users Tab into the editor, allowing k
 
 ### Excluding shapes from keyboard navigation
 
-Custom shapes can opt out of keyboard navigation by overriding [ShapeUtil#canTabTo](?):
+Exclude custom shapes from keyboard navigation by overriding [ShapeUtil#canTabTo](?):
 
 ```tsx
 class DecorativeShapeUtil extends ShapeUtil<DecorativeShape> {
-	// Decorative shapes shouldn't receive keyboard focus
+	// Decorative shapes don't receive keyboard focus
 	canTabTo() {
 		return false
 	}
@@ -151,6 +158,8 @@ The hook returns `true` when:
 
 Users can toggle reduced motion through the accessibility menu under Help.
 
+> See the [reduced motion example](/examples/configuration/reduced-motion) for a custom shape that respects motion preferences.
+
 ## Enhanced accessibility mode
 
 The `enhancedA11yMode` user preference adds visible labels to UI elements that normally rely on icons alone. When enabled, the style panel shows text labels for each section like "Color", "Opacity", and "Align", making the interface more navigable for users who need additional context.
@@ -209,7 +218,7 @@ When building custom shapes, consider these accessibility guidelines:
 
 **Respect motion preferences.** Check `usePrefersReducedMotion()` before showing animations. Provide static alternatives for animated content.
 
-**Consider contrast.** Shape colors should meet WCAG contrast requirements against typical backgrounds. The default color styles are designed with accessibility in mind.
+**Consider contrast.** Shape colors must meet WCAG contrast requirements against typical backgrounds. The default color styles are designed with accessibility in mind.
 
 For more on creating custom shapes, see [Custom shapes](/docs/shapes).
 

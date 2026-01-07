@@ -1,7 +1,7 @@
 ---
 description: Create a GitHub issue from a description
 argument-hint: [description]
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(yarn dev), Bash(yarn dev-app), Bash(yarn dev-docs), Task(Explore), Skill(dev-browser:dev-browser)
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(yarn dev), Bash(yarn dev-app), Bash(yarn dev-docs)
 model: opus
 ---
 

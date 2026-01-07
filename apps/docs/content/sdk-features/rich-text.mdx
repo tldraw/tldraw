@@ -13,6 +13,11 @@ keywords:
   - shapes
 status: published
 date: 12/20/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 Rich text lets you add formatted text to tldraw shapes. You get inline formatting like bold, italic, code, and highlighting, plus structural features like lists and links. Text, note, geo, and arrow label shapes all support rich text editing.
@@ -58,6 +63,8 @@ import { toRichText } from 'tldraw'
 const richText = toRichText('First line\nSecond line')
 // Creates two paragraphs
 ```
+
+Note that `toRichText` treats all input as plain text—it doesn't parse markdown or other formatting. To create formatted content programmatically, build the rich text JSON structure directly or use the TipTap editor API.
 
 To extract plain text from a rich text document, use `renderPlaintextFromRichText`. It strips all formatting and preserves line breaks:
 

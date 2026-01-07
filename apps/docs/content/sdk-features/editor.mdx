@@ -10,6 +10,11 @@ keywords:
   - manager
 status: published
 date: 12/29/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The [Editor](?) class is the main way of controlling tldraw's editor. It provides methods for creating, reading, updating, and deleting shapes; managing selection and history; controlling the camera; and responding to user input. By design, the editor's surface area is very large—almost everything is available through it.
@@ -360,24 +365,24 @@ See [Camera](/sdk-features/camera) and [Coordinates](/sdk-features/coordinates) 
 
 ## Input state
 
-The [Editor#inputs](?) object tracks the user's current input state: cursor position, pressed keys, drag state, and more.
+The [Editor#inputs](?) object tracks the user's current input state: cursor position, pressed keys, drag state, and more. All values on the inputs object are reactive signals—when you access them inside a tracked component or computed, your code automatically re-runs when those values change.
 
 ```ts
-// Cursor position in page coordinates
+// Cursor position in page coordinates (reactive)
 editor.inputs.getCurrentPagePoint()
 
-// Cursor position in screen coordinates
+// Cursor position in screen coordinates (reactive)
 editor.inputs.getCurrentScreenPoint()
 
-// Where the current drag started
+// Where the current drag started (reactive)
 editor.inputs.getOriginPagePoint()
 
-// Interaction state
+// Interaction state (reactive)
 editor.inputs.getIsDragging()
 editor.inputs.getIsPointing()
 editor.inputs.getIsPinching()
 
-// Modifier keys (held for 150ms after release to smooth out quick taps)
+// Modifier keys (reactive)
 editor.inputs.getShiftKey()
 editor.inputs.getCtrlKey()
 editor.inputs.getAltKey()

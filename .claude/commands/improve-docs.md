@@ -1,6 +1,14 @@
-Review and improve the documentation at: $ARGUMENTS
+---
+description: Improve a documentation file.
+argument-hint: <path to document>
+model: opus
+---
+
+Improve the documentation at: $ARGUMENTS
 
 This command evaluates a document, improves it based on the evaluation, then re-evaluates to measure improvement.
+
+Relevant skills: `write-docs`.
 
 ## Step 1: Review the current scores
 

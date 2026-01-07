@@ -10,6 +10,11 @@ keywords:
   - visual-feedback
 status: published
 date: 12/20/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The scribble system draws temporary freehand paths for pointer-based interactions. Use scribbles to show visual feedback during tool operations like erasing, laser pointer drawing, or scribble-brush selection. Access the system through `editor.scribbles`.
@@ -22,7 +27,7 @@ Scribbles exist only in instance state and fade out automatically after the tool
 
 Every scribble moves through four states:
 
-1. **Starting**: The scribble collects its first 8 points. This prevents flickering for very short strokes.
+1. **Starting**: The scribble collects points until it has more than 8. This prevents flickering for very short strokes.
 2. **Active**: The scribble accumulates points as the pointer moves.
 3. **Paused**: The scribble stops accumulating points but stays visible at its current length. Use this when you need to temporarily freeze a scribble without triggering the fade-out.
 4. **Stopping**: The scribble fades out by progressively removing points from its tail. Once all points clear, the manager deletes the scribble.
@@ -98,6 +103,8 @@ As the pointer moves, add points using the scribble ID. The manager automaticall
 const { x, y } = this.editor.inputs.getCurrentPagePoint()
 this.editor.scribbles.addPoint(scribble.id, x, y)
 ```
+
+The `addPoint` method accepts an optional third parameter `z` (defaults to `0.5`) that controls point pressure for variable-width strokes.
 
 ### Stopping a scribble
 
@@ -199,4 +206,3 @@ export default function App() {
 ## Related examples
 
 - [Custom components](/examples/ui/custom-components) - Override the Scribble component to customize scribble appearance
-- [Lasso select tool](/examples/shapes/tools/lasso-select-tool) - A custom selection tool using scribbles for visual feedback

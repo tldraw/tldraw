@@ -15,6 +15,11 @@ keywords:
 reviewed_by: steveruizok
 status: published
 date: 12/22/2025
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 10
+notes: ""
 ---
 
 The tldraw SDK provides two objects for detecting the user's environment: `tlenv` for fixed browser and platform information, and `tlenvReactive` for values that change during a session (like whether the user is using touch input). We use these internally to work around browser quirks, and you can use them in custom shapes or tools.
@@ -109,7 +114,7 @@ Note: We force fine pointer mode on Firefox desktop regardless of the actual inp
 
 Here's a sample of what we use environment detection for internally.
 
-**Safari** has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also double-draw minimap triangles because Safari's WebGL implementation sometimes drops the first draw call. Text outlines render incorrectly, so we disable them entirely on Safari.
+**Safari** has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also draw minimap triangles four times because Safari's WebGL implementation sometimes drops draw calls. Text outlines render incorrectly, so we disable them entirely on Safari.
 
 **iOS** coalesced pointer events are broken (they report wrong coordinates), so we skip them entirely and use individual events. We also handle the virtual keyboard differently since iOS doesn't fire standard resize events.
 

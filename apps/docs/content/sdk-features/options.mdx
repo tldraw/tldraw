@@ -10,6 +10,11 @@ keywords:
   - defaults
 status: published
 date: 12/25/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The tldraw editor accepts two kinds of configuration: **editor options** for core behavior (timing, limits, performance) and **component props** for features like persistence and custom shapes. Editor options are immutable after initialization; component props configure how the editor sets up.
@@ -112,12 +117,19 @@ See [Edge scrolling](./edge-scrolling.mdx) for details on how these options affe
 
 Control camera movement and viewport behavior:
 
-| Option                    | Default | Description                                 |
-| ------------------------- | ------- | ------------------------------------------- |
-| `cameraSlideFriction`     | 0.09    | Friction applied to camera momentum         |
-| `cameraMovingTimeoutMs`   | 64      | Time before camera is considered stopped    |
-| `followChaseViewportSnap` | 2       | Snap threshold when following collaborators |
-| `spacebarPanning`         | true    | Enable spacebar to activate pan mode        |
+| Option                    | Default | Description                                       |
+| ------------------------- | ------- | ------------------------------------------------- |
+| `cameraSlideFriction`     | 0.09    | Friction applied to camera momentum               |
+| `cameraMovingTimeoutMs`   | 64      | Time before camera is considered stopped          |
+| `followChaseViewportSnap` | 2       | Snap threshold when following collaborators       |
+| `spacebarPanning`         | true    | Enable spacebar to activate pan mode              |
+| `zoomToFitPadding`        | 128     | Padding around content when zooming to fit bounds |
+
+### Snapping
+
+| Option          | Default | Description                                  |
+| --------------- | ------- | -------------------------------------------- |
+| `snapThreshold` | 8       | Distance in pixels at which snapping engages |
 
 ### Collaboration
 

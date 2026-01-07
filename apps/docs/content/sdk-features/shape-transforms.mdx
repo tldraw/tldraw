@@ -13,7 +13,11 @@ keywords:
   - pack
 status: published
 date: 12/20/2025
-notes: "Opening paragraph is dense; could use shorter sentences. Some voice issues: formulaic transitions, passive constructions. Missing 'stretch' in canBeLaidOut type union. Code snippets match actual API."
+readability: 7
+voice: 6
+completeness: 8
+accuracy: 10
+notes: "Opening paragraph overly dense - break into shorter sentences. Voice issues: formulaic phrases ('These operations fall into two categories', 'particularly useful for'), passive 'is called' in rotation section."
 ---
 
 The shape transform system provides operations for manipulating multiple shapes together as a unified group. These operations include grouping and ungrouping shapes into hierarchical containers, aligning shapes to common edges or centers, distributing shapes with even spacing, stacking shapes with consistent gaps, packing shapes into compact grid arrangements, flipping shapes along horizontal or vertical axes, and rotating shapes around a common pivot point.
@@ -133,7 +137,8 @@ Each cluster is treated as a single unit with a common bounding box. When the tr
 Shape utilities can control whether their shapes participate in transforms through the canBeLaidOut method. This method receives information about the transform type and the full list of shapes being transformed, allowing the utility to make context-aware decisions.
 
 ```typescript
-canBeLaidOut(shape: MyShape, info: { type: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch', shapes: TLShape[] }): boolean {
+canBeLaidOut(shape: MyShape, info: TLShapeUtilCanBeLaidOutOpts): boolean {
+  // type is one of: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
   return true
 }
 ```

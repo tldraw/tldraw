@@ -12,6 +12,11 @@ keywords:
   - components
 status: published
 date: 12/25/2025
+readability: 9
+voice: 8
+completeness: 8
+accuracy: 10
+notes: ""
 ---
 
 The `@tldraw/tldraw` package exports a set of UI primitive components that you can use when building custom interfaces. These components match the look and feel of tldraw's default UI and integrate with the editor's theming, translations, and accessibility features.
@@ -159,7 +164,8 @@ Props:
 | ------------ | ------------------------------------------------------ |
 | `id`         | Unique identifier for the menu item                    |
 | `label`      | Display text (supports translation keys)               |
-| `icon`       | Icon to display                                        |
+| `icon`       | Icon to display (on right in menus)                    |
+| `iconLeft`   | Icon to display on the left side                       |
 | `kbd`        | Keyboard shortcut to display                           |
 | `onSelect`   | Called when the item is clicked                        |
 | `disabled`   | Whether the item is disabled                           |
@@ -292,10 +298,11 @@ import { TldrawUiInput } from 'tldraw'
 />
 ```
 
-Add icons to the input:
+Add icons to the input using `iconLeft` (left side) or `icon` (right side):
 
 ```tsx
 <TldrawUiInput iconLeft="search" placeholder="Search shapes..." onValueChange={setSearchQuery} />
+<TldrawUiInput icon="check" placeholder="Confirmed value" />
 ```
 
 ## Layout
@@ -328,7 +335,7 @@ import { TldrawUiRow, TldrawUiColumn, TldrawUiGrid } from 'tldraw'
 </TldrawUiGrid>
 ```
 
-These components automatically set up tooltip positioning—tooltips appear below items in rows and to the right of items in columns.
+These components automatically set up a `tooltipSide` context—tooltips appear below items in rows and to the right of items in columns, and nested components inherit this positioning.
 
 ## Other primitives
 

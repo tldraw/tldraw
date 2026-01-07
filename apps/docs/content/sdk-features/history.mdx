@@ -12,6 +12,11 @@ keywords:
 reviewed_by: steveruizok
 status: published
 date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The editor's history system tracks changes to the [store](/docs/store) and provides undo/redo functionality. Changes are organized into batches separated by marks, which act as stopping points. This lets complex interactions be undone as single atomic operations rather than individual edits.
@@ -119,7 +124,7 @@ const markId = editor.markHistoryStoppingPoint('begin drag')
 editor.bailToMark(markId) // Roll back and discard all changes since mark
 ```
 
-[Editor#bail](?) returns to the most recent mark. [Editor#bailToMark](?) returns to a specific mark by ID.
+[Editor#bail](?) reverts to the most recent mark. [Editor#bailToMark](?) reverts to a specific mark by ID.
 
 > We use bailing while cloning shapes. A user can switch between translating and cloning by pressing or releasing the control modifier key during a drag. When this changes, we bail on the changes since the interaction started, then apply the new mode's changes.
 

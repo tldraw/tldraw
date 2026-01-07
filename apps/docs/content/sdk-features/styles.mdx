@@ -12,17 +12,22 @@ keywords:
   - appearance
 status: published
 date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ""
 ---
 
 The styles system manages visual properties like color, size, font, fill, and dash patterns across shapes. Style properties differ from regular shape properties in two key ways: they apply consistently across multiple shapes at once, and the editor remembers the last-used value to automatically apply it to newly created shapes. This creates a coherent visual experience where users can set a color once and have it persist across their work.
 
-Styles are defined using `StyleProp` instances that specify valid values and defaults. The editor tracks "shared styles" across the current selection—computing whether all selected shapes share the same value or have different values—to drive the UI and enable batch updates.
+Styles are defined using [StyleProp](?) instances that specify valid values and defaults. The editor tracks "shared styles" across the current selection—computing whether all selected shapes share the same value or have different values—to drive the UI and enable batch updates.
 
 ## How it works
 
 ### StyleProp
 
-A `StyleProp` represents a reusable style property that can be applied across different shape types. Each `StyleProp` has a unique identifier, a default value, and optional validation. The editor treats `StyleProp` instances specially, automatically saving their values and applying them to new shapes.
+A [StyleProp](?) represents a reusable style property that can be applied across different shape types. Each `StyleProp` has a unique identifier, a default value, and optional validation. The editor treats `StyleProp` instances specially, automatically saving their values and applying them to new shapes.
 
 You define a `StyleProp` using one of two static methods:
 
@@ -87,7 +92,7 @@ editor.createShape({
 
 ### Shared styles
 
-The editor computes shared styles across the current selection. Use `getSharedStyles` to get a map of each style property to its status: either "shared" (all shapes have the same value) or "mixed" (shapes have different values).
+The editor computes shared styles across the current selection. Use [Editor#getSharedStyles](?) to get a map of each style property to its status: either "shared" (all shapes have the same value) or "mixed" (shapes have different values).
 
 ```typescript
 const sharedStyles = editor.getSharedStyles()
@@ -117,14 +122,14 @@ When no shapes are selected, `getSharedStyles` returns the styles for the curren
 When you set a style on selected shapes, the editor saves that value as the "style for next shapes." The next shape you create will automatically have the same style value.
 
 ```typescript
-// Set color for selected shapes - also saves it for next shapes
+// Set color for selected shapes - also saves it for next shapes ([Editor#setStyleForSelectedShapes](?))
 editor.setStyleForSelectedShapes(DefaultColorStyle, 'blue')
 
 // Create a new shape - it will be blue because 'blue' was saved
 editor.createShape({ type: 'geo', props: { w: 100, h: 100 } })
 ```
 
-You can set the style for next shapes without affecting the current selection:
+You can set the style for next shapes without affecting the current selection using [Editor#setStyleForNextShapes](?):
 
 ```typescript
 editor.setStyleForNextShapes(DefaultColorStyle, 'green')
@@ -136,29 +141,29 @@ The `@tldraw/tlschema` package provides a set of default style properties that t
 
 **Color styles** control the visual color of shapes and their labels. Colors reference theme values rather than raw hex codes, allowing shapes to adapt to light and dark modes.
 
-- `DefaultColorStyle` - Primary shape color (black, red, blue, green, etc.)
-- `DefaultLabelColorStyle` - Label text color for shapes
+- [DefaultColorStyle](?) - Primary shape color (black, red, blue, green, etc.)
+- [DefaultLabelColorStyle](?) - Label text color for shapes
 
 **Appearance styles** affect how shapes are drawn and filled. These work together to create the hand-drawn aesthetic that defines tldraw's visual style.
 
-- `DefaultFillStyle` - Fill pattern (none, semi, solid, pattern)
-- `DefaultDashStyle` - Stroke style (draw, solid, dashed, dotted)
-- `DefaultSizeStyle` - Relative size scale (s, m, l, xl)
+- [DefaultFillStyle](?) - Fill pattern (none, semi, solid, pattern, fill, lined-fill)
+- [DefaultDashStyle](?) - Stroke style (draw, solid, dashed, dotted)
+- [DefaultSizeStyle](?) - Relative size scale (s, m, l, xl)
 
 **Text styles** control typography for text shapes and labels. The alignment styles handle both the text itself and how content positions within shape bounds.
 
-- `DefaultFontStyle` - Font family (draw, sans, serif, mono)
-- `DefaultTextAlignStyle` - Horizontal text alignment (start, middle, end)
-- `DefaultHorizontalAlignStyle` - Horizontal content alignment within bounds
-- `DefaultVerticalAlignStyle` - Vertical content alignment within bounds
+- [DefaultFontStyle](?) - Font family (draw, sans, serif, mono)
+- [DefaultTextAlignStyle](?) - Horizontal text alignment (start, middle, end)
+- [DefaultHorizontalAlignStyle](?) - Horizontal content alignment within bounds
+- [DefaultVerticalAlignStyle](?) - Vertical content alignment within bounds
 
 **Shape-specific styles** apply to particular shape types rather than being universal. These are defined alongside their respective shape utilities.
 
-- `GeoShapeGeoStyle` - Geometric shape type (rectangle, ellipse, triangle, etc.)
-- `ArrowShapeArrowheadStartStyle` - Start arrowhead type
-- `ArrowShapeArrowheadEndStyle` - End arrowhead type
+- [GeoShapeGeoStyle](?) - Geometric shape type (rectangle, ellipse, triangle, etc.)
+- [ArrowShapeArrowheadStartStyle](?) - Start arrowhead type
+- [ArrowShapeArrowheadEndStyle](?) - End arrowhead type
 
-Note that opacity is not a style property. It's a regular property on the base shape (`TLBaseShape`) that all shapes inherit, and it doesn't persist to new shapes or sync across selections like style properties do.
+Note that opacity is not a style property. It's a regular property on the base shape ([TLBaseShape](?)) that all shapes inherit, and it doesn't persist to new shapes or sync across selections like style properties do.
 
 ## Using styles
 
@@ -176,7 +181,7 @@ if (color?.type === 'shared') {
 }
 ```
 
-To get the style value for the next shape to be created:
+To get the style value for the next shape to be created, use [Editor#getStyleForNextShape](?):
 
 ```typescript
 const nextColor = editor.getStyleForNextShape(DefaultColorStyle)
@@ -184,7 +189,7 @@ const nextColor = editor.getStyleForNextShape(DefaultColorStyle)
 
 ### Setting styles
 
-Use `setStyleForSelectedShapes` to change styles on the current selection:
+Use [Editor#setStyleForSelectedShapes](?) to change styles on the current selection:
 
 ```typescript
 // Change color for all selected shapes
@@ -196,7 +201,7 @@ editor.setStyleForSelectedShapes(DefaultSizeStyle, 'l')
 
 This method recursively applies the style to all shapes in the selection, including shapes nested inside groups. It only updates shapes that support the given style property.
 
-Use `setStyleForNextShapes` to change the style for subsequently created shapes:
+Use [Editor#setStyleForNextShapes](?) to change the style for subsequently created shapes:
 
 ```typescript
 // Next shapes will be blue
@@ -205,7 +210,7 @@ editor.setStyleForNextShapes(DefaultColorStyle, 'blue')
 
 ## Custom styles
 
-You can create custom style properties for your shapes using `StyleProp.define` or `StyleProp.defineEnum`.
+You can create custom style properties for your shapes using [StyleProp.define](?) or [StyleProp.defineEnum](?).
 
 ### Defining a custom style
 

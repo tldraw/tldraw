@@ -1,3 +1,8 @@
+---
+description: Update the release notes file at `apps/docs/content/releases/next.mdx` based on PRs merged to main since the previous release.
+allowed-tools: Bash(git:*), Bash(gh:*)
+---
+
 Update the release notes file at `apps/docs/content/releases/next.mdx` based on PRs merged to main since the previous release.
 
 Use the `write-changelog` skill for formatting guidelines and structural knowledge.
@@ -7,11 +12,13 @@ Use the `write-changelog` skill for formatting guidelines and structural knowled
 1. **Determine versions** - Read `next.mdx` frontmatter to get the upcoming version, then calculate the previous release branch (e.g., v4.3.0 means previous is v4.2.x)
 
 2. **Find new PRs** - Use git to find commits on main not on the release branch:
+
    ```bash
    git log origin/main ^origin/vX.Y.x --oneline
    ```
 
 3. **Fetch PR details** - For each PR number:
+
    ```bash
    gh pr view NNNN --json number,title,labels,author,body,mergedAt
    ```
