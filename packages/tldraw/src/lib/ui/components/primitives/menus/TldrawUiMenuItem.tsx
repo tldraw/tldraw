@@ -199,7 +199,11 @@ export function TldrawUiMenuItem<
 		}
 		case 'helper-buttons': {
 			return (
-				<TldrawUiButton type="low" onClick={() => onSelect(sourceId)}>
+				<TldrawUiButton
+					type="low"
+					data-testid={`${sourceId}.${id}`}
+					onClick={() => onSelect(sourceId)}
+				>
 					<TldrawUiButtonIcon icon={icon!} />
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 				</TldrawUiButton>
