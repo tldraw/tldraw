@@ -8,8 +8,7 @@ import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
 import { ContextItem } from '../types/ContextItem'
-import type { PromptPart } from '../types/PromptPart'
-import { registerPromptPart } from '../types/PromptPart'
+import type { PromptPart, PromptPartDefinition } from '../types/PromptPart'
 import { TodoItem } from '../types/TodoItem'
 
 // ============================================================================
@@ -109,24 +108,25 @@ export interface ModePart {
 // ============================================================================
 
 // BlurryShapes
-export const BlurryShapesPartDefinition = registerPromptPart<BlurryShapesPart>({
+export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> = {
 	type: 'blurryShapes',
 	priority: 70,
 	buildContent: ({ shapes }) => {
 		if (shapes.length === 0) return ['There are no shapes in your view at the moment.']
 		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
 	},
-})
+}
 
 // ChatHistory
-export const ChatHistoryPartDefinition = registerPromptPart<ChatHistoryPart>({
+const CHAT_HISTORY_PRIORITY = Infinity // history should appear first in the prompt (low priority)
+
+export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
 	type: 'chatHistory',
-	priority: Infinity, // history should appear first in the prompt (low priority)
+	priority: CHAT_HISTORY_PRIORITY,
 	buildMessages: ({ history }) => {
 		if (history.length === 0) return []
 
 		const messages: AgentMessage[] = []
-		const priority = ChatHistoryPartDefinition.priority!
 
 		// If the last message is from the user, skip it
 		const lastIndex = history.length - 1
@@ -137,13 +137,13 @@ export const ChatHistoryPartDefinition = registerPromptPart<ChatHistoryPart>({
 
 		for (let i = 0; i < end; i++) {
 			const item = history[i]
-			const message = buildHistoryItemMessage(item, priority)
+			const message = buildHistoryItemMessage(item, CHAT_HISTORY_PRIORITY)
 			if (message) messages.push(message)
 		}
 
 		return messages
 	},
-})
+}
 
 function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): AgentMessage | null {
 	switch (item.type) {
@@ -236,7 +236,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 }
 
 // ContextItems
-export const ContextItemsPartDefinition = registerPromptPart<ContextItemsPart>({
+export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> = {
 	type: 'contextItems',
 	priority: 60, // context items in middle (low priority)
 	buildContent: ({ items, requestType }) => {
@@ -296,10 +296,10 @@ export const ContextItemsPartDefinition = registerPromptPart<ContextItemsPart>({
 
 		return messages
 	},
-})
+}
 
 // Data
-export const DataPartDefinition = registerPromptPart<DataPart>({
+export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 	type: 'data',
 	priority: -200, // API data should come right before the user message but after most other parts
 	buildContent: ({ data }) => {
@@ -311,10 +311,10 @@ export const DataPartDefinition = registerPromptPart<DataPart>({
 
 		return ["Here's the data you requested:", ...formattedData]
 	},
-})
+}
 
 // Messages
-export const MessagesPartDefinition = registerPromptPart<MessagesPart>({
+export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	type: 'messages',
 	priority: -Infinity, // user message should be last (highest priority)
 	buildContent: ({ messages, requestType }) => {
@@ -333,7 +333,7 @@ export const MessagesPartDefinition = registerPromptPart<MessagesPart>({
 
 		return responsePart
 	},
-})
+}
 
 function getUserPrompt(message: string[]) {
 	return [
@@ -357,15 +357,15 @@ function getTodoPrompt(message: string[]) {
 }
 
 // ModelName
-export const ModelNamePartDefinition = registerPromptPart<ModelNamePart>({
+export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 	type: 'modelName',
 	getModelName: (part) => {
 		return part.modelName
 	},
-})
+}
 
 // PeripheralShapes
-export const PeripheralShapesPartDefinition = registerPromptPart<PeripheralShapesPart>({
+export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShapesPart> = {
 	type: 'peripheralShapes',
 	priority: 65, // peripheral content after viewport shapes (low priority)
 	buildContent: ({ clusters }) => {
@@ -378,10 +378,10 @@ export const PeripheralShapesPartDefinition = registerPromptPart<PeripheralShape
 			JSON.stringify(clusters),
 		]
 	},
-})
+}
 
 // Screenshot
-export const ScreenshotPartDefinition = registerPromptPart<ScreenshotPart>({
+export const ScreenshotPartDefinition: PromptPartDefinition<ScreenshotPart> = {
 	type: 'screenshot',
 	priority: 40, // screenshot after text content (medium priority)
 	buildContent: ({ screenshot }) => {
@@ -392,10 +392,10 @@ export const ScreenshotPartDefinition = registerPromptPart<ScreenshotPart>({
 			screenshot,
 		]
 	},
-})
+}
 
 // SelectedShapes
-export const SelectedShapesPartDefinition = registerPromptPart<SelectedShapesPart>({
+export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPart> = {
 	type: 'selectedShapes',
 	priority: 55, // selected shapes after context items (low priority)
 	buildContent: ({ shapes }) => {
@@ -408,18 +408,18 @@ export const SelectedShapesPartDefinition = registerPromptPart<SelectedShapesPar
 			shapes.map((shape) => JSON.stringify(shape)).join('\n'),
 		]
 	},
-})
+}
 
 // Time
-export const TimePartDefinition = registerPromptPart<TimePart>({
+export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	type: 'time',
 	buildContent: ({ timestamp }) => {
 		return ["The user's current time is:", new Date(timestamp).toLocaleTimeString()]
 	},
-})
+}
 
 // TodoList
-export const TodoListPartDefinition = registerPromptPart<TodoListPart>({
+export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 	type: 'todoList',
 	priority: 10,
 	buildContent: ({ items }) => {
@@ -429,10 +429,10 @@ export const TodoListPartDefinition = registerPromptPart<TodoListPart>({
 			]
 		return [`Here is your current todo list:`, JSON.stringify(items)]
 	},
-})
+}
 
 // UserActionHistory
-export const UserActionHistoryPartDefinition = registerPromptPart<UserActionHistoryPart>({
+export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHistoryPart> = {
 	type: 'userActionHistory',
 	priority: 40,
 	buildContent: (part) => {
@@ -446,10 +446,10 @@ export const UserActionHistoryPartDefinition = registerPromptPart<UserActionHist
 			JSON.stringify(part),
 		]
 	},
-})
+}
 
 // ViewportBounds
-export const ViewportBoundsPartDefinition = registerPromptPart<ViewportBoundsPart>({
+export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
 	type: 'viewportBounds',
 	priority: 75, // viewport should go after context bounds (low priority)
 	buildContent: ({ userBounds, agentBounds }) => {
@@ -505,13 +505,13 @@ export const ViewportBoundsPartDefinition = registerPromptPart<ViewportBoundsPar
 
 		return response
 	},
-})
+}
 
 // Mode - sends mode metadata to worker for prompt construction
-export const ModePartDefinition = registerPromptPart<ModePart>({
+export const ModePartDefinition: PromptPartDefinition<ModePart> = {
 	type: 'mode',
 	// No buildContent - this is metadata for the worker, not prompt content for the model
-})
+}
 
 function withinPercent(a: number, b: number, percent: number) {
 	const max = Math.max(Math.abs(a), Math.abs(b), 1)

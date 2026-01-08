@@ -9,10 +9,6 @@ export const PeripheralShapesPartUtil = registerPromptPartUtil(
 	class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPart> {
 		static override type = 'peripheralShapes' as const
 
-		override getPriority() {
-			return 65 // peripheral content after viewport shapes (low priority)
-		}
-
 		override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
 			if (!this.agent) return { type: 'peripheralShapes', clusters: [] }
 			const { editor } = this.agent
@@ -49,17 +45,6 @@ export const PeripheralShapesPartUtil = registerPromptPartUtil(
 				type: 'peripheralShapes',
 				clusters: normalizedClusters,
 			}
-		}
-
-		override buildContent({ clusters }: PeripheralShapesPart): string[] {
-			if (clusters.length === 0) {
-				return []
-			}
-
-			return [
-				"There are some groups of shapes in your peripheral vision, outside the your main view. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
-				JSON.stringify(clusters),
-			]
 		}
 	}
 )

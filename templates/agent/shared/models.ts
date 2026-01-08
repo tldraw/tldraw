@@ -34,20 +34,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 
 	// Recommended
-	'claude-4-sonnet': {
-		name: 'claude-4-sonnet',
-		id: 'claude-sonnet-4-0',
-		provider: 'anthropic',
-	},
-
-	// Recommended
-	'claude-3.5-sonnet': {
-		name: 'claude-3.5-sonnet',
-		id: 'claude-3-5-sonnet-latest',
-		provider: 'anthropic',
-	},
-
-	// Recommended
 	// 'gemini-2.5-flash': {
 	// 	name: 'gemini-2.5-flash',
 	// 	id: 'gemini-2.5-flash',

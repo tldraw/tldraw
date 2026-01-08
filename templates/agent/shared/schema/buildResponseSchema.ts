@@ -1,6 +1,5 @@
 import z from 'zod'
 import { AgentAction, getActionSchema } from '../types/AgentAction'
-import './AgentActionSchemas' // Import the schemas module to ensure all schemas are registered
 
 export function buildResponseSchema(actionTypes: AgentAction['_type'][]) {
 	const actionSchemas = actionTypes
