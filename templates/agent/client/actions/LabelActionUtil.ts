@@ -33,10 +33,10 @@ export const LabelActionUtil = registerActionUtil(
 			if (!action.complete) return action
 
 			const shapeId = helpers.ensureShapeIdExists(action.shapeId)
-			if (!shapeId || !this.agent?.editor) {
+			if (!shapeId) {
 				return null
 			}
-			const shape = this.agent.editor.getShape(`shape:${shapeId}` as TLShapeId)
+			const shape = this.editor.getShape(`shape:${shapeId}` as TLShapeId)
 			if (!shape) {
 				return null
 			}
@@ -50,8 +50,7 @@ export const LabelActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<LabelAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
-			const { editor } = this.agent
+			const { editor } = this
 
 			const shapeId = `shape:${action.shapeId}` as TLShapeId
 			const shape = editor.getShape(shapeId)

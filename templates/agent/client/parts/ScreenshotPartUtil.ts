@@ -8,15 +8,13 @@ export const ScreenshotPartUtil = registerPromptPartUtil(
 		static override type = 'screenshot' as const
 
 		override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
-			if (!this.agent) return { type: 'screenshot', screenshot: '' }
-			const { editor } = this.agent
+			const { editor } = this
 
 			const contextBounds = request.bounds
 
 			const contextBoundsBox = Box.From(contextBounds)
 
 			const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
-				if (!editor) return false
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return false
 				return contextBoundsBox.includes(bounds)

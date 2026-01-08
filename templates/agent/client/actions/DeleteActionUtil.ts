@@ -29,9 +29,8 @@ export const DeleteActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<DeleteAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 
-			this.agent.editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
+			this.editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
 		}
 	}
 )

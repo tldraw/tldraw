@@ -21,12 +21,8 @@ export const BringToFrontActionUtil = registerActionUtil(
 		}
 
 		override applyAction(action: Streaming<BringToFrontAction>) {
-			if (!this.agent) return
-
 			if (!action.shapeIds) return
-			this.agent.editor.bringToFront(
-				action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
-			)
+			this.editor.bringToFront(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 		}
 	}
 )

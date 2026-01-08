@@ -10,15 +10,13 @@ export const BlurryShapesPartUtil = registerPromptPartUtil(
 		static override type = 'blurryShapes' as const
 
 		override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
-			if (!this.agent) return { type: 'blurryShapes', shapes: [] }
-			const { editor } = this.agent
+			const { editor } = this
 
 			const shapes = editor.getCurrentPageShapesSorted()
 			const contextBoundsBox = Box.From(request.bounds)
 
 			// Get all shapes within the agent's viewport
 			const shapesInBounds = shapes.filter((shape) => {
-				if (!editor) return false
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return false
 				return contextBoundsBox.includes(bounds)
@@ -26,10 +24,7 @@ export const BlurryShapesPartUtil = registerPromptPartUtil(
 
 			// Convert the shapes to the blurry shape format
 			const blurryShapes = shapesInBounds
-				.map((shape) => {
-					if (!editor) return null
-					return convertTldrawShapeToBlurryShape(editor, shape)
-				})
+				.map((shape) => convertTldrawShapeToBlurryShape(editor, shape))
 				.filter((s) => s !== null)
 
 			// Apply the offset and round the blurry shapes

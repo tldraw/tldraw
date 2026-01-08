@@ -13,7 +13,6 @@ export const TodoListActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<TodoListAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 
 			const todoItem = {
 				id: action.id,

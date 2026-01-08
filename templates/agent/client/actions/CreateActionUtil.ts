@@ -58,8 +58,7 @@ export const CreateActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 			if (!action.complete) return
-			if (!this.agent) return
-			const { editor } = this.agent
+			const { editor } = this
 
 			// Translate the shape back to the chat's position
 			action.shape = helpers.removeOffsetFromShape(action.shape)

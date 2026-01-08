@@ -11,8 +11,7 @@ export const SelectedShapesPartUtil = registerPromptPartUtil(
 		static override type = 'selectedShapes' as const
 
 		override getPart(_request: AgentRequest, helpers: AgentHelpers): SelectedShapesPart {
-			if (!this.agent) return { type: 'selectedShapes', shapes: [] }
-			const { editor } = this.agent
+			const { editor } = this
 
 			const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 

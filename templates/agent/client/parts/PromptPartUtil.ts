@@ -49,10 +49,10 @@ export function getPromptPartUtilsRecord(agent: TldrawAgent) {
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
 
-	agent?: TldrawAgent
-	editor?: Editor
+	agent: TldrawAgent
+	editor: Editor
 
-	constructor(agent?: TldrawAgent) {
+	constructor(agent: TldrawAgent) {
 		this.agent = agent
 		this.editor = agent?.editor
 	}

@@ -110,7 +110,7 @@ export interface ModePart {
 // BlurryShapes
 export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> = {
 	type: 'blurryShapes',
-	priority: 70,
+	priority: -70,
 	buildContent: ({ shapes }) => {
 		if (shapes.length === 0) return ['There are no shapes in your view at the moment.']
 		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
@@ -118,7 +118,7 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 }
 
 // ChatHistory
-const CHAT_HISTORY_PRIORITY = Infinity // history should appear first in the prompt (low priority)
+const CHAT_HISTORY_PRIORITY = 999999 // history should appear first in the prompt (low priority)
 
 export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
 	type: 'chatHistory',
@@ -238,7 +238,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 // ContextItems
 export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> = {
 	type: 'contextItems',
-	priority: 60, // context items in middle (low priority)
+	priority: -55, // context items in middle
 	buildContent: ({ items, requestType }) => {
 		const messages: string[] = []
 
@@ -301,7 +301,7 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 // Data
 export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 	type: 'data',
-	priority: -200, // API data should come right before the user message but after most other parts
+	priority: 200, // API data should come right before the user message but after most other parts
 	buildContent: ({ data }) => {
 		if (data.length === 0) return []
 
@@ -316,7 +316,7 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 // Messages
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	type: 'messages',
-	priority: -Infinity, // user message should be last (highest priority)
+	priority: Infinity, // user message should be last (highest priority)
 	buildContent: ({ messages, requestType }) => {
 		let responsePart: string[] = []
 		switch (requestType) {
@@ -367,7 +367,7 @@ export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 // PeripheralShapes
 export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShapesPart> = {
 	type: 'peripheralShapes',
-	priority: 65, // peripheral content after viewport shapes (low priority)
+	priority: -65, // peripheral content after viewport shapes
 	buildContent: ({ clusters }) => {
 		if (clusters.length === 0) {
 			return []
@@ -383,7 +383,7 @@ export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShap
 // Screenshot
 export const ScreenshotPartDefinition: PromptPartDefinition<ScreenshotPart> = {
 	type: 'screenshot',
-	priority: 40, // screenshot after text content (medium priority)
+	priority: -40, // screenshot after text content
 	buildContent: ({ screenshot }) => {
 		if (screenshot === '') return []
 
@@ -397,7 +397,7 @@ export const ScreenshotPartDefinition: PromptPartDefinition<ScreenshotPart> = {
 // SelectedShapes
 export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPart> = {
 	type: 'selectedShapes',
-	priority: 55, // selected shapes after context items (low priority)
+	priority: -55, // selected shapes after context items
 	buildContent: ({ shapes }) => {
 		if (shapes.length === 0) {
 			return []
@@ -413,6 +413,7 @@ export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPa
 // Time
 export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	type: 'time',
+	priority: -100,
 	buildContent: ({ timestamp }) => {
 		return ["The user's current time is:", new Date(timestamp).toLocaleTimeString()]
 	},
@@ -434,7 +435,7 @@ export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 // UserActionHistory
 export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHistoryPart> = {
 	type: 'userActionHistory',
-	priority: 40,
+	priority: -40,
 	buildContent: (part) => {
 		const { updated, removed, added } = part
 		if (updated.length === 0 && removed.length === 0 && added.length === 0) {
@@ -451,7 +452,7 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 // ViewportBounds
 export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
 	type: 'viewportBounds',
-	priority: 75, // viewport should go after context bounds (low priority)
+	priority: -80, // viewport bounds
 	buildContent: ({ userBounds, agentBounds }) => {
 		const agentViewportBounds = agentBounds
 

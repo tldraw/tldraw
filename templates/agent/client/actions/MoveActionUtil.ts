@@ -35,8 +35,7 @@ export const MoveActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 			if (!action.complete) return
-			if (!this.agent) return
-			const { editor } = this.agent
+			const { editor } = this
 
 			// Translate the position back to the chat's position
 			const { x, y } = helpers.removeOffsetFromVec({ x: action.x, y: action.y })

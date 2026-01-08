@@ -28,8 +28,7 @@ export const ClearActionUtil = registerActionUtil(
 			if (!action.complete) return
 
 			// Delete all shapes on the page
-			if (!this.agent) return
-			const { editor } = this.agent
+			const { editor } = this
 
 			const allShapes = editor.getCurrentPageShapes()
 			editor.deleteShapes(allShapes)
