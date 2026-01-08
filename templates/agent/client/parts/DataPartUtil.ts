@@ -9,10 +9,6 @@ export const DataPartUtil = registerPromptPartUtil(
 	class DataPartUtil extends PromptPartUtil<DataPart> {
 		static override type = 'data' as const
 
-		override getPriority() {
-			return -200 // API data should come right before the user message but after most other parts
-		}
-
 		override async getPart(request: AgentRequest): Promise<DataPart> {
 			const { data } = request
 
@@ -32,16 +28,6 @@ export const DataPartUtil = registerPromptPartUtil(
 				type: 'data',
 				data: values,
 			}
-		}
-
-		override buildContent({ data }: DataPart) {
-			if (data.length === 0) return []
-
-			const formattedData = data.map((item) => {
-				return `${JSON.stringify(item)}`
-			})
-
-			return ["Here's the data you requested:", ...formattedData]
 		}
 	}
 )

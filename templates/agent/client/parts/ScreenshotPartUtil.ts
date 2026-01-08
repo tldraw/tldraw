@@ -7,10 +7,6 @@ export const ScreenshotPartUtil = registerPromptPartUtil(
 	class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		static override type = 'screenshot' as const
 
-		override getPriority() {
-			return 40 // screenshot after text content (medium priority)
-		}
-
 		override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
 			if (!this.agent) return { type: 'screenshot', screenshot: '' }
 			const { editor } = this.agent
@@ -46,15 +42,6 @@ export const ScreenshotPartUtil = registerPromptPartUtil(
 				type: 'screenshot',
 				screenshot: await FileHelpers.blobToDataUrl(result.blob),
 			}
-		}
-
-		override buildContent({ screenshot }: ScreenshotPart) {
-			if (screenshot === '') return []
-
-			return [
-				'Here is the part of the canvas that you can currently see at this moment. It is not a reference image.',
-				screenshot,
-			]
 		}
 	}
 )

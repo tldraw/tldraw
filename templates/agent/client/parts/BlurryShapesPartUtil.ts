@@ -9,10 +9,6 @@ export const BlurryShapesPartUtil = registerPromptPartUtil(
 	class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		static override type = 'blurryShapes' as const
 
-		override getPriority() {
-			return 70
-		}
-
 		override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
 			if (!this.agent) return { type: 'blurryShapes', shapes: [] }
 			const { editor } = this.agent
@@ -53,12 +49,6 @@ export const BlurryShapesPartUtil = registerPromptPartUtil(
 				type: 'blurryShapes',
 				shapes: normalizedBlurryShapes,
 			}
-		}
-
-		override buildContent({ shapes }: BlurryShapesPart): string[] {
-			if (shapes.length === 0) return ['There are no shapes in your view at the moment.']
-
-			return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
 		}
 	}
 )

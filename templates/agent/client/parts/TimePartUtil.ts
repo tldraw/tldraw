@@ -11,10 +11,5 @@ export const TimePartUtil = registerPromptPartUtil(
 				timestamp: Date.now(),
 			}
 		}
-
-		override buildContent({ timestamp }: TimePart) {
-			const time = new Date(timestamp).toLocaleTimeString()
-			return ["The user's current time is:", time]
-		}
 	}
 )
