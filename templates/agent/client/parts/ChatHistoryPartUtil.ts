@@ -9,7 +9,7 @@ export const ChatHistoryPartUtil = registerPromptPartUtil(
 		static override type = 'chatHistory' as const
 
 		override async getPart(_request: AgentRequest, helpers: AgentHelpers) {
-			const history = structuredClone(this.agent.$chatHistory.get())
+			const history = structuredClone(this.agent.chat.getHistory())
 
 			for (const historyItem of history) {
 				if (historyItem.type !== 'prompt') continue

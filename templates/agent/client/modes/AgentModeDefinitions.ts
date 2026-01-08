@@ -46,15 +46,28 @@ import { ViewportBoundsPartUtil } from '../parts/ViewportBoundsPartUtil'
 
 /**
  * What an agent can see and do when in a given mode.
+ *
+ * This is a discriminated union based on the `active` property:
+ * - Active modes can take actions and receive prompt parts
+ * - Inactive modes cannot take actions (agent is idle/waiting)
  */
-export interface AgentModeDefinition {
+export type AgentModeDefinition = {
 	/** A unique identifier for the agent mode. */
 	type: string
-	/** The prompt parts that determine what information will be sent to the model. */
-	parts: PromptPart['type'][]
-	/** The actions that the agent can take. */
-	actions: AgentAction['_type'][]
-}
+} & (
+	| {
+			/** Whether the agent is active in this mode and can take actions. */
+			active: true
+			/** The prompt parts that determine what information will be sent to the model. */
+			parts: PromptPart['type'][]
+			/** The actions that the agent can take. */
+			actions: AgentAction['_type'][]
+	  }
+	| {
+			/** Whether the agent is active in this mode and can take actions. */
+			active: false
+	  }
+)
 
 /**
  * All agent mode definitions.
@@ -67,7 +80,12 @@ export interface AgentModeDefinition {
  */
 export const AGENT_MODE_DEFINITIONS = [
 	{
-		type: 'default',
+		type: 'idling',
+		active: false,
+	},
+	{
+		type: 'working',
+		active: true,
 
 		/**
 		 * Prompt parts determine what information will be sent to the model.

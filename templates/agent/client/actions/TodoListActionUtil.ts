@@ -20,7 +20,7 @@ export const TodoListActionUtil = registerActionUtil(
 				text: action.text,
 			}
 
-			this.agent.$todoList.update((todoItems) => {
+			this.agent.todos.$todoList.update((todoItems) => {
 				const index = todoItems.findIndex((item) => item.id === action.id)
 				if (index !== -1) {
 					return [...todoItems.slice(0, index), todoItem, ...todoItems.slice(index + 1)]

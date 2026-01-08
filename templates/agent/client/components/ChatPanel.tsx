@@ -25,15 +25,15 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			}
 
 			// If every todo is done, clear the todo list
-			const todosRemaining = agent.$todoList.get().filter((item) => item.status !== 'done')
+			const todosRemaining = agent.todos.getTodos().filter((item) => item.status !== 'done')
 			if (todosRemaining.length === 0) {
-				agent.$todoList.set([])
+				agent.todos.reset()
 			}
 
 			// Grab the user query and clear the chat input
 			const message = value
-			const contextItems = agent.$contextItems.get()
-			agent.$contextItems.set([])
+			const contextItems = agent.context.getItems()
+			agent.context.clear()
 			inputRef.current.value = ''
 
 			// Prompt the agent
