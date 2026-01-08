@@ -31,7 +31,7 @@ Here's an example of how the UI might look:
 */
 
 export function ChatHistory({ agent }: { agent: TldrawAgent }) {
-	const historyItems = useValue(agent.$chatHistory)
+	const historyItems = useValue(agent.chat.$chatHistory)
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -72,7 +72,7 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
-	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+	const isGenerating = useValue('isGenerating', () => agent.requests.isGenerating(), [agent])
 
 	return (
 		<div className="chat-history" ref={historyRef} onScroll={handleScroll}>

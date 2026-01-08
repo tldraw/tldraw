@@ -19,7 +19,7 @@ export function ChatInput({
 }) {
 	const { editor } = agent
 	const [inputValue, setInputValue] = useState('')
-	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+	const isGenerating = useValue('isGenerating', () => agent.requests.isGenerating(), [agent])
 
 	const isContextToolActive = useValue(
 		'isContextToolActive',
@@ -31,7 +31,7 @@ export function ChatInput({
 	)
 
 	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
-	const contextItems = useValue(agent.$contextItems)
+	const contextItems = useValue(agent.context.$contextItems)
 	const modelName = useValue(agent.$modelName)
 
 	return (
@@ -69,7 +69,7 @@ export function ChatInput({
 					{contextItems.map((item, i) => (
 						<ContextItemTag
 							editor={editor}
-							onClick={() => agent.removeFromContext(item)}
+							onClick={() => agent.context.remove(item)}
 							key={'context-item-' + i}
 							item={item}
 						/>

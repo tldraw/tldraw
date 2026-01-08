@@ -35,7 +35,7 @@ export class AgentHelpers {
 	constructor(agent: TldrawAgent) {
 		this.agent = agent
 		this.editor = agent.editor
-		const origin = agent.$chatOrigin.get()
+		const origin = agent.chatOrigin.getOrigin()
 		this.offset = {
 			x: -origin.x,
 			y: -origin.y,

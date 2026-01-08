@@ -18,8 +18,8 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 			const { editor, agent } = helpers
 
 			// Get the action history and clear it so that we can start tracking changes for the next request
-			const diffs = agent.$userActionHistory.get()
-			agent.$userActionHistory.set([])
+			const diffs = agent.userAction.getHistory()
+			agent.userAction.clearHistory()
 
 			const part: UserActionHistoryPart = {
 				type: 'userActionHistory',

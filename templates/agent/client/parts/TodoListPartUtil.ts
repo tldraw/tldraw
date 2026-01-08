@@ -7,10 +7,10 @@ export const TodoListPartUtil = registerPromptPartUtil(
 	class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 		static override type = 'todoList' as const
 
-		override getPart(_request: AgentRequest, helpers: AgentHelpers): TodoListPart {
+		override getPart(_request: AgentRequest, _helpers: AgentHelpers): TodoListPart {
 			return {
 				type: 'todoList',
-				items: helpers.agent.$todoList.get(),
+				items: this.agent.todos.getTodos(),
 			}
 		}
 	}
