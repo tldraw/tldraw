@@ -12,6 +12,11 @@ keywords:
 status: published
 date: 12/21/2025
 order: 0
+readability: 9
+voice: 9
+potential: 8
+accuracy: 9
+notes: "Clear structure, good voice with 'we' for tldraw decisions. The seeded RNG concept is broadly applicable but well-known - interest is in the application. Code examples are slightly simplified but conceptually accurate."
 ---
 
 # Seeded randomness for hand-drawn shapes
@@ -33,7 +38,7 @@ This creates shapes that look different on every render. Panning the canvas, zoo
 
 The solution is pseudorandom number generation with a deterministic seed. Given the same seed, the generator always produces the same sequence of numbers. Different seeds produce different sequences.
 
-We use a [xorshift](https://en.wikipedia.org/wiki/Xorshift) algorithm:
+We use an [xorshift](https://en.wikipedia.org/wiki/Xorshift) algorithm:
 
 ```typescript
 // packages/utils/src/lib/number.ts
