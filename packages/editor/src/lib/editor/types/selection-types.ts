@@ -1,7 +1,7 @@
 import { RotateCorner, SelectionCorner, SelectionEdge } from '../../primitives/Box'
 
 /** @public */
-export type TLSelectionHandle = SelectionCorner | SelectionEdge | RotateCorner
+export type TLSelectionHandle = SelectionCorner | SelectionEdge | RotateCorner | 'outline'
 
 /** @public */
 export type TLResizeHandle = SelectionCorner | SelectionEdge

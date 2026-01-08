@@ -13,7 +13,11 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onPointerUp(info: TLPointerEventInfo) {
-		selectOnCanvasPointerUp(this.editor, info)
+		// If the user clicked on the selection outline, we don't want to do
+		// any hit-testing - just maintain the current selection
+		if (this.info.handle !== 'outline') {
+			selectOnCanvasPointerUp(this.editor, info)
+		}
 		this.parent.transition('idle', info)
 	}
 
@@ -33,15 +37,22 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onDoubleClick?(info: TLClickEventInfo) {
+		// If the user double-clicked on the selection outline, don't do any hit-testing
+		// Just return to idle - double-clicking outline has no special behavior
+		if (this.info.handle === 'outline') {
+			this.parent.transition('idle')
+			return
+		}
+
 		const hoveredShape = this.editor.getHoveredShape()
 		const hitShape =
 			hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 				? hoveredShape
 				: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
-						hitInside: true,
-						margin: 0,
-						renderingOnly: true,
-					})
+					hitInside: true,
+					margin: 0,
+					renderingOnly: true,
+				})
 
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here

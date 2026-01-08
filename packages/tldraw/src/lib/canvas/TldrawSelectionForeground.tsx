@@ -36,6 +36,8 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const topRightEvents = useSelectionEvents('top_right')
 	const bottomRightEvents = useSelectionEvents('bottom_right')
 	const bottomLeftEvents = useSelectionEvents('bottom_left')
+	// Selection outline events - clicking on the outline maintains the current selection
+	const outlineEvents = useSelectionEvents('outline')
 
 	const isDefaultCursor = editor.getInstanceState().cursor.type === 'default'
 	const isCoarsePointer = editor.getInstanceState().isCoarsePointer
@@ -150,7 +152,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		shouldDisplayControls &&
 		(onlyShape
 			? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
-				!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
+			!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
 			: true) &&
 		!showCropHandles &&
 		!isLockedShape
@@ -208,6 +210,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 						className="tl-selection__fg__outline"
 						width={toDomPrecision(width)}
 						height={toDomPrecision(height)}
+						{...outlineEvents}
 					/>
 				)}
 				<RotateCornerHandle

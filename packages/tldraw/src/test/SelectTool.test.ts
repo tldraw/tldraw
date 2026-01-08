@@ -49,6 +49,66 @@ describe('TLSelectTool.Idle', () => {
 	})
 })
 
+describe('Selection outline interaction', () => {
+	it('Clicking on selection outline maintains current selection', () => {
+		// Create a shape and select it
+		const shapeId = createShapeId('test')
+		editor.createShapes([
+			{ id: shapeId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		])
+		editor.select(shapeId)
+		expect(editor.getSelectedShapeIds()).toEqual([shapeId])
+
+		// Simulate clicking on the selection outline (target: 'selection', handle: 'outline')
+		editor.pointerDown(150, 150, { target: 'selection', handle: 'outline' })
+		editor.pointerUp()
+
+		// Selection should be maintained
+		expect(editor.getSelectedShapeIds()).toEqual([shapeId])
+	})
+
+	it('Clicking on selection outline transitions to pointing_selection state', () => {
+		// Create and select a shape
+		const shapeId = createShapeId('test')
+		editor.createShapes([
+			{ id: shapeId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		])
+		editor.select(shapeId)
+
+		// Click on the outline
+		editor.pointerDown(150, 150, { target: 'selection', handle: 'outline' })
+
+		// Should be in pointing_selection state (ready for dragging)
+		expect(editor.getPath()).toBe('select.pointing_selection')
+
+		editor.pointerUp()
+	})
+
+	it('Clicking outside selection bounds on another shape selects that shape', () => {
+		// Create two overlapping shapes
+		const bottomShape = createShapeId('bottom')
+		const topShape = createShapeId('top')
+
+		editor.createShapes([
+			{ id: bottomShape, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: topShape, type: 'geo', x: 150, y: 150, props: { w: 100, h: 100 } },
+		])
+
+		// Select the bottom shape
+		editor.select(bottomShape)
+		expect(editor.getSelectedShapeIds()).toEqual([bottomShape])
+
+		// Click outside the selection bounds but inside the top shape
+		// Point (225, 225) is outside bottomShape's bounds (100-200, 100-200)
+		// but inside topShape (150-250, 150-250)
+		editor.pointerDown(225, 225, { target: 'canvas' })
+		editor.pointerUp()
+
+		// The top shape should now be selected
+		expect(editor.getSelectedShapeIds()).toEqual([topShape])
+	})
+})
+
 // todo: turn on feature flag for these tests or remove them
 describe.skip('Edit on type', () => {
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {

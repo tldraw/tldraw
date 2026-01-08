@@ -100,6 +100,12 @@ export class Idle extends StateNode {
 						})
 						break
 					}
+					case 'outline': {
+						// Clicking on the selection outline in crop mode should transition
+						// to pointing_crop (for dragging the crop) rather than canceling
+						this.editor.setCurrentTool('select.crop.pointing_crop', info)
+						break
+					}
 					default: {
 						this.cancel()
 					}

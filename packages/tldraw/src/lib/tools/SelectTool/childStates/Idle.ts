@@ -111,6 +111,12 @@ export class Idle extends StateNode {
 			}
 			case 'selection': {
 				switch (info.handle) {
+					case 'outline': {
+						// Clicking on the selection outline should maintain the current selection
+						// and transition to pointing_selection (for dragging)
+						this.parent.transition('pointing_selection', info)
+						break
+					}
 					case 'mobile_rotate':
 					case 'top_left_rotate':
 					case 'top_right_rotate':
@@ -362,13 +368,13 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
-								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
-								hitInside: false,
-								hitLabels: true,
-								hitLocked: true,
-								hitFrameInside: true,
-								renderingOnly: true,
-							})
+							margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
+							hitInside: false,
+							hitLabels: true,
+							hitLocked: true,
+							hitFrameInside: true,
+							renderingOnly: true,
+						})
 
 				if (hitShape) {
 					this.onRightClick({
