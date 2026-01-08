@@ -22,9 +22,8 @@ export const AlignActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<AlignAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 
-			this.agent.editor.alignShapes(
+			this.editor.alignShapes(
 				action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 				action.alignment
 			)

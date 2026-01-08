@@ -21,12 +21,8 @@ export const SendToBackActionUtil = registerActionUtil(
 		}
 
 		override applyAction(action: Streaming<SendToBackAction>) {
-			if (!this.agent) return
-
 			if (!action.shapeIds) return
-			this.agent.editor.sendToBack(
-				action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
-			)
+			this.editor.sendToBack(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
 		}
 	}
 )

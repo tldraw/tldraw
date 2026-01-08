@@ -7,10 +7,6 @@ export const ModePartUtil = registerPromptPartUtil(
 		static override type = 'mode' as const
 
 		override getPart(_request: AgentRequest): ModePart {
-			if (!this.agent) {
-				throw new Error('ModePartUtil requires an agent')
-			}
-
 			const modeDefinition = this.agent.getModeDefinition()
 
 			return {

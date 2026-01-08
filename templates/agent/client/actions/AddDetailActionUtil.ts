@@ -19,7 +19,6 @@ export const AddDetailActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<AddDetailAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 			this.agent.schedule('Add detail to the canvas.')
 		}
 	}

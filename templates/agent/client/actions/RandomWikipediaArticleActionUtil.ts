@@ -23,7 +23,6 @@ export const RandomWikipediaArticleActionUtil = registerActionUtil(
 		) {
 			// Wait until the action has finished streaming
 			if (!action.complete) return
-			if (!this.agent) return
 
 			const article = await fetchRandomWikipediaArticle()
 			this.agent.schedule({ data: [article] })

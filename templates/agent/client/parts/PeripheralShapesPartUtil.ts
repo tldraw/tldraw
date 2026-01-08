@@ -10,8 +10,7 @@ export const PeripheralShapesPartUtil = registerPromptPartUtil(
 		static override type = 'peripheralShapes' as const
 
 		override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
-			if (!this.agent) return { type: 'peripheralShapes', clusters: [] }
-			const { editor } = this.agent
+			const { editor } = this
 
 			const shapes = editor.getCurrentPageShapesSorted()
 			const contextBounds = request.bounds
@@ -20,7 +19,6 @@ export const PeripheralShapesPartUtil = registerPromptPartUtil(
 
 			// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
 			const shapesOutsideViewport = shapes.filter((shape) => {
-				if (!editor) return false
 				const bounds = editor.getShapeMaskedPageBounds(shape)
 				if (!bounds) return
 				if (contextBoundsBox.includes(bounds)) return

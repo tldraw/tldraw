@@ -37,8 +37,6 @@ export const PenActionUtil = registerActionUtil(
 		}
 
 		override applyAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
-			if (!this.agent) return
-
 			if (!action.points) return
 			if (action.points.length === 0) return
 
@@ -85,7 +83,7 @@ export const PenActionUtil = registerActionUtil(
 				},
 			])
 
-			this.agent.editor.createShape({
+			this.editor.createShape({
 				id: createShapeId(),
 				type: 'draw',
 				x: minX,

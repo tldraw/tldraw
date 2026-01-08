@@ -18,7 +18,6 @@ export const SetMyViewActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<SetMyViewAction>, helpers: AgentHelpers) {
 			if (!action.complete) return
-			if (!this.agent) return
 
 			const bounds = helpers.removeOffsetFromBox({
 				x: action.x,

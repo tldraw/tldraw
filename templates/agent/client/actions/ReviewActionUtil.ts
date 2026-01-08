@@ -22,7 +22,6 @@ export const ReviewActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {
 			if (!action.complete) return
-			if (!this.agent) return
 
 			const reviewBounds = helpers.removeOffsetFromBox({
 				x: action.x,

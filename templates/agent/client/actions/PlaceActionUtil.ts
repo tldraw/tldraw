@@ -31,8 +31,7 @@ export const PlaceActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<PlaceAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
-			const { editor } = this.agent
+			const { editor } = this
 
 			const { side, sideOffset = 0, align, alignOffset = 0 } = action
 			const referenceShapeId = `shape:${action.referenceShapeId}` as TLShapeId

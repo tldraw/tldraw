@@ -25,9 +25,8 @@ export const StackActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<StackAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 
-			this.agent.editor.stackShapes(
+			this.editor.stackShapes(
 				action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 				action.direction,
 				Math.min(action.gap, 1)

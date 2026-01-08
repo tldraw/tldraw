@@ -22,9 +22,8 @@ export const DistributeActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<DistributeAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 
-			this.agent.editor.distributeShapes(
+			this.editor.distributeShapes(
 				action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 				action.direction
 			)
