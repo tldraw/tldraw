@@ -11,13 +11,13 @@ keywords:
   - hand-drawn
 ---
 
-# Seeded randomness for hand-drawn shapes
+# Engineering imperfection in tldraw
 
-Draw a rectangle in tldraw with the "draw" style and it looks hand-drawn—wobbly lines, softened corners, the kind of imperfection that makes digital drawings feel human. Now pan the canvas. Zoom in. Select another shape. The rectangle should look exactly the same.
+In tldraw, we give our geometric shapes a hand-drawn style through carefully designed imperfections. These subtle variations add character to diagrams, loosen up wireframes, and look right next to shapes that are actually drawn by hand. The results look casual, but it's a real challenge to engineer the hand-drawn style. We needed a way to draw our geometric shapes that could incorporate imperfections. Our space for variety needed to be narrow enough that each geometric shape was easily recognizable, but broad enough such that no two shapes looked exactly alike. Crucially, each shape’s imperfections needed to be _stable_ for that shape as it resized or transformed on the canvas.
 
-That last part is harder than it sounds.
+In this article, we'll explore how tldraw draws geometric shapes, how we use randomness to achieve the hand-drawn look, and how we make that randomness _stable_.
 
-## The flickering rectangle problem
+## Dancing shapes
 
 A first attempt might just call `Math.random()` when rendering:
 
@@ -26,11 +26,13 @@ A first attempt might just call `Math.random()` when rendering:
 const offset = { x: Math.random() * 5, y: Math.random() * 5 }
 ```
 
-This creates shapes that jitter on every render. React re-renders when state changes—selecting a different shape, opening a menu, typing in a text box. Each render produces new random numbers, so the rectangle's wobble shifts slightly. The effect is subtle but unsettling, like the shape is alive.
+But this creates shapes that jitter on every render.
 
-The fix is well-known: seeded pseudorandom number generation. Given the same seed, the generator always produces the same sequence. We use a lightweight [xorshift](https://en.wikipedia.org/wiki/Xorshift) implementation that returns values between -1 and 1.
+[gif]
 
-The interesting question isn't "what algorithm"—it's "what seed."
+React re-renders when state changes—selecting a different shape, opening a menu, typing in a text box. Each render produces new random numbers, so the rectangle's wobble shifts slightly. The effect is subtle but unsettling, like the shape is alive.
+
+The fix is seeded pseudorandom number generation. Given the same seed, the generator always produces the same sequence. We use a lightweight [xorshift](https://en.wikipedia.org/wiki/Xorshift) implementation that returns values between -1 and 1.
 
 ## Shape identity as randomness seed
 
@@ -39,9 +41,9 @@ Every tldraw shape has a unique, immutable ID assigned at creation. This ID neve
 ```typescript
 // packages/tldraw/src/lib/shapes/geo/components/GeoShapeBody.tsx
 const fillPath =
-  dash === 'draw'
-    ? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })
-    : path.toD({ onlyFilled: true })
+	dash === 'draw'
+		? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })
+		: path.toD({ onlyFilled: true })
 ```
 
 Same ID, same random sequence, same appearance—regardless of when or where it renders. A shape created on your laptop looks identical when your collaborator sees it, when it's exported to SVG, when it's restored from a backup six months later.
@@ -56,8 +58,8 @@ The trick is modifying the seed for each pass:
 
 ```typescript
 for (let pass = 0; pass < passes; pass++) {
-  const random = rng(randomSeed + pass)
-  // draw the path with this pass's random offsets
+	const random = rng(randomSeed + pass)
+	// draw the path with this pass's random offsets
 }
 ```
 
@@ -71,10 +73,10 @@ Sharp corners look mechanical. We round them using quadratic bezier curves, but 
 
 ```typescript
 const roundnessClampedForAngle = modulate(
-  Math.abs(Vec.AngleBetween(tangentToPrev, tangentToNext)),
-  [Math.PI / 2, Math.PI], // 90° to 180°
-  [roundness, 0],         // full roundness at 90°, none at 180°
-  true
+	Math.abs(Vec.AngleBetween(tangentToPrev, tangentToNext)),
+	[Math.PI / 2, Math.PI], // 90° to 180°
+	[roundness, 0], // full roundness at 90°, none at 180°
+	true
 )
 ```
 
@@ -86,16 +88,16 @@ Cloud shapes demonstrate seeded randomness applied to geometry, not just renderi
 
 ```typescript
 function getCloudPath(width, height, seed, size, scale, isFilled) {
-  const getRandom = rng(seed)
-  // ... calculate bump positions around the perimeter
+	const getRandom = rng(seed)
+	// ... calculate bump positions around the perimeter
 
-  for (let i = 0; i < Math.floor(numBumps / 2); i++) {
-    wiggledPoints[i] = Vec.AddXY(
-      wiggledPoints[i],
-      getRandom() * maxWiggleX * scale,
-      getRandom() * maxWiggleY * scale
-    )
-  }
+	for (let i = 0; i < Math.floor(numBumps / 2); i++) {
+		wiggledPoints[i] = Vec.AddXY(
+			wiggledPoints[i],
+			getRandom() * maxWiggleX * scale,
+			getRandom() * maxWiggleY * scale
+		)
+	}
 }
 ```
 
@@ -103,7 +105,7 @@ Each cloud's bumps are positioned based on its ID. Resize the cloud and the bump
 
 ## The seed is the identity
 
-The deeper pattern here is treating the shape's identity as the source of its visual character. Not just "this shape is a rectangle with these dimensions" but "this shape is *this particular* rectangle, with its own handwriting."
+The deeper pattern here is treating the shape's identity as the source of its visual character. Not just "this shape is a rectangle with these dimensions" but "this shape is _this particular_ rectangle, with its own handwriting."
 
 That identity travels with the shape. Duplicate it and the copy gets a new ID, so new randomness, so its own distinct wobble. The original stays unchanged. Both look hand-drawn, but they're clearly two different drawings of the same thing.
 
