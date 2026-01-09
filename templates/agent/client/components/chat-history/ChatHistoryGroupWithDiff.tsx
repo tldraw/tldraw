@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
+import { AgentIcon, AgentIconType } from '../../../shared/icons/AgentIcon'
 import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { TldrawAgent } from '../../agent/TldrawAgent'
-import { AgentIcon, AgentIconType } from '../../../shared/icons/AgentIcon'
 import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 import { getActionInfo } from './getActionInfo'
@@ -20,7 +20,7 @@ export function ChatHistoryGroupWithDiff({
 
 	// Accept all changes from this group
 	const handleAccept = useCallback(() => {
-		agent.$chatHistory.update((currentChatHistoryItems) => {
+		agent.chat.$chatHistory.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -37,11 +37,11 @@ export function ChatHistoryGroupWithDiff({
 			}
 			return newItems
 		})
-	}, [items, editor, agent.$chatHistory])
+	}, [items, editor, agent.chat.$chatHistory])
 
 	// Reject all changes from this group
 	const handleReject = useCallback(() => {
-		agent.$chatHistory.update((currentChatHistoryItems) => {
+		agent.chat.$chatHistory.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -59,7 +59,7 @@ export function ChatHistoryGroupWithDiff({
 			}
 			return newItems
 		})
-	}, [items, editor, agent.$chatHistory])
+	}, [items, editor, agent.chat.$chatHistory])
 
 	// Get the acceptance status of the group
 	// If all items are accepted, the group is accepted
