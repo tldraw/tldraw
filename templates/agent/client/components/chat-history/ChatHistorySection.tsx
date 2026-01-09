@@ -1,3 +1,4 @@
+import { SmallSpinner } from '../../../shared/icons/SmallSpinner'
 import {
 	ChatHistoryActionItem,
 	ChatHistoryContinuationItem,
@@ -5,7 +6,6 @@ import {
 	ChatHistoryPromptItem,
 } from '../../../shared/types/ChatHistoryItem'
 import { TldrawAgent } from '../../agent/TldrawAgent'
-import { SmallSpinner } from '../../../shared/icons/SmallSpinner'
 import { ChatHistoryGroup, getActionHistoryGroups } from './ChatHistoryGroup'
 import { ChatHistoryPrompt } from './ChatHistoryPrompt'
 
