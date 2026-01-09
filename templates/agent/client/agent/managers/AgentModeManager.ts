@@ -1,5 +1,4 @@
 import { Atom, atom } from 'tldraw'
-import type { AgentRequest } from '../../../shared/types/AgentRequest'
 import { getModeNode } from '../../modes/AgentModeChart'
 import { AgentModeType, getAgentModeDefinition } from '../../modes/AgentModeDefinitions'
 import type { TldrawAgent } from '../TldrawAgent'
@@ -36,67 +35,45 @@ export class AgentModeManager extends BaseAgentManager {
 	 * Get the current mode of the agent.
 	 * @returns The current mode type.
 	 */
-	getMode(): AgentModeType {
+	getCurrentModeType(): AgentModeType {
 		return this.$mode.get()
 	}
 
 	/**
 	 * Set the mode of the agent.
 	 * Calls onExit for the current mode and onEnter for the new mode.
-	 * @param mode - The mode to set.
+	 * @param newMode - The mode to set.
 	 */
-	setMode(mode: AgentModeType) {
-		const currentMode = this.$mode.get()
+	setMode(newMode: AgentModeType) {
+		const fromMode = this.getCurrentModeType()
 
-		// Don't do anything if we're already in this mode
-		if (currentMode === mode) return
+		// TODO see if this is needed, or if it should just be a return, or if we can remove it entirely
+		if (fromMode === newMode) {
+			throw new Error(`Agent is already in mode: ${newMode}`)
+		}
 
-		// Call onExit for the current mode
-		const currentNode = getModeNode(currentMode)
-		currentNode?.onExit?.(this.agent, mode)
+		const fromModeNode = this.getCurrentModeNode()
+		const newModeNode = getModeNode(newMode)
+		fromModeNode.onExit?.(this.agent, newMode)
+		newModeNode.onEnter?.(this.agent, fromMode)
 
 		// Update the mode
-		this.$mode.set(mode)
-
-		// Call onEnter for the new mode
-		const newNode = getModeNode(mode)
-		newNode?.onEnter?.(this.agent, currentMode)
+		this.$mode.set(newMode)
 	}
 
 	/**
 	 * Get the mode definition for the current mode.
 	 * @returns The mode definition containing parts and actions.
 	 */
-	getModeDefinition() {
-		return getAgentModeDefinition(this.getMode())
-	}
-
-	// ==================== Prompt Lifecycle ====================
-
-	/**
-	 * Called when a prompt starts.
-	 * Invokes the current mode's onPromptStart hook if defined.
-	 */
-	onPromptStart(request: AgentRequest) {
-		const node = getModeNode(this.getMode())
-		node?.onPromptStart?.(this.agent, request)
+	getCurrentModeDefinition() {
+		return getAgentModeDefinition(this.getCurrentModeType())
 	}
 
 	/**
-	 * Called when a prompt ends successfully.
-	 * Invokes the current mode's onPromptEnd hook if defined.
+	 * Get current mode node.
+	 * @returns The current mode node.
 	 */
-	onPromptEnd(request: AgentRequest) {
-		const node = getModeNode(this.getMode())
-		node?.onPromptEnd?.(this.agent, request)
-	}
-
-	/**
-	 * Called when a prompt is cancelled.
-	 * Invokes the current mode's onPromptCancel hook if defined.
-	 */
-	onPromptCancel(request: AgentRequest) {
-		const node = getModeNode(this.getMode())
-		node?.onPromptCancel?.(this.agent, request)
+	getCurrentModeNode() {
+		return getModeNode(this.getCurrentModeType())
 	}
 }

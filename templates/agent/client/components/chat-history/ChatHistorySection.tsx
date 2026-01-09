@@ -41,11 +41,16 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): ChatHistorySe
 
 	for (const item of items) {
 		if (item.type === 'prompt') {
+			// Filter out 'self' prompts from the UI
+			if (item.promptSource === 'self') continue
 			sections.push({ prompt: item, items: [] })
 			continue
 		}
 
-		sections[sections.length - 1].items.push(item)
+		// Only add to the last section if one exists
+		if (sections.length > 0) {
+			sections[sections.length - 1].items.push(item)
+		}
 	}
 
 	return sections

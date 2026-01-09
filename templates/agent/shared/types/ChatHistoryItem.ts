@@ -1,6 +1,7 @@
 import { JsonValue, RecordsDiff, TLRecord } from 'tldraw'
 import { SimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
+import { AgentRequestSource } from './AgentRequest'
 import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
 
@@ -10,10 +11,11 @@ export type ChatHistoryItem =
 	| ChatHistoryContinuationItem
 
 /**
- * A prompt from the user.
+ * A prompt from a user, another agent, or the agent itself.
  */
 export interface ChatHistoryPromptItem {
 	type: 'prompt'
+	promptSource: AgentRequestSource
 	message: string
 	contextItems: ContextItem[]
 	selectedShapes: SimpleShape[]

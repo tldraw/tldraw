@@ -7,11 +7,11 @@ export const MessagesPartUtil = registerPromptPartUtil(
 		static override type = 'messages' as const
 
 		override getPart(request: AgentRequest): MessagesPart {
-			const { messages, type } = request
+			const { messages, source } = request
 			return {
 				type: 'messages',
 				messages,
-				requestType: type,
+				requestSource: source,
 			}
 		}
 	}

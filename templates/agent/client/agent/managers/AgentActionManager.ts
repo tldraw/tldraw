@@ -27,12 +27,6 @@ export class AgentActionManager extends BaseAgentManager {
 	 */
 	unknownActionUtil: AgentActionUtil<AgentAction>
 
-	/**
-	 * Whether the agent is currently acting on the editor or not.
-	 * This flag is used to prevent agent actions from being recorded as user actions.
-	 */
-	private isActing = false
-
 	constructor(agent: TldrawAgent) {
 		super(agent)
 		this.agentActionUtils = getAgentActionUtilsRecord(agent)
@@ -44,7 +38,7 @@ export class AgentActionManager extends BaseAgentManager {
 	 * Currently no state to reset as action utils are stateless.
 	 */
 	reset(): void {
-		this.isActing = false
+		// Reset state if needed - currently no state to reset
 	}
 
 	/**
@@ -72,22 +66,6 @@ export class AgentActionManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Get whether the agent is currently acting on the editor.
-	 * @returns true if the agent is currently acting, false otherwise.
-	 */
-	getIsActing(): boolean {
-		return this.isActing
-	}
-
-	/**
-	 * Set whether the agent is currently acting on the editor.
-	 * @param value - true if the agent is acting, false otherwise.
-	 */
-	setIsActing(value: boolean): void {
-		this.isActing = value
-	}
-
-	/**
 	 * Make the agent perform an action.
 	 * Applies the action to the editor and tracks it in chat history.
 	 * @param action - The action to make the agent do.
@@ -103,7 +81,7 @@ export class AgentActionManager extends BaseAgentManager {
 	} {
 		const { editor } = this.agent
 		const util = this.getAgentActionUtil(action._type)
-		this.isActing = true
+		this.agent.setIsActingOnEditor(true)
 
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord>
@@ -111,8 +89,13 @@ export class AgentActionManager extends BaseAgentManager {
 			diff = editor.store.extractingChanges(() => {
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
 			})
+		} catch (error) {
+			// always toast the error
+			this.agent.onError(error)
+			promise = null
+			throw error // you may not want to throw in productions
 		} finally {
-			this.isActing = false
+			this.agent.setIsActingOnEditor(false)
 		}
 
 		// Add the action to chat history
@@ -128,18 +111,31 @@ export class AgentActionManager extends BaseAgentManager {
 				// If there are no items, start off the chat history with the first item
 				if (historyItems.length === 0) return [historyItem]
 
-				// If the last item is still in progress, replace it with the new item
-				const lastHistoryItem = historyItems.at(-1)
-				if (
-					lastHistoryItem &&
-					lastHistoryItem.type === 'action' &&
-					!lastHistoryItem.action.complete
-				) {
-					return [...historyItems.slice(0, -1), historyItem]
-				}
+				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
+				const lastPromptIndex = historyItems.findLastIndex(
+					(item) => item.type === 'prompt' && item.promptSource !== 'self'
+				)
 
-				// Otherwise, just add the new item to the end of the list
-				return [...historyItems, historyItem]
+				// If the last action is still in progress AND it's after the last external prompt, replace it
+				const lastActionHistoryItemIndex = historyItems.findLastIndex(
+					(item) => item.type === 'action'
+				)
+				const lastActionHistoryItem =
+					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
+				if (
+					lastActionHistoryItem &&
+					lastActionHistoryItem.type === 'action' &&
+					!lastActionHistoryItem.action.complete &&
+					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
+				) {
+					const newHistoryItems = [...historyItems]
+					// Replace the incomplete action with the complete one (timestamp already set above)
+					newHistoryItems[lastActionHistoryItemIndex] = historyItem
+					return newHistoryItems
+				} else {
+					// Otherwise, just add the new item to the end of the list
+					return [...historyItems, historyItem]
+				}
 			})
 		}
 

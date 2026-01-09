@@ -7,7 +7,7 @@ export const ModePartUtil = registerPromptPartUtil(
 		static override type = 'mode' as const
 
 		override getPart(_request: AgentRequest): ModePart {
-			const modeDefinition = this.agent.mode.getModeDefinition()
+			const modeDefinition = this.agent.mode.getCurrentModeDefinition()
 
 			if (!modeDefinition.active) {
 				throw new Error(`Cannot get mode part for inactive mode: ${modeDefinition.type}`)
