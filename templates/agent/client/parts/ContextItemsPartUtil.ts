@@ -16,7 +16,7 @@ export const ContextItemsPartUtil = registerPromptPartUtil(
 			return {
 				type: 'contextItems',
 				items,
-				requestType: request.type,
+				requestSource: request.source,
 			}
 		}
 	}

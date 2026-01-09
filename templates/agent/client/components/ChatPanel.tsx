@@ -31,7 +31,6 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			}
 
 			// Grab the user query and clear the chat input
-			const message = value
 			const contextItems = agent.context.getItems()
 			agent.context.clear()
 			inputRef.current.value = ''
@@ -41,13 +40,15 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				.getSelectedShapes()
 				.map((shape) => convertTldrawShapeToSimpleShape(editor, shape))
 
-			await agent.prompt({
-				message,
-				contextItems,
-				bounds: editor.getViewportPageBounds(),
-				modelName,
-				selectedShapes,
-				type: 'user',
+			agent.interrupt({
+				input: {
+					messages: [value],
+					contextItems,
+					bounds: editor.getViewportPageBounds(),
+					modelName,
+					selectedShapes,
+					source: 'user',
+				},
 			})
 		},
 		[agent, modelName, editor]

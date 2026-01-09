@@ -39,10 +39,12 @@ export interface AgentRequest {
 	modelName: AgentModelName
 
 	/**
-	 * The type of request.
+	 * Where the request came from.
 	 * - 'user' is a request from the user.
-	 * - 'schedule' is a request from the schedule.
-	 * - 'todo' is a request from outstanding todo items.
+	 * - 'self' is a request from the agent itself.
+	 * - 'other-agent' is a request from another agent.
 	 */
-	type: 'user' | 'schedule' | 'todo'
+	source: 'user' | 'self' | 'other-agent'
 }
+
+export type AgentRequestSource = AgentRequest['source']

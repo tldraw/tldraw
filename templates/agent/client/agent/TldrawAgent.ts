@@ -13,10 +13,12 @@ import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
-import { ChatHistoryItem } from '../../shared/types/ChatHistoryItem'
+import { ChatHistoryPromptItem } from '../../shared/types/ChatHistoryItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
+import { getModeNode } from '../modes/AgentModeChart'
+import { AgentModeType } from '../modes/AgentModeDefinitions'
 import { getPromptPartUtilsRecord, PromptPartUtil } from '../parts/PromptPartUtil'
 import { $agentsAtom } from './agentsAtom'
 import { AgentActionManager } from './managers/AgentActionManager'
@@ -198,6 +200,30 @@ export class TldrawAgent {
 		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
+	/**
+	 * Whether the agent is currently acting on the editor or not.
+	 * This flag is used to prevent agent actions from being recorded as user actions.
+	 *
+	 * Do not use this to check if the agent is currently working on a request. Use `isGenerating` instead.
+	 */
+	private isActingOnEditor = false
+
+	/**
+	 * Get whether the agent is currently acting on the editor.
+	 * @returns true if the agent is currently acting, false otherwise.
+	 */
+	getIsActingOnEditor(): boolean {
+		return this.isActingOnEditor
+	}
+
+	/**
+	 * Set whether the agent is currently acting on the editor.
+	 * @param value - true if the agent is acting, false otherwise.
+	 */
+	setIsActingOnEditor(value: boolean): void {
+		this.isActingOnEditor = value
+	}
+
 	// ==================== Request Handling ====================
 
 	/**
@@ -212,20 +238,18 @@ export class TldrawAgent {
 		const transformedParts: PromptPart[] = []
 
 		// Get available prompt part types from the current mode
-		const modeDefinition = this.mode.getModeDefinition()
-
-		// Safeguard: cannot prepare prompts in inactive modes
+		const modeDefinition = this.mode.getCurrentModeDefinition()
 		if (!modeDefinition.active) {
 			throw new Error(
-				`Agent is not in an active mode so cannot prepare prompts. Current mode: ${modeDefinition.type}`
+				`Fairy is not in an active mode so can't act right now. Current mode: ${modeDefinition.type}`
 			)
 		}
 
-		const availablePartTypes = modeDefinition.parts
+		const availablePromptPartTypes = modeDefinition.parts
 
-		for (const partType of availablePartTypes) {
-			const util = promptPartUtils[partType]
-			if (!util) continue
+		for (const promptPartType of availablePromptPartTypes) {
+			const util = promptPartUtils[promptPartType]
+			if (!util) throw new Error(`Prompt part util not found for part type: ${promptPartType}`)
 			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
 			transformedParts.push(part)
@@ -257,34 +281,61 @@ export class TldrawAgent {
 	 *
 	 * @returns A promise for when the agent has finished its work.
 	 */
-	async prompt(input: AgentInput) {
+	async prompt(input: AgentInput, { nested = false }: { nested?: boolean } = {}) {
+		if (this.requests.isGenerating() && !nested) {
+			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
+		}
+
+		this.requests.setIsPrompting(true)
+
+		if (this.isActingOnEditor) {
+			throw new Error(
+				"Agent is already acting. It's illegal to prompt an agent during an action. Please use schedule instead."
+			)
+		}
+
 		const request = this.requests.getFullRequestFromInput(input)
+		const startingNode = this.mode.getCurrentModeNode()
+		startingNode.onPromptStart?.(this, request)
 
 		// Submit the request to the agent.
-		await this.request(request)
+		try {
+			await this.request(request)
+		} catch (e) {
+			console.error('Error data:', e)
+			this.requests.setIsPrompting(false)
+			this.requests.setCancelFn(null)
+			return
+		}
 
-		// After the request is handled, check if there are any outstanding todo items or requests
-		let scheduledRequest = this.requests.getScheduledRequest()
-		const todoItemsRemaining = this.todos.getTodos().filter((item) => item.status !== 'done')
-
-		if (!scheduledRequest) {
-			// If there no outstanding todo items or requests, finish
-			if (todoItemsRemaining.length === 0 || !this.requests.getCancelFn()) {
-				return
-			}
-
-			// If there are outstanding todo items, schedule a request
-			scheduledRequest = {
-				messages: request.messages,
-				contextItems: request.contextItems,
-				bounds: request.bounds,
-				modelName: request.modelName,
-				selectedShapes: request.selectedShapes,
-				data: request.data,
-				type: 'todo',
+		let modeChanged = true
+		while (!this.requests.getScheduledRequest() && modeChanged) {
+			modeChanged = false
+			const currentModeType = this.mode.getCurrentModeType()
+			const currentModeNode = this.mode.getCurrentModeNode()
+			currentModeNode.onPromptEnd?.(this, request) // in case onPromptEnd switches modes
+			const newModeType = this.mode.getCurrentModeType()
+			if (newModeType !== currentModeType) {
+				modeChanged = true
 			}
 		}
 
+		// If there's still no scheduled request, quit
+		const scheduledRequest = this.requests.getScheduledRequest()
+		const eventualModeType = this.mode.getCurrentModeType()
+		const eventualModeDefinition = this.mode.getCurrentModeDefinition()
+		if (!scheduledRequest) {
+			if (eventualModeDefinition.active) {
+				throw new Error(
+					`Agent is not allowed to become inactive during the active mode: ${eventualModeType}`
+				)
+			}
+			this.requests.setIsPrompting(false)
+			this.requests.setCancelFn(null)
+			return
+		}
+
+		// If there *is* a scheduled request...
 		// Add the scheduled request to chat history
 		const resolvedData = await Promise.all(scheduledRequest.data)
 		this.chat.push({
@@ -292,9 +343,9 @@ export class TldrawAgent {
 			data: resolvedData,
 		})
 
-		// Handle the scheduled request
+		// Handle the scheduled request and clear it
 		this.requests.clearScheduledRequest()
-		await this.prompt(scheduledRequest)
+		await this.prompt(scheduledRequest, { nested: true })
 	}
 
 	/**
@@ -320,22 +371,13 @@ export class TldrawAgent {
 		}
 		this.requests.setActiveRequest(request)
 
-		// Notify the mode that a prompt is starting
-		this.mode.onPromptStart(request)
-
 		// Call an external helper function to request the agent
-		const { promise, cancel } = requestAgent({ agent: this, request })
+		const { promise, cancel } = this.requestAgentActions(request)
 
 		this.requests.setCancelFn(cancel)
-		promise.finally(() => {
-			this.requests.setCancelFn(null)
-		})
 
 		const results = await promise
 		this.requests.clearActiveRequest()
-
-		// Notify the mode that the prompt has ended
-		this.mode.onPromptEnd(request)
 
 		return results
 	}
@@ -376,7 +418,7 @@ export class TldrawAgent {
 		const request = this.requests.getPartialRequestFromInput(input)
 
 		this._schedule({
-			type: 'schedule',
+			source: 'self',
 
 			// Append to properties where possible
 			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
@@ -421,9 +463,31 @@ export class TldrawAgent {
 			return
 		}
 
-		const request = this.requests.getFullRequestFromInput(input)
-		request.type = 'schedule'
-		this.requests.setScheduledRequest(request)
+		const partialRequest = this.requests.getPartialRequestFromInput(input)
+		partialRequest.source = partialRequest.source ?? 'self' // when scheduling, we want the default source to be 'self' if none is provided
+		const request = this.requests.getFullRequestFromInput(partialRequest)
+
+		const isCurrentlyActive = this.requests.isGenerating()
+
+		if (isCurrentlyActive) {
+			this.requests.setScheduledRequest(request)
+		} else {
+			this.prompt(request)
+		}
+	}
+
+	/**
+	 * Interrupt the agent and set their mode.
+	 * Optionally, schedule a request.
+	 */
+	interrupt({ input, mode }: { input: AgentInput | null; mode?: AgentModeType }) {
+		this.requests.cancel()
+		if (mode) {
+			this.mode.setMode(mode)
+		}
+		if (input !== null) {
+			this.schedule(input)
+		}
 	}
 
 	// ==================== Cancel & Reset ====================
@@ -434,9 +498,17 @@ export class TldrawAgent {
 	cancel() {
 		const activeRequest = this.requests.getActiveRequest()
 
-		// Notify the mode before cancelling (so it can access current state)
 		if (activeRequest) {
-			this.mode.onPromptCancel(activeRequest)
+			const modeType = this.mode.getCurrentModeType()
+			const modeNode = getModeNode(modeType)
+			modeNode.onPromptCancel?.(this, activeRequest)
+
+			const newModeDefinition = this.mode.getCurrentModeDefinition()
+			if (newModeDefinition.active) {
+				throw new Error(
+					`Agent is not allowed to become inactive during the active mode: ${this.mode.getCurrentModeType()}`
+				)
+			}
 		}
 
 		this.requests.cancel()
@@ -459,171 +531,172 @@ export class TldrawAgent {
 		this.todos.reset()
 		this.userAction.reset()
 	}
-}
 
-/**
- * Send a request to the agent and handle its response.
- *
- * This is a helper function that is used internally by the agent.
- */
-function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRequest }) {
-	const { editor } = agent
+	// ==================== Request Helpers ====================
 
-	// If the request is from the user, add it to chat history
-	if (request.type === 'user') {
-		const promptHistoryItem: ChatHistoryItem = {
+	/**
+	 * Send a request to the agent and handle its response.
+	 *
+	 * This is a helper function that is used internally by the agent.
+	 */
+	private requestAgentActions(request: AgentRequest) {
+		const { editor } = this
+
+		// If the request is not from self, add it to chat history
+		// if (request.source !== 'self') {
+		const promptHistoryItem: ChatHistoryPromptItem = {
 			type: 'prompt',
+			promptSource: request.source,
 			message: request.messages.join('\n'),
 			contextItems: request.contextItems,
 			selectedShapes: request.selectedShapes,
 		}
-		agent.chat.push(promptHistoryItem)
-	}
+		this.chat.push(promptHistoryItem)
+		// }
 
-	let cancelled = false
-	const controller = new AbortController()
-	const signal = controller.signal
-	const helpers = new AgentHelpers(agent)
+		let cancelled = false
+		const controller = new AbortController()
+		const signal = controller.signal
+		const helpers = new AgentHelpers(this)
 
-	// Get available actions from the current mode
-	const modeDefinition = agent.mode.getModeDefinition()
-
-	// Safeguard: cannot request actions in inactive modes
-	if (!modeDefinition.active) {
-		agent.cancel()
-		throw new Error(
-			`Agent is not in an active mode so cannot take actions. Current mode: ${modeDefinition.type}`
-		)
-	}
-
-	const availableActions = modeDefinition.actions
-
-	const requestPromise = (async () => {
-		const prompt = await agent.preparePrompt(request, helpers)
-		let incompleteDiff: RecordsDiff<TLRecord> | null = null
-		const actionPromises: Promise<void>[] = []
-		try {
-			for await (const action of streamAgent({ prompt, signal })) {
-				if (cancelled) break
-				editor.run(
-					() => {
-						const actionUtilType = agent.actions.getAgentActionUtilType(action._type)
-						const actionUtil = agent.actions.getAgentActionUtil(action._type)
-
-						// If the action is not in the mode's available actions, skip it
-						if (!availableActions.includes(actionUtilType)) {
-							return
-						}
-
-						// helpers the agent's action
-						const transformedAction = actionUtil.sanitizeAction(action, helpers)
-						if (!transformedAction) {
-							incompleteDiff = null
-							return
-						}
-
-						// If there was a diff from an incomplete action, revert it so that we can reapply the action
-						if (incompleteDiff) {
-							const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-							editor.store.applyDiff(inversePrevDiff)
-						}
-
-						// Apply the action to the app and editor
-						const { diff, promise } = agent.actions.act(transformedAction, helpers)
-
-						if (promise) {
-							actionPromises.push(promise)
-						}
-
-						// The the action is incomplete, save the diff so that we can revert it in the future
-						if (transformedAction.complete) {
-							incompleteDiff = null
-						} else {
-							incompleteDiff = diff
-						}
-					},
-					{
-						ignoreShapeLock: false,
-						history: 'ignore',
-					}
-				)
-			}
-			await Promise.all(actionPromises)
-		} catch (e) {
-			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-				return
-			}
-			agent.onError(e)
+		const modeDefinition = this.mode.getCurrentModeDefinition()
+		if (!modeDefinition.active) {
+			this.cancel()
+			throw new Error(
+				`Agent is not in an active mode so cannot take actions. Current mode: ${modeDefinition.type}`
+			)
 		}
-	})()
 
-	const cancel = () => {
-		cancelled = true
-		controller.abort('Cancelled by user')
-	}
+		const availableActions = modeDefinition.actions
 
-	return { promise: requestPromise, cancel }
-}
+		const requestPromise = (async () => {
+			const prompt = await this.preparePrompt(request, helpers)
+			let incompleteDiff: RecordsDiff<TLRecord> | null = null
+			const actionPromises: Promise<void>[] = []
+			try {
+				for await (const action of this.streamAgentActions({ prompt, signal })) {
+					if (cancelled) break
 
-/**
- * Stream a response from the model.
- * Act on the model's events as they come in.
- *
- * This is a helper function that is used internally by the agent.
- */
-async function* streamAgent({
-	prompt,
-	signal,
-}: {
-	prompt: BaseAgentPrompt
-	signal: AbortSignal
-}): AsyncGenerator<Streaming<AgentAction>> {
-	const res = await fetch('/stream', {
-		method: 'POST',
-		body: JSON.stringify(prompt),
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		signal,
-	})
+					editor.run(
+						() => {
+							const actionUtilType = this.actions.getAgentActionUtilType(action._type)
+							const actionUtil = this.actions.getAgentActionUtil(action._type)
 
-	if (!res.body) {
-		throw Error('No body in response')
-	}
+							// If the action is not in the mode's available actions, skip it
+							if (!availableActions.includes(actionUtilType)) {
+								return
+							}
 
-	const reader = res.body.getReader()
-	const decoder = new TextDecoder()
-	let buffer = ''
+							// helpers the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, helpers)
+							if (!transformedAction) {
+								incompleteDiff = null
+								return
+							}
 
-	try {
-		while (true) {
-			const { value, done } = await reader.read()
-			if (done) break
+							// If there was a diff from an incomplete action, revert it so that we can reapply the action
+							if (incompleteDiff) {
+								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+								editor.store.applyDiff(inversePrevDiff)
+							}
 
-			buffer += decoder.decode(value, { stream: true })
-			const actions = buffer.split('\n\n')
-			buffer = actions.pop() || ''
+							// Apply the action to the app and editor
+							const { diff, promise } = this.actions.act(transformedAction, helpers)
 
-			for (const action of actions) {
-				const match = action.match(/^data: (.+)$/m)
-				if (match) {
-					try {
-						const data = JSON.parse(match[1])
+							if (promise) {
+								actionPromises.push(promise)
+							}
 
-						// If the response contains an error, throw it
-						if ('error' in data) {
-							throw new Error(data.error)
+							// The the action is incomplete, save the diff so that we can revert it in the future
+							if (transformedAction.complete) {
+								incompleteDiff = null
+							} else {
+								incompleteDiff = diff
+							}
+						},
+						{
+							ignoreShapeLock: false,
+							history: 'ignore',
 						}
+					)
+				}
+				await Promise.all(actionPromises)
+			} catch (e) {
+				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
+					return
+				}
+				this.onError(e)
+			}
+		})()
 
-						const agentAction: Streaming<AgentAction> = data
-						yield agentAction
-					} catch (err: any) {
-						throw new Error(err.message)
+		const cancel = () => {
+			cancelled = true
+			controller.abort('Cancelled by user')
+		}
+
+		return { promise: requestPromise, cancel }
+	}
+
+	/**
+	 * Stream a response from the model.
+	 * Act on the model's events as they come in.
+	 *
+	 * This is a helper function that is used internally by the agent.
+	 */
+	private async *streamAgentActions({
+		prompt,
+		signal,
+	}: {
+		prompt: BaseAgentPrompt
+		signal: AbortSignal
+	}): AsyncGenerator<Streaming<AgentAction>> {
+		const res = await fetch('/stream', {
+			method: 'POST',
+			body: JSON.stringify(prompt),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			signal,
+		})
+
+		if (!res.body) {
+			throw Error('No body in response')
+		}
+
+		const reader = res.body.getReader()
+		const decoder = new TextDecoder()
+		let buffer = ''
+
+		try {
+			while (true) {
+				const { value, done } = await reader.read()
+				if (done) break
+
+				buffer += decoder.decode(value, { stream: true })
+				const actions = buffer.split('\n\n')
+				buffer = actions.pop() || ''
+
+				for (const action of actions) {
+					const match = action.match(/^data: (.+)$/m)
+					if (match) {
+						try {
+							const data = JSON.parse(match[1])
+
+							// If the response contains an error, throw it
+							if ('error' in data) {
+								throw new Error(data.error)
+							}
+
+							const agentAction: Streaming<AgentAction> = data
+							yield agentAction
+						} catch (err: any) {
+							throw new Error(err.message)
+						}
 					}
 				}
 			}
+		} finally {
+			reader.releaseLock()
 		}
-	} finally {
-		reader.releaseLock()
 	}
 }

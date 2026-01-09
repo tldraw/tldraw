@@ -18,8 +18,15 @@ export class AgentRequestManager extends BaseAgentManager {
 	/**
 	 * An atom containing the next request that the agent has scheduled for itself.
 	 * Null if there is no scheduled request.
+	 * @private
 	 */
-	$scheduledRequest: Atom<AgentRequest | null>
+	private $scheduledRequest: Atom<AgentRequest | null>
+
+	/**
+	 * Whether the agent is currently prompting (working on a request).
+	 * @private
+	 */
+	private $isPrompting: Atom<boolean>
 
 	/**
 	 * A function that cancels the agent's current prompt, if one is active.
@@ -35,6 +42,7 @@ export class AgentRequestManager extends BaseAgentManager {
 		super(agent)
 		this.$activeRequest = atom('activeRequest', null)
 		this.$scheduledRequest = atom('scheduledRequest', null)
+		this.$isPrompting = atom('isPrompting', false)
 	}
 
 	/**
@@ -44,15 +52,24 @@ export class AgentRequestManager extends BaseAgentManager {
 	reset(): void {
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
+		this.$isPrompting.set(false)
 		this.cancelFn = null
 	}
 
 	/**
 	 * Check if the agent is currently generating a response.
-	 * @returns True if there is an active request, false otherwise.
+	 * @returns True if the agent is prompting, false otherwise.
 	 */
 	isGenerating() {
-		return this.$activeRequest.get() !== null
+		return this.$isPrompting.get()
+	}
+
+	/**
+	 * Set the prompting state.
+	 * @param value - True if the agent is prompting, false otherwise.
+	 */
+	setIsPrompting(value: boolean) {
+		this.$isPrompting.set(value)
 	}
 
 	/**
@@ -78,7 +95,7 @@ export class AgentRequestManager extends BaseAgentManager {
 		const activeRequest = this.getActiveRequest()
 
 		return {
-			type: request.type ?? 'user',
+			source: request.source ?? 'user',
 			messages: request.messages ?? [],
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],

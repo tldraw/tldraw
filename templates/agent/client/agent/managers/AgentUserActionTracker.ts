@@ -46,7 +46,7 @@ export class AgentUserActionTracker extends BaseAgentManager {
 			'shape',
 			(shape, source) => {
 				if (source !== 'user') return
-				if (this.agent.actions.getIsActing()) return
+				if (this.agent.getIsActingOnEditor()) return
 				const change = {
 					added: { [shape.id]: shape },
 					updated: {},
@@ -61,7 +61,7 @@ export class AgentUserActionTracker extends BaseAgentManager {
 			'shape',
 			(shape, source) => {
 				if (source !== 'user') return
-				if (this.agent.actions.getIsActing()) return
+				if (this.agent.getIsActingOnEditor()) return
 				const change = {
 					added: {},
 					updated: {},
@@ -76,7 +76,7 @@ export class AgentUserActionTracker extends BaseAgentManager {
 			'shape',
 			(prev, next, source) => {
 				if (source !== 'user') return
-				if (this.agent.actions.getIsActing()) return
+				if (this.agent.getIsActingOnEditor()) return
 				const change: RecordsDiff<TLRecord> = {
 					added: {},
 					updated: { [prev.id]: [prev, next] },

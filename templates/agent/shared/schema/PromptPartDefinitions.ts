@@ -28,7 +28,7 @@ export interface ChatHistoryPart {
 export interface ContextItemsPart {
 	type: 'contextItems'
 	items: ContextItem[]
-	requestType: AgentRequest['type']
+	requestSource: AgentRequest['source']
 }
 
 export interface DataPart {
@@ -39,7 +39,7 @@ export interface DataPart {
 export interface MessagesPart {
 	type: 'messages'
 	messages: string[]
-	requestType: AgentRequest['type']
+	requestSource: AgentRequest['source']
 }
 
 export interface ModelNamePart {
@@ -239,7 +239,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> = {
 	type: 'contextItems',
 	priority: -55, // context items in middle
-	buildContent: ({ items, requestType }) => {
+	buildContent: ({ items, requestSource }) => {
 		const messages: string[] = []
 
 		const shapeItems = items.filter((item) => item.type === 'shape')
@@ -249,11 +249,11 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 
 		// Handle area context items
 		if (areaItems.length > 0) {
-			const isScheduled = requestType === 'schedule'
+			const isSelf = requestSource === 'self'
 			const areas = areaItems.map((item) => item.bounds)
 			messages.push(
-				isScheduled
-					? 'You are currently reviewing your work, and you have decided to focus your view on the following area. Make sure to focus your task here.'
+				isSelf
+					? 'You have decided to focus your view on the following area. Make sure to focus your task here.'
 					: 'The user has specifically brought your attention to the following areas in this request. The user might refer to them as the "area(s)" or perhaps "here" or "there", but either way, it\'s implied that you should focus on these areas in both your reasoning and actions. Make sure to focus your task on these areas:'
 			)
 			for (const area of areas) {
@@ -317,43 +317,15 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	type: 'messages',
 	priority: Infinity, // user message should be last (highest priority)
-	buildContent: ({ messages, requestType }) => {
-		let responsePart: string[] = []
-		switch (requestType) {
+	buildContent: ({ messages, requestSource }) => {
+		switch (requestSource) {
+			// we treat all sources the same for the messages part, but you don't have to!
 			case 'user':
-				responsePart = getUserPrompt(messages)
-				break
-			case 'schedule':
-				responsePart = getSchedulePrompt(messages)
-				break
-			case 'todo':
-				responsePart = getTodoPrompt(messages)
-				break
+			case 'self':
+			case 'other-agent':
+				return messages
 		}
-
-		return responsePart
 	},
-}
-
-function getUserPrompt(message: string[]) {
-	return [
-		`Using the events provided in the response schema, here's what I want you to do:`,
-		...message,
-	]
-}
-
-function getSchedulePrompt(message: string[]) {
-	return [
-		"Using the events provided in the response schema, here's what you should do:",
-		...message,
-	]
-}
-
-function getTodoPrompt(message: string[]) {
-	return [
-		'There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:',
-		...message,
-	]
 }
 
 // ModelName
