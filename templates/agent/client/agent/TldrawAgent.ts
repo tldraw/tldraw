@@ -31,7 +31,7 @@ import {
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
+import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
 import { $agentsAtom } from './agentsAtom'
 
 export interface TldrawAgentOptions {

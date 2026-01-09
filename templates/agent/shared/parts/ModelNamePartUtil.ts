@@ -1,4 +1,4 @@
-import { AgentModelName } from '../../worker/models'
+import { AgentModelName } from '../models'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'

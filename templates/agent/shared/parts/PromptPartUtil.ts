@@ -1,6 +1,6 @@
 import { Editor } from 'tldraw'
 import { TldrawAgent } from '../../client/agent/TldrawAgent'
-import { AgentModelName } from '../../worker/models'
+import { AgentModelName } from '../models'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'

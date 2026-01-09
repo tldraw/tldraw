@@ -1,6 +1,6 @@
 import { getPromptPartUtilsRecord } from '../../shared/AgentUtils'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../models'
+import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
 
 /**
  * Get the selected model name from a prompt.
