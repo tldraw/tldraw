@@ -13,7 +13,7 @@ order: 2
 
 # Image level of detail
 
-When we built image handling for tldraw, we wanted to avoid loading full-resolution images when they're displayed small. A 4000×3000 photo downloaded for a 50px thumbnail wastes bandwidth and memory. But requesting different resolutions based on zoom introduces a problem—if you fetch a new version every time the camera moves, users see constant flickering and the network gets hammered.
+When we built image handling for tldraw, we wanted to avoid loading full-resolution images when they're displayed much smaller. A 4000×3000 photo downloaded for a 50px thumbnail wastes bandwidth and memory. But requesting different resolutions based on zoom introduces a problem—if you fetch a new version every time the camera moves, users see constant flickering and the network gets hammered.
 
 Here's how we select appropriate resolutions while avoiding those problems.
 
