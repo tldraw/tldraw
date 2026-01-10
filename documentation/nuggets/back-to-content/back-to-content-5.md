@@ -8,11 +8,16 @@ keywords:
   - culling
   - viewport
   - UX
+readability: 9
+voice: 8
+potential: 7
+accuracy: 9
+notes: 'Good structure and voice. Coordinate space explanation is clear. Bug story adds interest. Potential limited by being more explanatory than insightful.'
 ---
 
 It can be easy to get lost on an infinite canvas. Once a user pans away from their content to an empty part of the canvas, there's no indication of how to find their way back.
 
-In tldraw, we show a "Back to content" button when a user's is looking at an empty part of the canvas. When clicked, we camera animates to bring the content back on screen.
+In tldraw, we show a "Back to content" button when a user is looking at an empty part of the canvas. When clicked, the camera animates to bring the content back on screen.
 
 To implement our "Back to content" feature, we needed to answer two questions:
 
@@ -62,7 +67,7 @@ The "viewport" is the part of the canvas that is visible on the user's screen, b
 
 ```js
 function getViewportPageBounds(camera, elm) {
-	const rect = elm.getBoundingPageRects()
+	const rect = elm.getBoundingClientRect()
 	return Box.From({
 		x: camera.x,
 		y: camera.y,
@@ -116,7 +121,7 @@ Since this also involves some work, we cache these page bounds too and only bust
 editor.getShapePageBounds(myShape)
 ```
 
-## Finding the Empty shapes
+## Finding the empty shapes
 
 Now what we have the viewport and the bounding boxes (both in page space) we can compare them to discover overlaps.
 
@@ -153,4 +158,4 @@ As a result, by relying on `getCulledShapes()` to know whether or not the viewpo
 
 The actual fix was to switch to `Editor.getNotVisibleShapes()` instead, which is calculated earlier and which does not include those exceptions.
 
-This fix also re-enabled a feature that had essentially been disabled by the bug: when you have selected shapes and are on an empty part of the canvas, the "Back to content" button will bring you back to your selected shapes. If you don't have shapes selectd, then we run `zoomToFit()` instead, attempting to fit all of the shapes into the viewport.
+This fix also re-enabled a feature that had essentially been disabled by the bug: when you have selected shapes and are on an empty part of the canvas, the "Back to content" button will bring you back to your selected shapes. If you don't have shapes selected, we zoom to the bounds of all shapes on the page instead.
