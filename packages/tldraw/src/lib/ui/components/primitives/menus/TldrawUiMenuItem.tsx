@@ -289,21 +289,26 @@ function useDraggableEvents(
 	const events = useMemo(() => {
 		let state = { name: 'idle' } as
 			| {
-					name: 'idle'
-			  }
+				name: 'idle'
+			}
 			| {
-					name: 'pointing'
-					screenSpaceStart: VecModel
-			  }
+				name: 'pointing'
+				screenSpaceStart: VecModel
+			}
 			| {
-					name: 'dragging'
-					screenSpaceStart: VecModel
-			  }
+				name: 'dragging'
+				screenSpaceStart: VecModel
+			}
 			| {
-					name: 'dragged'
-			  }
+				name: 'dragged'
+			}
 
 		function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+			// In pen mode, ignore non-pen input for drag gestures
+			if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') {
+				return
+			}
+
 			state = {
 				name: 'pointing',
 				screenSpaceStart: { x: e.clientX, y: e.clientY },
@@ -314,6 +319,12 @@ function useDraggableEvents(
 
 		function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
 			if ((e as any).isSpecialRedispatchedEvent) return
+
+			// In pen mode, ignore non-pen input (also catches mid-gesture mode changes)
+			if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') {
+				state = { name: 'idle' }
+				return
+			}
 
 			if (state.name === 'pointing') {
 				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
