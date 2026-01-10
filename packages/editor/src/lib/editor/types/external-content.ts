@@ -1,4 +1,5 @@
 import { TLAssetId, TLShapeId } from '@tldraw/tlschema'
+import type { DragEvent } from 'react'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -95,6 +96,12 @@ export interface TLExcalidrawExternalContent extends TLBaseExternalContent {
 }
 
 /** @public */
+export interface TLDropExternalContent extends TLBaseExternalContent {
+	type: 'drop'
+	event: DragEvent<Element>
+}
+
+/** @public */
 export type TLExternalContent<EmbedDefinition> =
 	| TLTextExternalContent
 	| TLFilesExternalContent
@@ -104,6 +111,7 @@ export type TLExternalContent<EmbedDefinition> =
 	| TLEmbedExternalContent<EmbedDefinition>
 	| TLTldrawExternalContent
 	| TLExcalidrawExternalContent
+	| TLDropExternalContent
 
 /** @public */
 export interface TLFileExternalAsset {

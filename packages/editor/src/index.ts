@@ -237,6 +237,7 @@ export {
 } from './lib/editor/types/event-types'
 export {
 	type TLBaseExternalContent,
+	type TLDropExternalContent,
 	type TLEmbedExternalContent,
 	type TLErrorExternalContentSource,
 	type TLExcalidrawExternalContent,
