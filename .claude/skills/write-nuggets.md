@@ -1,5 +1,5 @@
 ---
-name: write-nuggets
+name: write-nugget
 description: Guidelines for writing nuggets - short technical articles about interesting implementation details in tldraw. Use this when writing or reviewing nuggets in documentation/nuggets/.
 ---
 

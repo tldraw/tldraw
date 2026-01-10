@@ -105,8 +105,8 @@ Speed and friction can be customized per call:
 editor.slideCamera({
 	speed: velocity.len(),
 	direction: velocity,
-	friction: 0.12,  // custom friction
-	speedThreshold: 0.02  // custom stop point
+	friction: 0.12, // custom friction
+	speedThreshold: 0.02, // custom stop point
 })
 ```
 

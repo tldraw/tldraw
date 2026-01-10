@@ -8,6 +8,11 @@ keywords:
   - culling
   - viewport
   - UX
+readability: 8
+voice: 9
+potential: 6
+accuracy: 7
+notes: "Clean voice, no AI tells. But the 'selected shapes excluded from culling' claim doesn't match code—notVisibleShapes uses canCull(), not selection. Potential limited: problem isn't surprising enough."
 ---
 
 It can be easy to get lost on the canvas. If you pan far enough away from your content, it may be frustrating to traverse your way back. In this case, we need some quick way to get back to content.
