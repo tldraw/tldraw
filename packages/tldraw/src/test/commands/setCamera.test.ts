@@ -1043,8 +1043,7 @@ describe('Allows mixed values for x and y', () => {
 })
 
 test('it animated towards the constrained viewport rather than the given viewport', () => {
-	// @ts-expect-error
-	const mockAnimateToViewport = (editor._animateToViewport = vi.fn())
+	const mockAnimateToViewport = (editor.camera._animateToViewport = vi.fn())
 	editor.setCameraOptions({
 		...DEFAULT_CAMERA_OPTIONS,
 		constraints: {

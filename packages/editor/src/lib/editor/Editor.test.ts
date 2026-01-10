@@ -61,19 +61,19 @@ beforeEach(() => {
 		getContainer: () => document.body,
 	})
 	editor.setCameraOptions({ isLocked: true })
-	editor.setCamera = vi.fn()
+	vi.spyOn(editor.camera, 'setCamera')
 	editor.user.getAnimationSpeed = vi.fn()
 })
 
 describe('centerOnPoint', () => {
 	it('no-op when isLocked is set', () => {
 		editor.centerOnPoint({ x: 0, y: 0 })
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.centerOnPoint({ x: 0, y: 0 }, { force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
@@ -98,49 +98,49 @@ describe('zoomToFit', () => {
 	it('no-op when isLocked is set', () => {
 		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
 		editor.zoomToFit()
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
 		editor.zoomToFit({ force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
 describe('resetZoom', () => {
 	it('no-op when isLocked is set', () => {
 		editor.resetZoom()
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.resetZoom(undefined, { force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
 describe('zoomIn', () => {
 	it('no-op when isLocked is set', () => {
 		editor.zoomIn()
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.zoomIn(undefined, { force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
 describe('zoomOut', () => {
 	it('no-op when isLocked is set', () => {
 		editor.zoomOut()
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.zoomOut(undefined, { force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
@@ -148,13 +148,13 @@ describe('zoomToSelection', () => {
 	it('no-op when isLocked is set', () => {
 		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection()
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection({ force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
@@ -173,12 +173,12 @@ describe('slideCamera', () => {
 describe('zoomToBounds', () => {
 	it('no-op when isLocked is set', () => {
 		editor.zoomToBounds({ x: 0, y: 0, w: 100, h: 100 })
-		expect(editor.setCamera).not.toHaveBeenCalled()
+		expect(editor.camera.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.zoomToBounds({ x: 0, y: 0, w: 100, h: 100 }, { force: true })
-		expect(editor.setCamera).toHaveBeenCalled()
+		expect(editor.camera.setCamera).toHaveBeenCalled()
 	})
 })
 
