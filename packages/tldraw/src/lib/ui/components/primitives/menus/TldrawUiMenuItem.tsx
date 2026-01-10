@@ -289,19 +289,19 @@ function useDraggableEvents(
 	const events = useMemo(() => {
 		let state = { name: 'idle' } as
 			| {
-					name: 'idle'
-			  }
+				name: 'idle'
+			}
 			| {
-					name: 'pointing'
-					screenSpaceStart: VecModel
-			  }
+				name: 'pointing'
+				screenSpaceStart: VecModel
+			}
 			| {
-					name: 'dragging'
-					screenSpaceStart: VecModel
-			  }
+				name: 'dragging'
+				screenSpaceStart: VecModel
+			}
 			| {
-					name: 'dragged'
-			  }
+				name: 'dragged'
+			}
 
 		function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
 			state = {
@@ -314,6 +314,10 @@ function useDraggableEvents(
 
 		function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
 			if ((e as any).isSpecialRedispatchedEvent) return
+
+			// Disable drag-out-of-toolbar for pen inputs - pen users expect precise
+			// tap-to-select behavior and small movements during taps trigger false drags
+			if (e.pointerType === 'pen') return
 
 			if (state.name === 'pointing') {
 				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
