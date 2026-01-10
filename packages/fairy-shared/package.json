@@ -10,7 +10,7 @@
 	"type": "module",
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
-		"ai": "^5.0.63",
+		"ai": "^5.0.115",
 		"tldraw": "workspace:*",
 		"zod": "^4.1.8"
 	},
