@@ -173,9 +173,9 @@ We're writing technical articles, not ad copy:
 - "robust," "comprehensive," "cutting-edge"
 - "empowers developers to..."
 
-### Em dash overuse
+### Em dashes
 
-One em dash per paragraph is fine; several is a red flag.
+Prefer separate sentences over em dashes. Em dashes can feel like a crutch for avoiding cleaner sentence structure. When you find yourself reaching for an em dash, try splitting into two sentences instead.
 
 ### Bullet points with bolded headers
 
@@ -210,11 +210,43 @@ These patterns make articles feel templated or artificial:
 
 **Ground the reader first**. For problem→solution articles, show what goes wrong. For "how it works" articles, establish context. Don't dive into code before the reader knows why they should care.
 
-**Code examples should illustrate insights, not just show implementation**. The averaging trick in freehand curves deserves a code block because it's the core insight. The full SVG path building doesn't—that's just plumbing.
-
 **Be honest about tradeoffs**. "The memory cost is worth it" or "this is a hack and we know it" (Safari's 250ms sleep). Don't pretend every solution is elegant.
 
 **Link to source files at the bottom** so readers can explore further.
+
+## Code examples
+
+Technical depth is valuable in nuggets. Readers want to see how things actually work under the hood.
+
+**Show simplified versions of real implementations**. Extract the core logic from our actual code, stripping away helpers, caching, and error handling to reveal the essential algorithm. This makes the code digestible while staying true to what we actually do.
+
+For example, our viewport bounds calculation uses helpers and caching in practice:
+
+```ts
+// What the actual code looks like (with caching, helpers, etc.)
+@computed getViewportPageBounds() {
+    const { w, h } = this.getViewportScreenBounds()
+    const { x: cx, y: cy, z: cz } = this.getCamera()
+    return new Box(-cx, -cy, w / cz, h / cz)
+}
+```
+
+A nugget might show this same logic extracted into a standalone function that makes the math clearer:
+
+```ts
+// Simplified version for the article
+function getViewportPageBounds(camera, screenSize) {
+	return new Box(-camera.x, -camera.y, screenSize.width / camera.z, screenSize.height / camera.z)
+}
+```
+
+Both are accurate—the second just removes the class context and method calls to focus on what's happening.
+
+**Match the real implementation's logic**. Simplified doesn't mean invented. The formulas, algorithms, and approach should match what we actually do. If the actual code uses `-camera.x`, don't write `camera.x` in the example.
+
+**Explain what the code shows**. Don't drop a code block and move on. A sentence or two before or after helps readers know what to look for: "The negative camera values might look surprising. The camera stores how far the canvas has been 'pulled'..."
+
+**Skip boilerplate, keep the interesting parts**. Error handling, type annotations, and null checks often obscure the core logic. Remove them unless they're part of the story. Caching and memoization can usually be mentioned in prose ("These calculations are cached") rather than shown in code.
 
 ## Grammar and mechanics
 
