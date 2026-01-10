@@ -298,14 +298,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.options = { ...defaultTldrawOptions, ...options }
 
 		this.store = store
-		this.history = new HistoryManager<TLRecord>({
-			store,
-			annotateError: (error: any) => {
-				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
-				this.crash(error)
-			},
-		})
-
 		this.snaps = new SnapManager(this)
 
 		this.disposables.add(this.timers.dispose)
@@ -730,6 +722,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 			})
 		)
+
+		this.history = new HistoryManager<TLRecord>({
+			store,
+			getCurrentPageId: () => this.getCurrentPageId(),
+			annotateError: (error: any) => {
+				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
+				this.crash(error)
+			},
+		})
 
 		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () =>
 			this.getCurrentPageId()
