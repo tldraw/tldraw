@@ -683,6 +683,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
     readonly createTextOnCanvasDoubleClick: true;
+    readonly cullingMargin: 0.2;
     readonly debouncedZoom: true;
     readonly debouncedZoomThreshold: 500;
     readonly defaultSvgPadding: 32;
@@ -1121,6 +1122,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
     createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
+    // (undocumented)
+    _cullingBounds: Computed<Box | null, unknown>;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
@@ -3446,6 +3449,7 @@ export interface TldrawOptions {
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
     readonly createTextOnCanvasDoubleClick: boolean;
+    readonly cullingMargin: number;
     readonly debouncedZoom: boolean;
     readonly debouncedZoomThreshold: number;
     // (undocumented)
