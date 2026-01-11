@@ -315,6 +315,7 @@ export {
 	ToggleEnhancedA11yModeItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
+	ToggleInvertZoomItem,
 	ToggleKeyboardShortcutsItem,
 	ToggleLockMenuItem,
 	TogglePasteAtCursorItem,

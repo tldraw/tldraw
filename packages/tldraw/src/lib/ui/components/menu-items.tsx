@@ -616,6 +616,23 @@ export function ToggleEdgeScrollingItem() {
 }
 
 /** @public @react */
+export function ToggleInvertZoomItem() {
+	const editor = useEditor()
+	const isZoomDirectionInverted = useValue(
+		'isZoomDirectionInverted',
+		() => editor.user.getIsZoomDirectionInverted(),
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuActionCheckboxItem
+			actionId="toggle-invert-zoom"
+			checked={isZoomDirectionInverted}
+		/>
+	)
+}
+
+/** @public @react */
 export function ToggleReduceMotionItem() {
 	const editor = useEditor()
 	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])

@@ -1292,6 +1292,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-invert-zoom',
+				label: {
+					default: 'action.toggle-invert-zoom',
+					menu: 'action.toggle-invert-zoom.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-invert-zoom', { source })
+					editor.user.updateUserPreferences({
+						isZoomDirectionInverted: !editor.user.getIsZoomDirectionInverted(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-transparent',
 				label: {
 					default: 'action.toggle-transparent',
