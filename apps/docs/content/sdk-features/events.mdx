@@ -1,0 +1,281 @@
+---
+title: Events
+created_at: 12/26/2025
+updated_at: 12/29/2025
+keywords:
+  - events
+  - EventEmitter
+  - TLEventMap
+  - change
+  - tick
+  - mount
+status: published
+date: 12/26/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: Input events table could mention TLEventInfo link more prominently. Add API links for types like HistoryEntry.
+---
+
+The editor emits events for user interactions, state changes, and lifecycle moments. You subscribe using `on()` and `off()` methods inherited from EventEmitter. Events range from low-level input (pointer moves, key presses) to high-level changes (shapes created, camera moved). Use them to build analytics, sync external state, or extend editor behavior.
+
+## Subscribing to events
+
+The `Editor` extends EventEmitter and provides typed event subscriptions:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					editor.on('event', (info) => {
+						console.log('Event:', info.type, info.name)
+					})
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Unsubscribe by calling `off()` with the same handler:
+
+```tsx
+const handleEvent = (info) => {
+	console.log('Event:', info.type)
+}
+
+editor.on('event', handleEvent)
+editor.off('event', handleEvent)
+```
+
+Always unsubscribe when your component unmounts to prevent memory leaks. In React, return a cleanup function from your effect:
+
+```tsx
+useEffect(() => {
+	const handleChange = (entry) => {
+		console.log('Store changed:', entry.changes)
+	}
+
+	editor.on('change', handleChange)
+	return () => editor.off('change', handleChange)
+}, [editor])
+```
+
+## Event categories
+
+### Input events
+
+The `event` and `before-event` events fire for all user interactions. Each receives a [TLEventInfo](?) object describing the input.
+
+```tsx
+editor.on('event', (info) => {
+	if (info.type === 'pointer' && info.name === 'pointer_down') {
+		console.log('Clicked at', info.point)
+	}
+})
+```
+
+The `before-event` fires before the event reaches the tool state machine. Use it to inspect or log events before processing. The `event` fires after tool processing completes.
+
+Input events have different types:
+
+| Type       | Names                                                                                     | Description                         |
+| ---------- | ----------------------------------------------------------------------------------------- | ----------------------------------- |
+| `pointer`  | `pointer_down`, `pointer_move`, `pointer_up`, `right_click`, `middle_click`, `long_press` | Mouse, touch, and pen interactions  |
+| `click`    | `double_click`, `triple_click`, `quadruple_click`                                         | Multi-click sequences               |
+| `keyboard` | `key_down`, `key_up`, `key_repeat`                                                        | Keyboard input                      |
+| `wheel`    | `wheel`                                                                                   | Scroll wheel and trackpad scrolling |
+| `pinch`    | `pinch_start`, `pinch`, `pinch_end`                                                       | Two-finger pinch gestures           |
+| `zoom`     | —                                                                                         | Programmatic zoom events            |
+
+Pointer events include the target—what the pointer is over:
+
+```tsx
+editor.on('event', (info) => {
+	if (info.type === 'pointer' && info.name === 'pointer_down') {
+		switch (info.target) {
+			case 'canvas':
+				console.log('Clicked empty canvas')
+				break
+			case 'shape':
+				console.log('Clicked shape:', info.shape.id)
+				break
+			case 'selection':
+				console.log('Clicked selection bounds')
+				break
+			case 'handle':
+				console.log('Clicked handle on:', info.shape.id)
+				break
+		}
+	}
+})
+```
+
+### Shape events
+
+Shape events fire when shapes change. These are convenience wrappers around store changes—you can also use the `change` event to track all store modifications.
+
+| Event            | Payload       | Description                      |
+| ---------------- | ------------- | -------------------------------- |
+| `created-shapes` | `TLRecord[]`  | Shapes were added                |
+| `edited-shapes`  | `TLRecord[]`  | Shapes were modified             |
+| `deleted-shapes` | `TLShapeId[]` | Shapes were removed              |
+| `edit`           | None          | Fires alongside any of the above |
+
+```tsx
+editor.on('created-shapes', (shapes) => {
+	console.log('Created:', shapes.map((s) => s.type).join(', '))
+})
+
+editor.on('deleted-shapes', (ids) => {
+	console.log('Deleted:', ids.length, 'shapes')
+})
+```
+
+### Store changes
+
+The `change` event fires whenever the store updates. It receives a [HistoryEntry](?) containing the diff and source:
+
+```tsx
+editor.on('change', (entry) => {
+	const { added, updated, removed } = entry.changes
+
+	for (const record of Object.values(added)) {
+		if (record.typeName === 'shape') {
+			console.log('Added shape:', record.type)
+		}
+	}
+
+	for (const [from, to] of Object.values(updated)) {
+		if (from.typeName === 'shape') {
+			console.log('Updated shape:', from.id)
+		}
+	}
+
+	for (const record of Object.values(removed)) {
+		if (record.typeName === 'shape') {
+			console.log('Removed shape:', record.id)
+		}
+	}
+})
+```
+
+The `source` property indicates where the change originated:
+
+```tsx
+editor.on('change', (entry) => {
+	if (entry.source === 'user') {
+		// Change from local user interaction
+		scheduleAutosave()
+	} else if (entry.source === 'remote') {
+		// Change from collaboration sync
+	}
+})
+```
+
+### Frame events
+
+Two events fire on every animation frame:
+
+| Event   | Payload  | Description                   |
+| ------- | -------- | ----------------------------- |
+| `tick`  | `number` | Milliseconds since last tick  |
+| `frame` | `number` | Milliseconds since last frame |
+
+```tsx
+editor.on('tick', (elapsed) => {
+	// Update animations, physics, etc.
+	updateParticleSystem(elapsed)
+})
+```
+
+These fire frequently (60+ times per second). Keep handlers fast to avoid dropping frames.
+
+### Lifecycle events
+
+| Event     | Payload              | Description                  |
+| --------- | -------------------- | ---------------------------- |
+| `mount`   | None                 | Editor finished initializing |
+| `dispose` | None                 | Editor is being cleaned up   |
+| `crash`   | `{ error: unknown }` | Editor encountered an error  |
+| `update`  | None                 | Editor state updated         |
+
+```tsx
+editor.on('mount', () => {
+	console.log('Editor ready')
+})
+
+editor.on('crash', ({ error }) => {
+	reportError(error)
+})
+```
+
+### UI and camera events
+
+| Event                   | Payload                   | Description                    |
+| ----------------------- | ------------------------- | ------------------------------ |
+| `resize`                | `BoxModel`                | Viewport dimensions changed    |
+| `stop-camera-animation` | None                      | Camera animation interrupted   |
+| `stop-following`        | None                      | Stopped following another user |
+| `select-all-text`       | `{ shapeId: TLShapeId }`  | Triple-clicked to select text  |
+| `place-caret`           | `{ shapeId, point }`      | Text caret positioned          |
+| `max-shapes`            | `{ name, pageId, count }` | Page reached shape limit       |
+
+```tsx
+editor.on('resize', (bounds) => {
+	console.log('Canvas size:', bounds.w, 'x', bounds.h)
+})
+
+editor.on('max-shapes', ({ pageId, count }) => {
+	showWarning(`Page has reached the ${count} shape limit`)
+})
+```
+
+## UI events
+
+The `Tldraw` component's `onUiEvent` prop captures high-level UI interactions separately from canvas events. This includes toolbar selections, menu actions, and keyboard shortcuts.
+
+```tsx
+<Tldraw
+	onUiEvent={(name, data) => {
+		console.log('UI event:', name, data)
+	}}
+/>
+```
+
+UI events track actions like selecting tools, grouping shapes, toggling dark mode, and zooming. They fire regardless of whether the action came from a click or keyboard shortcut. For the full list of events, see [TLUiEventMap](?).
+
+## Listening to store changes directly
+
+For fine-grained control over store subscriptions, use `editor.store.listen()` instead of editor events:
+
+```tsx
+const cleanup = editor.store.listen(
+	(entry) => {
+		// Handle changes
+	},
+	{ source: 'user', scope: 'all' }
+)
+
+// Later, unsubscribe
+cleanup()
+```
+
+The `listen()` method accepts filter options:
+
+- `source`: `'user'`, `'remote'`, or `'all'`—filter by change origin
+- `scope`: `'all'`, `'document'`, `'session'`, or `'presence'`—filter by record scope
+
+See [Side effects](/docs/side-effects) for registering handlers that can intercept and modify changes.
+
+## Related examples
+
+- **[Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events)** - Log pointer, keyboard, and wheel events as you interact with the canvas.
+- **[Store events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/store-events)** - Track shape creation, updates, and deletion through store change events.
+- **[UI events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui-events)** - Capture high-level UI interactions like tool selection and menu actions.

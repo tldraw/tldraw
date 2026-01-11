@@ -1,0 +1,85 @@
+---
+title: v4.1.0
+description: Examples
+author: tldraw
+date: 10/15/2025
+order: 5
+status: published
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.1.0)
+
+# tldraw v4.1.0
+
+Welcome to version 4.1.0 of tldraw! This is a maintenance release including a new starter kit, a few minor API additions, and a handful of improvements and bug fixes.
+
+## Shader starter kit (#6847)
+
+We're excited to introduce the **Shader Starter Kit** – a new template that demonstrates how to integrate WebGL shaders with tldraw to create dynamic, interactive backgrounds that respond to canvas interactions. Try it out and read the docs [here](https://tldraw.dev/starter-kits/shader).
+
+https://github.com/user-attachments/assets/14b02bfb-6730-4d85-a482-a169292eab09
+
+### What's included
+
+The starter kit comes with a reusable `WebGLManager` base class and four complete shader examples to get you started:
+
+- **Fluid Simulation** - Real-time Navier-Stokes fluid dynamics that respond to shape movements
+- **Rainbow** - Animated gradient effects with time-based animations
+- **Shadows** - Dynamic shadow casting from shapes using raymarching and signed distance fields
+- **Minimal** - A bare-bones template for starting your own shader projects
+
+Each example includes configurable parameters with a built-in UI panel, localStorage persistence, and full TypeScript support.
+
+### Getting started
+
+Create a new project with the shader starter kit using:
+
+```bash
+npm create tldraw@latest
+```
+
+Then select "Shader" from the template options. You can also explore the template directly in the repository: [github.com/tldraw/tldraw/tree/main/templates/shader](https://github.com/tldraw/tldraw/tree/main/templates/shader)
+
+## API Changes
+
+- Allow embed types to opt-out of embed-on-paste behavior ([#6819](https://github.com/tldraw/tldraw/issues/6819)) ([#6874](https://github.com/tldraw/tldraw/issues/6874))
+
+  Adds the `embedOnPaste` option to `EmbedDefinition` to configure whether embeds are paste-able. Opting out means
+  that pasting an embeddable URL will insert a bookmark shape instead of the embed shape.
+
+- Omit arrow and lines from the minimap for clearer navigation ([#6327](https://github.com/tldraw/tldraw/issues/6327))
+
+  Adds `hideInMinimap` option to `ShapeUtil` to optionally hide shapes from the minimap.
+
+- Add independent x and y handle snapping ([#6883](https://github.com/tldraw/tldraw/issues/6883))
+
+  Adds a `snapType?: 'point' | 'align'` property to the `TLHandle` class. Deprecates the `canSnap` property.
+
+- Expose `Editor#getShapePageBounds` method and `isRecordsDiffEmpty` helper function([#6871](https://github.com/tldraw/tldraw/issues/6871))
+
+- Adds `localStorageAtom` to `@tldraw/state`. This is an atom backed by `localStorage` with cross-tab syncing ([#6876](https://github.com/tldraw/tldraw/issues/6876))
+
+- Adds inline version of style picker buttons: `StylePanelButtonPickerInline`, `StylePanelDoubleDropdownPickerInline`, and `StylePanelDropdownPickerInline`. Use these components inside of `TldrawUiToolbar` components where needed. ([#6920](https://github.com/tldraw/tldraw/pull/6920))
+
+## Improvements
+
+- Make bookmark titles clickable ([#6326](https://github.com/tldraw/tldraw/issues/6326))
+
+- Improve top bar rendering on mobile ([#6895](https://github.com/tldraw/tldraw/issues/6895))
+
+  Reduces the number of UI elements that are rendered on mobile out of the box.
+
+- Allow using Numpad Enter trigger edit mode on shapes. ([#6830](https://github.com/tldraw/tldraw/issues/6830))
+
+- Consolidate preferences menu groups ([#6802](https://github.com/tldraw/tldraw/issues/6802))
+
+## Bug Fixes
+
+- Fix accessibility shortcut typo ([#6811](https://github.com/tldraw/tldraw/issues/6811))
+- Reinstate the focus mode action which was deleted by accident ([#6812](https://github.com/tldraw/tldraw/issues/6812))
+- Fix arrow rendering edge case ([#6799](https://github.com/tldraw/tldraw/issues/6799))
+- Fix a bug that allow opening a empty window on `a` tag click ([#6817](https://github.com/tldraw/tldraw/issues/6817))
+- Fix missing translation key. ([#6826](https://github.com/tldraw/tldraw/issues/6826))
+- Fix shape index management race condition. ([#6884](https://github.com/tldraw/tldraw/issues/6884))
+- Fixed an edge case bug for shapes that have zero geometry vertices ([#6885](https://github.com/tldraw/tldraw/issues/6885))
+- Fixed a bug where the style panel buttons would overflow at certain browser zoom levels ([#6920](https://github.com/tldraw/tldraw/pull/6920))

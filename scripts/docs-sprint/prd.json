@@ -1,0 +1,44 @@
+{
+	"required_reading": [".claude/skills/write-docs/SKILL.md"],
+	"articles": [
+		"sdk-features/actions.mdx",
+		"sdk-features/animation.mdx",
+		"sdk-features/assets.mdx",
+		"sdk-features/bindings.mdx",
+		"sdk-features/camera.mdx",
+		"sdk-features/clipboard.mdx",
+		"sdk-features/coordinates.mdx",
+		"sdk-features/culling.mdx",
+		"sdk-features/deep-links.mdx",
+		"sdk-features/default-shapes.mdx",
+		"sdk-features/edge-scrolling.mdx",
+		"sdk-features/environment.mdx",
+		"sdk-features/groups.mdx",
+		"sdk-features/image-export.mdx",
+		"sdk-features/input-handling.mdx"
+	],
+	"stories": [
+		{
+			"id": "evaluate",
+			"type": "evaluate",
+			"priority": 1,
+			"status": {
+				"sdk-features/actions.mdx": true,
+				"sdk-features/animation.mdx": true,
+				"sdk-features/assets.mdx": true,
+				"sdk-features/bindings.mdx": true,
+				"sdk-features/camera.mdx": true,
+				"sdk-features/clipboard.mdx": true,
+				"sdk-features/coordinates.mdx": true,
+				"sdk-features/culling.mdx": true,
+				"sdk-features/deep-links.mdx": true,
+				"sdk-features/default-shapes.mdx": true,
+				"sdk-features/edge-scrolling.mdx": true,
+				"sdk-features/environment.mdx": true,
+				"sdk-features/groups.mdx": true,
+				"sdk-features/image-export.mdx": true,
+				"sdk-features/input-handling.mdx": true
+			}
+		}
+	]
+}

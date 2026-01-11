@@ -10,7 +10,9 @@ import { usePathname } from 'next/navigation'
 export function DocsSidebarMenu({
 	title,
 	elements,
+	isFirst = false,
 }: {
+	isFirst: boolean
 	title: string
 	elements: {
 		type: string
@@ -24,8 +26,10 @@ export function DocsSidebarMenu({
 	const groups = elements.some((e) => e.groupId) ? Object.values(APIGroup) : null
 
 	return (
-		<div className="mt-8 md:mt-12">
-			<h4 className="text-black dark:text-white uppercase text-xs font-semibold">{title}</h4>
+		<div className={cn(isFirst ? 'mt-0 md:mt-8' : 'mt-0 md:mt-12')}>
+			<h4 className="text-black dark:text-white uppercase text-xs font-semibold md:sticky top-0 bg-white dark:bg-zinc-950 z-10 py-2">
+				{title}
+			</h4>
 			<ul className="flex flex-col mt-2 gap-2 text-sm break-words">
 				{groups?.map((group, index) => {
 					const groupElements = elements.filter((e) => e.groupId === group)

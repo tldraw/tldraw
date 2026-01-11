@@ -1,0 +1,123 @@
+---
+title: v2.3.0
+description: Examples
+author: tldraw
+date: 6/25/2024
+order: 64
+status: published
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.3.0)
+
+# The headlines
+
+- 🖼️ Images/video storage improvements/hooks
+- ⛲️ Font/Icons CDN
+- 🗜️ Images network/performance improvements/hooks (dogfooding currently, public release soon)
+- 🪗 Flattening
+- 📚Documentation improvements
+- 🔐 Security improvements
+
+## 🖼️ Images/video storage improvements/hooks
+
+When using a local-only storage of the whiteboard, we now store the images and videos in a separate indexedDB table. This is instead of storing them as base64-encoded blobs in the room's JSON. That wasn't very performant and blew up the size of the room's JSON quite a bit. This separates out those assets into a separate retrieval mechanism for better separation-of-concerns.
+
+## ⛲️ Font/Icons CDN
+
+We improved our out-of-the-box/batteries-included CDN for our assets (fonts/icons). We were using unpkg before but now we're just using Cloudflare directly for more fine-grained control.
+
+## 🗜️ Images network/performance improvements/hooks (dogfooding currently, public release soon)
+
+We've been working on something we call 'level-of-detail' internally for images. We're testing this currently on tldraw.com where for higher-resolution images (over a couple megabytes), the image will get transformed to an appropriate size depending on things like your viewport, zoom level, current network speed, among other considerations. This helps with bandwidth usage and browser memory usage especially when you have multiple high-res images on the board.
+
+## 🪗 Flattening
+
+@steveruizok worked on adding being able to select multiple shapes and flatten them into an image. For those moments when you need to press 🙏, clamp 🗜️, and squeeze things together. 🪗
+
+## 📚 Documentation improvements
+
+@SomeHats did a ton of unglorious work to make our documentation much more manageable. So sparkly ✨
+
+## 🔐 Security improvements
+
+We locked down our referrer network requests in #3884 and #3881 to make sure we weren't leaking tldraw rooms to external media/iframe requests.
+
+#### 🚀 Features
+
+- **Styling**: Secretly adds a fill-fill style (`Alt`-`F`) [#3966](https://github.com/tldraw/tldraw/pull/3966) ([@steveruizok](https://github.com/steveruizok))
+- **Flattening**: Add Flatten, a new menu item to flatten shapes into images [#3933](https://github.com/tldraw/tldraw/pull/3933) ([@steveruizok](https://github.com/steveruizok))
+- **Images/videos**: make option to transform urls dynamically to provide different sized images on demand. (only internal API for now) [#3827](https://github.com/tldraw/tldraw/pull/3827) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot. [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Font/Icons CDN**: Start using our own cdn instead of unpkg. [#3923](https://github.com/tldraw/tldraw/pull/3923) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- **API Change**: Make `ArrowBindingUtil` public. [#3913](https://github.com/tldraw/tldraw/pull/3913) ([@ds300](https://github.com/ds300))
+
+#### 🔐 Security
+
+- Security: enforce use of our fetch function and its default `referrerpolicy` [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Improvements
+
+- **Theme**: Allow users to use system's appearance (dark / light) mode. [#3703](https://github.com/tldraw/tldraw/pull/3703) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- **Font/Icons CDN**: improve font loading timing on `tldraw.com`. [#3927](https://github.com/tldraw/tldraw/pull/3927) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@steveruizok](https://github.com/steveruizok))
+- **API Change**: `getSnapshot` and `loadSnapshot` on `Editor` class [#3912](https://github.com/tldraw/tldraw/pull/3912) ([@ds300](https://github.com/ds300))
+- **Document name**: Remove ability to rename document while in readonly mode [#3911](https://github.com/tldraw/tldraw/pull/3911) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- **Viewport**: Add a delay and easing to edge scrolling. [#3950](https://github.com/tldraw/tldraw/pull/3950) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fixes
+
+- **Images/videos**: follow-up fixes for Level-of-detail [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: avoid double request for animated images. [#3924](https://github.com/tldraw/tldraw/pull/3924) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: don't transform SVGs [#3972](https://github.com/tldraw/tldraw/pull/3972) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: don't resize images that are culled [#3970](https://github.com/tldraw/tldraw/pull/3970) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: use correct id for asset [#3968](https://github.com/tldraw/tldraw/pull/3968) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: fix `isAnimated` checks when adding an image to a shared room. [#3967](https://github.com/tldraw/tldraw/pull/3967) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: fix copy/paste for new asset resolver mechanic. [#3959](https://github.com/tldraw/tldraw/pull/3959) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: fix up videos with `indexedDB` [#3954](https://github.com/tldraw/tldraw/pull/3954) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Images/videos**: fix up missing timeout from bad merge [#3964](https://github.com/tldraw/tldraw/pull/3964) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Font/Icons CDN**: add crossorigin tag for preloaded fonts [#3953](https://github.com/tldraw/tldraw/pull/3953) ([@mimecuvalo](https://github.com/mimecuvalo))
+- **Font/Icons CDN**: Retrigger canary packaging. [#3944](https://github.com/tldraw/tldraw/pull/3944) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- **Font/Icons CDN**: Retrigger canary package build to publish a new package and upload assets to R2. [#3943](https://github.com/tldraw/tldraw/pull/3943) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- **Font/Icons CDN**: Retrigger canary package build to publish a new package and upload assets to R2. [#3942](https://github.com/tldraw/tldraw/pull/3942) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- **Font/Icons CDN**: Fix an issue with uploading the static assets. [#3941](https://github.com/tldraw/tldraw/pull/3941) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- **Font/Icons CDN**: Upload our static assets (fonts, icons, embed-icons, translations) to a R2 bucket so that we can move away from using unpkg and start using our own cdn. [#3921](https://github.com/tldraw/tldraw/pull/3921) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix copy/paste for older versions of Firefox [#4008](https://github.com/tldraw/tldraw/pull/4008) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix copy/paste in Firefox 127+ [#4003](https://github.com/tldraw/tldraw/pull/4003) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix not allowing editing locked shapes when edit→edit mode. [#4007](https://github.com/tldraw/tldraw/pull/4007) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix a bug causing text shape measurement to work incorrectly when using react strict mode [#4001](https://github.com/tldraw/tldraw/pull/4001) ([@SomeHats](https://github.com/SomeHats))
+- Fix typo on `CardShapeUtil` name in the custom shape example documentation. [#3998](https://github.com/tldraw/tldraw/pull/3998) ([@bholmesdev](https://github.com/bholmesdev))
+- Fix border color for following user. [#3975](https://github.com/tldraw/tldraw/pull/3975) ([@ds300](https://github.com/ds300))
+- Fix scale issue with new draw lines [#3971](https://github.com/tldraw/tldraw/pull/3971) ([@steveruizok](https://github.com/steveruizok))
+- Fix edge scrolling at odd browser zoom levels. [#3973](https://github.com/tldraw/tldraw/pull/3973) ([@ds300](https://github.com/ds300))
+- Fix the appearance of solid-style heart shapes. [#3963](https://github.com/tldraw/tldraw/pull/3963) ([@steveruizok](https://github.com/steveruizok))
+- Fix the position of multiple assets when pasted / dropped onto the canvas. [#3965](https://github.com/tldraw/tldraw/pull/3965) ([@steveruizok](https://github.com/steveruizok))
+- Fix a bug with the indicator for stylus-drawn draw shapes. [#3962](https://github.com/tldraw/tldraw/pull/3962) ([@steveruizok](https://github.com/steveruizok))
+- Fix bookmark padding [#3955](https://github.com/tldraw/tldraw/pull/3955) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Rename `color-scheme` to `theme` [#3991](https://github.com/tldraw/tldraw/pull/3991) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 📚 Documentation
+
+- Generated docs cleanup [#3935](https://github.com/tldraw/tldraw/pull/3935) ([@SomeHats](https://github.com/SomeHats))
+- Inline documentation links in type excerpts [#3931](https://github.com/tldraw/tldraw/pull/3931) ([@SomeHats](https://github.com/SomeHats))
+- Better generated docs for react components [#3930](https://github.com/tldraw/tldraw/pull/3930) ([@SomeHats](https://github.com/SomeHats))
+- Assets: mark assetOptions as `@internal` [#4014](https://github.com/tldraw/tldraw/pull/4014) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix the license in the readme file for the `store` package. [#3990](https://github.com/tldraw/tldraw/pull/3990) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Better auto-generated docs for Tldraw and TldrawEditor [#4012](https://github.com/tldraw/tldraw/pull/4012) ([@SomeHats](https://github.com/SomeHats))
+- Document inherited members in reference [#3956](https://github.com/tldraw/tldraw/pull/3956) ([@SomeHats](https://github.com/SomeHats))
+- Improve filtering of examples [#3929](https://github.com/tldraw/tldraw/pull/3929) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+#### 🛠️ VS Code
+
+- VS Code 2.0.36 release. [#3922](https://github.com/tldraw/tldraw/pull/3922) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix VS Code publishing. [#3976](https://github.com/tldraw/tldraw/pull/3976) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Automate publishing of the VS Code extension. [#3905](https://github.com/tldraw/tldraw/pull/3905) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Introduce a new CI environment and use it for publishing vs code extension. [#3981](https://github.com/tldraw/tldraw/pull/3981) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Ben Holmes ([@bholmesdev](https://github.com/bholmesdev))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))

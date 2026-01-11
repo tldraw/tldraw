@@ -10,6 +10,7 @@ import {
 	InputSection,
 	Section,
 } from '../../types/content-types'
+import { getArticleKey } from './getArticleKey'
 import { CONTENT_DIR } from './utils'
 
 export function generateSection(section: InputSection, articles: Articles, index: number): Section {
@@ -71,7 +72,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			// The article is an index page, ie docs/docs
 			article.categoryIndex = -1
 			article.sectionIndex = -1
-			assignToArticles(section.id + '_index', article)
+			assignToArticles(getArticleKey(article), article)
 		} else {
 			// If the article is in a category and that category exists...
 			if (article.categoryId && sectionCategoryArticles[article.categoryId]) {
@@ -79,7 +80,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 				if (article.id === article.categoryId) {
 					article.categoryIndex = -1
 					article.sectionIndex = -1
-					assignToArticles(article.categoryId + '_index', article)
+					assignToArticles(getArticleKey(article), article)
 				} else {
 					// Otherwise, add it to the category's list of articles
 					sectionCategoryArticles[article.categoryId].push(article)
@@ -129,7 +130,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		categoryArticles.sort(sortArticles).forEach((article, i) => {
 			article.categoryIndex = i
 			article.sectionIndex = articleSectionIndex
-			assignToArticles(article.id, article)
+			assignToArticles(getArticleKey(article), article)
 			articleSectionIndex++
 		})
 	})
@@ -195,7 +196,7 @@ function getArticleData({
 	const { content } = parsed
 
 	const article: Article = {
-		id: articleId,
+		id: getArticleKey({ sectionId, categoryId, id: articleId } as Article),
 		type: 'article',
 		sectionIndex: 0,
 		groupIndex: -1,

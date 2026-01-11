@@ -1,0 +1,48 @@
+---
+title: v3.6.0
+description: Examples
+author: tldraw
+date: 12/4/2024
+order: 42
+status: published
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.6.0)
+
+Welcome to the 3.6.0 release of tldraw. This month's SDK release expands DX around helpers (e.g. toasts), and addresses various issues.
+
+## What's new
+
+#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+
+Makes new helper available via actions and tools overrides, things like clipboard interactions, toasts, exports, printing, and a couple more.
+
+#### Improvements
+
+- Create a utility type for making undefined properties optional [#5055](https://github.com/tldraw/tldraw/pull/5055)
+- Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010)
+- Add incremental derivation example [#5038](https://github.com/tldraw/tldraw/pull/5038)
+
+#### API changes
+
+- Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
+- `setEmbedDefinitions` used to be an instance method on the `EmbedShapeUtil` class, but has been converted into a static method on that class. [#5027](https://github.com/tldraw/tldraw/pull/5027)
+- Remove `ExtractOptionalKeys` and `ExtractRequiredKeys` types. https://github.com/tldraw/tldraw/pull/5055
+
+#### Bug fix
+
+- Fix up resolving assets when copy/pasting multiple items; also, fix up copy/pasting videos [#5061](https://github.com/tldraw/tldraw/pull/5061)
+- Fix properly clipping scaled text in frames when exporting [#5022](https://github.com/tldraw/tldraw/pull/5022)
+- Fix multiple concurrent exports from interfering with each-others fonts [#5022](https://github.com/tldraw/tldraw/pull/5022)
+- Fix issue with long press where the point would be incorrect [#5032](https://github.com/tldraw/tldraw/pull/5032)
+- Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918)
+- Fix first render of custom embeds [#5027](https://github.com/tldraw/tldraw/pull/5027)
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
