@@ -521,6 +521,52 @@
 	}
 }
 
+/* --------------------- Select --------------------- */
+
+/* Trigger extends .tlui-button with space-between layout */
+.tlui-select__trigger {
+	justify-content: space-between;
+	gap: var(--tl-space-3);
+}
+
+.tlui-select__trigger[data-state='open']::after {
+	opacity: 1;
+}
+
+.tlui-select__value {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+}
+
+.tlui-select__chevron {
+	flex-shrink: 0;
+	color: var(--tl-color-text-2);
+}
+
+/* Content extends .tlui-menu with Radix-aware sizing */
+.tlui-select__content {
+	min-width: var(--radix-select-trigger-width);
+	max-height: var(--radix-select-content-available-height);
+}
+
+.tlui-select__viewport {
+	padding: 4px 0;
+}
+
+/* Item extends .tlui-button__checkbox with left-aligned text */
+.tlui-select__item {
+	justify-content: flex-start;
+}
+
+.tlui-select__item-indicator {
+	visibility: hidden;
+}
+
+.tlui-select__item[data-state='checked'] .tlui-select__item-indicator {
+	visibility: visible;
+}
+
 /* ----------------------- Kbd ---------------------- */
 
 .tlui-kbd {
