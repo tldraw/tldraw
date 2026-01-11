@@ -102,6 +102,8 @@ export type TLUiTranslationKey =
 	| 'action.enhanced-a11y-mode'
 	| 'action.toggle-edge-scrolling.menu'
 	| 'action.toggle-edge-scrolling'
+	| 'action.toggle-right-click-to-drag.menu'
+	| 'action.toggle-right-click-to-drag'
 	| 'action.toggle-debug-mode.menu'
 	| 'action.toggle-debug-mode'
 	| 'action.toggle-focus-mode.menu'

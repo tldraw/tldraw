@@ -1292,6 +1292,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-right-click-to-drag',
+				label: {
+					default: 'action.toggle-right-click-to-drag',
+					menu: 'action.toggle-right-click-to-drag.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-right-click-to-drag', { source })
+					editor.user.updateUserPreferences({
+						isRightClickToDrag: !editor.user.getIsRightClickToDrag(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-transparent',
 				label: {
 					default: 'action.toggle-transparent',
