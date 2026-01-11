@@ -277,9 +277,11 @@ Traditionally you could have used our [TextManager#measureText](?). However, bec
 Here's a simple example of how you could add a custom extension (in this case `FontFamily`) to the editor:
 
 ```ts
-const textOptions = {
-	tipTapConfig: {
-		extensions: [...tipTapDefaultExtensions, FontFamily],
+const options = {
+	textOptions: {
+		tipTapConfig: {
+			extensions: [...tipTapDefaultExtensions, FontFamily],
+		},
 	},
 }
 
@@ -289,7 +291,7 @@ export default function RichTextCustomExtensionExample() {
 			<Tldraw
 				persistenceKey="rich-text-custom-extension"
 				components={components}
-				textOptions={textOptions}
+				options={options}
 			/>
 		</div>
 	)

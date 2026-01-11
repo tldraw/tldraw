@@ -92,6 +92,7 @@ import { TLDragShapesOutInfo } from '@tldraw/editor';
 import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
+import { TldrawOptions } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
@@ -3210,6 +3211,8 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
     embeds?: TLEmbedDefinition[];
+    // @deprecated
+    textOptions?: TLTextOptions;
 }
 
 // @public (undocumented)
@@ -3267,10 +3270,10 @@ export interface TldrawImageProps extends TLImageExportOptions {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
     licenseKey?: string;
+    options?: Partial<TldrawOptions>;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-    textOptions?: TLTextOptions;
 }
 
 // @public (undocumented)
