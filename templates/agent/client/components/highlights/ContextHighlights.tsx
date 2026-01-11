@@ -6,8 +6,8 @@ import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
 export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const selectedContextItems = useValue(agent.$contextItems)
-	const activeRequest = useValue(agent.$activeRequest)
+	const selectedContextItems = useValue(agent.context.$contextItems)
+	const activeRequest = useValue(agent.requests.$activeRequest)
 	const activeContextItems = activeRequest?.contextItems ?? []
 
 	const selectedAreas: AreaHighlightProps[] = useValue(

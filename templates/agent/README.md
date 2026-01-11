@@ -164,10 +164,6 @@ Create an agent action util:
 export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 	static override type = 'clear' as const
 
-	override getSchema() {
-		return ClearAction
-	}
-
 	override applyAction(action: Streaming<ClearAction>) {
 		// Don't do anything until the action has finished streaming
 		if (!action.complete) return
@@ -184,7 +180,6 @@ export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 
 To enable the agent action, add its util to the `AGENT_ACTION_UTILS` list in `AgentUtils.ts`. Its methods will be used to define and execute the action.
 
-- `getSchema` - Get the schema the model should follow to carry out the action.
 - `applyAction` - Execute the action.
 
 There are other methods available on the `AgentActionUtil` class that you can override for more granular control.
@@ -501,11 +496,6 @@ Define how the action gets applied to the canvas by creating an action util:
 ```ts
 export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 	static override type = 'sticker' as const
-
-	// Tell the model how to use the action
-	override getSchema() {
-		return StickerAction
-	}
 
 	// How to display the action in chat history
 	override getInfo(action: Streaming<StickerAction>) {
