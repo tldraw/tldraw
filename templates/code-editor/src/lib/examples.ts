@@ -2666,6 +2666,659 @@ const interval = setInterval(() => {
 
 canvas.zoomToFit({ animation: { duration: 400 } })`,
 
+	'Pomodoro Timer': `// Pomodoro Timer - Click to start/pause, shift+click to reset
+
+const cx = 400, cy = 280
+const radius = 120
+
+// Timer state
+let timeLeft = 25 * 60  // 25 minutes in seconds
+let isWork = true
+let running = false
+const workTime = 25 * 60
+const breakTime = 5 * 60
+
+// Create visual elements
+const bgCircle = canvas.createCircle(cx, cy, radius + 10, { color: 'grey', fill: 'solid' })
+const progressCircle = canvas.createCircle(cx, cy, radius, { color: 'red', fill: 'solid' })
+const innerCircle = canvas.createCircle(cx, cy, radius - 15, { color: 'white', fill: 'solid' })
+const timeText = canvas.createText(cx - 50, cy - 20, '25:00', { size: 'xl' })
+const modeText = canvas.createText(cx - 30, cy + 25, 'WORK', { size: 'm', color: 'red' })
+const instructionText = canvas.createText(cx - 80, cy + 100, 'Click to start/pause', { size: 's', color: 'grey' })
+
+// Session counter
+let workSessions = 0
+const sessionText = canvas.createText(cx - 40, cy - 80, 'Sessions: 0', { size: 's', color: 'grey' })
+
+// Click handler
+const canvasEl = document.querySelector('.tl-canvas')
+canvasEl?.addEventListener('click', (e) => {
+  if (e.shiftKey) {
+    // Reset
+    timeLeft = workTime
+    isWork = true
+    running = false
+  } else {
+    running = !running
+  }
+})
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
+}
+
+const interval = setInterval(() => {
+  if (running && timeLeft > 0) {
+    timeLeft--
+  } else if (running && timeLeft === 0) {
+    // Switch modes
+    if (isWork) {
+      workSessions++
+      timeLeft = breakTime
+      isWork = false
+    } else {
+      timeLeft = workTime
+      isWork = true
+    }
+  }
+
+  const totalTime = isWork ? workTime : breakTime
+  const progress = timeLeft / totalTime
+  const progressSize = radius * progress
+
+  editor.updateShapes([
+    {
+      id: progressCircle,
+      type: 'geo',
+      x: cx - radius,
+      y: cy - radius,
+      props: { color: isWork ? 'red' : 'green' }
+    },
+    {
+      id: timeText,
+      type: 'text',
+      props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: formatTime(timeLeft) }] }] } }
+    },
+    {
+      id: modeText,
+      type: 'text',
+      props: {
+        color: isWork ? 'red' : 'green',
+        richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: isWork ? 'WORK' : 'BREAK' }] }] }
+      }
+    },
+    {
+      id: sessionText,
+      type: 'text',
+      props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Sessions: ' + workSessions }] }] } }
+    },
+    {
+      id: instructionText,
+      type: 'text',
+      props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: running ? 'Click to pause' : 'Click to start' }] }] } }
+    }
+  ])
+}, 1000)
+
+canvas.zoomToFit({ animation: { duration: 400 } })`,
+
+	'World Clocks': `// World Clocks - Live time in multiple cities
+
+const cities = [
+  { name: 'New York', offset: -5 },
+  { name: 'London', offset: 0 },
+  { name: 'Tokyo', offset: 9 },
+  { name: 'Sydney', offset: 11 },
+]
+
+const startX = 150, startY = 100
+const clockRadius = 60
+const spacing = 180
+
+// Create clocks for each city
+const clocks = cities.map((city, i) => {
+  const cx = startX + (i % 2) * spacing + clockRadius
+  const cy = startY + Math.floor(i / 2) * 180 + clockRadius
+
+  // Clock face
+  const face = canvas.createCircle(cx, cy, clockRadius, { color: 'light-blue', fill: 'solid' })
+  const inner = canvas.createCircle(cx, cy, clockRadius - 5, { color: 'white', fill: 'solid' })
+  const center = canvas.createCircle(cx, cy, 5, { color: 'black', fill: 'solid' })
+
+  // Hour markers
+  for (let h = 0; h < 12; h++) {
+    const angle = (h / 12) * Math.PI * 2 - Math.PI/2
+    const markerR = clockRadius - 12
+    canvas.createCircle(
+      cx + Math.cos(angle) * markerR,
+      cy + Math.sin(angle) * markerR,
+      h % 3 === 0 ? 4 : 2,
+      { color: 'black', fill: 'solid' }
+    )
+  }
+
+  // Hands (using arrows)
+  const hourHand = canvas.createArrow(cx, cy, cx, cy - 30, {
+    color: 'black', arrowheadStart: 'none', arrowheadEnd: 'none'
+  })
+  const minHand = canvas.createArrow(cx, cy, cx, cy - 45, {
+    color: 'grey', arrowheadStart: 'none', arrowheadEnd: 'none'
+  })
+
+  // City name and time
+  const nameText = canvas.createText(cx - 35, cy + clockRadius + 10, city.name, { size: 'm' })
+  const timeText = canvas.createText(cx - 30, cy + clockRadius + 35, '00:00', { size: 's', color: 'grey' })
+
+  return { city, cx, cy, hourHand, minHand, timeText }
+})
+
+function getTimeForOffset(offset) {
+  const now = new Date()
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000
+  return new Date(utc + offset * 3600000)
+}
+
+const interval = setInterval(() => {
+  const updates = []
+
+  clocks.forEach(clock => {
+    const time = getTimeForOffset(clock.city.offset)
+    const hours = time.getHours()
+    const mins = time.getMinutes()
+    const secs = time.getSeconds()
+
+    // Calculate hand angles
+    const hourAngle = ((hours % 12) + mins/60) / 12 * Math.PI * 2 - Math.PI/2
+    const minAngle = (mins + secs/60) / 60 * Math.PI * 2 - Math.PI/2
+
+    // Hour hand
+    updates.push({
+      id: clock.hourHand,
+      type: 'arrow',
+      x: clock.cx,
+      y: clock.cy,
+      props: {
+        start: { x: 0, y: 0 },
+        end: { x: Math.cos(hourAngle) * 30, y: Math.sin(hourAngle) * 30 }
+      }
+    })
+
+    // Minute hand
+    updates.push({
+      id: clock.minHand,
+      type: 'arrow',
+      x: clock.cx,
+      y: clock.cy,
+      props: {
+        start: { x: 0, y: 0 },
+        end: { x: Math.cos(minAngle) * 45, y: Math.sin(minAngle) * 45 }
+      }
+    })
+
+    // Digital time
+    const timeStr = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0')
+    updates.push({
+      id: clock.timeText,
+      type: 'text',
+      props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: timeStr }] }] } }
+    })
+  })
+
+  editor.updateShapes(updates)
+}, 1000)
+
+canvas.zoomToFit({ animation: { duration: 400 } })`,
+
+	Calendar: `// Live Calendar - Shows current month with today highlighted
+
+const now = new Date()
+const year = now.getFullYear()
+const month = now.getMonth()
+const today = now.getDate()
+
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December']
+const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+const startX = 150, startY = 80
+const cellW = 50, cellH = 40
+
+// Title
+canvas.createText(startX + 80, startY, monthNames[month] + ' ' + year, { size: 'xl' })
+
+// Day headers
+dayNames.forEach((day, i) => {
+  canvas.createText(startX + i * cellW + 10, startY + 50, day, { size: 's', color: 'grey' })
+})
+
+// Calculate first day of month and number of days
+const firstDay = new Date(year, month, 1).getDay()
+const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+// Create day cells
+for (let d = 1; d <= daysInMonth; d++) {
+  const pos = firstDay + d - 1
+  const row = Math.floor(pos / 7)
+  const col = pos % 7
+
+  const x = startX + col * cellW
+  const y = startY + 80 + row * cellH
+
+  // Highlight today
+  if (d === today) {
+    canvas.createCircle(x + cellW/2 - 5, y + cellH/2 - 5, 18, {
+      color: 'blue', fill: 'solid'
+    })
+    canvas.createText(x + 12, y + 8, String(d), { size: 'm', color: 'white' })
+  } else {
+    // Weekend coloring
+    const isWeekend = col === 0 || col === 6
+    canvas.createText(x + 12, y + 8, String(d), {
+      size: 'm',
+      color: isWeekend ? 'light-blue' : 'black'
+    })
+  }
+}
+
+canvas.zoomToFit({ animation: { duration: 400 } })`,
+
+	'Year Progress': `// Year Progress - How much of the year has passed
+
+const now = new Date()
+const startOfYear = new Date(now.getFullYear(), 0, 1)
+const endOfYear = new Date(now.getFullYear() + 1, 0, 1)
+const dayOfYear = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24))
+const totalDays = Math.floor((endOfYear - startOfYear) / (1000 * 60 * 60 * 24))
+const progress = dayOfYear / totalDays
+
+const cx = 400, cy = 280
+const barWidth = 400, barHeight = 40
+const barX = cx - barWidth/2, barY = cy
+
+// Title
+canvas.createText(cx - 80, cy - 100, now.getFullYear() + ' Progress', { size: 'xl' })
+
+// Progress bar background
+canvas.createRect(barX, barY, barWidth, barHeight, { color: 'grey', fill: 'solid' })
+
+// Progress bar fill
+const fillWidth = barWidth * progress
+canvas.createRect(barX, barY, fillWidth, barHeight, { color: 'green', fill: 'solid' })
+
+// Percentage text
+const pct = (progress * 100).toFixed(1)
+canvas.createText(cx - 25, barY + 8, pct + '%', { size: 'm', color: 'white' })
+
+// Day count
+canvas.createText(cx - 60, barY + 60, 'Day ' + dayOfYear + ' of ' + totalDays, { size: 'm', color: 'grey' })
+
+// Days remaining
+const daysLeft = totalDays - dayOfYear
+canvas.createText(cx - 50, barY + 90, daysLeft + ' days remaining', { size: 's', color: 'grey' })
+
+// Month markers
+const months = ['J','F','M','A','M','J','J','A','S','O','N','D']
+months.forEach((m, i) => {
+  const x = barX + (i / 12) * barWidth
+  canvas.createText(x + 12, barY + barHeight + 8, m, { size: 's', color: 'grey' })
+})
+
+// Week of year
+const weekOfYear = Math.ceil(dayOfYear / 7)
+canvas.createText(cx - 30, cy - 50, 'Week ' + weekOfYear, { size: 'm', color: 'blue' })
+
+canvas.zoomToFit({ animation: { duration: 400 } })`,
+
+	Stopwatch: `// Stopwatch - Click to start/stop, Shift+click to reset, Alt+click for lap
+
+const cx = 400, cy = 280
+
+// State
+let running = false
+let elapsed = 0  // milliseconds
+let laps = []
+let lastUpdate = Date.now()
+
+// Display
+const bgCircle = canvas.createCircle(cx, cy, 100, { color: 'grey', fill: 'solid' })
+const innerCircle = canvas.createCircle(cx, cy, 90, { color: 'white', fill: 'solid' })
+const timeText = canvas.createText(cx - 70, cy - 15, '00:00.00', { size: 'xl' })
+const statusText = canvas.createText(cx - 25, cy + 40, 'Stopped', { size: 's', color: 'grey' })
+
+// Lap display
+const lapTexts = []
+for (let i = 0; i < 5; i++) {
+  lapTexts.push(canvas.createText(cx + 150, cy - 60 + i * 30, '-', { size: 's', color: 'grey' }))
+}
+canvas.createText(cx + 150, cy - 90, 'Laps:', { size: 's', color: 'black' })
+
+// Instructions
+canvas.createText(cx - 100, cy + 130, 'Click: start/stop | Shift+click: reset | Alt+click: lap', { size: 's', color: 'grey' })
+
+// Click handler
+const canvasEl = document.querySelector('.tl-canvas')
+canvasEl?.addEventListener('click', (e) => {
+  if (e.shiftKey) {
+    // Reset
+    running = false
+    elapsed = 0
+    laps = []
+  } else if (e.altKey) {
+    // Lap
+    if (running) {
+      laps.unshift(elapsed)
+      if (laps.length > 5) laps.pop()
+    }
+  } else {
+    // Toggle
+    if (!running) lastUpdate = Date.now()
+    running = !running
+  }
+})
+
+function formatTime(ms) {
+  const mins = Math.floor(ms / 60000)
+  const secs = Math.floor((ms % 60000) / 1000)
+  const cents = Math.floor((ms % 1000) / 10)
+  return String(mins).padStart(2, '0') + ':' +
+         String(secs).padStart(2, '0') + '.' +
+         String(cents).padStart(2, '0')
+}
+
+const interval = setInterval(() => {
+  if (running) {
+    const now = Date.now()
+    elapsed += now - lastUpdate
+    lastUpdate = now
+  }
+
+  const updates = [
+    {
+      id: timeText,
+      type: 'text',
+      props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: formatTime(elapsed) }] }] } }
+    },
+    {
+      id: statusText,
+      type: 'text',
+      props: {
+        color: running ? 'green' : 'grey',
+        richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: running ? 'Running' : 'Stopped' }] }] }
+      }
+    }
+  ]
+
+  // Update laps
+  lapTexts.forEach((id, i) => {
+    const text = laps[i] ? 'Lap ' + (i+1) + ': ' + formatTime(laps[i]) : ''
+    updates.push({
+      id,
+      type: 'text',
+      props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] } }
+    })
+  })
+
+  editor.updateShapes(updates)
+}, 50)
+
+canvas.zoomToFit({ animation: { duration: 400 } })`,
+
+	'8 Ball Pool': `// 8-Ball Pool - Click anywhere, drag toward cue ball to aim, release to shoot!
+
+const tableX = 50, tableY = 50
+const tableW = 700, tableH = 350
+const ballRadius = 10
+const pocketRadius = 20
+const friction = 0.988
+const collisionBoost = 1.1  // extra energy transfer on collision
+
+// Deselect everything so clicks work properly
+canvas.selectNone()
+
+// Create table border (black rectangle behind the felt)
+canvas.createRect(tableX - 15, tableY - 15, tableW + 30, tableH + 30, { color: 'black', fill: 'solid' })
+
+// Create table (green felt)
+canvas.createRect(tableX, tableY, tableW, tableH, { color: 'green', fill: 'solid' })
+
+// Pocket positions (CENTER coordinates for physics)
+const pockets = [
+  { x: tableX + 15, y: tableY + 15 },
+  { x: tableX + tableW/2, y: tableY + 10 },
+  { x: tableX + tableW - 15, y: tableY + 15 },
+  { x: tableX + 15, y: tableY + tableH - 15 },
+  { x: tableX + tableW/2, y: tableY + tableH - 10 },
+  { x: tableX + tableW - 15, y: tableY + tableH - 15 },
+]
+
+// Draw pockets using createGeo (x,y = top-left)
+pockets.forEach(p => {
+  canvas.createGeo(p.x - pocketRadius, p.y - pocketRadius, pocketRadius * 2, pocketRadius * 2, {
+    geo: 'ellipse', color: 'black', fill: 'solid'
+  })
+})
+
+// Ball colors
+const ballColors = [
+  'white',      // cue
+  'yellow', 'blue', 'red', 'violet', 'orange', 'green', 'light-red',
+  'black',      // 8
+  'yellow', 'blue', 'red', 'violet', 'orange', 'green', 'light-red'
+]
+
+// Ball positions (CENTER coordinates for physics)
+const rackX = tableX + tableW * 0.72
+const rackY = tableY + tableH / 2
+const balls = []
+
+// Cue ball - positioned at 1/4 of table
+balls.push({ x: tableX + tableW * 0.25, y: tableY + tableH/2, vx: 0, vy: 0, sunk: false })
+
+// Rack the 15 balls in triangle
+const spacing = ballRadius * 2.2
+for (let row = 0; row < 5; row++) {
+  for (let col = 0; col <= row; col++) {
+    const x = rackX + row * spacing * 0.866
+    const y = rackY + (col - row/2) * spacing
+    balls.push({ x, y, vx: 0, vy: 0, sunk: false })
+  }
+}
+
+// Create ball shapes using createGeo (x,y = top-left)
+const ballIds = balls.map((b, i) =>
+  canvas.createGeo(b.x - ballRadius, b.y - ballRadius, ballRadius * 2, ballRadius * 2, {
+    geo: 'ellipse',
+    color: ballColors[i],
+    fill: 'solid'
+  })
+)
+
+// Aiming line
+const aimLineId = canvas.createArrow(0, 0, 100, 0, {
+  color: 'grey',
+  arrowheadStart: 'none',
+  arrowheadEnd: 'triangle'
+})
+editor.updateShapes([{ id: aimLineId, type: 'arrow', opacity: 0 }])
+
+// Power indicator
+const powerTextId = canvas.createText(tableX, tableY - 25, ' ', { size: 's', color: 'grey' })
+
+// Instructions
+canvas.createText(tableX + 200, tableY - 25, 'Click and drag away from cue ball to aim, release to shoot', { size: 's', color: 'grey' })
+
+// Mouse state
+let aiming = false
+let mouseX = 0, mouseY = 0
+let dragStartX = 0, dragStartY = 0
+
+const canvasEl = document.querySelector('.tl-canvas')
+
+canvasEl?.addEventListener('mousedown', (e) => {
+  e.stopPropagation()
+  const rect = canvasEl.getBoundingClientRect()
+  const camera = canvas.getCamera()
+  dragStartX = (e.clientX - rect.left) / camera.z - camera.x
+  dragStartY = (e.clientY - rect.top) / camera.z - camera.y
+  mouseX = dragStartX
+  mouseY = dragStartY
+
+  // Check if all balls stopped and cue ball exists
+  const cue = balls[0]
+  const allStopped = balls.every(b => b.sunk || (Math.abs(b.vx) < 0.1 && Math.abs(b.vy) < 0.1))
+  if (!cue.sunk && allStopped) {
+    aiming = true
+    canvas.selectNone()
+  }
+})
+
+canvasEl?.addEventListener('mousemove', (e) => {
+  const rect = canvasEl.getBoundingClientRect()
+  const camera = canvas.getCamera()
+  mouseX = (e.clientX - rect.left) / camera.z - camera.x
+  mouseY = (e.clientY - rect.top) / camera.z - camera.y
+})
+
+canvasEl?.addEventListener('mouseup', (e) => {
+  if (aiming) {
+    const cue = balls[0]
+    // Direction from mouse to cue ball
+    const dx = cue.x - mouseX
+    const dy = cue.y - mouseY
+    const dist = Math.sqrt(dx*dx + dy*dy)
+    const power = Math.min(dist * 0.12, 15)
+
+    if (power > 0.5) {
+      cue.vx = (dx / dist) * power
+      cue.vy = (dy / dist) * power
+    }
+    aiming = false
+  }
+})
+
+// Game loop
+const interval = setInterval(() => {
+  const cue = balls[0]
+
+  // Update aim line while aiming
+  if (aiming && !cue.sunk) {
+    const dx = cue.x - mouseX
+    const dy = cue.y - mouseY
+    const dist = Math.sqrt(dx*dx + dy*dy)
+    const power = Math.min(dist * 0.12, 15)
+    const lineLen = Math.min(dist * 0.8, 150)
+
+    if (dist > 5) {
+      editor.updateShapes([
+        {
+          id: aimLineId,
+          type: 'arrow',
+          x: cue.x,
+          y: cue.y,
+          opacity: 0.8,
+          props: {
+            start: { x: 0, y: 0 },
+            end: { x: (dx/dist) * lineLen, y: (dy/dist) * lineLen }
+          }
+        },
+        {
+          id: powerTextId,
+          type: 'text',
+          props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Power: ' + Math.round(power * 10) + '%' }] }] } }
+        }
+      ])
+    }
+  } else {
+    editor.updateShapes([
+      { id: aimLineId, type: 'arrow', opacity: 0 },
+      { id: powerTextId, type: 'text', props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: ' ' }] }] } } }
+    ])
+  }
+
+  // Physics
+  balls.forEach(b => {
+    if (b.sunk) return
+
+    b.x += b.vx
+    b.y += b.vy
+    b.vx *= friction
+    b.vy *= friction
+
+    if (Math.abs(b.vx) < 0.05) b.vx = 0
+    if (Math.abs(b.vy) < 0.05) b.vy = 0
+
+    // Pocket check FIRST (before wall collision)
+    for (const p of pockets) {
+      const dx = b.x - p.x
+      const dy = b.y - p.y
+      if (Math.sqrt(dx*dx + dy*dy) < pocketRadius + ballRadius * 0.5) {
+        b.sunk = true
+        b.vx = 0
+        b.vy = 0
+        return
+      }
+    }
+
+    // Wall bounces (strict boundaries)
+    const minX = tableX + ballRadius + 5
+    const maxX = tableX + tableW - ballRadius - 5
+    const minY = tableY + ballRadius + 5
+    const maxY = tableY + tableH - ballRadius - 5
+
+    if (b.x < minX) { b.x = minX; b.vx = Math.abs(b.vx) * 0.85 }
+    if (b.x > maxX) { b.x = maxX; b.vx = -Math.abs(b.vx) * 0.85 }
+    if (b.y < minY) { b.y = minY; b.vy = Math.abs(b.vy) * 0.85 }
+    if (b.y > maxY) { b.y = maxY; b.vy = -Math.abs(b.vy) * 0.85 }
+  })
+
+  // Ball collisions
+  for (let i = 0; i < balls.length; i++) {
+    if (balls[i].sunk) continue
+    for (let j = i + 1; j < balls.length; j++) {
+      if (balls[j].sunk) continue
+      const a = balls[i], b = balls[j]
+      const dx = b.x - a.x, dy = b.y - a.y
+      const dist = Math.sqrt(dx*dx + dy*dy)
+      const minDist = ballRadius * 2
+
+      if (dist < minDist && dist > 0.1) {
+        const nx = dx/dist, ny = dy/dist
+        const dvx = a.vx - b.vx, dvy = a.vy - b.vy
+        const dvn = dvx*nx + dvy*ny
+
+        if (dvn > 0) {
+          // Apply collision with boost
+          a.vx -= dvn * nx * collisionBoost
+          a.vy -= dvn * ny * collisionBoost
+          b.vx += dvn * nx * collisionBoost
+          b.vy += dvn * ny * collisionBoost
+        }
+
+        // Separate overlapping balls
+        const overlap = (minDist - dist) / 2 + 0.5
+        a.x -= overlap * nx
+        a.y -= overlap * ny
+        b.x += overlap * nx
+        b.y += overlap * ny
+      }
+    }
+  }
+
+  // Render - convert physics center coords to top-left
+  const updates = balls.map((b, i) => ({
+    id: ballIds[i],
+    type: 'geo',
+    x: b.sunk ? -100 : b.x - ballRadius,
+    y: b.sunk ? -100 : b.y - ballRadius,
+    opacity: b.sunk ? 0 : 1
+  }))
+  editor.updateShapes(updates)
+}, 16)
+
+canvas.zoomToFit({ animation: { duration: 400 } })`,
+
 	'Mouse Trail': `// Beautiful trailing particles follow your mouse
 
 const trailLen = 50

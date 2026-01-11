@@ -13,6 +13,70 @@ export interface ExecutionResult {
 	error?: ExecutionError
 }
 
+// Store current code for parsing async errors
+let currentCode: string | null = null
+let runtimeErrorCallback: ((error: ExecutionError) => void) | null = null
+
+/**
+ * Set up a listener for runtime errors (from setInterval, event handlers, etc.)
+ * Call this once when the app mounts.
+ */
+export function setupRuntimeErrorListener(onError: (error: ExecutionError) => void): () => void {
+	runtimeErrorCallback = onError
+
+	const handleError = (event: ErrorEvent) => {
+		// Only report if we have code running
+		if (!currentCode || !runtimeErrorCallback) return
+
+		const error = event.error instanceof Error ? event.error : new Error(event.message)
+		const location = parseErrorLocation(error, currentCode)
+
+		console.error('Runtime error in user code:', error)
+
+		runtimeErrorCallback({
+			message: error.message,
+			stack: error.stack,
+			...location,
+		})
+
+		// Prevent the error from showing in console twice
+		event.preventDefault()
+	}
+
+	const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+		if (!currentCode || !runtimeErrorCallback) return
+
+		const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason))
+		const location = parseErrorLocation(error, currentCode)
+
+		console.error('Unhandled promise rejection in user code:', error)
+
+		runtimeErrorCallback({
+			message: error.message,
+			stack: error.stack,
+			...location,
+		})
+
+		event.preventDefault()
+	}
+
+	window.addEventListener('error', handleError)
+	window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+	return () => {
+		window.removeEventListener('error', handleError)
+		window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+		runtimeErrorCallback = null
+	}
+}
+
+/**
+ * Clear the current code context (call when clearing/resetting)
+ */
+export function clearCodeContext(): void {
+	currentCode = null
+}
+
 /**
  * Parse an error to extract line number from stack trace.
  * The new Function() wrapper adds 2 lines of overhead (function declaration + opening brace).
@@ -69,6 +133,9 @@ function parseErrorLocation(error: Error, code: string): { line?: number; column
  * @returns Promise with execution result
  */
 export async function executeCode(code: string, editor: Editor): Promise<ExecutionResult> {
+	// Store code for runtime error parsing
+	currentCode = code
+
 	// Create a restore point before executing user code
 	const markId = editor.markHistoryStoppingPoint('code-execution')
 

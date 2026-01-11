@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Editor, useValue } from 'tldraw'
 import { CanvasPanel } from './components/CanvasPanel'
 import { CodeEditor } from './components/CodeEditor'
-import { ExecutionError, executeCode } from './lib/code-executor'
+import {
+	ExecutionError,
+	clearCodeContext,
+	executeCode,
+	setupRuntimeErrorListener,
+} from './lib/code-executor'
 
 const THEME_STORAGE_KEY = 'code-editor-theme'
 
@@ -25,6 +30,14 @@ export default function App() {
 			return true
 		}
 	})
+
+	// Set up runtime error listener to catch errors from setInterval/event handlers
+	useEffect(() => {
+		const cleanup = setupRuntimeErrorListener((err) => {
+			setError(err)
+		})
+		return cleanup
+	}, [])
 
 	// Get count of generated shapes reactively
 	const generatedShapeCount = useValue(
@@ -78,6 +91,10 @@ export default function App() {
 	// Clear all generated shapes
 	const handleClear = () => {
 		if (!editor) return
+
+		// Clear error and code context
+		setError(null)
+		clearCodeContext()
 
 		const generatedShapes = editor
 			.getCurrentPageShapes()
