@@ -12,8 +12,8 @@ export const SpatialIndexDebugPanel = track(() => {
 		<div
 			style={{
 				position: 'absolute',
-				top: 8,
-				right: 8,
+				top: 200,
+				left: 8,
 				padding: '12px',
 				background: 'white',
 				border: '1px solid #e0e0e0',
@@ -47,7 +47,7 @@ export const SpatialIndexDebugPanel = track(() => {
 					style={{ marginRight: '8px' }}
 				/>
 				<span style={{ fontWeight: 500 }}>
-					{debugFlags.useSpatialIndex.get() ? '✓ Enabled' : '✗ Disabled'}
+					{debugFlags.useSpatialIndex.get() ? 'Enabled' : 'Disabled'}
 				</span>
 			</label>
 
@@ -58,9 +58,6 @@ export const SpatialIndexDebugPanel = track(() => {
 				</div>
 				<div
 					style={{
-						padding: '8px',
-						background: '#fafafa',
-						borderRadius: '3px',
 						fontSize: '11px',
 					}}
 				>
@@ -94,11 +91,6 @@ export const SpatialIndexDebugPanel = track(() => {
 						label="Page Change"
 						description="Page switching"
 					/>
-					<PerfFlagCheckbox
-						flag={debugFlags.perfLogReactRender}
-						label="React Render"
-						description="Component renders"
-					/>
 				</div>
 			</div>
 		</div>
@@ -113,7 +105,7 @@ const PerfFlagCheckbox = track(
 					display: 'flex',
 					alignItems: 'flex-start',
 					cursor: 'pointer',
-					padding: '4px 0',
+					padding: '4px 6px',
 					gap: '6px',
 				}}
 			>
