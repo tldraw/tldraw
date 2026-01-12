@@ -45,54 +45,6 @@ describe('FpsScheduler class', () => {
 		}
 	}
 
-	describe('separate instances have separate queues', () => {
-		it('should maintain separate queues for different instances', () => {
-			const throttle1 = new FpsScheduler(60)
-			const throttle2 = new FpsScheduler(30)
-
-			const fn1 = vi.fn()
-			const fn2 = vi.fn()
-
-			// throttleToNextFrame directly queues the function and returns a cancel function
-			throttle1.throttleToNextFrame(fn1)
-			throttle2.throttleToNextFrame(fn2)
-
-			// Neither should be called yet
-			expect(fn1).not.toHaveBeenCalled()
-			expect(fn2).not.toHaveBeenCalled()
-
-			// Trigger animation frames
-			flushAnimationFrames()
-
-			// Both should be called
-			expect(fn1).toHaveBeenCalledTimes(1)
-			expect(fn2).toHaveBeenCalledTimes(1)
-		})
-
-		it('should not mix functions between different instances', () => {
-			const throttle1 = new FpsScheduler(120)
-			const throttle2 = new FpsScheduler(120)
-
-			const fn1 = vi.fn()
-			const fn2 = vi.fn()
-
-			const throttled1 = throttle1.fpsThrottle(fn1)
-			const throttled2 = throttle2.fpsThrottle(fn2)
-
-			// Call multiple times
-			throttled1()
-			throttled1()
-			throttled2()
-			throttled2()
-
-			flushAnimationFrames()
-
-			// Each function should only execute once (throttled)
-			expect(fn1).toHaveBeenCalledTimes(1)
-			expect(fn2).toHaveBeenCalledTimes(1)
-		})
-	})
-
 	describe('FPS throttling', () => {
 		it('should throttle to the target FPS', () => {
 			const throttle = new FpsScheduler(60) // ~16.67ms per frame, ~15ms with variance

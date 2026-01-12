@@ -8,7 +8,7 @@ const isTest = () =>
 // by aiming slightly below the theoretical frame duration (e.g., ~7.5ms instead of 8.33ms for 120fps)
 const timingVarianceFactor = 0.9
 const getTargetTimePerFrame = (targetFps: number) =>
-	Math.floor(1000 / targetFps) * timingVarianceFactor // ~7ms
+	Math.floor(1000 / targetFps) * timingVarianceFactor
 
 /**
  * A scheduler class that manages a queue of functions to be executed at a target frame rate.
@@ -72,7 +72,7 @@ export class FpsScheduler {
 			// eslint-disable-next-line no-restricted-globals
 			this.flushRaf = requestAnimationFrame(() => {
 				this.flushRaf = undefined
-				this.lastFlushTime = now
+				this.lastFlushTime = Date.now()
 				this.flush()
 			})
 		}
@@ -181,11 +181,6 @@ const defaultScheduler = new FpsScheduler(120)
  *
  * // Cancel pending calls if needed
  * updateCanvas.cancel?.()
- *
- * // Custom FPS throttling for less critical updates
- * const slowUpdate = fpsThrottle(() => {
- *   heavyComputation()
- * }, () => 30) // Throttle to 30fps
  * ```
  *
  * @internal
