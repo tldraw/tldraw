@@ -113,6 +113,46 @@ describe('notVisibleShapes - basic culling', () => {
 		notVisible = editor.getNotVisibleShapes()
 		expect(notVisible.has(shapeId)).toBe(false)
 	})
+
+	it('should update when zoom level changes', () => {
+		const shapeId = createShapeId('shape')
+
+		// Create shape just outside initial viewport
+		editor.createShapes([{ id: shapeId, type: 'geo', x: 1100, y: 500, props: { w: 100, h: 100 } }])
+
+		// Initially outside
+		let notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(shapeId)).toBe(true)
+
+		// Zoom out - viewport bounds expand, shape becomes visible
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(shapeId)).toBe(false)
+
+		// Zoom back in
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+		notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(shapeId)).toBe(true)
+	})
+
+	it('should keep very large shape visible when partially in viewport', () => {
+		const largeShapeId = createShapeId('large')
+
+		// Create massive shape that extends far beyond viewport
+		editor.createShapes([
+			{
+				id: largeShapeId,
+				type: 'geo',
+				x: -5000,
+				y: -5000,
+				props: { w: 10000, h: 10000 },
+			},
+		])
+
+		// Shape should be visible (viewport is inside it)
+		const notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(largeShapeId)).toBe(false)
+	})
 })
 
 describe('notVisibleShapes - canCull behavior', () => {
@@ -439,47 +479,6 @@ describe('notVisibleShapes - multiple pages', () => {
 })
 
 describe('notVisibleShapes - arrows with bindings', () => {
-	it('should update arrow visibility when bound shape moves', () => {
-		const boxAId = createShapeId('boxA')
-		const boxBId = createShapeId('boxB')
-
-		// Create two boxes inside viewport
-		editor.createShapes([
-			{ id: boxAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
-			{ id: boxBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
-		])
-
-		// Draw arrow between boxes using arrow tool
-		editor.setCurrentTool('arrow')
-		editor.pointerDown(150, 150) // center of boxA
-		editor.pointerMove(350, 150) // center of boxB
-		editor.pointerUp(350, 150)
-
-		// Get the arrow shape
-		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
-		expect(arrow).toBeDefined()
-
-		// All shapes visible initially
-		let notVisible = editor.getNotVisibleShapes()
-		expect(notVisible.has(boxAId)).toBe(false)
-		expect(notVisible.has(boxBId)).toBe(false)
-		expect(notVisible.has(arrow.id)).toBe(false)
-
-		// Move boxA outside viewport
-		editor.updateShapes([{ id: boxAId, type: 'geo', x: 2000, y: 2000 }])
-		notVisible = editor.getNotVisibleShapes()
-		expect(notVisible.has(boxAId)).toBe(true)
-		expect(notVisible.has(boxBId)).toBe(false)
-		// Arrow visibility depends on whether any bound shape is visible
-
-		// Move boxB outside viewport too
-		editor.updateShapes([{ id: boxBId, type: 'geo', x: 2000, y: 2000 }])
-		notVisible = editor.getNotVisibleShapes()
-		expect(notVisible.has(boxAId)).toBe(true)
-		expect(notVisible.has(boxBId)).toBe(true)
-		expect(notVisible.has(arrow.id)).toBe(true) // Arrow not visible because both boxes outside
-	})
-
 	it('should not cull selected arrow even if outside viewport', () => {
 		// Create arrow outside viewport
 		editor.setCurrentTool('arrow')
@@ -511,6 +510,114 @@ describe('notVisibleShapes - arrows with bindings', () => {
 		expect(notVisible.has(arrow.id)).toBe(true)
 		expect(culled.has(arrow.id)).toBe(false) // Not culled because selected
 	})
+
+	it('should make arrow visible when bound shapes move into viewport', () => {
+		const boxAId = createShapeId('boxA')
+		const boxBId = createShapeId('boxB')
+
+		// Create two boxes outside viewport
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 2000, y: 2000, props: { w: 100, h: 100 } },
+			{ id: boxBId, type: 'geo', x: 2200, y: 2000, props: { w: 100, h: 100 } },
+		])
+
+		// Draw arrow between them (arrow is also outside viewport)
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(2050, 2050)
+		editor.pointerMove(2250, 2050)
+		editor.pointerUp(2250, 2050)
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
+		expect(arrow).toBeDefined()
+
+		// Deselect all
+		editor.selectNone()
+
+		// Verify all invisible initially
+		let notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(boxAId)).toBe(true)
+		expect(notVisible.has(boxBId)).toBe(true)
+		expect(notVisible.has(arrow.id)).toBe(true)
+
+		// Move bound shapes INTO viewport (arrow record doesn't change, but bounds do)
+		editor.updateShapes([
+			{ id: boxAId, type: 'geo', x: 100, y: 100 },
+			{ id: boxBId, type: 'geo', x: 300, y: 100 },
+		])
+
+		// CRITICAL: Arrow should now be visible even though arrow shape didn't update
+		notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(boxAId)).toBe(false)
+		expect(notVisible.has(boxBId)).toBe(false)
+		expect(notVisible.has(arrow.id)).toBe(false) // Arrow visible due to reactive bounds
+	})
+
+	it('should update arrow visibility when only one bound shape moves', () => {
+		const boxAId = createShapeId('boxA')
+		const boxBId = createShapeId('boxB')
+
+		// Create boxes inside viewport
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: boxBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+		])
+
+		// Create arrow
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(150, 150)
+		editor.pointerMove(350, 150)
+		editor.pointerUp(350, 150)
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
+		editor.selectNone()
+
+		// All visible
+		let notVisible = editor.getNotVisibleShapes()
+		expect(notVisible.has(arrow.id)).toBe(false)
+
+		// Move only boxA outside viewport (boxB stays visible)
+		editor.updateShapes([{ id: boxAId, type: 'geo', x: 2000, y: 2000 }])
+		notVisible = editor.getNotVisibleShapes()
+
+		// Arrow should still be visible (one endpoint visible)
+		expect(notVisible.has(boxAId)).toBe(true)
+		expect(notVisible.has(boxBId)).toBe(false)
+		expect(notVisible.has(arrow.id)).toBe(false)
+	})
+
+	it('should keep arrow visible when endpoints are in viewport but body extends outside', () => {
+		const boxAId = createShapeId('boxA')
+		const boxBId = createShapeId('boxB')
+
+		// Create boxes near opposite edges of viewport
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 50, y: 500, props: { w: 100, h: 100 } },
+			{ id: boxBId, type: 'geo', x: 850, y: 500, props: { w: 100, h: 100 } },
+		])
+
+		// Create curved arrow that might extend outside viewport
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(100, 550)
+		editor.pointerMove(900, 550)
+		editor.pointerUp(900, 550)
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
+
+		// Make it curved so body might extend outside
+		editor.updateShapes([
+			{
+				id: arrow.id,
+				type: 'arrow',
+				props: { bend: 100 }, // Significant curve
+			},
+		])
+
+		editor.selectNone()
+		const notVisible = editor.getNotVisibleShapes()
+
+		// Arrow should be visible since endpoints are visible
+		expect(notVisible.has(arrow.id)).toBe(false)
+	})
 })
 
 describe('notVisibleShapes - frames', () => {
@@ -538,29 +645,68 @@ describe('notVisibleShapes - frames', () => {
 		expect(notVisible.has(frameId)).toBe(false)
 	})
 
-	it('should not cull frame with children inside viewport', () => {
+	it('should cull children when frame is outside viewport', () => {
 		const frameId = createShapeId('frame')
 		const childId = createShapeId('child')
 
-		// Create frame inside viewport
-		editor.createShapes([{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 500, h: 500 } }])
+		// Frame outside viewport
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 2000, y: 2000, props: { w: 500, h: 500 } },
+		])
 
-		// Create child inside frame
+		// Child inside frame
 		editor.createShapes([
 			{
 				id: childId,
 				type: 'geo',
-				x: 200,
-				y: 200,
+				x: 2100,
+				y: 2100,
 				parentId: frameId,
 				props: { w: 100, h: 100 },
 			},
 		])
 
-		// Both should be visible
 		const notVisible = editor.getNotVisibleShapes()
+
+		// Both should be outside viewport
+		expect(notVisible.has(frameId)).toBe(true)
+		expect(notVisible.has(childId)).toBe(true)
+	})
+
+	it('should handle multiple levels of nesting', () => {
+		const frameId = createShapeId('frame')
+		const groupId = createShapeId('group')
+		const childId = createShapeId('child')
+
+		// Frame inside viewport
+		editor.createShapes([{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 500, h: 500 } }])
+
+		// Create shapes inside frame to form a group
+		editor.createShapes([
+			{ id: groupId, type: 'geo', x: 200, y: 200, parentId: frameId, props: { w: 100, h: 100 } },
+			{ id: childId, type: 'geo', x: 250, y: 200, parentId: frameId, props: { w: 100, h: 100 } },
+		])
+
+		// Group them (now they're nested inside frame)
+		editor.select(groupId, childId)
+		const actualGroupId = createShapeId('actual-group')
+		editor.groupShapes(editor.getSelectedShapeIds(), { groupId: actualGroupId })
+
+		editor.selectNone()
+
+		// All should be visible
+		let notVisible = editor.getNotVisibleShapes()
 		expect(notVisible.has(frameId)).toBe(false)
-		expect(notVisible.has(childId)).toBe(false)
+		expect(notVisible.has(actualGroupId)).toBe(false)
+
+		// Move frame outside viewport
+		editor.updateShapes([{ id: frameId, type: 'frame', x: 3000, y: 3000 }])
+
+		notVisible = editor.getNotVisibleShapes()
+
+		// All should now be invisible
+		expect(notVisible.has(frameId)).toBe(true)
+		expect(notVisible.has(actualGroupId)).toBe(true)
 	})
 })
 
@@ -580,10 +726,13 @@ describe('notVisibleShapes - groups', () => {
 		editor.select(childAId, childBId)
 		editor.groupShapes(editor.getSelectedShapeIds(), { groupId })
 
+		editor.selectNone()
+
 		// Group has visible child, so group bounds include visible area
 		const notVisible = editor.getNotVisibleShapes()
-		// Group visibility depends on its computed bounds
+		expect(notVisible.has(groupId)).toBe(false) // Group visible because childB visible
 		expect(notVisible.has(childBId)).toBe(false) // childB is visible
+		expect(notVisible.has(childAId)).toBe(true) // childA is outside
 	})
 
 	it('should cull group when all children are outside viewport', () => {
