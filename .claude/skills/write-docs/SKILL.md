@@ -124,10 +124,10 @@ Use tables for listing methods, options, or properties:
 ```
 
 ```markdown
-| Value     | Description                                                   |
-| --------- | ------------------------------------------------------------- |
-| `default` | Sets the initial zoom to 100%.                                |
-| `fit-x`   | The x axis will completely fill the viewport bounds.          |
+| Value     | Description                                          |
+| --------- | ---------------------------------------------------- |
+| `default` | Sets the initial zoom to 100%.                       |
+| `fit-x`   | The x axis will completely fill the viewport bounds. |
 ```
 
 ## Code examples
@@ -138,12 +138,14 @@ Show code early, explain around it. Don't build up to code with paragraphs of co
 
 ```tsx
 // Good: Real shape, real values
-editor.createShapes([{
-	type: 'geo',
-	x: 0,
-	y: 0,
-	props: { geo: 'rectangle', w: 100, h: 100 },
-}])
+editor.createShapes([
+	{
+		type: 'geo',
+		x: 0,
+		y: 0,
+		props: { geo: 'rectangle', w: 100, h: 100 },
+	},
+])
 
 // Bad: Placeholder nonsense
 editor.createShape({ type: 'example-type', props: { prop1: 'value1' } })

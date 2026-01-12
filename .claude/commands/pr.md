@@ -1,7 +1,7 @@
 ---
 description: Commit changes and create or update a pull request (project)
 argument-hint: [description]
-allowed-tools: Bash(git:*), Bash(gh:*)
+allowed-tools: Bash(git:*), Bash(gh:*), Skill(write-pr)
 model: opus
 ---
 
@@ -23,9 +23,11 @@ model: opus
 
 ### Step 2: Create or update the PR
 
+Important! All PRs must follow the standards in @.claude/skills/write-pr/SKILL.md
+
 **If no PR exists:**
 
-Create a new PR following the standards in @.claude/skills/write-pr/SKILL.md
+Create a new PR following the standards.
 
 **If a PR already exists:**
 

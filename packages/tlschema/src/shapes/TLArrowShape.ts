@@ -363,6 +363,11 @@ export const arrowShapeMigrations = createMigrationSequence({
 
 				type OldArrow = TLBaseShape<'arrow', { start: OldArrowTerminal; end: OldArrowTerminal }>
 
+				// Collect all updates during iteration, then apply them after.
+				// This avoids issues with live iterators (e.g., SQLite) where updating
+				// records during iteration can cause them to be visited multiple times.
+				const updates: [string, unknown][] = []
+
 				for (const record of storage.values()) {
 					if (record.typeName !== 'shape' || (record as TLShape).type !== 'arrow') continue
 					const arrow = record as OldArrow
@@ -385,7 +390,7 @@ export const arrowShapeMigrations = createMigrationSequence({
 							},
 						}
 
-						storage.set(id, binding as any)
+						updates.push([id, binding])
 						newArrow.props.start = { x: 0, y: 0 }
 					} else {
 						delete newArrow.props.start.type
@@ -407,12 +412,16 @@ export const arrowShapeMigrations = createMigrationSequence({
 							},
 						}
 
-						storage.set(id, binding as any)
+						updates.push([id, binding])
 						newArrow.props.end = { x: 0, y: 0 }
 					} else {
 						delete newArrow.props.end.type
 					}
-					storage.set(arrow.id, newArrow)
+					updates.push([arrow.id, newArrow])
+				}
+
+				for (const [id, record] of updates) {
+					storage.set(id, record as any)
 				}
 			},
 		},
