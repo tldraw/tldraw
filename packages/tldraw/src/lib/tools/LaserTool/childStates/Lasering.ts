@@ -18,10 +18,6 @@ export class Lasering extends StateNode {
 		this.pushPointToScribble()
 	}
 
-	override onExit() {
-		this.editor.scribbles.stop(this.scribbleId)
-	}
-
 	override onPointerMove() {
 		this.pushPointToScribble()
 	}

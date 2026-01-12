@@ -13,10 +13,19 @@ export interface ScribbleItem {
 	next: null | VecModel
 }
 
+interface LaserSession {
+	id: string
+	startTime: number
+	scribbles: Set<string>
+	idleTimeoutHandle?: any
+}
+
 /** @public */
 export class ScribbleManager {
 	scribbleItems = new Map<string, ScribbleItem>()
 	state = 'paused' as 'paused' | 'running'
+
+	private activeSession: LaserSession | null = null
 
 	constructor(private editor: Editor) {}
 
@@ -41,10 +50,16 @@ export class ScribbleManager {
 			next: null,
 		}
 		this.scribbleItems.set(id, item)
+
+		if (item.scribble.color === 'laser') {
+			this.startOrExtendSession(item.id)
+		}
+
 		return item
 	}
 
 	reset() {
+		this.endActiveLaserSession()
 		this.editor.updateInstanceState({ scribbles: [] })
 		this.scribbleItems.clear()
 	}
@@ -57,6 +72,11 @@ export class ScribbleManager {
 	stop(id: ScribbleItem['id']) {
 		const item = this.scribbleItems.get(id)
 		if (!item) throw Error(`Scribble with id ${id} not found`)
+
+		if (this.activeSession && this.activeSession.scribbles.has(id)) {
+			this.activeSession.scribbles.delete(id)
+		}
+
 		item.delayRemaining = Math.min(item.delayRemaining, 200)
 		item.scribble.state = 'stopping'
 		return item
@@ -79,7 +99,84 @@ export class ScribbleManager {
 		if (!prev || Vec.Dist(prev, point) >= 1) {
 			item.next = point
 		}
+
+		if (this.isScribbleInLaserSession(id)) {
+			this.resetSessionIdleTimeout()
+		}
+
 		return item
+	}
+
+	private startOrExtendSession(scribbleId: string) {
+		const now = Date.now()
+
+		if (
+			this.activeSession &&
+			now - this.activeSession.startTime > this.editor.options.laserMaxSessionDurationMs
+		) {
+			this.endActiveLaserSession()
+		}
+
+		if (!this.activeSession) {
+			this.activeSession = {
+				id: uniqueId(),
+				startTime: now,
+				scribbles: new Set([scribbleId]),
+				idleTimeoutHandle: this.editor.timers.setTimeout(() => {
+					this.endActiveLaserSession()
+				}, this.editor.options.laserSessionTimeoutMs),
+			}
+			return
+		}
+
+		this.activeSession.scribbles.add(scribbleId)
+		this.resetSessionIdleTimeout()
+	}
+
+	private resetSessionIdleTimeout() {
+		if (!this.activeSession) return
+
+		clearTimeout(this.activeSession.idleTimeoutHandle)
+		this.activeSession.idleTimeoutHandle = this.editor.timers.setTimeout(() => {
+			this.endActiveLaserSession()
+		}, this.editor.options.laserSessionTimeoutMs)
+	}
+
+	/**
+	 * End the current laser session, causing all session scribbles to fade together.
+	 *
+	 * @public
+	 */
+	endLaserSession() {
+		this.endActiveLaserSession()
+	}
+
+	private endActiveLaserSession() {
+		if (!this.activeSession) return
+
+		// Stop all scribbles in the session
+		for (const scribbleId of this.activeSession.scribbles) {
+			const item = this.scribbleItems.get(scribbleId)
+			if (item && item.scribble.state !== 'stopping') {
+				item.delayRemaining = 200
+				item.scribble.state = 'stopping'
+			}
+		}
+
+		// Clean up session
+		clearTimeout(this.activeSession.idleTimeoutHandle)
+		this.activeSession = null
+	}
+
+	/**
+	 * Check if a scribble is part of the active laser session.
+	 *
+	 * @public
+	 */
+	isScribbleInLaserSession(scribbleId: string): boolean {
+		if (!this.activeSession) return false
+
+		return this.activeSession.scribbles.has(scribbleId)
 	}
 
 	/**
@@ -120,19 +217,20 @@ export class ScribbleManager {
 
 				switch (scribble.state) {
 					case 'active': {
+						const inSession = this.isScribbleInLaserSession(item.id)
 						if (next && next !== prev) {
 							item.prev = next
 							scribble.points.push(next)
 
-							// If we've run out of delay, then shrink the scribble from the start
-							if (delayRemaining === 0) {
+							// If we've run out of delay, then shrink the scribble from the start and not in a laser session
+							if (delayRemaining === 0 && !inSession) {
 								if (scribble.points.length > 8) {
 									scribble.points.shift()
 								}
 							}
 						} else {
-							// While not moving, shrink the scribble from the start
-							if (timeoutMs === 0) {
+							// While not moving, shrink the scribble from the start and not in a laser session
+							if (timeoutMs === 0 && !inSession) {
 								if (scribble.points.length > 1) {
 									scribble.points.shift()
 								} else {
@@ -172,13 +270,22 @@ export class ScribbleManager {
 
 			// The object here will get frozen into the record, so we need to
 			// create a copies of the parts that what we'll be mutating later.
+			// Separate laser and non-laser scribbles - lasers are shown without limit
+			// (they fade quickly), while others are limited to 5 for performance.
+			const laserScribbles: TLScribble[] = []
+			const otherScribbles: TLScribble[] = []
+
+			for (const item of this.scribbleItems.values()) {
+				const scribbleCopy = { ...item.scribble, points: [...item.scribble.points] }
+				if (item.scribble.color === 'laser') {
+					laserScribbles.push(scribbleCopy)
+				} else {
+					otherScribbles.push(scribbleCopy)
+				}
+			}
+
 			this.editor.updateInstanceState({
-				scribbles: Array.from(this.scribbleItems.values())
-					.map(({ scribble }) => ({
-						...scribble,
-						points: [...scribble.points],
-					}))
-					.slice(-5), // limit to three as a minor sanity check
+				scribbles: [...laserScribbles, ...otherScribbles.slice(-5)],
 			})
 		})
 	}

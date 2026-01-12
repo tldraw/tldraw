@@ -1993,6 +1993,8 @@ export class LaserTool extends StateNode {
     static isLockable: boolean;
     // (undocumented)
     onEnter(): void;
+    // (undocumented)
+    onExit(): void;
 }
 
 // @public (undocumented)

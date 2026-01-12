@@ -14,4 +14,8 @@ export class LaserTool extends StateNode {
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
+
+	override onExit() {
+		this.editor.scribbles.endLaserSession()
+	}
 }

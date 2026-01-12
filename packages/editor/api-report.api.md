@@ -717,6 +717,8 @@ export const defaultTldrawOptions: {
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
+    readonly laserMaxSessionDurationMs: 60000;
+    readonly laserSessionTimeoutMs: 2000;
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
@@ -2705,6 +2707,8 @@ export class ScribbleManager {
     addPoint(id: ScribbleItem['id'], x: number, y: number, z?: number): ScribbleItem;
     // (undocumented)
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
+    endLaserSession(): void;
+    isScribbleInLaserSession(scribbleId: string): boolean;
     // (undocumented)
     reset(): void;
     // (undocumented)
@@ -3484,6 +3488,8 @@ export interface TldrawOptions {
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
+    readonly laserMaxSessionDurationMs: number;
+    readonly laserSessionTimeoutMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
