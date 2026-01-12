@@ -5258,15 +5258,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const perfStart = performance.now()
 		const perfLogging = debugFlags.perfLogGetShapeAtPoint.get()
 
-		const logResult = (result: TLShape | undefined, shapesChecked: number) => {
+		const logResult = (result: TLShape | undefined) => {
 			if (perfLogging) {
 				const usingSpatialIndex = debugFlags.useSpatialIndex.get()
 				const totalTime = performance.now() - perfStart
 				const mode = usingSpatialIndex ? 'spatial' : 'old'
-				const info = `checked ${shapesChecked} shapes → ${result ? `hit ${result.type}` : 'no hit'}`
 				// eslint-disable-next-line no-console
-				console.log(`[Perf] getShapeAtPoint (${mode}): ${totalTime.toFixed(3)}ms (${info})`)
-				perfTracker.track(`getShapeAtPoint (${mode})`, totalTime, info)
+				console.log(`[Perf] getShapeAtPoint (${mode}): ${totalTime.toFixed(3)}ms`)
+				perfTracker.track(`getShapeAtPoint (${mode})`, totalTime)
 			}
 		}
 
@@ -5290,7 +5289,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const useSpatialIndex = debugFlags.useSpatialIndex.get()
-		const spatialIndexStart = performance.now()
 
 		// Get candidate shapes using spatial index if enabled
 		let candidateIds: Set<TLShapeId> | undefined
@@ -5303,16 +5301,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 			const candidates = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 			candidateIds = new Set(candidates)
-
-			if (perfLogging) {
-				// eslint-disable-next-line no-console
-				console.log(
-					`[Perf]   spatial index search: ${(performance.now() - spatialIndexStart).toFixed(3)}ms → ${candidates.length} candidates`
-				)
-			}
 		}
 
-		const filterStart = performance.now()
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
@@ -5333,13 +5323,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return true
 		})
 
-		if (perfLogging) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf]   filter shapes: ${(performance.now() - filterStart).toFixed(3)}ms → ${shapesToCheck.length} to check`
-			)
-		}
-
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
@@ -5357,7 +5340,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
-						logResult(shape, shapesToCheck.length)
+						logResult(shape)
 						return shape
 					}
 				}
@@ -5376,7 +5359,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						: distance > 0 && distance <= outerMargin
 				) {
 					const result = inMarginClosestToEdgeHit || shape
-					logResult(result, shapesToCheck.length)
+					logResult(result)
 					return result
 				}
 
@@ -5391,7 +5374,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inMarginClosestToEdgeHit ||
 						inHollowSmallestAreaHit ||
 						(hitFrameInside ? shape : undefined)
-					logResult(result, shapesToCheck.length)
+					logResult(result)
 					return result
 				}
 				continue
@@ -5442,7 +5425,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
 						const result = inMarginClosestToEdgeHit || shape
-						logResult(result, shapesToCheck.length)
+						logResult(result)
 						return result
 					} else {
 						// If the shape is bigger than the viewport, then skip it.
@@ -5486,7 +5469,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
 				if (distance < this.options.hitTestMargin / zoomLevel) {
-					logResult(shape, shapesToCheck.length)
+					logResult(shape)
 					return shape
 				}
 			}
@@ -5498,7 +5481,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
 		const result = inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
-		logResult(result, shapesToCheck.length)
+		logResult(result)
 		return result
 	}
 
@@ -5526,22 +5509,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const useSpatialIndex = debugFlags.useSpatialIndex.get()
 		const perfLogging = debugFlags.perfLogGetShapesAtPoint.get()
 
-		if (perfLogging) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[getShapesAtPoint] called at point (${point.x.toFixed(1)}, ${point.y.toFixed(1)}), useSpatialIndex: ${useSpatialIndex}`
-			)
-		}
-
 		if (useSpatialIndex) {
 			// New implementation using spatial index
 			const margin = opts.margin ?? 0
-			const spatialSearchStart = performance.now()
 			const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, margin)
-			const spatialSearchTime = performance.now() - spatialSearchStart
 
 			// Get candidate shapes that are not hidden
-			const candidateFilterStart = performance.now()
 			const candidateMap = new Map<TLShapeId, TLShape>()
 			for (const id of candidateIds) {
 				const shape = this.getShape(id)
@@ -5549,29 +5522,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 					candidateMap.set(id, shape)
 				}
 			}
-			const candidateFilterTime = performance.now() - candidateFilterStart
 
 			// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
-			const hitTestStart = performance.now()
 			const allShapes = this.getCurrentPageShapesSorted()
-			let hitTestChecks = 0
 			const result = allShapes
 				.filter((shape) => {
 					if (candidateMap.has(shape.id)) {
-						hitTestChecks++
 						return this.isPointInShape(shape, point, opts)
 					}
 					return false
 				})
 				.reverse()
-			const hitTestTime = performance.now() - hitTestStart
 
 			if (perfLogging) {
 				const totalTime = performance.now() - perfStart
-				const info = `search: ${spatialSearchTime.toFixed(3)}ms → ${candidateIds.length} candidates, filter: ${candidateFilterTime.toFixed(3)}ms → ${candidateMap.size} visible, hit test: ${hitTestTime.toFixed(3)}ms on ${hitTestChecks} shapes → ${result.length} results`
 				// eslint-disable-next-line no-console
-				console.log(`[Perf] getShapesAtPoint (spatial): ${totalTime.toFixed(3)}ms (${info})`)
-				perfTracker.track(`getShapesAtPoint (spatial)`, totalTime, info)
+				console.log(`[Perf] getShapesAtPoint (spatial): ${totalTime.toFixed(3)}ms`)
+				perfTracker.track(`getShapesAtPoint (spatial)`, totalTime)
 			}
 
 			return result
@@ -5579,23 +5546,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Old implementation - iterate through all shapes
 		const allShapes = this.getCurrentPageShapesSorted()
-		let hiddenChecks = 0
-		let hitTestChecks = 0
 		const result = allShapes
 			.filter((shape) => {
-				hiddenChecks++
 				if (this.isShapeHidden(shape)) return false
-				hitTestChecks++
 				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
 
 		if (perfLogging) {
 			const totalTime = performance.now() - perfStart
-			const info = `checked ${allShapes.length} shapes: ${hiddenChecks} hidden checks, ${hitTestChecks} hit tests → ${result.length} results`
 			// eslint-disable-next-line no-console
-			console.log(`[Perf] getShapesAtPoint (old): ${totalTime.toFixed(3)}ms (${info})`)
-			perfTracker.track(`getShapesAtPoint (old)`, totalTime, info)
+			console.log(`[Perf] getShapesAtPoint (old): ${totalTime.toFixed(3)}ms`)
+			perfTracker.track(`getShapesAtPoint (old)`, totalTime)
 		}
 
 		return result
