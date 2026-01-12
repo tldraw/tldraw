@@ -5258,7 +5258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const perfStart = performance.now()
 		const perfLogging = debugFlags.perfLogGetShapeAtPoint.get()
 
-		const logResult = (result: TLShape | undefined) => {
+		const logResult = (_result: TLShape | undefined) => {
 			if (perfLogging) {
 				const usingSpatialIndex = debugFlags.useSpatialIndex.get()
 				const totalTime = performance.now() - perfStart
