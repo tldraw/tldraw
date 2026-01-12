@@ -221,7 +221,7 @@ export class Brushing extends StateNode {
 			editor.setSelectedShapes(Array.from(results))
 		}
 
-		if (debugFlags.perfLogBrushing.get()) {
+		if (debugFlags.perfLogSelection.get()) {
 			const totalTime = performance.now() - perfStart
 			const mode = useSpatialIndex ? 'spatial' : 'old'
 			// eslint-disable-next-line no-console

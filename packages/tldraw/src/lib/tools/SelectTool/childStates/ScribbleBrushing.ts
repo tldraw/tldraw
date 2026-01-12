@@ -180,7 +180,7 @@ export class ScribbleBrushing extends StateNode {
 			this.editor.setSelectedShapes(Array.from(next))
 		}
 
-		if (debugFlags.perfLogScribbleBrushing.get()) {
+		if (debugFlags.perfLogSelection.get()) {
 			const totalTime = performance.now() - perfStart
 			const mode = useSpatialIndex ? 'spatial' : 'old'
 			// eslint-disable-next-line no-console

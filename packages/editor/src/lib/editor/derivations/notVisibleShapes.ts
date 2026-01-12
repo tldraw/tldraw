@@ -36,7 +36,7 @@ export function notVisibleShapes(editor: Editor) {
 			}
 
 			if (isUninitialized(prevValue)) {
-				if (debugFlags.perfLogCulledShapes.get()) {
+				if (debugFlags.perfLogCulling.get()) {
 					const totalTime = performance.now() - perfStart
 					const info = `${nextValue.size} non-visible`
 					console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
@@ -47,7 +47,7 @@ export function notVisibleShapes(editor: Editor) {
 
 			// If there are more or less shapes, we know there's a change
 			if (prevValue.size !== nextValue.size) {
-				if (debugFlags.perfLogCulledShapes.get()) {
+				if (debugFlags.perfLogCulling.get()) {
 					const totalTime = performance.now() - perfStart
 					const info = `${nextValue.size} non-visible`
 					console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
@@ -59,7 +59,7 @@ export function notVisibleShapes(editor: Editor) {
 			// If any of the old shapes are not in the new set, we know there's a change
 			for (const prev of prevValue) {
 				if (!nextValue.has(prev)) {
-					if (debugFlags.perfLogCulledShapes.get()) {
+					if (debugFlags.perfLogCulling.get()) {
 						const totalTime = performance.now() - perfStart
 						const info = `${nextValue.size} non-visible`
 						console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
@@ -70,7 +70,7 @@ export function notVisibleShapes(editor: Editor) {
 			}
 
 			// If we've made it here, we know that the set is the same
-			if (debugFlags.perfLogCulledShapes.get()) {
+			if (debugFlags.perfLogCulling.get()) {
 				const totalTime = performance.now() - perfStart
 				const info = `unchanged`
 				console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
@@ -119,7 +119,7 @@ export function notVisibleShapes(editor: Editor) {
 		}
 
 		if (isUninitialized(prevValue)) {
-			if (debugFlags.perfLogCulledShapes.get()) {
+			if (debugFlags.perfLogCulling.get()) {
 				const totalTime = performance.now() - perfStart
 				const info = `${nextValue.size} non-visible`
 				console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
@@ -130,7 +130,7 @@ export function notVisibleShapes(editor: Editor) {
 
 		// If there are more or less shapes, we know there's a change
 		if (prevValue.size !== nextValue.size) {
-			if (debugFlags.perfLogCulledShapes.get()) {
+			if (debugFlags.perfLogCulling.get()) {
 				const totalTime = performance.now() - perfStart
 				const info = `${nextValue.size} non-visible`
 				console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
@@ -142,7 +142,7 @@ export function notVisibleShapes(editor: Editor) {
 		// If any of the old shapes are not in the new set, we know there's a change
 		for (const prev of prevValue) {
 			if (!nextValue.has(prev)) {
-				if (debugFlags.perfLogCulledShapes.get()) {
+				if (debugFlags.perfLogCulling.get()) {
 					const totalTime = performance.now() - perfStart
 					const info = `${nextValue.size} non-visible`
 					console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
@@ -153,7 +153,7 @@ export function notVisibleShapes(editor: Editor) {
 		}
 
 		// If we've made it here, we know that the set is the same
-		if (debugFlags.perfLogCulledShapes.get()) {
+		if (debugFlags.perfLogCulling.get()) {
 			const totalTime = performance.now() - perfStart
 			const info = `unchanged`
 			console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)

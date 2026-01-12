@@ -71,16 +71,10 @@ export const debugFlags = {
 			all: false,
 		},
 	}),
-	perfLogCulledShapes: createDebugValue('perfLogCulledShapes', {
+	perfLogCulling: createDebugValue('perfLogCulling', {
 		defaults: { all: false },
 	}),
-	perfLogBrushing: createDebugValue('perfLogBrushing', {
-		defaults: { all: false },
-	}),
-	perfLogErasing: createDebugValue('perfLogErasing', {
-		defaults: { all: false },
-	}),
-	perfLogScribbleBrushing: createDebugValue('perfLogScribbleBrushing', {
+	perfLogSelection: createDebugValue('perfLogSelection', {
 		defaults: { all: false },
 	}),
 	perfLogGetShapeAtPoint: createDebugValue('perfLogGetShapeAtPoint', {

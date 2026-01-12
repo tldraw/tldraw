@@ -163,7 +163,7 @@ export class Erasing extends StateNode {
 			if (erasingShapeId && this.editor.getShape(erasingShapeId)) {
 				editor.setErasingShapes([erasingShapeId])
 			}
-			if (debugFlags.perfLogErasing.get()) {
+			if (debugFlags.perfLogSelection.get()) {
 				const totalTime = performance.now() - perfStart
 				const mode = useSpatialIndex ? 'spatial' : 'old'
 				// eslint-disable-next-line no-console
@@ -184,7 +184,7 @@ export class Erasing extends StateNode {
 		// when the user started erasing)
 		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
 
-		if (debugFlags.perfLogErasing.get()) {
+		if (debugFlags.perfLogSelection.get()) {
 			const totalTime = performance.now() - perfStart
 			const mode = useSpatialIndex ? 'spatial' : 'old'
 			// eslint-disable-next-line no-console

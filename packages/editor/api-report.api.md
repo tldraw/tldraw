@@ -601,15 +601,13 @@ export const debugFlags: {
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
     readonly measurePerformance: DebugFlag<boolean>;
-    readonly perfLogBrushing: DebugFlag<boolean>;
-    readonly perfLogCulledShapes: DebugFlag<boolean>;
-    readonly perfLogErasing: DebugFlag<boolean>;
+    readonly perfLogCulling: DebugFlag<boolean>;
     readonly perfLogGetShapeAtPoint: DebugFlag<boolean>;
     readonly perfLogGetShapesAtPoint: DebugFlag<boolean>;
     readonly perfLogging: DebugFlag<boolean>;
     readonly perfLogPageChange: DebugFlag<boolean>;
     readonly perfLogReactRender: DebugFlag<boolean>;
-    readonly perfLogScribbleBrushing: DebugFlag<boolean>;
+    readonly perfLogSelection: DebugFlag<boolean>;
     readonly perfLogSpatialIndex: DebugFlag<boolean>;
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
