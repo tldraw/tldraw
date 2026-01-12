@@ -438,7 +438,8 @@ function ShapesToDisplay() {
 	useEffect(() => {
 		if (debugFlags.perfLogReactRender.get()) {
 			const usingSpatialIndex = debugFlags.useSpatialIndex.get()
-			console.warn(
+			// eslint-disable-next-line no-console
+			console.log(
 				`[Perf] React (${usingSpatialIndex ? 'spatial' : 'old'}): rendering ${renderingShapes.length} shapes`
 			)
 		}

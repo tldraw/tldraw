@@ -47,7 +47,8 @@ export class RBushIndex {
 		})
 		const ids = results.map((e: SpatialElement) => e.id)
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.warn(
+			// eslint-disable-next-line no-console
+			console.log(
 				`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → ${ids.length} results`
 			)
 		}
@@ -92,7 +93,8 @@ export class RBushIndex {
 			this.elementsInTree.set(element.id, element)
 		}
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.warn(
+			// eslint-disable-next-line no-console
+			console.log(
 				`[Perf] spatial index RBushIndex.bulkLoad: ${(performance.now() - perfStart).toFixed(3)}ms (${elements.length} elements)`
 			)
 		}
