@@ -4381,15 +4381,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (debugFlags.perfLogPageChange.get()) {
 			const duration = performance.now() - startTime
 			const usingSpatialIndex = debugFlags.useSpatialIndex.get()
-			console.log(
+			console.warn(
 				`[perf] setCurrentPage (${usingSpatialIndex ? 'spatial' : 'old'}) (sync): ${duration.toFixed(2)}ms`
 			)
 
 			// Schedule RAF to measure total time including React render and browser paint
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
+			this.timers.requestAnimationFrame(() => {
+				this.timers.requestAnimationFrame(() => {
 					const totalDuration = performance.now() - startTime
-					console.log(
+					console.warn(
 						`[perf] setCurrentPage (${usingSpatialIndex ? 'spatial' : 'old'}) (total with render+paint): ${totalDuration.toFixed(2)}ms`
 					)
 				})
@@ -5236,7 +5236,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const totalTime = performance.now() - perfStart
 				const mode = usingSpatialIndex ? 'spatial' : 'old'
 				const info = `checked ${shapesChecked} shapes → ${result ? `hit ${result.type}` : 'no hit'}`
-				console.log(`[Perf] getShapeAtPoint (${mode}): ${totalTime.toFixed(3)}ms (${info})`)
+				console.warn(`[Perf] getShapeAtPoint (${mode}): ${totalTime.toFixed(3)}ms (${info})`)
 				perfTracker.track(`getShapeAtPoint (${mode})`, totalTime, info)
 			}
 		}
@@ -5276,7 +5276,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			candidateIds = new Set(candidates)
 
 			if (perfLogging) {
-				console.log(
+				console.warn(
 					`[Perf]   spatial index search: ${(performance.now() - spatialIndexStart).toFixed(3)}ms → ${candidates.length} candidates`
 				)
 			}
@@ -5304,7 +5304,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		if (perfLogging) {
-			console.log(
+			console.warn(
 				`[Perf]   filter shapes: ${(performance.now() - filterStart).toFixed(3)}ms → ${shapesToCheck.length} to check`
 			)
 		}
@@ -5496,7 +5496,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const perfLogging = debugFlags.perfLogGetShapesAtPoint.get()
 
 		if (perfLogging) {
-			console.log(
+			console.warn(
 				`[getShapesAtPoint] called at point (${point.x.toFixed(1)}, ${point.y.toFixed(1)}), useSpatialIndex: ${useSpatialIndex}`
 			)
 		}
@@ -5537,7 +5537,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (perfLogging) {
 				const totalTime = performance.now() - perfStart
 				const info = `search: ${spatialSearchTime.toFixed(3)}ms → ${candidateIds.length} candidates, filter: ${candidateFilterTime.toFixed(3)}ms → ${candidateMap.size} visible, hit test: ${hitTestTime.toFixed(3)}ms on ${hitTestChecks} shapes → ${result.length} results`
-				console.log(`[Perf] getShapesAtPoint (spatial): ${totalTime.toFixed(3)}ms (${info})`)
+				console.warn(`[Perf] getShapesAtPoint (spatial): ${totalTime.toFixed(3)}ms (${info})`)
 				perfTracker.track(`getShapesAtPoint (spatial)`, totalTime, info)
 			}
 
@@ -5560,7 +5560,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (perfLogging) {
 			const totalTime = performance.now() - perfStart
 			const info = `checked ${allShapes.length} shapes: ${hiddenChecks} hidden checks, ${hitTestChecks} hit tests → ${result.length} results`
-			console.log(`[Perf] getShapesAtPoint (old): ${totalTime.toFixed(3)}ms (${info})`)
+			console.warn(`[Perf] getShapesAtPoint (old): ${totalTime.toFixed(3)}ms (${info})`)
 			perfTracker.track(`getShapesAtPoint (old)`, totalTime, info)
 		}
 

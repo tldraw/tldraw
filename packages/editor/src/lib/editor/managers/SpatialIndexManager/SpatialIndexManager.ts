@@ -51,7 +51,7 @@ export class SpatialIndexManager {
 			const currentPageId = this.editor.getCurrentPageId()
 			if (this.lastPageId !== currentPageId) {
 				if (debugFlags.perfLogSpatialIndex.get()) {
-					console.log(`[Perf] spatial index: page change detected, rebuilding`)
+					console.warn(`[Perf] spatial index: page change detected, rebuilding`)
 				}
 				return this.buildFromScratch(lastComputedEpoch)
 			}
@@ -71,7 +71,7 @@ export class SpatialIndexManager {
 		const shapesStart = performance.now()
 		const shapes = this.editor.getCurrentPageShapesSorted()
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.log(
+			console.warn(
 				`[Perf]   spatial index getCurrentPageShapesSorted: ${(performance.now() - shapesStart).toFixed(3)}ms`
 			)
 		}
@@ -88,10 +88,10 @@ export class SpatialIndexManager {
 			if (element) elements.push(element)
 		}
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.log(
+			console.warn(
 				`[Perf]   spatial index creating elements: ${(performance.now() - elementsStart).toFixed(3)}ms`
 			)
-			console.log(
+			console.warn(
 				`[Perf]     spatial index getShapePageBounds calls: ${boundsTime.toFixed(4)}ms (avg: ${(boundsTime / shapes.length).toFixed(5)}ms per shape)`
 			)
 		}
@@ -100,7 +100,7 @@ export class SpatialIndexManager {
 		this.rbush.bulkLoad(elements)
 
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.log(
+			console.warn(
 				`[Perf] spatial index buildFromScratch: ${(performance.now() - perfStart).toFixed(3)}ms (${shapes.length} shapes)`
 			)
 		}
@@ -153,7 +153,7 @@ export class SpatialIndexManager {
 				boundsUpdates++
 				if (debugFlags.perfLogSpatialIndex.get()) {
 					const shape = this.editor.getShape(shapeId)
-					console.log(
+					console.warn(
 						`[Perf] spatial index bounds changed for ${shapeId} (${shape?.type}): ` +
 							`${indexedBounds ? `[${indexedBounds.minX.toFixed(1)},${indexedBounds.minY.toFixed(1)},${indexedBounds.maxX.toFixed(1)},${indexedBounds.maxY.toFixed(1)}]` : 'null'} → ` +
 							`${currentBounds ? `[${currentBounds.minX.toFixed(1)},${currentBounds.minY.toFixed(1)},${currentBounds.maxX.toFixed(1)},${currentBounds.maxY.toFixed(1)}]` : 'null'}`
@@ -167,7 +167,7 @@ export class SpatialIndexManager {
 		}
 
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.log(
+			console.warn(
 				`[Perf] spatial index processIncrementalUpdate: ${(performance.now() - perfStart).toFixed(3)}ms ` +
 					`(checked ${boundsChecks} shapes in ${(performance.now() - boundsCheckStart).toFixed(3)}ms, updated ${boundsUpdates})`
 			)
@@ -214,7 +214,7 @@ export class SpatialIndexManager {
 		const searchTime = performance.now() - searchStart
 
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.log(
+			console.warn(
 				`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (index: ${indexTime.toFixed(3)}ms, search: ${searchTime.toFixed(3)}ms, ${result.length} shapes found)`
 			)
 		}
@@ -244,7 +244,7 @@ export class SpatialIndexManager {
 		const result = this.rbush.search(searchBounds)
 
 		if (debugFlags.perfLogSpatialIndex.get()) {
-			console.log(
+			console.warn(
 				`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (${result.length} candidate shapes found)`
 			)
 		}

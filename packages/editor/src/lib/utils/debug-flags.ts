@@ -129,6 +129,7 @@ export class PerfTracker {
 		metric.lastTime = Date.now()
 
 		// Set new timeout to print stats after inactivity
+		// eslint-disable-next-line no-restricted-globals
 		metric.timeout = setTimeout(() => {
 			this.printStats(operation, extraInfo)
 			metric.times = []
@@ -148,7 +149,7 @@ export class PerfTracker {
 		const max = Math.max(...times)
 
 		const extra = extraInfo ? ` (${extraInfo})` : ''
-		console.log(
+		console.warn(
 			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
 				`📊 [Perf Summary] ${operation}\n` +
 				`   ${count} operations | avg: ${avg.toFixed(2)}ms | min: ${min.toFixed(2)}ms | max: ${max.toFixed(2)}ms${extra}\n` +

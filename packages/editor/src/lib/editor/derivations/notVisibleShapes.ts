@@ -39,7 +39,7 @@ export function notVisibleShapes(editor: Editor) {
 				if (debugFlags.perfLogCulledShapes.get()) {
 					const totalTime = performance.now() - perfStart
 					const info = `${nextValue.size} non-visible`
-					console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+					console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
 					perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
 				}
 				return nextValue
@@ -50,7 +50,7 @@ export function notVisibleShapes(editor: Editor) {
 				if (debugFlags.perfLogCulledShapes.get()) {
 					const totalTime = performance.now() - perfStart
 					const info = `${nextValue.size} non-visible`
-					console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+					console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
 					perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
 				}
 				return nextValue
@@ -62,7 +62,7 @@ export function notVisibleShapes(editor: Editor) {
 					if (debugFlags.perfLogCulledShapes.get()) {
 						const totalTime = performance.now() - perfStart
 						const info = `${nextValue.size} non-visible`
-						console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+						console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
 						perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
 					}
 					return nextValue
@@ -73,7 +73,7 @@ export function notVisibleShapes(editor: Editor) {
 			if (debugFlags.perfLogCulledShapes.get()) {
 				const totalTime = performance.now() - perfStart
 				const info = `unchanged`
-				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+				console.warn(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
 				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
 			}
 			return prevValue
@@ -122,7 +122,7 @@ export function notVisibleShapes(editor: Editor) {
 			if (debugFlags.perfLogCulledShapes.get()) {
 				const totalTime = performance.now() - perfStart
 				const info = `${nextValue.size} non-visible`
-				console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
+				console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
 				perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
 			}
 			return nextValue
@@ -133,7 +133,7 @@ export function notVisibleShapes(editor: Editor) {
 			if (debugFlags.perfLogCulledShapes.get()) {
 				const totalTime = performance.now() - perfStart
 				const info = `${nextValue.size} non-visible`
-				console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
+				console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
 				perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
 			}
 			return nextValue
@@ -145,7 +145,7 @@ export function notVisibleShapes(editor: Editor) {
 				if (debugFlags.perfLogCulledShapes.get()) {
 					const totalTime = performance.now() - perfStart
 					const info = `${nextValue.size} non-visible`
-					console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
+					console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
 					perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
 				}
 				return nextValue
@@ -156,7 +156,7 @@ export function notVisibleShapes(editor: Editor) {
 		if (debugFlags.perfLogCulledShapes.get()) {
 			const totalTime = performance.now() - perfStart
 			const info = `unchanged`
-			console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
+			console.warn(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
 			perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
 		}
 		return prevValue
