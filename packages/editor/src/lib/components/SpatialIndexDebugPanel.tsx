@@ -1,4 +1,6 @@
 import { track } from '@tldraw/state-react'
+import { createShapeId, toRichText } from '@tldraw/tlschema'
+import { useEditor } from '../hooks/useEditor'
 import { debugFlags } from '../utils/debug-flags'
 
 /**
@@ -8,6 +10,84 @@ import { debugFlags } from '../utils/debug-flags'
  * @public
  */
 export const SpatialIndexDebugPanel = track(() => {
+	const editor = useEditor()
+
+	const createShapes = (count: number) => {
+		const shapes = []
+		const geoTypes = [
+			'rectangle',
+			'ellipse',
+			'triangle',
+			'diamond',
+			'pentagon',
+			'hexagon',
+			'oval',
+			'trapezoid',
+			'star',
+			'rhombus',
+		]
+		const viewportBounds = editor.getViewportPageBounds()
+		const width = viewportBounds.width * 2
+		const height = viewportBounds.height * 2
+
+		for (let i = 0; i < count; i++) {
+			const x = viewportBounds.minX + Math.random() * width
+			const y = viewportBounds.minY + Math.random() * height
+
+			// Create a mix of different shape types
+			const rand = Math.random()
+			if (rand < 0.6) {
+				// 60% geo shapes with different types
+				shapes.push({
+					id: createShapeId(),
+					type: 'geo' as const,
+					x,
+					y,
+					props: {
+						geo: geoTypes[Math.floor(Math.random() * geoTypes.length)] as any,
+						w: 100 + Math.random() * 100,
+						h: 100 + Math.random() * 100,
+					},
+				})
+			} else if (rand < 0.75) {
+				// 15% arrow shapes (lines)
+				const endX = 100 + Math.random() * 200
+				const endY = -50 + Math.random() * 100
+				shapes.push({
+					id: createShapeId(),
+					type: 'arrow' as const,
+					x,
+					y,
+					props: {
+						start: { x: 0, y: 0 },
+						end: { x: endX, y: endY },
+					},
+				})
+			} else if (rand < 0.9) {
+				// 15% note shapes
+				shapes.push({
+					id: createShapeId(),
+					type: 'note' as const,
+					x,
+					y,
+				})
+			} else {
+				// 10% text shapes
+				shapes.push({
+					id: createShapeId(),
+					type: 'text' as const,
+					x,
+					y,
+					props: {
+						richText: toRichText(`Text ${i}`),
+					},
+				})
+			}
+		}
+
+		editor.createShapes(shapes)
+	}
+
 	return (
 		<div
 			style={{
@@ -91,6 +171,43 @@ export const SpatialIndexDebugPanel = track(() => {
 						label="Page Change"
 						description="Page switching"
 					/>
+				</div>
+			</div>
+
+			{/* Create shapes section */}
+			<div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '8px', marginTop: '8px' }}>
+				<div style={{ fontWeight: 500, marginBottom: '8px', fontSize: '11px' }}>
+					Create Test Shapes
+				</div>
+				<div style={{ display: 'flex', gap: '4px' }}>
+					<button
+						onClick={() => createShapes(500)}
+						style={{
+							flex: 1,
+							padding: '6px',
+							fontSize: '11px',
+							background: '#f5f5f5',
+							border: '1px solid #d0d0d0',
+							borderRadius: '3px',
+							cursor: 'pointer',
+						}}
+					>
+						+500
+					</button>
+					<button
+						onClick={() => createShapes(1000)}
+						style={{
+							flex: 1,
+							padding: '6px',
+							fontSize: '11px',
+							background: '#f5f5f5',
+							border: '1px solid #d0d0d0',
+							borderRadius: '3px',
+							cursor: 'pointer',
+						}}
+					>
+						+1000
+					</button>
 				</div>
 			</div>
 		</div>
