@@ -923,7 +923,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				// first undo speculative changes
 				this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), { runCallbacks: false })
 
-				this.debug('received diffs', diffs)
 				// then apply network diffs on top of known-to-be-synced data
 				for (const diff of diffs) {
 					if (diff.type === 'patch') {
