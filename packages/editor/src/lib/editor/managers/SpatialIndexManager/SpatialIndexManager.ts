@@ -260,4 +260,15 @@ export class SpatialIndexManager {
 
 		return result
 	}
+
+	/**
+	 * Dispose of the spatial index manager.
+	 * Clears the R-tree to prevent memory leaks.
+	 *
+	 * @public
+	 */
+	dispose(): void {
+		this.rbush.dispose()
+		this.lastPageId = null
+	}
 }

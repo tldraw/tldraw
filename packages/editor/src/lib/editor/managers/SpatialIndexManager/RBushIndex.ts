@@ -143,4 +143,12 @@ export class RBushIndex {
 			element.maxY - element.minY
 		)
 	}
+
+	/**
+	 * Dispose of the spatial index.
+	 * Clears all data structures to prevent memory leaks.
+	 */
+	dispose(): void {
+		this.clear()
+	}
 }

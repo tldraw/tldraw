@@ -2912,6 +2912,7 @@ export const SpatialIndexDebugPanel: NamedExoticComponent<unknown>;
 // @public
 export class SpatialIndexManager {
     constructor(editor: Editor);
+    dispose(): void;
     // (undocumented)
     readonly editor: Editor;
     getShapeIdsAtPoint(point: {
