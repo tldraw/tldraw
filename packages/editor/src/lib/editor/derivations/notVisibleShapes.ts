@@ -3,86 +3,82 @@ import { TLShapeId } from '@tldraw/tlschema'
 import { debugFlags, perfTracker } from '../../utils/debug-flags'
 import { Editor } from '../Editor'
 
-/**
- * Non visible shapes are shapes outside of the viewport page bounds.
- *
- * @param editor - Instance of the tldraw Editor.
- * @returns Incremental derivation of non visible shapes.
- */
-export function notVisibleShapes(editor: Editor) {
-	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
+function notVisibleShapesSpatial(editor: Editor) {
+	return computed<Set<TLShapeId>>('notVisibleShapesSpatial', function (prevValue) {
 		const perfStart = performance.now()
-		const useSpatialIndex = debugFlags.useSpatialIndex.get()
 
-		if (useSpatialIndex) {
-			// New implementation using spatial index
-			const allShapeIds = editor.getCurrentPageShapeIds()
-			const viewportPageBounds = editor.getViewportPageBounds()
-			const visibleIds = new Set(editor.getShapeIdsInsideBounds(viewportPageBounds))
+		// New implementation using spatial index
+		const allShapeIds = editor.getCurrentPageShapeIds()
+		const viewportPageBounds = editor.getViewportPageBounds()
+		const visibleIds = new Set(editor.getShapeIdsInsideBounds(viewportPageBounds))
 
-			const nextValue = new Set<TLShapeId>()
+		const nextValue = new Set<TLShapeId>()
 
-			// Non-visible shapes are all shapes minus visible shapes
-			for (const id of allShapeIds) {
-				if (!visibleIds.has(id)) {
-					const shape = editor.getShape(id)
-					if (!shape) continue
+		// Non-visible shapes are all shapes minus visible shapes
+		for (const id of allShapeIds) {
+			if (!visibleIds.has(id)) {
+				const shape = editor.getShape(id)
+				if (!shape) continue
 
-					const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-					if (!canCull) continue
+				const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+				if (!canCull) continue
 
-					nextValue.add(id)
-				}
+				nextValue.add(id)
 			}
+		}
 
-			if (isUninitialized(prevValue)) {
-				if (debugFlags.perfLogCulling.get()) {
-					const totalTime = performance.now() - perfStart
-					const info = `${nextValue.size} non-visible`
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
-					perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
-				}
-				return nextValue
-			}
-
-			// If there are more or less shapes, we know there's a change
-			if (prevValue.size !== nextValue.size) {
-				if (debugFlags.perfLogCulling.get()) {
-					const totalTime = performance.now() - perfStart
-					const info = `${nextValue.size} non-visible`
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
-					perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
-				}
-				return nextValue
-			}
-
-			// If any of the old shapes are not in the new set, we know there's a change
-			for (const prev of prevValue) {
-				if (!nextValue.has(prev)) {
-					if (debugFlags.perfLogCulling.get()) {
-						const totalTime = performance.now() - perfStart
-						const info = `${nextValue.size} non-visible`
-						// eslint-disable-next-line no-console
-						console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
-						perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
-					}
-					return nextValue
-				}
-			}
-
-			// If we've made it here, we know that the set is the same
+		if (isUninitialized(prevValue)) {
 			if (debugFlags.perfLogCulling.get()) {
 				const totalTime = performance.now() - perfStart
-				const info = `unchanged`
+				const info = `${nextValue.size} non-visible`
 				// eslint-disable-next-line no-console
 				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
 				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
 			}
-			return prevValue
+			return nextValue
 		}
 
+		// If there are more or less shapes, we know there's a change
+		if (prevValue.size !== nextValue.size) {
+			if (debugFlags.perfLogCulling.get()) {
+				const totalTime = performance.now() - perfStart
+				const info = `${nextValue.size} non-visible`
+				// eslint-disable-next-line no-console
+				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+			}
+			return nextValue
+		}
+
+		// If any of the old shapes are not in the new set, we know there's a change
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				if (debugFlags.perfLogCulling.get()) {
+					const totalTime = performance.now() - perfStart
+					const info = `${nextValue.size} non-visible`
+					// eslint-disable-next-line no-console
+					console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+					perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+				}
+				return nextValue
+			}
+		}
+
+		// If we've made it here, we know that the set is the same
+		if (debugFlags.perfLogCulling.get()) {
+			const totalTime = performance.now() - perfStart
+			const info = `unchanged`
+			// eslint-disable-next-line no-console
+			console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+			perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+		}
+		return prevValue
+	})
+}
+
+function notVisibleShapesOld(editor: Editor) {
+	return computed<Set<TLShapeId>>('notVisibleShapesOld', function (prevValue) {
+		const perfStart = performance.now()
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		const nextValue = new Set<TLShapeId>()
@@ -168,5 +164,32 @@ export function notVisibleShapes(editor: Editor) {
 			perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
 		}
 		return prevValue
+	})
+}
+
+/**
+ * Non visible shapes are shapes outside of the viewport page bounds.
+ *
+ * @param editor - Instance of the tldraw Editor.
+ * @returns Incremental derivation of non visible shapes.
+ */
+export function notVisibleShapes(editor: Editor) {
+	let spatialComputed: ReturnType<typeof notVisibleShapesSpatial> | null = null
+	let oldComputed: ReturnType<typeof notVisibleShapesOld> | null = null
+
+	return computed<Set<TLShapeId>>('notVisibleShapes', () => {
+		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+
+		if (useSpatialIndex) {
+			if (!spatialComputed) {
+				spatialComputed = notVisibleShapesSpatial(editor)
+			}
+			return spatialComputed.get()
+		}
+
+		if (!oldComputed) {
+			oldComputed = notVisibleShapesOld(editor)
+		}
+		return oldComputed.get()
 	})
 }
