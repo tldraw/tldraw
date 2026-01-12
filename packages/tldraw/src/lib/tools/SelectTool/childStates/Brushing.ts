@@ -10,6 +10,8 @@ import {
 	TLShapeId,
 	TLTickEventInfo,
 	Vec,
+	debugFlags,
+	perfTracker,
 	pointInPolygon,
 	polygonsIntersect,
 	react,
@@ -113,6 +115,7 @@ export class Brushing extends StateNode {
 	}
 
 	private hitTestShapes() {
+		const perfStart = performance.now()
 		const { editor, excludedShapeIds, isWrapMode } = this
 		const originPagePoint = editor.inputs.getOriginPagePoint()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
@@ -152,12 +155,21 @@ export class Brushing extends StateNode {
 		// testing all shapes.
 
 		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
-		const shapesToHitTest =
+		const allShapes =
 			brushBoxIsInsideViewport && !this.viewportDidChange
 				? editor.getCurrentPageRenderingShapesSorted()
 				: editor.getCurrentPageShapesSorted()
+		let shapesToHitTest = allShapes
 
 		const currentPageId = editor.getCurrentPageId()
+
+		// Use spatial index to filter candidates if enabled
+		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		if (useSpatialIndex) {
+			const candidateIds = editor.getShapeIdsInsideBounds(brush)
+			const candidateSet = new Set(candidateIds)
+			shapesToHitTest = shapesToHitTest.filter((shape) => candidateSet.has(shape.id))
+		}
 
 		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
 			shape = shapesToHitTest[i]
@@ -207,6 +219,20 @@ export class Brushing extends StateNode {
 		const current = editor.getSelectedShapeIds()
 		if (current.length !== results.size || current.some((id) => !results.has(id))) {
 			editor.setSelectedShapes(Array.from(results))
+		}
+
+		if (debugFlags.perfLogBrushing.get()) {
+			const totalTime = performance.now() - perfStart
+			const mode = useSpatialIndex ? 'spatial' : 'old'
+			// eslint-disable-next-line no-console
+			console.log(
+				`[Perf] brushing (${mode}): ${totalTime.toFixed(2)}ms (checked ${shapesToHitTest.length}/${allShapes.length} shapes)`
+			)
+			perfTracker.track(
+				`brushing (${mode})`,
+				totalTime,
+				`checked ${shapesToHitTest.length}/${allShapes.length} shapes`
+			)
 		}
 	}
 

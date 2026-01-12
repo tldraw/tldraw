@@ -1,8 +1,11 @@
 import {
+	Box,
 	StateNode,
 	TLPointerEventInfo,
 	TLShapeId,
+	debugFlags,
 	isAccelKey,
+	perfTracker,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -94,10 +97,12 @@ export class Erasing extends StateNode {
 	}
 
 	update() {
+		const perfStart = performance.now()
 		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = editor.getErasingShapeIds()
 		const zoomLevel = editor.getZoomLevel()
-		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
+		const allShapes = editor.getCurrentPageRenderingShapesSorted()
+		let currentPageShapes = allShapes
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const previousPagePoint = editor.inputs.getPreviousPagePoint()
 
@@ -106,6 +111,16 @@ export class Erasing extends StateNode {
 		// Otherwise, erasing shapes are all the shapes that were hit before plus any new shapes that are hit
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 		const minDist = this.editor.options.hitTestMargin / zoomLevel
+
+		// Use spatial index to filter candidates if enabled
+		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		if (useSpatialIndex) {
+			// Create bounds around line segment with margin
+			const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
+			const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+			const candidateSet = new Set(candidateIds)
+			currentPageShapes = currentPageShapes.filter((shape) => candidateSet.has(shape.id))
+		}
 
 		for (const shape of currentPageShapes) {
 			if (editor.isShapeOfType(shape, 'group')) continue
@@ -148,6 +163,19 @@ export class Erasing extends StateNode {
 			if (erasingShapeId && this.editor.getShape(erasingShapeId)) {
 				editor.setErasingShapes([erasingShapeId])
 			}
+			if (debugFlags.perfLogErasing.get()) {
+				const totalTime = performance.now() - perfStart
+				const mode = useSpatialIndex ? 'spatial' : 'old'
+				// eslint-disable-next-line no-console
+				console.log(
+					`[Perf] erasing (${mode}): ${totalTime.toFixed(2)}ms (checked ${currentPageShapes.length}/${allShapes.length} shapes)`
+				)
+				perfTracker.track(
+					`erasing (${mode})`,
+					totalTime,
+					`checked ${currentPageShapes.length}/${allShapes.length} shapes`
+				)
+			}
 			return
 		}
 
@@ -155,6 +183,20 @@ export class Erasing extends StateNode {
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
 		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
+
+		if (debugFlags.perfLogErasing.get()) {
+			const totalTime = performance.now() - perfStart
+			const mode = useSpatialIndex ? 'spatial' : 'old'
+			// eslint-disable-next-line no-console
+			console.log(
+				`[Perf] erasing (${mode}): ${totalTime.toFixed(2)}ms (checked ${currentPageShapes.length}/${allShapes.length} shapes)`
+			)
+			perfTracker.track(
+				`erasing (${mode})`,
+				totalTime,
+				`checked ${currentPageShapes.length}/${allShapes.length} shapes`
+			)
+		}
 	}
 
 	complete() {

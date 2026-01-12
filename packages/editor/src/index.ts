@@ -169,6 +169,7 @@ export {
 	type SnapData,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
+export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
 	type TLMeasureTextOpts,
@@ -442,6 +443,8 @@ export {
 	createDebugValue,
 	debugFlags,
 	featureFlags,
+	PerfTracker,
+	perfTracker,
 	type DebugFlag,
 	type DebugFlagDef,
 	type DebugFlagDefaults,

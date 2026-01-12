@@ -55,7 +55,110 @@ export const debugFlags = {
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
 	a11y: createDebugValue('a11y', { defaults: { all: false } }),
 	debugElbowArrows: createDebugValue('debugElbowArrows', { defaults: { all: false } }),
+	useSpatialIndex: createDebugValue('useSpatialIndex', {
+		defaults: {
+			development: true,
+			staging: true,
+			production: false,
+			all: false,
+		},
+	}),
+	perfLogging: createDebugValue('perfLogging', {
+		defaults: {
+			development: true,
+			staging: false,
+			production: false,
+			all: false,
+		},
+	}),
+	perfLogCulledShapes: createDebugValue('perfLogCulledShapes', {
+		defaults: { all: false },
+	}),
+	perfLogBrushing: createDebugValue('perfLogBrushing', {
+		defaults: { all: false },
+	}),
+	perfLogErasing: createDebugValue('perfLogErasing', {
+		defaults: { all: false },
+	}),
+	perfLogScribbleBrushing: createDebugValue('perfLogScribbleBrushing', {
+		defaults: { all: false },
+	}),
+	perfLogGetShapeAtPoint: createDebugValue('perfLogGetShapeAtPoint', {
+		defaults: { all: false },
+	}),
+	perfLogGetShapesAtPoint: createDebugValue('perfLogGetShapesAtPoint', {
+		defaults: { all: false },
+	}),
+	perfLogSpatialIndex: createDebugValue('perfLogSpatialIndex', {
+		defaults: { all: false },
+	}),
+	perfLogPageChange: createDebugValue('perfLogPageChange', {
+		defaults: { all: false },
+	}),
+	perfLogReactRender: createDebugValue('perfLogReactRender', {
+		defaults: { all: false },
+	}),
 } as const
+
+/**
+ * Tracks performance metrics for repeated operations and prints averages after inactivity
+ *
+ * @public
+ */
+export class PerfTracker {
+	private metrics = new Map<
+		string,
+		{ times: number[]; lastTime: number; timeout: ReturnType<typeof setTimeout> | null }
+	>()
+	private readonly inactivityMs = 1000
+
+	track(operation: string, timeMs: number, extraInfo?: string) {
+		if (!this.metrics.has(operation)) {
+			this.metrics.set(operation, { times: [], lastTime: Date.now(), timeout: null })
+		}
+
+		const metric = this.metrics.get(operation)!
+
+		// Clear existing timeout
+		if (metric.timeout) {
+			clearTimeout(metric.timeout)
+		}
+
+		// Add this timing
+		metric.times.push(timeMs)
+		metric.lastTime = Date.now()
+
+		// Set new timeout to print stats after inactivity
+		metric.timeout = setTimeout(() => {
+			this.printStats(operation, extraInfo)
+			metric.times = []
+			metric.timeout = null
+		}, this.inactivityMs)
+	}
+
+	private printStats(operation: string, extraInfo?: string) {
+		const metric = this.metrics.get(operation)
+		if (!metric || metric.times.length === 0) return
+
+		const times = metric.times
+		const count = times.length
+		const sum = times.reduce((a, b) => a + b, 0)
+		const avg = sum / count
+		const min = Math.min(...times)
+		const max = Math.max(...times)
+
+		const extra = extraInfo ? ` (${extraInfo})` : ''
+		console.log(
+			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+				`📊 [Perf Summary] ${operation}\n` +
+				`   ${count} operations | avg: ${avg.toFixed(2)}ms | min: ${min.toFixed(2)}ms | max: ${max.toFixed(2)}ms${extra}\n` +
+				`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+		)
+	}
+}
+
+/** @public */
+export const perfTracker = new PerfTracker()
 
 declare global {
 	interface Window {

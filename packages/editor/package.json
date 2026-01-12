@@ -63,7 +63,8 @@
 		"core-js": "^3.40.0",
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
-		"is-plain-object": "^5.0.0"
+		"is-plain-object": "^5.0.0",
+		"rbush": "^3.0.1"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
@@ -74,6 +75,7 @@
 		"@testing-library/dom": "^10.0.0",
 		"@testing-library/react": "^16.0.0",
 		"@types/benchmark": "^2.1.5",
+		"@types/rbush": "^4.0.0",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/wicg-file-system-access": "^2020.9.8",

@@ -435,6 +435,15 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	useEffect(() => {
+		if (debugFlags.perfLogReactRender.get()) {
+			const usingSpatialIndex = debugFlags.useSpatialIndex.get()
+			console.log(
+				`[Perf] React (${usingSpatialIndex ? 'spatial' : 'old'}): rendering ${renderingShapes.length} shapes`
+			)
+		}
+	}, [renderingShapes])
+
 	return (
 		<>
 			{renderingShapes.map((result) => (

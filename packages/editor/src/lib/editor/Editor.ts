@@ -126,7 +126,7 @@ import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '.
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
-import { debugFlags } from '../utils/debug-flags'
+import { debugFlags, perfTracker } from '../utils/debug-flags'
 import {
 	TLDeepLink,
 	TLDeepLinkOptions,
@@ -150,6 +150,7 @@ import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
+import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
@@ -308,6 +309,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.snaps = new SnapManager(this)
+
+		this.spatialIndex = new SpatialIndexManager(this)
 
 		this.disposables.add(this.timers.dispose)
 
@@ -895,6 +898,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly snaps: SnapManager
+
+	/**
+	 * A manager for spatial indexing, enabling efficient shape location queries.
+	 *
+	 * @public
+	 */
+	readonly spatialIndex: SpatialIndexManager
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -4348,6 +4358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCurrentPage(page: TLPageId | TLPage): this {
+		const startTime = performance.now()
 		const pageId = typeof page === 'string' ? page : page.id
 		if (!this.store.has(pageId)) {
 			console.error("Tried to set the current page id to a page that doesn't exist.")
@@ -4358,7 +4369,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// finish off any in-progress interactions
 		this.complete()
 
-		return this.run(
+		const result = this.run(
 			() => {
 				this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }])
 				// ensure camera constraints are applied
@@ -4366,6 +4377,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 			{ history: 'record-preserveRedoStack' }
 		)
+
+		if (debugFlags.perfLogPageChange.get()) {
+			const duration = performance.now() - startTime
+			const usingSpatialIndex = debugFlags.useSpatialIndex.get()
+			console.log(
+				`[perf] setCurrentPage (${usingSpatialIndex ? 'spatial' : 'old'}) (sync): ${duration.toFixed(2)}ms`
+			)
+
+			// Schedule RAF to measure total time including React render and browser paint
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					const totalDuration = performance.now() - startTime
+					console.log(
+						`[perf] setCurrentPage (${usingSpatialIndex ? 'spatial' : 'old'}) (total with render+paint): ${totalDuration.toFixed(2)}ms`
+					)
+				})
+			})
+		}
+
+		return result
 	}
 
 	/**
@@ -5196,6 +5227,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The shape at the given point, or undefined if there is no shape at the point.
 	 */
 	getShapeAtPoint(point: VecLike, opts: TLGetShapeAtPointOptions = {}): TLShape | undefined {
+		const perfStart = performance.now()
+		const perfLogging = debugFlags.perfLogGetShapeAtPoint.get()
+
+		const logResult = (result: TLShape | undefined, shapesChecked: number) => {
+			if (perfLogging) {
+				const usingSpatialIndex = debugFlags.useSpatialIndex.get()
+				const totalTime = performance.now() - perfStart
+				const mode = usingSpatialIndex ? 'spatial' : 'old'
+				const info = `checked ${shapesChecked} shapes → ${result ? `hit ${result.type}` : 'no hit'}`
+				console.log(`[Perf] getShapeAtPoint (${mode}): ${totalTime.toFixed(3)}ms (${info})`)
+				perfTracker.track(`getShapeAtPoint (${mode})`, totalTime, info)
+			}
+		}
+
 		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
@@ -5215,11 +5260,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		const spatialIndexStart = performance.now()
+
+		// Get candidate shapes using spatial index if enabled
+		let candidateIds: Set<TLShapeId> | undefined
+		if (useSpatialIndex) {
+			// Use larger margin for spatial search to account for edge distance checks
+			const searchMargin = Math.max(
+				innerMargin,
+				outerMargin,
+				this.options.hitTestMargin / zoomLevel
+			)
+			const candidates = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
+			candidateIds = new Set(candidates)
+
+			if (perfLogging) {
+				console.log(
+					`[Perf]   spatial index search: ${(performance.now() - spatialIndexStart).toFixed(3)}ms → ${candidates.length} candidates`
+				)
+			}
+		}
+
+		const filterStart = performance.now()
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
+			// If using spatial index, first check if shape is in candidates
+			if (candidateIds && !candidateIds.has(shape.id)) return false
+
 			if (
 				(shape.isLocked && !hitLocked) ||
 				this.isShapeHidden(shape) ||
@@ -5231,6 +5302,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (filter && !filter(shape)) return false
 			return true
 		})
+
+		if (perfLogging) {
+			console.log(
+				`[Perf]   filter shapes: ${(performance.now() - filterStart).toFixed(3)}ms → ${shapesToCheck.length} to check`
+			)
+		}
 
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
@@ -5249,6 +5326,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+						logResult(shape, shapesToCheck.length)
 						return shape
 					}
 				}
@@ -5266,7 +5344,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							(distance <= 0 && distance > -innerMargin)
 						: distance > 0 && distance <= outerMargin
 				) {
-					return inMarginClosestToEdgeHit || shape
+					const result = inMarginClosestToEdgeHit || shape
+					logResult(result, shapesToCheck.length)
+					return result
 				}
 
 				if (geometry.hitTestPoint(pointInShapeSpace, 0, true)) {
@@ -5276,11 +5356,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
-					return (
+					const result =
 						inMarginClosestToEdgeHit ||
 						inHollowSmallestAreaHit ||
 						(hitFrameInside ? shape : undefined)
-					)
+					logResult(result, shapesToCheck.length)
+					return result
 				}
 				continue
 			}
@@ -5329,7 +5410,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
-						return inMarginClosestToEdgeHit || shape
+						const result = inMarginClosestToEdgeHit || shape
+						logResult(result, shapesToCheck.length)
+						return result
 					} else {
 						// If the shape is bigger than the viewport, then skip it.
 						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
@@ -5372,6 +5455,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
 				if (distance < this.options.hitTestMargin / zoomLevel) {
+					logResult(shape, shapesToCheck.length)
 					return shape
 				}
 			}
@@ -5382,7 +5466,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// had the shortest distance between the point and the shape edge),
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
-		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
+		const result = inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
+		logResult(result, shapesToCheck.length)
+		return result
 	}
 
 	/**
@@ -5405,9 +5491,99 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.getCurrentPageShapesSorted()
-			.filter((shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts))
+		const perfStart = performance.now()
+		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		const perfLogging = debugFlags.perfLogGetShapesAtPoint.get()
+
+		if (perfLogging) {
+			console.log(
+				`[getShapesAtPoint] called at point (${point.x.toFixed(1)}, ${point.y.toFixed(1)}), useSpatialIndex: ${useSpatialIndex}`
+			)
+		}
+
+		if (useSpatialIndex) {
+			// New implementation using spatial index
+			const margin = opts.margin ?? 0
+			const spatialSearchStart = performance.now()
+			const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, margin)
+			const spatialSearchTime = performance.now() - spatialSearchStart
+
+			// Get candidate shapes that are not hidden
+			const candidateFilterStart = performance.now()
+			const candidateMap = new Map<TLShapeId, TLShape>()
+			for (const id of candidateIds) {
+				const shape = this.getShape(id)
+				if (shape && !this.isShapeHidden(shape)) {
+					candidateMap.set(id, shape)
+				}
+			}
+			const candidateFilterTime = performance.now() - candidateFilterStart
+
+			// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
+			const hitTestStart = performance.now()
+			const allShapes = this.getCurrentPageShapesSorted()
+			let hitTestChecks = 0
+			const result = allShapes
+				.filter((shape) => {
+					if (candidateMap.has(shape.id)) {
+						hitTestChecks++
+						return this.isPointInShape(shape, point, opts)
+					}
+					return false
+				})
+				.reverse()
+			const hitTestTime = performance.now() - hitTestStart
+
+			if (perfLogging) {
+				const totalTime = performance.now() - perfStart
+				const info = `search: ${spatialSearchTime.toFixed(3)}ms → ${candidateIds.length} candidates, filter: ${candidateFilterTime.toFixed(3)}ms → ${candidateMap.size} visible, hit test: ${hitTestTime.toFixed(3)}ms on ${hitTestChecks} shapes → ${result.length} results`
+				console.log(`[Perf] getShapesAtPoint (spatial): ${totalTime.toFixed(3)}ms (${info})`)
+				perfTracker.track(`getShapesAtPoint (spatial)`, totalTime, info)
+			}
+
+			return result
+		}
+
+		// Old implementation - iterate through all shapes
+		const allShapes = this.getCurrentPageShapesSorted()
+		let hiddenChecks = 0
+		let hitTestChecks = 0
+		const result = allShapes
+			.filter((shape) => {
+				hiddenChecks++
+				if (this.isShapeHidden(shape)) return false
+				hitTestChecks++
+				return this.isPointInShape(shape, point, opts)
+			})
 			.reverse()
+
+		if (perfLogging) {
+			const totalTime = performance.now() - perfStart
+			const info = `checked ${allShapes.length} shapes: ${hiddenChecks} hidden checks, ${hitTestChecks} hit tests → ${result.length} results`
+			console.log(`[Perf] getShapesAtPoint (old): ${totalTime.toFixed(3)}ms (${info})`)
+			perfTracker.track(`getShapesAtPoint (old)`, totalTime, info)
+		}
+
+		return result
+	}
+
+	/**
+	 * Get shape IDs within the given bounds.
+	 *
+	 * @example
+	 * ```ts
+	 * const bounds = new Box(0, 0, 100, 100)
+	 * editor.getShapeIdsInsideBounds(bounds)
+	 * ```
+	 *
+	 * @param bounds - The bounds to search within.
+	 *
+	 * @returns An array of shape IDs within the given bounds.
+	 *
+	 * @public
+	 */
+	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
+		return this.spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
 	/**

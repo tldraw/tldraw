@@ -1,10 +1,13 @@
 import {
+	Box,
 	Geometry2d,
 	StateNode,
 	TLShape,
 	TLShapeId,
 	Vec,
+	debugFlags,
 	intersectLineSegmentPolygon,
+	perfTracker,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -79,9 +82,11 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private updateScribbleSelection(addPoint: boolean) {
+		const perfStart = performance.now()
 		const { editor } = this
 		// const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapes = this.editor.getCurrentPageRenderingShapesSorted()
+		const allShapes = this.editor.getCurrentPageRenderingShapesSorted()
+		let currentPageShapes = allShapes
 		const shiftKey = this.editor.inputs.getShiftKey()
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 		const previousPagePoint = this.editor.inputs.getPreviousPagePoint()
@@ -93,10 +98,20 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
+		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
+
+		// Use spatial index to filter candidates if enabled
+		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		if (useSpatialIndex) {
+			// Create bounds around line segment with margin
+			const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
+			const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+			const candidateSet = new Set(candidateIds)
+			currentPageShapes = currentPageShapes.filter((shape) => candidateSet.has(shape.id))
+		}
+
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
-
-		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
@@ -163,6 +178,20 @@ export class ScribbleBrushing extends StateNode {
 		)
 		if (current.length !== next.size || current.some((id) => !next.has(id))) {
 			this.editor.setSelectedShapes(Array.from(next))
+		}
+
+		if (debugFlags.perfLogScribbleBrushing.get()) {
+			const totalTime = performance.now() - perfStart
+			const mode = useSpatialIndex ? 'spatial' : 'old'
+			// eslint-disable-next-line no-console
+			console.log(
+				`[Perf] scribble brushing (${mode}): ${totalTime.toFixed(2)}ms (checked ${currentPageShapes.length}/${allShapes.length} shapes)`
+			)
+			perfTracker.track(
+				`scribble brushing (${mode})`,
+				totalTime,
+				`checked ${currentPageShapes.length}/${allShapes.length} shapes`
+			)
 		}
 	}
 

@@ -601,9 +601,20 @@ export const debugFlags: {
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
     readonly measurePerformance: DebugFlag<boolean>;
+    readonly perfLogBrushing: DebugFlag<boolean>;
+    readonly perfLogCulledShapes: DebugFlag<boolean>;
+    readonly perfLogErasing: DebugFlag<boolean>;
+    readonly perfLogGetShapeAtPoint: DebugFlag<boolean>;
+    readonly perfLogGetShapesAtPoint: DebugFlag<boolean>;
+    readonly perfLogging: DebugFlag<boolean>;
+    readonly perfLogPageChange: DebugFlag<boolean>;
+    readonly perfLogReactRender: DebugFlag<boolean>;
+    readonly perfLogScribbleBrushing: DebugFlag<boolean>;
+    readonly perfLogSpatialIndex: DebugFlag<boolean>;
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
+    readonly useSpatialIndex: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -1066,6 +1077,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "perf-test-shape";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "test-shape";
                 typeName: "shape";
                 x: number;
@@ -1279,6 +1303,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
+    getShapeIdsInsideBounds(bounds: Box): TLShapeId[];
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
@@ -1491,6 +1516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number;
     }): this;
     readonly snaps: SnapManager;
+    readonly spatialIndex: SpatialIndexManager;
     squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: string): this;
@@ -2481,6 +2507,15 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 
 // @public
+export class PerfTracker {
+    // (undocumented)
+    track(operation: string, timeMs: number, extraInfo?: string): void;
+}
+
+// @public (undocumented)
+export const perfTracker: PerfTracker;
+
+// @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
 // @public (undocumented)
@@ -2884,6 +2919,18 @@ export class SnapManager {
     setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
+}
+
+// @public
+export class SpatialIndexManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    readonly editor: Editor;
+    getShapeIdsAtPoint(point: {
+        x: number;
+        y: number;
+    }, margin?: number): TLShapeId[];
+    getShapeIdsInsideBounds(bounds: Box): TLShapeId[];
 }
 
 // @public (undocumented)
