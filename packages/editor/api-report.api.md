@@ -2907,6 +2907,9 @@ export class SnapManager {
 }
 
 // @public
+export const SpatialIndexDebugPanel: NamedExoticComponent<unknown>;
+
+// @public
 export class SpatialIndexManager {
     constructor(editor: Editor);
     // (undocumented)

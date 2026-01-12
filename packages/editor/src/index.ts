@@ -84,6 +84,7 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { MenuClickCapture } from './lib/components/MenuClickCapture'
+export { SpatialIndexDebugPanel } from './lib/components/SpatialIndexDebugPanel'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
 	createTLSchemaFromUtils,
