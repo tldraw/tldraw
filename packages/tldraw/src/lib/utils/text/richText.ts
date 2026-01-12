@@ -56,6 +56,10 @@ export const tipTapDefaultExtensions: Extensions = [
 			openOnClick: false,
 			autolink: true,
 		},
+		// Prevent trailing paragraph insertion after lists (fixes #7641)
+		trailingNode: {
+			notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+		},
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
