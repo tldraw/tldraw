@@ -155,20 +155,49 @@ export class Brushing extends StateNode {
 		// testing all shapes.
 
 		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
-		const allShapes =
-			brushBoxIsInsideViewport && !this.viewportDidChange
-				? editor.getCurrentPageRenderingShapesSorted()
-				: editor.getCurrentPageShapesSorted()
-		let shapesToHitTest = allShapes
-
 		const currentPageId = editor.getCurrentPageId()
 
 		// Use spatial index to filter candidates if enabled
 		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		let allShapes: TLShape[]
+		let shapesToHitTest: TLShape[]
 		if (useSpatialIndex) {
 			const candidateIds = editor.getShapeIdsInsideBounds(brush)
+
+			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
+			// But still update brush visual and selection
+			if (candidateIds.length === 0) {
+				const currentBrush = editor.getInstanceState().brush
+				if (!currentBrush || !brush.equals(currentBrush)) {
+					editor.updateInstanceState({ brush: { ...brush.toJson() } })
+				}
+
+				const current = editor.getSelectedShapeIds()
+				if (current.length !== results.size || current.some((id) => !results.has(id))) {
+					editor.setSelectedShapes(Array.from(results))
+				}
+
+				const totalTime = performance.now() - perfStart
+				if (debugFlags.perfLogSelection.get()) {
+					// eslint-disable-next-line no-console
+					console.log(`[Perf] brushing (spatial): ${totalTime.toFixed(2)}ms (early return)`)
+					perfTracker.track(`brushing (spatial)`, totalTime)
+				}
+				return
+			}
+
+			allShapes =
+				brushBoxIsInsideViewport && !this.viewportDidChange
+					? editor.getCurrentPageRenderingShapesSorted()
+					: editor.getCurrentPageShapesSorted()
 			const candidateSet = new Set(candidateIds)
-			shapesToHitTest = shapesToHitTest.filter((shape) => candidateSet.has(shape.id))
+			shapesToHitTest = allShapes.filter((shape) => candidateSet.has(shape.id))
+		} else {
+			allShapes =
+				brushBoxIsInsideViewport && !this.viewportDidChange
+					? editor.getCurrentPageRenderingShapesSorted()
+					: editor.getCurrentPageShapesSorted()
+			shapesToHitTest = allShapes
 		}
 
 		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {

@@ -201,6 +201,24 @@ export class SpatialIndexManager {
 	}
 
 	/**
+	 * Check if bounds are outside the root bounds (early exit optimization)
+	 */
+	private isOutsideRootBounds(bounds: Box): boolean {
+		const rootBounds = this.rbush.getRootBounds()
+		return (
+			rootBounds !== undefined &&
+			rootBounds.minX !== Infinity &&
+			rootBounds.maxX !== -Infinity &&
+			rootBounds.minY !== Infinity &&
+			rootBounds.maxY !== -Infinity &&
+			(bounds.maxX < rootBounds.minX ||
+				bounds.minX > rootBounds.maxX ||
+				bounds.maxY < rootBounds.minY ||
+				bounds.minY > rootBounds.maxY)
+		)
+	}
+
+	/**
 	 * Get shape IDs within the given bounds.
 	 * Optimized for viewport culling queries.
 	 *
@@ -211,6 +229,18 @@ export class SpatialIndexManager {
 	 */
 	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
 		const perfStart = performance.now()
+
+		// Quick bounds check before ensuring index is up to date
+		if (this.isOutsideRootBounds(bounds)) {
+			if (debugFlags.perfLogSpatialIndex.get()) {
+				// eslint-disable-next-line no-console
+				console.log(
+					`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (0 shapes - outside bounds, skipped index update)`
+				)
+			}
+			return []
+		}
+
 		// Ensure index is up to date
 		const indexStart = performance.now()
 		this.spatialIndexComputed.get()
@@ -246,15 +276,7 @@ export class SpatialIndexManager {
 		const searchBounds = new Box(point.x - margin, point.y - margin, margin * 2, margin * 2)
 
 		// Quick bounds check before ensuring index is up to date
-		// Check against the root bounds directly without updating the index first
-		const rootBounds = this.rbush.getRootBounds()
-		if (
-			rootBounds &&
-			(searchBounds.maxX < rootBounds.minX ||
-				searchBounds.minX > rootBounds.maxX ||
-				searchBounds.maxY < rootBounds.minY ||
-				searchBounds.minY > rootBounds.maxY)
-		) {
+		if (this.isOutsideRootBounds(searchBounds)) {
 			if (debugFlags.perfLogSpatialIndex.get()) {
 				// eslint-disable-next-line no-console
 				console.log(

@@ -2,6 +2,7 @@ import {
 	Box,
 	StateNode,
 	TLPointerEventInfo,
+	TLShape,
 	TLShapeId,
 	debugFlags,
 	isAccelKey,
@@ -101,8 +102,6 @@ export class Erasing extends StateNode {
 		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = editor.getErasingShapeIds()
 		const zoomLevel = editor.getZoomLevel()
-		const allShapes = editor.getCurrentPageRenderingShapesSorted()
-		let currentPageShapes = allShapes
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const previousPagePoint = editor.inputs.getPreviousPagePoint()
 
@@ -114,12 +113,31 @@ export class Erasing extends StateNode {
 
 		// Use spatial index to filter candidates if enabled
 		const useSpatialIndex = debugFlags.useSpatialIndex.get()
+		let allShapes: TLShape[]
+		let currentPageShapes: TLShape[]
 		if (useSpatialIndex) {
 			// Create bounds around line segment with margin
 			const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
 			const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+
+			// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
+			if (candidateIds.length === 0) {
+				editor.setErasingShapes(Array.from(erasing))
+				const totalTime = performance.now() - perfStart
+				if (debugFlags.perfLogSelection.get()) {
+					// eslint-disable-next-line no-console
+					console.log(`[Perf] erasing (spatial): ${totalTime.toFixed(2)}ms (early return)`)
+					perfTracker.track(`erasing (spatial)`, totalTime)
+				}
+				return
+			}
+
+			allShapes = editor.getCurrentPageRenderingShapesSorted()
 			const candidateSet = new Set(candidateIds)
-			currentPageShapes = currentPageShapes.filter((shape) => candidateSet.has(shape.id))
+			currentPageShapes = allShapes.filter((shape) => candidateSet.has(shape.id))
+		} else {
+			allShapes = editor.getCurrentPageRenderingShapesSorted()
+			currentPageShapes = allShapes
 		}
 
 		for (const shape of currentPageShapes) {

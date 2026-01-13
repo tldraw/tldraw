@@ -42,9 +42,13 @@ export class RBushIndex {
 
 		// Quick bounds check: use RBush's root node bounds
 		// If search bounds don't intersect with root bounds, return empty
-		const rootBounds = this.rBush.data
+		const rootBounds = (this.rBush as any).data
 		if (
 			rootBounds &&
+			rootBounds.minX !== Infinity &&
+			rootBounds.maxX !== -Infinity &&
+			rootBounds.minY !== Infinity &&
+			rootBounds.maxY !== -Infinity &&
 			(bounds.maxX < rootBounds.minX ||
 				bounds.minX > rootBounds.maxX ||
 				bounds.maxY < rootBounds.minY ||
@@ -169,7 +173,7 @@ export class RBushIndex {
 	 * Returns the bounding box containing all elements, or undefined if empty.
 	 */
 	getRootBounds(): { minX: number; minY: number; maxX: number; maxY: number } | undefined {
-		return this.rBush.data
+		return (this.rBush as any).data
 	}
 
 	/**
