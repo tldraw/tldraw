@@ -104,7 +104,23 @@ export class PerfTracker {
 		string,
 		{ times: number[]; lastTime: number; timeout: ReturnType<typeof setTimeout> | null }
 	>()
+	private sessionAverages = new Map<string, { avg: number; count: number; extraInfo?: string }>()
 	private readonly inactivityMs = 1000
+
+	/**
+	 * Reset session averages (clears comparison history)
+	 *
+	 * @public
+	 */
+	resetSession() {
+		this.sessionAverages.clear()
+		// eslint-disable-next-line no-console
+		console.log(
+			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+				`🔄 [Session Reset] Performance comparison history cleared\n` +
+				`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+		)
+	}
 
 	track(operation: string, timeMs: number, extraInfo?: string) {
 		if (!this.metrics.has(operation)) {
@@ -142,23 +158,102 @@ export class PerfTracker {
 		const min = Math.min(...times)
 		const max = Math.max(...times)
 
+		// Store this session's average
+		this.sessionAverages.set(operation, { avg, count, extraInfo })
+
 		const extra = extraInfo ? ` (${extraInfo})` : ''
-		// eslint-disable-next-line no-console
-		console.log(
+		const output =
 			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-				`📊 [Perf Summary] ${operation}\n` +
-				`   ${count} operations | avg: ${avg.toFixed(2)}ms | min: ${min.toFixed(2)}ms | max: ${max.toFixed(2)}ms${extra}\n` +
-				`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
-		)
+			`📊 [Perf Summary] ${operation}\n` +
+			`   ${count} operations | avg: ${avg.toFixed(2)}ms | min: ${min.toFixed(2)}ms | max: ${max.toFixed(2)}ms${extra}\n` +
+			`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+
+		// eslint-disable-next-line no-console
+		console.log(output)
+
+		// Try to find comparison with alternate implementation
+		// Only show comparison if we have at least 5 operations in current session
+		const comparison = this.findComparison(operation)
+		if (comparison && count >= 5) {
+			this.printComparison(operation, avg, count, comparison)
+		}
+	}
+
+	private printComparison(
+		operation: string,
+		currentAvg: number,
+		currentCount: number,
+		comparison: { operation: string; avg: number; count: number }
+	) {
+		const diff = currentAvg - comparison.avg
+		const diffPercent = ((diff / comparison.avg) * 100).toFixed(1)
+		const symbol = diff > 0 ? '🔴' : '🟢'
+		const sign = diff > 0 ? '+' : ''
+		const faster = diff < 0 ? 'faster' : 'slower'
+
+		// Extract implementation names for clearer labels
+		const currentImpl = operation.match(/\((.+?)\)$/)?.[1] || operation
+		const comparisonImpl = comparison.operation.match(/\((.+?)\)$/)?.[1] || comparison.operation
+
+		const output =
+			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+			`\x1b[1m${symbol} [Implementation Comparison]\x1b[0m\n` +
+			`   ${currentImpl} (now):      ${currentAvg.toFixed(2)}ms avg (${currentCount} ops)\n` +
+			`   ${comparisonImpl} (previous): ${comparison.avg.toFixed(2)}ms avg (${comparison.count} ops)\n` +
+			`   \x1b[1mΔ ${sign}${diff.toFixed(2)}ms (${sign}${diffPercent}%) ${faster}\x1b[0m\n` +
+			`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+
+		// eslint-disable-next-line no-console
+		console.log(output)
+	}
+
+	private findComparison(operation: string): {
+		operation: string
+		avg: number
+		count: number
+	} | null {
+		// Extract base operation name and current implementation
+		// e.g. "notVisibleShapes (spatial)" -> base: "notVisibleShapes", impl: "spatial"
+		const match = operation.match(/^(.+?)\s*\((.+?)\)$/)
+		if (!match) return null
+
+		const [, baseOp, currentImpl] = match
+
+		// Look for other implementations of the same base operation
+		for (const [otherOp, data] of this.sessionAverages.entries()) {
+			if (otherOp === operation) continue // Skip self
+
+			const otherMatch = otherOp.match(/^(.+?)\s*\((.+?)\)$/)
+			if (!otherMatch) continue
+
+			const [, otherBaseOp, otherImpl] = otherMatch
+
+			// Same base operation, different implementation
+			if (otherBaseOp === baseOp && otherImpl !== currentImpl) {
+				return {
+					operation: otherOp,
+					avg: data.avg,
+					count: data.count,
+				}
+			}
+		}
+
+		return null
 	}
 }
 
 /** @public */
 export const perfTracker = new PerfTracker()
 
+// Expose reset function globally for easy access
+if (typeof window !== 'undefined') {
+	;(window as any).tldrawResetPerfSession = () => perfTracker.resetSession()
+}
+
 declare global {
 	interface Window {
 		tldrawLog(message: any): void
+		tldrawResetPerfSession(): void
 	}
 }
 

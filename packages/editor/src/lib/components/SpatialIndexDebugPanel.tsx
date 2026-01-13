@@ -1,7 +1,8 @@
 import { track } from '@tldraw/state-react'
 import { createShapeId, toRichText } from '@tldraw/tlschema'
+import { useEffect } from 'react'
 import { useEditor } from '../hooks/useEditor'
-import { debugFlags } from '../utils/debug-flags'
+import { debugFlags, perfTracker } from '../utils/debug-flags'
 
 /**
  * Debug panel for testing spatial index feature and performance logging.
@@ -11,6 +12,25 @@ import { debugFlags } from '../utils/debug-flags'
  */
 export const SpatialIndexDebugPanel = track(() => {
 	const editor = useEditor()
+
+	useEffect(() => {
+		// Print usage instructions once on mount
+		// eslint-disable-next-line no-console
+		console.log(
+			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+				`📖 [Spatial Index Debug Panel] Performance Comparison Guide\n\n` +
+				`   How to compare implementations:\n` +
+				`   1. Enable performance logging (e.g., "Culling")\n` +
+				`   2. Perform actions (drag shapes, pan viewport, select)\n` +
+				`   3. Wait 1 second → see performance summary\n` +
+				`   4. Toggle "Spatial Index" on/off to switch implementation\n` +
+				`   5. Perform the same actions again (at least 5 operations)\n` +
+				`   6. Wait 1 second → see comparison between implementations!\n\n` +
+				`   📝 Note: Comparison requires minimum 5 operations per session\n` +
+				`   💡 Tip: Click "Reset Session" to clear history and start fresh\n` +
+				`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+		)
+	}, [])
 
 	const createShapes = (count: number) => {
 		const shapes = []
@@ -172,6 +192,22 @@ export const SpatialIndexDebugPanel = track(() => {
 						description="Page switching"
 					/>
 				</div>
+				<button
+					onClick={() => perfTracker.resetSession()}
+					style={{
+						width: '100%',
+						marginTop: '8px',
+						padding: '6px',
+						fontSize: '11px',
+						background: '#fff3e0',
+						border: '1px solid #ffb74d',
+						borderRadius: '3px',
+						cursor: 'pointer',
+						fontWeight: 500,
+					}}
+				>
+					🔄 Reset Session
+				</button>
 			</div>
 
 			{/* Create shapes section */}

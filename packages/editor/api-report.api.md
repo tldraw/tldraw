@@ -2493,6 +2493,7 @@ export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 
 // @public
 export class PerfTracker {
+    resetSession(): void;
     // (undocumented)
     track(operation: string, timeMs: number, extraInfo?: string): void;
 }

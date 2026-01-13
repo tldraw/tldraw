@@ -27,10 +27,13 @@ function notVisibleShapesSpatial(editor: Editor) {
 			}
 		}
 
+		const notVisibleCount = nextValue.size
+		const visibleCount = allShapeIds.size - notVisibleCount
+
 		if (isUninitialized(prevValue)) {
 			if (debugFlags.perfLogCulling.get()) {
 				const totalTime = performance.now() - perfStart
-				const info = `${nextValue.size} non-visible`
+				const info = `visible ${visibleCount}, not-visible ${notVisibleCount}`
 				// eslint-disable-next-line no-console
 				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
 				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
@@ -38,40 +41,53 @@ function notVisibleShapesSpatial(editor: Editor) {
 			return nextValue
 		}
 
-		// If there are more or less shapes, we know there's a change
-		if (prevValue.size !== nextValue.size) {
-			if (debugFlags.perfLogCulling.get()) {
-				const totalTime = performance.now() - perfStart
-				const info = `${nextValue.size} non-visible`
-				// eslint-disable-next-line no-console
-				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
-				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
-			}
-			return nextValue
-		}
+		// Calculate change
+		const prevSize = prevValue.size
+		const notVisibleAdded = nextValue.size - prevSize
+		const visibleAdded = -notVisibleAdded // Opposite: if 5 shapes became not-visible, then -5 became visible
+		let hasChanges = prevValue.size !== nextValue.size
 
 		// If any of the old shapes are not in the new set, we know there's a change
-		for (const prev of prevValue) {
-			if (!nextValue.has(prev)) {
-				if (debugFlags.perfLogCulling.get()) {
-					const totalTime = performance.now() - perfStart
-					const info = `${nextValue.size} non-visible`
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
-					perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+		if (!hasChanges) {
+			for (const prev of prevValue) {
+				if (!nextValue.has(prev)) {
+					hasChanges = true
+					break
 				}
-				return nextValue
 			}
 		}
 
-		// If we've made it here, we know that the set is the same
 		if (debugFlags.perfLogCulling.get()) {
 			const totalTime = performance.now() - perfStart
-			const info = `unchanged`
-			// eslint-disable-next-line no-console
-			console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
-			perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+			if (hasChanges) {
+				let visibleChange = ''
+				let notVisibleChange = ''
+
+				if (visibleAdded !== 0) {
+					const change = visibleAdded > 0 ? `+${visibleAdded}` : `${visibleAdded}`
+					visibleChange = ` (${change})`
+				}
+				if (notVisibleAdded !== 0) {
+					const change = notVisibleAdded > 0 ? `+${notVisibleAdded}` : `${notVisibleAdded}`
+					notVisibleChange = ` (${change})`
+				}
+
+				const info = `\x1b[1mvisible ${visibleCount}${visibleChange}, not-visible ${notVisibleCount}${notVisibleChange}\x1b[0m`
+				// eslint-disable-next-line no-console
+				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+			} else {
+				const info = `visible ${visibleCount}, not-visible ${notVisibleCount}`
+				// eslint-disable-next-line no-console
+				console.log(`[Perf] notVisibleShapes (spatial): ${totalTime.toFixed(2)}ms (${info})`)
+				perfTracker.track(`notVisibleShapes (spatial)`, totalTime, info)
+			}
 		}
+
+		if (hasChanges) {
+			return nextValue
+		}
+
 		return prevValue
 	})
 }
@@ -118,10 +134,13 @@ function notVisibleShapesOld(editor: Editor) {
 			nextValue.add(id)
 		}
 
+		const notVisibleCount = nextValue.size
+		const visibleCount = shapeIds.size - notVisibleCount
+
 		if (isUninitialized(prevValue)) {
 			if (debugFlags.perfLogCulling.get()) {
 				const totalTime = performance.now() - perfStart
-				const info = `${nextValue.size} non-visible`
+				const info = `visible ${visibleCount}, not-visible ${notVisibleCount}`
 				// eslint-disable-next-line no-console
 				console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
 				perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
@@ -129,40 +148,53 @@ function notVisibleShapesOld(editor: Editor) {
 			return nextValue
 		}
 
-		// If there are more or less shapes, we know there's a change
-		if (prevValue.size !== nextValue.size) {
-			if (debugFlags.perfLogCulling.get()) {
-				const totalTime = performance.now() - perfStart
-				const info = `${nextValue.size} non-visible`
-				// eslint-disable-next-line no-console
-				console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
-				perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
-			}
-			return nextValue
-		}
+		// Calculate change
+		const prevSize = prevValue.size
+		const notVisibleAdded = nextValue.size - prevSize
+		const visibleAdded = -notVisibleAdded // Opposite: if 5 shapes became not-visible, then -5 became visible
+		let hasChanges = prevValue.size !== nextValue.size
 
 		// If any of the old shapes are not in the new set, we know there's a change
-		for (const prev of prevValue) {
-			if (!nextValue.has(prev)) {
-				if (debugFlags.perfLogCulling.get()) {
-					const totalTime = performance.now() - perfStart
-					const info = `${nextValue.size} non-visible`
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
-					perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
+		if (!hasChanges) {
+			for (const prev of prevValue) {
+				if (!nextValue.has(prev)) {
+					hasChanges = true
+					break
 				}
-				return nextValue
 			}
 		}
 
-		// If we've made it here, we know that the set is the same
 		if (debugFlags.perfLogCulling.get()) {
 			const totalTime = performance.now() - perfStart
-			const info = `unchanged`
-			// eslint-disable-next-line no-console
-			console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
-			perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
+			if (hasChanges) {
+				let visibleChange = ''
+				let notVisibleChange = ''
+
+				if (visibleAdded !== 0) {
+					const change = visibleAdded > 0 ? `+${visibleAdded}` : `${visibleAdded}`
+					visibleChange = ` (${change})`
+				}
+				if (notVisibleAdded !== 0) {
+					const change = notVisibleAdded > 0 ? `+${notVisibleAdded}` : `${notVisibleAdded}`
+					notVisibleChange = ` (${change})`
+				}
+
+				const info = `\x1b[1mvisible ${visibleCount}${visibleChange}, not-visible ${notVisibleCount}${notVisibleChange}\x1b[0m`
+				// eslint-disable-next-line no-console
+				console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
+				perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
+			} else {
+				const info = `visible ${visibleCount}, not-visible ${notVisibleCount}`
+				// eslint-disable-next-line no-console
+				console.log(`[Perf] notVisibleShapes (old): ${totalTime.toFixed(2)}ms (${info})`)
+				perfTracker.track(`notVisibleShapes (old)`, totalTime, info)
+			}
 		}
+
+		if (hasChanges) {
+			return nextValue
+		}
+
 		return prevValue
 	})
 }
