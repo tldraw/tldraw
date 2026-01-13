@@ -14,6 +14,8 @@ Questions:
   - do we need to go through PathBuilder/how we draw shapes? the AI generated this, and i think it's quite a bit smoother and sharper, without the initial burden of info/potentially uninteresting exposition
 ---
 
+LINK TO NOTION DOC WITH ASSETS: https://www.notion.so/tldraw/Engineering-imperfection-in-tldraw-v2-2e23e4c324c0808cb5bee6df03d87a01?source=copy_link
+
 In tldraw, we give our geometric shapes a hand-drawn style through intentionally designed imperfections. We find that subtle variations between generated shapes adds character, loosens up wireframes, and looks better alongside freehand sketches.
 
 Engineering imperfection in this way makes use of an interesting mechanism under the hood. Our space for variety needed to be narrow enough so each geometric shape was easily recognizable, but broad enough such that no two shapes looked exactly alike. Crucially, each shape's imperfections needed to be _stable_ and persist through resizing and transformation on the canvas.
