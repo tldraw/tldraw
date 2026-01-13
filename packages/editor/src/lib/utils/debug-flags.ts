@@ -176,6 +176,14 @@ export class PerfTracker {
 		const comparison = this.findComparison(operation)
 		if (comparison && count >= 5) {
 			this.printComparison(operation, avg, count, comparison)
+			// Clear all session data after printing comparison
+			this.sessionAverages.clear()
+			// eslint-disable-next-line no-console
+			console.log(
+				`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+					`🗑️  [Comparison history cleared]\n` +
+					`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+			)
 		}
 	}
 
@@ -185,21 +193,57 @@ export class PerfTracker {
 		currentCount: number,
 		comparison: { operation: string; avg: number; count: number }
 	) {
-		const diff = currentAvg - comparison.avg
-		const diffPercent = ((diff / comparison.avg) * 100).toFixed(1)
-		const symbol = diff > 0 ? '🔴' : '🟢'
-		const sign = diff > 0 ? '+' : ''
-		const faster = diff < 0 ? 'faster' : 'slower'
-
 		// Extract implementation names for clearer labels
 		const currentImpl = operation.match(/\((.+?)\)$/)?.[1] || operation
 		const comparisonImpl = comparison.operation.match(/\((.+?)\)$/)?.[1] || comparison.operation
 
+		// Always use "old" as baseline
+		let baselineAvg: number
+		let baselineImpl: string
+		let baselineCount: number
+		let testAvg: number
+		let testImpl: string
+		let testCount: number
+
+		if (comparisonImpl === 'old') {
+			// Comparison is old, use it as baseline
+			baselineAvg = comparison.avg
+			baselineImpl = comparisonImpl
+			baselineCount = comparison.count
+			testAvg = currentAvg
+			testImpl = currentImpl
+			testCount = currentCount
+		} else if (currentImpl === 'old') {
+			// Current is old, use it as baseline (swap)
+			baselineAvg = currentAvg
+			baselineImpl = currentImpl
+			baselineCount = currentCount
+			testAvg = comparison.avg
+			testImpl = comparisonImpl
+			testCount = comparison.count
+		} else {
+			// Neither is old, fall back to current order
+			baselineAvg = comparison.avg
+			baselineImpl = comparisonImpl
+			baselineCount = comparison.count
+			testAvg = currentAvg
+			testImpl = currentImpl
+			testCount = currentCount
+		}
+
+		// Calculate diff: test - baseline
+		// Negative = test faster (good), Positive = test slower (bad)
+		const diff = testAvg - baselineAvg
+		const diffPercent = ((diff / baselineAvg) * 100).toFixed(1)
+		const symbol = diff < 0 ? '🟢' : '🔴'
+		const sign = diff > 0 ? '+' : ''
+		const faster = diff < 0 ? 'faster' : 'slower'
+
 		const output =
 			`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
 			`\x1b[1m${symbol} [Implementation Comparison]\x1b[0m\n` +
-			`   ${currentImpl} (now):      ${currentAvg.toFixed(2)}ms avg (${currentCount} ops)\n` +
-			`   ${comparisonImpl} (previous): ${comparison.avg.toFixed(2)}ms avg (${comparison.count} ops)\n` +
+			`   ${testImpl} (now):      ${testAvg.toFixed(2)}ms avg (${testCount} ops)\n` +
+			`   ${baselineImpl} (baseline): ${baselineAvg.toFixed(2)}ms avg (${baselineCount} ops)\n` +
 			`   \x1b[1mΔ ${sign}${diff.toFixed(2)}ms (${sign}${diffPercent}%) ${faster}\x1b[0m\n` +
 			`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
 
