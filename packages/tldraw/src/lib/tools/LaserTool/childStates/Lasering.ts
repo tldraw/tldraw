@@ -18,6 +18,11 @@ export class Lasering extends StateNode {
 		this.pushPointToScribble()
 	}
 
+	override onTick() {
+		// Keep the laser session alive while pointer is down
+		this.editor.scribbles.extendLaserSession()
+	}
+
 	override onPointerMove() {
 		this.pushPointToScribble()
 	}

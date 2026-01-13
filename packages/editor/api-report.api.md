@@ -2708,6 +2708,7 @@ export class ScribbleManager {
     // (undocumented)
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
     endLaserSession(): void;
+    extendLaserSession(): void;
     isScribbleInLaserSession(scribbleId: string): boolean;
     // (undocumented)
     reset(): void;

@@ -143,6 +143,16 @@ export class ScribbleManager {
 	}
 
 	/**
+	 * Extend the current laser session, resetting the idle timeout.
+	 * Call this to keep the session alive while actively drawing.
+	 *
+	 * @public
+	 */
+	extendLaserSession() {
+		this.resetSessionIdleTimeout()
+	}
+
+	/**
 	 * End the current laser session, causing all session scribbles to fade together.
 	 *
 	 * @public

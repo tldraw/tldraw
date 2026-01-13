@@ -719,6 +719,26 @@ describe('ScribbleManager', () => {
 			expect(() => scribbleManager.endLaserSession()).not.toThrow()
 		})
 
+		it('should handle extendLaserSession when no session exists', () => {
+			expect(() => scribbleManager.extendLaserSession()).not.toThrow()
+		})
+
+		it('should reset idle timeout when extendLaserSession is called', () => {
+			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
+			scribbleManager.addScribble({ color: 'laser' })
+
+			// Clear the initial setTimeout call
+			vi.clearAllMocks()
+
+			scribbleManager.extendLaserSession()
+
+			// Should have cleared old timeout and set a new one
+			expect(editor.timers.setTimeout).toHaveBeenCalledWith(
+				expect.any(Function),
+				editor.options.laserSessionTimeoutMs
+			)
+		})
+
 		it('should remove session membership when stopping individual scribble', () => {
 			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
 			const item = scribbleManager.addScribble({ color: 'laser' })
