@@ -1,5 +1,5 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { TLShape, TLShapeStyleOverrides, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
@@ -212,6 +212,30 @@ export interface TldrawEditorBaseProps {
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
+	 * Provides a way to compute style overrides for shapes at runtime.
+	 *
+	 * This callback is called when computing resolved styles for a shape. The returned
+	 * overrides are merged on top of the shape's default styles and any persisted styleOverrides.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeStyleOverrides={(shape, editor) => {
+	 *   if (shape.meta.highlighted) {
+	 *     return { strokeColor: '#ff0000', strokeWidth: 5 }
+	 *   }
+	 *   return undefined
+	 * }}
+	 * ```
+	 *
+	 * @param shape - The shape to compute overrides for.
+	 * @param editor - The editor instance.
+	 */
+	getShapeStyleOverrides?(
+		shape: TLShape,
+		editor: Editor
+	): TLShapeStyleOverrides | null | undefined
+
+	/**
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
@@ -403,6 +427,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	deepLinks: _deepLinks,
 	getShapeVisibility,
+	getShapeStyleOverrides,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
@@ -462,6 +487,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				getShapeStyleOverrides,
 				fontAssetUrls: assetUrls?.fonts,
 			})
 
@@ -497,6 +523,7 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			getShapeVisibility,
+			getShapeStyleOverrides,
 			textOptions,
 			assetUrls,
 		]

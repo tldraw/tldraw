@@ -51,7 +51,7 @@ import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import { ShapeFill } from '../shared/ShapeFill'
+import { LegacyShapeFill } from '../shared/ShapeFill'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -1109,7 +1109,7 @@ const ArrowSvg = track(function ArrowSvg({
 					})}
 				</g>
 				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill
+					<LegacyShapeFill
 						theme={theme}
 						d={as}
 						color={shape.props.color}
@@ -1118,7 +1118,7 @@ const ArrowSvg = track(function ArrowSvg({
 					/>
 				)}
 				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill
+					<LegacyShapeFill
 						theme={theme}
 						d={ae}
 						color={shape.props.color}

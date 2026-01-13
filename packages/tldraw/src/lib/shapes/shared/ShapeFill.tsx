@@ -10,7 +10,48 @@ import {
 import React from 'react'
 import { useGetHashPatternZoomName } from './defaultStyleDefs'
 
-interface ShapeFillProps {
+/**
+ * Discriminated union for shape fill props.
+ * Each fill type has exactly the props it needs - no invalid states.
+ *
+ * @internal
+ */
+export type ShapeFillProps =
+	| { d: string; type: 'none' }
+	| { d: string; type: 'solid'; color: string; opacity?: number }
+	| { d: string; type: 'pattern'; color: string; patternUrl: string; opacity?: number }
+
+/**
+ * Low-level shape fill component with fully resolved props.
+ * No hooks or theme lookups - all values must be pre-computed by the caller.
+ *
+ * @internal
+ */
+export const ShapeFill = React.memo(function ShapeFill(props: ShapeFillProps) {
+	switch (props.type) {
+		case 'none':
+			return null
+		case 'solid':
+			return <path fill={props.color} fillOpacity={props.opacity} d={props.d} />
+		case 'pattern':
+			return (
+				<>
+					<path fill={props.color} fillOpacity={props.opacity} d={props.d} />
+					<path fill={`url(#${props.patternUrl})`} fillOpacity={props.opacity} d={props.d} />
+				</>
+			)
+	}
+})
+
+/* --------------------- Legacy ShapeFill --------------------- */
+
+/**
+ * Legacy interface for ShapeFill - used by arrow and draw shapes.
+ * This computes fill colors internally from theme and props.
+ *
+ * @deprecated Use ShapeFill with discriminated union props instead.
+ */
+interface LegacyShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
 	color: TLDefaultColorStyle
@@ -18,13 +59,19 @@ interface ShapeFillProps {
 	scale: number
 }
 
-export const ShapeFill = React.memo(function ShapeFill({
+/**
+ * Legacy ShapeFill component that computes fill colors internally.
+ * Used by arrow and draw shapes for backward compatibility.
+ *
+ * @deprecated Use ShapeFill with discriminated union props instead.
+ */
+export const LegacyShapeFill = React.memo(function LegacyShapeFill({
 	theme,
 	d,
 	color,
 	fill,
-	scale,
-}: ShapeFillProps) {
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+}: LegacyShapeFillProps) {
 	switch (fill) {
 		case 'none': {
 			return null
@@ -39,7 +86,7 @@ export const ShapeFill = React.memo(function ShapeFill({
 			return <path fill={getColorValue(theme, color, 'fill')} d={d} />
 		}
 		case 'pattern': {
-			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+			return <LegacyPatternFill theme={theme} color={color} fill={fill} d={d} scale={1} />
 		}
 		case 'lined-fill': {
 			return <path fill={getColorValue(theme, color, 'linedFill')} d={d} />
@@ -47,7 +94,8 @@ export const ShapeFill = React.memo(function ShapeFill({
 	}
 })
 
-export function PatternFill({ d, color, theme }: ShapeFillProps) {
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+function LegacyPatternFill({ d, color, theme }: LegacyShapeFillProps) {
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])

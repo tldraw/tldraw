@@ -49,6 +49,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLShapeStyleOverrides,
 	TLStore,
 	TLStoreSnapshot,
 	TLVideoAsset,
@@ -57,6 +58,7 @@ import {
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
+	isThemedValue,
 } from '@tldraw/tlschema'
 import {
 	FileHelpers,
@@ -81,6 +83,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	isEqual,
 	last,
 	lerp,
 	maxBy,
@@ -252,6 +255,35 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Provides a way to compute style overrides for shapes at runtime.
+	 *
+	 * This callback is called when computing resolved styles for a shape. The returned
+	 * overrides are merged on top of the shape's default styles (from the ShapeUtil's
+	 * `getDefaultStyles` method) and any `styleOverrides` stored on the shape itself.
+	 *
+	 * Priority order (highest wins):
+	 * 1. `getShapeStyleOverrides` callback (this)
+	 * 2. `shape.styleOverrides` (persisted on the shape)
+	 * 3. `ShapeUtil.getDefaultStyles()` (computed from props)
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeStyleOverrides={(shape, editor) => {
+	 *   // Make all shapes red when a certain mode is active
+	 *   if (editor.getInstanceState().isRedMode) {
+	 *     return { strokeColor: '#ff0000' }
+	 *   }
+	 *   return undefined
+	 * }}
+	 * ```
+	 *
+	 * @param shape - The shape to compute overrides for.
+	 * @param editor - The editor instance.
+	 * @returns Style overrides to apply, or undefined/null for no overrides.
+	 */
+	getShapeStyleOverrides?(shape: TLShape, editor: Editor): TLShapeStyleOverrides | null | undefined
 }
 
 /**
@@ -289,11 +321,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		inferDarkMode,
 		options,
 		getShapeVisibility,
+		getShapeStyleOverrides,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+		this._getShapeStyleOverrides = getShapeStyleOverrides
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -790,6 +824,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+	private readonly _getShapeStyleOverrides?: TLEditorOptions['getShapeStyleOverrides']
+
 	@computed
 	private getIsShapeHiddenCache() {
 		if (!this._getShapeVisibility) return null
@@ -4723,6 +4759,123 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._shapeGeometryCaches[context].get(
 			typeof shape === 'string' ? shape : shape.id
 		)! as T
+	}
+
+	/** @internal */
+	@computed private _getShapeStylesCache(): ComputedCache<
+		TLShapeStyleOverrides | undefined,
+		TLShape
+	> {
+		return this.store.createComputedCache(
+			'styles',
+			(shape) => {
+				const util = this.getShapeUtil(shape)
+				const ctx = this._getStyleContext()
+				const defaultStyles = util.getDefaultStyles(shape, ctx)
+				if (!defaultStyles) return undefined
+
+				// Priority order (highest wins):
+				// 1. getShapeStyleOverrides callback
+				// 2. shape.styleOverrides (persisted)
+				// 3. defaultStyles (from ShapeUtil)
+
+				const shapeOverrides = shape.styleOverrides
+				const callbackOverrides = this._getShapeStyleOverrides?.(shape, this)
+
+				// Fast path: no overrides
+				if (
+					(!shapeOverrides || Object.keys(shapeOverrides).length === 0) &&
+					(!callbackOverrides || Object.keys(callbackOverrides).length === 0)
+				) {
+					return defaultStyles
+				}
+
+				// Merge overrides, resolving any themeable values
+				const merged = {
+					...defaultStyles,
+					...shapeOverrides,
+					...callbackOverrides,
+				}
+
+				// Resolve themeable values (like { light: '#fff', dark: '#000' })
+				const isDarkMode = ctx.isDarkMode
+				for (const key of Object.keys(merged) as (keyof typeof merged)[]) {
+					const value = merged[key]
+					if (isThemedValue(value)) {
+						;(merged as any)[key] = isDarkMode ? value.dark : value.light
+					}
+				}
+
+				return merged
+			},
+			{ areRecordsEqual: areShapesContentEqual, areResultsEqual: isEqual }
+		)
+	}
+
+	/**
+	 * Get the current style context for computing styles.
+	 *
+	 * @internal
+	 */
+	private _getStyleContext(): import('./shapes/ShapeUtil').TLStyleContext {
+		return {
+			isDarkMode: this.user.getIsDarkMode(),
+			zoomLevel: this.getZoomLevel(),
+			devicePixelRatio: this.getInstanceState().devicePixelRatio,
+		}
+	}
+
+	/**
+	 * Get the resolved styles for a shape, merging default styles with any overrides.
+	 *
+	 * This method computes the low-level style values for a shape based on its
+	 * high-level props, and applies any `styleOverrides` set on the shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const styles = editor.getShapeStyles(myShape)
+	 * if (styles) {
+	 *   console.log(styles.strokeWidth, styles.strokeColor)
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get styles for.
+	 * @returns The resolved styles, or undefined if the shape's util doesn't implement getDefaultStyles.
+	 *
+	 * @public
+	 */
+	getShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOverrides>(
+		shape: TLShape | TLShapeId
+	): T | undefined {
+		return this._getShapeStylesCache().get(typeof shape === 'string' ? shape : shape.id) as
+			| T
+			| undefined
+	}
+
+	/**
+	 * Get a specific style value for a shape.
+	 *
+	 * This is a convenience method for getting a single style value from a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const strokeWidth = editor.getShapeStyleValue(myShape, 'strokeWidth')
+	 * const strokeColor = editor.getShapeStyleValue(myShape, 'strokeColor')
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the style value for.
+	 * @param styleName - The name of the style to get.
+	 * @returns The style value, or undefined if the style doesn't exist.
+	 *
+	 * @public
+	 */
+	getShapeStyleValue<K extends keyof TLShapeStyleOverrides>(
+		shape: TLShape | TLShapeId,
+		styleName: K
+	): TLShapeStyleOverrides[K] | undefined {
+		const styles = this.getShapeStyles(shape)
+		if (!styles) return undefined
+		return styles[styleName]
 	}
 
 	/** @internal */

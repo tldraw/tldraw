@@ -10,6 +10,7 @@ import {
 	TLShapeCrop,
 	TLShapeId,
 	TLShapePartial,
+	TLShapeStyleOverrides,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
@@ -24,6 +25,20 @@ import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
+
+/**
+ * Context passed to getDefaultStyles for computing derived styles.
+ *
+ * @public
+ */
+export interface TLStyleContext {
+	/** Whether dark mode is enabled */
+	isDarkMode: boolean
+	/** Current zoom level */
+	zoomLevel: number
+	/** Device pixel ratio */
+	devicePixelRatio: number
+}
 
 /** @public */
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
@@ -533,6 +548,35 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	getAriaDescriptor(shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
+	 * Get the default computed styles for a shape based on its props and the current context.
+	 *
+	 * Override this method to provide computed styles for your shape that can be
+	 * overridden via the shape's `styleOverrides` property.
+	 *
+	 * @param shape - The shape to get styles for
+	 * @param ctx - Style context including dark mode, zoom level, etc.
+	 * @returns The default computed styles for this shape, or undefined if the shape
+	 *          doesn't support style overrides.
+	 *
+	 * @example
+	 * ```ts
+	 * getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext) {
+	 *   const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+	 *   return {
+	 *     strokeWidth: STROKE_SIZES[shape.props.size] * shape.props.scale,
+	 *     strokeColor: getColorValue(theme, shape.props.color, 'solid'),
+	 *     // ... other styles
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * @public
+	 */
+	getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeStyleOverrides | undefined {
 		return undefined
 	}
 

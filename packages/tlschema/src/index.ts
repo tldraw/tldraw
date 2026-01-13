@@ -162,6 +162,7 @@ export {
 export {
 	type RecordProps,
 	type RecordPropsType,
+	type RecordStyleOverrides,
 	type TLPropsMigration,
 	type TLPropsMigrations,
 } from './recordsWithProps'
@@ -214,6 +215,7 @@ export {
 	GeoShapeGeoStyle,
 	geoShapeMigrations,
 	geoShapeProps,
+	geoShapeStyleOverrides,
 	type TLGeoShape,
 	type TLGeoShapeGeoStyle,
 	type TLGeoShapeProps,
@@ -287,6 +289,21 @@ export {
 	DefaultHorizontalAlignStyle,
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
+export {
+	drawShapeStyleOverridesValidator,
+	emptyStyleOverridesValidator,
+	geoShapeStyleOverridesValidator,
+	isThemedValue,
+	resolveThemeable,
+	type AsStyleOverrides,
+	type Themeable,
+	type TLDrawShapeResolvedStyles,
+	type TLDrawShapeStyleOverrides,
+	type TLEmptyStyleOverrides,
+	type TLGeoShapeResolvedStyles,
+	type TLGeoShapeStyleOverrides,
+	type TLShapeStyleOverrides,
+} from './styles/TLShapeStyles'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {

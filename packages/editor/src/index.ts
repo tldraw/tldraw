@@ -189,6 +189,7 @@ export {
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
+	type TLStyleContext,
 } from './lib/editor/shapes/ShapeUtil'
 export {
 	getPerfectDashProps,
@@ -324,6 +325,7 @@ export {
 	type SafeId,
 } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
+export { useShapeStyles, useShapeStyleValue } from './lib/hooks/useShapeStyles'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'

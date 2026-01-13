@@ -29,7 +29,7 @@ import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmark
 import { drawShapeMigrations, drawShapeProps } from './shapes/TLDrawShape'
 import { embedShapeMigrations, embedShapeProps } from './shapes/TLEmbedShape'
 import { frameShapeMigrations, frameShapeProps } from './shapes/TLFrameShape'
-import { geoShapeMigrations, geoShapeProps } from './shapes/TLGeoShape'
+import { geoShapeMigrations, geoShapeProps, geoShapeStyleOverrides } from './shapes/TLGeoShape'
 import { groupShapeMigrations, groupShapeProps } from './shapes/TLGroupShape'
 import { highlightShapeMigrations, highlightShapeProps } from './shapes/TLHighlightShape'
 import { imageShapeMigrations, imageShapeProps } from './shapes/TLImageShape'
@@ -74,6 +74,12 @@ export interface SchemaPropsInfo {
 	 * Validation schema for metadata fields. Maps metadata field names to their validators.
 	 */
 	meta?: Record<string, StoreValidator<any>>
+
+	/**
+	 * Validation schema for style override fields. Maps style override field names to their validators.
+	 * Only applicable to shapes, not bindings.
+	 */
+	styleOverrides?: Record<string, StoreValidator<any>>
 }
 
 /**
@@ -140,7 +146,11 @@ export const defaultShapeSchemas = {
 	draw: { migrations: drawShapeMigrations, props: drawShapeProps },
 	embed: { migrations: embedShapeMigrations, props: embedShapeProps },
 	frame: { migrations: frameShapeMigrations, props: frameShapeProps },
-	geo: { migrations: geoShapeMigrations, props: geoShapeProps },
+	geo: {
+		migrations: geoShapeMigrations,
+		props: geoShapeProps,
+		styleOverrides: geoShapeStyleOverrides,
+	},
 	group: { migrations: groupShapeMigrations, props: groupShapeProps },
 	highlight: { migrations: highlightShapeMigrations, props: highlightShapeProps },
 	image: { migrations: imageShapeMigrations, props: imageShapeProps },
@@ -152,6 +162,7 @@ export const defaultShapeSchemas = {
 	[T in TLDefaultShape['type']]: {
 		migrations: SchemaPropsInfo['migrations']
 		props: RecordProps<TLBaseShape<T, Extract<TLDefaultShape, { type: T }>['props']>>
+		styleOverrides?: SchemaPropsInfo['styleOverrides']
 	}
 }
 

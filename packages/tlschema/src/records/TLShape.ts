@@ -570,8 +570,8 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 			'shape',
 			T.union(
 				'type',
-				mapObjectMapValues(shapes, (type, { props, meta }) =>
-					createShapeValidator(type, props, meta)
+				mapObjectMapValues(shapes, (type, { props, meta, styleOverrides }) =>
+					createShapeValidator(type, props, meta, styleOverrides)
 				)
 			)
 		),

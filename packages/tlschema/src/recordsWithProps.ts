@@ -36,6 +36,30 @@ export type RecordProps<R extends UnknownRecord & { props: object }> = {
 }
 
 /**
+ * Maps a record's style override types to their corresponding validators.
+ *
+ * This utility type takes a record type with a `styleOverrides` object and creates
+ * a mapping where each property key maps to a validator for that property's type.
+ * This is used to define validation schemas for style override properties.
+ *
+ * @example
+ * ```ts
+ * interface MyShape extends TLBaseShape<'custom', MyProps, MyStyleOverrides> {}
+ *
+ * // Define validators for the style overrides
+ * const myShapeStyleOverrides: RecordStyleOverrides<MyShape> = {
+ *   strokeWidth: T.number.optional(),
+ *   strokeColor: T.string.optional()
+ * }
+ * ```
+ *
+ * @public
+ */
+export type RecordStyleOverrides<R extends UnknownRecord & { styleOverrides?: object }> = {
+	[K in keyof NonNullable<R['styleOverrides']>]: T.Validatable<NonNullable<R['styleOverrides']>[K]>
+}
+
+/**
  * Extracts the TypeScript types from a record properties configuration.
  *
  * Takes a configuration object where values are validators and returns the
