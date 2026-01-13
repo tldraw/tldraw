@@ -5305,6 +5305,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
 			if (candidateIds.size === 0) {
+				if (perfLogging) {
+					const totalTime = performance.now() - perfStart
+					// eslint-disable-next-line no-console
+					console.log(`[Perf] getShapeAtPoint (spatial): ${totalTime.toFixed(3)}ms`)
+					perfTracker.track(`getShapeAtPoint (spatial)`, totalTime)
+				}
 				return undefined
 			}
 		}
@@ -5519,6 +5525,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// New implementation using spatial index
 			const margin = opts.margin ?? 0
 			const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, margin)
+
+			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
+			if (candidateIds.length === 0) {
+				if (perfLogging) {
+					const totalTime = performance.now() - perfStart
+					// eslint-disable-next-line no-console
+					console.log(`[Perf] getShapesAtPoint (spatial): ${totalTime.toFixed(3)}ms`)
+					perfTracker.track(`getShapesAtPoint (spatial)`, totalTime)
+				}
+				return []
+			}
 
 			// Get candidate shapes that are not hidden
 			const candidateMap = new Map<TLShapeId, TLShape>()
