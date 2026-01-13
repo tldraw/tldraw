@@ -5302,6 +5302,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 			const candidates = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 			candidateIds = new Set(candidates)
+
+			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
+			if (candidateIds.size === 0) {
+				return undefined
+			}
 		}
 
 		const shapesToCheck = (
