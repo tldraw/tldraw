@@ -245,6 +245,25 @@ export class SpatialIndexManager {
 		// Create a small bounds around the point
 		const searchBounds = new Box(point.x - margin, point.y - margin, margin * 2, margin * 2)
 
+		// Quick bounds check before ensuring index is up to date
+		// Check against the root bounds directly without updating the index first
+		const rootBounds = this.rbush.getRootBounds()
+		if (
+			rootBounds &&
+			(searchBounds.maxX < rootBounds.minX ||
+				searchBounds.minX > rootBounds.maxX ||
+				searchBounds.maxY < rootBounds.minY ||
+				searchBounds.minY > rootBounds.maxY)
+		) {
+			if (debugFlags.perfLogSpatialIndex.get()) {
+				// eslint-disable-next-line no-console
+				console.log(
+					`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (0 candidates - outside bounds, skipped index update)`
+				)
+			}
+			return []
+		}
+
 		// Ensure index is up to date
 		this.spatialIndexComputed.get()
 

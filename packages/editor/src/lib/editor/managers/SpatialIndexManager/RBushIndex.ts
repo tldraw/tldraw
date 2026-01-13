@@ -39,6 +39,26 @@ export class RBushIndex {
 	 */
 	search(bounds: Box): TLShapeId[] {
 		const perfStart = performance.now()
+
+		// Quick bounds check: use RBush's root node bounds
+		// If search bounds don't intersect with root bounds, return empty
+		const rootBounds = this.rBush.data
+		if (
+			rootBounds &&
+			(bounds.maxX < rootBounds.minX ||
+				bounds.minX > rootBounds.maxX ||
+				bounds.maxY < rootBounds.minY ||
+				bounds.minY > rootBounds.maxY)
+		) {
+			if (debugFlags.perfLogSpatialIndex.get()) {
+				// eslint-disable-next-line no-console
+				console.log(
+					`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → 0 results (outside total bounds)`
+				)
+			}
+			return []
+		}
+
 		const results = this.rBush.search({
 			minX: bounds.minX,
 			minY: bounds.minY,
@@ -142,6 +162,14 @@ export class RBushIndex {
 			element.maxX - element.minX,
 			element.maxY - element.minY
 		)
+	}
+
+	/**
+	 * Get the root bounds of the R-tree.
+	 * Returns the bounding box containing all elements, or undefined if empty.
+	 */
+	getRootBounds(): { minX: number; minY: number; maxX: number; maxY: number } | undefined {
+		return this.rBush.data
 	}
 
 	/**

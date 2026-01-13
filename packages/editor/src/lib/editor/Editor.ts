@@ -5305,12 +5305,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
 			if (candidateIds.size === 0) {
-				if (perfLogging) {
-					const totalTime = performance.now() - perfStart
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] getShapeAtPoint (spatial): ${totalTime.toFixed(3)}ms`)
-					perfTracker.track(`getShapeAtPoint (spatial)`, totalTime)
-				}
+				logResult(undefined)
 				return undefined
 			}
 		}
