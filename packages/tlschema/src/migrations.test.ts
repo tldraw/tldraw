@@ -2418,7 +2418,7 @@ describe('Add delta encoding to draw shape', () => {
 				],
 			},
 		]
-		const compressed = compressLegacySegments(legacySegments as any)
+		const compressed = compressWithAbsoluteEncoding(legacySegments as any)
 		const result = up({
 			props: {
 				segments: compressed,
@@ -2440,7 +2440,7 @@ describe('Add delta encoding to draw shape', () => {
 				],
 			},
 		]
-		const compressed = compressLegacySegments(legacySegments as any)
+		const compressed = compressWithAbsoluteEncoding(legacySegments as any)
 		// First migrate up (to delta encoding)
 		const migrated = up({ props: { segments: compressed } })
 		// Then migrate down (back to absolute encoding)
@@ -2463,7 +2463,7 @@ describe('Add delta encoding to highlight shape', () => {
 				],
 			},
 		]
-		const compressed = compressLegacySegments(legacySegments as any)
+		const compressed = compressWithAbsoluteEncoding(legacySegments as any)
 		const result = up({
 			props: {
 				segments: compressed,
@@ -2482,7 +2482,7 @@ describe('Add delta encoding to highlight shape', () => {
 				],
 			},
 		]
-		const compressed = compressLegacySegments(legacySegments as any)
+		const compressed = compressWithAbsoluteEncoding(legacySegments as any)
 		const migrated = up({ props: { segments: compressed } })
 		const result = down({ props: { segments: migrated.props.segments } })
 		expect(typeof result.props.segments[0].points).toBe('string')
