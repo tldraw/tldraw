@@ -24,7 +24,6 @@ export async function flattenShapesToImages(
 			const shape = editor.getShape(id)
 			if (!shape) return
 			const util = editor.getShapeUtil(shape.type)
-			// skip shapes that don't have a toSvg method
 			if (util.toSvg === undefined) return
 			return shape
 		})
@@ -32,50 +31,77 @@ export async function flattenShapesToImages(
 
 	if (shapes.length === 0) return
 
-	// Don't flatten if it's just one image
 	if (shapes.length === 1) {
 		const shape = shapes[0]
 		if (!shape) return
 		if (editor.isShapeOfType(shape, 'image')) return
 	}
 
+	class UnionFind {
+		private parent: number[]
+		private rank: number[]
+
+		constructor(size: number) {
+			this.parent = Array.from({ length: size }, (_, i) => i)
+			this.rank = Array(size).fill(0)
+		}
+
+		find(x: number): number {
+			if (this.parent[x] !== x) {
+				this.parent[x] = this.find(this.parent[x])
+			}
+			return this.parent[x]
+		}
+
+		union(x: number, y: number): void {
+			const rootX = this.find(x)
+			const rootY = this.find(y)
+			if (rootX !== rootY) {
+				if (this.rank[rootX] < this.rank[rootY]) {
+					this.parent[rootX] = rootY
+				} else if (this.rank[rootX] > this.rank[rootY]) {
+					this.parent[rootY] = rootX
+				} else {
+					this.parent[rootY] = rootX
+					this.rank[rootX]++
+				}
+			}
+		}
+	}
+
 	const groups: { shapes: TLShape[]; bounds: Box; asset?: TLImageAsset }[] = []
 
 	if (flattenImageBoundsExpand !== undefined) {
-		const expandedBounds = shapes.map((shape) => {
-			return {
-				shape,
-				bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(flattenImageBoundsExpand),
-			}
-		})
+		const expandedBounds = shapes.map((shape) => ({
+			shape,
+			bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(flattenImageBoundsExpand),
+		}))
+
+		const uf = new UnionFind(expandedBounds.length)
 
 		for (let i = 0; i < expandedBounds.length; i++) {
-			const item = expandedBounds[i]
-			if (i === 0) {
-				groups[0] = {
-					shapes: [item.shape],
-					bounds: item.bounds,
-				}
-				continue
-			}
-
-			let didLand = false
-
-			for (const group of groups) {
-				if (group.bounds.includes(item.bounds)) {
-					group.shapes.push(item.shape)
-					group.bounds.expand(item.bounds)
-					didLand = true
-					break
+			for (let j = i + 1; j < expandedBounds.length; j++) {
+				if (Box.Collides(expandedBounds[i].bounds, expandedBounds[j].bounds)) {
+					uf.union(i, j)
 				}
 			}
+		}
 
-			if (!didLand) {
-				groups.push({
-					shapes: [item.shape],
-					bounds: item.bounds,
-				})
+		const shapeGroups = new Map<number, TLShape[]>()
+		for (let i = 0; i < expandedBounds.length; i++) {
+			const root = uf.find(i)
+			if (!shapeGroups.has(root)) {
+				shapeGroups.set(root, [])
 			}
+			shapeGroups.get(root)!.push(expandedBounds[i].shape)
+		}
+
+		for (const shapeList of Array.from(shapeGroups.values())) {
+			const groupBounds = Box.Common(shapeList.map((shape) => editor.getShapeMaskedPageBounds(shape)!))
+			groups.push({
+				shapes: shapeList,
+				bounds: groupBounds,
+			})
 		}
 	} else {
 		const bounds = Box.Common(shapes.map((shape) => editor.getShapeMaskedPageBounds(shape)!))
@@ -89,25 +115,21 @@ export async function flattenShapesToImages(
 
 	for (const group of groups) {
 		if (flattenImageBoundsExpand !== undefined) {
-			// shrink the bounds again, removing the expanded area
 			group.bounds.expandBy(-flattenImageBoundsExpand)
 		}
 
-		// get an image for the shapes
 		const svgResult = await editor.getSvgString(group.shapes, {
 			padding,
 			background: false,
 		})
 		if (!svgResult?.svg) continue
 
-		// get an image asset for the image
 		const asset = (await editor.getAssetForExternalContent({
 			type: 'file',
 			file: new File([svgResult.svg], 'asset.svg', { type: 'image/svg+xml' }),
 		})) as TLImageAsset
 		if (!asset) continue
 
-		// add it to the group
 		group.asset = asset
 	}
 
@@ -138,33 +160,25 @@ export async function flattenShapesToImages(
 			if (isShapeId(commonAncestorId)) {
 				const commonAncestor = editor.getShape(commonAncestorId)
 				if (!commonAncestor) continue
-				// put the point in the parent's space
 				const point = editor.getPointInShapeSpace(commonAncestor, {
 					x: bounds.x,
 					y: bounds.y,
 				})
-				// get the parent's rotation
 				rotation = editor.getShapePageTransform(commonAncestorId).rotation()
-				// rotate the point against the parent's rotation
 				point.sub(new Vec(padding, padding).rot(-rotation))
 				x = point.x
 				y = point.y
 			} else {
-				// if the common ancestor is the page, then just adjust for the padding
 				x = bounds.x - padding
 				y = bounds.y - padding
 				rotation = 0
 			}
 
-			// delete the shapes
 			editor.deleteShapes(shapes)
 
-			// create the asset
 			editor.createAssets([{ ...asset, id: asset.id }])
 
 			const shapeId = createShapeId()
-
-			// create an image shape in the same place as the shapes
 			editor.createShape({
 				id: shapeId,
 				type: 'image',
