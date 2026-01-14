@@ -136,7 +136,12 @@ export class Erasing extends StateNode {
 			}
 
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
-				erasing.add(editor.getOutermostSelectableShape(shape).id)
+				const outermostShape = editor.getOutermostSelectableShape(shape)
+				if (excludedShapeIds.has(outermostShape.id) && editor.getShapeParent(shape)?.id === outermostShape.id) {
+					erasing.add(shape.id)
+				} else {
+					erasing.add(outermostShape.id)
+				}
 			}
 
 			this._erasingShapeIds = [...erasing]
