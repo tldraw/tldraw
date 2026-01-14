@@ -4,6 +4,8 @@ import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
 import { arrowBindingVersions } from './bindings/TLArrowBinding'
+import { b64Vecs } from './misc/b64Vecs'
+import { VecModel } from './misc/geometry-types'
 import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
@@ -16,13 +18,26 @@ import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
-import { compressLegacySegments, drawShapeVersions } from './shapes/TLDrawShape'
+import { compressLegacySegments, drawShapeVersions, TLDrawShapeSegment } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
 import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
 import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
 import { lineShapeVersions } from './shapes/TLLineShape'
+
+/**
+ * Helper for migration tests that need absolute encoding (pre-DeltaEncoding format).
+ * This simulates what the Base64 migration produced before delta encoding was added.
+ */
+function compressWithAbsoluteEncoding(
+	segments: { type: 'free' | 'straight'; points: VecModel[] }[]
+): TLDrawShapeSegment[] {
+	return segments.map((segment) => ({
+		...segment,
+		points: b64Vecs.encodePoints(segment.points),
+	}))
+}
 import { noteShapeVersions } from './shapes/TLNoteShape'
 import { textShapeVersions } from './shapes/TLTextShape'
 import { videoShapeVersions } from './shapes/TLVideoShape'
@@ -2299,7 +2314,7 @@ describe('Add scaleX, scaleY, and new base64 format to draw shape', () => {
 			props: {
 				scaleX: 1,
 				scaleY: 1,
-				segments: compressLegacySegments(legacySegments as any),
+				segments: compressWithAbsoluteEncoding(legacySegments as any),
 			},
 		})
 	})
@@ -2314,7 +2329,7 @@ describe('Add scaleX, scaleY, and new base64 format to draw shape', () => {
 				],
 			},
 		]
-		const compressed = compressLegacySegments(legacySegments as any)
+		const compressed = compressWithAbsoluteEncoding(legacySegments as any)
 		const result = down({
 			props: {
 				scaleX: 1,
@@ -2360,7 +2375,7 @@ describe('Add scaleX, scaleY, and new base64 format to highlight shape', () => {
 			props: {
 				scaleX: 1,
 				scaleY: 1,
-				segments: compressLegacySegments(legacySegments as any),
+				segments: compressWithAbsoluteEncoding(legacySegments as any),
 			},
 		})
 	})
@@ -2375,7 +2390,7 @@ describe('Add scaleX, scaleY, and new base64 format to highlight shape', () => {
 				],
 			},
 		]
-		const compressed = compressLegacySegments(legacySegments as any)
+		const compressed = compressWithAbsoluteEncoding(legacySegments as any)
 		const result = down({
 			props: {
 				scaleX: 1,

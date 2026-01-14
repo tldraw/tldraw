@@ -246,6 +246,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 
 /**
  * Compress legacy draw shape segments by converting VecModel[] points to base64 format.
+ * Uses delta encoding for improved precision at large coordinates.
  * This function is useful for converting old draw shape data to the new compressed format.
  *
  * @public
@@ -258,6 +259,7 @@ export function compressLegacySegments(
 ): TLDrawShapeSegment[] {
 	return segments.map((segment) => ({
 		...segment,
-		points: b64Vecs.encodePoints(segment.points),
+		points: b64Vecs.encodePointsDelta(segment.points),
 	}))
 }
+

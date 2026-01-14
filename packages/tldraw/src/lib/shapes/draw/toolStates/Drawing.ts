@@ -228,7 +228,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					; (shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						shape.props.size,
 						shape.props.scale
@@ -361,7 +361,7 @@ export class Drawing extends StateNode {
 					}
 
 					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+						; (shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							segments,
 							size,
 							scale
@@ -430,7 +430,7 @@ export class Drawing extends StateNode {
 					}
 
 					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+						; (shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							finalSegments,
 							size,
 							scale
@@ -580,7 +580,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					; (shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						size,
 						scale
@@ -629,7 +629,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+					; (shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						newSegments,
 						size,
 						scale
@@ -693,7 +693,7 @@ export class Drawing extends StateNode {
 		let length = 0
 
 		for (let j = 0; j < segments.length; j++) {
-			const points = b64Vecs.decodePoints(segments[j].points)
+			const points = b64Vecs.decodePointsDelta(segments[j].points)
 			for (let i = 0; i < points.length - 1; i++) {
 				length += Vec.Dist2(points[i], points[i + 1])
 			}
