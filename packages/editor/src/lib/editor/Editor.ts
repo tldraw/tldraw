@@ -3,6 +3,7 @@ import {
 	EMPTY_ARRAY,
 	atom,
 	computed,
+	isUninitialized,
 	react,
 	transact,
 	unsafe__withoutCapture,
@@ -138,6 +139,7 @@ import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
+import { calculateCullingBounds } from './derivations/calculateCullingBounds'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
@@ -2738,6 +2740,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
+
+	_cullingBounds = computed<Box | null>('cullingBounds', (prev) => {
+		// We need to recalculate the bounds when the page changes
+		this.getCurrentPageId()
+		const viewport = this.getViewportPageBounds()
+		const margin = this.options.cullingMargin
+
+		// Recalculate if first run or viewport moved outside bounds
+		// (page changes trigger re-run via getCurrentPageId dependency)
+		if (isUninitialized(prev) || !prev || !prev.contains(viewport)) {
+			return calculateCullingBounds(viewport, margin)
+		}
+
+		// Recalc if bounds have grown too large (margins >2x ideal after zooming in)
+		// Ideal culling bounds: viewport * (1 + 2 * margin), cutoff: viewport * (1 + 4 * margin)
+		const maxWidth = viewport.width * (1 + 4 * margin)
+		const maxHeight = viewport.height * (1 + 4 * margin)
+		if (prev.width > maxWidth || prev.height > maxHeight) {
+			return calculateCullingBounds(viewport, margin)
+		}
+
+		return prev
+	})
 
 	/**
 	 * Get the debounced zoom level. When the camera is moving, this returns the zoom level
