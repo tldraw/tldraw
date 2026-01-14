@@ -2390,6 +2390,90 @@ describe('Add scaleX, scaleY, and new base64 format to highlight shape', () => {
 	})
 })
 
+describe('Add delta encoding to draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.DeltaEncoding)
+
+	test('up works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const compressed = compressLegacySegments(legacySegments as any)
+		const result = up({
+			props: {
+				segments: compressed,
+			},
+		})
+		// Points should still be base64 strings
+		expect(typeof result.props.segments[0].points).toBe('string')
+		// Length should remain the same (delta encoding doesn't change string length for small coords)
+		expect(result.props.segments[0].points.length).toBe(compressed[0].points.length)
+	})
+
+	test('down works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const compressed = compressLegacySegments(legacySegments as any)
+		// First migrate up (to delta encoding)
+		const migrated = up({ props: { segments: compressed } })
+		// Then migrate down (back to absolute encoding)
+		const result = down({ props: { segments: migrated.props.segments } })
+		// Should still be base64 strings
+		expect(typeof result.props.segments[0].points).toBe('string')
+	})
+})
+
+describe('Add delta encoding to highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.DeltaEncoding)
+
+	test('up works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const compressed = compressLegacySegments(legacySegments as any)
+		const result = up({
+			props: {
+				segments: compressed,
+			},
+		})
+		expect(typeof result.props.segments[0].points).toBe('string')
+	})
+
+	test('down works as expected', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const compressed = compressLegacySegments(legacySegments as any)
+		const migrated = up({ props: { segments: compressed } })
+		const result = down({ props: { segments: migrated.props.segments } })
+		expect(typeof result.props.segments[0].points).toBe('string')
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

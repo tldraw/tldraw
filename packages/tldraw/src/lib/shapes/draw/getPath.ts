@@ -109,7 +109,7 @@ export function getPointsFromDrawSegment(
 	scaleY: number,
 	points: Vec[] = []
 ) {
-	const _points = b64Vecs.decodePoints(segment.points)
+	const _points = b64Vecs.decodePointsDelta(segment.points)
 
 	// Apply scale factors (used for lazy resize and flipping)
 	if (scaleX !== 1 || scaleY !== 1) {

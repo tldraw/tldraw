@@ -134,6 +134,7 @@ const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
 	AddScale: 2,
 	Base64: 3,
+	DeltaEncoding: 4,
 })
 
 /**
@@ -211,6 +212,33 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				}))
 				delete props.scaleX
 				delete props.scaleY
+			},
+		},
+		{
+			id: Versions.DeltaEncoding,
+			up: (props) => {
+				// Re-encode existing absolute points using delta encoding for better precision
+				props.segments = props.segments.map((segment: any) => {
+					if (typeof segment.points !== 'string') return segment
+					// Decode the absolute points and re-encode using delta encoding
+					const absolutePoints = b64Vecs.decodePoints(segment.points)
+					return {
+						...segment,
+						points: b64Vecs.encodePointsDelta(absolutePoints),
+					}
+				})
+			},
+			down: (props) => {
+				// Convert delta-encoded points back to absolute encoding
+				props.segments = props.segments.map((segment: any) => {
+					if (typeof segment.points !== 'string') return segment
+					// Decode the delta points and re-encode using absolute encoding
+					const absolutePoints = b64Vecs.decodePointsDelta(segment.points)
+					return {
+						...segment,
+						points: b64Vecs.encodePoints(absolutePoints),
+					}
+				})
 			},
 		},
 	],

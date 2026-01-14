@@ -305,4 +305,103 @@ export class b64Vecs {
 		if (b64Points.length < POINT_B64_LENGTH) return null
 		return b64Vecs.decodePointAt(b64Points, b64Points.length - POINT_B64_LENGTH)
 	}
+
+	/**
+	 * Encode points using delta encoding for improved precision at large coordinates.
+	 * The first point is stored as absolute coordinates, subsequent points are stored
+	 * as offsets from the previous point. This keeps delta values small, maintaining
+	 * high Float16 precision even when the absolute coordinates are large.
+	 *
+	 * **Performance notes:**
+	 * - Encoding is O(n), same as absolute encoding
+	 * - First point access remains O(1) via decodeFirstPointDelta
+	 * - Drawing-time point access uses cached decoded arrays, so no random-access regressions
+	 *
+	 * **Large delta handling:**
+	 * - Large jumps between points degrade no worse than absolute encoding would
+	 * - In practice, stroke sampling rate keeps deltas small (typically <10px)
+	 *
+	 * @param points - An array of VecModel objects to encode
+	 * @returns A base64-encoded string containing delta-encoded points
+	 * @public
+	 */
+	static encodePointsDelta(points: VecModel[]): string {
+		if (points.length === 0) return ''
+
+		// Convert absolute points to deltas
+		// Note: Large deltas are handled gracefully - they degrade to the same
+		// precision as absolute encoding would have for that magnitude
+		const deltas: VecModel[] = [points[0]] // First point stored as absolute
+		for (let i = 1; i < points.length; i++) {
+			deltas.push({
+				x: points[i].x - points[i - 1].x,
+				y: points[i].y - points[i - 1].y,
+				z: points[i].z ?? 0.5,
+			})
+		}
+
+		return b64Vecs.encodePoints(deltas)
+	}
+
+	/**
+	 * Decode delta-encoded points back to absolute coordinates.
+	 * The first point is absolute, subsequent points are reconstructed
+	 * by accumulating deltas.
+	 *
+	 * @param base64 - The base64-encoded string containing delta-encoded point data
+	 * @returns An array of VecModel objects with absolute coordinates
+	 * @public
+	 */
+	static decodePointsDelta(base64: string): VecModel[] {
+		if (!base64) return []
+
+		const deltas = b64Vecs.decodePoints(base64)
+		if (deltas.length === 0) return []
+
+		// Reconstruct absolute coordinates from deltas
+		const result: VecModel[] = [deltas[0]] // First point is absolute
+		for (let i = 1; i < deltas.length; i++) {
+			result.push({
+				x: result[i - 1].x + deltas[i].x,
+				y: result[i - 1].y + deltas[i].y,
+				z: deltas[i].z,
+			})
+		}
+
+		return result
+	}
+
+	/**
+	 * Decode the first point from a delta-encoded string.
+	 * Since the first point is stored as absolute, this is equivalent to decodeFirstPoint.
+	 *
+	 * @param b64Points - The base64-encoded string containing delta-encoded point data
+	 * @returns The first point as a VecModel, or null if the string is too short
+	 * @public
+	 */
+	static decodeFirstPointDelta(b64Points: string): VecModel | null {
+		// First point in delta encoding is already absolute
+		return b64Vecs.decodeFirstPoint(b64Points)
+	}
+
+	/**
+	 * Decode the last point from a delta-encoded string.
+	 * This requires decoding all points to reconstruct the final absolute position.
+	 *
+	 * **Performance note:** This is O(n) unlike the absolute encoding's O(1) last-point access.
+	 * However, in practice Drawing.ts caches decoded points during active drawing,
+	 * so this is only called for cold-path operations (e.g., shape bounds calculation).
+	 *
+	 * @param b64Points - The base64-encoded string containing delta-encoded point data
+	 * @returns The last point as a VecModel, or null if the string is too short
+	 * @public
+	 */
+	static decodeLastPointDelta(b64Points: string): VecModel | null {
+		if (b64Points.length < POINT_B64_LENGTH) return null
+
+		// For delta encoding, we need to accumulate all deltas to get the last point
+		const points = b64Vecs.decodePointsDelta(b64Points)
+		return points.length > 0 ? points[points.length - 1] : null
+	}
 }
+

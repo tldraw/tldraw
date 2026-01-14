@@ -10,8 +10,8 @@ export const interpolateSegments = (
 	const endPoints: VecModel[] = []
 
 	// Extract all points from startSegments and endSegments
-	startSegments.forEach((segment) => startPoints.push(...b64Vecs.decodePoints(segment.points)))
-	endSegments.forEach((segment) => endPoints.push(...b64Vecs.decodePoints(segment.points)))
+	startSegments.forEach((segment) => startPoints.push(...b64Vecs.decodePointsDelta(segment.points)))
+	endSegments.forEach((segment) => endPoints.push(...b64Vecs.decodePointsDelta(segment.points)))
 
 	const maxLength = Math.max(startPoints.length, endPoints.length)
 	const pointsToUseStart: VecModel[] = []
@@ -39,7 +39,7 @@ export const interpolateSegments = (
 	return [
 		{
 			type: 'free',
-			points: b64Vecs.encodePoints(interpolatedPoints),
+			points: b64Vecs.encodePointsDelta(interpolatedPoints),
 		},
 	]
 }

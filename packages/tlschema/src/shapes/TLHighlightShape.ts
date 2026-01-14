@@ -104,6 +104,7 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
 	Base64: 2,
+	DeltaEncoding: 3,
 })
 
 /**
@@ -157,6 +158,31 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 				}))
 				delete props.scaleX
 				delete props.scaleY
+			},
+		},
+		{
+			id: Versions.DeltaEncoding,
+			up: (props) => {
+				// Re-encode existing absolute points using delta encoding for better precision
+				props.segments = props.segments.map((segment: any) => {
+					if (typeof segment.points !== 'string') return segment
+					const absolutePoints = b64Vecs.decodePoints(segment.points)
+					return {
+						...segment,
+						points: b64Vecs.encodePointsDelta(absolutePoints),
+					}
+				})
+			},
+			down: (props) => {
+				// Convert delta-encoded points back to absolute encoding
+				props.segments = props.segments.map((segment: any) => {
+					if (typeof segment.points !== 'string') return segment
+					const absolutePoints = b64Vecs.decodePointsDelta(segment.points)
+					return {
+						...segment,
+						points: b64Vecs.encodePoints(absolutePoints),
+					}
+				})
 			},
 		},
 	],

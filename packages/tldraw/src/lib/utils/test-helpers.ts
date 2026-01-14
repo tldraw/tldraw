@@ -13,7 +13,7 @@ import { b64Vecs, compressLegacySegments } from '@tldraw/editor'
  * @public
  */
 export function pointsToBase64(points: VecModel[]): string {
-	return b64Vecs.encodePoints(points)
+	return b64Vecs.encodePointsDelta(points)
 }
 
 /**
@@ -29,7 +29,7 @@ export function pointsToBase64(points: VecModel[]): string {
  * @public
  */
 export function base64ToPoints(base64: string): VecModel[] {
-	return b64Vecs.decodePoints(base64)
+	return b64Vecs.decodePointsDelta(base64)
 }
 
 /**
