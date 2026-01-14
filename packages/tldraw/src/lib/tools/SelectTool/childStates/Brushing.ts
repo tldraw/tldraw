@@ -166,7 +166,7 @@ export class Brushing extends StateNode {
 
 			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
 			// But still update brush visual and selection
-			if (candidateIds.length === 0) {
+			if (candidateIds.size === 0) {
 				const currentBrush = editor.getInstanceState().brush
 				if (!currentBrush || !brush.equals(currentBrush)) {
 					editor.updateInstanceState({ brush: { ...brush.toJson() } })

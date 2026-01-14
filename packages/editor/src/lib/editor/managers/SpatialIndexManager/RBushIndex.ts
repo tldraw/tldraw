@@ -35,9 +35,9 @@ export class RBushIndex {
 
 	/**
 	 * Search for shapes within the given bounds.
-	 * Returns array of shape IDs that intersect with the bounds.
+	 * Returns set of shape IDs that intersect with the bounds.
 	 */
-	search(bounds: Box): TLShapeId[] {
+	search(bounds: Box): Set<TLShapeId> {
 		const perfStart = performance.now()
 
 		// Quick bounds check: use RBush's root node bounds
@@ -60,7 +60,7 @@ export class RBushIndex {
 					`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → 0 results (outside total bounds)`
 				)
 			}
-			return []
+			return new Set()
 		}
 
 		const results = this.rBush.search({
@@ -69,11 +69,11 @@ export class RBushIndex {
 			maxX: bounds.maxX,
 			maxY: bounds.maxY,
 		})
-		const ids = results.map((e: SpatialElement) => e.id)
+		const ids = new Set(results.map((e: SpatialElement) => e.id))
 		if (debugFlags.perfLogSpatialIndex.get()) {
 			// eslint-disable-next-line no-console
 			console.log(
-				`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → ${ids.length} results`
+				`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → ${ids.size} results`
 			)
 		}
 		return ids
@@ -112,7 +112,6 @@ export class RBushIndex {
 	bulkLoad(elements: SpatialElement[]): void {
 		const perfStart = performance.now()
 		this.rBush.load(elements)
-		this.elementsInTree.clear()
 		for (const element of elements) {
 			this.elementsInTree.set(element.id, element)
 		}

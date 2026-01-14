@@ -10,7 +10,7 @@ function notVisibleShapesSpatial(editor: Editor) {
 		// New implementation using spatial index
 		const allShapeIds = editor.getCurrentPageShapeIds()
 		const viewportPageBounds = editor.getViewportPageBounds()
-		const visibleIds = new Set(editor.getShapeIdsInsideBounds(viewportPageBounds))
+		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
 
 		const nextValue = new Set<TLShapeId>()
 

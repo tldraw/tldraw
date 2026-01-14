@@ -75,33 +75,35 @@ export class SpatialIndexManager {
 		this.lastPageId = this.editor.getCurrentPageId()
 
 		const shapesStart = performance.now()
-		const shapes = this.editor.getCurrentPageShapesSorted()
+		const shapes = this.editor.getCurrentPageShapes()
 		if (debugFlags.perfLogSpatialIndex.get()) {
 			// eslint-disable-next-line no-console
 			console.log(
-				`[Perf]   spatial index getCurrentPageShapesSorted: ${(performance.now() - shapesStart).toFixed(3)}ms`
+				`[Perf]   spatial index getCurrentPageShapes: ${(performance.now() - shapesStart).toFixed(3)}ms`
 			)
 		}
 
 		const elements: SpatialElement[] = []
 
 		// Collect all shape elements for bulk loading
-		const elementsStart = performance.now()
-		let boundsTime = 0
+		const boundsStart = performance.now()
 		for (const shape of shapes) {
-			const boundsStart = performance.now()
-			const element = this.createElementForShape(shape.id)
-			boundsTime += performance.now() - boundsStart
-			if (element) elements.push(element)
+			const bounds = this.editor.getShapePageBounds(shape.id)
+			if (bounds) {
+				elements.push({
+					minX: bounds.minX,
+					minY: bounds.minY,
+					maxX: bounds.maxX,
+					maxY: bounds.maxY,
+					id: shape.id,
+				})
+			}
 		}
+		const boundsTime = performance.now() - boundsStart
 		if (debugFlags.perfLogSpatialIndex.get()) {
 			// eslint-disable-next-line no-console
 			console.log(
-				`[Perf]   spatial index creating elements: ${(performance.now() - elementsStart).toFixed(3)}ms`
-			)
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf]     spatial index getShapePageBounds calls: ${boundsTime.toFixed(4)}ms (avg: ${(boundsTime / shapes.length).toFixed(5)}ms per shape)`
+				`[Perf]   spatial index getShapePageBounds: ${boundsTime.toFixed(3)}ms (${shapes.length} shapes)`
 			)
 		}
 
@@ -125,14 +127,8 @@ export class SpatialIndexManager {
 			// Handle additions (only for shapes on current page)
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
 				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
-					const element = this.createElementForShape(shape.id)
-					if (element) {
-						const bounds = new Box(
-							element.minX,
-							element.minY,
-							element.maxX - element.minX,
-							element.maxY - element.minY
-						)
+					const bounds = this.editor.getShapePageBounds(shape.id)
+					if (bounds) {
 						this.rbush.insert(shape.id, bounds)
 					}
 				}
@@ -142,6 +138,21 @@ export class SpatialIndexManager {
 			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
 				if (isShape(shape)) {
 					this.rbush.remove(shape.id)
+				}
+			}
+
+			// Handle shapes moved between pages
+			for (const [from, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
+				if (!isShape(to)) continue
+				const wasOnPage = this.editor.getAncestorPageId(from) === this.lastPageId
+				const isOnPage = this.editor.getAncestorPageId(to) === this.lastPageId
+				if (wasOnPage && !isOnPage) {
+					this.rbush.remove(to.id)
+				} else if (!wasOnPage && isOnPage) {
+					const bounds = this.editor.getShapePageBounds(to.id)
+					if (bounds) {
+						this.rbush.insert(to.id, bounds)
+					}
 				}
 			}
 		}
@@ -186,19 +197,6 @@ export class SpatialIndexManager {
 		}
 	}
 
-	private createElementForShape(shapeId: TLShapeId): SpatialElement | null {
-		const bounds = this.editor.getShapePageBounds(shapeId)
-		if (!bounds) return null
-
-		return {
-			minX: bounds.minX,
-			minY: bounds.minY,
-			maxX: bounds.maxX,
-			maxY: bounds.maxY,
-			id: shapeId,
-		}
-	}
-
 	private areBoundsEqual(a: Box | undefined, b: Box | undefined): boolean {
 		if (!a && !b) return true
 		if (!a || !b) return false
@@ -227,12 +225,18 @@ export class SpatialIndexManager {
 	 * Get shape IDs within the given bounds.
 	 * Optimized for viewport culling queries.
 	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.spatialIndex.getShapeIdsInsideBounds(bounds)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
 	 * @param bounds - The bounds to search within
-	 * @returns Array of shape IDs within the bounds
+	 * @returns Unordered set of shape IDs within the bounds
 	 *
 	 * @public
 	 */
-	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
+	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
 		const perfStart = performance.now()
 
 		// Ensure index is up to date
@@ -248,7 +252,7 @@ export class SpatialIndexManager {
 					`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (0 shapes - outside bounds)`
 				)
 			}
-			return []
+			return new Set()
 		}
 
 		const searchStart = performance.now()
@@ -258,7 +262,7 @@ export class SpatialIndexManager {
 		if (debugFlags.perfLogSpatialIndex.get()) {
 			// eslint-disable-next-line no-console
 			console.log(
-				`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (index: ${indexTime.toFixed(3)}ms, search: ${searchTime.toFixed(3)}ms, ${result.length} shapes found)`
+				`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (index: ${indexTime.toFixed(3)}ms, search: ${searchTime.toFixed(3)}ms, ${result.size} shapes found)`
 			)
 		}
 		return result
@@ -268,13 +272,19 @@ export class SpatialIndexManager {
 	 * Get shape IDs at a point (with optional margin).
 	 * Creates a small bounding box around the point and searches the spatial index.
 	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.spatialIndex.getShapeIdsAtPoint(point, margin)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
 	 * @param point - The point to search at
 	 * @param margin - The margin around the point to search (default: 0)
-	 * @returns Array of shape IDs that could potentially contain the point
+	 * @returns Unordered set of shape IDs that could potentially contain the point
 	 *
 	 * @public
 	 */
-	getShapeIdsAtPoint(point: { x: number; y: number }, margin = 0): TLShapeId[] {
+	getShapeIdsAtPoint(point: { x: number; y: number }, margin = 0): Set<TLShapeId> {
 		const perfStart = performance.now()
 
 		// Create a small bounds around the point
@@ -291,7 +301,7 @@ export class SpatialIndexManager {
 					`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (0 candidates - outside bounds)`
 				)
 			}
-			return []
+			return new Set()
 		}
 
 		// Search the spatial index
@@ -300,7 +310,7 @@ export class SpatialIndexManager {
 		if (debugFlags.perfLogSpatialIndex.get()) {
 			// eslint-disable-next-line no-console
 			console.log(
-				`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (${result.length} candidate shapes found)`
+				`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (${result.size} candidate shapes found)`
 			)
 		}
 

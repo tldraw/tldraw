@@ -5300,8 +5300,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				outerMargin,
 				this.options.hitTestMargin / zoomLevel
 			)
-			const candidates = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
-			candidateIds = new Set(candidates)
+			candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 
 			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
 			if (candidateIds.size === 0) {
@@ -5522,7 +5521,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, margin)
 
 			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
-			if (candidateIds.length === 0) {
+			if (candidateIds.size === 0) {
 				if (perfLogging) {
 					const totalTime = performance.now() - perfStart
 					// eslint-disable-next-line no-console
@@ -5584,19 +5583,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get shape IDs within the given bounds.
 	 *
-	 * @example
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
 	 * ```ts
-	 * const bounds = new Box(0, 0, 100, 100)
-	 * editor.getShapeIdsInsideBounds(bounds)
+	 * const candidates = editor.getShapeIdsInsideBounds(bounds)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
 	 * ```
 	 *
 	 * @param bounds - The bounds to search within.
 	 *
-	 * @returns An array of shape IDs within the given bounds.
+	 * @returns Unordered set of shape IDs within the given bounds.
 	 *
 	 * @public
 	 */
-	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
+	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
 		return this.spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 

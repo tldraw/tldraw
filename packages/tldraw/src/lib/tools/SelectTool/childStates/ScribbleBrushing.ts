@@ -109,7 +109,7 @@ export class ScribbleBrushing extends StateNode {
 
 			// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
 			// But still update selection based on current state
-			if (candidateIds.length === 0) {
+			if (candidateIds.size === 0) {
 				const current = editor.getSelectedShapeIds()
 				const next = new Set<TLShapeId>(
 					shiftKey

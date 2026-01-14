@@ -121,7 +121,7 @@ export class Erasing extends StateNode {
 			const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
 
 			// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
-			if (candidateIds.length === 0) {
+			if (candidateIds.size === 0) {
 				editor.setErasingShapes(Array.from(erasing))
 				const totalTime = performance.now() - perfStart
 				if (debugFlags.perfLogSelection.get()) {
