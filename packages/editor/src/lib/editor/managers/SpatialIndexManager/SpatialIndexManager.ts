@@ -57,6 +57,11 @@ export class SpatialIndexManager {
 				return this.buildFromScratch(lastComputedEpoch)
 			}
 
+			// No shape changes - index is already up to date
+			if (shapeDiff.length === 0) {
+				return lastComputedEpoch
+			}
+
 			// Process incremental updates
 			this.processIncrementalUpdate(shapeDiff)
 
@@ -117,9 +122,9 @@ export class SpatialIndexManager {
 
 		// 1. Process shape additions and removals from diff
 		for (const changes of shapeDiff) {
-			// Handle additions
+			// Handle additions (only for shapes on current page)
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
-				if (isShape(shape)) {
+				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
 					const element = this.createElementForShape(shape.id)
 					if (element) {
 						const bounds = new Box(
@@ -230,21 +235,21 @@ export class SpatialIndexManager {
 	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
 		const perfStart = performance.now()
 
-		// Quick bounds check before ensuring index is up to date
-		if (this.isOutsideRootBounds(bounds)) {
-			if (debugFlags.perfLogSpatialIndex.get()) {
-				// eslint-disable-next-line no-console
-				console.log(
-					`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (0 shapes - outside bounds, skipped index update)`
-				)
-			}
-			return []
-		}
-
 		// Ensure index is up to date
 		const indexStart = performance.now()
 		this.spatialIndexComputed.get()
 		const indexTime = performance.now() - indexStart
+
+		// Quick bounds check (must be after index update to avoid stale data)
+		if (this.isOutsideRootBounds(bounds)) {
+			if (debugFlags.perfLogSpatialIndex.get()) {
+				// eslint-disable-next-line no-console
+				console.log(
+					`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (0 shapes - outside bounds)`
+				)
+			}
+			return []
+		}
 
 		const searchStart = performance.now()
 		const result = this.rbush.search(bounds)
@@ -275,19 +280,19 @@ export class SpatialIndexManager {
 		// Create a small bounds around the point
 		const searchBounds = new Box(point.x - margin, point.y - margin, margin * 2, margin * 2)
 
-		// Quick bounds check before ensuring index is up to date
+		// Ensure index is up to date
+		this.spatialIndexComputed.get()
+
+		// Quick bounds check (must be after index update to avoid stale data)
 		if (this.isOutsideRootBounds(searchBounds)) {
 			if (debugFlags.perfLogSpatialIndex.get()) {
 				// eslint-disable-next-line no-console
 				console.log(
-					`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (0 candidates - outside bounds, skipped index update)`
+					`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (0 candidates - outside bounds)`
 				)
 			}
 			return []
 		}
-
-		// Ensure index is up to date
-		this.spatialIndexComputed.get()
 
 		// Search the spatial index
 		const result = this.rbush.search(searchBounds)
