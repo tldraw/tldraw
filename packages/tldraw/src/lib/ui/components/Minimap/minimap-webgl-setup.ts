@@ -92,6 +92,9 @@ export function setupWebGl(canvas: HTMLCanvasElement | null) {
 
 	return {
 		context,
+		vertexShader,
+		fragmentShader,
+		program,
 		selectedShapes: allocateBuffer(context, 1024),
 		unselectedShapes: allocateBuffer(context, 4096),
 		viewport: allocateBuffer(context, roundedRectangleDataSize),

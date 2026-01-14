@@ -21,6 +21,39 @@ export class MinimapManager {
 
 	@bind
 	close() {
+		// Clean up WebGL resources
+		const { context } = this.gl
+
+		// Delete WebGL buffers
+		if (this.gl.selectedShapes?.buffer) {
+			context.deleteBuffer(this.gl.selectedShapes.buffer)
+		}
+		if (this.gl.unselectedShapes?.buffer) {
+			context.deleteBuffer(this.gl.unselectedShapes.buffer)
+		}
+		if (this.gl.viewport?.buffer) {
+			context.deleteBuffer(this.gl.viewport.buffer)
+		}
+		if (this.gl.collaborators?.buffer) {
+			context.deleteBuffer(this.gl.collaborators.buffer)
+		}
+
+		// Delete shaders and program
+		if (this.gl.program) {
+			context.deleteProgram(this.gl.program)
+		}
+		if (this.gl.vertexShader) {
+			context.deleteShader(this.gl.vertexShader)
+		}
+		if (this.gl.fragmentShader) {
+			context.deleteShader(this.gl.fragmentShader)
+		}
+
+		// Force context loss as final cleanup
+		const loseContextExtension = context.getExtension('WEBGL_lose_context')
+		loseContextExtension?.loseContext()
+
+		// Clean up React/DOM resources
 		return this.disposables.forEach((d) => d())
 	}
 	gl: ReturnType<typeof setupWebGl>
