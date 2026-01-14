@@ -51,9 +51,12 @@ export class Pointing extends StateNode {
 			const nextPoint = maybeSnapToGrid(nudgedPoint, this.editor)
 			const points = structuredClone(this.shape.props.points)
 
+			// Convert screen pixel threshold to page pixel threshold for consistent behavior across zoom levels
+			const minDistance = MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES / this.editor.getZoomLevel()
+
 			if (
-				Vec.DistMin(endHandle, prevEndHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) ||
-				Vec.DistMin(nextPoint, endHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES)
+				Vec.DistMin(endHandle, prevEndHandle, minDistance) ||
+				Vec.DistMin(nextPoint, endHandle, minDistance)
 			) {
 				// Don't add a new point if the distance between the last two points is too small
 				points[endHandle.id] = {
