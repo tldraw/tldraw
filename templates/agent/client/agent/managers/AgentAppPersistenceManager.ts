@@ -1,4 +1,5 @@
-import { Atom, react } from 'tldraw'
+import { react } from 'tldraw'
+import { PersistedAgentState } from '../TldrawAgent'
 import { BaseAgentAppManager } from './BaseAgentAppManager'
 
 /**
@@ -7,14 +8,19 @@ import { BaseAgentAppManager } from './BaseAgentAppManager'
 const STORAGE_PREFIX = 'tldraw-agent-app'
 
 /**
+ * The persisted state for the entire app.
+ * Contains state for all agents.
+ */
+export interface PersistedAppState {
+	agents: Record<string, PersistedAgentState>
+}
+
+/**
  * Manager for app-level state persistence.
  *
- * Handles loading and saving app-level settings to localStorage.
- * Agent-level persistence (chat history, todos, etc.) is handled
- * by each agent's managers via TldrawAgent.persistValue().
- *
- * This manager coordinates persistence lifecycle and provides
- * a clean interface for future extension (e.g., server-side persistence).
+ * Coordinates loading and saving agent state to localStorage.
+ * Calls agent-level serializeState() and loadState() methods
+ * to handle the actual state serialization/deserialization.
  */
 export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	/**
@@ -35,24 +41,44 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	}
 
 	/**
-	 * Load app-level state from localStorage.
+	 * Serialize the current app state for persistence.
+	 */
+	serializeState(): PersistedAppState {
+		const agents = this.app.agents.getAgents()
+
+		return {
+			agents: agents.reduce(
+				(acc, agent) => {
+					acc[agent.id] = agent.serializeState()
+					return acc
+				},
+				{} as Record<string, PersistedAgentState>
+			),
+		}
+	}
+
+	/**
+	 * Load app state from localStorage.
 	 * Call this after the app is initialized.
 	 */
 	loadState() {
 		this.isLoadingState = true
 
 		try {
-			// Load model selection
-			const modelSelection = this.loadValue<string>('model-selection')
-			if (modelSelection) {
-				this.app.setModelSelection(modelSelection as any)
+			const appState = this.loadValue<PersistedAppState>('state')
+			if (!appState) {
+				this.isLoadingState = false
+				return
 			}
 
-			// Load debug flags
-			const debugFlags = this.loadValue<{ showContextBounds: boolean }>('debug-flags')
-			if (debugFlags) {
-				this.app.setDebugFlags(debugFlags)
-			}
+			// Load state for each agent
+			const agents = this.app.agents.getAgents()
+			agents.forEach((agent) => {
+				const agentState = appState.agents[agent.id]
+				if (agentState) {
+					agent.loadState(agentState)
+				}
+			})
 		} catch (e) {
 			console.error('Failed to load app state:', e)
 		} finally {
@@ -61,19 +87,42 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	}
 
 	/**
-	 * Start auto-saving app-level state changes.
+	 * Start auto-saving app state changes.
 	 * Call this after loadState() to avoid saving during load.
 	 */
 	startAutoSave() {
-		// Watch model selection
-		const cleanupModelSelection = this.watchAndSave('model-selection', () =>
-			this.app.getModelSelection()
-		)
-		this.autoSaveCleanupFns.push(cleanupModelSelection)
+		const agents = this.app.agents.getAgents()
 
-		// Watch debug flags
-		const cleanupDebugFlags = this.watchAndSave('debug-flags', () => this.app.getDebugFlags())
-		this.autoSaveCleanupFns.push(cleanupDebugFlags)
+		// Watch each agent's state for changes
+		agents.forEach((agent) => {
+			const cleanup = react(`${agent.id} state`, () => {
+				// Access reactive state to trigger on changes
+				agent.chat.getHistory()
+				agent.chatOrigin.getOrigin()
+				agent.todos.getTodos()
+				agent.context.getItems()
+				agent.$modelName.get()
+
+				// Save if not currently loading
+				if (!this.isLoadingState) {
+					this.saveState()
+				}
+			})
+			this.autoSaveCleanupFns.push(cleanup)
+		})
+	}
+
+	/**
+	 * Save the current app state to localStorage.
+	 */
+	private saveState() {
+		const agents = this.app.agents.getAgents()
+		// Don't save if no agents exist (e.g., during dispose)
+		if (agents.length === 0) {
+			return
+		}
+		const appState = this.serializeState()
+		this.saveValue('state', appState)
 	}
 
 	/**
@@ -135,48 +184,5 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 		} catch {
 			console.warn(`Couldn't save ${key} to localStorage`)
 		}
-	}
-
-	/**
-	 * Watch a value and save it to localStorage when it changes.
-	 * Returns a cleanup function.
-	 */
-	private watchAndSave<T>(key: string, getValue: () => T): () => void {
-		return react(`save ${key} to localStorage`, () => {
-			if (this.isLoadingState) return
-			this.saveValue(key, getValue())
-		})
-	}
-
-	/**
-	 * Persist an atom's value to localStorage.
-	 * Loads the initial value from localStorage and sets up a reaction to save changes.
-	 *
-	 * @param key - The key to use for localStorage (will be prefixed).
-	 * @param $atom - The atom to persist.
-	 * @returns A dispose function to stop persistence.
-	 */
-	persistAtom<T>(key: string, $atom: Atom<T>): () => void {
-		const localStorage = globalThis.localStorage
-		if (!localStorage) return () => {}
-
-		const fullKey = `${STORAGE_PREFIX}:${key}`
-
-		// Load initial value
-		try {
-			const stored = localStorage.getItem(fullKey)
-			if (stored) {
-				const value = JSON.parse(stored) as T
-				$atom.set(value)
-			}
-		} catch {
-			console.warn(`Couldn't load ${fullKey} from localStorage`)
-		}
-
-		// Watch for changes and save
-		return react(`save ${fullKey} to localStorage`, () => {
-			if (this.isLoadingState) return
-			localStorage.setItem(fullKey, JSON.stringify($atom.get()))
-		})
 	}
 }

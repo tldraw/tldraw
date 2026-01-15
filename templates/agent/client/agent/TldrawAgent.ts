@@ -2,7 +2,6 @@ import {
 	Atom,
 	atom,
 	Editor,
-	react,
 	RecordsDiff,
 	reverseRecordsDiff,
 	structuredClone,
@@ -13,9 +12,11 @@ import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
 import { AgentRequest } from '../../shared/types/AgentRequest'
-import { ChatHistoryPromptItem } from '../../shared/types/ChatHistoryItem'
+import { ChatHistoryItem, ChatHistoryPromptItem } from '../../shared/types/ChatHistoryItem'
+import { ContextItem } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
+import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentHelpers } from '../AgentHelpers'
 import { getModeNode } from '../modes/AgentModeChart'
 import { AgentModeType } from '../modes/AgentModeDefinitions'
@@ -29,6 +30,19 @@ import { AgentModeManager } from './managers/AgentModeManager'
 import { AgentRequestManager } from './managers/AgentRequestManager'
 import { AgentTodoManager } from './managers/AgentTodoManager'
 import { AgentUserActionTracker } from './managers/AgentUserActionTracker'
+
+/**
+ * The persisted state of an agent.
+ * Used for saving and loading agent state.
+ */
+export interface PersistedAgentState {
+	chatHistory?: ChatHistoryItem[]
+	chatOrigin?: { x: number; y: number }
+	todoList?: TodoItem[]
+	contextItems?: ContextItem[]
+	modelName?: AgentModelName
+	debugFlags?: { showContextBounds: boolean }
+}
 
 export interface TldrawAgentOptions {
 	/** The editor to associate the agent with. */
@@ -141,44 +155,48 @@ export class TldrawAgent {
 		// Initialize prompt part utils
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
 
-		// Initialize persistence for managers and atoms
-		this.chat.initPersistence()
-		this.chatOrigin.initPersistence()
-		this.todos.initPersistence()
-		this.context.initPersistence()
-		this.persistValue('model-name', this.$modelName)
-
 		// Start recording user actions
 		this.userAction.startRecording()
 	}
 
+	// ==================== State Persistence ====================
+
 	/**
-	 * Persist an atom's value to localStorage.
-	 * Loads the initial value from localStorage and sets up a reaction to save changes.
-	 *
-	 * @param key - The key to use for localStorage (will be prefixed with agent id).
-	 * @param $atom - The atom to persist.
-	 * @returns A dispose function to stop persistence.
+	 * Serialize the agent's state to a plain object for persistence.
+	 * This is called by the app-level persistence manager to save agent state.
 	 */
-	persistValue<T>(key: string, $atom: Atom<T>): () => void {
-		const localStorage = globalThis.localStorage
-		if (!localStorage) return () => {}
-
-		const fullKey = `${this.id}:${key}`
-
-		try {
-			const stored = localStorage.getItem(fullKey)
-			if (stored) {
-				const value = JSON.parse(stored) as T
-				$atom.set(value)
-			}
-		} catch {
-			console.warn(`Couldn't load ${fullKey} from localStorage`)
+	serializeState(): PersistedAgentState {
+		return {
+			chatHistory: this.chat.getHistory(),
+			chatOrigin: this.chatOrigin.getOrigin(),
+			todoList: this.todos.getTodos(),
+			contextItems: this.context.getItems(),
+			modelName: this.$modelName.get(),
 		}
+	}
 
-		return react(`save ${fullKey} to localStorage`, () => {
-			localStorage.setItem(fullKey, JSON.stringify($atom.get()))
-		})
+	/**
+	 * Load previously persisted state into the agent.
+	 * This is called by the app-level persistence manager to restore agent state.
+	 *
+	 * @param state - The persisted state to load.
+	 */
+	loadState(state: PersistedAgentState) {
+		if (state.chatHistory) {
+			this.chat.$chatHistory.set(state.chatHistory)
+		}
+		if (state.chatOrigin) {
+			this.chatOrigin.$chatOrigin.set(state.chatOrigin)
+		}
+		if (state.todoList) {
+			this.todos.$todoList.set(state.todoList)
+		}
+		if (state.contextItems) {
+			this.context.$contextItems.set(state.contextItems)
+		}
+		if (state.modelName) {
+			this.$modelName.set(state.modelName)
+		}
 	}
 
 	/**

@@ -23,15 +23,6 @@ export class AgentTodoManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Initialize persistence for the todo list.
-	 * Call this after the agent is fully constructed.
-	 */
-	initPersistence() {
-		const dispose = this.agent.persistValue('todo-items', this.$todoList)
-		this.disposables.add(dispose)
-	}
-
-	/**
 	 * Reset the todo manager to its initial state.
 	 * Clears all todo items from the list.
 	 */

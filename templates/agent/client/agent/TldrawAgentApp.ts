@@ -1,5 +1,4 @@
-import { Atom, atom, Editor } from 'tldraw'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
+import { Editor } from 'tldraw'
 import { AgentAppAgentsManager } from './managers/AgentAppAgentsManager'
 import { AgentAppPersistenceManager } from './managers/AgentAppPersistenceManager'
 
@@ -30,26 +29,6 @@ export class TldrawAgentApp {
 	 */
 	persistence: AgentAppPersistenceManager
 
-	// --- Global app state ---
-
-	/**
-	 * Whether any agent is currently applying an action to the canvas.
-	 * Used to prevent agent actions from being recorded as user actions.
-	 */
-	private $isApplyingAction: Atom<boolean> = atom('agentAppIsApplyingAction', false)
-
-	/**
-	 * Debug flags for controlling agent debug features.
-	 */
-	private $debugFlags: Atom<{ showContextBounds: boolean }> = atom('agentAppDebugFlags', {
-		showContextBounds: false,
-	})
-
-	/**
-	 * The currently selected AI model for agent requests.
-	 */
-	private $modelSelection: Atom<AgentModelName> = atom('agentAppModelSelection', DEFAULT_MODEL_NAME)
-
 	constructor(
 		public editor: Editor,
 		public options: {
@@ -67,8 +46,9 @@ export class TldrawAgentApp {
 	 * Dispose of all resources. Call this during cleanup.
 	 */
 	dispose() {
-		this.agents.dispose()
+		// Stop auto-save BEFORE disposing agents to prevent saving empty state
 		this.persistence.dispose()
+		this.agents.dispose()
 	}
 
 	/**
@@ -77,31 +57,5 @@ export class TldrawAgentApp {
 	reset() {
 		this.agents.reset()
 		this.persistence.reset()
-	}
-
-	// --- State accessors ---
-
-	getIsApplyingAction(): boolean {
-		return this.$isApplyingAction.get()
-	}
-
-	setIsApplyingAction(value: boolean): void {
-		this.$isApplyingAction.set(value)
-	}
-
-	getDebugFlags(): { showContextBounds: boolean } {
-		return this.$debugFlags.get()
-	}
-
-	setDebugFlags(flags: { showContextBounds: boolean }): void {
-		this.$debugFlags.set(flags)
-	}
-
-	getModelSelection(): AgentModelName {
-		return this.$modelSelection.get()
-	}
-
-	setModelSelection(value: AgentModelName): void {
-		this.$modelSelection.set(value)
 	}
 }

@@ -34,15 +34,6 @@ export class AgentContextManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Initialize persistence for context items.
-	 * Call this after the agent is fully constructed.
-	 */
-	initPersistence() {
-		const dispose = this.agent.persistValue('context-items', this.$contextItems)
-		this.disposables.add(dispose)
-	}
-
-	/**
 	 * Reset the context manager to its initial state.
 	 * Clears all context items.
 	 */

@@ -25,15 +25,6 @@ export class AgentChatManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Initialize persistence for chat history.
-	 * Call this after the agent is fully constructed.
-	 */
-	initPersistence() {
-		const dispose = this.agent.persistValue('chat-history', this.$chatHistory)
-		this.disposables.add(dispose)
-	}
-
-	/**
 	 * Get the current chat history.
 	 * @returns The array of chat history items.
 	 */

@@ -24,15 +24,6 @@ export class AgentChatOriginManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Initialize persistence for chat origin.
-	 * Call this after the agent is fully constructed.
-	 */
-	initPersistence() {
-		const dispose = this.agent.persistValue('chat-origin', this.$chatOrigin)
-		this.disposables.add(dispose)
-	}
-
-	/**
 	 * Set the chat origin position on the canvas.
 	 * The origin represents where the conversation started spatially.
 	 * @param origin - The position where the chat started, with x and y coordinates.
