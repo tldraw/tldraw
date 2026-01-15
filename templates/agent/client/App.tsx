@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
 	DefaultSizeStyle,
 	ErrorBoundary,
@@ -8,7 +8,7 @@ import {
 	TLUiOverrides,
 	useEditor,
 } from 'tldraw'
-import { TldrawAgent } from './agent/TldrawAgent'
+import { AgentProvider } from './agent/AgentContext'
 import { useTldrawAgent } from './agent/useTldrawAgent'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
@@ -56,20 +56,22 @@ const overrides: TLUiOverrides = {
 }
 
 function App() {
-	const [agent, setAgent] = useState<TldrawAgent | undefined>()
-
-	// Custom components to visualize what the agent is doing
+	// Custom components for agent starter
 	const components: TLComponents = useMemo(() => {
 		return {
-			HelperButtons: () => agent && <CustomHelperButtons agent={agent} />,
+			HelperButtons: () => (
+				<AgentProvider agentId={AGENT_ID}>
+					<CustomHelperButtons />
+				</AgentProvider>
+			),
 			InFrontOfTheCanvas: () => (
-				<>
-					{agent && <AgentViewportBoundsHighlight agent={agent} />}
-					{agent && <ContextHighlights agent={agent} />}
-				</>
+				<AgentProvider agentId={AGENT_ID}>
+					<AgentViewportBoundsHighlight />
+					<ContextHighlights />
+				</AgentProvider>
 			),
 		}
-	}, [agent])
+	}, [])
 
 	return (
 		<TldrawUiToastsProvider>
@@ -81,27 +83,28 @@ function App() {
 						overrides={overrides}
 						components={components}
 					>
-						<AppInner setAgent={setAgent} />
+						<AppInner />
 					</Tldraw>
 				</div>
 				<ErrorBoundary fallback={ChatPanelFallback}>
-					{agent && <ChatPanel agent={agent} />}
+					<AgentProvider agentId={AGENT_ID}>
+						<ChatPanel />
+					</AgentProvider>
 				</ErrorBoundary>
 			</div>
 		</TldrawUiToastsProvider>
 	)
 }
 
-function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
+function AppInner() {
 	const editor = useEditor()
 	const agent = useTldrawAgent(editor, AGENT_ID)
 
 	useEffect(() => {
 		if (!editor || !agent) return
-		setAgent(agent)
 		;(window as any).editor = editor
 		;(window as any).agent = agent
-	}, [agent, editor, setAgent])
+	}, [agent, editor])
 
 	return null
 }
