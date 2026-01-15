@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
 	DefaultSizeStyle,
 	ErrorBoundary,
@@ -9,7 +9,6 @@ import {
 	useEditor,
 } from 'tldraw'
 import { AgentProvider } from './agent/AgentContext'
-import { TldrawAgent } from './agent/TldrawAgent'
 import { useTldrawAgent } from './agent/useTldrawAgent'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
@@ -57,70 +56,57 @@ const overrides: TLUiOverrides = {
 }
 
 function App() {
-	const [agent, setAgent] = useState<TldrawAgent | undefined>()
-
-	// Custom components for Tldraw - these render inside Tldraw and use useRequiredAgent()
+	// Custom components for agent starter
 	const components: TLComponents = useMemo(() => {
-		if (!agent) return {}
 		return {
-			HelperButtons: () => <CustomHelperButtons />,
+			HelperButtons: () => (
+				<AgentProvider agentId={AGENT_ID}>
+					<CustomHelperButtons />
+				</AgentProvider>
+			),
 			InFrontOfTheCanvas: () => (
-				<>
+				<AgentProvider agentId={AGENT_ID}>
 					<AgentViewportBoundsHighlight />
 					<ContextHighlights />
-				</>
+				</AgentProvider>
 			),
 		}
-	}, [agent])
-
-	// Wrap content in AgentProvider when agent exists, otherwise render without context
-	const content = (
-		<div className="tldraw-agent-container">
-			<div className="tldraw-canvas">
-				<Tldraw
-					persistenceKey="tldraw-agent-demo"
-					tools={tools}
-					overrides={overrides}
-					components={components}
-				>
-					<AppInner setAgent={setAgent} />
-				</Tldraw>
-			</div>
-			<ErrorBoundary fallback={ChatPanelFallback}>{agent && <ChatPanel />}</ErrorBoundary>
-		</div>
-	)
+	}, [])
 
 	return (
 		<TldrawUiToastsProvider>
-			{agent ? <AgentProvider agent={agent}>{content}</AgentProvider> : content}
+			<div className="tldraw-agent-container">
+				<div className="tldraw-canvas">
+					<Tldraw
+						persistenceKey="tldraw-agent-demo"
+						tools={tools}
+						overrides={overrides}
+						components={components}
+					>
+						<AppInner />
+					</Tldraw>
+				</div>
+				<ErrorBoundary fallback={ChatPanelFallback}>
+					<AgentProvider agentId={AGENT_ID}>
+						<ChatPanel />
+					</AgentProvider>
+				</ErrorBoundary>
+			</div>
 		</TldrawUiToastsProvider>
 	)
 }
 
-function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
+function AppInner() {
 	const editor = useEditor()
 	const agent = useTldrawAgent(editor, AGENT_ID)
 
 	useEffect(() => {
 		if (!editor || !agent) return
-		setAgent(agent)
 		;(window as any).editor = editor
 		;(window as any).agent = agent
-	}, [agent, editor, setAgent])
+	}, [agent, editor])
 
 	return null
 }
 
 export default App
-
-// function AppInner() {
-// 	const editor = useEditor()
-// 	useTldrawAgent(editor, AGENT_ID)
-
-// 	useEffect(() => {
-// 		if (!editor) return
-// 		;(window as any).editor = editor
-// 	}, [editor])
-
-// 	return null
-// }

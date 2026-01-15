@@ -1,25 +1,7 @@
-import { useCallback, useMemo } from 'react'
-import { Editor, useToasts, useValue } from 'tldraw'
+import { useCallback, useEffect, useState } from 'react'
+import { Editor, useToasts } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 import { $agentsAtom } from './agentsAtom'
-
-/**
- * Get an agent by id from the agents atom.
- * This hook reads directly from the atom, ensuring you always get the current
- * agent reference.
- *
- * @example
- * ```tsx
- * const agent = useAgent('my-agent')
- * if (agent) {
- *   agent.prompt({ message: 'Draw a snowman' })
- * }
- * ```
- */
-export function useAgent(id: string): TldrawAgent | undefined {
-	const agents = useValue($agentsAtom)
-	return agents.find((a) => a.id === id)
-}
 
 /**
  * Create a tldraw agent that can be prompted to edit the canvas.
@@ -29,11 +11,14 @@ export function useAgent(id: string): TldrawAgent | undefined {
  * @example
  * ```tsx
  * const agent = useTldrawAgent(editor)
- * agent.prompt({ message: 'Draw a snowman' })
+ * if (agent) {
+ *   agent.prompt({ message: 'Draw a snowman' })
+ * }
  * ```
  */
-export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): TldrawAgent {
+export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): TldrawAgent | null {
 	const toasts = useToasts()
+	const [agent, setAgent] = useState<TldrawAgent | null>(null)
 
 	const handleError = useCallback(
 		(e: any) => {
@@ -48,7 +33,7 @@ export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): Tld
 		[toasts]
 	)
 
-	const agent = useMemo(() => {
+	useEffect(() => {
 		// Dispose any existing agent with the same id
 		const existingAgent = $agentsAtom.get().find((a) => a.id === id)
 		if (existingAgent) {
@@ -56,7 +41,12 @@ export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): Tld
 		}
 
 		// Create a new agent
-		return new TldrawAgent({ editor, id, onError: handleError })
+		const newAgent = new TldrawAgent({ editor, id, onError: handleError })
+		setAgent(newAgent)
+
+		return () => {
+			newAgent.dispose()
+		}
 	}, [editor, handleError, id])
 
 	return agent
