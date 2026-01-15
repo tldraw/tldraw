@@ -58,8 +58,7 @@ class TargetAreaPointing extends StateNode {
 	}
 
 	override onPointerUp() {
-		const agents = $agentsAtom.get(this.editor)
-		for (const agent of agents) {
+		for (const agent of $agentsAtom.get()) {
 			agent.addToContext({
 				type: 'point',
 				point: this.editor.inputs.getCurrentPagePoint().clone(),
@@ -91,8 +90,7 @@ class TargetAreaDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		const agents = $agentsAtom.get(this.editor)
-		for (const agent of agents) {
+		for (const agent of $agentsAtom.get()) {
 			agent.addToContext({
 				type: 'area',
 				bounds: this.bounds,

@@ -1,10 +1,9 @@
-import { EditorAtom } from 'tldraw'
+import { atom } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 
 /**
- * An atom containing all the agents attached to an editor.
+ * An atom containing all agents.
  *
- * More than one agent can be attached to a single editor.
- * This starter doesn't take advantage of that, but you could.
+ * This starter only uses one agent, but you could extend it to support multiple.
  */
-export const $agentsAtom = new EditorAtom<TldrawAgent[]>('agents', () => [])
+export const $agentsAtom = atom<TldrawAgent[]>('agents', [])
