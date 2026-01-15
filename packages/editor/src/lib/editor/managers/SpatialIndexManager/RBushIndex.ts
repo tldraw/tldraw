@@ -81,8 +81,15 @@ export class RBushIndex {
 
 	/**
 	 * Insert a shape into the spatial index.
+	 * If the shape already exists, it will be removed first to prevent duplicates.
 	 */
 	insert(id: TLShapeId, bounds: Box): void {
+		// Remove existing entry to prevent map-tree desync
+		const existing = this.elementsInTree.get(id)
+		if (existing) {
+			this.rBush.remove(existing)
+		}
+
 		const element: SpatialElement = {
 			minX: bounds.minX,
 			minY: bounds.minY,
