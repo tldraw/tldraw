@@ -1,5 +1,4 @@
-import { CustomMutatorImpl } from '@rocicorp/zero'
-import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { CustomMutatorImpl, SchemaQuery } from '@rocicorp/zero'
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
@@ -23,6 +22,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
 import { Pool, PoolClient } from 'pg'
+import type { SchemaCRUD } from '../../../../node_modules/@rocicorp/zero/out/zql/src/mutate/crud'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
@@ -538,14 +538,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							async query(sqlString: string, params: unknown[]): Promise<any[]> {
 								return client.query(sqlString, params).then((res) => res.rows)
 							},
+							async runQuery() {
+								throw new Error('runQuery not implemented for this context')
+							},
 						},
 						mutate,
 						location: 'server',
 						reason: 'authoritative',
 						mutationID: 0,
 						query: this.makeQuery(client, controller.signal),
-					},
-					msg.props
+						async run() {
+							throw new Error('run not implemented for this context')
+						},
+					} as any,
+					msg.props,
+					undefined // context parameter
 				)
 			} finally {
 				controller.abort()

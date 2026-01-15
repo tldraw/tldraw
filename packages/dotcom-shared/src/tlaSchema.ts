@@ -4,6 +4,7 @@ import {
 	definePermissions,
 	enumeration,
 	ExpressionBuilder,
+	json,
 	number,
 	PermissionsConfig,
 	relationships,
@@ -15,7 +16,7 @@ import { IndexKey, stringEnum } from '@tldraw/utils'
 
 export interface ZColumn {
 	optional?: boolean
-	type: 'string' | 'number' | 'boolean'
+	type: 'string' | 'number' | 'boolean' | 'json'
 }
 
 export const user = table('user')
@@ -122,7 +123,7 @@ export const user_fairies = table('user_fairies')
 		fairies: string(),
 		fairyLimit: number().optional(),
 		fairyAccessExpiresAt: number().optional(),
-		weeklyUsage: string(),
+		weeklyUsage: json<Record<string, number>>(),
 		weeklyLimit: number().optional(),
 	})
 	.primaryKey('userId')
@@ -356,6 +357,7 @@ export const schema = createSchema({
 		groupUserRelationships,
 		groupFileRelationships,
 	],
+	enableLegacyQueries: true as const,
 })
 
 export type TlaSchema = typeof schema
@@ -393,18 +395,19 @@ interface AuthData {
 	sub: string | null
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- permissions still needed for zero-cache
 export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
-	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
+	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<'user', TlaSchema>) =>
 		cmp('id', '=', authData.sub!)
 
 	const allowIfIsUserIdMatches = (
 		authData: AuthData,
-		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
+		{ cmp }: ExpressionBuilder<'file_state', TlaSchema>
 	) => cmp('userId', '=', authData.sub!)
 
 	const userCanAccessGroupMembershipListing = (
 		authData: AuthData,
-		{ or, cmp, exists }: ExpressionBuilder<TlaSchema, 'group_user'>
+		{ or, cmp, exists }: ExpressionBuilder<'group_user', TlaSchema>
 	) =>
 		or(
 			// User can see their own group memberships
@@ -417,7 +420,7 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const userCanAccessFile = (
 		authData: AuthData,
-		{ exists, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
+		{ exists, cmp, or }: ExpressionBuilder<'file', TlaSchema>
 	) =>
 		or(
 			// User owns the file directly (redundant given that every owned file will have a file_state now, but should be faster to check)
@@ -432,14 +435,14 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 
 	const userCanAccessGroup = (
 		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
+		{ exists }: ExpressionBuilder<'group', TlaSchema>
 	) =>
 		// User can access groups they are members of
 		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
 
 	const userCanAccessGroupFile = (
 		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'group_file'>
+		{ exists }: ExpressionBuilder<'group_file', TlaSchema>
 	) =>
 		// User can access group_file records for groups they are members of
 		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))

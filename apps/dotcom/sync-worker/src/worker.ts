@@ -1,5 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
+import { PostgresJSConnection, PushProcessor, ZQLDatabase } from '@rocicorp/zero/pg'
 import {
 	FILE_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -20,11 +21,6 @@ import {
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
-import {
-	PostgresJSConnection,
-	PushProcessor,
-	ZQLDatabase,
-} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
@@ -178,10 +174,11 @@ const router = createRouter<Environment>()
 	.post('/app/zero/push', async (req, env) => {
 		const auth = await requireAuth(req, env)
 		const processor = new PushProcessor(
-			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			// Type assertion needed due to postgres.js version mismatch between root and @rocicorp/zero
+			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env) as any), schema),
 			'debug'
 		)
-		const result = await processor.process(createMutators(auth.userId), req)
+		const result = await processor.process(createMutators(auth.userId) as any, req)
 		return json(result)
 	})
 	.all('*', notFound)
