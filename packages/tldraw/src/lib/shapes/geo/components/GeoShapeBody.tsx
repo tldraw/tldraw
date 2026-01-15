@@ -1,7 +1,8 @@
-import { TLGeoShape, TLGeoShapeResolvedStyles } from '@tldraw/editor'
+import { TLGeoShape } from '@tldraw/editor'
 import { useGetHashPatternZoomName } from '../../shared/defaultStyleDefs'
 import { ShapeFill, ShapeFillProps } from '../../shared/ShapeFill'
 import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
+import { TLGeoShapeResolvedStyles } from '../GeoShapeUtil'
 import { getGeoShapePath } from '../getGeoShapePath'
 
 export interface GeoShapeBodyProps {

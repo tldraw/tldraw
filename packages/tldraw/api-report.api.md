@@ -94,7 +94,6 @@ import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
-import { TLDrawShapeResolvedStyles } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
@@ -111,7 +110,6 @@ import { TLGeometryOpts } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLGeoShapeGeoStyle } from '@tldraw/editor';
 import { TLGeoShapeProps } from '@tldraw/editor';
-import { TLGeoShapeResolvedStyles } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
@@ -3299,6 +3297,24 @@ export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegrou
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX.Element;
 
+// @public
+export interface TLDrawShapeResolvedStyles {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillOpacity: number;
+    // (undocumented)
+    fillType: 'none' | 'pattern' | 'solid';
+    // (undocumented)
+    patternColor: string;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeOpacity: number;
+    // (undocumented)
+    strokeWidth: number;
+}
+
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 
@@ -3572,6 +3588,50 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public
+export interface TLGeoShapeResolvedStyles {
+    // (undocumented)
+    dashLengthRatio: number;
+    // (undocumented)
+    drawOffset: number;
+    // (undocumented)
+    drawPasses: number;
+    // (undocumented)
+    drawRoundness: number;
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillOpacity: number;
+    // (undocumented)
+    fillType: 'none' | 'pattern' | 'solid';
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelFontWeight: number | string;
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    patternColor: string;
+    // (undocumented)
+    showLabelOutline: boolean;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeLinecap: 'butt' | 'round' | 'square';
+    // (undocumented)
+    strokeLinejoin: 'bevel' | 'miter' | 'round';
+    // (undocumented)
+    strokeOpacity: number;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public (undocumented)

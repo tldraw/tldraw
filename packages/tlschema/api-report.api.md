@@ -75,11 +75,6 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 export const assetValidator: T.Validator<TLAsset>;
 
 // @public
-export type AsStyleOverrides<T> = {
-    [K in keyof T]?: Themeable<T[K]>;
-};
-
-// @public
 export class b64Vecs {
     static decodeFirstPoint(b64Points: string): null | VecModel;
     static decodeLastPoint(b64Points: string): null | VecModel;
@@ -433,12 +428,6 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 // @public
 export function isShapeId(id?: string): id is TLShapeId;
 
-// @public
-export function isThemedValue<T>(value: Themeable<T>): value is {
-    dark: T;
-    light: T;
-};
-
 // @public (undocumented)
 export const LANGUAGES: readonly [{
     readonly label: "Bahasa Indonesia";
@@ -635,9 +624,6 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public
-export function resolveThemeable<T>(value: Themeable<T>, isDarkMode: boolean): T;
-
-// @public
 export const richTextValidator: T.ObjectValidator<{
     attrs?: any;
     content: unknown[];
@@ -707,12 +693,6 @@ export const textShapeMigrations: TLPropsMigrations;
 
 // @public
 export const textShapeProps: RecordProps<TLTextShape>;
-
-// @public
-export type Themeable<T> = {
-    dark: T;
-    light: T;
-} | T;
 
 // @public
 export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
@@ -1046,24 +1026,6 @@ export interface TLDrawShapeProps {
 }
 
 // @public
-export interface TLDrawShapeResolvedStyles {
-    // (undocumented)
-    fillColor: string;
-    // (undocumented)
-    fillOpacity: number;
-    // (undocumented)
-    fillType: 'none' | 'pattern' | 'solid';
-    // (undocumented)
-    patternColor: string;
-    // (undocumented)
-    strokeColor: string;
-    // (undocumented)
-    strokeOpacity: number;
-    // (undocumented)
-    strokeWidth: number;
-}
-
-// @public
 export interface TLDrawShapeSegment {
     points: string;
     type: 'free' | 'straight';
@@ -1113,50 +1075,6 @@ export interface TLGeoShapeProps {
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
     w: number;
-}
-
-// @public
-export interface TLGeoShapeResolvedStyles {
-    // (undocumented)
-    dashLengthRatio: number;
-    // (undocumented)
-    drawOffset: number;
-    // (undocumented)
-    drawPasses: number;
-    // (undocumented)
-    drawRoundness: number;
-    // (undocumented)
-    fillColor: string;
-    // (undocumented)
-    fillOpacity: number;
-    // (undocumented)
-    fillType: 'none' | 'pattern' | 'solid';
-    // (undocumented)
-    labelColor: string;
-    // (undocumented)
-    labelFontFamily: string;
-    // (undocumented)
-    labelFontSize: number;
-    // (undocumented)
-    labelFontWeight: number | string;
-    // (undocumented)
-    labelLineHeight: number;
-    // (undocumented)
-    labelPadding: number;
-    // (undocumented)
-    patternColor: string;
-    // (undocumented)
-    showLabelOutline: boolean;
-    // (undocumented)
-    strokeColor: string;
-    // (undocumented)
-    strokeLinecap: 'butt' | 'round' | 'square';
-    // (undocumented)
-    strokeLinejoin: 'bevel' | 'miter' | 'round';
-    // (undocumented)
-    strokeOpacity: number;
-    // (undocumented)
-    strokeWidth: number;
 }
 
 // @public (undocumented)
@@ -1545,12 +1463,6 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
-
-// @public
-export type TLShapeResolvedStyles = TLDrawShapeResolvedStyles | TLGeoShapeResolvedStyles;
-
-// @public
-export type TLShapeStyleOverrides = AsStyleOverrides<TLShapeResolvedStyles>;
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;

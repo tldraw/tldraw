@@ -1,5 +1,6 @@
 import { useValue } from '@tldraw/state-react'
-import { TLShape, TLShapeId, TLShapeResolvedStyles } from '@tldraw/tlschema'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeResolvedStyles } from '../editor/TLShapeStyles'
 import { useEditor } from './useEditor'
 
 /**

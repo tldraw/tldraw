@@ -49,8 +49,6 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeResolvedStyles,
-	TLShapeStyleOverrides,
 	TLStore,
 	TLStoreSnapshot,
 	TLVideoAsset,
@@ -60,7 +58,6 @@ import {
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
-	isThemedValue,
 } from '@tldraw/tlschema'
 import {
 	FileHelpers,
@@ -141,6 +138,7 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import { TLShapeResolvedStyles, TLShapeStyleOverrides, isThemedValue } from './TLShapeStyles'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'

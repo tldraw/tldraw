@@ -8,7 +8,6 @@ import {
 	SvgExportContext,
 	TLDrawShape,
 	TLDrawShapeProps,
-	TLDrawShapeResolvedStyles,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	TLStyleContext,
@@ -23,6 +22,33 @@ import {
 	useShapeStyles,
 	useValue,
 } from '@tldraw/editor'
+
+/**
+ * The resolved/computed styles for a draw shape.
+ * These are the actual values derived from shape props and overrides.
+ *
+ * @public
+ */
+export interface TLDrawShapeResolvedStyles {
+	// Stroke
+	strokeWidth: number
+	strokeColor: string
+	strokeOpacity: number
+
+	// Fill
+	fillType: 'none' | 'solid' | 'pattern'
+	fillColor: string
+	fillOpacity: number
+
+	// Pattern (patternUrl computed at render time based on zoom)
+	patternColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		draw: TLDrawShapeResolvedStyles
+	}
+}
 
 import { ShapeFill, ShapeFillProps } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'

@@ -82,8 +82,6 @@ import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
-import { TLShapeResolvedStyles } from '@tldraw/tlschema';
-import { TLShapeStyleOverrides } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
@@ -135,6 +133,11 @@ export class Arc2d extends Geometry2d {
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
+
+// @public
+export type AsStyleOverrides<T> = {
+    [K in keyof T]?: Themeable<T[K]>;
+};
 
 // @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
@@ -2222,6 +2225,12 @@ export const isAccelKey: <InputType extends {
 export const isSafeFloat: (n: number) => boolean;
 
 // @public
+export function isThemedValue<T>(value: Themeable<T>): value is {
+    dark: T;
+    light: T;
+};
+
+// @public
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
     filter?(parent: TLShape): boolean;
 }): void;
@@ -2644,6 +2653,9 @@ export function resizeScaled(shape: TLBaseShape<any, {
     x: number;
     y: number;
 };
+
+// @public
+export function resolveThemeable<T>(value: Themeable<T>, isDarkMode: boolean): T;
 
 // @public (undocumented)
 export type RichTextFontVisitor = (node: TiptapNode, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void) => RichTextFontVisitorState;
@@ -3079,6 +3091,12 @@ export class TextManager {
         text: string;
     }[];
 }
+
+// @public
+export type Themeable<T> = {
+    dark: T;
+    light: T;
+} | T;
 
 // @internal (undocumented)
 export class TickManager {
@@ -4295,6 +4313,22 @@ export interface TLShapeIndicatorProps {
 export interface TLShapeIndicatorsProps {
     hideAll?: boolean;
     showAll?: boolean;
+}
+
+// @public
+export type TLShapeResolvedStyles = keyof TLShapeStylesMap extends never ? Record<string, unknown> : TLShapeStylesMap[keyof TLShapeStylesMap];
+
+// @public
+export type TLShapeResolvedStylesFor<K extends keyof TLShapeStylesMap> = TLShapeStylesMap[K];
+
+// @public
+export type TLShapeStyleOverrides = AsStyleOverrides<TLShapeResolvedStyles>;
+
+// @public
+export type TLShapeStyleOverridesFor<K extends keyof TLShapeStylesMap> = AsStyleOverrides<TLShapeStylesMap[K]>;
+
+// @public
+export interface TLShapeStylesMap {
 }
 
 // @public

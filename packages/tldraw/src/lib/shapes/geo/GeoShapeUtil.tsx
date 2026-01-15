@@ -12,7 +12,6 @@ import {
 	SvgExportContext,
 	TLGeoShape,
 	TLGeoShapeProps,
-	TLGeoShapeResolvedStyles,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	TLStyleContext,
@@ -30,6 +29,53 @@ import {
 	useShapeStyles,
 	useValue,
 } from '@tldraw/editor'
+
+/**
+ * The resolved/computed styles for a geo shape.
+ * These are the actual values derived from shape props and overrides.
+ *
+ * @public
+ */
+export interface TLGeoShapeResolvedStyles {
+	// Stroke
+	strokeWidth: number
+	strokeColor: string
+	strokeLinecap: 'round' | 'butt' | 'square'
+	strokeLinejoin: 'round' | 'bevel' | 'miter'
+	strokeOpacity: number
+
+	// Fill
+	fillType: 'none' | 'solid' | 'pattern'
+	fillColor: string
+	fillOpacity: number
+
+	// Draw style (for 'draw' dash style - hand-drawn look)
+	drawOffset: number
+	drawRoundness: number
+	drawPasses: number
+
+	// Dash
+	dashLengthRatio: number
+
+	// Pattern (patternUrl computed at render time based on zoom)
+	patternColor: string
+
+	// Label
+	labelFontSize: number
+	labelLineHeight: number
+	labelPadding: number
+	labelColor: string
+	labelFontFamily: string
+	labelFontWeight: string | number
+	showLabelOutline: boolean
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		geo: TLGeoShapeResolvedStyles
+	}
+}
+
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,

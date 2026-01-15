@@ -287,16 +287,6 @@ export {
 	DefaultHorizontalAlignStyle,
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
-export {
-	isThemedValue,
-	resolveThemeable,
-	type AsStyleOverrides,
-	type Themeable,
-	type TLDrawShapeResolvedStyles,
-	type TLGeoShapeResolvedStyles,
-	type TLShapeResolvedStyles,
-	type TLShapeStyleOverrides,
-} from './styles/TLShapeStyles'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
