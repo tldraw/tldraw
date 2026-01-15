@@ -23,7 +23,7 @@ We use bounding boxes for this. A bounding box is the smallest axis-aligned rect
 
 ## Why axis-aligned?
 
-The alignment constraint is what makes bounding boxes fast. Checking if two axis-aligned boxes overlap reduces to just four min/max comparisons:
+The alignment constraint is what makes bounding boxes fast. Checking if two axis-aligned boxes overlap reduces to making just four min/max comparisons. This function returns true if and only if there is an overlap on one of the four edges of the boxes.
 
 ```tsx
 // packages/editor/src/lib/primitives/Box.ts:421-423
@@ -32,28 +32,19 @@ static Collides(A: Box, B: Box) {
 }
 ```
 
-If there's a gap between two boxes on either axis, they aren't colliding. For axis-aligned boxes, we only need to check two axes - horizontal and vertical.
-
-The code checks for gaps: is A completely to the left of B? To the right? Above? Below? If any of these is true, there's no collision. The `!` flips this - we return true (collision) only when none of those gaps exist.
-
-Most boxes on a canvas aren't touching, so they fail on the first or second comparison and we exit early.
-
-We use this calculation everywhere: hit testing, viewport culling, snapping, and more. But this speed comes with a constraint: the boxes must stay axis-aligned. So what happens when a shape gets rotated?
+We use this calculation everywhere: hit testing, viewport culling, snapping, and more. However: what happens when a shape gets rotated?
 
 ## Rotating boxes
 
-Say you have a 100×50px rectangle at the origin. Its bounding box is simply:
+Say you have a 100×50px rectangle at the origin. Its bounding box would be:
 
 ```tsx
 {x: 0, y: 0, w: 100, h: 50}
 ```
 
-Now rotate it 45°. What would the new bounding box be?
-
-A first attempt might be to apply the rotation matrix directly to the box corners. Let's see what happens:
+If you rotate the rectangle by 45°, what would the new bounding box be? A first step would be to apply the rotation matrix directly to the vertices of the AABB:
 
 ```tsx
-// The four corners of our 100×50 rectangle
 const corners = [
 	{ x: 0, y: 0 }, // top-left
 	{ x: 100, y: 0 }, // top-right
@@ -61,29 +52,23 @@ const corners = [
 	{ x: 0, y: 50 }, // bottom-left
 ]
 
-// Apply 45° rotation matrix to each corner
 const rotated = corners.map((p) => {
-	const cos = Math.cos(Math.PI / 4) // cos(45°) ≈ 0.707
-	const sin = Math.sin(Math.PI / 4) // sin(45°) ≈ 0.707
+	const cos = Math.cos(Math.PI / 4)
+	const sin = Math.sin(Math.PI / 4)
 	return {
 		x: p.x * cos - p.y * sin,
 		y: p.x * sin + p.y * cos,
 	}
 })
+
 // Results in: [{x: 0, y: 0}, {x: 70.7, y: 70.7}, {x: 35.4, y: 106.1}, {x: -35.4, y: 35.4}]
 ```
 
-These rotated points describe the shape's new position perfectly, but the edges are no longer aligned with the axes of page space. If we tried to use these directly for collision detection, we'd need to check more axes (4 instead of 2) and compute projections using dot products, which is more expensive than just comparing precomputed min/max values as above.
+The rotated points describe the shape's new position, but the edges are no longer aligned with the axes of page space. If we tried to use these directly for collision detection, we'd need to check more axes and compute projections using dot products (according to the [separating axis theorem](https://dyn4j.org/2010/01/sat/)), which is more expensive than just comparing precomputed min/max values as above.
 
-More importantly, complex shapes like freehand drawings might have hundreds of edges to test. Axis-aligned bounding boxes reduce all of this to the same four comparisons regardless of shape complexity.
+## Recomputing the AABB
 
-## Transform vertices and recompute bounds
-
-tldraw handles this by never transforming bounding boxes directly. Instead, we:
-
-1. Get the shape's bounding box vertices (the four corners)
-2. Transform those vertices to page space
-3. Compute a new axis-aligned box from the transformed points
+Instead, we take the shape's bounding box vertices in its own coordinate system, transform them to page space, and compute a new axis-aligned box from those points. The result gets cached.
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:4838-4847
@@ -120,18 +105,13 @@ static FromPoints(points: VecLike[]): Box {
 }
 ```
 
-The rotated 100×50px rectangle fits inside a larger square: roughly 106×106px. We find the extreme points - the minimum and maximum x and y values among all the rotated corners:
+Take our 100×50px rectangle example: we first calculate its original AABB, then we apply the 45° rotation to each corner - and finally, we find the min and max (x, y) values among those rotated points. The result is a new AABB that is roughly 106×106px. This is bigger than the original box; it's stretched to contain all four rotated corners.
 
-```tsx
-minX = -35.4, maxX = 70.7  → width = 106.1
-minY = 0,     maxY = 106.1 → height = 106.1
-```
-
-This gives us an axis-aligned bounding box `{x: -35.4, y: 0, w: 106.1, h: 106.1}` that fully contains the rotated rectangle and keeps our fast comparison operations intact.
+[img]
 
 ## Nested transforms
 
-Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. A shape's page transform is the composition of all ancestor transforms:
+Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. If a rectangle sits inside a frame that's rotated 30°, the rectangle's position on the page depends on both transforms. We multiply them together to get the shape's final page transform.
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:4784-4798
@@ -146,11 +126,11 @@ Shapes in tldraw can be nested inside frames, which can themselves be rotated an
 }
 ```
 
-By transforming vertices through this composed matrix, we correctly handle arbitrarily nested, rotated, scaled shapes. The final `Box.FromPoints` call always produces a valid axis-aligned box, regardless of how complex the transform chain is.
+This recursive function handles arbitrary nesting: if a shape's parent isn't the page, we get the parent's page transform and compose it with the shape's local transform. No matter how deeply nested, rotated, or resized a shape is, we can always compute a valid axis-aligned box by transforming its vertices and finding the min/max values.
 
 ## Viewport culling
 
-Viewport culling uses axis-aligned box collision to decide which shapes to render:
+Aside from selection, tldraw also makes use of AABBs when doing viewport culling, which is where we programmatically decide which shapes to render:
 
 ```tsx
 // packages/editor/src/lib/editor/derivations/notVisibleShapes.ts:11-30 (simplified)
@@ -175,9 +155,6 @@ The bounds are inlined here (extracted from the viewport box before the loop) be
 
 ## The tradeoff
 
-Axis-aligned bounding boxes are a rough approximation. A rotated rectangle's AABB can be substantially larger than the shape itself - up to 41% larger area for a square rotated 45°. This means:
+Axis-aligned bounding boxes are a rough approximation. A rotated rectangle's AABB can be substantially larger than the shape itself—up to 41% larger for a square at 45°. This means hit testing gets false positives: the AABB says "might hit" when the actual shape doesn't. tldraw handles this with a two-phase approach—fast AABB rejection first, then precise geometry checks for shapes that pass. The rough first pass eliminates most candidates cheaply.
 
-- Hit testing has more false positives (the AABB says "might hit" but the actual shape doesn't)
-- Viewport culling is conservative (shapes render slightly before they're truly visible)
-
-tldraw handles this with a two-phase approach: fast AABB rejection first, then precise geometry checks for shapes that pass. The rough first pass eliminates most candidates cheaply.
+It also means viewport culling is conservative. Shapes start rendering slightly before they're truly visible, but that's a fine tradeoff for the speed we gain.
