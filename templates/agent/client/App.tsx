@@ -56,7 +56,7 @@ const overrides: TLUiOverrides = {
 }
 
 function App() {
-	// Custom components for agent starter
+	// Custom components to visualize what the agent is doing
 	const components: TLComponents = useMemo(() => {
 		return {
 			HelperButtons: () => (
