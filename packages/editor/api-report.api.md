@@ -60,6 +60,7 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColorTheme } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -81,6 +82,7 @@ import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
+import { TLShapeResolvedStyles } from '@tldraw/tlschema';
 import { TLShapeStyleOverrides } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
@@ -1298,8 +1300,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapesSharedRotation(shapeIds: TLShapeId[]): number;
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
-    getShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOverrides>(shape: TLShape | TLShapeId): T | undefined;
-    getShapeStyleValue<K extends keyof TLShapeStyleOverrides>(shape: TLShape | TLShapeId, styleName: K): TLShapeStyleOverrides[K] | undefined;
+    getShapeStyles<T extends TLShapeResolvedStyles = TLShapeResolvedStyles>(shape: TLShape | TLShapeId): T | undefined;
+    getShapeStyleValue<K extends keyof TLShapeResolvedStyles>(shape: TLShape | TLShapeId, styleName: K): TLShapeResolvedStyles[K] | undefined;
     getShapeUtil<K extends TLShape['type']>(type: K): ShapeUtil<Extract<TLShape, {
         type: K;
     }>>;
@@ -2768,7 +2770,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getClipPath?(shape: Shape): undefined | Vec[];
     abstract getDefaultProps(): Shape['props'];
-    getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeStyleOverrides | undefined;
+    getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeResolvedStyles | undefined;
     getFontFaces(shape: Shape): TLFontFace[];
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
@@ -4417,9 +4419,9 @@ export type TLStoreWithStatus = {
 
 // @public
 export interface TLStyleContext {
-    devicePixelRatio: number;
     isDarkMode: boolean;
-    zoomLevel: number;
+    // (undocumented)
+    theme: TLDefaultColorTheme;
 }
 
 // @public (undocumented)
@@ -4795,10 +4797,10 @@ export function useShallowArrayIdentity<T extends null | readonly any[] | undefi
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
 
 // @public
-export function useShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOverrides>(shapeOrId: TLShape | TLShapeId): T;
+export function useShapeStyles<T extends TLShapeResolvedStyles = TLShapeResolvedStyles>(shapeOrId: TLShape | TLShapeId): T;
 
 // @public
-export function useShapeStyleValue<K extends keyof TLShapeStyleOverrides>(shapeOrId: TLShape | TLShapeId, styleName: K): TLShapeStyleOverrides[K] | undefined;
+export function useShapeStyleValue<K extends keyof TLShapeResolvedStyles>(shapeOrId: TLShape | TLShapeId, styleName: K): TLShapeResolvedStyles[K] | undefined;
 
 // @public
 export function useSharedSafeId(id: string): SafeId;

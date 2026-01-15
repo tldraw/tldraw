@@ -288,18 +288,13 @@ export {
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
 export {
-	drawShapeStyleOverridesValidator,
-	emptyStyleOverridesValidator,
-	geoShapeStyleOverridesValidator,
 	isThemedValue,
 	resolveThemeable,
 	type AsStyleOverrides,
 	type Themeable,
 	type TLDrawShapeResolvedStyles,
-	type TLDrawShapeStyleOverrides,
-	type TLEmptyStyleOverrides,
 	type TLGeoShapeResolvedStyles,
-	type TLGeoShapeStyleOverrides,
+	type TLShapeResolvedStyles,
 	type TLShapeStyleOverrides,
 } from './styles/TLShapeStyles'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'

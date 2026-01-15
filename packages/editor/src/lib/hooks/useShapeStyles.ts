@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { TLShape, TLShapeId, TLShapeStyleOverrides } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, TLShapeResolvedStyles } from '@tldraw/tlschema'
 import { useEditor } from './useEditor'
 
 /**
@@ -29,7 +29,7 @@ import { useEditor } from './useEditor'
  *
  * @public
  */
-export function useShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOverrides>(
+export function useShapeStyles<T extends TLShapeResolvedStyles = TLShapeResolvedStyles>(
 	shapeOrId: TLShape | TLShapeId
 ): T {
 	const editor = useEditor()
@@ -67,10 +67,10 @@ export function useShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOve
  *
  * @public
  */
-export function useShapeStyleValue<K extends keyof TLShapeStyleOverrides>(
+export function useShapeStyleValue<K extends keyof TLShapeResolvedStyles>(
 	shapeOrId: TLShape | TLShapeId,
 	styleName: K
-): TLShapeStyleOverrides[K] | undefined {
+): TLShapeResolvedStyles[K] | undefined {
 	const editor = useEditor()
 	const shapeId = typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
 

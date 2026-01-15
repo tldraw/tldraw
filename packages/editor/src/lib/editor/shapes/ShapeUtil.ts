@@ -3,6 +3,7 @@ import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
+	TLDefaultColorTheme,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -10,7 +11,7 @@ import {
 	TLShapeCrop,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeStyleOverrides,
+	TLShapeResolvedStyles,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
@@ -34,10 +35,7 @@ import { TLResizeHandle } from '../types/selection-types'
 export interface TLStyleContext {
 	/** Whether dark mode is enabled */
 	isDarkMode: boolean
-	/** Current zoom level */
-	zoomLevel: number
-	/** Device pixel ratio */
-	devicePixelRatio: number
+	theme: TLDefaultColorTheme
 }
 
 /** @public */
@@ -552,31 +550,35 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
-	 * Get the default computed styles for a shape based on its props and the current context.
+	 * Get the resolved styles for a shape based on its props and the current context.
 	 *
-	 * Override this method to provide computed styles for your shape that can be
-	 * overridden via the `getShapeStyleOverrides` callback on the editor.
+	 * Override this method to compute the low-level style values for your shape.
+	 * These should be fully resolved values (not themeable) - use the `ctx.isDarkMode`
+	 * to compute theme-appropriate values.
+	 *
+	 * The returned styles can be overridden by the `getShapeStyleOverrides` callback
+	 * on the editor, which supports themeable values like `{ light: '#fff', dark: '#000' }`.
 	 *
 	 * @param shape - The shape to get styles for
 	 * @param ctx - Style context including dark mode, zoom level, etc.
-	 * @returns The default computed styles for this shape, or undefined if the shape
-	 *          doesn't support style overrides.
+	 * @returns The resolved styles for this shape, or undefined if the shape
+	 *          doesn't support computed styles.
 	 *
 	 * @example
 	 * ```ts
-	 * getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext) {
+	 * getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles {
 	 *   const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 	 *   return {
 	 *     strokeWidth: STROKE_SIZES[shape.props.size] * shape.props.scale,
 	 *     strokeColor: getColorValue(theme, shape.props.color, 'solid'),
-	 *     // ... other styles
+	 *     // ... other styles - all fully resolved, no Themeable wrappers
 	 *   }
 	 * }
 	 * ```
 	 *
 	 * @public
 	 */
-	getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeStyleOverrides | undefined {
+	getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeResolvedStyles | undefined {
 		return undefined
 	}
 

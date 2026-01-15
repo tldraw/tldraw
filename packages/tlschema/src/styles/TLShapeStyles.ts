@@ -1,5 +1,3 @@
-import { T } from '@tldraw/validate'
-
 // ────────────────────────────────────────────────────────────────────────────
 // Themeable utilities
 // ────────────────────────────────────────────────────────────────────────────
@@ -96,14 +94,6 @@ export interface TLGeoShapeResolvedStyles {
 	showLabelOutline: boolean
 }
 
-/**
- * Style overrides for geo shapes.
- * All properties are optional and support theming via `{ light: T, dark: T }` syntax.
- *
- * @public
- */
-export type TLGeoShapeStyleOverrides = AsStyleOverrides<TLGeoShapeResolvedStyles>
-
 // ────────────────────────────────────────────────────────────────────────────
 // Draw shape styles
 // ────────────────────────────────────────────────────────────────────────────
@@ -130,111 +120,16 @@ export interface TLDrawShapeResolvedStyles {
 }
 
 /**
- * Style overrides for draw shapes.
- * All properties are optional and support theming via `{ light: T, dark: T }` syntax.
+ * Union type for all shape style overrides.
  *
  * @public
  */
-export type TLDrawShapeStyleOverrides = AsStyleOverrides<TLDrawShapeResolvedStyles>
 
-// ────────────────────────────────────────────────────────────────────────────
-// Union type for all shape style overrides
-// ────────────────────────────────────────────────────────────────────────────
+export type TLShapeResolvedStyles = TLGeoShapeResolvedStyles | TLDrawShapeResolvedStyles
 
 /**
  * Union of all possible style override types.
  *
  * @public
  */
-export type TLShapeStyleOverrides = TLGeoShapeStyleOverrides | TLDrawShapeStyleOverrides
-
-// ────────────────────────────────────────────────────────────────────────────
-// Validators
-// ────────────────────────────────────────────────────────────────────────────
-
-/**
- * Creates a validator for a themeable value.
- * Accepts either a direct value or an object with `light` and `dark` keys.
- */
-function themeable<V>(valueValidator: T.Validatable<V>): T.Validatable<Themeable<V>> {
-	return T.or(
-		valueValidator,
-		T.object({ light: valueValidator, dark: valueValidator })
-	) as T.Validatable<Themeable<V>>
-}
-
-// Themeable validator helpers
-const themeableNumber = T.optional(themeable(T.number))
-const themeableString = T.optional(themeable(T.string))
-const themeableBoolean = T.optional(themeable(T.boolean))
-const themeableLinecap = T.optional(themeable(T.literalEnum('round', 'butt', 'square')))
-const themeableLinejoin = T.optional(themeable(T.literalEnum('round', 'bevel', 'miter')))
-const themeableFillType = T.optional(themeable(T.literalEnum('none', 'solid', 'pattern')))
-const themeableFontWeight = T.optional(themeable(T.or(T.string, T.number)))
-
-/**
- * Validator for geo shape style overrides.
- *
- * @public
- */
-export const geoShapeStyleOverridesValidator = T.object<TLGeoShapeStyleOverrides>({
-	// Stroke
-	strokeWidth: themeableNumber,
-	strokeColor: themeableString,
-	strokeLinecap: themeableLinecap,
-	strokeLinejoin: themeableLinejoin,
-	strokeOpacity: themeableNumber,
-	// Fill
-	fillType: themeableFillType,
-	fillColor: themeableString,
-	fillOpacity: themeableNumber,
-	// Draw style
-	drawOffset: themeableNumber,
-	drawRoundness: themeableNumber,
-	drawPasses: themeableNumber,
-	// Dash
-	dashLengthRatio: themeableNumber,
-	// Pattern
-	patternColor: themeableString,
-	// Label
-	labelFontSize: themeableNumber,
-	labelLineHeight: themeableNumber,
-	labelPadding: themeableNumber,
-	labelColor: themeableString,
-	labelFontFamily: themeableString,
-	labelFontWeight: themeableFontWeight,
-	showLabelOutline: themeableBoolean,
-})
-
-/**
- * Validator for draw shape style overrides.
- *
- * @public
- */
-export const drawShapeStyleOverridesValidator = T.object<TLDrawShapeStyleOverrides>({
-	// Stroke
-	strokeWidth: themeableNumber,
-	strokeColor: themeableString,
-	strokeOpacity: themeableNumber,
-	// Fill
-	fillType: themeableFillType,
-	fillColor: themeableString,
-	fillOpacity: themeableNumber,
-	// Pattern
-	patternColor: themeableString,
-})
-
-/**
- * An empty style overrides validator for shapes that don't support style overrides yet.
- *
- * @public
- */
-export const emptyStyleOverridesValidator = T.object({})
-
-/**
- * Type representing empty style overrides.
- *
- * @public
- */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TLEmptyStyleOverrides {}
+export type TLShapeStyleOverrides = AsStyleOverrides<TLShapeResolvedStyles>

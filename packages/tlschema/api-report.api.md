@@ -305,17 +305,6 @@ export const drawShapeMigrations: TLPropsMigrations;
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public
-export const drawShapeStyleOverridesValidator: T.ObjectValidator<{
-    fillColor?: Themeable<string> | undefined;
-    fillOpacity?: Themeable<number> | undefined;
-    fillType?: Themeable<"none" | "pattern" | "solid"> | undefined;
-    patternColor?: Themeable<string> | undefined;
-    strokeColor?: Themeable<string> | undefined;
-    strokeOpacity?: Themeable<number> | undefined;
-    strokeWidth?: Themeable<number> | undefined;
-}>;
-
-// @public
 export const ElbowArrowSnap: T.Validator<"center" | "edge-point" | "edge" | "none">;
 
 // @public
@@ -326,9 +315,6 @@ export const embedShapeMigrations: TLPropsMigrations;
 
 // @public
 export const embedShapeProps: RecordProps<TLEmbedShape>;
-
-// @public
-export const emptyStyleOverridesValidator: T.ObjectValidator<{}>;
 
 // @public
 export class EnumStyleProp<T> extends StyleProp<T> {
@@ -357,30 +343,6 @@ export const geoShapeMigrations: TLPropsMigrations;
 
 // @public
 export const geoShapeProps: RecordProps<TLGeoShape>;
-
-// @public
-export const geoShapeStyleOverridesValidator: T.ObjectValidator<{
-    dashLengthRatio?: Themeable<number> | undefined;
-    drawOffset?: Themeable<number> | undefined;
-    drawPasses?: Themeable<number> | undefined;
-    drawRoundness?: Themeable<number> | undefined;
-    fillColor?: Themeable<string> | undefined;
-    fillOpacity?: Themeable<number> | undefined;
-    fillType?: Themeable<"none" | "pattern" | "solid"> | undefined;
-    labelColor?: Themeable<string> | undefined;
-    labelFontFamily?: Themeable<string> | undefined;
-    labelFontSize?: Themeable<number> | undefined;
-    labelFontWeight?: Themeable<number | string> | undefined;
-    labelLineHeight?: Themeable<number> | undefined;
-    labelPadding?: Themeable<number> | undefined;
-    patternColor?: Themeable<string> | undefined;
-    showLabelOutline?: Themeable<boolean> | undefined;
-    strokeColor?: Themeable<string> | undefined;
-    strokeLinecap?: Themeable<"butt" | "round" | "square"> | undefined;
-    strokeLinejoin?: Themeable<"bevel" | "miter" | "round"> | undefined;
-    strokeOpacity?: Themeable<number> | undefined;
-    strokeWidth?: Themeable<number> | undefined;
-}>;
 
 // @public
 export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
@@ -1108,9 +1070,6 @@ export interface TLDrawShapeSegment {
 }
 
 // @public
-export type TLDrawShapeStyleOverrides = AsStyleOverrides<TLDrawShapeResolvedStyles>;
-
-// @public
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
 
 // @public
@@ -1118,10 +1077,6 @@ export interface TLEmbedShapeProps {
     h: number;
     url: string;
     w: number;
-}
-
-// @public
-export interface TLEmptyStyleOverrides {
 }
 
 // @public
@@ -1203,9 +1158,6 @@ export interface TLGeoShapeResolvedStyles {
     // (undocumented)
     strokeWidth: number;
 }
-
-// @public
-export type TLGeoShapeStyleOverrides = AsStyleOverrides<TLGeoShapeResolvedStyles>;
 
 // @public (undocumented)
 export interface TLGlobalBindingPropsMap {
@@ -1595,7 +1547,10 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
-export type TLShapeStyleOverrides = TLDrawShapeStyleOverrides | TLGeoShapeStyleOverrides;
+export type TLShapeResolvedStyles = TLDrawShapeResolvedStyles | TLGeoShapeResolvedStyles;
+
+// @public
+export type TLShapeStyleOverrides = AsStyleOverrides<TLShapeResolvedStyles>;
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;

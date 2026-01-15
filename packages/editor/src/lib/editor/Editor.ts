@@ -49,12 +49,14 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLShapeResolvedStyles,
 	TLShapeStyleOverrides,
 	TLStore,
 	TLStoreSnapshot,
 	TLVideoAsset,
 	createBindingId,
 	createShapeId,
+	getDefaultColorTheme,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
@@ -4762,7 +4764,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private _getShapeStylesCache(): ComputedCache<
-		TLShapeStyleOverrides | undefined,
+		TLShapeResolvedStyles | undefined,
 		TLShape
 	> {
 		return this.store.createComputedCache(
@@ -4785,17 +4787,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				// Merge overrides, resolving any themeable values
-				const merged = {
-					...defaultStyles,
-					...callbackOverrides,
-				}
+				const merged = { ...defaultStyles }
 
-				// Resolve themeable values (like { light: '#fff', dark: '#000' })
-				const isDarkMode = ctx.isDarkMode
-				for (const key of Object.keys(merged) as (keyof typeof merged)[]) {
-					const value = merged[key]
+				for (const [key, value] of Object.entries(callbackOverrides)) {
+					if (typeof value === 'undefined') continue
 					if (isThemedValue(value)) {
-						;(merged as any)[key] = isDarkMode ? value.dark : value.light
+						;(merged as any)[key] = ctx.isDarkMode ? value.dark : value.light
+					} else {
+						;(merged as any)[key] = value
 					}
 				}
 
@@ -4813,8 +4812,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _getStyleContext(): import('./shapes/ShapeUtil').TLStyleContext {
 		return {
 			isDarkMode: this.user.getIsDarkMode(),
-			zoomLevel: this.getZoomLevel(),
-			devicePixelRatio: this.getInstanceState().devicePixelRatio,
+			theme: getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() }),
 		}
 	}
 
@@ -4837,7 +4835,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOverrides>(
+	getShapeStyles<T extends TLShapeResolvedStyles = TLShapeResolvedStyles>(
 		shape: TLShape | TLShapeId
 	): T | undefined {
 		return this._getShapeStylesCache().get(typeof shape === 'string' ? shape : shape.id) as
@@ -4862,10 +4860,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapeStyleValue<K extends keyof TLShapeStyleOverrides>(
+	getShapeStyleValue<K extends keyof TLShapeResolvedStyles>(
 		shape: TLShape | TLShapeId,
 		styleName: K
-	): TLShapeStyleOverrides[K] | undefined {
+	): TLShapeResolvedStyles[K] | undefined {
 		const styles = this.getShapeStyles(shape)
 		if (!styles) return undefined
 		return styles[styleName]

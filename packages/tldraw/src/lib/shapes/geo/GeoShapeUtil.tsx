@@ -68,9 +68,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const { props } = shape
 		const scale = props.scale
+		const theme = ctx.theme
 
 		// Stroke styles
 		const strokeWidth = STROKE_SIZES[props.size] * scale
@@ -365,8 +365,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// Compute styles for the unscaled shape dimensions
 		const styleCtx: TLStyleContext = {
 			isDarkMode: ctx.isDarkMode,
-			zoomLevel: 1,
-			devicePixelRatio: 1,
+			theme: getDefaultColorTheme({ isDarkMode: ctx.isDarkMode }),
 		}
 		const unscaledStyles = this.getDefaultStyles(newShape, styleCtx)
 

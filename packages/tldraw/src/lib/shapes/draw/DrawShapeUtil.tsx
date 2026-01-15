@@ -16,7 +16,6 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	last,
 	lerp,
 	rng,
@@ -27,7 +26,11 @@ import {
 
 import { ShapeFill, ShapeFillProps } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport, useGetHashPatternZoomName } from '../shared/defaultStyleDefs'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	useGetHashPatternZoomName,
+} from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
@@ -84,7 +87,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override getDefaultStyles(shape: TLDrawShape, ctx: TLStyleContext): TLDrawShapeResolvedStyles {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+		const theme = ctx.theme
 		const { props } = shape
 		const scale = props.scale
 
@@ -272,7 +275,11 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const getPatternZoomName = useGetHashPatternZoomName()
 	const isDarkMode = editor.user.getIsDarkMode()
 
-	const allPointsFromSegments = getPointsFromDrawSegments(shape.props.segments, shape.props.scaleX, shape.props.scaleY)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	// Get stroke width from resolved styles
@@ -347,11 +354,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 				{shape.props.isClosed && fillType !== 'none' && allPointsFromSegments.length > 1 ? (
 					<ShapeFill {...buildFillProps(fillPath, fillType)} />
 				) : null}
-				<path
-					d={svgInk(allPointsFromSegments, options)}
-					strokeLinecap="round"
-					fill={strokeColor}
-				/>
+				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={strokeColor} />
 			</>
 		)
 	}
