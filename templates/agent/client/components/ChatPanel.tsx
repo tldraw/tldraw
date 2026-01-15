@@ -1,20 +1,21 @@
 import { FormEventHandler, useCallback, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
-import { TldrawAgent } from '../agent/TldrawAgent'
+import { useAgent } from '../agent/AgentContext'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
-export function ChatPanel({ agent }: { agent: TldrawAgent }) {
-	const { editor } = agent
+export function ChatPanel() {
+	const agent = useAgent()
 	const inputRef = useRef<HTMLTextAreaElement>(null)
-	const modelName = useValue(agent.$modelName)
+	const modelName = useValue('modelName', () => agent.$modelName.get(), [agent])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
 			e.preventDefault()
 			if (!inputRef.current) return
+			const { editor } = agent
 			const formData = new FormData(e.currentTarget)
 			const value = formData.get('input') as string
 
@@ -50,7 +51,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				type: 'user',
 			})
 		},
-		[agent, modelName, editor]
+		[agent, modelName]
 	)
 
 	function handleNewChat() {
