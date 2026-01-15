@@ -122,7 +122,7 @@ export class TldrawAgent {
 		this.id = id
 		this.onError = onError
 
-		$agentsAtom.update(editor, (agents) => [...agents, this])
+		$agentsAtom.update((agents) => [...agents, this])
 
 		this.agentActionUtils = getAgentActionUtilsRecord(this)
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
@@ -143,7 +143,7 @@ export class TldrawAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
-		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
+		$agentsAtom.update((agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
 	/**

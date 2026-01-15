@@ -58,14 +58,14 @@ const overrides: TLUiOverrides = {
 function App() {
 	const [agent, setAgent] = useState<TldrawAgent | undefined>()
 
-	// Custom components to visualize what the agent is doing
+	// Custom components for Tldraw - these render inside Tldraw and use useAgent()
 	const components: TLComponents = useMemo(() => {
 		return {
-			HelperButtons: () => agent && <CustomHelperButtons agent={agent} />,
+			HelperButtons: () => agent && <CustomHelperButtons agentId={AGENT_ID} />,
 			InFrontOfTheCanvas: () => (
 				<>
-					{agent && <AgentViewportBoundsHighlight agent={agent} />}
-					{agent && <ContextHighlights agent={agent} />}
+					{agent && <AgentViewportBoundsHighlight agentId={AGENT_ID} />}
+					{agent && <ContextHighlights agentId={AGENT_ID} />}
 				</>
 			),
 		}
@@ -85,7 +85,7 @@ function App() {
 					</Tldraw>
 				</div>
 				<ErrorBoundary fallback={ChatPanelFallback}>
-					{agent && <ChatPanel agent={agent} />}
+					{agent && <ChatPanel agentId={AGENT_ID} />}
 				</ErrorBoundary>
 			</div>
 		</TldrawUiToastsProvider>
@@ -107,3 +107,15 @@ function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
 }
 
 export default App
+
+// function AppInner() {
+// 	const editor = useEditor()
+// 	useTldrawAgent(editor, AGENT_ID)
+
+// 	useEffect(() => {
+// 		if (!editor) return
+// 		;(window as any).editor = editor
+// 	}, [editor])
+
+// 	return null
+// }

@@ -1,9 +1,10 @@
 import { Box, useValue } from 'tldraw'
-import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgent } from '../../agent/useTldrawAgent'
 import { AreaHighlight } from './AreaHighlight'
 
-export function AgentViewportBoundsHighlight({ agent }: { agent: TldrawAgent }) {
-	const currentRequest = useValue(agent.$activeRequest)
+export function AgentViewportBoundsHighlight({ agentId }: { agentId: string }) {
+	const agent = useAgent(agentId)
+	const currentRequest = useValue('activeRequest', () => agent?.$activeRequest.get(), [agent])
 	const agentViewportBounds = currentRequest?.bounds
 
 	// If the agent's viewport is equivalent to a pending context area, don't show the highlight

@@ -1,7 +1,25 @@
 import { useCallback, useMemo } from 'react'
-import { Editor, useToasts } from 'tldraw'
+import { Editor, useToasts, useValue } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 import { $agentsAtom } from './agentsAtom'
+
+/**
+ * Get an agent by id from the agents atom.
+ * This hook reads directly from the atom, ensuring you always get the current
+ * agent reference.
+ *
+ * @example
+ * ```tsx
+ * const agent = useAgent('my-agent')
+ * if (agent) {
+ *   agent.prompt({ message: 'Draw a snowman' })
+ * }
+ * ```
+ */
+export function useAgent(id: string): TldrawAgent | undefined {
+	const agents = useValue($agentsAtom)
+	return agents.find((a) => a.id === id)
+}
 
 /**
  * Create a tldraw agent that can be prompted to edit the canvas.
@@ -12,14 +30,6 @@ import { $agentsAtom } from './agentsAtom'
  * ```tsx
  * const agent = useTldrawAgent(editor)
  * agent.prompt({ message: 'Draw a snowman' })
- * ```
- *
- * @example
- * ```tsx
- * const agent1 = useTldrawAgent(editor, 'agent-1')
- * const agent2 = useTldrawAgent(editor, 'agent-2')
- * agent1.prompt({ message: 'Draw a snowman on the left' })
- * agent2.prompt({ message: 'Draw a snowman on the right' })
  * ```
  */
 export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): TldrawAgent {
@@ -39,8 +49,8 @@ export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): Tld
 	)
 
 	const agent = useMemo(() => {
-		// Dispose an existing agent
-		const existingAgent = $agentsAtom.get(editor).find((agent) => agent.id === id)
+		// Dispose any existing agent with the same id
+		const existingAgent = $agentsAtom.get().find((a) => a.id === id)
 		if (existingAgent) {
 			existingAgent.dispose()
 		}

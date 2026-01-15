@@ -76,8 +76,7 @@ class TargetShapePointing extends StateNode {
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
 		if (this.shape) {
-			const agents = $agentsAtom.get(this.editor)
-			for (const agent of agents) {
+			for (const agent of $agentsAtom.get()) {
 				agent.addToContext({
 					type: 'shape',
 					shape: convertTldrawShapeToSimpleShape(this.editor, this.shape),
@@ -113,19 +112,16 @@ class TargetShapeDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		const agents = $agentsAtom.get(this.editor)
-		if (this.shapes.length <= 3) {
-			for (const shape of this.shapes) {
-				for (const agent of agents) {
+		for (const agent of $agentsAtom.get()) {
+			if (this.shapes.length <= 3) {
+				for (const shape of this.shapes) {
 					agent.addToContext({
 						type: 'shape',
 						shape: convertTldrawShapeToSimpleShape(this.editor, shape),
 						source: 'user',
 					})
 				}
-			}
-		} else {
-			for (const agent of agents) {
+			} else {
 				agent.addToContext({
 					type: 'shapes',
 					shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(this.editor, shape)),
