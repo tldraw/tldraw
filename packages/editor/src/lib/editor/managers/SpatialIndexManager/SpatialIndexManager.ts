@@ -122,7 +122,10 @@ export class SpatialIndexManager {
 	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): void {
 		const perfStart = performance.now()
 
-		// 1. Process shape additions and removals from diff
+		// Track shapes we've already processed from the diff
+		const processedShapeIds = new Set<TLShapeId>()
+
+		// 1. Process shape additions, removals, and updates from diff
 		for (const changes of shapeDiff) {
 			// Handle additions (only for shapes on current page)
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
@@ -131,6 +134,7 @@ export class SpatialIndexManager {
 					if (bounds) {
 						this.rbush.upsert(shape.id, bounds)
 					}
+					processedShapeIds.add(shape.id)
 				}
 			}
 
@@ -138,35 +142,40 @@ export class SpatialIndexManager {
 			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
 				if (isShape(shape)) {
 					this.rbush.remove(shape.id)
+					processedShapeIds.add(shape.id)
 				}
 			}
 
-			// Handle shapes moved between pages
+			// Handle updated shapes: page changes and bounds updates
 			for (const [from, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
 				if (!isShape(to)) continue
+				processedShapeIds.add(to.id)
+
 				const wasOnPage = this.editor.getAncestorPageId(from) === this.lastPageId
 				const isOnPage = this.editor.getAncestorPageId(to) === this.lastPageId
-				if (wasOnPage && !isOnPage) {
-					this.rbush.remove(to.id)
-				} else if (!wasOnPage && isOnPage) {
+
+				if (isOnPage) {
 					const bounds = this.editor.getShapePageBounds(to.id)
 					if (bounds) {
 						this.rbush.upsert(to.id, bounds)
 					}
+				} else if (wasOnPage) {
+					this.rbush.remove(to.id)
 				}
 			}
 		}
 
-		// 2. Check ALL shapes in index for bounds changes
+		// 2. Check remaining shapes in index for bounds changes
 		// This handles shapes with computed bounds (arrows bound to moved shapes, groups with moved children, etc.)
-		// The bounds cache is reactive, so getShapePageBounds automatically returns updated bounds
 		const allShapeIds = this.rbush.getAllShapeIds()
 		let boundsChecks = 0
 		let boundsUpdates = 0
 		const boundsCheckStart = performance.now()
 
 		for (const shapeId of allShapeIds) {
+			if (processedShapeIds.has(shapeId)) continue
 			boundsChecks++
+
 			const currentBounds = this.editor.getShapePageBounds(shapeId)
 			const indexedBounds = this.rbush.getBounds(shapeId)
 
