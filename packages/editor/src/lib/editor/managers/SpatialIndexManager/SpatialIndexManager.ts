@@ -129,7 +129,7 @@ export class SpatialIndexManager {
 				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
 					const bounds = this.editor.getShapePageBounds(shape.id)
 					if (bounds) {
-						this.rbush.insert(shape.id, bounds)
+						this.rbush.upsert(shape.id, bounds)
 					}
 				}
 			}
@@ -151,7 +151,7 @@ export class SpatialIndexManager {
 				} else if (!wasOnPage && isOnPage) {
 					const bounds = this.editor.getShapePageBounds(to.id)
 					if (bounds) {
-						this.rbush.insert(to.id, bounds)
+						this.rbush.upsert(to.id, bounds)
 					}
 				}
 			}
@@ -181,9 +181,10 @@ export class SpatialIndexManager {
 							`${currentBounds ? `[${currentBounds.minX.toFixed(1)},${currentBounds.minY.toFixed(1)},${currentBounds.maxX.toFixed(1)},${currentBounds.maxY.toFixed(1)}]` : 'null'}`
 					)
 				}
-				this.rbush.remove(shapeId)
 				if (currentBounds) {
-					this.rbush.insert(shapeId, currentBounds)
+					this.rbush.upsert(shapeId, currentBounds)
+				} else {
+					this.rbush.remove(shapeId)
 				}
 			}
 		}
