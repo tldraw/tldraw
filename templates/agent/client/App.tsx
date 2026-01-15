@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
 	DefaultSizeStyle,
 	ErrorBoundary,
@@ -6,10 +6,12 @@ import {
 	Tldraw,
 	TldrawUiToastsProvider,
 	TLUiOverrides,
-	useEditor,
 } from 'tldraw'
-import { TldrawAgent } from './agent/TldrawAgent'
-import { useTldrawAgent } from './agent/useTldrawAgent'
+import { TldrawAgentApp } from './agent/TldrawAgentApp'
+import {
+	TldrawAgentAppContextProvider,
+	TldrawAgentAppProvider,
+} from './agent/TldrawAgentAppProvider'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
@@ -17,12 +19,6 @@ import { AgentViewportBoundsHighlight } from './components/highlights/AgentViewp
 import { ContextHighlights } from './components/highlights/ContextHighlights'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
-
-/**
- * The ID used for this project's agent.
- * If you want to support multiple agents, you can use a different ID for each agent.
- */
-export const AGENT_ID = 'agent-starter'
 
 // Customize tldraw's styles to play to the agent's strengths
 DefaultSizeStyle.setDefaultValue('s')
@@ -56,20 +52,31 @@ const overrides: TLUiOverrides = {
 }
 
 function App() {
-	const [agent, setAgent] = useState<TldrawAgent | undefined>()
+	const [app, setApp] = useState<TldrawAgentApp | null>(null)
+
+	const handleUnmount = useCallback(() => {
+		setApp(null)
+	}, [])
 
 	// Custom components to visualize what the agent is doing
+	// These use TldrawAgentAppContextProvider to access the app/agent
 	const components: TLComponents = useMemo(() => {
 		return {
-			HelperButtons: () => agent && <CustomHelperButtons agent={agent} />,
-			InFrontOfTheCanvas: () => (
-				<>
-					{agent && <AgentViewportBoundsHighlight agent={agent} />}
-					{agent && <ContextHighlights agent={agent} />}
-				</>
-			),
+			HelperButtons: () =>
+				app && (
+					<TldrawAgentAppContextProvider app={app}>
+						<CustomHelperButtons />
+					</TldrawAgentAppContextProvider>
+				),
+			InFrontOfTheCanvas: () =>
+				app && (
+					<TldrawAgentAppContextProvider app={app}>
+						<AgentViewportBoundsHighlight />
+						<ContextHighlights />
+					</TldrawAgentAppContextProvider>
+				),
 		}
-	}, [agent])
+	}, [app])
 
 	return (
 		<TldrawUiToastsProvider>
@@ -81,29 +88,19 @@ function App() {
 						overrides={overrides}
 						components={components}
 					>
-						<AppInner setAgent={setAgent} />
+						<TldrawAgentAppProvider onMount={setApp} onUnmount={handleUnmount} />
 					</Tldraw>
 				</div>
 				<ErrorBoundary fallback={ChatPanelFallback}>
-					{agent && <ChatPanel agent={agent} />}
+					{app && (
+						<TldrawAgentAppContextProvider app={app}>
+							<ChatPanel />
+						</TldrawAgentAppContextProvider>
+					)}
 				</ErrorBoundary>
 			</div>
 		</TldrawUiToastsProvider>
 	)
-}
-
-function AppInner({ setAgent }: { setAgent: (agent: TldrawAgent) => void }) {
-	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID)
-
-	useEffect(() => {
-		if (!editor || !agent) return
-		setAgent(agent)
-		;(window as any).editor = editor
-		;(window as any).agent = agent
-	}, [agent, editor, setAgent])
-
-	return null
 }
 
 export default App

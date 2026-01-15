@@ -4,19 +4,18 @@ import { AtIcon } from '../../shared/icons/AtIcon'
 import { BrainIcon } from '../../shared/icons/BrainIcon'
 import { ChevronDownIcon } from '../../shared/icons/ChevronDownIcon'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../shared/models'
-import { TldrawAgent } from '../agent/TldrawAgent'
+import { useAgent } from '../agent/TldrawAgentAppProvider'
 import { ContextItemTag } from './ContextItemTag'
 import { SelectionTag } from './SelectionTag'
 
 export function ChatInput({
-	agent,
 	handleSubmit,
 	inputRef,
 }: {
-	agent: TldrawAgent
 	handleSubmit: FormEventHandler<HTMLFormElement>
 	inputRef: React.RefObject<HTMLTextAreaElement | null>
 }) {
+	const agent = useAgent()
 	const { editor } = agent
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.requests.isGenerating(), [agent])
@@ -31,8 +30,8 @@ export function ChatInput({
 	)
 
 	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
-	const contextItems = useValue(agent.context.$contextItems)
-	const modelName = useValue(agent.$modelName)
+	const contextItems = useValue('contextItems', () => agent.context.$contextItems.get(), [agent])
+	const modelName = useValue('modelName', () => agent.$modelName.get(), [agent])
 
 	return (
 		<div className="chat-input">

@@ -1,13 +1,18 @@
 import { useMemo } from 'react'
 import { TLShapeId, useEditor, useValue } from 'tldraw'
-import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { AreaHighlight, AreaHighlightProps } from './AreaHighlight'
 import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
-export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
+export function ContextHighlights() {
+	const agent = useAgent()
 	const editor = useEditor()
-	const selectedContextItems = useValue(agent.context.$contextItems)
-	const activeRequest = useValue(agent.requests.$activeRequest)
+	const selectedContextItems = useValue('contextItems', () => agent.context.$contextItems.get(), [
+		agent,
+	])
+	const activeRequest = useValue('activeRequest', () => agent.requests.$activeRequest.get(), [
+		agent,
+	])
 	const activeContextItems = activeRequest?.contextItems ?? []
 
 	const selectedAreas: AreaHighlightProps[] = useValue(

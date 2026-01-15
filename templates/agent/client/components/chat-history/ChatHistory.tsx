@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
-import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { ChatHistorySection, getAgentHistorySections } from './ChatHistorySection'
 
 /*
@@ -16,7 +16,7 @@ The model's actions are grouped together into collapsible groups if appropriate.
 Here's an example of how the UI might look:
 
 - Chat history
-	- Section 
+	- Section
 		- Prompt
 		- Action group
 			- Action
@@ -30,8 +30,9 @@ Here's an example of how the UI might look:
 
 */
 
-export function ChatHistory({ agent }: { agent: TldrawAgent }) {
-	const historyItems = useValue(agent.chat.$chatHistory)
+export function ChatHistory() {
+	const agent = useAgent()
+	const historyItems = useValue('chatHistory', () => agent.chat.$chatHistory.get(), [agent])
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -81,7 +82,6 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 					<ChatHistorySection
 						key={'history-section-' + i}
 						section={section}
-						agent={agent}
 						loading={i === sections.length - 1 && isGenerating}
 					/>
 				)

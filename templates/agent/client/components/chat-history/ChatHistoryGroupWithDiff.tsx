@@ -2,18 +2,13 @@ import { useCallback, useMemo } from 'react'
 import { reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
 import { AgentIcon, AgentIconType } from '../../../shared/icons/AgentIcon'
 import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
-import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 import { getActionInfo } from './getActionInfo'
 
-export function ChatHistoryGroupWithDiff({
-	group,
-	agent,
-}: {
-	group: ChatHistoryGroup
-	agent: TldrawAgent
-}) {
+export function ChatHistoryGroupWithDiff({ group }: { group: ChatHistoryGroup }) {
+	const agent = useAgent()
 	const { items } = group
 	const { editor } = agent
 	const diff = useMemo(() => squashRecordDiffs(items.map((item) => item.diff)), [items])

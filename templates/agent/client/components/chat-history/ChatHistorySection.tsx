@@ -5,7 +5,7 @@ import {
 	ChatHistoryItem,
 	ChatHistoryPromptItem,
 } from '../../../shared/types/ChatHistoryItem'
-import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { ChatHistoryGroup, getActionHistoryGroups } from './ChatHistoryGroup'
 import { ChatHistoryPrompt } from './ChatHistoryPrompt'
 
@@ -16,20 +16,19 @@ export interface ChatHistorySection {
 
 export function ChatHistorySection({
 	section,
-	agent,
 	loading,
 }: {
 	section: ChatHistorySection
-	agent: TldrawAgent
 	loading: boolean
 }) {
+	const agent = useAgent()
 	const actions = section.items.filter((item) => item.type === 'action')
 	const groups = getActionHistoryGroups(actions, agent)
 	return (
 		<div className="chat-history-section">
 			<ChatHistoryPrompt item={section.prompt} editor={agent.editor} />
 			{groups.map((group, i) => {
-				return <ChatHistoryGroup key={'chat-history-group-' + i} group={group} agent={agent} />
+				return <ChatHistoryGroup key={'chat-history-group-' + i} group={group} />
 			})}
 			{loading && <SmallSpinner />}
 		</div>
