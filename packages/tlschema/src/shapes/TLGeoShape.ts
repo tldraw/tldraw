@@ -1,7 +1,7 @@
 import { T } from '@tldraw/validate'
 import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordProps, RecordStyleOverrides } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import {
 	DefaultColorStyle,
@@ -15,7 +15,6 @@ import {
 	DefaultHorizontalAlignStyle,
 	TLDefaultHorizontalAlignStyle,
 } from '../styles/TLHorizontalAlignStyle'
-import { TLGeoShapeStyleOverrides } from '../styles/TLShapeStyles'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import {
 	DefaultVerticalAlignStyle,
@@ -149,7 +148,7 @@ export interface TLGeoShapeProps {
  * }
  * ```
  */
-export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps, TLGeoShapeStyleOverrides>
+export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
 /**
  * Validation schema for geo shape properties.
@@ -181,53 +180,6 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	richText: richTextValidator,
-}
-
-/**
- * Validation schema for geo shape style overrides.
- * Each property is optional and allows users to override the computed low-level styles.
- *
- * @public
- * @example
- * ```ts
- * // Validate style override values
- * const isValidStrokeWidth = geoShapeStyleOverrides.strokeWidth.isValid(5)
- * const isValidStrokeColor = geoShapeStyleOverrides.strokeColor.isValid('#ff0000')
- * ```
- */
-export const geoShapeStyleOverrides: RecordStyleOverrides<TLGeoShape> = {
-	// Stroke styles
-	strokeWidth: T.number.optional(),
-	strokeColor: T.string.optional(),
-	strokeLinecap: T.literalEnum('round', 'butt', 'square').optional(),
-	strokeLinejoin: T.literalEnum('round', 'bevel', 'miter').optional(),
-	strokeOpacity: T.number.optional(),
-
-	// Fill styles
-	fillType: T.literalEnum('none', 'solid', 'pattern').optional(),
-	fillColor: T.string.optional(),
-	fillOpacity: T.number.optional(),
-
-	// Draw styles (for 'draw' dash style)
-	drawOffset: T.number.optional(),
-	drawRoundness: T.number.optional(),
-	drawPasses: T.positiveInteger.optional(),
-
-	// Dash styles
-	dashLengthRatio: T.number.optional(),
-
-	// Pattern styles (patternUrl not included - computed at render time)
-	patternColor: T.string.optional(),
-
-	// Label styles
-	labelFontSize: T.number.optional(),
-	labelLineHeight: T.number.optional(),
-	labelPadding: T.number.optional(),
-	labelColor: T.string.optional(),
-	labelFontFamily: T.string.optional(),
-	// Font weight can be a string ('normal', 'bold') or number (100-900)
-	labelFontWeight: T.or(T.string, T.number).optional(),
-	showLabelOutline: T.boolean.optional(),
 }
 
 const geoShapeVersions = createShapePropsMigrationIds('geo', {

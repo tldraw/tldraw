@@ -3,7 +3,6 @@ import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
-import { TLEmptyStyleOverrides } from '../styles/TLShapeStyles'
 
 /**
  * Base interface for all shapes in tldraw.
@@ -59,11 +58,7 @@ import { TLEmptyStyleOverrides } from '../styles/TLShapeStyles'
  *
  * @public
  */
-export interface TLBaseShape<
-	Type extends string,
-	Props extends object,
-	StyleOverrides extends object = TLEmptyStyleOverrides,
-> {
+export interface TLBaseShape<Type extends string, Props extends object> {
 	// using real `extends BaseRecord<'shape', TLShapeId>` introduces a circularity in the types
 	// and for that reason those "base members" have to be declared manually here
 	readonly id: TLShapeId
@@ -79,25 +74,6 @@ export interface TLBaseShape<
 	opacity: TLOpacityType
 	props: Props
 	meta: JsonObject
-	/**
-	 * Optional style overrides that allow fine-grained control over the shape's
-	 * low-level rendering styles. These override the styles computed from the
-	 * shape's high-level props.
-	 *
-	 * @example
-	 * ```ts
-	 * // Override stroke styles on a geo shape
-	 * const shape: TLGeoShape = {
-	 *   // ... other properties
-	 *   styleOverrides: {
-	 *     strokeWidth: 5,
-	 *     strokeColor: '#ff0000',
-	 *     strokeLinecap: 'square'
-	 *   }
-	 * }
-	 * ```
-	 */
-	styleOverrides?: Partial<StyleOverrides>
 }
 
 /**
@@ -183,14 +159,12 @@ export function createShapeValidator<
 	Type extends string,
 	Props extends JsonObject,
 	Meta extends JsonObject,
-	StyleOverrides extends object = TLEmptyStyleOverrides,
 >(
 	type: Type,
 	props?: { [K in keyof Props]: T.Validatable<Props[K]> },
-	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> },
-	styleOverrides?: { [K in keyof StyleOverrides]: T.Validatable<StyleOverrides[K]> }
+	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
 ) {
-	return T.object<TLBaseShape<Type, Props, StyleOverrides>>({
+	return T.object<TLBaseShape<Type, Props>>({
 		id: shapeIdValidator,
 		typeName: T.literal('shape'),
 		x: T.number,
@@ -203,8 +177,5 @@ export function createShapeValidator<
 		opacity: opacityValidator,
 		props: props ? T.object(props) : (T.jsonValue as any),
 		meta: meta ? T.object(meta) : (T.jsonValue as any),
-		styleOverrides: styleOverrides
-			? T.object(styleOverrides).optional()
-			: (T.jsonValue.optional() as any),
 	})
 }

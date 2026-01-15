@@ -94,6 +94,7 @@ import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
+import { TLDrawShapeResolvedStyles } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
@@ -110,6 +111,7 @@ import { TLGeometryOpts } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLGeoShapeGeoStyle } from '@tldraw/editor';
 import { TLGeoShapeProps } from '@tldraw/editor';
+import { TLGeoShapeResolvedStyles } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
@@ -146,6 +148,7 @@ import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLStyleContext } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
@@ -1169,6 +1172,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getDefaultProps(): TLDrawShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLDrawShape, ctx: TLStyleContext): TLDrawShapeResolvedStyles;
+    // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
@@ -1633,6 +1638,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles;
+    // (undocumented)
     getFontFaces(shape: TLGeoShape): TLFontFace[];
     // (undocumented)
     getGeometry(shape: TLGeoShape): Group2d;
@@ -1757,7 +1764,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element | null;
     // (undocumented)
     static type: "geo";
 }
@@ -2614,8 +2621,10 @@ export interface RichTextLabelProps {
     fill?: TLDefaultFillStyle;
     // (undocumented)
     font: TLDefaultFontStyle;
+    fontFamily?: string;
     // (undocumented)
     fontSize: number;
+    fontWeight?: number | string;
     // (undocumented)
     hasCustomTabBehavior?: boolean;
     // (undocumented)
@@ -2651,7 +2660,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, fontFamily, fontWeight, }: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -2661,8 +2670,10 @@ export interface RichTextSVGProps {
     bounds: Box;
     // (undocumented)
     font: TLDefaultFontStyle;
+    fontFamily?: string;
     // (undocumented)
     fontSize: number;
+    fontWeight?: number | string;
     // (undocumented)
     labelColor: string;
     // (undocumented)

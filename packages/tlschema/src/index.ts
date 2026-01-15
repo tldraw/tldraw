@@ -162,7 +162,6 @@ export {
 export {
 	type RecordProps,
 	type RecordPropsType,
-	type RecordStyleOverrides,
 	type TLPropsMigration,
 	type TLPropsMigrations,
 } from './recordsWithProps'
@@ -215,7 +214,6 @@ export {
 	GeoShapeGeoStyle,
 	geoShapeMigrations,
 	geoShapeProps,
-	geoShapeStyleOverrides,
 	type TLGeoShape,
 	type TLGeoShapeGeoStyle,
 	type TLGeoShapeProps,

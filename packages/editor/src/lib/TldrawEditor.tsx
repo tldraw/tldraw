@@ -215,7 +215,7 @@ export interface TldrawEditorBaseProps {
 	 * Provides a way to compute style overrides for shapes at runtime.
 	 *
 	 * This callback is called when computing resolved styles for a shape. The returned
-	 * overrides are merged on top of the shape's default styles and any persisted styleOverrides.
+	 * overrides are merged on top of the shape's default styles.
 	 *
 	 * @example
 	 * ```ts
@@ -230,10 +230,7 @@ export interface TldrawEditorBaseProps {
 	 * @param shape - The shape to compute overrides for.
 	 * @param editor - The editor instance.
 	 */
-	getShapeStyleOverrides?(
-		shape: TLShape,
-		editor: Editor
-	): TLShapeStyleOverrides | null | undefined
+	getShapeStyleOverrides?(shape: TLShape, editor: Editor): TLShapeStyleOverrides | null | undefined
 
 	/**
 	 * The URLs for the fonts to use in the editor.

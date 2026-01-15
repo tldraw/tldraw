@@ -555,7 +555,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * Get the default computed styles for a shape based on its props and the current context.
 	 *
 	 * Override this method to provide computed styles for your shape that can be
-	 * overridden via the shape's `styleOverrides` property.
+	 * overridden via the `getShapeStyleOverrides` callback on the editor.
 	 *
 	 * @param shape - The shape to get styles for
 	 * @param ctx - Style context including dark mode, zoom level, etc.

@@ -261,12 +261,11 @@ export interface TLEditorOptions {
 	 *
 	 * This callback is called when computing resolved styles for a shape. The returned
 	 * overrides are merged on top of the shape's default styles (from the ShapeUtil's
-	 * `getDefaultStyles` method) and any `styleOverrides` stored on the shape itself.
+	 * `getDefaultStyles` method).
 	 *
 	 * Priority order (highest wins):
 	 * 1. `getShapeStyleOverrides` callback (this)
-	 * 2. `shape.styleOverrides` (persisted on the shape)
-	 * 3. `ShapeUtil.getDefaultStyles()` (computed from props)
+	 * 2. `ShapeUtil.getDefaultStyles()` (computed from props)
 	 *
 	 * @example
 	 * ```ts
@@ -4776,24 +4775,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Priority order (highest wins):
 				// 1. getShapeStyleOverrides callback
-				// 2. shape.styleOverrides (persisted)
-				// 3. defaultStyles (from ShapeUtil)
+				// 2. defaultStyles (from ShapeUtil)
 
-				const shapeOverrides = shape.styleOverrides
 				const callbackOverrides = this._getShapeStyleOverrides?.(shape, this)
 
 				// Fast path: no overrides
-				if (
-					(!shapeOverrides || Object.keys(shapeOverrides).length === 0) &&
-					(!callbackOverrides || Object.keys(callbackOverrides).length === 0)
-				) {
+				if (!callbackOverrides || Object.keys(callbackOverrides).length === 0) {
 					return defaultStyles
 				}
 
 				// Merge overrides, resolving any themeable values
 				const merged = {
 					...defaultStyles,
-					...shapeOverrides,
 					...callbackOverrides,
 				}
 
@@ -4829,7 +4822,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the resolved styles for a shape, merging default styles with any overrides.
 	 *
 	 * This method computes the low-level style values for a shape based on its
-	 * high-level props, and applies any `styleOverrides` set on the shape.
+	 * high-level props, and applies any overrides from `getShapeStyleOverrides`.
 	 *
 	 * @example
 	 * ```ts

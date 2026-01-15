@@ -6,7 +6,7 @@ import { useEditor } from './useEditor'
  * Get the resolved styles for a shape, merging default styles with any overrides.
  *
  * This hook returns the computed low-level style values for a shape based on its
- * high-level props, with any `styleOverrides` applied.
+ * high-level props, with any overrides from `getShapeStyleOverrides` applied.
  *
  * @example
  * ```tsx
@@ -38,7 +38,7 @@ export function useShapeStyles<T extends TLShapeStyleOverrides = TLShapeStyleOve
 	return useValue(
 		'shapeStyles',
 		() => {
-			return editor.getShapeStyles<T>(shapeId)! 
+			return editor.getShapeStyles<T>(shapeId)!
 		},
 		[editor, shapeId]
 	)
