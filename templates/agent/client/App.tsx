@@ -8,6 +8,7 @@ import {
 	TLUiOverrides,
 	useEditor,
 } from 'tldraw'
+import { AgentProvider } from './agent/AgentContext'
 import { TldrawAgent } from './agent/TldrawAgent'
 import { useTldrawAgent } from './agent/useTldrawAgent'
 import { ChatPanel } from './components/ChatPanel'
@@ -58,36 +59,40 @@ const overrides: TLUiOverrides = {
 function App() {
 	const [agent, setAgent] = useState<TldrawAgent | undefined>()
 
-	// Custom components for Tldraw - these render inside Tldraw and use useAgent()
+	// Custom components for Tldraw - these render inside Tldraw and use useRequiredAgent()
 	const components: TLComponents = useMemo(() => {
+		if (!agent) return {}
 		return {
-			HelperButtons: () => agent && <CustomHelperButtons agentId={AGENT_ID} />,
+			HelperButtons: () => <CustomHelperButtons />,
 			InFrontOfTheCanvas: () => (
 				<>
-					{agent && <AgentViewportBoundsHighlight agentId={AGENT_ID} />}
-					{agent && <ContextHighlights agentId={AGENT_ID} />}
+					<AgentViewportBoundsHighlight />
+					<ContextHighlights />
 				</>
 			),
 		}
 	}, [agent])
 
+	// Wrap content in AgentProvider when agent exists, otherwise render without context
+	const content = (
+		<div className="tldraw-agent-container">
+			<div className="tldraw-canvas">
+				<Tldraw
+					persistenceKey="tldraw-agent-demo"
+					tools={tools}
+					overrides={overrides}
+					components={components}
+				>
+					<AppInner setAgent={setAgent} />
+				</Tldraw>
+			</div>
+			<ErrorBoundary fallback={ChatPanelFallback}>{agent && <ChatPanel />}</ErrorBoundary>
+		</div>
+	)
+
 	return (
 		<TldrawUiToastsProvider>
-			<div className="tldraw-agent-container">
-				<div className="tldraw-canvas">
-					<Tldraw
-						persistenceKey="tldraw-agent-demo"
-						tools={tools}
-						overrides={overrides}
-						components={components}
-					>
-						<AppInner setAgent={setAgent} />
-					</Tldraw>
-				</div>
-				<ErrorBoundary fallback={ChatPanelFallback}>
-					{agent && <ChatPanel agentId={AGENT_ID} />}
-				</ErrorBoundary>
-			</div>
+			{agent ? <AgentProvider agent={agent}>{content}</AgentProvider> : content}
 		</TldrawUiToastsProvider>
 	)
 }

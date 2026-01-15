@@ -8,12 +8,12 @@ import {
 	useValue,
 	Vec,
 } from 'tldraw'
-import { useAgent } from '../agent/useTldrawAgent'
+import { useAgent } from '../agent/AgentContext'
 
-export function GoToAgentButton({ agentId }: { agentId: string }) {
+export function GoToAgentButton() {
 	const editor = useEditor()
-	const agent = useAgent(agentId)
-	const currentRequest = useValue('activeRequest', () => agent?.$activeRequest.get(), [agent])
+	const agent = useAgent()
+	const currentRequest = useValue('activeRequest', () => agent.$activeRequest.get(), [agent])
 	const agentViewport = currentRequest?.bounds
 
 	// We only show the button if the agent is offscreen
