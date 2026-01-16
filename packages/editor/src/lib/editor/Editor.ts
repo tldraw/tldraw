@@ -5468,6 +5468,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get shape IDs within the given bounds.
 	 *
+	 * Note: Uses shape page bounds only. Frames with labels outside their bounds
+	 * may not be included even if the label is within the search bounds.
+	 *
 	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
 	 * ```ts
 	 * const candidates = editor.getShapeIdsInsideBounds(bounds)
