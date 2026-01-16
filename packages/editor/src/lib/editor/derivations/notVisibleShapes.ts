@@ -29,25 +29,12 @@ export function notVisibleShapes(editor: Editor) {
 			}
 		}
 
-		if (isUninitialized(prevValue)) {
+		if (isUninitialized(prevValue) || prevValue.size !== nextValue.size) {
 			return nextValue
 		}
 
-		// Check if there are changes
-		let hasChanges = prevValue.size !== nextValue.size
-
-		// If any of the old shapes are not in the new set, we know there's a change
-		if (!hasChanges) {
-			for (const prev of prevValue) {
-				if (!nextValue.has(prev)) {
-					hasChanges = true
-					break
-				}
-			}
-		}
-
-		if (hasChanges) {
-			return nextValue
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) return nextValue
 		}
 
 		return prevValue
