@@ -1277,6 +1277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
@@ -1489,6 +1490,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number;
     }): this;
     readonly snaps: SnapManager;
+    readonly spatialIndex: SpatialIndexManager;
     squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: string): this;
@@ -2882,6 +2884,19 @@ export class SnapManager {
     setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
+}
+
+// @public
+export class SpatialIndexManager {
+    constructor(editor: Editor);
+    dispose(): void;
+    // (undocumented)
+    readonly editor: Editor;
+    getShapeIdsAtPoint(point: {
+        x: number;
+        y: number;
+    }, margin?: number): Set<TLShapeId>;
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
 }
 
 // @public (undocumented)

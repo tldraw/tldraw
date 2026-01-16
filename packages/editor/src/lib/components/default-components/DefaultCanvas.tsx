@@ -412,11 +412,7 @@ function ReflowIfNeeded() {
 		'reflow for culled shapes',
 		() => {
 			const culledShapes = editor.getCulledShapes()
-			if (
-				culledShapesRef.current.size === culledShapes.size &&
-				[...culledShapes].every((id) => culledShapesRef.current.has(id))
-			)
-				return
+			if (culledShapesRef.current === culledShapes) return
 
 			culledShapesRef.current = culledShapes
 			const canvas = document.getElementsByClassName('tl-canvas')
