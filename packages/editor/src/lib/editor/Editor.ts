@@ -309,8 +309,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
-		this.spatialIndex = new SpatialIndexManager(this)
-		this.disposables.add(() => this.spatialIndex.dispose())
+		this._spatialIndex = new SpatialIndexManager(this)
+		this.disposables.add(() => this._spatialIndex.dispose())
 
 		this.disposables.add(this.timers.dispose)
 
@@ -899,12 +899,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
-	/**
-	 * A manager for spatial indexing, enabling efficient shape location queries.
-	 *
-	 * @public
-	 */
-	readonly spatialIndex: SpatialIndexManager
+	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -5261,7 +5256,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Use larger margin for spatial search to account for edge distance checks
 		const searchMargin = Math.max(innerMargin, outerMargin, this.options.hitTestMargin / zoomLevel)
-		const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
+		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 
 		const shapesToCheck = (
 			opts.renderingOnly
@@ -5457,7 +5452,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
 		const margin = opts.margin ?? 0
-		const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, margin)
+		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
 
 		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
 		// Frames are always checked because their labels can be outside their bounds
@@ -5473,6 +5468,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get shape IDs within the given bounds.
 	 *
+	 * Note: Uses shape page bounds only. Frames with labels outside their bounds
+	 * may not be included even if the label is within the search bounds.
+	 *
 	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
 	 * ```ts
 	 * const candidates = editor.getShapeIdsInsideBounds(bounds)
@@ -5480,13 +5478,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param bounds - The bounds to search within.
-	 *
 	 * @returns Unordered set of shape IDs within the given bounds.
 	 *
-	 * @public
+	 * @internal
 	 */
 	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
-		return this.spatialIndex.getShapeIdsInsideBounds(bounds)
+		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
 	/**
