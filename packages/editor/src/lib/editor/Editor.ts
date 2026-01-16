@@ -5452,27 +5452,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const margin = opts.margin ?? 0
 		const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, margin)
 
-		// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
-		if (candidateIds.size === 0) {
-			return []
-		}
-
-		// Get candidate shapes that are not hidden
-		const candidateMap = new Map<TLShapeId, TLShape>()
-		for (const id of candidateIds) {
-			const shape = this.getShape(id)
-			if (shape && !this.isShapeHidden(shape)) {
-				candidateMap.set(id, shape)
-			}
-		}
-
 		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
+		// Frames are always checked because their labels can be outside their bounds
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => {
-				if (candidateMap.has(shape.id)) {
-					return this.isPointInShape(shape, point, opts)
-				}
-				return false
+				if (this.isShapeHidden(shape)) return false
+				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
 	}
