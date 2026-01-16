@@ -176,8 +176,7 @@ export class Brushing extends StateNode {
 			brushBoxIsInsideViewport && !this.viewportDidChange
 				? editor.getCurrentPageRenderingShapesSorted()
 				: editor.getCurrentPageShapesSorted()
-		const candidateSet = new Set(candidateIds)
-		const shapesToHitTest = allShapes.filter((shape) => candidateSet.has(shape.id))
+		const shapesToHitTest = allShapes.filter((shape) => candidateIds.has(shape.id))
 
 		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
 			shape = shapesToHitTest[i]

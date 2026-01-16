@@ -114,8 +114,7 @@ export class ScribbleBrushing extends StateNode {
 		}
 
 		const allShapes = this.editor.getCurrentPageRenderingShapesSorted()
-		const candidateSet = new Set(candidateIds)
-		const currentPageShapes = allShapes.filter((shape) => candidateSet.has(shape.id))
+		const currentPageShapes = allShapes.filter((shape) => candidateIds.has(shape.id))
 
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec

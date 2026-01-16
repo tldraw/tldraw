@@ -118,8 +118,7 @@ export class Erasing extends StateNode {
 		}
 
 		const allShapes = editor.getCurrentPageRenderingShapesSorted()
-		const candidateSet = new Set(candidateIds)
-		const currentPageShapes = allShapes.filter((shape) => candidateSet.has(shape.id))
+		const currentPageShapes = allShapes.filter((shape) => candidateIds.has(shape.id))
 
 		for (const shape of currentPageShapes) {
 			if (editor.isShapeOfType(shape, 'group')) continue
