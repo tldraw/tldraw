@@ -1,6 +1,4 @@
 import { FormEventHandler, useCallback, useRef } from 'react'
-import { useValue } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
 import { useAgent } from '../agent/TldrawAgentAppProvider'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
@@ -10,7 +8,6 @@ export function ChatPanel() {
 	const agent = useAgent()
 	const { editor } = agent
 	const inputRef = useRef<HTMLTextAreaElement>(null)
-	const modelName = useValue('modelName', () => agent.$modelName.get(), [agent])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -31,28 +28,19 @@ export function ChatPanel() {
 				agent.todos.reset()
 			}
 
-			// Grab the user query and clear the chat input
-			const contextItems = agent.context.getItems()
-			agent.context.clear()
+			// Clear the chat input (context is cleared after it's captured in requestAgentActions)
 			inputRef.current.value = ''
 
 			// Prompt the agent
-			const selectedShapes = editor
-				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToSimpleShape(editor, shape))
-
 			agent.interrupt({
 				input: {
 					messages: [value],
-					contextItems,
 					bounds: editor.getViewportPageBounds(),
-					modelName,
-					selectedShapes,
 					source: 'user',
 				},
 			})
 		},
-		[agent, modelName, editor]
+		[agent, editor]
 	)
 
 	function handleNewChat() {

@@ -7,6 +7,7 @@ import {
 	structuredClone,
 	TLRecord,
 } from 'tldraw'
+import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
@@ -348,6 +349,7 @@ export class TldrawAgent {
 					`Agent is not allowed to become inactive during the active mode: ${eventualModeType}`
 				)
 			}
+			this.context.clear()
 			this.requests.setIsPrompting(false)
 			this.requests.setCancelFn(null)
 			return
@@ -440,13 +442,10 @@ export class TldrawAgent {
 
 			// Append to properties where possible
 			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
-			contextItems: [...scheduledRequest.contextItems, ...(request.contextItems ?? [])],
-			selectedShapes: [...scheduledRequest.selectedShapes, ...(request.selectedShapes ?? [])],
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
 
 			// Override specific properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
-			modelName: request.modelName ?? scheduledRequest.modelName,
 		})
 	}
 
@@ -560,17 +559,17 @@ export class TldrawAgent {
 	private requestAgentActions(request: AgentRequest) {
 		const { editor } = this
 
-		// If the request is not from self, add it to chat history
-		// if (request.source !== 'self') {
+		// Add user prompt to chat history
 		const promptHistoryItem: ChatHistoryPromptItem = {
 			type: 'prompt',
 			promptSource: request.source,
 			message: request.messages.join('\n'),
-			contextItems: request.contextItems,
-			selectedShapes: request.selectedShapes,
+			contextItems: structuredClone(this.context.getItems()),
+			selectedShapes: this.editor
+				.getSelectedShapes()
+				.map((shape) => convertTldrawShapeToSimpleShape(this.editor, structuredClone(shape))),
 		}
 		this.chat.push(promptHistoryItem)
-		// }
 
 		let cancelled = false
 		const controller = new AbortController()

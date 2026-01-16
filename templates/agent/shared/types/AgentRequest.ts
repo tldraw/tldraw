@@ -1,7 +1,4 @@
 import { BoxModel, JsonValue } from 'tldraw'
-import { SimpleShape } from '../format/SimpleShape'
-import { AgentModelName } from '../models'
-import { ContextItem } from './ContextItem'
 
 /**
  * A request that we send to the agent.
@@ -13,30 +10,15 @@ export interface AgentRequest {
 	messages: string[]
 
 	/**
-	 * Items that the agent should pay particular attention to.
+	 * The bounds of the request.
 	 */
-	contextItems: ContextItem[]
-
-	/**
-	 * Any shapes that have been selected as part of this request.
-	 */
-	selectedShapes: SimpleShape[]
+	bounds: BoxModel
 
 	/**
 	 * Any extra data that has been retrieved as part of this request.
 	 * All promises in this array will be resolved before the request is sent.
 	 */
 	data: (JsonValue | Promise<JsonValue>)[]
-
-	/**
-	 * The bounds of the request.
-	 */
-	bounds: BoxModel
-
-	/**
-	 * The model to use for the request.
-	 */
-	modelName: AgentModelName
 
 	/**
 	 * Where the request came from.

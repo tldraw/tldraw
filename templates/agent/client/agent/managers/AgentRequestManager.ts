@@ -98,10 +98,7 @@ export class AgentRequestManager extends BaseAgentManager {
 			source: request.source ?? 'user',
 			messages: request.messages ?? [],
 			data: request.data ?? [],
-			selectedShapes: request.selectedShapes ?? [],
-			contextItems: request.contextItems ?? [],
 			bounds: request.bounds ?? activeRequest?.bounds ?? this.agent.editor.getViewportPageBounds(),
-			modelName: request.modelName ?? activeRequest?.modelName ?? this.agent.$modelName.get(),
 		}
 	}
 
