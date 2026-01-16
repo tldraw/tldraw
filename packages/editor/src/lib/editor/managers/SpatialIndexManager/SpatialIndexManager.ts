@@ -162,24 +162,6 @@ export class SpatialIndexManager {
 	}
 
 	/**
-	 * Check if bounds are outside the root bounds (early exit optimization)
-	 */
-	private isOutsideRootBounds(bounds: Box): boolean {
-		const rootBounds = this.rbush.getRootBounds()
-		return (
-			rootBounds !== undefined &&
-			rootBounds.minX !== Infinity &&
-			rootBounds.maxX !== -Infinity &&
-			rootBounds.minY !== Infinity &&
-			rootBounds.maxY !== -Infinity &&
-			(bounds.maxX < rootBounds.minX ||
-				bounds.minX > rootBounds.maxX ||
-				bounds.maxY < rootBounds.minY ||
-				bounds.minY > rootBounds.maxY)
-		)
-	}
-
-	/**
 	 * Get shape IDs within the given bounds.
 	 * Optimized for viewport culling queries.
 	 *
@@ -195,14 +177,7 @@ export class SpatialIndexManager {
 	 * @public
 	 */
 	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
-		// Ensure index is up to date
 		this.spatialIndexComputed.get()
-
-		// Quick bounds check (must be after index update to avoid stale data)
-		if (this.isOutsideRootBounds(bounds)) {
-			return new Set()
-		}
-
 		return this.rbush.search(bounds)
 	}
 
@@ -223,19 +198,8 @@ export class SpatialIndexManager {
 	 * @public
 	 */
 	getShapeIdsAtPoint(point: { x: number; y: number }, margin = 0): Set<TLShapeId> {
-		// Create a small bounds around the point
-		const searchBounds = new Box(point.x - margin, point.y - margin, margin * 2, margin * 2)
-
-		// Ensure index is up to date
 		this.spatialIndexComputed.get()
-
-		// Quick bounds check (must be after index update to avoid stale data)
-		if (this.isOutsideRootBounds(searchBounds)) {
-			return new Set()
-		}
-
-		// Search the spatial index
-		return this.rbush.search(searchBounds)
+		return this.rbush.search(new Box(point.x - margin, point.y - margin, margin * 2, margin * 2))
 	}
 
 	/**

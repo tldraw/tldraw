@@ -37,23 +37,6 @@ export class RBushIndex {
 	 * Returns set of shape IDs that intersect with the bounds.
 	 */
 	search(bounds: Box): Set<TLShapeId> {
-		// Quick bounds check: use RBush's root node bounds
-		// If search bounds don't intersect with root bounds, return empty
-		const rootBounds = (this.rBush as any).data
-		if (
-			rootBounds &&
-			rootBounds.minX !== Infinity &&
-			rootBounds.maxX !== -Infinity &&
-			rootBounds.minY !== Infinity &&
-			rootBounds.maxY !== -Infinity &&
-			(bounds.maxX < rootBounds.minX ||
-				bounds.minX > rootBounds.maxX ||
-				bounds.maxY < rootBounds.minY ||
-				bounds.minY > rootBounds.maxY)
-		) {
-			return new Set()
-		}
-
 		const results = this.rBush.search({
 			minX: bounds.minX,
 			minY: bounds.minY,
@@ -149,14 +132,6 @@ export class RBushIndex {
 			element.maxX - element.minX,
 			element.maxY - element.minY
 		)
-	}
-
-	/**
-	 * Get the root bounds of the R-tree.
-	 * Returns the bounding box containing all elements, or undefined if empty.
-	 */
-	getRootBounds(): { minX: number; minY: number; maxX: number; maxY: number } | undefined {
-		return (this.rBush as any).data
 	}
 
 	/**
