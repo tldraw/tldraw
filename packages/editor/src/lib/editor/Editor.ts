@@ -5256,18 +5256,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const searchMargin = Math.max(innerMargin, outerMargin, this.options.hitTestMargin / zoomLevel)
 		const candidateIds = this.spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 
-		// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
-		if (candidateIds.size === 0) {
-			return undefined
-		}
-
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			// First check if shape is in candidates
-			if (!candidateIds.has(shape.id)) return false
+			// Frames have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
 
 			if (
 				(shape.isLocked && !hitLocked) ||
