@@ -13,15 +13,17 @@ order: 0
 
 # Perfect dash patterns
 
-When we added dashed and dotted lines to tldraw, we wanted them to look right. Complete dashes at both ends, corners that line up on rectangles, arrow bindings that meet cleanly on handles. SVG's `stroke-dasharray` doesn't give you this for free—it just tiles a pattern until the path ends, leaving incomplete dashes wherever it runs out of space.
+When we added dashed and dotted lines to tldraw, we wanted them to look right. This meant complete dashes at both ends, corners that line up on rectangles, and arrowheads that meet cleanly on handles.
 
-Here's the problem: if you have a 100px line and you set `stroke-dasharray="4 4"` (4px dash, 4px gap), SVG draws 12.5 complete cycles and stops. The last dash gets cut off partway through. For a mechanical, technical look that might be fine. For the kind of polished canvas experience we wanted, it looks wrong.
+SVG's `stroke-dasharray` doesn't give you this for free; it just tiles a pattern until the path ends, leaving incomplete dashes wherever it runs out of space.
 
-We solve this by working backwards from the dash count.
+Here's the problem: if you have a 100px line and you set `stroke-dasharray="4 4"` (4px dash, 4px gap), SVG draws 12.5 complete cycles and stops. The last dash gets cut off partway through. This doesn't meet the kind of polished canvas experience we wanted...
+
+We tackled this problem by _working backwards_ from the dash count.
 
 ## The approach
 
-Instead of deciding on a dash length and letting SVG tile it, we calculate how many complete cycles should fit along the path, then adjust the dash and gap lengths to make that number work perfectly.
+Instead of deciding on a dash length and letting SVG handle it, we calculate how many complete cycles should fit along a given path, and then adjust the dash and gap lengths to find the right dash count.
 
 The formula for dash count is:
 
@@ -29,13 +31,13 @@ The formula for dash count is:
 dashCount = Math.floor(totalLength / dashLength / (2 * ratio))
 ```
 
-Let's break this down. `totalLength / dashLength` gives us how many dashes would fit if we packed them edge-to-edge with no gaps. But we don't want edge-to-edge dashes—we want dashes and gaps.
+Calculating `totalLength / dashLength` tells us how many dashes would fit without gaps in between. But we need gaps. The `(2 * ratio)` term accounts for this. For dashed style, `ratio = 1`, meaning the dash and gap are equally weighted. So `2 * ratio = 2`, and dividing by 2 converts "how many dash lengths fit" into "how many dash-plus-gap pairs fit".
 
-The `(2 * ratio)` term accounts for this. For dashed style, `ratio = 1`, meaning the dash and gap are equally weighted. So `2 * ratio = 2`, and dividing by 2 converts "how many dash lengths fit" into "how many dash-plus-gap pairs fit". For dotted style, `ratio = 100`, meaning the gap is 100 times longer than the tiny invisible dash. Dividing by `2 * 100 = 200` converts dash lengths into dash-plus-gap-that's-100x-longer pairs.
+For tldraw's dotted style, setting `ratio = 100` would make the gap 100 times longer than the tiny invisible dash. Dividing by 200 gives us the number of dot-plus-gap cycles that fit.
 
-We floor the result because partial cycles are exactly what we're trying to avoid.
+[img]
 
-Once we know the dash count, we recalculate the actual dash length to divide the total length evenly:
+We floor the result (e.g. 12.5 cycles becomes 12) since partial cycles are exactly what we're trying to avoid. But now 12 cycles with our original dash length won't fill the line perfectly. So instead, we work backwards by keeping the dash count fixed and then solving for the dash length that makes it fit exactly.
 
 ```typescript
 dashLength = totalLength / dashCount / (2 * ratio)
