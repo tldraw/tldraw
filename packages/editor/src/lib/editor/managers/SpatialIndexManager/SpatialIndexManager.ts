@@ -21,7 +21,7 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  * - Per-page index (rebuilds on page change)
  * - Optimized for viewport culling queries
  *
- * @public
+ * @internal
  */
 export class SpatialIndexManager {
 	private rbush: RBushIndex
