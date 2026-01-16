@@ -601,18 +601,9 @@ export const debugFlags: {
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
     readonly measurePerformance: DebugFlag<boolean>;
-    readonly perfLogCulling: DebugFlag<boolean>;
-    readonly perfLogGetShapeAtPoint: DebugFlag<boolean>;
-    readonly perfLogGetShapesAtPoint: DebugFlag<boolean>;
-    readonly perfLogging: DebugFlag<boolean>;
-    readonly perfLogPageChange: DebugFlag<boolean>;
-    readonly perfLogReactRender: DebugFlag<boolean>;
-    readonly perfLogSelection: DebugFlag<boolean>;
-    readonly perfLogSpatialIndex: DebugFlag<boolean>;
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
-    readonly useSpatialIndex: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -2492,16 +2483,6 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 
 // @public
-export class PerfTracker {
-    resetSession(): void;
-    // (undocumented)
-    track(operation: string, timeMs: number, extraInfo?: string): void;
-}
-
-// @public (undocumented)
-export const perfTracker: PerfTracker;
-
-// @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
 // @public (undocumented)
@@ -2906,9 +2887,6 @@ export class SnapManager {
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
 }
-
-// @public
-export const SpatialIndexDebugPanel: NamedExoticComponent<unknown>;
 
 // @public
 export class SpatialIndexManager {

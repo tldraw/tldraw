@@ -5,9 +5,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	debugFlags,
 	intersectLineSegmentPolygon,
-	perfTracker,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -82,9 +80,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private updateScribbleSelection(addPoint: boolean) {
-		const perfStart = performance.now()
 		const { editor } = this
-		// const zoomLevel = this.editor.getZoomLevel()
 		const shiftKey = this.editor.inputs.getShiftKey()
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 		const previousPagePoint = this.editor.inputs.getPreviousPagePoint()
@@ -98,46 +94,28 @@ export class ScribbleBrushing extends StateNode {
 
 		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
 
-		// Use spatial index to filter candidates if enabled
-		const useSpatialIndex = debugFlags.useSpatialIndex.get()
-		let allShapes: TLShape[]
-		let currentPageShapes: TLShape[]
-		if (useSpatialIndex) {
-			// Create bounds around line segment with margin
-			const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
-			const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+		// Create bounds around line segment with margin
+		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
+		const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
 
-			// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
-			// But still update selection based on current state
-			if (candidateIds.size === 0) {
-				const current = editor.getSelectedShapeIds()
-				const next = new Set<TLShapeId>(
-					shiftKey
-						? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
-						: [...newlySelectedShapeIds]
-				)
-				if (current.length !== next.size || current.some((id) => !next.has(id))) {
-					this.editor.setSelectedShapes(Array.from(next))
-				}
-
-				const totalTime = performance.now() - perfStart
-				if (debugFlags.perfLogSelection.get()) {
-					// eslint-disable-next-line no-console
-					console.log(
-						`[Perf] scribble brushing (spatial): ${totalTime.toFixed(2)}ms (early return)`
-					)
-					perfTracker.track(`scribble brushing (spatial)`, totalTime)
-				}
-				return
+		// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
+		// But still update selection based on current state
+		if (candidateIds.size === 0) {
+			const current = editor.getSelectedShapeIds()
+			const next = new Set<TLShapeId>(
+				shiftKey
+					? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
+					: [...newlySelectedShapeIds]
+			)
+			if (current.length !== next.size || current.some((id) => !next.has(id))) {
+				this.editor.setSelectedShapes(Array.from(next))
 			}
-
-			allShapes = this.editor.getCurrentPageRenderingShapesSorted()
-			const candidateSet = new Set(candidateIds)
-			currentPageShapes = allShapes.filter((shape) => candidateSet.has(shape.id))
-		} else {
-			allShapes = this.editor.getCurrentPageRenderingShapesSorted()
-			currentPageShapes = allShapes
+			return
 		}
+
+		const allShapes = this.editor.getCurrentPageRenderingShapesSorted()
+		const candidateSet = new Set(candidateIds)
+		const currentPageShapes = allShapes.filter((shape) => candidateSet.has(shape.id))
 
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
@@ -207,20 +185,6 @@ export class ScribbleBrushing extends StateNode {
 		)
 		if (current.length !== next.size || current.some((id) => !next.has(id))) {
 			this.editor.setSelectedShapes(Array.from(next))
-		}
-
-		if (debugFlags.perfLogSelection.get()) {
-			const totalTime = performance.now() - perfStart
-			const mode = useSpatialIndex ? 'spatial' : 'old'
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] scribble brushing (${mode}): ${totalTime.toFixed(2)}ms (checked ${currentPageShapes.length}/${allShapes.length} shapes)`
-			)
-			perfTracker.track(
-				`scribble brushing (${mode})`,
-				totalTime,
-				`checked ${currentPageShapes.length}/${allShapes.length} shapes`
-			)
 		}
 	}
 

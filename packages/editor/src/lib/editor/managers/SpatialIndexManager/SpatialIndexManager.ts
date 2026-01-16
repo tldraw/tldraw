@@ -4,7 +4,6 @@ import type { TLRecord } from '@tldraw/tlschema'
 import { TLPageId, TLShape, TLShapeId, isShape } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Box } from '../../../primitives/Box'
-import { debugFlags } from '../../../utils/debug-flags'
 import type { Editor } from '../../Editor'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
 
@@ -50,10 +49,6 @@ export class SpatialIndexManager {
 
 			const currentPageId = this.editor.getCurrentPageId()
 			if (this.lastPageId !== currentPageId) {
-				if (debugFlags.perfLogSpatialIndex.get()) {
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] spatial index: page change detected, rebuilding`)
-				}
 				return this.buildFromScratch(lastComputedEpoch)
 			}
 
@@ -70,23 +65,13 @@ export class SpatialIndexManager {
 	}
 
 	private buildFromScratch(epoch: number): number {
-		const perfStart = performance.now()
 		this.rbush.clear()
 		this.lastPageId = this.editor.getCurrentPageId()
 
-		const shapesStart = performance.now()
 		const shapes = this.editor.getCurrentPageShapes()
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf]   spatial index getCurrentPageShapes: ${(performance.now() - shapesStart).toFixed(3)}ms`
-			)
-		}
-
 		const elements: SpatialElement[] = []
 
 		// Collect all shape elements for bulk loading
-		const boundsStart = performance.now()
 		for (const shape of shapes) {
 			const bounds = this.editor.getShapePageBounds(shape.id)
 			if (bounds) {
@@ -99,29 +84,14 @@ export class SpatialIndexManager {
 				})
 			}
 		}
-		const boundsTime = performance.now() - boundsStart
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf]   spatial index getShapePageBounds: ${boundsTime.toFixed(3)}ms (${shapes.length} shapes)`
-			)
-		}
 
 		// Bulk load for efficiency
 		this.rbush.bulkLoad(elements)
 
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] spatial index buildFromScratch: ${(performance.now() - perfStart).toFixed(3)}ms (${shapes.length} shapes)`
-			)
-		}
 		return epoch
 	}
 
 	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): void {
-		const perfStart = performance.now()
-
 		// Track shapes we've already processed from the diff
 		const processedShapeIds = new Set<TLShapeId>()
 
@@ -168,42 +138,20 @@ export class SpatialIndexManager {
 		// 2. Check remaining shapes in index for bounds changes
 		// This handles shapes with computed bounds (arrows bound to moved shapes, groups with moved children, etc.)
 		const allShapeIds = this.rbush.getAllShapeIds()
-		let boundsChecks = 0
-		let boundsUpdates = 0
-		const boundsCheckStart = performance.now()
 
 		for (const shapeId of allShapeIds) {
 			if (processedShapeIds.has(shapeId)) continue
-			boundsChecks++
 
 			const currentBounds = this.editor.getShapePageBounds(shapeId)
 			const indexedBounds = this.rbush.getBounds(shapeId)
 
 			if (!this.areBoundsEqual(currentBounds, indexedBounds)) {
-				boundsUpdates++
-				if (debugFlags.perfLogSpatialIndex.get()) {
-					const shape = this.editor.getShape(shapeId)
-					// eslint-disable-next-line no-console
-					console.log(
-						`[Perf] spatial index bounds changed for ${shapeId} (${shape?.type}): ` +
-							`${indexedBounds ? `[${indexedBounds.minX.toFixed(1)},${indexedBounds.minY.toFixed(1)},${indexedBounds.maxX.toFixed(1)},${indexedBounds.maxY.toFixed(1)}]` : 'null'} → ` +
-							`${currentBounds ? `[${currentBounds.minX.toFixed(1)},${currentBounds.minY.toFixed(1)},${currentBounds.maxX.toFixed(1)},${currentBounds.maxY.toFixed(1)}]` : 'null'}`
-					)
-				}
 				if (currentBounds) {
 					this.rbush.upsert(shapeId, currentBounds)
 				} else {
 					this.rbush.remove(shapeId)
 				}
 			}
-		}
-
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] spatial index processIncrementalUpdate: ${(performance.now() - perfStart).toFixed(3)}ms ` +
-					`(checked ${boundsChecks} shapes in ${(performance.now() - boundsCheckStart).toFixed(3)}ms, updated ${boundsUpdates})`
-			)
 		}
 	}
 
@@ -247,35 +195,15 @@ export class SpatialIndexManager {
 	 * @public
 	 */
 	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
-		const perfStart = performance.now()
-
 		// Ensure index is up to date
-		const indexStart = performance.now()
 		this.spatialIndexComputed.get()
-		const indexTime = performance.now() - indexStart
 
 		// Quick bounds check (must be after index update to avoid stale data)
 		if (this.isOutsideRootBounds(bounds)) {
-			if (debugFlags.perfLogSpatialIndex.get()) {
-				// eslint-disable-next-line no-console
-				console.log(
-					`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (0 shapes - outside bounds)`
-				)
-			}
 			return new Set()
 		}
 
-		const searchStart = performance.now()
-		const result = this.rbush.search(bounds)
-		const searchTime = performance.now() - searchStart
-
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] spatial index getShapeIdsInsideBounds: ${(performance.now() - perfStart).toFixed(3)}ms (index: ${indexTime.toFixed(3)}ms, search: ${searchTime.toFixed(3)}ms, ${result.size} shapes found)`
-			)
-		}
-		return result
+		return this.rbush.search(bounds)
 	}
 
 	/**
@@ -295,8 +223,6 @@ export class SpatialIndexManager {
 	 * @public
 	 */
 	getShapeIdsAtPoint(point: { x: number; y: number }, margin = 0): Set<TLShapeId> {
-		const perfStart = performance.now()
-
 		// Create a small bounds around the point
 		const searchBounds = new Box(point.x - margin, point.y - margin, margin * 2, margin * 2)
 
@@ -305,26 +231,11 @@ export class SpatialIndexManager {
 
 		// Quick bounds check (must be after index update to avoid stale data)
 		if (this.isOutsideRootBounds(searchBounds)) {
-			if (debugFlags.perfLogSpatialIndex.get()) {
-				// eslint-disable-next-line no-console
-				console.log(
-					`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (0 candidates - outside bounds)`
-				)
-			}
 			return new Set()
 		}
 
 		// Search the spatial index
-		const result = this.rbush.search(searchBounds)
-
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] spatial index getShapeIdsAtPoint: ${(performance.now() - perfStart).toFixed(3)}ms (${result.size} candidate shapes found)`
-			)
-		}
-
-		return result
+		return this.rbush.search(searchBounds)
 	}
 
 	/**

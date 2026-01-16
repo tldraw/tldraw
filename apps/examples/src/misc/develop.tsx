@@ -5,7 +5,6 @@ import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	ExampleDialog,
-	SpatialIndexDebugPanel,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuActionCheckboxItem,
@@ -86,7 +85,6 @@ const components: TLComponents = {
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	),
-	InFrontOfTheCanvas: SpatialIndexDebugPanel,
 }
 
 function afterChangeHandler(prev: any, next: any) {

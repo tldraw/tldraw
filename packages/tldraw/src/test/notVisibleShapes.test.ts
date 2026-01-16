@@ -8,7 +8,6 @@ import {
 	T,
 	TLShape,
 	createShapeId,
-	debugFlags,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
@@ -218,94 +217,6 @@ describe('notVisibleShapes - selected shapes', () => {
 	})
 })
 
-describe('notVisibleShapes - spatial index comparison', () => {
-	it('should produce same results with both implementations', () => {
-		// Create a mix of shapes
-		editor.createShapes([
-			{ id: createShapeId('inside1'), type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
-			{ id: createShapeId('inside2'), type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 } },
-			{ id: createShapeId('outside1'), type: 'geo', x: 2000, y: 2000, props: { w: 100, h: 100 } },
-			{ id: createShapeId('outside2'), type: 'geo', x: 3000, y: 3000, props: { w: 100, h: 100 } },
-			{
-				id: createShapeId('outside-selected'),
-				type: 'geo',
-				x: 2500,
-				y: 2500,
-				props: { w: 100, h: 100 },
-			},
-		])
-
-		// Select one outside shape
-		editor.select(createShapeId('outside-selected'))
-
-		// Test with old implementation
-		debugFlags.useSpatialIndex.set(false)
-		const notVisibleOld = editor.getNotVisibleShapes()
-
-		// Test with spatial index
-		debugFlags.useSpatialIndex.set(true)
-		const notVisibleNew = editor.getNotVisibleShapes()
-
-		// Should produce identical results
-		expect(notVisibleNew.size).toBe(notVisibleOld.size)
-		for (const id of notVisibleOld) {
-			expect(notVisibleNew.has(id)).toBe(true)
-		}
-		for (const id of notVisibleNew) {
-			expect(notVisibleOld.has(id)).toBe(true)
-		}
-
-		// Reset flag
-		debugFlags.useSpatialIndex.set(false)
-	})
-
-	it('should handle edge cases consistently', () => {
-		// Create shapes at viewport boundaries
-		editor.createShapes([
-			{ id: createShapeId('at-edge-left'), type: 'geo', x: -50, y: 500, props: { w: 100, h: 100 } },
-			{
-				id: createShapeId('at-edge-right'),
-				type: 'geo',
-				x: 950,
-				y: 500,
-				props: { w: 100, h: 100 },
-			},
-			{ id: createShapeId('at-edge-top'), type: 'geo', x: 500, y: -50, props: { w: 100, h: 100 } },
-			{
-				id: createShapeId('at-edge-bottom'),
-				type: 'geo',
-				x: 500,
-				y: 950,
-				props: { w: 100, h: 100 },
-			},
-			{
-				id: createShapeId('barely-outside'),
-				type: 'geo',
-				x: 1001,
-				y: 1001,
-				props: { w: 100, h: 100 },
-			},
-		])
-
-		// Test with old implementation
-		debugFlags.useSpatialIndex.set(false)
-		const notVisibleOld = editor.getNotVisibleShapes()
-
-		// Test with spatial index
-		debugFlags.useSpatialIndex.set(true)
-		const notVisibleNew = editor.getNotVisibleShapes()
-
-		// Should produce identical results
-		expect(notVisibleNew.size).toBe(notVisibleOld.size)
-		for (const id of notVisibleOld) {
-			expect(notVisibleNew.has(id)).toBe(true)
-		}
-
-		// Reset flag
-		debugFlags.useSpatialIndex.set(false)
-	})
-})
-
 describe('notVisibleShapes - caching', () => {
 	it('should return same Set object when contents unchanged', () => {
 		editor.createShapes([{ id: createShapeId('shape1'), type: 'geo', x: 2000, y: 2000 }])
@@ -410,9 +321,6 @@ describe('notVisibleShapes - multiple pages', () => {
 			])
 		}
 
-		// Test with spatial index
-		debugFlags.useSpatialIndex.set(true)
-
 		// Check page 2
 		const notVisiblePage2 = editor.getNotVisibleShapes()
 		const page2ShapeIds = editor.getCurrentPageShapeIds()
@@ -436,9 +344,6 @@ describe('notVisibleShapes - multiple pages', () => {
 		for (const id of notVisiblePage2) {
 			expect(id.includes('page1')).toBe(false)
 		}
-
-		// Reset flag
-		debugFlags.useSpatialIndex.set(false)
 	})
 
 	it('should update indexes when switching pages', () => {

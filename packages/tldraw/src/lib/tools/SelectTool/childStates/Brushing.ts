@@ -10,8 +10,6 @@ import {
 	TLShapeId,
 	TLTickEventInfo,
 	Vec,
-	debugFlags,
-	perfTracker,
 	pointInPolygon,
 	polygonsIntersect,
 	react,
@@ -115,7 +113,6 @@ export class Brushing extends StateNode {
 	}
 
 	private hitTestShapes() {
-		const perfStart = performance.now()
 		const { editor, excludedShapeIds, isWrapMode } = this
 		const originPagePoint = editor.inputs.getOriginPagePoint()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
@@ -157,48 +154,30 @@ export class Brushing extends StateNode {
 		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
 		const currentPageId = editor.getCurrentPageId()
 
-		// Use spatial index to filter candidates if enabled
-		const useSpatialIndex = debugFlags.useSpatialIndex.get()
-		let allShapes: TLShape[]
-		let shapesToHitTest: TLShape[]
-		if (useSpatialIndex) {
-			const candidateIds = editor.getShapeIdsInsideBounds(brush)
+		// Use spatial index to filter candidates
+		const candidateIds = editor.getShapeIdsInsideBounds(brush)
 
-			// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
-			// But still update brush visual and selection
-			if (candidateIds.size === 0) {
-				const currentBrush = editor.getInstanceState().brush
-				if (!currentBrush || !brush.equals(currentBrush)) {
-					editor.updateInstanceState({ brush: { ...brush.toJson() } })
-				}
-
-				const current = editor.getSelectedShapeIds()
-				if (current.length !== results.size || current.some((id) => !results.has(id))) {
-					editor.setSelectedShapes(Array.from(results))
-				}
-
-				const totalTime = performance.now() - perfStart
-				if (debugFlags.perfLogSelection.get()) {
-					// eslint-disable-next-line no-console
-					console.log(`[Perf] brushing (spatial): ${totalTime.toFixed(2)}ms (early return)`)
-					perfTracker.track(`brushing (spatial)`, totalTime)
-				}
-				return
+		// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
+		// But still update brush visual and selection
+		if (candidateIds.size === 0) {
+			const currentBrush = editor.getInstanceState().brush
+			if (!currentBrush || !brush.equals(currentBrush)) {
+				editor.updateInstanceState({ brush: { ...brush.toJson() } })
 			}
 
-			allShapes =
-				brushBoxIsInsideViewport && !this.viewportDidChange
-					? editor.getCurrentPageRenderingShapesSorted()
-					: editor.getCurrentPageShapesSorted()
-			const candidateSet = new Set(candidateIds)
-			shapesToHitTest = allShapes.filter((shape) => candidateSet.has(shape.id))
-		} else {
-			allShapes =
-				brushBoxIsInsideViewport && !this.viewportDidChange
-					? editor.getCurrentPageRenderingShapesSorted()
-					: editor.getCurrentPageShapesSorted()
-			shapesToHitTest = allShapes
+			const current = editor.getSelectedShapeIds()
+			if (current.length !== results.size || current.some((id) => !results.has(id))) {
+				editor.setSelectedShapes(Array.from(results))
+			}
+			return
 		}
+
+		const allShapes =
+			brushBoxIsInsideViewport && !this.viewportDidChange
+				? editor.getCurrentPageRenderingShapesSorted()
+				: editor.getCurrentPageShapesSorted()
+		const candidateSet = new Set(candidateIds)
+		const shapesToHitTest = allShapes.filter((shape) => candidateSet.has(shape.id))
 
 		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
 			shape = shapesToHitTest[i]
@@ -248,20 +227,6 @@ export class Brushing extends StateNode {
 		const current = editor.getSelectedShapeIds()
 		if (current.length !== results.size || current.some((id) => !results.has(id))) {
 			editor.setSelectedShapes(Array.from(results))
-		}
-
-		if (debugFlags.perfLogSelection.get()) {
-			const totalTime = performance.now() - perfStart
-			const mode = useSpatialIndex ? 'spatial' : 'old'
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] brushing (${mode}): ${totalTime.toFixed(2)}ms (checked ${shapesToHitTest.length}/${allShapes.length} shapes)`
-			)
-			perfTracker.track(
-				`brushing (${mode})`,
-				totalTime,
-				`checked ${shapesToHitTest.length}/${allShapes.length} shapes`
-			)
 		}
 	}
 

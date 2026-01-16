@@ -1,7 +1,6 @@
 import type { TLShapeId } from '@tldraw/tlschema'
 import RBush from 'rbush'
 import { Box } from '../../../primitives/Box'
-import { debugFlags } from '../../../utils/debug-flags'
 
 /**
  * Element stored in the R-tree spatial index.
@@ -38,8 +37,6 @@ export class RBushIndex {
 	 * Returns set of shape IDs that intersect with the bounds.
 	 */
 	search(bounds: Box): Set<TLShapeId> {
-		const perfStart = performance.now()
-
 		// Quick bounds check: use RBush's root node bounds
 		// If search bounds don't intersect with root bounds, return empty
 		const rootBounds = (this.rBush as any).data
@@ -54,12 +51,6 @@ export class RBushIndex {
 				bounds.maxY < rootBounds.minY ||
 				bounds.minY > rootBounds.maxY)
 		) {
-			if (debugFlags.perfLogSpatialIndex.get()) {
-				// eslint-disable-next-line no-console
-				console.log(
-					`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → 0 results (outside total bounds)`
-				)
-			}
 			return new Set()
 		}
 
@@ -69,14 +60,7 @@ export class RBushIndex {
 			maxX: bounds.maxX,
 			maxY: bounds.maxY,
 		})
-		const ids = new Set(results.map((e: SpatialElement) => e.id))
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] spatial index RBushIndex.search: ${(performance.now() - perfStart).toFixed(3)}ms → ${ids.size} results`
-			)
-		}
-		return ids
+		return new Set(results.map((e: SpatialElement) => e.id))
 	}
 
 	/**
@@ -117,16 +101,9 @@ export class RBushIndex {
 	 * More efficient than individual inserts for initial loading.
 	 */
 	bulkLoad(elements: SpatialElement[]): void {
-		const perfStart = performance.now()
 		this.rBush.load(elements)
 		for (const element of elements) {
 			this.elementsInTree.set(element.id, element)
-		}
-		if (debugFlags.perfLogSpatialIndex.get()) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`[Perf] spatial index RBushIndex.bulkLoad: ${(performance.now() - perfStart).toFixed(3)}ms (${elements.length} elements)`
-			)
 		}
 	}
 
