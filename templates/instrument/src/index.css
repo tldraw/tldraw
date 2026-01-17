@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Inter', sans-serif;
+	margin: 0;
+	padding: 0;
+	overscroll-behavior: none;
+}
+
+/* Enable pointer events on the instrument button only when select tool is idle */
+.instrument-button {
+	[data-state='select.idle'] & {
+		pointer-events: all;
+	}
+}

@@ -27984,6 +27984,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-instrument-example@workspace:templates/instrument":
+  version: 0.0.0-use.local
+  resolution: "tldraw-instrument-example@workspace:templates/instrument"
+  dependencies:
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-nextjs-app-example@workspace:templates/nextjs":
   version: 0.0.0-use.local
   resolution: "tldraw-nextjs-app-example@workspace:templates/nextjs"
