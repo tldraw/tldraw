@@ -257,6 +257,7 @@ export function RichTextSVG({
 		overflowWrap: 'break-word' as const,
 		whiteSpace: 'pre-wrap',
 		textShadow: showTextOutline ? 'var(--tl-text-outline)' : 'none',
+		tabSize: 2,
 	}
 
 	return (
