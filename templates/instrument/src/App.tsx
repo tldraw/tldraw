@@ -63,6 +63,7 @@ const arrangementAgent = new ArrangementAgent()
 let playbackStartTime = 0
 let isArranging = false
 let arrangingCallbacks = new Set<(arranging: boolean) => void>()
+let poofCallbacks = new Set<() => void>()
 
 function registerInstrument(
 	id: TLShapeId,
@@ -172,24 +173,45 @@ async function triggerArrangement(editor: Editor) {
 		.filter((s) => s.type === 'draw')
 		.map((s) => s.id)
 
-	if (drawShapes.length < 2) return // Nothing to arrange
+	console.log('[Arrangement] Found', drawShapes.length, 'draw shapes')
+
+	if (drawShapes.length < 2) {
+		console.log('[Arrangement] Not enough shapes, skipping')
+		return // Nothing to arrange
+	}
 
 	isArranging = true
+	console.log('[Arrangement] Setting hypnotized state')
 	arrangingCallbacks.forEach((cb) => cb(true))
 
 	try {
-		console.log('Analyzing canvas for arrangement...')
+		console.log('[Arrangement] Calling Claude API...')
 		const response = await arrangementAgent.analyzeAndArrange(editor, drawShapes)
+		console.log('[Arrangement] API response:', response)
 
 		if (response && response.arrangements.length > 0) {
-			console.log('Arranging shapes:', response.explanation)
+			console.log(
+				'[Arrangement] Animating',
+				response.arrangements.length,
+				'shapes:',
+				response.explanation
+			)
 			await animateArrangement(editor, drawShapes, response.arrangements, 600)
+			console.log('[Arrangement] Animation complete')
 		} else {
-			console.log('No arrangement needed or analysis failed')
+			console.log('[Arrangement] No arrangement needed or analysis failed')
 		}
 	} catch (error) {
-		console.error('Arrangement failed:', error)
+		console.error('[Arrangement] Error:', error)
 	} finally {
+		console.log('[Arrangement] Triggering poof for', poofCallbacks.size, 'goons')
+		// Trigger poof animation for all goons (they stay hypnotized during poof)
+		poofCallbacks.forEach((cb) => cb())
+
+		// Wait for poof animation to complete before cleaning up
+		await new Promise((resolve) => setTimeout(resolve, 450))
+
+		console.log('[Arrangement] Cleanup, resetting hypnotized state')
 		isArranging = false
 		arrangingCallbacks.forEach((cb) => cb(false))
 	}
@@ -450,10 +472,63 @@ function playNote(frequency: number) {
 	osc4.stop(now + totalTime)
 }
 
+// Spiral eye component for hypnotized effect
+function SpiralEye({ size = 14, color }: { size?: number; color: string }) {
+	return (
+		<div
+			style={{
+				width: size,
+				height: size,
+				position: 'relative',
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+			}}
+		>
+			<svg
+				width={size}
+				height={size}
+				viewBox="0 0 20 20"
+				style={{
+					animation: 'spin 1s linear infinite',
+				}}
+			>
+				<path
+					d="M10 10 Q10 6 14 6 Q18 6 18 10 Q18 14 14 14 Q10 14 10 10 Q10 8 12 8 Q14 8 14 10 Q14 12 12 12 Q10 12 10 10"
+					fill="none"
+					stroke={color}
+					strokeWidth="1.5"
+				/>
+				<circle cx="10" cy="10" r="1.5" fill={color} />
+			</svg>
+		</div>
+	)
+}
+
+// Inject keyframes for spiral animation
+const styleSheet = document.createElement('style')
+styleSheet.textContent = `
+	@keyframes spin {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
+	}
+	@keyframes poof {
+		0% { transform: scale(1); opacity: 1; }
+		50% { transform: scale(1.3); opacity: 0.7; }
+		100% { transform: scale(0); opacity: 0; }
+	}
+`
+if (!document.head.querySelector('#goon-animations')) {
+	styleSheet.id = 'goon-animations'
+	document.head.appendChild(styleSheet)
+}
+
 function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
 	const editor = useEditor()
 	const [isPressed, setIsPressed] = useState(false)
 	const [_isPlaying, setIsPlaying] = useState(false)
+	const [isHypnotized, setIsHypnotized] = useState(false)
+	const [isPoofing, setIsPoofing] = useState(false)
 	const pointerDownTimeRef = useRef<number>(0)
 	const playedRef = useRef<boolean>(false)
 
@@ -488,6 +563,32 @@ function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
 			playStateCallbacks.delete(callback)
 		}
 	}, [])
+
+	// Listen for arranging state (hypnotized eyes)
+	useEffect(() => {
+		const callback = (arranging: boolean) => {
+			setIsHypnotized(arranging)
+		}
+		arrangingCallbacks.add(callback)
+		return () => {
+			arrangingCallbacks.delete(callback)
+		}
+	}, [])
+
+	// Listen for poof signal (after arrangement completes)
+	useEffect(() => {
+		const callback = () => {
+			setIsPoofing(true)
+			// Delete the shape after the poof animation
+			setTimeout(() => {
+				editor.deleteShape(shape.id)
+			}, 400)
+		}
+		poofCallbacks.add(callback)
+		return () => {
+			poofCallbacks.delete(callback)
+		}
+	}, [editor, shape.id])
 
 	const spawnNewInstrument = useCallback(() => {
 		// Check if we've hit the max
@@ -621,26 +722,35 @@ function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
 		if (variant === 0) {
 			return (
 				<div style={baseStyle}>
-					{/* Sleepy confident eyes */}
+					{/* Sleepy confident eyes (or spiral when hypnotized) */}
 					<div style={{ display: 'flex', gap: 30, marginBottom: 6 }}>
-						<div
-							style={{
-								width: 14,
-								height: isPressed ? 2 : 5,
-								backgroundColor: theme.black.solid,
-								borderRadius: 3,
-								transition: 'height 0.1s',
-							}}
-						/>
-						<div
-							style={{
-								width: 14,
-								height: isPressed ? 2 : 5,
-								backgroundColor: theme.black.solid,
-								borderRadius: 3,
-								transition: 'height 0.1s',
-							}}
-						/>
+						{isHypnotized ? (
+							<>
+								<SpiralEye size={14} color={theme.black.solid} />
+								<SpiralEye size={14} color={theme.black.solid} />
+							</>
+						) : (
+							<>
+								<div
+									style={{
+										width: 14,
+										height: isPressed ? 2 : 5,
+										backgroundColor: theme.black.solid,
+										borderRadius: 3,
+										transition: 'height 0.1s',
+									}}
+								/>
+								<div
+									style={{
+										width: 14,
+										height: isPressed ? 2 : 5,
+										backgroundColor: theme.black.solid,
+										borderRadius: 3,
+										transition: 'height 0.1s',
+									}}
+								/>
+							</>
+						)}
 					</div>
 					{/* Wide LED mouth/grin */}
 					<div
@@ -677,28 +787,37 @@ function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
 		if (variant === 1) {
 			return (
 				<div style={{ ...baseStyle, justifyContent: 'flex-start', paddingTop: 15 }}>
-					{/* Surprised wide eyes - fixed height container, eyes scale inside */}
+					{/* Surprised wide eyes (or spiral when hypnotized) */}
 					<div style={{ display: 'flex', gap: 10, marginBottom: 8, height: 12 }}>
-						<div
-							style={{
-								width: 10,
-								height: 12,
-								backgroundColor: theme.black.solid,
-								borderRadius: '50%',
-								transform: isPressed ? 'scaleY(0.3)' : 'scaleY(1)',
-								transition: 'transform 0.1s',
-							}}
-						/>
-						<div
-							style={{
-								width: 10,
-								height: 12,
-								backgroundColor: theme.black.solid,
-								borderRadius: '50%',
-								transform: isPressed ? 'scaleY(0.3)' : 'scaleY(1)',
-								transition: 'transform 0.1s',
-							}}
-						/>
+						{isHypnotized ? (
+							<>
+								<SpiralEye size={12} color={theme.black.solid} />
+								<SpiralEye size={12} color={theme.black.solid} />
+							</>
+						) : (
+							<>
+								<div
+									style={{
+										width: 10,
+										height: 12,
+										backgroundColor: theme.black.solid,
+										borderRadius: '50%',
+										transform: isPressed ? 'scaleY(0.3)' : 'scaleY(1)',
+										transition: 'transform 0.1s',
+									}}
+								/>
+								<div
+									style={{
+										width: 10,
+										height: 12,
+										backgroundColor: theme.black.solid,
+										borderRadius: '50%',
+										transform: isPressed ? 'scaleY(0.3)' : 'scaleY(1)',
+										transition: 'transform 0.1s',
+									}}
+								/>
+							</>
+						)}
 					</div>
 					{/* Little 'o' mouth LED */}
 					<div
@@ -782,28 +901,37 @@ function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
 							boxShadow: `0 0 6px 2px ${colorHex}66`,
 						}}
 					/>
-					{/* Determined squinty eyes */}
+					{/* Determined squinty eyes (or spiral when hypnotized) */}
 					<div style={{ display: 'flex', gap: 20, marginBottom: 20, marginTop: 10 }}>
-						<div
-							style={{
-								width: 12,
-								height: isPressed ? 2 : 4,
-								backgroundColor: theme.black.solid,
-								borderRadius: 2,
-								transform: 'rotate(-5deg)',
-								transition: 'height 0.1s',
-							}}
-						/>
-						<div
-							style={{
-								width: 12,
-								height: isPressed ? 2 : 4,
-								backgroundColor: theme.black.solid,
-								borderRadius: 2,
-								transform: 'rotate(5deg)',
-								transition: 'height 0.1s',
-							}}
-						/>
+						{isHypnotized ? (
+							<>
+								<SpiralEye size={12} color={theme.black.solid} />
+								<SpiralEye size={12} color={theme.black.solid} />
+							</>
+						) : (
+							<>
+								<div
+									style={{
+										width: 12,
+										height: isPressed ? 2 : 4,
+										backgroundColor: theme.black.solid,
+										borderRadius: 2,
+										transform: 'rotate(-5deg)',
+										transition: 'height 0.1s',
+									}}
+								/>
+								<div
+									style={{
+										width: 12,
+										height: isPressed ? 2 : 4,
+										backgroundColor: theme.black.solid,
+										borderRadius: 2,
+										transform: 'rotate(5deg)',
+										transition: 'height 0.1s',
+									}}
+								/>
+							</>
+						)}
 					</div>
 					{/* Square-ish button */}
 					<button
@@ -830,7 +958,12 @@ function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
 
 	return (
 		<HTMLContainer>
-			<div onPointerDown={editor.markEventAsHandled}>{renderCharacter()}</div>
+			<div
+				onPointerDown={editor.markEventAsHandled}
+				style={isPoofing ? { animation: 'poof 0.4s ease-out forwards' } : undefined}
+			>
+				{renderCharacter()}
+			</div>
 		</HTMLContainer>
 	)
 }
