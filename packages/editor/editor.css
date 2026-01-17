@@ -60,6 +60,7 @@
 
 	/* Misc */
 	--tl-zoom: 1;
+	--tl-tab-size: 2;
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -685,6 +686,7 @@ input,
 	word-spacing: 0px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
+	tab-size: var(--tl-tab-size, 2);
 }
 
 .tl-text-measure {
@@ -871,6 +873,7 @@ input,
 	-webkit-font-variant-ligatures: inherit;
 	font-variant-ligatures: inherit;
 	font-feature-settings: inherit;
+	tab-size: var(--tl-tab-size, 2);
 
 	/**
 	 * N.B. This following CSS Rule comes standard with the tiptap editor.
