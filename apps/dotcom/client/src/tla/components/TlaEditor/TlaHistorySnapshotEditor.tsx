@@ -1,4 +1,4 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { DOTCOM_LICENSE_KEY } from '@tldraw/dotcom-shared'
 import { useCallback, useMemo } from 'react'
 import { Editor, TLComponents, Tldraw, TLStoreSnapshot } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -100,7 +100,8 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
+				// History view is for authenticated users only (restore feature requires auth)
+				licenseKey={DOTCOM_LICENSE_KEY}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}

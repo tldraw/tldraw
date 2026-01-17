@@ -1,5 +1,6 @@
 import {
-	getLicenseKey,
+	DOTCOM_LICENSE_KEY,
+	DOTCOM_WATERMARK_LICENSE_KEY,
 	ROOM_OPEN_MODE,
 	RoomOpenMode,
 	RoomOpenModeToPath,
@@ -66,6 +67,8 @@ function TlaEditorInner({
 	fileSlug: string
 }) {
 	const app = useMaybeApp()
+	// Show watermark for logged-out users viewing shared content
+	const licenseKey = app ? DOTCOM_LICENSE_KEY : DOTCOM_WATERMARK_LICENSE_KEY
 	const setIsReady = useSetIsReady()
 
 	// make sure this runs before the editor is instantiated
@@ -112,7 +115,7 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
+				licenseKey={licenseKey}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}

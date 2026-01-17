@@ -1,4 +1,4 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { DOTCOM_WATERMARK_LICENSE_KEY } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -44,7 +44,8 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	return (
 		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
+				// Published content is always viewed read-only, show watermark for brand visibility
+				licenseKey={DOTCOM_WATERMARK_LICENSE_KEY}
 				assetUrls={assetUrls}
 				snapshot={snapshot}
 				overrides={[fileEditorOverrides]}

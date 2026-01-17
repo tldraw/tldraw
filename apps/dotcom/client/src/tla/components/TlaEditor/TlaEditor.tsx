@@ -1,4 +1,4 @@
-import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
+import { TLCustomServerEvent, DOTCOM_LICENSE_KEY, DOTCOM_WATERMARK_LICENSE_KEY } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -195,6 +195,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	)
 
 	const user = useTldrawUser()
+	// Auth state is already resolved by SignedInProvider before TlaEditor mounts.
+	// Use watermark license for logged-out users to show "Made with tldraw" branding.
+	const licenseKey = user ? DOTCOM_LICENSE_KEY : DOTCOM_WATERMARK_LICENSE_KEY
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
@@ -359,7 +362,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
+				licenseKey={licenseKey}
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}

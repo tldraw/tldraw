@@ -1,4 +1,4 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { DOTCOM_WATERMARK_LICENSE_KEY } from '@tldraw/dotcom-shared'
 import { ReactNode } from 'react'
 import { Editor, TLComponents, Tldraw, TldrawOptions, useEvent } from 'tldraw'
 import { SneakyToolSwitcher } from '../tla/components/TlaEditor/sneaky/SneakyToolSwitcher'
@@ -40,7 +40,8 @@ export function LocalEditor({
 	return (
 		<div className="tldraw__editor" data-testid={dataTestId}>
 			<Tldraw
-				licenseKey={getLicenseKey()}
+				// Show watermark on public scratch pad for brand visibility
+				licenseKey={DOTCOM_WATERMARK_LICENSE_KEY}
 				assetUrls={assetUrls}
 				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}

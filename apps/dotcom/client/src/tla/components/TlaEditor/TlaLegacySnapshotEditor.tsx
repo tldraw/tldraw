@@ -1,4 +1,4 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { DOTCOM_LICENSE_KEY, DOTCOM_WATERMARK_LICENSE_KEY } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -46,6 +46,8 @@ export function TlaLegacySnapshotEditor({
 
 function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 	const app = useMaybeApp()
+	// Show watermark for logged-out users viewing shared content
+	const licenseKey = app ? DOTCOM_LICENSE_KEY : DOTCOM_WATERMARK_LICENSE_KEY
 
 	const setIsReady = useSetIsReady()
 
@@ -72,7 +74,7 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
+				licenseKey={licenseKey}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}
