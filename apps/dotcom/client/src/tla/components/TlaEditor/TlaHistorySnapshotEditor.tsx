@@ -1,4 +1,4 @@
-import { DOTCOM_LICENSE_KEY } from '@tldraw/dotcom-shared'
+import { DOTCOM_LICENSE_KEY, DOTCOM_WATERMARK_LICENSE_KEY } from '@tldraw/dotcom-shared'
 import { useCallback, useMemo } from 'react'
 import { Editor, TLComponents, Tldraw, TLStoreSnapshot } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -45,6 +45,8 @@ function TlaEditorInner({
 	onRestore(): Promise<void>
 }) {
 	const app = useMaybeApp()
+	// Show watermark if accessed without authentication
+	const licenseKey = app ? DOTCOM_LICENSE_KEY : DOTCOM_WATERMARK_LICENSE_KEY
 
 	const setIsReady = useSetIsReady()
 
@@ -100,8 +102,7 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				// History view is for authenticated users only (restore feature requires auth)
-				licenseKey={DOTCOM_LICENSE_KEY}
+				licenseKey={licenseKey}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}
