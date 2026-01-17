@@ -12,6 +12,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { ArrangementAgent, animateArrangement } from './arrangement'
 import { DrawingOrchestrator, NoteEvent } from './drawing'
 import {
 	getGlobalKeyOffset,
@@ -56,6 +57,12 @@ let drawingOrchestrator: DrawingOrchestrator | null = null
 
 // Track variant for each instrument ID (needed for drawing system)
 let instrumentVariants: Map<TLShapeId, number> = new Map()
+
+// Arrangement agent for post-playback canvas organization
+const arrangementAgent = new ArrangementAgent()
+let playbackStartTime = 0
+let isArranging = false
+let arrangingCallbacks = new Set<(arranging: boolean) => void>()
 
 function registerInstrument(
 	id: TLShapeId,
@@ -103,6 +110,7 @@ function startGlobalPlayback(editor: Editor) {
 	if (isGlobalPlaying) return
 	isGlobalPlaying = true
 	globalEditor = editor
+	playbackStartTime = performance.now()
 
 	// Initialize or create the drawing orchestrator
 	if (!drawingOrchestrator) {
@@ -134,7 +142,7 @@ function startGlobalPlayback(editor: Editor) {
 	runPlaybackLoop()
 }
 
-function stopGlobalPlayback() {
+async function stopGlobalPlayback() {
 	isGlobalPlaying = false
 	if (animationFrameId) {
 		cancelAnimationFrame(animationFrameId)
@@ -149,6 +157,42 @@ function stopGlobalPlayback() {
 	resetMusicalState()
 
 	playStateCallbacks.forEach((cb) => cb(false))
+
+	// If playback was long enough (>2 seconds), offer to arrange the canvas
+	const playbackDuration = performance.now() - playbackStartTime
+	if (playbackDuration > 2000 && globalEditor && !isArranging) {
+		await triggerArrangement(globalEditor)
+	}
+}
+
+async function triggerArrangement(editor: Editor) {
+	// Get all draw shapes (the generated art)
+	const drawShapes = editor
+		.getCurrentPageShapes()
+		.filter((s) => s.type === 'draw')
+		.map((s) => s.id)
+
+	if (drawShapes.length < 2) return // Nothing to arrange
+
+	isArranging = true
+	arrangingCallbacks.forEach((cb) => cb(true))
+
+	try {
+		console.log('Analyzing canvas for arrangement...')
+		const response = await arrangementAgent.analyzeAndArrange(editor, drawShapes)
+
+		if (response && response.arrangements.length > 0) {
+			console.log('Arranging shapes:', response.explanation)
+			await animateArrangement(editor, drawShapes, response.arrangements, 600)
+		} else {
+			console.log('No arrangement needed or analysis failed')
+		}
+	} catch (error) {
+		console.error('Arrangement failed:', error)
+	} finally {
+		isArranging = false
+		arrangingCallbacks.forEach((cb) => cb(false))
+	}
 }
 
 function runPlaybackLoop() {
