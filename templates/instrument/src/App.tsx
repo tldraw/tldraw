@@ -13,7 +13,13 @@ import {
 	useValue,
 } from 'tldraw'
 import { DrawingOrchestrator, NoteEvent } from './drawing'
-import { resetTrees } from './drawing/algorithms'
+import {
+	getGlobalKeyOffset,
+	getGoonCurrentTreeId,
+	maybeModulateKey,
+	resetMusicalState,
+	resetTrees,
+} from './drawing/algorithms'
 
 // Bright birdsong scale - C major pentatonic, high and chirpy
 const SCALE = [
@@ -135,11 +141,12 @@ function stopGlobalPlayback() {
 		animationFrameId = null
 	}
 
-	// Stop the drawing system and reset tree state
+	// Stop the drawing system and reset tree/musical state
 	if (drawingOrchestrator) {
 		drawingOrchestrator.stop()
 	}
 	resetTrees()
+	resetMusicalState()
 
 	playStateCallbacks.forEach((cb) => cb(false))
 }
@@ -165,18 +172,28 @@ function runPlaybackLoop() {
 		const inst = nextInstrument as InstrumentState
 		const noteIndex = inst.pattern[inst.patternIndex]
 		const scaleNote = SCALE[noteIndex]
-		playNote(scaleNote.freq)
 
 		// Get the shape position for the drawing system
 		const shape = globalEditor.getShape(inst.id)
 		const variant = instrumentVariants.get(inst.id) ?? 0
 		const variantInfo = VARIANTS[variant] || VARIANTS[0]
 
+		// Check if this goon is about to switch trees (for key modulation)
+		// We track this before the drawing system processes the note
+		const previousTreeId = getGoonCurrentTreeId(variant)
+
+		// Global key - all goons play in the same key
+		// Key changes only happen when Chonk switches trees (with cooldown)
+		const globalKeyOffset = getGlobalKeyOffset()
+		const transposedFreq = scaleNote.freq * Math.pow(2, globalKeyOffset / 12)
+
+		playNote(transposedFreq)
+
 		// Trigger the drawing system
 		if (drawingOrchestrator && shape) {
 			const noteEvent: NoteEvent = {
 				variant,
-				frequency: scaleNote.freq,
+				frequency: transposedFreq,
 				color: scaleNote.color,
 				patternIndex: inst.patternIndex,
 				interval: inst.interval,
@@ -184,6 +201,13 @@ function runPlaybackLoop() {
 				goonId: inst.id,
 			}
 			drawingOrchestrator.onNote(noteEvent)
+
+			// Check if this goon switched trees - if so, maybe modulate key
+			// Only Chonk (bass) can trigger key changes, with a random 2-6 second cooldown
+			const newTreeId = getGoonCurrentTreeId(variant)
+			if (newTreeId !== undefined && newTreeId !== previousTreeId) {
+				maybeModulateKey(variant, newTreeId, now)
+			}
 
 			// Update goon position in case it moved
 			drawingOrchestrator.updateGoonPosition(inst.id, {
