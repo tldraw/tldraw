@@ -13,6 +13,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { DrawingOrchestrator, NoteEvent } from './drawing'
+import { resetTrees } from './drawing/algorithms'
 
 // Bright birdsong scale - C major pentatonic, high and chirpy
 const SCALE = [
@@ -134,10 +135,11 @@ function stopGlobalPlayback() {
 		animationFrameId = null
 	}
 
-	// Stop the drawing system
+	// Stop the drawing system and reset tree state
 	if (drawingOrchestrator) {
 		drawingOrchestrator.stop()
 	}
+	resetTrees()
 
 	playStateCallbacks.forEach((cb) => cb(false))
 }
@@ -212,34 +214,44 @@ type InstrumentShape = TLBaseShape<'instrument', { noteIndex: number; variant: n
 
 // Each variant is a unique little character!
 // Scale: 0=C5, 1=D5, 2=E5, 3=G5, 4=A5, 5=C6, 6=D6, 7=E6
-// Together they chirp like birds with gaps and varying rhythms
+//
+// Sound theme: Jazz-inspired patterns
+// - Chonk: Walking bass - steady quarter-note movement through roots/fifths
+// - Stretch: Bebop melody - quick runs with chromatic-style movement, tension notes
+// - Gus: Comping - syncopated hits on chord tones, call-and-response
+//
+// Intervals create swing feel: walking bass steady, melody double-time, comping syncopated
+// The polyrhythm (500:220:330) creates jazz-like interplay
 const VARIANTS = [
 	{
 		name: 'Chonk',
 		width: 110,
 		height: 85,
 		borderRadius: 16,
-		// Slow, contemplative chirps with long pauses
-		pattern: [0, 2, 4],
-		interval: 800,
+		// Walking bass: root-5th-root movement, occasionally walking up
+		// Classic jazz bass pattern: 1-5-1-3-5-6-5-3 feel
+		pattern: [0, 3, 0, 2, 3, 4, 3, 2],
+		interval: 500, // Steady quarter note pulse
 	},
 	{
 		name: 'Stretch',
 		width: 55,
 		height: 130,
 		borderRadius: 10,
-		// Quick little trills, but with breathing room
-		pattern: [5, 7, 5, 3],
-		interval: 350,
+		// Bebop melody: quick scalar runs with enclosures and approach notes
+		// Starts high, descends, encircles target, resolves up
+		pattern: [7, 6, 5, 4, 5, 6, 7, 5, 4, 3, 4, 5],
+		interval: 220, // Fast eighth-note runs (swing feel)
 	},
 	{
 		name: 'Gus',
 		width: 90,
 		height: 95,
 		borderRadius: 8,
-		// Mid-range warbles, conversational
-		pattern: [2, 4, 3, 5, 4],
-		interval: 550,
+		// Comping: syncopated chord stabs on 3rds and 6ths
+		// Hits on off-beats, leaves space, responds to melody
+		pattern: [2, 4, 2, 4, 3, 4, 2, 3],
+		interval: 330, // Syncopated, between bass and melody
 	},
 ] as const
 
@@ -283,29 +295,91 @@ function playNote(frequency: number) {
 	}
 	const ctx = audioContext
 
-	// Pure sine wave for clean birdsong tone
-	const osc = ctx.createOscillator()
-	const gain = ctx.createGain()
-	osc.type = 'sine'
-	osc.frequency.setValueAtTime(frequency, ctx.currentTime)
+	// Theme: Jazz - warm, round tone like Rhodes/vibes
+	// Slight detuning creates warmth, triangle waves for softer attack
 
-	// High-pass filter to keep it bright and airy
+	// Fundamental (triangle wave - softer than sine, jazz-like)
+	const osc1 = ctx.createOscillator()
+	const gain1 = ctx.createGain()
+	osc1.type = 'triangle'
+	osc1.frequency.setValueAtTime(frequency, ctx.currentTime)
+
+	// Slightly detuned double (creates warmth/chorus, classic Rhodes sound)
+	const osc2 = ctx.createOscillator()
+	const gain2 = ctx.createGain()
+	osc2.type = 'triangle'
+	osc2.frequency.setValueAtTime(frequency * 1.003, ctx.currentTime) // Slight detune up
+
+	// Another detune in opposite direction
+	const osc3 = ctx.createOscillator()
+	const gain3 = ctx.createGain()
+	osc3.type = 'sine'
+	osc3.frequency.setValueAtTime(frequency * 0.997, ctx.currentTime) // Slight detune down
+
+	// Soft sub-octave for bass warmth (jazz bass fullness)
+	const osc4 = ctx.createOscillator()
+	const gain4 = ctx.createGain()
+	osc4.type = 'sine'
+	osc4.frequency.setValueAtTime(frequency * 0.5, ctx.currentTime)
+
+	// Low-pass filter - warm and round, not bright
 	const filter = ctx.createBiquadFilter()
-	filter.type = 'highpass'
-	filter.frequency.setValueAtTime(400, ctx.currentTime)
+	filter.type = 'lowpass'
+	filter.frequency.setValueAtTime(1800, ctx.currentTime)
+	filter.Q.setValueAtTime(1, ctx.currentTime)
 
-	// Connect: oscillator -> gain -> filter -> output
-	osc.connect(gain)
-	gain.connect(filter)
+	// Connect all oscillators
+	osc1.connect(gain1)
+	osc2.connect(gain2)
+	osc3.connect(gain3)
+	osc4.connect(gain4)
+	gain1.connect(filter)
+	gain2.connect(filter)
+	gain3.connect(filter)
+	gain4.connect(filter)
 	filter.connect(ctx.destination)
 
-	// Quick chirpy envelope - fast attack, short decay
-	gain.gain.setValueAtTime(0, ctx.currentTime)
-	gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.01)
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12)
+	// Jazz envelope - quick attack (like hammer hitting tine), medium sustain, smooth release
+	const now = ctx.currentTime
+	const attackTime = 0.015 // Quick attack like electric piano
+	const decayTime = 0.1 // Initial brightness decay
+	const sustainTime = 0.25
+	const releaseTime = 0.35
+	const totalTime = attackTime + decayTime + sustainTime + releaseTime
 
-	osc.start(ctx.currentTime)
-	osc.stop(ctx.currentTime + 0.12)
+	// Main oscillators - bell-like decay then sustain
+	const peakGain = 0.1
+	const sustainGain = 0.07
+
+	gain1.gain.setValueAtTime(0, now)
+	gain1.gain.linearRampToValueAtTime(peakGain, now + attackTime)
+	gain1.gain.linearRampToValueAtTime(sustainGain, now + attackTime + decayTime)
+	gain1.gain.setValueAtTime(sustainGain, now + attackTime + decayTime + sustainTime)
+	gain1.gain.exponentialRampToValueAtTime(0.001, now + totalTime)
+
+	gain2.gain.setValueAtTime(0, now)
+	gain2.gain.linearRampToValueAtTime(peakGain * 0.7, now + attackTime)
+	gain2.gain.linearRampToValueAtTime(sustainGain * 0.5, now + attackTime + decayTime)
+	gain2.gain.exponentialRampToValueAtTime(0.001, now + totalTime)
+
+	gain3.gain.setValueAtTime(0, now)
+	gain3.gain.linearRampToValueAtTime(peakGain * 0.7, now + attackTime)
+	gain3.gain.linearRampToValueAtTime(sustainGain * 0.5, now + attackTime + decayTime)
+	gain3.gain.exponentialRampToValueAtTime(0.001, now + totalTime)
+
+	// Sub - subtle, adds body
+	gain4.gain.setValueAtTime(0, now)
+	gain4.gain.linearRampToValueAtTime(0.04, now + attackTime)
+	gain4.gain.exponentialRampToValueAtTime(0.001, now + totalTime)
+
+	osc1.start(now)
+	osc2.start(now)
+	osc3.start(now)
+	osc4.start(now)
+	osc1.stop(now + totalTime)
+	osc2.stop(now + totalTime)
+	osc3.stop(now + totalTime)
+	osc4.stop(now + totalTime)
 }
 
 function InstrumentComponent({ shape }: { shape: InstrumentShape }) {
