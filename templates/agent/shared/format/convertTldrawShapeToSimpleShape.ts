@@ -13,6 +13,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLTextShape,
+	Vec,
 } from 'tldraw'
 import { SimpleShapeId } from '../types/ids-schema'
 import { convertTldrawFillToSimpleFill } from './SimpleFill'
@@ -25,6 +26,7 @@ import {
 	SimpleLineShape,
 	SimpleNoteShape,
 	SimpleShape,
+	SimpleTextAnchor,
 	SimpleTextShape,
 	SimpleUnknownShape,
 } from './SimpleShape'
@@ -110,33 +112,41 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTex
 	const text = util.getText(shape) ?? ''
 	const bounds = getSimpleBounds(editor, shape)
 	const textSize = shape.props.size
-	const textAlign = shape.props.textAlign
-	const textWidth = shape.props.w
 
-	let anchorX = bounds.x
-	switch (textAlign) {
-		case 'middle':
-			anchorX = bounds.x + textWidth / 2
+	const position = new Vec()
+	let anchor: SimpleTextAnchor = 'top-left'
+	switch (shape.props.textAlign) {
+		case 'middle': {
+			anchor = 'top-center'
+			position.x = bounds.center.x
+			position.y = bounds.top
 			break
-		case 'end':
-			anchorX = bounds.x + textWidth
+		}
+		case 'end': {
+			anchor = 'top-right'
+			position.x = bounds.right
+			position.y = bounds.top
 			break
-		case 'start':
-		default:
-			anchorX = bounds.x
+		}
+		case 'start': {
+			anchor = 'top-left'
+			position.x = bounds.left
+			position.y = bounds.top
 			break
+		}
 	}
 
 	return {
 		_type: 'text',
+		anchor,
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
+		maxWidth: shape.props.autoSize ? null : shape.props.w,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
-		textAlign: shape.props.textAlign,
-		x: anchorX,
-		y: bounds.y,
+		x: position.x,
+		y: position.y,
 	}
 }
 

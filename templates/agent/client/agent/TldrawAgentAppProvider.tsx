@@ -95,6 +95,7 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 		// Expose to window for debugging
 		;(window as any).agentApp = instance
 		;(window as any).agent = defaultAgent
+		;(window as any).editor = editor
 
 		return () => {
 			instance.dispose()
@@ -102,6 +103,7 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 			onUnmount?.()
 			delete (window as any).agentApp
 			delete (window as any).agent
+			delete (window as any).editor
 		}
 	}, [editor, handleError, onMount, onUnmount])
 

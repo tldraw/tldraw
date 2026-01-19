@@ -210,8 +210,10 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				return null
 			}
 
+			const role =
+				item.promptSource === 'user' || item.promptSource === 'other-agent' ? 'user' : 'assistant'
 			return {
-				role: 'user',
+				role,
 				content,
 				priority,
 			}

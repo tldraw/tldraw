@@ -1,9 +1,10 @@
 import {
+	Box,
+	createShapeId,
 	Editor,
-	FONT_FAMILIES,
 	FONT_SIZES,
 	IndexKey,
-	TEXT_PROPS,
+	reverseRecordsDiff,
 	TLArrowShape,
 	TLBindingCreate,
 	TLDefaultShape,
@@ -136,7 +137,7 @@ function convertTextShapeToTldrawShape(
 	editor: Editor,
 	simpleShape: SimpleTextShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLTextShape } {
 	const shapeId = convertSimpleIdToTldrawId(simpleShape.shapeId)
 	const defaultTextShape = defaultShape as TLTextShape
 
@@ -154,68 +155,132 @@ function convertTextShapeToTldrawShape(
 		scale = defaultTextShape.props.scale ?? 1
 	}
 
+	// If maxWidth is provided as a number, enable wrapping (autoSize = false)
+	// Otherwise (undefined or null), preserve existing autoSize behavior
+	// Check for undefined first to distinguish "not provided" from "explicitly null"
 	const autoSize =
-		simpleShape.wrap === undefined ? (defaultTextShape.props?.autoSize ?? true) : !simpleShape.wrap
-	const textFontSize = FONT_SIZES[textSize]
-	const textAlign = simpleShape.textAlign ?? defaultTextShape.props?.textAlign ?? 'start'
+		simpleShape.maxWidth !== undefined && simpleShape.maxWidth !== null
+			? false
+			: (defaultTextShape.props?.autoSize ?? true)
 	const font = defaultTextShape.props?.font ?? 'draw'
 
-	const correctedTextCoords = new Vec()
+	let richText
+	if (simpleShape.text !== undefined) {
+		richText = toRichText(simpleShape.text)
+	} else if (defaultTextShape.props?.richText) {
+		richText = defaultTextShape.props.richText
+	} else {
+		richText = toRichText('')
+	}
 
-	const effectiveFontSize = textFontSize * scale
-
-	const measurement = editor.textMeasure.measureText(simpleShape.text, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font as keyof typeof FONT_FAMILIES],
-		fontSize: effectiveFontSize,
-		maxWidth: simpleShape.width ?? Infinity,
-	})
-
-	// Calculate position based on text alignment
-	const baseX = simpleShape.x ?? defaultTextShape.x ?? 0
-	const baseY = simpleShape.y ?? defaultTextShape.y ?? 0
-
-	switch (textAlign) {
-		case 'start':
-			correctedTextCoords.x = baseX
-			correctedTextCoords.y = baseY - measurement.h / 2
+	let textAlign: TLTextShape['props']['textAlign'] = defaultTextShape.props?.textAlign ?? 'start'
+	switch (simpleShape.anchor) {
+		case 'top-left':
+		case 'bottom-left':
+		case 'center-left':
+			textAlign = 'start'
 			break
-		case 'middle':
-			correctedTextCoords.x = baseX - measurement.w / 2
-			correctedTextCoords.y = baseY - measurement.h / 2
+		case 'top-center':
+		case 'bottom-center':
+		case 'center':
+			textAlign = 'middle'
 			break
-		case 'end':
-			correctedTextCoords.x = baseX - measurement.w
-			correctedTextCoords.y = baseY - measurement.h / 2
+		case 'top-right':
+		case 'bottom-right':
+		case 'center-right':
+			textAlign = 'end'
 			break
 	}
 
-	return {
-		shape: {
-			id: shapeId,
-			type: 'text',
-			typeName: 'shape',
-			x: correctedTextCoords.x,
-			y: correctedTextCoords.y,
-			rotation: defaultTextShape.rotation ?? 0,
-			index: defaultTextShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
-			parentId: defaultTextShape.parentId ?? editor.getCurrentPageId(),
-			isLocked: defaultTextShape.isLocked ?? false,
-			opacity: defaultTextShape.opacity ?? 1,
-			props: {
-				size: textSize,
-				scale,
-				richText: toRichText(simpleShape.text),
-				color: asColor(simpleShape.color ?? defaultTextShape.props?.color ?? 'black'),
-				textAlign,
-				autoSize,
-				w: measurement.w,
-				font,
-			},
-			meta: {
-				note: simpleShape.note ?? defaultTextShape.meta?.note ?? '',
-			},
+	const unpositionedShape: TLTextShape = {
+		id: shapeId,
+		type: 'text',
+		typeName: 'shape',
+		x: 0,
+		y: 0,
+		rotation: defaultTextShape.rotation ?? 0,
+		index: defaultTextShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
+		parentId: defaultTextShape.parentId ?? editor.getCurrentPageId(),
+		isLocked: defaultTextShape.isLocked ?? false,
+		opacity: defaultTextShape.opacity ?? 1,
+		props: {
+			size: textSize,
+			scale,
+			richText,
+			color: asColor(simpleShape.color ?? defaultTextShape.props?.color ?? 'black'),
+			textAlign,
+			autoSize,
+			w:
+				simpleShape.maxWidth !== undefined && simpleShape.maxWidth !== null
+					? simpleShape.maxWidth
+					: (defaultTextShape.props?.w ?? 100),
+			font,
 		},
+		meta: {
+			note: simpleShape.note ?? defaultTextShape.meta?.note ?? '',
+		},
+	}
+
+	const unpositionedBounds = getDummyBounds(editor, unpositionedShape)
+
+	const position = new Vec(defaultTextShape.x ?? 0, defaultTextShape.y ?? 0)
+	const x = simpleShape.x ?? defaultTextShape.x ?? 0
+	const y = simpleShape.y ?? defaultTextShape.y ?? 0
+	switch (simpleShape.anchor) {
+		case 'top-left': {
+			position.x = x
+			position.y = y
+			break
+		}
+		case 'top-center': {
+			position.x = x - unpositionedBounds.w / 2
+			position.y = y
+			break
+		}
+		case 'top-right': {
+			position.x = x - unpositionedBounds.w
+			position.y = y
+			break
+		}
+		case 'bottom-left': {
+			position.x = x
+			position.y = y - unpositionedBounds.h
+			break
+		}
+		case 'bottom-center': {
+			position.x = x - unpositionedBounds.w / 2
+			position.y = y - unpositionedBounds.h
+			break
+		}
+		case 'bottom-right': {
+			position.x = x - unpositionedBounds.w
+			position.y = y - unpositionedBounds.h
+			break
+		}
+		case 'center-left': {
+			position.x = x
+			position.y = y - unpositionedBounds.h / 2
+			break
+		}
+		case 'center-right': {
+			position.x = x - unpositionedBounds.w
+			position.y = y - unpositionedBounds.h / 2
+			break
+		}
+		case 'center': {
+			position.x = simpleShape.x - unpositionedBounds.w / 2
+			position.y = simpleShape.y - unpositionedBounds.h / 2
+			break
+		}
+	}
+	const positionedShape: TLTextShape = {
+		...unpositionedShape,
+		x: position.x,
+		y: position.y,
+	}
+
+	return {
+		shape: positionedShape,
 	}
 }
 
@@ -627,4 +692,38 @@ function calculateArrowBindingAnchor(
 		: { x: 0.5, y: 0.5 } // Fall back to center
 
 	return finalNormalizedAnchor
+}
+
+/**
+ * Get the bounds of a shape by temporarily creating it in the editor.
+ * This is useful when we need to know the bounds before the shape is actually created.
+ */
+function getDummyBounds(editor: Editor, shape: TLShape): Box {
+	const bounds = editor.getShapePageBounds(shape)
+	if (bounds) {
+		return bounds
+	}
+
+	// Create a dummy shape and get the bounds, then reverse the creation of the dummy shape
+	let dummyBounds: Box | undefined
+	const diff = editor.store.extractingChanges(() => {
+		editor.run(
+			() => {
+				const dummyId = createShapeId()
+				editor.createShape({
+					...shape,
+					id: dummyId,
+				})
+				dummyBounds = editor.getShapePageBounds(dummyId)
+			},
+			{ ignoreShapeLock: false, history: 'ignore' }
+		)
+	})
+	const reverseDiff = reverseRecordsDiff(diff)
+	editor.store.applyDiff(reverseDiff)
+
+	if (!dummyBounds) {
+		throw new Error('Failed to get bounds for shape')
+	}
+	return dummyBounds
 }

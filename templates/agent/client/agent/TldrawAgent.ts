@@ -444,8 +444,6 @@ export class TldrawAgent {
 		const request = this.requests.getPartialRequestFromInput(input)
 
 		this._schedule({
-			source: 'self',
-
 			// Append to properties where possible
 			agentMessages: [...scheduledRequest.agentMessages, ...(request.agentMessages ?? [])],
 			userMessages: [...scheduledRequest.userMessages, ...(request.userMessages ?? [])],
@@ -453,6 +451,7 @@ export class TldrawAgent {
 
 			// Override specific properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
+			source: request.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
 
