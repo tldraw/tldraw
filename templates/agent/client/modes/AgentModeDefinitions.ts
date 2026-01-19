@@ -34,6 +34,7 @@ import { CanvasLintsPartUtil } from '../parts/CanvasLintsPartUtil'
 import { ChatHistoryPartUtil } from '../parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from '../parts/ContextItemsPartUtil'
 import { DataPartUtil } from '../parts/DataPartUtil'
+import { DebugPartUtil } from '../parts/DebugPartUtil'
 import { MessagesPartUtil } from '../parts/MessagesPartUtil'
 import { ModelNamePartUtil } from '../parts/ModelNamePartUtil'
 import { ModePartUtil } from '../parts/ModePartUtil'
@@ -94,6 +95,9 @@ export const AGENT_MODE_DEFINITIONS = [
 		parts: [
 			// Mode (sends metadata to worker)
 			ModePartUtil.type,
+
+			// Debug (sends debug flags to worker)
+			DebugPartUtil.type,
 
 			// Model
 			ModelNamePartUtil.type,

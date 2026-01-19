@@ -7,6 +7,7 @@ import {
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamText } from 'ai'
 import { AgentModelName, getAgentModelDefinition } from '../../shared/models'
+import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
@@ -59,6 +60,17 @@ async function* streamActions(
 
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt)
+
+	// Check for debug flags and log if enabled
+	const debugPart = prompt.debug as DebugPart | undefined
+	if (debugPart) {
+		if (debugPart.logSystemPrompt) {
+			console.log('[DEBUG] System Prompt:\n', systemPrompt)
+		}
+		if (debugPart.logMessages) {
+			console.log('[DEBUG] Messages:\n', JSON.stringify(messages, null, 2))
+		}
+	}
 
 	try {
 		messages.push({

@@ -80,6 +80,8 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 				return
 			}
 
+			agent.context.clear()
+
 			// All work complete - return to idling
 			agent.mode.setMode('idling')
 		},

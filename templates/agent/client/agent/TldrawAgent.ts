@@ -27,6 +27,7 @@ import { AgentActionManager } from './managers/AgentActionManager'
 import { AgentChatManager } from './managers/AgentChatManager'
 import { AgentChatOriginManager } from './managers/AgentChatOriginManager'
 import { AgentContextManager } from './managers/AgentContextManager'
+import { AgentDebugFlags, AgentDebugManager } from './managers/AgentDebugManager'
 import { AgentLintManager } from './managers/AgentLintManager'
 import { AgentModeManager } from './managers/AgentModeManager'
 import { AgentRequestManager } from './managers/AgentRequestManager'
@@ -43,7 +44,7 @@ export interface PersistedAgentState {
 	todoList?: TodoItem[]
 	contextItems?: ContextItem[]
 	modelName?: AgentModelName
-	debugFlags?: { showContextBounds: boolean }
+	debugFlags?: AgentDebugFlags
 }
 
 export interface TldrawAgentOptions {
@@ -88,6 +89,9 @@ export class TldrawAgent {
 
 	/** The context manager associated with this agent. */
 	context: AgentContextManager
+
+	/** The debug manager associated with this agent. */
+	debug: AgentDebugManager
 
 	/** The lint manager associated with this agent. */
 	lints: AgentLintManager
@@ -146,6 +150,7 @@ export class TldrawAgent {
 		this.chat = new AgentChatManager(this)
 		this.chatOrigin = new AgentChatOriginManager(this)
 		this.context = new AgentContextManager(this)
+		this.debug = new AgentDebugManager(this)
 		this.lints = new AgentLintManager(this)
 		this.mode = new AgentModeManager(this)
 		this.requests = new AgentRequestManager(this)
@@ -178,6 +183,7 @@ export class TldrawAgent {
 			todoList: this.todos.getTodos(),
 			contextItems: this.context.getItems(),
 			modelName: this.$modelName.get(),
+			debugFlags: this.debug.getDebugFlags(),
 		}
 	}
 
@@ -203,6 +209,9 @@ export class TldrawAgent {
 		if (state.modelName) {
 			this.$modelName.set(state.modelName)
 		}
+		if (state.debugFlags) {
+			this.debug.$debugFlags.set(state.debugFlags)
+		}
 	}
 
 	/**
@@ -217,6 +226,7 @@ export class TldrawAgent {
 		this.chat.dispose()
 		this.chatOrigin.dispose()
 		this.context.dispose()
+		this.debug.dispose()
 		this.lints.dispose()
 		this.mode.dispose()
 		this.requests.dispose()
@@ -355,7 +365,6 @@ export class TldrawAgent {
 					`Agent is not allowed to become inactive during the active mode: ${eventualModeType}`
 				)
 			}
-			this.context.clear()
 			this.requests.setIsPrompting(false)
 			this.requests.setCancelFn(null)
 			return
@@ -450,7 +459,10 @@ export class TldrawAgent {
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
 
 			// Override specific properties
-			bounds: request.bounds ?? scheduledRequest.bounds,
+			// bounds: request.bounds ?? scheduledRequest.bounds,
+			// bounds: scheduledRequest
+			// ? Box.From(scheduledRequest.bounds).union(request.bounds)
+			// : request.bounds,
 			source: request.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
@@ -549,6 +561,7 @@ export class TldrawAgent {
 		this.chat.reset()
 		this.chatOrigin.reset()
 		this.context.reset()
+		this.debug.reset()
 		this.lints.reset()
 		this.mode.reset()
 		this.requests.reset()
@@ -637,6 +650,8 @@ export class TldrawAgent {
 								incompleteDiff = null
 								// Track shapes created by this complete action for lint detection
 								this.lints.trackShapesFromDiff(diff)
+								// Log completed action if debug logging is enabled
+								this.debug.logCompletedAction(transformedAction)
 							} else {
 								incompleteDiff = diff
 							}

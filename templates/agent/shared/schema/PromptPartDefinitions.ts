@@ -109,6 +109,12 @@ export interface ModePart {
 	actionTypes: AgentAction['_type'][]
 }
 
+export interface DebugPart {
+	type: 'debug'
+	logSystemPrompt: boolean
+	logMessages: boolean
+}
+
 // ============================================================================
 // Prompt Part Definitions
 // ============================================================================
@@ -504,6 +510,12 @@ export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPa
 // Mode - sends mode metadata to worker for prompt construction
 export const ModePartDefinition: PromptPartDefinition<ModePart> = {
 	type: 'mode',
+	// No buildContent - this is metadata for the worker, not prompt content for the model
+}
+
+// Debug - sends debug flags to worker for logging
+export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
+	type: 'debug',
 	// No buildContent - this is metadata for the worker, not prompt content for the model
 }
 
