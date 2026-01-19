@@ -15,9 +15,9 @@ accuracy: 9
 notes: "Strong technical content with accurate code examples. Opening could use more first-person 'we' framing. '[comparison img]' placeholder and 'The tradeoff' header are minor issues."
 ---
 
-Canvas operations require constantly computing where shapes are. On clicking a shape, tldraw works out what you hit. When you pan, it decides what to render. After grouping shapes, it computes the rectangle that surrounds them all.
+Operations on tldraw's infinite canvas require constantly computing where shapes are. When you click a shape, tldraw should work out what you hit. When you pan across the canvas, tldraw decides what to render. After grouping shapes, it computes the rectangle that surrounds them all.
 
-We use bounding boxes for this. A bounding box is the smallest axis-aligned rectangle that contains a shape. "Axis-aligned" means the edges are perfectly horizontal and vertical relative to the canvas, regardless of how the shape itself is oriented.
+We use bounding boxes for this. A bounding box is the smallest axis-aligned box that contains a shape. "Axis-aligned" means the edges of the box are perfectly horizontal and vertical relative to the canvas, regardless of how the shape itself is oriented.
 
 [img]
 
@@ -32,7 +32,7 @@ static Collides(A: Box, B: Box) {
 }
 ```
 
-We use this calculation everywhere: hit testing, viewport culling, snapping, and more. However: what happens when a shape gets rotated?
+We use this calculation everywhere: hit-testing, viewport culling, snapping, and more. However: what happens when a shape gets rotated?
 
 ## Rotating boxes
 
@@ -61,10 +61,10 @@ const rotated = corners.map((p) => {
 	}
 })
 
-// Results in: [{x: 0, y: 0}, {x: 70.7, y: 70.7}, {x: 35.4, y: 106.1}, {x: -35.4, y: 35.4}]
+// Results: [{x: 0, y: 0}, {x: 70.7, y: 70.7}, {x: 35.4, y: 106.1}, {x: -35.4, y: 35.4}]
 ```
 
-The rotated points describe the shape's new position, but the edges are no longer aligned with the axes of page space. If we tried to use these directly for collision detection, we'd need to check more axes and compute projections using dot products (according to the [separating axis theorem](https://dyn4j.org/2010/01/sat/)), which is more expensive than just comparing precomputed min/max values as above.
+The rotated points describe the shape's new position, but the edges are no longer aligned with the axes of page space. If we tried to use these directly for collision detection, we'd need to check more axes and compute projections using dot products (according to the [separating axis theorem](https://dyn4j.org/2010/01/sat/)), which is more expensive than just comparing min/max values as above.
 
 ## Recomputing the AABB
 

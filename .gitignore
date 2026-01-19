@@ -125,3 +125,6 @@ license-report.md
 
 # ESLint cache
 .eslintcache
+
+# Style reference (kept locally, not tracked)
+.claude/skills/write-nugget/STYLE.md
