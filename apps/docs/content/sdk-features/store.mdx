@@ -16,7 +16,7 @@ readability: 9
 voice: 9
 completeness: 9
 accuracy: 10
-notes: ""
+notes: ''
 ---
 
 The store is tldraw's reactive database. It holds all shapes, pages, bindings, assets, and other records that make up your document. The store is reactive: when data changes, the UI updates automatically. It validates all records against a schema and tracks every change for undo/redo, persistence, and synchronization.
@@ -253,7 +253,7 @@ Query expressions support `eq` for exact matches. The `records()` method returns
 
 ## Transactions
 
-Batch multiple changes into a single update with [Store#atomic](?):
+Batch multiple changes into a single update with `Store.atomic`:
 
 ```ts
 editor.store.atomic(() => {
