@@ -39,45 +39,50 @@ function playMarimbaNote(frequency: number, velocity = 0.07, time?: number) {
 	const ctx = getAudioContext()
 	const now = Math.max(time ?? ctx.currentTime, ctx.currentTime)
 
-	// Harp-like: fundamental + soft harmonics
+	// Woody tone: fundamental + warm harmonics + subtle body resonance
 	const fundamental = ctx.createOscillator()
 	const harmonic1 = ctx.createOscillator()
-	const harmonic2 = ctx.createOscillator()
+	const body = ctx.createOscillator() // Low "wood body" resonance
 
 	fundamental.type = 'sine'
 	fundamental.frequency.value = frequency
 
-	harmonic1.type = 'sine'
-	harmonic1.frequency.value = frequency * 2.0
+	// Slightly detuned harmonic for warmth
+	harmonic1.type = 'triangle'
+	harmonic1.frequency.value = frequency * 0.5
 
-	harmonic2.type = 'sine'
-	harmonic2.frequency.value = frequency * 3.0
+	// Body resonance - sub-octave for woody depth
+	body.type = 'sine'
+	body.frequency.value = frequency * 0.5
 
-	// Gentle attack, long sustain (harp-like)
+	// Main envelope: soft attack, medium sustain (wood decays naturally)
 	const envelope = ctx.createGain()
 	envelope.gain.setValueAtTime(0, now)
-	envelope.gain.linearRampToValueAtTime(velocity, now + 0.02)
-	envelope.gain.exponentialRampToValueAtTime(velocity * 0.7, now + 0.3)
-	envelope.gain.exponentialRampToValueAtTime(velocity * 0.3, now + 1.0)
-	envelope.gain.exponentialRampToValueAtTime(0.001, now + 2.0)
+	envelope.gain.linearRampToValueAtTime(velocity, now + 0.015)
+	envelope.gain.exponentialRampToValueAtTime(velocity * 0.5, now + 0.25)
+	envelope.gain.exponentialRampToValueAtTime(velocity * 0.15, now + 0.8)
+	envelope.gain.exponentialRampToValueAtTime(0.001, now + 1.4)
+
+	// Body envelope: slower attack, quick decay (the "thunk")
+	const bodyEnv = ctx.createGain()
+	bodyEnv.gain.setValueAtTime(0, now)
+	bodyEnv.gain.linearRampToValueAtTime(velocity * 0.4, now + 0.01)
+	bodyEnv.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
 
 	const gain1 = ctx.createGain()
-	gain1.gain.value = 0.15
-
-	const gain2 = ctx.createGain()
-	gain2.gain.value = 0.05
+	gain1.gain.value = 0.12
 
 	fundamental.connect(envelope)
 	harmonic1.connect(gain1).connect(envelope)
-	harmonic2.connect(gain2).connect(envelope)
+	body.connect(bodyEnv).connect(ctx.destination)
 	envelope.connect(ctx.destination)
 
 	fundamental.start(now)
 	harmonic1.start(now)
-	harmonic2.start(now)
-	fundamental.stop(now + 2.5)
-	harmonic1.stop(now + 2.5)
-	harmonic2.stop(now + 2.5)
+	body.start(now)
+	fundamental.stop(now + 1.6)
+	harmonic1.stop(now + 1.6)
+	body.stop(now + 0.5)
 }
 
 // Bass note - lower, longer sustain, warmer
@@ -192,7 +197,7 @@ function playNote(scaleDegree: number, velocity = 0.07) {
 
 const BRANCH_LENGTH = 220
 const BRANCH_SHRINK = 0.78
-const MAX_DEPTH = 8
+const MAX_DEPTH = 9
 
 interface Branch {
 	x1: number
