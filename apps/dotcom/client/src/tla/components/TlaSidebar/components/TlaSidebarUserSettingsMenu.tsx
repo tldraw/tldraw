@@ -19,6 +19,7 @@ import {
 	useAreFairiesDebugEnabled,
 	useAreFairiesEnabled,
 } from '../../../utils/local-session-state'
+import { useFairyAccess } from '../../../hooks/useFairyAccess'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
@@ -85,11 +86,14 @@ export function TlaUserSettingsMenu() {
 }
 
 function FairiesSubmenu() {
+	const hasFairyAccess = useFairyAccess()
 	const areFairiesEnabled = useAreFairiesEnabled()
 	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
 	const fairiesLbl = useMsg(messages.fairies)
 	const enableFairiesLbl = useMsg(messages.enableFairies)
 	const debugFairiesLbl = useMsg(messages.debugFairies)
+
+	if (!hasFairyAccess) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="fairies" label={fairiesLbl}>

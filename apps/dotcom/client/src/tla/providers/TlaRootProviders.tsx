@@ -38,6 +38,7 @@ import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
+import { useFairyAccess } from '../hooks/useFairyAccess'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
@@ -92,7 +93,6 @@ export function Component() {
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
 		[]
 	)
-	const areFairiesEnabled = useAreFairiesEnabled()
 
 	// Set the data-coarse attribute on the container based on the pointer type
 	// we use a layout effect because we don't want there to be any perceptible delay between the
@@ -111,7 +111,6 @@ export function Component() {
 				'tla-theme__light tl-theme__light': theme === 'light',
 				'tla-theme__dark tl-theme__dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
-				'tla-fairies-enabled': areFairiesEnabled,
 			})}
 		>
 			<IntlWrapper locale={locale}>
@@ -120,6 +119,7 @@ export function Component() {
 						{container && (
 							<ContainerProvider container={container}>
 								<InsideOfContainerContext>
+									<FairiesClassManager container={container} />
 									<Outlet />
 									<LegalTermsAcceptance />
 								</InsideOfContainerContext>
@@ -196,6 +196,31 @@ function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
+	return null
+}
+
+/**
+ * Manages the tla-fairies-enabled class on the root container.
+ * This is the critical access control boundary: the class must only be applied
+ * when the user has server-authoritative fairy access AND has enabled fairies locally.
+ * This prevents unauthorized users from hiding the watermark via CSS.
+ */
+function FairiesClassManager({ container }: { container: HTMLElement }) {
+	const hasFairyAccess = useFairyAccess()
+	const areFairiesEnabled = useAreFairiesEnabled()
+
+	useEffect(() => {
+		const shouldApply = hasFairyAccess && areFairiesEnabled
+		if (shouldApply) {
+			container.classList.add('tla-fairies-enabled')
+		} else {
+			container.classList.remove('tla-fairies-enabled')
+		}
+		return () => {
+			container.classList.remove('tla-fairies-enabled')
+		}
+	}, [container, hasFairyAccess, areFairiesEnabled])
+
 	return null
 }
 
