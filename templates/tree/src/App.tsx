@@ -2,6 +2,184 @@ import { useEffect, useRef } from 'react'
 import { Editor, TLShapeId, Tldraw, b64Vecs, createShapeId, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// ============ AUDIO SYSTEM ============
+
+// Bb major scale with 9ths and 11ths, stored as semitones from A3
+// Bb3=10, C4=12(9th), D4=14(3rd), Eb4=15(11th), F4=17(5th), G4=19(6th), A4=21(7th), Bb4=22
+// Emphasizing the extended chord tones (9th and 11th) for rich jazz harmony
+const SCALE_SEMITONES = [10, 12, 14, 15, 17, 19, 21, 22, 24, 26, 27, 29] // Bb3 to Eb5
+
+// Convert semitones from A3 (220Hz) to frequency
+function semitoneToFreq(semitone: number): number {
+	return 220 * Math.pow(2, semitone / 12)
+}
+
+let audioContext: AudioContext | null = null
+
+function getAudioContext(): AudioContext {
+	if (!audioContext) {
+		audioContext = new AudioContext()
+	}
+	return audioContext
+}
+
+function playMarimbaNote(frequency: number, velocity = 0.08, time?: number) {
+	const ctx = getAudioContext()
+	// Ensure time is never negative or in the past
+	const now = Math.max(time ?? ctx.currentTime, ctx.currentTime)
+
+	const fundamental = ctx.createOscillator()
+	const harmonic1 = ctx.createOscillator()
+
+	fundamental.type = 'sine'
+	fundamental.frequency.value = frequency
+
+	harmonic1.type = 'sine'
+	harmonic1.frequency.value = frequency * 2.0
+
+	const envelope = ctx.createGain()
+	envelope.gain.setValueAtTime(0, now)
+	envelope.gain.linearRampToValueAtTime(velocity, now + 0.012)
+	envelope.gain.exponentialRampToValueAtTime(velocity * 0.3, now + 0.2)
+	envelope.gain.exponentialRampToValueAtTime(0.001, now + 0.7)
+
+	const gain1 = ctx.createGain()
+	gain1.gain.value = 0.1
+
+	fundamental.connect(envelope)
+	harmonic1.connect(gain1).connect(envelope)
+	envelope.connect(ctx.destination)
+
+	fundamental.start(now)
+	harmonic1.start(now)
+	fundamental.stop(now + 0.9)
+	harmonic1.stop(now + 0.9)
+}
+
+// Melodic phrases - each is an array of [scaleDegree, velocity]
+const MELODIC_PHRASES: Array<Array<[number, number]>> = [
+	// Gentle ascending
+	[
+		[0, 0.07],
+		[2, 0.06],
+		[3, 0.06],
+		[4, 0.07],
+		[5, 0.06],
+	],
+	// Descending with grace
+	[
+		[6, 0.07],
+		[5, 0.06],
+		[4, 0.05],
+		[3, 0.06],
+		[2, 0.06],
+	],
+	// Call and response
+	[
+		[0, 0.07],
+		[4, 0.06],
+		[3, 0.06],
+		[2, 0.05],
+		[0, 0.07],
+	],
+	// Ethereal (raised 7th)
+	[
+		[4, 0.06],
+		[5, 0.05],
+		[6, 0.07],
+		[5, 0.05],
+		[4, 0.06],
+	],
+	// Wandering
+	[
+		[2, 0.06],
+		[4, 0.06],
+		[3, 0.05],
+		[5, 0.07],
+		[4, 0.06],
+		[2, 0.06],
+	],
+	// Resolving
+	[
+		[5, 0.06],
+		[4, 0.06],
+		[3, 0.06],
+		[2, 0.06],
+		[0, 0.07],
+	],
+	// Hopeful climb
+	[
+		[0, 0.06],
+		[2, 0.06],
+		[4, 0.07],
+		[5, 0.06],
+		[7, 0.07],
+	],
+	// Gentle sway
+	[
+		[3, 0.06],
+		[4, 0.05],
+		[3, 0.06],
+		[2, 0.06],
+		[3, 0.06],
+	],
+	// Playful
+	[
+		[0, 0.06],
+		[3, 0.06],
+		[2, 0.05],
+		[4, 0.07],
+		[3, 0.06],
+	],
+	// Reflective
+	[
+		[4, 0.06],
+		[2, 0.05],
+		[3, 0.06],
+		[0, 0.07],
+		[2, 0.06],
+	],
+]
+
+interface NoteEvent {
+	scaleDegree: number
+	velocity: number
+}
+
+// Generate a melody sequence with enough notes for the branches
+function generateMelody(noteCount: number): NoteEvent[] {
+	const notes: NoteEvent[] = []
+	const usedPhrases: number[] = []
+
+	while (notes.length < noteCount) {
+		// Pick a phrase we haven't used recently
+		let phraseIndex: number
+		do {
+			phraseIndex = Math.floor(Math.random() * MELODIC_PHRASES.length)
+		} while (usedPhrases.includes(phraseIndex) && usedPhrases.length < MELODIC_PHRASES.length - 3)
+
+		usedPhrases.push(phraseIndex)
+		if (usedPhrases.length > 4) usedPhrases.shift()
+
+		const phrase = MELODIC_PHRASES[phraseIndex]
+		for (const [scaleDegree, velocity] of phrase) {
+			notes.push({ scaleDegree, velocity })
+			if (notes.length >= noteCount) break
+		}
+	}
+
+	return notes
+}
+
+// Play a single note immediately
+function playNote(note: NoteEvent) {
+	const freq = semitoneToFreq(SCALE_SEMITONES[note.scaleDegree])
+	const humanize = (Math.random() - 0.5) * 0.01
+	playMarimbaNote(freq, note.velocity, getAudioContext().currentTime + humanize)
+}
+
+// ============ TREE SYSTEM ============
+
 const BRANCH_LENGTH = 220
 const BRANCH_SHRINK = 0.78
 const MAX_DEPTH = 8
@@ -93,46 +271,116 @@ function branchToFreehandPoints(branch: Branch): { x: number; y: number; z: numb
 	return points
 }
 
+// Base timing in ms between notes per thread
+const NOTE_INTERVAL = 45
+
+// Shared melody state for concurrent threads
+class MelodyQueue {
+	private notes: NoteEvent[]
+	private index = 0
+
+	constructor(noteCount: number) {
+		this.notes = generateMelody(noteCount)
+	}
+
+	next(): NoteEvent | null {
+		if (this.index >= this.notes.length) return null
+		return this.notes[this.index++]
+	}
+}
+
+function drawBranch(editor: Editor, branch: Branch) {
+	const points = branchToFreehandPoints(branch)
+
+	const minX = Math.min(...points.map((p) => p.x))
+	const minY = Math.min(...points.map((p) => p.y))
+
+	const normalizedPoints = points.map((p) => ({
+		x: p.x - minX,
+		y: p.y - minY,
+		z: p.z,
+	}))
+
+	const shapeId = createShapeId()
+	const size = 'm'
+	const color = branch.depth < 3 ? 'grey' : branch.depth < 5 ? 'green' : 'light-green'
+
+	editor.createShape({
+		id: shapeId,
+		type: 'draw',
+		x: minX,
+		y: minY,
+		props: {
+			segments: [{ type: 'free', points: b64Vecs.encodePoints(normalizedPoints) }],
+			color,
+			size,
+			isClosed: false,
+			isComplete: true,
+		},
+	})
+}
+
+// Run a single thread of branch drawing
+async function runThread(
+	editor: Editor,
+	branches: Branch[],
+	melody: MelodyQueue,
+	initialDelay: number,
+	intervalVariance: number
+) {
+	// Initial offset
+	await new Promise((r) => setTimeout(r, initialDelay))
+
+	for (const branch of branches) {
+		drawBranch(editor, branch)
+
+		// Maybe play a note (threads share the melody, so notes bounce between them)
+		const note = melody.next()
+		if (note) {
+			playNote(note)
+		}
+
+		// Wait with some variance
+		const interval = NOTE_INTERVAL + (Math.random() - 0.5) * intervalVariance
+		await new Promise((r) => setTimeout(r, interval))
+	}
+}
+
 async function drawTree(editor: Editor, buttonX: number, buttonY: number) {
 	const branches = generateTree(buttonX, buttonY)
 
 	// Sort by depth so trunk draws first
 	branches.sort((a, b) => a.depth - b.depth)
 
+	// Split branches into threads based on angle (left vs center vs right)
+	const leftBranches: Branch[] = []
+	const centerBranches: Branch[] = []
+	const rightBranches: Branch[] = []
+
 	for (const branch of branches) {
-		const points = branchToFreehandPoints(branch)
-
-		const minX = Math.min(...points.map((p) => p.x))
-		const minY = Math.min(...points.map((p) => p.y))
-
-		const normalizedPoints = points.map((p) => ({
-			x: p.x - minX,
-			y: p.y - minY,
-			z: p.z,
-		}))
-
-		const shapeId = createShapeId()
-
-		const size = 'm'
-		const color = branch.depth < 3 ? 'grey' : branch.depth < 5 ? 'green' : 'light-green'
-
-		editor.createShape({
-			id: shapeId,
-			type: 'draw',
-			x: minX,
-			y: minY,
-			props: {
-				segments: [{ type: 'free', points: b64Vecs.encodePoints(normalizedPoints) }],
-				color,
-				size,
-				isClosed: false,
-				isComplete: true,
-			},
-		})
-
-		// Much slower - varied delay
-		await new Promise((r) => setTimeout(r, 80 + Math.random() * 15))
+		// Normalize angle to determine which "side" of tree
+		const normalizedAngle = branch.angle + Math.PI / 2 // 0 = straight up
+		if (normalizedAngle < -0.3) {
+			leftBranches.push(branch)
+		} else if (normalizedAngle > 0.3) {
+			rightBranches.push(branch)
+		} else {
+			centerBranches.push(branch)
+		}
 	}
+
+	// Initialize audio
+	getAudioContext()
+
+	// Create shared melody queue
+	const melody = new MelodyQueue(branches.length)
+
+	// Run threads concurrently with different offsets and timing
+	await Promise.all([
+		runThread(editor, centerBranches, melody, 0, 40),
+		runThread(editor, leftBranches, melody, 60, 50),
+		runThread(editor, rightBranches, melody, 120, 50),
+	])
 }
 
 const OUTER_RADIUS = 40
