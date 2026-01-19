@@ -28065,6 +28065,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-tree-example@workspace:templates/tree":
+  version: 0.0.0-use.local
+  resolution: "tldraw-tree-example@workspace:templates/tree"
+  dependencies:
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-vite-example@workspace:templates/vite":
   version: 0.0.0-use.local
   resolution: "tldraw-vite-example@workspace:templates/vite"
