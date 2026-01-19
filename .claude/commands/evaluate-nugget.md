@@ -25,7 +25,7 @@ How clear and easy to understand is the writing?
 
 ### Voice
 
-Does it sound like tldraw? Check [write-nuggets.md](./write-nuggets.md) for the full guide.
+Does it sound like tldraw? Check the `write-nugget` skill for the full guide.
 
 **9-10**: Opens with our experience ("When we added...", "We wanted..."). Uses "we" for tldraw decisions, "you" for the reader. No AI tells.
 
@@ -72,7 +72,7 @@ Is the story true to the source code and documentation?
 ## Evaluation process
 
 1. Read the draft thoroughly
-2. Read [write-nuggets.md](./write-nuggets.md) for voice and structure guidelines
+2. Read the `write-nugget` skill for voice and structure guidelines
 3. Read source files mentioned in the draft's "Key files" section to verify accuracy
 4. Score each dimension
 5. Write brief notes explaining the scores

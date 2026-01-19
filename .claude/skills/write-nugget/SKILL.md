@@ -1,9 +1,9 @@
 ---
-name: generate-nugget
+name: write-nugget
 description: Generate a nugget draft from raw notes. Use this when creating a new draft in documentation/nuggets/.
 ---
 
-# Generating nugget drafts
+# Writing nugget drafts
 
 Nuggets are short, focused articles about interesting technical details in tldraw. They explore the "why" behind implementation decisions, surprising behaviors, and solutions to non-obvious problems.
 
@@ -17,6 +17,8 @@ Each nugget lives in `documentation/nuggets/{topic}/` containing:
 Your job: read the raw notes and produce the next numbered draft.
 
 ## Before writing
+
+**Important**: Read VOICE.md for the writing style and voice.
 
 1. Read the raw notes thoroughly
 2. Read source files mentioned in the notes to verify accuracy
@@ -52,59 +54,6 @@ Choose the structure that fits your topic:
 2. **Show the insight** — What makes the solution work?
 3. **Walk through implementation** — Code and explanation, building complexity
 4. **Wrap up** — Tradeoffs, reflections, links to source files
-
-## Voice
-
-Use "we" for tldraw decisions:
-
-> When we added curved arrows, we wanted them to stay stable as shapes moved.
-
-Use "you" when addressing the reader:
-
-> If you've ever tried this, you know the naive approach fails.
-
-Nuggets can:
-
-- Use "the trick is..." to signal key ideas
-- Show the journey ("we tried X, but Y worked better")
-- Be honest about hacks ("this is a hack and we know it")
-
-## Avoid AI tells
-
-These patterns break trust:
-
-**Hollow importance claims:**
-
-- "plays a crucial role", "serves as a testament to"
-
-**Trailing gerunds:**
-
-- "...ensuring optimal performance", "...highlighting the importance of"
-
-**Formulaic transitions:**
-
-- "Moreover,", "Furthermore,", "It's important to note"
-
-**Promotional language:**
-
-- "robust", "seamless", "empowers developers"
-
-**Rule of three lists** — Real writing has 2, 4, 7 items. If you have exactly three, ask if that's the right count.
-
-**Em dash overuse** — One per paragraph is fine; several is a red flag.
-
-## What to avoid
-
-- **Announcing insights**: Don't write "The key insight is..." — just explain it
-- **Formulaic section headers**: "**The tradeoff:**" as a standalone transition
-- **Forced broader applicability**: Not every nugget needs "when to use elsewhere"
-- **Conclusions that summarize**: Add perspective, don't repeat
-
-## Mechanics
-
-- **Sentence case headings**: "Custom shapes" not "Custom Shapes"
-- **Contractions**: it's, we've, you'll, don't
-- **Link to source files** at the bottom
 
 ## What makes a nugget worth writing
 

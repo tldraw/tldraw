@@ -5,62 +5,7 @@ description: Writing SDK documentation for tldraw. Use when creating new documen
 
 # Writing tldraw SDK documentation
 
-## The tldraw voice
-
-Write like a colleague walking someone through code they know well. Confident, casual, code-first.
-
-**Characteristic patterns:**
-
-> Have five minutes? Run this command...
-
-> That's pretty much it!
-
-> Let's add local persistence by passing a `persistenceKey` prop...
-
-> Need to create some shapes? Use [Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?).
-
-**What makes it work:**
-
-- Direct address with "you" and "let's"
-- Questions as transitions ("Need to create some shapes?")
-- Exclamations that feel natural, not forced ("That's pretty much it!")
-- Jump straight to code, explain around it
-- Short sentences between code blocks
-
-### Confidence without hedging
-
-State facts. Don't soften them.
-
-```
-// Good
-The Editor class is the main way of controlling tldraw's editor.
-
-// Bad
-The Editor class can be used to control tldraw's editor.
-```
-
-### Density over exposition
-
-Real tldraw docs are code-heavy. A section might be 20 lines of code with 2 sentences of explanation. Don't pad with prose.
-
-## Avoid AI tells
-
-These break trust instantly:
-
-- **Hollow claims**: "plays a crucial role", "serves as a testament to"
-- **Trailing gerunds**: "...ensuring optimal performance"
-- **Formulaic transitions**: "Moreover,", "Furthermore,", "It's important to note"
-- **Promotional language**: "robust", "seamless", "empowers developers"
-- **Three-item lists**: Real writing has 2, 4, 7 items
-- **Passive voice**: "can be achieved by" — just show how
-- **Conversational asides**: "(or whatever)", "(if you want)", "(just saying)"
-
-## Mechanics
-
-- **Sentence case headings**: "Custom shapes" not "Custom Shapes"
-- **Active voice**: "The store validates records"
-- **Present tense**: "The migration system transforms"
-- **Contractions**: it's, we've, you'll, don't
+**Important**: Read `VOICE.md` for tone, voice, and style guidance.
 
 ## Frontmatter
 

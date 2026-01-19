@@ -222,6 +222,8 @@ Uses `lazyrepo` for incremental builds with caching:
 
 ## Writing style guidelines
 
+**For all writing tasks**, read `VOICE.md` in the repository root for tone, voice, and style guidance.
+
 **Sentence case for titles and headings**
 
 - Always use sentence case for titles, headings, and labels (NOT Title Case)
