@@ -36,10 +36,25 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 		},
 	},
 	working: {
-		onEnter(agent, _fromMode) {
-			// Reset state when entering default mode
+		onEnter(agent, fromMode) {
+			// Reset state when entering working mode
 			agent.todos.reset()
 			agent.userAction.clearHistory()
+
+			// When entering working mode from idling, clear created shapes tracking
+			// This handles the case where a user prompt starts while in idling mode,
+			// which transitions to working before working.onPromptStart is called
+			if (fromMode === 'idling') {
+				agent.lints.clearCreatedShapes()
+			}
+		},
+
+		onPromptStart(agent, request) {
+			// Clear created shapes tracking when a new user prompt starts
+			// This handles cases where a prompt starts while already in working mode (e.g., continuation, interrupt)
+			if (request.source === 'user') {
+				agent.lints.clearCreatedShapes()
+			}
 		},
 
 		onPromptEnd(agent, _request) {
@@ -52,6 +67,16 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 				agent.schedule(
 					"Continue until all your todo items are marked as done. If you've completed the work, mark them as done, otherwise keep going."
 				)
+				return
+			}
+
+			// Check if there are unsurfaced lints on created shapes
+			if (agent.lints.hasUnsurfacedLints(agent.lints.getCreatedShapes())) {
+				agent.schedule({
+					agentMessages: [
+						'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed.',
+					],
+				})
 				return
 			}
 

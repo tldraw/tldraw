@@ -30,6 +30,7 @@ import { UpdateActionUtil } from '../actions/UpdateActionUtil'
 
 // Import prompt part utils to ensure they register themselves
 import { BlurryShapesPartUtil } from '../parts/BlurryShapesPartUtil'
+import { CanvasLintsPartUtil } from '../parts/CanvasLintsPartUtil'
 import { ChatHistoryPartUtil } from '../parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from '../parts/ContextItemsPartUtil'
 import { DataPartUtil } from '../parts/DataPartUtil'
@@ -115,6 +116,9 @@ export const AGENT_MODE_DEFINITIONS = [
 			ChatHistoryPartUtil.type,
 			UserActionHistoryPartUtil.type,
 			TodoListPartUtil.type,
+
+			// Lints
+			CanvasLintsPartUtil.type,
 
 			// Metadata
 			TimePartUtil.type,

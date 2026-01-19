@@ -27,6 +27,7 @@ import { AgentActionManager } from './managers/AgentActionManager'
 import { AgentChatManager } from './managers/AgentChatManager'
 import { AgentChatOriginManager } from './managers/AgentChatOriginManager'
 import { AgentContextManager } from './managers/AgentContextManager'
+import { AgentLintManager } from './managers/AgentLintManager'
 import { AgentModeManager } from './managers/AgentModeManager'
 import { AgentRequestManager } from './managers/AgentRequestManager'
 import { AgentTodoManager } from './managers/AgentTodoManager'
@@ -88,6 +89,9 @@ export class TldrawAgent {
 	/** The context manager associated with this agent. */
 	context: AgentContextManager
 
+	/** The lint manager associated with this agent. */
+	lints: AgentLintManager
+
 	/** The mode manager associated with this agent. */
 	mode: AgentModeManager
 
@@ -142,6 +146,7 @@ export class TldrawAgent {
 		this.chat = new AgentChatManager(this)
 		this.chatOrigin = new AgentChatOriginManager(this)
 		this.context = new AgentContextManager(this)
+		this.lints = new AgentLintManager(this)
 		this.mode = new AgentModeManager(this)
 		this.requests = new AgentRequestManager(this)
 		this.todos = new AgentTodoManager(this)
@@ -212,6 +217,7 @@ export class TldrawAgent {
 		this.chat.dispose()
 		this.chatOrigin.dispose()
 		this.context.dispose()
+		this.lints.dispose()
 		this.mode.dispose()
 		this.requests.dispose()
 		this.todos.dispose()
@@ -544,6 +550,7 @@ export class TldrawAgent {
 		this.chat.reset()
 		this.chatOrigin.reset()
 		this.context.reset()
+		this.lints.reset()
 		this.mode.reset()
 		this.requests.reset()
 		this.todos.reset()
@@ -629,6 +636,8 @@ export class TldrawAgent {
 							// The the action is incomplete, save the diff so that we can revert it in the future
 							if (transformedAction.complete) {
 								incompleteDiff = null
+								// Track shapes created by this complete action for lint detection
+								this.lints.trackShapesFromDiff(diff)
 							} else {
 								incompleteDiff = diff
 							}

@@ -4,6 +4,7 @@ import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
 import { SimpleShape } from '../format/SimpleShape'
 import { AgentModelName } from '../models'
 import type { AgentAction } from '../types/AgentAction'
+import { AgentCanvasLint } from '../types/AgentCanvasLint'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
@@ -18,6 +19,11 @@ import { TodoItem } from '../types/TodoItem'
 export interface BlurryShapesPart {
 	type: 'blurryShapes'
 	shapes: BlurryShape[]
+}
+
+export interface CanvasLintsPart {
+	type: 'canvasLints'
+	lints: AgentCanvasLint[]
 }
 
 export interface ChatHistoryPart {
@@ -114,6 +120,19 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 	buildContent: ({ shapes }) => {
 		if (shapes.length === 0) return ['There are no shapes in your view at the moment.']
 		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
+	},
+}
+
+// CanvasLints
+export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = {
+	type: 'canvasLints',
+	priority: 15, // after todo list, before messages
+	buildContent: ({ lints }) => {
+		if (lints.length === 0) return []
+		return [
+			'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed:',
+			JSON.stringify(lints),
+		]
 	},
 }
 
