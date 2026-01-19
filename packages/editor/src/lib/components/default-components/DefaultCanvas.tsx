@@ -1,7 +1,7 @@
 import { react } from '@tldraw/state'
 import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
-import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
+import { modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { tlenv } from '../../globals/environment'
@@ -26,6 +26,7 @@ import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
+import { CanvasShapeIndicators } from './CanvasShapeIndicators'
 
 /** @public */
 export interface TLCanvasComponentProps {
@@ -159,6 +160,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
 				<div className="tl-overlays">
+					<CanvasShapeIndicators />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
@@ -445,7 +447,19 @@ function HintedShapeIndicator() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
+	const ids = useValue(
+		'hinting shape ids without canvas indicator',
+		() => {
+			// Filter to only shapes that don't have getIndicatorPath implemented
+			return editor.getHintingShapeIds().filter((id) => {
+				const shape = editor.getShape(id)
+				if (!shape) return false
+				const util = editor.getShapeUtil(shape)
+				return !util.getIndicatorPath(shape)
+			})
+		},
+		[editor]
+	)
 
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null

@@ -75,6 +75,19 @@ export interface TLShapeUtilCanvasSvgDef {
 	component: React.ComponentType
 }
 
+/**
+ * Return type for {@link ShapeUtil.getIndicatorPath}. Can be either a simple Path2D
+ * or an object with additional rendering info like clip paths for complex indicators.
+ * @public
+ */
+export type TLIndicatorPath =
+	| Path2D
+	| {
+			path: Path2D
+			clipPath?: Path2D
+			additionalPaths?: Path2D[]
+	  }
+
 /** @public */
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
@@ -172,6 +185,24 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @public
 	 */
 	abstract indicator(shape: Shape): any
+
+	/**
+	 * Get a Path2D for rendering the shape's indicator on the canvas.
+	 *
+	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
+	 * efficient canvas-based indicator rendering. Shapes that return `undefined` will
+	 * fall back to SVG-based rendering via {@link ShapeUtil.indicator}.
+	 *
+	 * For complex indicators that need clipping (e.g., arrows with labels), return an
+	 * object with `path`, `clipPath`, and `additionalPaths` properties.
+	 *
+	 * @param shape - The shape.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to use SVG fallback.
+	 * @public
+	 */
+	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {
+		return undefined
+	}
 
 	/**
 	 * Get the font faces that should be rendered in the document in order for this shape to render

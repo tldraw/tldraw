@@ -16,6 +16,7 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
+	debugFlags,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -243,6 +244,28 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			roundness: strokeWidth * 2 * scale,
 			props: { strokeWidth: undefined },
 			forceSolid: isZoomedOut,
+		})
+	}
+
+	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
+		// Return undefined to fall back to SVG indicators when canvas indicators are disabled
+		if (!debugFlags.useCanvasIndicators.get()) return undefined
+
+		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+
+		const { size, dash, scale } = shape.props
+		const strokeWidth = STROKE_SIZES[size]
+
+		const path = getGeoShapePath(shape)
+
+		return path.toPath2D({
+			style: dash === 'draw' ? 'draw' : 'solid',
+			strokeWidth: 1,
+			passes: 1,
+			randomSeed: shape.id,
+			offset: 0,
+			roundness: strokeWidth * 2 * scale,
+			forceSolid: isForceSolid,
 		})
 	}
 

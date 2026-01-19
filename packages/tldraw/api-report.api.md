@@ -277,6 +277,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
+    getIndicatorPath(shape: TLArrowShape): {
+        additionalPaths: Path2D[];
+        clipPath: Path2D;
+        path: Path2D;
+    } | Path2D | undefined;
+    // (undocumented)
     getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
     getText(shape: TLArrowShape): string;
@@ -429,6 +435,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     getAriaDescriptor(shape: TLBookmarkShape): string | undefined;
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
+    // (undocumented)
+    getIndicatorPath(shape: TLBookmarkShape): Path2D;
     // (undocumented)
     getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
     // (undocumented)
@@ -1171,6 +1179,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
+    getIndicatorPath(shape: TLDrawShape): Path2D;
+    // (undocumented)
     getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
     // (undocumented)
     hideResizeHandles(shape: TLDrawShape): boolean;
@@ -1416,6 +1426,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getGeometry(shape: TLEmbedShape): Geometry2d;
     // (undocumented)
+    getIndicatorPath(shape: TLEmbedShape): Path2D;
+    // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
     getText(shape: TLEmbedShape): string;
@@ -1566,6 +1578,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getIndicatorPath(shape: TLFrameShape): Path2D;
+    // (undocumented)
     getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
     // (undocumented)
     getText(shape: TLFrameShape): string | undefined;
@@ -1638,6 +1652,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
+    // (undocumented)
+    getIndicatorPath(shape: TLGeoShape): Path2D | undefined;
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
@@ -1902,6 +1918,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
+    getIndicatorPath(shape: TLHighlightShape): Path2D;
+    // (undocumented)
     getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
     // (undocumented)
     hideResizeHandles(shape: TLHighlightShape): boolean;
@@ -1947,6 +1965,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)
     getGeometry(shape: TLImageShape): Geometry2d;
+    // (undocumented)
+    getIndicatorPath(shape: TLImageShape): Path2D | undefined;
     // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
@@ -2022,6 +2042,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
+    // (undocumented)
+    getIndicatorPath(shape: TLLineShape): Path2D;
     // (undocumented)
     getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
     // (undocumented)
@@ -2181,6 +2203,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
+    getIndicatorPath(shape: TLNoteShape): Path2D;
     // (undocumented)
     getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
@@ -2391,6 +2415,8 @@ export class PathBuilder {
     toDrawD(opts: DrawPathBuilderDOpts): string;
     // (undocumented)
     toGeometry(): Group2d | PathBuilderGeometry2d;
+    // (undocumented)
+    toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)
     toSvg(opts: PathBuilderOpts): JSX.Element;
 }
@@ -3024,6 +3050,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     getFontFaces(shape: TLTextShape): TLFontFace[];
     // (undocumented)
     getGeometry(shape: TLTextShape, opts: TLGeometryOpts): Rectangle2d;
+    // (undocumented)
+    getIndicatorPath(shape: TLTextShape): Path2D | undefined;
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
         height: number;
@@ -5502,6 +5530,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     getAriaDescriptor(shape: TLVideoShape): string;
     // (undocumented)
     getDefaultProps(): TLVideoShape['props'];
+    // (undocumented)
+    getIndicatorPath(shape: TLVideoShape): Path2D;
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)

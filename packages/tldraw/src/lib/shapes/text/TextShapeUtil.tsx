@@ -161,6 +161,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
+	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {
+		if (shape.props.autoSize && this.editor.getEditingShapeId() === shape.id) return undefined
+		const bounds = this.editor.getShapeGeometry(shape).bounds
+		const path = new Path2D()
+		path.rect(0, 0, bounds.width, bounds.height)
+		return path
+	}
+
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const width = bounds.width / (shape.props.scale ?? 1)

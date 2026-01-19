@@ -255,6 +255,21 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
 		)
 	}
+
+	override getIndicatorPath(shape: TLEmbedShape): Path2D {
+		const path = new Path2D()
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+
+		if (embedInfo?.definition) {
+			const radius = embedInfo.definition.overrideOutlineRadius ?? 8
+			path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
+		} else {
+			// Fallback to bookmark indicator
+			path.roundRect(0, 0, BOOKMARK_WIDTH, BOOKMARK_JUST_URL_HEIGHT, 6)
+		}
+		return path
+	}
+
 	override getInterpolatedProps(
 		startShape: TLEmbedShape,
 		endShape: TLEmbedShape,

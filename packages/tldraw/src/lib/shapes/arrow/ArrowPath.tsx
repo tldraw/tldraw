@@ -3,13 +3,12 @@ import { PathBuilder, PathBuilderOpts } from '../shared/PathBuilder'
 import { TLArrowInfo } from './arrow-types'
 import { getRouteHandlePath } from './elbow/getElbowArrowInfo'
 
-export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: PathBuilderOpts) {
+export function getArrowBodyPathBuilder(info: TLArrowInfo): PathBuilder {
 	switch (info.type) {
 		case 'straight':
 			return new PathBuilder()
 				.moveTo(info.start.point.x, info.start.point.y, { offset: 0, roundness: 0 })
 				.lineTo(info.end.point.x, info.end.point.y, { offset: 0, roundness: 0 })
-				.toSvg(opts)
 		case 'arc':
 			return new PathBuilder()
 				.moveTo(info.start.point.x, info.start.point.y, { offset: 0, roundness: 0 })
@@ -21,7 +20,6 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 					info.end.point.y,
 					{ offset: 0, roundness: 0 }
 				)
-				.toSvg(opts)
 		case 'elbow': {
 			const path = new PathBuilder()
 			path.moveTo(info.start.point.x, info.start.point.y, {
@@ -36,11 +34,15 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 					offset: i === info.route.points.length - 1 ? 0 : undefined,
 				})
 			}
-			return path.toSvg(opts)
+			return path
 		}
 		default:
 			exhaustiveSwitchError(info, 'type')
 	}
+}
+
+export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: PathBuilderOpts) {
+	return getArrowBodyPathBuilder(info).toSvg(opts)
 }
 
 export function getArrowHandlePath(info: TLArrowInfo, opts: PathBuilderOpts) {

@@ -158,6 +158,20 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
+	override getIndicatorPath(shape: TLImageShape): Path2D | undefined {
+		if (this.editor.getCroppingShapeId() === shape.id) return undefined
+
+		const path = new Path2D()
+		if (shape.props.crop?.isCircle) {
+			const cx = shape.props.w / 2
+			const cy = shape.props.h / 2
+			path.ellipse(cx, cy, cx, cy, 0, 0, Math.PI * 2)
+		} else {
+			path.rect(0, 0, shape.props.w, shape.props.h)
+		}
+		return path
+	}
+
 	override async toSvg(shape: TLImageShape, ctx: SvgExportContext) {
 		const props = shape.props
 		if (!props.assetId) return null

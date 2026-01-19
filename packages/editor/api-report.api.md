@@ -597,6 +597,7 @@ export const debugFlags: {
     readonly editOnType: DebugFlag<boolean>;
     readonly forceSrgb: DebugFlag<boolean>;
     readonly hideShapes: DebugFlag<boolean>;
+    readonly indicatorPerfLogging: DebugFlag<boolean>;
     readonly logElementRemoves: DebugFlag<boolean>;
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
@@ -604,6 +605,7 @@ export const debugFlags: {
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
+    readonly useCanvasIndicators: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -2771,6 +2773,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     // (undocumented)
     getText(shape: Shape): string | undefined;
@@ -3981,6 +3984,13 @@ export interface TLImageExportOptions extends TLSvgExportOptions {
     format?: TLExportType;
     quality?: number;
 }
+
+// @public
+export type TLIndicatorPath = {
+    additionalPaths?: Path2D[];
+    clipPath?: Path2D;
+    path: Path2D;
+} | Path2D;
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;

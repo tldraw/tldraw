@@ -79,6 +79,12 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return <BookmarkIndicatorComponent w={shape.props.w} h={shape.props.h} />
 	}
 
+	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
+		const path = new Path2D()
+		path.roundRect(0, 0, shape.props.w, shape.props.h, 6)
+		return path
+	}
+
 	override onBeforeCreate(next: TLBookmarkShape) {
 		return setBookmarkHeight(this.editor, next)
 	}

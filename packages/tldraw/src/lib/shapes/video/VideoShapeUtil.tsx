@@ -73,6 +73,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
+	override getIndicatorPath(shape: TLVideoShape): Path2D {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
+	}
+
 	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
 		const props = shape.props
 		if (!props.assetId) return null

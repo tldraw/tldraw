@@ -177,6 +177,38 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
+	override getIndicatorPath(shape: TLDrawShape): Path2D {
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+
+		const zoomLevel = this.editor.getEfficientZoomLevel()
+		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+
+		if (
+			!forceSolid &&
+			!shape.props.isPen &&
+			shape.props.dash === 'draw' &&
+			allPointsFromSegments.length === 1
+		) {
+			sw += rng(shape.id)() * (sw / 6)
+		}
+
+		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
+		const strokePoints = getStrokePoints(allPointsFromSegments, options)
+		const solidStrokePath =
+			strokePoints.length > 1
+				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
+				: getDot(allPointsFromSegments[0], sw)
+
+		return new Path2D(solidStrokePath)
+	}
+
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		const scaleFactor = 1 / shape.props.scale
