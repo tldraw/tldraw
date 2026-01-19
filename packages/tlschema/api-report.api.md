@@ -76,11 +76,15 @@ export const assetValidator: T.Validator<TLAsset>;
 
 // @public
 export class b64Vecs {
+    static decodeDeltaFirstPoint(b64Points: string): null | VecModel;
+    static decodeDeltaLastPoint(b64Points: string): null | VecModel;
+    static decodeDeltaPoints(base64: string): VecModel[];
     static decodeFirstPoint(b64Points: string): null | VecModel;
     static decodeLastPoint(b64Points: string): null | VecModel;
     // @internal
     static decodePointAt(b64Points: string, charOffset: number): VecModel;
     static decodePoints(base64: string): VecModel[];
+    static encodeDeltaPoints(points: VecModel[]): string;
     static encodePoint(x: number, y: number, z: number): string;
     static encodePoints(points: VecModel[]): string;
 }
@@ -1027,7 +1031,7 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
-    points: string;
+    path: string;
     type: 'free' | 'straight';
 }
 

@@ -142,7 +142,7 @@ function SneakyExportButton() {
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
 			toRichText: (text: string) => toRichText(text),
-			b64VecsEncodePoints: (points: VecModel[]) => b64Vecs.encodePoints(points),
+			b64VecsEncodePoints: (points: VecModel[]) => b64Vecs.encodeDeltaPoints(points),
 			markAllArrowBindings: () => {
 				const markRadius = 3
 				for (const shape of editor.getCurrentPageShapes()) {

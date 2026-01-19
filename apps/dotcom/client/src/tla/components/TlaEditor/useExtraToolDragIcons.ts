@@ -23,7 +23,9 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: b64Vecs.encodePoints(scalePoints(POINTER_POINTS, SCALES[sizeStyle])),
+											path: b64Vecs.encodeDeltaPoints(
+												scalePoints(POINTER_POINTS, SCALES[sizeStyle])
+											),
 										},
 									],
 									isClosed: true,
@@ -46,7 +48,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: b64Vecs.encodePoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
+											path: b64Vecs.encodeDeltaPoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,
@@ -69,7 +71,7 @@ export function useExtraDragIconOverrides() {
 									segments: [
 										{
 											type: 'free',
-											points: b64Vecs.encodePoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
+											path: b64Vecs.encodeDeltaPoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
 										},
 									],
 									isClosed: true,

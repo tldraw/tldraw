@@ -225,7 +225,7 @@ export const convexDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: b64Vecs.encodePoints(convexPoints),
+				path: b64Vecs.encodeDeltaPoints(convexPoints),
 			},
 		]}
 	/>
@@ -245,7 +245,7 @@ export const heyDrawShape = (
 		segments={[
 			{
 				type: 'free',
-				points: b64Vecs.encodePoints([
+				path: b64Vecs.encodeDeltaPoints([
 					{ x: 0, y: 0, z: 0.5 },
 					{ x: 0.12, y: 0, z: 0.5 },
 					{ x: 0.91, y: -0.18, z: 0.5 },

@@ -89,12 +89,12 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			y: point.y - minY,
 			z: 0.75,
 		}))
-		const base64Points = b64Vecs.encodePoints(segmentPoints)
+		const base64Points = b64Vecs.encodeDeltaPoints(segmentPoints)
 
 		const segments: TLDrawShapeSegment[] = [
 			{
 				type: 'free',
-				points: base64Points,
+				path: base64Points,
 			},
 		]
 

@@ -17,8 +17,11 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLDrawShapeSegment {
 	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
-	/** Base64-encoded points (x, y, z triplets stored as Float16) */
-	points: string
+	/**
+	 * Delta-encoded base64 path data.
+	 * First point stored as Float32 (12 bytes) for precision, subsequent points as Float16 deltas (6 bytes each).
+	 */
+	path: string
 }
 
 /**
@@ -28,7 +31,7 @@ export interface TLDrawShapeSegment {
  */
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
-	points: T.string,
+	path: T.string,
 })
 
 /**
@@ -134,6 +137,7 @@ const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
 	AddScale: 2,
 	Base64: 3,
+	LegacyPointsConversion: 4,
 })
 
 /**
@@ -188,37 +192,68 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.Base64,
 			up: (props) => {
+				// Convert VecModel[] arrays directly to delta-encoded base64 in 'path'
 				props.segments = props.segments.map((segment: any) => {
+					if (segment.path !== undefined) return segment
+					const { points, ...rest } = segment
+					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
 					return {
-						...segment,
-						// Only encode if points is an array (not already base64 string)
-						points:
-							typeof segment.points === 'string'
-								? segment.points
-								: b64Vecs.encodePoints(segment.points),
+						...rest,
+						path: b64Vecs.encodeDeltaPoints(vecModels),
 					}
 				})
 				props.scaleX = props.scaleX ?? 1
 				props.scaleY = props.scaleY ?? 1
 			},
 			down: (props) => {
-				props.segments = props.segments.map((segment: any) => ({
-					...segment,
-					// Only decode if points is a string (not already VecModel[])
-					points: Array.isArray(segment.points)
-						? segment.points
-						: b64Vecs.decodePoints(segment.points),
-				}))
+				// Convert delta-encoded 'path' back to VecModel[] arrays in 'points'
+				props.segments = props.segments.map((segment: any) => {
+					const { path, ...rest } = segment
+					return {
+						...rest,
+						points: b64Vecs.decodeDeltaPoints(path),
+					}
+				})
 				delete props.scaleX
 				delete props.scaleY
+			},
+		},
+		{
+			id: Versions.LegacyPointsConversion,
+			up: (props) => {
+				// Handle legacy data that was already migrated to v3 with absolute Float16 in 'points'
+				// Convert 'points' to delta-encoded 'path'
+				props.segments = props.segments.map((segment: any) => {
+					// If segment already has 'path', it's already in the new format
+					if (segment.path !== undefined) return segment
+
+					const { points, ...rest } = segment
+					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
+					return {
+						...rest,
+						path: b64Vecs.encodeDeltaPoints(vecModels),
+					}
+				})
+			},
+			down: (props) => {
+				// Convert from 'path' back to 'points' with absolute Float16
+				props.segments = props.segments.map((segment: any) => {
+					const { path, ...rest } = segment
+					const vecModels = b64Vecs.decodeDeltaPoints(path)
+					return {
+						...rest,
+						points: b64Vecs.encodePoints(vecModels),
+					}
+				})
 			},
 		},
 	],
 })
 
 /**
- * Compress legacy draw shape segments by converting VecModel[] points to base64 format.
+ * Compress legacy draw shape segments by converting VecModel[] points to delta-encoded base64 format.
  * This function is useful for converting old draw shape data to the new compressed format.
+ * Uses delta encoding for improved Float16 precision.
  *
  * @public
  */
@@ -229,7 +264,7 @@ export function compressLegacySegments(
 	}[]
 ): TLDrawShapeSegment[] {
 	return segments.map((segment) => ({
-		...segment,
-		points: b64Vecs.encodePoints(segment.points),
+		type: segment.type,
+		path: b64Vecs.encodeDeltaPoints(segment.points),
 	}))
 }
