@@ -38,7 +38,7 @@ export interface DataPart {
 
 export interface MessagesPart {
 	type: 'messages'
-	messages: string[]
+	agentMessages: string[]
 	requestSource: AgentRequest['source']
 }
 
@@ -150,10 +150,10 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'prompt': {
 			const content: AgentMessageContent[] = []
 
-			if (item.message.trim() !== '') {
+			if (item.agentFacingMessage.trim() !== '') {
 				content.push({
 					type: 'text',
-					text: item.message,
+					text: item.agentFacingMessage,
 				})
 			}
 
@@ -317,13 +317,13 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	type: 'messages',
 	priority: Infinity, // user message should be last (highest priority)
-	buildContent: ({ messages, requestSource }) => {
+	buildContent: ({ agentMessages, requestSource }) => {
 		switch (requestSource) {
 			// we treat all sources the same for the messages part, but you don't have to!
 			case 'user':
 			case 'self':
 			case 'other-agent':
-				return messages
+				return agentMessages
 		}
 	},
 }

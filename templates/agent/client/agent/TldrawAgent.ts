@@ -61,7 +61,7 @@ export interface TldrawAgentOptions {
  * @example
  * ```tsx
  * const agent = useTldrawAgent(editor)
- * agent.prompt({ message: 'Draw a snowman' })
+ * agent.prompt('Draw a snowman')
  * ```
  */
 export class TldrawAgent {
@@ -441,7 +441,8 @@ export class TldrawAgent {
 			source: 'self',
 
 			// Append to properties where possible
-			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
+			agentMessages: [...scheduledRequest.agentMessages, ...(request.agentMessages ?? [])],
+			userMessages: [...scheduledRequest.userMessages, ...(request.userMessages ?? [])],
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
 
 			// Override specific properties
@@ -563,7 +564,8 @@ export class TldrawAgent {
 		const promptHistoryItem: ChatHistoryPromptItem = {
 			type: 'prompt',
 			promptSource: request.source,
-			message: request.messages.join('\n'),
+			agentFacingMessage: request.agentMessages.join('\n'),
+			userFacingMessage: request.userMessages.length > 0 ? request.userMessages.join('\n') : null,
 			contextItems: structuredClone(this.context.getItems()),
 			selectedShapes: this.editor
 				.getSelectedShapes()

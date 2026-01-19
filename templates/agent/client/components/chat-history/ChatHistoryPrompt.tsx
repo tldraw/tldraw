@@ -10,9 +10,12 @@ export function ChatHistoryPrompt({
 	item: ChatHistoryPromptItem
 	editor: Editor
 }) {
-	const { contextItems, message, selectedShapes } = item
+	const { contextItems, agentFacingMessage, userFacingMessage, selectedShapes } = item
 
 	const showTags = selectedShapes.length > 0 || contextItems.length > 0
+
+	// Display the user-facing message if available, otherwise fall back to the agent-facing message
+	const displayMessage = userFacingMessage ?? agentFacingMessage
 
 	return (
 		<div className="chat-history-prompt-container">
@@ -25,7 +28,7 @@ export function ChatHistoryPrompt({
 						))}
 					</div>
 				)}
-				{message}
+				{displayMessage}
 			</div>
 		</div>
 	)

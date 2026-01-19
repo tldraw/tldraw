@@ -96,7 +96,8 @@ export class AgentRequestManager extends BaseAgentManager {
 
 		return {
 			source: request.source ?? 'user',
-			messages: request.messages ?? [],
+			agentMessages: request.agentMessages ?? [],
+			userMessages: request.userMessages ?? [],
 			data: request.data ?? [],
 			bounds: request.bounds ?? activeRequest?.bounds ?? this.agent.editor.getViewportPageBounds(),
 		}
@@ -111,22 +112,18 @@ export class AgentRequestManager extends BaseAgentManager {
 	getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
 		// eg: agent.prompt('Draw a cat')
 		if (typeof input === 'string') {
-			return { messages: [input] }
+			return { agentMessages: [input] }
 		}
 
 		// eg: agent.prompt(['Draw a cat', 'Draw a dog'])
 		if (Array.isArray(input)) {
-			return { messages: input }
-		}
-
-		// eg: agent.prompt({ messages: 'Draw a cat' })
-		if (typeof input.messages === 'string') {
-			return { ...input, messages: [input.messages] }
+			return { agentMessages: input }
 		}
 
 		// eg: agent.prompt({ message: 'Draw a cat' })
-		if (typeof input.message === 'string') {
-			return { ...input, messages: [input.message, ...(input.messages ?? [])] }
+		if ('message' in input && typeof input.message === 'string') {
+			const { message, ...rest } = input
+			return { ...rest, agentMessages: [message], userMessages: [message] }
 		}
 
 		return input

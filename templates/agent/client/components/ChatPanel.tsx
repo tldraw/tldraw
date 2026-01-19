@@ -34,7 +34,7 @@ export function ChatPanel() {
 			// Prompt the agent
 			agent.interrupt({
 				input: {
-					messages: [value],
+					agentMessages: [value],
 					bounds: editor.getViewportPageBounds(),
 					source: 'user',
 				},

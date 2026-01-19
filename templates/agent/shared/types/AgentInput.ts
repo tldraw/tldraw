@@ -8,8 +8,14 @@ import { AgentRequest } from './AgentRequest'
  * const agent = useTldrawAgent(editor)
  * agent.prompt('Draw a cat')
  * agent.prompt(['Draw a cat', 'Draw a dog'])
- * agent.prompt({ message: 'Draw a cat' })
- * agent.prompt({ messages: ['Draw a cat', 'Draw a dog'] })
+ * agent.prompt({ agentMessages: ['Draw a cat', 'Draw a dog'] })
  * ```
+ *
+ * The `message` property is a shortcut for providing a single agent message and user message.
+ * You can't specify `agentMessages` and `userMessages` when using the `message` property.
  */
-export type AgentInput = Partial<AgentRequest & { message: string }> | string | string[]
+export type AgentInput =
+	| Partial<AgentRequest>
+	| (Partial<Omit<AgentRequest, 'agentMessages' | 'userMessages'>> & { message: string })
+	| string
+	| string[]

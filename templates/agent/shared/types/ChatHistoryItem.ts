@@ -16,7 +16,8 @@ export type ChatHistoryItem =
 export interface ChatHistoryPromptItem {
 	type: 'prompt'
 	promptSource: AgentRequestSource
-	message: string
+	agentFacingMessage: string
+	userFacingMessage: string | null
 	contextItems: ContextItem[]
 	selectedShapes: SimpleShape[]
 }
