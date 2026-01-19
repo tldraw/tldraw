@@ -64,6 +64,7 @@ Use "you" when addressing the reader:
 > If you've ever tried this, you know the naive approach fails.
 
 Nuggets can:
+
 - Use "the trick is..." to signal key ideas
 - Show the journey ("we tried X, but Y worked better")
 - Be honest about hacks ("this is a hack and we know it")
@@ -73,15 +74,19 @@ Nuggets can:
 These patterns break trust:
 
 **Hollow importance claims:**
+
 - "plays a crucial role", "serves as a testament to"
 
 **Trailing gerunds:**
+
 - "...ensuring optimal performance", "...highlighting the importance of"
 
 **Formulaic transitions:**
+
 - "Moreover,", "Furthermore,", "It's important to note"
 
 **Promotional language:**
+
 - "robust", "seamless", "empowers developers"
 
 **Rule of three lists** — Real writing has 2, 4, 7 items. If you have exactly three, ask if that's the right count.

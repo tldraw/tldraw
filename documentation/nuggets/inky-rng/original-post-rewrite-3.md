@@ -39,7 +39,7 @@ React re-renders whenever the shape's state changes. Each re-render produces new
 
 Our solution is to use seeded pseudorandom number generation. When you give a seeded generator some particular seed, it will always produce the same sequence of numbers. We use a lightweight [xorshift](https://en.wikipedia.org/wiki/Xorshift) implementation that returns values between -1 and 1.
 
-But where should we get seeds?
+But where should we get the seeds from?
 
 ## Stable variation
 
