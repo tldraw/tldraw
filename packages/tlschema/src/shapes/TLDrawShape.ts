@@ -235,16 +235,8 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					}
 				})
 			},
-			down: (props) => {
-				// Convert from 'path' back to 'points' with absolute Float16
-				props.segments = props.segments.map((segment: any) => {
-					const { path, ...rest } = segment
-					const vecModels = b64Vecs.decodeDeltaPoints(path)
-					return {
-						...rest,
-						points: b64Vecs.encodePoints(vecModels),
-					}
-				})
+			down: (_props) => {
+				// handled by the previous down migration
 			},
 		},
 	],
