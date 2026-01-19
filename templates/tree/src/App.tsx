@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react'
 import { Editor, TLShapeId, Tldraw, b64Vecs, createShapeId, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const BRANCH_LENGTH = 90
-const BRANCH_SHRINK = 0.72
+const BRANCH_LENGTH = 220
+const BRANCH_SHRINK = 0.78
 const MAX_DEPTH = 8
 
 interface Branch {
@@ -23,8 +23,8 @@ function generateTree(startX: number, startY: number): Branch[] {
 		if (length < 3) return
 
 		// More randomness in the endpoint
-		const wobbleX = (Math.random() - 0.5) * 8
-		const wobbleY = (Math.random() - 0.5) * 8
+		const wobbleX = (Math.random() - 0.5) * 4
+		const wobbleY = (Math.random() - 0.5) * 4
 		const x2 = x + Math.cos(angle) * length + wobbleX
 		const y2 = y + Math.sin(angle) * length + wobbleY
 
@@ -37,8 +37,8 @@ function generateTree(startX: number, startY: number): Branch[] {
 		const lengthVariance2 = 0.5 + Math.random() * 0.7
 
 		// Random base angle for each branch
-		const baseAngle1 = Math.PI / 6 + (Math.random() * Math.PI) / 6
-		const baseAngle2 = Math.PI / 6 + (Math.random() * Math.PI) / 6
+		const baseAngle1 = Math.PI / 6 + (Math.random() * Math.PI) / 12
+		const baseAngle2 = Math.PI / 6 + (Math.random() * Math.PI) / 12
 
 		// Sometimes skip a branch for asymmetry
 		if (Math.random() > 0.15) {
@@ -131,7 +131,7 @@ async function drawTree(editor: Editor, buttonX: number, buttonY: number) {
 		})
 
 		// Much slower - varied delay
-		await new Promise((r) => setTimeout(r, 80 + Math.random() * 60))
+		await new Promise((r) => setTimeout(r, 80 + Math.random() * 15))
 	}
 }
 
