@@ -34,12 +34,10 @@ For multiple related PRs:
 Mark breaking API changes with a 💥 prefix. Place breaking changes at the top of the API changes section:
 
 ```markdown
-### API changes
+## API changes
 
 - 💥 **`ShapeUtil.canEdit()`** signature changed to accept a `TLEditStartInfo` parameter. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
-
 - 💥 **`oldMethod`** renamed to `newMethod`. ([#7400](https://github.com/tldraw/tldraw/pull/7400))
-
 - Add `Editor.newMethod()` for doing something useful. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
 ```
 

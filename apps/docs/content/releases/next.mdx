@@ -47,6 +47,7 @@ Refactored `editor.inputs` to use reactive atoms via the new `InputsManager` cla
 
 ## API changes
 
+- 💥 **`DefaultTopPanel`** export removed from `tldraw`. The top panel component for displaying the offline indicator is now handled internally by `PeopleMenu`. ([#7568](https://github.com/tldraw/tldraw/pull/7568))
 - 💥 **`TextDirection`** export removed from `tldraw`. Use TipTap's native `TextDirection` extension instead. The `richTextValidator` now includes an optional `attrs` property - a migration may be necessary for older clients/custom shapes. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
 - Add `tlenvReactive` atom to `@tldraw/editor` for reactive environment state tracking, including coarse pointer detection that updates when users switch between mouse and touch input. ([#7296](https://github.com/tldraw/tldraw/pull/7296))
 - Add `hideAllTooltips()` helper function for programmatically dismissing tooltips. ([#7288](https://github.com/tldraw/tldraw/pull/7288))
@@ -106,3 +107,4 @@ Refactored `editor.inputs` to use reactive atoms via the new `InputsManager` cla
 - Fix extra line appearing after bullet and ordered lists in text shapes. ([#7643](https://github.com/tldraw/tldraw/pull/7643)) (contributed by [@sahiee-dev](https://github.com/sahiee-dev))
 - Fix "Back to content" button not appearing when selected shapes are off-screen. ([#7649](https://github.com/tldraw/tldraw/pull/7649))
 - Fix dotted freehand lines becoming invisible at minimum zoom on Chrome. ([#7650](https://github.com/tldraw/tldraw/pull/7650))
+- Fix menu bar stretching to full width on mobile viewports instead of fitting content. ([#7568](https://github.com/tldraw/tldraw/pull/7568))
