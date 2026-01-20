@@ -81,12 +81,6 @@ export class b64Vecs {
     static decodePoints(base64: string): VecModel[];
     static encodePoints(points: VecModel[]): string;
     // @internal
-    static _legacyDecodeFirstPoint(b64Points: string): null | VecModel;
-    // @internal
-    static _legacyDecodeLastPoint(b64Points: string): null | VecModel;
-    // @internal
-    static _legacyDecodePointAt(b64Points: string, charOffset: number): VecModel;
-    // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
     // @internal
     static _legacyEncodePoint(x: number, y: number, z: number): string;
