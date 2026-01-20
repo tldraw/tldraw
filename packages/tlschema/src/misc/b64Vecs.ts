@@ -1,3 +1,4 @@
+import { assert } from '@tldraw/utils'
 import { VecModel } from './geometry-types'
 
 // Each point = 3 Float16s = 6 bytes = 8 base64 chars (legacy format)
@@ -96,8 +97,8 @@ function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 	// Process bytes in groups of 3 -> 4 base64 chars
 	for (let i = 0; i < uint8Array.length; i += 3) {
 		const byte1 = uint8Array[i]
-		const byte2 = uint8Array[i + 1] ?? 0
-		const byte3 = uint8Array[i + 2] ?? 0
+		const byte2 = uint8Array[i + 1]
+		const byte3 = uint8Array[i + 2]
 
 		const bitmap = (byte1 << 16) | (byte2 << 8) | byte3
 		result +=
