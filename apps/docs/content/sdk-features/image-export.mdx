@@ -14,7 +14,7 @@ readability: 9
 voice: 8
 completeness: 9
 accuracy: 10
-notes: ""
+notes: ''
 ---
 
 The export system converts shapes to SVG and raster image formats for download, embedding, or integration with external tools. The editor handles the full pipeline from rendering shapes as SVG to converting those SVGs into PNG, JPEG, or WebP images. Exports are fully self-contained: the editor embeds fonts, inlines styles, and converts media elements to data URLs.
@@ -56,22 +56,22 @@ SVG export methods (`getSvgElement`, `getSvgString`) accept [TLSvgExportOptions]
 
 **Shared options (all export methods):**
 
-| Option                | Description                                                                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `bounds`              | The bounding box in page coordinates to export. If omitted, the editor calculates bounds from the shapes.                                                                                              |
-| `scale`               | Logical scale multiplier. A scale of 2 doubles the SVG size.                                                                                                                                           |
-| `pixelRatio`          | For SVG exports, passed to the asset store so it can provide appropriately sized assets. For raster exports, multiplies output dimensions. Defaults to `undefined` for SVG and `2` for raster formats. |
-| `background`          | Whether to include the background color. If `false`, the export is transparent (for formats that support it).                                                                                          |
-| `padding`             | Space in pixels around the shape bounds. Defaults to 32. When exporting a single frame, padding is not applied (the frame itself serves as the boundary). When exporting shapes inside an image shape, padding is also skipped.                                                                              |
-| `darkMode`            | Whether to render in dark mode. Defaults to the current theme setting.                                                                                                                                 |
-| `preserveAspectRatio` | The SVG `preserveAspectRatio` attribute.                                                                                                                                                               |
+| Option                | Description                                                                                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bounds`              | The bounding box in page coordinates to export. If omitted, the editor calculates bounds from the shapes.                                                                                                                       |
+| `scale`               | Logical scale multiplier. A scale of 2 doubles the SVG size.                                                                                                                                                                    |
+| `pixelRatio`          | For SVG exports, passed to the asset store so it can provide appropriately sized assets. For raster exports, multiplies output dimensions. Defaults to `undefined` for SVG and `2` for raster formats.                          |
+| `background`          | Whether to include the background color. If `false`, the export is transparent (for formats that support it).                                                                                                                   |
+| `padding`             | Space in pixels around the shape bounds. Defaults to 32. When exporting a single frame, padding is not applied (the frame itself serves as the boundary). When exporting shapes inside an image shape, padding is also skipped. |
+| `darkMode`            | Whether to render in dark mode. Defaults to the current theme setting.                                                                                                                                                          |
+| `preserveAspectRatio` | The SVG `preserveAspectRatio` attribute.                                                                                                                                                                                        |
 
 **Raster-only options (toImage, toImageDataUrl):**
 
-| Option    | Description                                                                      |
-| --------- | -------------------------------------------------------------------------------- |
-| `format`  | Output format: `'svg'`, `'png'`, `'jpeg'`, or `'webp'`. Defaults to `'png'`.     |
-| `quality` | Compression quality for lossy formats (JPEG, WebP) as a number between 0 and 1.  |
+| Option    | Description                                                                     |
+| --------- | ------------------------------------------------------------------------------- |
+| `format`  | Output format: `'svg'`, `'png'`, `'jpeg'`, or `'webp'`. Defaults to `'png'`.    |
+| `quality` | Compression quality for lossy formats (JPEG, WebP) as a number between 0 and 1. |
 
 ## Editor export methods
 

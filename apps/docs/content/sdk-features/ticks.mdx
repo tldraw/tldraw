@@ -14,7 +14,7 @@ readability: 9
 voice: 8
 completeness: 9
 accuracy: 10
-notes: ""
+notes: ''
 ---
 
 The tick system provides a frame-synchronized update loop for the editor. The editor emits `tick` and `frame` events on every animation frame using `requestAnimationFrame`, passing the elapsed time since the last frame. This enables smooth animations, edge scrolling during drag operations, and time-based state updates. The `frame` event fires before `tick` and is used internally for input processing, while `tick` is intended for application code.

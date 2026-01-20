@@ -52,7 +52,7 @@ const room = new TLSocketRoom({ storage })
 
 ## Breaking changes example
 
-```markdown
+````markdown
 ### Breaking changes
 
 - Remove deprecated `Editor.getShapeById()` method. Use `Editor.getShape()` instead. ([#7200](https://github.com/tldraw/tldraw/pull/7200))
@@ -65,7 +65,9 @@ const room = new TLSocketRoom({ storage })
   // After
   const store = createStore({ schema: mySchema })
   ```
-```
+````
+
+````
 
 ## index.mdx entry
 
@@ -78,7 +80,7 @@ When adding a new release to the index:
 - [v4.2.0](/releases/v4.2.0) - Performance improvements, arrow binding fixes
 - [v4.1.0](/releases/v4.1.0) - Collaborative cursors, undo stack improvements
 - [v4.0.0](/releases/v4.0.0) - Major sync overhaul, new binding system
-```
+````
 
 ## next.mdx structure
 

@@ -11,10 +11,10 @@ All release files live in `apps/docs/content/releases/`.
 
 ## File roles
 
-| File | Purpose |
-| ---- | ------- |
-| `index.mdx` | Landing page listing all releases by major version |
-| `next.mdx` | Accumulates changes for the upcoming release |
+| File         | Purpose                                                    |
+| ------------ | ---------------------------------------------------------- |
+| `index.mdx`  | Landing page listing all releases by major version         |
+| `next.mdx`   | Accumulates changes for the upcoming release               |
 | `vX.Y.0.mdx` | Historical releases (immutable except for patch additions) |
 
 ## Core workflow
@@ -22,11 +22,13 @@ All release files live in `apps/docs/content/releases/`.
 ### Adding entries to next.mdx
 
 1. **Find new PRs** - Get the upcoming version from `next.mdx` frontmatter (e.g., "v4.3.0"), then find commits since the previous release:
+
    ```bash
    git log origin/main ^origin/v4.2.x --oneline
    ```
 
 2. **Fetch PR details** - For each PR number:
+
    ```bash
    gh pr view NNNN --json number,title,labels,author,body,mergedAt
    ```
@@ -44,12 +46,12 @@ All release files live in `apps/docs/content/releases/`.
 
 ## PR categorization
 
-| Category | Labels | Indicators |
-| -------- | ------ | ---------- |
-| Breaking changes | `major` | Breaking change notes in PR body |
-| API changes | `api`, `feature` | Adds/removes/modifies public API |
-| Improvements | `improvement`, `enhancement` | Enhances existing functionality |
-| Bug fixes | `bugfix`, `bug` | Fixes issues |
+| Category         | Labels                       | Indicators                       |
+| ---------------- | ---------------------------- | -------------------------------- |
+| Breaking changes | `major`                      | Breaking change notes in PR body |
+| API changes      | `api`, `feature`             | Adds/removes/modifies public API |
+| Improvements     | `improvement`, `enhancement` | Enhances existing functionality  |
+| Bug fixes        | `bugfix`, `bug`              | Fixes issues                     |
 
 Look for `### Release notes` and `### API changes` sections in PR bodies.
 
