@@ -11,7 +11,7 @@ This page documents changes that will be included in the next release (v4.3.0).
 
 ## v4.3.0
 
-This release adds SQLite storage support for sync, new configuration options for zoom, snap threshold, and frame resizing, along with significant improvements to shape and binding type safety through module augmentation. It also includes React 19 support, various performance optimizations, and numerous bug fixes.
+This release adds SQLite storage support for sync, improved types for custom shapes and bindings, reactive input state management, and new configuration options for zoom, snap threshold, and frame resizing. It also includes React 19 support, various performance optimizations, and numerous bug fixes.
 
 ### SQLite storage for sync ([#7320](https://github.com/tldraw/tldraw/pull/7320))
 
@@ -21,7 +21,7 @@ Two wrappers are provided:
 - `DurableObjectSqliteSyncWrapper` for Cloudflare Durable Objects
 - `NodeSqliteWrapper` for Node.js (works with `better-sqlite3` or `node:sqlite`)
 
-### Augmentation-based shape and binding types ([#7091](https://github.com/tldraw/tldraw/pull/7091))
+### Improved types for custom shapes ([#7091](https://github.com/tldraw/tldraw/pull/7091))
 
 Introduced module-augmentation-driven typing for custom shapes and bindings, allowing developers to strictly type all their custom shapes' props:
 
@@ -58,7 +58,7 @@ Refactored `editor.inputs` to use reactive atoms via the new `InputsManager` cla
 - Add `Box.isValid()` method to check for finite coordinates. ([#7532](https://github.com/tldraw/tldraw/pull/7532))
 - Add `spacebarPanning` option to control whether spacebar activates pan mode. ([#7312](https://github.com/tldraw/tldraw/pull/7312))
 - Introduce pluggable `TLSyncStorage` API for `TLSocketRoom`. The `initialSnapshot` and `onDataChange` options are now deprecated in favor of the new `storage` option. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
-- **Breaking:** `TLDrawShapeSegment.points` type changed from `VecModel[]` to `string` (base64-encoded). Added `scaleX` and `scaleY` properties to draw and highlight shapes. Added `b64Vecs` encoding utilities and `getPointsFromDrawSegment` helper functions. ([#7364](https://github.com/tldraw/tldraw/pull/7364))
+- 💥 `TLDrawShapeSegment.points` type changed from `VecModel[]` to `string` (base64-encoded). Added `scaleX` and `scaleY` properties to draw and highlight shapes. Added `b64Vecs` encoding utilities and `getPointsFromDrawSegment` helper functions. ([#7364](https://github.com/tldraw/tldraw/pull/7364))
 
 ### Improvements
 
@@ -70,6 +70,7 @@ Refactored `editor.inputs` to use reactive atoms via the new `InputsManager` cla
 - Optimize notVisibleShapes derivation with inlined bounds checks. ([#7429](https://github.com/tldraw/tldraw/pull/7429))
 - Cache label size measurements with WeakCache for improved geo shape performance. ([#7412](https://github.com/tldraw/tldraw/pull/7412))
 - Optimize validators with fast paths and production inlining. ([#7373](https://github.com/tldraw/tldraw/pull/7373))
+- Improve performance by separating UI and network scheduling queues with a new `FpsScheduler` class. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
 
 ### Bug fixes
 
@@ -87,3 +88,6 @@ Refactored `editor.inputs` to use reactive atoms via the new `InputsManager` cla
 - Fix dropdown menu items incorrectly displaying an icon on the right side. ([#7533](https://github.com/tldraw/tldraw/pull/7533))
 - Fix zoom menu showing debounced zoom level for canvases with many shapes. ([#7626](https://github.com/tldraw/tldraw/pull/7626))
 - Fix Float16 rounding overflow in base64 vector encoding. ([#7370](https://github.com/tldraw/tldraw/pull/7370))
+- Fix extra line appearing after bullet and ordered lists in text shapes. ([#7643](https://github.com/tldraw/tldraw/pull/7643)) (contributed by [@sahiee-dev](https://github.com/sahiee-dev))
+- Fix "Back to content" button not appearing when selected shapes are off-screen. ([#7649](https://github.com/tldraw/tldraw/pull/7649))
+- Fix dotted freehand lines becoming invisible at minimum zoom on Chrome. ([#7650](https://github.com/tldraw/tldraw/pull/7650))

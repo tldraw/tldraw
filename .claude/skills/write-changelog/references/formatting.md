@@ -4,10 +4,9 @@
 
 Use these sections in order (omit empty sections):
 
-1. **Breaking changes** - For releases with breaking changes
-2. **API changes** - New methods, properties, options, or deprecations
-3. **Improvements** - Enhancements to existing functionality
-4. **Bug fixes** - Fixed issues
+1. **API changes** - New methods, properties, options, deprecations, and breaking changes
+2. **Improvements** - Enhancements to existing functionality
+3. **Bug fixes** - Fixed issues
 
 ## Headings
 
@@ -28,6 +27,28 @@ For multiple related PRs:
 
 ```markdown
 - Improve arrow snapping performance. ([#7145](https://github.com/tldraw/tldraw/pull/7145)) ([#7150](https://github.com/tldraw/tldraw/pull/7150))
+```
+
+## Breaking changes
+
+Mark breaking API changes with a 💥 prefix. Place breaking changes at the top of the API changes section:
+
+```markdown
+### API changes
+
+- 💥 **`ShapeUtil.canEdit()`** signature changed to accept a `TLEditStartInfo` parameter. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
+
+- 💥 **`oldMethod`** renamed to `newMethod`. ([#7400](https://github.com/tldraw/tldraw/pull/7400))
+
+- Add `Editor.newMethod()` for doing something useful. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
+```
+
+For headline features that are breaking, add 💥 to the heading:
+
+```markdown
+### 💥 Draw shape compression ([#7364](https://github.com/tldraw/tldraw/pull/7364))
+
+Draw shapes now use base64 encoding. This is a **breaking change** if you're accessing segment data directly.
 ```
 
 ## Contributor attribution

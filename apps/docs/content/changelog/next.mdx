@@ -9,8 +9,8 @@ keywords:
   - react-19
   - sqlite
   - sync
-  - performance
   - compression
+  - typescript
 status: published
 date: 12/19/2025
 order: 1
@@ -18,17 +18,11 @@ order: 1
 
 ## v4.3.0
 
-This month's release includes an upgrade to React 19, significant performance improvements, SQLite storage support for sync, and new editor APIs for reactive inputs and debounced zoom.
+This month's release includes an upgrade to React 19, SQLite storage support for sync, draw shape compression, and improved types for custom shapes.
 
 ### React 19 ([#7317](https://github.com/tldraw/tldraw/pull/7317))
 
-We've upgraded tldraw from React 18 to React 19. This includes updated peer dependencies and some type signature changes for React 19 compatibility:
-
-- Ref types now include `| null` union (e.g., `RefObject<HTMLElement | null>`)
-- Ref callback return types must return `void`
-- `useRef` calls with optional types require explicit `undefined`
-
-If you're still on React 18, tldraw should continue to work, but we recommend upgrading to React 19 for the best experience.
+We've made tldraw from React 18 to work better with React 19. If you're still on React 18, tldraw will continue to work, but we recommend upgrading to React 19 for the best experience.
 
 ### SQLite storage for sync ([#7320](https://github.com/tldraw/tldraw/pull/7320))
 
@@ -39,7 +33,7 @@ Added `SQLiteSyncStorage` - a new storage backend for `TLSocketRoom` that automa
 
 Both the `simple-server-example` and `sync-cloudflare` templates have been updated to use SQLite storage. See the [sync documentation](https://tldraw.dev/docs/sync) for usage examples.
 
-### Draw shape compression ([#7364](https://github.com/tldraw/tldraw/pull/7364))
+### 💥 Draw shape compression ([#7364](https://github.com/tldraw/tldraw/pull/7364))
 
 Draw and highlight shapes now use a compact base64/Float16 encoding for point data, resulting in roughly 80% smaller storage. This is a **breaking change** if you're accessing draw shape segment data directly:
 
@@ -47,9 +41,40 @@ Draw and highlight shapes now use a compact base64/Float16 encoding for point da
 - Added `scaleX` and `scaleY` properties to `TLDrawShapeProps` and `TLHighlightShapeProps`
 - Use the new `getPointsFromDrawSegment()` helper to decode points
 
+### Improved types for custom shapes ([#7091](https://github.com/tldraw/tldraw/pull/7091))
+
+Introduced module-augmentation-driven typing for custom shapes and bindings, allowing developers to strictly type all their custom shapes' props:
+
+```tsx
+const CIRCLE_CLIP_TYPE = 'circle-clip'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[CIRCLE_CLIP_TYPE]: {
+			w: number
+			h: number
+		}
+	}
+}
+
+export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
+```
+
+(contributed by [@Andarist](https://github.com/Andarist))
+
 ### API changes
 
+- 💥 **`startEditingShapeWithLabel`** renamed to `startEditingShapeWithRichText` with updated signature accepting `options` parameter. ([#7361](https://github.com/tldraw/tldraw/pull/7361), [#7397](https://github.com/tldraw/tldraw/pull/7397))
+
+- 💥 **`richTextValidator`** now includes an optional `attrs` property. A migration may be necessary if you have older clients or custom shapes that don't expect this property. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
+
+- 💥 **`TextDirection`** removed from exports. Use TipTap's native `TextDirection` extension instead. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
+
+- Add `tlenvReactive` atom for reactive environment state tracking, including coarse pointer (touch) detection. ([#7296](https://github.com/tldraw/tldraw/pull/7296))
+
 - Add `Editor.canEditShape()` and `Editor.canCropShape()` methods for centralized permission checks, along with `TLEditStartInfo` type and `ShapeUtil.canEditWhileLocked()` method. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
+
+- 💥 **`ShapeUtil.canEdit()`** signature changed to accept an optional `TLEditStartInfo` parameter describing how the edit was triggered. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
 
 - Add `Editor.getDebouncedZoomLevel()` and `Editor.getEfficientZoomLevel()` methods to reduce expensive re-renders during camera movements on dense canvases. Added `debouncedZoom` (default: `true`) and `debouncedZoomThreshold` (default: `500`) options. ([#7235](https://github.com/tldraw/tldraw/pull/7235))
 
@@ -57,21 +82,13 @@ Draw and highlight shapes now use a compact base64/Float16 encoding for point da
 
 - Add configurable `showTextOutline` option to `TextShapeUtil`, `GeoShapeUtil`, and `ArrowShapeUtil` via the `.configure()` pattern. ([#7314](https://github.com/tldraw/tldraw/pull/7314))
 
-- Optimize validators with fast paths and production inlining for 10-160x speedup on number validators and 2-3x speedup on complex validators. Added `T.nonZeroFiniteNumber` and `T.unitInterval` validators. ([#7373](https://github.com/tldraw/tldraw/pull/7373))
-
 - Export `getStroke`, `getStrokeOutlinePoints`, and `setStrokePointRadii` from freehand utilities. ([#7400](https://github.com/tldraw/tldraw/pull/7400)) (contributed by [@VimHax](https://github.com/VimHax))
-
-- Rename `startEditingShapeWithLabel` to `startEditingShapeWithRichText` and update signature to accept `options` parameter with `{ info, selectAll }`. ([#7361](https://github.com/tldraw/tldraw/pull/7361), [#7397](https://github.com/tldraw/tldraw/pull/7397))
-
-- Refactor `Editor.getCanUndo()`/`Editor.getCanRedo()` to `Editor.canUndo()`/`Editor.canRedo()`. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
-
-- Add augmentation-based shape and binding types for stricter TypeScript typing of custom shapes. ([#7091](https://github.com/tldraw/tldraw/pull/7091)) (contributed by [@Andarist](https://github.com/Andarist))
 
 - Export missing `DefaultLabelColorStyle`. ([#7114](https://github.com/tldraw/tldraw/pull/7114))
 
-- Add `tlenvReactive` atom for reactive environment state tracking, including coarse pointer (touch) detection. ([#7296](https://github.com/tldraw/tldraw/pull/7296))
-
 ### Improvements
+
+- Optimize validators with fast paths and production inlining for 10-160x speedup on number validators and 2-3x speedup on complex validators. Added `T.nonZeroFiniteNumber` and `T.unitInterval` validators. ([#7373](https://github.com/tldraw/tldraw/pull/7373))
 
 - Improve cross-realm canvas events handling. ([#7113](https://github.com/tldraw/tldraw/pull/7113))
 

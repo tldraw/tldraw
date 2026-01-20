@@ -46,14 +46,15 @@ All release files live in `apps/docs/content/releases/`.
 
 ## PR categorization
 
-| Category         | Labels                       | Indicators                       |
-| ---------------- | ---------------------------- | -------------------------------- |
-| Breaking changes | `major`                      | Breaking change notes in PR body |
-| API changes      | `api`, `feature`             | Adds/removes/modifies public API |
-| Improvements     | `improvement`, `enhancement` | Enhances existing functionality  |
-| Bug fixes        | `bugfix`, `bug`              | Fixes issues                     |
+| Category     | Labels                       | Indicators                       |
+| ------------ | ---------------------------- | -------------------------------- |
+| API changes  | `api`, `feature`, `major`    | Adds/removes/modifies public API |
+| Improvements | `improvement`, `enhancement` | Enhances existing functionality  |
+| Bug fixes    | `bugfix`, `bug`              | Fixes issues                     |
 
 Look for `### Release notes` and `### API changes` sections in PR bodies.
+
+**Finding breaking changes**: Search PR bodies for the word "breaking" to identify breaking changes. Mark these with 💥 prefix in the API changes section (see `references/formatting.md`).
 
 ## Team members (do not credit)
 
