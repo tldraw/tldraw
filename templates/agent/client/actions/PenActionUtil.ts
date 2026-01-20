@@ -1,4 +1,4 @@
-import { compressLegacySegments, createShapeId, Vec, VecModel } from 'tldraw'
+import { b64Vecs, TLDrawShapeSegment, TLShapeId, Vec, VecModel } from 'tldraw'
 import { asColor } from '../../shared/format/SimpleColor'
 import { convertSimpleFillToTldrawFill } from '../../shared/format/SimpleFill'
 import { PenAction } from '../../shared/schema/AgentActionSchemas'
@@ -20,6 +20,9 @@ export const PenActionUtil = registerActionUtil(
 		override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 			if (!action.points) return action
 
+			// Ensure the shape has a unique ID
+			action.shapeId = helpers.ensureShapeIdIsUnique(action.shapeId)
+
 			// Don't include the final point if we're still streaming.
 			// Its numbers might be incomplete.
 			const points = action.complete ? action.points : action.points.slice(0, -1)
@@ -39,6 +42,9 @@ export const PenActionUtil = registerActionUtil(
 		override applyAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 			if (!action.points) return
 			if (action.points.length === 0) return
+
+			if (!action.shapeId) return
+			const shapeId = `shape:${action.shapeId}` as TLShapeId
 
 			action.points = action.points.map((point) => helpers.removeOffsetFromVec(point))
 
@@ -68,23 +74,27 @@ export const PenActionUtil = registerActionUtil(
 				points.push(...pointsToAdd)
 			}
 
-			if (points.length === 0) {
+			// Require at least 2 points to draw a line
+			if (points.length <= 1) {
 				return
 			}
 
-			const segments = compressLegacySegments([
+			const segmentPoints = points.map((point) => ({
+				x: point.x - minX,
+				y: point.y - minY,
+				z: 0.75,
+			}))
+			const base64Points = b64Vecs.encodePoints(segmentPoints)
+
+			const segments: TLDrawShapeSegment[] = [
 				{
 					type: 'free',
-					points: points.map((point) => ({
-						x: point.x - minX,
-						y: point.y - minY,
-						z: 0.75,
-					})),
+					points: base64Points,
 				},
-			])
+			]
 
 			this.editor.createShape({
-				id: createShapeId(),
+				id: shapeId,
 				type: 'draw',
 				x: minX,
 				y: minY,

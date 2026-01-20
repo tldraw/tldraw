@@ -176,10 +176,10 @@ ${flagged(
 )}
 
 ${flagged(
-	flags.hasViewportBoundsPart || flags.hasSetMyView,
+	flags.hasUserViewportBoundsPart || flags.hasAgentViewportBoundsPart || flags.hasSetMyView,
 	`### Navigating the canvas
 
-${flagged(flags.hasViewportBoundsPart, "- Your viewport may be different from the user's viewport (you will be informed if this is the case).")}
+${flagged(flags.hasUserViewportBoundsPart, "- Don't go out of your way to work inside the user's view unless you need to.")}
 ${flagged(flags.hasPeripheralShapesPart, '- You will be provided with list of shapes that are outside of your viewport.')}
 ${flagged(
 	flags.hasSetMyView,

@@ -459,7 +459,7 @@ export class TldrawAgent {
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
 
 			// Override specific properties
-			// bounds: request.bounds ?? scheduledRequest.bounds,
+			bounds: request.bounds ?? scheduledRequest.bounds,
 			// bounds: scheduledRequest
 			// ? Box.From(scheduledRequest.bounds).union(request.bounds)
 			// : request.bounds,

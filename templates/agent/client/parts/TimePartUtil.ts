@@ -8,7 +8,7 @@ export const TimePartUtil = registerPromptPartUtil(
 		override getPart(): TimePart {
 			return {
 				type: 'time',
-				timestamp: Date.now(),
+				time: new Date().toLocaleTimeString(),
 			}
 		}
 	}

@@ -41,7 +41,8 @@ export function getSystemPromptFlags(actions: AgentAction['_type'][], parts: Pro
 
 		// Viewport
 		hasScreenshotPart: parts.includes('screenshot'),
-		hasViewportBoundsPart: parts.includes('viewportBounds'),
+		hasUserViewportBoundsPart: parts.includes('userViewportBounds'),
+		hasAgentViewportBoundsPart: parts.includes('agentViewportBounds'),
 
 		// Shapes
 		hasBlurryShapesPart: parts.includes('blurryShapes'),

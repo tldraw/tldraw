@@ -51,8 +51,71 @@ export const MoveActionUtil = registerActionUtil(
 			const shapeOrigin = new Vec(shape.x, shape.y)
 			const shapeBoundsOrigin = new Vec(shapeBounds.minX, shapeBounds.minY)
 
+			// Calculate the offset from the shape bounds origin to the shape origin
 			const shapeOriginDelta = shapeOrigin.sub(shapeBoundsOrigin)
-			const newTarget = moveTarget.add(shapeOriginDelta)
+
+			// Adjust the target position based on the anchor point
+			const boundsWidth = shapeBounds.w
+			const boundsHeight = shapeBounds.h
+
+			// Calculate the anchor point offset from the bounds origin
+			let anchorOffsetX = 0
+			let anchorOffsetY = 0
+
+			switch (action.anchor) {
+				case 'top-left': {
+					anchorOffsetX = 0
+					anchorOffsetY = 0
+					break
+				}
+				case 'top-center': {
+					anchorOffsetX = boundsWidth / 2
+					anchorOffsetY = 0
+					break
+				}
+				case 'top-right': {
+					anchorOffsetX = boundsWidth
+					anchorOffsetY = 0
+					break
+				}
+				case 'bottom-left': {
+					anchorOffsetX = 0
+					anchorOffsetY = boundsHeight
+					break
+				}
+				case 'bottom-center': {
+					anchorOffsetX = boundsWidth / 2
+					anchorOffsetY = boundsHeight
+					break
+				}
+				case 'bottom-right': {
+					anchorOffsetX = boundsWidth
+					anchorOffsetY = boundsHeight
+					break
+				}
+				case 'center-left': {
+					anchorOffsetX = 0
+					anchorOffsetY = boundsHeight / 2
+					break
+				}
+				case 'center-right': {
+					anchorOffsetX = boundsWidth
+					anchorOffsetY = boundsHeight / 2
+					break
+				}
+				case 'center': {
+					anchorOffsetX = boundsWidth / 2
+					anchorOffsetY = boundsHeight / 2
+					break
+				}
+			}
+
+			// Adjust the target to account for the anchor point
+			// The target x,y should be where the anchor point is positioned
+			// So we subtract the anchor offset to get the bounds origin position
+			const adjustedTarget = moveTarget.sub(new Vec(anchorOffsetX, anchorOffsetY))
+
+			const newTarget = adjustedTarget.add(shapeOriginDelta)
 
 			editor.updateShape({
 				id: shapeId,

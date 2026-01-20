@@ -14,7 +14,7 @@ export const ThinkActionUtil = registerActionUtil(
 
 			return {
 				icon: 'brain' as const,
-				description: action.text ?? (action.complete ? 'Thinking...' : null),
+				description: action.text ?? (action.complete ? null : 'Thinking...'),
 				summary,
 			}
 		}

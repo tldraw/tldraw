@@ -24,11 +24,12 @@ import { SendToBackActionUtil } from '../actions/SendToBackActionUtil'
 import { SetMyViewActionUtil } from '../actions/SetMyViewActionUtil'
 import { StackActionUtil } from '../actions/StackActionUtil'
 import { ThinkActionUtil } from '../actions/ThinkActionUtil'
-import { TodoListActionUtil } from '../actions/TodoListActionUtil'
 import { UnknownActionUtil } from '../actions/UnknownActionUtil'
 import { UpdateActionUtil } from '../actions/UpdateActionUtil'
+import { UpsertTodoListItemActionUtil } from '../actions/UpsertTodoListItemActionUtil'
 
 // Import prompt part utils to ensure they register themselves
+import { AgentViewportBoundsPartUtil } from '../parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from '../parts/BlurryShapesPartUtil'
 import { CanvasLintsPartUtil } from '../parts/CanvasLintsPartUtil'
 import { ChatHistoryPartUtil } from '../parts/ChatHistoryPartUtil'
@@ -44,7 +45,7 @@ import { SelectedShapesPartUtil } from '../parts/SelectedShapesPartUtil'
 import { TimePartUtil } from '../parts/TimePartUtil'
 import { TodoListPartUtil } from '../parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from '../parts/UserActionHistoryPartUtil'
-import { ViewportBoundsPartUtil } from '../parts/ViewportBoundsPartUtil'
+import { UserViewportBoundsPartUtil } from '../parts/UserViewportBoundsPartUtil'
 
 /**
  * What an agent can see and do when in a given mode.
@@ -109,7 +110,8 @@ export const AGENT_MODE_DEFINITIONS = [
 
 			// Viewport
 			ScreenshotPartUtil.type,
-			ViewportBoundsPartUtil.type,
+			UserViewportBoundsPartUtil.type,
+			AgentViewportBoundsPartUtil.type,
 
 			// Shapes
 			BlurryShapesPartUtil.type,
@@ -139,7 +141,7 @@ export const AGENT_MODE_DEFINITIONS = [
 			ThinkActionUtil.type,
 			ReviewActionUtil.type,
 			AddDetailActionUtil.type,
-			TodoListActionUtil.type,
+			UpsertTodoListItemActionUtil.type,
 			SetMyViewActionUtil.type,
 
 			// Individual shapes

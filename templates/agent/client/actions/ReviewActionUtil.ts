@@ -42,7 +42,7 @@ export const ReviewActionUtil = registerActionUtil(
 				? Box.From(scheduledRequest.bounds).union(reviewBounds)
 				: reviewBounds
 
-			this.agent.context.add(contextArea) // TODO make sure this works
+			this.agent.context.add(contextArea)
 
 			// Schedule the review
 			this.agent.schedule({

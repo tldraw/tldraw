@@ -26,7 +26,14 @@ export const SetMyViewActionUtil = registerActionUtil(
 				h: action.h,
 			})
 
-			this.agent.schedule({ bounds })
+			this.agent.interrupt({
+				input: {
+					bounds,
+					agentMessages: [
+						`Just navigated to new area with the intent: ${action.intent}. Can now see the new area at (${bounds.x}, ${bounds.y}) and is ${bounds.w}x${bounds.h} in size.`,
+					],
+				},
+			})
 		}
 	}
 )

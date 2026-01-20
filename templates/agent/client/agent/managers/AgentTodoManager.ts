@@ -1,4 +1,5 @@
 import { Atom, atom } from 'tldraw'
+import { TodoId } from '../../../shared/types/ids-schema'
 import { TodoItem } from '../../../shared/types/TodoItem'
 import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
@@ -32,11 +33,11 @@ export class AgentTodoManager extends BaseAgentManager {
 
 	/**
 	 * Add a todo item to the agent's todo list.
+	 * @param id - The id of the todo item.
 	 * @param text - The text of the todo item.
 	 * @returns The id of the todo item.
 	 */
-	push(text: string): number {
-		const id = this.$todoList.get().length
+	push(id: TodoId, text: string) {
 		this.$todoList.update((todoItems) => {
 			return [
 				...todoItems,

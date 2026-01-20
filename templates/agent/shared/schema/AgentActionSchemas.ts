@@ -1,8 +1,8 @@
 import z from 'zod'
 import { SimpleColor } from '../format/SimpleColor'
 import { SimpleFillSchema } from '../format/SimpleFill'
-import { SimpleShapeSchema } from '../format/SimpleShape'
-import { SimpleShapeIdSchema } from '../types/ids-schema'
+import { SimpleShapeSchema, SimpleTextAnchorSchema } from '../format/SimpleShape'
+import { SimpleShapeIdSchema, TodoIdSchema } from '../types/ids-schema'
 
 // Add Detail Action
 export const AddDetailAction = z
@@ -149,11 +149,12 @@ export const MoveAction = z
 	.object({
 		_type: z.literal('move'),
 		intent: z.string(),
+		anchor: SimpleTextAnchorSchema,
 		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
 	})
-	.meta({ title: 'Move', description: 'The AI moves a shape to a new position.' })
+	.meta({ title: 'Move', description: 'The agent moves a shape to a new position.' })
 
 export type MoveAction = z.infer<typeof MoveAction>
 
@@ -161,6 +162,7 @@ export type MoveAction = z.infer<typeof MoveAction>
 export const PenAction = z
 	.object({
 		_type: z.literal('pen'),
+		shapeId: SimpleShapeIdSchema,
 		color: SimpleColor,
 		closed: z.boolean(),
 		fill: SimpleFillSchema,
@@ -325,19 +327,19 @@ export const ThinkAction = z
 export type ThinkAction = z.infer<typeof ThinkAction>
 
 // Todo List Action
-export const TodoListAction = z
+export const UpsertPersonalTodoItemAction = z
 	.object({
 		_type: z.literal('update-todo-list'),
-		id: z.number(),
+		id: TodoIdSchema,
 		status: z.enum(['todo', 'in-progress', 'done']),
-		text: z.string(),
+		text: z.string().optional(),
 	})
 	.meta({
 		title: 'Update Todo List',
 		description: 'The AI updates a current todo list item or creates a new one',
 	})
 
-export type TodoListAction = z.infer<typeof TodoListAction>
+export type UpsertPersonalTodoItemAction = z.infer<typeof UpsertPersonalTodoItemAction>
 
 // Update Action
 export const UpdateAction = z

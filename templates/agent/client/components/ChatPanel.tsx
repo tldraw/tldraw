@@ -31,7 +31,7 @@ export function ChatPanel() {
 			// Clear the chat input (context is cleared after it's captured in requestAgentActions)
 			inputRef.current.value = ''
 
-			// Prompt the agent
+			// Sending a new message to the agent shoudl interrupt the current request
 			agent.interrupt({
 				input: {
 					agentMessages: [value],

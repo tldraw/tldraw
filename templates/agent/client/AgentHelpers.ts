@@ -231,18 +231,21 @@ export class AgentHelpers {
 	 * @param id - The id to check (should be a SimpleShapeId from the model, not a TLShapeId).
 	 * @returns The unique id (always without the "shape:" prefix).
 	 */
-	ensureShapeIdIsUnique(id: SimpleShapeId): SimpleShapeId {
+	ensureShapeIdIsUnique(id = 'shape' as SimpleShapeId): SimpleShapeId {
+		// todo: remove default and have a better handling of cases where id is undefined
+
 		const { editor } = this.agent
+		// Defensively strip the prefix in case the model incorrectly includes it
+
 		// Ensure the id is unique by incrementing a number at the end
 		let newId = id
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
-			const match = /^.*(\d+)$/.exec(newId)?.[1]
-			if (match) {
-				newId = newId.replace(/(\d+)(?=\D?)$/, (m: string) => (+m + 1).toString()) as SimpleShapeId
-			} else {
-				newId = `${newId}-1` as SimpleShapeId
-			}
+			newId = /^.*(\d+)$/.exec(newId)?.[1]
+				? (newId.replace(/(\d+)(?=\D?)$/, (m) => {
+						return (+m + 1).toString()
+					}) as SimpleShapeId)
+				: (`${newId}-1` as SimpleShapeId)
 			existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		}
 

@@ -11,6 +11,7 @@ import { ChatHistoryItem } from '../types/ChatHistoryItem'
 import { ContextItem } from '../types/ContextItem'
 import type { PromptPart, PromptPartDefinition } from '../types/PromptPart'
 import { TodoItem } from '../types/TodoItem'
+import { SimpleShapeId } from '../types/ids-schema'
 
 // ============================================================================
 // Prompt Part Type Interfaces
@@ -65,12 +66,12 @@ export interface ScreenshotPart {
 
 export interface SelectedShapesPart {
 	type: 'selectedShapes'
-	shapes: SimpleShape[]
+	shapeIds: SimpleShapeId[]
 }
 
 export interface TimePart {
 	type: 'time'
-	timestamp: number
+	time: string
 }
 
 export interface TodoListPart {
@@ -96,10 +97,14 @@ export interface UserActionHistoryPart {
 	}[]
 }
 
-export interface ViewportBoundsPart {
-	type: 'viewportBounds'
-	userBounds: BoxModel
-	agentBounds: BoxModel
+export interface UserViewportBoundsPart {
+	type: 'userViewportBounds'
+	userBounds: BoxModel | null
+}
+
+export interface AgentViewportBoundsPart {
+	type: 'agentViewportBounds'
+	agentBounds: BoxModel | null
 }
 
 export interface ModePart {
@@ -132,13 +137,50 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 // CanvasLints
 export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = {
 	type: 'canvasLints',
-	priority: 15, // after todo list, before messages
-	buildContent: ({ lints }) => {
-		if (lints.length === 0) return []
-		return [
-			'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed:',
-			JSON.stringify(lints),
-		]
+	priority: -50,
+	buildContent({ lints }: CanvasLintsPart) {
+		if (!lints || lints.length === 0) {
+			return []
+		}
+
+		const messages: string[] = []
+
+		// Group lints by type
+		const growYLints = lints.filter((l) => l.type === 'growY-on-shape')
+		const overlappingTextLints = lints.filter((l) => l.type === 'overlapping-text')
+		const friendlessArrowLints = lints.filter((l) => l.type === 'friendless-arrow')
+
+		messages.push(
+			"[LINTER]: The following potential visual problems have been detected in the canvas. You should decide if you want to address them. Defer to your view of the canvas to decide if you need to make changes; it's very possible that you don't need to make any changes."
+		)
+
+		if (growYLints.length > 0) {
+			const shapeIds = growYLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				'Text overflow: These shapes have text that caused their containers to grow past the size that they were intended to be, potentially breaking out of their container. If you decide to fix: you need to set the height back to what you originally intended after increasing the width.',
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (overlappingTextLints.length > 0) {
+			const lines = [
+				'Overlapping text: The shapes in each group have text and overlap each other, which may make text hard to read. If you decide to fix this, you may need to increase the size of any shapes containing the text.',
+				...overlappingTextLints.map((lint) => `  - ${lint.shapeIds.join(', ')}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (friendlessArrowLints.length > 0) {
+			const shapeIds = friendlessArrowLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				"Unconnected arrows: These arrows aren't fully connected to other shapes.",
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		return messages
 	},
 }
 
@@ -393,19 +435,19 @@ export const ScreenshotPartDefinition: PromptPartDefinition<ScreenshotPart> = {
 	},
 }
 
-// SelectedShapes
 export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPart> = {
 	type: 'selectedShapes',
-	priority: -55, // selected shapes after context items
-	buildContent: ({ shapes }) => {
-		if (shapes.length === 0) {
+	priority: -55,
+	buildContent({ shapeIds }: SelectedShapesPart) {
+		if (!shapeIds || shapeIds.length === 0) {
 			return []
 		}
 
-		return [
-			'The user has selected these shapes. Focus your task on these shapes where applicable:',
-			shapes.map((shape) => JSON.stringify(shape)).join('\n'),
-		]
+		if (shapeIds.length === 1) {
+			return [`The user has this shape selected: ${shapeIds[0]}`]
+		}
+
+		return [`The user has these shapes selected: ${shapeIds.join(', ')}`]
 	},
 }
 
@@ -413,8 +455,8 @@ export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPa
 export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	type: 'time',
 	priority: -100,
-	buildContent: ({ timestamp }) => {
-		return ["The user's current time is:", new Date(timestamp).toLocaleTimeString()]
+	buildContent({ time }: TimePart) {
+		return [`The user's current time is: ${time}`]
 	},
 }
 
@@ -423,10 +465,7 @@ export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 	type: 'todoList',
 	priority: 10,
 	buildContent: ({ items }) => {
-		if (items.length === 0)
-			return [
-				'You have no todos yet. Use the `update-todo-list` event with a new id to create a todo.',
-			]
+		if (items.length === 0) return ['You have no todos yet.']
 		return [`Here is your current todo list:`, JSON.stringify(items)]
 	},
 }
@@ -448,62 +487,30 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 	},
 }
 
-// ViewportBounds
-export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
-	type: 'viewportBounds',
-	priority: -80, // viewport bounds
-	buildContent: ({ userBounds, agentBounds }) => {
-		const agentViewportBounds = agentBounds
-
-		// Check if bounds are valid (non-zero dimensions)
-		if (
-			agentViewportBounds.w === 0 ||
-			agentViewportBounds.h === 0 ||
-			userBounds.w === 0 ||
-			userBounds.h === 0
-		)
+// UserViewportBounds
+export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewportBoundsPart> = {
+	type: 'userViewportBounds',
+	priority: -80,
+	buildContent({ userBounds }: UserViewportBoundsPart) {
+		if (!userBounds) {
 			return []
-
-		const doUserAndAgentShareViewport =
-			withinPercent(agentViewportBounds.x, userBounds.x, 5) &&
-			withinPercent(agentViewportBounds.y, userBounds.y, 5) &&
-			withinPercent(agentViewportBounds.w, userBounds.w, 5) &&
-			withinPercent(agentViewportBounds.h, userBounds.h, 5)
-
-		const agentViewportBoundsBox = Box.From(agentViewportBounds)
-		const currentUserViewportBoundsBox = Box.From(userBounds)
-
-		const agentContainsUser = agentViewportBoundsBox.contains(currentUserViewportBoundsBox)
-		const userContainsAgent = currentUserViewportBoundsBox.contains(agentViewportBoundsBox)
-
-		let relativeViewportDescription: string = ''
-
-		if (doUserAndAgentShareViewport) {
-			relativeViewportDescription = 'is the same as'
-		} else {
-			if (agentContainsUser) {
-				relativeViewportDescription = 'contains'
-			} else if (userContainsAgent) {
-				relativeViewportDescription = 'is contained by'
-			} else {
-				relativeViewportDescription = getRelativePositionDescription(
-					agentViewportBounds,
-					userBounds
-				)
-			}
 		}
-		const response = [
-			`The bounds of the part of the canvas that you can currently see are:`,
-			JSON.stringify(agentBounds),
-			`The user's view is ${relativeViewportDescription} your view.`,
+		const userViewCenter = Box.From(userBounds).center
+		return [`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`]
+	},
+}
+
+// AgentViewportBounds
+export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewportBoundsPart> = {
+	type: 'agentViewportBounds',
+	priority: -80,
+	buildContent({ agentBounds }: AgentViewportBoundsPart) {
+		if (!agentBounds) {
+			return []
+		}
+		return [
+			`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`,
 		]
-
-		if (!doUserAndAgentShareViewport) {
-			// If the user and agent share a viewport, we don't need to say anything about the bounds
-			response.push(`The bounds of what the user can see are:`, JSON.stringify(userBounds))
-		}
-
-		return response
 	},
 }
 
@@ -517,54 +524,4 @@ export const ModePartDefinition: PromptPartDefinition<ModePart> = {
 export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
 	type: 'debug',
 	// No buildContent - this is metadata for the worker, not prompt content for the model
-}
-
-function withinPercent(a: number, b: number, percent: number) {
-	const max = Math.max(Math.abs(a), Math.abs(b), 1)
-	return Math.abs(a - b) <= (percent / 100) * max
-}
-
-/**
- * Determines the relative position of box B from box A's perspective.
- */
-export function getRelativePositionDescription(boxA: BoxModel, boxB: BoxModel): string {
-	// Find centers of both boxes
-	const centerA = {
-		x: boxA.x + boxA.w / 2,
-		y: boxA.y + boxA.h / 2,
-	}
-
-	const centerB = {
-		x: boxB.x + boxB.w / 2,
-		y: boxB.y + boxB.h / 2,
-	}
-
-	// Calculate the difference vector from A to B
-	const dx = centerB.x - centerA.x
-	const dy = centerB.y - centerA.y
-
-	// Handle the case where centers are the same
-	if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
-		return 'is concentric with'
-	}
-
-	// Calculate angle from A to B (in radians)
-	const angle = Math.atan2(dy, dx)
-
-	// Convert to degrees and normalize to 0-360
-	let degrees = (angle * 180) / Math.PI
-	if (degrees < 0) degrees += 360
-
-	// Map degrees to 8 cardinal/ordinal directions
-	// 0° = right, 90° = bottom, 180° = left, 270° = top
-	if (degrees >= 337.5 || degrees < 22.5) return 'to the right of'
-	if (degrees >= 22.5 && degrees < 67.5) return 'to the bottom right of'
-	if (degrees >= 67.5 && degrees < 112.5) return 'below'
-	if (degrees >= 112.5 && degrees < 157.5) return 'to the bottom left of'
-	if (degrees >= 157.5 && degrees < 202.5) return 'to the left of'
-	if (degrees >= 202.5 && degrees < 247.5) return 'to the top left of'
-	if (degrees >= 247.5 && degrees < 292.5) return 'above'
-	if (degrees >= 292.5 && degrees < 337.5) return 'to the top right of'
-
-	return 'is different from'
 }
