@@ -145,9 +145,9 @@ export class Drawing extends StateNode {
 		if (!this.canClose()) return false
 
 		const strokeWidth = STROKE_SIZES[size]
-		const firstPoint = b64Vecs.decodeDeltaFirstPoint(segments[0].path)
+		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path)
 		const lastSegment = segments[segments.length - 1]
-		const lastPoint = b64Vecs.decodeDeltaLastPoint(lastSegment.path)
+		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
 
 		return (
 			firstPoint !== null &&
@@ -193,14 +193,14 @@ export class Drawing extends StateNode {
 
 				const prevSegment = last(shape.props.segments)
 				if (!prevSegment) throw Error('Expected a previous segment!')
-				const prevPoint = b64Vecs.decodeDeltaLastPoint(prevSegment.path)
+				const prevPoint = b64Vecs.decodeLastPoint(prevSegment.path)
 				if (!prevPoint) throw Error('Expected a previous point!')
 
 				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
 
 				const newSegment: TLDrawShapeSegment = {
 					type: this.segmentMode,
-					path: b64Vecs.encodeDeltaPoints([
+					path: b64Vecs.encodePoints([
 						{ x: prevPoint.x, y: prevPoint.y, z: +pressure.toFixed(2) },
 						{ x, y, z: +pressure.toFixed(2) },
 					]),
@@ -262,7 +262,7 @@ export class Drawing extends StateNode {
 				segments: [
 					{
 						type: this.segmentMode,
-						path: b64Vecs.encodeDeltaPoints([initialPoint]),
+						path: b64Vecs.encodePoints([initialPoint]),
 					},
 				],
 			},
@@ -324,7 +324,7 @@ export class Drawing extends StateNode {
 					const prevSegment = last(segments)
 					if (!prevSegment) throw Error('Expected a previous segment!')
 
-					const prevLastPoint = b64Vecs.decodeDeltaLastPoint(prevSegment.path)
+					const prevLastPoint = b64Vecs.decodeLastPoint(prevSegment.path)
 					if (!prevLastPoint) throw Error('Expected a previous last point!')
 
 					let newSegment: TLDrawShapeSegment
@@ -339,7 +339,7 @@ export class Drawing extends StateNode {
 
 						newSegment = {
 							type: 'straight',
-							path: b64Vecs.encodeDeltaPoints([prevLastPoint, newLastPoint]),
+							path: b64Vecs.encodePoints([prevLastPoint, newLastPoint]),
 						}
 
 						const transform = this.editor.getShapePageTransform(shape)!
@@ -348,7 +348,7 @@ export class Drawing extends StateNode {
 					} else {
 						newSegment = {
 							type: 'straight',
-							path: b64Vecs.encodeDeltaPoints([newLastPoint, newPoint]),
+							path: b64Vecs.encodePoints([newLastPoint, newPoint]),
 						}
 					}
 
@@ -396,7 +396,7 @@ export class Drawing extends StateNode {
 
 					const newSegments = segments.slice()
 					const prevStraightSegment = newSegments[newSegments.length - 1]
-					const prevPoint = b64Vecs.decodeDeltaLastPoint(prevStraightSegment.path)
+					const prevPoint = b64Vecs.decodeLastPoint(prevStraightSegment.path)
 
 					if (!prevPoint) {
 						throw Error('No previous point!')
@@ -412,7 +412,7 @@ export class Drawing extends StateNode {
 
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						path: b64Vecs.encodeDeltaPoints(interpolatedPoints),
+						path: b64Vecs.encodePoints(interpolatedPoints),
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
@@ -487,8 +487,8 @@ export class Drawing extends StateNode {
 							if (!segment) break
 							if (segment.type === 'free') continue
 
-							const first = b64Vecs.decodeDeltaFirstPoint(segment.path)
-							const lastPoint = b64Vecs.decodeDeltaLastPoint(segment.path)
+							const first = b64Vecs.decodeFirstPoint(segment.path)
+							const lastPoint = b64Vecs.decodeLastPoint(segment.path)
 							if (!(first && lastPoint)) continue
 
 							// Snap to the nearest point on the segment, if it's closer than the previous snapped point
@@ -515,8 +515,8 @@ export class Drawing extends StateNode {
 
 				if (didSnap && snapSegment) {
 					const transform = this.editor.getShapePageTransform(shape)!
-					const first = b64Vecs.decodeDeltaFirstPoint(snapSegment.path)
-					const lastPoint = b64Vecs.decodeDeltaLastPoint(snapSegment.path)
+					const first = b64Vecs.decodeFirstPoint(snapSegment.path)
+					const lastPoint = b64Vecs.decodeLastPoint(snapSegment.path)
 					if (!first || !lastPoint) throw Error('Expected a last point!')
 
 					const A = Mat.applyToPoint(transform, first)
@@ -558,15 +558,15 @@ export class Drawing extends StateNode {
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
 				this.currentLineLength +=
-					newSegments.length && b64Vecs.decodeDeltaFirstPoint(newSegment.path)
-						? Vec.Dist(b64Vecs.decodeDeltaFirstPoint(newSegment.path)!, Vec.From(newPoint))
+					newSegments.length && b64Vecs.decodeFirstPoint(newSegment.path)
+						? Vec.Dist(b64Vecs.decodeFirstPoint(newSegment.path)!, Vec.From(newPoint))
 						: 0
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
 					type: 'straight',
-					path: b64Vecs.encodeDeltaPoints([
-						b64Vecs.decodeDeltaFirstPoint(newSegment.path)!,
+					path: b64Vecs.encodePoints([
+						b64Vecs.decodeFirstPoint(newSegment.path)!,
 						Vec.From(newPoint),
 					]),
 				}
@@ -613,7 +613,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
-					path: b64Vecs.encodeDeltaPoints(cachedPoints),
+					path: b64Vecs.encodePoints(cachedPoints),
 				}
 
 				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
@@ -664,7 +664,7 @@ export class Drawing extends StateNode {
 							segments: [
 								{
 									type: 'free',
-									path: b64Vecs.encodeDeltaPoints([initialPoint]),
+									path: b64Vecs.encodePoints([initialPoint]),
 								},
 							],
 						},
@@ -693,7 +693,7 @@ export class Drawing extends StateNode {
 		let length = 0
 
 		for (let j = 0; j < segments.length; j++) {
-			const points = b64Vecs.decodeDeltaPoints(segments[j].path)
+			const points = b64Vecs.decodePoints(segments[j].path)
 			for (let i = 0; i < points.length - 1; i++) {
 				length += Vec.Dist2(points[i], points[i + 1])
 			}

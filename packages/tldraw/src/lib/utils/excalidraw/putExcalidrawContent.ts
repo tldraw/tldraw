@@ -156,7 +156,7 @@ export async function putExcalidrawContent(
 					y,
 					z,
 				}))
-				const base64Points = b64Vecs.encodeDeltaPoints(points)
+				const base64Points = b64Vecs.encodePoints(points)
 
 				tldrawContent.shapes.push({
 					...base,

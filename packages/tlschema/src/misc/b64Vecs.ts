@@ -224,15 +224,16 @@ function numberToFloat16Bits(value: number): number {
  */
 export class b64Vecs {
 	/**
-	 * Encode a single point (x, y, z) to 8 base64 characters.
+	 * Encode a single point (x, y, z) to 8 base64 characters using legacy Float16 encoding.
 	 * Each coordinate is encoded as a Float16 value, resulting in 6 bytes total.
 	 *
 	 * @param x - The x coordinate
 	 * @param y - The y coordinate
 	 * @param z - The z coordinate
 	 * @returns An 8-character base64 string representing the point
+	 * @internal
 	 */
-	static encodePoint(x: number, y: number, z: number): string {
+	static _legacyEncodePoint(x: number, y: number, z: number): string {
 		const xBits = numberToFloat16Bits(x)
 		const yBits = numberToFloat16Bits(y)
 		const zBits = numberToFloat16Bits(z)
@@ -262,14 +263,15 @@ export class b64Vecs {
 	}
 
 	/**
-	 * Convert an array of VecModels to a base64 string for compact storage.
+	 * Convert an array of VecModels to a base64 string using legacy Float16 encoding.
 	 * Uses Float16 encoding for each coordinate (x, y, z). If a point's z value is
 	 * undefined, it defaults to 0.5.
 	 *
 	 * @param points - An array of VecModel objects to encode
 	 * @returns A base64-encoded string containing all points
+	 * @internal Used only for migrations from legacy format
 	 */
-	static encodePoints(points: VecModel[]): string {
+	static _legacyEncodePoints(points: VecModel[]): string {
 		const uint16s = new Uint16Array(points.length * 3)
 		for (let i = 0; i < points.length; i++) {
 			const p = points[i]
@@ -281,13 +283,14 @@ export class b64Vecs {
 	}
 
 	/**
-	 * Convert a base64 string back to an array of VecModels.
+	 * Convert a legacy base64 string back to an array of VecModels.
 	 * Decodes Float16-encoded coordinates (x, y, z) from the base64 string.
 	 *
 	 * @param base64 - The base64-encoded string containing point data
 	 * @returns An array of VecModel objects decoded from the string
+	 * @internal Used only for migrations from legacy format
 	 */
-	static decodePoints(base64: string): VecModel[] {
+	static _legacyDecodePoints(base64: string): VecModel[] {
 		const uint16s = base64ToUint16Array(base64)
 		const result: VecModel[] = []
 		for (let i = 0; i < uint16s.length; i += 3) {
@@ -301,7 +304,7 @@ export class b64Vecs {
 	}
 
 	/**
-	 * Decode a single point (8 base64 chars) starting at the given offset.
+	 * Decode a single point (8 base64 chars) starting at the given offset using legacy Float16 encoding.
 	 * Each point is encoded as 3 Float16 values (x, y, z) in 8 base64 characters.
 	 *
 	 * @param b64Points - The base64-encoded string containing point data
@@ -309,7 +312,7 @@ export class b64Vecs {
 	 * @returns A VecModel object with x, y, and z coordinates
 	 * @internal
 	 */
-	static decodePointAt(b64Points: string, charOffset: number): VecModel {
+	static _legacyDecodePointAt(b64Points: string, charOffset: number): VecModel {
 		// Decode 8 base64 chars -> 6 bytes -> 3 Float16s using O(1) lookup
 		const c0 = B64_LOOKUP[b64Points.charCodeAt(charOffset)]
 		const c1 = B64_LOOKUP[b64Points.charCodeAt(charOffset + 1)]
@@ -339,26 +342,27 @@ export class b64Vecs {
 	}
 
 	/**
-	 * Get the first point from a base64-encoded string of points.
+	 * Get the first point from a legacy base64-encoded string of points.
 	 *
 	 * @param b64Points - The base64-encoded string containing point data
 	 * @returns The first point as a VecModel, or null if the string is too short
-	 * @public
+	 * @internal
 	 */
-	static decodeFirstPoint(b64Points: string): VecModel | null {
+	static _legacyDecodeFirstPoint(b64Points: string): VecModel | null {
 		if (b64Points.length < POINT_B64_LENGTH) return null
-		return b64Vecs.decodePointAt(b64Points, 0)
+		return b64Vecs._legacyDecodePointAt(b64Points, 0)
 	}
 
 	/**
-	 * Get the last point from a base64-encoded string of points.
+	 * Get the last point from a legacy base64-encoded string of points.
 	 *
 	 * @param b64Points - The base64-encoded string containing point data
 	 * @returns The last point as a VecModel, or null if the string is too short
+	 * @internal
 	 */
-	static decodeLastPoint(b64Points: string): VecModel | null {
+	static _legacyDecodeLastPoint(b64Points: string): VecModel | null {
 		if (b64Points.length < POINT_B64_LENGTH) return null
-		return b64Vecs.decodePointAt(b64Points, b64Points.length - POINT_B64_LENGTH)
+		return b64Vecs._legacyDecodePointAt(b64Points, b64Points.length - POINT_B64_LENGTH)
 	}
 
 	/**
@@ -374,8 +378,9 @@ export class b64Vecs {
 	 *
 	 * @param points - An array of VecModel objects to encode
 	 * @returns A base64-encoded string containing delta-encoded points
+	 * @public
 	 */
-	static encodeDeltaPoints(points: VecModel[]): string {
+	static encodePoints(points: VecModel[]): string {
 		if (points.length === 0) return ''
 
 		// First point: 3 Float32s = 12 bytes
@@ -422,8 +427,9 @@ export class b64Vecs {
 	 *
 	 * @param base64 - The base64-encoded string containing delta-encoded point data
 	 * @returns An array of VecModel objects with absolute coordinates
+	 * @public
 	 */
-	static decodeDeltaPoints(base64: string): VecModel[] {
+	static decodePoints(base64: string): VecModel[] {
 		if (base64.length === 0) return []
 
 		const bytes = base64ToUint8Array(base64)
@@ -454,8 +460,9 @@ export class b64Vecs {
 	 *
 	 * @param b64Points - The delta-encoded base64 string
 	 * @returns The first point as a VecModel, or null if the string is too short
+	 * @public
 	 */
-	static decodeDeltaFirstPoint(b64Points: string): VecModel | null {
+	static decodeFirstPoint(b64Points: string): VecModel | null {
 		// First point needs 16 base64 chars (12 bytes as Float32)
 		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
 
@@ -475,8 +482,9 @@ export class b64Vecs {
 	 *
 	 * @param b64Points - The delta-encoded base64 string
 	 * @returns The last point as a VecModel, or null if the string is too short
+	 * @public
 	 */
-	static decodeDeltaLastPoint(b64Points: string): VecModel | null {
+	static decodeLastPoint(b64Points: string): VecModel | null {
 		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
 
 		const bytes = base64ToUint8Array(b64Points)

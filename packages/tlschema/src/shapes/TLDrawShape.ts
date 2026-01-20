@@ -196,10 +196,10 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				props.segments = props.segments.map((segment: any) => {
 					if (segment.path !== undefined) return segment
 					const { points, ...rest } = segment
-					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
+					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
 						...rest,
-						path: b64Vecs.encodeDeltaPoints(vecModels),
+						path: b64Vecs.encodePoints(vecModels),
 					}
 				})
 				props.scaleX = props.scaleX ?? 1
@@ -211,7 +211,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					const { path, ...rest } = segment
 					return {
 						...rest,
-						points: b64Vecs.decodeDeltaPoints(path),
+						points: b64Vecs.decodePoints(path),
 					}
 				})
 				delete props.scaleX
@@ -228,10 +228,10 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					if (segment.path !== undefined) return segment
 
 					const { points, ...rest } = segment
-					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
+					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
 						...rest,
-						path: b64Vecs.encodeDeltaPoints(vecModels),
+						path: b64Vecs.encodePoints(vecModels),
 					}
 				})
 			},
@@ -257,6 +257,6 @@ export function compressLegacySegments(
 ): TLDrawShapeSegment[] {
 	return segments.map((segment) => ({
 		type: segment.type,
-		path: b64Vecs.encodeDeltaPoints(segment.points),
+		path: b64Vecs.encodePoints(segment.points),
 	}))
 }

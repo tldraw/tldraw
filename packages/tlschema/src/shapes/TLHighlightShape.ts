@@ -139,10 +139,10 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 				props.segments = props.segments.map((segment: any) => {
 					if (segment.path !== undefined) return segment
 					const { points, ...rest } = segment
-					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
+					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
 						...rest,
-						path: b64Vecs.encodeDeltaPoints(vecModels),
+						path: b64Vecs.encodePoints(vecModels),
 					}
 				})
 				props.scaleX = props.scaleX ?? 1
@@ -154,7 +154,7 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 					const { path, ...rest } = segment
 					return {
 						...rest,
-						points: b64Vecs.decodeDeltaPoints(path),
+						points: b64Vecs.decodePoints(path),
 					}
 				})
 				delete props.scaleX
@@ -171,10 +171,10 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 					if (segment.path !== undefined) return segment
 
 					const { points, ...rest } = segment
-					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
+					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
 						...rest,
-						path: b64Vecs.encodeDeltaPoints(vecModels),
+						path: b64Vecs.encodePoints(vecModels),
 					}
 				})
 			},

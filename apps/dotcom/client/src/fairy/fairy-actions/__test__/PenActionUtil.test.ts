@@ -438,7 +438,7 @@ describe('PenActionUtil', () => {
 			expect(drawShape.props.segments).toHaveLength(1)
 			expect(drawShape.props.segments[0].type).toBe('free')
 			// Decode the base64 points
-			const decodedPoints = b64Vecs.decodeDeltaPoints(drawShape.props.segments[0].path)
+			const decodedPoints = b64Vecs.decodePoints(drawShape.props.segments[0].path)
 			expect(decodedPoints.length).toBeGreaterThan(0)
 			// First point should be normalized to 0,0
 			expect(decodedPoints[0].x).toBe(0)

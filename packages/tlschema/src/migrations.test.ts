@@ -2289,14 +2289,14 @@ describe('Base64 encoding for draw shape', () => {
 		expect(typeof result.props.segments[0].path).toBe('string')
 		expect(result.props.segments[0].points).toBeUndefined()
 
-		const decodedPoints = b64Vecs.decodeDeltaPoints(result.props.segments[0].path)
+		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
 		expect(decodedPoints.length).toBe(2)
 		expect(decodedPoints[0].x).toBeCloseTo(0, 0)
 		expect(decodedPoints[1].x).toBeCloseTo(10, 0)
 	})
 
 	test('down converts path back to VecModel[] array in points', () => {
-		const path = b64Vecs.encodeDeltaPoints([
+		const path = b64Vecs.encodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2321,7 +2321,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 
 	test('up converts legacy points (absolute base64) to path', () => {
 		// Data that was already migrated to v3 with the old absolute Float16 format
-		const absoluteBase64 = b64Vecs.encodePoints([
+		const absoluteBase64 = b64Vecs._legacyEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2330,7 +2330,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		expect(result.props.segments[0].path).toBeDefined()
 		expect(result.props.segments[0].points).toBeUndefined()
 
-		const decodedPoints = b64Vecs.decodeDeltaPoints(result.props.segments[0].path)
+		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
 		expect(decodedPoints.length).toBe(2)
 		expect(decodedPoints[0].x).toBeCloseTo(0, 0)
 		expect(decodedPoints[1].x).toBeCloseTo(10, 0)
@@ -2338,11 +2338,11 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 
 	test('up converts legacy b64 string with multiple segments', () => {
 		// Test with multiple segments containing legacy absolute Float16 data
-		const legacyPoints1 = b64Vecs.encodePoints([
+		const legacyPoints1 = b64Vecs._legacyEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
-		const legacyPoints2 = b64Vecs.encodePoints([
+		const legacyPoints2 = b64Vecs._legacyEncodePoints([
 			{ x: 20, y: 20, z: 0.5 },
 			{ x: 30, y: 30, z: 0.7 },
 		])
@@ -2360,11 +2360,11 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		expect(result.props.segments[1].path).toBeDefined()
 		expect(result.props.segments[1].points).toBeUndefined()
 
-		const decoded1 = b64Vecs.decodeDeltaPoints(result.props.segments[0].path)
+		const decoded1 = b64Vecs.decodePoints(result.props.segments[0].path)
 		expect(decoded1[0].x).toBeCloseTo(0, 0)
 		expect(decoded1[1].x).toBeCloseTo(10, 0)
 
-		const decoded2 = b64Vecs.decodeDeltaPoints(result.props.segments[1].path)
+		const decoded2 = b64Vecs.decodePoints(result.props.segments[1].path)
 		expect(decoded2[0].x).toBeCloseTo(20, 0)
 		expect(decoded2[1].x).toBeCloseTo(30, 0)
 	})
@@ -2378,10 +2378,10 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 	})
 
 	test('up handles single point segment', () => {
-		const absoluteBase64 = b64Vecs.encodePoints([{ x: 100, y: 200, z: 0.75 }])
+		const absoluteBase64 = b64Vecs._legacyEncodePoints([{ x: 100, y: 200, z: 0.75 }])
 		const result = up({ props: { segments: [{ type: 'free', points: absoluteBase64 }] } })
 
-		const decodedPoints = b64Vecs.decodeDeltaPoints(result.props.segments[0].path)
+		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
 		expect(decodedPoints.length).toBe(1)
 		expect(decodedPoints[0].x).toBeCloseTo(100, 0)
 		expect(decodedPoints[0].y).toBeCloseTo(200, 0)
@@ -2389,7 +2389,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 	})
 
 	test('up leaves already-converted path unchanged', () => {
-		const deltaPath = b64Vecs.encodeDeltaPoints([
+		const deltaPath = b64Vecs.encodePoints([
 			{ x: 100, y: 200, z: 0.5 },
 			{ x: 101, y: 201, z: 0.6 },
 		])
@@ -2400,7 +2400,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 	})
 
 	test('down is a no-op (handled by Base64 down migration)', () => {
-		const deltaPath = b64Vecs.encodeDeltaPoints([
+		const deltaPath = b64Vecs.encodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2433,7 +2433,7 @@ describe('Base64 encoding for highlight shape', () => {
 	})
 
 	test('down converts path back to VecModel[] array in points', () => {
-		const path = b64Vecs.encodeDeltaPoints([
+		const path = b64Vecs.encodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2456,7 +2456,7 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 	const { up, down } = getTestMigration(highlightShapeVersions.LegacyPointsConversion)
 
 	test('up converts legacy points (absolute base64) to path', () => {
-		const absoluteBase64 = b64Vecs.encodePoints([
+		const absoluteBase64 = b64Vecs._legacyEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2467,11 +2467,11 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 	})
 
 	test('up converts legacy b64 string with multiple segments', () => {
-		const legacyPoints1 = b64Vecs.encodePoints([
+		const legacyPoints1 = b64Vecs._legacyEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
-		const legacyPoints2 = b64Vecs.encodePoints([{ x: 20, y: 20, z: 0.5 }])
+		const legacyPoints2 = b64Vecs._legacyEncodePoints([{ x: 20, y: 20, z: 0.5 }])
 		const result = up({
 			props: {
 				segments: [
@@ -2485,13 +2485,13 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 		expect(result.props.segments[0].points).toBeUndefined()
 		expect(result.props.segments[1].path).toBeDefined()
 
-		const decoded1 = b64Vecs.decodeDeltaPoints(result.props.segments[0].path)
+		const decoded1 = b64Vecs.decodePoints(result.props.segments[0].path)
 		expect(decoded1[0].x).toBeCloseTo(0, 0)
 		expect(decoded1[1].x).toBeCloseTo(10, 0)
 	})
 
 	test('up leaves already-converted path unchanged', () => {
-		const deltaPath = b64Vecs.encodeDeltaPoints([
+		const deltaPath = b64Vecs.encodePoints([
 			{ x: 100, y: 200, z: 0.5 },
 			{ x: 101, y: 201, z: 0.6 },
 		])
@@ -2501,7 +2501,7 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 	})
 
 	test('down is a no-op (handled by Base64 down migration)', () => {
-		const deltaPath = b64Vecs.encodeDeltaPoints([
+		const deltaPath = b64Vecs.encodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
