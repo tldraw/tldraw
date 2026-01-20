@@ -137,6 +137,7 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				// Convert VecModel[] arrays directly to delta-encoded base64 in 'path'
 				props.segments = props.segments.map((segment: any) => {
+					if (segment.path !== undefined) return segment
 					const { points, ...rest } = segment
 					const vecModels = Array.isArray(points) ? points : b64Vecs.decodePoints(points)
 					return {
