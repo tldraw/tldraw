@@ -1,45 +1,25 @@
 ---
-title: 'v4.3'
-created_at: 12/19/2024
-updated_at: 12/19/2025
-keywords:
-  - changelog
-  - release
-  - v4.3
-  - react-19
-  - sqlite
-  - sync
-  - compression
-  - typescript
+title: Next release
+description: Changes coming in the next release
+author: tldraw
+date: 01/06/2025
+order: 0
 status: published
-date: 12/19/2025
-order: 1
 ---
+
+This page documents changes that will be included in the next release (v4.3.0).
 
 ## v4.3.0
 
-This month's release includes an upgrade to React 19, SQLite storage support for sync, draw shape compression, and improved types for custom shapes.
-
-### React 19 ([#7317](https://github.com/tldraw/tldraw/pull/7317))
-
-We've made tldraw from React 18 to work better with React 19. If you're still on React 18, tldraw will continue to work, but we recommend upgrading to React 19 for the best experience.
+This release adds SQLite storage support for sync, improved types for custom shapes and bindings, reactive input state management, R-tree spatial indexing for faster shape queries, and new configuration options for zoom, snap threshold, and frame resizing. It also includes React 19 support, various performance optimizations, and numerous bug fixes.
 
 ### SQLite storage for sync ([#7320](https://github.com/tldraw/tldraw/pull/7320))
 
-Added `SQLiteSyncStorage` - a new storage backend for `TLSocketRoom` that automatically persists room state to SQLite. This is now the recommended approach for production deployments. Two wrappers are provided:
+Added `SQLiteSyncStorage` - a new storage backend for `TLSocketRoom` that automatically persists room state to SQLite. This is now the recommended approach for production deployments, offering lower memory usage and faster startup times compared to the previous in-memory storage.
 
+Two wrappers are provided:
 - `DurableObjectSqliteSyncWrapper` for Cloudflare Durable Objects
 - `NodeSqliteWrapper` for Node.js (works with `better-sqlite3` or `node:sqlite`)
-
-Both the `simple-server-example` and `sync-cloudflare` templates have been updated to use SQLite storage. See the [sync documentation](https://tldraw.dev/docs/sync) for usage examples.
-
-### 💥 Draw shape compression ([#7364](https://github.com/tldraw/tldraw/pull/7364))
-
-Draw and highlight shapes now use a compact base64/Float16 encoding for point data, resulting in roughly 80% smaller storage. This is a **breaking change** if you're accessing draw shape segment data directly:
-
-- `TLDrawShapeSegment.points` type changed from `VecModel[]` to `string` (base64-encoded)
-- Added `scaleX` and `scaleY` properties to `TLDrawShapeProps` and `TLHighlightShapeProps`
-- Use the new `getPointsFromDrawSegment()` helper to decode points
 
 ### Improved types for custom shapes ([#7091](https://github.com/tldraw/tldraw/pull/7091))
 
@@ -49,12 +29,12 @@ Introduced module-augmentation-driven typing for custom shapes and bindings, all
 const CIRCLE_CLIP_TYPE = 'circle-clip'
 
 declare module 'tldraw' {
-	export interface TLGlobalShapePropsMap {
-		[CIRCLE_CLIP_TYPE]: {
-			w: number
-			h: number
-		}
-	}
+  export interface TLGlobalShapePropsMap {
+    [CIRCLE_CLIP_TYPE]: {
+      w: number
+      h: number
+    }
+  }
 }
 
 export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
@@ -62,74 +42,68 @@ export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 
 (contributed by [@Andarist](https://github.com/Andarist))
 
+### Reactive inputs ([#7312](https://github.com/tldraw/tldraw/pull/7312))
+
+Refactored `editor.inputs` to use reactive atoms via the new `InputsManager` class. All input state is now accessed via getter methods (e.g., `editor.inputs.getCurrentPagePoint()`, `editor.inputs.getShiftKey()`). Direct property access is deprecated but still supported for backwards compatibility.
+
 ### API changes
 
-- 💥 **`startEditingShapeWithLabel`** renamed to `startEditingShapeWithRichText` with updated signature accepting `options` parameter. ([#7361](https://github.com/tldraw/tldraw/pull/7361), [#7397](https://github.com/tldraw/tldraw/pull/7397))
-
-- 💥 **`richTextValidator`** now includes an optional `attrs` property. A migration may be necessary if you have older clients or custom shapes that don't expect this property. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
-
-- 💥 **`TextDirection`** removed from exports. Use TipTap's native `TextDirection` extension instead. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
-
-- Add `tlenvReactive` atom for reactive environment state tracking, including coarse pointer (touch) detection. ([#7296](https://github.com/tldraw/tldraw/pull/7296))
-
-- Add `Editor.canEditShape()` and `Editor.canCropShape()` methods for centralized permission checks, along with `TLEditStartInfo` type and `ShapeUtil.canEditWhileLocked()` method. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
-
-- 💥 **`ShapeUtil.canEdit()`** signature changed to accept an optional `TLEditStartInfo` parameter describing how the edit was triggered. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
-
-- Add `Editor.getDebouncedZoomLevel()` and `Editor.getEfficientZoomLevel()` methods to reduce expensive re-renders during camera movements on dense canvases. Added `debouncedZoom` (default: `true`) and `debouncedZoomThreshold` (default: `500`) options. ([#7235](https://github.com/tldraw/tldraw/pull/7235))
-
-- Make `editor.inputs` reactive via new `InputsManager` class. All input state now accessed via getter methods (e.g., `editor.inputs.getCurrentPagePoint()` instead of `editor.inputs.currentPagePoint`). Direct property access is deprecated. Added `spacebarPanning` option to control spacebar pan behavior. ([#7312](https://github.com/tldraw/tldraw/pull/7312))
-
-- Add configurable `showTextOutline` option to `TextShapeUtil`, `GeoShapeUtil`, and `ArrowShapeUtil` via the `.configure()` pattern. ([#7314](https://github.com/tldraw/tldraw/pull/7314))
-
-- Export `getStroke`, `getStrokeOutlinePoints`, and `setStrokePointRadii` from freehand utilities. ([#7400](https://github.com/tldraw/tldraw/pull/7400)) (contributed by [@VimHax](https://github.com/VimHax))
-
-- Export missing `DefaultLabelColorStyle`. ([#7114](https://github.com/tldraw/tldraw/pull/7114))
+- 💥 **`TextDirection`** export removed from `tldraw`. Use TipTap's native `TextDirection` extension instead. The `richTextValidator` now includes an optional `attrs` property - a migration may be necessary for older clients/custom shapes. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
+- Add `tlenvReactive` atom to `@tldraw/editor` for reactive environment state tracking, including coarse pointer detection that updates when users switch between mouse and touch input. ([#7296](https://github.com/tldraw/tldraw/pull/7296))
+- Add `hideAllTooltips()` helper function for programmatically dismissing tooltips. ([#7288](https://github.com/tldraw/tldraw/pull/7288))
+- Add `zoomToFitPadding` option to `TldrawOptions` to customize the default padding used by zoom-to-fit operations. ([#7602](https://github.com/tldraw/tldraw/pull/7602))
+- Add `snapThreshold` option to `TldrawOptions` for configuring the snap distance, defaulting to 8 screen pixels. ([#7543](https://github.com/tldraw/tldraw/pull/7543))
+- Add `resizeChildren` configuration option to `FrameShapeUtil` to allow frame children to be resized proportionally when the frame is resized. ([#7526](https://github.com/tldraw/tldraw/pull/7526))
+- Add `Editor.canEditShape()` and `Editor.canCropShape()` methods to centralize shape permission checks. Add `ShapeUtil.canEditWhileLocked()` for shapes that remain editable when locked. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
+- Add `editor.getDebouncedZoomLevel()` and `editor.getEfficientZoomLevel()` methods for improved zoom performance on dense canvases. Add `debouncedZoom` and `debouncedZoomThreshold` options. ([#7235](https://github.com/tldraw/tldraw/pull/7235))
+- Add configurable `showTextOutline` option to `TextShapeUtil`, `ArrowShapeUtil`, and `GeoShapeUtil` via `.configure()` pattern. ([#7314](https://github.com/tldraw/tldraw/pull/7314))
+- Export freehand stroke utilities: `getStroke`, `getStrokeOutlinePoints`, and `setStrokePointRadii`. ([#7400](https://github.com/tldraw/tldraw/pull/7400)) (contributed by [@VimHax](https://github.com/VimHax))
+- Add `Box.isValid()` method to check for finite coordinates. ([#7532](https://github.com/tldraw/tldraw/pull/7532))
+- Add `spacebarPanning` option to control whether spacebar activates pan mode. ([#7312](https://github.com/tldraw/tldraw/pull/7312))
+- Introduce pluggable `TLSyncStorage` API for `TLSocketRoom`. The `initialSnapshot` and `onDataChange` options are now deprecated in favor of the new `storage` option. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
+- 💥 `TLDrawShapeSegment.points` type changed from `VecModel[]` to `string` (base64-encoded). Added `scaleX` and `scaleY` properties to draw and highlight shapes. Added `b64Vecs` encoding utilities and `getPointsFromDrawSegment` helper functions. ([#7364](https://github.com/tldraw/tldraw/pull/7364))
 
 ### Improvements
 
-- Optimize validators with fast paths and production inlining for 10-160x speedup on number validators and 2-3x speedup on complex validators. Added `T.nonZeroFiniteNumber` and `T.unitInterval` validators. ([#7373](https://github.com/tldraw/tldraw/pull/7373))
-
-- Improve cross-realm canvas events handling. ([#7113](https://github.com/tldraw/tldraw/pull/7113))
-
-- Cache label size measurements with WeakCache for better performance. ([#7412](https://github.com/tldraw/tldraw/pull/7412))
-
-- Add CSS containment to main toolbar for improved rendering performance. ([#7406](https://github.com/tldraw/tldraw/pull/7406))
-
-- Add layout containment to text measurement element for better performance. ([#7407](https://github.com/tldraw/tldraw/pull/7407))
-
-- Replace coarse pointer media queries with reactive data attribute for more reliable touch detection. ([#7404](https://github.com/tldraw/tldraw/pull/7404))
-
-- Dismiss tooltips on pointer down for cleaner interactions. ([#7288](https://github.com/tldraw/tldraw/pull/7288))
-
-- Exit editing mode when dragging and blurring the input. ([#7291](https://github.com/tldraw/tldraw/pull/7291))
-
-- Remove useEffect in glob shapes in favor of reactive inputs. ([#7357](https://github.com/tldraw/tldraw/pull/7357))
+- Add R-tree spatial indexing for efficient shape queries, improving performance of selection and erasing operations on dense canvases. ([#7676](https://github.com/tldraw/tldraw/pull/7676))
+- Improve coarse pointer detection by replacing CSS media queries with a reactive `data-coarse` attribute that updates when users switch between mouse and touch input. ([#7404](https://github.com/tldraw/tldraw/pull/7404))
+- Add CSS containment to main toolbar and text measurement element for improved rendering performance. ([#7406](https://github.com/tldraw/tldraw/pull/7406)) ([#7407](https://github.com/tldraw/tldraw/pull/7407))
+- Improve cross-realm support by scoping canvas event listeners to the editor container's ownerDocument. ([#7113](https://github.com/tldraw/tldraw/pull/7113))
+- Simplify ImmutableMap implementation for better code clarity. ([#7431](https://github.com/tldraw/tldraw/pull/7431))
+- Improve code readability in number validator by using `Number.isFinite()` instead of arithmetic trick. ([#7374](https://github.com/tldraw/tldraw/pull/7374))
+- Upgrade to React 19 with all necessary type and configuration changes for compatibility. ([#7317](https://github.com/tldraw/tldraw/pull/7317))
+- Improve storage efficiency for draw and highlight shapes by using compact base64/Float16 encoding for point data, reducing storage size by approximately 80%. ([#7364](https://github.com/tldraw/tldraw/pull/7364))
+- Improve signal graph traversal performance by eliminating per-recursion closure allocations. ([#7430](https://github.com/tldraw/tldraw/pull/7430))
+- Optimize object utility functions. ([#7432](https://github.com/tldraw/tldraw/pull/7432))
+- Use in-place sorting in parentsToChildren derivation. ([#7433](https://github.com/tldraw/tldraw/pull/7433))
+- Optimize notVisibleShapes derivation with inlined bounds checks. ([#7429](https://github.com/tldraw/tldraw/pull/7429))
+- Cache label size measurements with WeakCache for improved geo shape performance. ([#7412](https://github.com/tldraw/tldraw/pull/7412))
+- Optimize validators with fast paths and production inlining. ([#7373](https://github.com/tldraw/tldraw/pull/7373))
+- Improve performance by separating UI and network scheduling queues with a new `FpsScheduler` class. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
 
 ### Bug fixes
 
-- Fix keyboard shortcuts not working when `hideUi` is true. ([#7367](https://github.com/tldraw/tldraw/pull/7367))
-
-- Fix rotated shape positions after double flip operations. ([#7359](https://github.com/tldraw/tldraw/pull/7359))
-
-- Fix duplicate TextDirection extension causing editing issues. ([#7304](https://github.com/tldraw/tldraw/pull/7304))
-
-- Fix pasting at cursor to take into account frames and parent containers. ([#7277](https://github.com/tldraw/tldraw/pull/7277))
-
-- Fix embed iframes to allow fullscreen. ([#7417](https://github.com/tldraw/tldraw/pull/7417))
-
-- Fix Base64 migrations to be idempotent. ([#7389](https://github.com/tldraw/tldraw/pull/7389))
-
+- Fix migrations for draw and highlight shapes to be idempotent, preventing errors when migrations run multiple times. ([#7389](https://github.com/tldraw/tldraw/pull/7389))
+- Fix dot detection in draw and highlight shapes after the point compression change. ([#7365](https://github.com/tldraw/tldraw/pull/7365))
+- Fix clicking a shape's text label while editing to re-focus the input and select all text. ([#7342](https://github.com/tldraw/tldraw/pull/7342))
+- Fix pasting at cursor to correctly account for frames and parent containers. ([#7277](https://github.com/tldraw/tldraw/pull/7277))
+- Fix editing mode to exit when dragging causes the text input to blur. ([#7291](https://github.com/tldraw/tldraw/pull/7291))
+- Fix CommonJS build issues with TipTap imports in rich text module. ([#7282](https://github.com/tldraw/tldraw/pull/7282))
+- Fix iOS automatically zooming in on input fields by ensuring 16px minimum font size. ([#7118](https://github.com/tldraw/tldraw/pull/7118))
+- Fix `distanceToLineSegment` returning squared distance instead of actual distance, causing hit testing (eraser, scribble select) to be too strict. ([#7610](https://github.com/tldraw/tldraw/pull/7610)) (contributed by [@arpit-goblins](https://github.com/arpit-goblins))
+- Fix `zoomToSelection` to toggle between 100% zoom and zoom-to-fit behavior. ([#7536](https://github.com/tldraw/tldraw/pull/7536))
+- Fix export of SVG markers by handling fragment-only URLs correctly. ([#7506](https://github.com/tldraw/tldraw/pull/7506)) (contributed by [@PidgeyBE](https://github.com/PidgeyBE))
+- Restore wheel and pinch canvas event emission. ([#6834](https://github.com/tldraw/tldraw/pull/6834)) (contributed by [@swdev33](https://github.com/swdev33))
+- Fix context menu submenu flickering when hovered. ([#6837](https://github.com/tldraw/tldraw/pull/6837)) (contributed by [@swdev33](https://github.com/swdev33))
+- Export `DefaultLabelColorStyle` which is necessary for rich text in custom shapes. ([#7114](https://github.com/tldraw/tldraw/pull/7114))
+- Fix rotated shape positions not being restored after flipping twice. ([#7359](https://github.com/tldraw/tldraw/pull/7359))
+- Fix keyboard shortcuts and clipboard events not working when `hideUi` is true. ([#7367](https://github.com/tldraw/tldraw/pull/7367))
+- Fix elbow arrows routing incorrectly when using dynamic sizing at high zoom levels. ([#7424](https://github.com/tldraw/tldraw/pull/7424))
+- Allow fullscreen for embed shapes. ([#7417](https://github.com/tldraw/tldraw/pull/7417))
+- Move mobile rotate handle to bottom for image and video shapes to accommodate the contextual toolbar. ([#6727](https://github.com/tldraw/tldraw/pull/6727))
+- Fix dropdown menu items incorrectly displaying an icon on the right side. ([#7533](https://github.com/tldraw/tldraw/pull/7533))
+- Fix zoom menu showing debounced zoom level for canvases with many shapes. ([#7626](https://github.com/tldraw/tldraw/pull/7626))
 - Fix Float16 rounding overflow in base64 vector encoding. ([#7370](https://github.com/tldraw/tldraw/pull/7370))
-
-- Fix `getIsDot` to work with compressed base64 points. ([#7365](https://github.com/tldraw/tldraw/pull/7365))
-
-- Fix Bezier curve auto-select, edit mode, and control point snapping. ([#7264](https://github.com/tldraw/tldraw/pull/7264))
-
-- Fix missing import icon. ([#7211](https://github.com/tldraw/tldraw/pull/7211))
-
-- Fix CommonJS build issue with TipTap imports in rich text. ([#7282](https://github.com/tldraw/tldraw/pull/7282))
-
-- Move mobile rotate handle to bottom for better ergonomics. ([#6727](https://github.com/tldraw/tldraw/pull/6727))
-
-[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.3.0)
+- Fix extra line appearing after bullet and ordered lists in text shapes. ([#7643](https://github.com/tldraw/tldraw/pull/7643)) (contributed by [@sahiee-dev](https://github.com/sahiee-dev))
+- Fix "Back to content" button not appearing when selected shapes are off-screen. ([#7649](https://github.com/tldraw/tldraw/pull/7649))
+- Fix dotted freehand lines becoming invisible at minimum zoom on Chrome. ([#7650](https://github.com/tldraw/tldraw/pull/7650))

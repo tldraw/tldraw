@@ -14,7 +14,7 @@ Use the `write-changelog` skill for formatting guidelines and structural knowled
 2. **Find new PRs** - Use git to find commits on main not on the release branch:
 
    ```bash
-   git log origin/main ^origin/vX.Y.x --oneline
+   git log origin/production ^origin/vX.Y.0 --oneline
    ```
 
 3. **Fetch PR details** - For each PR number:
