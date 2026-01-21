@@ -28,7 +28,7 @@ describe('DrawShapeUtil dot detection', () => {
 
 	describe('getIsDot behavior via hideResizeHandles', () => {
 		it('treats a shape with one segment and zero points as a dot', () => {
-			const shape = createDrawShape([{ type: 'free', points: '' }])
+			const shape = createDrawShape([{ type: 'free', path: '' }])
 			const util = editor.getShapeUtil('draw')
 			expect(util.hideResizeHandles(shape)).toBe(true)
 		})
@@ -119,26 +119,26 @@ describe('DrawShapeUtil dot detection', () => {
 	})
 
 	describe('base64 encoding boundary conditions', () => {
-		it('correctly handles the boundary at exactly 16 base64 characters (2 points)', () => {
-			// Each point is 8 base64 characters (3 Float16s = 6 bytes = 8 base64 chars)
-			// 2 points = 16 characters, which should NOT be a dot
+		it('correctly handles the boundary at exactly 24 base64 characters (2 points)', () => {
+			// First point is 16 base64 chars (Float32), delta points are 8 chars each (Float16)
+			// 2 points = 24 characters, which should NOT be a dot
 			const twoPointsBase64 = pointsToBase64([
 				{ x: 0, y: 0, z: 0.5 },
 				{ x: 1, y: 1, z: 0.5 },
 			])
-			expect(twoPointsBase64.length).toBe(16)
+			expect(twoPointsBase64.length).toBe(24)
 
-			const shape = createDrawShape([{ type: 'free', points: twoPointsBase64 }])
+			const shape = createDrawShape([{ type: 'free', path: twoPointsBase64 }])
 			const util = editor.getShapeUtil('draw')
 			expect(util.hideResizeHandles(shape)).toBe(false)
 		})
 
-		it('correctly handles the boundary at exactly 8 base64 characters (1 point)', () => {
-			// 1 point = 8 characters, which should be a dot
+		it('correctly handles the boundary at exactly 16 base64 characters (1 point)', () => {
+			// 1 point = 16 characters (Float32 first point), which should be a dot
 			const onePointBase64 = pointsToBase64([{ x: 0, y: 0, z: 0.5 }])
-			expect(onePointBase64.length).toBe(8)
+			expect(onePointBase64.length).toBe(16)
 
-			const shape = createDrawShape([{ type: 'free', points: onePointBase64 }])
+			const shape = createDrawShape([{ type: 'free', path: onePointBase64 }])
 			const util = editor.getShapeUtil('draw')
 			expect(util.hideResizeHandles(shape)).toBe(true)
 		})
