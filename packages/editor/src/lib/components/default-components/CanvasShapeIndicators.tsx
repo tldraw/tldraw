@@ -1,12 +1,12 @@
-import { useQuickReactor, useValue } from '@tldraw/state-react'
-import { TLShapeId } from '@tldraw/tlschema'
+import { useComputed, useQuickReactor } from '@tldraw/state-react'
+import { createComputedCache } from '@tldraw/store'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { dedupe } from '@tldraw/utils'
 import { memo, useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { useEditor } from '../../hooks/useEditor'
 import { useIsDarkMode } from '../../hooks/useIsDarkMode'
-import { Mat } from '../../primitives/Mat'
 import { debugFlags } from '../../utils/debug-flags'
 
 /** @public */
@@ -19,7 +19,46 @@ export interface TLCanvasShapeIndicatorsProps {
 	renderHints?: boolean
 }
 
-/** Renders a single shape indicator on the canvas context */
+const indicatorPathCache = createComputedCache(
+	'indicatorPath',
+	(editor: Editor, shape: TLShape) => {
+		const util = editor.getShapeUtil(shape)
+		return util.getIndicatorPath(shape)
+	}
+)
+
+const getIndicatorPath = (editor: Editor, shape: TLShape) => {
+	return indicatorPathCache.get(editor, shape.id)
+}
+
+interface IndicatorRenderData {
+	idsToDisplay: Set<TLShapeId>
+	renderingShapeIds: Set<TLShapeId>
+	hintingShapeIds: TLShapeId[]
+	useCanvasIndicators: boolean
+	perfLogging: boolean
+}
+
+function setsAreEqual<T>(a: Set<T>, b: Set<T>): boolean {
+	if (a.size !== b.size) return false
+	for (const item of a) {
+		if (!b.has(item)) return false
+	}
+	return true
+}
+
+function indicatorRenderDataIsEqual(a: IndicatorRenderData, b: IndicatorRenderData): boolean {
+	if (a.useCanvasIndicators !== b.useCanvasIndicators) return false
+	if (a.perfLogging !== b.perfLogging) return false
+	if (!setsAreEqual(a.idsToDisplay, b.idsToDisplay)) return false
+	if (!setsAreEqual(a.renderingShapeIds, b.renderingShapeIds)) return false
+	if (a.hintingShapeIds.length !== b.hintingShapeIds.length) return false
+	for (let i = 0; i < a.hintingShapeIds.length; i++) {
+		if (a.hintingShapeIds[i] !== b.hintingShapeIds[i]) return false
+	}
+	return true
+}
+
 function renderShapeIndicator(
 	ctx: CanvasRenderingContext2D,
 	editor: Editor,
@@ -34,19 +73,24 @@ function renderShapeIndicator(
 	const pageTransform = editor.getShapePageTransform(shape)
 	if (!pageTransform) return false
 
-	const util = editor.getShapeUtil(shape)
-	const indicatorPath = util.getIndicatorPath(shape)
+	const indicatorPath = getIndicatorPath(editor, shape)
 	if (!indicatorPath) return false
 
 	ctx.save()
-	applyTransform(ctx, pageTransform)
+	ctx.transform(
+		pageTransform.a,
+		pageTransform.b,
+		pageTransform.c,
+		pageTransform.d,
+		pageTransform.e,
+		pageTransform.f
+	)
 	renderIndicatorPath(ctx, indicatorPath)
 	ctx.restore()
 
 	return true
 }
 
-/** Renders an indicator path, handling both simple Path2D and complex clipped paths */
 function renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath) {
 	if (indicatorPath instanceof Path2D) {
 		ctx.stroke(indicatorPath)
@@ -70,11 +114,6 @@ function renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLInd
 	}
 }
 
-/** Applies a Mat transform to the canvas context */
-function applyTransform(ctx: CanvasRenderingContext2D, transform: Mat) {
-	ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
-}
-
 /** @public @react */
 export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 	hideAll,
@@ -85,9 +124,6 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	if (hideAll && showAll) throw Error('You cannot set both hideAll and showAll props to true')
-
-	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
-	const rPreviousHintingShapeIds = useRef<TLShapeId[]>([])
 
 	// Cache the selected color to avoid getComputedStyle on every render
 	const rSelectedColor = useRef<string | null>(null)
@@ -100,96 +136,76 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 		return () => clearTimeout(timer)
 	}, [isDarkMode, editor])
 
-	const idsToDisplay = useValue(
-		'canvas indicator ids',
+	const $renderData = useComputed(
+		'indicator render data',
 		() => {
-			const prev = rPreviousSelectedShapeIds.current
-			const next = new Set<TLShapeId>()
+			const useCanvasIndicators = debugFlags.useCanvasIndicators.get()
+			const perfLogging = debugFlags.indicatorPerfLogging.get()
+			const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
 
-			const instanceState = editor.getInstanceState()
-			const isChangingStyle = instanceState.isChangingStyle
+			// Compute ids to display
+			let idsToDisplay: Set<TLShapeId>
+			if (showAll) {
+				idsToDisplay = renderingShapeIds
+			} else if (hideAll) {
+				idsToDisplay = new Set()
+			} else {
+				idsToDisplay = new Set<TLShapeId>()
+				const instanceState = editor.getInstanceState()
+				const isChangingStyle = instanceState.isChangingStyle
+				const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
+				const isInSelectState = editor.isInAny(
+					'select.brushing',
+					'select.scribble_brushing',
+					'select.pointing_shape',
+					'select.pointing_selection',
+					'select.pointing_handle'
+				)
 
-			const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
-			const isInSelectState = editor.isInAny(
-				'select.brushing',
-				'select.scribble_brushing',
-				'select.pointing_shape',
-				'select.pointing_selection',
-				'select.pointing_handle'
-			)
-
-			if (isChangingStyle || !(isIdleOrEditing || isInSelectState)) {
-				rPreviousSelectedShapeIds.current = next
-				return next
-			}
-
-			for (const id of editor.getSelectedShapeIds()) {
-				next.add(id)
-			}
-
-			if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-				const hovered = editor.getHoveredShapeId()
-				if (hovered) next.add(hovered)
-			}
-
-			if (prev.size !== next.size) {
-				rPreviousSelectedShapeIds.current = next
-				return next
-			}
-
-			for (const id of next) {
-				if (!prev.has(id)) {
-					rPreviousSelectedShapeIds.current = next
-					return next
+				if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {
+					for (const id of editor.getSelectedShapeIds()) {
+						idsToDisplay.add(id)
+					}
+					if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+						const hovered = editor.getHoveredShapeId()
+						if (hovered) idsToDisplay.add(hovered)
+					}
 				}
 			}
 
-			return prev
-		},
-		[editor]
-	)
+			// Compute hinting shape ids
+			const hintingShapeIds = renderHints ? dedupe(editor.getHintingShapeIds()) : []
 
-	const renderingShapeIds = useValue(
-		'rendering shape ids',
-		() => new Set(editor.getRenderingShapes().map((s) => s.id)),
-		[editor]
-	)
-
-	const hintingShapeIds = useValue(
-		'hinting shape ids',
-		() => {
-			if (!renderHints) return []
-			const prev = rPreviousHintingShapeIds.current
-			const next = dedupe(editor.getHintingShapeIds())
-
-			if (prev.length === next.length && prev.every((id: TLShapeId, i: number) => id === next[i])) {
-				return prev
+			return {
+				idsToDisplay,
+				renderingShapeIds,
+				hintingShapeIds,
+				useCanvasIndicators,
+				perfLogging,
 			}
-			rPreviousHintingShapeIds.current = next
-			return next
 		},
-		[editor, renderHints]
-	)
-
-	const perfLogging = useValue(
-		'indicatorPerfLogging',
-		() => debugFlags.indicatorPerfLogging.get(),
-		[debugFlags]
+		{ isEqual: indicatorRenderDataIsEqual },
+		[editor, showAll, hideAll, renderHints]
 	)
 
 	useQuickReactor(
 		'canvas indicators render',
 		() => {
-			const t0 = perfLogging ? performance.now() : 0
-
 			const canvas = canvasRef.current
 			if (!canvas) return
 
 			const ctx = canvas.getContext('2d')
 			if (!ctx) return
 
-			// Determine which IDs to render
-			const currentIds = showAll ? renderingShapeIds : hideAll ? new Set<TLShapeId>() : idsToDisplay
+			const { idsToDisplay, renderingShapeIds, hintingShapeIds, useCanvasIndicators, perfLogging } =
+				$renderData.get()
+
+			// If canvas indicators are disabled, just clear and exit
+			if (!useCanvasIndicators) {
+				ctx.resetTransform()
+				ctx.clearRect(0, 0, canvas.width, canvas.height)
+				return
+			}
 
 			const { w, h } = editor.getViewportScreenBounds()
 			const dpr = window.devicePixelRatio || 1
@@ -221,10 +237,13 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 			ctx.lineCap = 'round'
 			ctx.lineJoin = 'round'
 
+			// Start timing after setup, to match SVG measurement which excludes per-shape transform updates
+			const t0 = perfLogging ? performance.now() : 0
+
 			// Draw selected/hovered indicators (1.5px stroke)
 			ctx.lineWidth = 1.5 / zoom
 			let canvasRenderedCount = 0
-			for (const shapeId of currentIds) {
+			for (const shapeId of idsToDisplay) {
 				if (renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)) {
 					canvasRenderedCount++
 				}
@@ -241,14 +260,15 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 			}
 
 			if (perfLogging && canvasRenderedCount > 0) {
-				const t1 = performance.now()
-				// eslint-disable-next-line no-console
-				console.log(
-					`[CanvasIndicators] ${canvasRenderedCount} shapes, draw calls: ${(t1 - t0).toFixed(2)}ms`
+				const duration = performance.now() - t0
+				const perShape = (duration / canvasRenderedCount).toFixed(3)
+				performance.measure(
+					`CanvasIndicators (${canvasRenderedCount} shapes, ${perShape}ms/shape)`,
+					{ start: t0, end: performance.now() }
 				)
 			}
 		},
-		[editor, idsToDisplay, renderingShapeIds, hintingShapeIds, showAll, hideAll, perfLogging]
+		[editor, $renderData]
 	)
 
 	return <canvas ref={canvasRef} className="tl-canvas-indicators" />

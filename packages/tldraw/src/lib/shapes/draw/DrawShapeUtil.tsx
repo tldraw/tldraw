@@ -11,6 +11,7 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
+	debugFlags,
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
@@ -175,6 +176,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				: getDot(allPointsFromSegments[0], sw)
 
 		return <path d={solidStrokePath} />
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLDrawShape): Path2D {

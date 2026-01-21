@@ -1,7 +1,7 @@
 import { react } from '@tldraw/state'
 import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
-import { modulate, objectMapValues } from '@tldraw/utils'
+import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { tlenv } from '../../globals/environment'
@@ -450,12 +450,12 @@ function HintedShapeIndicator() {
 	const ids = useValue(
 		'hinting shape ids without canvas indicator',
 		() => {
-			// Filter to only shapes that don't have getIndicatorPath implemented
-			return editor.getHintingShapeIds().filter((id) => {
+			// Filter to only shapes that use legacy SVG indicators
+			return dedupe(editor.getHintingShapeIds()).filter((id) => {
 				const shape = editor.getShape(id)
 				if (!shape) return false
 				const util = editor.getShapeUtil(shape)
-				return !util.getIndicatorPath(shape)
+				return util.useLegacyIndicator()
 			})
 		},
 		[editor]

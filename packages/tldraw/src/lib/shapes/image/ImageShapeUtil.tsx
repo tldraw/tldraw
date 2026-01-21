@@ -17,6 +17,7 @@ import {
 	TLShapePartial,
 	Vec,
 	WeakCache,
+	debugFlags,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
@@ -156,6 +157,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLImageShape): Path2D | undefined {

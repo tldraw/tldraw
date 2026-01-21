@@ -16,6 +16,7 @@ import {
 	TLShapeId,
 	Vec,
 	WeakCache,
+	debugFlags,
 	exhaustiveSwitchError,
 	getColorValue,
 	getDefaultColorTheme,
@@ -335,6 +336,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				height={toDomPrecision(getNoteHeight(shape))}
 			/>
 		)
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLNoteShape): Path2D {

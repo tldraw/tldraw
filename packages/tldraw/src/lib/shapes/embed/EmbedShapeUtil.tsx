@@ -7,6 +7,7 @@ import {
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
+	debugFlags,
 	embedShapeMigrations,
 	embedShapeProps,
 	lerp,
@@ -254,6 +255,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		) : (
 			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
 		)
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {

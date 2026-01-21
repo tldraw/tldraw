@@ -11,6 +11,7 @@ import {
 	TLTextShape,
 	Vec,
 	createComputedCache,
+	debugFlags,
 	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
@@ -159,6 +160,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const editor = useEditor()
 		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {

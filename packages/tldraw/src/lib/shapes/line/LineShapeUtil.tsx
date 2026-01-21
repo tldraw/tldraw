@@ -12,6 +12,7 @@ import {
 	WeakCache,
 	ZERO_INDEX_KEY,
 	assert,
+	debugFlags,
 	getColorValue,
 	getIndexAbove,
 	getIndexBetween,
@@ -203,6 +204,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			roundness: strokeWidth * 2,
 			props: { strokeWidth: undefined },
 		})
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {

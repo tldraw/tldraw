@@ -18,6 +18,7 @@ import {
 	TLShapeUtilConstructor,
 	clamp,
 	compact,
+	debugFlags,
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
@@ -334,6 +335,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	indicator(shape: TLFrameShape) {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
+	}
+
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
 	}
 
 	override getIndicatorPath(shape: TLFrameShape): Path2D {

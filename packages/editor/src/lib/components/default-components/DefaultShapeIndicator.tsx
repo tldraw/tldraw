@@ -34,8 +34,8 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 
 	const util = editor.getShapeUtil(shape)
 
-	// If the shape has getIndicatorPath implemented, it will be rendered by CanvasShapeIndicators
-	if (util.getIndicatorPath(shape)) return null
+	// If the shape uses canvas indicators, it will be rendered by CanvasShapeIndicators
+	if (!util.useLegacyIndicator()) return null
 
 	return (
 		<OptionalErrorBoundary

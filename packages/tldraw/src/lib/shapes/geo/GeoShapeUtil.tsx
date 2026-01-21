@@ -247,10 +247,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		})
 	}
 
-	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
-		// Return undefined to fall back to SVG indicators when canvas indicators are disabled
-		if (!debugFlags.useCanvasIndicators.get()) return undefined
+	override useLegacyIndicator() {
+		return !debugFlags.useCanvasIndicators.get()
+	}
 
+	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
 
 		const { size, dash, scale } = shape.props

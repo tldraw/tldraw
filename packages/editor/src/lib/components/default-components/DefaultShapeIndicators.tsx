@@ -1,12 +1,9 @@
 import { useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
-import { memo, useEffect, useLayoutEffect, useRef } from 'react'
+import { memo, useLayoutEffect, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { debugFlags } from '../../utils/debug-flags'
-
-// Track mount time for page load comparison
-const SVG_MOUNT_START = typeof performance !== 'undefined' ? performance.now() : 0
 
 /** @public */
 export interface TLShapeIndicatorsProps {
@@ -111,22 +108,21 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 		'shapes to render for svg indicators',
 		() => {
 			if (!useCanvasIndicators) return renderingShapes
-			// Only render shapes that don't have getIndicatorPath (canvas indicator support)
+			// Only render shapes that use legacy SVG indicators
 			return renderingShapes.filter(({ id }) => {
 				const shape = editor.getShape(id)
 				if (!shape) return true
 				const util = editor.getShapeUtil(shape)
-				return !util.getIndicatorPath(shape)
+				return util.useLegacyIndicator()
 			})
 		},
 		[editor, renderingShapes, useCanvasIndicators]
 	)
 
 	// Perf logging - measure SVG indicator render + DOM commit time
-	// useLayoutEffect runs after DOM mutations but before paint - fair comparison to Canvas draw calls
 	const rRenderStart = useRef<number>(0)
 	const rVisibleCount = useRef<number>(0)
-	if (perfLogging) {
+	if (perfLogging && !useCanvasIndicators) {
 		rRenderStart.current = performance.now()
 		rVisibleCount.current = shapesToRender.filter(
 			({ id }) => showAll || (!hideAll && idsToDisplay.has(id))
@@ -134,27 +130,16 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 	}
 
 	useLayoutEffect(() => {
-		if (perfLogging && rRenderStart.current && rVisibleCount.current > 0) {
+		if (perfLogging && !useCanvasIndicators && rRenderStart.current && rVisibleCount.current > 0) {
 			const duration = performance.now() - rRenderStart.current
-			// eslint-disable-next-line no-console
-			console.log(
-				`[SVGIndicators] ${rVisibleCount.current} shapes, render+commit: ${duration.toFixed(2)}ms`
-			)
-			rRenderStart.current = 0 // Prevent double logging
+			const perShape = (duration / rVisibleCount.current).toFixed(3)
+			performance.measure(`SVGIndicators (${rVisibleCount.current} shapes, ${perShape}ms/shape)`, {
+				start: rRenderStart.current,
+				end: performance.now(),
+			})
+			rRenderStart.current = 0
 		}
 	})
-
-	// Log mount time on first render (page load comparison)
-	const rHasLoggedMount = useRef(false)
-	useEffect(() => {
-		if (perfLogging && !rHasLoggedMount.current) {
-			rHasLoggedMount.current = true
-			// eslint-disable-next-line no-console
-			console.log(
-				`[SVGIndicators] Mount time: ${(performance.now() - SVG_MOUNT_START).toFixed(2)}ms`
-			)
-		}
-	}, [perfLogging])
 
 	if (!ShapeIndicator) return null
 

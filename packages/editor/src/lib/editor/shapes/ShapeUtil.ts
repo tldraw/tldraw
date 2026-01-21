@@ -187,6 +187,19 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract indicator(shape: Shape): any
 
 	/**
+	 * Whether to use the legacy React-based indicator rendering.
+	 *
+	 * Override this to return `false` if your shape implements {@link ShapeUtil.getIndicatorPath}
+	 * for canvas-based indicator rendering.
+	 *
+	 * @returns `true` to use SVG indicators (default), `false` to use canvas indicators.
+	 * @public
+	 */
+	useLegacyIndicator(): boolean {
+		return true
+	}
+
+	/**
 	 * Get a Path2D for rendering the shape's indicator on the canvas.
 	 *
 	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
