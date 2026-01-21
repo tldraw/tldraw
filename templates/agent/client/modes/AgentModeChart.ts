@@ -40,6 +40,7 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 			// Reset state when entering working mode
 			agent.todos.reset()
 			agent.userAction.clearHistory()
+			agent.context.clear()
 
 			// When entering working mode from idling, clear created shapes tracking
 			// This handles the case where a user prompt starts while in idling mode,

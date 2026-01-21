@@ -460,9 +460,7 @@ export class TldrawAgent {
 
 			// Override specific properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
-			// bounds: scheduledRequest
-			// ? Box.From(scheduledRequest.bounds).union(request.bounds)
-			// : request.bounds,
+			contextItems: [...scheduledRequest.contextItems, ...(request.contextItems ?? [])],
 			source: request.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
@@ -585,7 +583,7 @@ export class TldrawAgent {
 			promptSource: request.source,
 			agentFacingMessage: request.agentMessages.join('\n'),
 			userFacingMessage: request.userMessages.length > 0 ? request.userMessages.join('\n') : null,
-			contextItems: structuredClone(this.context.getItems()),
+			contextItems: structuredClone(request.contextItems),
 			selectedShapes: this.editor
 				.getSelectedShapes()
 				.map((shape) => convertTldrawShapeToSimpleShape(this.editor, structuredClone(shape))),

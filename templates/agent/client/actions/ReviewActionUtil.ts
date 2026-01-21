@@ -42,12 +42,11 @@ export const ReviewActionUtil = registerActionUtil(
 				? Box.From(scheduledRequest.bounds).union(reviewBounds)
 				: reviewBounds
 
-			this.agent.context.add(contextArea)
-
 			// Schedule the review
 			this.agent.schedule({
 				bounds,
 				message: getReviewMessage(action.intent),
+				contextItems: [contextArea],
 			})
 		}
 	}

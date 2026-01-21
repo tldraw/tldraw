@@ -1,4 +1,5 @@
 import { BoxModel, JsonValue } from 'tldraw'
+import { ContextItem } from './ContextItem'
 
 /**
  * A request that we send to the agent.
@@ -37,6 +38,12 @@ export interface AgentRequest {
 	 * - 'other-agent' is a request from another agent.
 	 */
 	source: 'user' | 'self' | 'other-agent'
+
+	/**
+	 * Context items that were active when this request was created.
+	 * This is a snapshot of the context at request creation time.
+	 */
+	contextItems: ContextItem[]
 }
 
 export type AgentRequestSource = AgentRequest['source']

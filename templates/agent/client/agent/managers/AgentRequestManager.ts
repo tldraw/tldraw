@@ -100,6 +100,7 @@ export class AgentRequestManager extends BaseAgentManager {
 			userMessages: request.userMessages ?? [],
 			data: request.data ?? [],
 			bounds: request.bounds ?? activeRequest?.bounds ?? this.agent.editor.getViewportPageBounds(),
+			contextItems: request.contextItems ?? [],
 		}
 	}
 

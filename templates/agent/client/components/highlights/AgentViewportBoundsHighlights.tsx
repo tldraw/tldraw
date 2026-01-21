@@ -15,7 +15,7 @@ export function AgentViewportBoundsHighlight() {
 		'isEquivalentToPendingContextArea',
 		() => {
 			if (!agentViewportBounds) return false
-			const contextItems = agent.context.getItems()
+			const contextItems = currentRequest.contextItems ?? []
 			return contextItems.some(
 				(item) =>
 					item.type === 'area' &&
