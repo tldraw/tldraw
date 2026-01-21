@@ -8,8 +8,8 @@ import {
 	squashRecordDiffs,
 } from '@tldraw/store'
 import {
+	FpsScheduler,
 	exhaustiveSwitchError,
-	fpsThrottle,
 	isEqual,
 	objectMapEntries,
 	uniqueId,
@@ -34,6 +34,12 @@ import {
  * @public
  */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
+
+/** Network sync frame rate when in solo mode (no collaborators) @internal */
+const SOLO_MODE_FPS = 1
+
+/** Network sync frame rate when in collaborative mode (with collaborators) @internal */
+const COLLABORATIVE_MODE_FPS = 30
 
 /**
  * WebSocket close code used by the server to signal a non-recoverable sync error.
@@ -355,6 +361,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private disposables: Array<() => void> = []
 
+	/** Separate scheduler instance for network sync operations */
+	private readonly fpsScheduler: FpsScheduler
+
+	/** Send any unsent push requests to the server */
+	private readonly flushPendingPushRequests: {
+		(): void
+		cancel?(): void
+	}
+
+	/** Schedule a rebase operation */
+	private readonly scheduleRebase: {
+		(): void
+		cancel?(): void
+	}
+
 	/** @internal */
 	readonly store: S
 	/** @internal */
@@ -437,6 +458,34 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.didCancel = config.didCancel
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
+
+		// Create a separate throttle instance for network sync operations
+		// This ensures sync operations have their own queue separate from UI operations
+		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
+
+		// Initialize throttled methods after throttle instance is created
+		this.flushPendingPushRequests = this.fpsScheduler.fpsThrottle(() => {
+			this.debug('flushing pending push requests', {
+				isConnectedToRoom: this.isConnectedToRoom,
+				pendingPushRequests: this.pendingPushRequests,
+			})
+			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+				return
+			}
+			for (const pendingPushRequest of this.pendingPushRequests) {
+				if (!pendingPushRequest.sent) {
+					if (this.socket.connectionStatus !== 'online') {
+						// we went offline, so don't send anything
+						return
+					}
+					this.debug('sending push request', pendingPushRequest)
+					this.socket.sendMessage(pendingPushRequest.request)
+					pendingPushRequest.sent = true
+				}
+			}
+		})
+
+		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
 
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this
@@ -528,6 +577,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				react('pushPresence', () => {
 					if (this.didCancel?.()) return this.close()
 					const mode = this.presenceMode?.get()
+					this.fpsScheduler.updateTargetFps(this.getSyncFps())
 					if (mode !== 'full') return
 					this.pushPresence(this.presenceState!.get())
 				})
@@ -812,26 +862,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.flushPendingPushRequests()
 	}
 
-	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = fpsThrottle(() => {
-		this.debug('flushing pending push requests', {
-			isConnectedToRoom: this.isConnectedToRoom,
-			pendingPushRequests: this.pendingPushRequests,
-		})
-		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-			return
-		}
-		for (const pendingPushRequest of this.pendingPushRequests) {
-			if (!pendingPushRequest.sent) {
-				if (this.socket.connectionStatus !== 'online') {
-					// we went offline, so don't send anything
-					return
-				}
-				this.socket.sendMessage(pendingPushRequest.request)
-				pendingPushRequest.sent = true
-			}
-		}
-	})
+	/** Get the target FPS for network operations based on presence mode */
+	private getSyncFps(): number {
+		return this.presenceMode?.get() === 'solo' ? SOLO_MODE_FPS : COLLABORATIVE_MODE_FPS
+	}
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -938,6 +972,4 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.resetConnection()
 		}
 	}
-
-	private scheduleRebase = fpsThrottle(this.rebase)
 }

@@ -438,7 +438,7 @@ describe('PenActionUtil', () => {
 			expect(drawShape.props.segments).toHaveLength(1)
 			expect(drawShape.props.segments[0].type).toBe('free')
 			// Decode the base64 points
-			const decodedPoints = b64Vecs.decodePoints(drawShape.props.segments[0].points)
+			const decodedPoints = b64Vecs.decodePoints(drawShape.props.segments[0].path)
 			expect(decodedPoints.length).toBeGreaterThan(0)
 			// First point should be normalized to 0,0
 			expect(decodedPoints[0].x).toBe(0)
@@ -523,7 +523,7 @@ describe('PenActionUtil', () => {
 			const drawShape = shapes.find((s) => s.type === 'draw') as TLDrawShape
 
 			// Should have interpolated points between start and end
-			expect(drawShape.props.segments[0].points.length).toBeGreaterThan(2)
+			expect(drawShape.props.segments[0].path.length).toBeGreaterThan(2)
 		})
 
 		it('should handle default color', () => {
