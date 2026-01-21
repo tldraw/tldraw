@@ -2409,6 +2409,70 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		// LegacyPointsConversion.down is a no-op; Base64.down handles the conversion
 		expect(result.props.segments[0].path).toBe(deltaPath)
 	})
+
+	test('migration converts legacy Float16 data to delta encoding format', () => {
+		// This test verifies the migration converts from legacy absolute Float16 format
+		// to the new delta encoding format. Note: precision already lost in legacy Float16
+		// cannot be recovered - this just tests the format conversion works.
+		const largeCoordPoints = [
+			{ x: 10000, y: 10000, z: 0.5 },
+			{ x: 10001, y: 10001, z: 0.5 },
+			{ x: 10002, y: 10002, z: 0.6 },
+		]
+
+		// Legacy Float16 at 10000 has step size of 8, so 10001 and 10002 collapse to 10000
+		const legacyAbsoluteB64 = b64Vecs._legacyEncodePoints(largeCoordPoints)
+		const result = up({ props: { segments: [{ type: 'free', points: legacyAbsoluteB64 }] } })
+
+		// Verify migration converted to path format
+		expect(result.props.segments[0].path).toBeDefined()
+		expect(result.props.segments[0].points).toBeUndefined()
+
+		// Verify the new format is decodable and produces valid data
+		const decoded = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decoded).toHaveLength(3)
+
+		// Data is valid (not NaN, not Infinity)
+		expect(Number.isFinite(decoded[0].x)).toBe(true)
+		expect(Number.isFinite(decoded[1].x)).toBe(true)
+		expect(Number.isFinite(decoded[2].x)).toBe(true)
+	})
+})
+
+describe('Base64 migration handles scaleX and scaleY', () => {
+	const { up } = getTestMigration(drawShapeVersions.Base64)
+
+	test('up adds scaleX and scaleY when missing', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const result = up({ props: { segments: legacySegments } })
+
+		expect(result.props.scaleX).toBe(1)
+		expect(result.props.scaleY).toBe(1)
+	})
+
+	test('up preserves existing scaleX and scaleY', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const result = up({ props: { segments: legacySegments, scaleX: 1.5, scaleY: 2.0 } })
+
+		expect(result.props.scaleX).toBe(1.5)
+		expect(result.props.scaleY).toBe(2.0)
+	})
 })
 
 describe('Base64 encoding for highlight shape', () => {

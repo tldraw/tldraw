@@ -65,7 +65,8 @@ function nativeBase64ToUint8Array(base64: string): Uint8Array {
 	return Uint8Array.fromBase64!(base64)
 }
 
-function fallbackBase64ToUint8Array(base64: string): Uint8Array {
+/** @internal */
+export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
 	const numBytes = Math.floor((base64.length * 3) / 4)
 	const bytes = new Uint8Array(numBytes)
 	let byteIndex = 0
@@ -90,7 +91,8 @@ function nativeUint8ArrayToBase64(uint8Array: Uint8Array): string {
 	return uint8Array.toBase64!()
 }
 
-function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
+/** @internal */
+export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 	assert(uint8Array.length % 3 === 0, 'Uint8Array length must be a multiple of 3')
 	let result = ''
 
@@ -138,8 +140,9 @@ const base64ToUint8Array =
  *
  * @param bits - The 16-bit Float16 value to decode
  * @returns The decoded number value
+ * @internal
  */
-function float16BitsToNumber(bits: number): number {
+export function float16BitsToNumber(bits: number): number {
 	const sign = bits >> 15
 	const exp = (bits >> 10) & 0x1f
 	const frac = bits & 0x3ff
@@ -165,7 +168,7 @@ function float16BitsToNumber(bits: number): number {
  * @returns The 16-bit Float16 representation of the number
  * @internal
  */
-function numberToFloat16Bits(value: number): number {
+export function numberToFloat16Bits(value: number): number {
 	if (value === 0) return Object.is(value, -0) ? 0x8000 : 0
 	if (!Number.isFinite(value)) {
 		if (Number.isNaN(value)) return 0x7e00
