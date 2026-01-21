@@ -112,6 +112,7 @@ export interface TLUiEventMap {
 	'toggle-keyboard-shortcuts': null
 	'enhanced-a11y-mode': null
 	'toggle-edge-scrolling': null
+	'toggle-right-click-to-drag': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
 	'start-following': null

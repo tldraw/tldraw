@@ -746,6 +746,7 @@ export const defaultUserPreferences: Readonly<{
     inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
+    isRightClickToDrag: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
@@ -4575,6 +4576,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
+    isRightClickToDrag?: boolean | null;
+    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -4753,6 +4756,8 @@ export class UserPreferencesManager {
     getIsDynamicResizeMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
+    // (undocumented)
+    getIsRightClickToDrag(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)

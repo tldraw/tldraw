@@ -10625,6 +10625,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
+						} else if (info.button === RIGHT_MOUSE_BUTTON && this.user.getIsRightClickToDrag()) {
+							if (!this.inputs.isPanning) {
+								this._prevCursor = this.getInstanceState().cursor.type
+							}
+							this.inputs.isPanning = true
+							clearTimeout(this._longPressTimeout)
 						}
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
@@ -10705,7 +10711,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 									this.setCursor({ type: 'grab', rotation: 0 })
 									break
 								}
-								case MIDDLE_MOUSE_BUTTON: {
+								case MIDDLE_MOUSE_BUTTON:
+								case RIGHT_MOUSE_BUTTON: {
 									if (this.inputs.keys.has(' ')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
