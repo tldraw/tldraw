@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.2.1",
+	"version": "4.2.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -53,13 +53,13 @@
 		"tldraw.css"
 	],
 	"dependencies": {
-		"@tiptap/core": "^3.6.2",
-		"@tiptap/extension-code": "^3.6.2",
-		"@tiptap/extension-highlight": "^3.6.2",
-		"@tiptap/extension-list": "^3.6.2",
-		"@tiptap/pm": "^3.6.2",
-		"@tiptap/react": "^3.6.2",
-		"@tiptap/starter-kit": "^3.6.2",
+		"@tiptap/core": "^3.12.1",
+		"@tiptap/extension-code": "^3.12.1",
+		"@tiptap/extension-highlight": "^3.12.1",
+		"@tiptap/extension-list": "^3.12.1",
+		"@tiptap/pm": "^3.12.1",
+		"@tiptap/react": "^3.12.1",
+		"@tiptap/starter-kit": "^3.12.1",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",

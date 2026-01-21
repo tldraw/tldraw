@@ -1,0 +1,57 @@
+.coordinate-debug-panel {
+	position: absolute;
+	top: 64px;
+	left: 16px;
+	width: 280px;
+	background: white;
+	border: 1px solid #ccc;
+	padding: 12px;
+	font-family: system-ui, sans-serif;
+	font-size: 12px;
+	z-index: 10000;
+	user-select: none;
+}
+
+.coordinate-debug-panel h3 {
+	margin: 0 0 8px 0;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.coordinate-debug-panel h4 {
+	margin: 8px 0 4px 0;
+	font-size: 11px;
+	font-weight: 600;
+	color: #666;
+}
+
+.coordinate-section {
+	margin-bottom: 8px;
+}
+
+.coordinate-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 2px 0;
+}
+
+.coordinate-label {
+	color: #666;
+}
+
+.coordinate-value {
+	font-family: monospace;
+	font-size: 11px;
+}
+
+.shape-overlay {
+	position: absolute;
+	pointer-events: none;
+	z-index: 10000;
+	background: #333;
+	color: white;
+	padding: 4px 8px;
+	font-size: 11px;
+	font-family: monospace;
+	white-space: nowrap;
+}

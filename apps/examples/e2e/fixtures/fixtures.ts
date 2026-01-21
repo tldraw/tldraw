@@ -92,6 +92,7 @@ const test = base.extend<Fixtures>({
 				createShapeId: true,
 				toRichText: true,
 				markAllArrowBindings: true,
+				b64VecsEncodePoints: true,
 			},
 			page
 		)

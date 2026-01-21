@@ -468,6 +468,7 @@
 
 .sidebarFileListItemContent {
 	flex: 1 1 auto;
+	min-width: 0;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -479,15 +480,13 @@
 }
 
 .sidebarFileListItemLabel {
-	flex: 1 1 auto;
+	flex: 0 1 auto;
+	min-width: 0;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding: 0 0px;
 	position: relative;
 	z-index: 1;
-	padding: 0px;
-	flex: 0 1 auto;
 }
 
 .sidebarFileListItemRenameInputWrapper {

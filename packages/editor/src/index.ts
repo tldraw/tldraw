@@ -164,6 +164,7 @@ export {
 	type SnapData,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
+export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
 	type TLMeasureTextOpts,

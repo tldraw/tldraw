@@ -3,7 +3,6 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	useValue,
 } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyFeedView } from './FairyFeedView'
@@ -14,27 +13,15 @@ interface FairyFeedDialogProps {
 }
 
 export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogProps) {
-	const projectName = useValue(
-		'project-name',
-		() => {
-			if (!orchestratorAgent) return 'Live feed'
-
-			const project = orchestratorAgent.getProject(true) // Include soft-deleted projects
-			if (!project) return 'Live feed'
-
-			const projectName = project.title
-			if (!projectName) return 'Live feed'
-
-			return `#${project.title.toLowerCase().replace(/\s+/g, '_')}`
-		},
-		[orchestratorAgent]
-	)
+	const title = 'Live Feed'
 
 	return (
 		<div className="fairy-feed-dialog">
 			<TldrawUiDialogHeader className="fairy-feed-dialog-header">
-				<TldrawUiDialogTitle>{projectName}</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
+				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
+				<div className="fairy-feed-dialog-header-actions">
+					<TldrawUiDialogCloseButton />
+				</div>
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="fairy-feed-dialog-body">
 				<FairyFeedView orchestratorAgent={orchestratorAgent} agents={agents} />

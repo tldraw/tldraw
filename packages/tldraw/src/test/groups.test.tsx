@@ -1560,7 +1560,7 @@ describe('erasing', () => {
 		// move to group B
 		editor.pointerMove(65, 5)
 
-		expect(editor.getErasingShapeIds().length).toBe(2)
+		expect(editor.getErasingShapeIds().length).toBe(3)
 	})
 })
 

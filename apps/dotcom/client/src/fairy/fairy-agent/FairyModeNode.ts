@@ -45,6 +45,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			if (fromMode === 'sleeping') {
 				agent.position.moveToSpawnPoint()
 			}
+			agent.waits.reset()
 			agent.todos.reset()
 			agent.userAction.clearHistory()
 			stopPromptTimer(agent)

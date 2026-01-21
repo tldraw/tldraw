@@ -609,25 +609,31 @@
 
 /* Submenu triggers */
 
-.tlui-menu__submenu__trigger[data-state='open']::after {
-	opacity: 1;
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+.tlui-menu__submenu__trigger {
+	--gradient-angle: 90deg;
 }
 
-.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']::after {
+.tlui-menu__submenu__trigger[data-direction='left'] {
+	--gradient-angle: 270deg;
+}
+
+.tlui-menu__submenu__trigger[data-state='open']::after {
 	opacity: 1;
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: linear-gradient(
+		var(--gradient-angle),
+		rgba(144, 144, 144, 0) 0%,
+		var(--tl-color-muted-2) 100%
+	);
 }
 
 @media (hover: hover) {
-	.tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
+	.tlui-menu__submenu__trigger:is(:hover, [data-state='open'])::after {
 		opacity: 1;
-		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-	}
-
-	.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-		opacity: 1;
-		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: linear-gradient(
+			var(--gradient-angle),
+			rgba(144, 144, 144, 0) 0%,
+			var(--tl-color-muted-2) 100%
+		);
 	}
 }
 
@@ -906,10 +912,8 @@
 	}
 }
 
-@media (any-pointer: coarse) {
-	.tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
+.tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
+	opacity: 1;
 }
 
 .tlui-button__icon {
@@ -948,16 +952,15 @@
 
 .tlui-offline-indicator {
 	display: flex;
-	flex-direction: row;
-	gap: var(--tl-space-3);
-	color: var(--tl-color-text);
-	background-color: var(--tl-color-low);
-	border: 3px solid var(--tl-color-background);
-	padding: 0px var(--tl-space-5);
-	height: 42px;
+	color: var(--tl-color-background);
+	background-color: var(--tl-color-text);
+	border: none;
+	width: 32px;
+	height: 32px;
 	align-items: center;
 	justify-content: center;
 	border-radius: 99px;
+	cursor: default;
 	opacity: 0;
 	animation: tl-fade-in;
 	animation-duration: 0.12s;
@@ -1275,6 +1278,7 @@ tldraw? probably.
 	position: relative;
 	background: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-2);
+	contain: layout style paint;
 }
 
 .tlui-main-toolbar--horizontal .tlui-main-toolbar__mobile-style-panel {

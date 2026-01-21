@@ -1,4 +1,11 @@
 import {
+	BaseRecord,
+	createMigrationSequence,
+	createRecordType,
+	RecordId,
+	StoreSchema,
+} from '@tldraw/store'
+import {
 	createTLSchema,
 	DocumentRecordType,
 	PageRecordType,
@@ -1373,6 +1380,105 @@ describe('SQLiteSyncStorage', () => {
 				.prepare<{ migrationVersion: number }>('SELECT migrationVersion FROM metadata')
 				.all()[0]
 			expect(row?.migrationVersion).toBe(2)
+		})
+	})
+
+	describe('Schema migrations via migrateStorage', () => {
+		/**
+		 * Regression test for a bug where record-level migrations were applied multiple
+		 * times to the same record when using SQLite storage.
+		 *
+		 * Root cause: SQLite iterators are live cursors. When a record is updated via
+		 * storage.set(), the lastChangedClock column changes, which can reposition the
+		 * row in the B-tree index and cause it to be visited again by the iterator.
+		 *
+		 * Fix: migrateStorage now collects updates during iteration and applies them
+		 * after the iteration completes.
+		 */
+		it('should apply record migrations exactly once per record', () => {
+			// Track how many times each record is migrated
+			const migrationCounts = new Map<string, number>()
+
+			interface TestRecord extends BaseRecord<'test', RecordId<TestRecord>> {
+				value: number
+				migrated?: boolean
+			}
+
+			const TestRecordType = createRecordType<TestRecord>('test', {
+				validator: { validate: (r) => r as TestRecord },
+				scope: 'document',
+			})
+
+			const testMigrations = createMigrationSequence({
+				sequenceId: 'com.test.record',
+				retroactive: true,
+				sequence: [
+					{
+						id: 'com.test.record/1',
+						scope: 'record',
+						filter: (r: any) => r.typeName === 'test',
+						up: (record: any) => {
+							// Track how many times this record is migrated
+							const count = migrationCounts.get(record.id) ?? 0
+							migrationCounts.set(record.id, count + 1)
+							record.migrated = true
+						},
+					},
+				],
+			})
+
+			const oldSchema = StoreSchema.create({ test: TestRecordType })
+			const newSchema = StoreSchema.create(
+				{ test: TestRecordType },
+				{ migrations: [testMigrations] }
+			)
+
+			// Create storage with the old schema (no migrations applied)
+			const sql = createWrapper()
+			const numRecords = 100
+
+			// Build initial snapshot with many test records
+			const testRecords: TestRecord[] = []
+			for (let i = 0; i < numRecords; i++) {
+				testRecords.push({
+					id: `test:${i}` as RecordId<TestRecord>,
+					typeName: 'test',
+					value: i,
+				})
+			}
+
+			const snapshot = {
+				documents: testRecords.map((r) => ({ state: r, lastChangedClock: 0 })),
+				clock: 0,
+				documentClock: 0,
+				schema: oldSchema.serialize(),
+			}
+
+			const storage = new SQLiteSyncStorage<TestRecord>({ sql, snapshot })
+
+			// Run the migration within a transaction
+			storage.transaction((txn) => {
+				newSchema.migrateStorage(txn)
+			})
+
+			// Verify each record was migrated exactly once
+			const migrationCountValues = Array.from(migrationCounts.values())
+			const recordsMigratedMoreThanOnce = migrationCountValues.filter((count) => count > 1)
+
+			// This assertion ensures migrations are applied exactly once per record
+			expect(recordsMigratedMoreThanOnce).toEqual([])
+
+			// Additional check: verify the total number of migrations equals number of records
+			expect(migrationCounts.size).toBe(numRecords)
+			for (const [_id, count] of migrationCounts) {
+				expect(count).toBe(1)
+			}
+
+			// Verify all records now have the migrated flag
+			const finalSnapshot = storage.getSnapshot()
+			for (const doc of finalSnapshot.documents) {
+				expect((doc.state as TestRecord).migrated).toBe(true)
+			}
 		})
 	})
 })

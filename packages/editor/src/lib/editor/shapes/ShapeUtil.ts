@@ -316,6 +316,26 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	/**
 	 * Get the clip path to apply to this shape's children.
 	 *
+	 * The returned points should define the **inner** clip boundary - the area where
+	 * children will be visible. If your shape has a stroke, you should inset the clip
+	 * path by half the stroke width so children are clipped to the inner edge of the
+	 * stroke rather than its center line.
+	 *
+	 * @example
+	 * ```ts
+	 * override getClipPath(shape: MyShape): Vec[] | undefined {
+	 *   const strokeWidth = 2
+	 *   const inset = strokeWidth / 2
+	 *   // Return points inset by half the stroke width
+	 *   return [
+	 *     new Vec(inset, inset),
+	 *     new Vec(shape.props.w - inset, inset),
+	 *     new Vec(shape.props.w - inset, shape.props.h - inset),
+	 *     new Vec(inset, shape.props.h - inset),
+	 *   ]
+	 * }
+	 * ```
+	 *
 	 * @param shape - The shape to get the clip path for
 	 * @returns Array of points defining the clipping polygon in local coordinates, or undefined if no clipping
 	 * @public

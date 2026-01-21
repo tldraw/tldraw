@@ -54,7 +54,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingShapeWithRichText(editor, nextNote, true /* selectAll */)
+				startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
 				return
 			}
 		}
@@ -103,7 +103,7 @@ export class PointingHandle extends StateNode {
 						isCreating: true,
 						onCreate: () => {
 							// When we're done, start editing it
-							startEditingShapeWithRichText(editor, nextNote, true /* selectAll */)
+							startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
 						},
 					})
 				return
