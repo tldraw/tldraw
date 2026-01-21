@@ -1,6 +1,6 @@
 :root {
-	--tl-analytics-button-bg: hsl(0, 0%, 100%);
-	--tl-analytics-button-text: hsl(235, 6.8%, 13.5%);
+	--tl-analytics-button-bg: hsl(204, 8%, 5%);
+	--tl-analytics-button-text: hsl(0, 0%, 99%);
 	--tl-analytics-bg: hsl(235, 6.8%, 13.5%);
 	--tl-analytics-text: hsl(0, 9%, 94%);
 	--tl-analytics-text-secondary: hsl(204, 4%, 75%);
@@ -13,8 +13,8 @@
 }
 
 [data-theme='dark'] {
-	--tl-analytics-button-bg: hsl(0, 0%, 0%);
-	--tl-analytics-button-text: hsl(0, 0%, 100%);
+	--tl-analytics-button-bg: hsl(204, 8%, 98%);
+	--tl-analytics-button-text: hsl(0, 0%, 5%);
 	--tl-analytics-bg: hsl(0, 0%, 99%);
 	--tl-analytics-text: hsl(0, 0%, 0%);
 	--tl-analytics-text-secondary: hsl(204, 4%, 45%);
@@ -90,7 +90,7 @@
 	text-decoration: none;
 	border: none;
 	padding: 4px 8px;
-	border-radius: 6px;
+	border-radius: 4px;
 	white-space: nowrap;
 	flex-shrink: 0;
 }
