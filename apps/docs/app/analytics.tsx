@@ -104,9 +104,7 @@ export function PrivacySettingsLink() {
 
 	return (
 		<>
-			<button onClick={onCookieClick} className="hover:text-zinc-800 dark:hover:text-zinc-200">
-				Privacy settings
-			</button>
+			<button onClick={onCookieClick}>Privacy settings</button>
 		</>
 	)
 }
