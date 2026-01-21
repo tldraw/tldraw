@@ -734,7 +734,7 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "scaleY": 1,
       "segments": [
         {
-          "points": "AAAAAAA4jgaOBgA4",
+          "path": "AAAAAAAAAAAAAAA/jgaOBgAA",
           "type": "free",
         },
       ],
@@ -765,7 +765,7 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "scaleY": 1,
       "segments": [
         {
-          "points": "AAAAAAA4jgaOBgA4",
+          "path": "AAAAAAAAAAAAAAA/jgaOBgAA",
           "type": "free",
         },
       ],
@@ -1379,7 +1379,7 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "scaleY": 1,
       "segments": [
         {
-          "points": "AAAAAAA4jgaOBgA4",
+          "path": "AAAAAAAAAAAAAAA/jgaOBgAA",
           "type": "free",
         },
       ],
@@ -1410,7 +1410,7 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "scaleY": 1,
       "segments": [
         {
-          "points": "AAAAAAA4jgaOBgA4",
+          "path": "AAAAAAAAAAAAAAA/jgaOBgAA",
           "type": "free",
         },
       ],
