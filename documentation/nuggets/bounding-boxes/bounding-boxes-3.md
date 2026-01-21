@@ -42,7 +42,7 @@ Say you have a 100×50px rectangle at the origin. Its bounding box would be:
 {x: 0, y: 0, w: 100, h: 50}
 ```
 
-If you rotate the rectangle by 45°, what would the new bounding box be? A first step would be to apply the rotation matrix directly to the vertices of the AABB:
+If you rotate the rectangle by 45°, what would the new bounding box be? A first step would be to apply the rotation matrix directly to the vertices of the bounding box:
 
 ```tsx
 const corners = [
@@ -66,7 +66,7 @@ const rotated = corners.map((p) => {
 
 The rotated points describe the shape's new position, but the edges are no longer aligned with the axes of page space. If we tried to use these directly for collision detection, we'd need to check more axes and compute projections using dot products (according to the [separating axis theorem](https://dyn4j.org/2010/01/sat/)), which is more expensive than just comparing min/max values as above.
 
-## Recomputing the AABB
+## A new bounding box
 
 Instead, we take the shape's bounding box vertices in its own coordinate system, transform them to page space, and compute a new axis-aligned box from those points. The result gets cached.
 
@@ -105,13 +105,13 @@ static FromPoints(points: VecLike[]): Box {
 }
 ```
 
-Take our 100×50px rectangle example: we first calculate its original AABB, then we apply the 45° rotation to each corner - and finally, we find the min and max (x, y) values among those rotated points. The result is a new AABB that is roughly 106×106px. This is bigger than the original box; it's stretched to contain all four rotated corners.
+Take our 100×50px rectangle example: we first calculate its original bounding box, then we apply the 45° rotation to each corner - and finally, we find the min and max (x, y) values among those rotated points. The result is a new bounding box that is roughly 106×106px. This is bigger than the original box since it is stretched to contain all four rotated corners.
 
 [img]
 
 ## Nested transforms
 
-Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. If a rectangle sits inside a frame that's rotated 30°, the rectangle's position on the page depends on both transforms. We multiply them together to get the shape's final page transform.
+Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. If a rectangle sits inside a frame that is rotated by 30°, the rectangle's position on the page depends on both transforms. We multiply them together to get the shape's final page transform.
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:4784-4798
@@ -130,7 +130,7 @@ This recursive function handles arbitrary nesting: if a shape's parent isn't the
 
 ## Viewport culling
 
-Aside from selection, tldraw also makes use of AABBs when doing viewport culling, which is where we programmatically decide which shapes to render:
+Aside from selection, tldraw also makes use of bounding boxes when doing viewport culling, which is where we programmatically decide which shapes to exclude from rendering:
 
 ```tsx
 // packages/editor/src/lib/editor/derivations/notVisibleShapes.ts:11-30 (simplified)
@@ -155,6 +155,6 @@ The bounds are inlined here (extracted from the viewport box before the loop) be
 
 ## The tradeoff
 
-Axis-aligned bounding boxes are a rough approximation. A rotated rectangle's AABB can be substantially larger than the shape itself—up to 41% larger for a square at 45°. This means hit testing gets false positives: the AABB says "might hit" when the actual shape doesn't. tldraw handles this with a two-phase approach—fast AABB rejection first, then precise geometry checks for shapes that pass. The rough first pass eliminates most candidates cheaply.
+Axis-aligned bounding boxes are a rough approximation. A rotated rectangle's bounding box can be substantially larger than the shape itself—up to 41% larger for a square at 45°. This means hit testing gets false positives: the AABB says "might hit" when the actual shape doesn't. tldraw handles this with a two-phase approach—fast AABB rejection first, then precise geometry checks for shapes that pass. The rough first pass eliminates most candidates cheaply.
 
 It also means viewport culling is conservative. Shapes start rendering slightly before they're truly visible, but that's a fine tradeoff for the speed we gain.
