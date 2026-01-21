@@ -182,8 +182,6 @@ export function ContextHighlights() {
 		[selectedPoints, activePoints]
 	)
 
-	console.log('allAreaHighlights', allAreaHighlights)
-
 	return (
 		<>
 			{allAreaHighlights.map((highlight, i) => (
