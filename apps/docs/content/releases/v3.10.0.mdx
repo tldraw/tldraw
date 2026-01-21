@@ -1,65 +1,64 @@
 ---
-title: v3.10.0
-description: Examples
-author: tldraw
-date: 3/11/2025
-order: 34
+title: 'v3.10'
+created_at: 11/3/2025
+updated_at: 11/3/2025
+keywords:
+  - changelog
+  - release
+  - v3.10
+  - rich-text
+  - tiptap
+  - performance
+  - collaboration
 status: published
+date: 11/3/2025
+order: 10
 ---
 
-[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.0)
+This release introduces rich text as a first-class primitive within the Editor, alongside various performance improvements and bug fixes.
 
-Welcome to the 3.10.0 release of tldraw. This month's SDK release's big news is adding rich text to all of our shapes.
+### Rich text support
 
-## What's new
+The SDK now offers rich text as a first-class primitive. The implementation utilizes TipTap with its StarterKit extension plus additional customizations. Developers can configure this functionality through a `textOptions` property to customize TipTap and modify extensions.
 
-#### Rich text ([#4895](https://github.com/tldraw/tldraw/pull/4895))
+## API changes
 
-Tldraw now has the supports rich text as a first-class primitive within the Editor. After deliberating on which rich text editor to choose, we settled on using [TipTap](https://tiptap.dev/) as our out-of-the-box solution. Our basic implementation includes the TipTap [StarterKit](https://tiptap.dev/docs/editor/extensions/functionality/starterkit) extension along with a couple extra extensions to make the experience butter-smooth.
+- 💥 **`text` property** on most shapes replaced with `richText`. When setting values, use `richText: toRichText('some string')` instead of `text: 'some string'`. When retrieving values, use `renderPlaintextFromRichText(props.text)` rather than `props.text`.
+- Add asset rehydration for .tldr files containing embedded base64 data.
+- Add `BrokenAssetIcon` display on file upload failures.
+- Add public collaboration hooks (`usePeerIds`, `usePresence`).
+- Add `userId` parameter to collaboration components.
 
-Of course, we wouldn't be providing this functionality if it wasn't extensible and remixable by the community. There is a `textOptions` property now that lets you customize TipTap and add/remove extensions as per your needs.
+### Bug fixes
 
-Take a look at our [Shapes documentation](https://tldraw.dev/docs/shapes#Editing) to learn more.
+- Fix performance regression affecting document loading.
+- Fix Firefox export/style embedding for foreignObjects.
+- Fix shape reparenting order preservation.
+- Fix resize functionality.
+- Fix Safari file pasting issues.
+- Fix SSR environment compatibility (core-js import removal).
+- Fix IME text duplication in Chrome.
 
-Please do jump in the [Discord](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) if you have any feedback or bugs about this new feature.
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.0)
 
-##### Breaking change
+---
 
-- With the new `richText` functionality, the `text` prop on most shapes has been removed and replaced by a new `richText` prop.
-  - When setting this prop, replace `text: 'some string'` with `richText: toRichText('some string')`.
-  - When getting this prop, replace `props.text` with `renderPlaintextFromRichText(props.text)`.
+## Patch releases
 
-#### Improvements
+### v3.10.1
 
-- Ensure .tldr files with embedded base64 assets get their assets rehydrated back into the local db. [#5525](https://github.com/tldraw/tldraw/pull/5525)
-- Display BrokenAssetIcon when file upload fails [#5552](https://github.com/tldraw/tldraw/pull/5552)
+Fix API reference links in state packages. ([#5610](https://github.com/tldraw/tldraw/pull/5610))
 
-#### API changes
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.1)
 
-- Make collaboration hooks public (`usePeerIds` and `usePresence`) [#5541](https://github.com/tldraw/tldraw/pull/5541)
-- Pass userId to collaboration components [#5534](https://github.com/tldraw/tldraw/pull/5534)
+### v3.10.2
 
-#### Bug fix
+Add `textOptions` to `<TldrawImage />` component. ([#5650](https://github.com/tldraw/tldraw/pull/5650))
 
-- Fix a perf regression that caused slowness mainly when loading documents. [#5567](https://github.com/tldraw/tldraw/pull/5567)
-- Fix exports / style embedding for foreignObjects in Firefox [#5593](https://github.com/tldraw/tldraw/pull/5593)
-- Fix the reparentShapes() function to ensure that the original order of the shapes is preserved when reparenting. [#5565](https://github.com/tldraw/tldraw/pull/5565)
-- Fix a bug that could occur when resizing [#5292](https://github.com/tldraw/tldraw/pull/5292)
-- Fix a bug with pasting files from your computer in Safari [#5545](https://github.com/tldraw/tldraw/pull/5545)
-- Fix bug with loading TLDraw in an SSR environment by removing a core-js import [#5543](https://github.com/tldraw/tldraw/pull/5543)
-- Prevent text duplication when using IME with Enter key in Chrome [#5540](https://github.com/tldraw/tldraw/pull/5540)
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.2)
 
-#### Authors
+### v3.10.3
 
-- alex ([@SomeHats](https://github.com/SomeHats))
-- David Sheldrick ([@ds300](https://github.com/ds300))
-- Josh Willis ([@bluedot74](https://github.com/bluedot74))
-- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
-- Lu Wilson ([@TodePond](https://github.com/TodePond))
-- Mathieu Triay ([@MathieuLoutre](https://github.com/MathieuLoutre))
-- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
-- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Qinghe Ban ([@banqinghe](https://github.com/banqinghe))
-- Riley ([@dodo-Riley](https://github.com/dodo-Riley))
-- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+Fix Inter font being embedded in exports; reduce excessive styling in exported content. ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.3)

@@ -1,46 +1,40 @@
 ---
-title: v3.9.0
-description: Examples
-author: tldraw
-date: 3/3/2025
-order: 35
+title: 'v3.9'
+created_at: 3/3/2025
+updated_at: 3/3/2025
+keywords:
+  - changelog
+  - release
+  - v3.9
+  - performance
+  - cache
+  - layout
+  - atom-map
 status: published
+date: 3/3/2025
+order: 11
 ---
 
-[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.9.0)
+This release focuses on bug fixes and performance enhancements, laying groundwork for v3.10 features.
 
-### Release Notes
+## API changes
 
-This update brings some important bug fixes and performance improvements. It's low on user-facing changes, but we're laying the groundwork for some exciting new features in 3.10.
+- 💥 **`store.createSelectedComputedCache`** removed; use `store.createCache` with custom selector `computed` instead.
+- 💥 **`createComputerCache` API** modified: third argument now accepts options object with `areRecordsEqual` and `areResultsEqual` properties instead of single equality function.
 
-#### What's new
+### Improvements
 
-- Layout methods (align, distribute, flip, stack) have had a bunch of bug fixes and now work much better with arrows and overlapping shapes. ([#5479](https://github.com/tldraw/tldraw/pull/5479))
-- Creating and deleting shapes, bindings and other records is now faster thanks to a new `AtomMap` class. You can use this to build your own efficient reactive maps too. ([#5496](https://github.com/tldraw/tldraw/pull/5496))
-- Arrows bound to text shapes now have some horizontal padding. It looks a lot better. ([#5487](https://github.com/tldraw/tldraw/pull/5487))
+- Improve layout operations including align, distribute, flip, and stack with better compatibility for arrows and overlapping shapes.
+- Add new `AtomMap` class to accelerate shape, binding, and record creation/deletion, available as a utility for building custom reactive maps.
+- Add horizontal padding to text-bound arrows for improved visual appearance.
 
-#### Breaking changes
+### Bug fixes
 
-- `store.createSelectedComputedCache` has been removed. Use `store.createCache` and create your own selector `computed` instead.
-- `createComputerCache` no longer accepts a single `isEqual` fn as its 3rd argument. Instead, pass in an options object, with the `isEqual` fn named `areRecordsEqual`. You can now pass `areResultsEqual`, too.
+- Fix pasted image size calculations.
+- Remove `canvas-size` dependency resolving bundler compatibility issues.
+- Fix SVG copy mimetype.
+- Fix text shape cloning crash.
+- Fix temporary image preview display during uploads.
+- Recognize `https://localhost` as development environment for licensing.
 
-#### Bug fixes
-
-- Pasted image sizes are now calculated more accurately. ([#5509](https://github.com/tldraw/tldraw/pull/5509))
-- The `canvas-size` dependency, which was causing issues with some bundler configurations, has been removed. ([#5488](https://github.com/tldraw/tldraw/pull/5488))
-- Copy as SVG now has the correct mimetype. ([#5482](https://github.com/tldraw/tldraw/pull/5482))
-- Prevent a crash that could happen when cloning text shapes. ([#5470](https://github.com/tldraw/tldraw/pull/5470))
-- Fix a regressing that prevented temporary image previews from showing while images are uploading. ([#5453](https://github.com/tldraw/tldraw/pull/5453))
-- `https://localhost` is now considered to be development for license/watermark purposes. ([#5471](https://github.com/tldraw/tldraw/pull/5471))
-
-#### Authors: 11
-
-- alex ([@SomeHats](https://github.com/SomeHats))
-- David Sheldrick ([@ds300](https://github.com/ds300))
-- Fabian Iwand ([@mootari](https://github.com/mootari))
-- James Vaughan ([@jamesbvaughan](https://github.com/jamesbvaughan))
-- Li Yuxuan ([@xmliszt](https://github.com/xmliszt))
-- Lu Wilson ([@TodePond](https://github.com/TodePond))
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
-- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.9.0)

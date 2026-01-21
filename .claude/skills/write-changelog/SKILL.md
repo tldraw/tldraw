@@ -13,9 +13,10 @@ All release files live in `apps/docs/content/releases/`.
 
 | File         | Purpose                                                    |
 | ------------ | ---------------------------------------------------------- |
-| `index.mdx`  | Landing page listing all releases by major version         |
 | `next.mdx`   | Accumulates changes for the upcoming release               |
 | `vX.Y.0.mdx` | Historical releases (immutable except for patch additions) |
+
+The release listing is maintained in `apps/docs/content/getting-started/releases.mdx`.
 
 ## Core workflow
 
@@ -42,7 +43,7 @@ All release files live in `apps/docs/content/releases/`.
 1. Rename `next.mdx` to `vX.Y.0.mdx`
 2. Increment `order` in frontmatter
 3. Create new `next.mdx` for the next version
-4. Update `index.mdx` with the new release
+4. Update `getting-started/releases.mdx` with the new release
 
 ## PR categorization
 
@@ -71,4 +72,3 @@ Semi-casual and confident. Professional but not stodgy.
 ## References
 
 - **Formatting conventions**: See `references/formatting.md` for section structure, entry format, PR links, and frontmatter
-- **Examples**: See `references/examples.md` for complete release note examples

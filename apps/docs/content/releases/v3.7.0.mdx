@@ -1,51 +1,55 @@
 ---
-title: v3.7.0
-description: Examples
-author: tldraw
-date: 1/7/2025
-order: 40
+title: 'v3.7'
+created_at: 7/1/2025
+updated_at: 7/1/2025
+keywords:
+  - changelog
+  - release
+  - v3.7
+  - presence
+  - sync
+  - performance
 status: published
+date: 7/1/2025
+order: 13
 ---
 
-[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.0)
+This release delivers bug fixes and performance enhancements, including customization options for presence data synchronization.
 
-Welcome to the 3.7.0 release of tldraw. This month's SDK release includes several bug fixes and perf improvements.
+### Presence sync customization ([#5149](https://github.com/tldraw/tldraw/pull/5149))
 
-#### Improvements
+Developers can now customize what presence data is synced between clients, or disable presence syncing entirely. This enables optimization for high-latency connections and privacy-focused applications.
 
-- Add ability to customise what presence data is synced between clients, or disable presence syncing entirely. [#5071](https://github.com/tldraw/tldraw/pull/5071)
+## API changes
 
-#### API changes
+- Allow `expandSelectionOutlinePx` to return a `Box` object to enable asymmetric expansion across different sides.
+- Modify behavior when using `editor.updateShape` to properly handle undefined values.
 
-- Support expanding the selection outline by different amounts on each side by returning a `Box` from `expandSelectionOutlinePx`. [#5168](https://github.com/tldraw/tldraw/pull/5168)
-- Updating shape props to undefined when using editor.updateShape [#5029](https://github.com/tldraw/tldraw/pull/5029)
+### Bug fixes
 
-#### Bug fix
+- Fix React Strict Mode listener bug affecting `store.listen`.
+- Fix image rotation and cropping functionality issues.
+- Fix CSS import failures during export/print operations.
+- Fix text measurement div leakage during development hot reloads.
+- Fix popover menu viewport overflow problems.
+- Fix GitHub Gist URL validation.
+- Fix image dimension limits for pasted content.
+- Fix pages menu and quick actions rendering.
 
-- Fixed a bug during development with React Strict Mode enabled where `store.listen` might end up not calling the listener. [#5133](https://github.com/tldraw/tldraw/pull/5133)
-- Restrict Github Gists to a more strict URL format. [#5170](https://github.com/tldraw/tldraw/pull/5170)
-- Fixes bugs with Github Gist and Val Town; adds support for pasting `<iframe src="...">` embeds [#5143](https://github.com/tldraw/tldraw/pull/5143)
-- Fix a bug with `maxImageDimension` not getting applied to pasted images. [#5176](https://github.com/tldraw/tldraw/pull/5176)
-- Fix relative CSS import rules failing to be fetched when exporting or printing. [#5172](https://github.com/tldraw/tldraw/pull/5172)
-- Prevents divs created for text measurement from leaking during hot reloading. [#5127](https://github.com/tldraw/tldraw/pull/5127)
-- Fixed a bug with rotating image / croppable shapes. [#5087](https://github.com/tldraw/tldraw/pull/5087)
-- Improves rendering of the pages menu and quick actions. [#5057](https://github.com/tldraw/tldraw/pull/5057)
-- Fix stale closure in InnerShape [#5117](https://github.com/tldraw/tldraw/pull/5117)
-- Fix hot reload text measurement bug [#5125](https://github.com/tldraw/tldraw/pull/5125)
-- Fixed a bug where popover menus might overflow the viewport [#5039](https://github.com/tldraw/tldraw/pull/5039)
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.0)
 
-#### Authors: 7
+---
 
-- alex ([@SomeHats](https://github.com/SomeHats))
-- Andrew Lisowski ([@hipstersmoothie](https://github.com/hipstersmoothie))
-- Christopher Ehrlich ([@c-ehrlich](https://github.com/c-ehrlich))
-- David Sheldrick ([@ds300](https://github.com/ds300))
-- Lu Wilson ([@TodePond](https://github.com/TodePond))
-- mimata kazutaka ([@kazu-2020](https://github.com/kazu-2020))
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
-- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Sam Robbins ([@samrobbins85](https://github.com/samrobbins85))
-- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
-- TAKAHASHI Shuuji ([@shuuji3](https://github.com/shuuji3))
-- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
-- Yuichiro Tachibana (Tsuchiya) ([@whitphx](https://github.com/whitphx))
+## Patch releases
+
+### v3.7.1
+
+Pass custom migrations to `useLocalStore`. ([#5204](https://github.com/tldraw/tldraw/pull/5204))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.1)
+
+### v3.7.2
+
+Fix pasting files copied from the local filesystem with cmd-v. ([#5225](https://github.com/tldraw/tldraw/pull/5225))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.2)

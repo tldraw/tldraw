@@ -1,50 +1,56 @@
 ---
-title: v3.4.0
-description: Examples
-author: tldraw
-date: 10/24/2024
-order: 47
+title: 'v3.4'
+created_at: 10/24/2024
+updated_at: 10/24/2024
+keywords:
+  - changelog
+  - release
+  - v3.4
+  - image-performance
+  - video-performance
+  - excalidraw
+  - dom-ids
 status: published
+date: 10/24/2024
+order: 16
 ---
 
-[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.4.0)
+This release addresses UI bugs, enhances image/video performance, and improves Excalidraw content compatibility.
 
-Welcome to the 3.4.0 release of the tldraw SDK. This issue fixes a few bugs in our user interface, improves performance around images and videos, and even improves our very secret ability to accept pasted content from [Excalidraw](https://excalidraw.com/). See below for the full list of changes.
+## API changes
 
-#### Breaking changes
+- 💥 **`id` DOM attribute** on shapes removed in favor of a `data-shape-id` attribute on shape wrappers.
+- Add `labelColor` property to note shapes.
+- Add `useUniqueSafeId` and `useSharedSafeId` utilities for managing DOM IDs in tldraw components.
 
-- The `id` attribute that was present on some shapes in the dom has been removed. There's now a data-shape-id attribute on every shape wrapper that can be used instead. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+### Improvements
 
-#### Improvements
+- Improve tooltip wording in the style panel.
+- Prevent arrow label indicators from displaying behind labels.
+- Limit page name length in the move-to-page menu.
+- Improve image and video rendering performance.
 
-- Clearer tooltip wording in the style panel. ([#4750](https://github.com/tldraw/tldraw/pull/4750))
-- Arrow labels no longer have their indictors showing behind them. ([#4749](https://github.com/tldraw/tldraw/pull/4749))
-- Limit the page name length in the move to page menu. ([#4747](https://github.com/tldraw/tldraw/pull/4747))
-- Improve performance of image/video rendering. ([#4659](https://github.com/tldraw/tldraw/pull/4659))
+### Bug fixes
 
-#### API changes
+- Fix re-render loops caused by inline `options` in the Tldraw component.
+- Fix toolbar button outline border-radius alignment.
+- Fix color preservation when pasting Excalidraw content.
+- Fix unhighlighted menu triggers.
+- Fix drag event type handling.
+- Fix duplicate image creation on canvas drops.
+- Fix link indicator visibility on sticky notes.
+- Fix URL parsing in embed dialogs.
+- Fix cross-instance rendering conflicts.
+- Fix menu options in read-only mode.
 
-- Add `labelColor` to note shapes. ([#4724](https://github.com/tldraw/tldraw/pull/4724))
-- There are a new set of APIs for working with unique DOM IDs in tldraw components: [`useUniqueSafeId`](https://staging.tldraw.dev/reference/editor/useUniqueSafeId) & [`useSharedSafeId`](https://staging.tldraw.dev/reference/editor/useSharedSafeId). ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.4.0)
 
-#### Bug fixes
+---
 
-- Writing `options` inline in the Tldraw component will no longer cause re-render loops. ([#4762](https://github.com/tldraw/tldraw/pull/4762))
-- Make sure toolbar button outlines match the border-radius of the button. ([#4759](https://github.com/tldraw/tldraw/pull/4759))
-- Make sure content pasted from Excalidraw keeps the correct color. ([#4752](https://github.com/tldraw/tldraw/pull/4752))
-- Don't highlight menu triggers that dont have their submenus open. ([#4710](https://github.com/tldraw/tldraw/pull/4710))
-- Pass through the correct event type for drag events. ([#4739](https://github.com/tldraw/tldraw/pull/4739))
-- Prevent multiple images accidentally being created when you drop one onto the canvas. ([#4704](https://github.com/tldraw/tldraw/pull/4704))
-- Make sure the link indicator is visible on sticky notes. ([#4708](https://github.com/tldraw/tldraw/pull/4708))
-- The insert embed dialog now parses URLs correctly. ([#4709](https://github.com/tldraw/tldraw/pull/4709))
-- Exports and other tldraw instances no longer can affect how each other are rendered. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
-- Show the correct set of menu options in read-only mode. ([#4696](https://github.com/tldraw/tldraw/pull/4696))
+## Patch releases
 
-#### Authors
+### v3.4.1
 
-- [@nayounsang](https://github.com/nayounsang)
-- alex ([@SomeHats](https://github.com/SomeHats))
-- David Sheldrick ([@ds300](https://github.com/ds300))
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
-- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+Prevent arrows being clipped incorrectly when multiple tldraw instances or exports are present in the DOM. ([#4819](https://github.com/tldraw/tldraw/pull/4819))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.4.1)

@@ -1,74 +1,58 @@
 ---
-title: v3.8.0
-description: Examples
-author: tldraw
-date: 2/12/2025
-order: 37
+title: 'v3.8'
+created_at: 12/2/2025
+updated_at: 12/2/2025
+keywords:
+  - changelog
+  - release
+  - v3.8
+  - performance
+  - i18n
+  - react-19
+  - export
 status: published
+date: 12/2/2025
+order: 12
 ---
 
-[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.8.0)
+This release delivers performance enhancements, UI improvements, and developer experience upgrades alongside bug fixes.
 
-This update brings a host of improvements across performance, user interface, and developer experience—all while squashing a number of bugs. Read on for a quick summary of the highlights.
+## API changes
 
-### What's New
+- 💥 **`maxDrawShapePoints`** moved to `DrawShapeUtil.configure({ maxPoints })`.
+- 💥 **Asset upload** now returns `{ src, meta? }` object instead of string.
+- 💥 **JSON export option** removed; `useImageOrVideoAssetUrl` requires width parameter.
+- 💥 **`TldrawUiToasts` and `TldrawUiDialogs`** renamed to `DefaultToasts` and `DefaultDialogs`.
+- Add new `Editor.toImage` method for refined export functionality.
+- Add custom content handlers for pasted tldraw and excalidraw content.
+- Add "before-event" listener for custom input event handling.
+- Add `onCrop` method for shape-specific cropping customization.
 
-#### Shape & Asset Enhancements
+### Improvements
 
-- **ShapeUtil.configure for shape options** ([#5399](https://github.com/tldraw/tldraw/pull/5399)). Introduces a new utility for passing options to shape utils. (This change also moves note shape resize mode and max draw shape points to their respective configuration objects.)
-- **Note Shape Resize Option.** The note shape can be configured to resize by scale. ([#5273](https://github.com/tldraw/tldraw/pull/5273))
-- **Asset uploads updated** ([#5218](https://github.com/tldraw/tldraw/pull/5218)). The upload API now returns an object with both the asset `src` and optional metadata—allowing for richer asset records.
-- **New "select geo tool" shortcut** ([#5341](https://github.com/tldraw/tldraw/pull/5341)). Quickly select your most recent geometric tool with the `g` shortcut.
-- **Drag URLs onto the canvas** ([#5411](https://github.com/tldraw/tldraw/pull/5411)). Drag a URL or link onto the canvas to create a bookmark shape.
+- Add `ShapeUtil.configure` utility for passing options to shape utilities.
+- Allow note shapes to resize by scale.
+- Add geometric tool shortcut (`g` key) for quick selection.
+- Add URL drag-and-drop to create bookmark shapes on canvas.
+- Expand support to 40+ languages via i18n enhancements.
+- Add React 19 compatibility.
+- Improve frame performance through computation relocation.
 
-#### Developer Experience & API Improvements
+### Bug fixes
 
-- **Exports DX Pass** ([#5114](https://github.com/tldraw/tldraw/pull/5114)). We’ve refined export functionality:
-  - The copy/export as JSON option has been removed.
-  - Export APIs (like `Editor.getSvgElement` and `Editor.getSvgString`) now handle shape selections more gracefully.
-  - Export contexts now expose `scale` and `pixelRatio` options and offer a `resolveAssetUrl` helper.
-  - A new `Editor.toImage` method simplifies creating images from your canvas.
-- **i18n Enhancements** ([#5208](https://github.com/tldraw/tldraw/pull/5208)). Expanded our localization support to cover the top 40 languages.
-- **React 19** ([#5293](https://github.com/tldraw/tldraw/pull/5293)). tldraw now supports React 19.
-- **Easier external content customisation** ([#5298](https://github.com/tldraw/tldraw/pull/5298), [#5402](https://github.com/tldraw/tldraw/pull/5402)). You can re-use our default handlers, and now customise pasted tldraw & excalidraw content.
-- **Customize input event handling** ([#5319](https://github.com/tldraw/tldraw/pull/5319)). Listen to the `before-event` event to run custom code before tldraw handles input events.
-- **Custom cropping** ([#5137](https://github.com/tldraw/tldraw/pull/5137)). There’s a new `onCrop` method that `ShapeUtil`s can implement to opt-into & customize cropping.
+- Fix dialog and edit menu glitches.
+- Fix mousewheel scrolling on elements.
+- Fix image export width.
+- Fix text paste behavior via keyboard shortcuts.
 
-### Breaking Changes
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.8.0)
 
-- **Shape Options Configuration.** With the introduction of `ShapeUtil.configure`, if you pass in a shape util that shares a type with a default, it now replaces the default instead of crashing. In addition, the previous `options.maxDrawShapePoints` is now set via:
-  - `DrawShapeUtil.configure({ maxPoints })`
-  - `HighlightShapeUtil.configure({ maxPoints })` ([#5399](https://github.com/tldraw/tldraw/pull/5399), [#5349](https://github.com/tldraw/tldraw/pull/5349))
-- **Asset Upload API Changes.** In `@tldraw/tlschema`, `TLAssetStore.upload` now returns an object with `{ src, meta? }` rather than just the source string. Similarly, `Editor.uploadAsset` has been updated to reflect this change. ([#5218](https://github.com/tldraw/tldraw/pull/5218))
-- **Export Functionality.** The option to copy/export as JSON has been removed since it was not fully supported. Additionally, hooks like `useImageOrVideoAssetUrl` now require a `width` parameter, and export methods have been updated to export all shapes when no IDs are provided. ([#5114](https://github.com/tldraw/tldraw/pull/5114))
-- **Toasts and Dialogs.** The tldraw components now include toasts and dialogs. The `TldrawUiToasts` and `TldrawUiDialogs` components are renamed to `DefaultToasts` and `DefaultDialogs` and can be accessed via `useTldrawUiComponents`.([#5263](https://github.com/tldraw/tldraw/pull/5263)).
+---
 
-### Bug Fixes
+## Patch releases
 
-- **UI & Interaction Bugs**
-  - Resolved dialog and edit menu glitches ([#5274](https://github.com/tldraw/tldraw/pull/5274)).
-  - Addressed problems with mousewheel events not working on scrollable elements ([#5356](https://github.com/tldraw/tldraw/pull/5356)).
-- **Asset & Export Fixes**
-  - Ensured images in exports use the uncropped width ([#5300](https://github.com/tldraw/tldraw/pull/5300)).
-  - Corrected paste behavior for text/plain via keyboard shortcuts ([#5303](https://github.com/tldraw/tldraw/pull/5303)).
+### v3.8.1
 
-### Performance & Reliability
+Fix `TldrawImage` not functioning properly with `format=png`. ([#5429](https://github.com/tldraw/tldraw/pull/5429))
 
-- **Improved performance for headings** ([#5413](https://github.com/tldraw/tldraw/pull/5413)). Improved frame performance by relocating computations to their point of use.
-
-### Authors
-
-A huge thank you to everyone who contributed to this release:
-
-- [@melnikkk](https://github.com/melnikkk)
-- [@SomeHats](https://github.com/SomeHats)
-- [@Cygra](https://github.com/Cygra)
-- [@ds300](https://github.com/ds300)
-- [@jamesbvaughan](https://github.com/jamesbvaughan)
-- [@TodePond](https://github.com/TodePond)
-- [@mimecuvalo](https://github.com/mimecuvalo)
-- [@MitjaBezensek](https://github.com/MitjaBezensek)
-- [@onurmatik](https://github.com/onurmatik)
-- [@ricardo-crespo](https://github.com/ricardo-crespo)
-- [@steveruizok](https://github.com/steveruizok)
-- [@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk)
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.8.1)
