@@ -1,4 +1,5 @@
 import {
+	Box,
 	StateNode,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -97,7 +98,6 @@ export class Erasing extends StateNode {
 		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = editor.getErasingShapeIds()
 		const zoomLevel = editor.getZoomLevel()
-		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const previousPagePoint = editor.inputs.getPreviousPagePoint()
 
@@ -106,6 +106,19 @@ export class Erasing extends StateNode {
 		// Otherwise, erasing shapes are all the shapes that were hit before plus any new shapes that are hit
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 		const minDist = this.editor.options.hitTestMargin / zoomLevel
+
+		// Create bounds around line segment with margin
+		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
+		const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+
+		// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
+		if (candidateIds.size === 0) {
+			editor.setErasingShapes(Array.from(erasing))
+			return
+		}
+
+		const allShapes = editor.getCurrentPageRenderingShapesSorted()
+		const currentPageShapes = allShapes.filter((shape) => candidateIds.has(shape.id))
 
 		for (const shape of currentPageShapes) {
 			if (editor.isShapeOfType(shape, 'group')) continue

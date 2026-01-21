@@ -1,7 +1,8 @@
-name: Bug Report
+name: Bug report
 description: File a bug report
-title: '[Bug]: '
-labels: ['bug', 'triage']
+type: Bug
+title: ''
+labels: []
 assignees: []
 body:
   - type: markdown
@@ -12,18 +13,21 @@ body:
     id: what-happened
     attributes:
       label: What happened?
-      description: Also tell us, what did you expect to happen?
+      description: Describe the bug and what you expected to happen instead.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
       label: How can we reproduce the bug?
-      description: If you can make the bug happen again, please share the steps involved. If possible please also include a screenshot or a screen recording to help us better understand and resolve the issue. You can [fork this sandbox](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx) to make a reproduction.
+      description: |
+        Please share the steps to reproduce this bug. A [StackBlitz reproduction](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx) or screen recording helps us fix it faster.
     validations:
       required: false
   - type: dropdown
     id: browsers
+    validations:
+      required: false
     attributes:
       label: What browsers are you seeing the problem on?
       multiple: true
@@ -32,32 +36,15 @@ body:
         - Chrome
         - Safari
         - Microsoft Edge
-        - VS Code
   - type: dropdown
     id: product
     attributes:
       label: Where did this happen?
       options:
-        - The developer package
-        - The tldraw.com website
-        - The tldraw.dev website
-        - The makereal.tldraw.com website
-        - The VS Code extension
+        - tldraw SDK (@tldraw/tldraw npm package)
+        - tldraw.com
+        - tldraw.dev (documentation site)
+        - VS Code extension
+        - Obsidian plugin
     validations:
       required: true
-  - type: input
-    id: contact
-    attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
-    validations:
-      required: false
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/tldraw/tldraw/blob/main/CODE_OF_CONDUCT.md)
-      options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true

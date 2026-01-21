@@ -1,6 +1,7 @@
 import { AgentModelName, DEFAULT_MODEL_NAME } from '@tldraw/fairy-shared'
 import { Atom, atom, Editor } from 'tldraw'
 import { TldrawApp } from '../../tla/app/TldrawApp'
+import { FairyAppActionRateTracker } from './managers/FairyAppActionRateTracker'
 import { FairyAppAgentsManager } from './managers/FairyAppAgentsManager'
 import { FairyAppFollowingManager } from './managers/FairyAppFollowingManager'
 import { FairyAppPersistenceManager } from './managers/FairyAppPersistenceManager'
@@ -48,6 +49,11 @@ export class FairyApp {
 	 */
 	waits: FairyAppWaitManager
 
+	/**
+	 * Manager for tracking fairy action rate over time.
+	 */
+	actionRateTracker: FairyAppActionRateTracker
+
 	// --- Global fairy state ---
 
 	/**
@@ -83,6 +89,7 @@ export class FairyApp {
 		this.projects = new FairyAppProjectsManager(this)
 		this.tasks = new FairyAppTaskListManager(this)
 		this.waits = new FairyAppWaitManager(this)
+		this.actionRateTracker = new FairyAppActionRateTracker(this)
 
 		editor.on('crash', () => this.dispose())
 		editor.on('dispose', () => this.dispose())
@@ -95,6 +102,8 @@ export class FairyApp {
 		this.projects.disbandAllProjects()
 		// Stop auto-save
 		this.persistence.dispose()
+		// Stop action rate tracking
+		this.actionRateTracker.dispose()
 
 		// Not sure if we need to dispose the rest...
 		// this.agents.disposeAll()

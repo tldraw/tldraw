@@ -329,6 +329,8 @@ export class Box {
     // (undocumented)
     includes(B: Box): boolean;
     // (undocumented)
+    isValid(): boolean;
+    // (undocumented)
     get left(): number;
     // (undocumented)
     get maxX(): number;
@@ -723,12 +725,14 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
+    readonly zoomToFitPadding: 128;
 };
 
 // @public (undocumented)
@@ -1273,6 +1277,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
+    // @internal
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
@@ -2880,6 +2886,22 @@ export class SnapManager {
     readonly shapeBounds: BoundsSnaps;
 }
 
+// @internal
+export class SpatialIndexManager {
+    constructor(editor: Editor);
+    // @public
+    dispose(): void;
+    // (undocumented)
+    readonly editor: Editor;
+    // @public
+    getShapeIdsAtPoint(point: {
+        x: number;
+        y: number;
+    }, margin?: number): Set<TLShapeId>;
+    // @public
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
+}
+
 // @public (undocumented)
 export class Stadium2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -3494,6 +3516,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
@@ -3504,6 +3527,7 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
+    readonly zoomToFitPadding: number;
 }
 
 // @public (undocumented)

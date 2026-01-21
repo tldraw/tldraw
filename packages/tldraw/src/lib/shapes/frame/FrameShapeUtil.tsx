@@ -54,6 +54,10 @@ export interface FrameShapeOptions {
 	 * When true, the frame will display colors for the shape's headings and background.
 	 */
 	showColors: boolean
+	/**
+	 * When true, the frame will resize its children when the frame itself is resized.
+	 */
+	resizeChildren: boolean
 }
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -71,6 +75,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override options: FrameShapeOptions = {
 		showColors: false,
+		resizeChildren: false,
 	}
 
 	// evil crimes :)
@@ -98,7 +103,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override canResizeChildren() {
-		return false
+		return this.options.resizeChildren
 	}
 
 	override isExportBoundsContainer(): boolean {
@@ -328,13 +333,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		return (
-			<rect
-				width={toDomPrecision(shape.props.w)}
-				height={toDomPrecision(shape.props.h)}
-				className={`tl-frame-indicator`}
-			/>
-		)
+		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
 	override providesBackgroundForChildren(): boolean {

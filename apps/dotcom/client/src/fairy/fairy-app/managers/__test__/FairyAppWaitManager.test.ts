@@ -47,6 +47,10 @@ describe('FairyAppWaitManager', () => {
 				status: 'done',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			}
 
 			// Mock the agent's wait methods
@@ -59,7 +63,7 @@ describe('FairyAppWaitManager', () => {
 			const getWaitingForSpy = vi
 				.spyOn(agent.waits, 'getWaitingFor')
 				.mockReturnValue([waitCondition])
-			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
+			const setWaitingForSpy = vi.spyOn(agent.waits, 'setWaitingFor')
 			const notifySpy = vi
 				.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
 				.mockResolvedValue(undefined)
@@ -71,7 +75,7 @@ describe('FairyAppWaitManager', () => {
 			})
 
 			expect(getWaitingForSpy).toHaveBeenCalled()
-			expect(waitForAllSpy).toHaveBeenCalledWith([])
+			expect(setWaitingForSpy).toHaveBeenCalledWith([])
 			expect(notifySpy).toHaveBeenCalledWith({
 				agentMessages: ['Test message'],
 				userMessages: ['User message'],
@@ -96,6 +100,10 @@ describe('FairyAppWaitManager', () => {
 				status: 'done',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			}
 
 			const waitCondition: FairyWaitCondition<TaskCompletedEvent> = {
@@ -105,7 +113,7 @@ describe('FairyAppWaitManager', () => {
 			}
 
 			vi.spyOn(agent.waits, 'getWaitingFor').mockReturnValue([waitCondition])
-			const waitForAllSpy = vi.spyOn(agent.waits, 'waitForAll')
+			const setWaitingForSpy = vi.spyOn(agent.waits, 'setWaitingFor')
 			const notifySpy = vi.spyOn(agent.waits, 'notifyWaitConditionFulfilled')
 
 			manager.notifyWaitingAgents({
@@ -113,7 +121,7 @@ describe('FairyAppWaitManager', () => {
 				getAgentFacingMessage: () => 'Test message',
 			})
 
-			expect(waitForAllSpy).not.toHaveBeenCalled()
+			expect(setWaitingForSpy).not.toHaveBeenCalled()
 			expect(notifySpy).not.toHaveBeenCalled()
 		})
 
@@ -134,6 +142,10 @@ describe('FairyAppWaitManager', () => {
 				status: 'done',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			}
 
 			const waitCondition: FairyWaitCondition<TaskCompletedEvent> = {
@@ -172,6 +184,10 @@ describe('FairyAppWaitManager', () => {
 				status: 'done',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			}
 
 			const notifySpy = vi.spyOn(manager, 'notifyWaitingAgents')
@@ -242,6 +258,10 @@ describe('FairyAppWaitManager', () => {
 				status: 'done',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			}
 
 			const nonMatchingTask: FairyTask = {
@@ -251,6 +271,10 @@ describe('FairyAppWaitManager', () => {
 				status: 'done',
 				projectId: null,
 				assignedTo: null,
+				x: 0,
+				y: 0,
+				w: 0,
+				h: 0,
 			}
 
 			expect(condition.matcher({ type: 'task-completed', task: matchingTask })).toBe(true)

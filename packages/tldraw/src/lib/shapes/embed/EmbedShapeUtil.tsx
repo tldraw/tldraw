@@ -217,6 +217,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
 						tabIndex={isEditing ? 0 : -1}
+						allowFullScreen
 						style={{
 							border: 0,
 							pointerEvents: isInteractive ? 'auto' : 'none',

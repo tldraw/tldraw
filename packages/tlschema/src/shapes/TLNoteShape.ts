@@ -142,6 +142,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddScale: 7,
 	AddLabelColor: 8,
 	AddRichText: 9,
+	AddRichTextAttrs: 10,
 })
 
 /**
@@ -156,7 +157,8 @@ export { Versions as noteShapeVersions }
  * Migration sequence for note shapes. Handles schema evolution over time by defining
  * how to upgrade and downgrade note shape data between different versions. Includes
  * migrations for URL properties, text alignment changes, vertical alignment addition,
- * font size adjustments, scaling support, label color, and the transition from plain text to rich text.
+ * font size adjustments, scaling support, label color, the transition from plain text to rich text,
+ * and support for attrs property on richText.
  *
  * @public
  */
@@ -250,6 +252,18 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			// down: (props) => {
 			// 	delete props.richText
 			// },
+		},
+		{
+			id: Versions.AddRichTextAttrs,
+			up: (_props) => {
+				// noop - attrs is optional so old records are valid
+			},
+			down: (props) => {
+				// Remove attrs from richText when migrating down
+				if (props.richText && 'attrs' in props.richText) {
+					delete props.richText.attrs
+				}
+			},
 		},
 	],
 })

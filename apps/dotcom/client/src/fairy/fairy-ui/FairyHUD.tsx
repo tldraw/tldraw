@@ -2,7 +2,7 @@ import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT, useBreakpoint, useDialogs, useEditor, useValue } from 'tldraw'
 import '../../tla/styles/fairy.css'
 import { useMsg } from '../../tla/utils/i18n'
-import { useFairyApp } from '../fairy-app/FairyAppProvider'
+import { FairyAppContextProvider, useFairyApp } from '../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../fairy-messages'
 import { FairyChatHistory } from './chat/FairyChatHistory'
 import { FairyFeedDialog } from './feed/FairyFeedDialog'
@@ -107,11 +107,13 @@ export function FairyHUD() {
 		addDialog({
 			id: FAIRY_FEED_DIALOG_ID,
 			component: () => (
-				<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
+				<FairyAppContextProvider fairyApp={fairyApp}>
+					<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
+				</FairyAppContextProvider>
 			),
 		})
 		return
-	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog, agents])
+	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog, agents, fairyApp])
 
 	return (
 		<>
