@@ -8,6 +8,7 @@ keywords:
   - collision detection
   - viewport culling
   - transforms
+  - selection box
 readability: 8
 voice: 7
 potential: 8
@@ -158,3 +159,43 @@ The bounds are inlined here (extracted from the viewport box before the loop) be
 Axis-aligned bounding boxes are a rough approximation. A rotated rectangle's bounding box can be substantially larger than the shape itself—up to 41% larger for a square at 45°. This means hit testing gets false positives: the AABB says "might hit" when the actual shape doesn't. tldraw handles this with a two-phase approach—fast AABB rejection first, then precise geometry checks for shapes that pass. The rough first pass eliminates most candidates cheaply.
 
 It also means viewport culling is conservative. Shapes start rendering slightly before they're truly visible, but that's a fine tradeoff for the speed we gain.
+
+## Selection boxes
+
+When you select a rotated shape, you'll notice the selection handles rotate with it. This might seem to contradict everything above—aren't we always using axis-aligned boxes?
+
+In fact, tldraw uses two different kinds of bounds. For hit testing and culling, we always use axis-aligned bounding boxes. But for the selection UI, we compute a _rotated_ selection box that matches the shape's orientation.
+
+If you select three rectangles that are all rotated 30°, you want to resize them along their rotated axes. An axis-aligned selection box would only let you resize horizontally and vertically relative to the page, which would distort the shapes. The rotated selection box lets you drag a corner handle and scale the shapes along their actual orientation.
+
+[img]
+
+To compute this, we work backwards: un-rotate all the corner points, compute an axis-aligned box in that "un-rotated" space, then rotate the result back.
+
+```tsx
+// packages/editor/src/lib/editor/Editor.ts:2140-2180 (simplified)
+getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
+  const selectionRotation = this.getShapesSharedRotation(shapeIds)
+
+  // If shapes have different rotations, fall back to axis-aligned bounds
+  if (selectionRotation === 0) {
+    return this.getShapesPageBounds(shapeIds) ?? undefined
+  }
+
+  // Collect all corners, un-rotate them, find the bounding box, then re-rotate
+  const boxFromRotatedVertices = Box.FromPoints(
+    shapeIds
+      .flatMap((id) => {
+        const pageTransform = this.getShapePageTransform(id)
+        if (!pageTransform) return []
+        return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
+      })
+      .map((p) => p.rot(-selectionRotation))  // Un-rotate all corners
+  )
+
+  boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
+  return boxFromRotatedVertices
+}
+```
+
+If the selected shapes have different rotations, there's no single angle that makes sense for the selection box, so we fall back to an axis-aligned box. This separation gives us fast operations for testing collisons, as well as a selection box that respects shape orientation.

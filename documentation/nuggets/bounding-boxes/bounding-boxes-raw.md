@@ -48,44 +48,72 @@ order: 1
 
 ```typescript
 export class Box {
-  constructor(x = 0, y = 0, w = 0, h = 0) {
-    this.x = x
-    this.y = y
-    this.w = w
-    this.h = h
-  }
+	constructor(x = 0, y = 0, w = 0, h = 0) {
+		this.x = x
+		this.y = y
+		this.w = w
+		this.h = h
+	}
 
-  // Edge accessors
-  get minX() { return this.x }
-  get maxX() { return this.x + this.w }
-  get minY() { return this.y }
-  get maxY() { return this.y + this.h }
+	// Edge accessors
+	get minX() {
+		return this.x
+	}
+	get maxX() {
+		return this.x + this.w
+	}
+	get minY() {
+		return this.y
+	}
+	get maxY() {
+		return this.y + this.h
+	}
 
-  // Aliases
-  get left() { return this.x }
-  get right() { return this.x + this.w }
-  get top() { return this.y }
-  get bottom() { return this.y + this.h }
+	// Aliases
+	get left() {
+		return this.x
+	}
+	get right() {
+		return this.x + this.w
+	}
+	get top() {
+		return this.y
+	}
+	get bottom() {
+		return this.y + this.h
+	}
 
-  // Center points
-  get midX() { return this.x + this.w / 2 }
-  get midY() { return this.y + this.h / 2 }
-  get center() { return new Vec(this.midX, this.midY) }
+	// Center points
+	get midX() {
+		return this.x + this.w / 2
+	}
+	get midY() {
+		return this.y + this.h / 2
+	}
+	get center() {
+		return new Vec(this.midX, this.midY)
+	}
 
-  // Dimensions
-  get width() { return this.w }
-  get height() { return this.h }
-  get aspectRatio() { return this.w / this.h }
+	// Dimensions
+	get width() {
+		return this.w
+	}
+	get height() {
+		return this.h
+	}
+	get aspectRatio() {
+		return this.w / this.h
+	}
 
-  // Corner points
-  get corners(): Vec[] {
-    return [
-      new Vec(this.minX, this.minY),
-      new Vec(this.maxX, this.minY),
-      new Vec(this.maxX, this.maxY),
-      new Vec(this.minX, this.maxY),
-    ]
-  }
+	// Corner points
+	get corners(): Vec[] {
+		return [
+			new Vec(this.minX, this.minY),
+			new Vec(this.maxX, this.minY),
+			new Vec(this.maxX, this.maxY),
+			new Vec(this.minX, this.maxY),
+		]
+	}
 }
 ```
 
@@ -104,6 +132,7 @@ static Collides(A: Box, B: Box) {
 ```
 
 **Algorithm explanation**:
+
 - Uses AABB (Axis-Aligned Bounding Box) collision detection
 - Tests for separation along each axis
 - Returns false if ANY separation exists (early exit)
@@ -211,6 +240,7 @@ static FromPoints(points: VecLike[]): Box {
 ```
 
 **Algorithm**:
+
 1. Initialize min values to Infinity, max values to -Infinity
 2. Iterate through all points once
 3. Track min/max in both dimensions
@@ -240,6 +270,7 @@ getBounds(): Box {
 ```
 
 **Caching pattern**:
+
 - Private `_bounds` property stores cached value
 - Lazy evaluation on first access via getter
 - Subsequent accesses return cached value
@@ -271,15 +302,16 @@ get boundsVertices(): Vec[] {
 
 ```typescript
 export interface Geometry2dOptions {
-  isClosed?: boolean    // Is the shape a closed path?
-  isFilled?: boolean    // Is the interior filled (vs hollow)?
-  isLabel?: boolean     // Is this a label geometry?
-  isInternal?: boolean  // Is this internal geometry?
-  excludeFromShapeBounds?: boolean  // Exclude from shape bounds computation?
+	isClosed?: boolean // Is the shape a closed path?
+	isFilled?: boolean // Is the interior filled (vs hollow)?
+	isLabel?: boolean // Is this a label geometry?
+	isInternal?: boolean // Is this internal geometry?
+	excludeFromShapeBounds?: boolean // Exclude from shape bounds computation?
 }
 ```
 
 **Flag behaviors**:
+
 - `isLabel`: Marks geometry as text label, receives special hit testing
 - `excludeFromShapeBounds`: Label bounds don't affect shape's overall bounds
 - `isInternal`: Internal geometry excluded from certain calculations
@@ -294,33 +326,36 @@ export interface Geometry2dOptions {
 
 ```typescript
 export class Group2d extends Geometry2d {
-  children: Geometry2d[]
-  ignoredChildren: Geometry2d[]
+	children: Geometry2d[]
+	ignoredChildren: Geometry2d[]
 
-  constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { children: Geometry2d[] }) {
-    super({ isClosed: true, isFilled: false, ...config })
-    const children: Geometry2d[] = []
-    const ignoredChildren: Geometry2d[] = []
+	constructor(
+		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { children: Geometry2d[] }
+	) {
+		super({ isClosed: true, isFilled: false, ...config })
+		const children: Geometry2d[] = []
+		const ignoredChildren: Geometry2d[] = []
 
-    for (const childOrPossibleGroup of config.children) {
-      if (childOrPossibleGroup.ignore) {
-        ignoredChildren.push(childOrPossibleGroup)
-      } else if (childOrPossibleGroup instanceof Group2d) {
-        // Flatten nested groups
-        children.push(...childOrPossibleGroup.children)
-        ignoredChildren.push(...childOrPossibleGroup.ignoredChildren)
-      } else {
-        children.push(childOrPossibleGroup)
-      }
-    }
+		for (const childOrPossibleGroup of config.children) {
+			if (childOrPossibleGroup.ignore) {
+				ignoredChildren.push(childOrPossibleGroup)
+			} else if (childOrPossibleGroup instanceof Group2d) {
+				// Flatten nested groups
+				children.push(...childOrPossibleGroup.children)
+				ignoredChildren.push(...childOrPossibleGroup.ignoredChildren)
+			} else {
+				children.push(childOrPossibleGroup)
+			}
+		}
 
-    this.children = children
-    this.ignoredChildren = ignoredChildren
-  }
+		this.children = children
+		this.ignoredChildren = ignoredChildren
+	}
 }
 ```
 
 **Design decisions**:
+
 - Groups flatten nested groups during construction
 - Ignored children (flagged with `ignore: true`) stored separately
 - Used for shapes with labels (shape geometry + label geometry)
@@ -391,6 +426,7 @@ getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeom
 ```
 
 **Caching strategy**:
+
 - Context-aware caches (e.g., "arrow" context for binding geometry)
 - Uses computed cache that tracks shape changes
 - `areShapesContentEqual` determines cache invalidation
@@ -413,6 +449,7 @@ getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeom
 ```
 
 **Algorithm**:
+
 - Recursive composition up the parent hierarchy
 - Base case: shapes on page use local transform only
 - Recursive case: compose parent's page transform with local transform
@@ -435,6 +472,7 @@ getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeom
 ```
 
 **Algorithm**:
+
 1. Get shape's page transform (cached)
 2. Get shape's geometry bounds vertices (local space, cached)
 3. Transform vertices to page space
@@ -489,6 +527,7 @@ Used when shapes are clipped by parent frames. Returns the intersection of the s
 ```
 
 **Algorithm**:
+
 1. Walk up the ancestor hierarchy
 2. Collect clip paths from each ancestor that can clip
 3. Transform clip paths to page space
@@ -505,45 +544,46 @@ This handles nested frames where a shape might be clipped by multiple ancestors.
 
 ```typescript
 export function notVisibleShapes(editor: Editor) {
-  return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-    const viewportPageBounds = editor.getViewportPageBounds()
-    const viewMinX = viewportPageBounds.minX
-    const viewMinY = viewportPageBounds.minY
-    const viewMaxX = viewportPageBounds.maxX
-    const viewMaxY = viewportPageBounds.maxY
+	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
+		const viewportPageBounds = editor.getViewportPageBounds()
+		const viewMinX = viewportPageBounds.minX
+		const viewMinY = viewportPageBounds.minY
+		const viewMaxX = viewportPageBounds.maxX
+		const viewMaxY = viewportPageBounds.maxY
 
-    const nextValue = new Set<TLShapeId>()
-    const shapeIds = editor.getCurrentPageShapeIds()
+		const nextValue = new Set<TLShapeId>()
+		const shapeIds = editor.getCurrentPageShapeIds()
 
-    for (const id of shapeIds) {
-      const pageBounds = editor.getShapePageBounds(id)
+		for (const id of shapeIds) {
+			const pageBounds = editor.getShapePageBounds(id)
 
-      // Inlined AABB collision check for performance
-      if (
-        pageBounds !== undefined &&
-        pageBounds.maxX >= viewMinX &&
-        pageBounds.minX <= viewMaxX &&
-        pageBounds.maxY >= viewMinY &&
-        pageBounds.minY <= viewMaxY
-      ) {
-        continue  // Shape is visible
-      }
+			// Inlined AABB collision check for performance
+			if (
+				pageBounds !== undefined &&
+				pageBounds.maxX >= viewMinX &&
+				pageBounds.minX <= viewMaxX &&
+				pageBounds.maxY >= viewMinY &&
+				pageBounds.minY <= viewMaxY
+			) {
+				continue // Shape is visible
+			}
 
-      const shape = editor.getShape(id)
-      if (!shape) continue
+			const shape = editor.getShape(id)
+			if (!shape) continue
 
-      const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-      if (!canCull) continue
+			const canCull = editor.getShapeUtil(shape.type).canCull(shape)
+			if (!canCull) continue
 
-      nextValue.add(id)  // Shape is culled (not visible)
-    }
+			nextValue.add(id) // Shape is culled (not visible)
+		}
 
-    return nextValue
-  })
+		return nextValue
+	})
 }
 ```
 
 **Performance optimizations**:
+
 1. **Inlined AABB check**: Avoids function call overhead in hot loop
 2. **Early viewport extraction**: Gets bounds values once before loop
 3. **Lazy shape fetch**: Only fetches full shape if bounds check passes
@@ -589,6 +629,7 @@ Converts screen viewport to page coordinates using camera position and zoom leve
 ```
 
 **Algorithm**:
+
 1. Iterate all shapes on current page
 2. Get masked page bounds for each
 3. Expand accumulator to include each shape
@@ -620,6 +661,172 @@ Converts screen viewport to page coordinates using camera position and zoom leve
 ```
 
 Same pattern as page bounds, but only for selected shapes.
+
+### Rotated Selection Bounds
+
+tldraw distinguishes between two types of selection bounds:
+
+1. **Axis-Aligned Selection Bounds** (`getSelectionPageBounds`): Always an AABB
+2. **Rotated Selection Bounds** (`getSelectionRotatedPageBounds`): A rotated box when shapes share a common rotation
+
+#### Shared Rotation Detection
+
+**Location**: `/packages/editor/src/lib/editor/Editor.ts:2106-2135`
+
+```typescript
+getShapesSharedRotation(shapeIds: TLShapeId[]) {
+  let foundFirst = false
+  let rotation = 0
+  for (let i = 0, n = shapeIds.length; i < n; i++) {
+    const pageTransform = this.getShapePageTransform(shapeIds[i])
+    if (!pageTransform) continue
+    if (foundFirst) {
+      if (pageTransform.rotation() !== rotation) {
+        // There are at least 2 different rotations, so the common rotation is zero
+        return 0
+      }
+    } else {
+      foundFirst = true
+      rotation = pageTransform.rotation()
+    }
+  }
+  return rotation
+}
+
+@computed getSelectionRotation(): number {
+  return this.getShapesSharedRotation(this.getSelectedShapeIds())
+}
+```
+
+**Key behavior**:
+
+- Iterates through all selected shapes
+- If all shapes have the **same rotation value**, returns that rotation
+- If any shape has a **different rotation**, returns 0 (no unified rotation)
+- Uses `pageTransform.rotation()` which extracts rotation from the 2D transformation matrix
+
+#### Rotated Bounds Algorithm
+
+**Location**: `/packages/editor/src/lib/editor/Editor.ts:2140-2180`
+
+```typescript
+getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
+  if (shapeIds.length === 0) {
+    return undefined
+  }
+
+  const selectionRotation = this.getShapesSharedRotation(shapeIds)
+  if (selectionRotation === 0) {
+    return this.getShapesPageBounds(shapeIds) ?? undefined
+  }
+
+  if (shapeIds.length === 1) {
+    const bounds = this.getShapeGeometry(shapeIds[0]).bounds.clone()
+    const pageTransform = this.getShapePageTransform(shapeIds[0])!
+    bounds.point = pageTransform.applyToPoint(bounds.point)
+    return bounds
+  }
+
+  // need to 'un-rotate' all the outlines of the existing nodes so we can fit them inside a box
+  const boxFromRotatedVertices = Box.FromPoints(
+    shapeIds
+      .flatMap((id) => {
+        const pageTransform = this.getShapePageTransform(id)
+        if (!pageTransform) return []
+        return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
+      })
+      .map((p) => p.rot(-selectionRotation))  // Un-rotate all corners
+  )
+  // now position box so that it's top-left corner is in the right place
+  boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
+  return boxFromRotatedVertices
+}
+
+@computed getSelectionRotatedPageBounds(): Box | undefined {
+  return this.getShapesRotatedPageBounds(this.getSelectedShapeIds())
+}
+```
+
+**Algorithm for multiple shapes with shared rotation**:
+
+1. Get the shared rotation angle from all selected shapes
+2. If rotation is 0 or shapes have different rotations, fall back to axis-aligned bounds
+3. For single shape: return its local bounds positioned at the page transform point
+4. For multiple shapes with same rotation:
+   - Collect all corner vertices from each shape's bounds (in page space)
+   - Un-rotate all corners by the negative of the shared rotation angle
+   - Compute axis-aligned box from these un-rotated points
+   - Re-rotate the box's top-left corner back to the original rotation
+5. Result: A box whose dimensions fit the shapes when viewed at their rotation angle
+
+**Why this works**:
+The rotated selection box isn't an AABB—it's oriented to match the shapes' rotation. By un-rotating all the corner points to "axis-aligned space," computing the bounding box there, and then re-rotating the result, we get a tight-fitting box that respects the shared rotation. This is what the user sees as the selection handles around rotated shapes.
+
+#### Selection Box vs AABB Distinction
+
+| Aspect                  | Axis-Aligned (AABB)            | Rotated Selection Box             |
+| ----------------------- | ------------------------------ | --------------------------------- |
+| **Method**              | `getSelectionPageBounds()`     | `getSelectionRotatedPageBounds()` |
+| **Orientation**         | Always horizontal/vertical     | Matches shape rotation            |
+| **Used for**            | Hit testing, culling, snapping | Visual selection UI               |
+| **Multiple shapes**     | Always works                   | Requires identical rotations      |
+| **Different rotations** | Returns axis-aligned envelope  | Falls back to AABB (rotation = 0) |
+
+#### Selection UI Rendering
+
+**Location**: `/packages/editor/src/lib/components/default-components/DefaultCanvas.tsx:567-598`
+
+```typescript
+function SelectionForegroundWrapper() {
+  const editor = useEditor()
+  const selectionRotation = useValue(
+    'selection rotation',
+    () => editor.getSelectionRotation(),
+    [editor]
+  )
+  const selectionBounds = useValue(
+    'selection bounds',
+    () => editor.getSelectionRotatedPageBounds(),
+    [editor]
+  )
+  const { SelectionForeground } = useEditorComponents()
+  if (!selectionBounds || !SelectionForeground) return null
+  return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
+}
+```
+
+The selection UI components receive both the rotated bounds and the rotation angle. The bounds define the box dimensions, and the rotation is applied via CSS transform to orient the selection handles.
+
+**Location**: `/packages/editor/src/lib/hooks/useTransform.ts:5-30`
+
+```typescript
+export function useTransform(
+	ref: React.RefObject<HTMLElement | SVGElement | null>,
+	x?: number,
+	y?: number,
+	scale?: number,
+	rotate?: number,
+	additionalOffset?: VecLike
+) {
+	useLayoutEffect(() => {
+		const elm = ref.current
+		if (!elm) return
+		if (x === undefined) return
+
+		let trans = `translate(${x}px, ${y}px)`
+		if (scale !== undefined) {
+			trans += ` scale(${scale})`
+		}
+		if (rotate !== undefined) {
+			trans += ` rotate(${rotate}rad)`
+		}
+		// ...
+		elm.style.transform = trans
+	})
+}
+```
+
+The rotation is applied as a CSS transform in radians, which orients the entire selection box SVG element to match the shapes' rotation.
 
 ## Edge Cases and Special Handling
 
@@ -659,6 +866,7 @@ Uses approximate comparison with tolerance for floating-point arithmetic errors.
 **Location**: `/packages/editor/src/lib/primitives/Box.ts:535-581`
 
 Complex algorithm for maintaining aspect ratio:
+
 1. Compute scale factors in X and Y
 2. Detect axis flips (negative scale)
 3. Adjust opposite corner based on aspect ratio
@@ -670,11 +878,11 @@ Complex algorithm for maintaining aspect ratio:
 
 ```typescript
 new Rectangle2d({
-  ...labelBounds,
-  isFilled: true,
-  isLabel: true,
-  excludeFromShapeBounds: true,  // Key line!
-  isEmptyLabel: isEmptyLabel,
+	...labelBounds,
+	isFilled: true,
+	isLabel: true,
+	excludeFromShapeBounds: true, // Key line!
+	isEmptyLabel: isEmptyLabel,
 })
 ```
 
@@ -688,10 +896,10 @@ Shapes with very small dimensions (< 1 pixel width or height) need special handl
 
 ```typescript
 if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
-  // Skip broad phase for very thin shapes
-  distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+	// Skip broad phase for very thin shapes
+	distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 } else {
-  // Normal broad phase + narrow phase
+	// Normal broad phase + narrow phase
 }
 ```
 
@@ -708,6 +916,7 @@ if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
 ### Cache Invalidation
 
 The reactive caching system invalidates on:
+
 - Shape content changes (position, rotation, scale, props)
 - Parent hierarchy changes
 - Camera/viewport changes (for viewport bounds only)
@@ -733,3 +942,4 @@ The reactive caching system invalidates on:
 8. **Incremental updates**: Reactive system only recomputes what changed
 9. **Precision handling**: Approximate comparisons for floating-point safety
 10. **Viewport culling**: Inlined AABB check in hot loop for performance
+11. **Selection box vs AABB**: The visual selection box can be rotated (when shapes share rotation), but AABBs for hit testing and culling are always axis-aligned. The rotated selection box is computed by un-rotating corners, fitting an AABB, then re-rotating.
