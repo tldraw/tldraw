@@ -98,15 +98,17 @@ ${flagged(
 	- Always ensure they are properly connected with bindings.
 	- You can make the arrow curved by using the 'bend' property. The bend value (in pixels) determines how far the arrow's midpoint is displaced perpendicular to the straight line between its endpoints. To determine the correct sign:
 		- Calculate the arrow's direction vector: (dx = x2 - x1, dy = y2 - y1)
-		- The perpendicular direction (90° counterclockwise) is: (-dy, dx)
-		- Positive bend displaces the midpoint in the direction of (-dy, dx)
-		- Negative bend displaces the midpoint in the opposite direction: (dy, -dx)
+		- There are two vectors perpendicular to the arrow's direction vector: (-dy, dx) and (dy, -dx)
+		- A positive bend value displaces the midpoint of the arrow perpendicularly to the left of the arrow's direction, in the direction of (dy, -dx)
+		- A negative bend value displaces the midpoint of the arrow perpendicularly to the right of the arrow's direction, in the direction: (-dy, dx)
 		- Examples:
-			- Arrow going RIGHT (dx > 0, dy = 0): positive bend curves DOWN, negative bend curves UP
-			- Arrow going LEFT (dx < 0, dy = 0): positive bend curves UP, negative bend curves DOWN
+			- Arrow going RIGHT (relatively to the canvas) (dx > 0, dy = 0): positive bend curves UP (relatively to the canvas), negative bend curves DOWN (relatively to the canvas)
+			- Arrow going LEFT (dx < 0, dy = 0): positive bend curves DOWN, negative bend curves UP
 			- Arrow going DOWN (dx = 0, dy > 0): positive bend curves RIGHT, negative bend curves LEFT
 			- Arrow going UP (dx = 0, dy < 0): positive bend curves LEFT, negative bend curves RIGHT
-		- Or simply: positive bend rotates the perpendicular 90° counterclockwise from the arrow's direction.
+		- And one diagonal example:
+			- Arrow going DOWN and RIGHT (dx > 0, dy > 0): positive bend curves UP and RIGHT, negative bend curves DOWN and LEFT
+		- Or simply: if you think of your arrow as going righty tighty, or clockwise around a circle, a positive bend with make it bend away from the center of that circle, and a negative bend will make it bend towards the center of that circle.
 		- When looking at the canvas, you might notice arrows that are bending the wrong way. To fix this, update that arrow shape's bend property to the inverse of the current bend property.
 	- Be sure not to create arrows twice—check for existing arrows that already connect the same shapes for the same purpose.
 	- Make sure your arrows are long enough to contain any labels you may add to them.
