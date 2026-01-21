@@ -13,9 +13,16 @@ import { buildRulesPromptSection } from './sections/rules-section'
  * what actions and parts are available.
  *
  * @param prompt - The prompt containing all parts including the mode part.
+ * @param opts - Options for building the system prompt.
+ * @param opts.withSchema - Whether to include the JSON schema in the system prompt. Defaults to true.
  * @returns The system prompt string.
  */
-export function buildSystemPrompt(prompt: AgentPrompt): string {
+export function buildSystemPrompt(
+	prompt: AgentPrompt,
+	opts: { withSchema: boolean } = { withSchema: true }
+): string {
+	const { withSchema = true } = opts
+
 	const modePart = prompt.mode
 	if (!modePart) {
 		throw new Error('A mode part is always required.')
@@ -26,7 +33,9 @@ export function buildSystemPrompt(prompt: AgentPrompt): string {
 
 	const lines = [buildIntroPromptSection(flags), buildRulesPromptSection(flags)]
 
-	lines.push(buildSchemaPromptSection(actionTypes))
+	if (withSchema) {
+		lines.push(buildSchemaPromptSection(actionTypes))
+	}
 
 	const result = normalizeNewlines(lines.join('\n'))
 
