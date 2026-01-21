@@ -31,12 +31,13 @@ export function ChatPanel() {
 			// Clear the chat input (context is cleared after it's captured in requestAgentActions)
 			inputRef.current.value = ''
 
-			// Sending a new message to the agent shoudl interrupt the current request
+			// Sending a new message to the agent should interrupt the current request
 			agent.interrupt({
 				input: {
 					agentMessages: [value],
 					bounds: editor.getViewportPageBounds(),
 					source: 'user',
+					contextItems: agent.context.getItems(),
 				},
 			})
 		},

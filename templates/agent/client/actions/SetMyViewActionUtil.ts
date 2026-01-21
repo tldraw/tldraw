@@ -1,3 +1,4 @@
+import { structuredClone } from 'tldraw'
 import { SetMyViewAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
@@ -19,6 +20,8 @@ export const SetMyViewActionUtil = registerActionUtil(
 		override applyAction(action: Streaming<SetMyViewAction>, helpers: AgentHelpers) {
 			if (!action.complete) return
 
+			const roundedAction = helpers.roundBox(structuredClone(action))
+
 			const bounds = helpers.removeOffsetFromBox({
 				x: action.x,
 				y: action.y,
@@ -30,7 +33,7 @@ export const SetMyViewActionUtil = registerActionUtil(
 				input: {
 					bounds,
 					agentMessages: [
-						`Just navigated to new area with the intent: ${action.intent}. Can now see the new area at (${bounds.x}, ${bounds.y}) and is ${bounds.w}x${bounds.h} in size.`,
+						`Just navigated to new area with the intent: ${action.intent}. Can now see the new area at (${roundedAction.x}, ${roundedAction.y}) and is ${roundedAction.w}x${roundedAction.h} in size.`, // this uses the action instead of the bounds because this will go in the chat history and so must be consistent with what the agent thinks the chat origin is
 					],
 				},
 			})
