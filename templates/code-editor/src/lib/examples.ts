@@ -781,6 +781,108 @@ const interval = setInterval(() => {
 
 canvas.zoomToFit({ animation: { duration: 400 } })`,
 
+	'Dot Sphere': `// 3D sphere using freehand dots with organic, wobbly movement
+
+const cx = 400, cy = 300
+const scale3d = 200
+
+function project({ x, y, z }) {
+  return { x: x / z, y: y / z }
+}
+
+function rotateX({ x, y, z }, a) {
+  const c = Math.cos(a), s = Math.sin(a)
+  return { x, y: y*c - z*s, z: y*s + z*c }
+}
+
+function rotateY({ x, y, z }, a) {
+  const c = Math.cos(a), s = Math.sin(a)
+  return { x: x*c + z*s, y, z: -x*s + z*c }
+}
+
+// Generate sphere points using fibonacci distribution for more organic feel
+const points = []
+const numPoints = 160
+const goldenRatio = (1 + Math.sqrt(5)) / 2
+
+for (let i = 0; i < numPoints; i++) {
+  const theta = 2 * Math.PI * i / goldenRatio
+  const phi = Math.acos(1 - 2 * (i + 0.5) / numPoints)
+  points.push({
+    x: Math.sin(phi) * Math.cos(theta),
+    y: Math.cos(phi),
+    z: Math.sin(phi) * Math.sin(theta),
+    idx: i
+  })
+}
+
+const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
+const sizes = ['s', 'm', 'l', 'xl']
+const shapeIds = points.map((p, i) => {
+  return canvas.createDot(cx, cy, {
+    color: colors[i % 6],
+    size: sizes[i % 4]
+  })
+})
+
+let time = 0
+let angleX = 0, angleY = 0
+const cameraZ = 2
+
+const interval = setInterval(() => {
+  time += 0.025
+  angleX += 0.008
+  angleY += 0.015
+
+  // Gentle breathing
+  const breathe = 1 + 0.1 * Math.sin(time * 1.5)
+
+  const updates = shapeIds.map((id, i) => {
+    const pt = points[i]
+
+    // Individual wobble for each dot
+    const wobbleX = Math.sin(time * 2 + pt.idx * 0.5) * 0.03
+    const wobbleY = Math.cos(time * 1.7 + pt.idx * 0.3) * 0.03
+
+    let p = {
+      x: (pt.x + wobbleX) * breathe,
+      y: (pt.y + wobbleY) * breathe,
+      z: pt.z * breathe
+    }
+
+    p = rotateX(p, angleX)
+    p = rotateY(p, angleY)
+
+    const z = p.z + cameraZ
+    const proj = project({ x: p.x, y: p.y, z })
+    const screenX = cx + proj.x * scale3d
+    const screenY = cy - proj.y * scale3d
+
+    // Depth for opacity and size
+    const depth = 1 - (p.z / breathe + 1) / 2
+
+    // Scale dots based on depth - closer = bigger
+    const dotScale = 0.5 + depth * 1.5
+
+    // Cycle colors over time
+    const colorIdx = Math.floor(time * 0.5 + pt.idx * 0.1) % 6
+
+    return {
+      id,
+      type: 'draw',
+      x: screenX,
+      y: screenY,
+      props: { color: colors[colorIdx], scale: dotScale },
+      opacity: Math.min(1, Math.max(0, 0.3 + depth * 0.7))
+    }
+  })
+
+  editor.updateShapes(updates)
+}, 50)
+
+// Zoom out to see the full sphere
+canvas.setCamera({ x: cx, y: cy, z: 0.65 })`,
+
 	'3D Cube': `// Rotating 3D wireframe cube with perspective projection
 
 const cx = 400, cy = 300

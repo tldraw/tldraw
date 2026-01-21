@@ -1,4 +1,5 @@
 import {
+	b64Vecs,
 	createShapeId,
 	Editor,
 	TLBinding,
@@ -252,6 +253,37 @@ export function createEditorAPI(editor: Editor) {
 						w: radius * 2,
 						h: radius * 2,
 						geo: 'ellipse',
+						...options,
+					},
+					meta: { generated: true },
+				},
+			])
+			return id
+		},
+
+		/**
+		 * Create a freehand dot (draw shape with a single point).
+		 * These have a hand-drawn, organic appearance unlike geo circles.
+		 * @param x - X coordinate of dot center
+		 * @param y - Y coordinate of dot center
+		 * @param options - Additional shape properties (color, size, etc.)
+		 * @returns The created shape ID
+		 *
+		 * @example
+		 * api.createDot(100, 100, { color: 'red', size: 'm' })
+		 */
+		createDot(x: number, y: number, options: Record<string, unknown> = {}): TLShapeId {
+			const id = createShapeId()
+			const pointData = b64Vecs.encodePoint(0, 0, 0.5)
+			editor.createShapes([
+				{
+					id,
+					type: 'draw',
+					x,
+					y,
+					props: {
+						segments: [{ type: 'free', points: pointData }],
+						isComplete: true,
 						...options,
 					},
 					meta: { generated: true },
