@@ -154,10 +154,6 @@ export function getAreFairiesEnabled() {
 	return localSessionState.get().fairiesEnabled ?? true
 }
 
-export function useAreFairiesEnabled() {
-	return useValue('areFairiesEnabled', getAreFairiesEnabled, [])
-}
-
 export function toggleFairies(enabled?: boolean) {
 	const nextEnabled = enabled ?? !getAreFairiesEnabled()
 	updateLocalSessionState(() => {
