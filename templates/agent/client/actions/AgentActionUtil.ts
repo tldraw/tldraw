@@ -10,36 +10,105 @@ import { AgentHelpers } from '../AgentHelpers'
 // Registry
 // ============================================================================
 
-const registry = new Map<string, AgentActionUtilConstructor<BaseAgentAction>>()
+/**
+ * Options for registering an action util.
+ */
+export interface RegisterActionUtilOptions {
+	/**
+	 * If specified, this util will only be used when the agent is in one of these modes.
+	 * Otherwise, it will be the default util for this action type.
+	 */
+	forModes?: string[]
+}
+
+// Default registry: actionType -> util (used when no mode-specific util is registered)
+const defaultRegistry = new Map<string, AgentActionUtilConstructor<BaseAgentAction>>()
+
+// Mode registry: actionType -> (mode -> util) (mode-specific overrides)
+const modeRegistry = new Map<string, Map<string, AgentActionUtilConstructor<BaseAgentAction>>>()
 
 /**
  * Register an agent action util class. Call this after defining each util class.
+ *
+ * @param util - The action util class to register.
+ * @param options - Optional configuration for mode-specific registration.
+ * @returns The registered util class.
  */
 export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgentAction>>(
-	util: T
+	util: T,
+	options?: RegisterActionUtilOptions
 ): T {
-	if (registry.has(util.type)) {
-		throw new Error(`Agent action util already registered: ${util.type}`)
+	const { forModes } = options ?? {}
+
+	if (forModes && forModes.length > 0) {
+		// Mode-specific registration
+		if (!modeRegistry.has(util.type)) {
+			modeRegistry.set(util.type, new Map())
+		}
+		const modeMap = modeRegistry.get(util.type)!
+		for (const mode of forModes) {
+			if (modeMap.has(mode)) {
+				throw new Error(`Action util for ${util.type} already registered for mode ${mode}`)
+			}
+			modeMap.set(mode, util)
+		}
+	} else {
+		// Default registration (existing behavior)
+		if (defaultRegistry.has(util.type)) {
+			throw new Error(`Agent action util already registered: ${util.type}`)
+		}
+		defaultRegistry.set(util.type, util)
 	}
-	registry.set(util.type, util)
+
 	return util
 }
 
 /**
  * Get all registered agent action util classes.
+ * Returns both default and mode-specific utils (deduplicated).
  */
 export function getAllActionUtils(): AgentActionUtilConstructor<AgentAction>[] {
-	return Array.from(registry.values()) as AgentActionUtilConstructor<AgentAction>[]
+	const allUtils = new Set<AgentActionUtilConstructor<BaseAgentAction>>()
+
+	// Add all default utils
+	for (const util of defaultRegistry.values()) {
+		allUtils.add(util)
+	}
+
+	// Add all mode-specific utils
+	for (const modeMap of modeRegistry.values()) {
+		for (const util of modeMap.values()) {
+			allUtils.add(util)
+		}
+	}
+
+	return Array.from(allUtils) as AgentActionUtilConstructor<AgentAction>[]
 }
 
 /**
- * Get an object containing instantiated agent action utils for an agent.
+ * Get an object containing instantiated agent action utils for an agent,
+ * resolved for a specific mode. Mode-specific utils override defaults.
+ *
+ * @param agent - The agent to create utils for.
+ * @param mode - The mode to resolve utils for.
+ * @returns A record of action utils keyed by action type.
  */
-export function getAgentActionUtilsRecord(agent: TldrawAgent) {
+export function getAgentActionUtilsRecordForMode(agent: TldrawAgent, mode: string) {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
-	for (const util of registry.values()) {
-		object[util.type as AgentAction['_type']] = new util(agent) as AgentActionUtil<AgentAction>
+
+	// Start with defaults
+	for (const [type, util] of defaultRegistry.entries()) {
+		object[type as AgentAction['_type']] = new util(agent) as AgentActionUtil<AgentAction>
 	}
+
+	// Override with mode-specific utils
+	for (const [type, modeMap] of modeRegistry.entries()) {
+		const modeUtil = modeMap.get(mode)
+		if (modeUtil) {
+			object[type as AgentAction['_type']] = new modeUtil(agent) as AgentActionUtil<AgentAction>
+		}
+	}
+
 	return object
 }
 

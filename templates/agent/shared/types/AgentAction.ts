@@ -1,4 +1,12 @@
 import z from 'zod'
+import {
+	getDefaultActionSchema,
+	hasDefaultActionSchema,
+	registerActionSchema,
+} from '../schema/AgentActionSchemaRegistry'
+
+// Re-export mode-aware schema lookup
+export { getActionSchemaForMode } from '../schema/AgentActionSchemaRegistry'
 
 // ============================================================================
 // Type Derivation
@@ -26,7 +34,7 @@ export type AgentActionSchema = Extract<SchemaExports, z.ZodType>
 export type AgentAction = ExtractZodType<AgentActionSchema>
 
 // ============================================================================
-// Runtime Lookup (built from exports)
+// Runtime Lookup (built from exports and registered with schema registry)
 // ============================================================================
 
 /** Runtime import of all schemas for building lookup */
@@ -46,15 +54,20 @@ function getSchemaType(schema: z.ZodObject<{ _type: z.ZodLiteral<string> }>): st
 	return schema.shape._type.value
 }
 
-/** Build lookup object from all exported schemas */
-const schemasByType: Record<string, AgentActionSchema> = Object.fromEntries(
-	Object.values(AllSchemas)
-		.filter(isActionSchema)
-		.map((schema) => [getSchemaType(schema), schema as AgentActionSchema])
-)
+/** Build lookup object from all exported schemas and register them as defaults */
+const schemasByType: Record<string, AgentActionSchema> = {}
+for (const value of Object.values(AllSchemas)) {
+	if (!isActionSchema(value)) continue
+	const type = getSchemaType(value)
+	// Skip if a default schema is already registered for this type
+	// (handles cases where multiple schemas share the same _type, e.g., mode-specific variants)
+	if (hasDefaultActionSchema(type)) continue
+	registerActionSchema(type, value)
+	schemasByType[type] = value as AgentActionSchema
+}
 
 /**
- * Get all action schemas.
+ * Get all action schemas (default schemas only).
  */
 export function getAllActionSchemas(): AgentActionSchema[] {
 	return Object.values(schemasByType)
@@ -62,9 +75,10 @@ export function getAllActionSchemas(): AgentActionSchema[] {
 
 /**
  * Get an action schema by its _type value.
+ * Returns the default schema (ignoring mode).
  */
 export function getActionSchema(type: string): AgentActionSchema | undefined {
-	return schemasByType[type]
+	return getDefaultActionSchema(type) as AgentActionSchema | undefined
 }
 
 /**

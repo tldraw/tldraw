@@ -42,6 +42,7 @@ export class AgentModeManager extends BaseAgentManager {
 	/**
 	 * Set the mode of the agent.
 	 * Calls onExit for the current mode and onEnter for the new mode.
+	 * Also rebuilds action utils to use mode-specific implementations.
 	 * @param newMode - The mode to set.
 	 */
 	setMode(newMode: AgentModeType) {
@@ -59,6 +60,9 @@ export class AgentModeManager extends BaseAgentManager {
 
 		// Update the mode
 		this.$mode.set(newMode)
+
+		// Rebuild action utils for the new mode
+		this.agent.actions.rebuildUtilsForMode(newMode)
 	}
 
 	/**

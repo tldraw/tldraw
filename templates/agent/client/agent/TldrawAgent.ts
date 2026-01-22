@@ -131,13 +131,14 @@ export class TldrawAgent {
 		this.onError = onError
 
 		// Initialize managers
+		// Note: mode must be initialized before actions, since actions depends on mode
+		this.mode = new AgentModeManager(this)
 		this.actions = new AgentActionManager(this)
 		this.chat = new AgentChatManager(this)
 		this.chatOrigin = new AgentChatOriginManager(this)
 		this.context = new AgentContextManager(this)
 		this.debug = new AgentDebugManager(this)
 		this.lints = new AgentLintManager(this)
-		this.mode = new AgentModeManager(this)
 		this.modelName = new AgentModelNameManager(this)
 		this.requests = new AgentRequestManager(this)
 		this.todos = new AgentTodoManager(this)

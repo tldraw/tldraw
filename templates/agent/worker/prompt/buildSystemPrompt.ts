@@ -1,5 +1,5 @@
 import { buildResponseSchema } from '../../shared/schema/buildResponseSchema'
-import type { AgentAction } from '../../shared/types/AgentAction'
+import type { ModePart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getSystemPromptFlags } from './getSystemPromptFlags'
 import { buildIntroPromptSection } from './sections/intro-section'
@@ -34,7 +34,7 @@ export function buildSystemPrompt(
 	const lines = [buildIntroPromptSection(flags), buildRulesPromptSection(flags)]
 
 	if (withSchema) {
-		lines.push(buildSchemaPromptSection(actionTypes))
+		lines.push(buildSchemaPromptSection(modePart))
 	}
 
 	const result = normalizeNewlines(lines.join('\n'))
@@ -42,12 +42,14 @@ export function buildSystemPrompt(
 	return result
 }
 
-function buildSchemaPromptSection(actions: AgentAction['_type'][]) {
+function buildSchemaPromptSection(modePart: ModePart) {
+	const schema = buildResponseSchema(modePart.actionTypes, modePart.modeType)
+
 	return `## JSON schema
 
 This is the JSON schema for the events you can return. You must conform to this schema.
 
-${JSON.stringify(buildResponseSchema(actions), null, 2)}
+${JSON.stringify(schema, null, 2)}
 `
 }
 

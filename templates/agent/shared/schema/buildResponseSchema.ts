@@ -1,9 +1,9 @@
 import z from 'zod'
-import { AgentAction, getActionSchema } from '../types/AgentAction'
+import { AgentAction, getActionSchemaForMode } from '../types/AgentAction'
 
-export function buildResponseSchema(actionTypes: AgentAction['_type'][]) {
+export function buildResponseSchema(actionTypes: AgentAction['_type'][], mode: string) {
 	const actionSchemas = actionTypes
-		.map((type) => getActionSchema(type))
+		.map((type) => getActionSchemaForMode(type, mode))
 		.filter((schema) => schema !== undefined)
 
 	if (actionSchemas.length === 0) {

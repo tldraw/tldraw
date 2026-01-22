@@ -2,7 +2,7 @@ import { RecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { AgentAction } from '../../../shared/types/AgentAction'
 import { ChatHistoryItem } from '../../../shared/types/ChatHistoryItem'
 import { Streaming } from '../../../shared/types/Streaming'
-import { AgentActionUtil, getAgentActionUtilsRecord } from '../../actions/AgentActionUtil'
+import { AgentActionUtil, getAgentActionUtilsRecordForMode } from '../../actions/AgentActionUtil'
 import { AgentHelpers } from '../../AgentHelpers'
 import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
@@ -16,7 +16,7 @@ export class AgentActionManager extends BaseAgentManager {
 	 * A record of the agent's action util instances.
 	 * Used by the `getAgentActionUtil` method.
 	 */
-	private agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	private agentActionUtils!: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
 	/**
 	 * The agent action util instance for the "unknown" action type.
@@ -25,12 +25,11 @@ export class AgentActionManager extends BaseAgentManager {
 	 * isn't properly specified. This can happen if the model isn't finished
 	 * streaming yet or makes a mistake.
 	 */
-	unknownActionUtil: AgentActionUtil<AgentAction>
+	unknownActionUtil!: AgentActionUtil<AgentAction>
 
 	constructor(agent: TldrawAgent) {
 		super(agent)
-		this.agentActionUtils = getAgentActionUtilsRecord(agent)
-		this.unknownActionUtil = this.agentActionUtils.unknown
+		this.rebuildUtilsForMode(agent.mode.getCurrentModeType())
 	}
 
 	/**
@@ -39,6 +38,18 @@ export class AgentActionManager extends BaseAgentManager {
 	 */
 	reset(): void {
 		// Reset state if needed - currently no state to reset
+	}
+
+	/**
+	 * Rebuild action utils for a specific mode.
+	 * Called when the agent's mode changes to ensure mode-specific
+	 * action utils are used.
+	 *
+	 * @param mode - The mode to rebuild utils for.
+	 */
+	rebuildUtilsForMode(mode: string): void {
+		this.agentActionUtils = getAgentActionUtilsRecordForMode(this.agent, mode)
+		this.unknownActionUtil = this.agentActionUtils.unknown
 	}
 
 	/**
