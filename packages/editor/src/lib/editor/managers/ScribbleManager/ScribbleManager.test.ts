@@ -681,7 +681,7 @@ describe('ScribbleManager', () => {
 			expect(item2.scribble.state).toBe('stopping')
 			// Verify staggered delays for sequential fading
 			expect(item1.delayRemaining).toBe(0) // First scribble fades immediately
-			expect(item2.delayRemaining).toBe(100) // Second scribble fades 100ms later
+			expect(item2.delayRemaining).toBe(300) // Second scribble fades 300ms later
 		})
 
 		it('should set delay to fade delay when ending session', () => {
@@ -739,11 +739,11 @@ describe('ScribbleManager', () => {
 
 			scribbleManager.endLaserSession()
 
-			// Verify sequential fade delays with 100ms stagger
+			// Verify sequential fade delays with 300ms stagger
 			expect(item1.delayRemaining).toBe(0) // First scribble fades immediately
-			expect(item2.delayRemaining).toBe(100) // Second scribble fades 100ms later
-			expect(item3.delayRemaining).toBe(200) // Third scribble fades 200ms later
-			expect(item4.delayRemaining).toBe(300) // Fourth scribble fades 300ms later
+			expect(item2.delayRemaining).toBe(300) // Second scribble fades 300ms later
+			expect(item3.delayRemaining).toBe(600) // Third scribble fades 600ms later
+			expect(item4.delayRemaining).toBe(900) // Fourth scribble fades 900ms later
 
 			// All should be in stopping state
 			expect(item1.scribble.state).toBe('stopping')
