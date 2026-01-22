@@ -1,22 +1,17 @@
 import { useMemo, useState } from 'react'
 import Markdown from 'react-markdown'
+import { AgentIcon } from '../../../shared/icons/AgentIcon'
+import { ChevronDownIcon } from '../../../shared/icons/ChevronDownIcon'
+import { ChevronRightIcon } from '../../../shared/icons/ChevronRightIcon'
 import { AgentAction } from '../../../shared/types/AgentAction'
 import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { Streaming } from '../../../shared/types/Streaming'
-import { TldrawAgent } from '../../agent/TldrawAgent'
-import { AgentIcon } from '../icons/AgentIcon'
-import { ChevronDownIcon } from '../icons/ChevronDownIcon'
-import { ChevronRightIcon } from '../icons/ChevronRightIcon'
+import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { getActionInfo } from './getActionInfo'
 
-export function ChatHistoryGroupWithoutDiff({
-	group,
-	agent,
-}: {
-	group: ChatHistoryGroup
-	agent: TldrawAgent
-}) {
+export function ChatHistoryGroupWithoutDiff({ group }: { group: ChatHistoryGroup }) {
+	const agent = useAgent()
 	const { items } = group
 
 	const nonEmptyItems = useMemo(() => {
@@ -47,7 +42,7 @@ export function ChatHistoryGroupWithoutDiff({
 		return (
 			<div className="chat-history-group">
 				{nonEmptyItems.map((item, i) => {
-					return <ChatHistoryItem item={item} agent={agent} key={'action-' + i} />
+					return <ChatHistoryItem item={item} key={'action-' + i} />
 				})}
 			</div>
 		)
@@ -66,9 +61,7 @@ export function ChatHistoryGroupWithoutDiff({
 			{showContent && (
 				<div className="agent-actions-container">
 					{nonEmptyItems.map((item, i) => {
-						return (
-							<ChatHistoryItemExpanded action={item.action} agent={agent} key={'action-' + i} />
-						)
+						return <ChatHistoryItemExpanded action={item.action} key={'action-' + i} />
 					})}
 				</div>
 			)}
@@ -76,7 +69,8 @@ export function ChatHistoryGroupWithoutDiff({
 	)
 }
 
-function ChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; agent: TldrawAgent }) {
+function ChatHistoryItem({ item }: { item: ChatHistoryActionItem }) {
+	const agent = useAgent()
 	const { action } = item
 	const { description, summary } = getActionInfo(action, agent)
 	const collapsible = summary !== null
@@ -93,20 +87,13 @@ function ChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; agent: 
 				</button>
 			)}
 
-			{(!collapsed || !action.complete) && (
-				<ChatHistoryItemExpanded action={action} agent={agent} />
-			)}
+			{(!collapsed || !action.complete) && <ChatHistoryItemExpanded action={action} />}
 		</div>
 	)
 }
 
-function ChatHistoryItemExpanded({
-	action,
-	agent,
-}: {
-	action: Streaming<AgentAction>
-	agent: TldrawAgent
-}) {
+function ChatHistoryItemExpanded({ action }: { action: Streaming<AgentAction> }) {
+	const agent = useAgent()
 	const { icon, description } = getActionInfo(action, agent)
 
 	return (

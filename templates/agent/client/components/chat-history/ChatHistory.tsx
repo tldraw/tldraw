@@ -16,7 +16,7 @@ The model's actions are grouped together into collapsible groups if appropriate.
 Here's an example of how the UI might look:
 
 - Chat history
-	- Section 
+	- Section
 		- Prompt
 		- Action group
 			- Action
@@ -31,7 +31,7 @@ Here's an example of how the UI might look:
 */
 
 export function ChatHistory({ agent }: { agent: TldrawAgent }) {
-	const historyItems = useValue(agent.$chatHistory)
+	const historyItems = useValue('chatHistory', () => agent.chat.getHistory(), [agent])
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
@@ -72,7 +72,7 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
 	}
 
-	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+	const isGenerating = useValue('isGenerating', () => agent.requests.isGenerating(), [agent])
 
 	return (
 		<div className="chat-history" ref={historyRef} onScroll={handleScroll}>
@@ -81,7 +81,6 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 					<ChatHistorySection
 						key={'history-section-' + i}
 						section={section}
-						agent={agent}
 						loading={i === sections.length - 1 && isGenerating}
 					/>
 				)
