@@ -3492,19 +3492,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gerrit0/mini-shiki@npm:^3.2.2":
-  version: 3.2.3
-  resolution: "@gerrit0/mini-shiki@npm:3.2.3"
-  dependencies:
-    "@shikijs/engine-oniguruma": "npm:^3.2.2"
-    "@shikijs/langs": "npm:^3.2.2"
-    "@shikijs/themes": "npm:^3.2.2"
-    "@shikijs/types": "npm:^3.2.2"
-    "@shikijs/vscode-textmate": "npm:^10.0.2"
-  checksum: 10/6ef3327ccbde92013d7387c2f2a9035b062a5b5527afa31a13f5476d01d0c45a16d31a2631f1bf248b30fe213893e4da435ccbd439d40e80cacf54763efa0faa
-  languageName: node
-  linkType: hard
-
 "@google-cloud/precise-date@npm:^4.0.0":
   version: 4.0.0
   resolution: "@google-cloud/precise-date@npm:4.0.0"
@@ -7915,7 +7902,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero-sqlite3@npm:^1.0.8":
+"@rocicorp/zero-sqlite3@npm:^1.0.12":
   version: 1.0.15
   resolution: "@rocicorp/zero-sqlite3@npm:1.0.15"
   dependencies:
@@ -7928,9 +7915,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:^0.23":
-  version: 0.23.3000000000
-  resolution: "@rocicorp/zero@npm:0.23.3000000000"
+"@rocicorp/zero@npm:^0.25":
+  version: 0.25.9
+  resolution: "@rocicorp/zero@npm:0.25.9"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -7952,7 +7939,8 @@ __metadata:
     "@rocicorp/lock": "npm:^1.0.4"
     "@rocicorp/logger": "npm:^5.4.0"
     "@rocicorp/resolver": "npm:^1.0.2"
-    "@rocicorp/zero-sqlite3": "npm:^1.0.8"
+    "@rocicorp/zero-sqlite3": "npm:^1.0.12"
+    "@standard-schema/spec": "npm:^1.0.0"
     "@types/basic-auth": "npm:^1.1.8"
     basic-auth: "npm:^2.0.1"
     chalk: "npm:^5.3.0"
@@ -7977,10 +7965,17 @@ __metadata:
     prettier: "npm:^3.5.3"
     semver: "npm:^7.5.4"
     tsx: "npm:^4.19.1"
-    typedoc: "npm:^0.28.2"
-    typedoc-plugin-markdown: "npm:^4.6.1"
     url-pattern: "npm:^1.0.3"
+    urlpattern-polyfill: "npm:^10.1.0"
     ws: "npm:^8.18.1"
+  peerDependencies:
+    "@op-engineering/op-sqlite": ">=15"
+    expo-sqlite: ">=15"
+  peerDependenciesMeta:
+    "@op-engineering/op-sqlite":
+      optional: true
+    expo-sqlite:
+      optional: true
   bin:
     analyze-query: out/zero/src/analyze-query.js
     ast-to-zql: out/zero/src/ast-to-zql.js
@@ -7989,7 +7984,8 @@ __metadata:
     zero-cache: out/zero/src/cli.js
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
-  checksum: 10/c32ae7ae4eed67edbf34a442b6bfc4d70d34ba004eacd801848650707eb8dca1194aeba48cdfab8b1fac3f5f69cfcf012559785564a579b2df8a1840324926d2
+    zero-out: out/zero/src/zero-out.js
+  checksum: 10/040d8444e0c3e7b657c859887cb76771d385c929e650654023ab2f97e92358861dd2184a61ef52f6a83542744426ff6f0b8608262c9b8ed2a42bf2a22c06e546
   languageName: node
   linkType: hard
 
@@ -8658,31 +8654,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/engine-oniguruma@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "@shikijs/engine-oniguruma@npm:3.2.2"
-  dependencies:
-    "@shikijs/types": "npm:3.2.2"
-    "@shikijs/vscode-textmate": "npm:^10.0.2"
-  checksum: 10/2e24850889026b00089977393a332b2054b9b8750186b2d4ea4dcec930bdec6b637cd0d6ae626ee07bdb885b716e3d7b44cd909c8624bb994c5118004eeef762
-  languageName: node
-  linkType: hard
-
 "@shikijs/langs@npm:1.29.1":
   version: 1.29.1
   resolution: "@shikijs/langs@npm:1.29.1"
   dependencies:
     "@shikijs/types": "npm:1.29.1"
   checksum: 10/94c50ca490fb71fad5959fefaa9a25268d711b485e7be971eaac8845833968d66386ddf30d42cbacec4ee574bf58047341c5f0c81290ca7db5b2806f1f36c42c
-  languageName: node
-  linkType: hard
-
-"@shikijs/langs@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "@shikijs/langs@npm:3.2.2"
-  dependencies:
-    "@shikijs/types": "npm:3.2.2"
-  checksum: 10/bd84bfca5b499004ad45eb3f064ad4375b51cac0728781156b42216ce614ffea063e4fbc6f35ea6f872ee932ccf7fbf6674f9e493c733659723558cc6fba0d62
   languageName: node
   linkType: hard
 
@@ -8709,15 +8686,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/themes@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "@shikijs/themes@npm:3.2.2"
-  dependencies:
-    "@shikijs/types": "npm:3.2.2"
-  checksum: 10/84c01e266ae5db856e950423b4d65d141a08650a992e7f364b1d2c60fdb9ffb4d3e251a6efe8fb38438ef44558b8e53ed37172fa52bc3074fa9893db41d4974d
-  languageName: node
-  linkType: hard
-
 "@shikijs/types@npm:1.29.1":
   version: 1.29.1
   resolution: "@shikijs/types@npm:1.29.1"
@@ -8728,17 +8696,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/types@npm:3.2.2, @shikijs/types@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "@shikijs/types@npm:3.2.2"
-  dependencies:
-    "@shikijs/vscode-textmate": "npm:^10.0.2"
-    "@types/hast": "npm:^3.0.4"
-  checksum: 10/613fd273407001320fcdcbc55591b25eaaba88f5e687c2284efeba867e742cbaafc3d6ae78aaa20d65b3a5bd4e5c7029c1515d41c72fdb7b35198a3c26071f91
-  languageName: node
-  linkType: hard
-
-"@shikijs/vscode-textmate@npm:^10.0.1, @shikijs/vscode-textmate@npm:^10.0.2":
+"@shikijs/vscode-textmate@npm:^10.0.1":
   version: 10.0.2
   resolution: "@shikijs/vscode-textmate@npm:10.0.2"
   checksum: 10/d924cba8a01cd9ca12f56ba097d628fdb81455abb85884c8d8a5ae85b628a37dd5907e7691019b97107bd6608c866adf91ba04a1c3bba391281c88e386c044ea
@@ -10288,7 +10246,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:^0.23"
+    "@rocicorp/zero": "npm:^0.25"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -10312,7 +10270,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@pierre/storage": "npm:^0.1.1"
-    "@rocicorp/zero": "npm:^0.23"
+    "@rocicorp/zero": "npm:^0.25"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -10766,7 +10724,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:^0.23"
+    "@rocicorp/zero": "npm:^0.25"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.25.6"
@@ -15850,7 +15808,7 @@ __metadata:
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
     "@playwright/test": "npm:^1.50.0"
-    "@rocicorp/zero": "npm:^0.23"
+    "@rocicorp/zero": "npm:^0.25"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -21506,13 +21464,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lunr@npm:^2.3.9":
-  version: 2.3.9
-  resolution: "lunr@npm:2.3.9"
-  checksum: 10/f2f6db34c046f5a767782fe2454e6dd69c75ba3c5cf5c1cb9cacca2313a99c2ba78ff8fa67dac866fb7c4ffd5f22e06684793f5f15ba14bddb598b94513d54bf
-  languageName: node
-  linkType: hard
-
 "lz-string@npm:*, lz-string@npm:^1.5.0":
   version: 1.5.0
   resolution: "lz-string@npm:1.5.0"
@@ -22645,7 +22596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.4, minimatch@npm:^9.0.5":
+"minimatch@npm:^9.0.4":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:
@@ -29575,32 +29526,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-markdown@npm:^4.6.1":
-  version: 4.6.2
-  resolution: "typedoc-plugin-markdown@npm:4.6.2"
-  peerDependencies:
-    typedoc: 0.28.x
-  checksum: 10/4a6a9a4c1f34b3ae858b9f8eac5b194e4e9434affde3523f4541e69c88dc42a148595b6b4281dc27c35d8999f1d3cc111e1bf79043cfa9e8e2c12aaf092ac38d
-  languageName: node
-  linkType: hard
-
-"typedoc@npm:^0.28.2":
-  version: 0.28.2
-  resolution: "typedoc@npm:0.28.2"
-  dependencies:
-    "@gerrit0/mini-shiki": "npm:^3.2.2"
-    lunr: "npm:^2.3.9"
-    markdown-it: "npm:^14.1.0"
-    minimatch: "npm:^9.0.5"
-    yaml: "npm:^2.7.1"
-  peerDependencies:
-    typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x
-  bin:
-    typedoc: bin/typedoc
-  checksum: 10/ee49b123ea2c0567984e68ce209a7157918f969669e6f2203ec073885f55cc32ce58790b0f858b220ffda6e0af233c115c8757bc6cccc569df6a1e95d0b0ae7c
-  languageName: node
-  linkType: hard
-
 "typescript@npm:4.9.5, typescript@npm:^4.4.2":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
@@ -30065,6 +29990,13 @@ __metadata:
     punycode: "npm:1.3.2"
     querystring: "npm:0.2.0"
   checksum: 10/8c04e30d65907a1e01569cead632c74ea3af99d1b9b63dfbb2cf636640fe210f7a1bc16990aac04914dbb63ad2bd50effee3e782e0170d5938a11e8aa38358a5
+  languageName: node
+  linkType: hard
+
+"urlpattern-polyfill@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "urlpattern-polyfill@npm:10.1.0"
+  checksum: 10/a3a5cb577f40e9d14a2bc0e23e540d088ec8c18e52932337c2499a8118f32aa8fa32578f0cddaa189de671964b0f33ba7e008d0784b99804a09a9ff924f87f5a
   languageName: node
   linkType: hard
 
@@ -31254,7 +31186,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.0.0, yaml@npm:^2.2.1, yaml@npm:^2.2.2, yaml@npm:^2.3.4, yaml@npm:^2.7.0, yaml@npm:^2.7.1":
+"yaml@npm:^2.0.0, yaml@npm:^2.2.1, yaml@npm:^2.2.2, yaml@npm:^2.3.4, yaml@npm:^2.7.0":
   version: 2.7.1
   resolution: "yaml@npm:2.7.1"
   bin:
