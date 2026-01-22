@@ -46,17 +46,10 @@ export const queries = defineQueries({
 		zql.group.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
 	),
 
-	/** Group memberships with related group, files, and members */
+	/** User's group memberships with related group, files, and members */
 	groupUsers: defineQuery(({ ctx }) =>
 		zql.group_user
-			.where(({ or, cmp, exists }) =>
-				or(
-					cmp('userId', '=', ctx.userId),
-					exists('group', (q) =>
-						q.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
-					)
-				)
-			)
+			.where('userId', '=', ctx.userId)
 			.related('group', (group) => group.one())
 			.related('groupFiles', (gf) => gf.related('file', (file) => file.one()))
 			.related('groupMembers')
