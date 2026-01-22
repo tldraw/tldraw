@@ -920,7 +920,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLArrowShape) {

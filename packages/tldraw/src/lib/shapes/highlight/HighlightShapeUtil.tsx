@@ -9,7 +9,6 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
-	debugFlags,
 	getColorValue,
 	highlightShapeMigrations,
 	highlightShapeProps,
@@ -149,7 +148,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {

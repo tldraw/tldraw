@@ -7,7 +7,6 @@ import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { useEditor } from '../../hooks/useEditor'
 import { useIsDarkMode } from '../../hooks/useIsDarkMode'
-import { debugFlags } from '../../utils/debug-flags'
 
 /** @public */
 export interface TLCanvasShapeIndicatorsProps {
@@ -111,8 +110,6 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 	const $renderData = useComputed(
 		'indicator render data',
 		() => {
-			const useCanvasIndicators = debugFlags.useCanvasIndicators.get()
-			const perfLogging = debugFlags.indicatorPerfLogging.get()
 			const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
 
 			// Compute ids to display
@@ -152,8 +149,6 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 				idsToDisplay,
 				renderingShapeIds,
 				hintingShapeIds,
-				useCanvasIndicators,
-				perfLogging,
 			}
 		},
 		{ isEqual: isEqual },
@@ -169,15 +164,7 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 			const ctx = canvas.getContext('2d')
 			if (!ctx) return
 
-			const { idsToDisplay, renderingShapeIds, hintingShapeIds, useCanvasIndicators, perfLogging } =
-				$renderData.get()
-
-			// If canvas indicators are disabled, just clear and exit
-			if (!useCanvasIndicators) {
-				ctx.resetTransform()
-				ctx.clearRect(0, 0, canvas.width, canvas.height)
-				return
-			}
+			const { idsToDisplay, renderingShapeIds, hintingShapeIds } = $renderData.get()
 
 			const { w, h } = editor.getViewportScreenBounds()
 			const dpr = window.devicePixelRatio || 1
@@ -209,35 +196,18 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 			ctx.lineCap = 'round'
 			ctx.lineJoin = 'round'
 
-			// Start timing after setup, to match SVG measurement which excludes per-shape transform updates
-			const t0 = perfLogging ? performance.now() : 0
-
 			// Draw selected/hovered indicators (1.5px stroke)
 			ctx.lineWidth = 1.5 / zoom
-			let canvasRenderedCount = 0
 			for (const shapeId of idsToDisplay) {
-				if (renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)) {
-					canvasRenderedCount++
-				}
+				renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
 			}
 
 			// Draw hinted indicators with a thicker stroke (2.5px)
 			if (hintingShapeIds.length > 0) {
 				ctx.lineWidth = 2.5 / zoom
 				for (const shapeId of hintingShapeIds) {
-					if (renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)) {
-						canvasRenderedCount++
-					}
+					renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
 				}
-			}
-
-			if (perfLogging && canvasRenderedCount > 0) {
-				const duration = performance.now() - t0
-				const perShape = (duration / canvasRenderedCount).toFixed(3)
-				performance.measure(
-					`CanvasIndicators (${canvasRenderedCount} shapes, ${perShape}ms/shape)`,
-					{ start: t0, end: performance.now() }
-				)
 			}
 		},
 		[editor, $renderData]

@@ -1,9 +1,8 @@
 import { useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
-import { memo, useLayoutEffect, useRef } from 'react'
+import { memo, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
-import { debugFlags } from '../../utils/debug-flags'
 
 /** @public */
 export interface TLShapeIndicatorsProps {
@@ -91,24 +90,10 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 
 	const { ShapeIndicator } = useEditorComponents()
 
-	const useCanvasIndicators = useValue(
-		'useCanvasIndicators',
-		() => debugFlags.useCanvasIndicators.get(),
-		[debugFlags]
-	)
-
-	const perfLogging = useValue(
-		'indicatorPerfLogging',
-		() => debugFlags.indicatorPerfLogging.get(),
-		[debugFlags]
-	)
-
-	// Filter out shapes that have canvas indicator support when canvas indicators are enabled
+	// Filter out shapes that have canvas indicator support - only render shapes that use legacy SVG indicators
 	const shapesToRender = useValue(
 		'shapes to render for svg indicators',
 		() => {
-			if (!useCanvasIndicators) return renderingShapes
-			// Only render shapes that use legacy SVG indicators
 			return renderingShapes.filter(({ id }) => {
 				const shape = editor.getShape(id)
 				if (!shape) return true
@@ -116,30 +101,8 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 				return util.useLegacyIndicator()
 			})
 		},
-		[editor, renderingShapes, useCanvasIndicators]
+		[editor, renderingShapes]
 	)
-
-	// Perf logging - measure SVG indicator render + DOM commit time
-	const rRenderStart = useRef<number>(0)
-	const rVisibleCount = useRef<number>(0)
-	if (perfLogging && !useCanvasIndicators) {
-		rRenderStart.current = performance.now()
-		rVisibleCount.current = shapesToRender.filter(
-			({ id }) => showAll || (!hideAll && idsToDisplay.has(id))
-		).length
-	}
-
-	useLayoutEffect(() => {
-		if (perfLogging && !useCanvasIndicators && rRenderStart.current && rVisibleCount.current > 0) {
-			const duration = performance.now() - rRenderStart.current
-			const perShape = (duration / rVisibleCount.current).toFixed(3)
-			performance.measure(`SVGIndicators (${rVisibleCount.current} shapes, ${perShape}ms/shape)`, {
-				start: rRenderStart.current,
-				end: performance.now(),
-			})
-			rRenderStart.current = 0
-		}
-	})
 
 	if (!ShapeIndicator) return null
 

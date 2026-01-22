@@ -16,7 +16,6 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
-	debugFlags,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -248,7 +247,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {

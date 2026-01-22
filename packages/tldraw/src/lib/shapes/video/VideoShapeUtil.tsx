@@ -6,7 +6,6 @@ import {
 	TLAsset,
 	TLVideoShape,
 	WeakCache,
-	debugFlags,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
@@ -75,7 +74,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLVideoShape): Path2D {

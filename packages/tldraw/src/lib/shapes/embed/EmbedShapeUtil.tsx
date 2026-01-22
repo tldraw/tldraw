@@ -7,7 +7,6 @@ import {
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
-	debugFlags,
 	embedShapeMigrations,
 	embedShapeProps,
 	lerp,
@@ -258,7 +257,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {

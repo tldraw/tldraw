@@ -11,7 +11,6 @@ import {
 	TLTextShape,
 	Vec,
 	createComputedCache,
-	debugFlags,
 	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
@@ -163,7 +162,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {

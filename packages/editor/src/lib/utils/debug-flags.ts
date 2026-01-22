@@ -55,9 +55,6 @@ export const debugFlags = {
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
 	a11y: createDebugValue('a11y', { defaults: { all: false } }),
 	debugElbowArrows: createDebugValue('debugElbowArrows', { defaults: { all: false } }),
-	// Indicator performance testing flags (remove before merge)
-	useCanvasIndicators: createDebugValue('useCanvasIndicators', { defaults: { all: true } }),
-	indicatorPerfLogging: createDebugValue('indicatorPerfLogging', { defaults: { all: false } }),
 } as const
 
 declare global {

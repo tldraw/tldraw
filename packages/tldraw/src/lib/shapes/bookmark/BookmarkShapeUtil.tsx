@@ -8,7 +8,6 @@ import {
 	TLBookmarkShapeProps,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
-	debugFlags,
 	lerp,
 	tlenv,
 	toDomPrecision,
@@ -81,7 +80,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {

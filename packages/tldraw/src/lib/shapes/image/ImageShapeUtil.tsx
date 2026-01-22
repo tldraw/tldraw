@@ -17,7 +17,6 @@ import {
 	TLShapePartial,
 	Vec,
 	WeakCache,
-	debugFlags,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
@@ -160,7 +159,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLImageShape): Path2D | undefined {

@@ -12,7 +12,6 @@ import {
 	WeakCache,
 	ZERO_INDEX_KEY,
 	assert,
-	debugFlags,
 	getColorValue,
 	getIndexAbove,
 	getIndexBetween,
@@ -207,7 +206,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {

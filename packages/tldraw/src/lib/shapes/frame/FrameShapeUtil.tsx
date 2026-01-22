@@ -18,7 +18,6 @@ import {
 	TLShapeUtilConstructor,
 	clamp,
 	compact,
-	debugFlags,
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
@@ -338,7 +337,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLFrameShape): Path2D {

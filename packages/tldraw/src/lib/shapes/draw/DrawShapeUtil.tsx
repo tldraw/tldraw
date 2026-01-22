@@ -11,7 +11,6 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
-	debugFlags,
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
@@ -179,7 +178,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override useLegacyIndicator() {
-		return !debugFlags.useCanvasIndicators.get()
+		return false
 	}
 
 	override getIndicatorPath(shape: TLDrawShape): Path2D {

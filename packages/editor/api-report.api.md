@@ -597,7 +597,6 @@ export const debugFlags: {
     readonly editOnType: DebugFlag<boolean>;
     readonly forceSrgb: DebugFlag<boolean>;
     readonly hideShapes: DebugFlag<boolean>;
-    readonly indicatorPerfLogging: DebugFlag<boolean>;
     readonly logElementRemoves: DebugFlag<boolean>;
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
@@ -605,7 +604,6 @@ export const debugFlags: {
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
-    readonly useCanvasIndicators: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
