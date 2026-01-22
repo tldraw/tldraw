@@ -487,12 +487,15 @@ function updateFlyioToml(appName: string): void {
 
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
 
+	const zeroAdminPassword = new URL(env.BOTCOM_POSTGRES_CONNECTION_STRING).password
+
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
 		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
+		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
