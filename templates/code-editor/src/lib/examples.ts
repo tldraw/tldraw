@@ -782,9 +782,11 @@ const interval = setInterval(() => {
 canvas.zoomToFit({ animation: { duration: 400 } })`,
 
 	'Dot Sphere': `// 3D sphere using freehand dots with organic, wobbly movement
+// Drag the slider handle to change the spiral factor!
 
 const cx = 400, cy = 300
 const scale3d = 200
+const cameraZ = 2
 
 function project({ x, y, z }) {
   return { x: x / z, y: y / z }
@@ -800,39 +802,87 @@ function rotateY({ x, y, z }, a) {
   return { x: x*c + z*s, y, z: -x*s + z*c }
 }
 
-// Generate sphere points using fibonacci distribution for more organic feel
-const points = []
+// === SLIDER CONTROL ===
+// Slider configuration - controls the multiplier in the golden angle formula
+const sliderX = 150, sliderY = 520
+const sliderWidth = 200, sliderHeight = 8
+const handleSize = 16
+const minFactor = 1.32, maxFactor = 2.0
+
+// Create slider track
+canvas.createRect(sliderX, sliderY, sliderWidth, sliderHeight, {
+  color: 'grey', fill: 'solid'
+})
+
+// Create slider handle (drag this!)
+// Start at the right end (value = 2, the original default)
+const handleId = canvas.createCircle(
+  sliderX + sliderWidth,
+  sliderY + sliderHeight / 2,
+  handleSize / 2,
+  { color: 'blue', fill: 'solid' }
+)
+
+// Create label
+const labelId = canvas.createText(sliderX, sliderY - 25, 'Spiral factor: 2', { size: 's' })
+
+// === SPHERE SETUP ===
 const numPoints = 160
 const goldenRatio = (1 + Math.sqrt(5)) / 2
 
-for (let i = 0; i < numPoints; i++) {
-  const theta = 2 * Math.PI * i / goldenRatio
-  const phi = Math.acos(1 - 2 * (i + 0.5) / numPoints)
-  points.push({
-    x: Math.sin(phi) * Math.cos(theta),
-    y: Math.cos(phi),
-    z: Math.sin(phi) * Math.sin(theta),
-    idx: i
-  })
-}
-
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
 const sizes = ['s', 'm', 'l', 'xl']
-const shapeIds = points.map((p, i) => {
-  return canvas.createDot(cx, cy, {
+const shapeIds = []
+for (let i = 0; i < numPoints; i++) {
+  shapeIds.push(canvas.createDot(cx, cy, {
     color: colors[i % 6],
     size: sizes[i % 4]
-  })
-})
+  }))
+}
 
 let time = 0
 let angleX = 0, angleY = 0
-const cameraZ = 2
 
 const interval = setInterval(() => {
   time += 0.025
   angleX += 0.008
   angleY += 0.015
+
+  // Read slider handle position to get spiral factor
+  const handle = editor.getShape(handleId)
+  if (!handle) return
+
+  // Calculate spiral factor from handle x position
+  const handleX = handle.x + handleSize / 2
+  const t = Math.max(0, Math.min(1, (handleX - sliderX) / sliderWidth))
+  // Linear mapping: 1.0 -> 2.0
+  const spiralFactor = minFactor + t * (maxFactor - minFactor)
+
+  // Update label
+  editor.updateShapes([{
+    id: labelId,
+    type: 'text',
+    props: {
+      richText: {
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spiral factor: ' + spiralFactor.toFixed(2) }] }]
+      }
+    }
+  }])
+
+  // Recalculate point positions with the new spiral factor
+  const points = []
+  for (let i = 0; i < numPoints; i++) {
+    // This is where the slider value is used!
+    const theta = spiralFactor * Math.PI * i / goldenRatio
+    const phi = Math.acos(1 - 2 * (i + 0.5) / numPoints)
+    points.push({
+      x: Math.sin(phi) * Math.cos(theta),
+      y: Math.cos(phi),
+      z: Math.sin(phi) * Math.sin(theta),
+      idx: i
+    })
+  }
 
   // Gentle breathing
   const breathe = 1 + 0.1 * Math.sin(time * 1.5)
@@ -880,7 +930,7 @@ const interval = setInterval(() => {
   editor.updateShapes(updates)
 }, 50)
 
-// Zoom out to see the full sphere
+// Zoom out to see the full sphere and slider
 canvas.setCamera({ x: cx, y: cy, z: 0.65 })`,
 
 	'3D Cube': `// Rotating 3D wireframe cube with perspective projection
