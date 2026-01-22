@@ -1,48 +1,34 @@
-import z from 'zod'
+import { RandomWikipediaArticleAction } from '../../shared/schema/AgentActionSchemas'
+import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
-import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
 
-const RandomWikipediaArticleAction = z
-	.object({
-		_type: z.literal('getInspiration'),
-	})
-	.meta({
-		title: 'Get inspiration',
-		description: 'The AI gets inspiration from a random Wikipedia article.',
-	})
+export const RandomWikipediaArticleActionUtil = registerActionUtil(
+	class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWikipediaArticleAction> {
+		static override type = 'getInspiration' as const
 
-type RandomWikipediaArticleAction = z.infer<typeof RandomWikipediaArticleAction>
+		override getInfo(action: Streaming<RandomWikipediaArticleAction>) {
+			const description = action.complete
+				? 'Got random Wikipedia article'
+				: 'Getting random Wikipedia article'
+			return {
+				icon: 'search' as const,
+				description,
+			}
+		}
 
-export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWikipediaArticleAction> {
-	static override type = 'getInspiration' as const
+		override async applyAction(
+			action: Streaming<RandomWikipediaArticleAction>,
+			_helpers: AgentHelpers
+		) {
+			// Wait until the action has finished streaming
+			if (!action.complete) return
 
-	override getSchema() {
-		return RandomWikipediaArticleAction
-	}
-
-	override getInfo(action: Streaming<RandomWikipediaArticleAction>) {
-		const description = action.complete
-			? 'Got random Wikipedia article'
-			: 'Getting random Wikipedia article'
-		return {
-			icon: 'search' as const,
-			description,
+			const article = await fetchRandomWikipediaArticle()
+			this.agent.schedule({ data: [article] })
 		}
 	}
-
-	override async applyAction(
-		action: Streaming<RandomWikipediaArticleAction>,
-		_helpers: AgentHelpers
-	) {
-		// Wait until the action has finished streaming
-		if (!action.complete) return
-		if (!this.agent) return
-
-		const article = await fetchRandomWikipediaArticle()
-		this.agent.schedule({ data: [article] })
-	}
-}
+)
 
 export async function fetchRandomWikipediaArticle() {
 	const response = await fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary', {
