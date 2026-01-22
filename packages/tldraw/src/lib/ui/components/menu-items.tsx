@@ -618,6 +618,13 @@ export function ToggleEdgeScrollingItem() {
 /** @public @react */
 export function ToggleInvertZoomItem() {
 	const editor = useEditor()
+
+	const isMouseInputMode = useValue(
+		'inputMode',
+		() => editor.user.getUserPreferences().inputMode === 'mouse',
+		[editor]
+	)
+
 	const isZoomDirectionInverted = useValue(
 		'isZoomDirectionInverted',
 		() => editor.user.getIsZoomDirectionInverted(),
@@ -628,6 +635,7 @@ export function ToggleInvertZoomItem() {
 		<TldrawUiMenuActionCheckboxItem
 			actionId="toggle-invert-zoom"
 			checked={isZoomDirectionInverted}
+			disabled={!isMouseInputMode}
 		/>
 	)
 }
