@@ -214,6 +214,7 @@ export const UserPreferencesKeys = [
 	'isPasteAtCursorMode',
 	'enhancedA11yMode',
 	'inputMode',
+	'isZoomDirectionInverted',
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>

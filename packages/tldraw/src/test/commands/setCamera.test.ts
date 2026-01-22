@@ -221,6 +221,57 @@ describe('CameraOptions.wheelBehavior', () => {
 	})
 })
 
+describe('Zoom direction inversion', () => {
+	it('should invert zoom when input mode is mouse and preference is enabled', () => {
+		editor.user.updateUserPreferences({ inputMode: 'mouse', isZoomDirectionInverted: true })
+
+		const cameraBefore = editor.getCamera().z
+		editor
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, -1, 0),
+				point: new Vec(100, 100),
+			})
+			.forceTick()
+		const cameraAfter = editor.getCamera().z
+
+		expect(cameraAfter).toBeGreaterThan(cameraBefore)
+	})
+
+	it('should NOT invert zoom when input mode is auto', () => {
+		editor.user.updateUserPreferences({ inputMode: null, isZoomDirectionInverted: true })
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, wheelBehavior: 'zoom' })
+
+		const cameraBefore = editor.getCamera().z
+		editor
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, -1, 0),
+				point: new Vec(100, 100),
+			})
+			.forceTick()
+		const cameraAfter = editor.getCamera().z
+
+		expect(cameraAfter).toBeLessThan(cameraBefore)
+	})
+
+	it('should zoom normally when input mode is mouse but preference is disabled', () => {
+		editor.user.updateUserPreferences({ inputMode: 'mouse', isZoomDirectionInverted: false })
+
+		const cameraBefore = editor.getCamera().z
+		editor
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, -1, 0),
+				point: new Vec(100, 100),
+			})
+			.forceTick()
+		const cameraAfter = editor.getCamera().z
+
+		expect(cameraAfter).toBeLessThan(cameraBefore)
+	})
+})
+
 describe('CameraOptions.panSpeed', () => {
 	it('Affects wheel panning (2x)', () => {
 		editor
