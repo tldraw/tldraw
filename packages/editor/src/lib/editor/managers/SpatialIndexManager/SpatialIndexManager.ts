@@ -117,11 +117,10 @@ export class SpatialIndexManager {
 			}
 
 			// Handle updated shapes: page changes and bounds updates
-			for (const [from, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
+			for (const [, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
 				if (!isShape(to)) continue
 				processedShapeIds.add(to.id)
 
-				const wasOnPage = this.editor.getAncestorPageId(from) === this.lastPageId
 				const isOnPage = this.editor.getAncestorPageId(to) === this.lastPageId
 
 				if (isOnPage) {
@@ -129,7 +128,7 @@ export class SpatialIndexManager {
 					if (bounds) {
 						this.rbush.upsert(to.id, bounds)
 					}
-				} else if (wasOnPage) {
+				} else {
 					this.rbush.remove(to.id)
 				}
 			}
