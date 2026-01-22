@@ -679,6 +679,9 @@ describe('ScribbleManager', () => {
 
 			expect(item1.scribble.state).toBe('stopping')
 			expect(item2.scribble.state).toBe('stopping')
+			// Verify staggered delays for sequential fading
+			expect(item1.delayRemaining).toBe(0) // First scribble fades immediately
+			expect(item2.delayRemaining).toBe(100) // Second scribble fades 100ms later
 		})
 
 		it('should set delay to fade delay when ending session', () => {
@@ -689,7 +692,8 @@ describe('ScribbleManager', () => {
 
 			scribbleManager.endLaserSession()
 
-			expect(item.delayRemaining).toBe(200)
+			// First scribble should start fading immediately (0ms delay)
+			expect(item.delayRemaining).toBe(0)
 		})
 
 		it('should guarantee fade delay even when delay has burned down to zero', () => {
@@ -700,7 +704,8 @@ describe('ScribbleManager', () => {
 
 			scribbleManager.endLaserSession()
 
-			expect(item.delayRemaining).toBe(200) // Should still get the fade delay
+			// First scribble should start fading immediately (0ms delay)
+			expect(item.delayRemaining).toBe(0)
 		})
 
 		it('should not modify already-stopping scribbles when session ends', () => {
@@ -712,6 +717,39 @@ describe('ScribbleManager', () => {
 			scribbleManager.endLaserSession()
 
 			expect(item.delayRemaining).toBe(100)
+		})
+
+		it('should fade scribbles sequentially in the order they were drawn', () => {
+			mockUniqueId
+				.mockReturnValueOnce('laser-1')
+				.mockReturnValueOnce('session-123')
+				.mockReturnValueOnce('laser-2')
+				.mockReturnValueOnce('laser-3')
+				.mockReturnValueOnce('laser-4')
+
+			const item1 = scribbleManager.addScribble({ color: 'laser' })
+			const item2 = scribbleManager.addScribble({ color: 'laser' })
+			const item3 = scribbleManager.addScribble({ color: 'laser' })
+			const item4 = scribbleManager.addScribble({ color: 'laser' })
+
+			item1.scribble.state = 'active'
+			item2.scribble.state = 'active'
+			item3.scribble.state = 'active'
+			item4.scribble.state = 'active'
+
+			scribbleManager.endLaserSession()
+
+			// Verify sequential fade delays with 100ms stagger
+			expect(item1.delayRemaining).toBe(0) // First scribble fades immediately
+			expect(item2.delayRemaining).toBe(100) // Second scribble fades 100ms later
+			expect(item3.delayRemaining).toBe(200) // Third scribble fades 200ms later
+			expect(item4.delayRemaining).toBe(300) // Fourth scribble fades 300ms later
+
+			// All should be in stopping state
+			expect(item1.scribble.state).toBe('stopping')
+			expect(item2.scribble.state).toBe('stopping')
+			expect(item3.scribble.state).toBe('stopping')
+			expect(item4.scribble.state).toBe('stopping')
 		})
 
 		it('should handle endSession when no session exists', () => {

@@ -153,12 +153,16 @@ export class ScribbleManager {
 	private endActiveLaserSession() {
 		if (!this.activeSession) return
 
-		// Stop all scribbles in the session
+		// Stop all scribbles in the session with staggered delays
+		// to create a sequential fade effect in the order they were drawn
+		let index = 0
 		for (const scribbleId of this.activeSession.scribbles) {
 			const item = this.scribbleItems.get(scribbleId)
 			if (item && item.scribble.state !== 'stopping') {
-				item.delayRemaining = 200
+				// Apply staggered delay: 0ms for first, 100ms for second, 200ms for third, etc.
+				item.delayRemaining = index * 300
 				item.scribble.state = 'stopping'
+				index++
 			}
 		}
 
