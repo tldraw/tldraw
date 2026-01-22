@@ -5,16 +5,24 @@ import {
 	Store,
 	UnknownRecord,
 	reverseRecordsDiff,
-	squashRecordDiffs,
+	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
 	isEqual,
 	objectMapEntries,
+	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
-import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
+import {
+	NetworkDiff,
+	ObjectDiff,
+	RecordOpType,
+	applyObjectDiff,
+	diffRecord,
+	getNetworkDiff,
+} from './diff'
 import { interval } from './interval'
 import {
 	TLPushRequest,
@@ -281,6 +289,21 @@ const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING
 
 // Should connect support chunking the response to allow for large payloads?
 
+function getPresenceOp<R extends UnknownRecord>(
+	lastPushedPresenceState: R | null,
+	nextPresence: R | null
+): [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R] | undefined {
+	if (!lastPushedPresenceState && nextPresence) {
+		return [RecordOpType.Put, nextPresence]
+	}
+	if (lastPushedPresenceState && nextPresence) {
+		const diff = diffRecord(lastPushedPresenceState, nextPresence)
+		if (!diff) return undefined
+		return [RecordOpType.Patch, diff]
+	}
+	return undefined
+}
+
 /**
  * Main client-side synchronization engine for collaborative tldraw applications.
  *
@@ -346,7 +369,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private lastServerInteractionTimestamp = Date.now()
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
-	private pendingPushRequests: { request: TLPushRequest<R>; sent: boolean }[] = []
+	private pendingPushRequests: TLPushRequest<R>[] = []
+	private unsentChanges: {
+		nextDiff?: RecordsDiff<R>
+		nextPresence?: R | null
+	} = { nextDiff: undefined, nextPresence: undefined }
 
 	/**
 	 * The diff of 'unconfirmed', 'optimistic' changes that have been made locally by the user if we
@@ -365,7 +392,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private readonly fpsScheduler: FpsScheduler
 
 	/** Send any unsent push requests to the server */
-	private readonly flushPendingPushRequests: {
+	private readonly sendUnsentChanges: {
 		(): void
 		cancel?(): void
 	}
@@ -464,25 +491,44 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
 
 		// Initialize throttled methods after throttle instance is created
-		this.flushPendingPushRequests = this.fpsScheduler.fpsThrottle(() => {
-			this.debug('flushing pending push requests', {
+		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
+			this.debug('sending unsent changes', {
 				isConnectedToRoom: this.isConnectedToRoom,
-				pendingPushRequests: this.pendingPushRequests,
+				unsentChanges: this.unsentChanges,
 			})
 			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
 				return
 			}
-			for (const pendingPushRequest of this.pendingPushRequests) {
-				if (!pendingPushRequest.sent) {
-					if (this.socket.connectionStatus !== 'online') {
-						// we went offline, so don't send anything
-						return
-					}
-					this.debug('sending push request', pendingPushRequest)
-					this.socket.sendMessage(pendingPushRequest.request)
-					pendingPushRequest.sent = true
-				}
+			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
+				return
 			}
+			const diff = this.unsentChanges.nextDiff
+				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
+				: undefined
+			const presence = this.unsentChanges.nextPresence
+				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
+				: undefined
+
+			if (!diff && !presence) {
+				return
+			}
+
+			if (this.unsentChanges.nextPresence) {
+				this.lastPushedPresenceState = this.unsentChanges.nextPresence
+			}
+			this.unsentChanges.nextDiff = undefined
+			this.unsentChanges.nextPresence = undefined
+
+			const pushRequest: TLPushRequest<R> = {
+				type: 'push',
+				clientClock: this.clientClock++,
+				diff,
+				presence,
+			}
+
+			this.debug('sending push request', pushRequest)
+			this.pendingPushRequests.push(pushRequest)
+			this.socket.sendMessage(pushRequest)
 		})
 
 		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
@@ -631,6 +677,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.isConnectedToRoom = false
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
+		this.unsentChanges.nextDiff = undefined
+		this.unsentChanges.nextPresence = undefined
 		if (this.socket.connectionStatus === 'online') {
 			this.socket.restart()
 		}
@@ -695,9 +743,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 				// now re-apply the speculative changes creating a new push request with the
 				// appropriate diff
+				const networkDiff = getNetworkDiff(stashedChanges)
+				if (!networkDiff) return
 				const speculativeChanges = this.store.filterChangesByScope(
 					this.store.extractingChanges(() => {
-						this.store.applyDiff(stashedChanges)
+						this.applyNetworkDiff(networkDiff, true)
 					}),
 					'document'
 				)
@@ -773,7 +823,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	close() {
 		this.debug('closing')
 		this.disposables.forEach((dispose) => dispose())
-		this.flushPendingPushRequests.cancel?.()
+		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
 	}
 
@@ -788,78 +838,22 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			return
 		}
 
-		let presence: TLPushRequest<any>['presence'] = undefined
-		if (!this.lastPushedPresenceState && nextPresence) {
-			// we don't have a last presence state, so we need to push the full state
-			presence = [RecordOpType.Put, nextPresence]
-		} else if (this.lastPushedPresenceState && nextPresence) {
-			// we have a last presence state, so we need to push a diff if there is one
-			const diff = diffRecord(this.lastPushedPresenceState, nextPresence)
-			if (diff) {
-				presence = [RecordOpType.Patch, diff]
-			}
-		}
-
-		if (!presence) return
-		this.lastPushedPresenceState = nextPresence
-
-		// if there is a pending push that has not been sent and does not already include a presence update,
-		// then add this presence update to it
-		const lastPush = this.pendingPushRequests.at(-1)
-		if (lastPush && !lastPush.sent && !lastPush.request.presence) {
-			lastPush.request.presence = presence
-			return
-		}
-
-		// otherwise, create a new push request
-		const req: TLPushRequest<R> = {
-			type: 'push',
-			clientClock: this.clientClock++,
-			presence,
-		}
-
-		if (req) {
-			this.pendingPushRequests.push({ request: req, sent: false })
-			this.flushPendingPushRequests()
-		}
+		this.unsentChanges.nextPresence = nextPresence
+		this.sendUnsentChanges()
 	}
 
 	/** Push a change to the server, or stash it locally if we're offline */
 	private push(change: RecordsDiff<any>) {
 		this.debug('push', change)
-		// the Store doesn't do deep equality checks when making changes
-		// so it's possible that the diff passed in here is actually a no-op.
-		// either way, we also don't want to send whole objects over the wire if
-		// only small parts of them have changed, so we'll do a shallow-ish diff
-		// which also uses deep equality checks to see if the change is actually
-		// a no-op.
-		const diff = getNetworkDiff(change)
-		if (!diff) return
-
-		// the change is not a no-op so we'll send it to the server
-		// but first let's merge the records diff into the speculative changes
-		this.speculativeChanges = squashRecordDiffs([this.speculativeChanges, change])
-
-		if (!this.isConnectedToRoom) {
-			// don't sent push requests or even store them up while offline
-			// when we come back online we'll generate another push request from
-			// scratch based on the speculativeChanges diff
-			return
+		squashRecordDiffsMutable(this.speculativeChanges, [change])
+		// in offline mode, we only accumulate in speculativeChanges
+		if (!this.isConnectedToRoom) return
+		if (!this.unsentChanges.nextDiff) {
+			this.unsentChanges.nextDiff = structuredClone(change)
+		} else {
+			squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
 		}
-
-		const pushRequest: TLPushRequest<R> = {
-			type: 'push',
-			diff,
-			clientClock: this.clientClock++,
-		}
-
-		this.pendingPushRequests.push({ request: pushRequest, sent: false })
-
-		// immediately calling .send on the websocket here was causing some interaction
-		// slugishness when e.g. drawing or translating shapes. Seems like it blocks
-		// until the send completes. So instead we'll schedule a send to happen on some
-		// tick in the near future.
-		this.flushPendingPushRequests()
+		this.sendUnsentChanges()
 	}
 
 	/** Get the target FPS for network operations based on presence mode */
@@ -933,7 +927,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					if (this.pendingPushRequests.length === 0) {
 						throw new Error('Received push_result but there are no pending push requests')
 					}
-					if (this.pendingPushRequests[0].request.clientClock !== diff.clientClock) {
+					if (this.pendingPushRequests[0].clientClock !== diff.clientClock) {
 						throw new Error(
 							'Received push_result for a push request that is not at the front of the queue'
 						)
@@ -941,7 +935,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
 					} else if (diff.action === 'commit') {
-						const { request } = this.pendingPushRequests.shift()!
+						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
 							this.applyNetworkDiff(request.diff, true)
 						}
@@ -953,10 +947,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				// update the speculative diff while re-applying pending changes
 				try {
 					this.speculativeChanges = this.store.extractingChanges(() => {
-						for (const { request } of this.pendingPushRequests) {
+						for (const request of this.pendingPushRequests) {
 							if (!('diff' in request) || !request.diff) continue
 							this.applyNetworkDiff(request.diff, true)
 						}
+						if (!this.unsentChanges.nextDiff) return
+						const diff = getNetworkDiff(this.unsentChanges.nextDiff)
+						if (!diff) return
+						this.applyNetworkDiff(diff, true)
 					})
 				} catch (e) {
 					console.error(e)
