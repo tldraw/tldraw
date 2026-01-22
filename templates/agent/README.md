@@ -420,10 +420,10 @@ Alternatively, you can bypass the `PromptPartUtil` system by changing the `build
 
 ## Change to a different model
 
-You can set an agent's model by setting its `$modelName` property.
+You can set an agent's model using the `modelName` manager.
 
 ```ts
-agent.$modelName.set('gemini-2.5-flash')
+agent.modelName.setModelName('gemini-2.5-flash')
 ```
 
 To override an agent's model, specify a different model name with a request.

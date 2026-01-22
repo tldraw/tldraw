@@ -4,9 +4,7 @@ import { AreaHighlight } from './AreaHighlight'
 
 export function AgentViewportBoundsHighlight() {
 	const agent = useAgent()
-	const currentRequest = useValue('activeRequest', () => agent.requests.$activeRequest.get(), [
-		agent,
-	])
+	const currentRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const agentViewportBounds = currentRequest?.bounds
 
 	// If the agent's viewport is equivalent to a pending context area, don't show the highlight

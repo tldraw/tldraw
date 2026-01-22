@@ -12,7 +12,7 @@ export class AgentChatOriginManager extends BaseAgentManager {
 	 * An atom containing the position on the page where the current chat started.
 	 * Used to track the origin point of the conversation on the canvas.
 	 */
-	$chatOrigin: Atom<VecModel>
+	private $chatOrigin: Atom<VecModel>
 
 	/**
 	 * Creates a new chat origin manager for the given agent.

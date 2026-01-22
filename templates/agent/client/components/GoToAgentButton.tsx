@@ -13,9 +13,7 @@ import { useAgent } from '../agent/TldrawAgentAppProvider'
 export function GoToAgentButton() {
 	const agent = useAgent()
 	const editor = useEditor()
-	const currentRequest = useValue('activeRequest', () => agent.requests.$activeRequest.get(), [
-		agent,
-	])
+	const currentRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const agentViewport = currentRequest?.bounds
 
 	// We only show the button if the agent is offscreen

@@ -5,7 +5,7 @@ import { useAgent } from '../agent/TldrawAgentAppProvider'
 
 export function TodoList() {
 	const agent = useAgent()
-	const todoItems = useValue('todoList', () => agent.todos.$todoList.get(), [agent])
+	const todoItems = useValue('todoList', () => agent.todos.getTodos(), [agent])
 
 	if (todoItems.length === 0) {
 		return null

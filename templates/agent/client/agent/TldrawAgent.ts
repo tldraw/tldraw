@@ -1,14 +1,6 @@
-import {
-	Atom,
-	atom,
-	Editor,
-	RecordsDiff,
-	reverseRecordsDiff,
-	structuredClone,
-	TLRecord,
-} from 'tldraw'
+import { Editor, RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
+import { AgentModelName } from '../../shared/models'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
@@ -30,6 +22,7 @@ import { AgentContextManager } from './managers/AgentContextManager'
 import { AgentDebugFlags, AgentDebugManager } from './managers/AgentDebugManager'
 import { AgentLintManager } from './managers/AgentLintManager'
 import { AgentModeManager } from './managers/AgentModeManager'
+import { AgentModelNameManager } from './managers/AgentModelNameManager'
 import { AgentRequestManager } from './managers/AgentRequestManager'
 import { AgentTodoManager } from './managers/AgentTodoManager'
 import { AgentUserActionTracker } from './managers/AgentUserActionTracker'
@@ -99,6 +92,9 @@ export class TldrawAgent {
 	/** The mode manager associated with this agent. */
 	mode: AgentModeManager
 
+	/** The model name manager associated with this agent. */
+	modelName: AgentModelNameManager
+
 	/** The request manager associated with this agent. */
 	requests: AgentRequestManager
 
@@ -107,17 +103,6 @@ export class TldrawAgent {
 
 	/** The user action tracker associated with this agent. */
 	userAction: AgentUserActionTracker
-
-	// ==================== Remaining Atoms ====================
-
-	/**
-	 * An atom containing the model name that the user has selected. This gets
-	 * passed through to prompts unless manually overridden.
-	 *
-	 * Note: Prompt part utils may ignore or override this value. See the
-	 * ModelNamePartUtil for an example.
-	 */
-	$modelName: Atom<AgentModelName>
 
 	// ==================== Prompt Part Utils ====================
 
@@ -153,12 +138,10 @@ export class TldrawAgent {
 		this.debug = new AgentDebugManager(this)
 		this.lints = new AgentLintManager(this)
 		this.mode = new AgentModeManager(this)
+		this.modelName = new AgentModelNameManager(this)
 		this.requests = new AgentRequestManager(this)
 		this.todos = new AgentTodoManager(this)
 		this.userAction = new AgentUserActionTracker(this)
-
-		// Initialize remaining atoms
-		this.$modelName = atom<AgentModelName>('modelName', DEFAULT_MODEL_NAME)
 
 		// Register this agent in the global agents atom
 		$agentsAtom.update(editor, (agents) => [...agents, this])
@@ -182,7 +165,7 @@ export class TldrawAgent {
 			chatOrigin: this.chatOrigin.getOrigin(),
 			todoList: this.todos.getTodos(),
 			contextItems: this.context.getItems(),
-			modelName: this.$modelName.get(),
+			modelName: this.modelName.getModelName(),
 			debugFlags: this.debug.getDebugFlags(),
 		}
 	}
@@ -195,22 +178,22 @@ export class TldrawAgent {
 	 */
 	loadState(state: PersistedAgentState) {
 		if (state.chatHistory) {
-			this.chat.$chatHistory.set(state.chatHistory)
+			this.chat.setHistory(state.chatHistory)
 		}
 		if (state.chatOrigin) {
-			this.chatOrigin.$chatOrigin.set(state.chatOrigin)
+			this.chatOrigin.setOrigin(state.chatOrigin)
 		}
 		if (state.todoList) {
-			this.todos.$todoList.set(state.todoList)
+			this.todos.setTodos(state.todoList)
 		}
 		if (state.contextItems) {
-			this.context.$contextItems.set(state.contextItems)
+			this.context.setItems(state.contextItems)
 		}
 		if (state.modelName) {
-			this.$modelName.set(state.modelName)
+			this.modelName.setModelName(state.modelName)
 		}
 		if (state.debugFlags) {
-			this.debug.$debugFlags.set(state.debugFlags)
+			this.debug.setDebugFlags(state.debugFlags)
 		}
 	}
 
@@ -229,6 +212,7 @@ export class TldrawAgent {
 		this.debug.dispose()
 		this.lints.dispose()
 		this.mode.dispose()
+		this.modelName.dispose()
 		this.requests.dispose()
 		this.todos.dispose()
 
@@ -562,6 +546,7 @@ export class TldrawAgent {
 		this.debug.reset()
 		this.lints.reset()
 		this.mode.reset()
+		this.modelName.reset()
 		this.requests.reset()
 		this.todos.reset()
 		this.userAction.reset()

@@ -10,7 +10,7 @@ export const ModelNamePartUtil = registerPromptPartUtil(
 		override getPart(_request: AgentRequest): ModelNamePart {
 			return {
 				type: 'modelName',
-				modelName: this.agent.$modelName.get() ?? DEFAULT_MODEL_NAME,
+				modelName: this.agent.modelName.getModelName() ?? DEFAULT_MODEL_NAME,
 			}
 		}
 	}

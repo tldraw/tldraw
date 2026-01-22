@@ -12,9 +12,7 @@ export function ContextHighlights() {
 		() => (agent.requests.isGenerating() ? [] : agent.context.getItems()),
 		[agent]
 	)
-	const activeRequest = useValue('activeRequest', () => agent.requests.$activeRequest.get(), [
-		agent,
-	])
+	const activeRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const activeContextItems = activeRequest?.contextItems ?? []
 
 	const selectedAreas: AreaHighlightProps[] = useValue(

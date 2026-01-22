@@ -101,7 +101,7 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 				agent.chatOrigin.getOrigin()
 				agent.todos.getTodos()
 				agent.context.getItems()
-				agent.$modelName.get()
+				agent.modelName.getModelName()
 				agent.debug.getDebugFlags()
 
 				// Save if not currently loading

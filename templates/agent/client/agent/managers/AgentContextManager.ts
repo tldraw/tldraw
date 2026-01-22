@@ -22,7 +22,7 @@ export class AgentContextManager extends BaseAgentManager {
 	 * To send context items to the model, include them in the `contextItems`
 	 * field of a request.
 	 */
-	$contextItems: Atom<ContextItem[]>
+	private $contextItems: Atom<ContextItem[]>
 
 	/**
 	 * Creates a new context manager for the given agent.
@@ -47,6 +47,15 @@ export class AgentContextManager extends BaseAgentManager {
 	 */
 	getItems() {
 		return this.$contextItems.get()
+	}
+
+	/**
+	 * Set the context items directly.
+	 * Primarily used for loading persisted state.
+	 * @param items - The context items to set.
+	 */
+	setItems(items: ContextItem[]) {
+		this.$contextItems.set(items)
 	}
 
 	/**

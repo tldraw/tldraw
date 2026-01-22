@@ -29,7 +29,7 @@ export class AgentDebugManager {
 	/**
 	 * Debug flags for controlling logging behavior.
 	 */
-	$debugFlags: Atom<AgentDebugFlags>
+	private $debugFlags: Atom<AgentDebugFlags>
 
 	constructor(public agent: TldrawAgent) {
 		this.$debugFlags = atom<AgentDebugFlags>('debugFlags', DEFAULT_DEBUG_FLAGS)

@@ -30,8 +30,8 @@ export function ChatInput({
 	)
 
 	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
-	const contextItems = useValue('contextItems', () => agent.context.$contextItems.get(), [agent])
-	const modelName = useValue('modelName', () => agent.$modelName.get(), [agent])
+	const contextItems = useValue('contextItems', () => agent.context.getItems(), [agent])
+	const modelName = useValue('modelName', () => agent.modelName.getModelName(), [agent])
 
 	return (
 		<div className="chat-input">
@@ -102,7 +102,7 @@ export function ChatInput({
 							</div>
 							<select
 								value={modelName}
-								onChange={(e) => agent.$modelName.set(e.target.value as AgentModelName)}
+								onChange={(e) => agent.modelName.setModelName(e.target.value as AgentModelName)}
 							>
 								{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
 									<option key={model.name} value={model.name}>

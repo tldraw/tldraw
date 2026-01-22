@@ -32,7 +32,7 @@ Here's an example of how the UI might look:
 
 export function ChatHistory() {
 	const agent = useAgent()
-	const historyItems = useValue('chatHistory', () => agent.chat.$chatHistory.get(), [agent])
+	const historyItems = useValue('chatHistory', () => agent.chat.getHistory(), [agent])
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)

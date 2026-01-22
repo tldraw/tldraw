@@ -13,24 +13,21 @@ export class AgentRequestManager extends BaseAgentManager {
 	 * An atom containing the currently active request.
 	 * This is mainly used to render highlights and other UI elements.
 	 */
-	$activeRequest: Atom<AgentRequest | null>
+	private $activeRequest: Atom<AgentRequest | null>
 
 	/**
 	 * An atom containing the next request that the agent has scheduled for itself.
 	 * Null if there is no scheduled request.
-	 * @private
 	 */
 	private $scheduledRequest: Atom<AgentRequest | null>
 
 	/**
 	 * Whether the agent is currently prompting (working on a request).
-	 * @private
 	 */
 	private $isPrompting: Atom<boolean>
 
 	/**
 	 * A function that cancels the agent's current prompt, if one is active.
-	 * @private
 	 */
 	private cancelFn: (() => void) | null = null
 

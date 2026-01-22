@@ -12,7 +12,7 @@ export class AgentTodoManager extends BaseAgentManager {
 	/**
 	 * An atom containing the agent's todo list.
 	 */
-	$todoList: Atom<TodoItem[]>
+	private $todoList: Atom<TodoItem[]>
 
 	/**
 	 * Creates a new todo manager for the given agent.
@@ -29,6 +29,23 @@ export class AgentTodoManager extends BaseAgentManager {
 	 */
 	reset(): void {
 		this.$todoList.set([])
+	}
+
+	/**
+	 * Get the current todo list.
+	 * @returns An array of todo items.
+	 */
+	getTodos() {
+		return this.$todoList.get()
+	}
+
+	/**
+	 * Set the todo list directly.
+	 * Primarily used for loading persisted state.
+	 * @param todos - The todo items to set.
+	 */
+	setTodos(todos: TodoItem[]) {
+		this.$todoList.set(todos)
 	}
 
 	/**
@@ -88,13 +105,5 @@ export class AgentTodoManager extends BaseAgentManager {
 		this.$todoList.update((todoItems) => {
 			return todoItems.filter((item) => item.status !== 'done')
 		})
-	}
-
-	/**
-	 * Get the current todo list.
-	 * @returns An array of todo items.
-	 */
-	getTodos() {
-		return this.$todoList.get()
 	}
 }

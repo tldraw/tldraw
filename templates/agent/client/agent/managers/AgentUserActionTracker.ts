@@ -10,11 +10,10 @@ export class AgentUserActionTracker extends BaseAgentManager {
 	/**
 	 * An atom that stores document changes made by the user since the previous request.
 	 */
-	$userActionHistory: Atom<RecordsDiff<TLRecord>[]>
+	private $userActionHistory: Atom<RecordsDiff<TLRecord>[]>
 
 	/**
 	 * A function that stops recording user actions.
-	 * @private
 	 */
 	private stopRecordingFn: (() => void) | null = null
 

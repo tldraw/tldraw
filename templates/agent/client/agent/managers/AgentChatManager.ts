@@ -13,7 +13,7 @@ export class AgentChatManager extends BaseAgentManager {
 	 * An atom containing the agent's chat history.
 	 * Stores all chat interactions including prompts, actions, and continuations.
 	 */
-	$chatHistory: Atom<ChatHistoryItem[]>
+	private $chatHistory: Atom<ChatHistoryItem[]>
 
 	/**
 	 * Creates a new AgentChatManager instance.
@@ -30,6 +30,15 @@ export class AgentChatManager extends BaseAgentManager {
 	 */
 	getHistory() {
 		return this.$chatHistory.get()
+	}
+
+	/**
+	 * Set the chat history directly.
+	 * Primarily used for loading persisted state.
+	 * @param history - The chat history items to set.
+	 */
+	setHistory(history: ChatHistoryItem[]) {
+		this.$chatHistory.set(history)
 	}
 
 	/**
