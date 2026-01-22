@@ -56,7 +56,7 @@ export interface TldrawOptions {
 	readonly laserDelayMs: number
 	/**
 	 * How long (in milliseconds) of inactivity before a laser session automatically ends.
-	 * Defaults to 2000ms (2 seconds).
+	 * Defaults to 1000ms (1 second).
 	 */
 	readonly laserSessionTimeoutMs: number
 	readonly maxExportDelayMs: number

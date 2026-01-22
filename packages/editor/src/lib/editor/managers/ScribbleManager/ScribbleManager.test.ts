@@ -20,7 +20,6 @@ describe('ScribbleManager', () => {
 			run: vi.fn((fn) => fn()),
 			options: {
 				laserSessionTimeoutMs: 2000,
-				laserMaxSessionDurationMs: 30000,
 			},
 			timers: {
 				setTimeout: vi.fn(() => Math.random()),
