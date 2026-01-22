@@ -1,5 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useUiEvents } from '../context/events'
+import { ToggleInvertZoomItem } from './menu-items'
 import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
@@ -59,6 +60,9 @@ export function InputModeMenu() {
 						}}
 					/>
 				))}
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="invert-zoom-group">
+				<ToggleInvertZoomItem />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
