@@ -3,14 +3,14 @@ import {
 	DefaultHelperButtonsContent,
 	TldrawUiMenuContextProvider,
 } from 'tldraw'
-import { GoToAgentButton } from './GoToAgentButton'
+import { GoToAgentButtons } from './GoToAgentButton'
 
 export function CustomHelperButtons() {
 	return (
 		<DefaultHelperButtons>
 			<TldrawUiMenuContextProvider type="helper-buttons" sourceId="helper-buttons">
 				<DefaultHelperButtonsContent />
-				<GoToAgentButton />
+				<GoToAgentButtons />
 			</TldrawUiMenuContextProvider>
 		</DefaultHelperButtons>
 	)

@@ -14,7 +14,6 @@ import { AgentHelpers } from '../AgentHelpers'
 import { getModeNode } from '../modes/AgentModeChart'
 import { AgentModeType } from '../modes/AgentModeDefinitions'
 import { getPromptPartUtilsRecord, PromptPartUtil } from '../parts/PromptPartUtil'
-import { $agentsAtom } from './agentsAtom'
 import { AgentActionManager } from './managers/AgentActionManager'
 import { AgentChatManager } from './managers/AgentChatManager'
 import { AgentChatOriginManager } from './managers/AgentChatOriginManager'
@@ -51,11 +50,12 @@ export interface TldrawAgentOptions {
 
 /**
  * An agent that can be prompted to edit the canvas.
- * Returned by the `useTldrawAgent` hook.
+ * Access the agent via `useAgent()` hook from TldrawAgentAppProvider,
+ * or via `AgentAppAgentsManager.getAgent(editor)`.
  *
  * @example
  * ```tsx
- * const agent = useTldrawAgent(editor)
+ * const agent = useAgent()
  * agent.prompt('Draw a snowman')
  * ```
  */
@@ -143,8 +143,7 @@ export class TldrawAgent {
 		this.todos = new AgentTodoManager(this)
 		this.userAction = new AgentUserActionTracker(this)
 
-		// Register this agent in the global agents atom
-		$agentsAtom.update(editor, (agents) => [...agents, this])
+		// Note: Agent registration is handled by AgentAppAgentsManager.createAgent()
 
 		// Initialize prompt part utils
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
@@ -216,7 +215,7 @@ export class TldrawAgent {
 		this.requests.dispose()
 		this.todos.dispose()
 
-		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
+		// Note: Agent removal from registry is handled by AgentAppAgentsManager.deleteAgent()
 	}
 
 	/**
@@ -282,7 +281,7 @@ export class TldrawAgent {
 	 *
 	 * @example
 	 * ```tsx
-	 * const agent = useTldrawAgent(editor)
+	 * const agent = useAgent()
 	 * agent.prompt('Draw a cat')
 	 * ```
 	 *

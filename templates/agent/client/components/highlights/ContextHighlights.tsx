@@ -1,11 +1,29 @@
 import { useMemo } from 'react'
 import { TLShapeId, useEditor, useValue } from 'tldraw'
-import { useAgent } from '../../agent/TldrawAgentAppProvider'
+import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgents } from '../../agent/TldrawAgentAppProvider'
 import { AreaHighlight, AreaHighlightProps } from './AreaHighlight'
 import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
-export function ContextHighlights() {
-	const agent = useAgent()
+/**
+ * Renders context highlights for all agents.
+ */
+export function AllContextHighlights() {
+	const agents = useAgents()
+
+	return (
+		<>
+			{agents.map((agent) => (
+				<ContextHighlights key={agent.id} agent={agent} />
+			))}
+		</>
+	)
+}
+
+/**
+ * Renders context highlights for a single agent.
+ */
+export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
 	const selectedContextItems = useValue(
 		'contextItems',

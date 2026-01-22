@@ -8,10 +8,28 @@ import {
 	useValue,
 	Vec,
 } from 'tldraw'
-import { useAgent } from '../agent/TldrawAgentAppProvider'
+import { TldrawAgent } from '../agent/TldrawAgent'
+import { useAgents } from '../agent/TldrawAgentAppProvider'
 
-export function GoToAgentButton() {
-	const agent = useAgent()
+/**
+ * Renders GoToAgentButton for all agents.
+ */
+export function GoToAgentButtons() {
+	const agents = useAgents()
+
+	return (
+		<>
+			{agents.map((agent) => (
+				<GoToAgentButton key={agent.id} agent={agent} />
+			))}
+		</>
+	)
+}
+
+/**
+ * A button that zooms the viewport to show where an agent is working.
+ */
+export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
 	const currentRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const agentViewport = currentRequest?.bounds
@@ -83,7 +101,7 @@ export function GoToAgentButton() {
 						</svg>
 					}
 				/>
-				<TldrawUiButtonLabel>Go to agent</TldrawUiButtonLabel>
+				<TldrawUiButtonLabel>Go to {agent.id}</TldrawUiButtonLabel>
 			</div>
 		</TldrawUiButton>
 	)

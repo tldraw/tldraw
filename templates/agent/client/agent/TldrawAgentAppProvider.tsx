@@ -1,5 +1,5 @@
 import { createContext, memo, ReactNode, useCallback, useContext, useEffect, useState } from 'react'
-import { useEditor, useToasts } from 'tldraw'
+import { useEditor, useToasts, useValue } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 import { TldrawAgentApp } from './TldrawAgentApp'
 
@@ -78,11 +78,11 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 	useEffect(() => {
 		const instance = new TldrawAgentApp(editor, { onError: handleError })
 
-		// Create the default agent first
-		const defaultAgent = instance.agents.createDefaultAgent()
-
-		// Load persisted state (must be after agent is created)
+		// Load persisted state first (this will create agents from persisted data)
 		instance.persistence.loadState()
+
+		// Ensure at least one agent exists (creates one if none were loaded)
+		const defaultAgent = instance.agents.ensureAtLeastOneAgent()
 
 		// Start auto-saving (must be after loadState to avoid saving during load)
 		instance.persistence.startAutoSave()
@@ -185,4 +185,29 @@ export function useAgent(): TldrawAgent {
 		throw new Error('No agent found. Make sure an agent has been created.')
 	}
 	return agent
+}
+
+/**
+ * Hook to get all TldrawAgent instances from the app context.
+ * Returns a reactive array that updates when agents are added or removed.
+ * Must be used inside a TldrawAgentAppProvider or TldrawAgentAppContextProvider.
+ *
+ * @throws Error if called outside of a provider
+ * @returns Array of all TldrawAgent instances
+ *
+ * @example
+ * ```tsx
+ * function AgentList() {
+ *   const agents = useAgents()
+ *   return (
+ *     <ul>
+ *       {agents.map(agent => <li key={agent.id}>{agent.id}</li>)}
+ *     </ul>
+ *   )
+ * }
+ * ```
+ */
+export function useAgents(): TldrawAgent[] {
+	const app = useTldrawAgentApp()
+	return useValue('agents', () => app.agents.getAgents(), [app])
 }

@@ -2,6 +2,7 @@ import {
 	Box,
 	createShapeId,
 	Editor,
+	isPageId,
 	reverseRecordsDiff,
 	TLArrowBinding,
 	TLArrowShape,
@@ -255,9 +256,21 @@ function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnkn
 }
 
 function getSimpleBounds(editor: Editor, shape: TLShape): Box {
+	// Compute page position from the shape record's own x/y, not the editor's cached bounds.
+	// This is critical for diffing historical shape records where the editor's
+	// current state differs from the shape record being converted.
+	const pagePoint = getShapePagePoint(editor, shape)
+
+	// Try to get dimensions from shape props first
+	const props = shape.props as { w?: number; h?: number }
+	if (props.w !== undefined && props.h !== undefined) {
+		return new Box(pagePoint.x, pagePoint.y, props.w, props.h)
+	}
+
+	// Fall back to editor bounds for dimensions only (position comes from shape record)
 	const bounds = editor.getShapePageBounds(shape)
 	if (bounds) {
-		return bounds
+		return new Box(pagePoint.x, pagePoint.y, bounds.w, bounds.h)
 	}
 
 	// Create a mock shape and get the bounds, then reverse the creation of the mock shape
@@ -281,5 +294,23 @@ function getSimpleBounds(editor: Editor, shape: TLShape): Box {
 	if (!mockBounds) {
 		throw new Error('Failed to get bounds for shape')
 	}
-	return mockBounds
+	return new Box(pagePoint.x, pagePoint.y, mockBounds.w, mockBounds.h)
+}
+
+/**
+ * Get the page-space position of a shape from its record's x/y values.
+ * For shapes at the root level, this is just shape.x/y.
+ * For shapes inside frames/groups, we transform through the parent's page transform.
+ */
+function getShapePagePoint(editor: Editor, shape: TLShape): Vec {
+	// If the shape is at the root level (parent is a page), use x/y directly
+	if (isPageId(shape.parentId)) {
+		return new Vec(shape.x, shape.y)
+	}
+
+	// For shapes inside parents, get the parent's page transform and apply it
+	// Note: We use the editor's current parent transform, which is correct as long
+	// as the parent itself hasn't moved in the same diff (uncommon case)
+	const parentTransform = editor.getShapePageTransform(shape.parentId)
+	return parentTransform.applyToPoint(new Vec(shape.x, shape.y))
 }

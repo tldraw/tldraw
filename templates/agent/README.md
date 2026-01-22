@@ -56,7 +56,8 @@ Aside from using the chat panel UI, you can also prompt the agent programmatical
 The simplest way to do this is by calling the `prompt()` method to start an agentic loop. The agent will continue until it has finished the task you've given it.
 
 ```ts
-const agent = useTldrawAgent(editor)
+// Inside a component wrapped by TldrawAgentAppProvider
+const agent = useAgent()
 agent.prompt('Draw a cat')
 ```
 

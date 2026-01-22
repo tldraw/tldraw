@@ -1,12 +1,13 @@
 import { FormEventHandler, useCallback, useRef } from 'react'
-import { useAgent } from '../agent/TldrawAgentAppProvider'
+import { uniqueId } from 'tldraw'
+import { useAgent, useTldrawAgentApp } from '../agent/TldrawAgentAppProvider'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
 export function ChatPanel() {
+	const app = useTldrawAgentApp()
 	const agent = useAgent()
-	const { editor } = agent
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
@@ -22,12 +23,6 @@ export function ChatPanel() {
 				return
 			}
 
-			// If every todo is done, clear the todo list
-			const todosRemaining = agent.todos.getTodos().filter((item) => item.status !== 'done')
-			if (todosRemaining.length === 0) {
-				agent.todos.reset()
-			}
-
 			// Clear the chat input (context is cleared after it's captured in requestAgentActions)
 			inputRef.current.value = ''
 
@@ -35,35 +30,42 @@ export function ChatPanel() {
 			agent.interrupt({
 				input: {
 					agentMessages: [value],
-					bounds: editor.getViewportPageBounds(),
+					bounds: agent.editor.getViewportPageBounds(),
 					source: 'user',
 					contextItems: agent.context.getItems(),
 				},
 			})
 		},
-		[agent, editor]
+		[agent]
 	)
 
-	function handleNewChat() {
+	const handleNewChat = useCallback(() => {
 		agent.reset()
-	}
+	}, [agent])
 
-	function NewChatButton() {
-		return (
-			<button className="new-chat-button" onClick={handleNewChat}>
-				+
-			</button>
-		)
-	}
+	// Agent management methods (available for programmatic use)
+	const _createAgent = useCallback(() => {
+		const newId = `agent-${uniqueId()}`
+		return app.agents.createAgent(newId)
+	}, [app])
+
+	const _deleteAgent = useCallback(
+		(id: string) => {
+			return app.agents.deleteAgent(id)
+		},
+		[app]
+	)
 
 	return (
 		<div className="chat-panel tl-theme__dark">
 			<div className="chat-header">
-				<NewChatButton />
+				<button className="new-chat-button" onClick={handleNewChat}>
+					+
+				</button>
 			</div>
-			<ChatHistory />
+			<ChatHistory agent={agent} />
 			<div className="chat-input-container">
-				<TodoList />
+				<TodoList agent={agent} />
 				<ChatInput handleSubmit={handleSubmit} inputRef={inputRef} />
 			</div>
 		</div>

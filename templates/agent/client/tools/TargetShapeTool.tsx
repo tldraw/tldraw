@@ -1,6 +1,6 @@
 import { Box, BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
 import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
-import { $agentsAtom } from '../agent/agentsAtom'
+import { AgentAppAgentsManager } from '../agent/managers/AgentAppAgentsManager'
 
 export class TargetShapeTool extends StateNode {
 	static override id = 'target-shape'
@@ -76,7 +76,7 @@ class TargetShapePointing extends StateNode {
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
 		if (this.shape) {
-			const agents = $agentsAtom.get(this.editor)
+			const agents = AgentAppAgentsManager.getAgents(this.editor)
 			for (const agent of agents) {
 				agent.context.add({
 					type: 'shape',
@@ -113,7 +113,7 @@ class TargetShapeDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		const agents = $agentsAtom.get(this.editor)
+		const agents = AgentAppAgentsManager.getAgents(this.editor)
 		if (this.shapes.length <= 3) {
 			for (const shape of this.shapes) {
 				for (const agent of agents) {

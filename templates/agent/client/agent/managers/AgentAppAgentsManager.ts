@@ -1,62 +1,130 @@
-import { Atom, atom } from 'tldraw'
+import { Editor, EditorAtom, uniqueId } from 'tldraw'
 import { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentAppManager } from './BaseAgentAppManager'
 
 /**
- * The default ID used for the single agent.
- * If you extend this to support multiple agents, you can use different IDs.
+ * Generate a unique agent ID.
  */
-export const DEFAULT_AGENT_ID = 'agent-starter'
+function generateAgentId(): string {
+	return `agent-${uniqueId()}`
+}
 
 /**
  * Manager for agent lifecycle - creation, disposal, and tracking.
  *
- * Currently manages a single agent, but the architecture supports
- * multiple agents if needed. The agents are stored in an array atom
- * to make it easy to extend for multi-agent scenarios.
+ * Manages multiple agents per editor. The agents are stored in an EditorAtom
+ * so they can be accessed from tools that only have access to the editor.
+ *
+ * Use the static methods `getAgents(editor)` and `getAgent(editor, id)` to access
+ * agents from tools. Use instance methods for agent lifecycle management.
  */
 export class AgentAppAgentsManager extends BaseAgentAppManager {
 	/**
-	 * Atom containing the current list of agents.
-	 * Currently only one agent is created, but the architecture supports multiple.
+	 * Static EditorAtom containing agents for each editor.
+	 * This allows tools to access agents without needing the full TldrawAgentApp.
 	 */
-	private $agents: Atom<TldrawAgent[]> = atom('agentAppAgents', [])
+	private static $agents = new EditorAtom<TldrawAgent[]>('agents', () => [])
+
+	/**
+	 * Get all agents for an editor.
+	 * Use this static method from tools that only have access to the editor.
+	 */
+	static getAgents(editor: Editor): TldrawAgent[] {
+		return AgentAppAgentsManager.$agents.get(editor)
+	}
+
+	/**
+	 * Get an agent by ID for an editor.
+	 * If no ID is provided, returns the first agent.
+	 * Use this static method from tools that only have access to the editor.
+	 */
+	static getAgent(editor: Editor, id?: string): TldrawAgent | undefined {
+		const agents = AgentAppAgentsManager.$agents.get(editor)
+		if (id) {
+			return agents.find((agent) => agent.id === id)
+		}
+		return agents[0]
+	}
 
 	/**
 	 * Get all agents.
-	 * Currently returns an array with a single agent.
 	 */
 	getAgents(): TldrawAgent[] {
-		return this.$agents.get()
+		return AgentAppAgentsManager.$agents.get(this.app.editor)
 	}
 
 	/**
 	 * Get an agent by ID.
-	 * If no ID is provided, returns the default agent.
+	 * If no ID is provided, returns the first agent.
 	 */
-	getAgent(id: string = DEFAULT_AGENT_ID): TldrawAgent | undefined {
-		return this.$agents.get().find((agent) => agent.id === id)
+	getAgent(id?: string): TldrawAgent | undefined {
+		const agents = AgentAppAgentsManager.$agents.get(this.app.editor)
+		if (id) {
+			return agents.find((agent) => agent.id === id)
+		}
+		return agents[0]
 	}
 
 	/**
-	 * Create the default agent.
-	 * Call this after the app is initialized.
+	 * Create an agent with the given ID.
+	 * If an agent with the ID already exists, returns the existing agent.
+	 *
+	 * @param id - The ID for the new agent
+	 * @returns The created or existing agent
 	 */
-	createDefaultAgent(): TldrawAgent {
-		const existingAgent = this.getAgent(DEFAULT_AGENT_ID)
+	createAgent(id: string): TldrawAgent {
+		const existingAgent = this.getAgent(id)
 		if (existingAgent) {
 			return existingAgent
 		}
 
 		const agent = new TldrawAgent({
 			editor: this.app.editor,
-			id: DEFAULT_AGENT_ID,
+			id,
 			onError: this.app.options.onError,
 		})
 
-		this.$agents.update((agents) => [...agents, agent])
+		// Register the agent in the static atom
+		AgentAppAgentsManager.$agents.update(this.app.editor, (agents) => [...agents, agent])
 
 		return agent
+	}
+
+	/**
+	 * Ensure at least one agent exists.
+	 * Returns the first existing agent, or creates a new one with a generated ID.
+	 * Call this after the app is initialized.
+	 */
+	ensureAtLeastOneAgent(): TldrawAgent {
+		const existingAgent = this.getAgent()
+		if (existingAgent) {
+			return existingAgent
+		}
+		return this.createAgent(generateAgentId())
+	}
+
+	/**
+	 * Delete an agent by ID.
+	 * Disposes the agent and removes it from the registry.
+	 *
+	 * @param id - The ID of the agent to delete
+	 * @returns true if the agent was found and deleted, false otherwise
+	 */
+	deleteAgent(id: string): boolean {
+		const agent = this.getAgent(id)
+		if (!agent) {
+			return false
+		}
+
+		// Dispose the agent first
+		agent.dispose()
+
+		// Remove from the static atom
+		AgentAppAgentsManager.$agents.update(this.app.editor, (agents) =>
+			agents.filter((a) => a.id !== id)
+		)
+
+		return true
 	}
 
 	/**
@@ -64,7 +132,7 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 * Clears chats, todos, context, and returns agents to initial mode.
 	 */
 	resetAllAgents() {
-		const agents = this.$agents.get()
+		const agents = AgentAppAgentsManager.$agents.get(this.app.editor)
 		agents.forEach((agent) => agent.reset())
 	}
 
@@ -72,9 +140,9 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 * Dispose all agents. Call this during cleanup.
 	 */
 	disposeAllAgents() {
-		const agents = this.$agents.get()
+		const agents = AgentAppAgentsManager.$agents.get(this.app.editor)
 		agents.forEach((agent) => agent.dispose())
-		this.$agents.set([])
+		AgentAppAgentsManager.$agents.set(this.app.editor, [])
 	}
 
 	/**

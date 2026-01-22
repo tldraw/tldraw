@@ -5,7 +5,7 @@ import { AgentRequest } from './AgentRequest'
  * This object is more flexible than the AgentRequest object it gets turned into.
  *
  * ```ts
- * const agent = useTldrawAgent(editor)
+ * const agent = useAgent()
  * agent.prompt('Draw a cat')
  * agent.prompt(['Draw a cat', 'Draw a dog'])
  * agent.prompt({ agentMessages: ['Draw a cat', 'Draw a dog'] })

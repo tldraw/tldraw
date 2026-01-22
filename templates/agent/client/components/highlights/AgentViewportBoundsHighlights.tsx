@@ -1,9 +1,27 @@
 import { Box, useValue } from 'tldraw'
-import { useAgent } from '../../agent/TldrawAgentAppProvider'
+import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgents } from '../../agent/TldrawAgentAppProvider'
 import { AreaHighlight } from './AreaHighlight'
 
-export function AgentViewportBoundsHighlight() {
-	const agent = useAgent()
+/**
+ * Renders viewport bounds highlights for all agents.
+ */
+export function AgentViewportBoundsHighlights() {
+	const agents = useAgents()
+
+	return (
+		<>
+			{agents.map((agent) => (
+				<AgentViewportBoundsHighlight key={agent.id} agent={agent} />
+			))}
+		</>
+	)
+}
+
+/**
+ * Renders a highlight showing an agent's current viewport bounds.
+ */
+export function AgentViewportBoundsHighlight({ agent }: { agent: TldrawAgent }) {
 	const currentRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const agentViewportBounds = currentRequest?.bounds
 
@@ -33,7 +51,7 @@ export function AgentViewportBoundsHighlight() {
 			pageBounds={agentViewportBounds}
 			color="var(--tl-color-tooltip)"
 			generating={true}
-			label="Agent view"
+			label={`${agent.id} view`}
 		/>
 	)
 }

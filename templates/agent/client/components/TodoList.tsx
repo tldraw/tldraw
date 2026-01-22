@@ -1,10 +1,9 @@
 import { useCallback } from 'react'
 import { useValue } from 'tldraw'
 import { TodoItem } from '../../shared/types/TodoItem'
-import { useAgent } from '../agent/TldrawAgentAppProvider'
+import { TldrawAgent } from '../agent/TldrawAgent'
 
-export function TodoList() {
-	const agent = useAgent()
+export function TodoList({ agent }: { agent: TldrawAgent }) {
 	const todoItems = useValue('todoList', () => agent.todos.getTodos(), [agent])
 
 	if (todoItems.length === 0) {
@@ -15,16 +14,14 @@ export function TodoList() {
 		<div className="todo-list">
 			<div className="todo-list-items">
 				{todoItems.map((item) => (
-					<TodoListItem key={item.id} item={item} />
+					<TodoListItem key={item.id} item={item} agent={agent} />
 				))}
 			</div>
 		</div>
 	)
 }
 
-function TodoListItem({ item }: { item: TodoItem }) {
-	const agent = useAgent()
-
+function TodoListItem({ item, agent }: { item: TodoItem; agent: TldrawAgent }) {
 	const deleteTodo = useCallback(() => {
 		agent.todos.delete([item.id])
 	}, [item.id, agent])

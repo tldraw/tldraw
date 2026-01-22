@@ -1,5 +1,5 @@
 import { react } from 'tldraw'
-import { PersistedAgentState } from '../TldrawAgent'
+import { PersistedAgentState, TldrawAgent } from '../TldrawAgent'
 import { BaseAgentAppManager } from './BaseAgentAppManager'
 
 /**
@@ -60,6 +60,7 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	/**
 	 * Load app state from localStorage.
 	 * Call this after the app is initialized.
+	 * Creates agents for all persisted agent IDs that don't already exist.
 	 */
 	loadState() {
 		this.isLoadingState = true
@@ -69,6 +70,11 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 			if (!appState) {
 				this.isLoadingState = false
 				return
+			}
+
+			// Create agents for all persisted IDs (createAgent returns existing if already exists)
+			for (const agentId of Object.keys(appState.agents)) {
+				this.app.agents.createAgent(agentId)
 			}
 
 			// Load state for each agent
@@ -89,27 +95,59 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	/**
 	 * Start auto-saving app state changes.
 	 * Call this after loadState() to avoid saving during load.
+	 * Reactively watches the agents list and all agent state.
 	 */
 	startAutoSave() {
-		const agents = this.app.agents.getAgents()
+		// Track which agents have watchers set up
+		const watchedAgentIds = new Set<string>()
 
-		// Watch each agent's state for changes
-		agents.forEach((agent) => {
-			const cleanup = react(`${agent.id} state`, () => {
-				// Access reactive state to trigger on changes
-				agent.chat.getHistory()
-				agent.chatOrigin.getOrigin()
-				agent.todos.getTodos()
-				agent.context.getItems()
-				agent.modelName.getModelName()
-				agent.debug.getDebugFlags()
+		// Watch for changes to the agents list and set up per-agent watchers
+		const agentsListCleanup = react('agents list', () => {
+			const agents = this.app.agents.getAgents()
+			const currentAgentIds = new Set(agents.map((a) => a.id))
 
-				// Save if not currently loading
-				if (!this.isLoadingState) {
-					this.saveState()
+			// Set up watchers for new agents
+			for (const agent of agents) {
+				if (!watchedAgentIds.has(agent.id)) {
+					watchedAgentIds.add(agent.id)
+					const cleanup = this.createAgentStateWatcher(agent)
+					this.autoSaveCleanupFns.push(cleanup)
 				}
-			})
-			this.autoSaveCleanupFns.push(cleanup)
+			}
+
+			// Clean up watchers for removed agents (happens via dispose)
+			for (const id of watchedAgentIds) {
+				if (!currentAgentIds.has(id)) {
+					watchedAgentIds.delete(id)
+				}
+			}
+
+			// Save when agent list changes (if not loading)
+			if (!this.isLoadingState) {
+				this.saveState()
+			}
+		})
+
+		this.autoSaveCleanupFns.push(agentsListCleanup)
+	}
+
+	/**
+	 * Create a reactive watcher for a single agent's state.
+	 */
+	private createAgentStateWatcher(agent: TldrawAgent): () => void {
+		return react(`${agent.id} state`, () => {
+			// Access reactive state to trigger on changes
+			agent.chat.getHistory()
+			agent.chatOrigin.getOrigin()
+			agent.todos.getTodos()
+			agent.context.getItems()
+			agent.modelName.getModelName()
+			agent.debug.getDebugFlags()
+
+			// Save if not currently loading
+			if (!this.isLoadingState) {
+				this.saveState()
+			}
 		})
 	}
 

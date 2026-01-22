@@ -15,8 +15,8 @@ import {
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
-import { AgentViewportBoundsHighlight } from './components/highlights/AgentViewportBoundsHighlights'
-import { ContextHighlights } from './components/highlights/ContextHighlights'
+import { AgentViewportBoundsHighlights } from './components/highlights/AgentViewportBoundsHighlights'
+import { AllContextHighlights } from './components/highlights/ContextHighlights'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
@@ -71,8 +71,8 @@ function App() {
 			InFrontOfTheCanvas: () =>
 				app && (
 					<TldrawAgentAppContextProvider app={app}>
-						<AgentViewportBoundsHighlight />
-						<ContextHighlights />
+						<AgentViewportBoundsHighlights />
+						<AllContextHighlights />
 					</TldrawAgentAppContextProvider>
 				),
 		}

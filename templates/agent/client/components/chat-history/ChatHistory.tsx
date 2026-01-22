@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
-import { useAgent } from '../../agent/TldrawAgentAppProvider'
+import { TldrawAgent } from '../../agent/TldrawAgent'
 import { ChatHistorySection, getAgentHistorySections } from './ChatHistorySection'
 
 /*
@@ -30,8 +30,7 @@ Here's an example of how the UI might look:
 
 */
 
-export function ChatHistory() {
-	const agent = useAgent()
+export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 	const historyItems = useValue('chatHistory', () => agent.chat.getHistory(), [agent])
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)

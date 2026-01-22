@@ -39,7 +39,7 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 		onEnter(agent, fromMode) {
 			// Reset state when entering working mode
 			agent.todos.reset()
-			agent.userAction.clearHistory()
+			// agent.userAction.clearHistory()
 			agent.context.clear()
 
 			// When entering working mode from idling, clear created shapes tracking
@@ -51,6 +51,7 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 		},
 
 		onPromptStart(agent, request) {
+			agent.todos.flush()
 			// Clear created shapes tracking when a new user prompt starts
 			// This handles cases where a prompt starts while already in working mode (e.g., continuation, interrupt)
 			if (request.source === 'user') {
