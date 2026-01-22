@@ -1,7 +1,7 @@
 ---
 title: Engineering imperfection in tldraw
 created_at: 01/08/2026
-updated_at: 01/08/2026
+updated_at: 01/22/2026
 keywords:
   - draw style
   - randomness
@@ -9,6 +9,11 @@ keywords:
   - xorshift
   - organic shapes
   - hand-drawn
+readability: 8
+voice: 8
+potential: 9
+accuracy: 7
+notes: "Strong structure and HN-worthy insight. One 'Furthermore' AI tell. Cloud code simplified vs actual implementation (missing scale factor). Heading hierarchy inconsistent (h1 vs h2)."
 
 Questions:
   - do we need to go through PathBuilder/how we draw shapes? the AI generated this, and i think it's quite a bit smoother and sharper, without the initial burden of info/potentially uninteresting exposition
