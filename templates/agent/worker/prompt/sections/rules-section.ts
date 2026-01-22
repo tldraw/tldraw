@@ -146,7 +146,7 @@ ${flagged(
 	`- Use the \`review\` action to check your work.
 - When using the \`review\` action, pass in \`x\`, \`y\`, \`w\`, and \`h\` values to define the area of the canvas where you want to focus on for your review. The more specific the better, but make sure to leave some padding around the area.
 - Do not use the \`review\` action to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
-- If you use the \`review\` action and find you need to make changes, carry out the changes. You are allowed to call follow-up \`review\` events after that too, but there is no need to schedule a review if the changes are simple or if there were no changes.`
+- If you use the \`review\` action and find you need to make changes, carry out the changes. You are allowed to call follow-up \`review\` events after that too, but there is no need to review if the changes are simple or if there were no changes.`
 )}
 ${flagged(
 	flags.hasThink && flags.hasMessage,
@@ -194,6 +194,7 @@ ${flagged(
 	flags.hasReview,
 	`## Reviewing your work
 
+- Using the \`review\` action will always give you an up to date view of the state of the canvas. You'll see the results of any actions you just completed.
 - Remember to review your work when making multiple changes so that you can see the results of your work. Otherwise, you're flying blind.
 ${flagged(flags.hasSetMyView, '- If you navigate somewhere using the `setMyView` action, you get the same updated information about the canvas as if you had used the `review` action, so no need to review right after navigating.')}
 ${flagged(flags.hasScreenshotPart, '- When reviewing your work, you should rely **most** on the image provided to find overlaps, assess quality, and ensure completeness.')}

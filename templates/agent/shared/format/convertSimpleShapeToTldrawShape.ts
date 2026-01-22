@@ -28,10 +28,13 @@ import {
 	SimpleArrowShape,
 	SimpleDrawShape,
 	SimpleGeoShape,
+	SimpleGeoShapePartial,
 	SimpleLineShape,
 	SimpleNoteShape,
 	SimpleShape,
+	SimpleShapePartial,
 	SimpleTextShape,
+	SimpleTextShapePartial,
 	SimpleUnknownShape,
 } from './SimpleShape'
 
@@ -473,7 +476,7 @@ function convertGeoShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (simpleShape.fill !== undefined) {
-		fill = convertSimpleFillToTldrawFill(simpleShape.fill)
+		fill = convertSimpleFillToTldrawFill(simpleShape.fill) ?? 'none'
 	} else if (defaultGeoShape.props?.fill) {
 		fill = defaultGeoShape.props.fill
 	} else {
@@ -726,4 +729,80 @@ function getDummyBounds(editor: Editor, shape: TLShape): Box {
 		throw new Error('Failed to get bounds for shape')
 	}
 	return dummyBounds
+}
+
+/**
+ * Convert a partial SimpleShape to a tldraw shape.
+ * This is used for streaming shapes that are still being generated.
+ *
+ * @param editor - The tldraw editor instance
+ * @param simpleShape - The partial simple shape to convert
+ * @param defaultShape - The default shape to use for fallback values
+ * @param complete - Whether the shape is complete
+ * @returns The converted shape (or null if essential fields are missing), bindings, and position
+ */
+export function convertPartialSimpleShapeToTldrawShape(
+	editor: Editor,
+	simpleShape: SimpleShapePartial,
+	{ defaultShape, complete }: { defaultShape: Partial<TLShape>; complete: boolean }
+): { shape: TLShape | null; bindings: TLBindingCreate[] | null; position: VecLike | null } {
+	// For text shapes, require: x, y, text
+	if (simpleShape._type === 'text') {
+		const partial = simpleShape as SimpleTextShapePartial
+		if (partial.x === undefined || partial.y === undefined || partial.text === undefined) {
+			return { shape: null, bindings: null, position: null }
+		}
+		// Fill in minimal required fields, let converter handle the rest with defaults
+		const fullShape: SimpleTextShape = {
+			...partial,
+			_type: 'text',
+			shapeId: partial.shapeId ?? ('streaming-shape' as any),
+			note: partial.note ?? '',
+			anchor: partial.anchor ?? 'top-left',
+			color: partial.color ?? 'black',
+			maxWidth: partial.maxWidth ?? null,
+		} as SimpleTextShape
+		const result = convertTextShapeToTldrawShape(editor, fullShape, { defaultShape })
+		return { shape: result.shape, bindings: null, position: { x: partial.x, y: partial.y } }
+	}
+
+	// For geo shapes, require: _type, x, y, w, h
+	if (simpleShape._type && simpleShape._type in SIMPLE_TO_GEO_TYPES) {
+		const partial = simpleShape as SimpleGeoShapePartial
+		if (
+			partial.x === undefined ||
+			partial.y === undefined ||
+			partial.w === undefined ||
+			partial.h === undefined
+		) {
+			return { shape: null, bindings: null, position: null }
+		}
+		// Fill in minimal required fields, let converter handle the rest with defaults
+		const fullShape: SimpleGeoShape = {
+			...partial,
+			_type: simpleShape._type as SimpleGeoShape['_type'],
+			shapeId: partial.shapeId ?? ('streaming-shape' as any),
+			note: partial.note ?? '',
+			color: partial.color ?? 'black',
+		} as SimpleGeoShape
+		const result = convertGeoShapeToTldrawShape(editor, fullShape, { defaultShape })
+		return { shape: result.shape, bindings: null, position: { x: partial.x, y: partial.y } }
+	}
+
+	// For all other shapes, require complete: true
+	if (!complete) {
+		return { shape: null, bindings: null, position: null }
+	}
+
+	// If complete, use the full converter
+	const result = convertSimpleShapeToTldrawShape(editor, simpleShape as SimpleShape, {
+		defaultShape,
+	})
+	const position =
+		'x' in simpleShape && 'y' in simpleShape
+			? { x: simpleShape.x as number, y: simpleShape.y as number }
+			: 'x1' in simpleShape && 'y1' in simpleShape
+				? { x: simpleShape.x1 as number, y: simpleShape.y1 as number }
+				: null
+	return { shape: result.shape, bindings: result.bindings ?? null, position }
 }

@@ -185,7 +185,7 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 }
 
 // ChatHistory
-const CHAT_HISTORY_PRIORITY = 999999 // history should appear first in the prompt (low priority)
+const CHAT_HISTORY_PRIORITY = -Infinity // history should appear first in the prompt (low priority)
 
 export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
 	type: 'chatHistory',

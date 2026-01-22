@@ -37,6 +37,9 @@ export const SimpleGeoShape = z.object({
 
 export type SimpleGeoShape = z.infer<typeof SimpleGeoShape>
 
+export const SimpleGeoShapePartialSchema = SimpleGeoShape.partial()
+export type SimpleGeoShapePartial = z.infer<typeof SimpleGeoShapePartialSchema>
+
 const SimpleLineShape = z.object({
 	_type: z.literal('line'),
 	color: SimpleColor,
@@ -82,6 +85,9 @@ const SimpleTextShape = z
 	})
 
 export type SimpleTextShape = z.infer<typeof SimpleTextShape>
+
+export const SimpleTextShapePartialSchema = SimpleTextShape.partial()
+export type SimpleTextShapePartial = z.infer<typeof SimpleTextShapePartialSchema>
 
 const SimpleArrowShape = z.object({
 	_type: z.literal('arrow'),
@@ -145,6 +151,8 @@ const SIMPLE_SHAPES = [
 export const SimpleShapeSchema = z.union(SIMPLE_SHAPES)
 
 export type SimpleShape = z.infer<typeof SimpleShapeSchema>
+
+export type SimpleShapePartial = Partial<SimpleShape>
 
 /**
  * Extract all shape type names from the schema

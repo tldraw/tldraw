@@ -89,7 +89,7 @@ export const PenActionUtil = registerActionUtil(
 			const segments: TLDrawShapeSegment[] = [
 				{
 					type: 'free',
-					points: base64Points,
+					path: base64Points,
 				},
 			]
 
@@ -98,6 +98,7 @@ export const PenActionUtil = registerActionUtil(
 				type: 'draw',
 				x: minX,
 				y: minY,
+				isLocked: !action.complete,
 				props: {
 					color: asColor(action.color ?? 'black'),
 					fill: convertSimpleFillToTldrawFill(action.fill ?? 'none'),

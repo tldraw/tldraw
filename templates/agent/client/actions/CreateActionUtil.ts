@@ -1,6 +1,6 @@
-import { IndexKey, TLShapeId, toRichText } from 'tldraw'
+import { IndexKey, TLShape, TLShapeId, toRichText } from 'tldraw'
 import {
-	convertSimpleShapeToTldrawShape,
+	convertPartialSimpleShapeToTldrawShape,
 	SIMPLE_TO_GEO_TYPES,
 } from '../../shared/format/convertSimpleShapeToTldrawShape'
 import { SimpleShape } from '../../shared/format/SimpleShape'
@@ -21,15 +21,18 @@ export const CreateActionUtil = registerActionUtil(
 		}
 
 		override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-			if (!action.complete) return action
-
 			const { shape } = action
 
-			// Ensure the created shape has a unique ID
-			shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
+			// If there's no shape yet, return action (will be filtered in applyAction)
+			if (!shape) return action
 
-			// If the shape is an arrow, ensure the from and to IDs are real shapes
-			if (shape._type === 'arrow') {
+			// Ensure the created shape has a unique ID (only if shapeId is present)
+			if (shape.shapeId) {
+				shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
+			}
+
+			// If the shape is an arrow and complete, ensure the from and to IDs are real shapes
+			if (action.complete && shape._type === 'arrow') {
 				if (shape.fromId) {
 					shape.fromId = helpers.ensureShapeIdExists(shape.fromId)
 				}
@@ -57,15 +60,21 @@ export const CreateActionUtil = registerActionUtil(
 		}
 
 		override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-			if (!action.complete) return
 			const { editor } = this
+			const { shape } = action
+
+			// If there's no shape yet, return early
+			if (!shape || !shape._type) return
 
 			// Translate the shape back to the chat's position
-			action.shape = helpers.removeOffsetFromShape(action.shape)
+			const shapePartial = helpers.removeOffsetFromShapePartial(shape)
 
-			const result = convertSimpleShapeToTldrawShape(editor, action.shape, {
-				defaultShape: getDefaultShape(action.shape._type),
+			const result = convertPartialSimpleShapeToTldrawShape(editor, shapePartial, {
+				defaultShape: getDefaultShape(shape._type, action.complete),
+				complete: action.complete,
 			})
+
+			if (!result.shape) return
 
 			editor.createShape(result.shape)
 
@@ -85,11 +94,12 @@ export const CreateActionUtil = registerActionUtil(
 	}
 )
 
-function getDefaultShape(shapeType: SimpleShape['_type']) {
+function getDefaultShape(shapeType: SimpleShape['_type'], complete: boolean): Partial<TLShape> {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
-	return isGeo
+	const defaultShape = isGeo
 		? SHAPE_DEFAULTS.geo
 		: (SHAPE_DEFAULTS[shapeType as keyof typeof SHAPE_DEFAULTS] ?? SHAPE_DEFAULTS.unknown)
+	return complete ? defaultShape : { ...defaultShape, isLocked: true }
 }
 
 const SHARED_DEFAULTS = {

@@ -50,11 +50,16 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 			}
 		},
 
+		onExit(agent, _toMode) {
+			// Unlock all shapes created during the prompt when exiting working mode
+			agent.lints.unlockCreatedShapes()
+		},
+
 		onPromptStart(agent, request) {
-			agent.todos.flush()
-			// Clear created shapes tracking when a new user prompt starts
+			// Clear created shapes tracking and flush todos when a new user prompt starts
 			// This handles cases where a prompt starts while already in working mode (e.g., continuation, interrupt)
 			if (request.source === 'user') {
+				agent.todos.flush()
 				agent.lints.clearCreatedShapes()
 			}
 		},

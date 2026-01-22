@@ -51,12 +51,14 @@ export class AgentDebugManager {
 
 	/**
 	 * Toggle a specific debug flag.
+	 * @returns The updated debug flags.
 	 */
-	toggleFlag(flag: keyof AgentDebugFlags): void {
+	toggleFlag(flag: keyof AgentDebugFlags): AgentDebugFlags {
 		this.$debugFlags.update((current) => ({
 			...current,
 			[flag]: !current[flag],
 		}))
+		return this.$debugFlags.get()
 	}
 
 	/**

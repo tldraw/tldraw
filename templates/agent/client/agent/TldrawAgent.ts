@@ -433,18 +433,18 @@ export class TldrawAgent {
 			return
 		}
 
-		const request = this.requests.getPartialRequestFromInput(input)
+		const newRequest = this.requests.getPartialRequestFromInput(input)
 
 		this._schedule({
 			// Append to properties where possible
-			agentMessages: [...scheduledRequest.agentMessages, ...(request.agentMessages ?? [])],
-			userMessages: [...scheduledRequest.userMessages, ...(request.userMessages ?? [])],
-			data: [...scheduledRequest.data, ...(request.data ?? [])],
+			agentMessages: [...scheduledRequest.agentMessages, ...(newRequest.agentMessages ?? [])],
+			userMessages: [...scheduledRequest.userMessages, ...(newRequest.userMessages ?? [])],
+			data: [...scheduledRequest.data, ...(newRequest.data ?? [])],
 
 			// Override specific properties
-			bounds: request.bounds ?? scheduledRequest.bounds,
-			contextItems: [...scheduledRequest.contextItems, ...(request.contextItems ?? [])],
-			source: request.source ?? scheduledRequest.source ?? 'self',
+			bounds: newRequest.bounds ?? scheduledRequest.bounds,
+			contextItems: [...scheduledRequest.contextItems, ...(newRequest.contextItems ?? [])],
+			source: newRequest.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
 
@@ -542,10 +542,8 @@ export class TldrawAgent {
 		this.chat.reset()
 		this.chatOrigin.reset()
 		this.context.reset()
-		this.debug.reset()
 		this.lints.reset()
 		this.mode.reset()
-		this.modelName.reset()
 		this.requests.reset()
 		this.todos.reset()
 		this.userAction.reset()
@@ -597,52 +595,62 @@ export class TldrawAgent {
 				for await (const action of this.streamAgentActions({ prompt, signal })) {
 					if (cancelled) break
 
-					editor.run(
-						() => {
-							const actionUtilType = this.actions.getAgentActionUtilType(action._type)
-							const actionUtil = this.actions.getAgentActionUtil(action._type)
+					// Set acting flag BEFORE editor.run so user action tracker ignores all changes
+					// including diff reverts that happen before act() is called
+					this.setIsActingOnEditor(true)
+					try {
+						editor.run(
+							() => {
+								const actionUtilType = this.actions.getAgentActionUtilType(action._type)
+								const actionUtil = this.actions.getAgentActionUtil(action._type)
 
-							// If the action is not in the mode's available actions, skip it
-							if (!availableActions.includes(actionUtilType)) {
-								return
-							}
+								// If the action is not in the mode's available actions, skip it
+								if (!availableActions.includes(actionUtilType)) {
+									return
+								}
 
-							// helpers the agent's action
-							const transformedAction = actionUtil.sanitizeAction(action, helpers)
-							if (!transformedAction) {
-								incompleteDiff = null
-								return
-							}
+								// If there was a diff from an incomplete action, revert it so that we can reapply the action
+								// This must happen BEFORE sanitize so we're working with clean state
+								if (incompleteDiff) {
+									const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+									editor.store.applyDiff(inversePrevDiff)
+									// Track the inverse diff to update created shapes tracking
+									this.lints.trackShapesFromDiff(inversePrevDiff)
+									incompleteDiff = null
+								}
 
-							// If there was a diff from an incomplete action, revert it so that we can reapply the action
-							if (incompleteDiff) {
-								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-								editor.store.applyDiff(inversePrevDiff)
-							}
+								// Sanitize the agent's action
+								const transformedAction = actionUtil.sanitizeAction(action, helpers)
+								if (!transformedAction) {
+									return
+								}
 
-							// Apply the action to the app and editor
-							const { diff, promise } = this.actions.act(transformedAction, helpers)
+								// Apply the action to the app and editor
+								const { diff, promise } = this.actions.act(transformedAction, helpers)
 
-							if (promise) {
-								actionPromises.push(promise)
-							}
+								if (promise) {
+									actionPromises.push(promise)
+								}
 
-							// The the action is incomplete, save the diff so that we can revert it in the future
-							if (transformedAction.complete) {
-								incompleteDiff = null
-								// Track shapes created by this complete action for lint detection
+								// Track shapes from diff for both complete and incomplete actions
 								this.lints.trackShapesFromDiff(diff)
-								// Log completed action if debug logging is enabled
-								this.debug.logCompletedAction(transformedAction)
-							} else {
-								incompleteDiff = diff
+
+								// If the action is incomplete, save the diff so that we can revert it in the future
+								if (transformedAction.complete) {
+									// Log completed action if debug logging is enabled
+									this.debug.logCompletedAction(transformedAction)
+								} else {
+									incompleteDiff = diff
+								}
+							},
+							{
+								ignoreShapeLock: true,
+								history: 'ignore',
 							}
-						},
-						{
-							ignoreShapeLock: false,
-							history: 'ignore',
-						}
-					)
+						)
+					} finally {
+						this.setIsActingOnEditor(false)
+					}
 				}
 				await Promise.all(actionPromises)
 			} catch (e) {

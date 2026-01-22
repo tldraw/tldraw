@@ -89,6 +89,26 @@ export class AgentLintManager extends BaseAgentManager {
 	}
 
 	/**
+	 * Unlock all shapes created during the current prompt chain.
+	 * Called when the prompt completes to make shapes editable again.
+	 */
+	unlockCreatedShapes(): void {
+		const { editor } = this.agent
+		const createdShapes = this.getCreatedShapes()
+		const lockedShapes = createdShapes.filter((shape) => shape.isLocked)
+		if (lockedShapes.length === 0) return
+
+		editor.run(
+			() => {
+				for (const shape of lockedShapes) {
+					editor.updateShape({ id: shape.id, type: shape.type, isLocked: false })
+				}
+			},
+			{ ignoreShapeLock: true, history: 'ignore' }
+		)
+	}
+
+	/**
 	 * Check if there are any unsurfaced lints for the given shapes.
 	 */
 	hasUnsurfacedLints(shapes: TLShape[]): boolean {
@@ -159,7 +179,7 @@ export class AgentLintManager extends BaseAgentManager {
 	private getShapesWithGrowY(shapes: TLShape[]): TLShape[] {
 		const shapesWithGrowY = shapes.filter((shape) => {
 			if ('growY' in shape.props) {
-				return shape.props.growY > 0
+				return shape.props.growY > 5 // use 5 because 0 flags shapes that don't need to be changed
 			}
 			return false
 		})

@@ -130,25 +130,52 @@ export class AgentHelpers {
 	 * Apply the offset of this request to a shape partial.
 	 */
 	applyOffsetToShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
-		if ('x' in shape && shape.x !== undefined) {
-			return { ...shape, x: shape.x + this.offset.x }
+		const result = { ...shape }
+		if ('x' in result && result.x !== undefined) {
+			;(result as any).x = result.x + this.offset.x
 		}
-		if ('y' in shape && shape.y !== undefined) {
-			return { ...shape, y: shape.y + this.offset.y }
+		if ('y' in result && result.y !== undefined) {
+			;(result as any).y = result.y + this.offset.y
 		}
-		if ('x1' in shape && shape.x1 !== undefined) {
-			return { ...shape, x1: shape.x1 + this.offset.x }
+		if ('x1' in result && result.x1 !== undefined) {
+			;(result as any).x1 = result.x1 + this.offset.x
 		}
-		if ('y1' in shape && shape.y1 !== undefined) {
-			return { ...shape, y1: shape.y1 + this.offset.y }
+		if ('y1' in result && result.y1 !== undefined) {
+			;(result as any).y1 = result.y1 + this.offset.y
 		}
-		if ('x2' in shape && shape.x2 !== undefined) {
-			return { ...shape, x2: shape.x2 + this.offset.x }
+		if ('x2' in result && result.x2 !== undefined) {
+			;(result as any).x2 = result.x2 + this.offset.x
 		}
-		if ('y2' in shape && shape.y2 !== undefined) {
-			return { ...shape, y2: shape.y2 + this.offset.y }
+		if ('y2' in result && result.y2 !== undefined) {
+			;(result as any).y2 = result.y2 + this.offset.y
 		}
-		return shape
+		return result
+	}
+
+	/**
+	 * Remove the offset of this request from a shape partial.
+	 */
+	removeOffsetFromShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
+		const result = { ...shape }
+		if ('x' in result && result.x !== undefined) {
+			;(result as any).x = result.x - this.offset.x
+		}
+		if ('y' in result && result.y !== undefined) {
+			;(result as any).y = result.y - this.offset.y
+		}
+		if ('x1' in result && result.x1 !== undefined) {
+			;(result as any).x1 = result.x1 - this.offset.x
+		}
+		if ('y1' in result && result.y1 !== undefined) {
+			;(result as any).y1 = result.y1 - this.offset.y
+		}
+		if ('x2' in result && result.x2 !== undefined) {
+			;(result as any).x2 = result.x2 - this.offset.x
+		}
+		if ('y2' in result && result.y2 !== undefined) {
+			;(result as any).y2 = result.y2 - this.offset.y
+		}
+		return result
 	}
 
 	/**
