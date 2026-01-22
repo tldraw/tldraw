@@ -1,5 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
+import { PushProcessor } from '@rocicorp/zero/server'
+import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
 import {
 	FILE_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -20,16 +22,11 @@ import {
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
-import {
-	PostgresJSConnection,
-	PushProcessor,
-	ZQLDatabase,
-} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { paddleWebhooks } from './paddleWebhooks'
-import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
+import { createPostgresConnectionPool } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getPierreHistory } from './routes/getPierreHistory'
@@ -178,7 +175,7 @@ const router = createRouter<Environment>()
 	.post('/app/zero/push', async (req, env) => {
 		const auth = await requireAuth(req, env)
 		const processor = new PushProcessor(
-			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)

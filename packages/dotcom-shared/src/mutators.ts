@@ -1,5 +1,4 @@
-import type { CustomMutatorDefs } from '@rocicorp/zero'
-import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { CustomMutatorDefs, Transaction } from '@rocicorp/zero'
 import {
 	assert,
 	getIndexAbove,
@@ -23,6 +22,8 @@ import {
 	TlaUserPartial,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
+
+type Tx = Transaction<TlaSchema>
 
 /**
  * Parse a flags string into an array of individual flags.
@@ -254,16 +255,16 @@ export function createMutators(userId: string) {
 	const mutators = {
 		user: {
 			/** @deprecated */
-			insert: async (tx, user: TlaUser) => {
+			insert: async (tx: Tx, user: TlaUser) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
 				await tx.mutate.user.insert(user)
 			},
-			update: async (tx, user: TlaUserPartial) => {
+			update: async (tx: Tx, user: TlaUserPartial) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
-			updateFairyConfig: async (tx, { id, properties }: { id: string; properties: object }) => {
+			updateFairyConfig: async (tx: Tx, { id, properties }: { id: string; properties: object }) => {
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
 				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
@@ -286,7 +287,7 @@ export function createMutators(userId: string) {
 					}),
 				})
 			},
-			deleteFairyConfig: async (tx, { id }: { id: string }) => {
+			deleteFairyConfig: async (tx: Tx, { id }: { id: string }) => {
 				const { hasAccess } = await getUserFairyAccess(tx, userId)
 				assert(hasAccess, ZErrorCode.forbidden)
 
@@ -298,7 +299,7 @@ export function createMutators(userId: string) {
 					fairies: JSON.stringify({ ...currentConfig, [id]: undefined }),
 				})
 			},
-			deleteAllFairyConfigs: async (tx) => {
+			deleteAllFairyConfigs: async (tx: Tx) => {
 				const { hasAccess } = await getUserFairyAccess(tx, userId)
 				assert(hasAccess, ZErrorCode.forbidden)
 
@@ -310,7 +311,7 @@ export function createMutators(userId: string) {
 		file: {
 			/** @deprecated */
 			insertWithFileState: async (
-				tx,
+				tx: Tx,
 				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
 			) => {
 				// User must be the owner for legacy file creation
@@ -324,7 +325,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			/** @deprecated */
-			deleteOrForget: async (tx, { id }: { id: string }) => {
+			deleteOrForget: async (tx: Tx, { id }: { id: string }) => {
 				const file = await tx.query.file.where('id', '=', id).one().run()
 				if (!file) return
 				await tx.mutate.file_state.delete({ fileId: id, userId })
@@ -337,7 +338,7 @@ export function createMutators(userId: string) {
 					})
 				}
 			},
-			update: async (tx, _file: TlaFilePartial) => {
+			update: async (tx: Tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
 				const file = await tx.query.file.where('id', '=', _file.id).one().run()
 				await assertUserCanUpdateFile(tx, userId, file!)
@@ -350,7 +351,7 @@ export function createMutators(userId: string) {
 		},
 		file_state: {
 			/** @deprecated now update creates if not exists */
-			insert: async (tx, fileState: TlaFileState) => {
+			insert: async (tx: Tx, fileState: TlaFileState) => {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				if (tx.location === 'server') {
 					// Verify the user has access to this file
@@ -360,7 +361,7 @@ export function createMutators(userId: string) {
 				// use upsert under the hood here for a little fault tolerance
 				await tx.mutate.file_state.upsert(fileState)
 			},
-			update: async (tx, props: TlaFileStatePartial) => {
+			update: async (tx: Tx, props: TlaFileStatePartial) => {
 				const fileState = props
 
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
@@ -383,7 +384,10 @@ export function createMutators(userId: string) {
 
 				await tx.mutate.file_state.upsert(fileState)
 			},
-			updateFairies: async (tx, { fileId, fairyState }: { fileId: string; fairyState: string }) => {
+			updateFairies: async (
+				tx: Tx,
+				{ fileId, fairyState }: { fileId: string; fairyState: string }
+			) => {
 				if (tx.location !== 'server') {
 					await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
 					return
@@ -419,7 +423,7 @@ export function createMutators(userId: string) {
 				}
 			},
 			appendFairyChatMessage: async (
-				tx,
+				tx: Tx,
 				{ fileId, messages }: { fileId: string; messages: any[] }
 			) => {
 				if (messages.length === 0) {
@@ -462,7 +466,7 @@ export function createMutators(userId: string) {
 		},
 
 		/** @deprecated */
-		init: async (tx, { user, time }: { user: TlaUser; time: number }) => {
+		init: async (tx: Tx, { user, time }: { user: TlaUser; time: number }) => {
 			assert(user.id === userId, ZErrorCode.forbidden)
 			time = ensureSensibleTimestamp(time)
 			await tx.mutate.user.insert({ ...user, flags: 'groups_backend' })
@@ -487,7 +491,7 @@ export function createMutators(userId: string) {
 		},
 
 		createFile: async (
-			tx,
+			tx: Tx,
 			{
 				fileId,
 				groupId,
@@ -593,7 +597,7 @@ export function createMutators(userId: string) {
 		},
 
 		pinFile: async (
-			tx,
+			tx: Tx,
 			{ fileId, groupId, index }: { fileId: string; groupId: string; index?: IndexKey }
 		) => {
 			assert(fileId, ZErrorCode.bad_request)
@@ -631,7 +635,7 @@ export function createMutators(userId: string) {
 			}
 		},
 
-		unpinFile: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+		unpinFile: async (tx: Tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 			assert(fileId, ZErrorCode.bad_request)
 
 			const migrated = await isGroupsMigrated(tx, userId)
@@ -651,7 +655,10 @@ export function createMutators(userId: string) {
 			}
 		},
 
-		removeFileFromGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+		removeFileFromGroup: async (
+			tx: Tx,
+			{ fileId, groupId }: { fileId: string; groupId: string }
+		) => {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(groupId, ZErrorCode.bad_request)
 			const migrated = await isGroupsMigrated(tx, userId)
@@ -671,7 +678,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.file.update({ id: fileId, isDeleted: true })
 			}
 		},
-		onEnterFile: async (tx, { fileId, time }: { fileId: string; time: number }) => {
+		onEnterFile: async (tx: Tx, { fileId, time }: { fileId: string; time: number }) => {
 			assert(fileId, ZErrorCode.bad_request)
 			time = ensureSensibleTimestamp(time)
 
@@ -700,7 +707,7 @@ export function createMutators(userId: string) {
 				}
 			}
 		},
-		createGroup: async (tx, { id, name }: { id: string; name: string }) => {
+		createGroup: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assertValidId(id)
 			await tx.mutate.group.insert({
@@ -740,7 +747,7 @@ export function createMutators(userId: string) {
 				index,
 			})
 		},
-		updateGroup: async (tx, { id, name }: { id: string; name: string }) => {
+		updateGroup: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
@@ -748,7 +755,7 @@ export function createMutators(userId: string) {
 
 			await tx.mutate.group.update({ id, name: name.trim() })
 		},
-		regenerateGroupInviteSecret: async (tx, { id }: { id: string }) => {
+		regenerateGroupInviteSecret: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 
@@ -759,7 +766,7 @@ export function createMutators(userId: string) {
 			}
 		},
 		setGroupMemberRole: async (
-			tx,
+			tx: Tx,
 			{
 				groupId,
 				targetUserId,
@@ -793,7 +800,7 @@ export function createMutators(userId: string) {
 
 			await tx.mutate.group_user.update({ userId: targetUserId, groupId, role })
 		},
-		leaveGroup: async (tx, { groupId }: { groupId: string }) => {
+		leaveGroup: async (tx: Tx, { groupId }: { groupId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			const owners = await tx.query.group_user
 				.where('groupId', '=', groupId)
@@ -805,7 +812,7 @@ export function createMutators(userId: string) {
 			assert(!isOnlyOwner, ZErrorCode.forbidden)
 			await tx.mutate.group_user.delete({ userId, groupId })
 		},
-		deleteGroup: async (tx, { id }: { id: string }) => {
+		deleteGroup: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			await assertUserIsGroupOwner(tx, userId, id)
 
@@ -829,7 +836,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.group_user.delete({ userId, groupId: id })
 			}
 		},
-		moveFileToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+		moveFileToGroup: async (tx: Tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(fileId, ZErrorCode.bad_request)
 			assert(groupId, ZErrorCode.bad_request)
@@ -880,7 +887,10 @@ export function createMutators(userId: string) {
 				index: null,
 			})
 		},
-		addFileLinkToGroup: async (tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+		addFileLinkToGroup: async (
+			tx: Tx,
+			{ fileId, groupId }: { fileId: string; groupId: string }
+		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(fileId, ZErrorCode.bad_request)
 			assert(groupId, ZErrorCode.bad_request)
@@ -916,13 +926,16 @@ export function createMutators(userId: string) {
 				index: null,
 			})
 		},
-		updateOwnGroupUser: async (tx, { groupId, index }: { groupId: string; index: IndexKey }) => {
+		updateOwnGroupUser: async (
+			tx: Tx,
+			{ groupId, index }: { groupId: string; index: IndexKey }
+		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			await assertUserIsGroupMember(tx, userId, groupId)
 			await tx.mutate.group_user.update({ userId, groupId, index })
 		},
 		handleFileDragOperation: async (
-			tx,
+			tx: Tx,
 			{
 				fileId,
 				groupId,
@@ -997,7 +1010,7 @@ export function createMutators(userId: string) {
 				})
 			}
 		},
-	} as const satisfies CustomMutatorDefs<TlaSchema>
+	} as const satisfies CustomMutatorDefs
 	return mutators
 }
 

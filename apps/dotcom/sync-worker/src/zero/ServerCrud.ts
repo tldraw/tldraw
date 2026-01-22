@@ -1,5 +1,5 @@
 import { SchemaValue } from '@rocicorp/zero'
-import { TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { TableCRUD } from '@rocicorp/zero/server'
 import {
 	DB,
 	TlaFile,

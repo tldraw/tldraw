@@ -1,5 +1,5 @@
 import { CustomMutatorImpl } from '@rocicorp/zero'
-import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/server'
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,

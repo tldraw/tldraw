@@ -1,6 +1,6 @@
+import type { TableCRUD } from '@rocicorp/zero/server'
 import { OptimisticAppStore, TlaSchema, ZRowUpdate } from '@tldraw/dotcom-shared'
 import { assert, assertExists } from 'tldraw'
-import { TableCRUD } from '../../../../../../node_modules/@rocicorp/zero/out/zql/src/mutate/custom'
 
 export class ClientCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]> {
 	constructor(
