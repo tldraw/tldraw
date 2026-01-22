@@ -211,11 +211,16 @@ export class TldrawApp {
 			// Set up token refresh on auth errors
 			const unsubscribe = z.connection.state.subscribe((state) => {
 				if (state.name === 'needs-auth') {
-					getToken().then((token) => {
-						if (token) {
-							z.connection.connect({ auth: token })
-						}
-					})
+					getToken()
+						.then((token) => {
+							if (token) {
+								z.connection.connect({ auth: token })
+							}
+						})
+						.catch((err) => {
+							console.error('Failed to refresh auth token:', err)
+							captureException(err)
+						})
 				}
 			})
 			this.disposables.push(unsubscribe)

@@ -4,7 +4,6 @@ import type {
 	HumanReadable,
 	Query,
 	RunOptions,
-	SchemaQuery,
 	TableMutator,
 	TableSchema,
 } from '@rocicorp/zero'
@@ -40,7 +39,6 @@ import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getClerkClient } from './utils/tla/getAuth'
 import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
-import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
@@ -327,13 +325,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			schema.tables,
 			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
 		) as { [K in keyof TlaSchema['tables']]: TableMutator<TlaSchema['tables'][K] & TableSchema> }
-	}
-
-	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
-		return mapObjectMapValues(
-			schema.tables,
-			(tableName) => new ServerQuery(signal, client, false, tableName) as any
-		)
 	}
 
 	private async executeServerQuery(client: PoolClient, ast: AST): Promise<unknown[] | unknown> {

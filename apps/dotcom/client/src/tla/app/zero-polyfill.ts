@@ -105,6 +105,7 @@ export class Zero {
 					const controller = new AbortController()
 					const mutationId = uniqueId()
 					const mutate = this.makeCrud(controller.signal, mutationId)
+					// eslint-disable-next-line @typescript-eslint/no-deprecated -- keep deprecated stub to help migration
 					const query = this.makeMutatorQuery(controller.signal)
 					const run = (q: unknown) => {
 						assert(!controller.signal.aborted, 'run() usage outside of mutator scope')
@@ -368,6 +369,7 @@ export class Zero {
 			if (condition.type === 'or') {
 				return condition.conditions.some((c) => this.evaluateCondition(c, row))
 			}
+			throw new Error(`Unknown condition type: ${condition.type}`)
 		}
 
 		// Simple condition: { left, op, right }
@@ -380,7 +382,9 @@ export class Zero {
 		const op = simpleCondition.op
 		const value = simpleCondition.right?.value
 
-		if (!fieldName || !op) return true
+		if (!fieldName || !op) {
+			throw new Error(`Malformed condition: missing fieldName or op`)
+		}
 
 		const rowValue = row[fieldName]
 
@@ -398,7 +402,7 @@ export class Zero {
 			case '<=':
 				return (rowValue as number) <= (value as number)
 			default:
-				return true
+				throw new Error(`Unknown operator: ${op}`)
 		}
 	}
 
@@ -422,21 +426,12 @@ export class Zero {
 		) as { [K in keyof TlaSchema['tables']]: TableMutator<TlaSchema['tables'][K] & TableSchema> }
 	}
 
-	/** Query builder for mutator context only */
-	private makeMutatorQuery(signal: AbortSignal) {
-		return mapObjectMapValues(schema.tables, (_, table) => ({
-			where: () => ({
-				one: async () => {
-					assert(!signal.aborted, 'Query usage outside of mutator scope')
-					const data = this.store.getFullData()
-					return data?.[table.name as keyof typeof data]?.[0]
-				},
-				run: async () => {
-					assert(!signal.aborted, 'Query usage outside of mutator scope')
-					const data = this.store.getFullData()
-					return data?.[table.name as keyof typeof data] ?? []
-				},
-			}),
+	/** @deprecated Query builder - use tx.run(zql...) instead */
+	private makeMutatorQuery(_signal: AbortSignal) {
+		return mapObjectMapValues(schema.tables, () => ({
+			where: () => {
+				throw new Error('tx.query is deprecated. Use tx.run(zql...) instead.')
+			},
 		}))
 	}
 }
