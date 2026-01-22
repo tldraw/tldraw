@@ -359,6 +359,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			const field = JSON.stringify(simpleCondition.left?.name)
 			const op = simpleCondition.op
+			const ALLOWED_OPS = ['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT']
+			if (!ALLOWED_OPS.includes(op)) {
+				throw new Error(`Invalid operator: ${op}`)
+			}
 			const value = simpleCondition.right?.value
 			params.push(value)
 			return `${field} ${op} $${paramIndex++}`
