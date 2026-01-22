@@ -7885,7 +7885,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:^0.25":
+"@rocicorp/zero@npm:0.25.9, @rocicorp/zero@npm:^0.25":
   version: 0.25.9
   resolution: "@rocicorp/zero@npm:0.25.9"
   dependencies:
@@ -10694,7 +10694,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:^0.25"
+    "@rocicorp/zero": "npm:0.25.9"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.25.6"
