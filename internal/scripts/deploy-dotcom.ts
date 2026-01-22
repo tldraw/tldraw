@@ -478,7 +478,6 @@ async function deployZeroViaSst() {
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroMutateUrl', zeroMutateUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'secret', 'set', 'ZeroQueryUrl', zeroQueryUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
-	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
 	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
 }
 
@@ -498,22 +497,6 @@ function updateFlyioToml(appName: string): void {
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
 
-async function deployPermissionsToFlyIo() {
-	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
-	const permissionsFile = 'permissions.sql'
-	await exec('npx', [
-		'zero-deploy-permissions',
-		'--schema-path',
-		schemaPath,
-		'--output-file',
-		permissionsFile,
-	])
-	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
-	if (result.toLowerCase().includes('error')) {
-		throw new Error('Error deploying permissions to fly.io')
-	}
-}
-
 async function deployZeroViaFlyIo() {
 	if (!flyioAppName) {
 		throw new Error('Fly.io app name is not defined')
@@ -526,7 +509,6 @@ async function deployZeroViaFlyIo() {
 		})
 	}
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
-	await deployPermissionsToFlyIo()
 }
 
 async function deployZeroBackend() {

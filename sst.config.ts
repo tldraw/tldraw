@@ -162,26 +162,5 @@ export default $config({
 				},
 			},
 		})
-
-		// Permissions deployment
-		// Note: this setup requires your CI/CD pipeline to have access to your
-		// Postgres database. If you do not want to do this, you can also use
-		// `npx zero-deploy-permissions --output-format=sql` during build to
-		// generate a permissions.sql file, then run that file as part of your
-		// deployment within your VPC. See hello-zero-solid for an example:
-		// https://github.com/rocicorp/hello-zero-solid/blob/main/sst.config.ts#L141
-		new command.local.Command(
-			'zero-deploy-permissions',
-			{
-				create: `npx zero-deploy-permissions -p ../../apps/dotcom/zero-cache/.schema.js`,
-				// Run the Command on every deploy ...
-				triggers: [Date.now()],
-				environment: {
-					ZERO_UPSTREAM_DB: commonEnv.ZERO_UPSTREAM_DB,
-				},
-			},
-			// after the view-syncer is deployed.
-			{ dependsOn: viewSyncer }
-		)
 	},
 })
