@@ -513,22 +513,23 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				return
 			}
 
-			if (this.unsentChanges.nextPresence) {
-				this.lastPushedPresenceState = this.unsentChanges.nextPresence
-			}
-			this.unsentChanges.nextDiff = undefined
-			this.unsentChanges.nextPresence = undefined
-
 			const pushRequest: TLPushRequest<R> = {
 				type: 'push',
-				clientClock: this.clientClock++,
+				clientClock: this.clientClock,
 				diff,
 				presence,
 			}
 
 			this.debug('sending push request', pushRequest)
-			this.pendingPushRequests.push(pushRequest)
 			this.socket.sendMessage(pushRequest)
+
+			if (this.unsentChanges.nextPresence) {
+				this.lastPushedPresenceState = this.unsentChanges.nextPresence
+			}
+			this.clientClock++
+			this.pendingPushRequests.push(pushRequest)
+			this.unsentChanges.nextDiff = undefined
+			this.unsentChanges.nextPresence = undefined
 		})
 
 		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
