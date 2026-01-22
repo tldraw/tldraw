@@ -16,7 +16,7 @@ export class AgentActionManager extends BaseAgentManager {
 	 * A record of the agent's action util instances.
 	 * Used by the `getAgentActionUtil` method.
 	 */
-	private agentActionUtils!: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	private agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
 	/**
 	 * The agent action util instance for the "unknown" action type.
@@ -25,11 +25,15 @@ export class AgentActionManager extends BaseAgentManager {
 	 * isn't properly specified. This can happen if the model isn't finished
 	 * streaming yet or makes a mistake.
 	 */
-	unknownActionUtil!: AgentActionUtil<AgentAction>
+	unknownActionUtil: AgentActionUtil<AgentAction>
 
 	constructor(agent: TldrawAgent) {
 		super(agent)
-		this.rebuildUtilsForMode(agent.mode.getCurrentModeType())
+		this.agentActionUtils = getAgentActionUtilsRecordForMode(
+			this.agent,
+			agent.mode.getCurrentModeType()
+		)
+		this.unknownActionUtil = this.agentActionUtils.unknown
 	}
 
 	/**

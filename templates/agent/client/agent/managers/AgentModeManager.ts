@@ -16,7 +16,7 @@ export class AgentModeManager extends BaseAgentManager {
 
 	/**
 	 * Creates a new mode manager for the given agent.
-	 * Initializes the mode to 'default'.
+	 * Initializes the mode to 'idling'.
 	 */
 	constructor(agent: TldrawAgent) {
 		super(agent)
