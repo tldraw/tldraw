@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
-import { PushProcessor } from '@rocicorp/zero/server'
+import { mustGetQuery } from '@rocicorp/zero'
+import { PushProcessor, handleQueryRequest } from '@rocicorp/zero/server'
 import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
 import {
 	FILE_PREFIX,
@@ -9,6 +10,7 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 	createMutators,
+	queries,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -179,6 +181,18 @@ const router = createRouter<Environment>()
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
+		return json(result)
+	})
+	.post('/app/zero/query', async (req, env) => {
+		const auth = await requireAuth(req, env)
+		const result = await handleQueryRequest(
+			(name, args) => {
+				const query = mustGetQuery(queries, name)
+				return query.fn({ args, ctx: { userId: auth.userId } })
+			},
+			schema,
+			req
+		)
 		return json(result)
 	})
 	.all('*', notFound)

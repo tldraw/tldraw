@@ -1,4 +1,4 @@
-import type { CustomMutatorDefs, Transaction } from '@rocicorp/zero'
+import { createBuilder, type CustomMutatorDefs, type Transaction } from '@rocicorp/zero'
 import {
 	assert,
 	getIndexAbove,
@@ -12,16 +12,22 @@ import {
 import { MAX_FAIRY_COUNT, MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
 import {
 	immutableColumns,
+	schema,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
+
+/** Query builder for mutators - uses Zero's createBuilder API */
+const zql = createBuilder(schema)
 
 type Tx = Transaction<TlaSchema>
 
@@ -46,7 +52,7 @@ export function userHasFlag(flags: string | null | undefined, flag: TlaFlags): b
 }
 
 async function assertUserHasFlag(tx: Transaction<TlaSchema>, userId: string, flag: TlaFlags) {
-	const user = await tx.query.user.where('id', '=', userId).one().run()
+	const user = await tx.run(zql.user.where('id', '=', userId).one())
 	assert(user, ZErrorCode.bad_request)
 	const flags = parseFlags(user.flags)
 	assert(flags.includes(flag), ZErrorCode.forbidden)
@@ -63,7 +69,7 @@ function disallowImmutableMutations<
 export type TlaMutators = ReturnType<typeof createMutators>
 
 async function isGroupsMigrated(tx: Transaction<TlaSchema>, userId: string): Promise<boolean> {
-	const user = await tx.query.user.where('id', '=', userId).one().run()
+	const user = await tx.run(zql.user.where('id', '=', userId).one())
 	return userHasFlag(user?.flags, 'groups_backend')
 }
 
@@ -80,8 +86,8 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	const migrated = await isGroupsMigrated(tx, userId)
 
 	if (tx.location === 'client') {
-		const files = await tx.query.file.run()
-		const count = files.filter((f) => {
+		const files = await tx.run(zql.file)
+		const count = files.filter((f: TlaFile) => {
 			if (f.isDeleted) return false
 			// For migrated users, count files owned by their home group
 			// For unmigrated users, count files owned directly by userId
@@ -111,11 +117,9 @@ async function assertUserIsGroupMember(
 	groupId: string
 ) {
 	if (userId === groupId) return
-	const groupUser = await tx.query.group_user
-		.where('userId', '=', userId)
-		.where('groupId', '=', groupId)
-		.one()
-		.run()
+	const groupUser = await tx.run(
+		zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
+	)
 	assert(groupUser, ZErrorCode.forbidden)
 }
 
@@ -125,22 +129,21 @@ async function assertUserIsGroupAdminOrOwner(
 	groupId: string
 ) {
 	if (userId === groupId) return
-	const groupUser = await tx.query.group_user
-		.where('userId', '=', userId)
-		.where('groupId', '=', groupId)
-		.one()
-		.run()
+	const groupUser = await tx.run(
+		zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
+	)
 	assert(groupUser?.role === 'admin' || groupUser?.role === 'owner', ZErrorCode.forbidden)
 }
 
 async function assertUserIsGroupOwner(tx: Transaction<TlaSchema>, userId: string, groupId: string) {
 	if (userId === groupId) return
-	const groupUser = await tx.query.group_user
-		.where('userId', '=', userId)
-		.where('groupId', '=', groupId)
-		.where('role', '=', 'owner')
-		.one()
-		.run()
+	const groupUser = await tx.run(
+		zql.group_user
+			.where('userId', '=', userId)
+			.where('groupId', '=', groupId)
+			.where('role', '=', 'owner')
+			.one()
+	)
 	assert(groupUser, ZErrorCode.forbidden)
 }
 
@@ -159,7 +162,7 @@ async function getUserFairyAccess(
 	userId: string
 ): Promise<{ hasAccess: boolean; limit: number }> {
 	// Check user_fairies table for purchased/redeemed access
-	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+	const userFairies = await tx.run(zql.user_fairies.where('userId', '=', userId).one())
 
 	const limit = userFairies?.fairyLimit ?? 0
 	if (limit === 0) {
@@ -187,7 +190,7 @@ async function assertBelowFairyLimit(tx: Transaction<TlaSchema>, userId: string)
 	assert(limit > 0, ZErrorCode.forbidden)
 
 	// Count current fairies from user_fairies table
-	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+	const userFairies = await tx.run(zql.user_fairies.where('userId', '=', userId).one())
 
 	const configs = JSON.parse(userFairies?.fairies || '{}')
 	const count = Object.values(configs).filter(Boolean).length
@@ -265,7 +268,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.user.update(user)
 			},
 			updateFairyConfig: async (tx: Tx, { id, properties }: { id: string; properties: object }) => {
-				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				const current = await tx.run(zql.user_fairies.where('userId', '=', userId).one())
 				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
 				const isNewFairy = !currentConfig[id]
@@ -291,7 +294,7 @@ export function createMutators(userId: string) {
 				const { hasAccess } = await getUserFairyAccess(tx, userId)
 				assert(hasAccess, ZErrorCode.forbidden)
 
-				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				const current = await tx.run(zql.user_fairies.where('userId', '=', userId).one())
 				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
 				await tx.mutate.user_fairies.update({
@@ -303,7 +306,7 @@ export function createMutators(userId: string) {
 				const { hasAccess } = await getUserFairyAccess(tx, userId)
 				assert(hasAccess, ZErrorCode.forbidden)
 
-				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				const current = await tx.run(zql.user_fairies.where('userId', '=', userId).one())
 				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				await tx.mutate.user_fairies.update({ userId, fairies: '{}' })
 			},
@@ -326,7 +329,7 @@ export function createMutators(userId: string) {
 			},
 			/** @deprecated */
 			deleteOrForget: async (tx: Tx, { id }: { id: string }) => {
-				const file = await tx.query.file.where('id', '=', id).one().run()
+				const file = await tx.run(zql.file.where('id', '=', id).one())
 				if (!file) return
 				await tx.mutate.file_state.delete({ fileId: id, userId })
 				if (file.ownerId && file.ownerId === userId) {
@@ -340,7 +343,7 @@ export function createMutators(userId: string) {
 			},
 			update: async (tx: Tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
-				const file = await tx.query.file.where('id', '=', _file.id).one().run()
+				const file = await tx.run(zql.file.where('id', '=', _file.id).one())
 				await assertUserCanUpdateFile(tx, userId, file!)
 
 				await tx.mutate.file.update({
@@ -355,7 +358,7 @@ export function createMutators(userId: string) {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				if (tx.location === 'server') {
 					// Verify the user has access to this file
-					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
+					const file = await tx.run(zql.file.where('id', '=', fileState.fileId).one())
 					await assertUserCanAccessFile(tx, userId, file!)
 				}
 				// use upsert under the hood here for a little fault tolerance
@@ -368,14 +371,12 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(fileState, immutableColumns.file_state)
 				if (tx.location === 'server') {
 					// Verify the user has access to this file
-					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
+					const file = await tx.run(zql.file.where('id', '=', fileState.fileId).one())
 					await assertUserCanAccessFile(tx, userId, file!)
 				}
-				const exists = await tx.query.file_state
-					.where('fileId', '=', fileState.fileId)
-					.where('userId', '=', userId)
-					.one()
-					.run()
+				const exists = await tx.run(
+					zql.file_state.where('fileId', '=', fileState.fileId).where('userId', '=', userId).one()
+				)
 
 				if (!exists) {
 					// if the file state does not exist, do nothing
@@ -544,16 +545,14 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(!file, ZErrorCode.bad_request)
 			assertValidId(fileId)
 			assertValidId(groupId)
 			assert(name.trim(), ZErrorCode.bad_request)
-			const hasGroupAccess = await tx.query.group_user
-				.where('userId', '=', userId)
-				.where('groupId', '=', groupId)
-				.one()
-				.run()
+			const hasGroupAccess = await tx.run(
+				zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
+			)
 			assert(hasGroupAccess, ZErrorCode.forbidden)
 
 			// create file row, group_file row, file_state row
@@ -612,9 +611,8 @@ export function createMutators(userId: string) {
 
 				let indexToUse = index
 				if (indexToUse == null) {
-					const otherPinnedFiles = (
-						await tx.query.group_file.where('groupId', '=', userId).run()
-					).filter((gf) => gf.index !== null)
+					const allGroupFiles = await tx.run(zql.group_file.where('groupId', '=', userId))
+					const otherPinnedFiles = allGroupFiles.filter((gf: TlaGroupFile) => gf.index !== null)
 
 					otherPinnedFiles.sort(sortByMaybeIndex)
 					indexToUse = getIndexBelow(otherPinnedFiles[0]?.index) ?? ('a1' as IndexKey)
@@ -669,7 +667,7 @@ export function createMutators(userId: string) {
 			}
 
 			await assertUserIsGroupAdminOrOwner(tx, userId, groupId)
-			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
 			await tx.mutate.file_state.delete({ fileId, userId })
@@ -684,7 +682,7 @@ export function createMutators(userId: string) {
 
 			// Verify the user has permission to access this file
 			if (tx.location === 'server') {
-				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				await assertUserCanAccessFile(tx, userId, file!)
 			}
 
@@ -693,10 +691,14 @@ export function createMutators(userId: string) {
 
 			const migrated = await isGroupsMigrated(tx, userId)
 			if (migrated) {
-				const groupFiles = await tx.query.group_file.where('fileId', '=', fileId).run()
-				const userGroups = await tx.query.group_user.where('userId', '=', userId).run()
+				const groupFiles = await tx.run(zql.group_file.where('fileId', '=', fileId))
+				const userGroups = await tx.run(zql.group_user.where('userId', '=', userId))
 				// Only add to home group if not already in any of the user's groups
-				if (!userGroups.some((g) => groupFiles.some((gf) => gf.groupId === g.groupId))) {
+				if (
+					!userGroups.some((g: TlaGroupUser) =>
+						groupFiles.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
+					)
+				) {
 					await tx.mutate.group_file.insert({
 						fileId,
 						groupId: userId,
@@ -719,7 +721,7 @@ export function createMutators(userId: string) {
 				updatedAt: Date.now(),
 			})
 			// Get user's existing groups to determine position for new group
-			const existingGroups = await tx.query.group_user.where('userId', '=', userId).run()
+			const existingGroups = await tx.run(zql.group_user.where('userId', '=', userId))
 			assert(existingGroups.length < MAX_NUMBER_OF_GROUPS, ZErrorCode.max_groups_reached)
 
 			// Use tldraw's fractional indexing to place new group at the top
@@ -780,21 +782,18 @@ export function createMutators(userId: string) {
 			assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
 
 			// Target must be a member
-			const targetMembership = await tx.query.group_user
-				.where('userId', '=', targetUserId)
-				.where('groupId', '=', groupId)
-				.one()
-				.run()
+			const targetMembership = await tx.run(
+				zql.group_user.where('userId', '=', targetUserId).where('groupId', '=', groupId).one()
+			)
 			assert(targetMembership, ZErrorCode.bad_request)
 
 			if (targetMembership.role === role) return
 
 			// Prevent demoting the last remaining owner
 			if (targetMembership.role === 'owner' && role === 'admin') {
-				const owners = await tx.query.group_user
-					.where('groupId', '=', groupId)
-					.where('role', '=', 'owner')
-					.run()
+				const owners = await tx.run(
+					zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
+				)
 				assert(owners.length > 1, ZErrorCode.forbidden)
 			}
 
@@ -802,10 +801,9 @@ export function createMutators(userId: string) {
 		},
 		leaveGroup: async (tx: Tx, { groupId }: { groupId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			const owners = await tx.query.group_user
-				.where('groupId', '=', groupId)
-				.where('role', '=', 'owner')
-				.run()
+			const owners = await tx.run(
+				zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
+			)
 			const isOnlyOwner = owners.length === 1 && owners[0].userId === userId
 			// Prevent the last owner from leaving - they must delete the group instead
 			// This ensures groups always have at least one owner for administrative purposes
@@ -817,13 +815,13 @@ export function createMutators(userId: string) {
 			await assertUserIsGroupOwner(tx, userId, id)
 
 			// Delete all group files
-			const groupFiles = await tx.query.group_file.where('groupId', '=', id).run()
+			const groupFiles = await tx.run(zql.group_file.where('groupId', '=', id))
 			for (const groupFile of groupFiles) {
 				await tx.mutate.group_file.delete({ fileId: groupFile.fileId, groupId: id })
 			}
 
 			// Mark all files owned by this group as deleted
-			const files = await tx.query.file.where('owningGroupId', '=', id).run()
+			const files = await tx.run(zql.file.where('owningGroupId', '=', id))
 			for (const file of files) {
 				await tx.mutate.file.update({ id: file.id, isDeleted: true })
 			}
@@ -841,7 +839,7 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(groupId, ZErrorCode.bad_request)
 
-			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
 			// No-op if file is already in the target group
@@ -852,20 +850,16 @@ export function createMutators(userId: string) {
 			// Check if user has permission to move this file:
 			// 1. User owns the file directly, OR
 			// 2. User is a member of the group that currently owns the file
-			const hasFromGroupAccess = await tx.query.group_user
-				.where('userId', '=', userId)
-				.where('groupId', '=', file.owningGroupId!)
-				.one()
-				.run()
+			const hasFromGroupAccess = await tx.run(
+				zql.group_user.where('userId', '=', userId).where('groupId', '=', file.owningGroupId!).one()
+			)
 
 			assert(hasFromGroupAccess, ZErrorCode.forbidden)
 
 			// User must also be a member of the target group
-			const hasToGroupAccess = await tx.query.group_user
-				.where('userId', '=', userId)
-				.where('groupId', '=', groupId)
-				.one()
-				.run()
+			const hasToGroupAccess = await tx.run(
+				zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
+			)
 			assert(hasToGroupAccess, ZErrorCode.forbidden)
 
 			// Remove file from current group association if it exists
@@ -900,17 +894,15 @@ export function createMutators(userId: string) {
 
 			// On server, verify the user has access to this file (owns it, is member of owning group, or it's shared)
 			if (tx.location === 'server') {
-				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				assert(file, ZErrorCode.bad_request)
 				await assertUserCanAccessFile(tx, userId, file)
 			}
 
 			// Check if file link already exists
-			const existing = await tx.query.group_file
-				.where('fileId', '=', fileId)
-				.where('groupId', '=', groupId)
-				.one()
-				.run()
+			const existing = await tx.run(
+				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', groupId).one()
+			)
 
 			if (existing) {
 				// Already exists, no-op
@@ -943,7 +935,7 @@ export function createMutators(userId: string) {
 			}: { fileId: string; groupId: string; operation: DragFileOperation }
 		) => {
 			// TODO: auth
-			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			if (!file) return
 			const finalGroupId = operation.move?.targetId ?? groupId
 			const isFileLink = file.owningGroupId !== groupId
@@ -953,11 +945,9 @@ export function createMutators(userId: string) {
 				// Move to specific group
 				if (isFileLink) {
 					await tx.mutate.group_file.delete({ fileId, groupId })
-					const existing = await tx.query.group_file
-						.where('fileId', '=', fileId)
-						.where('groupId', '=', finalGroupId)
-						.one()
-						.run()
+					const existing = await tx.run(
+						zql.group_file.where('fileId', '=', fileId).where('groupId', '=', finalGroupId).one()
+					)
 					if (!existing) {
 						await tx.mutate.group_file.insert({
 							fileId,
@@ -976,9 +966,7 @@ export function createMutators(userId: string) {
 				let nextIndex = 'a0' as IndexKey
 				if (insertBeforeId === null) {
 					// insert at end
-					const lastPinnedFile = (
-						await tx.query.group_file.where('groupId', '=', finalGroupId).run()
-					)
+					const lastPinnedFile = (await tx.run(zql.group_file.where('groupId', '=', finalGroupId)))
 						.filter((f) => f.index !== null)
 						.sort(sortByMaybeIndex)
 						.pop()
@@ -987,7 +975,7 @@ export function createMutators(userId: string) {
 					}
 				} else {
 					// insert before specific file
-					const files = (await tx.query.group_file.where('groupId', '=', finalGroupId).run())
+					const files = (await tx.run(zql.group_file.where('groupId', '=', finalGroupId)))
 						.filter((f) => f.index !== null)
 						.sort(sortByMaybeIndex)
 					const targetIdx = files.findIndex((f) => f.fileId === insertBeforeId)

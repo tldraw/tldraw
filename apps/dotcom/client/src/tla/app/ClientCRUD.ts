@@ -1,8 +1,10 @@
-import type { TableCRUD } from '@rocicorp/zero/server'
+import type { TableMutator, TableSchema } from '@rocicorp/zero'
 import { OptimisticAppStore, TlaSchema, ZRowUpdate } from '@tldraw/dotcom-shared'
 import { assert, assertExists } from 'tldraw'
 
-export class ClientCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]> {
+export class ClientCRUD
+	implements TableMutator<TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema>
+{
 	constructor(
 		private signal: AbortSignal,
 		private store: OptimisticAppStore,

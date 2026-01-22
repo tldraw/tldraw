@@ -1,5 +1,13 @@
-import { CustomMutatorImpl } from '@rocicorp/zero'
-import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/server'
+import type {
+	AST,
+	CustomMutatorImpl,
+	HumanReadable,
+	Query,
+	RunOptions,
+	SchemaQuery,
+	TableMutator,
+	TableSchema,
+} from '@rocicorp/zero'
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
@@ -314,15 +322,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
 
-	private makeCrud(
-		client: PoolClient,
-		signal: AbortSignal,
-		changeAccumulator: ChangeAccumulator
-	): SchemaCRUD<TlaSchema> {
+	private makeCrud(client: PoolClient, signal: AbortSignal, changeAccumulator: ChangeAccumulator) {
 		return mapObjectMapValues(
 			schema.tables,
 			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
-		)
+		) as { [K in keyof TlaSchema['tables']]: TableMutator<TlaSchema['tables'][K] & TableSchema> }
 	}
 
 	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
@@ -330,6 +334,49 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			schema.tables,
 			(tableName) => new ServerQuery(signal, client, false, tableName) as any
 		)
+	}
+
+	private async executeServerQuery(client: PoolClient, ast: AST): Promise<unknown[] | unknown> {
+		const table = ast.table
+		const whereConditions: string[] = []
+		const params: unknown[] = []
+		let paramIndex = 1
+
+		const processCondition = (condition: NonNullable<AST['where']>): string => {
+			if ('type' in condition) {
+				if (condition.type === 'and') {
+					return `(${condition.conditions.map(processCondition).join(' AND ')})`
+				}
+				if (condition.type === 'or') {
+					return `(${condition.conditions.map(processCondition).join(' OR ')})`
+				}
+			}
+			// Simple condition: { left: { name }, op, right: { value } }
+			const simpleCondition = condition as {
+				left: { name: string }
+				op: string
+				right: { value: unknown }
+			}
+			const field = JSON.stringify(simpleCondition.left?.name)
+			const op = simpleCondition.op
+			const value = simpleCondition.right?.value
+			params.push(value)
+			return `${field} ${op} $${paramIndex++}`
+		}
+
+		if (ast.where) {
+			whereConditions.push(processCondition(ast.where))
+		}
+
+		const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+		const sql = `SELECT * FROM "${table}" ${whereClause}`
+		const res = await client.query(sql, params)
+
+		// ast.limit === 1 means .one() was called
+		if (ast.limit === 1) {
+			return res.rows[0]
+		}
+		return res.rows
 	}
 
 	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
@@ -538,14 +585,26 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							async query(sqlString: string, params: unknown[]): Promise<any[]> {
 								return client.query(sqlString, params).then((res) => res.rows)
 							},
+							async runQuery() {
+								throw new Error('runQuery not implemented')
+							},
 						},
 						mutate,
 						location: 'server',
 						reason: 'authoritative',
 						mutationID: 0,
-						query: this.makeQuery(client, controller.signal),
+						query: undefined as any, // deprecated, using run() instead
+						run: async <TTable extends keyof TlaSchema['tables'] & string, TReturn>(
+							query: Query<TTable, TlaSchema, TReturn>,
+							_options?: RunOptions
+						): Promise<HumanReadable<TReturn>> => {
+							const ast = (query as unknown as { ast: AST }).ast
+							if (!ast?.table) throw new Error('Invalid query')
+							return this.executeServerQuery(client, ast) as Promise<HumanReadable<TReturn>>
+						},
 					},
-					msg.props
+					msg.props,
+					undefined // context
 				)
 			} finally {
 				controller.abort()

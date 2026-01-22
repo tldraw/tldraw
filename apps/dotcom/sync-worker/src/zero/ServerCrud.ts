@@ -1,5 +1,4 @@
-import { SchemaValue } from '@rocicorp/zero'
-import type { TableCRUD } from '@rocicorp/zero/server'
+import type { SchemaValue, TableMutator, TableSchema } from '@rocicorp/zero'
 import {
 	DB,
 	TlaFile,
@@ -40,7 +39,9 @@ const db = new Kysely<DB>({
 	},
 })
 
-export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]> {
+export class ServerCRUD
+	implements TableMutator<TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema>
+{
 	constructor(
 		private readonly client: PoolClient,
 		private readonly table: TlaSchema['tables'][keyof TlaSchema['tables']],

@@ -1,11 +1,9 @@
 import {
 	boolean,
 	createSchema,
-	definePermissions,
 	enumeration,
-	ExpressionBuilder,
+	json,
 	number,
-	PermissionsConfig,
 	relationships,
 	Row,
 	string,
@@ -15,7 +13,7 @@ import { IndexKey, stringEnum } from '@tldraw/utils'
 
 export interface ZColumn {
 	optional?: boolean
-	type: 'string' | 'number' | 'boolean'
+	type: 'string' | 'number' | 'boolean' | 'json'
 }
 
 export const user = table('user')
@@ -122,7 +120,7 @@ export const user_fairies = table('user_fairies')
 		fairies: string(),
 		fairyLimit: number().optional(),
 		fairyAccessExpiresAt: number().optional(),
-		weeklyUsage: string(),
+		weeklyUsage: json<Record<string, number>>(),
 		weeklyLimit: number().optional(),
 	})
 	.primaryKey('userId')
@@ -389,94 +387,7 @@ export interface TlaFairyInvite {
 	redeemedBy: string[] // Array of emails
 }
 
-interface AuthData {
-	sub: string | null
-}
-
-export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
-	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
-		cmp('id', '=', authData.sub!)
-
-	const allowIfIsUserIdMatches = (
-		authData: AuthData,
-		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
-	) => cmp('userId', '=', authData.sub!)
-
-	const userCanAccessGroupMembershipListing = (
-		authData: AuthData,
-		{ or, cmp, exists }: ExpressionBuilder<TlaSchema, 'group_user'>
-	) =>
-		or(
-			// User can see their own group memberships
-			cmp('userId', '=', authData.sub!),
-			// User can see memberships of groups they belong to
-			exists('group', (q) =>
-				q.whereExists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-			)
-		)
-
-	const userCanAccessFile = (
-		authData: AuthData,
-		{ exists, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
-	) =>
-		or(
-			// User owns the file directly (redundant given that every owned file will have a file_state now, but should be faster to check)
-			cmp('ownerId', '=', authData.sub!),
-			// User has a file_state (file is shared)
-			exists('states', (q) => q.where('userId', '=', authData.sub!)),
-			// User is a member of a group that has access to the file
-			exists('groupFiles', (q) =>
-				q.whereExists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-			)
-		)
-
-	const userCanAccessGroup = (
-		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
-	) =>
-		// User can access groups they are members of
-		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-
-	const userCanAccessGroupFile = (
-		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'group_file'>
-	) =>
-		// User can access group_file records for groups they are members of
-		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-
-	return {
-		user: {
-			row: {
-				select: [allowIfIsUser],
-			},
-		},
-		file: {
-			row: {
-				select: [userCanAccessFile],
-			},
-		},
-		file_state: {
-			row: {
-				select: [allowIfIsUserIdMatches],
-			},
-		},
-		group: {
-			row: {
-				select: [userCanAccessGroup],
-			},
-		},
-		group_user: {
-			row: {
-				select: [userCanAccessGroupMembershipListing],
-			},
-		},
-		group_file: {
-			row: {
-				select: [userCanAccessGroupFile],
-			},
-		},
-	} satisfies PermissionsConfig<AuthData, TlaSchema>
-})
+// Permissions are now handled via Synced Queries in queries.ts
 
 export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
 export type TlaFlags = keyof typeof TlaFlags
