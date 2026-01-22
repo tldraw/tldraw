@@ -319,7 +319,7 @@ export type TLUiTranslationKey =
 	| 'menu.language'
 	| 'menu.preferences'
 	| 'menu.view'
-	| 'menu.input-mode'
+	| 'menu.input-device'
 	| 'context-menu.title'
 	| 'context-menu.edit'
 	| 'context-menu.arrange'

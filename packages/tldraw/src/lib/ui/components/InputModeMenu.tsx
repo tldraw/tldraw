@@ -35,7 +35,7 @@ export function InputModeMenu() {
 	}
 
 	return (
-		<TldrawUiMenuSubmenu id="help menu input-mode" label="menu.input-mode">
+		<TldrawUiMenuSubmenu id="help menu input-mode" label="menu.input-device">
 			<TldrawUiMenuGroup id="peripheral-mode">
 				{MODES.map((mode) => (
 					<TldrawUiMenuCheckboxItem
