@@ -169,7 +169,7 @@ export async function putExcalidrawContent(
 						segments: [
 							{
 								type: 'free',
-								points: base64Points,
+								path: base64Points,
 							},
 						],
 					},

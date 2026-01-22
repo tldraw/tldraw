@@ -152,12 +152,31 @@ export class Brushing extends StateNode {
 		// testing all shapes.
 
 		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
-		const shapesToHitTest =
+		const currentPageId = editor.getCurrentPageId()
+
+		// Use spatial index to filter candidates
+		const candidateIds = editor.getShapeIdsInsideBounds(brush)
+
+		// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
+		// But still update brush visual and selection
+		if (candidateIds.size === 0) {
+			const currentBrush = editor.getInstanceState().brush
+			if (!currentBrush || !brush.equals(currentBrush)) {
+				editor.updateInstanceState({ brush: { ...brush.toJson() } })
+			}
+
+			const current = editor.getSelectedShapeIds()
+			if (current.length !== results.size || current.some((id) => !results.has(id))) {
+				editor.setSelectedShapes(Array.from(results))
+			}
+			return
+		}
+
+		const allShapes =
 			brushBoxIsInsideViewport && !this.viewportDidChange
 				? editor.getCurrentPageRenderingShapesSorted()
 				: editor.getCurrentPageShapesSorted()
-
-		const currentPageId = editor.getCurrentPageId()
+		const shapesToHitTest = allShapes.filter((shape) => candidateIds.has(shape.id))
 
 		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
 			shape = shapesToHitTest[i]
