@@ -7,7 +7,7 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> [Click here](https://tldraw.dev/#pricing) to learn about our license and pricing.
+> [Click here](https://tldraw.dev/pricing) to learn about our license and pricing.
 
 ## Installation
 
