@@ -1,35 +1,61 @@
-import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
+import { buildResponseSchema } from '../../shared/schema/buildResponseSchema'
+import type { ModePart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { getSystemPromptFlags } from './getSystemPromptFlags'
+import { buildIntroPromptSection } from './sections/intro-section'
+import { buildRulesPromptSection } from './sections/rules-section'
 
 /**
- * Build a system prompt from all of the prompt parts.
+ * Build the system prompt for the agent.
  *
- * If you want to bypass the `PromptPartUtil` system, replace this function with
- * one that returns a hardcoded value.
+ * This is the main instruction set that tells the AI how to behave.
+ * The prompt is constructed from modular sections that adapt based on
+ * what actions and parts are available.
  *
- * @param prompt - The prompt to build a system prompt for.
- * @returns The system prompt.
+ * @param prompt - The prompt containing all parts including the mode part.
+ * @param opts - Options for building the system prompt.
+ * @param opts.withSchema - Whether to include the JSON schema in the system prompt. Defaults to true.
+ * @returns The system prompt string.
  */
-export function buildSystemPrompt(prompt: AgentPrompt): string {
-	const propmtUtils = getPromptPartUtilsRecord()
-	const messages: string[] = []
+export function buildSystemPrompt(
+	prompt: AgentPrompt,
+	opts: { withSchema: boolean } = { withSchema: true }
+): string {
+	const { withSchema = true } = opts
 
-	for (const part of Object.values(prompt)) {
-		const propmtUtil = propmtUtils[part.type]
-		if (!propmtUtil) continue
-		const systemMessage = propmtUtil.buildSystemPrompt(part)
-		if (systemMessage) {
-			messages.push(systemMessage)
-		}
+	const modePart = prompt.mode
+	if (!modePart) {
+		throw new Error('A mode part is always required.')
 	}
 
-	const actionUtils = getAgentActionUtilsRecord()
-	for (const actionUtil of Object.values(actionUtils)) {
-		const systemMessage = actionUtil.buildSystemPrompt()
-		if (systemMessage) {
-			messages.push(systemMessage)
-		}
+	const { actionTypes, partTypes } = modePart
+	const flags = getSystemPromptFlags(actionTypes, partTypes)
+
+	const lines = [buildIntroPromptSection(flags), buildRulesPromptSection(flags)]
+
+	if (withSchema) {
+		lines.push(buildSchemaPromptSection(modePart))
 	}
 
-	return messages.join('')
+	const result = normalizeNewlines(lines.join('\n'))
+
+	return result
+}
+
+function buildSchemaPromptSection(modePart: ModePart) {
+	const schema = buildResponseSchema(modePart.actionTypes, modePart.modeType)
+
+	return `## JSON schema
+
+This is the JSON schema for the events you can return. You must conform to this schema.
+
+${JSON.stringify(schema, null, 2)}
+`
+}
+
+function normalizeNewlines(text: string): string {
+	while (text.includes('\n\n\n')) {
+		text = text.replace('\n\n\n', '\n\n')
+	}
+	return text
 }
