@@ -284,9 +284,6 @@
   "6910bbdc82": {
     "translation": "Fairy's name"
   },
-  "695c3e899d": {
-    "translation": "Debug fairies"
-  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -644,9 +641,6 @@
   },
   "d9100f3e10": {
     "translation": "Go here to see the content"
-  },
-  "d9bfb9789a": {
-    "translation": "Enable fairies"
   },
   "d9e35d0f55": {
     "translation": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."

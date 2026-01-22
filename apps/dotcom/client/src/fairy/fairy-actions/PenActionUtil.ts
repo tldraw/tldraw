@@ -94,7 +94,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 		const segments: TLDrawShapeSegment[] = [
 			{
 				type: 'free',
-				points: base64Points,
+				path: base64Points,
 			},
 		]
 
