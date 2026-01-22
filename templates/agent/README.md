@@ -375,12 +375,12 @@ By default, the agent converts tldraw shapes to various simplified formats to im
 There are three main formats used in this starter:
 
 - `BlurryShape` - The format for shapes within the agent's viewport. It contains a shape's bounds, its id, its type, and any text it contains. The "blurry" name refers to the fact that the agent can't make out the details of shapes from this format. Instead, it gives the model an overview of what it's looking at.
-- `SimpleShape` - The format for shapes that the agent is focusing on, such as when it is reviewing a part of its work. The format contains most of a shape's properties, including color, fill, alignment, and any other shape-specific information. The "simple" name refers to how this format is still _simpler_ than the raw tldraw shape format.
+- `FocusedShape` - The format for shapes that the agent is focusing on, such as when it is reviewing a part of its work. The format contains most of a shape's properties, including color, fill, alignment, and any other shape-specific information. The "focused" name refers to the fact that these are shapes the agent is directly focusing on.
 - `PeripheralShapeCluster` - The format for shapes outside the agent's viewport. Nearby shapes are grouped together into clusters, each with the group's bounds and a count of how many shapes are inside it. This is the least detailed format. Its role is to give the model an awareness of shapes that elsewhere on the page.
 
-To send the model some shapes in one of these formats, use one of the conversion functions found within the `format` folder, such as `convertTldrawShapeToSimpleShape`.
+To send the model some shapes in one of these formats, use one of the conversion functions found within the `format` folder, such as `convertTldrawShapeToFocusedShape`.
 
-This example picks one random shape on the canvas and sends it to the model in the Simple format.
+This example picks one random shape on the canvas and sends it to the model in the Focused format.
 
 ```ts
 override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart {
@@ -391,11 +391,11 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 	const shapes = editor.getCurrentPageShapes()
 	const randomShape = shapes[Math.floor(Math.random() * shapes.length)]
 
-	// Convert the shape to the Simple format
-	const simpleShape = convertTldrawShapeToSimpleShape(randomShape, editor)
+	// Convert the shape to the Focused format
+	const focusedShape = convertTldrawShapeToFocusedShape(randomShape, editor)
 
 	// Normalize the shape's position
-	const offsetShape = helpers.applyOffsetToShape(simpleShape)
+	const offsetShape = helpers.applyOffsetToShape(focusedShape)
 	const roundedShape = helpers.roundShape(offsetShape)
 
 	return {
@@ -528,12 +528,12 @@ export class StickerActionUtil extends AgentActionUtil<StickerAction> {
 
 ### Add a custom shape to the schema
 
-To let the agent see the custom properties of your custom shape, add it to the schema in `SimpleShape.ts`.
+To let the agent see the custom properties of your custom shape, add it to the schema in `FocusedShape.ts`.
 
 For example, here's a schema for a custom sticker shape.
 
 ```ts
-const SimpleStickerShape = z
+const FocusedStickerShape = z
 	.object({
 		// Required properties
 		_type: z.literal('sticker'),
@@ -557,27 +557,27 @@ The `_type` and `shapeId` properties are required so that the app can identify y
 
 For optional properties, it's worth considering how the agent should see your custom shape. You might want to leave out some properties and focus on showing the most important ones. It's also best to keep them in alphabetical order for better performance with Gemini models.
 
-Enable your custom shape schema by adding it to the list of `SIMPLE_SHAPES` in the same file.
+Enable your custom shape schema by adding it to the list of `FOCUSED_SHAPES` in the same file.
 
 ```ts
-const SIMPLE_SHAPES = [
-	SimpleDrawShape,
-	SimpleGeoShape,
-	SimpleLineShape,
-	SimpleTextShape,
-	SimpleArrowShape,
-	SimpleNoteShape,
-	SimpleUnknownShape,
+const FOCUSED_SHAPES = [
+	FocusedDrawShape,
+	FocusedGeoShape,
+	FocusedLineShape,
+	FocusedTextShape,
+	FocusedArrowShape,
+	FocusedNoteShape,
+	FocusedUnknownShape,
 
 	// Our custom shape
-	SimpleStickerShape,
+	FocusedStickerShape,
 ] as const
 ```
 
-Tell the app how to convert your custom shape into the `SimpleShape` format by adding it as a case in `convertTldrawShapeToSimpleShape.ts`.
+Tell the app how to convert your custom shape into the `FocusedShape` format by adding it as a case in `convertTldrawShapeToFocusedShape.ts`.
 
 ```ts
-export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape): SimpleShape {
+export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape): FocusedShape {
 	switch (shape.type) {
 		// ...
 		case 'sticker':
@@ -595,30 +595,30 @@ export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape):
 }
 ```
 
-To allow the agent to edit your custom shape's properties, tell the app how to convert your shape from the `SimpleShape` format that the model outputs to the actual format of your shape.
+To allow the agent to edit your custom shape's properties, tell the app how to convert your shape from the `FocusedShape` format that the model outputs to the actual format of your shape.
 
 ```ts
-export function convertSimpleShapeToTldrawShape(
+export function convertFocusedShapeToTldrawShape(
 	editor: Editor,
-	simpleShape: TLShape
+	focusedShape: TLShape
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): {
-	switch (simpleShape.type) {
+	switch (focusedShape.type) {
 		// ...
 		case 'sticker':
-			const shapeId = convertSimpleIdToTldrawId(simpleShape.shapeId)
+			const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 			return {
 				shape: {
 					id: shapeId
-					x: simpleShape.x,
-					y: simpleShape.y
+					x: focusedShape.x,
+					y: focusedShape.y
 					// ...
 					props: {
 						// ...
-						stickerType: simpleShape.sitckerType
+						stickerType: focusedShape.sitckerType
 					},
 					meta: {
-						note: simpleShape.note ?? ''
+						note: focusedShape.note ?? ''
 					}
 				}
 			}

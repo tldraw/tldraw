@@ -1,9 +1,9 @@
 import { IndexKey, TLShape, TLShapeId, toRichText } from 'tldraw'
 import {
-	convertPartialSimpleShapeToTldrawShape,
-	SIMPLE_TO_GEO_TYPES,
-} from '../../shared/format/convertSimpleShapeToTldrawShape'
-import { SimpleShape } from '../../shared/format/SimpleShape'
+	convertPartialFocusedShapeToTldrawShape,
+	FOCUSED_TO_GEO_TYPES,
+} from '../../shared/format/convertFocusedShapeToTldrawShape'
+import { FocusedShape } from '../../shared/format/FocusedShape'
 import { CreateAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
@@ -69,7 +69,7 @@ export const CreateActionUtil = registerActionUtil(
 			// Translate the shape back to the chat's position
 			const shapePartial = helpers.removeOffsetFromShapePartial(shape)
 
-			const result = convertPartialSimpleShapeToTldrawShape(editor, shapePartial, {
+			const result = convertPartialFocusedShapeToTldrawShape(editor, shapePartial, {
 				defaultShape: getDefaultShape(shape._type, action.complete),
 				complete: action.complete,
 			})
@@ -94,8 +94,8 @@ export const CreateActionUtil = registerActionUtil(
 	}
 )
 
-function getDefaultShape(shapeType: SimpleShape['_type'], complete: boolean): Partial<TLShape> {
-	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
+function getDefaultShape(shapeType: FocusedShape['_type'], complete: boolean): Partial<TLShape> {
+	const isGeo = shapeType in FOCUSED_TO_GEO_TYPES
 	const defaultShape = isGeo
 		? SHAPE_DEFAULTS.geo
 		: (SHAPE_DEFAULTS[shapeType as keyof typeof SHAPE_DEFAULTS] ?? SHAPE_DEFAULTS.unknown)

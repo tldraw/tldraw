@@ -1,10 +1,10 @@
 import { squashRecordDiffs } from 'tldraw'
 import {
 	convertTldrawIdToSimpleId,
-	convertTldrawShapeToSimpleShape,
-	convertTldrawShapeToSimpleType,
-} from '../../shared/format/convertTldrawShapeToSimpleShape'
-import { SimpleShape } from '../../shared/format/SimpleShape'
+	convertTldrawShapeToFocusedShape,
+	convertTldrawShapeToFocusedType,
+} from '../../shared/format/convertTldrawShapeToFocusedShape'
+import { FocusedShape } from '../../shared/format/FocusedShape'
 import { UserActionHistoryPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { AgentHelpers } from '../AgentHelpers'
@@ -36,35 +36,35 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 				if (shape.typeName !== 'shape') continue
 				part.added.push({
 					shapeId: convertTldrawIdToSimpleId(shape.id),
-					type: convertTldrawShapeToSimpleType(shape),
+					type: convertTldrawShapeToFocusedType(shape),
 				})
 			}
 
 			// Collect user-removed shapes
 			for (const shape of Object.values(removed)) {
 				if (shape.typeName !== 'shape') continue
-				const simpleShape = convertTldrawShapeToSimpleShape(editor, shape)
+				const focusedShape = convertTldrawShapeToFocusedShape(editor, shape)
 				part.removed.push({
-					shapeId: simpleShape.shapeId,
-					type: simpleShape._type,
+					shapeId: focusedShape.shapeId,
+					type: focusedShape._type,
 				})
 			}
 
 			// Collect user-updated shapes
 			for (const [from, to] of Object.values(updated)) {
 				if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
-				const fromSimpleShape = convertTldrawShapeToSimpleShape(editor, from)
-				const toSimpleShape = convertTldrawShapeToSimpleShape(editor, to)
+				const fromFocusedShape = convertTldrawShapeToFocusedShape(editor, from)
+				const toFocusedShape = convertTldrawShapeToFocusedShape(editor, to)
 
-				const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
-				if (!changeSimpleShape) continue
+				const changeFocusedShape = getFocusedShapeChange(fromFocusedShape, toFocusedShape)
+				if (!changeFocusedShape) continue
 
-				const before = helpers.applyOffsetToShapePartial(changeSimpleShape.from)
-				const after = helpers.applyOffsetToShapePartial(changeSimpleShape.to)
+				const before = helpers.applyOffsetToShapePartial(changeFocusedShape.from)
+				const after = helpers.applyOffsetToShapePartial(changeFocusedShape.to)
 
 				part.updated.push({
-					shapeId: toSimpleShape.shapeId,
-					type: toSimpleShape._type,
+					shapeId: toFocusedShape.shapeId,
+					type: toFocusedShape._type,
 					before: helpers.roundShapePartial(before),
 					after: helpers.roundShapePartial(after),
 				})
@@ -76,22 +76,22 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 )
 
 /**
- * Get any changed properties between two simple shapes.
+ * Get any changed properties between two focused shapes.
  * @param from - The original shape.
  * @param to - The new shape.
  * @returns The changed properties.
  */
-function getSimpleShapeChange<T extends SimpleShape['_type']>(
-	from: SimpleShape & { _type: T },
-	to: SimpleShape & { _type: T }
+function getFocusedShapeChange<T extends FocusedShape['_type']>(
+	from: FocusedShape & { _type: T },
+	to: FocusedShape & { _type: T }
 ) {
 	if (from._type !== to._type) {
 		return null
 	}
 
 	const change: {
-		from: Partial<SimpleShape>
-		to: Partial<SimpleShape>
+		from: Partial<FocusedShape>
+		to: Partial<FocusedShape>
 	} = {
 		from: {},
 		to: {},

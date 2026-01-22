@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const SimpleGeoShapeTypeSchema = z.enum([
+export const FocusedGeoShapeTypeSchema = z.enum([
 	'rectangle',
 	'ellipse',
 	'triangle',
@@ -23,4 +23,4 @@ export const SimpleGeoShapeTypeSchema = z.enum([
 	'fat-arrow-down',
 ])
 
-export type SimpleGeoShapeType = z.infer<typeof SimpleGeoShapeTypeSchema>
+export type FocusedGeoShapeType = z.infer<typeof FocusedGeoShapeTypeSchema>

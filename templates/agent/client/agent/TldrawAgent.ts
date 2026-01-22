@@ -1,5 +1,5 @@
 import { Editor, RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
+import { convertTldrawShapeToFocusedShape } from '../../shared/format/convertTldrawShapeToFocusedShape'
 import { AgentModelName } from '../../shared/models'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
@@ -568,7 +568,7 @@ export class TldrawAgent {
 			contextItems: structuredClone(request.contextItems),
 			selectedShapes: this.editor
 				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToSimpleShape(this.editor, structuredClone(shape))),
+				.map((shape) => convertTldrawShapeToFocusedShape(this.editor, structuredClone(shape))),
 		}
 		this.chat.push(promptHistoryItem)
 

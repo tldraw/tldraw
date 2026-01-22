@@ -1,7 +1,7 @@
 import { Box, BoxModel, JsonValue } from 'tldraw'
 import { BlurryShape } from '../format/BlurryShape'
+import { FocusedShape } from '../format/FocusedShape'
 import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
-import { SimpleShape } from '../format/SimpleShape'
 import { AgentModelName } from '../models'
 import type { AgentAction } from '../types/AgentAction'
 import { AgentCanvasLint } from '../types/AgentCanvasLint'
@@ -83,17 +83,17 @@ export interface UserActionHistoryPart {
 	type: 'userActionHistory'
 	added: {
 		shapeId: string
-		type: SimpleShape['_type']
+		type: FocusedShape['_type']
 	}[]
 	removed: {
 		shapeId: string
-		type: SimpleShape['_type']
+		type: FocusedShape['_type']
 	}[]
 	updated: {
 		shapeId: string
-		type: SimpleShape['_type']
-		before: Partial<SimpleShape>
-		after: Partial<SimpleShape>
+		type: FocusedShape['_type']
+		before: Partial<FocusedShape>
+		after: Partial<FocusedShape>
 	}[]
 }
 
@@ -228,18 +228,18 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				for (const contextItem of item.contextItems) {
 					switch (contextItem.type) {
 						case 'shape': {
-							const simpleShape = contextItem.shape
+							const focusedShape = contextItem.shape
 							content.push({
 								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(simpleShape)}`,
+								text: `[CONTEXT]: ${JSON.stringify(focusedShape)}`,
 							})
 							break
 						}
 						case 'shapes': {
-							const simpleShapes = contextItem.shapes
+							const focusedShapes = contextItem.shapes
 							content.push({
 								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(simpleShapes)}`,
+								text: `[CONTEXT]: ${JSON.stringify(focusedShapes)}`,
 							})
 							break
 						}

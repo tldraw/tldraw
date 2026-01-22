@@ -1,5 +1,5 @@
 import { Box, BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
+import { convertTldrawShapeToFocusedShape } from '../../shared/format/convertTldrawShapeToFocusedShape'
 import { AgentAppAgentsManager } from '../agent/managers/AgentAppAgentsManager'
 
 export class TargetShapeTool extends StateNode {
@@ -80,7 +80,7 @@ class TargetShapePointing extends StateNode {
 			for (const agent of agents) {
 				agent.context.add({
 					type: 'shape',
-					shape: convertTldrawShapeToSimpleShape(this.editor, this.shape),
+					shape: convertTldrawShapeToFocusedShape(this.editor, this.shape),
 					source: 'user',
 				})
 			}
@@ -119,7 +119,7 @@ class TargetShapeDragging extends StateNode {
 				for (const agent of agents) {
 					agent.context.add({
 						type: 'shape',
-						shape: convertTldrawShapeToSimpleShape(this.editor, shape),
+						shape: convertTldrawShapeToFocusedShape(this.editor, shape),
 						source: 'user',
 					})
 				}
@@ -128,7 +128,7 @@ class TargetShapeDragging extends StateNode {
 			for (const agent of agents) {
 				agent.context.add({
 					type: 'shapes',
-					shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(this.editor, shape)),
+					shapes: this.shapes.map((shape) => convertTldrawShapeToFocusedShape(this.editor, shape)),
 					source: 'user',
 				})
 			}

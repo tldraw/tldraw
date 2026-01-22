@@ -17,48 +17,48 @@ import {
 	Vec,
 } from 'tldraw'
 import { SimpleShapeId } from '../types/ids-schema'
-import { convertTldrawFillToSimpleFill } from './SimpleFill'
-import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
-import { SimpleGeoShapeType } from './SimpleGeoShapeType'
+import { convertTldrawFillToFocusedFill } from './FocusedFill'
+import { convertTldrawFontSizeAndScaleToFocusedFontSize } from './FocusedFontSize'
+import { FocusedGeoShapeType } from './FocusedGeoShapeType'
 import {
-	SimpleArrowShape,
-	SimpleDrawShape,
-	SimpleGeoShape,
-	SimpleLineShape,
-	SimpleNoteShape,
-	SimpleShape,
-	SimpleTextAnchor,
-	SimpleTextShape,
-	SimpleUnknownShape,
-} from './SimpleShape'
+	FocusedArrowShape,
+	FocusedDrawShape,
+	FocusedGeoShape,
+	FocusedLineShape,
+	FocusedNoteShape,
+	FocusedShape,
+	FocusedTextAnchor,
+	FocusedTextShape,
+	FocusedUnknownShape,
+} from './FocusedShape'
 
 /**
- * Convert a tldraw shape to a simple shape
+ * Convert a tldraw shape to a focused shape
  */
-export function convertTldrawShapeToSimpleShape(editor: Editor, shape: TLShape): SimpleShape {
+export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape): FocusedShape {
 	switch (shape.type) {
 		case 'text':
-			return convertTextShapeToSimple(editor, shape as TLTextShape)
+			return convertTextShapeToFocused(editor, shape as TLTextShape)
 		case 'geo':
-			return convertGeoShapeToSimple(editor, shape as TLGeoShape)
+			return convertGeoShapeToFocused(editor, shape as TLGeoShape)
 		case 'line':
-			return convertLineShapeToSimple(editor, shape as TLLineShape)
+			return convertLineShapeToFocused(editor, shape as TLLineShape)
 		case 'arrow':
-			return convertArrowShapeToSimple(editor, shape as TLArrowShape)
+			return convertArrowShapeToFocused(editor, shape as TLArrowShape)
 		case 'note':
-			return convertNoteShapeToSimple(editor, shape as TLNoteShape)
+			return convertNoteShapeToFocused(editor, shape as TLNoteShape)
 		case 'draw':
-			return convertDrawShapeToSimple(editor, shape as TLDrawShape)
+			return convertDrawShapeToFocused(editor, shape as TLDrawShape)
 		default:
-			return convertUnknownShapeToSimple(editor, shape)
+			return convertUnknownShapeToFocused(editor, shape)
 	}
 }
 
-export function convertTldrawShapeToSimpleType(shape: TLShape): SimpleShape['_type'] {
+export function convertTldrawShapeToFocusedType(shape: TLShape): FocusedShape['_type'] {
 	switch (shape.type) {
 		case 'geo': {
 			const geoShape = shape as TLGeoShape
-			return GEO_TO_SIMPLE_TYPES[geoShape.props.geo]
+			return GEO_TO_FOCUSED_TYPES[geoShape.props.geo]
 		}
 		case 'text':
 		case 'line':
@@ -71,7 +71,7 @@ export function convertTldrawShapeToSimpleType(shape: TLShape): SimpleShape['_ty
 	}
 }
 
-const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
+const GEO_TO_FOCUSED_TYPES: Record<TLGeoShapeGeoStyle, FocusedGeoShapeType> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -98,24 +98,24 @@ export function convertTldrawIdToSimpleId(id: TLShapeId): SimpleShapeId {
 	return id.slice(6) as SimpleShapeId
 }
 
-function convertDrawShapeToSimple(editor: Editor, shape: TLDrawShape): SimpleDrawShape {
+function convertDrawShapeToFocused(editor: Editor, shape: TLDrawShape): FocusedDrawShape {
 	return {
 		_type: 'draw',
 		color: shape.props.color,
-		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		fill: convertTldrawFillToFocusedFill(shape.props.fill),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 	}
 }
 
-function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTextShape {
+function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedTextShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 	const bounds = getSimpleBounds(editor, shape)
 	const textSize = shape.props.size
 
 	const position = new Vec()
-	let anchor: SimpleTextAnchor = 'top-left'
+	let anchor: FocusedTextAnchor = 'top-left'
 	switch (shape.props.textAlign) {
 		case 'middle': {
 			anchor = 'top-center'
@@ -141,7 +141,7 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTex
 		_type: 'text',
 		anchor,
 		color: shape.props.color,
-		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
+		fontSize: convertTldrawFontSizeAndScaleToFocusedFontSize(textSize, shape.props.scale),
 		maxWidth: shape.props.autoSize ? null : shape.props.w,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
@@ -151,13 +151,13 @@ function convertTextShapeToSimple(editor: Editor, shape: TLTextShape): SimpleTex
 	}
 }
 
-function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoShape {
+function convertGeoShapeToFocused(editor: Editor, shape: TLGeoShape): FocusedGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 	const bounds = getSimpleBounds(editor, shape)
 	const shapeTextAlign = shape.props.align
 
-	let newTextAlign: SimpleGeoShape['textAlign']
+	let newTextAlign: FocusedGeoShape['textAlign']
 	switch (shapeTextAlign) {
 		case 'start-legacy':
 			newTextAlign = 'start'
@@ -174,9 +174,9 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoSh
 	}
 
 	return {
-		_type: GEO_TO_SIMPLE_TYPES[shape.props.geo],
+		_type: GEO_TO_FOCUSED_TYPES[shape.props.geo],
 		color: shape.props.color,
-		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		fill: convertTldrawFillToFocusedFill(shape.props.fill),
 		h: shape.props.h,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
@@ -188,7 +188,7 @@ function convertGeoShapeToSimple(editor: Editor, shape: TLGeoShape): SimpleGeoSh
 	}
 }
 
-function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLineShape {
+function convertLineShapeToFocused(editor: Editor, shape: TLLineShape): FocusedLineShape {
 	const bounds = getSimpleBounds(editor, shape)
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
@@ -203,7 +203,7 @@ function convertLineShapeToSimple(editor: Editor, shape: TLLineShape): SimpleLin
 	}
 }
 
-function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleArrowShape {
+function convertArrowShapeToFocused(editor: Editor, shape: TLArrowShape): FocusedArrowShape {
 	const bounds = getSimpleBounds(editor, shape)
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
@@ -228,7 +228,7 @@ function convertArrowShapeToSimple(editor: Editor, shape: TLArrowShape): SimpleA
 	}
 }
 
-function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNoteShape {
+function convertNoteShapeToFocused(editor: Editor, shape: TLNoteShape): FocusedNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 	const bounds = getSimpleBounds(editor, shape)
@@ -243,7 +243,7 @@ function convertNoteShapeToSimple(editor: Editor, shape: TLNoteShape): SimpleNot
 	}
 }
 
-function convertUnknownShapeToSimple(editor: Editor, shape: TLShape): SimpleUnknownShape {
+function convertUnknownShapeToFocused(editor: Editor, shape: TLShape): FocusedUnknownShape {
 	const bounds = getSimpleBounds(editor, shape)
 	return {
 		_type: 'unknown',

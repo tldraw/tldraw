@@ -1,6 +1,6 @@
 import { b64Vecs, TLDrawShapeSegment, TLShapeId, Vec, VecModel } from 'tldraw'
-import { asColor } from '../../shared/format/SimpleColor'
-import { convertSimpleFillToTldrawFill } from '../../shared/format/SimpleFill'
+import { asColor } from '../../shared/format/FocusedColor'
+import { convertFocusedFillToTldrawFill } from '../../shared/format/FocusedFill'
 import { PenAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
@@ -34,7 +34,7 @@ export const PenActionUtil = registerActionUtil(
 
 			action.points = validPoints
 			action.closed = helpers.ensureValueIsBoolean(action.closed) ?? false
-			action.fill = helpers.ensureValueIsSimpleFill(action.fill) ?? 'none'
+			action.fill = helpers.ensureValueIsFocusedFill(action.fill) ?? 'none'
 
 			return action
 		}
@@ -101,7 +101,7 @@ export const PenActionUtil = registerActionUtil(
 				isLocked: !action.complete,
 				props: {
 					color: asColor(action.color ?? 'black'),
-					fill: convertSimpleFillToTldrawFill(action.fill ?? 'none'),
+					fill: convertFocusedFillToTldrawFill(action.fill ?? 'none'),
 					dash: 'draw',
 					size: 's',
 					segments,

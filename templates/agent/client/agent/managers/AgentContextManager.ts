@@ -1,5 +1,5 @@
 import { Atom, atom, Box, structuredClone, Vec } from 'tldraw'
-import { SimpleShape } from '../../../shared/format/SimpleShape'
+import { FocusedShape } from '../../../shared/format/FocusedShape'
 import {
 	AreaContextItem,
 	ContextItem,
@@ -173,7 +173,7 @@ function dedupeShapesContextItem(
 		if (contextItem.type === 'shape') {
 			existingShapeIds.add(contextItem.shape.shapeId)
 		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: SimpleShape) => {
+			contextItem.shapes.forEach((shape: FocusedShape) => {
 				existingShapeIds.add(shape.shapeId)
 			})
 		}

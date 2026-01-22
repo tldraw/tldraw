@@ -1,5 +1,5 @@
 import { structuredClone } from 'tldraw'
-import { convertTldrawIdToSimpleId } from '../../shared/format/convertTldrawShapeToSimpleShape'
+import { convertTldrawIdToSimpleId } from '../../shared/format/convertTldrawShapeToFocusedShape'
 import { SelectedShapesPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { PromptPartUtil, registerPromptPartUtil } from './PromptPartUtil'

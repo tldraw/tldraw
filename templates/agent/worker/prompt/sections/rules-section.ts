@@ -1,9 +1,9 @@
-import { getSimpleShapeSchemaNames } from '../../../shared/format/SimpleShape'
+import { getFocusedShapeSchemaNames } from '../../../shared/format/FocusedShape'
 import { SystemPromptFlags } from '../getSystemPromptFlags'
 import { flagged } from './flagged'
 
 export function buildRulesPromptSection(flags: SystemPromptFlags) {
-	const shapeTypeNames = getSimpleShapeSchemaNames()
+	const shapeTypeNames = getFocusedShapeSchemaNames()
 
 	return `## Shapes
 

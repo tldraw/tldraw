@@ -1,6 +1,6 @@
 import { BoxModel, createShapeId, Editor, TLShapeId, VecModel } from 'tldraw'
-import { SimpleFill, SimpleFillSchema } from '../shared/format/SimpleFill'
-import { SimpleShape } from '../shared/format/SimpleShape'
+import { FocusedFill, FocusedFillSchema } from '../shared/format/FocusedFill'
+import { FocusedShape } from '../shared/format/FocusedShape'
 import { ContextItem } from '../shared/types/ContextItem'
 import { SimpleShapeId } from '../shared/types/ids-schema'
 import { TldrawAgent } from './agent/TldrawAgent'
@@ -106,7 +106,7 @@ export class AgentHelpers {
 	/**
 	 * Apply the offset of this request to a shape.
 	 */
-	applyOffsetToShape(shape: SimpleShape): SimpleShape {
+	applyOffsetToShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -129,7 +129,7 @@ export class AgentHelpers {
 	/**
 	 * Apply the offset of this request to a shape partial.
 	 */
-	applyOffsetToShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
+	applyOffsetToShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
 		const result = { ...shape }
 		if ('x' in result && result.x !== undefined) {
 			;(result as any).x = result.x + this.offset.x
@@ -155,7 +155,7 @@ export class AgentHelpers {
 	/**
 	 * Remove the offset of this request from a shape partial.
 	 */
-	removeOffsetFromShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
+	removeOffsetFromShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
 		const result = { ...shape }
 		if ('x' in result && result.x !== undefined) {
 			;(result as any).x = result.x - this.offset.x
@@ -181,7 +181,7 @@ export class AgentHelpers {
 	/**
 	 * Remove the offset of this request from a shape.
 	 */
-	removeOffsetFromShape(shape: SimpleShape): SimpleShape {
+	removeOffsetFromShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -318,12 +318,12 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Round the coordinates, width, and height of a simple shape.
+	 * Round the coordinates, width, and height of a focused shape.
 	 * Save the diffs so that they can be restored later.
 	 * @param shape - The shape to round.
 	 * @returns The rounded shape.
 	 */
-	roundShape(shape: SimpleShape): SimpleShape {
+	roundShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			shape = this.roundProperty(shape, 'x1')
 			shape = this.roundProperty(shape, 'y1')
@@ -343,15 +343,15 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Round the coordinates, width, and height of a simple shape partial.
+	 * Round the coordinates, width, and height of a focused shape partial.
 	 * Save the diffs so that they can be restored later.
 	 * @param shape - The shape partial to round.
 	 * @returns The rounded shape partial.
 	 */
-	roundShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
+	roundShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
 		for (const prop of ['x1', 'y1', 'x2', 'y2', 'x', 'y', 'w', 'h'] as const) {
 			if (prop in shape) {
-				shape = this.roundProperty(shape, prop as keyof Partial<SimpleShape>)
+				shape = this.roundProperty(shape, prop as keyof Partial<FocusedShape>)
 			}
 		}
 		return shape
@@ -363,7 +363,7 @@ export class AgentHelpers {
 	 * @param shape - The shape to unround.
 	 * @returns The unrounded shape.
 	 */
-	unroundShape(shape: SimpleShape): SimpleShape {
+	unroundShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			shape = this.unroundProperty(shape, 'x1')
 			shape = this.unroundProperty(shape, 'y1')
@@ -412,7 +412,7 @@ export class AgentHelpers {
 	 * @param property - The property to round.
 	 * @returns The rounded shape.
 	 */
-	roundProperty<T extends Partial<SimpleShape>>(shape: T, property: keyof T): T {
+	roundProperty<T extends Partial<FocusedShape>>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const value = shape[property]
@@ -429,7 +429,7 @@ export class AgentHelpers {
 	 * @param property - The property to unround.
 	 * @returns The unrounded shape.
 	 */
-	unroundProperty<T extends SimpleShape>(shape: T, property: keyof T): T {
+	unroundProperty<T extends FocusedShape>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const key = `${shape.shapeId}_${property as string}`
@@ -498,14 +498,14 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Ensure that a value is a simple fill.
+	 * Ensure that a value is a focused fill.
 	 * Used for checking incoming data from the model.
-	 * @returns The simple fill, or null if the value is not a simple fill.
+	 * @returns The focused fill, or null if the value is not a focused fill.
 	 */
-	ensureValueIsSimpleFill(value: any): SimpleFill | null {
-		const simpleFill = SimpleFillSchema.safeParse(value)
-		if (simpleFill.success) {
-			return simpleFill.data
+	ensureValueIsFocusedFill(value: any): FocusedFill | null {
+		const focusedFill = FocusedFillSchema.safeParse(value)
+		if (focusedFill.success) {
+			return focusedFill.data
 		}
 		return null
 	}

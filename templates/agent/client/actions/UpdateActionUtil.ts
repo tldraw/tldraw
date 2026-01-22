@@ -1,8 +1,8 @@
 import { TLBindingId } from 'tldraw'
 import {
+	convertFocusedShapeToTldrawShape,
 	convertSimpleIdToTldrawId,
-	convertSimpleShapeToTldrawShape,
-} from '../../shared/format/convertSimpleShapeToTldrawShape'
+} from '../../shared/format/convertFocusedShapeToTldrawShape'
 import { UpdateAction } from '../../shared/schema/AgentActionSchemas'
 import { toSimpleShapeId } from '../../shared/types/ids-schema'
 import { Streaming } from '../../shared/types/Streaming'
@@ -76,7 +76,7 @@ export const UpdateActionUtil = registerActionUtil(
 				throw new Error(`Shape ${shapeId} not found in canvas`)
 			}
 
-			const result = convertSimpleShapeToTldrawShape(editor, action.update, {
+			const result = convertFocusedShapeToTldrawShape(editor, action.update, {
 				defaultShape: existingShape,
 			})
 

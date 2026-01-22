@@ -1,7 +1,7 @@
 import z from 'zod'
-import { SimpleColor } from '../format/SimpleColor'
-import { SimpleFillSchema } from '../format/SimpleFill'
-import { SimpleShapeSchema, SimpleTextAnchorSchema } from '../format/SimpleShape'
+import { FocusedColor } from '../format/FocusedColor'
+import { FocusedFillSchema } from '../format/FocusedFill'
+import { FocusedShapeSchema, FocusedTextAnchorSchema } from '../format/FocusedShape'
 import { SimpleShapeIdSchema, TodoIdSchema } from '../types/ids-schema'
 
 // Add Detail Action
@@ -90,7 +90,7 @@ export const CreateAction = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: SimpleShapeSchema,
+		shape: FocusedShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
 
@@ -149,7 +149,7 @@ export const MoveAction = z
 	.object({
 		_type: z.literal('move'),
 		intent: z.string(),
-		anchor: SimpleTextAnchorSchema,
+		anchor: FocusedTextAnchorSchema,
 		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
@@ -163,9 +163,9 @@ export const PenAction = z
 	.object({
 		_type: z.literal('pen'),
 		shapeId: SimpleShapeIdSchema,
-		color: SimpleColor,
+		color: FocusedColor,
 		closed: z.boolean(),
-		fill: SimpleFillSchema,
+		fill: FocusedFillSchema,
 		intent: z.string(),
 		points: z.array(
 			z.object({
@@ -346,7 +346,7 @@ export const UpdateAction = z
 	.object({
 		_type: z.literal('update'),
 		intent: z.string(),
-		update: SimpleShapeSchema,
+		update: FocusedShapeSchema,
 	})
 	.meta({
 		title: 'Update',

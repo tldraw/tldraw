@@ -8,7 +8,7 @@ import {
 	TLShape,
 	TLShapeId,
 } from 'tldraw'
-import { convertTldrawIdToSimpleId } from '../../../shared/format/convertTldrawShapeToSimpleShape'
+import { convertTldrawIdToSimpleId } from '../../../shared/format/convertTldrawShapeToFocusedShape'
 import { AgentCanvasLint } from '../../../shared/types/AgentCanvasLint'
 import { BaseAgentManager } from './BaseAgentManager'
 

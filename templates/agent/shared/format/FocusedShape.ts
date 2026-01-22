@@ -1,13 +1,13 @@
 import { z } from 'zod'
 import { SimpleShapeIdSchema } from '../types/ids-schema'
-import { SimpleColor } from './SimpleColor'
-import { SimpleFillSchema } from './SimpleFill'
-import { SimpleFontSize } from './SimpleFontSize'
-import { SimpleGeoShapeTypeSchema } from './SimpleGeoShapeType'
+import { FocusedColor } from './FocusedColor'
+import { FocusedFillSchema } from './FocusedFill'
+import { FocusedFontSize } from './FocusedFontSize'
+import { FocusedGeoShapeTypeSchema } from './FocusedGeoShapeType'
 
-const SimpleLabel = z.string()
+const FocusedLabel = z.string()
 
-export const SimpleTextAnchorSchema = z.enum([
+export const FocusedTextAnchorSchema = z.enum([
 	'bottom-center',
 	'bottom-left',
 	'bottom-right',
@@ -19,30 +19,30 @@ export const SimpleTextAnchorSchema = z.enum([
 	'top-right',
 ])
 
-export type SimpleTextAnchor = z.infer<typeof SimpleTextAnchorSchema>
+export type FocusedTextAnchor = z.infer<typeof FocusedTextAnchorSchema>
 
-export const SimpleGeoShape = z.object({
-	_type: SimpleGeoShapeTypeSchema,
-	color: SimpleColor,
-	fill: SimpleFillSchema,
+export const FocusedGeoShape = z.object({
+	_type: FocusedGeoShapeTypeSchema,
+	color: FocusedColor,
+	fill: FocusedFillSchema,
 	h: z.number(),
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
-	text: SimpleLabel.optional(),
+	text: FocusedLabel.optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
 	x: z.number(),
 	y: z.number(),
 })
 
-export type SimpleGeoShape = z.infer<typeof SimpleGeoShape>
+export type FocusedGeoShape = z.infer<typeof FocusedGeoShape>
 
-export const SimpleGeoShapePartialSchema = SimpleGeoShape.partial()
-export type SimpleGeoShapePartial = z.infer<typeof SimpleGeoShapePartialSchema>
+export const FocusedGeoShapePartialSchema = FocusedGeoShape.partial()
+export type FocusedGeoShapePartial = z.infer<typeof FocusedGeoShapePartialSchema>
 
-const SimpleLineShape = z.object({
+const FocusedLineShape = z.object({
 	_type: z.literal('line'),
-	color: SimpleColor,
+	color: FocusedColor,
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
 	x1: z.number(),
@@ -51,30 +51,30 @@ const SimpleLineShape = z.object({
 	y2: z.number(),
 })
 
-export type SimpleLineShape = z.infer<typeof SimpleLineShape>
+export type FocusedLineShape = z.infer<typeof FocusedLineShape>
 
-const SimpleNoteShape = z.object({
+const FocusedNoteShape = z.object({
 	_type: z.literal('note'),
-	color: SimpleColor,
+	color: FocusedColor,
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
-	text: SimpleLabel.optional(),
+	text: FocusedLabel.optional(),
 	x: z.number(),
 	y: z.number(),
 })
 
-export type SimpleNoteShape = z.infer<typeof SimpleNoteShape>
+export type FocusedNoteShape = z.infer<typeof FocusedNoteShape>
 
-const SimpleTextShape = z
+const FocusedTextShape = z
 	.object({
 		_type: z.literal('text'),
-		anchor: SimpleTextAnchorSchema,
-		color: SimpleColor,
-		fontSize: SimpleFontSize.optional(),
+		anchor: FocusedTextAnchorSchema,
+		color: FocusedColor,
+		fontSize: FocusedFontSize.optional(),
 		maxWidth: z.number().nullable(),
 		note: z.string(),
 		shapeId: SimpleShapeIdSchema,
-		text: SimpleLabel,
+		text: FocusedLabel,
 		x: z.number(),
 		y: z.number(),
 	})
@@ -84,14 +84,14 @@ const SimpleTextShape = z
 			'A text shape is a shape that contains text. The `anchor` property indicates how the text shape is positioned and aligned. For example, the "top-left" anchor means the text shape\'s x and y coordinates are the top left corner of the text shape, and the text gets left aligned. A shape with the "bottom-center" anchor means the text shape\'s x and y coordinates are the bottom center of the text shape, and the text gets center aligned on the horizontal axis. By default, text shapes auto-size to fit their content. If you provide a `maxWidth`, the text will automatically wrap to the next line if it exceeds that width (there is no need to add manual line breaks for word wrapping).',
 	})
 
-export type SimpleTextShape = z.infer<typeof SimpleTextShape>
+export type FocusedTextShape = z.infer<typeof FocusedTextShape>
 
-export const SimpleTextShapePartialSchema = SimpleTextShape.partial()
-export type SimpleTextShapePartial = z.infer<typeof SimpleTextShapePartialSchema>
+export const FocusedTextShapePartialSchema = FocusedTextShape.partial()
+export type FocusedTextShapePartial = z.infer<typeof FocusedTextShapePartialSchema>
 
-const SimpleArrowShape = z.object({
+const FocusedArrowShape = z.object({
 	_type: z.literal('arrow'),
-	color: SimpleColor,
+	color: FocusedColor,
 	fromId: SimpleShapeIdSchema.nullable(),
 	note: z.string(),
 	shapeId: SimpleShapeIdSchema,
@@ -104,13 +104,13 @@ const SimpleArrowShape = z.object({
 	bend: z.number().optional(),
 })
 
-export type SimpleArrowShape = z.infer<typeof SimpleArrowShape>
+export type FocusedArrowShape = z.infer<typeof FocusedArrowShape>
 
-const SimpleDrawShape = z
+const FocusedDrawShape = z
 	.object({
 		_type: z.literal('draw'),
-		color: SimpleColor,
-		fill: SimpleFillSchema.optional(),
+		color: FocusedColor,
+		fill: FocusedFillSchema.optional(),
 		note: z.string(),
 		shapeId: SimpleShapeIdSchema,
 	})
@@ -120,9 +120,9 @@ const SimpleDrawShape = z
 			'A draw shape is a freeform shape that was drawn by the pen tool. IMPORTANT: Do not create draw shapes with the "create" action. To create new draw shapes, the AI must use the pen event because it gives more control.',
 	})
 
-export type SimpleDrawShape = z.infer<typeof SimpleDrawShape>
+export type FocusedDrawShape = z.infer<typeof FocusedDrawShape>
 
-const SimpleUnknownShape = z
+const FocusedUnknownShape = z
 	.object({
 		_type: z.literal('unknown'),
 		note: z.string(),
@@ -137,38 +137,38 @@ const SimpleUnknownShape = z
 			"A special shape that is not represented by one of the canvas's core shape types. The AI cannot create these shapes, but it *can* interact with them. eg: The AI can move these shapes. The `subType` property contains the internal name of the shape's type.",
 	})
 
-export type SimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
+export type FocusedUnknownShape = z.infer<typeof FocusedUnknownShape>
 
-const SIMPLE_SHAPES = [
-	SimpleDrawShape,
-	SimpleGeoShape,
-	SimpleLineShape,
-	SimpleTextShape,
-	SimpleArrowShape,
-	SimpleNoteShape,
-	SimpleUnknownShape,
+const FOCUSED_SHAPES = [
+	FocusedDrawShape,
+	FocusedGeoShape,
+	FocusedLineShape,
+	FocusedTextShape,
+	FocusedArrowShape,
+	FocusedNoteShape,
+	FocusedUnknownShape,
 ] as const
-export const SimpleShapeSchema = z.union(SIMPLE_SHAPES)
+export const FocusedShapeSchema = z.union(FOCUSED_SHAPES)
 
-export type SimpleShape = z.infer<typeof SimpleShapeSchema>
+export type FocusedShape = z.infer<typeof FocusedShapeSchema>
 
-export type SimpleShapePartial = Partial<SimpleShape>
+export type FocusedShapePartial = Partial<FocusedShape>
 
 /**
  * Extract all shape type names from the schema
  */
-export function getSimpleShapeSchemaNames() {
-	const typeNames: SimpleShape['_type'][] = []
+export function getFocusedShapeSchemaNames() {
+	const typeNames: FocusedShape['_type'][] = []
 
-	for (const shapeSchema of SIMPLE_SHAPES) {
+	for (const shapeSchema of FOCUSED_SHAPES) {
 		const typeField = shapeSchema.shape._type
 
 		if (typeField) {
-			// Handle ZodLiterals (like SimpleDrawShape)
+			// Handle ZodLiterals (like FocusedDrawShape)
 			if ('value' in typeField && typeof typeField.value === 'string') {
 				typeNames.push(typeField.value)
 			}
-			// Handle ZodEnums (like SimpleGeoShape)
+			// Handle ZodEnums (like FocusedGeoShape)
 			else if ('options' in typeField && Array.isArray(typeField.options)) {
 				typeNames.push(...typeField.options)
 			}
