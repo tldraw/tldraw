@@ -1,9 +1,9 @@
 import { BoxModel, createShapeId, Editor, TLShapeId, VecModel } from 'tldraw'
-import { TldrawAgent } from '../client/agent/TldrawAgent'
-import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
-import { SimpleShape } from './format/SimpleShape'
-import { ContextItem } from './types/ContextItem'
-import { SimpleShapeId } from './types/ids-schema'
+import { FocusedFill, FocusedFillSchema } from '../shared/format/FocusedFill'
+import { FocusedShape } from '../shared/format/FocusedShape'
+import { ContextItem } from '../shared/types/ContextItem'
+import { SimpleShapeId } from '../shared/types/ids-schema'
+import { TldrawAgent } from './agent/TldrawAgent'
 
 /**
  * This class contains handles the transformations that happen throughout a
@@ -35,7 +35,7 @@ export class AgentHelpers {
 	constructor(agent: TldrawAgent) {
 		this.agent = agent
 		this.editor = agent.editor
-		const origin = agent.$chatOrigin.get()
+		const origin = agent.chatOrigin.getOrigin()
 		this.offset = {
 			x: -origin.x,
 			y: -origin.y,
@@ -106,7 +106,7 @@ export class AgentHelpers {
 	/**
 	 * Apply the offset of this request to a shape.
 	 */
-	applyOffsetToShape(shape: SimpleShape): SimpleShape {
+	applyOffsetToShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -129,32 +129,59 @@ export class AgentHelpers {
 	/**
 	 * Apply the offset of this request to a shape partial.
 	 */
-	applyOffsetToShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
-		if ('x' in shape && shape.x !== undefined) {
-			return { ...shape, x: shape.x + this.offset.x }
+	applyOffsetToShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
+		const result = { ...shape }
+		if ('x' in result && result.x !== undefined) {
+			;(result as any).x = result.x + this.offset.x
 		}
-		if ('y' in shape && shape.y !== undefined) {
-			return { ...shape, y: shape.y + this.offset.y }
+		if ('y' in result && result.y !== undefined) {
+			;(result as any).y = result.y + this.offset.y
 		}
-		if ('x1' in shape && shape.x1 !== undefined) {
-			return { ...shape, x1: shape.x1 + this.offset.x }
+		if ('x1' in result && result.x1 !== undefined) {
+			;(result as any).x1 = result.x1 + this.offset.x
 		}
-		if ('y1' in shape && shape.y1 !== undefined) {
-			return { ...shape, y1: shape.y1 + this.offset.y }
+		if ('y1' in result && result.y1 !== undefined) {
+			;(result as any).y1 = result.y1 + this.offset.y
 		}
-		if ('x2' in shape && shape.x2 !== undefined) {
-			return { ...shape, x2: shape.x2 + this.offset.x }
+		if ('x2' in result && result.x2 !== undefined) {
+			;(result as any).x2 = result.x2 + this.offset.x
 		}
-		if ('y2' in shape && shape.y2 !== undefined) {
-			return { ...shape, y2: shape.y2 + this.offset.y }
+		if ('y2' in result && result.y2 !== undefined) {
+			;(result as any).y2 = result.y2 + this.offset.y
 		}
-		return shape
+		return result
+	}
+
+	/**
+	 * Remove the offset of this request from a shape partial.
+	 */
+	removeOffsetFromShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
+		const result = { ...shape }
+		if ('x' in result && result.x !== undefined) {
+			;(result as any).x = result.x - this.offset.x
+		}
+		if ('y' in result && result.y !== undefined) {
+			;(result as any).y = result.y - this.offset.y
+		}
+		if ('x1' in result && result.x1 !== undefined) {
+			;(result as any).x1 = result.x1 - this.offset.x
+		}
+		if ('y1' in result && result.y1 !== undefined) {
+			;(result as any).y1 = result.y1 - this.offset.y
+		}
+		if ('x2' in result && result.x2 !== undefined) {
+			;(result as any).x2 = result.x2 - this.offset.x
+		}
+		if ('y2' in result && result.y2 !== undefined) {
+			;(result as any).y2 = result.y2 - this.offset.y
+		}
+		return result
 	}
 
 	/**
 	 * Remove the offset of this request from a shape.
 	 */
-	removeOffsetFromShape(shape: SimpleShape): SimpleShape {
+	removeOffsetFromShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -231,18 +258,21 @@ export class AgentHelpers {
 	 * @param id - The id to check (should be a SimpleShapeId from the model, not a TLShapeId).
 	 * @returns The unique id (always without the "shape:" prefix).
 	 */
-	ensureShapeIdIsUnique(id: SimpleShapeId): SimpleShapeId {
+	ensureShapeIdIsUnique(id = 'shape' as SimpleShapeId): SimpleShapeId {
+		// todo: remove default and have a better handling of cases where id is undefined
+
 		const { editor } = this.agent
+		// Defensively strip the prefix in case the model incorrectly includes it
+
 		// Ensure the id is unique by incrementing a number at the end
 		let newId = id
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
-			const match = /^.*(\d+)$/.exec(newId)?.[1]
-			if (match) {
-				newId = newId.replace(/(\d+)(?=\D?)$/, (m: string) => (+m + 1).toString()) as SimpleShapeId
-			} else {
-				newId = `${newId}-1` as SimpleShapeId
-			}
+			newId = /^.*(\d+)$/.exec(newId)?.[1]
+				? (newId.replace(/(\d+)(?=\D?)$/, (m) => {
+						return (+m + 1).toString()
+					}) as SimpleShapeId)
+				: (`${newId}-1` as SimpleShapeId)
 			existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		}
 
@@ -288,12 +318,12 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Round the coordinates, width, and height of a simple shape.
+	 * Round the coordinates, width, and height of a focused shape.
 	 * Save the diffs so that they can be restored later.
 	 * @param shape - The shape to round.
 	 * @returns The rounded shape.
 	 */
-	roundShape(shape: SimpleShape): SimpleShape {
+	roundShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			shape = this.roundProperty(shape, 'x1')
 			shape = this.roundProperty(shape, 'y1')
@@ -313,15 +343,15 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Round the coordinates, width, and height of a simple shape partial.
+	 * Round the coordinates, width, and height of a focused shape partial.
 	 * Save the diffs so that they can be restored later.
 	 * @param shape - The shape partial to round.
 	 * @returns The rounded shape partial.
 	 */
-	roundShapePartial(shape: Partial<SimpleShape>): Partial<SimpleShape> {
+	roundShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
 		for (const prop of ['x1', 'y1', 'x2', 'y2', 'x', 'y', 'w', 'h'] as const) {
 			if (prop in shape) {
-				shape = this.roundProperty(shape, prop as keyof Partial<SimpleShape>)
+				shape = this.roundProperty(shape, prop as keyof Partial<FocusedShape>)
 			}
 		}
 		return shape
@@ -333,7 +363,7 @@ export class AgentHelpers {
 	 * @param shape - The shape to unround.
 	 * @returns The unrounded shape.
 	 */
-	unroundShape(shape: SimpleShape): SimpleShape {
+	unroundShape(shape: FocusedShape): FocusedShape {
 		if ('x1' in shape) {
 			shape = this.unroundProperty(shape, 'x1')
 			shape = this.unroundProperty(shape, 'y1')
@@ -382,7 +412,7 @@ export class AgentHelpers {
 	 * @param property - The property to round.
 	 * @returns The rounded shape.
 	 */
-	roundProperty<T extends Partial<SimpleShape>>(shape: T, property: keyof T): T {
+	roundProperty<T extends Partial<FocusedShape>>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const value = shape[property]
@@ -399,7 +429,7 @@ export class AgentHelpers {
 	 * @param property - The property to unround.
 	 * @returns The unrounded shape.
 	 */
-	unroundProperty<T extends SimpleShape>(shape: T, property: keyof T): T {
+	unroundProperty<T extends FocusedShape>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
 
 		const key = `${shape.shapeId}_${property as string}`
@@ -468,14 +498,14 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Ensure that a value is a simple fill.
+	 * Ensure that a value is a focused fill.
 	 * Used for checking incoming data from the model.
-	 * @returns The simple fill, or null if the value is not a simple fill.
+	 * @returns The focused fill, or null if the value is not a focused fill.
 	 */
-	ensureValueIsSimpleFill(value: any): SimpleFill | null {
-		const simpleFill = SimpleFillSchema.safeParse(value)
-		if (simpleFill.success) {
-			return simpleFill.data
+	ensureValueIsFocusedFill(value: any): FocusedFill | null {
+		const focusedFill = FocusedFillSchema.safeParse(value)
+		if (focusedFill.success) {
+			return focusedFill.data
 		}
 		return null
 	}
