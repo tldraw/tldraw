@@ -717,8 +717,7 @@ export const defaultTldrawOptions: {
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
-    readonly laserMaxSessionDurationMs: 60000;
-    readonly laserSessionTimeoutMs: 2000;
+    readonly laserSessionTimeoutMs: 1000;
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
@@ -3489,7 +3488,6 @@ export interface TldrawOptions {
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
-    readonly laserMaxSessionDurationMs: number;
     readonly laserSessionTimeoutMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;

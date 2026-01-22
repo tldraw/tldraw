@@ -12,7 +12,7 @@ export class Lasering extends StateNode {
 			size: 4,
 			delay: this.editor.options.laserDelayMs,
 			shrink: 0.05,
-			taper: true,
+			taper: false,
 		})
 		this.scribbleId = scribble.id
 		this.pushPointToScribble()

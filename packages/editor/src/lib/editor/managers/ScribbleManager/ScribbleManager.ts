@@ -15,7 +15,6 @@ export interface ScribbleItem {
 
 interface LaserSession {
 	id: string
-	startTime: number
 	scribbles: Set<string>
 	idleTimeoutHandle?: any
 }
@@ -108,19 +107,9 @@ export class ScribbleManager {
 	}
 
 	private startOrExtendSession(scribbleId: string) {
-		const now = Date.now()
-
-		if (
-			this.activeSession &&
-			now - this.activeSession.startTime > this.editor.options.laserMaxSessionDurationMs
-		) {
-			this.endActiveLaserSession()
-		}
-
 		if (!this.activeSession) {
 			this.activeSession = {
 				id: uniqueId(),
-				startTime: now,
 				scribbles: new Set([scribbleId]),
 				idleTimeoutHandle: this.editor.timers.setTimeout(() => {
 					this.endActiveLaserSession()

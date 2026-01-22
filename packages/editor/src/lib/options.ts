@@ -59,11 +59,6 @@ export interface TldrawOptions {
 	 * Defaults to 2000ms (2 seconds).
 	 */
 	readonly laserSessionTimeoutMs: number
-	/**
-	 * Maximum duration (in milliseconds) a laser session can last before it's forcibly ended.
-	 * Defaults to 60000ms (1 minute).
-	 */
-	readonly laserMaxSessionDurationMs: number
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
@@ -167,8 +162,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
-	laserSessionTimeoutMs: 2000,
-	laserMaxSessionDurationMs: 60000,
+	laserSessionTimeoutMs: 1000,
 	maxExportDelayMs: 5000,
 	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,
