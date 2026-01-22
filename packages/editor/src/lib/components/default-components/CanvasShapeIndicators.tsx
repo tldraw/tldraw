@@ -1,7 +1,7 @@
 import { useComputed, useQuickReactor } from '@tldraw/state-react'
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { dedupe } from '@tldraw/utils'
+import { dedupe, isEqual } from '@tldraw/utils'
 import { memo, useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
@@ -29,34 +29,6 @@ const indicatorPathCache = createComputedCache(
 
 const getIndicatorPath = (editor: Editor, shape: TLShape) => {
 	return indicatorPathCache.get(editor, shape.id)
-}
-
-interface IndicatorRenderData {
-	idsToDisplay: Set<TLShapeId>
-	renderingShapeIds: Set<TLShapeId>
-	hintingShapeIds: TLShapeId[]
-	useCanvasIndicators: boolean
-	perfLogging: boolean
-}
-
-function setsAreEqual<T>(a: Set<T>, b: Set<T>): boolean {
-	if (a.size !== b.size) return false
-	for (const item of a) {
-		if (!b.has(item)) return false
-	}
-	return true
-}
-
-function indicatorRenderDataIsEqual(a: IndicatorRenderData, b: IndicatorRenderData): boolean {
-	if (a.useCanvasIndicators !== b.useCanvasIndicators) return false
-	if (a.perfLogging !== b.perfLogging) return false
-	if (!setsAreEqual(a.idsToDisplay, b.idsToDisplay)) return false
-	if (!setsAreEqual(a.renderingShapeIds, b.renderingShapeIds)) return false
-	if (a.hintingShapeIds.length !== b.hintingShapeIds.length) return false
-	for (let i = 0; i < a.hintingShapeIds.length; i++) {
-		if (a.hintingShapeIds[i] !== b.hintingShapeIds[i]) return false
-	}
-	return true
 }
 
 function renderShapeIndicator(
@@ -184,7 +156,7 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 				perfLogging,
 			}
 		},
-		{ isEqual: indicatorRenderDataIsEqual },
+		{ isEqual: isEqual },
 		[editor, showAll, hideAll, renderHints]
 	)
 
