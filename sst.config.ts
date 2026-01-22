@@ -54,22 +54,22 @@ export default $config({
 		})
 
 		const conn = new sst.Secret('PostgresConnectionString')
-		const zeroAuthSecret = new sst.Secret('ZeroAuthSecret')
-		const zeroPushUrl = new sst.Secret('ZeroPushUrl')
+		const zeroMutateUrl = new sst.Secret('ZeroMutateUrl')
+		const zeroQueryUrl = new sst.Secret('ZeroQueryUrl')
 
 		// Common environment variables
 		const commonEnv = {
 			ZERO_UPSTREAM_DB: conn.value,
 			ZERO_CVR_DB: conn.value,
 			ZERO_CHANGE_DB: conn.value,
-			ZERO_AUTH_JWKS_URL: zeroAuthSecret.value,
 			ZERO_REPLICA_FILE: 'sync-replica.db',
 			ZERO_LITESTREAM_BACKUP_URL: $interpolate`s3://${replicationBucket.name}/backup`,
 			ZERO_IMAGE_URL: `rocicorp/zero:${zeroVersion}`,
 			ZERO_CVR_MAX_CONNS: '10',
 			ZERO_UPSTREAM_MAX_CONNS: '10',
 			ZERO_APP_PUBLICATIONS: 'zero_data',
-			ZERO_PUSH_URL: zeroPushUrl.value,
+			ZERO_MUTATE_URL: zeroMutateUrl.value,
+			ZERO_QUERY_URL: zeroQueryUrl.value,
 		}
 
 		// Replication Manager Service

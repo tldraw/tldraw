@@ -105,11 +105,6 @@ const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefi
 // pierre is not in production yet, so get the key directly from process.env
 const pierreKey = process.env.PIERRE_KEY ?? ''
 
-const clerkJWKSUrl =
-	env.TLDRAW_ENV === 'production'
-		? 'https://clerk.tldraw.com/.well-known/jwks.json'
-		: 'https://clerk.staging.tldraw.com/.well-known/jwks.json'
-
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
@@ -126,7 +121,8 @@ if (previewId) {
 	env.FAIRY_WORKER = `https://${previewId}-fairy.tldraw.xyz`
 }
 
-const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
+const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
+const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/query`
 
 async function main() {
 	assert(
@@ -479,8 +475,8 @@ async function deployZeroViaSst() {
 		'--stage',
 		stage,
 	])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroMutateUrl', zeroMutateUrl, '--stage', stage])
+	await exec('yarn', ['sst', 'secret', 'set', 'ZeroQueryUrl', zeroQueryUrl, '--stage', stage])
 	await exec('yarn', ['sst', 'unlock', '--stage', stage])
 	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
 	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
@@ -496,7 +492,8 @@ function updateFlyioToml(appName: string): void {
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
-		.replaceAll('__ZERO_PUSH_URL', zeroPushUrl)
+		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
+		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
