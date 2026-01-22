@@ -1,4 +1,8 @@
+import { AtIcon } from './AtIcon'
 import { BrainIcon } from './BrainIcon'
+import { ChevronDownIcon } from './ChevronDownIcon'
+import { ChevronRightIcon } from './ChevronRightIcon'
+import { CommentIcon } from './CommentIcon'
 import { CrossIcon } from './CrossIcon'
 import { CursorIcon } from './CursorIcon'
 import { EllipsisIcon } from './EllipsisIcon'
@@ -11,17 +15,21 @@ import { TargetIcon } from './TargetIcon'
 import { TrashIcon } from './TrashIcon'
 
 const AGENT_ICONS = {
+	'chevron-down': <ChevronDownIcon />,
+	'chevron-right': <ChevronRightIcon />,
+	at: <AtIcon />,
 	brain: <BrainIcon />,
+	comment: <CommentIcon />,
+	cross: <CrossIcon />,
+	cursor: <CursorIcon />,
+	ellipsis: <EllipsisIcon />,
+	eye: <EyeIcon />,
+	note: <NoteIcon />,
 	pencil: <PencilIcon />,
-	trash: <TrashIcon />,
 	refresh: <RefreshIcon />,
 	search: <SearchIcon />,
-	eye: <EyeIcon />,
-	cursor: <CursorIcon />,
 	target: <TargetIcon />,
-	ellipsis: <EllipsisIcon />,
-	note: <NoteIcon />,
-	cross: <CrossIcon />,
+	trash: <TrashIcon />,
 }
 
 export type AgentIconType = keyof typeof AGENT_ICONS
