@@ -174,7 +174,7 @@ const router = createRouter<Environment>()
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
 	.all('/app/paddle/*', paddleWebhooks.fetch)
-	.post('/app/zero/push', async (req, env) => {
+	.post('/app/zero/mutate', async (req, env) => {
 		const auth = await requireAuth(req, env)
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),

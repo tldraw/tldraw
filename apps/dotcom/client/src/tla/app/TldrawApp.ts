@@ -9,7 +9,6 @@ import {
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
-	QueryContext,
 	ROOM_PREFIX,
 	TlaFile,
 	TlaFileState,
@@ -24,6 +23,7 @@ import {
 	UserPreferencesKeys,
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
+	ZeroContext,
 	createMutators,
 	parseFlags,
 	queries,
@@ -120,7 +120,7 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: Zero<TlaSchema, TlaMutators, QueryContext>
+	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<
 		| (TlaUser & {
@@ -194,13 +194,13 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		const sessionId = uniqueId()
 		if (useProperZero) {
-			const z = new Zero<TlaSchema, TlaMutators, QueryContext>({
+			const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
 				auth: initialToken,
 				userID: userId,
 				schema: zeroSchema,
 				cacheURL: ZERO_SERVER,
 				mutators: createMutators(userId),
-				context: { userId },
+				context: { userId } satisfies ZeroContext,
 				onUpdateNeeded(reason) {
 					console.error('update needed', reason)
 					onClientTooOld()
@@ -239,7 +239,7 @@ export class TldrawApp {
 				onMutationRejected: this.showMutationRejectionToast,
 				onClientTooOld: () => onClientTooOld(),
 				trackEvent,
-			}) as unknown as Zero<TlaSchema, TlaMutators, QueryContext>
+			}) as unknown as Zero<TlaSchema, TlaMutators, ZeroContext>
 		}
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())

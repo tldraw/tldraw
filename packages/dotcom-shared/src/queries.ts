@@ -4,12 +4,12 @@ import { schema, TlaSchema } from './tlaSchema'
 const zql = createBuilder(schema)
 
 /** Context provided by server - contains authenticated user ID */
-export interface QueryContext {
+export interface ZeroContext {
 	userId: string
 }
 
 /** Typed defineQuery with schema and context */
-const defineQuery = defineQueryWithType<TlaSchema, QueryContext>()
+const defineQuery = defineQueryWithType<TlaSchema, ZeroContext>()
 
 /** Typed defineQueries with schema */
 const defineQueries = defineQueriesWithType<TlaSchema>()

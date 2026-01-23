@@ -56,6 +56,7 @@ export default $config({
 		const conn = new sst.Secret('PostgresConnectionString')
 		const zeroMutateUrl = new sst.Secret('ZeroMutateUrl')
 		const zeroQueryUrl = new sst.Secret('ZeroQueryUrl')
+		const zeroAdminPassword = new sst.Secret('ZeroAdminPassword')
 
 		// Common environment variables
 		const commonEnv = {
@@ -70,6 +71,7 @@ export default $config({
 			ZERO_APP_PUBLICATIONS: 'zero_data',
 			ZERO_MUTATE_URL: zeroMutateUrl.value,
 			ZERO_QUERY_URL: zeroQueryUrl.value,
+			ZERO_ADMIN_PASSWORD: zeroAdminPassword.value,
 		}
 
 		// Replication Manager Service
