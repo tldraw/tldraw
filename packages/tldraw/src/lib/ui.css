@@ -1729,11 +1729,11 @@ tldraw? probably.
 	/* Terrible fix to allow firefox users to scroll the dialog */
 	overflow-x: auto;
 
-	scrollbar-width: none; 
+	scrollbar-width: none;
 }
 
 .tlui-shortcuts-dialog__body::-webkit-scrollbar {
-	display: none; 
+	display: none;
 }
 
 .tlui-shortcuts-dialog__body__tablet {
