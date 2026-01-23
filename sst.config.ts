@@ -72,6 +72,7 @@ export default $config({
 			ZERO_MUTATE_URL: zeroMutateUrl.value,
 			ZERO_QUERY_URL: zeroQueryUrl.value,
 			ZERO_ADMIN_PASSWORD: zeroAdminPassword.value,
+			DO_NOT_TRACK: '1',
 		}
 
 		// Replication Manager Service
