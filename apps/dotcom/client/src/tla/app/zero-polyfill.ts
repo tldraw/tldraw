@@ -369,10 +369,14 @@ export class Zero {
 			if (condition.type === 'or') {
 				return condition.conditions.some((c) => this.evaluateCondition(c, row))
 			}
-			throw new Error(`Unknown condition type: ${condition.type}`)
+			if (condition.type === 'simple') {
+				// Fall through to simple condition handling below
+			} else {
+				throw new Error(`Unknown condition type: ${condition.type}`)
+			}
 		}
 
-		// Simple condition: { left, op, right }
+		// Simple condition: { left, op, right } or { type: 'simple', left, op, right }
 		const simpleCondition = condition as {
 			left: { name: string }
 			op: string
