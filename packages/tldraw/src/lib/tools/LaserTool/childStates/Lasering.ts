@@ -6,21 +6,18 @@ export class Lasering extends StateNode {
 	scribbleId = 'id'
 
 	override onEnter() {
-		const scribble = this.editor.scribbles.addScribble({
+		const scribble = this.editor.telestration.addScribble({
 			color: 'laser',
 			opacity: 0.7,
 			size: 4,
-			delay: this.editor.options.laserDelayMs,
-			shrink: 0.05,
-			taper: false,
 		})
 		this.scribbleId = scribble.id
 		this.pushPointToScribble()
 	}
 
 	override onTick() {
-		// Keep the laser session alive while pointer is down
-		this.editor.scribbles.extendLaserSession()
+		// Keep the telestration session alive while pointer is down
+		this.editor.telestration.extendSession()
 	}
 
 	override onPointerMove() {
@@ -33,7 +30,7 @@ export class Lasering extends StateNode {
 
 	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.getCurrentPagePoint()
-		this.editor.scribbles.addPoint(this.scribbleId, x, y)
+		this.editor.telestration.addPoint(this.scribbleId, x, y)
 	}
 
 	override onCancel() {

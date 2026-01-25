@@ -6,6 +6,9 @@ import { getStroke } from '../shapes/shared/freehand/getStroke'
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
 	if (!scribble.points.length) return null
 
+	// When fading out, don't render if we're down to just 1 point
+	if (scribble.state === 'stopping' && scribble.points.length < 2) return null
+
 	const stroke = getStroke(scribble.points, {
 		size: scribble.size / zoom,
 		start: { taper: scribble.taper, easing: EASINGS.linear },

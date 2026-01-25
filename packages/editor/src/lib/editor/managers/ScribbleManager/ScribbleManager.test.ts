@@ -17,12 +17,11 @@ describe('ScribbleManager', () => {
 	beforeEach(async () => {
 		editor = {
 			updateInstanceState: vi.fn(),
+			getInstanceState: vi.fn(() => ({ scribbles: [] })),
 			run: vi.fn((fn) => fn()),
-			options: {
-				laserSessionTimeoutMs: 2000,
-			},
-			timers: {
-				setTimeout: vi.fn(() => Math.random()),
+			options: {},
+			telestration: {
+				getScribbles: vi.fn(() => []),
 			},
 		} as any
 
@@ -502,18 +501,33 @@ describe('ScribbleManager', () => {
 				expect(scribbleInState.points).toHaveLength(1)
 			})
 
-			it('should limit non-laser scribbles to 5 items', () => {
-				// Add 7 non-laser scribbles
-				const colors = ['accent', 'black', 'white', 'muted-1', 'accent', 'black', 'white'] as const
+			it('should limit scribbles to 5 items', () => {
+				// Add 7 scribbles
 				for (let i = 0; i < 7; i++) {
 					mockUniqueId.mockReturnValueOnce(`id${i}`)
-					scribbleManager.addScribble({ color: colors[i] })
+					scribbleManager.addScribble({ color: 'accent' })
 				}
 
 				scribbleManager.tick(16)
 
 				const call = editor.updateInstanceState.mock.calls[0][0]
 				expect(call.scribbles).toHaveLength(5)
+			})
+
+			it('should include telestration scribbles in instance state', () => {
+				const telestrationScribbles = [
+					{ id: 'laser-1', color: 'laser', points: [], state: 'active' } as any,
+				]
+				;(editor.telestration.getScribbles as Mock).mockReturnValue(telestrationScribbles)
+
+				scribbleManager.addScribble({ color: 'accent' })
+
+				scribbleManager.tick(16)
+
+				const call = editor.updateInstanceState.mock.calls[0][0]
+				expect(call.scribbles!).toHaveLength(2)
+				expect(call.scribbles![0].color).toBe('laser')
+				expect(call.scribbles![1].color).toBe('accent')
 			})
 		})
 	})
@@ -622,299 +636,6 @@ describe('ScribbleManager', () => {
 			}
 
 			expect(item.next).toEqual({ x: 198, y: 198, z: 0.5 })
-		})
-	})
-
-	describe('session management', () => {
-		it('should start a new session when laser scribble is added', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const laserItem = scribbleManager.addScribble({ color: 'laser' })
-
-			expect(scribbleManager.isScribbleInLaserSession(laserItem.id)).toBe(true)
-		})
-
-		it('should add multiple laser scribbles to the same session', () => {
-			mockUniqueId
-				.mockReturnValueOnce('laser-1')
-				.mockReturnValueOnce('session-123')
-				.mockReturnValueOnce('laser-2')
-
-			const item1 = scribbleManager.addScribble({ color: 'laser' })
-			const item2 = scribbleManager.addScribble({ color: 'laser' })
-
-			expect(scribbleManager.isScribbleInLaserSession(item1.id)).toBe(true)
-			expect(scribbleManager.isScribbleInLaserSession(item2.id)).toBe(true)
-		})
-
-		it('should not start session for non-laser scribbles', () => {
-			const accentItem = scribbleManager.addScribble({ color: 'accent' })
-
-			expect(scribbleManager.isScribbleInLaserSession(accentItem.id)).toBe(false)
-		})
-
-		it('should clear session state when endSession is called', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const item = scribbleManager.addScribble({ color: 'laser' })
-
-			expect(scribbleManager.isScribbleInLaserSession(item.id)).toBe(true)
-
-			scribbleManager.endLaserSession()
-
-			expect(scribbleManager.isScribbleInLaserSession(item.id)).toBe(false)
-		})
-
-		it('should stop all session scribbles when session ends', () => {
-			mockUniqueId
-				.mockReturnValueOnce('laser-1')
-				.mockReturnValueOnce('session-123')
-				.mockReturnValueOnce('laser-2')
-
-			const item1 = scribbleManager.addScribble({ color: 'laser' })
-			const item2 = scribbleManager.addScribble({ color: 'laser' })
-
-			item1.scribble.state = 'active'
-			item2.scribble.state = 'active'
-
-			scribbleManager.endLaserSession()
-
-			expect(item1.scribble.state).toBe('stopping')
-			expect(item2.scribble.state).toBe('stopping')
-			// Verify staggered delays for sequential fading
-			expect(item1.delayRemaining).toBe(0) // First scribble fades immediately
-			expect(item2.delayRemaining).toBe(300) // Second scribble fades 300ms later
-		})
-
-		it('should set delay to fade delay when ending session', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const item = scribbleManager.addScribble({ color: 'laser', delay: 5000 })
-			item.scribble.state = 'active'
-			item.delayRemaining = 5000
-
-			scribbleManager.endLaserSession()
-
-			// First scribble should start fading immediately (0ms delay)
-			expect(item.delayRemaining).toBe(0)
-		})
-
-		it('should guarantee fade delay even when delay has burned down to zero', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const item = scribbleManager.addScribble({ color: 'laser', delay: 1000 })
-			item.scribble.state = 'active'
-			item.delayRemaining = 0 // Simulates delay burning down during session
-
-			scribbleManager.endLaserSession()
-
-			// First scribble should start fading immediately (0ms delay)
-			expect(item.delayRemaining).toBe(0)
-		})
-
-		it('should not modify already-stopping scribbles when session ends', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const item = scribbleManager.addScribble({ color: 'laser' })
-			item.scribble.state = 'stopping'
-			item.delayRemaining = 100
-
-			scribbleManager.endLaserSession()
-
-			expect(item.delayRemaining).toBe(100)
-		})
-
-		it('should fade scribbles sequentially in the order they were drawn', () => {
-			mockUniqueId
-				.mockReturnValueOnce('laser-1')
-				.mockReturnValueOnce('session-123')
-				.mockReturnValueOnce('laser-2')
-				.mockReturnValueOnce('laser-3')
-				.mockReturnValueOnce('laser-4')
-
-			const item1 = scribbleManager.addScribble({ color: 'laser' })
-			const item2 = scribbleManager.addScribble({ color: 'laser' })
-			const item3 = scribbleManager.addScribble({ color: 'laser' })
-			const item4 = scribbleManager.addScribble({ color: 'laser' })
-
-			item1.scribble.state = 'active'
-			item2.scribble.state = 'active'
-			item3.scribble.state = 'active'
-			item4.scribble.state = 'active'
-
-			scribbleManager.endLaserSession()
-
-			// Verify sequential fade delays with 300ms stagger
-			expect(item1.delayRemaining).toBe(0) // First scribble fades immediately
-			expect(item2.delayRemaining).toBe(300) // Second scribble fades 300ms later
-			expect(item3.delayRemaining).toBe(600) // Third scribble fades 600ms later
-			expect(item4.delayRemaining).toBe(900) // Fourth scribble fades 900ms later
-
-			// All should be in stopping state
-			expect(item1.scribble.state).toBe('stopping')
-			expect(item2.scribble.state).toBe('stopping')
-			expect(item3.scribble.state).toBe('stopping')
-			expect(item4.scribble.state).toBe('stopping')
-		})
-
-		it('should handle endSession when no session exists', () => {
-			expect(() => scribbleManager.endLaserSession()).not.toThrow()
-		})
-
-		it('should handle extendLaserSession when no session exists', () => {
-			expect(() => scribbleManager.extendLaserSession()).not.toThrow()
-		})
-
-		it('should reset idle timeout when extendLaserSession is called', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			scribbleManager.addScribble({ color: 'laser' })
-
-			// Clear the initial setTimeout call
-			vi.clearAllMocks()
-
-			scribbleManager.extendLaserSession()
-
-			// Should have cleared old timeout and set a new one
-			expect(editor.timers.setTimeout).toHaveBeenCalledWith(
-				expect.any(Function),
-				editor.options.laserSessionTimeoutMs
-			)
-		})
-
-		it('should remove session membership when stopping individual scribble', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const item = scribbleManager.addScribble({ color: 'laser' })
-
-			expect(scribbleManager.isScribbleInLaserSession(item.id)).toBe(true)
-
-			scribbleManager.stop(item.id)
-
-			expect(scribbleManager.isScribbleInLaserSession(item.id)).toBe(false)
-		})
-
-		it('should prevent point removal for scribbles in active session', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			const item = scribbleManager.addScribble({ color: 'laser' })
-			item.scribble.state = 'active'
-			item.delayRemaining = 0
-
-			// Add enough points for removal logic to trigger
-			for (let i = 0; i < 15; i++) {
-				item.scribble.points.push({ x: i, y: i, z: 0.5 })
-			}
-
-			const pointsBefore = item.scribble.points.length
-
-			// Simulate moving
-			item.next = { x: 100, y: 100, z: 0.5 }
-			item.prev = { x: 99, y: 99, z: 0.5 }
-			scribbleManager.tick(16)
-
-			// Should have added a point but not removed one (session prevents removal)
-			expect(item.scribble.points.length).toBe(pointsBefore + 1)
-		})
-
-		it('should allow point removal for non-session scribbles', () => {
-			const item = scribbleManager.addScribble({ color: 'accent' })
-			item.scribble.state = 'active'
-			item.delayRemaining = 0
-
-			// Add enough points for removal logic to trigger
-			for (let i = 0; i < 15; i++) {
-				item.scribble.points.push({ x: i, y: i, z: 0.5 })
-			}
-
-			const pointsBefore = item.scribble.points.length
-
-			// Simulate moving
-			item.next = { x: 100, y: 100, z: 0.5 }
-			item.prev = { x: 99, y: 99, z: 0.5 }
-			scribbleManager.tick(16)
-
-			// Should maintain same length (added one, removed one)
-			expect(item.scribble.points.length).toBe(pointsBefore)
-		})
-
-		it('should clear session state on reset', () => {
-			mockUniqueId.mockReturnValueOnce('laser-1').mockReturnValueOnce('session-123')
-			scribbleManager.addScribble({ color: 'laser' })
-
-			scribbleManager.reset()
-
-			expect(scribbleManager.scribbleItems.size).toBe(0)
-		})
-
-		it('should not limit laser scribbles regardless of count', () => {
-			// Create 7 laser scribbles (session will be created automatically)
-			mockUniqueId.mockReturnValueOnce('session-123')
-			for (let i = 0; i < 7; i++) {
-				mockUniqueId.mockReturnValueOnce(`laser-${i}`)
-				scribbleManager.addScribble({ color: 'laser' })
-			}
-
-			scribbleManager.tick(16)
-
-			// Should have all 7 laser scribbles in instance state (lasers never limited)
-			const call = editor.updateInstanceState.mock.calls[0][0]
-			expect(call.scribbles).toHaveLength(7)
-		})
-
-		it('should keep all lasers visible after session ends (bug fix verification)', () => {
-			// This test directly verifies the artifact flashing bug fix
-			// Create 7 laser scribbles in a session
-			mockUniqueId.mockReturnValueOnce('session-123')
-			for (let i = 0; i < 7; i++) {
-				mockUniqueId.mockReturnValueOnce(`laser-${i}`)
-				scribbleManager.addScribble({ color: 'laser' })
-			}
-
-			// End the session - all scribbles should start stopping
-			scribbleManager.endLaserSession()
-
-			// Tick to update instance state
-			scribbleManager.tick(16)
-
-			// CRITICAL: Should still have all 7 scribbles visible while fading (prevents flashing)
-			const call = editor.updateInstanceState.mock.calls[0][0]
-			expect(call.scribbles).toHaveLength(7)
-
-			// Verify they're all in stopping state
-			const items = Array.from(scribbleManager.scribbleItems.values())
-			expect(items.every((item) => item.scribble.state === 'stopping')).toBe(true)
-		})
-
-		it('should limit non-laser scribbles to 5 items', () => {
-			// Create 7 non-laser scribbles
-			for (let i = 0; i < 7; i++) {
-				mockUniqueId.mockReturnValueOnce(`id${i}`)
-				scribbleManager.addScribble({ color: 'accent' })
-			}
-
-			scribbleManager.tick(16)
-
-			// Non-laser scribbles should be limited to 5 for performance
-			const call = editor.updateInstanceState.mock.calls[0][0]
-			expect(call.scribbles).toHaveLength(5)
-		})
-
-		it('should show all lasers but limit non-lasers when mixed', () => {
-			// Create 7 laser scribbles and 7 non-laser scribbles
-			mockUniqueId.mockReturnValueOnce('session-123')
-			for (let i = 0; i < 7; i++) {
-				mockUniqueId.mockReturnValueOnce(`laser-${i}`)
-				scribbleManager.addScribble({ color: 'laser' })
-			}
-			for (let i = 0; i < 7; i++) {
-				mockUniqueId.mockReturnValueOnce(`accent-${i}`)
-				scribbleManager.addScribble({ color: 'accent' })
-			}
-
-			scribbleManager.tick(16)
-
-			// Should have all 7 lasers + last 5 non-lasers = 12 total
-			const call = editor.updateInstanceState.mock.calls[0][0]
-			expect(call.scribbles).toHaveLength(12)
-
-			// Verify we have 7 lasers and 5 non-lasers
-			const laserCount = call.scribbles!.filter((s: any) => s.color === 'laser').length
-			const nonLaserCount = call.scribbles!.filter((s: any) => s.color !== 'laser').length
-			expect(laserCount).toBe(7)
-			expect(nonLaserCount).toBe(5)
 		})
 	})
 })

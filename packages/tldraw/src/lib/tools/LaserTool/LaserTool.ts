@@ -16,6 +16,6 @@ export class LaserTool extends StateNode {
 	}
 
 	override onExit() {
-		this.editor.scribbles.endLaserSession()
+		this.editor.telestration.endSession()
 	}
 }

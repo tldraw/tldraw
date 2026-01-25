@@ -166,6 +166,11 @@ export {
 } from './lib/editor/managers/SnapManager/SnapManager'
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
+	TelestrationManager,
+	type TelestrationItem,
+	type TelestrationSession,
+} from './lib/editor/managers/TelestrationManager/TelestrationManager'
+export {
 	TextManager,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,

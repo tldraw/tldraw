@@ -728,6 +728,8 @@ export const defaultTldrawOptions: {
     readonly nonce: undefined;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
+    readonly telestrationFadeoutMs: 500;
+    readonly telestrationIdleTimeoutMs: 1000;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
@@ -1503,6 +1505,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     styleProps: {
         [key: string]: Map<StyleProp<any>, string>;
     };
+    readonly telestration: TelestrationManager;
     readonly textMeasure: TextManager;
     readonly timers: {
         dispose: () => void;
@@ -2708,9 +2711,6 @@ export class ScribbleManager {
     addPoint(id: ScribbleItem['id'], x: number, y: number, z?: number): ScribbleItem;
     // (undocumented)
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
-    endLaserSession(): void;
-    extendLaserSession(): void;
-    isScribbleInLaserSession(scribbleId: string): boolean;
     // (undocumented)
     reset(): void;
     // (undocumented)
@@ -3065,6 +3065,47 @@ export const Table: {
     readonly Schema: "schema";
     readonly SessionState: "session_state";
 };
+
+// @public (undocumented)
+export interface TelestrationItem {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    next: null | VecModel;
+    // (undocumented)
+    prev: null | VecModel;
+    // (undocumented)
+    scribble: TLScribble;
+}
+
+// @public (undocumented)
+export class TelestrationManager {
+    constructor(editor: Editor);
+    addPoint(id: string, x: number, y: number, z?: number): TelestrationItem;
+    addScribble(scribble: Partial<TLScribble>, id?: string): TelestrationItem;
+    endSession(): void;
+    extendSession(): void;
+    getScribbles(): TLScribble[];
+    hasActiveSession(): boolean;
+    reset(): void;
+    tick(elapsed: number): void;
+}
+
+// @public (undocumented)
+export interface TelestrationSession {
+    // (undocumented)
+    fadeStartTime?: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    idleTimeoutHandle?: number;
+    // (undocumented)
+    items: TelestrationItem[];
+    // (undocumented)
+    state: 'active' | 'fading';
+    // (undocumented)
+    totalPointsAtFadeStart: number;
+}
 
 // @public (undocumented)
 export class TextManager {
@@ -3506,6 +3547,7 @@ export interface TldrawOptions {
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
+    // @deprecated (undocumented)
     readonly laserSessionTimeoutMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;
@@ -3523,6 +3565,8 @@ export interface TldrawOptions {
     readonly nonce: string | undefined;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
+    readonly telestrationFadeoutMs: number;
+    readonly telestrationIdleTimeoutMs: number;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
