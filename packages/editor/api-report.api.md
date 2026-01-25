@@ -3094,6 +3094,8 @@ export class TelestrationManager {
 // @public (undocumented)
 export interface TelestrationSession {
     // (undocumented)
+    fadeElapsed: number;
+    // (undocumented)
     fadeStartTime?: number;
     // (undocumented)
     id: string;

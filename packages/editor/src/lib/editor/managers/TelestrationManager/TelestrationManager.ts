@@ -18,6 +18,7 @@ export interface TelestrationSession {
 	state: 'active' | 'fading'
 	idleTimeoutHandle?: number
 	fadeStartTime?: number
+	fadeElapsed: number
 	totalPointsAtFadeStart: number
 }
 
@@ -64,6 +65,7 @@ export class TelestrationManager {
 				idleTimeoutHandle: this.editor.timers.setTimeout(() => {
 					this.endSession()
 				}, this.editor.options.telestrationIdleTimeoutMs),
+				fadeElapsed: 0,
 				totalPointsAtFadeStart: 0,
 			}
 		} else {
@@ -231,6 +233,9 @@ export class TelestrationManager {
 	private tickFadingSession(session: TelestrationSession, elapsed: number): void {
 		const fadeoutMs = this.editor.options.telestrationFadeoutMs
 
+		// Accumulate elapsed time during fade
+		session.fadeElapsed += elapsed
+
 		// Count current remaining points
 		let remainingPoints = 0
 		for (const item of session.items) {
@@ -242,23 +247,27 @@ export class TelestrationManager {
 		}
 
 		// Check if we've exceeded the fade duration - if so, clear everything
-		const elapsedSinceFadeStart = Date.now() - (session.fadeStartTime ?? Date.now())
-		if (elapsedSinceFadeStart >= fadeoutMs) {
+		if (session.fadeElapsed >= fadeoutMs) {
 			for (const item of session.items) {
 				item.scribble.points.length = 0
 			}
 			return
 		}
 
-		// Calculate how many points to remove this tick based on remaining time
-		const remainingTime = Math.max(1, fadeoutMs - elapsedSinceFadeStart)
-		const pointsPerMs = remainingPoints / remainingTime
-		const pointsToRemove = Math.max(1, Math.ceil(pointsPerMs * elapsed))
+		// Calculate progress (0 to 1) and apply ease-in curve (starts slow, accelerates)
+		const progress = session.fadeElapsed / fadeoutMs
+		const easedProgress = progress * progress // quadratic ease-in
 
-		let removed = 0
-		let itemIndex = 0
+		// Calculate how many points should be removed by now vs how many remain
+		const totalPoints = session.totalPointsAtFadeStart
+		const targetRemoved = Math.floor(easedProgress * totalPoints)
+		const actuallyRemoved = totalPoints - remainingPoints
+		// Always remove at least 1 point per tick so animation always progresses
+		const pointsToRemove = Math.max(1, targetRemoved - actuallyRemoved)
 
 		// Remove points from the beginning (first drawn) across all scribbles
+		let removed = 0
+		let itemIndex = 0
 		while (removed < pointsToRemove && itemIndex < session.items.length) {
 			const item = session.items[itemIndex]
 

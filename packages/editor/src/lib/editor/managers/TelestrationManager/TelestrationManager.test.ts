@@ -349,7 +349,7 @@ describe('TelestrationManager', () => {
 			expect(totalPoints).toBeLessThan(20)
 		})
 
-		it('should remove points from first scribble before second', () => {
+		it('should remove points from first scribble before second (front to back)', () => {
 			mockUniqueId
 				.mockReturnValueOnce('session-id')
 				.mockReturnValueOnce('scribble-1')
@@ -369,7 +369,7 @@ describe('TelestrationManager', () => {
 
 			telestrationManager.endSession()
 
-			// First tick removes from first scribble
+			// First tick removes from first scribble (front to back)
 			telestrationManager.tick(100)
 
 			// First scribble should have fewer or equal points than second
