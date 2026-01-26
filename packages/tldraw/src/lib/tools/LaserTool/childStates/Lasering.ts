@@ -3,40 +3,34 @@ import { StateNode } from '@tldraw/editor'
 export class Lasering extends StateNode {
 	static override id = 'lasering'
 
-	scribbleId = 'id'
+	private scribbleId = ''
+	private sessionId = ''
 
-	override onEnter() {
-		const scribble = this.editor.scribbles.addScribble({
-			color: 'laser',
-			opacity: 0.7,
-			size: 4,
-			delay: this.editor.options.laserDelayMs,
-			shrink: 0.05,
-			taper: true,
-		})
-		this.scribbleId = scribble.id
+	override onEnter(info: { sessionId: string; scribbleId: string }) {
+		this.sessionId = info.sessionId
+		this.scribbleId = info.scribbleId
 		this.pushPointToScribble()
-	}
-
-	override onExit() {
-		this.editor.scribbles.stop(this.scribbleId)
 	}
 
 	override onPointerMove() {
 		this.pushPointToScribble()
 	}
 
+	private pushPointToScribble() {
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		this.editor.scribbles.addPointToSession(this.sessionId, this.scribbleId, x, y)
+	}
+
+	override onTick() {
+		this.editor.scribbles.extendSession(this.sessionId)
+	}
+
 	override onPointerUp() {
 		this.complete()
 	}
 
-	private pushPointToScribble() {
-		const { x, y } = this.editor.inputs.getCurrentPagePoint()
-		this.editor.scribbles.addPoint(this.scribbleId, x, y)
-	}
-
 	override onCancel() {
-		this.cancel()
+		this.onComplete()
 	}
 
 	override onComplete() {
@@ -44,10 +38,6 @@ export class Lasering extends StateNode {
 	}
 
 	private complete() {
-		this.parent.transition('idle')
-	}
-
-	private cancel() {
 		this.parent.transition('idle')
 	}
 }

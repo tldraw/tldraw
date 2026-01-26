@@ -1985,6 +1985,7 @@ export function LanguageMenu(): JSX.Element | null;
 export class LaserTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
+    getSessionId(): string;
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1992,7 +1993,11 @@ export class LaserTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
+    onCancel(): void;
+    // (undocumented)
     onEnter(): void;
+    // (undocumented)
+    onExit(): void;
 }
 
 // @public (undocumented)

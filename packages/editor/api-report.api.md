@@ -717,6 +717,7 @@ export const defaultTldrawOptions: {
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
+    readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
@@ -2705,17 +2706,28 @@ export interface ScribbleItem {
 // @public (undocumented)
 export class ScribbleManager {
     constructor(editor: Editor);
-    addPoint(id: ScribbleItem['id'], x: number, y: number, z?: number): ScribbleItem;
-    // (undocumented)
+    addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
+    addPointToSession(sessionId: string, scribbleId: string, x: number, y: number, z?: number): ScribbleItem;
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
-    // (undocumented)
+    addScribbleToSession(sessionId: string, scribble: Partial<TLScribble>, scribbleId?: string): ScribbleItem;
+    clearSession(sessionId: string): void;
+    extendSession(sessionId: string): void;
+    isSessionActive(sessionId: string): boolean;
     reset(): void;
-    // (undocumented)
-    scribbleItems: Map<string, ScribbleItem>;
-    // (undocumented)
-    state: "paused" | "running";
-    stop(id: ScribbleItem['id']): ScribbleItem;
+    startSession(options?: ScribbleSessionOptions): string;
+    stop(id: string): ScribbleItem;
+    stopSession(sessionId: string): void;
     tick(elapsed: number): void;
+}
+
+// @public (undocumented)
+export interface ScribbleSessionOptions {
+    fadeDurationMs?: number;
+    fadeEasing?: 'ease-in' | 'linear';
+    fadeMode?: 'grouped' | 'individual';
+    id?: string;
+    idleTimeoutMs?: number;
+    selfConsume?: boolean;
 }
 
 // @public (undocumented)
@@ -3503,6 +3515,7 @@ export interface TldrawOptions {
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
+    readonly laserFadeoutMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
