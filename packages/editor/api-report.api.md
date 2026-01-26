@@ -2706,33 +2706,16 @@ export interface ScribbleItem {
 export class ScribbleManager {
     constructor(editor: Editor);
     addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
-    addScribble(scribble: Parameters<ScribbleSession['addScribble']>[0], id?: string): ScribbleItem & {
-        session: ScribbleSession;
-    };
-    getSession(id: string): ScribbleSession | undefined;
-    reset(): void;
-    startSession(options?: ScribbleSessionOptions): ScribbleSession;
-    stop(id: string): ScribbleItem;
-    tick(elapsed: number): void;
-}
-
-// @public (undocumented)
-export class ScribbleSession {
-    constructor(editor: Editor, options?: ScribbleSessionOptions);
-    addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
+    addPointToSession(sessionId: string, scribbleId: string, x: number, y: number, z?: number): ScribbleItem;
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
-    clear(): void;
-    dispose(): void;
-    extend(): void;
-    getScribbles(): TLScribble[];
-    // (undocumented)
-    readonly id: string;
-    isActive(): boolean;
-    isComplete(): boolean;
-    // (undocumented)
-    readonly items: ScribbleItem[];
-    stop(): void;
-    stopScribble(id: string): ScribbleItem;
+    addScribbleToSession(sessionId: string, scribble: Partial<TLScribble>, scribbleId?: string): ScribbleItem;
+    clearSession(sessionId: string): void;
+    extendSession(sessionId: string): void;
+    isSessionActive(sessionId: string): boolean;
+    reset(): void;
+    startSession(options?: ScribbleSessionOptions): string;
+    stop(id: string): ScribbleItem;
+    stopSession(sessionId: string): void;
     tick(elapsed: number): void;
 }
 

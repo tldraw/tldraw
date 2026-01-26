@@ -149,7 +149,6 @@ export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryMana
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
-	ScribbleSession,
 	type ScribbleItem,
 	type ScribbleSessionOptions,
 } from './lib/editor/managers/ScribbleManager/ScribbleManager'

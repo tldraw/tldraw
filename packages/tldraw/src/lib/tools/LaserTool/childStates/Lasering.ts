@@ -8,9 +8,9 @@ export class Lasering extends StateNode {
 
 	override onEnter() {
 		// Get or create the shared laser session from the parent tool
-		const session = (this.parent as LaserTool).getSession()
+		const sessionId = (this.parent as LaserTool).getSessionId()
 
-		const scribble = session.addScribble({
+		const scribble = this.editor.scribbles.addScribbleToSession(sessionId, {
 			color: 'laser',
 			opacity: 0.7,
 			size: 4,
@@ -22,8 +22,8 @@ export class Lasering extends StateNode {
 
 	override onTick() {
 		// Keep the session alive while pointer is down
-		const session = (this.parent as LaserTool).getSession()
-		session.extend()
+		const sessionId = (this.parent as LaserTool).getSessionId()
+		this.editor.scribbles.extendSession(sessionId)
 	}
 
 	override onPointerMove() {
@@ -36,8 +36,8 @@ export class Lasering extends StateNode {
 
 	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.getCurrentPagePoint()
-		const session = (this.parent as LaserTool).getSession()
-		session.addPoint(this.scribbleId, x, y)
+		const sessionId = (this.parent as LaserTool).getSessionId()
+		this.editor.scribbles.addPointToSession(sessionId, this.scribbleId, x, y)
 	}
 
 	override onCancel() {

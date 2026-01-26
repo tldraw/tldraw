@@ -1,4 +1,4 @@
-import { ScribbleSession, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
+import { StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { Idle } from './childStates/Idle'
 import { Lasering } from './childStates/Lasering'
 
@@ -11,20 +11,20 @@ export class LaserTool extends StateNode {
 	}
 	static override isLockable = false
 
-	private session: ScribbleSession | null = null
+	private sessionId: string | null = null
 
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	override onExit() {
-		this.session = null
+		this.sessionId = null
 	}
 
 	override onCancel() {
-		if (this.session) {
-			this.session.clear()
-			this.session = null
+		if (this.sessionId && this.editor.scribbles.isSessionActive(this.sessionId)) {
+			this.editor.scribbles.clearSession(this.sessionId)
+			this.sessionId = null
 			this.transition('idle')
 		} else {
 			this.editor.setCurrentTool('select')
@@ -32,22 +32,22 @@ export class LaserTool extends StateNode {
 	}
 
 	/**
-	 * Get the current laser session, or create a new one if none exists or the current one is fading.
+	 * Get the current laser session ID, or create a new one if none exists or the current one is fading.
 	 */
-	getSession(): ScribbleSession {
+	getSessionId(): string {
 		// Reuse existing session if it's still active
-		if (this.session?.isActive()) {
-			return this.session
+		if (this.sessionId && this.editor.scribbles.isSessionActive(this.sessionId)) {
+			return this.sessionId
 		}
 
 		// Create a new session
-		this.session = this.editor.scribbles.startSession({
+		this.sessionId = this.editor.scribbles.startSession({
 			selfConsume: false,
 			idleTimeoutMs: this.editor.options.laserDelayMs,
 			fadeMode: 'grouped',
 			fadeEasing: 'ease-in',
 		})
 
-		return this.session
+		return this.sessionId
 	}
 }
