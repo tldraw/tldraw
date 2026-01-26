@@ -16,7 +16,7 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLStyleContext,
 	Vec,
-	WeakCache,
+	createComputedCache,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -790,18 +790,25 @@ function expandShapeForFirstLabel(
 	return { w, h }
 }
 
-const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
+// Use createComputedCache for proper reactivity - this ensures label size
+// updates when styles change (not just when shape props change)
+const labelSizesForGeo = createComputedCache(
+	'geo label size',
+	(editor: Editor, shape: TLGeoShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		return measureUnscaledLabelSize(editor, shape)
+	}
+)
 
 // Returns cached label size for the shape. Don't call with empty rich text.
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
-	return labelSizesForGeo.get(shape, () => {
-		return measureUnscaledLabelSize(editor, shape)
-	})
+	return labelSizesForGeo.get(editor, shape.id)!
 }
 
 // This is the expensive part of the code so we want to avoid calling it if we can
 function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
+	const styles = editor.getShapeStyles<TLGeoShapeResolvedStyles>(shape)
 
 	const minWidth = MIN_WIDTHS[size]
 
@@ -809,7 +816,7 @@ function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
+		fontSize: styles?.labelFontSize ?? LABEL_FONT_SIZES[size],
 		minWidth: minWidth,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0

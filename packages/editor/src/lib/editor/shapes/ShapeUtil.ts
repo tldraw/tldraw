@@ -19,7 +19,6 @@ import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
-import { TLShapeResolvedStyles } from '../TLShapeStyles'
 import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
@@ -578,7 +577,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeResolvedStyles | undefined {
+	getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): object | undefined {
 		return undefined
 	}
 

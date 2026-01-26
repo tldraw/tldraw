@@ -150,7 +150,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const styles = this.editor.getShapeStyles<TLDrawShapeResolvedStyles>(shape)
+		const sw = styles?.strokeWidth ?? (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {

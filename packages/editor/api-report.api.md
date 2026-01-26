@@ -1139,6 +1139,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteShapes(ids: TLShapeId[]): this;
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
+    // @internal (undocumented)
+    _deriveShapeStyles(shape: TLShape): TLShapeResolvedStyles;
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
@@ -2782,7 +2784,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getClipPath?(shape: Shape): undefined | Vec[];
     abstract getDefaultProps(): Shape['props'];
-    getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): TLShapeResolvedStyles | undefined;
+    getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): object | undefined;
     getFontFaces(shape: Shape): TLFontFace[];
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
@@ -4316,7 +4318,7 @@ export interface TLShapeIndicatorsProps {
 }
 
 // @public
-export type TLShapeResolvedStyles = keyof TLShapeStylesMap extends never ? Record<string, unknown> : TLShapeStylesMap[keyof TLShapeStylesMap];
+export type TLShapeResolvedStyles = keyof TLShapeStylesMap extends never ? object : TLShapeStylesMap[keyof TLShapeStylesMap];
 
 // @public
 export type TLShapeResolvedStylesFor<K extends keyof TLShapeStylesMap> = TLShapeStylesMap[K];

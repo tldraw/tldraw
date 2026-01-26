@@ -8,11 +8,11 @@ import {
 	TLGeometryOpts,
 	TLResizeInfo,
 	TLShapeId,
+	TLStyleContext,
 	TLTextShape,
 	Vec,
 	createComputedCache,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	resizeScaled,
@@ -21,6 +21,7 @@ import {
 	toDomPrecision,
 	toRichText,
 	useEditor,
+	useShapeStyles,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
@@ -29,15 +30,36 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+
+// Note: useDefaultColorTheme removed - now using getDefaultStyles + useShapeStyles pattern
+
+/**
+ * The resolved/computed styles for a text shape.
+ *
+ * @public
+ */
+export interface TLTextShapeResolvedStyles {
+	fontSize: number
+	textColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		text: TLTextShapeResolvedStyles
+	}
+}
 
 const sizeCache = createComputedCache(
 	'text size',
 	(editor: Editor, shape: TLTextShape) => {
 		editor.fonts.trackFontsForShape(shape)
-		return getTextSize(editor, shape.props)
+		const styles = editor.getShapeStyles<TLTextShapeResolvedStyles>(shape)
+		const fontSize = styles?.fontSize ?? FONT_SIZES[shape.props.size]
+		return getTextSize(editor, shape.props, fontSize)
 	},
-	{ areRecordsEqual: (a, b) => a.props === b.props }
+	{
+		areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
+	}
 )
 /** @public */
 export interface TextShapeOptions {
@@ -68,6 +90,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			autoSize: true,
 			scale: 1,
 			richText: toRichText(''),
+		}
+	}
+
+	override getDefaultStyles(shape: TLTextShape, ctx: TLStyleContext): TLTextShapeResolvedStyles {
+		return {
+			fontSize: FONT_SIZES[shape.props.size],
+			textColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
 		}
 	}
 
@@ -120,12 +149,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, richText, color, scale, textAlign },
+			props: { font, richText, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const theme = useDefaultColorTheme()
+		const styles = useShapeStyles<TLTextShapeResolvedStyles>(shape)
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
@@ -134,12 +163,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				classNamePrefix="tl-text-shape"
 				type="text"
 				font={font}
-				fontSize={FONT_SIZES[size]}
+				fontSize={styles.fontSize}
 				lineHeight={TEXT_PROPS.lineHeight}
 				align={textAlign}
 				verticalAlign="middle"
 				richText={richText}
-				labelColor={getColorValue(theme, color, 'solid')}
+				labelColor={styles.textColor}
 				isSelected={isSelected}
 				textWidth={width}
 				textHeight={height}
@@ -161,22 +190,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLTextShape, _ctx: SvgExportContext) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
-
-		const theme = getDefaultColorTheme(ctx)
+		const styles = this.editor.getShapeStyles<TLTextShapeResolvedStyles>(shape)!
 
 		const exportBounds = new Box(0, 0, width, height)
 		return (
 			<RichTextSVG
-				fontSize={FONT_SIZES[shape.props.size]}
+				fontSize={styles.fontSize}
 				font={shape.props.font}
 				align={shape.props.textAlign}
 				verticalAlign="middle"
 				richText={shape.props.richText}
-				labelColor={getColorValue(theme, shape.props.color, 'solid')}
+				labelColor={styles.textColor}
 				bounds={exportBounds}
 				padding={0}
 				showTextOutline={this.options.showTextOutline}
@@ -237,8 +265,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		// Might return a cached value for the bounds
 		const boundsA = this.getMinDimensions(prev)
 
+		const styles = this.editor._deriveShapeStyles(next) as TLTextShapeResolvedStyles
+
 		// Will always be a fresh call to getTextSize
-		const boundsB = getTextSize(this.editor, next.props)
+		const boundsB = getTextSize(this.editor, next.props, styles.fontSize)
 
 		const wA = boundsA.width * prev.props.scale
 		const hA = boundsA.height * prev.props.scale
@@ -308,11 +338,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	// }
 }
 
-function getTextSize(editor: Editor, props: TLTextShape['props']) {
-	const { font, richText, size, w } = props
+function getTextSize(editor: Editor, props: TLTextShape['props'], fontSize: number) {
+	const { font, richText, w } = props
 
 	const minWidth = 16
-	const fontSize = FONT_SIZES[size]
 
 	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
 

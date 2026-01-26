@@ -17,6 +17,7 @@ import {
 	TLArrowBindingProps,
 	TLArrowShape,
 	TLArrowShapeProps,
+	TLDefaultColorTheme,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -24,6 +25,7 @@ import {
 	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
+	TLStyleContext,
 	Vec,
 	WeakCache,
 	arrowShapeMigrations,
@@ -32,7 +34,6 @@ import {
 	debugFlags,
 	exhaustiveSwitchError,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	invLerp,
 	lerp,
@@ -44,16 +45,22 @@ import {
 	track,
 	useEditor,
 	useIsEditing,
+	useShapeStyles,
 	useSharedSafeId,
+	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import { LegacyShapeFill } from '../shared/ShapeFill'
+import { ShapeFill, ShapeFillProps } from '../shared/ShapeFill'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	useGetHashPatternZoomName,
+} from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
@@ -76,6 +83,28 @@ import {
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
+
+/**
+ * The resolved/computed styles for an arrow shape.
+ *
+ * @public
+ */
+export interface TLArrowShapeResolvedStyles {
+	strokeWidth: number
+	strokeColor: string
+	labelColor: string
+	labelFontSize: number
+	// Arrowhead fill
+	arrowheadFillType: 'none' | 'solid' | 'pattern'
+	arrowheadFillColor: string
+	arrowheadPatternColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		arrow: TLArrowShapeResolvedStyles
+	}
+}
 
 enum ArrowHandles {
 	Start = 'start',
@@ -192,6 +221,56 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelPosition: 0.5,
 			font: 'draw',
 			scale: 1,
+		}
+	}
+
+	override getDefaultStyles(shape: TLArrowShape, ctx: TLStyleContext): TLArrowShapeResolvedStyles {
+		const { arrowheadFillType, arrowheadFillColor } = this.getArrowheadFillTypeAndColor(
+			shape.props,
+			ctx.theme
+		)
+		return {
+			strokeWidth: STROKE_SIZES[shape.props.size] * shape.props.scale,
+			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
+			labelColor: getColorValue(ctx.theme, shape.props.labelColor, 'solid'),
+			labelFontSize: getArrowLabelFontSize(shape),
+			arrowheadFillType,
+			arrowheadFillColor,
+			arrowheadPatternColor: getColorValue(ctx.theme, shape.props.color, 'pattern'),
+		}
+	}
+
+	private getArrowheadFillTypeAndColor(
+		props: TLArrowShapeProps,
+		theme: TLDefaultColorTheme
+	): { arrowheadFillType: 'none' | 'solid' | 'pattern'; arrowheadFillColor: string } {
+		switch (props.fill) {
+			case 'none':
+				return { arrowheadFillType: 'none', arrowheadFillColor: 'transparent' }
+			case 'solid':
+				return {
+					arrowheadFillType: 'solid',
+					arrowheadFillColor: getColorValue(theme, props.color, 'semi'),
+				}
+			case 'semi':
+				return { arrowheadFillType: 'solid', arrowheadFillColor: theme.solid }
+			case 'fill':
+				return {
+					arrowheadFillType: 'solid',
+					arrowheadFillColor: getColorValue(theme, props.color, 'fill'),
+				}
+			case 'pattern':
+				return {
+					arrowheadFillType: 'pattern',
+					arrowheadFillColor: getColorValue(theme, props.color, 'pattern'),
+				}
+			case 'lined-fill':
+				return {
+					arrowheadFillType: 'solid',
+					arrowheadFillColor: getColorValue(theme, props.color, 'linedFill'),
+				}
+			default:
+				return { arrowheadFillType: 'none', arrowheadFillColor: 'transparent' }
 		}
 	}
 
@@ -755,7 +834,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const styles = useShapeStyles<TLArrowShapeResolvedStyles>(shape)
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -779,6 +858,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
+						styles={styles}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
 					{shape.props.kind === 'elbow' && debugFlags.debugElbowArrows.get() && (
@@ -790,11 +870,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shapeId={shape.id}
 						type="arrow"
 						font={shape.props.font}
-						fontSize={getArrowLabelFontSize(shape)}
+						fontSize={styles.labelFontSize}
 						lineHeight={TEXT_PROPS.lineHeight}
 						align="middle"
 						verticalAlign="middle"
-						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+						labelColor={styles.labelColor}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
@@ -814,6 +894,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const isEditing = useIsEditing(shape.id)
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const clipPathId = useSharedSafeId(shape.id + '_clip')
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const styles = useShapeStyles<TLArrowShapeResolvedStyles>(shape)
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return null
@@ -827,7 +909,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = styles.strokeWidth
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -933,18 +1015,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const theme = getDefaultColorTheme(ctx)
+		const styles = this.editor.getShapeStyles<TLArrowShapeResolvedStyles>(shape)!
 		const scaleFactor = 1 / shape.props.scale
 
 		return (
 			<g transform={`scale(${scaleFactor})`}>
-				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
+				<ArrowSvg shape={shape} styles={styles} shouldDisplayHandles={false} />
 				<RichTextSVG
-					fontSize={getArrowLabelFontSize(shape)}
+					fontSize={styles.labelFontSize}
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
-					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+					labelColor={styles.labelColor}
 					richText={shape.props.richText}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
@@ -1003,9 +1085,11 @@ export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 
 const ArrowSvg = track(function ArrowSvg({
 	shape,
+	styles,
 	shouldDisplayHandles,
 }: {
 	shape: TLArrowShape
+	styles: TLArrowShapeResolvedStyles
 	shouldDisplayHandles: boolean
 }) {
 	const editor = useEditor()
@@ -1017,6 +1101,8 @@ const ArrowSvg = track(function ArrowSvg({
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 	const isEditing = useIsEditing(shape.id)
 	const geometry = editor.getShapeGeometry(shape)
+	const getHashPatternZoomName = useGetHashPatternZoomName()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	if (!geometry) return null
 	const bounds = Box.ZeroFix(geometry.bounds)
 	const bindings = getArrowBindings(editor, shape)
@@ -1024,7 +1110,7 @@ const ArrowSvg = track(function ArrowSvg({
 
 	if (!info?.isValid) return null
 
-	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const strokeWidth = styles.strokeWidth
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -1081,7 +1167,7 @@ const ArrowSvg = track(function ArrowSvg({
 			</defs>
 			<g
 				fill="none"
-				stroke={getColorValue(theme, shape.props.color, 'solid')}
+				stroke={styles.strokeColor}
 				strokeWidth={strokeWidth}
 				strokeLinejoin="round"
 				strokeLinecap="round"
@@ -1108,22 +1194,22 @@ const ArrowSvg = track(function ArrowSvg({
 						randomSeed: shape.id,
 					})}
 				</g>
-				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
-					<LegacyShapeFill
-						theme={theme}
+				{as && clipStartArrowhead && (
+					<ArrowheadFill
 						d={as}
-						color={shape.props.color}
-						fill={shape.props.fill}
-						scale={shape.props.scale}
+						styles={styles}
+						zoomLevel={zoomLevel}
+						themeId={theme.id}
+						getHashPatternZoomName={getHashPatternZoomName}
 					/>
 				)}
-				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
-					<LegacyShapeFill
-						theme={theme}
+				{ae && clipEndArrowhead && (
+					<ArrowheadFill
 						d={ae}
-						color={shape.props.color}
-						fill={shape.props.fill}
-						scale={shape.props.scale}
+						styles={styles}
+						zoomLevel={zoomLevel}
+						themeId={theme.id}
+						getHashPatternZoomName={getHashPatternZoomName}
 					/>
 				)}
 				{as && <path d={as} />}
@@ -1132,6 +1218,38 @@ const ArrowSvg = track(function ArrowSvg({
 		</>
 	)
 })
+
+function ArrowheadFill({
+	d,
+	styles,
+	zoomLevel,
+	themeId,
+	getHashPatternZoomName,
+}: {
+	d: string
+	styles: TLArrowShapeResolvedStyles
+	zoomLevel: number
+	themeId: TLDefaultColorTheme['id']
+	getHashPatternZoomName(zoom: number, themeId: TLDefaultColorTheme['id']): string
+}) {
+	const fillProps = useMemo((): ShapeFillProps => {
+		switch (styles.arrowheadFillType) {
+			case 'none':
+				return { d, type: 'none' }
+			case 'solid':
+				return { d, type: 'solid', color: styles.arrowheadFillColor }
+			case 'pattern': {
+				const teenyTiny = zoomLevel <= 0.18
+				const patternUrl = teenyTiny ? undefined : getHashPatternZoomName(zoomLevel, themeId)
+				return patternUrl
+					? { d, type: 'pattern', color: styles.arrowheadFillColor, patternUrl }
+					: { d, type: 'solid', color: styles.arrowheadPatternColor }
+			}
+		}
+	}, [d, styles, zoomLevel, themeId, getHashPatternZoomName])
+
+	return <ShapeFill {...fillProps} />
+}
 
 function ArrowClipPath({
 	radius,

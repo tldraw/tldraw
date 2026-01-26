@@ -109,12 +109,12 @@ export type TLShapeStyleOverridesFor<K extends keyof TLShapeStylesMap> = AsStyle
 /**
  * Union of all registered resolved styles types.
  *
- * If no shapes have registered styles, falls back to a generic Record type.
+ * If no shapes have registered styles, falls back to a generic object type.
  *
  * @public
  */
 export type TLShapeResolvedStyles = keyof TLShapeStylesMap extends never
-	? Record<string, unknown>
+	? object
 	: TLShapeStylesMap[keyof TLShapeStylesMap]
 
 /**

@@ -825,6 +825,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
 	private readonly _getShapeStyleOverrides?: TLEditorOptions['getShapeStyleOverrides']
 
+	/** @internal */
+	_deriveShapeStyles(shape: TLShape): TLShapeResolvedStyles {
+		const util = this.getShapeUtil(shape)
+		const ctx = this._getStyleContext()
+		const defaultStyles = util.getDefaultStyles(shape, ctx)
+		if (!defaultStyles) return {}
+
+		// Priority order (highest wins):
+		// 1. getShapeStyleOverrides callback
+		// 2. defaultStyles (from ShapeUtil)
+
+		const callbackOverrides = this._getShapeStyleOverrides?.(shape, this)
+
+		// Fast path: no overrides
+		if (!callbackOverrides || Object.keys(callbackOverrides).length === 0) {
+			return defaultStyles
+		}
+
+		// Merge overrides, resolving any themeable values
+		const merged = { ...defaultStyles }
+
+		for (const [key, value] of Object.entries(callbackOverrides)) {
+			if (typeof value === 'undefined') continue
+			if (isThemedValue(value)) {
+				;(merged as any)[key] = ctx.isDarkMode ? value.dark : value.light
+			} else {
+				;(merged as any)[key] = value
+			}
+		}
+
+		return merged
+	}
+
 	@computed
 	private getIsShapeHiddenCache() {
 		if (!this._getShapeVisibility) return null
@@ -4768,35 +4801,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache(
 			'styles',
 			(shape) => {
-				const util = this.getShapeUtil(shape)
-				const ctx = this._getStyleContext()
-				const defaultStyles = util.getDefaultStyles(shape, ctx)
-				if (!defaultStyles) return undefined
-
-				// Priority order (highest wins):
-				// 1. getShapeStyleOverrides callback
-				// 2. defaultStyles (from ShapeUtil)
-
-				const callbackOverrides = this._getShapeStyleOverrides?.(shape, this)
-
-				// Fast path: no overrides
-				if (!callbackOverrides || Object.keys(callbackOverrides).length === 0) {
-					return defaultStyles
-				}
-
-				// Merge overrides, resolving any themeable values
-				const merged = { ...defaultStyles }
-
-				for (const [key, value] of Object.entries(callbackOverrides)) {
-					if (typeof value === 'undefined') continue
-					if (isThemedValue(value)) {
-						;(merged as any)[key] = ctx.isDarkMode ? value.dark : value.light
-					} else {
-						;(merged as any)[key] = value
-					}
-				}
-
-				return merged
+				return this._deriveShapeStyles(shape)
 			},
 			{ areRecordsEqual: areShapesContentEqual, areResultsEqual: isEqual }
 		)
