@@ -717,7 +717,7 @@ export const defaultTldrawOptions: {
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
-    readonly laserSessionTimeoutMs: 1000;
+    readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
@@ -728,8 +728,6 @@ export const defaultTldrawOptions: {
     readonly nonce: undefined;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
-    readonly telestrationFadeoutMs: 500;
-    readonly telestrationIdleTimeoutMs: 1000;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
@@ -3532,8 +3530,7 @@ export interface TldrawOptions {
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
-    // @deprecated (undocumented)
-    readonly laserSessionTimeoutMs: number;
+    readonly laserFadeoutMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
@@ -3550,8 +3547,6 @@ export interface TldrawOptions {
     readonly nonce: string | undefined;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
-    readonly telestrationFadeoutMs: number;
-    readonly telestrationIdleTimeoutMs: number;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;

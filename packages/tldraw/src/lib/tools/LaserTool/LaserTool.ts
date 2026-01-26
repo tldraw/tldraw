@@ -33,7 +33,7 @@ export class LaserTool extends StateNode {
 		// Create a new session
 		this.session = this.editor.scribbles.startSession({
 			selfConsume: false,
-			idleTimeoutMs: this.editor.options.telestrationIdleTimeoutMs,
+			idleTimeoutMs: this.editor.options.laserDelayMs,
 			fadeMode: 'grouped',
 			fadeEasing: 'ease-in',
 		})

@@ -48,10 +48,10 @@ describe('Laser tool and telestration', () => {
 		editor.setCurrentTool('select')
 
 		// Wait for idle timeout to end the session
-		vi.advanceTimersByTime(editor.options.telestrationIdleTimeoutMs + 100)
+		vi.advanceTimersByTime(editor.options.laserDelayMs + 100)
 
 		// Wait for fade to complete
-		vi.advanceTimersByTime(editor.options.telestrationFadeoutMs + 100)
+		vi.advanceTimersByTime(editor.options.laserFadeoutMs + 100)
 
 		// Scribbles should be completely cleared from instance state
 		scribbles = editor.getInstanceState().scribbles
@@ -72,10 +72,10 @@ describe('Laser tool and telestration', () => {
 		editor.setCurrentTool('select')
 
 		// Wait for idle timeout
-		vi.advanceTimersByTime(editor.options.telestrationIdleTimeoutMs + 100)
+		vi.advanceTimersByTime(editor.options.laserDelayMs + 100)
 
 		// Advance through fade duration in small increments
-		const fadeMs = editor.options.telestrationFadeoutMs
+		const fadeMs = editor.options.laserFadeoutMs
 		for (let elapsed = 0; elapsed < fadeMs + 200; elapsed += 16) {
 			vi.advanceTimersByTime(16)
 		}
@@ -111,8 +111,8 @@ describe('Laser tool and telestration', () => {
 
 		// End session and fade
 		editor.setCurrentTool('select')
-		vi.advanceTimersByTime(editor.options.telestrationIdleTimeoutMs + 100)
-		vi.advanceTimersByTime(editor.options.telestrationFadeoutMs + 200)
+		vi.advanceTimersByTime(editor.options.laserDelayMs + 100)
+		vi.advanceTimersByTime(editor.options.laserFadeoutMs + 200)
 
 		// All scribbles should be cleared
 		scribbles = editor.getInstanceState().scribbles
@@ -131,7 +131,7 @@ describe('Laser tool and telestration', () => {
 		editor.pointerUp()
 
 		// Wait for idle timeout to start fading
-		vi.advanceTimersByTime(editor.options.telestrationIdleTimeoutMs + 100)
+		vi.advanceTimersByTime(editor.options.laserDelayMs + 100)
 
 		// Start a new stroke while first is fading
 		editor.pointerDown(0, 100)
@@ -147,8 +147,8 @@ describe('Laser tool and telestration', () => {
 
 		// End everything and wait for all fades
 		editor.setCurrentTool('select')
-		vi.advanceTimersByTime(editor.options.telestrationIdleTimeoutMs + 100)
-		vi.advanceTimersByTime(editor.options.telestrationFadeoutMs + 200)
+		vi.advanceTimersByTime(editor.options.laserDelayMs + 100)
+		vi.advanceTimersByTime(editor.options.laserFadeoutMs + 200)
 
 		// All should be cleared
 		scribbles = editor.getInstanceState().scribbles

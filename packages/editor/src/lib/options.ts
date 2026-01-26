@@ -55,22 +55,11 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
 	/**
-	 * @deprecated Use `telestrationIdleTimeoutMs` instead.
-	 * How long (in milliseconds) of inactivity before a laser session automatically ends.
-	 * Defaults to 1000ms (1 second).
-	 */
-	readonly laserSessionTimeoutMs: number
-	/**
-	 * How long (in milliseconds) to fade all telestration scribbles after the session ends.
+	 * How long (in milliseconds) to fade all laser scribbles after the session ends.
 	 * The total points across all scribbles will be removed proportionally over this duration.
 	 * Defaults to 500ms (0.5 seconds).
 	 */
-	readonly telestrationFadeoutMs: number
-	/**
-	 * How long (in milliseconds) of inactivity before a telestration session automatically ends.
-	 * Defaults to 1000ms (1 second).
-	 */
-	readonly telestrationIdleTimeoutMs: number
+	readonly laserFadeoutMs: number
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
@@ -174,9 +163,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
-	laserSessionTimeoutMs: 1000,
-	telestrationFadeoutMs: 500,
-	telestrationIdleTimeoutMs: 1000,
+	laserFadeoutMs: 500,
 	maxExportDelayMs: 5000,
 	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,

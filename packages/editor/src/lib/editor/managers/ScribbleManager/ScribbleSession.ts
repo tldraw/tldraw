@@ -78,7 +78,7 @@ export class ScribbleSession {
 		this.idleTimeoutMs = options.idleTimeoutMs ?? 0
 		this.fadeMode = options.fadeMode ?? 'individual'
 		this.fadeEasing = options.fadeEasing ?? (this.fadeMode === 'grouped' ? 'ease-in' : 'linear')
-		this.fadeDurationMs = options.fadeDurationMs ?? this.editor.options.telestrationFadeoutMs
+		this.fadeDurationMs = options.fadeDurationMs ?? this.editor.options.laserFadeoutMs
 
 		// Set up idle timeout if configured
 		if (this.idleTimeoutMs > 0) {
@@ -261,7 +261,9 @@ export class ScribbleSession {
 
 	private tickItems(elapsed: number): void {
 		for (const item of this.items) {
-			if (this.selfConsume || this.state === 'stopping') {
+			const shouldSelfConsume =
+				this.selfConsume || this.state === 'stopping' || item.scribble.state === 'stopping'
+			if (shouldSelfConsume) {
 				this.tickSelfConsumingItem(item, elapsed)
 			} else {
 				this.tickPersistentItem(item)

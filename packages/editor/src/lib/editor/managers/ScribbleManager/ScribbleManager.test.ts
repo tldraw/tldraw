@@ -23,8 +23,8 @@ describe('ScribbleManager', () => {
 			getInstanceState: vi.fn(() => ({ scribbles: [] })),
 			run: vi.fn((fn) => fn()),
 			options: {
-				telestrationIdleTimeoutMs: 1500,
-				telestrationFadeoutMs: 1500,
+				laserDelayMs: 1500,
+				laserFadeoutMs: 1500,
 			},
 			timers: {
 				setTimeout: vi.fn((fn, ms) => setTimeout(fn, ms)),
@@ -220,6 +220,21 @@ describe('ScribbleManager', () => {
 
 				// All points should be preserved
 				expect(scribble.scribble.points.length).toBe(15)
+			})
+
+			it('should shrink a stopped scribble', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const session = scribbleManager.startSession({ selfConsume: false })
+				const scribble = session.addScribble({ delay: 0 })
+				scribble.scribble.points.push({ x: 0, y: 0, z: 0.5 })
+				scribble.scribble.points.push({ x: 1, y: 1, z: 0.5 })
+
+				session.stopScribble(scribble.id)
+				const before = scribble.scribble.points.length
+
+				scribbleManager.tick(16)
+
+				expect(scribble.scribble.points.length).toBeLessThan(before)
 			})
 		})
 
