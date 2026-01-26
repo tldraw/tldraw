@@ -149,7 +149,9 @@ export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryMana
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
+	ScribbleSession,
 	type ScribbleItem,
+	type ScribbleSessionOptions,
 } from './lib/editor/managers/ScribbleManager/ScribbleManager'
 export {
 	BoundsSnaps,
@@ -165,11 +167,6 @@ export {
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
-export {
-	TelestrationManager,
-	type TelestrationItem,
-	type TelestrationSession,
-} from './lib/editor/managers/TelestrationManager/TelestrationManager'
 export {
 	TextManager,
 	type TLMeasureTextOpts,

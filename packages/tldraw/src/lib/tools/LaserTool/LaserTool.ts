@@ -1,4 +1,4 @@
-import { StateNode, TLStateNodeConstructor } from '@tldraw/editor'
+import { ScribbleSession, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { Idle } from './childStates/Idle'
 import { Lasering } from './childStates/Lasering'
 
@@ -11,11 +11,33 @@ export class LaserTool extends StateNode {
 	}
 	static override isLockable = false
 
+	private session: ScribbleSession | null = null
+
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	override onExit() {
-		this.editor.telestration.endSession()
+		this.session = null
+	}
+
+	/**
+	 * Get the current laser session, or create a new one if none exists or the current one is fading.
+	 */
+	getSession(): ScribbleSession {
+		// Reuse existing session if it's still active
+		if (this.session?.isActive()) {
+			return this.session
+		}
+
+		// Create a new session
+		this.session = this.editor.scribbles.startSession({
+			selfConsume: false,
+			idleTimeoutMs: this.editor.options.telestrationIdleTimeoutMs,
+			fadeMode: 'grouped',
+			fadeEasing: 'ease-in',
+		})
+
+		return this.session
 	}
 }

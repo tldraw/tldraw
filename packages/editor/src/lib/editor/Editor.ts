@@ -150,7 +150,6 @@ import { InputsManager } from './managers/InputsManager/InputsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
-import { TelestrationManager } from './managers/TelestrationManager/TelestrationManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
@@ -388,7 +387,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.scribbles = new ScribbleManager(this)
-		this.telestration = new TelestrationManager(this)
 
 		// Cleanup
 
@@ -938,13 +936,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly scribbles: ScribbleManager
-
-	/**
-	 * A manager for telestration (laser pointer / presentation scribbles that persist then fade sequentially).
-	 *
-	 * @public
-	 */
-	readonly telestration: TelestrationManager
 
 	/**
 	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
@@ -10347,7 +10338,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
 			}
-			this.telestration.tick(elapsed)
 			this.scribbles.tick(elapsed)
 		})
 	}

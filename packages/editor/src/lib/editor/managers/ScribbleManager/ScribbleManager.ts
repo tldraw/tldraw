@@ -1,88 +1,50 @@
-import { TLScribble, VecModel } from '@tldraw/tlschema'
-import { uniqueId } from '@tldraw/utils'
-import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
+import type { ScribbleItem, ScribbleSessionOptions } from './ScribbleSession'
+import { ScribbleSession } from './ScribbleSession'
 
-/** @public */
-export interface ScribbleItem {
-	id: string
-	scribble: TLScribble
-	timeoutMs: number
-	delayRemaining: number
-	prev: null | VecModel
-	next: null | VecModel
-}
+export { ScribbleSession }
+export type { ScribbleItem, ScribbleSessionOptions }
 
 /** @public */
 export class ScribbleManager {
-	scribbleItems = new Map<string, ScribbleItem>()
-	state = 'paused' as 'paused' | 'running'
+	private sessions = new Map<string, ScribbleSession>()
 
 	constructor(private editor: Editor) {}
 
-	addScribble(scribble: Partial<TLScribble>, id = uniqueId()) {
-		const item: ScribbleItem = {
-			id,
-			scribble: {
-				id,
-				size: 20,
-				color: 'accent',
-				opacity: 0.8,
-				delay: 0,
-				points: [],
-				shrink: 0.1,
-				taper: true,
-				...scribble,
-				state: 'starting',
-			},
-			timeoutMs: 0,
-			delayRemaining: scribble.delay ?? 0,
-			prev: null,
-			next: null,
-		}
-		this.scribbleItems.set(id, item)
-
-		return item
+	/**
+	 * Start a new session.
+	 *
+	 * @param options - Session configuration
+	 * @returns The created session
+	 * @public
+	 */
+	startSession(options?: ScribbleSessionOptions): ScribbleSession {
+		const session = new ScribbleSession(this.editor, options)
+		this.sessions.set(session.id, session)
+		return session
 	}
 
-	reset() {
+	/**
+	 * Get a session by id.
+	 *
+	 * @param id - The session id
+	 * @public
+	 */
+	getSession(id: string): ScribbleSession | undefined {
+		return this.sessions.get(id)
+	}
+
+	/**
+	 * Stop and remove all sessions.
+	 *
+	 * @public
+	 */
+	reset(): void {
+		for (const session of this.sessions.values()) {
+			session.dispose()
+		}
+		this.sessions.clear()
 		this.editor.updateInstanceState({ scribbles: [] })
-		this.scribbleItems.clear()
-	}
-
-	/**
-	 * Start stopping the scribble. The scribble won't be removed until its last point is cleared.
-	 *
-	 * @public
-	 */
-	stop(id: ScribbleItem['id']) {
-		const item = this.scribbleItems.get(id)
-		if (!item) throw Error(`Scribble with id ${id} not found`)
-
-		item.delayRemaining = Math.min(item.delayRemaining, 200)
-		item.scribble.state = 'stopping'
-		return item
-	}
-
-	/**
-	 * Set the scribble's next point.
-	 *
-	 * @param id - The id of the scribble to add a point to.
-	 * @param x - The x coordinate of the point.
-	 * @param y - The y coordinate of the point.
-	 * @param z - The z coordinate of the point.
-	 * @public
-	 */
-	addPoint(id: ScribbleItem['id'], x: number, y: number, z = 0.5) {
-		const item = this.scribbleItems.get(id)
-		if (!item) throw Error(`Scribble with id ${id} not found`)
-		const { prev } = item
-		const point = { x, y, z }
-		if (!prev || Vec.Dist(prev, point) >= 1) {
-			item.next = point
-		}
-
-		return item
 	}
 
 	/**
@@ -91,108 +53,86 @@ export class ScribbleManager {
 	 * @param elapsed - The number of milliseconds since the last tick.
 	 * @public
 	 */
-	tick(elapsed: number) {
-		const telestrationScribbles = this.editor.telestration.getScribbles()
+	tick(elapsed: number): void {
 		const currentScribbles = this.editor.getInstanceState().scribbles
-		// Only skip if we have nothing to render AND the instance state is already clear
-		if (
-			this.scribbleItems.size === 0 &&
-			telestrationScribbles.length === 0 &&
-			currentScribbles.length === 0
-		)
-			return
+		if (this.sessions.size === 0 && currentScribbles.length === 0) return
+
 		this.editor.run(() => {
-			this.scribbleItems.forEach((item) => {
-				// let the item get at least eight points before
-				//  switching from starting to active
-				if (item.scribble.state === 'starting') {
-					const { next, prev } = item
-					if (next && next !== prev) {
-						item.prev = next
-						item.scribble.points.push(next)
-					}
-
-					if (item.scribble.points.length > 8) {
-						item.scribble.state = 'active'
-					}
-					return
-				}
-
-				if (item.delayRemaining > 0) {
-					item.delayRemaining = Math.max(0, item.delayRemaining - elapsed)
-				}
-
-				item.timeoutMs += elapsed
-				if (item.timeoutMs >= 16) {
-					item.timeoutMs = 0
-				}
-
-				const { delayRemaining, timeoutMs, prev, next, scribble } = item
-
-				switch (scribble.state) {
-					case 'active': {
-						if (next && next !== prev) {
-							item.prev = next
-							scribble.points.push(next)
-
-							// If we've run out of delay, then shrink the scribble from the start
-							if (delayRemaining === 0) {
-								if (scribble.points.length > 8) {
-									scribble.points.shift()
-								}
-							}
-						} else {
-							// While not moving, shrink the scribble from the start
-							if (timeoutMs === 0) {
-								if (scribble.points.length > 1) {
-									scribble.points.shift()
-								} else {
-									// Reset the item's delay
-									item.delayRemaining = scribble.delay
-								}
-							}
-						}
-						break
-					}
-					case 'stopping': {
-						if (item.delayRemaining === 0) {
-							if (timeoutMs === 0) {
-								// If the scribble is down to one point, we're done!
-								if (scribble.points.length === 1) {
-									this.scribbleItems.delete(item.id) // Remove the scribble
-									return
-								}
-
-								if (scribble.shrink) {
-									// Drop the scribble's size as it shrinks
-									scribble.size = Math.max(1, scribble.size * (1 - scribble.shrink))
-								}
-
-								// Drop the scribble's first point (its tail)
-								scribble.points.shift()
-							}
-						}
-						break
-					}
-					case 'paused': {
-						// Nothing to do while paused.
-						break
-					}
-				}
-			})
-
-			// The object here will get frozen into the record, so we need to
-			// create a copies of the parts that what we'll be mutating later.
-			// Limit scribbles to 5 for performance.
-			const scribbles: TLScribble[] = []
-
-			for (const item of this.scribbleItems.values()) {
-				scribbles.push({ ...item.scribble, points: [...item.scribble.points] })
+			// Tick all sessions
+			for (const session of this.sessions.values()) {
+				session.tick(elapsed)
 			}
 
-			this.editor.updateInstanceState({
-				scribbles: [...telestrationScribbles, ...scribbles.slice(-5)],
-			})
+			// Remove completed sessions
+			for (const [id, session] of this.sessions) {
+				if (session.isComplete()) {
+					session.dispose()
+					this.sessions.delete(id)
+				}
+			}
+
+			// Collect scribbles from all sessions
+			const scribbles = []
+			for (const session of this.sessions.values()) {
+				scribbles.push(...session.getScribbles())
+			}
+
+			this.editor.updateInstanceState({ scribbles })
 		})
+	}
+
+	// ---- Convenience methods for simple single-scribble usage ----
+
+	/**
+	 * Add a scribble using the default self-consuming behavior.
+	 * Creates an implicit session for the scribble.
+	 *
+	 * @param scribble - Partial scribble properties
+	 * @param id - Optional scribble id
+	 * @returns The created scribble item
+	 * @public
+	 */
+	addScribble(
+		scribble: Parameters<ScribbleSession['addScribble']>[0],
+		id?: string
+	): ScribbleItem & { session: ScribbleSession } {
+		const session = this.startSession()
+		const item = session.addScribble(scribble, id)
+		return Object.assign(item, { session })
+	}
+
+	/**
+	 * Add a point to a scribble. Searches all sessions.
+	 *
+	 * @param id - The scribble id
+	 * @param x - X coordinate
+	 * @param y - Y coordinate
+	 * @param z - Z coordinate (pressure)
+	 * @public
+	 */
+	addPoint(id: string, x: number, y: number, z = 0.5): ScribbleItem {
+		for (const session of this.sessions.values()) {
+			const item = session.items.find((i) => i.id === id)
+			if (item) {
+				return session.addPoint(id, x, y, z)
+			}
+		}
+		throw Error(`Scribble with id ${id} not found`)
+	}
+
+	/**
+	 * Stop a scribble. Searches all sessions.
+	 *
+	 * @param id - The scribble id
+	 * @public
+	 */
+	stop(id: string): ScribbleItem {
+		for (const session of this.sessions.values()) {
+			const item = session.items.find((i) => i.id === id)
+			if (item) {
+				return session.stopScribble(id)
+			}
+		}
+		throw Error(`Scribble with id ${id} not found`)
 	}
 }

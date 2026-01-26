@@ -1,23 +1,29 @@
 import { StateNode } from '@tldraw/editor'
+import { LaserTool } from '../LaserTool'
 
 export class Lasering extends StateNode {
 	static override id = 'lasering'
 
-	scribbleId = 'id'
+	private scribbleId = ''
 
 	override onEnter() {
-		const scribble = this.editor.telestration.addScribble({
+		// Get or create the shared laser session from the parent tool
+		const session = (this.parent as LaserTool).getSession()
+
+		const scribble = session.addScribble({
 			color: 'laser',
 			opacity: 0.7,
 			size: 4,
+			taper: false,
 		})
 		this.scribbleId = scribble.id
 		this.pushPointToScribble()
 	}
 
 	override onTick() {
-		// Keep the telestration session alive while pointer is down
-		this.editor.telestration.extendSession()
+		// Keep the session alive while pointer is down
+		const session = (this.parent as LaserTool).getSession()
+		session.extend()
 	}
 
 	override onPointerMove() {
@@ -30,7 +36,8 @@ export class Lasering extends StateNode {
 
 	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.getCurrentPagePoint()
-		this.editor.telestration.addPoint(this.scribbleId, x, y)
+		const session = (this.parent as LaserTool).getSession()
+		session.addPoint(this.scribbleId, x, y)
 	}
 
 	override onCancel() {

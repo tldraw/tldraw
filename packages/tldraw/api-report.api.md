@@ -54,6 +54,7 @@ import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
+import { ScribbleSession } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
@@ -1985,6 +1986,7 @@ export function LanguageMenu(): JSX.Element | null;
 export class LaserTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
+    getSession(): ScribbleSession;
     // (undocumented)
     static id: string;
     // (undocumented)

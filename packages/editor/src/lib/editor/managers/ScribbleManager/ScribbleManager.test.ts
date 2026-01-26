@@ -1,32 +1,36 @@
-import { TLScribble } from '@tldraw/tlschema'
-import { Mock, Mocked, vi } from 'vitest'
+import * as utils from '@tldraw/utils'
+import { afterEach, beforeEach, describe, expect, it, Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { ScribbleItem, ScribbleManager } from './ScribbleManager'
+import { ScribbleManager } from './ScribbleManager'
 
-// Mock the Editor class
-vi.mock('../../Editor')
-vi.mock('@tldraw/utils', () => ({
-	uniqueId: vi.fn(() => 'test-id'),
-}))
+vi.mock('@tldraw/utils', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@tldraw/utils')>()
+	return {
+		...actual,
+		uniqueId: vi.fn(() => 'test-id'),
+	}
+})
+
+const mockUniqueId = utils.uniqueId as Mock
 
 describe('ScribbleManager', () => {
 	let editor: Mocked<Editor>
 	let scribbleManager: ScribbleManager
-	let mockUniqueId: Mock
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		editor = {
 			updateInstanceState: vi.fn(),
 			getInstanceState: vi.fn(() => ({ scribbles: [] })),
 			run: vi.fn((fn) => fn()),
-			options: {},
-			telestration: {
-				getScribbles: vi.fn(() => []),
+			options: {
+				telestrationIdleTimeoutMs: 1500,
+				telestrationFadeoutMs: 1500,
+			},
+			timers: {
+				setTimeout: vi.fn((fn, ms) => setTimeout(fn, ms)),
 			},
 		} as any
 
-		const { uniqueId } = await vi.importMock('@tldraw/utils')
-		mockUniqueId = uniqueId as Mock
 		mockUniqueId.mockReturnValue('test-id')
 
 		scribbleManager = new ScribbleManager(editor)
@@ -36,606 +40,353 @@ describe('ScribbleManager', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('constructor and initialization', () => {
-		it('should initialize with empty scribble items and paused state', () => {
-			expect(scribbleManager.scribbleItems.size).toBe(0)
-			expect(scribbleManager.state).toBe('paused')
+	describe('startSession', () => {
+		it('should create a new session with default options', () => {
+			mockUniqueId.mockReturnValueOnce('session-1')
+			const session = scribbleManager.startSession()
+
+			expect(session.id).toBe('session-1')
+			expect(session.isActive()).toBe(true)
+		})
+
+		it('should create a session with custom id', () => {
+			const session = scribbleManager.startSession({ id: 'my-session' })
+
+			expect(session.id).toBe('my-session')
+		})
+
+		it('should be retrievable via getSession', () => {
+			const session = scribbleManager.startSession({ id: 'my-session' })
+
+			expect(scribbleManager.getSession('my-session')).toBe(session)
 		})
 	})
 
-	describe('addScribble', () => {
-		it('should add a new scribble with default values', () => {
-			const result = scribbleManager.addScribble({})
+	describe('addScribble (convenience method)', () => {
+		it('should create a session and add a scribble', () => {
+			mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+			const result = scribbleManager.addScribble({ color: 'accent' })
 
-			expect(result).toBeDefined()
-			expect(result.id).toBe('test-id')
-			expect(result.scribble).toMatchObject({
-				id: 'test-id',
-				size: 20,
-				color: 'accent',
-				opacity: 0.8,
-				delay: 0,
-				points: [],
-				shrink: 0.1,
-				taper: true,
-				state: 'starting',
-			})
-			expect(result.timeoutMs).toBe(0)
-			expect(result.delayRemaining).toBe(0)
-			expect(result.prev).toBeNull()
-			expect(result.next).toBeNull()
-		})
-
-		it('should add a scribble with custom properties', () => {
-			const customScribble: Partial<TLScribble> = {
-				size: 30,
-				color: 'black',
-				opacity: 0.5,
-				delay: 1000,
-				shrink: 0.2,
-				taper: false,
-			}
-
-			const result = scribbleManager.addScribble(customScribble)
-
-			expect(result.scribble).toMatchObject({
-				...customScribble,
-				id: 'test-id',
-				points: [],
-				state: 'starting',
-			})
-			expect(result.delayRemaining).toBe(1000)
+			expect(result.id).toBe('scribble-1')
+			expect(result.session).toBeDefined()
+			expect(result.session.id).toBe('session-1')
 		})
 
 		it('should add scribble with custom id', () => {
-			const customId = 'custom-scribble-id'
-			const result = scribbleManager.addScribble({}, customId)
+			mockUniqueId.mockReturnValueOnce('session-1')
+			const result = scribbleManager.addScribble({ color: 'accent' }, 'my-scribble')
 
-			expect(result.id).toBe(customId)
-			expect(result.scribble.id).toBe(customId)
-			expect(scribbleManager.scribbleItems.has(customId)).toBe(true)
+			expect(result.id).toBe('my-scribble')
 		})
 
-		it('should store scribble in scribbleItems map', () => {
+		it('should set default scribble values', () => {
+			mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
 			const result = scribbleManager.addScribble({})
 
-			expect(scribbleManager.scribbleItems.size).toBe(1)
-			expect(scribbleManager.scribbleItems.get('test-id')).toBe(result)
-		})
-
-		it('should handle multiple scribbles', () => {
-			mockUniqueId.mockReturnValueOnce('id1').mockReturnValueOnce('id2').mockReturnValueOnce('id3')
-
-			const scribble1 = scribbleManager.addScribble({ color: 'black' })
-			const scribble2 = scribbleManager.addScribble({ color: 'white' })
-			const scribble3 = scribbleManager.addScribble({ color: 'accent' })
-
-			expect(scribbleManager.scribbleItems.size).toBe(3)
-			expect(scribble1.scribble.color).toBe('black')
-			expect(scribble2.scribble.color).toBe('white')
-			expect(scribble3.scribble.color).toBe('accent')
-		})
-	})
-
-	describe('reset', () => {
-		it('should clear all scribble items and update instance state', () => {
-			mockUniqueId.mockReturnValueOnce('id1').mockReturnValueOnce('id2')
-			scribbleManager.addScribble({})
-			scribbleManager.addScribble({})
-			expect(scribbleManager.scribbleItems.size).toBe(2)
-
-			scribbleManager.reset()
-
-			expect(scribbleManager.scribbleItems.size).toBe(0)
-			expect(editor.updateInstanceState).toHaveBeenCalledWith({ scribbles: [] })
-		})
-
-		it('should work when no scribbles exist', () => {
-			expect(() => scribbleManager.reset()).not.toThrow()
-			expect(scribbleManager.scribbleItems.size).toBe(0)
-			expect(editor.updateInstanceState).toHaveBeenCalledWith({ scribbles: [] })
-		})
-	})
-
-	describe('stop', () => {
-		it('should stop an existing scribble', () => {
-			const item = scribbleManager.addScribble({ delay: 1000 })
-			item.delayRemaining = 500
-
-			const result = scribbleManager.stop(item.id)
-
-			expect(result).toBe(item)
-			expect(result.scribble.state).toBe('stopping')
-			expect(result.delayRemaining).toBe(200) // min(500, 200)
-		})
-
-		it('should cap delay at 200ms when stopping', () => {
-			const item = scribbleManager.addScribble({ delay: 50 })
-			item.delayRemaining = 50
-
-			scribbleManager.stop(item.id)
-
-			expect(item.delayRemaining).toBe(50) // min(50, 200)
-		})
-
-		it('should throw error for non-existent scribble', () => {
-			expect(() => scribbleManager.stop('non-existent-id')).toThrow(
-				'Scribble with id non-existent-id not found'
-			)
-		})
-
-		it('should handle stopping multiple scribbles', () => {
-			mockUniqueId.mockReturnValueOnce('id1').mockReturnValueOnce('id2')
-
-			const item1 = scribbleManager.addScribble({})
-			const item2 = scribbleManager.addScribble({})
-
-			scribbleManager.stop('id1')
-			scribbleManager.stop('id2')
-
-			expect(item1.scribble.state).toBe('stopping')
-			expect(item2.scribble.state).toBe('stopping')
+			expect(result.scribble.size).toBe(20)
+			expect(result.scribble.color).toBe('accent')
+			expect(result.scribble.opacity).toBe(0.8)
+			expect(result.scribble.shrink).toBe(0.1)
+			expect(result.scribble.taper).toBe(true)
+			expect(result.scribble.state).toBe('starting')
 		})
 	})
 
 	describe('addPoint', () => {
 		it('should add point to existing scribble', () => {
-			const item = scribbleManager.addScribble({})
+			mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+			const result = scribbleManager.addScribble({})
 
-			const result = scribbleManager.addPoint(item.id, 10, 20, 0.7)
+			scribbleManager.addPoint('scribble-1', 10, 20, 0.8)
 
-			expect(result).toBe(item)
-			expect(result.next).toEqual({ x: 10, y: 20, z: 0.7 })
+			expect(result.next).toEqual({ x: 10, y: 20, z: 0.8 })
 		})
 
 		it('should use default z value of 0.5', () => {
-			const item = scribbleManager.addScribble({})
+			mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+			const result = scribbleManager.addScribble({})
 
-			scribbleManager.addPoint(item.id, 10, 20)
+			scribbleManager.addPoint('scribble-1', 10, 20)
 
-			expect(item.next).toEqual({ x: 10, y: 20, z: 0.5 })
-		})
-
-		it('should only set next if distance from prev is >= 1', () => {
-			const item = scribbleManager.addScribble({})
-			item.prev = { x: 10, y: 20, z: 0.5 }
-
-			// Distance < 1 (should not set next)
-			scribbleManager.addPoint(item.id, 10.5, 20.3)
-			expect(item.next).toBeNull()
-
-			// Distance >= 1 (should set next)
-			scribbleManager.addPoint(item.id, 11, 21)
-			expect(item.next).toEqual({ x: 11, y: 21, z: 0.5 })
-		})
-
-		it('should set next when prev is null', () => {
-			const item = scribbleManager.addScribble({})
-			expect(item.prev).toBeNull()
-
-			scribbleManager.addPoint(item.id, 5, 5)
-
-			expect(item.next).toEqual({ x: 5, y: 5, z: 0.5 })
+			expect(result.next).toEqual({ x: 10, y: 20, z: 0.5 })
 		})
 
 		it('should throw error for non-existent scribble', () => {
-			expect(() => scribbleManager.addPoint('non-existent-id', 10, 20)).toThrow(
-				'Scribble with id non-existent-id not found'
-			)
+			expect(() => scribbleManager.addPoint('non-existent', 10, 20)).toThrow()
+		})
+	})
+
+	describe('stop', () => {
+		it('should stop an existing scribble', () => {
+			mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+			const result = scribbleManager.addScribble({})
+
+			scribbleManager.stop('scribble-1')
+
+			expect(result.scribble.state).toBe('stopping')
 		})
 
-		it('should handle multiple points', () => {
-			const item = scribbleManager.addScribble({})
+		it('should throw error for non-existent scribble', () => {
+			expect(() => scribbleManager.stop('non-existent')).toThrow()
+		})
+	})
 
-			scribbleManager.addPoint(item.id, 0, 0)
-			expect(item.next).toEqual({ x: 0, y: 0, z: 0.5 })
+	describe('reset', () => {
+		it('should clear all sessions and update instance state', () => {
+			scribbleManager.startSession({ id: 'session-1' })
+			scribbleManager.startSession({ id: 'session-2' })
 
-			item.prev = item.next
-			scribbleManager.addPoint(item.id, 10, 10)
-			expect(item.next).toEqual({ x: 10, y: 10, z: 0.5 })
+			scribbleManager.reset()
+
+			expect(scribbleManager.getSession('session-1')).toBeUndefined()
+			expect(scribbleManager.getSession('session-2')).toBeUndefined()
+			expect(editor.updateInstanceState).toHaveBeenCalledWith({ scribbles: [] })
 		})
 	})
 
 	describe('tick', () => {
-		it('should return early when no scribble items exist', () => {
+		it('should return early when no sessions exist', () => {
 			scribbleManager.tick(16)
 
 			expect(editor.run).not.toHaveBeenCalled()
 		})
 
 		it('should wrap tick operations in editor.run', () => {
-			scribbleManager.addScribble({})
+			mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+			const result = scribbleManager.addScribble({})
+			result.scribble.points.push({ x: 0, y: 0, z: 0.5 })
 
 			scribbleManager.tick(16)
 
-			expect(editor.run).toHaveBeenCalledWith(expect.any(Function))
+			expect(editor.run).toHaveBeenCalled()
 		})
 
-		describe('starting state behavior', () => {
+		describe('self-consuming behavior (default)', () => {
 			it('should add points to scribble in starting state', () => {
-				const item = scribbleManager.addScribble({})
-				item.next = { x: 10, y: 20, z: 0.5 }
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const result = scribbleManager.addScribble({})
+				result.next = { x: 10, y: 10, z: 0.5 }
 
 				scribbleManager.tick(16)
 
-				expect(item.prev).toEqual({ x: 10, y: 20, z: 0.5 })
-				expect(item.scribble.points).toHaveLength(1)
-				expect(item.scribble.points[0]).toEqual({ x: 10, y: 20, z: 0.5 })
-			})
-
-			it('should not add point if next equals prev', () => {
-				const item = scribbleManager.addScribble({})
-				const point = { x: 10, y: 20, z: 0.5 }
-				item.next = point
-				item.prev = point
-
-				scribbleManager.tick(16)
-
-				expect(item.scribble.points).toHaveLength(0)
+				expect(result.scribble.points).toHaveLength(1)
+				expect(result.prev).toEqual({ x: 10, y: 10, z: 0.5 })
 			})
 
 			it('should transition to active after 8 points', () => {
-				const item = scribbleManager.addScribble({})
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const result = scribbleManager.addScribble({})
 
-				// Add 9 points to trigger transition
 				for (let i = 0; i < 9; i++) {
-					item.next = { x: i, y: i, z: 0.5 }
-					item.prev = null // Reset prev to ensure point is added
+					result.next = { x: i * 10, y: i * 10, z: 0.5 }
 					scribbleManager.tick(16)
 				}
 
-				expect(item.scribble.state).toBe('active')
-				expect(item.scribble.points).toHaveLength(9)
-			})
-		})
-
-		describe('active state behavior', () => {
-			let item: ScribbleItem
-
-			beforeEach(() => {
-				item = scribbleManager.addScribble({})
-				item.scribble.state = 'active'
-			})
-
-			it('should add new points when next differs from prev', () => {
-				item.next = { x: 10, y: 20, z: 0.5 }
-				item.prev = { x: 0, y: 0, z: 0.5 }
-
-				scribbleManager.tick(16)
-
-				expect(item.prev).toEqual({ x: 10, y: 20, z: 0.5 })
-				expect(item.scribble.points).toContainEqual({ x: 10, y: 20, z: 0.5 })
+				expect(result.scribble.state).toBe('active')
 			})
 
 			it('should shrink from start when delay is finished and points > 8', () => {
-				// Set up scribble with > 8 points and no delay
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const result = scribbleManager.addScribble({ delay: 0 })
+
+				// Add 10 points to get into active state
 				for (let i = 0; i < 10; i++) {
-					item.scribble.points.push({ x: i, y: i, z: 0.5 })
+					result.next = { x: i * 10, y: i * 10, z: 0.5 }
+					scribbleManager.tick(16)
 				}
-				item.delayRemaining = 0
-				item.next = { x: 50, y: 50, z: 0.5 }
 
+				const pointsBefore = result.scribble.points.length
+
+				// Add another point - should trigger shrink
+				result.next = { x: 100, y: 100, z: 0.5 }
 				scribbleManager.tick(16)
 
-				expect(item.scribble.points).toHaveLength(10) // Added one, removed one
-				expect(item.scribble.points[0]).toEqual({ x: 1, y: 1, z: 0.5 }) // First was removed
-			})
-
-			it('should shrink when not moving and timeout reached', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-				item.timeoutMs = 16 // Will reset to 0, triggering shrink
-
-				scribbleManager.tick(16)
-
-				expect(item.scribble.points).toHaveLength(1)
-				expect(item.scribble.points[0]).toEqual({ x: 2, y: 2, z: 0.5 })
-			})
-
-			it('should reset delay when down to single point while stationary', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.delay = 500
-				item.delayRemaining = 0
-				item.timeoutMs = 16
-
-				scribbleManager.tick(16)
-
-				expect(item.delayRemaining).toBe(500)
-			})
-
-			it('should update timeout correctly', () => {
-				item.timeoutMs = 10
-
-				scribbleManager.tick(5)
-				expect(item.timeoutMs).toBe(15)
-
-				scribbleManager.tick(2)
-				expect(item.timeoutMs).toBe(0) // Reset when >= 16 (15 + 2 = 17)
-			})
-
-			it('should reduce delay remaining', () => {
-				item.delayRemaining = 100
-
-				scribbleManager.tick(30)
-
-				expect(item.delayRemaining).toBeLessThan(100)
-			})
-
-			it('should not reduce delay below 0', () => {
-				item.delayRemaining = 10
-
-				scribbleManager.tick(30)
-
-				expect(item.delayRemaining).toBe(0)
+				// Should have same length (one added, one removed)
+				expect(result.scribble.points.length).toBe(pointsBefore)
 			})
 		})
 
-		describe('stopping state behavior', () => {
-			let item: ScribbleItem
+		describe('persistent behavior (selfConsume: false)', () => {
+			it('should not shrink while session is active', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const session = scribbleManager.startSession({ selfConsume: false })
+				const scribble = session.addScribble({ delay: 0 })
 
-			beforeEach(() => {
-				item = scribbleManager.addScribble({})
-				item.scribble.state = 'stopping'
-			})
+				// Add 15 points
+				for (let i = 0; i < 15; i++) {
+					scribble.next = { x: i * 10, y: i * 10, z: 0.5 }
+					scribbleManager.tick(16)
+				}
 
-			it('should remove points when delay is finished and timeout reached', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-				item.delayRemaining = 0
-				item.timeoutMs = 16
-
-				scribbleManager.tick(16)
-
-				expect(item.scribble.points).toHaveLength(1)
-				expect(item.scribble.points[0]).toEqual({ x: 2, y: 2, z: 0.5 })
-			})
-
-			it('should shrink scribble size when shrink is enabled', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-				item.scribble.size = 20
-				item.scribble.shrink = 0.1
-				item.delayRemaining = 0
-				item.timeoutMs = 16
-
-				scribbleManager.tick(16)
-
-				expect(item.scribble.size).toBe(18) // 20 * (1 - 0.1)
-			})
-
-			it('should not shrink size below 1', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-				item.scribble.size = 1.5
-				item.scribble.shrink = 0.8
-				item.delayRemaining = 0
-				item.timeoutMs = 16
-
-				scribbleManager.tick(16)
-
-				expect(item.scribble.size).toBe(1) // Math.max(1, 1.5 * 0.2)
-			})
-
-			it('should remove scribble when down to one point', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.delayRemaining = 0
-				item.timeoutMs = 16
-
-				scribbleManager.tick(16)
-
-				expect(scribbleManager.scribbleItems.has(item.id)).toBe(false)
-			})
-
-			it('should not process when delay remaining > 0', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-				item.delayRemaining = 100
-				item.timeoutMs = 16
-
-				scribbleManager.tick(16)
-
-				expect(item.scribble.points).toHaveLength(2) // No change
-			})
-
-			it('should not process when timeout < 16', () => {
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-				item.delayRemaining = 0
-				item.timeoutMs = 10
-
-				scribbleManager.tick(5)
-
-				expect(item.scribble.points).toHaveLength(2) // No change
-				expect(item.timeoutMs).toBe(15)
+				// All points should be preserved
+				expect(scribble.scribble.points.length).toBe(15)
 			})
 		})
 
-		describe('paused state behavior', () => {
-			it('should do nothing when scribble is paused', () => {
-				const item = scribbleManager.addScribble({})
-				item.scribble.state = 'paused'
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-				const originalPoints = [...item.scribble.points]
+		describe('grouped fade behavior', () => {
+			it('should fade all scribbles together when session stops', () => {
+				mockUniqueId
+					.mockReturnValueOnce('session-1')
+					.mockReturnValueOnce('scribble-1')
+					.mockReturnValueOnce('scribble-2')
 
-				scribbleManager.tick(16)
+				const session = scribbleManager.startSession({
+					selfConsume: false,
+					fadeMode: 'grouped',
+					fadeDurationMs: 1000,
+				})
 
-				expect(item.scribble.points).toEqual(originalPoints)
+				const s1 = session.addScribble({})
+				const s2 = session.addScribble({})
+
+				// Add points directly
+				for (let i = 0; i < 10; i++) {
+					s1.scribble.points.push({ x: i, y: i, z: 0.5 })
+					s2.scribble.points.push({ x: i + 10, y: i + 10, z: 0.5 })
+				}
+
+				session.stop()
+
+				// Tick through the fade
+				for (let i = 0; i < 100; i++) {
+					scribbleManager.tick(16)
+				}
+
+				// Both should have fewer points
+				const totalPoints = s1.scribble.points.length + s2.scribble.points.length
+				expect(totalPoints).toBeLessThan(20)
 			})
 		})
 
 		describe('instance state updates', () => {
 			it('should update instance state with scribbles', () => {
-				mockUniqueId.mockReturnValueOnce('id1').mockReturnValueOnce('id2')
-				scribbleManager.addScribble({ color: 'black' })
-				scribbleManager.addScribble({ color: 'white' })
+				mockUniqueId
+					.mockReturnValueOnce('session-1')
+					.mockReturnValueOnce('scribble-1')
+					.mockReturnValueOnce('session-2')
+					.mockReturnValueOnce('scribble-2')
+
+				const result1 = scribbleManager.addScribble({ color: 'black' })
+				const result2 = scribbleManager.addScribble({ color: 'white' })
+				result1.scribble.points.push({ x: 0, y: 0, z: 0.5 })
+				result2.scribble.points.push({ x: 0, y: 0, z: 0.5 })
 
 				scribbleManager.tick(16)
 
 				expect(editor.updateInstanceState).toHaveBeenCalledWith({
 					scribbles: expect.arrayContaining([
-						expect.objectContaining({
-							color: 'black',
-							points: expect.any(Array),
-						}),
-						expect.objectContaining({
-							color: 'white',
-							points: expect.any(Array),
-						}),
+						expect.objectContaining({ color: 'black' }),
+						expect.objectContaining({ color: 'white' }),
 					]),
 				})
 			})
 
-			it('should create copies of scribbles for instance state', () => {
-				const item = scribbleManager.addScribble({})
-				item.scribble.points.push({ x: 1, y: 1, z: 0.5 })
-
-				scribbleManager.tick(16)
-
-				const call = editor.updateInstanceState.mock.calls[0][0]
-				const scribbleInState = call.scribbles![0]
-
-				// Modify the original
-				item.scribble.points.push({ x: 2, y: 2, z: 0.5 })
-
-				// State copy should be unaffected
-				expect(scribbleInState.points).toHaveLength(1)
-			})
-
-			it('should limit scribbles to 5 items', () => {
-				// Add 7 scribbles
+			it('should include all scribbles', () => {
+				// Add 7 scribbles with points
 				for (let i = 0; i < 7; i++) {
-					mockUniqueId.mockReturnValueOnce(`id${i}`)
-					scribbleManager.addScribble({ color: 'accent' })
+					mockUniqueId.mockReturnValueOnce(`session-${i}`).mockReturnValueOnce(`scribble-${i}`)
+					const result = scribbleManager.addScribble({ color: 'accent' })
+					result.scribble.points.push({ x: i, y: i, z: 0.5 })
 				}
 
 				scribbleManager.tick(16)
 
 				const call = editor.updateInstanceState.mock.calls[0][0]
-				expect(call.scribbles).toHaveLength(5)
+				expect(call.scribbles).toHaveLength(7)
 			})
 
-			it('should include telestration scribbles in instance state', () => {
-				const telestrationScribbles = [
-					{ id: 'laser-1', color: 'laser', points: [], state: 'active' } as any,
-				]
-				;(editor.telestration.getScribbles as Mock).mockReturnValue(telestrationScribbles)
-
+			it('should not include empty scribbles', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
 				scribbleManager.addScribble({ color: 'accent' })
+				// Don't add any points
 
 				scribbleManager.tick(16)
 
 				const call = editor.updateInstanceState.mock.calls[0][0]
-				expect(call.scribbles!).toHaveLength(2)
-				expect(call.scribbles![0].color).toBe('laser')
-				expect(call.scribbles![1].color).toBe('accent')
+				expect(call.scribbles).toHaveLength(0)
+			})
+		})
+
+		describe('session cleanup', () => {
+			it('should remove completed sessions', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const session = scribbleManager.startSession({ fadeMode: 'individual' })
+				const scribble = session.addScribble({})
+				scribble.scribble.points.push({ x: 0, y: 0, z: 0.5 })
+				scribble.scribble.state = 'stopping'
+				scribble.delayRemaining = 0
+
+				// Tick until scribble is removed
+				for (let i = 0; i < 20; i++) {
+					scribbleManager.tick(16)
+				}
+
+				expect(scribbleManager.getSession('session-1')).toBeUndefined()
 			})
 		})
 	})
 
-	describe('edge cases and error handling', () => {
-		it('should handle Vec.Dist calculation edge cases', () => {
-			const item = scribbleManager.addScribble({})
-			item.prev = { x: 0, y: 0, z: 0 }
+	describe('ScribbleSession', () => {
+		describe('addScribble', () => {
+			it('should add scribble to session', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const session = scribbleManager.startSession()
+				const scribble = session.addScribble({ color: 'laser' })
 
-			// Exactly distance 1
-			scribbleManager.addPoint(item.id, 1, 0)
-			expect(item.next).toEqual({ x: 1, y: 0, z: 0.5 })
-
-			// Reset and test just under distance 1
-			item.next = null
-			scribbleManager.addPoint(item.id, 0.9, 0)
-			expect(item.next).toBeNull()
+				expect(session.items).toContain(scribble)
+				expect(scribble.scribble.color).toBe('laser')
+			})
 		})
 
-		it('should handle multiple scribbles in different states', () => {
-			mockUniqueId
-				.mockReturnValueOnce('starting')
-				.mockReturnValueOnce('active')
-				.mockReturnValueOnce('stopping')
+		describe('stop', () => {
+			it('should mark session as stopping', () => {
+				mockUniqueId.mockReturnValueOnce('session-1')
+				const session = scribbleManager.startSession()
 
-			const startingItem = scribbleManager.addScribble({})
-			const activeItem = scribbleManager.addScribble({})
-			const stoppingItem = scribbleManager.addScribble({})
+				session.stop()
 
-			activeItem.scribble.state = 'active'
-			stoppingItem.scribble.state = 'stopping'
-
-			startingItem.next = { x: 1, y: 1, z: 0.5 }
-			activeItem.next = { x: 2, y: 2, z: 0.5 }
-			stoppingItem.scribble.points.push({ x: 3, y: 3, z: 0.5 })
-			stoppingItem.delayRemaining = 0
-			stoppingItem.timeoutMs = 16
-
-			scribbleManager.tick(16)
-
-			expect(startingItem.scribble.points).toHaveLength(1)
-			expect(activeItem.scribble.points).toHaveLength(1)
-			expect(scribbleManager.scribbleItems.has('stopping')).toBe(false) // Removed
+				expect(session.isActive()).toBe(false)
+			})
 		})
 
-		it('should handle tick with 0 elapsed time', () => {
-			const item = scribbleManager.addScribble({})
-			item.delayRemaining = 100
+		describe('extend', () => {
+			it('should reset idle timeout', () => {
+				mockUniqueId.mockReturnValueOnce('session-1')
+				const session = scribbleManager.startSession({ idleTimeoutMs: 1000 })
 
-			expect(() => scribbleManager.tick(0)).not.toThrow()
-			expect(item.delayRemaining).toBe(100) // Should remain unchanged
+				session.extend()
+
+				// Should have called setTimeout again
+				expect(editor.timers.setTimeout).toHaveBeenCalledTimes(2)
+			})
 		})
 
-		it('should handle negative elapsed time', () => {
-			const item = scribbleManager.addScribble({})
-			item.delayRemaining = 100
+		describe('getScribbles', () => {
+			it('should return copies of scribbles', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const session = scribbleManager.startSession()
+				const scribble = session.addScribble({})
+				scribble.scribble.points.push({ x: 1, y: 1, z: 0.5 })
 
-			scribbleManager.tick(-50)
+				const result = session.getScribbles()
 
-			expect(item.delayRemaining).toBe(100) // Should remain unchanged or handle gracefully
-		})
+				// Modify original
+				scribble.scribble.points.push({ x: 2, y: 2, z: 0.5 })
 
-		it('should handle empty points array operations', () => {
-			const item = scribbleManager.addScribble({})
-			item.scribble.state = 'active'
-			item.timeoutMs = 16
+				// Copy should be unaffected
+				expect(result[0].points).toHaveLength(1)
+			})
 
-			expect(() => scribbleManager.tick(16)).not.toThrow()
-		})
-	})
+			it('should not include empty scribbles', () => {
+				mockUniqueId.mockReturnValueOnce('session-1').mockReturnValueOnce('scribble-1')
+				const session = scribbleManager.startSession()
+				session.addScribble({})
+				// Don't add points
 
-	describe('integration scenarios', () => {
-		it('should handle complete scribble lifecycle', () => {
-			const item = scribbleManager.addScribble({ delay: 100 })
+				const result = session.getScribbles()
 
-			// Starting state - add points
-			for (let i = 0; i < 10; i++) {
-				item.next = { x: i, y: i, z: 0.5 }
-				item.prev = null
-				scribbleManager.tick(16)
-			}
-
-			expect(item.scribble.state).toBe('active')
-			expect(item.scribble.points).toHaveLength(10)
-
-			// Stop the scribble
-			scribbleManager.stop(item.id)
-			expect(item.scribble.state).toBe('stopping')
-
-			// Process until removed
-			let iterations = 0
-			while (scribbleManager.scribbleItems.has(item.id) && iterations < 20) {
-				scribbleManager.tick(16)
-				iterations++
-			}
-
-			expect(scribbleManager.scribbleItems.has(item.id)).toBe(false)
-		})
-
-		it('should handle rapid point additions', () => {
-			const item = scribbleManager.addScribble({})
-
-			// Add many points rapidly
-			for (let i = 0; i < 100; i++) {
-				scribbleManager.addPoint(item.id, i * 2, i * 2) // Ensure distance > 1
-			}
-
-			expect(item.next).toEqual({ x: 198, y: 198, z: 0.5 })
+				expect(result).toHaveLength(0)
+			})
 		})
 	})
 })

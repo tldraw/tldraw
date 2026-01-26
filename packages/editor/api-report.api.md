@@ -1505,7 +1505,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     styleProps: {
         [key: string]: Map<StyleProp<any>, string>;
     };
-    readonly telestration: TelestrationManager;
     readonly textMeasure: TextManager;
     readonly timers: {
         dispose: () => void;
@@ -2708,17 +2707,44 @@ export interface ScribbleItem {
 // @public (undocumented)
 export class ScribbleManager {
     constructor(editor: Editor);
-    addPoint(id: ScribbleItem['id'], x: number, y: number, z?: number): ScribbleItem;
-    // (undocumented)
-    addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
-    // (undocumented)
+    addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
+    addScribble(scribble: Parameters<ScribbleSession['addScribble']>[0], id?: string): ScribbleItem & {
+        session: ScribbleSession;
+    };
+    getSession(id: string): ScribbleSession | undefined;
     reset(): void;
-    // (undocumented)
-    scribbleItems: Map<string, ScribbleItem>;
-    // (undocumented)
-    state: "paused" | "running";
-    stop(id: ScribbleItem['id']): ScribbleItem;
+    startSession(options?: ScribbleSessionOptions): ScribbleSession;
+    stop(id: string): ScribbleItem;
     tick(elapsed: number): void;
+}
+
+// @public (undocumented)
+export class ScribbleSession {
+    constructor(editor: Editor, options?: ScribbleSessionOptions);
+    addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
+    addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
+    dispose(): void;
+    extend(): void;
+    getScribbles(): TLScribble[];
+    // (undocumented)
+    readonly id: string;
+    isActive(): boolean;
+    isComplete(): boolean;
+    // (undocumented)
+    readonly items: ScribbleItem[];
+    stop(): void;
+    stopScribble(id: string): ScribbleItem;
+    tick(elapsed: number): void;
+}
+
+// @public (undocumented)
+export interface ScribbleSessionOptions {
+    fadeDurationMs?: number;
+    fadeEasing?: 'ease-in' | 'linear';
+    fadeMode?: 'grouped' | 'individual';
+    id?: string;
+    idleTimeoutMs?: number;
+    selfConsume?: boolean;
 }
 
 // @public (undocumented)
@@ -3065,49 +3091,6 @@ export const Table: {
     readonly Schema: "schema";
     readonly SessionState: "session_state";
 };
-
-// @public (undocumented)
-export interface TelestrationItem {
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    next: null | VecModel;
-    // (undocumented)
-    prev: null | VecModel;
-    // (undocumented)
-    scribble: TLScribble;
-}
-
-// @public (undocumented)
-export class TelestrationManager {
-    constructor(editor: Editor);
-    addPoint(id: string, x: number, y: number, z?: number): TelestrationItem;
-    addScribble(scribble: Partial<TLScribble>, id?: string): TelestrationItem;
-    endSession(): void;
-    extendSession(): void;
-    getScribbles(): TLScribble[];
-    hasActiveSession(): boolean;
-    reset(): void;
-    tick(elapsed: number): void;
-}
-
-// @public (undocumented)
-export interface TelestrationSession {
-    // (undocumented)
-    fadeElapsed: number;
-    // (undocumented)
-    fadeStartTime?: number;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    idleTimeoutHandle?: number;
-    // (undocumented)
-    items: TelestrationItem[];
-    // (undocumented)
-    state: 'active' | 'fading';
-    // (undocumented)
-    totalPointsAtFadeStart: number;
-}
 
 // @public (undocumented)
 export class TextManager {
