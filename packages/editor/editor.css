@@ -1536,15 +1536,6 @@ input,
 	cursor: var(--tl-cursor-text);
 }
 
-/* If mobile use 16px as font size */
-/* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
-/* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
-@media (max-width: 600px) {
-	.tl-frame-heading {
-		font-size: 16px;
-	}
-}
-
 /* ------------------- Embed Shape ------------------ */
 
 .tl-embed {
