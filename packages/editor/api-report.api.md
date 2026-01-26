@@ -2721,6 +2721,7 @@ export class ScribbleSession {
     constructor(editor: Editor, options?: ScribbleSessionOptions);
     addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
+    clear(): void;
     dispose(): void;
     extend(): void;
     getScribbles(): TLScribble[];

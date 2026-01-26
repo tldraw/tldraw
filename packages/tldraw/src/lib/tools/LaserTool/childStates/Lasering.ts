@@ -41,7 +41,7 @@ export class Lasering extends StateNode {
 	}
 
 	override onCancel() {
-		this.cancel()
+		this.onComplete()
 	}
 
 	override onComplete() {
@@ -49,10 +49,6 @@ export class Lasering extends StateNode {
 	}
 
 	private complete() {
-		this.parent.transition('idle')
-	}
-
-	private cancel() {
 		this.parent.transition('idle')
 	}
 }

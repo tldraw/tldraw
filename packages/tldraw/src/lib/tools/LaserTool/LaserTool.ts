@@ -21,6 +21,16 @@ export class LaserTool extends StateNode {
 		this.session = null
 	}
 
+	override onCancel() {
+		if (this.session) {
+			this.session.clear()
+			this.session = null
+			this.transition('idle')
+		} else {
+			this.editor.setCurrentTool('select')
+		}
+	}
+
 	/**
 	 * Get the current laser session, or create a new one if none exists or the current one is fading.
 	 */

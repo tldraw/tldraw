@@ -241,6 +241,17 @@ export class ScribbleSession {
 	}
 
 	/**
+	 * Immediately clear all scribbles and mark session as complete.
+	 */
+	clear(): void {
+		this.dispose()
+		for (const item of this.items) {
+			item.scribble.points.length = 0
+		}
+		this.state = 'complete'
+	}
+
+	/**
 	 * Clean up resources.
 	 */
 	dispose(): void {
