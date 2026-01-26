@@ -1,5 +1,4 @@
 import { StateNode } from '@tldraw/editor'
-import { LaserTool } from '../LaserTool'
 
 export class Lasering extends StateNode {
 	static override id = 'lasering'
@@ -19,8 +18,7 @@ export class Lasering extends StateNode {
 
 	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.getCurrentPagePoint()
-		const sessionId = (this.parent as LaserTool).getSessionId()
-		this.editor.scribbles.addPointToSession(sessionId, this.scribbleId, x, y)
+		this.editor.scribbles.addPointToSession(this.sessionId, this.scribbleId, x, y)
 	}
 
 	override onTick() {
