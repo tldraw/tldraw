@@ -525,6 +525,17 @@ export class PathBuilder {
 		}
 	}
 
+	toPath2D(opts: PathBuilderOpts): Path2D {
+		if (opts.forceSolid || opts.style === 'solid') {
+			return new Path2D(this.toD({ onlyFilled: opts.onlyFilled }))
+		}
+		if (opts.style === 'draw') {
+			return new Path2D(this.toDrawD(opts))
+		}
+
+		return new Path2D(this.toD({ onlyFilled: opts.onlyFilled }))
+	}
+
 	toGeometry(): PathBuilderGeometry2d | Group2d {
 		const geometries = []
 

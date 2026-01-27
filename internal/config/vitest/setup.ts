@@ -50,6 +50,13 @@ if (typeof HTMLImageElement !== 'undefined') {
 	}
 }
 
+// Path2D polyfills
+if (typeof Path2D !== 'undefined' && !Path2D.prototype.roundRect) {
+	Path2D.prototype.roundRect = function (x, y, w, h, _) {
+		this.rect(x, y, w, h)
+	}
+}
+
 // CSS.supports polyfill for tests that use color spaces (e.g., highlight shapes)
 if (typeof CSS === 'undefined') {
 	;(global as any).CSS = {}

@@ -185,6 +185,7 @@ export {
 	type TLEditStartInfo,
 	type TLGeometryOpts,
 	type TLHandleDragInfo,
+	type TLIndicatorPath,
 	type TLResizeInfo,
 	type TLResizeMode,
 	type TLShapeUtilCanBeLaidOutOpts,
