@@ -22,6 +22,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
+import { TLShapeStyleOverrides } from './editor/TLShapeStyles'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -210,6 +211,27 @@ export interface TldrawEditorBaseProps {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Provides a way to compute style overrides for shapes at runtime.
+	 *
+	 * This callback is called when computing resolved styles for a shape. The returned
+	 * overrides are merged on top of the shape's default styles.
+	 *
+	 * @example
+	 * ```ts
+	 * getShapeStyleOverrides={(shape, editor) => {
+	 *   if (shape.meta.highlighted) {
+	 *     return { strokeColor: '#ff0000', strokeWidth: 5 }
+	 *   }
+	 *   return undefined
+	 * }}
+	 * ```
+	 *
+	 * @param shape - The shape to compute overrides for.
+	 * @param editor - The editor instance.
+	 */
+	getShapeStyleOverrides?(shape: TLShape, editor: Editor): TLShapeStyleOverrides | null | undefined
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -403,6 +425,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	deepLinks: _deepLinks,
 	getShapeVisibility,
+	getShapeStyleOverrides,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
@@ -462,6 +485,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				getShapeStyleOverrides,
 				fontAssetUrls: assetUrls?.fonts,
 			})
 
@@ -497,6 +521,7 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			getShapeVisibility,
+			getShapeStyleOverrides,
 			textOptions,
 			assetUrls,
 		]

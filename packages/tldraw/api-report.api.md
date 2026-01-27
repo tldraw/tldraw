@@ -146,6 +146,7 @@ import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLStyleContext } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
@@ -270,6 +271,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
     getDefaultProps(): TLArrowShape['props'];
+    // (undocumented)
+    getDefaultStyles(shape: TLArrowShape, ctx: TLStyleContext): TLArrowShapeResolvedStyles;
     // (undocumented)
     getFontFaces(shape: TLArrowShape): TLFontFace[];
     // (undocumented)
@@ -1169,6 +1172,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getDefaultProps(): TLDrawShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLDrawShape, ctx: TLStyleContext): TLDrawShapeResolvedStyles;
+    // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
@@ -1564,6 +1569,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLFrameShape, ctx: TLStyleContext): TLFrameShapeResolvedStyles;
+    // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
@@ -1602,7 +1609,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLFrameShape, _ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "frame";
 }
@@ -1632,6 +1639,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
+    // (undocumented)
+    getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles;
     // (undocumented)
     getFontFaces(shape: TLGeoShape): TLFontFace[];
     // (undocumented)
@@ -1757,7 +1766,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element | null;
     // (undocumented)
     static type: "geo";
 }
@@ -1900,6 +1909,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLHighlightShape, ctx: TLStyleContext): TLHighlightShapeResolvedStyles;
+    // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
@@ -2021,6 +2032,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     component(shape: TLLineShape): JSX.Element;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
+    // (undocumented)
+    getDefaultStyles(shape: TLLineShape, ctx: TLStyleContext): TLLineShapeResolvedStyles;
     // (undocumented)
     getGeometry(shape: TLLineShape): PathBuilderGeometry2d;
     // (undocumented)
@@ -2181,6 +2194,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLNoteShape, ctx: TLStyleContext): TLNoteShapeResolvedStyles;
+    // (undocumented)
     getFontFaces(shape: TLNoteShape): TLFontFace[];
     // (undocumented)
     getGeometry(shape: TLNoteShape): Group2d;
@@ -2267,7 +2282,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
-    toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLNoteShape, _ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "note";
 }
@@ -2619,8 +2634,10 @@ export interface RichTextLabelProps {
     fill?: TLDefaultFillStyle;
     // (undocumented)
     font: TLDefaultFontStyle;
+    fontFamily?: string;
     // (undocumented)
     fontSize: number;
+    fontWeight?: number | string;
     // (undocumented)
     hasCustomTabBehavior?: boolean;
     // (undocumented)
@@ -2656,7 +2673,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline, fontFamily, fontWeight, }: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -2666,8 +2683,10 @@ export interface RichTextSVGProps {
     bounds: Box;
     // (undocumented)
     font: TLDefaultFontStyle;
+    fontFamily?: string;
     // (undocumented)
     fontSize: number;
+    fontWeight?: number | string;
     // (undocumented)
     labelColor: string;
     // (undocumented)
@@ -3026,6 +3045,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
+    getDefaultStyles(shape: TLTextShape, ctx: TLStyleContext): TLTextShapeResolvedStyles;
+    // (undocumented)
     getFontFaces(shape: TLTextShape): TLFontFace[];
     // (undocumented)
     getGeometry(shape: TLTextShape, opts: TLGeometryOpts): Rectangle2d;
@@ -3092,7 +3113,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     static props: RecordProps<TLTextShape>;
     // (undocumented)
-    toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLTextShape, _ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "text";
 }
@@ -3158,6 +3179,24 @@ export interface TLArrowPoint {
     handle: VecLike;
     // (undocumented)
     point: VecLike;
+}
+
+// @public
+export interface TLArrowShapeResolvedStyles {
+    // (undocumented)
+    arrowheadFillColor: string;
+    // (undocumented)
+    arrowheadFillType: 'none' | 'pattern' | 'solid';
+    // (undocumented)
+    arrowheadPatternColor: string;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public
@@ -3292,6 +3331,24 @@ export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegrou
 
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX.Element;
+
+// @public
+export interface TLDrawShapeResolvedStyles {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillOpacity: number;
+    // (undocumented)
+    fillType: 'none' | 'pattern' | 'solid';
+    // (undocumented)
+    patternColor: string;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeOpacity: number;
+    // (undocumented)
+    strokeWidth: number;
+}
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
@@ -3568,6 +3625,90 @@ export interface TLExternalContentProps {
     maxImageDimension?: number;
 }
 
+// @public
+export interface TLFrameShapeResolvedStyles {
+    // (undocumented)
+    frameFill: string;
+    // (undocumented)
+    frameHeadingFill: string;
+    // (undocumented)
+    frameHeadingStroke: string;
+    // (undocumented)
+    frameHeadingText: string;
+    // (undocumented)
+    frameStroke: string;
+}
+
+// @public
+export interface TLGeoShapeResolvedStyles {
+    // (undocumented)
+    dashLengthRatio: number;
+    // (undocumented)
+    drawOffset: number;
+    // (undocumented)
+    drawPasses: number;
+    // (undocumented)
+    drawRoundness: number;
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillOpacity: number;
+    // (undocumented)
+    fillType: 'none' | 'pattern' | 'solid';
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelFontWeight: number | string;
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    patternColor: string;
+    // (undocumented)
+    showLabelOutline: boolean;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeLinecap: 'butt' | 'round' | 'square';
+    // (undocumented)
+    strokeLinejoin: 'bevel' | 'miter' | 'round';
+    // (undocumented)
+    strokeOpacity: number;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public
+export interface TLHighlightShapeResolvedStyles {
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public
+export interface TLLineShapeResolvedStyles {
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public
+export interface TLNoteShapeResolvedStyles {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    labelColor: string;
+}
+
 // @public (undocumented)
 export interface TLStraightArrowInfo {
     // (undocumented)
@@ -3584,6 +3725,14 @@ export interface TLStraightArrowInfo {
     start: TLArrowPoint;
     // (undocumented)
     type: 'straight';
+}
+
+// @public
+export interface TLTextShapeResolvedStyles {
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    textColor: string;
 }
 
 // @public (undocumented)

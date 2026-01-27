@@ -3,6 +3,7 @@ import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
+	TLDefaultColorTheme,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -24,6 +25,17 @@ import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
+
+/**
+ * Context passed to getDefaultStyles for computing derived styles.
+ *
+ * @public
+ */
+export interface TLStyleContext {
+	/** Whether dark mode is enabled */
+	isDarkMode: boolean
+	theme: TLDefaultColorTheme
+}
 
 /** @public */
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
@@ -533,6 +545,39 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	getAriaDescriptor(shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
+	 * Get the resolved styles for a shape based on its props and the current context.
+	 *
+	 * Override this method to compute the low-level style values for your shape.
+	 * These should be fully resolved values (not themeable) - use the `ctx.isDarkMode`
+	 * to compute theme-appropriate values.
+	 *
+	 * The returned styles can be overridden by the `getShapeStyleOverrides` callback
+	 * on the editor, which supports themeable values like `{ light: '#fff', dark: '#000' }`.
+	 *
+	 * @param shape - The shape to get styles for
+	 * @param ctx - Style context including dark mode, zoom level, etc.
+	 * @returns The resolved styles for this shape, or undefined if the shape
+	 *          doesn't support computed styles.
+	 *
+	 * @example
+	 * ```ts
+	 * getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles {
+	 *   const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+	 *   return {
+	 *     strokeWidth: STROKE_SIZES[shape.props.size] * shape.props.scale,
+	 *     strokeColor: getColorValue(theme, shape.props.color, 'solid'),
+	 *     // ... other styles - all fully resolved, no Themeable wrappers
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * @public
+	 */
+	getDefaultStyles(_shape: Shape, _ctx: TLStyleContext): object | undefined {
 		return undefined
 	}
 

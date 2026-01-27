@@ -14,8 +14,9 @@ import {
 	TLGeoShapeProps,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
+	TLStyleContext,
 	Vec,
-	WeakCache,
+	createComputedCache,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -25,8 +26,56 @@ import {
 	isEqual,
 	lerp,
 	toRichText,
+	useShapeStyles,
 	useValue,
 } from '@tldraw/editor'
+
+/**
+ * The resolved/computed styles for a geo shape.
+ * These are the actual values derived from shape props and overrides.
+ *
+ * @public
+ */
+export interface TLGeoShapeResolvedStyles {
+	// Stroke
+	strokeWidth: number
+	strokeColor: string
+	strokeLinecap: 'round' | 'butt' | 'square'
+	strokeLinejoin: 'round' | 'bevel' | 'miter'
+	strokeOpacity: number
+
+	// Fill
+	fillType: 'none' | 'solid' | 'pattern'
+	fillColor: string
+	fillOpacity: number
+
+	// Draw style (for 'draw' dash style - hand-drawn look)
+	drawOffset: number
+	drawRoundness: number
+	drawPasses: number
+
+	// Dash
+	dashLengthRatio: number
+
+	// Pattern (patternUrl computed at render time based on zoom)
+	patternColor: string
+
+	// Label
+	labelFontSize: number
+	labelLineHeight: number
+	labelPadding: number
+	labelColor: string
+	labelFontFamily: string
+	labelFontWeight: string | number
+	showLabelOutline: boolean
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		geo: TLGeoShapeResolvedStyles
+	}
+}
+
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -41,11 +90,15 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	useGetHashPatternZoomName,
+} from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { GeoShapeBody } from './components/GeoShapeBody'
+import { GeoShapeBody, GeoShapeBodyForExport } from './components/GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
@@ -58,6 +111,82 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override options = {
 		showTextOutline: true,
+	}
+
+	override getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles {
+		const { props } = shape
+		const scale = props.scale
+		const theme = ctx.theme
+
+		// Stroke styles
+		const strokeWidth = STROKE_SIZES[props.size] * scale
+
+		// Draw style parameters (used when dash === 'draw')
+		const drawOffset = strokeWidth / 3
+		const drawRoundness = strokeWidth * 2
+		const drawPasses = 2
+
+		// Dash length ratio (how dash length relates to stroke width)
+		const dashLengthRatio = 2
+
+		// Compute fill type and color
+		const { fillType, fillColor } = this.getFillTypeAndColor(props, theme)
+
+		return {
+			// Stroke
+			strokeWidth,
+			strokeColor: getColorValue(theme, props.color, 'solid'),
+			strokeLinecap: 'round',
+			strokeLinejoin: 'round',
+			strokeOpacity: 1,
+
+			// Fill
+			fillType,
+			fillColor,
+			fillOpacity: 1,
+
+			// Draw style
+			drawOffset,
+			drawRoundness,
+			drawPasses,
+
+			// Dash style
+			dashLengthRatio,
+
+			// Pattern (patternUrl computed at render time based on zoom)
+			patternColor: getColorValue(theme, props.color, 'pattern'),
+
+			// Label
+			labelFontSize: LABEL_FONT_SIZES[props.size] * scale,
+			labelLineHeight: TEXT_PROPS.lineHeight,
+			labelPadding: LABEL_PADDING * scale,
+			labelColor: getColorValue(theme, props.labelColor, 'solid'),
+			labelFontFamily: FONT_FAMILIES[props.font],
+			labelFontWeight: TEXT_PROPS.fontWeight,
+			showLabelOutline: this.options.showTextOutline,
+		}
+	}
+
+	private getFillTypeAndColor(
+		props: TLGeoShapeProps,
+		theme: ReturnType<typeof getDefaultColorTheme>
+	): { fillType: 'none' | 'solid' | 'pattern'; fillColor: string } {
+		switch (props.fill) {
+			case 'none':
+				return { fillType: 'none', fillColor: 'transparent' }
+			case 'solid':
+				return { fillType: 'solid', fillColor: getColorValue(theme, props.color, 'semi') }
+			case 'semi':
+				return { fillType: 'solid', fillColor: theme.solid }
+			case 'fill':
+				return { fillType: 'solid', fillColor: getColorValue(theme, props.color, 'fill') }
+			case 'pattern':
+				return { fillType: 'pattern', fillColor: getColorValue(theme, props.color, 'pattern') }
+			case 'lined-fill':
+				return { fillType: 'solid', fillColor: getColorValue(theme, props.color, 'linedFill') }
+			default:
+				return { fillType: 'none', fillColor: 'transparent' }
+		}
 	}
 
 	override canEdit() {
@@ -177,9 +306,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
-		const { fill, font, align, verticalAlign, size, richText } = props
+		const { fill, font, align, verticalAlign, richText } = props
 		const theme = useDefaultColorTheme()
 		const { editor } = this
+		const styles = useShapeStyles<TLGeoShapeResolvedStyles>(shape)
 		const isOnlySelected = useValue(
 			'isGeoOnlySelected',
 			() => shape.id === editor.getOnlySelectedShapeId(),
@@ -190,10 +320,20 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const showHtmlContainer = isReadyForEditing || !isEmpty
 		const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
 
+		// Compute pattern URL for pattern fills
+		const getHashPatternZoomName = useGetHashPatternZoomName()
+		const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+		const patternUrl = getHashPatternZoomName(zoomLevel, theme.id)
+
 		return (
 			<>
 				<SVGContainer>
-					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
+					<GeoShapeBody
+						shape={shape}
+						forceSolid={isForceSolid}
+						styles={styles}
+						patternUrl={patternUrl}
+					/>
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
@@ -207,17 +347,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
-							lineHeight={TEXT_PROPS.lineHeight}
-							padding={LABEL_PADDING * shape.props.scale}
+							fontSize={styles.labelFontSize}
+							lineHeight={styles.labelLineHeight}
+							padding={styles.labelPadding}
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isOnlySelected}
-							labelColor={getColorValue(theme, props.labelColor, 'solid')}
+							labelColor={styles.labelColor}
 							wrap
-							showTextOutline={this.options.showTextOutline}
+							showTextOutline={styles.showLabelOutline}
+							fontFamily={styles.labelFontFamily}
+							fontWeight={styles.labelFontWeight}
 						/>
 					</HTMLContainer>
 				)}
@@ -228,9 +370,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	indicator(shape: TLGeoShape) {
 		const isZoomedOut = useEfficientZoomThreshold(shape.props.scale * 0.25)
+		const styles = useShapeStyles<TLGeoShapeResolvedStyles>(shape)
 
-		const { size, dash, scale } = shape.props
-		const strokeWidth = STROKE_SIZES[size]
+		const { dash } = shape.props
 
 		const path = getGeoShapePath(shape)
 
@@ -240,7 +382,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			passes: 1,
 			randomSeed: shape.id,
 			offset: 0,
-			roundness: strokeWidth * 2 * scale,
+			roundness: styles.drawRoundness,
 			props: { strokeWidth: undefined },
 			forceSolid: isZoomedOut,
 		})
@@ -249,40 +391,70 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const scale = shape.props.scale
 		// We need to scale the shape to 1x for export
-		const newShape = {
+		const newShape: TLGeoShape = {
 			...shape,
 			props: {
 				...shape.props,
 				w: shape.props.w / scale,
 				h: (shape.props.h + shape.props.growY) / scale,
 				growY: 0, // growY throws off the path calculations, so we set it to 0
+				scale: 1, // Reset scale since we're scaling down the shape dimensions
 			},
 		}
 		const props = newShape.props
 		ctx.addExportDef(getFillDefForExport(props.fill))
 
+		// Get resolved styles using the editor's cache (handles overrides)
+		const styles = this.editor.getShapeStyles<TLGeoShapeResolvedStyles>(shape)
+		if (!styles) return null
+
+		// Compute styles for the unscaled shape dimensions
+		const styleCtx: TLStyleContext = {
+			isDarkMode: ctx.isDarkMode,
+			theme: getDefaultColorTheme({ isDarkMode: ctx.isDarkMode }),
+		}
+		const unscaledStyles = this.getDefaultStyles(newShape, styleCtx)
+
+		// Merge: use unscaled dimensions but preserve color/style overrides from original
+		const resolvedStyles: TLGeoShapeResolvedStyles = {
+			...unscaledStyles,
+			// Preserve color and style overrides from the original shape's resolved styles
+			strokeColor: styles.strokeColor,
+			strokeOpacity: styles.strokeOpacity,
+			strokeLinecap: styles.strokeLinecap,
+			strokeLinejoin: styles.strokeLinejoin,
+			fillType: styles.fillType,
+			fillColor: styles.fillColor,
+			fillOpacity: styles.fillOpacity,
+			labelColor: styles.labelColor,
+			labelFontFamily: styles.labelFontFamily,
+			labelFontWeight: styles.labelFontWeight,
+			patternColor: styles.patternColor,
+		}
+
 		let textEl
 		if (!isEmptyRichText(props.richText)) {
-			const theme = getDefaultColorTheme(ctx)
 			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG
-					fontSize={LABEL_FONT_SIZES[props.size]}
+					fontSize={resolvedStyles.labelFontSize}
 					font={props.font}
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					richText={props.richText}
-					labelColor={getColorValue(theme, props.labelColor, 'solid')}
+					labelColor={resolvedStyles.labelColor}
 					bounds={bounds}
-					padding={LABEL_PADDING}
-					showTextOutline={this.options.showTextOutline}
+					padding={resolvedStyles.labelPadding}
+					showTextOutline={resolvedStyles.showLabelOutline}
+					fontFamily={resolvedStyles.labelFontFamily}
+					fontWeight={resolvedStyles.labelFontWeight}
 				/>
 			)
 		}
 
 		return (
 			<>
-				<GeoShapeBody shouldScale={false} shape={newShape} forceSolid={false} />
+				<GeoShapeBodyForExport shape={newShape} styles={resolvedStyles} />
 				{textEl}
 			</>
 		)
@@ -618,18 +790,25 @@ function expandShapeForFirstLabel(
 	return { w, h }
 }
 
-const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
+// Use createComputedCache for proper reactivity - this ensures label size
+// updates when styles change (not just when shape props change)
+const labelSizesForGeo = createComputedCache(
+	'geo label size',
+	(editor: Editor, shape: TLGeoShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		return measureUnscaledLabelSize(editor, shape)
+	}
+)
 
 // Returns cached label size for the shape. Don't call with empty rich text.
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
-	return labelSizesForGeo.get(shape, () => {
-		return measureUnscaledLabelSize(editor, shape)
-	})
+	return labelSizesForGeo.get(editor, shape.id)!
 }
 
 // This is the expensive part of the code so we want to avoid calling it if we can
 function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { richText, font, size, w } = shape.props
+	const styles = editor.getShapeStyles<TLGeoShapeResolvedStyles>(shape)
 
 	const minWidth = MIN_WIDTHS[size]
 
@@ -637,7 +816,7 @@ function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
+		fontSize: styles?.labelFontSize ?? LABEL_FONT_SIZES[size],
 		minWidth: minWidth,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0

@@ -46,6 +46,10 @@ export interface RichTextLabelProps {
 	padding?: number
 	hasCustomTabBehavior?: boolean
 	showTextOutline?: boolean
+	/** Optional override for font family (CSS value) */
+	fontFamily?: string
+	/** Optional override for font weight */
+	fontWeight?: string | number
 }
 
 /**
@@ -75,6 +79,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	textHeight,
 	hasCustomTabBehavior,
 	showTextOutline = true,
+	fontFamily,
+	fontWeight,
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
@@ -160,6 +166,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 					color: labelColor,
 					width: textWidth ? Math.ceil(textWidth) : undefined,
 					height: textHeight ? Math.ceil(textHeight) : undefined,
+					// Style overrides
+					fontFamily,
+					fontWeight,
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
@@ -203,6 +212,10 @@ export interface RichTextSVGProps {
 	labelColor: string
 	padding: number
 	showTextOutline?: boolean
+	/** Optional override for font family (CSS value) */
+	fontFamily?: string
+	/** Optional override for font weight */
+	fontWeight?: string | number
 }
 
 /**
@@ -221,6 +234,8 @@ export function RichTextSVG({
 	labelColor,
 	padding,
 	showTextOutline = true,
+	fontFamily,
+	fontWeight,
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
@@ -240,7 +255,8 @@ export function RichTextSVG({
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
-		fontFamily: DefaultFontFamilies[font],
+		fontFamily: fontFamily ?? DefaultFontFamilies[font],
+		fontWeight,
 		height: `100%`,
 		justifyContent,
 		alignItems,

@@ -10,6 +10,7 @@ import {
 	TLDrawShapeProps,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
+	TLStyleContext,
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
@@ -18,17 +19,48 @@ import {
 	lerp,
 	rng,
 	useEditor,
+	useShapeStyles,
 	useValue,
 } from '@tldraw/editor'
 
-import { ShapeFill } from '../shared/ShapeFill'
+/**
+ * The resolved/computed styles for a draw shape.
+ * These are the actual values derived from shape props and overrides.
+ *
+ * @public
+ */
+export interface TLDrawShapeResolvedStyles {
+	// Stroke
+	strokeWidth: number
+	strokeColor: string
+	strokeOpacity: number
+
+	// Fill
+	fillType: 'none' | 'solid' | 'pattern'
+	fillColor: string
+	fillOpacity: number
+
+	// Pattern (patternUrl computed at render time based on zoom)
+	patternColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		draw: TLDrawShapeResolvedStyles
+	}
+}
+
+import { ShapeFill, ShapeFillProps } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	useGetHashPatternZoomName,
+} from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	getDrawShapeStrokeDashArray,
 	getFreehandOptions,
@@ -80,6 +112,37 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		}
 	}
 
+	override getDefaultStyles(shape: TLDrawShape, ctx: TLStyleContext): TLDrawShapeResolvedStyles {
+		const theme = ctx.theme
+		const { props } = shape
+		const scale = props.scale
+
+		// Stroke width with +1 adjustment for draw shapes
+		const strokeWidth = (STROKE_SIZES[props.size] + 1) * scale
+
+		// Compute fill type and color
+		const fillType = props.fill === 'none' ? 'none' : props.fill === 'pattern' ? 'pattern' : 'solid'
+		const fillColor =
+			fillType === 'pattern'
+				? getColorValue(theme, props.color, 'pattern')
+				: getColorValue(theme, props.color, 'semi')
+
+		return {
+			// Stroke
+			strokeWidth,
+			strokeColor: getColorValue(theme, props.color, 'solid'),
+			strokeOpacity: 1,
+
+			// Fill
+			fillType,
+			fillColor,
+			fillOpacity: 1,
+
+			// Pattern (patternUrl computed at render time based on zoom)
+			patternColor: getColorValue(theme, props.color, 'pattern'),
+		}
+	}
+
 	getGeometry(shape: TLDrawShape) {
 		const points = getPointsFromDrawSegments(
 			shape.props.segments,
@@ -87,7 +150,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const styles = this.editor.getShapeStyles<TLDrawShapeResolvedStyles>(shape)
+		const sw = styles?.strokeWidth ?? (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -235,18 +299,21 @@ function getIsDot(shape: TLDrawShape) {
 }
 
 function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverride?: number }) {
-	const theme = useDefaultColorTheme()
 	const editor = useEditor()
+	const styles = useShapeStyles<TLDrawShapeResolvedStyles>(shape)
+	const getPatternZoomName = useGetHashPatternZoomName()
+	const isDarkMode = editor.user.getIsDarkMode()
 
 	const allPointsFromSegments = getPointsFromDrawSegments(
 		shape.props.segments,
 		shape.props.scaleX,
 		shape.props.scaleY
 	)
-
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
-	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+	// Get stroke width from resolved styles
+	let sw = styles?.strokeWidth ?? (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+
 	const forceSolid = useValue(
 		'force solid',
 		() => {
@@ -267,6 +334,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 		[editor, zoomOverride]
 	)
 
+	// Add random jitter for non-pen draw mode with single point
 	if (
 		!forceSolid &&
 		!shape.props.isPen &&
@@ -278,26 +346,44 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 
 	const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 
+	// Use resolved styles for colors
+	const strokeColor = styles.strokeColor
+	const fillColor = styles.fillColor
+	const fillType = styles.fillType
+	const patternColor = styles.patternColor
+	const fillOpacity = styles.fillOpacity
+
+	// Get pattern URL for pattern fills
+	const patternUrl = getPatternZoomName(
+		zoomOverride ?? editor.getZoomLevel(),
+		isDarkMode ? 'dark' : 'light'
+	)
+
+	// Helper to build fill props based on fill type
+	const buildFillProps = (d: string, type: 'none' | 'solid' | 'pattern'): ShapeFillProps => {
+		switch (type) {
+			case 'none':
+				return { d, type: 'none' }
+			case 'solid':
+				return { d, type: 'solid', color: fillColor, opacity: fillOpacity }
+			case 'pattern':
+				return { d, type: 'pattern', color: patternColor, patternUrl, opacity: fillOpacity }
+		}
+	}
+
 	if (!forceSolid && shape.props.dash === 'draw') {
+		// Hand-drawn style rendering
+		const fillPath = getSvgPathFromStrokePoints(
+			getStrokePoints(allPointsFromSegments, options),
+			shape.props.isClosed
+		)
+
 		return (
 			<>
-				{shape.props.isClosed && shape.props.fill && allPointsFromSegments.length > 1 ? (
-					<ShapeFill
-						d={getSvgPathFromStrokePoints(
-							getStrokePoints(allPointsFromSegments, options),
-							shape.props.isClosed
-						)}
-						theme={theme}
-						color={shape.props.color}
-						fill={shape.props.isClosed ? shape.props.fill : 'none'}
-						scale={shape.props.scale}
-					/>
+				{shape.props.isClosed && fillType !== 'none' && allPointsFromSegments.length > 1 ? (
+					<ShapeFill {...buildFillProps(fillPath, fillType)} />
 				) : null}
-				<path
-					d={svgInk(allPointsFromSegments, options)}
-					strokeLinecap="round"
-					fill={getColorValue(theme, shape.props.color, 'solid')}
-				/>
+				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={strokeColor} />
 			</>
 		)
 	}
@@ -308,20 +394,17 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 		? getDot(allPointsFromSegments[0], 0)
 		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
 
+	// Determine effective fill type for this render
+	const effectiveFillType = isDot || shape.props.isClosed ? fillType : 'none'
+
 	return (
 		<>
-			<ShapeFill
-				d={solidStrokePath}
-				theme={theme}
-				color={shape.props.color}
-				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
-				scale={shape.props.scale}
-			/>
+			<ShapeFill {...buildFillProps(solidStrokePath, effectiveFillType)} />
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
-				fill={isDot ? getColorValue(theme, shape.props.color, 'solid') : 'none'}
-				stroke={getColorValue(theme, shape.props.color, 'solid')}
+				fill={isDot ? strokeColor : 'none'}
+				stroke={strokeColor}
 				strokeWidth={sw}
 				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"

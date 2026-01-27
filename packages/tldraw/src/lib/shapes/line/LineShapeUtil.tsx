@@ -8,6 +8,7 @@ import {
 	TLLineShape,
 	TLLineShapePoint,
 	TLResizeInfo,
+	TLStyleContext,
 	Vec,
 	WeakCache,
 	ZERO_INDEX_KEY,
@@ -22,11 +23,27 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
+	useShapeStyles,
 } from '@tldraw/editor'
 
 import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+
+/**
+ * The resolved/computed styles for a line shape.
+ *
+ * @public
+ */
+export interface TLLineShapeResolvedStyles {
+	strokeWidth: number
+	strokeColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		line: TLLineShapeResolvedStyles
+	}
+}
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
@@ -64,6 +81,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				[end]: { id: end, index: end, x: 0.1, y: 0.1 },
 			},
 			scale: 1,
+		}
+	}
+
+	override getDefaultStyles(shape: TLLineShape, ctx: TLStyleContext): TLLineShapeResolvedStyles {
+		return {
+			strokeWidth: STROKE_SIZES[shape.props.size] * shape.props.scale,
+			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
 		}
 	}
 
@@ -182,15 +206,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	component(shape: TLLineShape) {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const styles = useShapeStyles<TLLineShapeResolvedStyles>(shape)
 		return (
 			<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-				<LineShapeSvg shape={shape} />
+				<LineShapeSvg shape={shape} styles={styles} />
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const styles = useShapeStyles<TLLineShapeResolvedStyles>(shape)
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -200,13 +227,14 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			passes: 1,
 			randomSeed: shape.id,
 			offset: 0,
-			roundness: strokeWidth * 2,
+			roundness: styles.strokeWidth * 2,
 			props: { strokeWidth: undefined },
 		})
 	}
 
 	override toSvg(shape: TLLineShape) {
-		return <LineShapeSvg shouldScale shape={shape} />
+		const styles = this.editor.getShapeStyles<TLLineShapeResolvedStyles>(shape)!
+		return <LineShapeSvg shouldScale shape={shape} styles={styles} />
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
@@ -327,32 +355,29 @@ function getPathForLineShape(shape: TLLineShape): PathBuilder {
 
 function LineShapeSvg({
 	shape,
+	styles,
 	shouldScale = false,
 	forceSolid = false,
 }: {
 	shape: TLLineShape
+	styles: TLLineShapeResolvedStyles
 	shouldScale?: boolean
 	forceSolid?: boolean
 }) {
-	const theme = useDefaultColorTheme()
-
 	const path = getPathForLineShape(shape)
-	const { dash, color, size } = shape.props
+	const { dash } = shape.props
 
 	const scaleFactor = 1 / shape.props.scale
-
 	const scale = shouldScale ? scaleFactor : 1
-
-	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
 
 	return path.toSvg({
 		style: dash,
-		strokeWidth,
+		strokeWidth: styles.strokeWidth,
 		forceSolid,
 		randomSeed: shape.id,
 		props: {
 			transform: `scale(${scale})`,
-			stroke: getColorValue(theme, color, 'solid'),
+			stroke: styles.strokeColor,
 			fill: 'none',
 		},
 	})
