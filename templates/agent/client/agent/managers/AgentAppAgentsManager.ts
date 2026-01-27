@@ -6,7 +6,7 @@ import { BaseAgentAppManager } from './BaseAgentAppManager'
  * Generate a unique agent ID.
  */
 function generateAgentId(): string {
-	return `agent-${uniqueId()}`
+	return uniqueId()
 }
 
 /**
