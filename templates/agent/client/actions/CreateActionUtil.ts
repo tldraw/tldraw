@@ -102,7 +102,9 @@ function getDefaultShape(shapeType: FocusedShape['_type'], complete: boolean): P
 	return complete ? defaultShape : { ...defaultShape, isLocked: true }
 }
 
-const SHARED_DEFAULTS = {
+type BaseShapeDefaults = Pick<TLShape, 'id' | 'isLocked' | 'opacity' | 'rotation' | 'meta'>
+
+const SHARED_DEFAULTS: BaseShapeDefaults = {
 	isLocked: false,
 	opacity: 1,
 	rotation: 0,
@@ -110,7 +112,19 @@ const SHARED_DEFAULTS = {
 	id: 'shape:shape' as TLShapeId,
 }
 
-const SHAPE_DEFAULTS = {
+type ShapeDefaults<T extends TLShape = TLShape> = BaseShapeDefaults & {
+	props?: Partial<T['props']>
+}
+
+type SupportedShapeTypes = 'text' | 'line' | 'arrow' | 'geo' | 'note' | 'draw'
+
+type ShapeDefaultsMap = {
+	[K in SupportedShapeTypes]: ShapeDefaults<TLShape<K>>
+} & {
+	unknown: ShapeDefaults
+}
+
+const SHAPE_DEFAULTS: ShapeDefaultsMap = {
 	text: {
 		...SHARED_DEFAULTS,
 		props: {
