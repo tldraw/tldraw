@@ -12,8 +12,6 @@ If you are not sure whether your changes are needed, feel free to create an issu
 
 We are currently **not accepting pull requests from external contributors**. Pull requests will be automatically closed. This is a temporary policy until GitHub provides better tools for managing contributions.
 
-Like many open-source projects, we've seen a significant increase in contributions generated entirely by AI tools. While some are formally correct, most suffer from incomplete context, misunderstanding of the codebase, and little follow-up engagement from their authors. An open pull request represents a commitment from maintainers to review it carefully and consider it seriously for inclusion. For that commitment to remain meaningful, we need to be more selective.
-
 For more details on this policy, see [this issue](https://github.com/tldraw/tldraw/issues/7695).
 
 Please also see our [Code of Conduct](https://github.com/tldraw/tldraw/blob/main/CODE_OF_CONDUCT.md) for our expectations around contributor culture.
