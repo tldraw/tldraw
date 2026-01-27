@@ -786,6 +786,7 @@ export function convertPartialFocusedShapeToTldrawShape(
 			shapeId: partial.shapeId ?? ('streaming-shape' as any),
 			note: partial.note ?? '',
 			color: partial.color ?? 'black',
+			textAlign: partial.textAlign || 'middle',
 		} as FocusedGeoShape
 		const result = convertGeoShapeToTldrawShape(editor, fullShape, { defaultShape })
 		return { shape: result.shape, bindings: null, position: { x: partial.x, y: partial.y } }
