@@ -583,7 +583,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	})
 
 	// Deploy view syncer with reference to replication manager
-	const replManagerUri = `http://${flyioReplAppName}.flycast:4849`
+	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
 	updateFlyioViewSyncerToml(flyioAppName, replManagerUri)
 	if (apps.indexOf(flyioAppName) === -1) {
 		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
