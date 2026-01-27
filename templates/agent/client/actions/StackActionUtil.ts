@@ -29,7 +29,7 @@ export const StackActionUtil = registerActionUtil(
 			this.editor.stackShapes(
 				action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
 				action.direction,
-				Math.min(action.gap, 1)
+				Math.max(action.gap, 0)
 			)
 		}
 	}
