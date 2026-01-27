@@ -35,12 +35,26 @@ export class TldrawAgentApp {
 	private handleCrash = () => this.dispose()
 	private handleDispose = () => this.dispose()
 
+	private _editor: Editor | null
+
+	/**
+	 * The editor associated with this app.
+	 * @throws Error if the app has been disposed.
+	 */
+	get editor(): Editor {
+		if (!this._editor) {
+			throw new Error('TldrawAgentApp has been disposed')
+		}
+		return this._editor
+	}
+
 	constructor(
-		public editor: Editor,
+		editor: Editor,
 		public options: {
 			onError: (e: any) => void
 		}
 	) {
+		this._editor = editor
 		this.agents = new AgentAppAgentsManager(this)
 		this.persistence = new AgentAppPersistenceManager(this)
 		editor.on('crash', this.handleCrash)
@@ -51,10 +65,12 @@ export class TldrawAgentApp {
 	 * Dispose of all resources. Call this during cleanup.
 	 */
 	dispose() {
-		this.editor.off('crash', this.handleCrash)
-		this.editor.off('dispose', this.handleDispose)
+		if (!this._editor) return
+		this._editor.off('crash', this.handleCrash)
+		this._editor.off('dispose', this.handleDispose)
 		this.persistence.dispose()
 		this.agents.dispose()
+		this._editor = null
 	}
 
 	/**
