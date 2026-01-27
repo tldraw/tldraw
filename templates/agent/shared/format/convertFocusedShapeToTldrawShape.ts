@@ -456,6 +456,36 @@ function convertArrowShapeToTldrawShape(
 	}
 }
 
+/**
+ * Ensure we have a valid align value for geo shapes
+ */
+function getValidAlign(
+	focusedAlign: string | undefined,
+	defaultAlign: string | undefined
+): TLGeoShape['props']['align'] {
+	const validAligns: TLGeoShape['props']['align'][] = [
+		'start',
+		'middle',
+		'end',
+		'start-legacy',
+		'end-legacy',
+		'middle-legacy',
+	]
+	
+	// Check if focusedAlign is valid
+	if (focusedAlign && validAligns.includes(focusedAlign as TLGeoShape['props']['align'])) {
+		return focusedAlign as TLGeoShape['props']['align']
+	}
+	
+	// Check if defaultAlign is valid
+	if (defaultAlign && validAligns.includes(defaultAlign as TLGeoShape['props']['align'])) {
+		return defaultAlign as TLGeoShape['props']['align']
+	}
+	
+	// Return 'middle' as the safe default
+	return 'middle'
+}
+
 function convertGeoShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedGeoShape,
@@ -498,7 +528,7 @@ function convertGeoShapeToTldrawShape(
 			isLocked: defaultGeoShape.isLocked ?? false,
 			opacity: defaultGeoShape.opacity ?? 1,
 			props: {
-				align: focusedShape.textAlign ?? defaultGeoShape.props?.align ?? 'middle',
+				align: getValidAlign(focusedShape.textAlign, defaultGeoShape.props?.align),
 				color: asColor(focusedShape.color ?? defaultGeoShape.props?.color ?? 'black'),
 				dash: defaultGeoShape.props?.dash ?? 'draw',
 				fill,
@@ -786,6 +816,8 @@ export function convertPartialFocusedShapeToTldrawShape(
 			shapeId: partial.shapeId ?? ('streaming-shape' as any),
 			note: partial.note ?? '',
 			color: partial.color ?? 'black',
+			// Ensure textAlign is either valid or undefined (not empty string)
+			textAlign: partial.textAlign && partial.textAlign.trim() ? partial.textAlign : undefined,
 		} as FocusedGeoShape
 		const result = convertGeoShapeToTldrawShape(editor, fullShape, { defaultShape })
 		return { shape: result.shape, bindings: null, position: { x: partial.x, y: partial.y } }
