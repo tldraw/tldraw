@@ -1,4 +1,4 @@
-app = "__APP_NAME-repl"
+app = "__APP_NAME"
 primary_region = "fra"
 
 [build]
@@ -35,7 +35,7 @@ ZERO_APP_PUBLICATIONS = "zero_data"
 ZERO_ADMIN_PASSWORD = "__ZERO_ADMIN_PASSWORD"
 ZERO_NUM_SYNC_WORKERS = "0"
 ZERO_CHANGE_MAX_CONNS = "3"
-ZERO_LITESTREAM_BACKUP_URL = "s3://zero-litestream-backup/__APP_NAME/"
+ZERO_LITESTREAM_BACKUP_URL = "s3://zero-litestream-backups/__BACKUP_PATH/"
 AWS_ACCESS_KEY_ID = "__TIGRIS_ACCESS_KEY_ID"
 AWS_SECRET_ACCESS_KEY = "__TIGRIS_SECRET_ACCESS_KEY"
 AWS_ENDPOINT_URL_S3 = "https://fly.storage.tigris.dev"

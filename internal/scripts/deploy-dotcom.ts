@@ -104,11 +104,13 @@ const env = makeEnv([
 const deployZero =
 	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode' | 'sst')
 const flyioAppName =
-	deployZero === 'flyio' || deployZero === 'flyio-multinode'
+	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
-		: undefined
+		: deployZero === 'flyio-multinode'
+			? `${previewId ?? env.TLDRAW_ENV}-zero-vs`
+			: undefined
 const flyioReplAppName =
-	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-repl` : undefined
+	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 // pierre is not in production yet, so get the key directly from process.env
 const pierreKey = process.env.PIERRE_KEY ?? ''
@@ -525,7 +527,7 @@ async function deployZeroViaFlyIo() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
 }
 
-function updateFlyioReplicationManagerToml(appName: string): void {
+function updateFlyioReplicationManagerToml(appName: string, backupPath: string): void {
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
 
@@ -534,6 +536,7 @@ function updateFlyioReplicationManagerToml(appName: string): void {
 
 	const updatedContent = fileContent
 		.replaceAll('__APP_NAME', appName)
+		.replaceAll('__BACKUP_PATH', backupPath)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
@@ -543,7 +546,11 @@ function updateFlyioReplicationManagerToml(appName: string): void {
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
 
-function updateFlyioViewSyncerToml(appName: string, replManagerUri: string): void {
+function updateFlyioViewSyncerToml(
+	appName: string,
+	replManagerUri: string,
+	backupPath: string
+): void {
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-view-syncer.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
 
@@ -552,6 +559,7 @@ function updateFlyioViewSyncerToml(appName: string, replManagerUri: string): voi
 
 	const updatedContent = fileContent
 		.replaceAll('__APP_NAME', appName)
+		.replaceAll('__BACKUP_PATH', backupPath)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
@@ -572,7 +580,8 @@ async function deployZeroViaFlyIoMultiNode() {
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 
 	// Deploy replication manager first
-	updateFlyioReplicationManagerToml(flyioReplAppName.replace('-repl', ''))
+	const backupPath = previewId ?? env.TLDRAW_ENV
+	updateFlyioReplicationManagerToml(flyioReplAppName, backupPath)
 	if (apps.indexOf(flyioReplAppName) === -1) {
 		await exec('flyctl', ['app', 'create', flyioReplAppName, '-o', 'tldraw-gb-ltd'], {
 			pwd: zeroCacheFolder,
@@ -584,7 +593,7 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	// Deploy view syncer with reference to replication manager
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
-	updateFlyioViewSyncerToml(flyioAppName, replManagerUri)
+	updateFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath)
 	if (apps.indexOf(flyioAppName) === -1) {
 		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
 			pwd: zeroCacheFolder,
