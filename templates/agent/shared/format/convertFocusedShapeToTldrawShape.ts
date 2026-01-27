@@ -485,6 +485,22 @@ function convertGeoShapeToTldrawShape(
 		fill = convertFocusedFillToTldrawFill('none')
 	}
 
+	// Handle align value - ensure we always provide a valid value
+	// During streaming, textAlign might be undefined or have invalid values temporarily
+	let align: TLGeoShape['props']['align'] = 'middle'
+
+	// Check if focusedShape.textAlign is valid
+	if (focusedShape.textAlign) {
+		// Validate it's one of the expected values
+		const validNonLegacyValues = ['start', 'middle', 'end'] as const
+		if (validNonLegacyValues.includes(focusedShape.textAlign as any)) {
+			align = focusedShape.textAlign as TLGeoShape['props']['align']
+		}
+	} else if (defaultGeoShape.props?.align) {
+		// Use the default if no valid textAlign from focusedShape
+		align = defaultGeoShape.props.align
+	}
+
 	return {
 		shape: {
 			id: shapeId,
@@ -498,7 +514,7 @@ function convertGeoShapeToTldrawShape(
 			isLocked: defaultGeoShape.isLocked ?? false,
 			opacity: defaultGeoShape.opacity ?? 1,
 			props: {
-				align: focusedShape.textAlign ?? defaultGeoShape.props?.align ?? 'middle',
+				align, // Use the validated align value
 				color: asColor(focusedShape.color ?? defaultGeoShape.props?.color ?? 'black'),
 				dash: defaultGeoShape.props?.dash ?? 'draw',
 				fill,
