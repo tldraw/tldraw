@@ -1,0 +1,46 @@
+app = "__APP_NAME"
+primary_region = "fra"
+
+[build]
+image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
+
+[http_service]
+internal_port = 4848
+force_https = true
+auto_stop_machines = "off"
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+timeout = "5s"
+path = "/"
+
+[[vm]]
+memory = "2gb"
+cpu_kind = "shared"
+cpus = 2
+
+[mounts]
+source = "sqlite_db"
+destination = "/data"
+
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CVR_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_ADMIN_PASSWORD = "__ZERO_ADMIN_PASSWORD"
+ZERO_CHANGE_STREAMER_URI = "__REPLICATION_MANAGER_URI"
+ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
+ZERO_QUERY_URL = "__ZERO_QUERY_URL"
+ZERO_LITESTREAM_BACKUP_URL = "s3://zero-litestream-backup/__APP_NAME/"
+AWS_ACCESS_KEY_ID = "__TIGRIS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY = "__TIGRIS_SECRET_ACCESS_KEY"
+AWS_ENDPOINT_URL_S3 = "https://fly.storage.tigris.dev"
+AWS_REGION = "auto"
+LOG_LEVEL = "debug"
+ZERO_LAZY_STARTUP = "true"
+DO_NOT_TRACK = "1"

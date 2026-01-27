@@ -53,15 +53,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/production" || "${GITHUB_REF}" == "refs/heads/main" ]]; then
+          if [[ "${GITHUB_REF}" == "refs/heads/production" ]]; then
             echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
           elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-sst-zero-deploy-please"; then
             echo "DEPLOY_ZERO=sst" >> $GITHUB_ENV
           elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
-            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
           elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
             # gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
-            # echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+            # echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
             echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           else
             echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
@@ -102,11 +104,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Fly cli
-        if: env.DEPLOY_ZERO == 'flyio'
+        if: env.DEPLOY_ZERO == 'flyio' || env.DEPLOY_ZERO == 'flyio-multinode'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Install PostgreSQL client
-        if: env.DEPLOY_ZERO == 'flyio'
+        if: env.DEPLOY_ZERO == 'flyio' || env.DEPLOY_ZERO == 'flyio-multinode'
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
@@ -165,3 +167,5 @@ jobs:
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           PIERRE_KEY: ${{ secrets.PIERRE_KEY }}
+          TIGRIS_ACCESS_KEY_ID: ${{ secrets.TIGRIS_ACCESS_KEY_ID }}
+          TIGRIS_SECRET_ACCESS_KEY: ${{ secrets.TIGRIS_SECRET_ACCESS_KEY }}

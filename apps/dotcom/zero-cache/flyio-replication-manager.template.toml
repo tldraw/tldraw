@@ -1,0 +1,44 @@
+app = "__APP_NAME-repl"
+primary_region = "fra"
+
+[build]
+image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
+
+[http_service]
+internal_port = 4849
+force_https = false
+auto_stop_machines = "off"
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "30s"
+interval = "30s"
+method = "GET"
+timeout = "5s"
+path = "/keepalive"
+
+[[vm]]
+memory = "1gb"
+cpu_kind = "shared"
+cpus = 1
+
+[mounts]
+source = "sqlite_repl"
+destination = "/data"
+
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CVR_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_ADMIN_PASSWORD = "__ZERO_ADMIN_PASSWORD"
+ZERO_NUM_SYNC_WORKERS = "0"
+ZERO_CHANGE_MAX_CONNS = "3"
+ZERO_LITESTREAM_BACKUP_URL = "s3://zero-litestream-backup/__APP_NAME/"
+AWS_ACCESS_KEY_ID = "__TIGRIS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY = "__TIGRIS_SECRET_ACCESS_KEY"
+AWS_ENDPOINT_URL_S3 = "https://fly.storage.tigris.dev"
+AWS_REGION = "auto"
+LOG_LEVEL = "debug"
+DO_NOT_TRACK = "1"

@@ -97,10 +97,18 @@ const env = makeEnv([
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
 	'DEPLOY_ZERO',
+	'TIGRIS_ACCESS_KEY_ID',
+	'TIGRIS_SECRET_ACCESS_KEY',
 ])
 
-const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
-const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
+const deployZero =
+	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode' | 'sst')
+const flyioAppName =
+	deployZero === 'flyio' || deployZero === 'flyio-multinode'
+		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
+		: undefined
+const flyioReplAppName =
+	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-repl` : undefined
 
 // pierre is not in production yet, so get the key directly from process.env
 const pierreKey = process.env.PIERRE_KEY ?? ''
@@ -211,7 +219,7 @@ async function main() {
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
 		case 'preview': {
-			if (deployZero === 'flyio') {
+			if (deployZero === 'flyio' || deployZero === 'flyio-multinode') {
 				return `https://${flyioAppName}.fly.dev/`
 			} else if (deployZero === 'sst') {
 				return `https://${previewId}.zero.tldraw.com/`
@@ -220,6 +228,9 @@ function getZeroUrl() {
 			}
 		}
 		case 'staging':
+			if (deployZero === 'flyio-multinode') {
+				return `https://${flyioAppName}.fly.dev/`
+			}
 			return 'https://staging.zero.tldraw.com/'
 		case 'production':
 			return 'https://production.zero.tldraw.com/'
@@ -514,9 +525,81 @@ async function deployZeroViaFlyIo() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
 }
 
+function updateFlyioReplicationManagerToml(appName: string): void {
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
+	const zeroAdminPassword = new URL(env.BOTCOM_POSTGRES_CONNECTION_STRING).password
+
+	const updatedContent = fileContent
+		.replaceAll('__APP_NAME', appName)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
+		.replaceAll('__TIGRIS_ACCESS_KEY_ID', env.TIGRIS_ACCESS_KEY_ID)
+		.replaceAll('__TIGRIS_SECRET_ACCESS_KEY', env.TIGRIS_SECRET_ACCESS_KEY)
+
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+}
+
+function updateFlyioViewSyncerToml(appName: string, replManagerUri: string): void {
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-view-syncer.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
+	const zeroAdminPassword = new URL(env.BOTCOM_POSTGRES_CONNECTION_STRING).password
+
+	const updatedContent = fileContent
+		.replaceAll('__APP_NAME', appName)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
+		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
+		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
+		.replaceAll('__REPLICATION_MANAGER_URI', replManagerUri)
+		.replaceAll('__TIGRIS_ACCESS_KEY_ID', env.TIGRIS_ACCESS_KEY_ID)
+		.replaceAll('__TIGRIS_SECRET_ACCESS_KEY', env.TIGRIS_SECRET_ACCESS_KEY)
+
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+}
+
+async function deployZeroViaFlyIoMultiNode() {
+	if (!flyioAppName || !flyioReplAppName) {
+		throw new Error('Fly.io app names are not defined for multi-node deployment')
+	}
+
+	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
+
+	// Deploy replication manager first
+	updateFlyioReplicationManagerToml(flyioReplAppName.replace('-repl', ''))
+	if (apps.indexOf(flyioReplAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioReplAppName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+	await exec('flyctl', ['deploy', '-a', flyioReplAppName, '-c', 'flyio-replication-manager.toml'], {
+		pwd: zeroCacheFolder,
+	})
+
+	// Deploy view syncer with reference to replication manager
+	const replManagerUri = `http://${flyioReplAppName}.flycast:4849`
+	updateFlyioViewSyncerToml(flyioAppName, replManagerUri)
+	if (apps.indexOf(flyioAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
+		pwd: zeroCacheFolder,
+	})
+}
+
 async function deployZeroBackend() {
 	if (deployZero === 'flyio') {
 		await deployZeroViaFlyIo()
+	} else if (deployZero === 'flyio-multinode') {
+		await deployZeroViaFlyIoMultiNode()
 	} else if (deployZero === 'sst') {
 		await deployZeroViaSst()
 	}
