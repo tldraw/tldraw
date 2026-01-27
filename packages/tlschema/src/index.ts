@@ -105,6 +105,14 @@ export {
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export {
+	createCustomRecordId,
+	createCustomRecordMigrationIds,
+	createCustomRecordMigrationSequence,
+	isCustomRecord,
+	isCustomRecordId,
+	type CustomRecordInfo,
+} from './records/TLCustomRecord'
+export {
 	DocumentRecordType,
 	isDocument,
 	TLDOCUMENT_ID,
@@ -139,7 +147,13 @@ export {
 	type TLInstancePresence,
 	type TLInstancePresenceID,
 } from './records/TLPresence'
-export { type TLRecord } from './records/TLRecord'
+export {
+	type TLCustomRecord,
+	type TLDefaultRecord,
+	type TLGlobalRecordPropsMap,
+	type TLIndexedRecords,
+	type TLRecord,
+} from './records/TLRecord'
 export {
 	createShapeId,
 	createShapePropsMigrationIds,
