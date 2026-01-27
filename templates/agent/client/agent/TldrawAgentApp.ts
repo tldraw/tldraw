@@ -29,6 +29,12 @@ export class TldrawAgentApp {
 	 */
 	persistence: AgentAppPersistenceManager
 
+	/**
+	 * Handle crash and dispose events.
+	 */
+	private handleCrash = () => this.dispose()
+	private handleDispose = () => this.dispose()
+
 	constructor(
 		public editor: Editor,
 		public options: {
@@ -37,16 +43,16 @@ export class TldrawAgentApp {
 	) {
 		this.agents = new AgentAppAgentsManager(this)
 		this.persistence = new AgentAppPersistenceManager(this)
-
-		editor.on('crash', () => this.dispose())
-		editor.on('dispose', () => this.dispose())
+		editor.on('crash', this.handleCrash)
+		editor.on('dispose', this.handleDispose)
 	}
 
 	/**
 	 * Dispose of all resources. Call this during cleanup.
 	 */
 	dispose() {
-		// Stop auto-save BEFORE disposing agents to prevent saving empty state
+		this.editor.off('crash', this.handleCrash)
+		this.editor.off('dispose', this.handleDispose)
 		this.persistence.dispose()
 		this.agents.dispose()
 	}
