@@ -269,7 +269,7 @@ export class AgentHelpers {
 		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		while (existingShape) {
 			newId = /^.*(\d+)$/.exec(newId)?.[1]
-				? (newId.replace(/(\d+)(?=\D?)$/, (m) => {
+				? (newId.replace(/(\d+)$/, (m) => {
 						return (+m + 1).toString()
 					}) as SimpleShapeId)
 				: (`${newId}-1` as SimpleShapeId)
