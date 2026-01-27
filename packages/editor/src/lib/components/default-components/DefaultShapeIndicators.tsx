@@ -96,7 +96,7 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 		() => {
 			return renderingShapes.filter(({ id }) => {
 				const shape = editor.getShape(id)
-				if (!shape) return true
+				if (!shape) return false
 				const util = editor.getShapeUtil(shape)
 				return util.useLegacyIndicator()
 			})
