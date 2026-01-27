@@ -321,15 +321,15 @@ To let the agent retrieve information from an external API, fetch the data withi
 
 ```ts
 override async applyAction(
-	action: Streaming<RandomWikipediaArticleAction>
+	action: Streaming<CountryInfoAction>
 ) {
 	if (!action.complete) return
 
 	// Fetch from the external API
-	const article = await fetchRandomWikipediaArticle()
+	const data = await fetchCountryInfo(action.code)
 
 	// Schedule a follow-up request with the data
-	this.agent.schedule({ data: [article] })
+	this.agent.schedule({ data: [data] })
 }
 ```
 

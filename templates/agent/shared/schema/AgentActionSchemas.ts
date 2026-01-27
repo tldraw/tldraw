@@ -199,18 +199,6 @@ export const PlaceAction = z
 
 export type PlaceAction = z.infer<typeof PlaceAction>
 
-// Random Wikipedia Article Action
-export const RandomWikipediaArticleAction = z
-	.object({
-		_type: z.literal('getInspiration'),
-	})
-	.meta({
-		title: 'Get inspiration',
-		description: 'The AI gets inspiration from a random Wikipedia article.',
-	})
-
-export type RandomWikipediaArticleAction = z.infer<typeof RandomWikipediaArticleAction>
-
 // Resize Action
 export const ResizeAction = z
 	.object({
