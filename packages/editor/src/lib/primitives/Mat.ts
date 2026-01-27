@@ -280,6 +280,17 @@ export class Mat {
 		)
 	}
 
+	/**
+	 * Apply the matrix to a point, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static applyToPointInto(m: MatLike, point: VecLike, out: Vec) {
+		out.x = m.a * point.x + m.c * point.y + m.e
+		out.y = m.b * point.x + m.d * point.y + m.f
+		out.z = point.z ?? 1
+		return out
+	}
+
 	static applyToXY(m: MatLike, x: number, y: number) {
 		return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]
 	}

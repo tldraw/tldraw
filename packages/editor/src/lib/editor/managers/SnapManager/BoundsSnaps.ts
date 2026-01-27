@@ -198,6 +198,12 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapIndicator, { type: 'gaps' }>>) 
 /** @public */
 export class BoundsSnaps {
 	readonly editor: Editor
+
+	// Reusable Vec instances to avoid allocations during snap calculations
+	private readonly _minOffset = new Vec()
+	private readonly _nudge = new Vec()
+	private readonly _snappedDelta = new Vec()
+
 	constructor(readonly manager: SnapManager) {
 		this.editor = manager.editor
 	}
@@ -492,7 +498,8 @@ export class BoundsSnaps {
 
 		const nearestSnapsX: NearestPointsSnap[] = []
 		const nearestSnapsY: NearestPointsSnap[] = []
-		const minOffset = new Vec(snapThreshold, snapThreshold)
+		// Reuse pre-allocated Vec for minOffset
+		const minOffset = this._minOffset.set(snapThreshold, snapThreshold, 1)
 
 		this.collectPointSnaps({
 			minOffset,
@@ -503,9 +510,11 @@ export class BoundsSnaps {
 		})
 
 		// at the same time, calculate how far we need to nudge the shape to 'snap' to the target point(s)
-		const nudge = new Vec(
+		// Reuse pre-allocated Vec for nudge
+		const nudge = this._nudge.set(
 			isXLocked ? 0 : (nearestSnapsX[0]?.nudge ?? 0),
-			isYLocked ? 0 : (nearestSnapsY[0]?.nudge ?? 0)
+			isYLocked ? 0 : (nearestSnapsY[0]?.nudge ?? 0),
+			1
 		)
 
 		if (isAspectRatioLocked && isSelectionCorner(handle) && nudge.len() !== 0) {
@@ -542,7 +551,7 @@ export class BoundsSnaps {
 
 		// now resize the box after nudging, calculate the snaps again, and return the snap lines to match
 		// the fully resized box
-		const snappedDelta = Vec.Add(dragDelta, nudge)
+		const snappedDelta = Vec.AddInto(dragDelta, nudge, this._snappedDelta)
 
 		// first figure out the new bounds of the selection
 		const { box: snappedResizedPageBounds } = Box.Resize(
@@ -599,9 +608,9 @@ export class BoundsSnaps {
 		// which are closest to it in each axis
 		for (const thisSnapPoint of selectionSnapPoints) {
 			for (const otherSnapPoint of otherNodeSnapPoints) {
-				const offset = Vec.Sub(thisSnapPoint, otherSnapPoint)
-				const offsetX = Math.abs(offset.x)
-				const offsetY = Math.abs(offset.y)
+				// Inline the subtraction to avoid Vec allocation in hot loop
+				const offsetX = Math.abs(thisSnapPoint.x - otherSnapPoint.x)
+				const offsetY = Math.abs(thisSnapPoint.y - otherSnapPoint.y)
 
 				if (round(offsetX) <= round(minOffset.x)) {
 					if (round(offsetX) < round(minOffset.x)) {

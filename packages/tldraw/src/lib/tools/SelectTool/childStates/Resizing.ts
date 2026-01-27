@@ -47,6 +47,16 @@ export class Resizing extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
+	// Reusable Vec instances to avoid allocations during resize
+	private readonly _currentPagePoint = new Vec()
+	private readonly _originPagePoint = new Vec()
+	private readonly _dragDelta = new Vec()
+	private readonly _scaleOriginPage = new Vec()
+	private readonly _distanceFromScaleOriginNow = new Vec()
+	private readonly _distanceFromScaleOriginAtStart = new Vec()
+	private readonly _scale = new Vec()
+	private readonly _frameDelta = new Vec()
+
 	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
 
@@ -267,13 +277,15 @@ export class Resizing extends StateNode {
 
 		const isHoldingAccel = isAccelKey(this.editor.inputs)
 
-		const currentPagePoint = this.editor.inputs
-			.getCurrentPagePoint()
-			.clone()
+		// Reuse pre-allocated Vec instances to avoid GC pressure
+		const currentPagePoint = this._currentPagePoint
+			.setTo(this.editor.inputs.getCurrentPagePoint())
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
+		const originPagePoint = this._originPagePoint
+			.setTo(this.editor.inputs.getOriginPagePoint())
+			.sub(cursorHandleOffset)
 
 		if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = this.editor.getDocumentSettings()
@@ -289,7 +301,7 @@ export class Resizing extends StateNode {
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
 			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
-				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
+				dragDelta: Vec.SubInto(currentPagePoint, originPagePoint, this._dragDelta),
 				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
 				handle: rotateSelectionHandle(dragHandle, selectionRotation),
 				isAspectRatioLocked,
@@ -301,10 +313,11 @@ export class Resizing extends StateNode {
 
 		// get the page point of the selection handle opposite to the drag handle
 		// or the center of the selection box if altKey is pressed
-		const scaleOriginPage = Vec.RotWith(
+		const scaleOriginPage = Vec.RotWithInto(
 			altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
 			selectionBounds.point,
-			selectionRotation
+			selectionRotation,
+			this._scaleOriginPage
 		)
 
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
@@ -312,15 +325,23 @@ export class Resizing extends StateNode {
 
 		// bug: for edges, the page point doesn't matter, the
 
-		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
-			-selectionRotation
-		)
+		const distanceFromScaleOriginNow = Vec.SubInto(
+			currentPagePoint,
+			scaleOriginPage,
+			this._distanceFromScaleOriginNow
+		).rot(-selectionRotation)
 
-		const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage).rot(
-			-selectionRotation
-		)
+		const distanceFromScaleOriginAtStart = Vec.SubInto(
+			originPagePoint,
+			scaleOriginPage,
+			this._distanceFromScaleOriginAtStart
+		).rot(-selectionRotation)
 
-		const scale = Vec.DivV(distanceFromScaleOriginNow, distanceFromScaleOriginAtStart)
+		const scale = Vec.DivVInto(
+			distanceFromScaleOriginNow,
+			distanceFromScaleOriginAtStart,
+			this._scale
+		)
 
 		if (!Number.isFinite(scale.x)) scale.x = 1
 		if (!Number.isFinite(scale.y)) scale.y = 1
@@ -396,7 +417,7 @@ export class Resizing extends StateNode {
 				const dx = current.x - initial.x
 				const dy = current.y - initial.y
 
-				const delta = new Vec(dx, dy).rot(-initial.rotation)
+				const delta = this._frameDelta.set(dx, dy, 1).rot(-initial.rotation)
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {

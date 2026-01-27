@@ -262,12 +262,32 @@ export class Vec {
 		return new Vec(A.x + B.x, A.y + B.y)
 	}
 
+	/**
+	 * Add A and B, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static AddInto(A: VecLike, B: VecLike, out: Vec): Vec {
+		out.x = A.x + B.x
+		out.y = A.y + B.y
+		return out
+	}
+
 	static AddXY(A: VecLike, x: number, y: number): Vec {
 		return new Vec(A.x + x, A.y + y)
 	}
 
 	static Sub(A: VecLike, B: VecLike): Vec {
 		return new Vec(A.x - B.x, A.y - B.y)
+	}
+
+	/**
+	 * Subtract B from A, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static SubInto(A: VecLike, B: VecLike, out: Vec): Vec {
+		out.x = A.x - B.x
+		out.y = A.y - B.y
+		return out
 	}
 
 	static SubXY(A: VecLike, x: number, y: number): Vec {
@@ -294,8 +314,28 @@ export class Vec {
 		return new Vec(A.x / B.x, A.y / B.y)
 	}
 
+	/**
+	 * Divide A by B element-wise, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static DivVInto(A: VecLike, B: VecLike, out: Vec): Vec {
+		out.x = A.x / B.x
+		out.y = A.y / B.y
+		return out
+	}
+
 	static MulV(A: VecLike, B: VecLike): Vec {
 		return new Vec(A.x * B.x, A.y * B.y)
+	}
+
+	/**
+	 * Multiply A by B element-wise, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static MulVInto(A: VecLike, B: VecLike, out: Vec): Vec {
+		out.x = A.x * B.x
+		out.y = A.y * B.y
+		return out
 	}
 
 	static Neg(A: VecLike): Vec {
@@ -404,12 +444,38 @@ export class Vec {
 		return new Vec(A.x * c - A.y * s, A.x * s + A.y * c)
 	}
 
+	/**
+	 * Rotate A by r radians, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static RotInto(A: VecLike, r: number, out: Vec): Vec {
+		const s = Math.sin(r)
+		const c = Math.cos(r)
+		out.x = A.x * c - A.y * s
+		out.y = A.x * s + A.y * c
+		return out
+	}
+
 	static RotWith(A: VecLike, C: VecLike, r: number): Vec {
 		const x = A.x - C.x
 		const y = A.y - C.y
 		const s = Math.sin(r)
 		const c = Math.cos(r)
 		return new Vec(C.x + (x * c - y * s), C.y + (x * s + y * c))
+	}
+
+	/**
+	 * Rotate A around C by r radians, writing the result into `out`.
+	 * Returns `out` for chaining.
+	 */
+	static RotWithInto(A: VecLike, C: VecLike, r: number, out: Vec): Vec {
+		const x = A.x - C.x
+		const y = A.y - C.y
+		const s = Math.sin(r)
+		const c = Math.cos(r)
+		out.x = C.x + (x * c - y * s)
+		out.y = C.y + (x * s + y * c)
+		return out
 	}
 
 	/**

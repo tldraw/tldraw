@@ -2339,6 +2339,7 @@ export class Mat {
     applyToPoint(point: VecLike): Vec;
     // (undocumented)
     static applyToPoint(m: MatLike, point: VecLike): Vec;
+    static applyToPointInto(m: MatLike, point: VecLike, out: Vec): Vec;
     // (undocumented)
     applyToPoints(points: VecLike[]): Vec[];
     // (undocumented)
@@ -4890,6 +4891,7 @@ export class Vec {
     static Add(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     add(V: VecLike): this;
+    static AddInto(A: VecLike, B: VecLike, out: Vec): Vec;
     // (undocumented)
     static AddScalar(A: VecLike, n: number): Vec;
     // (undocumented)
@@ -4943,6 +4945,7 @@ export class Vec {
     static DivV(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     divV(V: VecLike): this;
+    static DivVInto(A: VecLike, B: VecLike, out: Vec): Vec;
     static Dpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     dpr(V: VecLike): number;
@@ -4989,6 +4992,7 @@ export class Vec {
     static MulV(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     mulV(V: VecLike): this;
+    static MulVInto(A: VecLike, B: VecLike, out: Vec): Vec;
     // (undocumented)
     static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): Vec;
     static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec;
@@ -5015,10 +5019,12 @@ export class Vec {
     static Rot(A: VecLike, r?: number): Vec;
     // (undocumented)
     rot(r: number): this;
+    static RotInto(A: VecLike, r: number, out: Vec): Vec;
     // (undocumented)
     static RotWith(A: VecLike, C: VecLike, r: number): Vec;
     // (undocumented)
     rotWith(C: VecLike, r: number): this;
+    static RotWithInto(A: VecLike, C: VecLike, r: number, out: Vec): Vec;
     // (undocumented)
     static ScaleWithOrigin(A: VecLike, scale: number, origin: VecLike): Vec;
     // (undocumented)
@@ -5039,6 +5045,7 @@ export class Vec {
     static Sub(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     sub(V: VecLike): this;
+    static SubInto(A: VecLike, B: VecLike, out: Vec): Vec;
     // (undocumented)
     static SubScalar(A: VecLike, n: number): Vec;
     // (undocumented)
