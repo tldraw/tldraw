@@ -54,8 +54,5 @@ ${JSON.stringify(schema, null, 2)}
 }
 
 function normalizeNewlines(text: string): string {
-	while (text.includes('\n\n\n')) {
-		text = text.replace('\n\n\n', '\n\n')
-	}
-	return text
+	return text.replace(/\n{3,}/g, '\n\n')
 }
