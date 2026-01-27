@@ -305,13 +305,13 @@ export class TldrawAgent {
 			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
 		}
 
-		this.requests.setIsPrompting(true)
-
 		if (this.isActingOnEditor) {
 			throw new Error(
 				"Agent is already acting. It's illegal to prompt an agent during an action. Please use schedule instead."
 			)
 		}
+
+		this.requests.setIsPrompting(true)
 
 		const request = this.requests.getFullRequestFromInput(input)
 		const startingNode = this.mode.getCurrentModeNode()
