@@ -87,3 +87,27 @@ export function getActionSchema(type: string): AgentActionSchema | undefined {
 export function hasActionSchema(type: string): boolean {
 	return type in schemasByType
 }
+
+// ============================================================================
+// Schema Metadata
+// ============================================================================
+
+import type { SystemPromptCategory } from './SystemPromptCategory'
+
+/**
+ * Metadata that can be attached to action schemas via .meta().
+ */
+export interface ActionMeta {
+	title?: string
+	description?: string
+	_systemPromptCategory?: SystemPromptCategory
+}
+
+/**
+ * Get the metadata for an action schema.
+ */
+export function getActionMeta(type: AgentAction['_type']): ActionMeta | undefined {
+	const schema = getActionSchema(type)
+	if (!schema) return undefined
+	return schema.meta() as ActionMeta | undefined
+}

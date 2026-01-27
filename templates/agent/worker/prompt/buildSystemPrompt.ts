@@ -35,6 +35,7 @@ export function buildSystemPrompt(
 
 	if (withSchema) {
 		lines.push(buildSchemaPromptSection(modePart))
+		console.warn('schema', lines[lines.length - 1])
 	}
 
 	const result = normalizeNewlines(lines.join('\n'))

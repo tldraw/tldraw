@@ -11,10 +11,30 @@ import type { BasePromptPart } from './BasePromptPart'
  * prompt part data into messages, content, or system prompts.
  */
 export interface PromptPartDefinition<T extends BasePromptPart> {
+	/**
+	 * The unique type of the prompt part.
+	 */
 	type: T['type']
+
+	/**
+	 * The priority of the prompt part. Higher priority = later in the prompt.
+	 */
 	priority?: number
+
+	/**
+	 * Override the default buildContent function to choose which content to send to the model.
+	 * Gives you less control than buildMessages, but is much simpler to use.
+	 */
 	buildContent?(part: T): string[]
+
+	/**
+	 * Override the default buildMessages function to choose how to turn content into AgentMessages.
+	 */
 	buildMessages?(part: T): AgentMessage[]
+
+	/**
+	 * Override the default getModelName function to choose which model to use for the prompt part.
+	 */
 	getModelName?(part: T): AgentModelName | null
 }
 

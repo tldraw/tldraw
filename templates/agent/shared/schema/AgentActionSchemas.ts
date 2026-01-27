@@ -4,6 +4,13 @@ import { FocusedFillSchema } from '../format/FocusedFill'
 import { FocusedShapeSchema, FocusedTextAnchorSchema } from '../format/FocusedShape'
 import { SimpleShapeIdSchema, TodoIdSchema } from '../types/ids-schema'
 
+/**
+ * `_systemPromptCategory` is used for system prompt generation
+ * but is stripped from the JSON schema sent to the model.
+ *
+ * See `SystemPromptCategory.ts` for available values.
+ */
+
 // Add Detail Action
 export const AddDetailAction = z
 	.object({
@@ -26,7 +33,11 @@ export const AlignAction = z
 		intent: z.string(),
 		shapeIds: z.array(SimpleShapeIdSchema),
 	})
-	.meta({ title: 'Align', description: 'The AI aligns shapes to each other on an axis.' })
+	.meta({
+		title: 'Align',
+		description: 'The AI aligns shapes to each other on an axis.',
+		_systemPromptCategory: 'edit',
+	})
 
 export type AlignAction = z.infer<typeof AlignAction>
 
@@ -41,6 +52,7 @@ export const BringToFrontAction = z
 		title: 'Bring to Front',
 		description:
 			'The AI brings one or more shapes to the front so that they appear in front of everything else.',
+		_systemPromptCategory: 'edit',
 	})
 
 export type BringToFrontAction = z.infer<typeof BringToFrontAction>
@@ -103,7 +115,7 @@ export const DeleteAction = z
 		intent: z.string(),
 		shapeId: SimpleShapeIdSchema,
 	})
-	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
+	.meta({ title: 'Delete', description: 'The AI deletes a shape.', _systemPromptCategory: 'edit' })
 
 export type DeleteAction = z.infer<typeof DeleteAction>
 
@@ -118,6 +130,7 @@ export const DistributeAction = z
 	.meta({
 		title: 'Distribute',
 		description: 'The AI distributes shapes horizontally or vertically.',
+		_systemPromptCategory: 'edit',
 	})
 
 export type DistributeAction = z.infer<typeof DistributeAction>
@@ -130,7 +143,11 @@ export const LabelAction = z
 		shapeId: SimpleShapeIdSchema,
 		text: z.string(),
 	})
-	.meta({ title: 'Label', description: "The AI changes a shape's text." })
+	.meta({
+		title: 'Label',
+		description: "The AI changes a shape's text.",
+		_systemPromptCategory: 'edit',
+	})
 
 export type LabelAction = z.infer<typeof LabelAction>
 
@@ -154,7 +171,11 @@ export const MoveAction = z
 		x: z.number(),
 		y: z.number(),
 	})
-	.meta({ title: 'Move', description: 'The agent moves a shape to a new position.' })
+	.meta({
+		title: 'Move',
+		description: 'The agent moves a shape to a new position.',
+		_systemPromptCategory: 'edit',
+	})
 
 export type MoveAction = z.infer<typeof MoveAction>
 
@@ -195,7 +216,11 @@ export const PlaceAction = z
 		sideOffset: z.number(),
 		shapeId: SimpleShapeIdSchema,
 	})
-	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
+	.meta({
+		title: 'Place',
+		description: 'The AI places a shape relative to another shape.',
+		_systemPromptCategory: 'edit',
+	})
 
 export type PlaceAction = z.infer<typeof PlaceAction>
 
@@ -214,6 +239,7 @@ export const ResizeAction = z
 		title: 'Resize',
 		description:
 			'The AI resizes one or more shapes, with the resize operation being performed relative to an origin point.',
+		_systemPromptCategory: 'edit',
 	})
 
 export type ResizeAction = z.infer<typeof ResizeAction>
@@ -250,6 +276,7 @@ export const RotateAction = z
 	.meta({
 		title: 'Rotate',
 		description: 'The AI rotates one or more shapes around an origin point.',
+		_systemPromptCategory: 'edit',
 	})
 
 export type RotateAction = z.infer<typeof RotateAction>
@@ -265,6 +292,7 @@ export const SendToBackAction = z
 		title: 'Send to Back',
 		description:
 			'The AI sends one or more shapes to the back so that they appear behind everything else.',
+		_systemPromptCategory: 'edit',
 	})
 
 export type SendToBackAction = z.infer<typeof SendToBackAction>
@@ -300,6 +328,7 @@ export const StackAction = z
 		title: 'Stack',
 		description:
 			"The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
+		_systemPromptCategory: 'edit',
 	})
 
 export type StackAction = z.infer<typeof StackAction>
@@ -339,6 +368,7 @@ export const UpdateAction = z
 	.meta({
 		title: 'Update',
 		description: 'The AI updates an existing shape.',
+		_systemPromptCategory: 'edit',
 	})
 
 export type UpdateAction = z.infer<typeof UpdateAction>
