@@ -167,5 +167,8 @@ jobs:
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           PIERRE_KEY: ${{ secrets.PIERRE_KEY }}
-          TIGRIS_ACCESS_KEY_ID: ${{ secrets.TIGRIS_ACCESS_KEY_ID }}
-          TIGRIS_SECRET_ACCESS_KEY: ${{ secrets.TIGRIS_SECRET_ACCESS_KEY }}
+          ZERO_ADMIN_PASSWORD: ${{ secrets.ZERO_ADMIN_PASSWORD }}
+          ZERO_R2_ENDPOINT: ${{ secrets.ZERO_R2_ENDPOINT }}
+          ZERO_R2_BUCKET_NAME: ${{ secrets.ZERO_R2_BUCKET_NAME }}
+          ZERO_R2_ACCESS_KEY_ID: ${{ secrets.ZERO_R2_ACCESS_KEY_ID }}
+          ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}

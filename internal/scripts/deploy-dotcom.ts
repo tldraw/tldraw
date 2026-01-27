@@ -97,6 +97,7 @@ const env = makeEnv([
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
 	'DEPLOY_ZERO',
+	'ZERO_ADMIN_PASSWORD',
 	'ZERO_R2_ENDPOINT',
 	'ZERO_R2_BUCKET_NAME',
 	'ZERO_R2_ACCESS_KEY_ID',
@@ -502,7 +503,7 @@ function updateFlyioToml(appName: string): void {
 
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
 
-	const zeroAdminPassword = new URL(env.BOTCOM_POSTGRES_CONNECTION_STRING).password
+	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
 
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
@@ -534,7 +535,7 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
 
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
-	const zeroAdminPassword = new URL(env.BOTCOM_POSTGRES_CONNECTION_STRING).password
+	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
 
 	const updatedContent = fileContent
 		.replaceAll('__APP_NAME', appName)
@@ -559,7 +560,7 @@ function updateFlyioViewSyncerToml(
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
 
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
-	const zeroAdminPassword = new URL(env.BOTCOM_POSTGRES_CONNECTION_STRING).password
+	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
 
 	const updatedContent = fileContent
 		.replaceAll('__APP_NAME', appName)
