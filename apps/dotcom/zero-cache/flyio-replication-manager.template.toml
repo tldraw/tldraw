@@ -12,7 +12,7 @@ min_machines_running = 1
 
 [[http_service.checks]]
 grace_period = "30s"
-interval = "30s"
+interval = "15s"
 method = "GET"
 timeout = "5s"
 path = "/keepalive"
@@ -26,6 +26,20 @@ cpus = 1
 source = "sqlite_repl"
 destination = "/data"
 
+[[files]]
+guest_path = "/etc/litestream.yml"
+raw_value = """
+dbs:
+  - path: /data/sync-replica.db
+    replicas:
+      - type: s3
+        bucket: __ZERO_R2_BUCKET_NAME
+        path: __BACKUP_PATH
+        endpoint: https://__ZERO_R2_ENDPOINT
+        region: auto
+        skip-verify: true
+"""
+
 [env]
 ZERO_REPLICA_FILE = "/data/sync-replica.db"
 ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
@@ -35,8 +49,9 @@ ZERO_APP_PUBLICATIONS = "zero_data"
 ZERO_ADMIN_PASSWORD = "__ZERO_ADMIN_PASSWORD"
 ZERO_NUM_SYNC_WORKERS = "0"
 ZERO_CHANGE_MAX_CONNS = "3"
-ZERO_LITESTREAM_BACKUP_URL = "s3://zero-litestream/__BACKUP_PATH/?endpoint=fly.storage.tigris.dev&region=auto"
-AWS_ACCESS_KEY_ID = "__TIGRIS_ACCESS_KEY_ID"
-AWS_SECRET_ACCESS_KEY = "__TIGRIS_SECRET_ACCESS_KEY"
+ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
+ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
+AWS_ACCESS_KEY_ID = "__ZERO_R2_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY = "__ZERO_R2_SECRET_ACCESS_KEY"
 LOG_LEVEL = "debug"
 DO_NOT_TRACK = "1"

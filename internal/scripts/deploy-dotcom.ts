@@ -97,8 +97,10 @@ const env = makeEnv([
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
 	'DEPLOY_ZERO',
-	'TIGRIS_ACCESS_KEY_ID',
-	'TIGRIS_SECRET_ACCESS_KEY',
+	'ZERO_R2_ENDPOINT',
+	'ZERO_R2_BUCKET_NAME',
+	'ZERO_R2_ACCESS_KEY_ID',
+	'ZERO_R2_SECRET_ACCESS_KEY',
 ])
 
 const deployZero =
@@ -540,8 +542,10 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
-		.replaceAll('__TIGRIS_ACCESS_KEY_ID', env.TIGRIS_ACCESS_KEY_ID)
-		.replaceAll('__TIGRIS_SECRET_ACCESS_KEY', env.TIGRIS_SECRET_ACCESS_KEY)
+		.replaceAll('__ZERO_R2_ENDPOINT', env.ZERO_R2_ENDPOINT)
+		.replaceAll('__ZERO_R2_BUCKET_NAME', env.ZERO_R2_BUCKET_NAME)
+		.replaceAll('__ZERO_R2_ACCESS_KEY_ID', env.ZERO_R2_ACCESS_KEY_ID)
+		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
@@ -566,8 +570,10 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
 		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
 		.replaceAll('__REPLICATION_MANAGER_URI', replManagerUri)
-		.replaceAll('__TIGRIS_ACCESS_KEY_ID', env.TIGRIS_ACCESS_KEY_ID)
-		.replaceAll('__TIGRIS_SECRET_ACCESS_KEY', env.TIGRIS_SECRET_ACCESS_KEY)
+		.replaceAll('__ZERO_R2_ENDPOINT', env.ZERO_R2_ENDPOINT)
+		.replaceAll('__ZERO_R2_BUCKET_NAME', env.ZERO_R2_BUCKET_NAME)
+		.replaceAll('__ZERO_R2_ACCESS_KEY_ID', env.ZERO_R2_ACCESS_KEY_ID)
+		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
