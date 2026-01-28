@@ -147,6 +147,32 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return <path d={strokePath} />
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLHighlightShape): Path2D {
+		const strokeWidth = getStrokeWidth(shape)
+		const zoomLevel = this.editor.getEfficientZoomLevel()
+		const forceSolid = strokeWidth / zoomLevel < 1.5
+
+		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		let strokePath
+		if (strokePoints.length < 2) {
+			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
+		} else {
+			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
+		}
+
+		return new Path2D(strokePath)
+	}
+
 	override toSvg(shape: TLHighlightShape) {
 		const strokeWidth = getStrokeWidth(shape)
 		const forceSolid = strokeWidth < 1.5

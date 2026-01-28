@@ -37,13 +37,15 @@
 	z-index: 0;
 }
 
-.tlui-button:disabled {
+.tlui-button:disabled,
+.tlui-button[data-disabled] {
 	color: var(--tl-color-text-3);
 	text-shadow: none;
 	cursor: default;
 }
 
-.tlui-button:disabled .tlui-kbd {
+.tlui-button:disabled .tlui-kbd,
+.tlui-button[data-disabled] .tlui-kbd {
 	color: var(--tl-color-text-3);
 }
 
@@ -92,7 +94,7 @@
 }
 
 .tlui-button[data-isactive='true']::after,
-.tlui-button[data-isactive='true']:not(:disabled, :focus-visible):active:after {
+.tlui-button[data-isactive='true']:not(:disabled, [data-disabled], :focus-visible):active:after {
 	background: var(--tl-color-hint);
 	opacity: 1;
 }
@@ -108,11 +110,11 @@
 		opacity: 1;
 	}
 
-	.tlui-button:not(:disabled):hover {
+	.tlui-button:not(:disabled, [data-disabled]):hover {
 		z-index: 1;
 	}
 
-	.tlui-button:not(:disabled):hover::after {
+	.tlui-button:not(:disabled, [data-disabled]):hover::after {
 		opacity: 1;
 	}
 }
@@ -151,11 +153,11 @@
 }
 
 @media (hover: hover) {
-	.tlui-button__primary:not(:disabled, :focus-visible):hover {
+	.tlui-button__primary:not(:disabled, [data-disabled], :focus-visible):hover {
 		color: var(--tl-color-primary);
 	}
 
-	.tlui-button__danger:not(:disabled, :focus-visible):hover {
+	.tlui-button__danger:not(:disabled, [data-disabled], :focus-visible):hover {
 		color: var(--tl-color-danger);
 		text-shadow: none;
 	}
@@ -243,11 +245,11 @@
 	color: var(--tl-color-selected-contrast);
 }
 
-.tlui-button__tool[aria-pressed='true']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-pressed='true']:not(:disabled, [data-disabled], :focus-visible):active {
 	color: var(--tl-color-selected-contrast);
 }
 
-.tlui-button__tool[aria-pressed='true']:not(:disabled)::after {
+.tlui-button__tool[aria-pressed='true']:not(:disabled, [data-disabled])::after {
 	background: var(--tl-color-selected);
 	opacity: 1;
 }
@@ -1726,6 +1728,12 @@ tldraw? probably.
 
 	/* Terrible fix to allow firefox users to scroll the dialog */
 	overflow-x: auto;
+
+	scrollbar-width: none;
+}
+
+.tlui-shortcuts-dialog__body::-webkit-scrollbar {
+	display: none;
 }
 
 .tlui-shortcuts-dialog__body__tablet {

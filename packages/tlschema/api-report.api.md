@@ -707,7 +707,7 @@ export const TL_CURSOR_TYPES: Set<string>;
 export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
-export const TL_SCRIBBLE_STATES: Set<"active" | "paused" | "starting" | "stopping">;
+export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;

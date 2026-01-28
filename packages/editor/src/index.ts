@@ -150,6 +150,7 @@ export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager
 export {
 	ScribbleManager,
 	type ScribbleItem,
+	type ScribbleSessionOptions,
 } from './lib/editor/managers/ScribbleManager/ScribbleManager'
 export {
 	BoundsSnaps,
@@ -184,6 +185,7 @@ export {
 	type TLEditStartInfo,
 	type TLGeometryOpts,
 	type TLHandleDragInfo,
+	type TLIndicatorPath,
 	type TLResizeInfo,
 	type TLResizeMode,
 	type TLShapeUtilCanBeLaidOutOpts,

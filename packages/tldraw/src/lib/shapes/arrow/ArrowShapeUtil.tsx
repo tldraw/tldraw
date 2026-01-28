@@ -56,7 +56,7 @@ import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { getArrowBodyPath, getArrowHandlePath } from './ArrowPath'
+import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
 import {
 	getArrowLabelDefaultPosition,
@@ -917,6 +917,131 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				)}
 			</g>
 		)
+	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLArrowShape) {
+		const info = getArrowInfo(this.editor, shape)
+		if (!info) return undefined
+
+		const isEditing = this.editor.getEditingShapeId() === shape.id
+		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const isEmpty = isEmptyRichText(shape.props.richText)
+
+		const labelGeometry = isEditing || !isEmpty ? (geometry.children[1] as Rectangle2d) : null
+
+		if (Vec.Equals(start, end)) return undefined
+
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+
+		// If editing and has label, just return the label rect
+		if (isEditing && labelGeometry) {
+			const labelBounds = labelGeometry.getBounds()
+			const path = new Path2D()
+			path.roundRect(
+				labelBounds.x,
+				labelBounds.y,
+				labelBounds.w,
+				labelBounds.h,
+				3.5 * shape.props.scale
+			)
+			return path
+		}
+
+		// Get arrow body path
+		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+		const bodyPathBuilder = getArrowBodyPathBuilder(info)
+		const bodyPath2D = bodyPathBuilder.toPath2D(
+			shape.props.dash === 'draw' && !isForceSolid
+				? {
+						style: 'draw',
+						randomSeed: shape.id,
+						strokeWidth: 1,
+						passes: 1,
+						offset: 0,
+						roundness: strokeWidth * 2,
+					}
+				: { style: 'solid', strokeWidth: 1 }
+		)
+
+		// Get arrowhead paths
+		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
+		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
+
+		// Check if we need clipping (label or complex arrowheads)
+		const clipStartArrowhead = !!(as && info.start.arrowhead !== 'arrow')
+		const clipEndArrowhead = !!(ae && info.end.arrowhead !== 'arrow')
+		const needsClipping = labelGeometry || clipStartArrowhead || clipEndArrowhead
+
+		if (needsClipping) {
+			// Create clip path using evenodd rule
+			const bounds = geometry.bounds
+			const clipPath = new Path2D()
+
+			// Outer rectangle (clockwise) - defines the area to keep
+			clipPath.rect(bounds.minX - 100, bounds.minY - 100, bounds.width + 200, bounds.height + 200)
+
+			// Label cutout (counter-clockwise via roundRect's default winding)
+			if (labelGeometry) {
+				const labelBounds = labelGeometry.getBounds()
+				const radius = 3.5 * shape.props.scale
+				// Create counter-clockwise rounded rect to cut out the label area
+				// We need to manually create the path in reverse winding order
+				const lb = labelBounds
+				clipPath.moveTo(lb.x, lb.y + radius)
+				clipPath.lineTo(lb.x, lb.maxY - radius)
+				clipPath.arcTo(lb.x, lb.maxY, lb.x + radius, lb.maxY, radius)
+				clipPath.lineTo(lb.maxX - radius, lb.maxY)
+				clipPath.arcTo(lb.maxX, lb.maxY, lb.maxX, lb.maxY - radius, radius)
+				clipPath.lineTo(lb.maxX, lb.y + radius)
+				clipPath.arcTo(lb.maxX, lb.y, lb.maxX - radius, lb.y, radius)
+				clipPath.lineTo(lb.x + radius, lb.y)
+				clipPath.arcTo(lb.x, lb.y, lb.x, lb.y + radius, radius)
+				clipPath.closePath()
+			}
+
+			// Add arrowhead paths to clip path if needed
+			if (clipStartArrowhead && as) {
+				clipPath.addPath(new Path2D(as))
+			}
+			if (clipEndArrowhead && ae) {
+				clipPath.addPath(new Path2D(ae))
+			}
+
+			// Additional paths (arrowheads, label rect) to draw after clipped body
+			const additionalPaths: Path2D[] = []
+			if (as) additionalPaths.push(new Path2D(as))
+			if (ae) additionalPaths.push(new Path2D(ae))
+			if (labelGeometry) {
+				const labelBounds = labelGeometry.getBounds()
+				const labelPath = new Path2D()
+				labelPath.roundRect(labelBounds.x, labelBounds.y, labelBounds.w, labelBounds.h, 3.5)
+				additionalPaths.push(labelPath)
+			}
+
+			return {
+				path: bodyPath2D,
+				clipPath,
+				additionalPaths,
+			}
+		}
+
+		// No clipping needed - combine all paths into one
+		const combinedPath = new Path2D()
+		combinedPath.addPath(bodyPath2D)
+
+		if (as) {
+			combinedPath.addPath(new Path2D(as))
+		}
+		if (ae) {
+			combinedPath.addPath(new Path2D(ae))
+		}
+
+		return combinedPath
 	}
 
 	override onEditStart(shape: TLArrowShape) {
