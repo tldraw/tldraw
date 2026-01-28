@@ -588,7 +588,7 @@ const schema = {
 // Type-safe mutations with validation
 const mutators = createMutators(userId)
 	// Client sends mutations to server
-	.post('/app/zero/push', async (req, env) => {
+	.post('/app/zero/mutate', async (req, env) => {
 		const auth = await requireAuth(req, env)
 		const processor = new PushProcessor(
 			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),

@@ -22,7 +22,7 @@ The primary synchronization engine that provides:
   cvrDB: postgresConnectionString,             // Conflict resolution database
   changeDB: postgresConnectionString,          // Change log database
   authJWKSURL: "/.well-known/jwks.json",       // JWT verification
-  pushURL: "/app/zero/push",                   // Mutation endpoint
+  mutateURL: "/app/zero/mutate",               // Mutation endpoint
   lazyStartup: true                            // Performance optimization
 }
 ```
