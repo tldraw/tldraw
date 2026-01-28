@@ -296,6 +296,26 @@ export class ScribbleManager {
 	}
 
 	/**
+	 * Mark a scribble as complete (done being drawn but not yet fading).
+	 * Searches all sessions.
+	 *
+	 * @param id - The scribble id
+	 * @public
+	 */
+	complete(id: string): ScribbleItem {
+		for (const session of this.sessions.values()) {
+			const item = session.items.find((i) => i.id === id)
+			if (item) {
+				if (item.scribble.state === 'starting' || item.scribble.state === 'active') {
+					item.scribble.state = 'complete'
+				}
+				return item
+			}
+		}
+		throw Error(`Scribble with id ${id} not found`)
+	}
+
+	/**
 	 * Stop a scribble. Searches all sessions.
 	 *
 	 * @param id - The scribble id
