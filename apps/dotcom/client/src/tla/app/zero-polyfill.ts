@@ -1,4 +1,4 @@
-import { MakeEntityQueriesFromSchema } from '@rocicorp/zero'
+import type { MakeCustomMutatorInterfaces, SchemaQuery } from '@rocicorp/zero'
 import {
 	OptimisticAppStore,
 	TlaMutators,
@@ -22,8 +22,7 @@ import {
 	transact,
 	uniqueId,
 } from 'tldraw'
-import type { MakeCustomMutatorInterfaces } from '../../../../../../node_modules/@rocicorp/zero/out/zero-client/src/client/custom'
-import type { SchemaCRUD } from '../../../../../../node_modules/@rocicorp/zero/out/zql/src/mutate/custom'
+import type { SchemaCRUD } from '../../../../../../node_modules/@rocicorp/zero/out/zql/src/mutate/crud'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { ClientCRUD } from './ClientCRUD'
 import { ClientQuery } from './ClientQuery'
@@ -36,7 +35,7 @@ export class Zero {
 	private clientTooOld = false
 	private didReceiveFirstMessage = false
 
-	query: MakeEntityQueriesFromSchema<TlaSchema>
+	query: SchemaQuery<TlaSchema>
 
 	constructor(
 		private opts: {
@@ -105,8 +104,11 @@ export class Zero {
 					const mutationId = uniqueId()
 					const mutate = this.makeCrud(controller.signal, mutationId)
 					const query = this.makeQuery(controller.signal)
+					const run = this.makeRun(controller.signal)
 					try {
-						await deferAsyncEffects(() => mutatorFn({ mutate, query, location: 'client' }, props))
+						await deferAsyncEffects(() =>
+							mutatorFn({ mutate, query, location: 'client', run }, props)
+						)
 					} catch (e) {
 						console.error(e)
 						throw e
@@ -156,7 +158,7 @@ export class Zero {
 		}
 	}
 
-	mutate: MakeCustomMutatorInterfaces<TlaSchema, TlaMutators>
+	mutate: MakeCustomMutatorInterfaces<TlaSchema, TlaMutators, unknown>
 
 	async __e2e__waitForMutationResolution() {
 		let safety = 0
@@ -171,6 +173,61 @@ export class Zero {
 			this.sendPendingUpdates()
 		}
 		this.socket.close()
+	}
+
+	// New Zero API methods that take queries created by createBuilder(schema)
+	// Using 'any' type for query to be compatible with Zero's Query types which use getters
+	materialize<T>(query: any): {
+		data: T
+		addListener(listener: (data: T) => void): void
+		destroy(): void
+	} {
+		const clientQuery = this.queryFromAst(query)
+		return clientQuery.materialize()
+	}
+
+	preload(query: any): { complete: Promise<void> } {
+		const clientQuery = this.queryFromAst(query)
+		return clientQuery.preload()
+	}
+
+	async run<T>(query: any): Promise<T> {
+		const clientQuery = this.queryFromAst(query)
+		return (await clientQuery.run()) as T
+	}
+
+	private queryFromAst(query: any): ClientQuery<any, boolean> {
+		const ast = query.ast
+		const tableName = ast.table as keyof TlaSchema['tables']
+		const isSingular = query.format?.singular ?? false
+		const signal = new AbortController().signal
+
+		// Build a ClientQuery from the Zero query AST
+		let clientQuery: ClientQuery<any, boolean> = new ClientQuery(
+			signal,
+			this.store,
+			false,
+			tableName
+		)
+
+		// Apply where conditions from AST
+		if (ast.where) {
+			const conditions = this.extractWhereConditions(ast.where)
+			for (const [key, value] of conditions) {
+				clientQuery = clientQuery.where(key, '=', value)
+			}
+		}
+
+		// Apply one() if singular
+		if (isSingular) {
+			clientQuery = clientQuery.one()
+		}
+
+		return clientQuery
+	}
+
+	private extractWhereConditionsForQuery(where: any): [string, any][] {
+		return this.extractWhereConditions(where)
 	}
 
 	private sendPendingUpdates() {
@@ -198,5 +255,55 @@ export class Zero {
 			schema.tables,
 			(_, table) => new ClientQuery(signal, this.store, false, table.name)
 		)
+	}
+
+	private makeRun(signal: AbortSignal) {
+		return async <T>(query: any): Promise<T> => {
+			assert(!signal.aborted, 'Query usage outside of mutator scope')
+			const ast = query.ast
+			const tableName = ast.table as keyof TlaSchema['tables']
+			const isSingular = query.format?.singular ?? false
+
+			// Build a ClientQuery from the Zero query AST
+			let clientQuery: ClientQuery<any, boolean> = new ClientQuery(
+				signal,
+				this.store,
+				false,
+				tableName
+			)
+
+			// Apply where conditions from AST
+			if (ast.where) {
+				const conditions = this.extractWhereConditions(ast.where)
+				for (const [key, value] of conditions) {
+					clientQuery = clientQuery.where(key, '=', value)
+				}
+			}
+
+			// Apply one() if singular
+			if (isSingular) {
+				clientQuery = clientQuery.one()
+			}
+
+			return (await clientQuery.run()) as T
+		}
+	}
+
+	private extractWhereConditions(where: any): [string, any][] {
+		const conditions: [string, any][] = []
+
+		if (where.type === 'simple') {
+			// Simple condition: { type: 'simple', left: { type: 'column', name: 'id' }, op: '=', right: { type: 'literal', value: '...' } }
+			if (where.left?.type === 'column' && where.right?.type === 'literal') {
+				conditions.push([where.left.name, where.right.value])
+			}
+		} else if (where.type === 'and') {
+			// AND condition: { type: 'and', conditions: [...] }
+			for (const cond of where.conditions || []) {
+				conditions.push(...this.extractWhereConditions(cond))
+			}
+		}
+
+		return conditions
 	}
 }
