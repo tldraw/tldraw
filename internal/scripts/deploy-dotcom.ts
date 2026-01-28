@@ -594,6 +594,22 @@ async function deployZeroViaFlyIoMultiNode() {
 			pwd: zeroCacheFolder,
 		})
 	}
+	await exec(
+		'flyctl',
+		[
+			'secrets',
+			'set',
+			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
+			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+			'-a',
+			flyioReplAppName,
+		],
+		{ pwd: zeroCacheFolder }
+	)
 	await exec('flyctl', ['deploy', '-a', flyioReplAppName, '-c', 'flyio-replication-manager.toml'], {
 		pwd: zeroCacheFolder,
 	})
@@ -606,6 +622,22 @@ async function deployZeroViaFlyIoMultiNode() {
 			pwd: zeroCacheFolder,
 		})
 	}
+	await exec(
+		'flyctl',
+		[
+			'secrets',
+			'set',
+			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
+			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+			'-a',
+			flyioAppName,
+		],
+		{ pwd: zeroCacheFolder }
+	)
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
 		pwd: zeroCacheFolder,
 	})
