@@ -53,7 +53,7 @@ export function useActivePeerIds$() {
 				editor
 					.getCollaborators()
 					.filter((p) => {
-						const elapsed = Math.max(0, now - (p.lastActivityTimestamp ?? 0))
+						const elapsed = Math.max(0, now - (p.lastActivityTimestamp ?? Infinity))
 						const state = getCollaboratorStateFromElapsedTime(editor, elapsed)
 						return shouldShowCollaborator(editor, p, state)
 					})
