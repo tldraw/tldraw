@@ -2711,6 +2711,7 @@ export class ScribbleManager {
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
     addScribbleToSession(sessionId: string, scribble: Partial<TLScribble>, scribbleId?: string): ScribbleItem;
     clearSession(sessionId: string): void;
+    complete(id: string): ScribbleItem;
     extendSession(sessionId: string): void;
     isSessionActive(sessionId: string): boolean;
     reset(): void;
