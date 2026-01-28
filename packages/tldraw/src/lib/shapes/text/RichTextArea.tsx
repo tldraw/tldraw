@@ -9,6 +9,7 @@ import {
 	Editor,
 	TLRichText,
 	TLShapeId,
+	isEqual,
 	preventDefault,
 	useEditor,
 	useEvent,
@@ -71,7 +72,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	useLayoutEffect(() => {
 		if (!rTextEditor.current) {
 			rInitialRichText.current = richText
-		} else if (rInitialRichText.current !== richText) {
+		} else if (!isEqual(rInitialRichText.current, richText)) {
 			rTextEditor.current.commands.setContent(richText as JSONContent)
 		}
 	}, [richText])
