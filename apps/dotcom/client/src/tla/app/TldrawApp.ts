@@ -208,6 +208,17 @@ export class TldrawApp {
 				kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 			})
 			this.z = z
+			// Log which Fly.io machine we're connected to
+			z.connection.state.subscribe((state) => {
+				if (state.name === 'connected') {
+					fetch(ZERO_SERVER).then((res) => {
+						const flyMachine = res.headers.get('fly-request-id')
+						if (flyMachine) {
+							console.log(`[Zero] Connected to machine: ${flyMachine}`)
+						}
+					})
+				}
+			})
 			// Set up token refresh on auth errors
 			const unsubscribe = z.connection.state.subscribe((state) => {
 				if (state.name === 'needs-auth') {
