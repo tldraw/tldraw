@@ -207,7 +207,7 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 			ctx.lineWidth = 1.5 / zoom
 			for (const collaborator of collaboratorIndicators) {
 				ctx.strokeStyle = collaborator.color
-				ctx.globalAlpha = 0.5
+				ctx.globalAlpha = 0.7
 				for (const shapeId of collaborator.shapeIds) {
 					renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
 				}
