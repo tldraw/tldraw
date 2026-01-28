@@ -35,7 +35,7 @@ dbs:
       - type: s3
         bucket: __ZERO_R2_BUCKET_NAME
         path: __BACKUP_PATH
-        endpoint: https://__ZERO_R2_ENDPOINT
+        endpoint: __ZERO_R2_ENDPOINT
         region: auto
         skip-verify: true
 """
