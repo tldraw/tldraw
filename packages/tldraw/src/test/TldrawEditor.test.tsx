@@ -29,10 +29,12 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
 }
 
-const textOptions = {
-	addFontsFromNode: defaultAddFontsFromNode,
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const options = {
+	text: {
+		addFontsFromNode: defaultAddFontsFromNode,
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
 	},
 }
 
@@ -178,7 +180,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
-				textOptions={textOptions}
+				options={options}
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -389,7 +391,7 @@ describe('<TldrawEditor />', () => {
 					onMount={onMount}
 					shapeUtils={defaultShapeUtils}
 					snapshot={snapshot}
-					textOptions={textOptions}
+					options={options}
 				/>
 			),
 			{ waitForPatterns: true }
