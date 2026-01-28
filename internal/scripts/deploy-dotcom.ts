@@ -609,6 +609,9 @@ async function deployZeroViaFlyIoMultiNode() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
 		pwd: zeroCacheFolder,
 	})
+	await exec('flyctl', ['scale', 'count', '2', '-a', flyioAppName, '--yes'], {
+		pwd: zeroCacheFolder,
+	})
 }
 
 async function deployZeroBackend() {
