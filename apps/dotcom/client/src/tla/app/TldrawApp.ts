@@ -211,12 +211,14 @@ export class TldrawApp {
 			// Log which Fly.io machine we're connected to
 			z.connection.state.subscribe((state) => {
 				if (state.name === 'connected') {
-					fetch(ZERO_SERVER).then((res) => {
-						const flyMachine = res.headers.get('fly-request-id')
-						if (flyMachine) {
-							console.log(`[Zero] Connected to machine: ${flyMachine}`)
-						}
-					})
+					fetch(ZERO_SERVER)
+						.then((res) => {
+							const flyRequestId = res.headers.get('fly-request-id')
+							console.log(`[Zero] Connected to machine: ${flyRequestId}`)
+						})
+						.catch(() => {
+							// CSP may block this on some domains
+						})
 				}
 			})
 			// Set up token refresh on auth errors
