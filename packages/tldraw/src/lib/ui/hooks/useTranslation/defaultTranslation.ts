@@ -309,7 +309,7 @@ export const DEFAULT_TRANSLATION = {
 	'a11y.pan-camera': 'Pan camera',
 	'a11y.adjust-shape-styles': 'Adjust shape styles',
 	'a11y.open-context-menu': 'Open context menu',
-	'a11y.open-keyboard-shortcuts': 'Open keyboard shortcuts',
+	'a11y.open-keyboard-shortcuts': 'Keyboard shortcuts...',
 	'menu.title': 'Menu',
 	'menu.theme': 'Theme',
 	'menu.accessibility': 'Accessibility',
