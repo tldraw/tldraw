@@ -1,8 +1,8 @@
 # tldraw agent
 
-This starter kit demonstrates how to build an AI agent that can manipulate the [tldraw](https://github.com/tldraw/tldraw) canvas.
+This starter kit demonstrates how to build an agent that can manipulate the [tldraw](https://github.com/tldraw/tldraw) canvas.
 
-It features a chat panel on the right-hand-side of the screen where the user can communicate with the agent, add context and see chat history.
+A chat panel on the right side of the screen lets users communicate with the agent, add context, and see chat history.
 
 ## Environment setup
 
@@ -36,7 +36,7 @@ With its default configuration, the agent can perform the following actions:
 - Move its viewport to look at different parts of the canvas.
 - Count shapes matching a given expression.
 - Schedule further work and reviews to be carried out in follow-up requests.
-- Call example external APIs: Looking up country information, retrieving a random Wikipedia article.
+- Call example external APIs: Looking up country information.
 
 To make decisions on what to do, we send the agent information from various sources:
 
@@ -55,7 +55,7 @@ To make decisions on what to do, we send the agent information from various sour
 
 Aside from using the chat panel UI, you can also prompt the agent programmatically.
 
-The simplest way to do this is by calling the `prompt()` method to start an agentic loop. The agent will continue until it has finished the task you've given it.
+The simplest way is to call the `prompt()` method to start an agentic loop. The agent continues until it finishes the task.
 
 ```ts
 // Inside a component wrapped by TldrawAgentAppProvider
@@ -63,7 +63,7 @@ const agent = useAgent()
 agent.prompt('Draw a cat')
 ```
 
-You can optionally specify further details about the request in the form of an `AgentInput` object:
+You can specify further details about the request as an `AgentInput` object:
 
 ```ts
 agent.prompt({
@@ -72,7 +72,7 @@ agent.prompt({
 })
 ```
 
-There are more methods on the `TldrawAgent` class that can help when building an agentic app:
+The `TldrawAgent` class has additional methods:
 
 - `agent.cancel()` - Cancel the agent's current task.
 - `agent.reset()` - Reset the agent's chat and memory.
@@ -82,55 +82,38 @@ There are more methods on the `TldrawAgent` class that can help when building an
 
 The agent starter is organized into three main areas:
 
-- **`client/`** - React components, agent logic, and utility classes that run in the browser
-- **`worker/`** - Cloudflare Worker that handles AI model requests and prompt building
+- **`client/`** - React components, agent logic, and utils that run in the browser
+- **`worker/`** - Cloudflare Worker that handles model requests and prompt building
 - **`shared/`** - Types, schemas, and utilities shared between client and worker
-
-### Mode system
-
-The agent uses a **mode system** to control what it can see and do. Modes are defined in `client/modes/AgentModeDefinitions.ts`. Each mode specifies:
-
-- **`parts`** - What information gets sent to the model (prompt parts)
-- **`actions`** - What the agent can do (agent actions)
-
-The default `working` mode includes all standard capabilities. You can create additional modes with different subsets of parts and actions.
-
-### Registration pattern
-
-Utility classes use a **self-registration pattern**. When you create a new `PromptPartUtil` or `AgentActionUtil`, you wrap it with a registration function:
-
-```ts
-export const MyPartUtil = registerPromptPartUtil(
-	class MyPartUtil extends PromptPartUtil<MyPart> {
-		// ...
-	}
-)
-```
-
-This pattern ensures utilities are automatically discovered when their modules are imported in `AgentModeDefinitions.ts`.
-
-### Mode-scoped actions
-
-Different modes can implement actions with the same `_type`. This allows modes to have different behavior for the same action type without requiring globally unique action names.
-
-For example, a "drone" mode and a "solo" mode might both have a `mark-task-done` action, but with different implementations. The system automatically resolves the correct `AgentActionUtil` and schema based on the current mode.
-
-See [Mode-specific action implementations](#mode-specific-action-implementations) for implementation details.
 
 ## Customize the agent
 
-We define the agent's behavior in the `client/modes/AgentModeDefinitions.ts` file. In that file, there is an `AGENT_MODE_DEFINITIONS` array that contains mode definitions. Each active mode has two arrays:
+The agent's behavior is defined in `client/modes/AgentModeDefinitions.ts`. The `AGENT_MODE_DEFINITIONS` array contains mode definitions. Each mode has two arrays:
 
 - `parts` determine what the agent can **see**.
 - `actions` determine what the agent can **do**.
 
-Add, edit or remove an entry in either array to change what the agent can see or do.
+Add, edit or remove an entry in either array to change what the agent can see or do in a given mode.
+
+### Mode system
+
+The agent uses a **mode system** to control what parts and actions it has access to at any given time. Modes are defined in `client/modes/AgentModeDefinitions.ts`.
+
+The default `working` mode includes all standard capabilities. You can create additional modes with different subsets of parts and actions.
+
+Modes can be transitioned between over the course of a prompt depending on the behavior you desire. Call `agent.mode.setMode(modeType)` to change modes. To control the lifecycles of different modes, you can optionally implement any desired mode lifecycle hooks in `client/modes/AgentModeChart.ts`. You have access to:
+
+- `onEnter(agent, fromMode)` - runs when you enter a mode
+- `onExit(agent, toMode)` - runs when you exit a mode
+- `onPromptStart(agent, request)` - runs when a prompt commences, either because a user has prompted it or because it has entered another step in its agentic loop
+- `onPromptEnd(agent, request)` - runs when a prompt ends
+- `onPromptCancel(agent, request)` - runs when a prompt is canceled
 
 ## Change what the agent can see
 
-**Change what the agent can see by adding, editing or removing a `PromptPartUtil` within `client/parts/`.**
+**Change what the agent can see by adding, editing or removing a prompt part.**
 
-Prompt part utils gather data on the client and send it to the worker, where it gets built into prompt messages. Each util adds a different piece of information.
+Prompt parts assemble and build the prompt that we give to the model, with each util adding a different piece of information. This includes the user's message, the model name, the system prompt, chat history and more.
 
 This example shows how to let the model see what the current time is.
 
@@ -142,12 +125,9 @@ export interface TimePart extends BasePromptPart<'time'> {
 }
 ```
 
-Then, create a prompt part util in `client/parts/`:
+Next, create a prompt part util in `client/parts/`:
 
 ```ts
-import { TimePart } from '../../shared/schema/PromptPartDefinitions'
-import { PromptPartUtil, registerPromptPartUtil } from './PromptPartUtil'
-
 export const TimePartUtil = registerPromptPartUtil(
 	class TimePartUtil extends PromptPartUtil<TimePart> {
 		static override type = 'time' as const
@@ -162,7 +142,30 @@ export const TimePartUtil = registerPromptPartUtil(
 )
 ```
 
-To enable the prompt part, import its util in `client/modes/AgentModeDefinitions.ts` and add its type to a mode's `parts` array.
+The `getPart` method gather any data needed to construct the prompt. It can take `(request: AgentRequest, helpers: AgentHelpers)` parameters for access to the current request and helper methods.
+
+Then, back in `shared/schema/PromptPartDefinition.ts`, create the definition for that prompt part.
+
+```ts
+export const TimePartDefinition: PromptPartDefinition<TimePart> = {
+	type: 'time',
+	priority: -100,
+	buildContent({ time }: TimePart) {
+		return [`The user's current time is: ${time}`]
+	},
+}
+```
+
+The prompt part definition is used by the worker to turn prompt parts into messages sent to the model. Override `priority` to control what order the part should be added in the messages. Override `buildContent` to control how the data is turned into a message for the model.
+
+There are other methods available on the `PromptPartDefinition` interface that you can override for more granular control.
+
+- `getModelName` - Determine which AI model to use.
+- `buildMessages` - Manually override how prompt messages are constructed from the prompt part.
+
+**Enable the prompt part**
+
+To enable the prompt part, import its util in `client/modes/AgentModeDefinitions.ts` and add its type to a mode's `parts` array. It's important to make sure you import it here and use its `type` field, instead of using the type string literal. This is to ensure the util properly self-registers.
 
 ```ts
 import { TimePartUtil } from '../parts/TimePartUtil'
@@ -174,13 +177,9 @@ parts: [
 ]
 ```
 
-The `getPart` method gathers data to send to the worker. It can optionally take `(request: AgentRequest, helpers: AgentHelpers)` parameters for access to the current request and helper methods.
-
-The worker uses a corresponding `PromptPartDefinition` to build the actual prompt messages from this data.
-
 ## Change what the agent can do
 
-**Change what the agent can do by adding, editing or removing an `AgentActionUtil` within `client/actions/`.**
+**Change what the agent can do by adding, editing or removing an agent action.**
 
 Agent action utils define the actions the agent can perform. Each `AgentActionUtil` adds a different capability.
 
@@ -190,24 +189,24 @@ First, define an agent action schema in `shared/schema/AgentActionSchemas.ts`:
 
 ```ts
 export const ClearAction = z
+	// All agent actions must have a _type field
+	// The underscore encourages the model to put this field first
 	.object({
 		_type: z.literal('clear'),
 	})
+	// A title and description tell the model what the action does
 	.meta({
 		title: 'Clear',
 		description: 'The agent deletes all shapes on the canvas.',
 	})
 
+// Infer the action's type
 export type ClearAction = z.infer<typeof ClearAction>
 ```
 
 Then, create an agent action util in `client/actions/`:
 
 ```ts
-import { ClearAction } from '../../shared/schema/AgentActionSchemas'
-import { Streaming } from '../../shared/types/Streaming'
-import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
-
 export const ClearActionUtil = registerActionUtil(
 	class ClearActionUtil extends AgentActionUtil<ClearAction> {
 		static override type = 'clear' as const
@@ -225,6 +224,16 @@ export const ClearActionUtil = registerActionUtil(
 )
 ```
 
+The `applyAction` method executes the action. It can take a second `helpers: AgentHelpers` parameter for access to helper methods.
+
+Override these methods on `AgentActionUtil` for more control:
+
+- `getInfo` - Determine how the action gets displayed in the chat panel UI.
+- `savesToHistory` - Control whether actions get saved to chat history or not.
+- `sanitizeAction` - Sanitize the action before saving it to history and applying it. More details on [sanitization](#sanitize-data-received-from-the-model) below.
+
+**Enable the agent action part**
+
 To enable the agent action, import its util in `client/modes/AgentModeDefinitions.ts` and add its type to a mode's `actions` array.
 
 ```ts
@@ -237,17 +246,9 @@ actions: [
 ]
 ```
 
-The `applyAction` method executes the action. It can optionally take a second `helpers: AgentHelpers` parameter for access to helper methods.
-
-There are other methods available on the `AgentActionUtil` class that you can override for more granular control.
-
-- `getInfo` - Determine how the action gets displayed in the chat panel UI.
-- `savesToHistory` - Control whether actions get saved to chat history or not.
-- `sanitizeAction` - Sanitize the action before saving it to history and applying it. More details on [sanitization](#sanitize-data-received-from-the-model) below.
-
 ## Change how actions appear in chat history
 
-Configure the icon and description of an action in the chat panel UI using the `getInfo()` method.
+Configure the icon and description of an action in the chat panel using the `getInfo()` method.
 
 ```ts
 override getInfo() {
@@ -277,9 +278,96 @@ To customize an action's appearance via CSS, you can define style for the `agent
 }
 ```
 
+## Managers
+
+Managers are classes that encapsulate specific concerns and extend the functionality of `TldrawAgent` or `TldrawAgentApp`. Each manager handles a single responsibility—like chat history, model selection, or context management—and exposes methods to interact with that state.
+
+Managers are available as properties on the agent instance (e.g., `agent.chat`, `agent.modelName`, `agent.context`). To create a custom manager, extend `BaseAgentManager` or `BaseAgentAppManager` and add it to the agent in `client/agent/TldrawAgent.ts`.
+
+## Registering `PromptPartUtil`s and `AgentActionUtil`s
+
+Utils use a **self-registration pattern**. When you create a new `PromptPartUtil` or `AgentActionUtil`, wrap it with a registration function:
+
+```ts
+export const MyPartUtil = registerPromptPartUtil(
+	class MyPartUtil extends PromptPartUtil<MyPart> {
+		// ...
+	}
+)
+```
+
+This pattern ensures utils are discovered automatically when their modules are imported in `AgentModeDefinitions.ts`.
+
+### Mode-scoped actions
+
+Different modes can implement actions with the same `_type`. This allows modes to have different behavior for the same action type without requiring globally unique action names.
+
+For example, a "team-member" mode and a "solo" mode might both have a `mark-task-done` action, but with different implementations. The system automatically resolves the correct `AgentActionUtil` and schema based on the current mode.
+
+**Registering a mode-specific action util:**
+
+Use the `forModes` option when registering a util:
+
+```ts
+// client/actions/MarkSoloTaskDoneActionUtil.ts
+// Default implementation (used when no mode-specific binding exists)
+export const MarkSoloTaskDoneActionUtil = registerActionUtil(
+	class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDoneAction> {
+		static override type = 'mark-task-done' as const
+		override applyAction(action: Streaming<MarkSoloTaskDoneAction>) {
+			// Default implementation
+		}
+	}
+)
+
+// client/actions/MarkTeamMemberTaskDoneActionUtil.ts
+// Mode-specific implementation for "drone" mode
+export const MarkTeamMemberTaskDoneActionUtil = registerActionUtil(
+	class MarkTeamMemberTaskDoneActionUtil extends AgentActionUtil<MarkTeamMemberTaskDoneAction> {
+		static override type = 'mark-task-done' as const // Same type as default
+		override applyAction(action: Streaming<MarkTeamMemberTaskDoneAction>) {
+			// Team member-specific implementation
+		}
+	},
+	{ forModes: ['team-member'] }
+)
+```
+
+**Registering a mode-specific schema:**
+
+If a mode needs a different schema for an action, register the schema with `forModes`:
+
+```ts
+// shared/schema/AgentActionSchemas.ts
+
+// Default schema
+export const MarkSoloTaskDoneAction = z
+	.object({
+		_type: z.literal('mark-task-done'),
+		taskId: z.string(),
+	})
+	.meta({ title: 'Mark Task Done', description: 'Mark a task as complete.' })
+
+// Mode-specific schema with additional fields
+export const MarkTeamMemberTaskDoneAction = z
+	.object({
+		_type: z.literal('mark-task-done'),
+		taskId: z.string(),
+		teamId: z.string(), // Extra field for this mode
+	})
+	.meta({ title: 'Mark Task Done', description: 'Mark a task as complete with notes.' })
+
+// Register the mode-specific schema
+registerActionSchema('mark-task-done', MarkTeamMemberTaskDoneAction, { forModes: ['team-member'] })
+```
+
+Default schemas are auto-registered when exported from `AgentActionSchemas.ts`. Call `registerActionSchema` explicitly only for mode-specific schemas.
+
+The system maintains two registries (default and mode-specific) and resolves the correct util/schema based on the current mode, falling back to the default when no mode-specific binding exists.
+
 ## Schedule further work
 
-You can let the agent work over multiple turns by scheduling further work using the `schedule` method as part of an action.
+Let the agent work over multiple turns by scheduling further work using the `schedule` method.
 
 This example shows how to schedule an extra step for adding detail to the canvas.
 
@@ -293,36 +381,44 @@ override applyAction(action: Streaming<AddDetailAction>) {
 As with the `prompt` method, you can specify further details about the request.
 
 ```ts
-agent.schedule((prev) => ({
+agent.schedule({
 	message: 'Add more detail in this area.',
 	bounds: { x: 0, y: 0, w: 100, h: 100 },
-}))
+})
 ```
 
-You can schedule multiple things by calling the `schedule` method more than once.
+Schedule multiple items by calling the `schedule` method more than once.
 
 ```ts
 agent.schedule('Add more detail to the canvas.')
 agent.schedule('Check for spelling mistakes.')
 ```
 
-You can also schedule further work by adding to the agent's todo list. It won't stop working until all todos are resolved.
+If you want to interrupt the agent with a new prompt, instead of waiting until the current prompt ends, you can use the agent's `interrupt` method. `interrupt` also lets you specify a mode to transition into.
+
+This example shows how one might use the `interrupt` method to allow the agent to decide to enter a new mode called `'reviewing'` in order to review some work.
 
 ```ts
-override applyAction(action: Streaming<AddDetailAction>) {
+override applyAction(action: Streaming<EnterReviewingModeAction>){
 	if (!action.complete) return
-	this.agent.addTodo('Check for spelling mistakes.')
+	this.agent.interrupt({
+		mode: 'reviewing',
+		input: {
+			message: 'Review the new area thoroughly for any mistakes',
+			bounds: action.bounds
+		}
+	})
 }
 ```
 
+Use this for things like switching modes, or for programatically telling it to correct a mistake it's made.
+
 ## Retrieve data from an external API
 
-To let the agent retrieve information from an external API, fetch the data within `applyAction` and schedule a follow-up request with any data you want the agent to have access to.
+To retrieve information from an external API, fetch the data within `applyAction` and schedule a follow-up request with the data.
 
 ```ts
-override async applyAction(
-	action: Streaming<CountryInfoAction>
-) {
+override async applyAction(action: Streaming<CountryInfoAction>) {
 	if (!action.complete) return
 
 	// Fetch from the external API
@@ -335,11 +431,11 @@ override async applyAction(
 
 ## Sanitize data received from the model
 
-The model can make mistakes. Sometimes this is due to hallucinations, and sometimes this is due to the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time we receive it.
+The model can make mistakes. Sometimes this is due to hallucinations, sometimes because the canvas changed since the model last saw it. Either way, an incoming action might contain invalid data.
 
-To correct incoming mistakes, apply fixes in the `sanitizeAction` method of an action util. They'll get carried out before the action is applied to the editor or saved to chat history.
+To correct mistakes, apply fixes in the `sanitizeAction` method. The system runs these before applying the action to the editor or saving it to chat history.
 
-For example, ensure that a shape ID received from the model refers to an existing shape by using the `ensureShapeIdExists` method.
+For example, use `ensureShapeIdExists` to verify that a shape ID from the model refers to an existing shape.
 
 ```ts
 override sanitizeAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) {
@@ -355,95 +451,12 @@ override sanitizeAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) 
 }
 ```
 
-The `AgentHelpers` object contains more helpers for sanitizing data received from the model.
+`AgentHelpers` provides these sanitization helpers:
 
 - `ensureShapeIdExists` - Ensure that a shape ID refers to a real shape. Useful for interacting with existing shapes.
 - `ensureShapeIdsExist` - Ensure that multiple shape IDs refer to real shapes. Useful for bulk operations.
 - `ensureShapeIdIsUnique` - Ensure that a shape ID is unique. Useful for creating new shapes.
-- `ensureValueIsVec` - Ensure that a value is a vector `{ x, y }`.
-- `ensureValueIsNumber` - Ensure that a value is a number.
-- `ensureValueIsBoolean` - Ensure that a value is a boolean.
-- `ensureValueIsFocusedFill` - Ensure that a value is a valid focused fill.
-
-## Mode-specific action implementations
-
-Different modes can implement actions with the same `_type`, allowing for mode-specific behavior without requiring globally unique action names. This is useful when you have multiple modes that need variations of the same action.
-
-### Register a mode-specific action util
-
-To create a mode-specific implementation of an action, use the `forModes` option when registering the util:
-
-```ts
-// Default implementation (used when no mode-specific binding exists)
-export const MarkTaskDoneActionUtil = registerActionUtil(
-	class MarkTaskDoneActionUtil extends AgentActionUtil<MarkTaskDoneAction> {
-		static override type = 'mark-task-done' as const
-
-		override applyAction(action: Streaming<MarkTaskDoneAction>) {
-			// Default implementation
-		}
-	}
-)
-
-// Mode-specific implementation for "drone" mode
-export const MarkDroneTaskDoneActionUtil = registerActionUtil(
-	class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkTaskDoneAction> {
-		static override type = 'mark-task-done' as const // Same type as default
-
-		override applyAction(action: Streaming<MarkTaskDoneAction>) {
-			// Drone-specific implementation
-		}
-	},
-	{ forModes: ['working-drone'] }
-)
-```
-
-When the agent is in `working-drone` mode, the `MarkDroneTaskDoneActionUtil` will handle `mark-task-done` actions. In other modes, the default `MarkTaskDoneActionUtil` will be used.
-
-### Register a mode-specific schema
-
-If a mode needs a different schema for an action (e.g., additional fields), register the schema with `forModes`:
-
-```ts
-// In shared/schema/AgentActionSchemas.ts
-import { registerActionSchema } from './AgentActionSchemaRegistry'
-
-// Default schema
-export const MarkTaskDoneAction = z
-	.object({
-		_type: z.literal('mark-task-done'),
-		taskId: z.string(),
-	})
-	.meta({ title: 'Mark Task Done', description: 'Mark a task as complete.' })
-
-// Mode-specific schema with additional fields
-export const MarkTaskDoneWithNotesAction = z
-	.object({
-		_type: z.literal('mark-task-done'), // Same _type as default
-		taskId: z.string(),
-		notes: z.string(), // Extra field for this mode
-	})
-	.meta({ title: 'Mark Task Done', description: 'Mark a task as complete with notes.' })
-
-// Register the mode-specific schema
-registerActionSchema('mark-task-done', MarkTaskDoneWithNotesAction, { forModes: ['working-drone'] })
-```
-
-Default schemas are auto-registered when exported from `AgentActionSchemas.ts`. You only need to call `registerActionSchema` explicitly for mode-specific schemas.
-
-### How it works
-
-The system maintains two registries:
-
-1. **Default registry** - Contains the default util/schema for each action type
-2. **Mode registry** - Contains mode-specific overrides
-
-When resolving an action, the system:
-
-1. Checks if a mode-specific util/schema exists for the current mode
-2. Falls back to the default if no mode-specific binding exists
-
-This allows clean action names (e.g., `mark-task-done`) that work across modes while supporting mode-specific behavior where needed.
+- `ensureValueIsVec`, `ensureValueIsNumber`, etc - Useful for more complex actions where the model is more likely to make mistakes.
 
 ## Send positions to and from the model
 
@@ -482,12 +495,12 @@ override applyAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 }
 ```
 
-There are also box-level helpers for working with bounds:
+Box-level helpers for working with bounds:
 
 - `applyOffsetToBox` / `removeOffsetFromBox` - Apply or remove offset from a `{ x, y, w, h }` box.
 - `applyOffsetToShapePartial` / `removeOffsetFromShapePartial` - Apply or remove offset from a partial shape.
 
-It's a good idea to round numbers before sending them to the model. If you want to be able to restore the original number later, use the `roundAndSaveNumber` and `unroundAndRestoreNumber` methods.
+Round numbers before sending them to the model. To restore the original number later, use `roundAndSaveNumber` and `unroundAndRestoreNumber`.
 
 ```ts
 // In `getPart`...
@@ -515,15 +528,16 @@ Additional rounding helpers:
 
 ## Send shapes to the model
 
-By default, the agent converts tldraw shapes to various simplified formats to improve the model's understanding and performance.
+The agent converts tldraw shapes to simplified formats to improve model understanding and performance.
 
-There are three main formats used in this starter:
+Three main formats:
 
-- `BlurryShape` - The format for shapes within the agent's viewport. It contains a shape's bounds, its id, its type, and any text it contains. The "blurry" name refers to the fact that the agent can't make out the details of shapes from this format. Instead, it gives the model an overview of what it's looking at.
-- `FocusedShape` - The format for shapes that the agent is focusing on, such as when it is reviewing a part of its work. The format contains most of a shape's properties, including color, fill, alignment, and any other shape-specific information. The "focused" name refers to the fact that these are shapes the agent is directly focusing on.
-- `PeripheralShapeCluster` - The format for shapes outside the agent's viewport. Nearby shapes are grouped together into clusters, each with the group's bounds and a count of how many shapes are inside it. This is the least detailed format. Its role is to give the model an awareness of shapes that elsewhere on the page.
+- `BlurryShape` - Format for shapes within the agent's viewport. Contains bounds, id, type, and text. The "blurry" name indicates the agent can't make out shape details—it provides an overview of what the agent sees.
+- `FocusedShape` - Format for shapes the agent is focusing on, such as those you've manually added to its context. Contains most shape properties: color, fill, alignment, and shape-specific information. The "focused" name indicates these are shapes the agent is directly examining.
+  - This is also the format that the model outputs when creating shapes.
+- `PeripheralShapeCluster` - Format for shapes outside the agent's viewport. Groups nearby shapes into clusters with bounds and shape count. The least detailed format—gives the model awareness of shapes elsewhere on the page.
 
-To send the model some shapes in one of these formats, use one of the conversion functions found within the `shared/format/` folder, such as `convertTldrawShapeToFocusedShape`.
+Use conversion functions in `shared/format/` to send shapes in these formats, such as `convertTldrawShapeToFocusedShape`.
 
 This example picks one random shape on the canvas and sends it to the model in the Focused format.
 
@@ -552,56 +566,50 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 
 ## Change the system prompt
 
-To change the default system prompt, edit the `worker/prompt/buildSystemPrompt.ts` file.
+The system prompt lives in `worker/prompt/buildSystemPrompt.ts`. Edit the sections in `worker/prompt/sections/` to change the system prompt.
 
-The system prompt is built on the worker side, where `PromptPartDefinition` classes can contribute additional system prompt content via their `buildSystemPrompt` method.
+The system prompt is rebuilt for each step in the agentic loop depending on which actions and parts are available in the agent's current mode. If you add new actions or parts, you can give the model more detailed instructions for how to use them in `worker/prompt/sections/rules-section.ts`.
+
+The schema showing the actions the agent can output is also automatically added to the system prompt.
 
 ## Change to a different model
 
-You can set an agent's model using the `modelName` manager.
+Set an agent's model using the `setModelName` method on the `modelName` manager.
 
 ```ts
-agent.modelName.setModelName('gemini-2.5-flash')
+agent.modelName.setModelName('gemini-3-flash-preview')
 ```
 
-To override an agent's model, specify a different model name with a request.
-
-```ts
-agent.prompt({
-	modelName: 'gemini-2.5-flash',
-	message: 'Draw a diagram of a volcano.',
-})
-```
+To change the logic for deciding which model to use for a request, you can edit `ModelNamePartUtil`.
 
 ## Support a different model
 
-To add support for a different model, add the model's definition to `AGENT_MODEL_DEFINITIONS` in the `worker/models.ts` file.
+Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 
 ```ts
-'claude-sonnet-4-20250514': {
-	name: 'claude-sonnet-4-20250514',
-	id: 'claude-sonnet-4-20250514',
+'claude-sonnet-4-5': {
+	name: 'claude-sonnet-4-5',
+	id: 'claude-sonnet-4-5',
 	provider: 'anthropic',
 }
 ```
 
-If you need to add any extra setup or configuration for your provider, you can add it to the `worker/AgentService.ts` file.
+Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
 
 ## Support custom shapes
 
-If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, you might want to also let the agent create and edit them, and read their custom properties.
+If your app includes [custom shapes](https://tldraw.dev/docs/shapes#Custom-shapes-1), the agent can see, move, delete, resize, rotate, and arrange them with no extra setup. However, you might also want to let the agent create and edit them, and read their custom properties.
 
 To support custom shapes, you have two main options:
 
-1. Add an action that lets the agent create your custom shape.\
+1. Add an action that lets the agent create your custom shape.
    See the [Let the agent create custom shapes with an action](#let-the-agent-create-custom-shapes-with-an-action) section below.
-
-2. Add your custom shape to the schema so that the agent read, edit and create it like any other shape.\
+2. Add your custom shape to the schema so that the agent read, edit and create it like any other shape.
    See the [Add your custom shape to the schema](#add-your-custom-shape-to-the-schema) section below.
 
 ### Let the agent create a custom shape with an action
 
-To add partial support for a custom shape, let the agent create it with an [agent action](#change-what-the-agent-can-do). For example, this action lets the agent create a custom "sticker" shape:
+For partial support, let the agent create a custom shape with an [agent action](#change-what-the-agent-can-do). This example creates a custom "sticker" shape:
 
 ```ts
 // In shared/schema/AgentActionSchemas.ts
@@ -620,16 +628,10 @@ export const StickerAction = z
 export type StickerAction = z.infer<typeof StickerAction>
 ```
 
-Define how the action gets applied to the canvas by creating an action util:
+Create an action util to define how the action applies to the canvas:
 
 ```ts
-// In client/actions/StickerActionUtil.ts
-import { StickerAction } from '../../shared/schema/AgentActionSchemas'
-import { Streaming } from '../../shared/types/Streaming'
-import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
-import { AgentHelpers } from '../AgentHelpers'
-import { createShapeId } from 'tldraw'
-
+// client/actions/StickerActionUtil.ts
 export const StickerActionUtil = registerActionUtil(
 	class StickerActionUtil extends AgentActionUtil<StickerAction> {
 		static override type = 'sticker' as const
@@ -664,7 +666,7 @@ export const StickerActionUtil = registerActionUtil(
 
 ### Add a custom shape to the schema
 
-To let the agent see the custom properties of your custom shape, add it to the schema in `shared/format/FocusedShape.ts`.
+To let the agent see the custom properties of your custom shape, add it to the schema in `shared/format/FocusedShape.ts`
 
 For example, here's a schema for a custom sticker shape.
 
@@ -693,7 +695,7 @@ The `_type` and `shapeId` properties are required so that the app can identify y
 
 For optional properties, it's worth considering how the agent should see your custom shape. You might want to leave out some properties and focus on showing the most important ones. It's also best to keep them in alphabetical order for better performance with Gemini models.
 
-Enable your custom shape schema by adding it to the list of `FOCUSED_SHAPES` in the same file.
+Enable your custom shape schema by adding it to the list of `FOCUSED_SHAPES` in the same file to enable it.
 
 ```ts
 const FOCUSED_SHAPES = [
@@ -751,7 +753,7 @@ export function convertFocusedShapeToTldrawShape(
 					// ...
 					props: {
 						// ...
-						stickerType: focusedShape.sitckerType
+						stickerType: focusedShape.stickerType
 					},
 					meta: {
 						note: focusedShape.note ?? ''
