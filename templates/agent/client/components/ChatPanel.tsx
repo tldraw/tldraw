@@ -1,15 +1,14 @@
 import { FormEventHandler, useCallback, useRef } from 'react'
-import { useValue } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
-import { TldrawAgent } from '../agent/TldrawAgent'
+import { uniqueId } from 'tldraw'
+import { useAgent, useTldrawAgentApp } from '../agent/TldrawAgentAppProvider'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
-export function ChatPanel({ agent }: { agent: TldrawAgent }) {
-	const { editor } = agent
+export function ChatPanel() {
+	const app = useTldrawAgentApp()
+	const agent = useAgent()
 	const inputRef = useRef<HTMLTextAreaElement>(null)
-	const modelName = useValue(agent.$modelName)
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -24,56 +23,50 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 				return
 			}
 
-			// If every todo is done, clear the todo list
-			const todosRemaining = agent.$todoList.get().filter((item) => item.status !== 'done')
-			if (todosRemaining.length === 0) {
-				agent.$todoList.set([])
-			}
-
-			// Grab the user query and clear the chat input
-			const message = value
-			const contextItems = agent.$contextItems.get()
-			agent.$contextItems.set([])
+			// Clear the chat input (context is cleared after it's captured in requestAgentActions)
 			inputRef.current.value = ''
 
-			// Prompt the agent
-			const selectedShapes = editor
-				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToSimpleShape(editor, shape))
-
-			await agent.prompt({
-				message,
-				contextItems,
-				bounds: editor.getViewportPageBounds(),
-				modelName,
-				selectedShapes,
-				type: 'user',
+			// Sending a new message to the agent should interrupt the current request
+			agent.interrupt({
+				input: {
+					agentMessages: [value],
+					bounds: agent.editor.getViewportPageBounds(),
+					source: 'user',
+					contextItems: agent.context.getItems(),
+				},
 			})
 		},
-		[agent, modelName, editor]
+		[agent]
 	)
 
-	function handleNewChat() {
+	const handleNewChat = useCallback(() => {
 		agent.reset()
-	}
+	}, [agent])
 
-	function NewChatButton() {
-		return (
-			<button className="new-chat-button" onClick={handleNewChat}>
-				+
-			</button>
-		)
-	}
+	// Agent management methods (available for programmatic use)
+	const _createAgent = useCallback(() => {
+		const newId = `agent-${uniqueId()}`
+		return app.agents.createAgent(newId)
+	}, [app])
+
+	const _deleteAgent = useCallback(
+		(id: string) => {
+			return app.agents.deleteAgent(id)
+		},
+		[app]
+	)
 
 	return (
 		<div className="chat-panel tl-theme__dark">
 			<div className="chat-header">
-				<NewChatButton />
+				<button className="new-chat-button" onClick={handleNewChat}>
+					+
+				</button>
 			</div>
 			<ChatHistory agent={agent} />
 			<div className="chat-input-container">
 				<TodoList agent={agent} />
-				<ChatInput agent={agent} handleSubmit={handleSubmit} inputRef={inputRef} />
+				<ChatInput handleSubmit={handleSubmit} inputRef={inputRef} />
 			</div>
 		</div>
 	)
