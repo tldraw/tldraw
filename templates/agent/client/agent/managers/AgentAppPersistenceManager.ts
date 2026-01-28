@@ -29,9 +29,14 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	private isLoadingState = false
 
 	/**
-	 * Cleanup functions for state watchers.
+	 * Cleanup function for the agents list watcher.
 	 */
-	private autoSaveCleanupFns: (() => void)[] = []
+	private agentsListCleanup: (() => void) | null = null
+
+	/**
+	 * Cleanup functions for per-agent state watchers, keyed by agent ID.
+	 */
+	private agentWatcherCleanupFns = new Map<string, () => void>()
 
 	/**
 	 * Check if state is currently being loaded.
@@ -98,27 +103,27 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	 * Reactively watches the agents list and all agent state.
 	 */
 	startAutoSave() {
-		// Track which agents have watchers set up
-		const watchedAgentIds = new Set<string>()
-
 		// Watch for changes to the agents list and set up per-agent watchers
-		const agentsListCleanup = react('agents list', () => {
+		this.agentsListCleanup = react('agents list', () => {
 			const agents = this.app.agents.getAgents()
 			const currentAgentIds = new Set(agents.map((a) => a.id))
 
 			// Set up watchers for new agents
 			for (const agent of agents) {
-				if (!watchedAgentIds.has(agent.id)) {
-					watchedAgentIds.add(agent.id)
+				if (!this.agentWatcherCleanupFns.has(agent.id)) {
 					const cleanup = this.createAgentStateWatcher(agent)
-					this.autoSaveCleanupFns.push(cleanup)
+					this.agentWatcherCleanupFns.set(agent.id, cleanup)
 				}
 			}
 
-			// Clean up watchers for removed agents (happens via dispose)
-			for (const id of watchedAgentIds) {
+			// Clean up watchers for removed agents
+			for (const id of this.agentWatcherCleanupFns.keys()) {
 				if (!currentAgentIds.has(id)) {
-					watchedAgentIds.delete(id)
+					const cleanup = this.agentWatcherCleanupFns.get(id)
+					if (cleanup) {
+						cleanup()
+					}
+					this.agentWatcherCleanupFns.delete(id)
 				}
 			}
 
@@ -127,8 +132,6 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 				this.saveState()
 			}
 		})
-
-		this.autoSaveCleanupFns.push(agentsListCleanup)
 	}
 
 	/**
@@ -168,8 +171,14 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	 * Stop auto-saving and clean up watchers.
 	 */
 	stopAutoSave() {
-		this.autoSaveCleanupFns.forEach((cleanup) => cleanup())
-		this.autoSaveCleanupFns = []
+		if (this.agentsListCleanup) {
+			this.agentsListCleanup()
+			this.agentsListCleanup = null
+		}
+		for (const cleanup of this.agentWatcherCleanupFns.values()) {
+			cleanup()
+		}
+		this.agentWatcherCleanupFns.clear()
 	}
 
 	/**
