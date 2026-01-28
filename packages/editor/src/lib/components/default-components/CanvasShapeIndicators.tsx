@@ -7,15 +7,11 @@ import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { useEditor } from '../../hooks/useEditor'
 import { useIsDarkMode } from '../../hooks/useIsDarkMode'
+import { useActivePeerIds$ } from '../../hooks/usePeerIds'
 
-/** @public */
-export interface TLCanvasShapeIndicatorsProps {
-	/** Whether to hide all of the indicators */
-	hideAll?: boolean
-	/** Whether to show all of the indicators */
-	showAll?: boolean
-	/** Whether to render hinted shape indicators */
-	renderHints?: boolean
+interface CollaboratorIndicatorData {
+	color: string
+	shapeIds: TLShapeId[]
 }
 
 const indicatorPathCache = createComputedCache(
@@ -85,16 +81,10 @@ function renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLInd
 	}
 }
 
-/** @public @react */
-export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
-	hideAll,
-	showAll,
-	renderHints = true,
-}: TLCanvasShapeIndicatorsProps) {
+/** @internal @react */
+export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
-
-	if (hideAll && showAll) throw Error('You cannot set both hideAll and showAll props to true')
 
 	// Cache the selected color to avoid getComputedStyle on every render
 	const rSelectedColor = useRef<string | null>(null)
@@ -107,52 +97,73 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 		return () => clearTimeout(timer)
 	}, [isDarkMode, editor])
 
+	// Get active peer IDs (already handles time-based state transitions)
+	const activePeerIds$ = useActivePeerIds$()
+
 	const $renderData = useComputed(
 		'indicator render data',
 		() => {
 			const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
 
-			// Compute ids to display
-			let idsToDisplay: Set<TLShapeId>
-			if (showAll) {
-				idsToDisplay = renderingShapeIds
-			} else if (hideAll) {
-				idsToDisplay = new Set()
-			} else {
-				idsToDisplay = new Set<TLShapeId>()
-				const instanceState = editor.getInstanceState()
-				const isChangingStyle = instanceState.isChangingStyle
-				const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
-				const isInSelectState = editor.isInAny(
-					'select.brushing',
-					'select.scribble_brushing',
-					'select.pointing_shape',
-					'select.pointing_selection',
-					'select.pointing_handle'
-				)
+			// Compute ids to display for selected/hovered shapes
+			const idsToDisplay = new Set<TLShapeId>()
+			const instanceState = editor.getInstanceState()
+			const isChangingStyle = instanceState.isChangingStyle
+			const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
+			const isInSelectState = editor.isInAny(
+				'select.brushing',
+				'select.scribble_brushing',
+				'select.pointing_shape',
+				'select.pointing_selection',
+				'select.pointing_handle'
+			)
 
-				if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {
-					for (const id of editor.getSelectedShapeIds()) {
-						idsToDisplay.add(id)
-					}
-					if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-						const hovered = editor.getHoveredShapeId()
-						if (hovered) idsToDisplay.add(hovered)
-					}
+			if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {
+				for (const id of editor.getSelectedShapeIds()) {
+					idsToDisplay.add(id)
+				}
+				if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+					const hovered = editor.getHoveredShapeId()
+					if (hovered) idsToDisplay.add(hovered)
 				}
 			}
 
 			// Compute hinting shape ids
-			const hintingShapeIds = renderHints ? dedupe(editor.getHintingShapeIds()) : []
+			const hintingShapeIds = dedupe(editor.getHintingShapeIds())
+
+			// Compute collaborator indicators
+			const collaboratorIndicators: CollaboratorIndicatorData[] = []
+			const currentPageId = editor.getCurrentPageId()
+			const activePeerIds = activePeerIds$.get()
+
+			const collaborators = editor.getCollaborators()
+			for (const peerId of activePeerIds.values()) {
+				// Skip collaborators on different pages
+				const presence = collaborators.find((c) => c.userId === peerId)
+				if (!presence || presence.currentPageId !== currentPageId) continue
+
+				// Filter to shapes that are visible and on the current rendering set
+				const visibleShapeIds = presence.selectedShapeIds.filter(
+					(id) => renderingShapeIds.has(id) && !editor.isShapeHidden(id)
+				)
+
+				if (visibleShapeIds.length > 0) {
+					collaboratorIndicators.push({
+						color: presence.color,
+						shapeIds: visibleShapeIds,
+					})
+				}
+			}
 
 			return {
 				idsToDisplay,
 				renderingShapeIds,
 				hintingShapeIds,
+				collaboratorIndicators,
 			}
 		},
 		{ isEqual: isEqual },
-		[editor, showAll, hideAll, renderHints]
+		[editor, activePeerIds$]
 	)
 
 	useQuickReactor(
@@ -164,7 +175,8 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 			const ctx = canvas.getContext('2d')
 			if (!ctx) return
 
-			const { idsToDisplay, renderingShapeIds, hintingShapeIds } = $renderData.get()
+			const { idsToDisplay, renderingShapeIds, hintingShapeIds, collaboratorIndicators } =
+				$renderData.get()
 
 			const { w, h } = editor.getViewportScreenBounds()
 			const dpr = window.devicePixelRatio || 1
@@ -187,14 +199,29 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators({
 			ctx.scale(zoom, zoom)
 			ctx.translate(cx, cy)
 
+			ctx.lineCap = 'round'
+			ctx.lineJoin = 'round'
+
+			// Draw collaborator indicators first (underneath local indicators)
+			// Use 0.5 opacity to match the original SVG-based collaborator indicators
+			ctx.lineWidth = 1.5 / zoom
+			for (const collaborator of collaboratorIndicators) {
+				ctx.strokeStyle = collaborator.color
+				ctx.globalAlpha = 0.7
+				for (const shapeId of collaborator.shapeIds) {
+					renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
+				}
+			}
+
+			// Reset alpha for local indicators
+			ctx.globalAlpha = 1.0
+
 			// Use cached color, only call getComputedStyle when cache is empty
 			if (!rSelectedColor.current) {
 				rSelectedColor.current = getComputedStyle(canvas).getPropertyValue('--tl-color-selected')
 			}
 
 			ctx.strokeStyle = rSelectedColor.current
-			ctx.lineCap = 'round'
-			ctx.lineJoin = 'round'
 
 			// Draw selected/hovered indicators (1.5px stroke)
 			ctx.lineWidth = 1.5 / zoom
