@@ -1,13 +1,19 @@
-// @ts-ignore - internal module path required for these types (tsgo-specific error)
-import {
-	PostgresJSClient,
-	PostgresJSTransaction,
-} from '@rocicorp/zero/out/zero-pg/src/postgresjs-connection'
 import { DB } from '@tldraw/dotcom-shared'
 import { Kysely, PostgresDialect } from 'kysely'
 import * as pg from 'pg'
 import { Environment } from './types'
 import { writeDataPoint } from './utils/analytics'
+
+// Local type definitions based on the @rocicorp/zero interface
+// Defined locally to avoid importing from internal module paths
+interface PostgresJSTransaction {
+	unsafe(sqlString: string, params: unknown[]): Promise<any[]>
+}
+
+interface PostgresJSClient<T> {
+	unsafe(sqlString: string, params: unknown[]): Promise<T[]>
+	begin<R>(fn: (tx: PostgresJSTransaction) => Promise<R>): Promise<R>
+}
 
 const int8TypeId = 20
 pg.types.setTypeParser(int8TypeId, (val) => {
