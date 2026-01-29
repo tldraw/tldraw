@@ -2,13 +2,13 @@ import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
 import {
-	Article,
+	type Article,
 	ArticleStatus,
-	Articles,
-	Category,
-	InputCategory,
-	InputSection,
-	Section,
+	type Articles,
+	type Category,
+	type InputCategory,
+	type InputSection,
+	type Section,
 } from '../../types/content-types'
 import { getArticleKey } from './getArticleKey'
 import { CONTENT_DIR } from './utils'
@@ -193,6 +193,9 @@ function getArticleData({
 		category: categoryId = sectionId + '_ucg',
 	} = parsed.data
 
+	const githubLink = sectionId === 'starter-kits' ? (parsed.data.githubLink ?? null) : null
+	const embed = sectionId === 'starter-kits' ? (parsed.data.embed ?? null) : null
+
 	const { content } = parsed
 
 	const article: Article = {
@@ -224,6 +227,8 @@ function getArticleData({
 		path: getArticlePath({ sectionId, categoryId, articleId }),
 		componentCode,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
+		embed,
+		githubLink,
 	}
 
 	if (sectionId === 'examples' && article.content) {
@@ -231,7 +236,6 @@ function getArticleData({
 		article.description = splitUp[0]
 		article.content = splitUp.slice(1).join('---\n')
 	}
-
 	return article
 }
 
