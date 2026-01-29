@@ -151,4 +151,5 @@ function getNoteForAdjacentPosition(
 	if (position) {
 		return getNoteShapeForAdjacentPosition(editor, shape, position, pageRotation, forceNew)
 	}
+	return undefined
 }

@@ -15,7 +15,7 @@ function escapeStringRegexp(string: string) {
 /** @public */
 export function matchEmbedUrl(definitions: readonly TLEmbedDefinition[], url: string) {
 	const parsed = safeParseUrl(url)
-	if (!parsed) return
+	if (!parsed) return undefined
 	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
@@ -29,6 +29,7 @@ export function matchEmbedUrl(definitions: readonly TLEmbedDefinition[], url: st
 			}
 		}
 	}
+	return undefined
 }
 
 const globlikeRegExp = (input: string) => {
@@ -48,7 +49,7 @@ const checkHostnames = (hostnames: readonly string[], targetHostname: string) =>
 /** @public */
 export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string) {
 	const parsed = safeParseUrl(url)
-	if (!parsed) return
+	if (!parsed) return undefined
 	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
@@ -63,6 +64,7 @@ export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string)
 			}
 		}
 	}
+	return undefined
 }
 
 /** @public */

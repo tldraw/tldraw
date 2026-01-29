@@ -537,6 +537,8 @@ export class Resizing extends StateNode {
 
 			// This will stop the traversal of descendants
 			if (!util.canResizeChildren(shape)) return false
+
+			return undefined
 		}
 
 		selectedShapeIds.forEach((shapeId) => {
