@@ -1,26 +1,25 @@
 import { useEffect, useRef } from 'react'
-import { Box, TLComponents, Tldraw, Vec, useEditor, useReactor } from 'tldraw'
+import { TLComponents, Tldraw, useEditor, useReactor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const CELL_SIZE = 32
-const COUNT = 100
 
-const boxes: Box[][] = []
-const cells: boolean[][] = []
-for (let i = 0; i < COUNT; i++) {
-	cells[i] = []
-	boxes[i] = []
-	for (let j = 0; j < COUNT; j++) {
-		cells[i].push(false)
-		boxes[i].push(
-			new Box((i - COUNT / 2) * CELL_SIZE, (j - COUNT / 2) * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-		)
-	}
+/**
+ * A sparse map storing which cells have been revealed.
+ * Keys are "i,j" strings where i and j are cell indices in an infinite grid.
+ */
+const revealedCells = new Map<string, boolean>()
+
+function getCellKey(i: number, j: number): string {
+	return `${i},${j}`
+}
+
+function getCellIndices(x: number, y: number): [number, number] {
+	return [Math.floor(x / CELL_SIZE), Math.floor(y / CELL_SIZE)]
 }
 
 export function Fog() {
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rVisibility = useRef<boolean[][]>(cells)
 	const editor = useEditor()
 
 	useEffect(() => {
@@ -33,44 +32,64 @@ export function Fog() {
 	useReactor(
 		'update fog',
 		() => {
-			const cells = rVisibility.current
 			const shapes = editor.getCurrentPageShapes()
+
+			// Mark cells as revealed based on shape bounds
 			for (const shape of shapes) {
-				const point = editor.getShapePageBounds(shape)!.point
-				const geometry = editor.getShapeGeometry(shape)
-				const adjustedPoint = Vec.Sub(point, geometry.bounds.point)
-				for (let i = 0; i < boxes.length; i++) {
-					for (let j = 0; j < boxes[i].length; j++) {
-						const box = boxes[i][j]
-						box.translate(Vec.Neg(adjustedPoint))
-						if (geometry.bounds.collides(box)) {
-							cells[i][j] = true
-						}
-						box.translate(adjustedPoint)
+				const pageBounds = editor.getShapePageBounds(shape)
+				if (!pageBounds) continue
+
+				// Get the cell range that this shape covers
+				const [minI, minJ] = getCellIndices(pageBounds.minX, pageBounds.minY)
+				const [maxI, maxJ] = getCellIndices(pageBounds.maxX, pageBounds.maxY)
+
+				// Mark all cells in the range as revealed
+				for (let i = minI; i <= maxI; i++) {
+					for (let j = minJ; j <= maxJ; j++) {
+						revealedCells.set(getCellKey(i, j), true)
 					}
 				}
 			}
+
 			const cvs = rCanvas.current!
 			const ctx = cvs.getContext('2d')!
-
-			cvs.style.filter = `blur(${editor.getCamera().z * 15}px)`
-
-			ctx.resetTransform()
 			const camera = editor.getCamera()
 
+			// Get viewport bounds in page space
+			const viewportBounds = editor.getViewportPageBounds()
+
+			// Calculate the cell range visible in the viewport (with some padding for blur)
+			const padding = 100 / camera.z // padding in page space for blur effect
+			const [startI, startJ] = getCellIndices(
+				viewportBounds.minX - padding,
+				viewportBounds.minY - padding
+			)
+			const [endI, endJ] = getCellIndices(
+				viewportBounds.maxX + padding,
+				viewportBounds.maxY + padding
+			)
+
+			// Set blur based on zoom level
+			cvs.style.filter = `blur(${camera.z * 15}px)`
+
+			ctx.resetTransform()
 			ctx.clearRect(0, 0, cvs.width, cvs.height)
+
+			// Fill with fog
 			ctx.fillStyle = 'rgba(0,0,0,0.9)'
 			ctx.fillRect(0, 0, cvs.width, cvs.height)
 
+			// Apply camera transform (offset by 100 for the canvas padding)
 			ctx.translate(100, 100)
 			ctx.scale(camera.z, camera.z)
 			ctx.translate(camera.x, camera.y)
 
-			for (let i = 0; i < boxes.length; i++) {
-				for (let j = 0; j < boxes[i].length; j++) {
-					if (!cells[i][j]) continue
-					const box = boxes[i][j]
-					ctx.clearRect(box.x, box.y, box.width, box.height)
+			// Clear revealed cells within the viewport
+			for (let i = startI; i <= endI; i++) {
+				for (let j = startJ; j <= endJ; j++) {
+					if (revealedCells.get(getCellKey(i, j))) {
+						ctx.clearRect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+					}
 				}
 			}
 		},
@@ -95,7 +114,8 @@ export function Fog() {
 }
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: Fog,
+	// Use OnTheCanvas instead of InFrontOfTheCanvas so the fog doesn't cover the UI
+	OnTheCanvas: Fog,
 }
 
 export default function BasicExample() {
