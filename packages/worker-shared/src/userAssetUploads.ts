@@ -1,6 +1,14 @@
-import { R2Bucket } from '@cloudflare/workers-types'
+import {
+	CacheStorage as CFCacheStorage,
+	Headers as CFHeaders,
+	ReadableStream as CFReadableStream,
+	R2Bucket,
+} from '@cloudflare/workers-types'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
+
+// Use Cloudflare's caches global which has a 'default' property
+declare const caches: CFCacheStorage
 
 /**
  * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
@@ -38,14 +46,14 @@ export async function handleUserAssetUpload({
 }: {
 	objectName: string
 	bucket: R2Bucket
-	body: ReadableStream | null
-	headers: Headers
+	body: CFReadableStream | null
+	headers: CFHeaders
 }): Promise<Response> {
 	if (await bucket.head(objectName)) {
 		return Response.json({ error: 'Asset already exists' }, { status: 409 })
 	}
 
-	const object = await bucket.put(objectName, body, {
+	const object = await bucket.put(objectName, body as CFReadableStream, {
 		httpMetadata: headers,
 	})
 
@@ -93,22 +101,24 @@ export async function handleUserAssetGet({
 	context: ExecutionContext
 }): Promise<Response> {
 	// this cache automatically handles range responses etc.
-	const cacheKey = new Request(request.url, { headers: request.headers })
+	const cacheKey = new Request(request.url, { headers: request.headers }) as unknown as Parameters<
+		typeof caches.default.match
+	>[0]
 	const cachedResponse = await caches.default.match(cacheKey)
 	if (cachedResponse) {
-		return cachedResponse
+		return cachedResponse as unknown as Response
 	}
 
 	const object = await bucket.get(objectName, {
-		range: request.headers,
-		onlyIf: request.headers,
+		range: request.headers as unknown as CFHeaders,
+		onlyIf: request.headers as unknown as CFHeaders,
 	})
 
 	if (!object) {
 		return notFound()
 	}
 
-	const headers = new Headers()
+	const headers = new Headers() as unknown as CFHeaders
 	object.writeHttpMetadata(headers)
 
 	// assets are immutable, so we can cache them basically forever:
@@ -147,9 +157,20 @@ export async function handleUserAssetGet({
 	if (status === 200) {
 		const [cacheBody, responseBody] = body!.tee()
 		// cache the response
-		context.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
-		return new Response(responseBody, { headers, status })
+		context.waitUntil(
+			caches.default.put(
+				cacheKey,
+				new Response(cacheBody as BodyInit, { headers: headers as unknown as HeadersInit, status })
+			)
+		)
+		return new Response(responseBody as BodyInit, {
+			headers: headers as unknown as HeadersInit,
+			status,
+		})
 	}
 
-	return new Response(body, { headers, status })
+	return new Response(body as BodyInit | null, {
+		headers: headers as unknown as HeadersInit,
+		status,
+	})
 }

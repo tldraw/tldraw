@@ -1,7 +1,7 @@
 /* eslint-disable local/no-whilst */
 import { TSDocParser } from '@microsoft/tsdoc'
 import * as utils from '@typescript-eslint/utils'
-import { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
+import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
 import { isReassignmentTarget } from 'tsutils'
 import ts from 'typescript'
 

@@ -27,8 +27,8 @@ if (typeof globalThis.cancelAnimationFrame === 'undefined') {
 }
 
 // Global polyfills
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder as any
+global.TextEncoder = TextEncoder as typeof global.TextEncoder
+global.TextDecoder = TextDecoder as typeof global.TextDecoder
 // @ts-expect-error - cannot delete non-optional property
 delete global.crypto
 global.crypto = crypto as any
