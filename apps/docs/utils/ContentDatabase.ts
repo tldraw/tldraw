@@ -1,8 +1,8 @@
 import { connect } from '@/scripts/lib/connect'
 import { assert } from '@tldraw/utils'
-import { Database } from 'sqlite'
-import sqlite3 from 'sqlite3'
-import {
+import type { Database } from 'sqlite'
+import type sqlite3 from 'sqlite3'
+import type {
 	Article,
 	ArticleHeading,
 	ArticleLinks,
@@ -109,7 +109,7 @@ export class ContentDatabase {
 			`SELECT id, title, categoryId, sectionId, path FROM articles
 			   WHERE articles.sectionId = ?
 				   AND ((articles.groupId = ? AND ? IS NOT NULL) OR (articles.groupId IS NULL AND ? is NULL))
-					 AND articles.sectionIndex < ? 
+					 AND articles.sectionIndex < ?
 			   ORDER BY articles.sectionIndex DESC LIMIT 1`,
 			article.sectionId,
 			article.groupId,
@@ -303,7 +303,12 @@ export class ContentDatabase {
 				children.push(...ucg)
 
 				// Push the section to the sidebar
-				links.push({ type: 'section', title: section.title, url: section.path, children })
+				links.push({
+					type: 'section',
+					title: section.title,
+					url: section.path,
+					children,
+				})
 
 				// Cache the links structure for next time
 				if (sectionId === 'examples') {
