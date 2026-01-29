@@ -17,15 +17,22 @@ async function main() {
 
 	const args = ['--build']
 	const isWatchMode = process.argv.includes('--watch')
+	const isNativeMode = process.argv.includes('--native')
 	if (process.argv.includes('--force')) args.push('--force')
 	if (isWatchMode) args.push('--watch')
 	if (process.argv.includes('--preserveWatchOutput')) args.push('--preserveWatchOutput')
 
-	const tscPath = join(REPO_ROOT, 'node_modules/.bin/tsc')
+	// Use tsgo (TypeScript native compiler) when --native flag is passed
+	const compilerBin = isNativeMode ? 'tsgo' : 'tsc'
+	const compilerPath = join(REPO_ROOT, `node_modules/.bin/${compilerBin}`)
+
+	if (isNativeMode) {
+		nicelog(`Using tsgo (TypeScript native compiler) for type checking`)
+	}
 
 	// In watch mode, use execFileSync with inherited stdio - it handles everything
 	if (isWatchMode) {
-		execFileSync(tscPath, [...args, ...tsconfigFiles], { stdio: 'inherit' })
+		execFileSync(compilerPath, [...args, ...tsconfigFiles], { stdio: 'inherit' })
 		return
 	}
 
@@ -35,7 +42,7 @@ async function main() {
 
 	return new Promise<void>((resolve) => {
 		const childProcess = execFile(
-			tscPath,
+			compilerPath,
 			[...args, ...tsconfigFiles],
 			{ cwd: REPO_ROOT },
 			(err) => {
