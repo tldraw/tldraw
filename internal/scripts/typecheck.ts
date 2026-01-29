@@ -21,6 +21,7 @@ async function main() {
 	if (process.argv.includes('--force')) args.push('--force')
 	if (isWatchMode) args.push('--watch')
 	if (process.argv.includes('--preserveWatchOutput')) args.push('--preserveWatchOutput')
+	if (process.argv.includes('--extendedDiagnostics')) args.push('--extendedDiagnostics')
 
 	// Use tsgo (TypeScript native compiler) when --native flag is passed
 	const compilerBin = isNativeMode ? 'tsgo' : 'tsc'
