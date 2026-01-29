@@ -643,12 +643,6 @@
       "value": "Name der Fee"
     }
   ],
-  "695c3e899d": [
-    {
-      "type": 0,
-      "value": "Debug-Feen"
-    }
-  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -1509,12 +1503,6 @@
     {
       "type": 0,
       "value": "Hier können Sie den Inhalt sehen"
-    }
-  ],
-  "d9bfb9789a": [
-    {
-      "type": 0,
-      "value": "Feen aktivieren"
     }
   ],
   "d9e35d0f55": [

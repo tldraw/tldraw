@@ -78,11 +78,14 @@ export const assetValidator: T.Validator<TLAsset>;
 export class b64Vecs {
     static decodeFirstPoint(b64Points: string): null | VecModel;
     static decodeLastPoint(b64Points: string): null | VecModel;
-    // @internal
-    static decodePointAt(b64Points: string, charOffset: number): VecModel;
     static decodePoints(base64: string): VecModel[];
-    static encodePoint(x: number, y: number, z: number): string;
     static encodePoints(points: VecModel[]): string;
+    // @internal
+    static _legacyDecodePoints(base64: string): VecModel[];
+    // @internal
+    static _legacyEncodePoint(x: number, y: number, z: number): string;
+    // @internal
+    static _legacyEncodePoints(points: VecModel[]): string;
 }
 
 // @public
@@ -704,7 +707,7 @@ export const TL_CURSOR_TYPES: Set<string>;
 export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
-export const TL_SCRIBBLE_STATES: Set<"active" | "paused" | "starting" | "stopping">;
+export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
@@ -1027,7 +1030,7 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
-    points: string;
+    path: string;
     type: 'free' | 'straight';
 }
 

@@ -31,6 +31,7 @@ describe('UserPreferencesManager', () => {
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
 		inputMode: null,
+		isZoomDirectionInverted: false,
 		...overrides,
 	})
 
@@ -235,6 +236,7 @@ describe('UserPreferencesManager', () => {
 				isWrapMode: mockUserPreferences.isWrapMode,
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
 				inputMode: mockUserPreferences.inputMode,
+				isZoomDirectionInverted: mockUserPreferences.isZoomDirectionInverted,
 			})
 		})
 
@@ -475,6 +477,24 @@ describe('UserPreferencesManager', () => {
 				expect(userPreferencesManager.getInputMode()).toBe('mouse')
 			})
 		})
+
+		describe('getIsZoomDirectionInverted', () => {
+			it('should return user zoom direction inverted setting', () => {
+				expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(false)
+			})
+
+			it('should return default when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, isZoomDirectionInverted: null })
+				expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(
+					defaultUserPreferences.isZoomDirectionInverted
+				)
+			})
+
+			it('should return true when inverted', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, isZoomDirectionInverted: true })
+				expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(true)
+			})
+		})
 	})
 
 	describe('reactive behavior', () => {
@@ -536,6 +556,7 @@ describe('UserPreferencesManager', () => {
 				isWrapMode: null,
 				isDynamicSizeMode: null,
 				isPasteAtCursorMode: null,
+				isZoomDirectionInverted: null,
 			})
 
 			userPreferencesAtom.set(nullPrefs)
@@ -557,6 +578,9 @@ describe('UserPreferencesManager', () => {
 			)
 			expect(userPreferencesManager.getIsPasteAtCursorMode()).toBe(
 				defaultUserPreferences.isPasteAtCursorMode
+			)
+			expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(
+				defaultUserPreferences.isZoomDirectionInverted
 			)
 		})
 

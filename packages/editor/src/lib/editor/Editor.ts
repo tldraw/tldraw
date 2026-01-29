@@ -149,6 +149,7 @@ import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
+import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
@@ -307,6 +308,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.snaps = new SnapManager(this)
+
+		this._spatialIndex = new SpatialIndexManager(this)
+		this.disposables.add(() => this._spatialIndex.dispose())
 
 		this.disposables.add(this.timers.dispose)
 
@@ -894,6 +898,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly snaps: SnapManager
+
+	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -5135,6 +5141,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _notVisibleShapes = notVisibleShapes(this)
+	private _culledShapesCache: Set<TLShapeId> | null = null
 
 	/**
 	 * Get culled shapes (those that should not render), taking into account which shapes are selected or editing.
@@ -5146,16 +5153,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const notVisibleShapes = this.getNotVisibleShapes()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
-		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
+		const nextValue = new Set<TLShapeId>(notVisibleShapes)
 		// we don't cull the shape we are editing
 		if (editingId) {
-			culledShapes.delete(editingId)
+			nextValue.delete(editingId)
 		}
 		// we also don't cull selected shapes
 		selectedShapeIds.forEach((id) => {
-			culledShapes.delete(id)
+			nextValue.delete(id)
 		})
-		return culledShapes
+
+		// Cache optimization: return same Set object if contents unchanged
+		// This allows consumers to use === comparison and prevents unnecessary re-renders
+		const prevValue = this._culledShapesCache
+		if (prevValue) {
+			// If sizes differ, contents must differ
+			if (prevValue.size !== nextValue.size) {
+				this._culledShapesCache = nextValue
+				return nextValue
+			}
+
+			// Check if all elements are the same
+			for (const id of prevValue) {
+				if (!nextValue.has(id)) {
+					// Found a difference, update cache and return new set
+					this._culledShapesCache = nextValue
+					return nextValue
+				}
+			}
+
+			// Loop completed without finding differences - contents identical
+			return prevValue
+		}
+
+		this._culledShapesCache = nextValue
+		return nextValue
 	}
 
 	/**
@@ -5222,11 +5254,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		// Use larger margin for spatial search to account for edge distance checks
+		const searchMargin = Math.max(innerMargin, outerMargin, this.options.hitTestMargin / zoomLevel)
+		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
+
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
+			// Frames have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+
 			if (
 				(shape.isLocked && !hitLocked) ||
 				this.isShapeHidden(shape) ||
@@ -5412,9 +5451,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
+		const margin = opts.margin ?? 0
+		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
+
+		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
+		// Frames are always checked because their labels can be outside their bounds
 		return this.getCurrentPageShapesSorted()
-			.filter((shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts))
+			.filter((shape) => {
+				if (this.isShapeHidden(shape)) return false
+				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				return this.isPointInShape(shape, point, opts)
+			})
 			.reverse()
+	}
+
+	/**
+	 * Get shape IDs within the given bounds.
+	 *
+	 * Note: Uses shape page bounds only. Frames with labels outside their bounds
+	 * may not be included even if the label is within the search bounds.
+	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.getShapeIdsInsideBounds(bounds)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
+	 * @param bounds - The bounds to search within.
+	 * @returns Unordered set of shape IDs within the given bounds.
+	 *
+	 * @internal
+	 */
+	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
+		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
 	/**
@@ -10475,7 +10544,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 							}
 
-							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
+							// because we can't for sure detect whether a user is using a mouse or a trackpad,
+							// we need to check the input mode preference, and only invert the zoom direction
+							// if the user has specifically set it to a mouse.
+							const isZoomDirectionInverted =
+								(this.user.getUserPreferences().isZoomDirectionInverted && inputMode === 'mouse') ??
+								false
+							const deltaValue = delta ?? 0
+							const finalDelta = isZoomDirectionInverted ? -deltaValue : deltaValue
+
+							const zoom = cz + finalDelta * zoomSpeed * cz
 							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
 								immediate: true,
 							})

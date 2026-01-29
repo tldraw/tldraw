@@ -147,6 +147,32 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return <path d={strokePath} />
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLHighlightShape): Path2D {
+		const strokeWidth = getStrokeWidth(shape)
+		const zoomLevel = this.editor.getEfficientZoomLevel()
+		const forceSolid = strokeWidth / zoomLevel < 1.5
+
+		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		let strokePath
+		if (strokePoints.length < 2) {
+			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
+		} else {
+			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
+		}
+
+		return new Path2D(strokePath)
+	}
+
 	override toSvg(shape: TLHighlightShape) {
 		const strokeWidth = getStrokeWidth(shape)
 		const forceSolid = strokeWidth < 1.5
@@ -249,9 +275,11 @@ function getStrokeWidth(shape: TLHighlightShape) {
 }
 
 function getIsDot(shape: TLHighlightShape) {
-	// Each point is 8 base64 characters (3 Float16s = 6 bytes = 8 base64 chars)
+	// First point is 16 base64 chars (3 Float32s = 12 bytes)
+	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
+	// 1 point = 16 chars, 2 points = 24 chars
 	// Check if we have less than 2 points without decoding
-	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 16
+	return shape.props.segments.length === 1 && shape.props.segments[0].path.length < 24
 }
 
 function HighlightRenderer({

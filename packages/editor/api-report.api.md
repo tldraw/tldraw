@@ -717,6 +717,7 @@ export const defaultTldrawOptions: {
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
+    readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
@@ -748,6 +749,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
+    isZoomDirectionInverted: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
 }>;
@@ -1277,6 +1279,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
+    // @internal
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
@@ -2702,17 +2706,29 @@ export interface ScribbleItem {
 // @public (undocumented)
 export class ScribbleManager {
     constructor(editor: Editor);
-    addPoint(id: ScribbleItem['id'], x: number, y: number, z?: number): ScribbleItem;
-    // (undocumented)
+    addPoint(id: string, x: number, y: number, z?: number): ScribbleItem;
+    addPointToSession(sessionId: string, scribbleId: string, x: number, y: number, z?: number): ScribbleItem;
     addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
-    // (undocumented)
+    addScribbleToSession(sessionId: string, scribble: Partial<TLScribble>, scribbleId?: string): ScribbleItem;
+    clearSession(sessionId: string): void;
+    complete(id: string): ScribbleItem;
+    extendSession(sessionId: string): void;
+    isSessionActive(sessionId: string): boolean;
     reset(): void;
-    // (undocumented)
-    scribbleItems: Map<string, ScribbleItem>;
-    // (undocumented)
-    state: "paused" | "running";
-    stop(id: ScribbleItem['id']): ScribbleItem;
+    startSession(options?: ScribbleSessionOptions): string;
+    stop(id: string): ScribbleItem;
+    stopSession(sessionId: string): void;
     tick(elapsed: number): void;
+}
+
+// @public (undocumented)
+export interface ScribbleSessionOptions {
+    fadeDurationMs?: number;
+    fadeEasing?: 'ease-in' | 'linear';
+    fadeMode?: 'grouped' | 'individual';
+    id?: string;
+    idleTimeoutMs?: number;
+    selfConsume?: boolean;
 }
 
 // @public (undocumented)
@@ -2769,6 +2785,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     // (undocumented)
     getText(shape: Shape): string | undefined;
@@ -2822,6 +2839,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
+    useLegacyIndicator(): boolean;
 }
 
 // @public
@@ -2882,6 +2900,22 @@ export class SnapManager {
     setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
+}
+
+// @internal
+export class SpatialIndexManager {
+    constructor(editor: Editor);
+    // @public
+    dispose(): void;
+    // (undocumented)
+    readonly editor: Editor;
+    // @public
+    getShapeIdsAtPoint(point: {
+        x: number;
+        y: number;
+    }, margin?: number): Set<TLShapeId>;
+    // @public
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
 }
 
 // @public (undocumented)
@@ -3484,6 +3518,7 @@ export interface TldrawOptions {
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
+    readonly laserFadeoutMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
@@ -3963,6 +3998,13 @@ export interface TLImageExportOptions extends TLSvgExportOptions {
     format?: TLExportType;
     quality?: number;
 }
+
+// @public
+export type TLIndicatorPath = {
+    additionalPaths?: Path2D[];
+    clipPath?: Path2D;
+    path: Path2D;
+} | Path2D;
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
@@ -4561,6 +4603,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
+    isZoomDirectionInverted?: boolean | null;
+    // (undocumented)
     locale?: null | string;
     // (undocumented)
     name?: null | string;
@@ -4740,6 +4784,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)
+    getIsZoomDirectionInverted(): boolean;
+    // (undocumented)
     getLocale(): string;
     // (undocumented)
     getName(): string;
@@ -4756,6 +4802,7 @@ export class UserPreferencesManager {
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
+        isZoomDirectionInverted: boolean;
         locale: string;
         name: string;
     };

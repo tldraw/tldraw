@@ -43,6 +43,7 @@ export const user = table('user')
 		isPasteAtCursorMode: boolean().optional(),
 		inputMode: string().optional(),
 		enhancedA11yMode: boolean().optional(),
+		isZoomDirectionInverted: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
 	})
 	.primaryKey('id')
