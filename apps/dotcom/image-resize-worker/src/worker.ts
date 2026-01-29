@@ -10,6 +10,12 @@ import {
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
 declare const fetch: typeof import('@cloudflare/workers-types').fetch
+declare const caches: {
+	default: {
+		match(request: unknown): Promise<Response | undefined>
+		put(request: unknown, response: Response): Promise<void>
+	}
+}
 
 interface Environment {
 	IS_LOCAL?: string
@@ -89,7 +95,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
 				actualResponse = await this.env.SYNC_WORKER.fetch(req)
 			} else {
-				actualResponse = await fetch(passthroughUrl, { cf: { image: imageOptions } })
+				actualResponse = (await fetch(passthroughUrl, {
+					cf: { image: imageOptions },
+				})) as unknown as Response
 			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {

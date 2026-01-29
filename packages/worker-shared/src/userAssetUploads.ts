@@ -3,23 +3,11 @@ import { notFound } from './errors'
 
 // Minimal interface for R2Bucket operations used in this file
 // This avoids type conflicts between ambient and imported Cloudflare types
+// Using 'any' for return types to allow compatibility with different R2Bucket type definitions
 interface R2BucketLike {
-	head(key: string): Promise<unknown | null>
-	get(
-		key: string,
-		options?: { range?: unknown; onlyIf?: unknown }
-	): Promise<{
-		body?: ReadableStream
-		size: number
-		httpEtag: string
-		range?: { suffix: number } | { offset?: number; length?: number }
-		writeHttpMetadata(headers: Headers): void
-	} | null>
-	put(
-		key: string,
-		value: unknown,
-		options?: { httpMetadata?: unknown }
-	): Promise<{ httpEtag: string }>
+	head(key: string): Promise<any>
+	get(key: string, options?: any): Promise<any>
+	put(key: string, value: any, options?: any): Promise<any>
 }
 
 // Cloudflare's caches global has a 'default' property for the default cache
