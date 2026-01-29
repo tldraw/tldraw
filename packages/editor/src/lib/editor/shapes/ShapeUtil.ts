@@ -40,9 +40,23 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
  * @public
  */
 export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
-	/** The type of shape referenced by the `fromId` of the binding. */
+	/**
+	 * The shape referenced by the `fromId` of the binding, if available.
+	 */
+	fromShape: TLShape | undefined
+	/**
+	 * The shape referenced by the `toId` of the binding, if available.
+	 */
+	toShape: TLShape | undefined
+	/**
+	 * The type of shape referenced by the `fromId` of the binding.
+	 * @deprecated Use `fromShape.type` instead when `fromShape` is available.
+	 */
 	fromShapeType: TLShape['type']
-	/** The type of shape referenced by the `toId` of the binding. */
+	/**
+	 * The type of shape referenced by the `toId` of the binding.
+	 * @deprecated Use `toShape.type` instead when `toShape` is available.
+	 */
 	toShapeType: TLShape['type']
 	/** The type of binding. */
 	bindingType: string
