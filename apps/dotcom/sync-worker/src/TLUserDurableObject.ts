@@ -600,9 +600,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 		} catch (e: any) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
+			const cause = e instanceof ZMutationError ? e.originalCause : e.cause
 			this.captureException(e, {
 				errorCode: code,
-				reason: e.cause ?? e.message ?? e.stack ?? JSON.stringify(e),
+				reason: cause ?? e.message ?? e.stack ?? JSON.stringify(e),
 			})
 			await this.rejectMutation(socket, msg.mutationId, code)
 		}
