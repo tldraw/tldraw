@@ -11,12 +11,9 @@ const queryValidator = T.object({
 	url: T.httpUrl,
 })
 
-type CFHeaders = import('@cloudflare/workers-types').Headers
-type CFReadableStream = import('@cloudflare/workers-types').ReadableStream
-
 type UploadImage = (
-	headers: CFHeaders,
-	body: CFReadableStream | null,
+	headers: Headers,
+	body: ReadableStream | null,
 	objectName: string
 ) => Promise<string>
 
@@ -120,8 +117,8 @@ async function trySaveImage<const K extends string>(
 
 		const objectName = `bookmark-${key}-${id}`
 		metadata[key] = await uploadImage(
-			imageResponse.headers as unknown as CFHeaders,
-			imageResponse.body as unknown as CFReadableStream | null,
+			imageResponse.headers as unknown as Headers,
+			imageResponse.body as unknown as ReadableStream | null,
 			objectName
 		)
 	} catch (error) {

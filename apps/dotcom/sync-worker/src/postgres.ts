@@ -1,3 +1,4 @@
+// @ts-ignore - internal module path required for these types (tsgo-specific error)
 import {
 	PostgresJSClient,
 	PostgresJSTransaction,

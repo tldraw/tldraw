@@ -1,14 +1,14 @@
-import {
-	CacheStorage as CFCacheStorage,
-	Headers as CFHeaders,
-	ReadableStream as CFReadableStream,
-	R2Bucket,
-} from '@cloudflare/workers-types'
+import { R2Bucket } from '@cloudflare/workers-types'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
-// Use Cloudflare's caches global which has a 'default' property
-declare const caches: CFCacheStorage
+// Cloudflare's caches global has a 'default' property for the default cache
+declare const caches: {
+	default: {
+		match(request: unknown): Promise<Response | undefined>
+		put(request: unknown, response: Response): Promise<void>
+	}
+}
 
 /**
  * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
@@ -46,16 +46,20 @@ export async function handleUserAssetUpload({
 }: {
 	objectName: string
 	bucket: R2Bucket
-	body: CFReadableStream | null
-	headers: CFHeaders
+	body: ReadableStream | null
+	headers: Headers
 }): Promise<Response> {
 	if (await bucket.head(objectName)) {
 		return Response.json({ error: 'Asset already exists' }, { status: 409 })
 	}
 
-	const object = await bucket.put(objectName, body as CFReadableStream, {
-		httpMetadata: headers,
-	})
+	const object = await bucket.put(
+		objectName,
+		body as unknown as import('@cloudflare/workers-types').ReadableStream | null,
+		{
+			httpMetadata: headers as unknown as import('@cloudflare/workers-types').Headers,
+		}
+	)
 
 	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 }
@@ -110,16 +114,16 @@ export async function handleUserAssetGet({
 	}
 
 	const object = await bucket.get(objectName, {
-		range: request.headers as unknown as CFHeaders,
-		onlyIf: request.headers as unknown as CFHeaders,
+		range: request.headers as unknown as import('@cloudflare/workers-types').Headers,
+		onlyIf: request.headers as unknown as import('@cloudflare/workers-types').Headers,
 	})
 
 	if (!object) {
 		return notFound()
 	}
 
-	const headers = new Headers() as unknown as CFHeaders
-	object.writeHttpMetadata(headers)
+	const headers = new Headers()
+	object.writeHttpMetadata(headers as unknown as import('@cloudflare/workers-types').Headers)
 
 	// assets are immutable, so we can cache them basically forever:
 	headers.set('cache-control', 'public, max-age=31536000, immutable')

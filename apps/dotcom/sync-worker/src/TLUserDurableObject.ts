@@ -1,4 +1,5 @@
 import { CustomMutatorImpl } from '@rocicorp/zero'
+// @ts-ignore - internal module path required for these types (tsgo-specific error)
 import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,

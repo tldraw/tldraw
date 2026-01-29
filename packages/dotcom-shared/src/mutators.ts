@@ -1,5 +1,5 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
-// @ts-ignore - internal module path required for Transaction type
+// @ts-ignore - internal module path required for Transaction type (tsgo-specific error)
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	assert,
