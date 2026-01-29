@@ -1,6 +1,26 @@
-import { R2Bucket } from '@cloudflare/workers-types'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
+
+// Minimal interface for R2Bucket operations used in this file
+// This avoids type conflicts between ambient and imported Cloudflare types
+interface R2BucketLike {
+	head(key: string): Promise<unknown | null>
+	get(
+		key: string,
+		options?: { range?: unknown; onlyIf?: unknown }
+	): Promise<{
+		body?: ReadableStream
+		size: number
+		httpEtag: string
+		range?: { suffix: number } | { offset?: number; length?: number }
+		writeHttpMetadata(headers: Headers): void
+	} | null>
+	put(
+		key: string,
+		value: unknown,
+		options?: { httpMetadata?: unknown }
+	): Promise<{ httpEtag: string }>
+}
 
 // Cloudflare's caches global has a 'default' property for the default cache
 declare const caches: {
@@ -45,7 +65,7 @@ export async function handleUserAssetUpload({
 	objectName,
 }: {
 	objectName: string
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	body: ReadableStream | null
 	headers: Headers
 }): Promise<Response> {
@@ -53,13 +73,9 @@ export async function handleUserAssetUpload({
 		return Response.json({ error: 'Asset already exists' }, { status: 409 })
 	}
 
-	const object = await bucket.put(
-		objectName,
-		body as unknown as import('@cloudflare/workers-types').ReadableStream | null,
-		{
-			httpMetadata: headers as unknown as import('@cloudflare/workers-types').Headers,
-		}
-	)
+	const object = await bucket.put(objectName, body, {
+		httpMetadata: headers,
+	})
 
 	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 }
@@ -100,7 +116,7 @@ export async function handleUserAssetGet({
 	context,
 }: {
 	request: IRequest
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	objectName: string
 	context: ExecutionContext
 }): Promise<Response> {
@@ -114,8 +130,8 @@ export async function handleUserAssetGet({
 	}
 
 	const object = await bucket.get(objectName, {
-		range: request.headers as unknown as import('@cloudflare/workers-types').Headers,
-		onlyIf: request.headers as unknown as import('@cloudflare/workers-types').Headers,
+		range: request.headers,
+		onlyIf: request.headers,
 	})
 
 	if (!object) {
@@ -123,7 +139,7 @@ export async function handleUserAssetGet({
 	}
 
 	const headers = new Headers()
-	object.writeHttpMetadata(headers as unknown as import('@cloudflare/workers-types').Headers)
+	object.writeHttpMetadata(headers)
 
 	// assets are immutable, so we can cache them basically forever:
 	headers.set('cache-control', 'public, max-age=31536000, immutable')
@@ -162,19 +178,10 @@ export async function handleUserAssetGet({
 		const [cacheBody, responseBody] = body!.tee()
 		// cache the response
 		context.waitUntil(
-			caches.default.put(
-				cacheKey,
-				new Response(cacheBody as BodyInit, { headers: headers as unknown as HeadersInit, status })
-			)
+			caches.default.put(cacheKey, new Response(cacheBody as BodyInit, { headers, status }))
 		)
-		return new Response(responseBody as BodyInit, {
-			headers: headers as unknown as HeadersInit,
-			status,
-		})
+		return new Response(responseBody as BodyInit, { headers, status })
 	}
 
-	return new Response(body as BodyInit | null, {
-		headers: headers as unknown as HeadersInit,
-		status,
-	})
+	return new Response(body as BodyInit | null, { headers, status })
 }
