@@ -67,16 +67,6 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 							/>
 						)}
 						<g transform={pageTransform.toCssString()} strokeLinecap="round" strokeLinejoin="round">
-							{showStroke && (
-								<g
-									stroke={geometry.debugColor ?? 'red'}
-									opacity="1"
-									strokeWidth={2 / zoomLevel}
-									fill="none"
-								>
-									<GeometryStroke geometry={geometry} />
-								</g>
-							)}
 							{/* Local bounds (rotates with shape) */}
 							{showVertices &&
 								vertices.map((v, i) => (

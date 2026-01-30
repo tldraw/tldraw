@@ -18,7 +18,7 @@ notes: "Strong technical content with accurate code examples. Opening could use 
 
 On an infinite canvas, every interaction raises a spatial question. What did you click? Which shapes are currently visible? What area surrounds a group of selected shapes?
 
-In tldraw, as in any graphical interface that responds to fast spatial queries, we answer these questions with _bounding boxes_. A bounding box is the smallest axis-aligned rectangle that contains a shape.
+In tldraw, as in any graphical interface that responds to fast spatial queries, we answer these questions with _bounding boxes_. A bounding box is the smallest axis-aligned rectangle that can contain a shape.
 
 [img]
 
@@ -73,10 +73,8 @@ The rotated points describe the shape's new position, but the edges are no longe
 
 Instead, we take the shape's bounding box vertices in its own coordinate system, transform them to page space, and compute a new axis-aligned box from those points.
 
-Since these lookups happen on every pointer move, we cache the results. The below function creates a reactive cache that recomputes shape bounds only when it or its parent transform changes.
-
 ```tsx
-// Simplified from Editor.getShapePageBounds
+// packages/editor/src/lib/editor/Editor.ts:4838-4847 (simplified)
 getShapePageBounds(shape: TLShape): Box | undefined {
   const pageTransform = this.getShapePageTransform(shape)
   if (!pageTransform) return undefined
@@ -84,22 +82,6 @@ getShapePageBounds(shape: TLShape): Box | undefined {
   return Box.FromPoints(
     pageTransform.applyToPoints(this.getShapeGeometry(shape).boundsVertices)
   )
-}
-```
-
-[check]
-
-```tsx
-// packages/editor/src/lib/editor/Editor.ts:4838-4847
-@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
-  return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-    const pageTransform = this.getShapePageTransform(shape)
-    if (!pageTransform) return undefined
-
-    return Box.FromPoints(
-      pageTransform.applyToPoints(this.getShapeGeometry(shape).boundsVertices)
-    )
-  })
 }
 ```
 
@@ -121,10 +103,13 @@ static FromPoints(points: VecLike[]): Box {
     maxY = Math.max(point.y, maxY)
   }
   return new Box(minX, minY, maxX - minX, maxY - minY)
+  // Results: {x: -35.4, y: 0, w: 106.1, h: 106.1}
 }
 ```
 
-Take our 100×50px rectangle example: we first calculate its original bounding box, then we apply the 45° rotation to each corner - and finally, we find the min and max (x, y) values among those rotated points. The result is a new bounding box that is roughly 106×106px. This is bigger than the original box since it's stretched to contain all four rotated corners.
+Take our 100×50px rectangle above as an example: we calculated its original bounding box, then we applied the 45° rotation to each corner.
+
+After this, we find the min and max (x, y) values among those rotated points. The result is a new bounding box that is roughly 106×106px. This is bigger than the original box since it's stretched to contain all four rotated corners.
 
 [gif of geometry debug]
 
@@ -133,19 +118,18 @@ Take our 100×50px rectangle example: we first calculate its original bounding b
 Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. If a rectangle sits inside a frame that is rotated by 30°, the rectangle's position on the page depends on both transforms. We multiply them together to get the shape's final page transform.
 
 ```tsx
-// packages/editor/src/lib/editor/Editor.ts:4784-4798
-@computed private _getShapePageTransformCache(): ComputedCache<Mat, TLShape> {
-  return this.store.createComputedCache<Mat, TLShape>('pageTransformCache', (shape) => {
-    if (isPageId(shape.parentId)) {
-      return this.getShapeLocalTransform(shape)
-    }
-    const parentTransform = this._getShapePageTransformCache().get(shape.parentId) ?? Mat.Identity()
-    return Mat.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
-  })
+// packages/editor/src/lib/editor/Editor.ts:4784-4798 (simplified)
+getShapePageTransform(shape: TLShape): Mat {
+  if (isPageId(shape.parentId)) {
+    return this.getShapeLocalTransform(shape)
+  }
+
+  const parentTransform = this.getShapePageTransform(shape.parentId)
+  return Mat.Compose(parentTransform, this.getShapeLocalTransform(shape))
 }
 ```
 
-This recursive function handles arbitrary nesting: if a shape's parent isn't the page, we get the parent's page transform and compose it with the shape's local transform. No matter how deeply nested, rotated, or resized a shape is, we can always compute a valid axis-aligned box by transforming its vertices and finding the min/max values.
+If a shape sits directly on the page, its page transform is just its local transform. Otherwise, we get the parent's page transform and compose it with the shape's local transform. This recurses up the tree, handling arbitrary nesting.
 
 ## Viewport culling
 
@@ -169,8 +153,6 @@ for (const id of shapeIds) {
 	// Shape is outside viewport...
 }
 ```
-
-The bounds are inlined here (extracted from the viewport box before the loop) because this runs on every camera change for every shape. Even the overhead of a function call matters.
 
 ## Selection boxes
 
@@ -215,5 +197,3 @@ getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
 ## Tradeoffs
 
 Axis-aligned boxes are approximations. A rotated rectangle's AABB is always larger than the shape itself, which means we sometimes check shapes that weren't actually clicked or render shapes that aren't quite visible. But the speed we gain from simple min/max comparisons far outweighs the cost of those extra checks.
-
-Check out these other optimisation changes we've added recently: [link]
