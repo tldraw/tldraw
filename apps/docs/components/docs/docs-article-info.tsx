@@ -13,7 +13,7 @@ export function DocsArticleInfo({ article }: { article: Article }) {
 	}
 
 	return (
-		<div className="shrink-0 text-xs flex flex-col gap-1 mb-12">
+		<div className="shrink-0 text-xs flex flex-col gap-2 mb-12">
 			{article.date && <p>Last edited on {format(new Date(article.date), 'MMM dd, yyyy')}</p>}
 			{article.sourceUrl && (
 				<Link

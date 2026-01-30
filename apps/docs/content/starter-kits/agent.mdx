@@ -5,6 +5,9 @@ status: published
 author: tldraw
 date: 9/16/2024
 order: 4
+description: The Agent Starter Kit demonstrates how to build an AI agent that can interpret and manipulate the [tldraw canvas](https://github.com/tldraw/tldraw). It features a chat panel on the right-hand-side of the screen where the user can communicate with the agent, add context and see chat history. It works as a foundation to create diagram generators, drawing assistants, or visual AI applications.
+embed: agent
+githubLink: https://github.com/tldraw/tldraw/tree/main/templates/agent
 keywords:
   - ai
   - agent
@@ -16,14 +19,6 @@ completeness: 9
 accuracy: 7
 notes: "Very comprehensive but long. Notion link at line 422 is an error. 'Use cases' should be lowercase. Bolded bullet format. Good code examples."
 ---
-
-The Agent Starter Kit demonstrates how to build an AI agent that can interpret and manipulate the [tldraw canvas](https://github.com/tldraw/tldraw). It features a chat panel on the right-hand-side of the screen where the user can communicate with the agent, add context and see chat history. It works as a foundation to create diagram generators, drawing assistants, or visual AI applications.
-
-<StarterKitEmbed id="agent" />
-
----
-
-## Try it yourself
 
 To build with an agent starter kit, run this command in your terminal:
 
@@ -196,7 +191,7 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 
 **Change what the agent can do by adding, editing or removing an `AgentActionUtil` within `AgentUtils.ts`.**
 
-Agent action utils define which action actions the agent can perform. Each `AgentActionUtil` adds a different capability.
+Agent action utils define which actions the agent can perform. Each `AgentActionUtil` adds a different capability.
 
 This example shows how to allow the agent to clear the screen.
 
@@ -311,7 +306,7 @@ agent.schedule((prev) => ({
 }))
 ```
 
-You can schedule multiple things by calling the `schedule`() method more than once.
+You can schedule multiple things by calling the `schedule()` method more than once.
 
 ```tsx
 agent.schedule('Add more detail to the canvas.')
@@ -682,7 +677,7 @@ export function convertSimpleShapeToTldrawShape(
 					// ...
 					props: {
 						// ...
-						stickerType: simpleShape.sitckerType
+						stickerType: simpleShape.stickerType
 					},
 					meta: {
 						note: simpleShape.note ?? ''
