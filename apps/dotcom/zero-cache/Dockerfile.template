@@ -1,16 +1,15 @@
-FROM rocicorp/zero:__ZERO_VERSION as zero
+FROM rocicorp/zero:__ZERO_VERSION
 
-FROM nginx:alpine
-
-# Copy everything from the rocicorp/zero image
-COPY --from=zero / /
-
-# Install supervisor for process management and gettext for envsubst
-RUN apk add --no-cache supervisor gettext
+# Install nginx, supervisor, and envsubst (gettext)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx \
+    supervisor \
+    gettext-base \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy our configs
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
-COPY supervisord.conf /etc/supervisord.conf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
