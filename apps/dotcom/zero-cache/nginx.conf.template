@@ -1,0 +1,55 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+    server {
+        listen 4848;
+
+        # Machine ID from environment (substituted at container start via envsubst)
+        set $machine_id "${FLY_MACHINE_ID}";
+
+        location / {
+            # Build state for routing decision
+            # Check if cookie exists and differs from this machine
+            set $check_replay "";
+            if ($cookie_fly_machine_id != "") {
+                set $check_replay "has_cookie";
+            }
+            if ($cookie_fly_machine_id != $machine_id) {
+                set $check_replay "${check_replay}_different";
+            }
+            # Check if this is a replayed request (Fly adds this header on replay)
+            if ($http_fly_replay_src != "") {
+                set $check_replay "${check_replay}_replayed";
+            }
+
+            # Case: cookie exists, differs, NOT a replay → tell Fly to route to correct machine
+            if ($check_replay = "has_cookie_different") {
+                add_header fly-replay "instance=$cookie_fly_machine_id" always;
+                return 307;
+            }
+
+            # Case: cookie exists, differs, IS a replay → target machine is dead
+            # Fall through to proxy normally and set new cookie (handled below)
+            # This covers "has_cookie_different_replayed"
+
+            # Proxy to Zero on internal port
+            proxy_pass http://127.0.0.1:4849;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            # WebSocket timeout - keep alive for long-running connections
+            proxy_read_timeout 86400;
+            proxy_send_timeout 86400;
+
+            # Always set cookie to current machine (refreshes existing or establishes new)
+            add_header Set-Cookie "fly_machine_id=$machine_id; Path=/; Max-Age=3600; SameSite=Lax" always;
+        }
+    }
+}

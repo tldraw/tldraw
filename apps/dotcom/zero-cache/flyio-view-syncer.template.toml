@@ -2,13 +2,19 @@ app = "__APP_NAME"
 primary_region = "fra"
 
 [build]
-image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
+dockerfile = "Dockerfile"
 
 [http_service]
 internal_port = 4848
 force_https = true
 auto_stop_machines = "off"
 min_machines_running = 2
+
+[[http_service.http_options.replay_cache]]
+path_prefix = "/"
+ttl_seconds = 3600
+type = "cookie"
+name = "fly_machine_id"
 
 [[http_service.checks]]
 grace_period = "10s"
