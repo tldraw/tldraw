@@ -3,9 +3,7 @@ title: Frame colors
 component: ./FrameColorsExample.tsx
 category: configuration
 priority: 5
-keywords:
-  - frame
-  - color
+keywords: [frame, colors, configure, frameshapeutil, showcolors, shapeutils]
 ---
 
 Use the `showColors` option to display colored fills and headings on frame shapes.

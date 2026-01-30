@@ -2,7 +2,20 @@
 title: Pin (bindings)
 component: ./PinExample.tsx
 category: shapes/tools
-keywords: []
+keywords:
+  [
+    bindings,
+    bindingutil,
+    custom binding,
+    relationships,
+    connections,
+    network,
+    custom tool,
+    statenode,
+    onafterchangetoshape,
+    shape relationships,
+    pin together,
+  ]
 priority: 10
 ---
 

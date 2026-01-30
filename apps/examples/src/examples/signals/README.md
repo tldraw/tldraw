@@ -3,7 +3,8 @@ title: Signals
 component: ./StateStoreExample.tsx
 category: events
 priority: 0
-keywords: [signia, state, store, side, effects, subscribe, track]
+keywords:
+  [signals, reactive, track, usevalue, usereactor, state management, side effects, computed, atom]
 ---
 
 React to changes by using signals.

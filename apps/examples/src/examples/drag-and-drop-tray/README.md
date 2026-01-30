@@ -3,6 +3,7 @@ title: Drag and drop tray
 component: ./DragAndDropTrayExample.tsx
 category: ui
 priority: 2
+keywords: [drag, drop, tray, shapes, InFrontOfTheCanvas]
 ---
 
 Create a drag and drop tray to create shapes on the canvas.

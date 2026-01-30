@@ -3,7 +3,20 @@ title: Locked shapes
 component: ./LockedShapesExample.tsx
 category: editor-api
 priority: 3
-keywords: [lock, unlock, locked, isLocked, ignoreShapeLock, template, background]
+keywords:
+  [
+    lock,
+    unlock,
+    locked,
+    islocked,
+    ignoreshapelock,
+    template,
+    background,
+    togglelock,
+    editor.run,
+    programmatic,
+    read-only,
+  ]
 ---
 
 Lock shapes to prevent user editing, and use `ignoreShapeLock` to modify them programmatically.

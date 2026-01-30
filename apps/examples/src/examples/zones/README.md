@@ -3,7 +3,8 @@ title: UI zones
 component: ./ZonesExample.tsx
 category: ui
 priority: 1
-keywords: [top zone, share zone]
+keywords:
+  [zones, TopPanel, SharePanel, ui zones, custom panels, components override, top zone, share zone]
 ---
 
 Inject custom components into tldraw's empty areas.

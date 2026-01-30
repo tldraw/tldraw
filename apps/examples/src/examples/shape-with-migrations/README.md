@@ -3,7 +3,17 @@ title: Custom shape migrations
 component: ./ShapeWithMigrationsExample.tsx
 category: shapes/tools
 priority: 3
-keywords: [version, update]
+keywords:
+  [
+    migrations,
+    schema versioning,
+    createshapepropsmigrationids,
+    createshapepropsmigrationsequence,
+    up,
+    down,
+    backwards compatibility,
+    data migration,
+  ]
 ---
 
 Migrate your shapes and their data between versions

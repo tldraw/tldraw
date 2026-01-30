@@ -3,7 +3,19 @@ title: Create an arrow
 component: ./CreateArrowExample.tsx
 category: editor-api
 priority: 1
-keywords: [arrow, between]
+keywords:
+  [
+    arrow,
+    createShape,
+    createBindings,
+    binding,
+    connection,
+    normalizedAnchor,
+    isPrecise,
+    isExact,
+    terminal,
+    programmatic creation,
+  ]
 ---
 
 Create an arrow between two shapes.

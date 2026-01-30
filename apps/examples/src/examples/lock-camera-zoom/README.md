@@ -3,7 +3,18 @@ title: Lock camera zoom
 component: ./LockCameraZoomExample.tsx
 category: editor-api
 priority: 2
-keywords: [camera, lock, zoom]
+keywords:
+  [
+    camera,
+    zoom,
+    lock,
+    setcameraoptions,
+    zoomsteps,
+    getzoomlevel,
+    getcameraoptions,
+    viewport,
+    fixed zoom,
+  ]
 ---
 
 Lock the camera at a specific zoom level.

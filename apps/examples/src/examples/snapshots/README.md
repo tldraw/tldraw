@@ -3,7 +3,20 @@ title: Save and load snapshots
 component: ./SnapshotExample.tsx
 category: editor-api
 priority: 0
-keywords: []
+keywords:
+  [
+    snapshot,
+    save,
+    load,
+    getsnapshot,
+    loadsnapshot,
+    persistence,
+    export,
+    import,
+    document,
+    session,
+    localstorage,
+  ]
 ---
 
 Sand and load a snapshot of the editor's contents.

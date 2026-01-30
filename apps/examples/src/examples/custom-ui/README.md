@@ -3,7 +3,8 @@ title: Replace the entire UI
 component: ./CustomUiExample.tsx
 category: ui
 priority: 1.5
-keywords: [hide, ui, event listener]
+keywords:
+  [hideui, custom ui, keyboard shortcuts, setcurrenttool, track, useeditor, toolbar, buttons]
 ---
 
 Replace tldraw's UI with your own.

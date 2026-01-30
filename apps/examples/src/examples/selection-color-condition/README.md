@@ -3,7 +3,17 @@ title: Selection color condition
 component: ./SelectionColorConditionExample.tsx
 category: ui
 priority: 3
-keywords: [selection, color, condition, rectangle, geo shapes]
+keywords:
+  [
+    selection,
+    color,
+    conditional styling,
+    css variables,
+    react,
+    getselectedshapes,
+    isshapeoftype,
+    css class,
+  ]
 ---
 
 Change the selection color based on the types of shapes selected.

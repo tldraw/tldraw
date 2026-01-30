@@ -3,7 +3,16 @@ title: Toggle dark mode
 component: ./DarkModeToggleExample.tsx
 category: ui
 priority: 4
-keywords: [theme, dark mode]
+keywords:
+  [
+    theme,
+    dark mode,
+    light mode,
+    colorscheme,
+    user preferences,
+    updateuserpreferences,
+    getisdarkmode,
+  ]
 ---
 
 Toggle dark mode.

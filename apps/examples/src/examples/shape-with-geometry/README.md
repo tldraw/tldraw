@@ -3,7 +3,18 @@ title: Custom shape geometry
 component: ./ShapeWithGeometry.tsx
 category: shapes/tools
 priority: 3
-keywords: [svg, path, house, door]
+keywords:
+  [
+    custom geometry,
+    getgeometry,
+    polygon2d,
+    rectangle2d,
+    group2d,
+    svg path,
+    vertices,
+    hit testing,
+    shapeutil,
+  ]
 ---
 
 A shape with custom geometry.

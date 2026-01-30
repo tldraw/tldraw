@@ -3,7 +3,21 @@ title: Programmatic text shape creation
 component: ./TextShapeConfigurationExample.tsx
 category: shapes/tools
 priority: 4
-keywords: [text, create, programmatic, autoSize, font, textAlign, richText, toRichText, bold, marks]
+keywords:
+  [
+    text shape,
+    create text,
+    programmatic,
+    autoSize,
+    font,
+    textAlign,
+    richText,
+    toRichText,
+    bold,
+    marks,
+    formatting,
+    createShape,
+  ]
 ---
 
 Create and configure text shapes programmatically.

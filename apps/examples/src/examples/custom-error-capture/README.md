@@ -3,7 +3,17 @@ title: Custom error capture
 component: ./CustomErrorCaptureExample.tsx
 category: ui
 priority: 3
-keywords: [error, fallback, capture, sentry, boundary, crash]
+keywords:
+  [
+    error,
+    ErrorFallback,
+    error boundary,
+    crash handling,
+    getErrorAnnotations,
+    sentry,
+    debugging,
+    error tracking,
+  ]
 ---
 
 Customize the error screen that appears when the editor crashes.

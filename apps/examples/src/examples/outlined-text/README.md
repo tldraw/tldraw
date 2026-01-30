@@ -3,7 +3,17 @@ title: Outlined text example
 component: ./OutlinedTextExample.tsx
 category: shapes/tools
 priority: 21
-keywords: [text, outline, stroke, extension, toolbar, styling]
+keywords:
+  [
+    tiptap,
+    text styling,
+    text stroke,
+    custom extension,
+    rich text toolbar,
+    mark,
+    css styling,
+    text effects,
+  ]
 ---
 
 Add outlined text styling to the TipTap text editor with a custom extension.

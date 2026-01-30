@@ -3,7 +3,18 @@ title: Custom translations and overrides
 component: ./CustomLanguageTranslationExample.tsx
 category: ui
 priority: 70
-keywords: [translation, i18n, localization, language, custom, override, useTranslation]
+keywords:
+  [
+    translation,
+    i18n,
+    localization,
+    language,
+    useTranslation,
+    overrides,
+    multilingual,
+    custom text,
+    brand voice,
+  ]
 ---
 
 Customize tldraw's translation strings and use them in custom components.

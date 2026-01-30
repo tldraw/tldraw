@@ -2,7 +2,22 @@
 title: Layout constraints (bindings)
 component: ./LayoutExample.tsx
 category: shapes/tools
-keywords: [constraints, group, shape, custom, bindings, drag, drop, position]
+keywords:
+  [
+    bindings,
+    constraints,
+    layout,
+    position,
+    container,
+    drag,
+    drop,
+    bindingutil,
+    ontranslate,
+    ontranslatestart,
+    ontranslateend,
+    relationships,
+    custom binding,
+  ]
 priority: 10
 ---
 

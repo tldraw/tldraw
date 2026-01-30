@@ -2,7 +2,18 @@
 title: Fog of war
 component: ./FogOfWarExample.tsx
 category: use-cases
-keywords: [ui, fog, overlay]
+keywords:
+  [
+    canvas,
+    overlay,
+    infrontofthecanvas,
+    html canvas,
+    usereactor,
+    getcurrentpageshapes,
+    getshapepagebounds,
+    getshapegeometry,
+    collision detection,
+  ]
 priority: 3
 ---
 

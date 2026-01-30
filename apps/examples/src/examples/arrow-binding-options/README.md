@@ -3,7 +3,17 @@ title: Arrow binding options
 component: ./ArrowBindingOptionsExample.tsx
 category: shapes/tools
 priority: 3
-keywords: [arrow, binding, precise, exact, anchor, snap]
+keywords:
+  [
+    arrow,
+    binding,
+    isprecise,
+    isexact,
+    normalizedanchor,
+    anchor point,
+    arrow connections,
+    technical diagrams,
+  ]
 ---
 
 Demonstrate arrow binding options for precise positioning.
