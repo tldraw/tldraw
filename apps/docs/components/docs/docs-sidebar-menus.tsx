@@ -34,7 +34,11 @@ export function DocsSidebarMenus({ menus }: { menus: any }) {
 	}
 
 	return (
-		<div ref={container} onScroll={onScroll} className="relative pr-12 overflow-y-auto grow pb-12">
+		<div
+			ref={container}
+			onScroll={onScroll}
+			className="relative pr-12 overflow-y-auto grow min-h-0 pb-12"
+		>
 			<div>
 				{menus.map((menu: any, index: number) => (
 					// @ts-ignore
@@ -43,6 +47,7 @@ export function DocsSidebarMenus({ menus }: { menus: any }) {
 						title={menu.title}
 						elements={menu.children}
 						isFirst={index === 0}
+						hideTitle={menus.length === 1}
 					/>
 				))}
 			</div>

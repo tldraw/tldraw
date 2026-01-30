@@ -45,7 +45,7 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 	if (!content || content.type !== 'article') notFound()
 
 	return (
-		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
+		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:items-start md:pt-8 isolate">
 			<DocsSidebar
 				sectionId={content.article.sectionId}
 				categoryId={content.article.categoryId}

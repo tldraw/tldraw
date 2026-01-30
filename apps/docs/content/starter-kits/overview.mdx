@@ -9,20 +9,9 @@ keywords:
   - starter kit
   - templates
   - examples
-readability: 7
-voice: 6
-completeness: 7
-accuracy: 9
-notes: "Title Case headings ('Available Starter Kits'). Bolded bullet format. Adequate navigation overview but could establish tldraw's value better."
 ---
 
-Starter Kits are application templates built on top of the tldraw SDK. They provide implementations of common canvas-based use cases, including frontend components and starting points for backend infrastructure and deployment configuration.
-
----
-
-## Try it yourself
-
-Run this command in your terminal to build with starter kits:
+Starter kits are complete applications built on tldraw. Each one includes frontend components, backend infrastructure, and deployment configuration—everything you need to ship a canvas-based product.
 
 ```bash
 npm create tldraw@latest
@@ -30,46 +19,42 @@ npm create tldraw@latest
 
 ---
 
-## Available starter kits
+### [Multiplayer](/starter-kits/multiplayer)
 
-### [Workflow](/starter-kits/workflow)
+![Multiplayer starter kit](/images/starter-kit-images/multiplayer-starter.avif)
 
-Visual node-based builder with drag-and-drop nodes, automatic routing, and execution management.
-
-**Use cases:** automation builders, workflow editors, data pipelines
-
-### [Chat](/starter-kits/chat)
-
-Canvas for sketching, annotation, and markup before sending to AI.
-
-**Use cases:** design feedback, education, documentation
+Self-hosted tldraw with real-time collaboration. Uses [tldraw sync](/docs/sync) and Cloudflare Durable Objects for the backend—deploy your own multiplayer whiteboard.
 
 ### [Agent](/starter-kits/agent)
 
-Enabling AI agents to interpret and interact with canvas drawings and elements.
+![Agent starter kit](/images/starter-kit-images/agent-starter.avif)
 
-**Use cases:** diagram generation, shape recognition, visual rendering
+Let AI agents read and write to your canvas. The agent can interpret drawings, generate diagrams, and manipulate shapes based on natural language.
 
-### [Branching chat](/starter-kits/branching-chat)
+### [Workflow](/starter-kits/workflow)
 
-Visual branching conversation interface that lets you create interactive chat trees with AI integration.
+![Workflow starter kit](/images/starter-kit-images/workflow-starter.avif)
 
-**Use cases:** interactive chatbots, conversation design tools, interactive storytelling, visual conversation prototyping
+A node-based editor with drag-and-drop nodes, automatic edge routing, and execution controls. Build automation tools, data pipelines, or visual programming environments.
 
-### [Multiplayer](/starter-kits/multiplayer)
+### [Chat](/starter-kits/chat)
 
-Self-hosted tldraw with real-time multiplayer collaboration powered by tldraw sync and Cloudflare Durable Objects.
+![Chat starter kit](/images/starter-kit-images/chat-starter.avif)
 
-**Use cases:** collaborative whiteboards, team workspaces, real-time design tools, multiplayer applications
+A canvas for sketching and annotation before sending to AI. Draw diagrams, mark up images, or sketch ideas—then send the whole canvas as context.
 
 ### [Shader](/starter-kits/shader)
 
-Integrate WebGL shaders with tldraw, creating dynamic backgrounds that respond to canvas interactions.
+![Shader starter kit](/images/starter-kit-images/shader-starter.avif)
 
-**Use cases:** tools with visual effects, custom renderers, games, visualizations
+WebGL shaders that respond to canvas interactions. The background reacts to panning, zooming, and shape positions. A starting point for tools with custom visual effects.
+
+### [Branching chat](/starter-kits/branching-chat)
+
+![Branching chat starter kit](/images/starter-kit-images/branching-chat-starter.avif)
+
+A visual conversation tree where each message can branch into multiple paths. Explore different responses, compare outcomes, or build interactive storytelling tools.
 
 ---
 
-## License
-
-Starter Kits are distributed under the same [licensing terms](/community/license) as the tldraw SDK.
+Starter kits use the same [license](/community/license) as the tldraw SDK.

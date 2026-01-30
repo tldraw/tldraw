@@ -11,7 +11,7 @@ export function Navigation({
 }) {
 	return (
 		<nav
-			className={cn('w-52 lg:w-60 shrink-0 flex flex-col sticky top-24', className)}
+			className={cn('w-52 lg:w-60 shrink-0 flex flex-col sticky top-24 overflow-hidden', className)}
 			style={{
 				height: 'calc(100vh - 6rem)',
 			}}

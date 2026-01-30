@@ -73,6 +73,7 @@ export async function DocsMobileSidebar({
 							title={menu.title}
 							elements={menu.children}
 							isFirst={index === 0}
+							hideTitle={elements.length === 1}
 						/>
 					))}
 				</div>
