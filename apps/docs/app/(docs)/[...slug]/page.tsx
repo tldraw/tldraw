@@ -45,7 +45,7 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 	if (!content || content.type !== 'article') notFound()
 
 	return (
-		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:items-start md:pt-8 isolate">
+		<div className="w-full max-w-screen-2xl mx-auto md:px-5 md:flex md:items-start md:pt-8 isolate">
 			<DocsSidebar
 				sectionId={content.article.sectionId}
 				categoryId={content.article.categoryId}
@@ -62,10 +62,15 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 			{content.article.sectionId === 'examples' ? (
 				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
 					<DocsHeader article={content.article} />
-					<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
+					{content.article.description && (
+						<Content mdx={content.article.description} type={content.article.sectionId} />
+					)}
 					<Example article={content.article} />
-					<div className="mx-auto w-full max-w-sm">
-						<DocsFeedbackWidget className="mb-12" />
+					{content.article.content && (
+						<Content mdx={content.article.content} type={content.article.sectionId} />
+					)}
+					<div className="mx-auto w-full max-w-sm mt-8 mb-16">
+						<DocsFeedbackWidget />
 					</div>
 					<DocsFooter article={content.article} />
 				</main>
@@ -80,7 +85,7 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 				</main>
 			) : (
 				<>
-					<main className="relative w-full max-w-3xl px-5 pt-12 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
+					<main className="relative grow  px-5 pt-12 md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
 						<DocsHeader article={content.article} />
 						<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
 						<DocsFooter article={content.article} />

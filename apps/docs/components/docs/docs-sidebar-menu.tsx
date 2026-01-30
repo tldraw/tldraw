@@ -72,12 +72,12 @@ export function DocsSidebarMenu({
 					)
 				}) ??
 					elements.map(({ title, url }, index) => (
-						<li key={index} className="">
+						<li key={index}>
 							<Link
 								href={url}
 								data-active={pathname === url}
 								className={cn(
-									'sidebar-link',
+									'sidebar-link block',
 									pathname === url || `/getting-started${pathname}` === url
 										? 'text-black dark:text-white font-semibold'
 										: 'hover:text-zinc-800 dark:hover:text-zinc-200'
