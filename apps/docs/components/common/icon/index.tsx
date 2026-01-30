@@ -1,5 +1,7 @@
 import * as HeroiconsSolid from '@heroicons/react/20/solid'
 import * as HeroiconsOutline from '@heroicons/react/24/outline'
+import { ChatGptIcon } from './chatgpt'
+import { ClaudeIcon } from './claude'
 import { DiscordIcon } from './discord'
 import { GithubIcon } from './github'
 import { LinkedinIcon } from './linkedin'
@@ -7,15 +9,18 @@ import { TldrawIcon } from './tldraw'
 import { TwitterIcon } from './twitter'
 
 const icons = {
+	chatgpt: ChatGptIcon,
 	check: HeroiconsOutline.CheckIcon,
+	claude: ClaudeIcon,
+	copy: HeroiconsOutline.ClipboardIcon,
 	discord: DiscordIcon,
 	github: GithubIcon,
-	tldraw: TldrawIcon,
-	twitter: TwitterIcon,
 	linkedin: LinkedinIcon,
 	paperclip: HeroiconsOutline.PaperClipIcon,
 	play: HeroiconsSolid.PlayIcon,
-	copy: HeroiconsOutline.ClipboardIcon,
+	sparkles: HeroiconsOutline.SparklesIcon,
+	tldraw: TldrawIcon,
+	twitter: TwitterIcon,
 }
 
 export type IconName = keyof typeof icons
