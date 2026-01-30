@@ -9,8 +9,10 @@ import {
 	TLArrowShapeProps,
 	TLBaseShape,
 	TLDOCUMENT_ID,
+	TLFrameShape,
 	TLRecord,
 	TLShapeId,
+	createShapeId,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, sortById } from '@tldraw/utils'
@@ -1404,5 +1406,362 @@ describe('Migration and patch handling', () => {
 
 		// Session should be connected
 		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+	})
+})
+
+describe('Cycle detection in parent-child relationships', () => {
+	// Helper to create a frame shape with specified parent
+	const createFrameShape = (
+		id: TLShapeId,
+		parentId: TLShapeId | ReturnType<typeof PageRecordType.createId>,
+		index: IndexKey
+	): TLFrameShape => ({
+		typeName: 'shape',
+		type: 'frame',
+		id,
+		index,
+		isLocked: false,
+		parentId,
+		rotation: 0,
+		x: 0,
+		y: 0,
+		opacity: 1,
+		props: { w: 100, h: 100, name: '', color: 'black' },
+		meta: {},
+	})
+
+	it('prevents 2-way cycle via put operation (A→B, then B→A)', () => {
+		const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		const pageId = PageRecordType.createId('page_2')
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'cycle-test-session'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		expect(room.sessions.get(sessionId)?.state).toBe('connected')
+
+		const shapeA = createShapeId('cycleA')
+		const shapeB = createShapeId('cycleB')
+
+		// First, create shapeA with shapeB as parent (shapeB doesn't exist yet, so this is fine)
+		// But wait - the cycle detection only works when both shapes exist.
+		// Let's create them both first with page as parent, then try to create a cycle.
+
+		// Create shapeA with page as parent
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, pageId, 'a1' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Create shapeB with shapeA as parent (valid: B → A, A → page)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 2,
+			diff: {
+				[shapeB]: ['put', createFrameShape(shapeB, shapeA, 'a2' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Now verify the shapes exist correctly
+		const shapeABefore = storage.documents.get(shapeA)?.state as TLFrameShape
+		const shapeBBefore = storage.documents.get(shapeB)?.state as TLFrameShape
+		expect(shapeABefore.parentId).toBe(pageId)
+		expect(shapeBBefore.parentId).toBe(shapeA)
+
+		// Now try to create a cycle: update A to have B as parent (would create A → B → A)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 3,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, shapeB, 'a1' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// The cycle should be prevented - A should still have pageId as parent
+		const shapeAAfter = storage.documents.get(shapeA)?.state as TLFrameShape
+		expect(shapeAAfter.parentId).toBe(pageId)
+
+		// Warning should have been logged
+		expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Prevented parent cycle'))
+
+		consoleSpy.mockRestore()
+	})
+
+	it('prevents cycle via patch operation', () => {
+		const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		const pageId = PageRecordType.createId('page_2')
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'patch-cycle-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const shapeA = createShapeId('patchCycleA')
+		const shapeB = createShapeId('patchCycleB')
+
+		// Create shapeA with page as parent
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, pageId, 'a1' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Create shapeB with shapeA as parent
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 2,
+			diff: {
+				[shapeB]: ['put', createFrameShape(shapeB, shapeA, 'a2' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Now try to patch A to have B as parent (would create A → B → A)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 3,
+			diff: {
+				[shapeA]: ['patch', { parentId: ['put', shapeB] }],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// The cycle should be prevented - A should still have pageId as parent
+		const shapeAAfter = storage.documents.get(shapeA)?.state as TLFrameShape
+		expect(shapeAAfter.parentId).toBe(pageId)
+
+		// Warning should have been logged
+		expect(consoleSpy).toHaveBeenCalledWith(
+			expect.stringContaining('Prevented parent cycle in patch')
+		)
+
+		consoleSpy.mockRestore()
+	})
+
+	it('prevents 3-way cycle (A→B→C→A)', () => {
+		const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		const pageId = PageRecordType.createId('page_2')
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'three-way-cycle-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const shapeA = createShapeId('threeWayA')
+		const shapeB = createShapeId('threeWayB')
+		const shapeC = createShapeId('threeWayC')
+
+		// Create chain: A → page, B → A, C → B
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, pageId, 'a1' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 2,
+			diff: {
+				[shapeB]: ['put', createFrameShape(shapeB, shapeA, 'a2' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 3,
+			diff: {
+				[shapeC]: ['put', createFrameShape(shapeC, shapeB, 'a3' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Now try to update A to have C as parent (would create A → C → B → A)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 4,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, shapeC, 'a1' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// The cycle should be prevented - A should still have pageId as parent
+		const shapeAAfter = storage.documents.get(shapeA)?.state as TLFrameShape
+		expect(shapeAAfter.parentId).toBe(pageId)
+
+		// Warning should have been logged
+		expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Prevented parent cycle'))
+
+		consoleSpy.mockRestore()
+	})
+
+	it('allows valid parent changes (no cycle)', () => {
+		const pageId = PageRecordType.createId('page_2')
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'valid-parent-change-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const shapeA = createShapeId('validA')
+		const shapeB = createShapeId('validB')
+		const shapeC = createShapeId('validC')
+
+		// Create three shapes with page as parent
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, pageId, 'a1' as IndexKey)],
+				[shapeB]: ['put', createFrameShape(shapeB, pageId, 'a2' as IndexKey)],
+				[shapeC]: ['put', createFrameShape(shapeC, pageId, 'a3' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Valid: move B to be child of A (no cycle)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 2,
+			diff: {
+				[shapeB]: ['patch', { parentId: ['put', shapeA] }],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// This should succeed - B should now have A as parent
+		const shapeBAfter = storage.documents.get(shapeB)?.state as TLFrameShape
+		expect(shapeBAfter.parentId).toBe(shapeA)
+
+		// Valid: move C to be child of B (no cycle, creates A → B → C chain going up)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 3,
+			diff: {
+				[shapeC]: ['patch', { parentId: ['put', shapeB] }],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		const shapeCAfter = storage.documents.get(shapeC)?.state as TLFrameShape
+		expect(shapeCAfter.parentId).toBe(shapeB)
+	})
+
+	it('allows reparenting to page (no cycle possible)', () => {
+		const pageId = PageRecordType.createId('page_2')
+		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: makeSnapshot(records) })
+		const room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
+
+		const socket = makeSocket()
+		const sessionId = 'reparent-to-page-test'
+
+		room.handleNewSession({
+			sessionId,
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage(sessionId, {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		})
+
+		const shapeA = createShapeId('pageReparentA')
+		const shapeB = createShapeId('pageReparentB')
+
+		// Create chain: B → A → page
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[shapeA]: ['put', createFrameShape(shapeA, pageId, 'a1' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 2,
+			diff: {
+				[shapeB]: ['put', createFrameShape(shapeB, shapeA, 'a2' as IndexKey)],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// Reparent B directly to page (always valid, no cycle possible)
+		room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 3,
+			diff: {
+				[shapeB]: ['patch', { parentId: ['put', pageId] }],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// B should now have pageId as parent
+		const shapeBAfter = storage.documents.get(shapeB)?.state as TLFrameShape
+		expect(shapeBAfter.parentId).toBe(pageId)
 	})
 })

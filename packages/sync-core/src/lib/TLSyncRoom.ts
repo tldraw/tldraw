@@ -6,6 +6,7 @@ import {
 	StoreSchema,
 	UnknownRecord,
 } from '@tldraw/store'
+import { isShape, isShapeId } from '@tldraw/tlschema'
 import {
 	assert,
 	assertExists,
@@ -904,6 +905,43 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
+		// Helper to check if setting a shape's parentId would create a cycle
+		// Returns true if a cycle would be created, false otherwise
+		const wouldCreateCycle = (
+			storage: MinimalDocStore<R>,
+			shapeId: string,
+			newParentId: string
+		): boolean => {
+			// If the parent is a page (not a shape), no cycle is possible
+			if (!isShapeId(newParentId)) {
+				return false
+			}
+
+			// Walk up the parent chain from the new parent to see if we reach the shape being moved
+			const visited = new Set<string>()
+			let currentId: string | null = newParentId
+
+			while (currentId && isShapeId(currentId)) {
+				if (currentId === shapeId) {
+					// Found a cycle!
+					return true
+				}
+
+				if (visited.has(currentId)) {
+					// Already visited this shape, there's an existing cycle in the data
+					// Don't create another one
+					break
+				}
+				visited.add(currentId)
+
+				const shape = storage.get(currentId) as UnknownRecord | undefined
+				if (!shape || !('parentId' in shape)) break
+				currentId = (shape as any).parentId as string
+			}
+
+			return false
+		}
+
 		const addDocument = (
 			storage: MinimalDocStore<R>,
 			changes: ActualChanges,
@@ -916,10 +954,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (res.type === 'error') {
 				throw new TLSyncError(res.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			}
-			const { value: state } = res
+			let { value: state } = res
 
 			// Get the existing document, if any
 			const doc = storage.get(id) as R | undefined
+
+			// Check for parent-child cycles in shape records and repair if necessary.
+			// Note: wouldCreateCycle() only returns true if the shape already exists in storage
+			// as an ancestor of newParentId, so doc will always be defined here.
+			if (isShape(state)) {
+				const newParentId = (state as any).parentId as string
+				if (wouldCreateCycle(storage, id, newParentId) && doc) {
+					// Keep the original parentId (consistent with client beforeChange handler)
+					const originalParentId = (doc as any).parentId as string
+					console.warn(
+						`[TLSyncRoom] Prevented parent cycle: shape ${id} cannot have parent ${newParentId}, keeping original parent ${originalParentId}`
+					)
+					state = { ...state, parentId: originalParentId } as R
+				}
+			}
 
 			if (doc) {
 				// If there's an existing document, replace it with the new state
@@ -953,6 +1006,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const doc = storage.get(id) as R | undefined
 			if (!doc) return
 
+			// Check for parent-child cycles if this is a shape and parentId is being patched
+			let repairedPatch = patch
+			if (isShape(doc) && 'parentId' in patch) {
+				const parentIdOp = patch.parentId
+				if (Array.isArray(parentIdOp) && parentIdOp[0] === ValueOpType.Put) {
+					const newParentId = parentIdOp[1] as string
+					if (wouldCreateCycle(storage, id, newParentId)) {
+						// Keep the original parentId (consistent with client beforeChange handler)
+						const originalParentId = (doc as any).parentId as string
+						console.warn(
+							`[TLSyncRoom] Prevented parent cycle in patch: shape ${id} cannot have parent ${newParentId}, keeping original parent ${originalParentId}`
+						)
+						repairedPatch = { ...patch, parentId: [ValueOpType.Put, originalParentId] }
+					}
+				}
+			}
+
 			const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
 			// If the client's version of the record is older than ours,
 			// we apply the patch to the downgraded version of the record
@@ -965,7 +1035,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			if (downgraded.value === doc) {
 				// If the versions are compatible, apply the patch and propagate the patch op
-				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
+				const diff = applyAndDiffRecord(doc, repairedPatch, recordType, legacyAppendMode)
 				if (diff) {
 					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
@@ -974,7 +1044,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// need to apply the patch to the downgraded version and then upgrade it
 
 				// apply the patch to the downgraded version
-				const patched = applyObjectDiff(downgraded.value, patch)
+				const patched = applyObjectDiff(downgraded.value, repairedPatch)
 				// then upgrade the patched version and use that as the new state
 				const upgraded = session
 					? this.schema.migratePersistedRecord(patched, session.serializedSchema, 'up')

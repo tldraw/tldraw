@@ -486,6 +486,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
+					beforeChange: (shapeBefore, shapeAfter) => {
+						// Cycle detection and repair: When a shape's parent changes, check if this would create a cycle.
+						// This can happen during multiplayer sync when two clients independently make reparenting
+						// operations that together create a circular reference (e.g., Client A moves Frame A into Frame B
+						// while Client B moves Frame B into Frame A).
+						if (shapeBefore.parentId !== shapeAfter.parentId && isShapeId(shapeAfter.parentId)) {
+							if (shapeAfter.parentId === shapeAfter.id) {
+								console.warn(
+									`Detected circular parent reference: shape ${shapeAfter.id} cannot be a child of itself. Keeping original parent.`
+								)
+								return {
+									...shapeAfter,
+									parentId: shapeBefore.parentId,
+								}
+							}
+							// Check if the new parent is a descendant of this shape (which would create a cycle)
+							if (this.hasAncestor(shapeAfter.parentId, shapeAfter.id)) {
+								// Break the cycle by keeping the shape at its original parent.
+								// The original parentId was valid (didn't cause a cycle), so we restore it.
+								console.warn(
+									`Detected circular parent reference: shape ${shapeAfter.id} cannot be a child of ${shapeAfter.parentId}. Keeping original parent.`
+								)
+								return {
+									...shapeAfter,
+									parentId: shapeBefore.parentId,
+								}
+							}
+						}
+						return shapeAfter
+					},
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
@@ -691,7 +721,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// ensure that descendants and ancestors are not selected at the same time
 							const filtered = next.selectedShapeIds.filter((id) => {
 								let parentId = this.getShape(id)?.parentId
+								// Track visited shape IDs to prevent infinite loops from circular parent references
+								const visited = new Set<TLShapeId>()
 								while (isShapeId(parentId)) {
+									if (visited.has(parentId)) break
+									visited.add(parentId)
 									if (next.selectedShapeIds.includes(parentId)) {
 										return false
 									}
@@ -4788,18 +4822,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	@computed private _getShapePageTransformCache(): ComputedCache<Mat, TLShape> {
+		// Track shapes being computed to detect cycles during recursive lookups.
+		// This Set is created once when the @computed getter is first invoked and captured
+		// in the closure returned by createComputedCache. It persists across cache computations
+		// but is cleaned up via the finally block after each individual shape's transform is computed.
+		// This pattern works because cache computations are synchronous and non-interleaved.
+		const shapesBeingComputed = new Set<TLShapeId>()
+
 		return this.store.createComputedCache<Mat, TLShape>('pageTransformCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return this.getShapeLocalTransform(shape)
 			}
 
-			// If the shape's parent doesn't exist yet (e.g. when merging in changes from remote in the wrong order)
-			// then we can't compute the transform yet, so just return the identity matrix.
-			// In the future we should look at creating a store update mechanism that understands and preserves
-			// ordering.
-			const parentTransform =
-				this._getShapePageTransformCache().get(shape.parentId) ?? Mat.Identity()
-			return Mat.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
+			shapesBeingComputed.add(shape.id)
+			try {
+				// Cycle detection: If we're already computing the transform for this shape's parent,
+				// there's a cycle in the parent hierarchy. Return local transform to break the cycle
+				// (treating this shape as if it were directly on the page).
+				if (shapesBeingComputed.has(shape.parentId)) {
+					console.warn(
+						`Detected circular parent reference when computing page transform for shape ${shape.id}`
+					)
+					return this.getShapeLocalTransform(shape)!
+				}
+
+				// If the shape's parent doesn't exist yet (e.g. when merging in changes from remote in the wrong order)
+				// then we can't compute the transform yet, so just return the identity matrix.
+				// In the future we should look at creating a store update mechanism that understands and preserves
+				// ordering.
+				const parentTransform =
+					this._getShapePageTransformCache().get(shape.parentId) ?? Mat.Identity()
+				return Mat.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
+			} finally {
+				shapesBeingComputed.delete(shape.id)
+			}
 		})
 	}
 
@@ -5010,19 +5066,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeAncestors(shape: TLShapeId | TLShape, acc: TLShape[] = []): TLShape[] {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape) return acc
-		const parentId = freshShape.parentId
-		if (isPageId(parentId)) {
-			acc.reverse()
-			return acc
+		const visited = new Set<TLShapeId>()
+		let currentId = typeof shape === 'string' ? shape : shape.id
+
+		while (currentId) {
+			const currentShape = this.getShape(currentId)
+			if (!currentShape) break
+
+			const parentId = currentShape.parentId
+			if (isPageId(parentId)) break
+
+			const parent = this.store.get(parentId)
+			if (!parent) break
+
+			// Cycle detection: if we've already visited this parent, stop to prevent infinite recursion
+			if (visited.has(parent.id)) break
+			visited.add(parent.id)
+
+			acc.push(parent)
+			currentId = parent.id
 		}
 
-		const parent = this.store.get(parentId)
-		if (!parent) return acc
-		acc.push(parent)
-		return this.getShapeAncestors(parent, acc)
+		acc.reverse()
+		return acc
 	}
 
 	/**
@@ -5044,16 +5110,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shape: TLShape | TLShapeId,
 		predicate: (parent: TLShape) => boolean
 	): TLShape | undefined {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape) return
+		const visited = new Set<TLShapeId>()
+		let currentId = typeof shape === 'string' ? shape : shape.id
 
-		const parentId = freshShape.parentId
-		if (isPageId(parentId)) return
+		while (currentId) {
+			// Cycle detection: if we've already visited this shape, stop to prevent infinite recursion
+			if (visited.has(currentId)) return
+			visited.add(currentId)
 
-		const parent = this.getShape(parentId)
-		if (!parent) return
-		return predicate(parent) ? parent : this.findShapeAncestor(parent, predicate)
+			const currentShape = this.getShape(currentId)
+			if (!currentShape) return
+
+			const parentId = currentShape.parentId
+			if (isPageId(parentId)) return
+
+			const parent = this.getShape(parentId)
+			if (!parent) return
+
+			if (predicate(parent)) return parent
+			currentId = parent.id
+		}
+
+		return
 	}
 
 	/**
@@ -5065,11 +5143,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : shape?.id
-		const freshShape = id && this.getShape(id)
-		if (!freshShape) return false
-		if (freshShape.parentId === ancestorId) return true
-		return this.hasAncestor(this.getShapeParent(freshShape), ancestorId)
+		const visited = new Set<TLShapeId>()
+		let currentId = typeof shape === 'string' ? shape : shape?.id
+
+		while (currentId) {
+			// Cycle detection: if we've already visited this shape, stop to prevent infinite recursion
+			if (visited.has(currentId)) return false
+			visited.add(currentId)
+
+			const currentShape = this.getShape(currentId)
+			if (!currentShape) return false
+			if (currentShape.parentId === ancestorId) return true
+
+			const parent = this.getShapeParent(currentShape)
+			if (!parent) return false
+			currentId = parent.id
+		}
+
+		return false
 	}
 
 	/**
@@ -5102,7 +5193,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const [nodeA, ...others] = freshShapes
 		let ancestor = this.getShapeParent(nodeA)
+		// Cycle detection: track visited ancestors to prevent infinite loops
+		const visited = new Set<TLShapeId>()
 		while (ancestor) {
+			if (visited.has(ancestor.id)) break
+			visited.add(ancestor.id)
+
 			// TODO: this is not ideal, optimize
 			if (predicate && !predicate(ancestor)) {
 				ancestor = this.getShapeParent(ancestor)
@@ -5124,10 +5220,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
-		const _shape = shape && this.getShape(shape)
-		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		const visited = new Set<TLShapeId>()
+		let currentShape = shape && this.getShape(shape)
+
+		while (currentShape) {
+			// Cycle detection: if we've already visited this shape, stop to prevent infinite recursion
+			if (visited.has(currentShape.id)) return false
+			visited.add(currentShape.id)
+
+			if (currentShape.isLocked) return true
+			currentShape = this.getShapeParent(currentShape)
+		}
+
+		return false
 	}
 
 	/**
@@ -5721,8 +5826,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapeToCheck.parentId === pageId) {
 			shapeIsInPage = true
 		} else {
+			const visited = new Set<TLShapeId>()
 			let parent = this.getShape(shapeToCheck.parentId)
 			isInPageSearch: while (parent) {
+				// Cycle detection: if we've already visited this parent, stop to prevent infinite recursion
+				if (visited.has(parent.id)) break isInPageSearch
+				visited.add(parent.id)
+
 				if (parent.parentId === pageId) {
 					shapeIsInPage = true
 					break isInPageSearch
@@ -5744,14 +5854,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined {
-		const id = typeof shape === 'string' ? shape : shape?.id
-		const _shape = id && this.getShape(id)
-		if (!_shape) return undefined
-		if (isPageId(_shape.parentId)) {
-			return _shape.parentId
-		} else {
-			return this.getAncestorPageId(this.getShape(_shape.parentId))
+		const visited = new Set<TLShapeId>()
+		let currentId = typeof shape === 'string' ? shape : shape?.id
+
+		while (currentId) {
+			const currentShape = this.getShape(currentId)
+			if (!currentShape) return undefined
+
+			// Cycle detection: if we've already visited this shape, stop to prevent infinite recursion
+			if (visited.has(currentShape.id)) return undefined
+			visited.add(currentShape.id)
+
+			if (isPageId(currentShape.parentId)) {
+				return currentShape.parentId
+			}
+			currentId = currentShape.parentId as TLShapeId
 		}
+
+		return undefined
 	}
 
 	// Parents and children
@@ -5855,6 +5975,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						throw Error('Attempted to reparent a shape to itself!')
 					}
 
+					// Note: Cycle prevention is handled by the beforeChange side effect handler
+					// which catches ALL parentId changes (including this one, direct store updates,
+					// multiplayer sync, etc.) and reverts to the original parent if a cycle is detected.
+
 					changes.push({
 						id: shape.id,
 						type: shape.type,
@@ -5930,10 +6054,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		parent: TLParentId | TLPage | TLShape,
 		visitor: (id: TLShapeId) => void | false
 	): this {
-		const children = this.getSortedChildIdsForParent(parent)
-		for (const id of children) {
-			if (visitor(id) === false) continue
-			this.visitDescendants(id, visitor)
+		const visited = new Set<TLShapeId>()
+		const stack: TLParentId[] = [typeof parent === 'object' ? parent.id : parent]
+
+		while (stack.length > 0) {
+			const currentParent = stack.pop()!
+			const children = this.getSortedChildIdsForParent(currentParent)
+
+			// Process children in order, but push to stack in reverse order
+			// so that when we pop, we get them in the original order (depth-first)
+			const toVisit: TLShapeId[] = []
+			for (const id of children) {
+				// Cycle detection: if we've already visited this shape, skip it to prevent infinite recursion
+				if (visited.has(id)) continue
+				visited.add(id)
+
+				if (visitor(id) === false) continue
+				toVisit.push(id)
+			}
+			// Push in reverse order so first child is processed first when popped
+			for (let i = toVisit.length - 1; i >= 0; i--) {
+				stack.push(toVisit[i])
+			}
 		}
 		return this
 	}
@@ -6022,7 +6164,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const focusedGroup = this.getFocusedGroup()
 
+		// Cycle detection: track visited shapes to prevent infinite loops
+		const visited = new Set<TLShapeId>()
+
 		while (node) {
+			if (visited.has(node.id)) break
+			visited.add(node.id)
+
 			if (
 				this.isShapeOfType(node, 'group') &&
 				focusedGroup?.id !== node.id &&
