@@ -11,13 +11,13 @@ keywords:
   - examples
 ---
 
-Starter Kits are application templates built on top of the tldraw SDK. They provide implementations of common canvas-based use cases, including frontend components and starting points for backend infrastructure and deployment configuration.
+Build with our production-ready starter kits. Ship faster, customize everything.
 
 ---
 
-## Try it yourself
+## Jump start
 
-Run this command in your terminal to build with starter kits:
+Starter kits provide implementations of common canvas-based use cases, including frontend components and starting points for backend infrastructure and deployment configuration. Get started as easy as this:
 
 ```bash
 npm create tldraw@latest
@@ -29,39 +29,89 @@ npm create tldraw@latest
 
 ### [Workflow](/starter-kits/workflow)
 
-Visual node-based builder with drag-and-drop nodes, automatic routing, and execution management.
+Build visual tools where users drag, connect and execute nodes to build automation pipelines within a canvas interface. Set up your first workflow builder in minutes, then customize nodes and behaviors for your specific use case. Drag-and-drop nodes, automatic connection routing, and execution management out of the box.
 
-**Use cases:** automation builders, workflow editors, data pipelines
+<StarterKitBento
+	type="workflow"
+	img={{ src: '/images/starter-kits/workflow.png', alt: 'Workflow Starter Kit' }}
+/>
 
 ### [Chat](/starter-kits/chat)
 
 Canvas for sketching, annotation, and markup before sending to AI.
 
-**Use cases:** design feedback, education, documentation
+<StarterKitBento
+	type="chat"
+	img={{ src: '/images/starter-kits/chat.png', alt: 'Chat Starter Kit' }}
+/>
 
 ### [Agent](/starter-kits/agent)
 
 Enabling AI agents to interpret and interact with canvas drawings and elements.
 
-**Use cases:** diagram generation, shape recognition, visual rendering
+<StarterKitBento
+	type="agent"
+	img={{ src: '/images/starter-kits/agent.png', alt: 'Agent Starter Kit' }}
+/>
 
 ### [Branching chat](/starter-kits/branching-chat)
 
 Visual branching conversation interface that lets you create interactive chat trees with AI integration.
 
-**Use cases:** interactive chatbots, conversation design tools, interactive storytelling, visual conversation prototyping
+<StarterKitBento
+	type="branching"
+	img={{ src: '/images/starter-kits/branching.png', alt: 'Branching Starter Kit' }}
+/>
 
 ### [Multiplayer](/starter-kits/multiplayer)
 
 Self-hosted tldraw with real-time multiplayer collaboration powered by tldraw sync and Cloudflare Durable Objects.
 
-**Use cases:** collaborative whiteboards, team workspaces, real-time design tools, multiplayer applications
+<StarterKitBento
+	type="multiplayer"
+	img={{ src: '/images/starter-kits/multi.png', alt: 'Multiplayer Starter Kit' }}
+/>
 
 ### [Shader](/starter-kits/shader)
 
 Integrate WebGL shaders with tldraw, creating dynamic backgrounds that respond to canvas interactions.
 
-**Use cases:** tools with visual effects, custom renderers, games, visualizations
+<StarterKitBento
+	type="shader"
+	img={{ src: '/images/starter-kits/shader.png', alt: 'Shader Starter Kit' }}
+/>
+
+---
+
+## Why build with starter kits
+
+<CheckItem>Complete starter code for frontend and backend</CheckItem>
+<CheckItem>Ready for real-time collaboration</CheckItem>
+<CheckItem>Custom shape systems and tool implementations</CheckItem>
+
+<br />
+
+<div className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2">	
+	<Feature icon="bolt" title="Ship features in weeks, not months">
+    Skip the months of research and implementation. Each kit provides tested solutions for complex canvas interactions.
+</Feature>
+
+    <Feature icon="cube" title="Production-ready from day one">
+    Complete backend infrastructure, error handling, and scalable architecture used by millions on tldraw.com.
+
+  </Feature>
+
+    <Feature icon="wrench" title="Built for customization">
+    Every component uses the same extensible APIs. Add custom shapes, tools, and behaviors without fighting the framework.
+
+  </Feature>
+
+    <Feature icon="shield" title="Validated by engineering teams">
+    Built around common use cases. Each pattern reflects real-world requirements and proven architectural decisions.
+
+  </Feature>
+  
+  </div>
 
 ---
 

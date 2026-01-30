@@ -126,6 +126,10 @@ export interface Article extends ContentPage {
 	componentCodeFiles: string | null
 	/** Tags for this item if it's a reference page */
 	apiTags: string | null
+	/** The id of the Starter Kit embed */
+	embed: string | null
+	/** The URL where the Starter Kit's source can be found. */
+	githubLink: string | null
 }
 
 export enum ArticleStatus {

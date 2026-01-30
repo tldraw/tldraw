@@ -16,6 +16,10 @@ const icons = {
 	paperclip: HeroiconsOutline.PaperClipIcon,
 	play: HeroiconsSolid.PlayIcon,
 	copy: HeroiconsOutline.ClipboardIcon,
+	bolt: HeroiconsOutline.BoltIcon,
+	cube: HeroiconsOutline.CubeIcon,
+	wrench: HeroiconsOutline.WrenchScrewdriverIcon,
+	shield: HeroiconsOutline.ShieldCheckIcon,
 }
 
 export type IconName = keyof typeof icons
