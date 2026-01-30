@@ -81,8 +81,9 @@ async function packageAndPublish(version: string) {
 	switch (env.TLDRAW_ENV) {
 		case 'production':
 			await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
-			await copyExtensionToReleaseFolder(version)
 			await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
+			// commit vsix AFTER successful publish to avoid partial state on failure
+			await copyExtensionToReleaseFolder(version)
 			return
 		case 'staging':
 			await exec('yarn', ['package', '--pre-release'], { pwd: EXTENSION_DIR })

@@ -51,6 +51,7 @@ export class UserPreferencesManager {
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 			enhancedA11yMode: this.getEnhancedA11yMode(),
 			inputMode: this.getInputMode(),
+			isZoomDirectionInverted: this.getIsZoomDirectionInverted(),
 		}
 	}
 
@@ -130,5 +131,12 @@ export class UserPreferencesManager {
 
 	@computed getInputMode() {
 		return this.user.userPreferences.get().inputMode ?? defaultUserPreferences.inputMode
+	}
+
+	@computed getIsZoomDirectionInverted() {
+		return (
+			this.user.userPreferences.get().isZoomDirectionInverted ??
+			defaultUserPreferences.isZoomDirectionInverted
+		)
 	}
 }

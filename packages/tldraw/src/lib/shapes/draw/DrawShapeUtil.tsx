@@ -177,6 +177,42 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLDrawShape): Path2D {
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+
+		const zoomLevel = this.editor.getEfficientZoomLevel()
+		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+
+		if (
+			!forceSolid &&
+			!shape.props.isPen &&
+			shape.props.dash === 'draw' &&
+			allPointsFromSegments.length === 1
+		) {
+			sw += rng(shape.id)() * (sw / 6)
+		}
+
+		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
+		const strokePoints = getStrokePoints(allPointsFromSegments, options)
+		const solidStrokePath =
+			strokePoints.length > 1
+				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
+				: getDot(allPointsFromSegments[0], sw)
+
+		return new Path2D(solidStrokePath)
+	}
+
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		const scaleFactor = 1 / shape.props.scale
@@ -227,9 +263,11 @@ function getDot(point: VecLike, sw: number) {
 }
 
 function getIsDot(shape: TLDrawShape) {
-	// Each point is 8 base64 characters (3 Float16s = 6 bytes = 8 base64 chars)
+	// First point is 16 base64 chars (3 Float32s = 12 bytes)
+	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
+	// 1 point = 16 chars, 2 points = 24 chars
 	// Check if we have less than 2 points without decoding
-	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 16
+	return shape.props.segments.length === 1 && shape.props.segments[0].path.length < 24
 }
 
 function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverride?: number }) {

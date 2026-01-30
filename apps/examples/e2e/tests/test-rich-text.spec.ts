@@ -25,13 +25,9 @@ test.describe('more rich text', () => {
 		await page.keyboard.type('Live in a big white house in the forest')
 		expect(page.getByTestId('rich-text-area')).toHaveText('Live in a big white house in the forest')
 
-		// expect indicator to be in the DOM (since the shape is editing)
-		const indicator = page.locator('.tl-overlays__item')
-		expect(indicator.first()).toHaveCSS('display', 'block')
-
-		// ...but expect the rectangle inside of the indicator to be hidden (because it's auto width)
-		const indicatorRect = page.locator('.tl-overlays__item > .tl-shape-indicator > rect')
-		expect(await indicatorRect.isHidden()).toBe(true)
+		// expect canvas indicator to be visible (since the shape is editing)
+		const canvasIndicator = page.locator('.tl-canvas-indicators')
+		await expect(canvasIndicator).toBeVisible()
 	})
 
 	test('Click and drag with text tool to create and edit fixed-width text on the canvas', async ({
@@ -50,12 +46,8 @@ test.describe('more rich text', () => {
 			'Drink gin and tonic and play a grand piano'
 		)
 
-		// expect indicator to be in the DOM (since the shape is editing)
-		const indicator = page.locator('.tl-overlays__item')
-		expect(indicator.first()).toHaveCSS('display', 'block')
-
-		// ...but expect the rectangle inside of the indicator to be visible (because it's fixed width)
-		const indicatorRect = page.locator('.tl-overlays__item > .tl-shape-indicator > rect')
-		expect(await indicatorRect.isVisible()).toBe(true)
+		// expect canvas indicator to be visible (since the shape is editing)
+		const canvasIndicator = page.locator('.tl-canvas-indicators')
+		await expect(canvasIndicator).toBeVisible()
 	})
 })

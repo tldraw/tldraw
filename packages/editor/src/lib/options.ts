@@ -54,6 +54,12 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
+	/**
+	 * How long (in milliseconds) to fade all laser scribbles after the session ends.
+	 * The total points across all scribbles will be removed proportionally over this duration.
+	 * Defaults to 500ms (0.5 seconds).
+	 */
+	readonly laserFadeoutMs: number
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
@@ -157,6 +163,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
+	laserFadeoutMs: 500,
 	maxExportDelayMs: 5000,
 	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,
