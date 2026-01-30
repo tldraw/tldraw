@@ -1,15 +1,11 @@
 FROM rocicorp/zero:__ZERO_VERSION
 
 # Install nginx, supervisor, and envsubst (gettext)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    nginx \
-    supervisor \
-    gettext-base \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache nginx supervisor gettext
 
 # Copy our configs
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf /etc/supervisord.conf
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
