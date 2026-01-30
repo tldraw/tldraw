@@ -15,6 +15,7 @@ import {
 	VecLike,
 } from 'tldraw'
 import { MyBezierCurveShape } from './CubicBezierShape'
+import type { WatercolorStyleName } from './WatercolorShape'
 
 // ============================================================================
 // Style Constants - Use these values for shape options
@@ -187,6 +188,24 @@ export const SPLINES = {
 } as const
 
 /**
+ * Available watercolor brush styles.
+ * Use with the `style` option in createWatercolor.
+ *
+ * @example
+ * api.createWatercolor([...points], { style: WATERCOLOR.bold, color: 'blue' })
+ */
+export const WATERCOLOR = {
+	/** Soft, diffuse strokes with gentle color gradients */
+	soft: 'soft',
+	/** Rich, saturated strokes with more pigment */
+	bold: 'bold',
+	/** Very light, airy strokes with wide diffusion */
+	ethereal: 'ethereal',
+	/** Textured strokes with more visible stains */
+	textured: 'textured',
+} as const
+
+/**
  * Curated API for the code editor.
  * Provides helper functions for creating shapes with automatic meta.generated marking.
  */
@@ -288,6 +307,66 @@ export function createEditorAPI(editor: Editor) {
 					},
 					meta: { generated: true },
 				},
+			])
+			return id
+		},
+
+		/**
+		 * Create a watercolor stroke from an array of points.
+		 * These have a beautiful, organic watercolor appearance with color diffusion.
+		 * @param points - Array of points defining the stroke path
+		 * @param options - Style options (color, size, style)
+		 * @returns The created shape ID
+		 *
+		 * @example
+		 * // Simple watercolor stroke
+		 * api.createWatercolor([
+		 *   { x: 100, y: 100 },
+		 *   { x: 200, y: 150 },
+		 *   { x: 300, y: 120 }
+		 * ], { color: 'blue', style: 'soft' })
+		 *
+		 * // Generate a curve programmatically
+		 * const points = []
+		 * for (let i = 0; i <= 100; i++) {
+		 *   const t = i / 100
+		 *   points.push({
+		 *     x: 100 + t * 300,
+		 *     y: 200 + Math.sin(t * Math.PI * 2) * 50
+		 *   })
+		 * }
+		 * api.createWatercolor(points, { color: 'violet', style: 'ethereal', size: 'l' })
+		 */
+		createWatercolor(
+			points: VecLike[],
+			options: {
+				color?: string
+				size?: string
+				style?: WatercolorStyleName
+			} = {}
+		): TLShapeId {
+			const id = createShapeId()
+			// Normalize points to be relative to the first point
+			const firstPoint = points[0] || { x: 0, y: 0 }
+			const normalizedPoints = points.map((p) => ({
+				x: p.x - firstPoint.x,
+				y: p.y - firstPoint.y,
+			}))
+			// Cast to any since 'watercolor' is a custom shape type
+			editor.createShapes([
+				{
+					id,
+					type: 'watercolor',
+					x: firstPoint.x,
+					y: firstPoint.y,
+					props: {
+						points: normalizedPoints,
+						color: options.color || 'blue',
+						size: options.size || 'm',
+						style: options.style || 'soft',
+					},
+					meta: { generated: true },
+				} as any,
 			])
 			return id
 		},

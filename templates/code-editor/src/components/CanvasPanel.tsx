@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { BezierCurveShapeUtil } from '../lib/CubicBezierShape'
+import { WatercolorShapeUtil } from '../lib/WatercolorShape'
 
 interface CanvasPanelProps {
 	onMount: (editor: Editor) => void
@@ -56,7 +57,7 @@ function CustomHandles({ children }: TLHandlesProps) {
 	)
 }
 
-const customShapeUtils = [BezierCurveShapeUtil]
+const customShapeUtils = [BezierCurveShapeUtil, WatercolorShapeUtil]
 
 /**
  * Auto-recovering error fallback that clears bad state and remounts.
