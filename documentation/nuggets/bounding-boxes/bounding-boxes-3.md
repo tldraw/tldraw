@@ -16,15 +16,15 @@ accuracy: 9
 notes: "Strong technical content with accurate code examples. Opening could use more first-person 'we' framing. '[comparison img]' placeholder and 'The tradeoff' header are minor issues."
 ---
 
-Operations on tldraw's infinite canvas require constantly computing where shapes are. When you click a shape, tldraw should work out what you hit. When you pan across the canvas, tldraw decides what to render. After grouping shapes, it computes the rectangle that surrounds them all.
+On an infinite canvas, every interaction raises a spatial question. What did you click? Which shapes are currently visible? What area surrounds a group of selected shapes?
 
-We use bounding boxes for this. A bounding box is the smallest axis-aligned box that contains a shape. "Axis-aligned" means the edges of the box are perfectly horizontal and vertical relative to the canvas, regardless of how the shape itself is oriented.
+In tldraw, as in any graphical interface that responds to fast spatial queries, we answer these questions with _bounding boxes_. A bounding box is the smallest axis-aligned rectangle that contains a shape.
 
 [img]
 
 ## Why axis-aligned?
 
-The alignment constraint is what makes bounding boxes fast. Checking if two axis-aligned boxes overlap reduces to making just four min/max comparisons. This function returns true if and only if there is an overlap on one of the four edges of the boxes.
+"Axis-aligned" means the edges stay horizontal and vertical relative to the canvas, even when the shape is rotated. This constraint makes bounding boxes fast. When checking if two boxes overlap, we don't need to make expensive calculations - instead, just four simple comparisons between the edges of the two boxes:
 
 ```tsx
 // packages/editor/src/lib/primitives/Box.ts:421-423
@@ -33,9 +33,9 @@ static Collides(A: Box, B: Box) {
 }
 ```
 
-We use this calculation everywhere: hit-testing, viewport culling, snapping, and more. However: what happens when a shape gets rotated?
-
 ## Rotating boxes
+
+What if a shape gets rotated?
 
 Say you have a 100×50px rectangle at the origin. Its bounding box would be:
 
@@ -43,7 +43,9 @@ Say you have a 100×50px rectangle at the origin. Its bounding box would be:
 {x: 0, y: 0, w: 100, h: 50}
 ```
 
-If you rotate the rectangle by 45°, what would the new bounding box be? A first step would be to apply the rotation matrix directly to the vertices of the bounding box:
+If you rotate the rectangle by 45°, what would the new bounding box be?
+
+A first step would be to apply the rotation matrix directly to the vertices of the original box:
 
 ```tsx
 const corners = [
@@ -65,11 +67,27 @@ const rotated = corners.map((p) => {
 // Results: [{x: 0, y: 0}, {x: 70.7, y: 70.7}, {x: 35.4, y: 106.1}, {x: -35.4, y: 35.4}]
 ```
 
-The rotated points describe the shape's new position, but the edges are no longer aligned with the axes of page space. If we tried to use these directly for collision detection, we'd need to check more axes and compute projections using dot products (according to the [separating axis theorem](https://dyn4j.org/2010/01/sat/)), which is more expensive than just comparing min/max values as above.
+The rotated points describe the shape's new position, but the edges are no longer aligned with the axes of the canvas. If we tried to use these directly for collision detection, we'd need to compute projections using dot products (according to the [separating axis theorem](https://dyn4j.org/2010/01/sat/)), which is more expensive than just comparing min/max values.
 
 ## A new bounding box
 
-Instead, we take the shape's bounding box vertices in its own coordinate system, transform them to page space, and compute a new axis-aligned box from those points. The result gets cached.
+Instead, we take the shape's bounding box vertices in its own coordinate system, transform them to page space, and compute a new axis-aligned box from those points.
+
+Since these lookups happen on every pointer move, we cache the results. The below function creates a reactive cache that recomputes shape bounds only when it or its parent transform changes.
+
+```tsx
+// Simplified from Editor.getShapePageBounds
+getShapePageBounds(shape: TLShape): Box | undefined {
+  const pageTransform = this.getShapePageTransform(shape)
+  if (!pageTransform) return undefined
+
+  return Box.FromPoints(
+    pageTransform.applyToPoints(this.getShapeGeometry(shape).boundsVertices)
+  )
+}
+```
+
+[check]
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:4838-4847
@@ -106,9 +124,9 @@ static FromPoints(points: VecLike[]): Box {
 }
 ```
 
-Take our 100×50px rectangle example: we first calculate its original bounding box, then we apply the 45° rotation to each corner - and finally, we find the min and max (x, y) values among those rotated points. The result is a new bounding box that is roughly 106×106px. This is bigger than the original box since it is stretched to contain all four rotated corners.
+Take our 100×50px rectangle example: we first calculate its original bounding box, then we apply the 45° rotation to each corner - and finally, we find the min and max (x, y) values among those rotated points. The result is a new bounding box that is roughly 106×106px. This is bigger than the original box since it's stretched to contain all four rotated corners.
 
-[img]
+[gif of geometry debug]
 
 ## Nested transforms
 
@@ -131,7 +149,7 @@ This recursive function handles arbitrary nesting: if a shape's parent isn't the
 
 ## Viewport culling
 
-Aside from selection, tldraw also makes use of bounding boxes when doing viewport culling, which is where we programmatically decide which shapes to exclude from rendering:
+Bounding boxes are also used in viewport culling, where we skip rendering any shape whose bounds don't intersect the bounds of the viewport itself:
 
 ```tsx
 // packages/editor/src/lib/editor/derivations/notVisibleShapes.ts:11-30 (simplified)
@@ -154,23 +172,19 @@ for (const id of shapeIds) {
 
 The bounds are inlined here (extracted from the viewport box before the loop) because this runs on every camera change for every shape. Even the overhead of a function call matters.
 
-## The tradeoff
-
-Axis-aligned bounding boxes are a rough approximation. A rotated rectangle's bounding box can be substantially larger than the shape itself—up to 41% larger for a square at 45°. This means hit testing gets false positives: the AABB says "might hit" when the actual shape doesn't. tldraw handles this with a two-phase approach—fast AABB rejection first, then precise geometry checks for shapes that pass. The rough first pass eliminates most candidates cheaply.
-
-It also means viewport culling is conservative. Shapes start rendering slightly before they're truly visible, but that's a fine tradeoff for the speed we gain.
-
 ## Selection boxes
 
-When you select a rotated shape, you'll notice the selection handles rotate with it. This might seem to contradict everything above—aren't we always using axis-aligned boxes?
+When you rotate a shape in tldraw, you'll notice that the selection handles rotate with it. This might seem confusing given everything we covered above—shouldn't the selection bounds be aligned with the canvas?
 
-In fact, tldraw uses two different kinds of bounds. For hit testing and culling, we always use axis-aligned bounding boxes. But for the selection UI, we compute a _rotated_ selection box that matches the shape's orientation.
+In fact, tldraw uses two different kinds of bounds. For hit testing and viewport culling calculations, we only use axis-aligned bounding boxes. But for the selection UI, we also compute a _rotated_ selection box that matches the shape's orientation.
 
-If you select three rectangles that are all rotated 30°, you want to resize them along their rotated axes. An axis-aligned selection box would only let you resize horizontally and vertically relative to the page, which would distort the shapes. The rotated selection box lets you drag a corner handle and scale the shapes along their actual orientation.
+This is because if you select two shapes and rotate them by the same angle, then you should be able to resize them along their rotated axes. An axis-aligned selection box would only let you resize horizontally and vertically relative to the page, which would distort the shapes. The rotated selection box lets you drag a corner handle and scale the shapes along their actual orientation.
 
-[img]
+Though if the selected shapes are rotated by different amounts, there's no single angle that makes sense for the selection box, so we fall back to using an axis-aligned box.
 
-To compute this, we work backwards: un-rotate all the corner points, compute an axis-aligned box in that "un-rotated" space, then rotate the result back.
+[gif comparison]
+
+To compute this, we un-rotate all corner points by the negative selection rotation, find an axis-aligned bounding box in that "un-rotated" space, then rotate the box position back to get the final result
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:2140-2180 (simplified)
@@ -198,4 +212,8 @@ getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
 }
 ```
 
-If the selected shapes have different rotations, there's no single angle that makes sense for the selection box, so we fall back to an axis-aligned box. This separation gives us fast operations for testing collisons, as well as a selection box that respects shape orientation.
+## Tradeoffs
+
+Axis-aligned boxes are approximations. A rotated rectangle's AABB is always larger than the shape itself, which means we sometimes check shapes that weren't actually clicked or render shapes that aren't quite visible. But the speed we gain from simple min/max comparisons far outweighs the cost of those extra checks.
+
+Check out these other optimisation changes we've added recently: [link]
