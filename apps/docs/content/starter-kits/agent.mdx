@@ -191,7 +191,7 @@ There are other methods available on the `PromptPartUtil` class that you can ove
 
 **Change what the agent can do by adding, editing or removing an `AgentActionUtil` within `AgentUtils.ts`.**
 
-Agent action utils define which action actions the agent can perform. Each `AgentActionUtil` adds a different capability.
+Agent action utils define which actions the agent can perform. Each `AgentActionUtil` adds a different capability.
 
 This example shows how to allow the agent to clear the screen.
 
@@ -306,7 +306,7 @@ agent.schedule((prev) => ({
 }))
 ```
 
-You can schedule multiple things by calling the `schedule`() method more than once.
+You can schedule multiple things by calling the `schedule()` method more than once.
 
 ```tsx
 agent.schedule('Add more detail to the canvas.')
@@ -677,7 +677,7 @@ export function convertSimpleShapeToTldrawShape(
 					// ...
 					props: {
 						// ...
-						stickerType: simpleShape.sitckerType
+						stickerType: simpleShape.stickerType
 					},
 					meta: {
 						note: simpleShape.note ?? ''

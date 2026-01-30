@@ -11,7 +11,7 @@ export function Feature({
 	children: React.ReactNode
 }) {
 	return (
-		<div className="flex flex-col gap-3 not-prose">
+		<div className="flex flex-col gap-1 not-prose">
 			<div className="flex items-center gap-2">
 				<Icon icon={icon} className="h-5 w-5 text-zinc-900 dark:text-zinc-100" />
 				<h3 className="font-bold text-zinc-900 dark:text-zinc-100">{title}</h3>
