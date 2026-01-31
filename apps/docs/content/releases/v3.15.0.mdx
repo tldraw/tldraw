@@ -1,22 +1,27 @@
 ---
-title: 'v3.15'
+title: 'v3.15.0'
 created_at: 7/30/2025
 updated_at: 7/30/2025
 keywords:
   - changelog
   - release
   - v3.15
+  - v3.15.0
+  - v3.15.1
+  - v3.15.2
+  - v3.15.3
+  - v3.15.4
+  - v3.15.5
   - cli
   - npm-create-tldraw
   - accessibility
   - performance
   - handle-callbacks
-status: published
-date: 7/30/2025
-order: 5
 ---
 
 This release introduces `npm create tldraw` for bootstrapping new projects, along with API additions, accessibility improvements, and performance optimizations.
+
+## What's new
 
 ### npm create tldraw
 
@@ -30,7 +35,7 @@ Developers can now initialize new tldraw projects by running `npm create tldraw`
 - Convert `DefaultSpinner` component to SVG format, now accepts standard SVG properties.
 - Export `HeartToolbarItem` component.
 
-### Improvements
+## Improvements
 
 - Enhance "Select All" functionality to intelligently select within a shape's common parent context (e.g., selecting shapes within a frame without selecting the frame itself).
 - Add user preference option to disable keyboard shortcuts.
@@ -42,7 +47,7 @@ Developers can now initialize new tldraw projects by running `npm create tldraw`
 - Add proper `role="radiogroup"` assignment for toggle groups.
 - Correct aria slider values.
 
-### Bug fixes
+## Bug fixes
 
 - Fix HTML entity escaping in pasted content.
 - Fix text measurement accuracy.
@@ -58,30 +63,31 @@ Developers can now initialize new tldraw projects by running `npm create tldraw`
 
 ### v3.15.1
 
-Fix room change event handling in the sync core library. ([#6543](https://github.com/tldraw/tldraw/pull/6543))
+- Fix room change event handling in the sync core library. ([#6543](https://github.com/tldraw/tldraw/pull/6543))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.1)
 
 ### v3.15.2
 
-Fix a bug where the editor would remount in a loop if given custom assetUrls by memoizing asset URL merging. ([#6605](https://github.com/tldraw/tldraw/pull/6605))
+- Fix editor remounting in a loop when given custom assetUrls. ([#6605](https://github.com/tldraw/tldraw/pull/6605))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.2)
 
 ### v3.15.3
 
-Enhance callback functionality for shape utilities. ([#6634](https://github.com/tldraw/tldraw/pull/6634))
+- Enhance callback functionality for shape utilities. ([#6634](https://github.com/tldraw/tldraw/pull/6634))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.3)
 
 ### v3.15.4
 
-Fix potential bug in TLSyncClient. ([#6660](https://github.com/tldraw/tldraw/pull/6660))
+- Fix potential bug in TLSyncClient. ([#6660](https://github.com/tldraw/tldraw/pull/6660))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.4)
 
 ### v3.15.5
 
-Modify license flags message to display as a warning, and fix expired internal license verification. ([#6843](https://github.com/tldraw/tldraw/pull/6843))
+- Show license flags message as a warning. ([#6843](https://github.com/tldraw/tldraw/pull/6843))
+- Fix expired internal license verification. ([#6843](https://github.com/tldraw/tldraw/pull/6843))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.5)

@@ -1,20 +1,23 @@
 ---
-title: 'v3.3'
+title: 'v3.3.0'
 created_at: 9/10/2024
 updated_at: 9/10/2024
 keywords:
   - changelog
   - release
   - v3.3
+  - v3.3.0
+  - v3.3.1
+  - v3.3.2
+  - v3.3.3
   - readonly
   - sync
   - performance
-status: published
-date: 9/10/2024
-order: 17
 ---
 
 This release introduces sync improvements, readonly mode support, and various performance enhancements.
+
+## What's new
 
 ### Readonly mode
 
@@ -29,14 +32,14 @@ New `TLSocketRoom` methods (`closeSession`, `getRecord`, and `getSessions`) prov
 - Add editor option for quick action shortcut placement.
 - Add `editor.getIsReadonly()` helper method.
 
-### Improvements
+## Improvements
 
 - Pass wheel events through toolbar elements for improved scrolling/zooming.
 - Allow Command/Control modifier keys to enable multi-select (previously shift-only).
 - Allow text tool to be locked.
 - Improve draw shape rendering performance during zoom interactions.
 
-### Bug fixes
+## Bug fixes
 
 - Fix Safari arrow rendering.
 - Fix image drop navigation errors.
@@ -52,18 +55,19 @@ New `TLSocketRoom` methods (`closeSession`, `getRecord`, and `getSessions`) prov
 
 ### v3.3.1
 
-Fix a bug that caused the meta key to trigger the shift key. ([#4703](https://github.com/tldraw/tldraw/pull/4703))
+- Fix meta key incorrectly triggering the shift key. ([#4703](https://github.com/tldraw/tldraw/pull/4703))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.3.1)
 
 ### v3.3.2
 
-Fix a bug that caused dropped images to be created twice. ([#4727](https://github.com/tldraw/tldraw/pull/4727))
+- Fix dropped images being created twice. ([#4727](https://github.com/tldraw/tldraw/pull/4727))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.3.2)
 
 ### v3.3.3
 
-Fix image duplication when dropping onto the canvas. Follow-up to the previous patch with additional keyboard modifier fixes. ([#4789](https://github.com/tldraw/tldraw/pull/4789))
+- Fix image duplication when dropping onto the canvas. ([#4789](https://github.com/tldraw/tldraw/pull/4789))
+- Fix additional keyboard modifier issues. ([#4789](https://github.com/tldraw/tldraw/pull/4789))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.3.3)

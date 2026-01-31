@@ -1,21 +1,25 @@
 ---
-title: 'v3.13'
+title: 'v3.13.0'
 created_at: 5/22/2025
 updated_at: 5/22/2025
 keywords:
   - changelog
   - release
   - v3.13
+  - v3.13.0
+  - v3.13.1
+  - v3.13.2
+  - v3.13.3
+  - v3.13.4
   - elbow-arrows
   - accessibility
   - performance
   - overlays
-status: published
-date: 5/22/2025
-order: 7
 ---
 
 This release introduces elbow arrows for technical diagramming and continues accessibility improvements toward WCAG compliance.
+
+## What's new
 
 ### Elbow arrows
 
@@ -29,7 +33,7 @@ The arrow shape now supports a new elbow connector style. These arrows travel be
 - Add new `Overlays` component for camera-following canvas overlays.
 - Add `hasCustomTabBehavior` prop to `RichTextLabel` for custom tab logic.
 
-### Improvements
+## Improvements
 
 - Auto-select link text when editing shape links.
 - Snap pasted text and embeds to grid when enabled.
@@ -47,7 +51,7 @@ The arrow shape now supports a new elbow connector style. These arrows travel be
 - Improve performance of multi-shape dragging operations.
 - Optimize selection evaluation to prevent unnecessary re-evaluations.
 
-### Bug fixes
+## Bug fixes
 
 - Fix flattened shape backgrounds.
 - Fix screenreader behavior.
@@ -64,24 +68,24 @@ The arrow shape now supports a new elbow connector style. These arrows travel be
 
 ### v3.13.1
 
-Always show elbow arrow outline: the indicator for the target shape now displays on hover when creating elbow arrows. ([#6099](https://github.com/tldraw/tldraw/pull/6099))
+- Show elbow arrow outline indicator on hover when creating elbow arrows. ([#6099](https://github.com/tldraw/tldraw/pull/6099))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.1)
 
 ### v3.13.2
 
-Fix LoadingScreen context bug where tldraw was ignoring custom asset URL configuration, causing spurious requests to cdn.tldraw.com. ([#6283](https://github.com/tldraw/tldraw/pull/6283))
+- Fix LoadingScreen context bug where custom asset URL configuration was ignored. ([#6283](https://github.com/tldraw/tldraw/pull/6283))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.2)
 
 ### v3.13.3
 
-Fix overriding builtin tools not working. ([#6330](https://github.com/tldraw/tldraw/pull/6330))
+- Fix overriding builtin tools not working. ([#6330](https://github.com/tldraw/tldraw/pull/6330))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.3)
 
 ### v3.13.4
 
-Fix cross-realm functionality issues. ([#6338](https://github.com/tldraw/tldraw/pull/6338))
+- Fix cross-realm functionality issues. ([#6338](https://github.com/tldraw/tldraw/pull/6338))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.4)

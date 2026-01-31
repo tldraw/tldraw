@@ -1,22 +1,28 @@
 ---
-title: 'v2.4'
+title: 'v2.4.0'
 created_at: 7/22/2024
 updated_at: 7/22/2024
 keywords:
   - changelog
   - release
   - v2.4
+  - v2.4.0
+  - v2.4.1
+  - v2.4.2
+  - v2.4.3
+  - v2.4.4
+  - v2.4.5
+  - v2.4.6
   - sync
   - interpolation
   - animation
   - assets
   - editor-run
-status: published
-date: 7/22/2024
-order: 21
 ---
 
 This release introduces our sync engine as a general-use library, new animation options for shapes, support for image flipping, and many bug fixes and developer experience enhancements.
+
+## What's new
 
 ### Sync ([#4031](https://github.com/tldraw/tldraw/pull/4031))
 
@@ -72,7 +78,7 @@ As part of our work on sync, we have a new system for handling large assets like
 - Add `ShapeUtil.getInterpolatedProps`. ([#4162](https://github.com/tldraw/tldraw/pull/4162))
 - Add `Editor.run`, replacing `Editor.batch`. ([#4042](https://github.com/tldraw/tldraw/pull/4042))
 
-### Improvements
+## Improvements
 
 - Add horizontal and vertical flipping for images. ([#4113](https://github.com/tldraw/tldraw/pull/4113))
 - Allow custom tools to decide whether they are affected by shape lock. ([#4208](https://github.com/tldraw/tldraw/pull/4208))
@@ -83,7 +89,7 @@ As part of our work on sync, we have a new system for handling large assets like
 - Add `ShapeIndicators` component for custom logic about when to display indicators. ([#4083](https://github.com/tldraw/tldraw/pull/4083))
 - Animate shape opacity changes. ([#4242](https://github.com/tldraw/tldraw/pull/4242))
 
-### Bug fixes
+## Bug fixes
 
 - Fix font style export to SVG. ([#4195](https://github.com/tldraw/tldraw/pull/4195))
 - Fix `force` flag for camera methods. ([#4214](https://github.com/tldraw/tldraw/pull/4214))
@@ -107,36 +113,36 @@ As part of our work on sync, we have a new system for handling large assets like
 
 ### v2.4.1
 
-Fix an issue where the `assets` prop on the `<Tldraw />` and `<TldrawEditor />` components was not being respected. ([#4285](https://github.com/tldraw/tldraw/pull/4285))
+- Fix `assets` prop on `<Tldraw />` and `<TldrawEditor />` components not being respected. ([#4285](https://github.com/tldraw/tldraw/pull/4285))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.1)
 
 ### v2.4.2
 
-Bug fixes and improvements for the sync engine and related packages. ([#4309](https://github.com/tldraw/tldraw/pull/4309))
+- Fix bugs and improve the sync engine and related packages. ([#4309](https://github.com/tldraw/tldraw/pull/4309))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.2)
 
 ### v2.4.3
 
-Bug fixes for the tldraw package. ([#4328](https://github.com/tldraw/tldraw/pull/4328))
+- Fix bugs in the tldraw package. ([#4328](https://github.com/tldraw/tldraw/pull/4328))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.3)
 
 ### v2.4.4
 
-Bug fixes for the editor, sync, tldraw, and tlschema packages. ([#4352](https://github.com/tldraw/tldraw/pull/4352))
+- Fix bugs in the editor, sync, tldraw, and tlschema packages. ([#4352](https://github.com/tldraw/tldraw/pull/4352))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.4)
 
 ### v2.4.5
 
-Fix unhandled promise rejection during strict mode in the editor. ([#4407](https://github.com/tldraw/tldraw/pull/4407))
+- Fix unhandled promise rejection during strict mode in the editor. ([#4407](https://github.com/tldraw/tldraw/pull/4407))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.5)
 
 ### v2.4.6
 
-Performance improvements for rendering in the store and tldraw packages. ([#4434](https://github.com/tldraw/tldraw/pull/4434))
+- Improve rendering performance in the store and tldraw packages. ([#4434](https://github.com/tldraw/tldraw/pull/4434))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.6)

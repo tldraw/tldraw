@@ -1,21 +1,25 @@
 ---
-title: 'v2.2'
+title: 'v2.2.0'
 created_at: 6/11/2024
 updated_at: 6/11/2024
 keywords:
   - changelog
   - release
   - v2.2
+  - v2.2.0
+  - v2.2.1
+  - v2.2.2
+  - v2.2.3
+  - v2.2.4
   - bindings
   - camera-constraints
   - configurable-options
   - history
-status: published
-date: 6/11/2024
-order: 23
 ---
 
 This release introduces the bindings system, camera constraints, and configurable options—major features that unlock new types of applications you can build with tldraw.
+
+## What's new
 
 ### Bindings ([#3326](https://github.com/tldraw/tldraw/pull/3326))
 
@@ -63,7 +67,7 @@ The history system has been significantly reworked:
 - `useEditor` and other context-based hooks now throw an error when used out-of-context. ([#3750](https://github.com/tldraw/tldraw/pull/3750))
 - Add `defaultShapeSchemas` for custom multiplayer implementations. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
 
-### Improvements
+## Improvements
 
 - Add a heart shape to the geo shape set. ([#3787](https://github.com/tldraw/tldraw/pull/3787))
 - Improve rendering for bookmarks without preview images. ([#3856](https://github.com/tldraw/tldraw/pull/3856))
@@ -75,7 +79,7 @@ The history system has been significantly reworked:
 - Change text shapes to be left-aligned by default. ([#3627](https://github.com/tldraw/tldraw/pull/3627))
 - Add Desmos graph embed type. ([#3608](https://github.com/tldraw/tldraw/pull/3608))
 
-### Bug fixes
+## Bug fixes
 
 - Fix 'insert media' undo removing other changes. ([#3910](https://github.com/tldraw/tldraw/pull/3910))
 - Fix referrer being sent for bookmarks and images. ([#3881](https://github.com/tldraw/tldraw/pull/3881))
@@ -97,24 +101,26 @@ The history system has been significantly reworked:
 
 ### v2.2.1
 
-Documentation improvements, made `ArrowBindingUtil` public, added `editor.getSnapshot()` and `editor.loadSnapshot()` methods, and CSS tweaks for bookmark elements. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+- Improve documentation and make `ArrowBindingUtil` public. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+- Add `editor.getSnapshot()` and `editor.loadSnapshot()` methods. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+- Fix CSS styling for bookmark elements. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.1)
 
 ### v2.2.2
 
-Fix a bug that would break text measurement when `Tldraw` was used with React strict mode. ([#4004](https://github.com/tldraw/tldraw/pull/4004))
+- Fix text measurement breaking when `Tldraw` was used with React strict mode. ([#4004](https://github.com/tldraw/tldraw/pull/4004))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.2)
 
 ### v2.2.3
 
-Fix copy/paste functionality in Firefox 127+. ([#4006](https://github.com/tldraw/tldraw/pull/4006))
+- Fix copy/paste functionality in Firefox 127+. ([#4006](https://github.com/tldraw/tldraw/pull/4006))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.3)
 
 ### v2.2.4
 
-Fix copy/paste functionality for older versions of Firefox. ([#4011](https://github.com/tldraw/tldraw/pull/4011))
+- Fix copy/paste functionality for older versions of Firefox. ([#4011](https://github.com/tldraw/tldraw/pull/4011))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.4)

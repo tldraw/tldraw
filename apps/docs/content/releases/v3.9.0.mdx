@@ -1,18 +1,16 @@
 ---
-title: 'v3.9'
+title: 'v3.9.0'
 created_at: 3/3/2025
 updated_at: 3/3/2025
 keywords:
   - changelog
   - release
   - v3.9
+  - v3.9.0
   - performance
   - cache
   - layout
   - atom-map
-status: published
-date: 3/3/2025
-order: 11
 ---
 
 This release focuses on bug fixes and performance enhancements, laying groundwork for v3.10 features.
@@ -22,13 +20,13 @@ This release focuses on bug fixes and performance enhancements, laying groundwor
 - 💥 **`store.createSelectedComputedCache`** removed; use `store.createCache` with custom selector `computed` instead.
 - 💥 **`createComputerCache` API** modified: third argument now accepts options object with `areRecordsEqual` and `areResultsEqual` properties instead of single equality function.
 
-### Improvements
+## Improvements
 
 - Improve layout operations including align, distribute, flip, and stack with better compatibility for arrows and overlapping shapes.
 - Add new `AtomMap` class to accelerate shape, binding, and record creation/deletion, available as a utility for building custom reactive maps.
 - Add horizontal padding to text-bound arrows for improved visual appearance.
 
-### Bug fixes
+## Bug fixes
 
 - Fix pasted image size calculations.
 - Remove `canvas-size` dependency resolving bundler compatibility issues.

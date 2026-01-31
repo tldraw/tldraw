@@ -53,41 +53,16 @@ Batch fetch all PR information:
 .claude/skills/update-release-notes/scripts/fetch-pr-batch.sh <pr1> <pr2> ...
 ```
 
-### 5. Filter PRs
+### 5. Update next.mdx
 
-Skip PRs with these labels:
-- `other`
-- `skip-release`
-- `chore`
-- `dotcom`
+For each PR not already in `next.mdx`:
 
-Also skip reverts unless they fix something user-facing.
+1. Check PR labels and body against the style guide's categorization rules
+2. Skip PRs that should be omitted (see style guide)
+3. Add entries to the appropriate section
+4. Promote significant changes to featured sections when warranted
 
-### 6. Categorize
-
-Sort PRs into sections based on labels and content:
-
-| Category     | Labels                       | Indicators                       |
-| ------------ | ---------------------------- | -------------------------------- |
-| API changes  | `api`, `feature`, `major`    | Adds/removes/modifies public API |
-| Improvements | `improvement`, `enhancement` | Enhances existing functionality  |
-| Bug fixes    | `bugfix`, `bug`              | Fixes issues                     |
-
-Look for `### Release notes` and `### API changes` sections in PR bodies. Search for "breaking" to identify breaking changes (mark with 💥 prefix).
-
-### 7. Identify featured sections
-
-Promote to featured section when:
-- It's a breaking change that requires migration code
-- It introduces a major new capability
-- Multiple related PRs combine into one significant feature
-- Users need detailed guidance (migration guides, platform tables)
-
-### 8. Update next.mdx
-
-Add entries following the formatting conventions. Featured sections go in the "What's new" section at the top.
-
-### 9. Verify
+### 6. Verify
 
 Check that:
 - PR links are correct
@@ -95,19 +70,11 @@ Check that:
 - Sections are in the correct order
 - Breaking changes are marked with 💥
 
-## Team members (do not credit)
+## The `last_version` field
 
-angrycaptain19, AniKrisn, ds300, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake
-
-## Notes
-
-- Do not include Claude Code attribution
-- Write as if the release has already happened
-- Omit empty sections
-- The `last_version` field in `next.mdx` frontmatter tracks the most recent published release
+The `next.mdx` frontmatter includes a `last_version` field that tracks the most recent published release. This determines which PRs are "new" and need to be added.
 
 ## References
 
-- **Formatting conventions**: See `../shared/release-notes-formatting.md` for section structure, entry format, PR links, and frontmatter
+- **Style guide**: See `../shared/release-notes-formatting.md` for all rules, PR categorization, formatting conventions, and examples
 - **Scripts**: See `scripts/` for automation helpers
-- **Writing guidance**: See `../write-release-notes/SKILL.md` for voice, style, and content decisions

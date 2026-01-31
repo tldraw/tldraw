@@ -1,18 +1,17 @@
 ---
-title: 'v3.4'
+title: 'v3.4.0'
 created_at: 10/24/2024
 updated_at: 10/24/2024
 keywords:
   - changelog
   - release
   - v3.4
+  - v3.4.0
+  - v3.4.1
   - image-performance
   - video-performance
   - excalidraw
   - dom-ids
-status: published
-date: 10/24/2024
-order: 16
 ---
 
 This release addresses UI bugs, enhances image/video performance, and improves Excalidraw content compatibility.
@@ -23,14 +22,14 @@ This release addresses UI bugs, enhances image/video performance, and improves E
 - Add `labelColor` property to note shapes.
 - Add `useUniqueSafeId` and `useSharedSafeId` utilities for managing DOM IDs in tldraw components.
 
-### Improvements
+## Improvements
 
 - Improve tooltip wording in the style panel.
 - Prevent arrow label indicators from displaying behind labels.
 - Limit page name length in the move-to-page menu.
 - Improve image and video rendering performance.
 
-### Bug fixes
+## Bug fixes
 
 - Fix re-render loops caused by inline `options` in the Tldraw component.
 - Fix toolbar button outline border-radius alignment.
@@ -51,6 +50,6 @@ This release addresses UI bugs, enhances image/video performance, and improves E
 
 ### v3.4.1
 
-Prevent arrows being clipped incorrectly when multiple tldraw instances or exports are present in the DOM. ([#4819](https://github.com/tldraw/tldraw/pull/4819))
+- Fix arrows being clipped incorrectly when multiple tldraw instances or exports are present in the DOM. ([#4819](https://github.com/tldraw/tldraw/pull/4819))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.4.1)

@@ -1,25 +1,104 @@
-# Formatting conventions
+# Release notes style guide
 
-## Section order
+This document defines the rules and conventions for tldraw SDK release notes articles in `apps/docs/content/releases/`.
+
+## Editorial guidance
+
+### What to include
+
+- Breaking changes that require user action
+- New features that solve common pain points
+- API additions that unlock new capabilities
+- Changes that affect how developers integrate tldraw
+- Bug fixes for user-reported issues
+
+### What to omit
+
+- Internal performance optimizations (unless user-visible)
+- Fixes for bugs introduced in the same release cycle
+- Implementation details that don't affect public API
+- Pure code quality improvements
+
+### When to create a featured section
+
+Promote changes to the "What's new" section when:
+
+- It's a breaking change requiring a migration guide
+- It introduces a major new capability
+- It is an interesting or significant new feature, possibly the result of multiple PRs
+- Users need detailed guidance (migration guides, platform tables)
+
+Featured sections should include:
+
+- Clear description of what changed and why it matters
+- Code examples where helpful
+- Migration guides in collapsible `<details>` blocks for breaking changes
+- Links to relevant documentation
+
+## PR categorization
+
+| Category     | Labels                       | Indicators                       |
+| ------------ | ---------------------------- | -------------------------------- |
+| API changes  | `api`, `feature`, `major`    | Adds/removes/modifies public API |
+| Improvements | `improvement`, `enhancement` | Enhances existing functionality  |
+| Bug fixes    | `bugfix`, `bug`              | Fixes issues                     |
+
+Look for `### Release notes` and `### API changes` sections in PR bodies. Search for "breaking" to identify breaking changes.
+
+### PRs to skip
+
+Skip PRs with these labels:
+
+- `other`
+- `skip-release`
+- `chore`
+- `dotcom`
+
+Also skip reverts unless they fix something user-facing.
+
+## Voice and style
+
+Semi-casual and confident. Professional but not stodgy.
+
+- "significant performance improvements" not "loads of performance improvements"
+- "an overhaul to our migration system" not "big changes to migrations"
+- Lead with concrete features, then infrastructure, then performance
+- American English spelling
+- Avoid complicated grammar, obscure vocabulary, jokes, or cultural idioms
+
+## Team members (do not credit)
+
+angrycaptain19, AniKrisn, ds300, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake
+
+Credit community contributors with:
+
+```markdown
+(contributed by [@username](https://github.com/username))
+```
+
+## General notes
+
+- Do not include Claude Code attribution
+- Write as if the release has already happened
+- Omit empty sections
+- The release listing is maintained in `apps/docs/content/getting-started/releases.mdx`
+
+---
+
+## Formatting conventions
+
+### Section order
 
 Use these sections in order (omit empty sections):
 
 1. **Introduction paragraph** - 1-2 sentence summary of the release highlights
-2. **What's new** (`## What's new`) - Contains featured sections (H3s) for major features and breaking changes
+2. **What's new** (`## What's new`) - Featured sections (H3s) for major features and breaking changes
 3. **API changes** (`## API changes`) - New methods, properties, options, deprecations, and breaking changes
 4. **Improvements** (`## Improvements`) - Enhancements to existing functionality
 5. **Bug fixes** (`## Bug fixes`) - Fixed issues
 6. **Patch releases** (`## Patch releases`) - Separated by `---`, contains bulleted changes for each patch version
 
-## GitHub release link
-
-Add a link to the GitHub release immediately after the frontmatter:
-
-```markdown
-[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.3.0)
-```
-
-## Introduction paragraph
+### Introduction paragraph
 
 Start each release with a 1-2 sentence summary highlighting the most significant changes. Lead with concrete features, then mention infrastructure and performance:
 
@@ -27,18 +106,7 @@ Start each release with a 1-2 sentence summary highlighting the most significant
 This release introduces several significant changes: a new pattern for defining custom shape/binding typings, pluggable storage for `TLSocketRoom` with a new SQLite option, reactive `editor.inputs`, and optimized draw shape encoding. It also adds various other API improvements, performance optimizations, and bug fixes.
 ```
 
-## Horizontal rules
-
-Use `---` only before the `## Patch releases` section to visually separate it from the main release content. Do not use horizontal rules elsewhere.
-
-## Headings
-
-Use sentence case for all headings:
-
-- "API changes" not "API Changes"
-- "Bug fixes" not "Bug Fixes"
-
-## Entry format
+### Entry format
 
 Start entries with a verb: "Add", "Fix", "Improve", "Remove". Keep descriptions concise but informative.
 
@@ -49,10 +117,20 @@ Start entries with a verb: "Add", "Fix", "Improve", "Remove". Keep descriptions 
 For multiple related PRs:
 
 ```markdown
-- Improve arrow snapping performance. ([#7145](https://github.com/tldraw/tldraw/pull/7145)) ([#7150](https://github.com/tldraw/tldraw/pull/7150))
+- Improve arrow snapping performance. ([#7145](https://github.com/tldraw/tldraw/pull/7145), [#7150](https://github.com/tldraw/tldraw/pull/7150))
 ```
 
-## Breaking changes
+With code examples:
+
+````markdown
+- Add `localStorageAtom` to `@tldraw/state`. ([#6876](https://github.com/tldraw/tldraw/pull/6876))
+
+  ```tsx
+  const myAtom = localStorageAtom('my-key', defaultValue)
+  ```
+````
+
+### Breaking changes
 
 Mark breaking API changes with a 💥 prefix. Place breaking changes at the top of the API changes section:
 
@@ -64,33 +142,11 @@ Mark breaking API changes with a 💥 prefix. Place breaking changes at the top 
 - Add `Editor.newMethod()` for doing something useful. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
 ```
 
-For headline features that are breaking, add 💥 to the heading:
-
-```markdown
-### 💥 Draw shape compression ([#7364](https://github.com/tldraw/tldraw/pull/7364))
-
-Draw shapes now use base64 encoding. This is a **breaking change** if you're accessing segment data directly.
-```
-
-## Contributor attribution
-
-Credit community contributors (not team members):
-
-```markdown
-- Fix text selection on touch devices. ([#7134](https://github.com/tldraw/tldraw/pull/7134)) (contributed by [@username](https://github.com/username))
-```
-
-Or for collaborative work:
-
-```markdown
-(thanks to [@username](https://github.com/username) for help on this one)
-```
-
-## What's new section
+### What's new section
 
 The `## What's new` section contains featured subsections (H3s) for headline features and major breaking changes.
 
-### Basic structure
+**Basic structure:**
 
 ```markdown
 ## What's new
@@ -98,20 +154,20 @@ The `## What's new` section contains featured subsections (H3s) for headline fea
 ### Feature name ([#7320](https://github.com/tldraw/tldraw/pull/7320))
 
 Brief description of what this feature does and why it matters.
-
-### Another feature ([#7321](https://github.com/tldraw/tldraw/pull/7321))
-
-Description of the second feature.
 ```
 
-### Collapsible details
-
-Use `<details>` for migration guides, explanations, and supplementary information:
+**Multiple related PRs:**
 
 ```markdown
-### New pattern for custom types (breaking change) ([#7091](https://github.com/tldraw/tldraw/pull/7091))
+### Pluggable storage for TLSocketRoom ([#7320](https://github.com/tldraw/tldraw/pull/7320), [#7123](https://github.com/tldraw/tldraw/pull/7123))
+```
 
-Brief description of the change.
+**Breaking change featured sections** - add 💥 to the heading and include a migration guide:
+
+```markdown
+### 💥 Feature name ([#0000](https://github.com/tldraw/tldraw/pull/0000))
+
+Brief description of what this feature does and why it matters.
 
 <details>
 <summary>Migration guide</summary>
@@ -129,24 +185,19 @@ After:
 </details>
 ```
 
-### "Why" explanations
-
-For major features, explain the benefits:
+**Collapsible explanations** - use for supplementary context:
 
 ```markdown
 <details>
 <summary>Why SQLite?</summary>
 
-- **Automatic persistence**: Data survives process restarts without manual snapshot handling
+- **Automatic persistence**: Data survives process restarts
 - **Lower memory usage**: No need to keep entire documents in memory
-- **Faster startup**: No need to load the document into memory before accepting connections
 
 </details>
 ```
 
-### Platform support tables
-
-When a feature has platform-specific implementations:
+**Platform support tables:**
 
 ```markdown
 <details>
@@ -160,82 +211,48 @@ When a feature has platform-specific implementations:
 </details>
 ```
 
-### Links to documentation
+### GitHub release link
 
-Include links to relevant docs and examples:
+Add a link to the GitHub release at the end of each release section:
 
-```markdown
-See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#Custom-shapes-1) and the [Pin Bindings example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/pin-bindings) for details.
-```
-
-### Multiple related PRs
-
-When a feature spans multiple PRs, list them in the heading:
+- **For minor releases**: Place after the last content section and before the `---` separator
+- **For patch releases**: Place after the bulleted list of changes
 
 ```markdown
-### Pluggable storage for TLSocketRoom ([#7320](https://github.com/tldraw/tldraw/pull/7320), [#7123](https://github.com/tldraw/tldraw/pull/7123))
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.3.0)
 ```
 
-### Breaking change featured sections
+### Patch releases
 
-For breaking changes significant enough to warrant a featured section:
-
-```markdown
-### Optimized draw shape encoding ([#7364](https://github.com/tldraw/tldraw/pull/7364), [#7710](https://github.com/tldraw/tldraw/pull/7710))
-
-Draw and highlight shape point data is now stored using a compact delta-encoded binary format instead of JSON arrays. This reduces storage size by approximately 80% while preserving stroke fidelity.
-
-<details>
-<summary>Breaking change details</summary>
-
-If you were reading or writing draw shape data programatically you might need to update your code to use the new format.
-
-- `TLDrawShapeSegment.points` renamed to `.path` and changed from `VecModel[]` to `string` (base64-encoded)
-- Added `scaleX` and `scaleY` properties to draw and highlight shapes
-
-Existing documents are automatically migrated.
-
-</details>
-```
-
-## Code examples
-
-Include code examples when helpful for API changes:
-
-````markdown
-- Add `localStorageAtom` to `@tldraw/state`. ([#6876](https://github.com/tldraw/tldraw/pull/6876))
-
-  ```tsx
-  const myAtom = localStorageAtom('my-key', defaultValue)
-  ```
-````
-
-## Patch releases
-
-Add patch releases at the bottom of the minor release file, after a horizontal rule. Use bulleted lists for changes, with a GitHub release link after each patch heading:
+Add patch releases at the bottom of the minor release file, after a horizontal rule. List in chronological order:
 
 ```markdown
 ---
 
 ## Patch releases
 
-### v4.2.2
-
-[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.2.2)
-
-- Fix arrow binding when target shape is rotated. ([#3650](https://github.com/tldraw/tldraw/pull/3650))
-- Fix copy/paste not working in Safari. ([#3652](https://github.com/tldraw/tldraw/pull/3652))
-
 ### v4.2.1
+
+- Fix text selection flakiness when clicking into text shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.2.1)
 
-- Fix text selection flakiness when clicking into text shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+### v4.2.2
+
+- Fix arrow binding when target shape is rotated. ([#3650](https://github.com/tldraw/tldraw/pull/3650))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.2.2)
 ```
 
-Each patch version gets an H3 heading, a GitHub release link, and bulleted changes.
+### Horizontal rules
 
-## Frontmatter
+Use `---` only before the `## Patch releases` section. Do not use horizontal rules elsewhere.
+
+### Headings
+
+Use sentence case: "API changes" not "API Changes", "Bug fixes" not "Bug Fixes".
+
+### Frontmatter
 
 ```yaml
 ---
@@ -245,18 +262,14 @@ updated_at: 12/19/2024
 keywords:
   - changelog
   - release
+  - v4.3
   - v4.3.0
+  - v4.3.1
   - feature-keyword
-  - another-keyword
 ---
 ```
 
 - Dates in MM/DD/YYYY format
-- Always include `changelog`, `release`, and version number as keywords
+- Always include `changelog` and `release` as keywords
+- Include the minor version without patch (e.g., `v4.3`), the `.0` release, and all patch versions
 - Add 2-5 content-relevant keywords (lowercase, hyphens for multi-word)
-
-## Language
-
-- American English spelling
-- International developer audience
-- Avoid complicated grammar, obscure vocabulary, jokes, or cultural idioms

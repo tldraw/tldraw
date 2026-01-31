@@ -1,22 +1,26 @@
 ---
-title: 'v2.1'
+title: 'v2.1.0'
 created_at: 4/23/2024
 updated_at: 4/23/2024
 keywords:
   - changelog
   - release
   - v2.1
+  - v2.1.0
+  - v2.1.1
+  - v2.1.2
+  - v2.1.3
+  - v2.1.4
   - migrations
   - sticky-notes
   - performance
   - svg-exports
   - input-buffering
-status: published
-date: 4/23/2024
-order: 24
 ---
 
 This release includes completely redesigned sticky notes, an overhaul to our migration system, and significant performance improvements.
+
+## What's new
 
 ### New stickies ([#3249](https://github.com/tldraw/tldraw/pull/3249))
 
@@ -49,11 +53,11 @@ If you're using the `toolbar` callback to override toolbar items, switch to usin
 
 ## API changes
 
+- 💥 **`getRenderingShapes`** no longer returns `isCulled`—use `getCulledShapes` instead.
 - Add `Editor.getStyleForNextShape`. ([#3039](https://github.com/tldraw/tldraw/pull/3039))
 - Add `usePreloadAssets` export. ([#3545](https://github.com/tldraw/tldraw/pull/3545))
-- 💥 `getRenderingShapes` no longer returns `isCulled`—use `getCulledShapes` instead.
 
-### Improvements
+## Improvements
 
 - Improve color contrast. ([#3486](https://github.com/tldraw/tldraw/pull/3486))
 - Add long press event. ([#3275](https://github.com/tldraw/tldraw/pull/3275))
@@ -67,7 +71,7 @@ If you're using the `toolbar` callback to override toolbar items, switch to usin
 - Reduce rendered DOM nodes for geo shapes and arrows. ([#3283](https://github.com/tldraw/tldraw/pull/3283))
 - Improve shape rendering performance. ([#3176](https://github.com/tldraw/tldraw/pull/3176))
 
-### Bug fixes
+## Bug fixes
 
 - Fix copy error sound in Safari. ([#3536](https://github.com/tldraw/tldraw/pull/3536))
 - Fix arrow label positioning overlapping bound shapes. ([#3512](https://github.com/tldraw/tldraw/pull/3512))
@@ -87,24 +91,27 @@ If you're using the `toolbar` callback to override toolbar items, switch to usin
 
 ### v2.1.1
 
-Fix missing export for `createShapePropsMigrationIds`, part of the new migrations API. Also adds exports for `defaultEditorAssetUrls`, `PORTRAIT_BREAKPOINT`, `useDefaultColorTheme`, and `getPerfectDashProps`. ([#3594](https://github.com/tldraw/tldraw/pull/3594))
+- Fix missing export for `createShapePropsMigrationIds`, part of the new migrations API. ([#3594](https://github.com/tldraw/tldraw/pull/3594))
+- Add exports for `defaultEditorAssetUrls`, `PORTRAIT_BREAKPOINT`, `useDefaultColorTheme`, and `getPerfectDashProps`. ([#3594](https://github.com/tldraw/tldraw/pull/3594))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.1)
 
 ### v2.1.2
 
-Revert a performance optimization that caused computed caches to sometimes not invalidate correctly, leading to stale data and crashes. ([#3611](https://github.com/tldraw/tldraw/pull/3611))
+- Revert a performance optimization that caused computed caches to sometimes not invalidate correctly, leading to stale data and crashes. ([#3611](https://github.com/tldraw/tldraw/pull/3611))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.2)
 
 ### v2.1.3
 
-Expose migrations, validators, and versions from tlschema. Previously these weren't exported, making it impossible to create a custom tlschema with both default shapes and custom shapes (e.g., for custom multiplayer). Adds `defaultShapeSchemas` which can be passed directly to `createTLSchema`. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+- Expose migrations, validators, and versions from tlschema. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+- Add `defaultShapeSchemas` which can be passed directly to `createTLSchema`. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.3)
 
 ### v2.1.4
 
-Fix text selection flakiness when clicking into text shapes, and fix edit→edit not working correctly when unfilled geo shapes are on top of other shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+- Fix text selection flakiness when clicking into text shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+- Fix edit→edit not working correctly when unfilled geo shapes are on top of other shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.4)

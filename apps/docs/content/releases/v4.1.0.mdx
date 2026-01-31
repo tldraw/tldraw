@@ -1,22 +1,24 @@
 ---
-title: 'v4.1'
+title: 'v4.1.0'
 created_at: 10/15/2025
 updated_at: 10/15/2025
 keywords:
   - changelog
   - release
   - v4.1
+  - v4.1.0
+  - v4.1.1
+  - v4.1.2
   - shader
   - webgl
   - starter-kit
   - embed
   - minimap
-status: published
-date: 10/15/2025
-order: 3
 ---
 
 This month's release introduces a new shader starter kit for WebGL integration, along with API additions for embed control, minimap filtering, and localStorage-backed atoms.
+
+## What's new
 
 ### Shader starter kit ([#6847](https://github.com/tldraw/tldraw/pull/6847))
 
@@ -38,14 +40,14 @@ Features configurable parameters, localStorage persistence, and full TypeScript 
 - Add `localStorageAtom` to `@tldraw/state` for atoms backed by localStorage with cross-tab syncing. ([#6876](https://github.com/tldraw/tldraw/pull/6876))
 - Add inline style picker component variants. ([#6920](https://github.com/tldraw/tldraw/pull/6920))
 
-### Improvements
+## Improvements
 
 - Make bookmark titles clickable. ([#6326](https://github.com/tldraw/tldraw/pull/6326))
 - Optimize mobile top bar rendering. ([#6895](https://github.com/tldraw/tldraw/pull/6895))
 - Add numpad Enter support for entering edit mode. ([#6830](https://github.com/tldraw/tldraw/pull/6830))
 - Consolidate preferences menu items. ([#6802](https://github.com/tldraw/tldraw/pull/6802))
 
-### Bug fixes
+## Bug fixes
 
 - Fix accessibility shortcut typo. ([#6811](https://github.com/tldraw/tldraw/pull/6811))
 - Fix focus mode action missing. ([#6812](https://github.com/tldraw/tldraw/pull/6812))
@@ -64,12 +66,12 @@ Features configurable parameters, localStorage persistence, and full TypeScript 
 
 ### v4.1.1
 
-Update the formatting of the `npm create tldraw` command in the CLI output.
+- Update the formatting of the `npm create tldraw` command in the CLI output.
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.1.1)
 
 ### v4.1.2
 
-Move `InFrontOfTheCanvas` component back out of the `.tl-canvas` element. The component was nested inside `.tl-canvas` in v4.0 for sizing constraints, but this broke some subtle interactions involving menus and scrolling. If you need to match custom styling on the `.tl-canvas` element, apply identical styling to `.tl-canvas__in-front`. ([#7021](https://github.com/tldraw/tldraw/pull/7021))
+- Move `InFrontOfTheCanvas` component back out of the `.tl-canvas` element. ([#7021](https://github.com/tldraw/tldraw/pull/7021))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.1.2)

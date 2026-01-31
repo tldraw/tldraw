@@ -1,21 +1,24 @@
 ---
-title: 'v3.10'
+title: 'v3.10.0'
 created_at: 11/3/2025
 updated_at: 11/3/2025
 keywords:
   - changelog
   - release
   - v3.10
+  - v3.10.0
+  - v3.10.1
+  - v3.10.2
+  - v3.10.3
   - rich-text
   - tiptap
   - performance
   - collaboration
-status: published
-date: 11/3/2025
-order: 10
 ---
 
 This release introduces rich text as a first-class primitive within the Editor, alongside various performance improvements and bug fixes.
+
+## What's new
 
 ### Rich text support
 
@@ -29,7 +32,7 @@ The SDK now offers rich text as a first-class primitive. The implementation util
 - Add public collaboration hooks (`usePeerIds`, `usePresence`).
 - Add `userId` parameter to collaboration components.
 
-### Bug fixes
+## Bug fixes
 
 - Fix performance regression affecting document loading.
 - Fix Firefox export/style embedding for foreignObjects.
@@ -47,18 +50,19 @@ The SDK now offers rich text as a first-class primitive. The implementation util
 
 ### v3.10.1
 
-Fix API reference links in state packages. ([#5610](https://github.com/tldraw/tldraw/pull/5610))
+- Fix API reference links in state packages. ([#5610](https://github.com/tldraw/tldraw/pull/5610))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.1)
 
 ### v3.10.2
 
-Add `textOptions` to `<TldrawImage />` component. ([#5650](https://github.com/tldraw/tldraw/pull/5650))
+- Add `textOptions` to `<TldrawImage />` component. ([#5650](https://github.com/tldraw/tldraw/pull/5650))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.2)
 
 ### v3.10.3
 
-Fix Inter font being embedded in exports; reduce excessive styling in exported content. ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+- Fix Inter font being embedded in exports. ([#5676](https://github.com/tldraw/tldraw/pull/5676))
+- Reduce excessive styling in exported content. ([#5676](https://github.com/tldraw/tldraw/pull/5676))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.10.3)

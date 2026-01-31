@@ -1,22 +1,25 @@
 ---
-title: 'v3.0'
+title: 'v3.0.0'
 created_at: 9/13/2024
 updated_at: 12/20/2024
 keywords:
   - changelog
   - release
   - v3.0
+  - v3.0.0
+  - v3.0.1
+  - v3.0.2
+  - v3.0.3
   - licensing
   - deep-links
   - export
   - embeds
   - text-search
-status: published
-date: 12/20/2024
-order: 20
 ---
 
 This release introduces a revised licensing model alongside deep links, enhanced image export, custom embeds, and a new text search API.
+
+## What's new
 
 ### Licensing
 
@@ -96,7 +99,7 @@ const searchResults = editor.getCurrentPageShapes().filter((shape) => {
 - Add `embedDefs` prop to Tldraw component for customizing embed types.
 - Expose additional shape export utilities for custom image generation.
 
-### Improvements
+## Improvements
 
 - Improve bookmark rendering for URLs without preview images. ([#4460](https://github.com/tldraw/tldraw/pull/4460))
 - Improve handling of asset storage and persistence. ([#4542](https://github.com/tldraw/tldraw/pull/4542))
@@ -111,18 +114,19 @@ const searchResults = editor.getCurrentPageShapes().filter((shape) => {
 
 ### v3.0.1
 
-Fix documentation search functionality and article issues. ([#4515](https://github.com/tldraw/tldraw/pull/4515))
+- Fix documentation search functionality and article issues. ([#4515](https://github.com/tldraw/tldraw/pull/4515))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.1)
 
 ### v3.0.2
 
-Fix build caching issue causing "You have multiple versions of tldraw libraries installed" errors, and resolve container null error. ([#4525](https://github.com/tldraw/tldraw/pull/4525), [#4524](https://github.com/tldraw/tldraw/pull/4524))
+- Fix build caching issue causing "You have multiple versions of tldraw libraries installed" errors. ([#4525](https://github.com/tldraw/tldraw/pull/4525))
+- Fix container null error. ([#4524](https://github.com/tldraw/tldraw/pull/4524))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.2)
 
 ### v3.0.3
 
-Bug fixes for the editor and tldraw packages. ([#4541](https://github.com/tldraw/tldraw/pull/4541))
+- Fix bugs in the editor and tldraw packages. ([#4541](https://github.com/tldraw/tldraw/pull/4541))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.3)

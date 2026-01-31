@@ -1,24 +1,26 @@
 ---
-title: 'v2.0'
-created_at: 2/29/2024
-updated_at: 2/29/2024
+title: 'v2.0.0'
+created_at: 02/29/2024
+updated_at: 02/29/2024
 keywords:
   - changelog
   - release
   - v2.0
+  - v2.0.0
+  - v2.0.1
+  - v2.0.2
   - initial-release
   - sdk
   - editor
   - shapes
   - tools
-status: published
-date: 2/29/2024
-order: 25
 ---
 
 This is the initial public release of the tldraw SDK—a TypeScript library for creating infinite canvas experiences in React. After an extensive alpha and beta period, the SDK is ready for production use.
 
-### The Editor
+## What's new
+
+### The editor
 
 At the heart of tldraw is the `Editor` class, a single object that manages all editor state and provides the API for programmatic control. The editor maintains document state through a reactive store system containing JSON-serializable records.
 
@@ -80,7 +82,7 @@ const SelectedShapeCount = track(() => {
 })
 ```
 
-### The Store
+### The store
 
 Document data lives in a `TLStore`—a reactive client-side database that supports:
 
@@ -165,12 +167,12 @@ All UI components can be overridden or extended via the `components` prop.
 
 ### v2.0.1
 
-Avoid randomness at init time, improving consistency for SSR and testing scenarios. ([#3076](https://github.com/tldraw/tldraw/pull/3076))
+- Avoid randomness at init time, improving consistency for SSR and testing scenarios. ([#3076](https://github.com/tldraw/tldraw/pull/3076))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.0.1)
 
 ### v2.0.2
 
-Fix JPG export functionality. ([#3199](https://github.com/tldraw/tldraw/pull/3199))
+- Fix JPG export functionality. ([#3199](https://github.com/tldraw/tldraw/pull/3199))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.0.2)
