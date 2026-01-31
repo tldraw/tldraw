@@ -1,5 +1,5 @@
-# Ignore all folders and files in the assets folder
-.
+# Ignore all files in this folder
+*
 
-# ...except for the .gitignore file
+# ...except for this .gitignore
 !.gitignore
