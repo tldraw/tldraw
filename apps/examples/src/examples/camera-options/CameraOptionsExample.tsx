@@ -45,6 +45,7 @@ export default function CameraOptionsExample() {
 			<Tldraw
 				// persistenceKey="camera-options"
 				components={components}
+				options={{ camera: CAMERA_OPTIONS }}
 			>
 				<CameraOptionsControlPanel />
 			</Tldraw>
