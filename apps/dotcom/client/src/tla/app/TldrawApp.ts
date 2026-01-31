@@ -1,5 +1,5 @@
 // import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
-import { Zero } from '@rocicorp/zero'
+import { Zero, createBuilder } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -101,6 +101,8 @@ export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 const useProperZero = getFromLocalStorage('useProperZero') === 'true'
+// Query builder for the new Zero API
+const zql = createBuilder(zeroSchema)
 // @ts-expect-error
 window.zero = () => {
 	setInLocalStorage('useProperZero', String(!useProperZero))
@@ -144,7 +146,7 @@ export class TldrawApp {
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
-		const view = query.materialize()
+		const view = (this.z as any).materialize(query)
 		const val$ = atom(name, view.data, { isEqual })
 		view.addListener((res: any) => {
 			this.changes.set(val$, structuredClone(res))
@@ -174,6 +176,7 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
+		initialToken: string | undefined,
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
@@ -184,10 +187,10 @@ export class TldrawApp {
 		const sessionId = uniqueId()
 		this.z = useProperZero
 			? new Zero<TlaSchema, TlaMutators>({
-					auth: getToken,
+					auth: initialToken,
 					userID: userId,
 					schema: zeroSchema,
-					server: ZERO_SERVER,
+					cacheURL: ZERO_SERVER,
 					mutators: createMutators(userId),
 					onUpdateNeeded(reason) {
 						console.error('update needed', reason)
@@ -224,15 +227,15 @@ export class TldrawApp {
 	}
 
 	private userQuery() {
-		return this.z.query.user.where('id', '=', this.userId).one()
+		return zql.user.where('id', '=', this.userId).one()
 	}
 
 	private fileStateQuery() {
-		return this.z.query.file_state.where('userId', '=', this.userId).related('file', (q) => q.one())
+		return zql.file_state.where('userId', '=', this.userId).related('file', (q) => q.one())
 	}
 
 	private groupMembershipsQuery() {
-		return this.z.query.group_user
+		return zql.group_user
 			.where('userId', '=', this.userId)
 			.related('group', (q) => q.one())
 			.related('groupFiles', (q) => q.related('file', (q) => q.one()))
@@ -240,13 +243,13 @@ export class TldrawApp {
 	}
 
 	async preload() {
-		await this.userQuery().preload().complete
+		await (this.z as any).preload(this.userQuery()).complete
 		await this.changesFlushed
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
-		await this.fileStateQuery().preload().complete
+		await (this.z as any).preload(this.fileStateQuery()).complete
 	}
 
 	messages = defineMessages({
@@ -859,8 +862,10 @@ export class TldrawApp {
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
+		const initialToken = await opts.getToken()
 		const app = new TldrawApp(
 			opts.userId,
+			initialToken,
 			opts.getToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
