@@ -1,6 +1,7 @@
 import { Signal } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
+	CustomRecordInfo,
 	SchemaPropsInfo,
 	TLAssetStore,
 	TLRecord,
@@ -42,6 +43,7 @@ export type TLStoreSchemaOptions =
 			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 			migrations?: readonly MigrationSequence[]
 			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+			records?: Record<string, CustomRecordInfo>
 	  }
 
 /** @public */
@@ -88,6 +90,7 @@ export function createTLSchemaFromUtils(
 			'bindingUtils' in opts && opts.bindingUtils
 				? utilsToMap(checkBindings(opts.bindingUtils))
 				: undefined,
+		records: 'records' in opts ? opts.records : undefined,
 		migrations: 'migrations' in opts ? opts.migrations : undefined,
 	})
 }
