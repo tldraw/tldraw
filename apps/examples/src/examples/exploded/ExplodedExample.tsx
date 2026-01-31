@@ -39,11 +39,13 @@ const defaultComponents = {
 }
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]
-const defaultTextOptions = {
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const defaultOptions = {
+	text: {
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
+		addFontsFromNode: defaultAddFontsFromNode,
 	},
-	addFontsFromNode: defaultAddFontsFromNode,
 }
 
 //[2]
@@ -57,7 +59,7 @@ export default function ExplodedExample() {
 				tools={allDefaultTools}
 				components={defaultComponents}
 				persistenceKey="exploded-example"
-				textOptions={defaultTextOptions}
+				options={defaultOptions}
 				assetUrls={defaultEditorAssetUrls}
 			>
 				<TldrawUi>

@@ -91,6 +91,12 @@ export interface TldrawBaseProps
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
 	 */
 	embeds?: TLEmbedDefinition[]
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /** @public */
@@ -112,7 +118,10 @@ export function Tldraw(props: TldrawProps) {
 		bindingUtils = [],
 		tools = [],
 		embeds,
-		textOptions,
+		options,
+		// needs to be here for backwards compatibility with TldrawEditor
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		textOptions: _textOptions,
 		...rest
 	} = props
 
@@ -171,16 +180,27 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
 
+	// Merge deprecated textOptions prop with options.textOptions
+	// options.textOptions takes precedence over the deprecated textOptions prop
+	const _mergedTextOptions = options?.text ?? _textOptions
 	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {
 			addFontsFromNode: defaultAddFontsFromNode,
-			...textOptions,
+			..._mergedTextOptions,
 			tipTapConfig: {
 				extensions: tipTapDefaultExtensions,
-				...textOptions?.tipTapConfig,
+				..._mergedTextOptions?.tipTapConfig,
 			},
 		}
-	}, [textOptions])
+	}, [_mergedTextOptions])
+
+	const optionsWithDefaults = useMemo(
+		() => ({
+			...options,
+			text: textOptionsWithDefaults,
+		}),
+		[options, textOptionsWithDefaults]
+	)
 
 	const mediaMimeTypes = useMemo(
 		() => [..._imageMimeTypes, ..._videoMimeTypes],
@@ -210,7 +230,7 @@ export function Tldraw(props: TldrawProps) {
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
 					tools={toolsWithDefaults}
-					textOptions={textOptionsWithDefaults}
+					options={optionsWithDefaults}
 					assetUrls={assets}
 				>
 					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>

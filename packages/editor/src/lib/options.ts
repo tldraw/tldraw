@@ -1,4 +1,5 @@
 import { ComponentType, Fragment } from 'react'
+import { TLTextOptions } from './utils/richText'
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -120,6 +121,11 @@ export interface TldrawOptions {
 	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
 	 */
 	readonly snapThreshold: number
+	/**
+	 * Options for the editor's text rendering. These include TipTap configuration and
+	 * font handling. These are the initial text options and cannot be changed at runtime.
+	 */
+	readonly text: TLTextOptions
 }
 
 /** @public */
@@ -178,4 +184,5 @@ export const defaultTldrawOptions = {
 	spacebarPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
+	text: {},
 } as const satisfies TldrawOptions
