@@ -15,7 +15,7 @@ export async function DocsMobileSidebar({
 	articleId?: string
 }) {
 	const sidebar = await db.getSidebarContentList({ sectionId, categoryId, articleId })
-	const skipFirstLevel = ['reference', 'examples'].includes(sectionId ?? '')
+	const skipFirstLevel = ['reference', 'examples', 'starter-kits'].includes(sectionId ?? '')
 	// @ts-ignore
 	const elements = skipFirstLevel ? sidebar.links[0].children : sidebar.links
 
