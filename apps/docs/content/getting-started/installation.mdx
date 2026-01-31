@@ -31,7 +31,28 @@ export default function () {
 
 ### Wrapper
 
-It's important that the [Tldraw](?) component is wrapped in a parent container that has an explicit size. Its height and width are set to `100%`, so it will fill its parent container.
+The [Tldraw](?) component must be wrapped in a parent container with an explicit size. Its height and width are set to `100%`, so it will fill its parent container.
+
+### Accessing the editor
+
+Use the `onMount` prop to access the [Editor](?) instance when it's ready:
+
+```tsx
+function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Do something with the editor
+					editor.selectAll()
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+The callback can return a cleanup function that runs when the editor unmounts.
 
 ### CSS
 
@@ -51,25 +72,31 @@ If you'd like to deeply change the way that tldraw looks, you can copy the `tldr
 
 ### Fonts
 
-We also use Inter as the default tldraw font. You can import this font however you like (or use a different font!) but here's the CSS import from Google fonts that we use:
+The tldraw SDK bundles its own fonts for shapes: IBM Plex (Sans, Serif, Mono) and Shantell Sans (for draw-style text). These are loaded automatically from the CDN or self-hosted [static assets](#static-assets).
+
+The tldraw UI will inherit its font family. You can set this to any font you like. For example, to use Inter:
 
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+
+.tl-container {
+	font-family: 'Inter', sans-serif;
+}
 ```
 
 ### HTML
 
-If you're using the [Tldraw](?) component in a full-screen app, you probably also want to update your `index.html`'s meta viewport element as shown below.
+If you're using the [Tldraw](?) component in a full-screen app, update your `index.html`'s meta viewport element as shown below.
 
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 ```
 
-This may not be critical to [Tldraw](?) performing correctly, however some features (such as safe area positioning) will only work correctly if these viewport options are set.
+Without these viewport options, some features like safe area positioning won't work correctly.
 
 ## License
 
-If you have a [license key](https://tldraw.dev/pricing), you can register your key `licenseKey` prop.
+If you have a [license key](https://tldraw.dev/pricing), you can pass your key to the `licenseKey` prop.
 
 ```tsx
 <Tldraw licenseKey={YOUR_LICENSE_KEY} />
@@ -77,19 +104,19 @@ If you have a [license key](https://tldraw.dev/pricing), you can register your k
 
 To learn more about the license and license key, visit [our pricing page](https://tldraw.dev/pricing).
 
-## Static Assets
+## Static assets
 
-In order to use the [Tldraw](?) component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. We offer a few different ways of making these assets available to your app.
+To use the [Tldraw](?) component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. We offer a few different ways of making these assets available to your app.
 
 ### Using a bundler
 
-If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Your bundler should be able to copy across the assets with your bundle, and insert the correct URLs in their place.
+If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Your bundler will copy the assets with your bundle and insert the correct URLs in their place.
 
 There are three options:
 
 - `import {getAssetUrlsByImport} from '@tldraw/assets/imports'`: import asset files using import statements. You'll need to configure your bundler to treat imports of .svg, .png, .json, and .woff2 files as external assets.
 - `import {getAssetUrlsByImport} from '@tldraw/assets/imports.vite'`: import asset files, appending `?url` to the asset path. This works correctly with [vite](https://vitejs.dev/guide/assets#explicit-url-imports) without any extra configuration needed.
-- `import {getAssetUrlsByMeta} from '@tldraw/assets/urls'`: get asset urls using `new URL(path, import.meta.url)`. This is a standards-based approach that works natively in most modern browsers & bundlers.
+- `import {getAssetUrlsByMetaUrl} from '@tldraw/assets/urls'`: get asset urls using `new URL(path, import.meta.url)`. This is a standards-based approach that works natively in most modern browsers & bundlers.
 
 Call the function, and pass the resulting `assetUrls` into the `Tldraw` component:
 
@@ -103,7 +130,7 @@ const assetUrls = getAssetUrlsByMetaUrl()
 
 ### Using a public CDN
 
-By default we serve these assets from a public CDN. Everything should work out of the box and is a good way to get started.
+By default, we serve these assets from a public CDN. This works without configuration and is a good starting point.
 
 If you would like to customize some of the assets you can pass the customizations to our [Tldraw](?) component. For example, to use a custom icon for the `hand` tool you can do the following:
 
@@ -119,9 +146,9 @@ const assetUrls = {
 
 This will use the custom icon for the `hand` tool and the default assets for everything else.
 
-### Self-hosting static assets
+### Self-hosting assets
 
-If you want more flexibility you can also host these assets yourself:
+You can also host these assets yourself:
 
 1. Download the `embed-icons`, `fonts`, `icons`, and `translations` folders from the [assets folder](https://github.com/tldraw/tldraw/tree/main/assets) of the tldraw repository.
 2. Place the folders in your project's public path.
@@ -151,42 +178,34 @@ const assetUrls = getAssetUrls({
 
 ## Subcomponents
 
-The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?) and TldrawUi. If you want to have more granular control, you can use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/exploded/ExplodedExample.tsx) for reference.
+The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?) and [TldrawUi](?). If you want more granular control, you can use those lower-level components directly. See the [exploded example](/examples/basic/exploded) for reference.
 
-### Customize the default components
+### Customizing components
 
-You can customize the appearance of the tldraw editor and ui using the [Tldraw](?) (or [TldrawEditor](?)) component's `components` prop.
+You can customize the appearance of the tldraw editor and UI using the [Tldraw](?) (or [TldrawEditor](?)) component's `components` prop. This prop accepts a [TLComponents](?) object, which combines [TLEditorComponents](?) (canvas-level components like cursors, selection, and grid) with [TLUiComponents](?) (UI elements like toolbar, menus, and panels).
 
 ```tsx
+import { TLComponents } from 'tldraw'
 
 const components: TLComponents = {
+	// Editor components
 	Background: YourCustomBackground,
-	SvgDefs: YourCustomSvgDefs,
-	Brush: YourCustomBrush,
-	ZoomBrush: YourCustomBrush,
-	CollaboratorBrush: YourCustomBrush,
 	Cursor: YourCustomCursor,
-	CollaboratorCursor: YourCustomCursor,
-	CollaboratorHint: YourCustomCollaboratorHint,
-	CollaboratorShapeIndicator: YourCustomdicator,
 	Grid: YourCustomGrid,
-	Scribble: YourCustomScribble,
-	SnapLine: YourCustomSnapLine,
-	Handles: YourCustomHandles,
-	Handle: YourCustomHandle,
-	CollaboratorScribble: YourCustomScribble,
-	ErrorFallback: YourCustomErrorFallback,
-	ShapeErrorFallback: YourCustomShapeErrorFallback,
-	ShapeIndicatorErrorFallback: YourCustomShapeIndicatorErrorFallback,
-	Spinner: YourCustomSpinner,
-	SelectionBackground: YourCustomSelectionBackground,
 	SelectionForeground: YourCustomSelectionForeground,
-	HoveredShapeIndicator: YourCustomHoveredShapeIndicator,
-	// ...
+	SnapIndicator: YourCustomSnapIndicator,
+
+	// UI components
+	Toolbar: YourCustomToolbar,
+	MainMenu: YourCustomMainMenu,
+	StylePanel: YourCustomStylePanel,
+	ContextMenu: YourCustomContextMenu,
 }
 
-<Tldraw components={components}/>
+<Tldraw components={components} />
 ```
+
+See the [TLEditorComponents](?) and [TLUiComponents](?) type definitions for the complete list of customizable components.
 
 ## Versioning
 

@@ -221,21 +221,25 @@ When `selfConsume` is `false`, points accumulate while the session is active and
 
 ## Customizing scribble rendering
 
-You can override the scribble component to customize how scribbles render. Pass a custom `Scribble` component through [TLEditorComponents](?). The component receives [TLScribbleProps](?) with `scribble`, `zoom`, `color`, `opacity`, and `className`:
+You can override the scribble component to customize how scribbles render. Pass a custom `Scribble` component through [TLEditorComponents](?). The component receives [TLScribbleProps](?) with `scribble`, `zoom`, `color`, `opacity`, `className`, and optionally `userId` for collaborator scribbles.
+
+To customize how other users' scribbles appear in multiplayer, override the `CollaboratorScribble` component instead.
 
 ```tsx
-import { Tldraw, TLEditorComponents } from 'tldraw'
+import { Tldraw, TLEditorComponents, getSvgPathFromPoints } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const components: TLEditorComponents = {
 	Scribble: ({ scribble, zoom, opacity, color }) => {
+		if (!scribble.points.length) return null
+
 		return (
 			<svg className="tl-overlays__item">
-				<polyline
-					points={scribble.points.map((p) => `${p.x},${p.y}`).join(' ')}
-					stroke={color ?? 'black'}
+				<path
+					d={getSvgPathFromPoints(scribble.points, false)}
+					stroke={color ?? `var(--tl-color-${scribble.color})`}
 					strokeWidth={8 / zoom}
-					opacity={opacity ?? '1'}
+					opacity={opacity ?? scribble.opacity}
 					fill="none"
 				/>
 			</svg>
@@ -251,6 +255,8 @@ export default function App() {
 	)
 }
 ```
+
+The default `Scribble` component in tldraw uses the [getStroke](?) function from the freehand library to create smooth, pressure-sensitive strokes. For simpler use cases, the example above uses [getSvgPathFromPoints](?) directly.
 
 ## Related articles
 
