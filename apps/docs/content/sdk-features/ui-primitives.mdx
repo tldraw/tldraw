@@ -1,0 +1,445 @@
+---
+title: UI primitives
+created_at: 12/25/2025
+updated_at: 12/25/2025
+keywords:
+  - ui
+  - primitives
+  - button
+  - icon
+  - menu
+  - dialog
+  - components
+status: published
+date: 12/25/2025
+readability: 9
+voice: 8
+completeness: 8
+accuracy: 10
+notes: ''
+---
+
+The `@tldraw/tldraw` package exports a set of UI primitive components that you can use when building custom interfaces. These components match the look and feel of tldraw's default UI and integrate with the editor's theming, translations, and accessibility features.
+
+Use these primitives when you want your custom UI to feel like a natural part of tldraw rather than something bolted on.
+
+## Buttons
+
+The button system consists of `TldrawUiButton` and its companion components for icons, labels, and state indicators.
+
+### TldrawUiButton
+
+The base button component with several visual variants:
+
+```tsx
+import { TldrawUiButton, TldrawUiButtonLabel } from 'tldraw'
+
+function MyButtons() {
+	return (
+		<>
+			<TldrawUiButton type="normal" onClick={() => console.log('clicked')}>
+				<TldrawUiButtonLabel>Normal</TldrawUiButtonLabel>
+			</TldrawUiButton>
+
+			<TldrawUiButton type="primary" onClick={() => console.log('clicked')}>
+				<TldrawUiButtonLabel>Primary</TldrawUiButtonLabel>
+			</TldrawUiButton>
+
+			<TldrawUiButton type="danger" onClick={() => console.log('clicked')}>
+				<TldrawUiButtonLabel>Danger</TldrawUiButtonLabel>
+			</TldrawUiButton>
+
+			<TldrawUiButton type="icon" onClick={() => console.log('clicked')}>
+				<TldrawUiButtonIcon icon="plus" />
+			</TldrawUiButton>
+		</>
+	)
+}
+```
+
+The `type` prop controls the button's appearance:
+
+| Type      | Description                              |
+| --------- | ---------------------------------------- |
+| `normal`  | Standard button for general actions      |
+| `primary` | Emphasized button for primary actions    |
+| `danger`  | Red button for destructive actions       |
+| `low`     | Subtle button with minimal visual weight |
+| `icon`    | Square button sized for a single icon    |
+| `tool`    | Tool button style used in the toolbar    |
+| `menu`    | Button style used inside menus           |
+| `help`    | Style used for help/info buttons         |
+
+Use `isActive` to indicate a selected or active state:
+
+```tsx
+<TldrawUiButton type="tool" isActive={true}>
+	<TldrawUiButtonIcon icon="draw" />
+</TldrawUiButton>
+```
+
+### Button sub-components
+
+Build up button contents using these components:
+
+```tsx
+import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiButtonCheck,
+	TldrawUiButtonSpinner,
+} from 'tldraw'
+
+// Icon button
+<TldrawUiButton type="icon">
+	<TldrawUiButtonIcon icon="trash" />
+</TldrawUiButton>
+
+// Button with icon and label
+<TldrawUiButton type="menu">
+	<TldrawUiButtonIcon icon="plus" />
+	<TldrawUiButtonLabel>Add item</TldrawUiButtonLabel>
+</TldrawUiButton>
+
+// Button with checkmark (for toggles in menus)
+<TldrawUiButton type="menu">
+	<TldrawUiButtonCheck checked={true} />
+	<TldrawUiButtonLabel>Show grid</TldrawUiButtonLabel>
+</TldrawUiButton>
+
+// Button with loading spinner
+<TldrawUiButton type="normal" disabled>
+	<TldrawUiButtonSpinner />
+	<TldrawUiButtonLabel>Loading...</TldrawUiButtonLabel>
+</TldrawUiButton>
+```
+
+## Icons
+
+`TldrawUiIcon` renders icons from tldraw's icon set. Icons are SVG-based and inherit the current text color.
+
+```tsx
+import { TldrawUiIcon } from 'tldraw'
+
+<TldrawUiIcon icon="draw" label="Draw tool" />
+<TldrawUiIcon icon="arrow-left" label="Go back" small />
+<TldrawUiIcon icon="check" label="Complete" color="green" />
+```
+
+The `label` prop is required for accessibility—it becomes the icon's `aria-label`. Use `small` for a smaller icon size.
+
+You can also pass a custom React element instead of an icon name:
+
+```tsx
+<TldrawUiIcon icon={<div className="my-custom-icon">★</div>} label="Favorite" />
+```
+
+## Menu primitives
+
+When adding items to tldraw's menus, use these components to match the default menu styling and behavior.
+
+### TldrawUiMenuItem
+
+The main component for menu items. It automatically adapts its rendering based on which menu it's in (dropdown, context menu, toolbar, etc.):
+
+```tsx
+import { TldrawUiMenuItem, TldrawUiMenuGroup } from 'tldraw'
+;<TldrawUiMenuGroup id="my-actions">
+	<TldrawUiMenuItem
+		id="my-action"
+		label="Do something"
+		icon="plus"
+		kbd="cmd+shift+d"
+		onSelect={() => {
+			console.log('action triggered')
+		}}
+	/>
+</TldrawUiMenuGroup>
+```
+
+Props:
+
+| Prop         | Description                                            |
+| ------------ | ------------------------------------------------------ |
+| `id`         | Unique identifier for the menu item                    |
+| `label`      | Display text (supports translation keys)               |
+| `icon`       | Icon to display (on right in menus)                    |
+| `iconLeft`   | Icon to display on the left side                       |
+| `kbd`        | Keyboard shortcut to display                           |
+| `onSelect`   | Called when the item is clicked                        |
+| `disabled`   | Whether the item is disabled                           |
+| `readonlyOk` | If true, item is shown even in readonly mode           |
+| `isSelected` | Whether the item shows as selected (for toolbar items) |
+| `spinner`    | Show a loading spinner                                 |
+| `noClose`    | Prevent the menu from closing when clicked             |
+
+### TldrawUiMenuGroup
+
+Groups related menu items together. In dropdown menus, groups are separated by dividers:
+
+```tsx
+<TldrawUiMenuGroup id="clipboard">
+	<TldrawUiMenuItem id="cut" label="Cut" kbd="cmd+x" onSelect={handleCut} />
+	<TldrawUiMenuItem id="copy" label="Copy" kbd="cmd+c" onSelect={handleCopy} />
+	<TldrawUiMenuItem id="paste" label="Paste" kbd="cmd+v" onSelect={handlePaste} />
+</TldrawUiMenuGroup>
+```
+
+### TldrawUiMenuSubmenu
+
+Creates a nested submenu:
+
+```tsx
+import { TldrawUiMenuSubmenu } from 'tldraw'
+;<TldrawUiMenuSubmenu id="export" label="Export as...">
+	<TldrawUiMenuGroup id="formats">
+		<TldrawUiMenuItem id="png" label="PNG" onSelect={exportPng} />
+		<TldrawUiMenuItem id="svg" label="SVG" onSelect={exportSvg} />
+		<TldrawUiMenuItem id="json" label="JSON" onSelect={exportJson} />
+	</TldrawUiMenuGroup>
+</TldrawUiMenuSubmenu>
+```
+
+### TldrawUiMenuCheckboxItem
+
+A menu item with a checkbox:
+
+```tsx
+import { TldrawUiMenuCheckboxItem } from 'tldraw'
+;<TldrawUiMenuCheckboxItem
+	id="snap-to-grid"
+	label="Snap to grid"
+	checked={snapEnabled}
+	onSelect={() => {
+		setSnapEnabled(!snapEnabled)
+	}}
+/>
+```
+
+The `onSelect` callback receives a `source` parameter indicating where the action was triggered from (e.g., 'context-menu', 'menu'). You can ignore it if you don't need to differentiate between sources.
+
+## Dialogs
+
+Build modal dialogs using tldraw's dialog primitives. These components handle accessibility, focus management, and styling.
+
+```tsx
+import {
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogBody,
+	TldrawUiDialogFooter,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	useDialogs,
+} from 'tldraw'
+
+function MyDialog({ onClose }: { onClose(): void }) {
+	return (
+		<>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>Confirm deletion</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				Are you sure you want to delete this item? This action cannot be undone.
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={onClose}>
+					<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton
+					type="danger"
+					onClick={() => {
+						deleteItem()
+						onClose()
+					}}
+				>
+					<TldrawUiButtonLabel>Delete</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
+		</>
+	)
+}
+
+// Show the dialog using the useDialogs hook
+function MyComponent() {
+	const { addDialog } = useDialogs()
+
+	return <button onClick={() => addDialog({ component: MyDialog })}>Delete item</button>
+}
+```
+
+The `onClose` function is passed to your dialog component automatically. Call it to dismiss the dialog.
+
+## Input
+
+`TldrawUiInput` is a styled text input with built-in handling for Enter (confirm) and Escape (cancel):
+
+```tsx
+import { TldrawUiInput } from 'tldraw'
+;<TldrawUiInput
+	label="Name"
+	defaultValue="Untitled"
+	onComplete={(value) => {
+		// Called when user presses Enter
+		saveName(value)
+	}}
+	onCancel={(value) => {
+		// Called when user presses Escape
+		// Value is reset to initial value
+	}}
+	onValueChange={(value) => {
+		// Called on every keystroke
+	}}
+	autoSelect // Select all text on focus
+	autoFocus
+/>
+```
+
+Add icons to the input using `iconLeft` (left side) or `icon` (right side):
+
+```tsx
+<TldrawUiInput iconLeft="search" placeholder="Search shapes..." onValueChange={setSearchQuery} />
+<TldrawUiInput icon="check" placeholder="Confirmed value" />
+```
+
+## Layout
+
+Layout primitives help organize UI controls with proper spacing and orientation-aware tooltips.
+
+```tsx
+import { TldrawUiRow, TldrawUiColumn, TldrawUiGrid } from 'tldraw'
+
+// Horizontal row of buttons
+<TldrawUiRow>
+	<TldrawUiButton type="icon"><TldrawUiButtonIcon icon="align-left" /></TldrawUiButton>
+	<TldrawUiButton type="icon"><TldrawUiButtonIcon icon="align-center" /></TldrawUiButton>
+	<TldrawUiButton type="icon"><TldrawUiButtonIcon icon="align-right" /></TldrawUiButton>
+</TldrawUiRow>
+
+// Vertical column
+<TldrawUiColumn>
+	<TldrawUiButton type="menu"><TldrawUiButtonLabel>Option 1</TldrawUiButtonLabel></TldrawUiButton>
+	<TldrawUiButton type="menu"><TldrawUiButtonLabel>Option 2</TldrawUiButtonLabel></TldrawUiButton>
+</TldrawUiColumn>
+
+// 4-column grid (useful for color pickers, shape selectors, etc.)
+<TldrawUiGrid>
+	{colors.map(color => (
+		<TldrawUiButton key={color} type="icon" onClick={() => setColor(color)}>
+			<div style={{ background: color, width: 16, height: 16 }} />
+		</TldrawUiButton>
+	))}
+</TldrawUiGrid>
+```
+
+These components automatically set up a `tooltipSide` context—tooltips appear below items in rows and to the right of items in columns, and nested components inherit this positioning.
+
+## Other primitives
+
+### TldrawUiKbd
+
+Displays a keyboard shortcut:
+
+```tsx
+import { TldrawUiKbd } from 'tldraw'
+;<TldrawUiKbd>cmd+shift+d</TldrawUiKbd>
+```
+
+### TldrawUiSlider
+
+A slider control. The slider uses discrete steps rather than a continuous range:
+
+```tsx
+import { TldrawUiSlider } from 'tldraw'
+;<TldrawUiSlider
+	title="Opacity"
+	label="style-panel.opacity"
+	value={5}
+	steps={10}
+	onValueChange={(value) => console.log(value)}
+/>
+```
+
+Props:
+
+| Prop            | Description                                     |
+| --------------- | ----------------------------------------------- |
+| `title`         | Tooltip title text                              |
+| `label`         | Translation key for the label                   |
+| `value`         | Current value (0 to steps), or null             |
+| `steps`         | Maximum value (the slider goes from 0 to steps) |
+| `min`           | Optional minimum value (defaults to 0)          |
+| `onValueChange` | Called with the new value when it changes       |
+
+### TldrawUiPopover
+
+A popover that appears next to a trigger element:
+
+```tsx
+import { TldrawUiPopover, TldrawUiPopoverTrigger, TldrawUiPopoverContent } from 'tldraw'
+;<TldrawUiPopover id="my-popover">
+	<TldrawUiPopoverTrigger>
+		<TldrawUiButton type="icon">
+			<TldrawUiButtonIcon icon="dots-vertical" />
+		</TldrawUiButton>
+	</TldrawUiPopoverTrigger>
+	<TldrawUiPopoverContent side="bottom">
+		<div style={{ padding: 8 }}>Popover content here</div>
+	</TldrawUiPopoverContent>
+</TldrawUiPopover>
+```
+
+The `id` prop is required and used to track the popover's open state. The `side` prop on `TldrawUiPopoverContent` controls which side of the trigger the popover appears on.
+
+### TldrawUiDropdownMenu
+
+A dropdown menu built on Radix UI:
+
+```tsx
+import {
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+} from 'tldraw'
+;<TldrawUiDropdownMenuRoot id="my-dropdown">
+	<TldrawUiDropdownMenuTrigger>
+		<TldrawUiButton type="normal">
+			<TldrawUiButtonLabel>Options</TldrawUiButtonLabel>
+		</TldrawUiButton>
+	</TldrawUiDropdownMenuTrigger>
+	<TldrawUiDropdownMenuContent>
+		<TldrawUiDropdownMenuGroup>
+			<TldrawUiDropdownMenuItem>
+				<TldrawUiButton type="menu" onClick={handleEdit}>
+					<TldrawUiButtonLabel>Edit</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
+			<TldrawUiDropdownMenuItem>
+				<TldrawUiButton type="menu" onClick={handleDuplicate}>
+					<TldrawUiButtonLabel>Duplicate</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
+			<TldrawUiDropdownMenuItem>
+				<TldrawUiButton type="menu" onClick={handleDelete}>
+					<TldrawUiButtonLabel>Delete</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
+		</TldrawUiDropdownMenuGroup>
+	</TldrawUiDropdownMenuContent>
+</TldrawUiDropdownMenuRoot>
+```
+
+The `id` prop is required on `TldrawUiDropdownMenuRoot`. Each `TldrawUiDropdownMenuItem` wraps a child element (typically a button) and handles the dropdown behavior.
+
+## Related examples
+
+- **[Custom menus](/examples/custom-menus)** — Add items to tldraw's menus using menu primitives
+- **[Toasts and dialogs](/examples/toasts-and-dialogs)** — Show toasts and custom dialogs
+- **[Custom UI](/examples/custom-ui)** — Build a completely custom interface

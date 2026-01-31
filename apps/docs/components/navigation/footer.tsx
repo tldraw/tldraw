@@ -53,7 +53,7 @@ const menus = [
 export function Footer() {
 	return (
 		<footer className="pt-16 pb-36 bg-zinc-950 text-white">
-			<div className="flex flex-col w-full max-w-screen-xl gap-12 px-5 mx-auto sm:flex-row sm:justify-between">
+			<div className="flex flex-col w-full max-w-screen-2xl gap-12 px-5 mx-auto sm:flex-row sm:justify-between">
 				<div className="flex-[2]">
 					<TldrawLink href="/" className="w-28">
 						<Logo className="h-6" forceWhite />

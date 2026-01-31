@@ -1,0 +1,267 @@
+---
+title: Shapes
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - shapes
+  - shapeutil
+  - geometry
+  - records
+  - rendering
+  - hit testing
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable while allowing complex per-shape behavior. Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
+
+## Shape records
+
+A shape record is a plain object stored in the editor's reactive store. All shape types extend `TLBaseShape`, which defines the common properties every shape has: a unique identifier, position and rotation, z-ordering index, parent reference, lock state, opacity, and a `props` field for shape-specific properties. The `props` field contains data unique to each shape type. A geo shape stores its width, height, and geometry type. A text shape stores its text content and font size. Each shape type defines its own props structure.
+
+### Shape types in tldraw
+
+The default tldraw installation includes these shape types:
+
+| Category   | Types                                 |
+| ---------- | ------------------------------------- |
+| Basic      | `geo`, `text`, `note`                 |
+| Drawing    | `draw`, `line`, `highlight`           |
+| Media      | `image`, `video`, `bookmark`, `embed` |
+| Structural | `frame`, `group`                      |
+| Connectors | `arrow`                               |
+
+Each type has a corresponding ShapeUtil that implements its behavior.
+
+### Creating and accessing shapes
+
+The editor provides methods for working with shape records. Create shapes with `createShape`, passing the shape type, position, and props. Get shapes by ID with `getShape`, or get all shapes on the current page with `getCurrentPageShapes`. Update shapes with `updateShape`, passing the shape ID and properties to change. Delete shapes with `deleteShape`.
+
+```typescript
+// Create a geo shape
+editor.createShape({
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: { w: 200, h: 150, geo: 'rectangle' },
+})
+
+// Get a shape by ID
+const shape = editor.getShape(shapeId)
+
+// Update a shape's position
+editor.updateShape({ id: shape.id, x: 200 })
+```
+
+Shapes are immutable records. When you update a shape, the editor creates a new record with the changes and stores it, replacing the old one. This immutability enables efficient change detection and undo/redo.
+
+## ShapeUtil
+
+A ShapeUtil class defines how a shape type behaves. The editor maintains one ShapeUtil instance per shape type, and uses it for all shapes of that type. ShapeUtil is an abstract class with required and optional methods that control rendering, geometry, and interaction.
+
+### Required methods
+
+Every ShapeUtil must implement four methods: `getDefaultProps` returns default property values for new shapes, `getGeometry` returns a mathematical representation for hit testing and bounds calculation, `component` returns a React component that renders the shape, and `indicator` returns an SVG element for the selection outline.
+
+```typescript
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+
+	getDefaultProps(): MyShape['props'] {
+		return { w: 100, h: 100 }
+	}
+
+	getGeometry(shape: MyShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: true,
+		})
+	}
+
+	component(shape: MyShape): JSX.Element {
+		return <div style={{ width: shape.props.w, height: shape.props.h }} />
+	}
+
+	indicator(shape: MyShape): JSX.Element {
+		return <rect width={shape.props.w} height={shape.props.h} />
+	}
+}
+```
+
+### Capability methods
+
+ShapeUtils can override capability methods to declare what interactions the shape supports. These methods return booleans indicating whether the shape can be edited, resized, cropped, scrolled, or bound to other shapes. The `canReceiveNewChildrenOfType` method controls whether the shape can contain other shapes as children.
+
+### Lifecycle hooks
+
+ShapeUtils can respond to shape changes through lifecycle hooks. The `onBeforeCreate` and `onBeforeUpdate` hooks intercept shape creation and updates before they reach the store, allowing modification or validation. The `onResize`, `onRotate`, and `onTranslate` hooks respond to transformation operations. The `onChildrenChange` hook responds to changes in a shape's children. Interaction hooks like `onDoubleClick`, `onDragShapesOver`, and `onDropShapesOver` enable custom behavior for user interactions.
+
+The `onResize` hook requires careful implementation. When a shape resizes, the hook receives resize information including the scale factors and the handle being dragged. It returns a partial update containing just the props you want to change (without the `id` or `type`):
+
+```typescript
+onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
+	return {
+		props: {
+			w: shape.props.w * info.scaleX,
+			h: shape.props.h * info.scaleY,
+		},
+	}
+}
+```
+
+### Static properties
+
+ShapeUtil classes use static properties for type registration and schema configuration:
+
+```typescript
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+
+	// Define props validators (including style props)
+	static override props = {
+		w: T.number,
+		h: T.number,
+		color: DefaultColorStyle, // StyleProp instances are recognized automatically
+	}
+
+	// Define migrations for schema evolution
+	static override migrations = defineMigrations({
+		currentVersion: 1,
+		migrators: {
+			1: {
+				up: (shape) => ({ ...shape, props: { ...shape.props, newProp: 'default' } }),
+				down: (shape) => {
+					const { newProp, ...rest } = shape.props
+					return { ...shape, props: rest }
+				},
+			},
+		},
+	})
+}
+```
+
+### Configuring built-in shapes
+
+Use [ShapeUtil#configure](?) to customize options on built-in shape utilities without subclassing them:
+
+```typescript
+import { GeoShapeUtil, Tldraw } from 'tldraw'
+
+// Create a configured version with custom options
+const ConfiguredGeoShapeUtil = GeoShapeUtil.configure({
+	canCrop: false,
+	hideSelectionBoundsFg: true,
+})
+
+function App() {
+	return <Tldraw shapeUtils={[ConfiguredGeoShapeUtil]} />
+}
+```
+
+This is useful for changing behavior like `canCrop`, `canResize`, or `canEdit` without creating a full custom ShapeUtil.
+
+### Registering ShapeUtils
+
+Register custom ShapeUtils when initializing tldraw by passing them to the `shapeUtils` prop. The editor creates one instance of each ShapeUtil and uses it for all shapes of that type.
+
+## Geometry system
+
+The geometry system provides mathematical representations of shapes for hit testing, bounds calculation, snapping, and collision detection. Every ShapeUtil returns a [Geometry2d](?) instance from its `getGeometry` method. The system includes geometry classes for common shapes: [Rectangle2d](?) for axis-aligned rectangles, [Circle2d](?) for true circles (with center and radius), [Ellipse2d](?) for ellipses with different width/height, [Polygon2d](?) for arbitrary closed polygons, [Polyline2d](?) for open paths, [Arc2d](?) for circular arcs, [Stadium2d](?) for rounded rectangles, and [Group2d](?) for composite geometry.
+
+### Key geometry operations
+
+Geometry2d provides methods for spatial queries. Get the axis-aligned bounding box with the `bounds` property. Get boundary vertices with `getVertices`. Find the nearest point on the shape boundary with `nearestPoint`. Test if a point hits the shape with `hitTestPoint`, which accepts a `margin` parameter that expands the hit area and a `hitInside` parameter that controls whether points inside the shape count as hits for unfilled shapes. Test line segment intersection with `hitTestLineSegment` or get intersection points with `intersectLineSegment`.
+
+### Geometry caching
+
+The editor caches geometry computations to avoid recalculating bounds and hit test data on every frame. Without caching, dragging a selection box over hundreds of shapes would recompute each shape's geometry repeatedly, causing noticeable lag. The cache invalidates automatically when a shape's props change. Access cached geometry with `getShapeGeometry` or cached page bounds (geometry combined with transforms) with `getShapePageBounds`.
+
+## Shape rendering
+
+The editor renders shapes through a React component hierarchy. Each shape is wrapped in a container that handles positioning, transforms, and culling. When a shape renders, the editor computes the shape's page transform by combining its local position and rotation with all ancestor transforms, extracts bounds from the shape's geometry, skips rendering if the shape is outside the viewport and supports culling, renders the shape's visual content through the ShapeUtil's `component` method, and if selected, renders the selection outline through the `indicator` method.
+
+### Transform composition
+
+Shapes position relative to their parent's coordinate space. For a shape nested inside a rotated frame, the editor composes transforms. Get the transform from shape space to page space with `getShapePageTransform`. Get just the local transform with `getShapeLocalTransform`. Convert a page point to shape-local coordinates with `getPointInShapeSpace`.
+
+### Opacity
+
+Shape opacity multiplies with parent opacity. A shape at 50% opacity inside a frame at 50% opacity renders at 25% opacity. Access a shape's opacity directly from the shape record via `shape.opacity`. The editor computes the final rendered opacity by combining the shape's opacity with all ancestor opacities.
+
+## Shape lifecycle
+
+Shapes go through creation, updates, and deletion. The editor provides hooks and events at each stage.
+
+### Creation flow
+
+When `createShape` is called, the editor assigns an ID if none provided, determines the parent either explicitly, inferred from position, or defaults to the current page, calculates the fractional index for z-ordering, calls `ShapeUtil.onBeforeCreate` for any modifications, validates the shape against the schema, and stores the shape in the store.
+
+### Update flow
+
+When `updateShape` is called, the editor checks if the shape or an ancestor is locked, merges the partial update with the existing shape, calls `ShapeUtil.onBeforeUpdate` for any modifications, validates and stores the updated shape, and emits update events.
+
+### Deletion flow
+
+When `deleteShape` is called, the editor collects all descendant shapes, removes bindings involving the shapes, calls deletion side effects, and removes all shapes from the store. Deleting a frame or group deletes all its children. Bindings are automatically cleaned up, and connected shapes receive isolation callbacks to update their state.
+
+## Parent-child relationships
+
+Shapes can be parented to pages or other shapes. This creates a hierarchy used for grouping, frames, and coordinate transforms.
+
+### Frames
+
+Frames are container shapes that clip their children and provide a visual boundary. Shapes inside a frame position relative to the frame's origin. Moving the frame moves all its children. The frame clips content at its boundaries during rendering. See [Shape clipping](/sdk-features/shape-clipping) for details on implementing custom clipping shapes.
+
+### Groups
+
+Groups are logical containers without visual representation. Group selected shapes with `groupShapes`. Ungroup with `ungroupShapes`. Groups exist only to organize shapes. Their geometry is the union of their children's geometry. When you delete the last child of a group, the group deletes itself.
+
+### Focused groups
+
+The editor tracks a **focused group** that defines the current editing scope. When you double-click a group, it becomes focused, and you can select and edit shapes inside it. Get the current focused group with `getFocusedGroup`. Focus a specific group with `setFocusedGroup`. Exit the focused group with `popFocusedGroupId`.
+
+## Coordinate spaces
+
+The editor works with multiple coordinate spaces. Screen space uses the browser viewport top-left as the origin for mouse events and UI positioning. Page space uses the canvas origin at (0,0) for shape positions and bounds. Parent space uses the parent shape's top-left for nested shape positions. Local space uses the shape's own top-left for shape-internal coordinates.
+
+The editor provides methods to convert between spaces. Convert screen points to page points with `screenToPage`. Convert page points to screen points with `pageToScreen`. Convert page points to shape-local coordinates with `getPointInShapeSpace`. Get a shape's page-space transform matrix with `getShapePageTransform`.
+
+## Shape derivations
+
+The editor maintains computed derivations that update automatically as shapes change.
+
+### Parents to children index
+
+Maps parent IDs to sorted arrays of child shape IDs. Updated incrementally as shapes are added, removed, or reparented. Get children of a shape or page, sorted by z-index, with `getSortedChildIdsForParent`.
+
+### Culled shapes
+
+Tracks which shapes are outside the viewport. Shapes whose ShapeUtil returns `true` from `canCull()` are candidates for culling. Culled shapes are still in the DOM but have their `display` set to `none` for performance. Check if a shape is currently culled with `getCulledShapes().has(shapeId)`.
+
+### Shape geometry cache
+
+Caches geometry computations per shape. Invalidates when shape props change. Access through `getShapeGeometry`, which returns cached geometry and only recomputes when needed.
+
+## Related examples
+
+- **[Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape)** - A simple custom shape demonstrating basic ShapeUtil implementation.
+- **[Editable custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editable-shape)** - A custom shape that can be edited by double-clicking it, showing how to use the editing state.
+- **[Clickable custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/interactive-shape)** - A custom shape with onClick interactions demonstrating pointer event handling.
+- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-geometry)** - A house-shaped custom shape demonstrating custom geometry implementation.
+- **[Custom shape with custom styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-custom-styles)** - Shows how to create your own styles and use them in custom shapes.
+- **[Custom shape with tldraw styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-tldraw-styles)** - Use tldraw's default styles in your custom shapes.
+- **[Custom shape migrations](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-migrations)** - Migrate shapes and their data between versions using the migrations system.
+- **[Custom shape with handles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/speech-bubble)** - A speech bubble shape with custom handles for interaction.
+- **[Shape options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configure-shape-util)** - Change the behavior of built-in shapes by setting their options via ShapeUtil.configure.
+- **[Custom snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/bounds-snapping-shape)** - Custom shapes with special bounds snapping behavior, demonstrated with playing cards.
+- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/cubic-bezier-shape)** - A custom shape with interactive bezier curve editing using draggable control handles.
+- **[Data grid shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ag-grid-shape)** - A custom shape that renders AG Grid, showing complex component integration.
+- **[Popup shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/popup-shape)** - Create a 3D illusion of depth with dynamic shadows and CSS transforms.
+- **[Custom clipping shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-clipping-shape)** - Custom shapes that can clip their children with any polygon geometry.
+- **[DOM-based shape size](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/size-from-dom)** - A custom shape whose size is derived from its rendered DOM.

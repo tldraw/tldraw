@@ -1,0 +1,151 @@
+---
+title: Click detection
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - click
+  - double-click
+  - triple-click
+  - quadruple-click
+  - pointer
+  - ClickManager
+  - multi-click
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: Could add a simpler opening hook per voice guide ("Have five minutes?"-style).
+---
+
+In tldraw, the click detection system lets you respond to double, triple, and quadruple clicks. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching click events when timing and distance thresholds are met.
+
+This powers text editing features like word selection on double-click and paragraph selection on triple-click. You can use these events to add custom multi-click behaviors in your own shapes and tools.
+
+## How it works
+
+When a pointer down event occurs, the manager either starts a new sequence or advances to the next click level. Each state has a timeout that determines how long to wait for the next click before settling on the current level.
+
+Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), giving users time to initiate a double-click sequence. Subsequent clicks use the shorter `multiClickDurationMs` (200ms by default), requiring faster input for triple and quadruple clicks. This pattern matches common operating system behavior.
+
+### State transitions
+
+The click state machine progresses through these states:
+
+| State              | Description                                |
+| ------------------ | ------------------------------------------ |
+| `idle`             | No active click sequence                   |
+| `pendingDouble`    | First click registered, waiting for second |
+| `pendingTriple`    | Second click registered, waiting for third |
+| `pendingQuadruple` | Third click registered, waiting for fourth |
+| `pendingOverflow`  | Fourth click registered, waiting for fifth |
+| `overflow`         | More than four clicks detected             |
+
+When a pointer down event arrives, the state advances to the next pending state and sets a timeout. If the timeout expires before the next click, the manager dispatches a settle event for the current click level and returns to idle. If another pointer down arrives before the timeout, the state advances and a click event is dispatched immediately.
+
+### Distance validation
+
+Consecutive clicks must occur within a maximum distance of 40 pixels (screen space). If pointer down events are farther apart, the click sequence resets to idle.
+
+### Click event phases
+
+Click events are dispatched with a `phase` property indicating when in the sequence the event fired:
+
+| Phase    | When it fires                                                  |
+| -------- | -------------------------------------------------------------- |
+| `down`   | Immediately when a multi-click is detected during pointer down |
+| `up`     | During pointer up for multi-clicks that are still pending      |
+| `settle` | When the timeout expires without further clicks                |
+
+The phase system lets tools and shapes respond at different points in the click sequence. For example, the hand tool waits for the `settle` phase before zooming in—this avoids triggering a zoom if the user is about to triple-click.
+
+### Movement cancellation
+
+If the pointer moves too far during a pending click sequence, the system cancels the sequence and returns to idle. This prevents multi-click detection during click-drag operations. The movement threshold differs for coarse pointers (touchscreens) and fine pointers (mouse, stylus).
+
+## Handling click events
+
+Tools receive click events through handler methods defined in the [TLEventHandlers](?) interface. Here's a complete example of a custom tool that zooms in on double-click:
+
+```tsx
+import { StateNode, TLClickEventInfo, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+class ZoomTool extends StateNode {
+	static override id = 'zoom'
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (info.phase !== 'settle') return
+		this.editor.zoomIn(info.point, { animation: { duration: 200 } })
+	}
+
+	override onTripleClick(info: TLClickEventInfo) {
+		if (info.phase !== 'settle') return
+		this.editor.zoomOut(info.point, { animation: { duration: 200 } })
+	}
+}
+
+const customTools = [ZoomTool]
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				tools={customTools}
+				onMount={(editor) => {
+					editor.setCurrentTool('zoom')
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Tools can handle [StateNode#onDoubleClick](?), [StateNode#onTripleClick](?), and [StateNode#onQuadrupleClick](?) events. Each receives a [TLClickEventInfo](?) object with details about the click.
+
+Shape utilities handle double-clicks through the [ShapeUtil#onDoubleClick](?) method. Return a partial shape object to apply changes:
+
+```tsx
+override onDoubleClick(shape: MyShape) {
+	return {
+		id: shape.id,
+		type: shape.type,
+		props: { expanded: !shape.props.expanded },
+	}
+}
+```
+
+The [TLClickEventInfo](?) type includes these properties:
+
+| Property    | Type                                                    | Description                                            |
+| ----------- | ------------------------------------------------------- | ------------------------------------------------------ |
+| `type`      | `'click'`                                               | Event type identifier                                  |
+| `name`      | `'double_click' \| 'triple_click' \| 'quadruple_click'` | Which multi-click event this is                        |
+| `point`     | `VecLike`                                               | Pointer position in client space                       |
+| `pointerId` | `number`                                                | Unique identifier for the pointer                      |
+| `button`    | `number`                                                | Mouse button (0 = left, 1 = middle, 2 = right)         |
+| `phase`     | `'down' \| 'up' \| 'settle'`                            | When in the click sequence this fired                  |
+| `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'`        | What was clicked                                       |
+| `shape`     | `TLShape \| undefined`                                  | The shape, when target is `'shape'` or `'handle'`      |
+| `handle`    | `TLHandle \| undefined`                                 | The handle, when target is `'handle'`                  |
+| `shiftKey`  | `boolean`                                               | Whether Shift was held                                 |
+| `altKey`    | `boolean`                                               | Whether Alt/Option was held                            |
+| `ctrlKey`   | `boolean`                                               | Whether Control was held                               |
+| `metaKey`   | `boolean`                                               | Whether Meta/Command was held                          |
+| `accelKey`  | `boolean`                                               | Platform accelerator key (Cmd on Mac, Ctrl on Windows) |
+
+## Timing configuration
+
+Click timing is configured through the editor's [options](/docs/options):
+
+| Option                  | Default | Description                                              |
+| ----------------------- | ------- | -------------------------------------------------------- |
+| `doubleClickDurationMs` | 450ms   | Time window for the first click to become a double-click |
+| `multiClickDurationMs`  | 200ms   | Time window for subsequent clicks in the sequence        |
+
+## Related examples
+
+- [Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events) — logs pointer events including click sequences to understand the event flow
+- [Custom double-click behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-double-click-behavior) — overrides the default double-click handler in the SelectTool
+- [Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-shape) — implements `onDoubleClick` and other click handlers in custom shapes

@@ -79,6 +79,8 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			apiTags TEXT,
 			content TEXT NOT NULL,
 			path TEXT,
+			githubLink TEXT,
+			embed TEXT,
 			FOREIGN KEY (authorId) REFERENCES authors(id),
 			FOREIGN KEY (sectionId) REFERENCES sections(id),
 			FOREIGN KEY (categoryId) REFERENCES categories(id)

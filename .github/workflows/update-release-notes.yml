@@ -1,0 +1,87 @@
+name: Update release notes
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: update-release-notes
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  update-release-notes:
+    name: 'Update release notes with Claude Code'
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate GH token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        with:
+          app_id: ${{ secrets.HUPPY_APP_ID }}
+          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Configure git
+        run: |
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+
+      - name: Create branch
+        id: branch
+        run: |
+          BRANCH_NAME="release-notes/update-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run update-release-notes skill
+        run: |
+          claude --skip-permissions --print "/update-release-notes"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git add -A
+          git commit -m "Update release notes"
+          git push -u origin "${{ steps.branch.outputs.branch_name }}"
+
+      - name: Create PR
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          gh pr create \
+            --title "Update release notes" \
+            --body "Automated release notes update using Claude Code." \
+            --base main \
+            --head "${{ steps.branch.outputs.branch_name }}"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      - name: No changes
+        if: steps.changes.outputs.has_changes == 'false'
+        run: echo "No release notes updates needed"

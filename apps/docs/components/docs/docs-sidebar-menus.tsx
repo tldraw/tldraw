@@ -34,15 +34,23 @@ export function DocsSidebarMenus({ menus }: { menus: any }) {
 	}
 
 	return (
-		<div ref={container} onScroll={onScroll} className="relative pr-12 overflow-y-auto grow">
-			<div className="sticky top-0 w-full h-12 -mb-12 pointer-events-none bg-gradient-to-b from-white dark:from-zinc-950" />
+		<div
+			ref={container}
+			onScroll={onScroll}
+			className="relative pr-12 overflow-y-auto grow min-h-0 pb-24"
+		>
 			<div>
 				{menus.map((menu: any, index: number) => (
 					// @ts-ignore
-					<DocsSidebarMenu key={index} title={menu.title} elements={menu.children} />
+					<DocsSidebarMenu
+						key={index}
+						title={menu.title}
+						elements={menu.children}
+						isFirst={index === 0}
+						hideTitle={menus.length === 1}
+					/>
 				))}
 			</div>
-			<div className="sticky bottom-0 w-full h-12 pointer-events-none bg-gradient-to-t from-white dark:from-zinc-950" />
 		</div>
 	)
 }

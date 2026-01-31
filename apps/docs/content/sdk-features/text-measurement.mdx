@@ -1,0 +1,195 @@
+---
+title: Text measurement
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - text
+  - measurement
+  - TextManager
+  - fonts
+  - dimensions
+  - wrapping
+  - FontManager
+  - spans
+status: published
+date: 12/20/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Example links should use relative paths instead of GitHub URLs. measureHtml needs its own example. Performance section is dense - use bullet formatting.
+---
+
+The editor measures text to calculate shape bounds, handle text wrapping, and enable precise hit testing. Two managers handle this: `TextManager` measures text dimensions using a hidden DOM element, and `FontManager` loads custom fonts before measurement so dimensions are accurate.
+
+## How text measurement works
+
+The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, allowing fast repeated measurements without repeated DOM manipulation.
+
+```typescript
+// Simplified for clarity - see TextManager.ts for full implementation
+const elm = document.createElement('div')
+elm.classList.add('tl-text-measure')
+elm.setAttribute('dir', 'auto')
+this.editor.getContainer().appendChild(elm)
+```
+
+The element is hidden from users but remains part of the document flow so the browser's layout engine computes accurate dimensions.
+
+### Measuring text
+
+The `measureText` method calculates text dimensions. Pass in text content and styling options, and it returns a box model with width and height.
+
+```typescript
+const dimensions = editor.textMeasure.measureText('Hello world', {
+	fontFamily: 'Inter',
+	fontSize: 16,
+	fontWeight: 'normal',
+	fontStyle: 'normal',
+	lineHeight: 1.35,
+	maxWidth: null, // No wrapping
+	padding: '4px',
+})
+// Returns: { x: 0, y: 0, w: 85, h: 22, scrollWidth: 0 }
+```
+
+The method applies styles to the measurement element, reads the computed dimensions, then restores the previous styles. This means rapid successive measurements don't interfere with each other.
+
+You can also use `measureHtml` to measure HTML content directly instead of plain text.
+
+### Text wrapping
+
+Set `maxWidth` to a number and the browser wraps text to fit within that width. The `TextManager` uses the browser's native text layout algorithm rather than implementing its own wrapping logic.
+
+```typescript
+const wrapped = editor.textMeasure.measureText('This is a long line of text', {
+	fontFamily: 'Inter',
+	fontSize: 16,
+	fontWeight: 'normal',
+	fontStyle: 'normal',
+	lineHeight: 1.35,
+	maxWidth: 100, // Wrap at 100px
+	padding: '4px',
+})
+// Returns dimensions accounting for multiple lines
+```
+
+Set `maxWidth: null` to preserve explicit line breaks and spaces without wrapping. This is useful for measuring single-line text or when wrapping is handled elsewhere.
+
+## Measuring text spans
+
+For SVG export or precise text selection, `measureTextSpans` breaks text into individual spans based on line breaks and word boundaries.
+
+```typescript
+const spans = editor.textMeasure.measureTextSpans('Hello world\nSecond line', {
+	width: 200,
+	height: 100,
+	padding: 8,
+	fontSize: 16,
+	fontWeight: 'normal',
+	fontFamily: 'Inter',
+	fontStyle: 'normal',
+	lineHeight: 1.35,
+	textAlign: 'start',
+	overflow: 'wrap',
+})
+```
+
+Each span includes the text content and its bounding box:
+
+```typescript
+;[
+	{ text: 'Hello ', box: { x: 0, y: 0, w: 45, h: 22 } },
+	{ text: 'world', box: { x: 45, y: 0, w: 40, h: 22 } },
+	{ text: 'Second ', box: { x: 0, y: 22, w: 52, h: 22 } },
+	{ text: 'line', box: { x: 52, y: 22, w: 32, h: 22 } },
+]
+```
+
+The algorithm creates a `Range` object for each character, measures its position using `getClientRects()`, then groups characters into spans based on line position and word boundaries.
+
+### Truncation handling
+
+The `overflow` option controls how text exceeding the available space is handled:
+
+| Value               | Behavior                                              |
+| ------------------- | ----------------------------------------------------- |
+| `wrap`              | Text wraps to multiple lines (default)                |
+| `truncate-clip`     | Text truncates to the first line, no visual indicator |
+| `truncate-ellipsis` | Text truncates with an ellipsis character             |
+
+When using `truncate-ellipsis`, the algorithm first measures the ellipsis width, then subtracts it from the available width and remeasures to find the cut point.
+
+## Font loading
+
+The `FontManager` loads custom fonts before text measurement. If you measure text before its font loads, you get incorrect dimensions and layout shifts when the font finally becomes available.
+
+### Declaring font requirements
+
+Shapes declare which fonts they need through the `getFontFaces` method on their `ShapeUtil`:
+
+```typescript
+class MyTextShapeUtil extends ShapeUtil<MyTextShape> {
+	getFontFaces(shape: MyTextShape): TLFontFace[] {
+		return [
+			{
+				family: 'MyCustomFont',
+				src: { url: '/fonts/my-custom-font.woff2', format: 'woff2' },
+				weight: 'normal',
+				style: 'normal',
+			},
+		]
+	}
+}
+```
+
+The `FontManager` tracks these font requirements and loads them before the shape renders.
+
+### Loading fonts
+
+Use `ensureFontIsLoaded` to load a specific font, or `requestFonts` to batch multiple font loading requests:
+
+```typescript
+// Load a single font
+await editor.fonts.ensureFontIsLoaded(fontFace)
+
+// Batch load multiple fonts (batched into a single microtask)
+editor.fonts.requestFonts([fontFace1, fontFace2])
+```
+
+The manager caches font loading state to avoid redundant loading. Multiple concurrent requests for the same font share a single loading promise.
+
+### Tracking fonts reactively
+
+For shapes that need reactive font tracking (so they re-render when fonts load), use `trackFontsForShape`:
+
+```typescript
+// In your ShapeUtil's getGeometry or component method
+editor.fonts.trackFontsForShape(shape)
+```
+
+This sets up reactive tracking so the shape re-renders once its fonts are ready.
+
+### Loading fonts for the current page
+
+Use `loadRequiredFontsForCurrentPage` to load all fonts needed by shapes on the current page. This is useful before exporting or taking screenshots:
+
+```typescript
+await editor.fonts.loadRequiredFontsForCurrentPage()
+// All fonts for visible shapes are now loaded
+```
+
+Pass a `limit` parameter to avoid loading too many fonts at once on pages with many different fonts.
+
+## Performance considerations
+
+The `TextManager` doesn't cache measurements itself. Shape utilities typically cache their own results using reactive computed values, so text is only remeasured when font properties or content actually change.
+
+The `FontManager` optimizes font loading in several ways: font faces are computed per-shape and cached (only recalculating when shape props or meta change), multiple requests for the same font share a single loading promise, and `requestFonts` batches requests into a single microtask to reduce overhead.
+
+The measurement element uses specific CSS properties for consistent measurements: `overflow-wrap: break-word` allows long words to break when needed, `width` and `max-width` control wrapping, unitless `line-height` ensures consistent spacing, and `dir="auto"` handles mixed LTR/RTL content.
+
+## Related examples
+
+- **[Rich text with font options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-font-extensions)** - Extend the TipTap text editor with font-family and font-size options.
+- **[Rich text custom extension](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/rich-text-custom-extension)** - Create custom TipTap extensions for rich text shapes.

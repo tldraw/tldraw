@@ -350,7 +350,7 @@ export interface OnDragFromToolbarToCreateShapesOpts {
 }
 
 /**
- * A helper method to use in {@link TLUiToolItem#onDragStart} to create a shape by dragging it from
+ * A helper method to use in {@link tldraw#TLUiToolItem.onDragStart} to create a shape by dragging it from
  * the toolbar.
  * @public
  */

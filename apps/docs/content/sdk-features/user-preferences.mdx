@@ -1,0 +1,154 @@
+---
+title: User preferences
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - user
+  - preferences
+  - settings
+  - UserPreferencesManager
+  - dark mode
+  - locale
+status: published
+date: 12/20/2025
+readability: 8
+voice: 8
+completeness: 8
+accuracy: 9
+notes: Reading preferences snippet only shows 6 of 15 available getters. Some passive constructions. Persistence section could be condensed.
+---
+
+User preferences store per-user settings that persist across sessions and synchronize across browser tabs. Access them through `editor.user`:
+
+```tsx
+import { Tldraw, useEditor } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+function PreferencesPanel() {
+	const editor = useEditor()
+
+	// Read preferences
+	const isDark = editor.user.getIsDarkMode()
+	const animationSpeed = editor.user.getAnimationSpeed()
+	const locale = editor.user.getLocale()
+
+	// Update preferences
+	const toggleDarkMode = () => {
+		editor.user.updateUserPreferences({
+			colorScheme: isDark ? 'light' : 'dark',
+		})
+	}
+
+	return <button onClick={toggleDarkMode}>Toggle theme</button>
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw components={{ TopPanel: PreferencesPanel }} />
+		</div>
+	)
+}
+```
+
+Preferences fall into three categories: visual settings (color scheme, animation speed), interaction settings (snap mode, edge scroll speed), and identity properties (user name, color, locale). The system stores data in localStorage and uses the BroadcastChannel API to sync changes across tabs in real time.
+
+## Reading preferences
+
+The `UserPreferencesManager` exposes each preference as a computed value. These are reactive: when you read them, your component automatically re-renders when the value changes.
+
+```tsx
+// Individual preferences
+const isDark = editor.user.getIsDarkMode()
+const speed = editor.user.getAnimationSpeed()
+const locale = editor.user.getLocale()
+const userName = editor.user.getName()
+const userColor = editor.user.getColor()
+const isSnapMode = editor.user.getIsSnapMode()
+
+// All preferences as an object
+const allPrefs = editor.user.getUserPreferences()
+```
+
+## Updating preferences
+
+Use `updateUserPreferences()` to change one or more preferences at once:
+
+```tsx
+editor.user.updateUserPreferences({
+	colorScheme: 'dark',
+	animationSpeed: 0.5,
+	isSnapMode: true,
+})
+```
+
+Changes apply immediately, save to localStorage, and broadcast to other tabs.
+
+## Available preferences
+
+### Visual preferences
+
+| Preference         | Type                            | Default                        | Description                          |
+| ------------------ | ------------------------------- | ------------------------------ | ------------------------------------ |
+| `colorScheme`      | `'light' \| 'dark' \| 'system'` | `'light'`                      | Theme mode                           |
+| `animationSpeed`   | `number`                        | `1` (or `0` if reduced motion) | Multiplier for animation durations   |
+| `enhancedA11yMode` | `boolean`                       | `false`                        | Additional UI labels and visual aids |
+
+When `colorScheme` is `'system'`, the editor tracks the operating system's dark mode preference through a media query listener.
+
+### Interaction preferences
+
+| Preference                    | Type                            | Default | Description                                     |
+| ----------------------------- | ------------------------------- | ------- | ----------------------------------------------- |
+| `isSnapMode`                  | `boolean`                       | `false` | Snap shapes to other shapes and guides          |
+| `isWrapMode`                  | `boolean`                       | `false` | Enable text wrapping in text shapes             |
+| `isDynamicSizeMode`           | `boolean`                       | `false` | Live shape updates during resize                |
+| `isPasteAtCursorMode`         | `boolean`                       | `false` | Paste at cursor instead of original location    |
+| `edgeScrollSpeed`             | `number`                        | `1`     | Speed multiplier for edge scrolling during drag |
+| `areKeyboardShortcutsEnabled` | `boolean`                       | `true`  | Enable or disable keyboard shortcuts            |
+| `inputMode`                   | `'trackpad' \| 'mouse' \| null` | `null`  | Optimize behavior for input device              |
+
+### Identity properties
+
+| Preference | Type     | Default             | Description                          |
+| ---------- | -------- | ------------------- | ------------------------------------ |
+| `id`       | `string` | Auto-generated      | Unique user identifier               |
+| `name`     | `string` | `''`                | Display name shown to collaborators  |
+| `color`    | `string` | Random from palette | User color for cursor and selections |
+| `locale`   | `string` | Browser locale      | Language code (e.g., `'en'`, `'fr'`) |
+
+The user color is randomly chosen from 12 visually distinct colors designed for collaboration.
+
+## Dark mode
+
+The `getIsDarkMode()` method resolves the color scheme to a boolean. When `colorScheme` is `'system'`, it tracks the operating system's preference through a media query listener:
+
+```tsx
+const isDark = editor.user.getIsDarkMode()
+// true if colorScheme is 'dark', or 'system' with OS in dark mode
+```
+
+You can also use the `inferDarkMode` prop on the Tldraw component to automatically infer the initial theme from the user's system preference:
+
+```tsx
+<Tldraw inferDarkMode />
+```
+
+## Persistence and synchronization
+
+Preferences persist to localStorage under the key `TLDRAW_USER_DATA_v3`. Each save includes a version number, and the system runs migrations when loading older data to keep preferences compatible across tldraw releases.
+
+The system uses the BroadcastChannel API to sync preference changes across browser tabs. When you change a preference in one tab, all other tabs update automatically. Each tab has a unique origin ID to avoid processing its own broadcasts.
+
+## Accessibility defaults
+
+The `animationSpeed` default respects the `prefers-reduced-motion` media query. Users with reduced motion enabled get `animationSpeed: 0` by default, disabling animations without manual configuration.
+
+## Validation
+
+Preferences are validated using `userTypeValidator` from `@tldraw/editor`. Invalid data falls back to fresh preferences rather than causing errors.
+
+## Related examples
+
+- [Toggle dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/dark-mode-toggle) - Toggle between light and dark mode by changing `colorScheme`.
+- [Infer dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/infer-dark-mode) - Automatically infer the initial theme from the user's system preference.

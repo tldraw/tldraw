@@ -2766,7 +2766,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the efficient zoom level. This returns the current zoom level if there are less than 300 shapes on the page,
+	 * Get the efficient zoom level. This returns the current zoom level if there are less than a certain number of shapes on the page,
 	 * otherwise it returns the debounced zoom level. This can be used to avoid expensive re-renders during camera movements.
 	 *
 	 * @public
@@ -9892,7 +9892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Handles navigating to the content specified by the query param in the given URL.
 	 *
-	 * Use {@link Editor#createDeepLink} to create a URL with a deep link query param.
+	 * Use {@link Editor.createDeepLink} to create a URL with a deep link query param.
 	 *
 	 * If no URL is provided, it will look for the param in the current `window.location.href`.
 	 *

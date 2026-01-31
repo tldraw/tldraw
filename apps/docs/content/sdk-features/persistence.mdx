@@ -1,0 +1,422 @@
+---
+title: Persistence
+created_at: 12/29/2025
+updated_at: 12/29/2025
+keywords:
+  - persistence
+  - save
+  - load
+  - snapshot
+  - indexeddb
+  - localstorage
+  - migrations
+  - storage
+status: published
+date: 12/29/2025
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 10
+notes: ''
+---
+
+In tldraw, persistence means storing the editor's state to a database and restoring it later. The SDK provides several approaches: automatic local persistence with a single prop, manual snapshots for custom storage backends, and a migration system for handling schema changes.
+
+## The persistenceKey prop
+
+The simplest way to persist an editor is with the `persistenceKey` prop:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="my-document" />
+		</div>
+	)
+}
+```
+
+With this prop, the editor saves to IndexedDB whenever it changes, loads from IndexedDB on mount, synchronizes across browser tabs with the same key, and stores assets alongside the document.
+
+Each persistence key represents a separate document:
+
+```tsx
+<Tldraw persistenceKey="document-a" />
+<Tldraw persistenceKey="document-b" />
+```
+
+Two editors with the same key share the same document and stay in sync. Each editor still maintains its own session state (camera position, selection, current page).
+
+## Snapshots
+
+For custom storage backends, use snapshots to save and load editor state. A snapshot is a JSON-serializable object containing the full document.
+
+### Getting a snapshot
+
+Call [getSnapshot](?) with the editor's store to get the current state:
+
+```ts
+import { getSnapshot } from 'tldraw'
+
+const { document, session } = getSnapshot(editor.store)
+```
+
+The snapshot has two parts:
+
+| Part       | Contents                                  | When to share                 |
+| ---------- | ----------------------------------------- | ----------------------------- |
+| `document` | Shapes, pages, bindings, assets           | Save to server in multiplayer |
+| `session`  | Camera, current page, selection, UI state | Keep per-user locally         |
+
+For single-user apps, save both together:
+
+```ts
+localStorage.setItem('my-drawing', JSON.stringify({ document, session }))
+```
+
+For multiplayer, save them separately:
+
+```ts
+await saveToServer(documentId, document)
+localStorage.setItem(`session-${documentId}`, JSON.stringify(session))
+```
+
+### Loading a snapshot
+
+Call [loadSnapshot](?) to restore state into an existing editor:
+
+```ts
+import { loadSnapshot } from 'tldraw'
+
+const saved = JSON.parse(localStorage.getItem('my-drawing'))
+loadSnapshot(editor.store, saved)
+```
+
+You can load document and session separately:
+
+```ts
+// Load document from server
+const document = await fetchFromServer(documentId)
+loadSnapshot(editor.store, { document })
+
+// Optionally load session from local storage
+const session = JSON.parse(localStorage.getItem(`session-${documentId}`))
+if (session) {
+	loadSnapshot(editor.store, { session })
+}
+```
+
+### Initial state
+
+Pass a snapshot to the `Tldraw` component to initialize with saved data:
+
+```tsx
+import { useState, useEffect } from 'react'
+import { Tldraw, TLEditorSnapshot } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const [snapshot, setSnapshot] = useState<TLEditorSnapshot | null>(null)
+
+	useEffect(() => {
+		async function load() {
+			const document = await fetchDocument(documentId)
+			const session = getLocalSession(documentId)
+			setSnapshot({ document, session })
+		}
+		load()
+	}, [])
+
+	if (!snapshot) return <div>Loading...</div>
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw snapshot={snapshot} />
+		</div>
+	)
+}
+```
+
+## Custom persistence with store
+
+For more control, create your own store and pass it to the editor. This lets you load data before mounting and implement custom sync logic.
+
+### Creating a store
+
+Use [createTLStore](?) to create a standalone store:
+
+```tsx
+import { useState } from 'react'
+import { createTLStore, loadSnapshot, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const [store] = useState(() => {
+		const store = createTLStore()
+
+		const saved = localStorage.getItem('my-drawing')
+		if (saved) {
+			loadSnapshot(store, JSON.parse(saved))
+		}
+
+		return store
+	})
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} />
+		</div>
+	)
+}
+```
+
+### Async loading with TLStoreWithStatus
+
+When loading data asynchronously, use [TLStoreWithStatus](?) to handle loading and error states:
+
+```tsx
+import { useState, useEffect } from 'react'
+import { createTLStore, loadSnapshot, Tldraw, TLStoreWithStatus } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
+		status: 'loading',
+	})
+
+	useEffect(() => {
+		let cancelled = false
+
+		async function load() {
+			try {
+				const snapshot = await fetchSnapshot()
+				if (cancelled) return
+
+				const store = createTLStore()
+				loadSnapshot(store, snapshot)
+
+				setStoreWithStatus({ status: 'synced-local', store })
+			} catch (error) {
+				if (cancelled) return
+				setStoreWithStatus({ status: 'error', error: error as Error })
+			}
+		}
+
+		load()
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={storeWithStatus} />
+		</div>
+	)
+}
+```
+
+The editor shows appropriate UI for each status. The possible values are:
+
+| Status          | Meaning                                                             |
+| --------------- | ------------------------------------------------------------------- |
+| `loading`       | Store is being loaded                                               |
+| `error`         | Loading failed                                                      |
+| `not-synced`    | Store created without persistence                                   |
+| `synced-local`  | Store loaded from local storage                                     |
+| `synced-remote` | Store synced with remote server (includes `connectionStatus` field) |
+
+## Listening for changes
+
+Subscribe to store changes to implement auto-save or sync:
+
+```ts
+const cleanup = editor.store.listen((entry) => {
+	for (const record of Object.values(entry.changes.added)) {
+		console.log('Added:', record.typeName, record.id)
+	}
+
+	for (const [prev, next] of Object.values(entry.changes.updated)) {
+		console.log('Updated:', next.id)
+	}
+
+	for (const record of Object.values(entry.changes.removed)) {
+		console.log('Removed:', record.id)
+	}
+})
+```
+
+The listener returns a cleanup function you should call when unmounting.
+
+### Filtering changes
+
+Filter by source and scope to listen for specific changes:
+
+```ts
+// Only user changes (not remote sync)
+editor.store.listen(handleChanges, { source: 'user', scope: 'all' })
+
+// Only document records (not session state)
+editor.store.listen(handleChanges, { source: 'all', scope: 'document' })
+```
+
+| Filter   | Values                                           | Purpose                 |
+| -------- | ------------------------------------------------ | ----------------------- |
+| `source` | `'user'`, `'remote'`, `'all'`                    | Where changes came from |
+| `scope`  | `'document'`, `'session'`, `'presence'`, `'all'` | Type of records         |
+
+### Throttled auto-save
+
+Here's a pattern for auto-saving with throttling:
+
+```ts
+import { throttle } from 'lodash'
+import { getSnapshot } from 'tldraw'
+
+const saveToStorage = throttle(() => {
+	const snapshot = getSnapshot(editor.store)
+	localStorage.setItem('my-drawing', JSON.stringify(snapshot))
+}, 500)
+
+const cleanup = editor.store.listen(saveToStorage)
+```
+
+## Remote changes
+
+When synchronizing with a multiplayer backend, use [Store#mergeRemoteChanges](?) to apply updates from other users:
+
+```ts
+myRemoteSource.on('change', (changes) => {
+	editor.store.mergeRemoteChanges(() => {
+		for (const change of changes) {
+			if (change.type === 'add' || change.type === 'update') {
+				editor.store.put([change.record])
+			} else if (change.type === 'remove') {
+				editor.store.remove([change.id])
+			}
+		}
+	})
+})
+```
+
+Changes inside `mergeRemoteChanges` are tagged with `source: 'remote'`. This lets you filter them out when listening, avoiding infinite sync loops:
+
+```ts
+// Only save user changes, not remote changes
+editor.store.listen(saveToServer, { source: 'user', scope: 'document' })
+```
+
+For production multiplayer apps, consider using the [@tldraw/sync](/docs/sync) package instead of building your own sync layer.
+
+## Migrations
+
+Snapshots include schema version information. When you load a snapshot from an older version, the store migrates it automatically. You don't need to do anything for tldraw's built-in types.
+
+### Shape props migrations
+
+If you have custom shapes, define migrations to handle changes to their props over time:
+
+```ts
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence, ShapeUtil } from 'tldraw'
+
+// Version IDs must start at 1 and increment
+const versions = createShapePropsMigrationIds('my-shape', {
+	AddColor: 1,
+	RenameSize: 2,
+})
+
+const migrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: versions.AddColor,
+			up(props) {
+				props.color = 'black'
+			},
+			down(props) {
+				delete props.color
+			},
+		},
+		{
+			id: versions.RenameSize,
+			up(props) {
+				props.dimensions = props.size
+				delete props.size
+			},
+			down(props) {
+				props.size = props.dimensions
+				delete props.dimensions
+			},
+		},
+	],
+})
+
+// Attach migrations to your shape util
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+	static override migrations = migrations
+	// ...
+}
+```
+
+The `down` migrations are used in multiplayer when a peer needs an older schema version.
+
+### General migrations
+
+For migrating other data like `meta` properties, use the general migration API:
+
+```ts
+import { createMigrationIds, createMigrationSequence } from 'tldraw'
+
+const sequenceId = 'com.example.my-app'
+
+const versions = createMigrationIds(sequenceId, {
+	RemoveLegacyField: 1,
+})
+
+const migrations = createMigrationSequence({
+	sequenceId,
+	sequence: [
+		{
+			id: versions.RemoveLegacyField,
+			scope: 'record',
+			filter: (record) => record.typeName === 'page',
+			up(page: any) {
+				delete page.meta.legacyField
+			},
+		},
+	],
+})
+```
+
+Pass migrations to the `Tldraw` component or when creating a store:
+
+```tsx
+<Tldraw migrations={[migrations]} />
+```
+
+```ts
+const store = createTLStore({ migrations: [migrations] })
+```
+
+### Migration scopes
+
+Migrations support different scopes depending on what you need to change:
+
+| Scope    | Use case                                                      |
+| -------- | ------------------------------------------------------------- |
+| `record` | Runs on individual records matching an optional filter        |
+| `store`  | Receives the entire serialized store for cross-record changes |
+
+Most migrations use `record` scope. Use `store` when you need to read or modify multiple records together.
+
+## Examples
+
+- [Persistence key](/examples/data/persistence-key) - Automatic local persistence with a single prop
+- [Snapshots](/examples/data/snapshots) - Saving and loading editor state
+- [Local storage](/examples/data/local-storage) - Custom persistence with throttled auto-save
+- [Store events](/examples/data/store-events) - Listening to store changes
+- [Shape with migrations](/examples/data/shape-with-migrations) - Migrations for custom shape props
+- [Meta migrations](/examples/data/meta-migrations) - General migrations for meta properties

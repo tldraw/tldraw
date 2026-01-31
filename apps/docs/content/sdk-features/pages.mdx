@@ -1,0 +1,167 @@
+---
+title: Pages
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - page
+  - pages
+  - multi-page
+  - navigation
+reviewed_by: steveruizok
+status: published
+date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Add API link syntax for automatic linking. Tighten wording in a few places.
+---
+
+The pages system provides multiple independent sub-documents within a single tldraw document. Each page acts as a separate scene graph root with its own shapes, camera position, and selection state.
+
+When you switch pages, the editor preserves your camera position and selected shapes on the previous page and restores the state you left on the new page. The page system integrates with collaboration, letting users see which pages their collaborators are viewing and follow them across page boundaries.
+
+## How it works
+
+Each page is a record in the store with a unique ID, a name for display, and an index for ordering. Pages belong to the document scope, meaning they persist across sessions and sync in collaborative environments. When you create a page, the editor automatically creates associated records for the camera position and instance page state.
+
+The camera record associated with a page tracks viewport position and zoom for that page only. The editor's current camera is based on the current page: when you navigate to a different page, the editor automatically switches to the camera for that page. This per-page camera state lets each user maintain their own view of each page, independent of other users and other pages.
+
+The instance page state record tracks selection, editing state, focused groups, and other transient UI state unique to both a page and a browser session. This state belongs to the session scope, meaning it doesn't sync in collaborative environments. Each user maintains their own instance page state for each page they visit.
+
+Pages are ordered. As with shapes, the page record's `index` property determines its order among other pages.
+
+## Page methods
+
+### Access
+
+Get the current page or page ID:
+
+```typescript
+const currentPage = editor.getCurrentPage()
+const currentPageId = editor.getCurrentPageId()
+```
+
+Access any page by ID:
+
+```typescript
+import { TLPageId } from 'tldraw'
+
+const page = editor.getPage('page:page1' as TLPageId)
+const allPages = editor.getPages()
+```
+
+### Navigation
+
+Switch to a different page using `setCurrentPage()`:
+
+```typescript
+editor.setCurrentPage('page:page2' as TLPageId)
+```
+
+When switching pages, the editor completes any in-progress interactions and stops following other users. The camera constraints are reapplied to ensure the new page's camera respects its configured bounds.
+
+### Creating and deleting pages
+
+Create new pages with `createPage()`, which ensures unique page names and proper index ordering:
+
+```typescript
+editor.createPage({ name: 'Wireframes' })
+```
+
+The editor enforces a maximum page count through the `maxPages` option (default: 40). Attempts to create pages beyond this limit are ignored. Set `maxPages` to 1 to disable multi-page UI entirely.
+
+Delete pages with `deletePage()`:
+
+```typescript
+editor.deletePage('page:page1' as TLPageId)
+```
+
+When deleting the current page, the editor switches to an adjacent page automatically. The last remaining page cannot be deleted. When a page is deleted, all shapes on that page are removed and the associated camera and instance page state records are cleaned up.
+
+### Duplicating pages
+
+Duplicate an entire page including all its shapes and camera position:
+
+```typescript
+editor.duplicatePage('page:main' as TLPageId)
+```
+
+The duplicated page receives a copy of all shapes from the source page, preserving their positions, properties, and bindings between copied shapes. The camera position is copied from the source page. The new page's name appends " Copy" to the original page name.
+
+### Renaming and updating pages
+
+Rename a page with `renamePage()`:
+
+```typescript
+editor.renamePage('page:page1' as TLPageId, 'New Name')
+```
+
+For more complex updates like changing metadata, use `updatePage()`:
+
+```typescript
+editor.updatePage({ id: 'page:page1' as TLPageId, name: 'Updated Name' })
+```
+
+## Working with shapes across pages
+
+### Page-specific shape queries
+
+Each page maintains its own shape hierarchy. Get shapes on the current page:
+
+```typescript
+const shapes = editor.getCurrentPageShapes()
+const shapeIds = editor.getCurrentPageShapeIds()
+```
+
+Get shapes from any page:
+
+```typescript
+const pageShapeIds = editor.getPageShapeIds('page:page2' as TLPageId)
+```
+
+These queries return only the top-level and nested shapes that belong to the specified page. Shapes are parented to pages through their `parentId` field.
+
+### Moving shapes between pages
+
+Transfer shapes from one page to another using `moveShapesToPage()`:
+
+```typescript
+import { TLShapeId } from 'tldraw'
+
+editor.moveShapesToPage(
+	['shape:rect1' as TLShapeId, 'shape:circle2' as TLShapeId],
+	'page:page2' as TLPageId
+)
+```
+
+The operation copies the shapes to the destination page at the same position and then removes them from the source page. Bindings between moved shapes are preserved, but bindings to shapes not being moved are removed and receive isolation callbacks. The editor enforces per-page shape limits through the `maxShapesPerPage` option.
+
+## Collaboration and pages
+
+In collaborative sessions, each user's current page is tracked through the presence system. The editor provides methods to see which pages collaborators are viewing:
+
+```typescript
+const collaboratorsOnThisPage = editor.getCollaboratorsOnCurrentPage()
+```
+
+When following the viewport of a user who switches pages, your editor switches pages automatically to maintain the follow relationship. See [User following](/docs/user-following) for details on cross-page following behavior.
+
+## Integration with other systems
+
+The pages system interacts with several editor features.
+
+In collaborative sessions, if a collaborator deletes a page you're viewing, the editor automatically moves you to the next available page.
+
+Each page has its own camera record, preserving zoom and position independently. Camera constraints and options apply per-page.
+
+Bindings can only connect shapes on the same page. When shapes move to different pages, their bindings are automatically removed.
+
+Undo and redo operations are document-wide, not page-specific. Undoing a page creation removes the page and all its shapes.
+
+URLs can encode specific page IDs with the deep links API, allowing direct navigation to a particular page when loading a document.
+
+## Related examples
+
+- [Disable pages](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/disable-pages) - Disable page-related UI for single-page use cases by setting the `maxPages` option to 1.
+- [Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links) - Create URLs that navigate to specific pages using the deep links API.

@@ -30,6 +30,4 @@ the emoji when the shape is in the editing state.
 
 Most of the relevant code for this is in the EditableShapeUtil.tsx file. If you want a more
 in-depth explanation of the shape util, check out the custom shape example.
-
-
  */
