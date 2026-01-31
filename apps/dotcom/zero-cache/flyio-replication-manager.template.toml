@@ -1,0 +1,51 @@
+app = "__APP_NAME"
+primary_region = "fra"
+
+[build]
+image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
+
+[http_service]
+internal_port = 4849
+force_https = false
+auto_stop_machines = "off"
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "30s"
+interval = "15s"
+method = "GET"
+timeout = "5s"
+path = "/keepalive"
+
+[[vm]]
+memory = "1gb"
+cpu_kind = "shared"
+cpus = 1
+
+[mounts]
+source = "sqlite_repl"
+destination = "/data"
+
+[[files]]
+guest_path = "/etc/litestream.yml"
+raw_value = """
+dbs:
+  - path: /data/sync-replica.db
+    replicas:
+      - type: s3
+        bucket: __ZERO_R2_BUCKET_NAME
+        path: __BACKUP_PATH
+        endpoint: __ZERO_R2_ENDPOINT
+        region: auto
+        skip-verify: true
+"""
+
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_NUM_SYNC_WORKERS = "0"
+ZERO_CHANGE_MAX_CONNS = "3"
+ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
+ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
+LOG_LEVEL = "debug"
+DO_NOT_TRACK = "1"

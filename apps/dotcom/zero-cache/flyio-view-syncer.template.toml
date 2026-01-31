@@ -1,0 +1,59 @@
+app = "__APP_NAME"
+primary_region = "fra"
+
+[build]
+dockerfile = "Dockerfile"
+
+[http_service]
+internal_port = 4848
+force_https = true
+auto_stop_machines = "off"
+min_machines_running = 2
+
+[[http_service.http_options.replay_cache]]
+path_prefix = "/"
+ttl_seconds = 3600
+type = "cookie"
+name = "fly_machine_id"
+
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+timeout = "5s"
+path = "/"
+
+[[vm]]
+memory = "2gb"
+cpu_kind = "shared"
+cpus = 2
+
+[mounts]
+source = "sqlite_db"
+destination = "/data"
+
+[[files]]
+guest_path = "/etc/litestream.yml"
+raw_value = """
+dbs:
+  - path: /data/sync-replica.db
+    replicas:
+      - type: s3
+        bucket: __ZERO_R2_BUCKET_NAME
+        path: __BACKUP_PATH
+        endpoint: __ZERO_R2_ENDPOINT
+        region: auto
+        skip-verify: true
+"""
+
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_CHANGE_STREAMER_URI = "__REPLICATION_MANAGER_URI"
+ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
+ZERO_QUERY_URL = "__ZERO_QUERY_URL"
+LOG_LEVEL = "debug"
+ZERO_LAZY_STARTUP = "true"
+DO_NOT_TRACK = "1"
+ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
+ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"

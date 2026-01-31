@@ -54,22 +54,25 @@ export default $config({
 		})
 
 		const conn = new sst.Secret('PostgresConnectionString')
-		const zeroAuthSecret = new sst.Secret('ZeroAuthSecret')
-		const zeroPushUrl = new sst.Secret('ZeroPushUrl')
+		const zeroMutateUrl = new sst.Secret('ZeroMutateUrl')
+		const zeroQueryUrl = new sst.Secret('ZeroQueryUrl')
+		const zeroAdminPassword = new sst.Secret('ZeroAdminPassword')
 
 		// Common environment variables
 		const commonEnv = {
 			ZERO_UPSTREAM_DB: conn.value,
 			ZERO_CVR_DB: conn.value,
 			ZERO_CHANGE_DB: conn.value,
-			ZERO_AUTH_JWKS_URL: zeroAuthSecret.value,
 			ZERO_REPLICA_FILE: 'sync-replica.db',
 			ZERO_LITESTREAM_BACKUP_URL: $interpolate`s3://${replicationBucket.name}/backup`,
 			ZERO_IMAGE_URL: `rocicorp/zero:${zeroVersion}`,
 			ZERO_CVR_MAX_CONNS: '10',
 			ZERO_UPSTREAM_MAX_CONNS: '10',
 			ZERO_APP_PUBLICATIONS: 'zero_data',
-			ZERO_PUSH_URL: zeroPushUrl.value,
+			ZERO_MUTATE_URL: zeroMutateUrl.value,
+			ZERO_QUERY_URL: zeroQueryUrl.value,
+			ZERO_ADMIN_PASSWORD: zeroAdminPassword.value,
+			DO_NOT_TRACK: '1',
 		}
 
 		// Replication Manager Service
@@ -162,26 +165,5 @@ export default $config({
 				},
 			},
 		})
-
-		// Permissions deployment
-		// Note: this setup requires your CI/CD pipeline to have access to your
-		// Postgres database. If you do not want to do this, you can also use
-		// `npx zero-deploy-permissions --output-format=sql` during build to
-		// generate a permissions.sql file, then run that file as part of your
-		// deployment within your VPC. See hello-zero-solid for an example:
-		// https://github.com/rocicorp/hello-zero-solid/blob/main/sst.config.ts#L141
-		new command.local.Command(
-			'zero-deploy-permissions',
-			{
-				create: `npx zero-deploy-permissions -p ../../apps/dotcom/zero-cache/.schema.js`,
-				// Run the Command on every deploy ...
-				triggers: [Date.now()],
-				environment: {
-					ZERO_UPSTREAM_DB: commonEnv.ZERO_UPSTREAM_DB,
-				},
-			},
-			// after the view-syncer is deployed.
-			{ dependsOn: viewSyncer }
-		)
 	},
 })
