@@ -88,7 +88,7 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
  * }
  * ```
  *
- * @param options - Options for the multiplayer demo sync store. See {@link UseSyncDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ * @param options - Options for the multiplayer demo sync store. See {@link UseSyncDemoOptions} and {@link @tldraw/editor#TLStoreSchemaOptions}.
  *
  * @public
  */

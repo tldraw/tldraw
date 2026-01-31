@@ -1,0 +1,199 @@
+---
+title: Snapping
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - snap
+  - alignment
+  - guides
+  - SnapManager
+  - precision
+status: published
+date: 12/20/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+When you move or resize shapes, tldraw snaps them to key geometry on nearby shapes. This helps users achieve precise alignment without manual measurement.
+
+The editor provides three types of snapping. Bounds snapping aligns edges, centers, and corners during movement and resizing. Handle snapping connects endpoints to outlines and key points, like arrow tips to shape edges. Gap snapping maintains consistent spacing between shapes.
+
+Snap lines appear when shapes come within the snap threshold, giving real-time visual feedback.
+
+## SnapManager
+
+The [SnapManager](?) coordinates all snapping behavior. Access it at `editor.snaps`:
+
+```typescript
+// The two snap systems
+editor.snaps.shapeBounds // BoundsSnaps - edge and center alignment
+editor.snaps.handles // HandleSnaps - precise point connections
+
+// Shared utilities
+editor.snaps.getSnapThreshold() // Distance threshold (8px / zoom)
+editor.snaps.getSnappableShapes() // Which shapes can be snapped to
+editor.snaps.setIndicators(indicators) // Update visual snap lines
+editor.snaps.clearIndicators() // Remove all snap indicators
+```
+
+The snap threshold is 8 screen pixels, scaled by the current zoom level. At 100% zoom, shapes snap when within 8 pixels. At 200% zoom, the threshold becomes 4 canvas units (still 8 screen pixels).
+
+### Snappable shape filtering
+
+The `getSnappableShapes()` method determines which shapes can be snapped to. It excludes currently selected shapes (you don't snap to what you're dragging), includes only shapes visible in the viewport for performance, and respects the shape utility's `canSnap()` method for opt-out behavior. Frame shapes are included as snap targets. For groups, the method recurses into children and snaps to them, but not to the group itself.
+
+The method returns a computed set that updates reactively as shapes move, selection changes, or the viewport pans.
+
+## Bounds snapping
+
+Bounds snapping aligns bounding box edges and centers. When you move or resize shapes, the [BoundsSnaps](?) system compares snap points on the selection against snap points on nearby shapes.
+
+### Snap points
+
+Each shape defines snap points through [ShapeUtil#getBoundsSnapGeometry](?). By default, shapes snap to their bounding box corners and center. Override this to provide custom snap points:
+
+```typescript
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	getBoundsSnapGeometry(shape: MyShape): BoundsSnapGeometry {
+		return {
+			points: [
+				{ x: 0, y: 0 },
+				{ x: shape.props.w, y: 0 },
+				{ x: shape.props.w / 2, y: shape.props.h / 2 },
+			],
+		}
+	}
+}
+```
+
+To disable snapping to a shape entirely, return `{ points: [] }`.
+
+### Translation snapping
+
+When moving shapes, `snapTranslateShapes()` finds the nearest snap alignment in each axis:
+
+```typescript
+const snapData = editor.snaps.shapeBounds.snapTranslateShapes({
+	lockedAxis: null, // or 'x' | 'y' to constrain to one axis
+	initialSelectionPageBounds: selectionBounds,
+	initialSelectionSnapPoints: selectionSnapPoints,
+	dragDelta: delta,
+})
+
+// Apply the nudge to achieve snapping
+const snappedDelta = Vec.Add(delta, snapData.nudge)
+```
+
+The returned `nudge` vector indicates how much to adjust the drag delta to achieve alignment. When multiple shapes align at the same distance, the system displays all of them.
+
+### Resize snapping
+
+When resizing, `snapResizeShapes()` snaps the corners and edges being moved. Which snap points are used depends on the resize handle:
+
+- Corner handles snap both x and y axes using that corner
+- Edge handles snap only the perpendicular axis using both corners on that edge
+- When aspect ratio is locked, the dominant snap axis determines both
+
+```typescript
+const snapData = editor.snaps.shapeBounds.snapResizeShapes({
+	initialSelectionPageBounds: selectionBounds,
+	dragDelta: delta,
+	handle: 'bottom_right',
+	isAspectRatioLocked: false,
+	isResizingFromCenter: false,
+})
+```
+
+### Gap snapping
+
+Gap snapping maintains consistent spacing between shapes. The system detects gaps between adjacent shapes and provides three types of snapping.
+
+Gap center snapping centers the selection within a gap larger than itself, creating equal spacing on both sides. Gap duplication snapping duplicates an existing gap on the opposite side of a shape. For example, if two shapes have a 100px gap between them, dragging a third shape snaps to create another 100px gap. Adjacent gap detection finds all gaps with matching lengths and displays them together, helping maintain consistent spacing across many shapes.
+
+Gaps are calculated separately for horizontal and vertical directions. A gap exists when two shapes don't overlap in one axis but have overlapping ranges in the perpendicular axis.
+
+## Handle snapping
+
+Handle snapping enables precise connections between shapes. When dragging a handle (like an arrow endpoint), the [HandleSnaps](?) system snaps to nearby geometry.
+
+### Handle snap geometry
+
+Shapes define what handles can snap to through [ShapeUtil#getHandleSnapGeometry](?). The method returns an object with these properties:
+
+| Property               | Description                                                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `outline`              | A `Geometry2d` describing the shape's outline. Defaults to the shape's geometry. Set to `null` to disable outline snapping. |
+| `points`               | Key points on the shape to snap to. These have higher priority than outlines.                                               |
+| `getSelfSnapOutline()` | Returns a stable outline for snapping to the shape's own geometry.                                                          |
+| `getSelfSnapPoints()`  | Returns stable points for self-snapping.                                                                                    |
+
+```typescript
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	getHandleSnapGeometry(shape: MyShape): HandleSnapGeometry {
+		return {
+			outline: this.getGeometry(shape),
+			points: [
+				{ x: 0, y: 0 },
+				{ x: shape.props.w, y: shape.props.h },
+			],
+		}
+	}
+}
+```
+
+By default, handles cannot snap to their own shape. Moving the handle would change the snap target, creating feedback loops. The `getSelfSnapOutline()` and `getSelfSnapPoints()` methods enable opt-in self-snapping when the snap geometry remains stable regardless of handle position.
+
+### Snap types
+
+Handles support two snap types controlled by the `snapType` property on [TLHandle](?).
+
+Point snapping (`snapType: 'point'`) snaps to the single nearest location. The system checks snap points first, then falls back to the nearest point on any outline. This magnetizes to a single best target.
+
+Align snapping (`snapType: 'align'`) snaps to align with nearby points on both x and y axes independently, showing perpendicular snap lines in each direction.
+
+Each handle uses one snap type based on its `snapType` property. Snap points always have higher priority than outlines.
+
+> **Note:** The older `canSnap` property on handles is deprecated. Use `snapType: 'point'` or `snapType: 'align'` instead.
+
+### Snapping handles
+
+Tools call `snapHandle()` to snap a handle position:
+
+```typescript
+// Get the handle from the shape (TLHandle type)
+const handle = editor.getShapeHandles(shape)?.find((h) => h.id === handleId)
+
+if (handle) {
+	const snapData = editor.snaps.handles.snapHandle({
+		currentShapeId: shape.id,
+		handle, // TLHandle with x, y, snapType, etc.
+	})
+
+	if (snapData) {
+		// Apply nudge to achieve snapping
+		const snappedPosition = Vec.Add(handle, snapData.nudge)
+	}
+}
+```
+
+The method returns `null` if no snap is found within the threshold, or a `SnapData` object with the `nudge` vector to achieve snapping. Snap indicators are automatically set on the manager for visual feedback.
+
+## Snap indicators
+
+Snap indicators provide visual feedback when snapping occurs. The `SnapManager` maintains a reactive atom of current indicators that the UI renders as SVG overlays.
+
+Two types of indicators exist. Points indicators (`type: 'points'`) display as lines connecting aligned points. When multiple snap points align on the same axis, they appear as a single continuous line spanning all aligned points. Gaps indicators (`type: 'gaps'`) display spacing between shapes with measurement lines at each gap. When multiple equal-sized gaps exist, all matching gaps are shown to highlight the consistent spacing pattern.
+
+The manager automatically deduplicates gap indicators to reduce visual noise. When gap breadths overlap and one is larger than another, only the smaller gap displays because it provides more specific information.
+
+Indicators are cleared automatically when dragging stops or when you call `clearIndicators()`.
+
+## Related examples
+
+For working examples of custom snapping, see:
+
+- [Custom bounds snapping](/examples/bounds-snapping-shape): Create shapes with custom snap geometry so they snap to specific points, like playing cards that stack with visible icons.
+- [Custom relative snapping](/examples/custom-relative-snapping): Customize snapping behavior between shapes using getBoundsSnapGeometry.

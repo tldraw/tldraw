@@ -1,0 +1,131 @@
+---
+title: Side effects
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - side effects
+  - store
+  - hooks
+  - validation
+  - cleanup
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+Side effects are lifecycle hooks that run when records are created, updated, or deleted. You can use them to intercept and modify records, validate changes, or react to completed operations by updating related data.
+
+The editor uses side effects internally to keep data consistent. When you delete a shape, the editor automatically removes its bindings. When a binding changes, the connected shapes get notified to update. These hooks let independent parts of the system stay in sync without being directly coupled.
+
+## How it works
+
+### Before and after handlers
+
+Side effects provide six handler types organized around three operations: create, change, and delete. Each operation has a "before" and "after" phase.
+
+**Before handlers** run during the operation and can modify or block changes:
+
+- `beforeCreate` transforms records before creation. Return a modified record to change what gets stored.
+- `beforeChange` intercepts updates. Return the previous record to block the change, or return a modified record.
+- `beforeDelete` can return `false` to prevent deletion.
+
+**After handlers** run once the operation completes. They can't modify the record that triggered them, but they can update other records:
+
+- `afterCreate` reacts to new records by updating related data.
+- `afterChange` responds to updates by maintaining relationships.
+- `afterDelete` cleans up orphaned references or cascades deletions.
+
+The key distinction: use before handlers to modify the record being operated on, and after handlers to update other records in response.
+
+### Source tracking
+
+Every handler receives a `source` parameter indicating whether the change came from user interaction (`'user'`) or remote synchronization (`'remote'`). This lets you handle local and synced changes differently:
+
+```typescript
+editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
+	if (source === 'user') {
+		logUserAction('created shape', shape.type)
+	}
+})
+```
+
+You might auto-save only after user operations, or skip validation for trusted remote data.
+
+### Registration and cleanup
+
+Register side effects using the type-specific methods on `editor.sideEffects`. Each method returns a cleanup function you can call to remove the handler:
+
+```typescript
+const cleanup = editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {
+	// Clean up bindings involving the deleted shape
+	const bindings = editor.getBindingsInvolvingShape(shape.id)
+	if (bindings.length) {
+		editor.deleteBindings(bindings)
+	}
+})
+
+// Later, when no longer needed
+cleanup()
+```
+
+### Execution order
+
+Handlers execute in registration order. If you register three `afterCreate` handlers for shapes, they run in the sequence they were registered. This matters when handlers depend on each other's effects.
+
+Side effects run within store transactions. All before handlers complete before any after handlers run. The `operationComplete` handler runs last, after all individual record handlers finish.
+
+## Use cases
+
+### Constraining shape positions
+
+Before handlers can enforce constraints on records. This example keeps shapes within a certain area by returning a modified record:
+
+```typescript
+editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {
+	if (next.x < 0 || next.y < 0) {
+		return prev // Block the change by returning the previous record
+	}
+	return next
+})
+```
+
+### Cascading deletions
+
+You can delete related shapes when a parent is removed. This example deletes empty frames:
+
+```typescript
+editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {
+	const parent = editor.getShape(shape.parentId)
+	if (parent && parent.type === 'frame') {
+		const siblings = editor.getSortedChildIdsForParent(parent.id)
+		if (siblings.length === 0) {
+			editor.deleteShape(parent.id)
+		}
+	}
+})
+```
+
+### Batch processing with operationComplete
+
+The `operationComplete` handler runs once after all changes in a transaction finish. Use it for expensive operations that should happen once per batch rather than on every record change:
+
+```typescript
+editor.sideEffects.registerOperationCompleteHandler((source) => {
+	if (source === 'user') {
+		scheduleAutosave()
+	}
+})
+```
+
+## Related examples
+
+- [Before create/update shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/before-create-update-shape) - Constrain shapes to a circular area
+- [Before delete shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/before-delete-shape) - Prevent deletion of certain shapes
+- [After create/update shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/after-create-update-shape) - Ensure only one red shape exists at a time
+- [After delete shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/after-delete-shape) - Delete empty frames automatically
+- [Shape meta (on create)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/meta-on-create) - Add creation timestamps to shapes
+- [Shape meta (on change)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/meta-on-change) - Track modification history

@@ -12,7 +12,7 @@ import Link from 'next/link'
 
 const links = [
 	{
-		caption: 'Quick Start',
+		caption: 'Quick start',
 		icon: RocketLaunchIcon,
 		href: '/quick-start',
 	},

@@ -1,0 +1,474 @@
+---
+title: Editor
+created_at: 12/29/2025
+updated_at: 12/29/2025
+keywords:
+  - editor
+  - api
+  - architecture
+  - state
+  - manager
+status: published
+date: 12/29/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The [Editor](?) class is the main way of controlling tldraw's editor. It provides methods for creating, reading, updating, and deleting shapes; managing selection and history; controlling the camera; and responding to user input. By design, the editor's surface area is very large—almost everything is available through it.
+
+Need to create some shapes? Use [Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?). Want a sorted array of every shape on the current page? Use [Editor#getCurrentPageShapesSorted](?). The editor is your primary interface for interacting with the canvas.
+
+## Accessing the editor
+
+You can access the editor in two ways:
+
+1. From the [Tldraw](?) component's `onMount` callback:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Your editor code here
+					editor.createShape({ type: 'geo', x: 100, y: 100 })
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+2. Via the [useEditor](?) hook, which must be called from within the [Tldraw](?) component tree:
+
+```tsx
+function InsideOfContext() {
+	const editor = useEditor()
+	// Your editor code here
+	return null
+}
+
+function App() {
+	return (
+		<Tldraw>
+			<InsideOfContext />
+		</Tldraw>
+	)
+}
+```
+
+## Architecture overview
+
+The editor orchestrates several interconnected systems. Understanding how they fit together helps when building on top of tldraw.
+
+### Store
+
+The editor holds document data in its [Editor#store](?) property. The store is a reactive database containing records for shapes, pages, bindings, assets, and editor state. All records are JSON-serializable.
+
+```ts
+// Access a shape record directly from the store
+const shape = editor.store.get(shapeId)
+
+// Listen to store changes
+editor.store.listen((entry) => {
+	console.log('Changed:', entry.changes)
+})
+```
+
+The store is reactive: when data changes, the UI updates automatically. The editor wraps the store with higher-level methods like `createShapes()` and `deleteShapes()`, so you rarely need to interact with it directly.
+
+See [Store](/sdk-features/store) for details on working with the store directly.
+
+### Signals
+
+Tldraw uses a signals-based reactive system. The editor exposes many of its internal values as signals—methods like `editor.getSelectedShapeIds()` and `editor.getCurrentPageShapes()` return reactive values that update automatically when the underlying state changes.
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+const SelectedCount = track(function SelectedCount() {
+	const editor = useEditor()
+	return <div>{editor.getSelectedShapeIds().length} shapes selected</div>
+})
+```
+
+The `track` higher-order component automatically subscribes to signals accessed during render. When those signals change, the component re-renders.
+
+See [Signals](/sdk-features/signals) for the full reactive API.
+
+### State chart
+
+The editor uses a hierarchical state machine for handling user interactions. Tools like the select tool, draw tool, and hand tool are implemented as [StateNode](?) instances. Each node can have child states, and the active state determines how the editor responds to events.
+
+```ts
+// Change the current tool
+editor.setCurrentTool('draw')
+editor.setCurrentTool('hand')
+
+// Check the current tool
+editor.getCurrentToolId() // 'select', 'draw', 'hand', etc.
+
+// Check the full state path
+editor.root.getPath() // 'root.select.idle', 'root.draw.drawing', etc.
+
+// Check if a state is active
+editor.isIn('select') // true if select tool is active
+editor.isIn('select.idle') // true if in idle state of select tool
+
+// Check if any of several states are active
+editor.isInAny('select.idle', 'hand.idle') // true if in either state
+```
+
+#### State transitions
+
+Tools transition between child states as the user interacts. For example, the select tool has states like `idle`, `pointing`, `brushing`, and `translating`. When you click and drag on the canvas, the state might flow like this:
+
+1. `select.idle` — waiting for input
+2. `select.pointing` — pointer down, waiting to see if this is a click or drag
+3. `select.brushing` — dragging to create a selection box
+4. `select.idle` — pointer up, back to waiting
+
+Each state handles events differently. The `idle` state responds to `pointer_down` by transitioning to `pointing`. The `brushing` state responds to `pointer_move` by updating the brush bounds and `pointer_up` by completing the selection.
+
+#### Event flow
+
+Events flow from the root state down through active children. When you press a key or move the pointer, the editor dispatches an event that each active state can handle:
+
+```ts
+// Events bubble through: root → select → idle
+// Each state can:
+// - Handle the event and stop propagation
+// - Handle the event and let it continue
+// - Ignore the event entirely
+```
+
+States define handlers for events like `onPointerDown`, `onPointerMove`, `onKeyDown`, and `onEnter`/`onExit` for state transitions. The active state chain determines which handlers run.
+
+See [Tools](/sdk-features/tools) for building custom tools.
+
+### Managers
+
+The editor delegates specialized functionality to manager classes:
+
+| Manager                     | Responsibility                                |
+| --------------------------- | --------------------------------------------- |
+| [HistoryManager](?)         | Undo/redo stack and history marks             |
+| [SnapManager](?)            | Shape snapping during transforms              |
+| FocusManager                | Focus state and keyboard event handling       |
+| [TextManager](?)            | Text measurement and layout                   |
+| [FontManager](?)            | Font loading and management                   |
+| TickManager                 | Animation frame scheduling                    |
+| [InputsManager](?)          | Pointer position and modifier key tracking    |
+| [ClickManager](?)           | Click, double-click, and long-press detection |
+| [ScribbleManager](?)        | Brush and scribble interactions               |
+| [EdgeScrollManager](?)      | Auto-scroll at viewport edges                 |
+| [UserPreferencesManager](?) | User settings persistence                     |
+
+Access managers through the editor instance:
+
+```ts
+// Mark history for undo
+editor.markHistoryStoppingPoint('my-action')
+
+// Check snap points
+editor.snaps.getIndicators()
+```
+
+## Working with shapes
+
+Shapes are the content on your canvas. Each shape has a type, position, rotation, and type-specific props.
+
+### Creating shapes
+
+```ts
+// Create a shape with auto-generated ID
+editor.createShape({
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: {
+		geo: 'rectangle',
+		w: 200,
+		h: 150,
+		color: 'blue',
+	},
+})
+
+// Create with a specific ID
+import { createShapeId } from 'tldraw'
+
+const id = createShapeId('my-shape')
+editor.createShape({
+	id,
+	type: 'geo',
+	x: 100,
+	y: 100,
+})
+```
+
+### Reading shapes
+
+```ts
+// Get a shape by ID
+const shape = editor.getShape(shapeId)
+
+// Get all shapes on the current page
+const shapes = editor.getCurrentPageShapes()
+
+// Get selected shapes
+const selected = editor.getSelectedShapes()
+```
+
+### Updating shapes
+
+```ts
+editor.updateShape({
+	id: shape.id,
+	type: shape.type, // Required
+	x: 200,
+	props: {
+		color: 'red',
+	},
+})
+```
+
+### Deleting shapes
+
+```ts
+// Delete by ID
+editor.deleteShapes([shapeId])
+
+// Delete by shape record
+editor.deleteShapes([shape])
+```
+
+See [Shapes](/sdk-features/shapes) for the complete shape system.
+
+## Selection
+
+The editor tracks which shapes are selected. Selection drives many operations—transform handles, copy/paste, delete, and more.
+
+```ts
+// Select shapes
+editor.select(shapeId)
+editor.select(shapeId1, shapeId2)
+
+// Add to selection
+editor.setSelectedShapes([...editor.getSelectedShapeIds(), newId])
+
+// Clear selection
+editor.selectNone()
+
+// Select all on current page
+editor.selectAll()
+
+// Get selection
+editor.getSelectedShapeIds()
+editor.getSelectedShapes()
+```
+
+See [Selection](/sdk-features/selection) for selection details.
+
+## History
+
+The editor maintains an undo/redo stack through its history manager. Changes to the store accumulate until you create a mark, which becomes an undo stopping point.
+
+```ts
+// Mark before an operation
+editor.markHistoryStoppingPoint('rotate shapes')
+editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
+
+// Undo returns to the mark
+editor.undo()
+
+// Redo reapplies changes
+editor.redo()
+```
+
+See [History](/sdk-features/history) for the full history API.
+
+## Transactions
+
+Use [Editor#run](?) to batch changes into a single transaction. This improves performance and reduces intermediate renders.
+
+```ts
+editor.run(() => {
+	editor.createShapes(shapes)
+	editor.sendToBack(shapes)
+	editor.selectNone()
+})
+```
+
+The `run` method also accepts options for controlling history:
+
+```ts
+// Ignore changes (don't add to undo stack)
+editor.run(
+	() => {
+		editor.updateShape({ id, type: 'geo', x: 100 })
+	},
+	{ history: 'ignore' }
+)
+
+// Allow editing locked shapes
+editor.run(
+	() => {
+		editor.updateShapes(lockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
+```
+
+See [History](/sdk-features/history) for more on how transactions interact with undo/redo.
+
+## Camera and viewport
+
+The editor manages a camera that determines which part of the infinite canvas is visible. The camera has x, y, and z (zoom) coordinates.
+
+```ts
+// Move camera to specific coordinates
+editor.setCamera({ x: 0, y: 0, z: 1 })
+
+// Zoom controls
+editor.zoomIn()
+editor.zoomOut()
+editor.resetZoom()
+
+// Fit content in view
+editor.zoomToFit()
+editor.zoomToSelection()
+
+// Center on a point
+editor.centerOnPoint({ x: 500, y: 500 })
+
+// Lock the camera
+editor.setCameraOptions({ isLocked: true })
+```
+
+The viewport is the visible area of the canvas. Get its bounds in screen or page coordinates:
+
+```ts
+// Screen coordinates (component size)
+editor.getViewportScreenBounds()
+
+// Page coordinates (what's visible on the canvas)
+editor.getViewportPageBounds()
+```
+
+See [Camera](/sdk-features/camera) and [Coordinates](/sdk-features/coordinates) for the full camera API.
+
+## Input state
+
+The [Editor#inputs](?) object tracks the user's current input state: cursor position, pressed keys, drag state, and more. All values on the inputs object are reactive signals—when you access them inside a tracked component or computed, your code automatically re-runs when those values change.
+
+```ts
+// Cursor position in page coordinates (reactive)
+editor.inputs.getCurrentPagePoint()
+
+// Cursor position in screen coordinates (reactive)
+editor.inputs.getCurrentScreenPoint()
+
+// Where the current drag started (reactive)
+editor.inputs.getOriginPagePoint()
+
+// Interaction state (reactive)
+editor.inputs.getIsDragging()
+editor.inputs.getIsPointing()
+editor.inputs.getIsPinching()
+
+// Modifier keys (reactive)
+editor.inputs.getShiftKey()
+editor.inputs.getCtrlKey()
+editor.inputs.getAltKey()
+```
+
+See [Input handling](/sdk-features/input-handling) for input details.
+
+## Instance state
+
+The editor maintains per-instance state in a [TLInstance](?) record. This includes which page is current, whether the editor is in readonly mode, the current tool, tool lock state, and UI state.
+
+```ts
+// Get instance state
+const instance = editor.getInstanceState()
+
+// Update instance state
+editor.updateInstanceState({ isReadonly: true })
+
+// Enable tool lock (keeps current tool active after creating shapes)
+editor.updateInstanceState({ isToolLocked: true })
+```
+
+See [Tools](/sdk-features/tools#tool-lock) for more on tool lock.
+
+Each page also has instance state ([TLInstancePageState](?)) tracking selection, hovered shape, and editing shape for that page:
+
+```ts
+// Get current page state
+const pageState = editor.getCurrentPageState()
+```
+
+## User preferences
+
+User preferences are shared across all editor instances. They control things like color scheme and locale.
+
+```ts
+// Turn on dark mode
+editor.user.updateUserPreferences({ colorScheme: 'dark' })
+
+// Use system color scheme
+editor.user.updateUserPreferences({ colorScheme: 'system' })
+
+// Get current preferences
+editor.user.getUserPreferences()
+```
+
+See [User preferences](/sdk-features/user-preferences) for all preference options.
+
+## Side effects
+
+Register callbacks to respond to record lifecycle events. Side effects let you maintain relationships, enforce constraints, or sync external state.
+
+```ts
+// After a shape is created
+editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
+	if (shape.type === 'arrow') {
+		console.log('Arrow created:', shape.id)
+	}
+})
+
+// Before a shape is deleted
+editor.sideEffects.registerBeforeDeleteHandler('shape', (shape) => {
+	// Return false to prevent deletion
+})
+```
+
+See [Side effects](/sdk-features/side-effects) for the complete API.
+
+## Events
+
+The editor receives events through [Editor#dispatch](?). You typically don't call this directly—the canvas handles DOM events and dispatches them for you. But you can listen for events on the editor:
+
+```ts
+editor.on('event', (info) => {
+	if (info.name === 'pointer_down') {
+		console.log('Pointer down at', info.point)
+	}
+})
+```
+
+See [Events](/sdk-features/events) for event types.
+
+## Related examples
+
+- **[Controlling the canvas](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/api)** — Create and manipulate shapes, selection, and camera through the editor API.
+- **[Minimal editor](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/only-editor)** — Use `TldrawEditor` for a bare-bones editor without default shapes or UI.
+- **[Sublibraries](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/exploded)** — Compose tldraw from individual sublibraries for full customization.
+- **[Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/canvas-events)** — Listen to editor events including pointer, keyboard, and shape changes.
+- **[Editor focus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-focus)** — Control editor focus state.

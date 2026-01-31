@@ -1,0 +1,519 @@
+---
+title: Geometry
+created_at: 12/26/2025
+updated_at: 12/29/2025
+keywords:
+  - geometry
+  - hit testing
+  - bounds
+  - collision
+  - Geometry2d
+  - shapes
+status: published
+date: 12/26/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 9
+notes: Point2d margin parameter documentation could clarify its actual usage in hitTestLineSegment.
+---
+
+Geometry in tldraw is a mathematical description of a shape's form. Each shape has a [Geometry2d](?) that defines its outline, bounds, and spatial properties. When you click to select a shape, the geometry determines whether the click hit. When you brush a selection box, the geometry calculates intersections. When you snap an arrow to a shape's edge, the geometry provides the nearest point. For the broader shape system, see [Shapes](/docs/shapes).
+
+## How geometry works
+
+Each [ShapeUtil](?) implements a [ShapeUtil#getGeometry](?) method that returns a [Geometry2d](?) instance. The editor calls this method to calculate bounds, test hits, find intersections, and measure distances.
+
+```typescript
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	getGeometry(shape: MyShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: true,
+		})
+	}
+}
+```
+
+The `isFilled` property controls hit testing behavior. A filled geometry registers hits inside its area. An unfilled geometry only responds to hits on its outline—useful for shapes like frames where you want to click through the middle.
+
+Geometry also powers [snapping](/docs/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [ShapeUtil#getBoundsSnapGeometry](?).
+
+## Geometry primitives
+
+The SDK includes geometry classes for common shapes.
+
+### Rectangle2d
+
+Axis-aligned rectangles. The most common geometry for box-shaped elements.
+
+```typescript
+new Rectangle2d({
+	width: 200,
+	height: 100,
+	isFilled: true,
+})
+```
+
+You can offset the rectangle from the origin:
+
+```typescript
+new Rectangle2d({
+	x: 10,
+	y: 10,
+	width: 200,
+	height: 100,
+	isFilled: true,
+})
+```
+
+### Ellipse2d
+
+Circles and ellipses.
+
+```typescript
+new Ellipse2d({
+	width: 100,
+	height: 100, // circle
+	isFilled: true,
+})
+
+new Ellipse2d({
+	width: 200,
+	height: 100, // ellipse
+	isFilled: true,
+})
+```
+
+### Circle2d
+
+A specialized circle geometry that stores radius directly. The `x` and `y` parameters offset the circle's bounding box, not its center.
+
+```typescript
+new Circle2d({
+	radius: 50,
+	isFilled: true,
+})
+
+// Offset from origin
+new Circle2d({
+	x: 10,
+	y: 10,
+	radius: 50,
+	isFilled: true,
+})
+```
+
+### Polygon2d
+
+Arbitrary closed polygons defined by vertices.
+
+```typescript
+new Polygon2d({
+	points: [new Vec(0, 50), new Vec(100, 0), new Vec(100, 100), new Vec(0, 100)],
+	isFilled: true,
+})
+```
+
+Polygon2d requires at least three points and automatically closes the path.
+
+### Polyline2d
+
+Open paths defined by vertices. Use this for lines that don't form closed shapes. Requires at least two points.
+
+```typescript
+new Polyline2d({
+	points: [new Vec(0, 0), new Vec(50, 100), new Vec(100, 0)],
+})
+```
+
+Polylines are never filled since they don't enclose an area. Polygon2d extends Polyline2d but sets `isClosed` to true.
+
+### Edge2d
+
+A single line segment between two points.
+
+```typescript
+new Edge2d({
+	start: new Vec(0, 0),
+	end: new Vec(100, 100),
+})
+```
+
+Arrows use Edge2d for straight arrow bodies.
+
+### Arc2d
+
+A circular arc defined by center, start, end, and arc flags. All parameters are required.
+
+```typescript
+new Arc2d({
+	center: new Vec(50, 50),
+	start: new Vec(0, 50),
+	end: new Vec(100, 50),
+	sweepFlag: 1,
+	largeArcFlag: 0,
+})
+```
+
+The `sweepFlag` and `largeArcFlag` follow SVG arc conventions: `sweepFlag` controls clockwise vs counterclockwise direction, and `largeArcFlag` chooses between the two possible arcs. Arrows use Arc2d for curved arrow bodies.
+
+### Stadium2d
+
+A pill or capsule shape (rectangle with semicircular ends). The shorter dimension determines the radius of the rounded ends.
+
+```typescript
+new Stadium2d({
+	width: 200,
+	height: 50,
+	isFilled: true,
+})
+```
+
+### CubicBezier2d
+
+A single cubic bezier curve segment.
+
+```typescript
+new CubicBezier2d({
+	start: new Vec(0, 0),
+	cp1: new Vec(30, 100),
+	cp2: new Vec(70, 100),
+	end: new Vec(100, 0),
+})
+```
+
+### CubicSpline2d
+
+A smooth curve through multiple points, automatically generating smooth cubic bezier segments between them.
+
+```typescript
+new CubicSpline2d({
+	points: [new Vec(0, 0), new Vec(50, 100), new Vec(100, 50), new Vec(150, 100)],
+})
+```
+
+### Point2d
+
+A single point. Requires both `point` and `margin` parameters—the margin determines how close a click must be to register as a hit.
+
+```typescript
+new Point2d({
+	point: new Vec(50, 50),
+	margin: 10, // clicks within 10 units count as hits
+})
+```
+
+### Group2d
+
+Combines multiple geometries into a single composite geometry. The children don't need to be the same type.
+
+```typescript
+new Group2d({
+	children: [
+		new Rectangle2d({ width: 100, height: 80, isFilled: true }),
+		new Circle2d({ x: 50, y: -20, radius: 20, isFilled: true }),
+	],
+})
+```
+
+Group2d is essential for shapes with multiple parts. The geo shape uses it to combine its outline with its label bounds. The arrow shape uses it to combine the arrow body with its label.
+
+## Geometry operations
+
+All Geometry2d classes provide methods for spatial queries.
+
+### Bounds and center
+
+Get the axis-aligned bounding box:
+
+```typescript
+const geometry = editor.getShapeGeometry(shape)
+const bounds = geometry.bounds // Box { x, y, w, h, ... }
+const center = geometry.center // Vec at center of bounds
+```
+
+### Vertices
+
+Get the points that define the geometry's outline:
+
+```typescript
+const vertices = geometry.vertices // Vec[]
+```
+
+For curves, this returns a discretized approximation with enough points to represent the curve accurately.
+
+### Hit testing
+
+Test if a point hits the geometry:
+
+```typescript
+geometry.hitTestPoint(point, margin, hitInside)
+```
+
+The `margin` expands the hit area. The `hitInside` parameter controls whether points inside unfilled shapes count as hits.
+
+Test if a line segment intersects the geometry:
+
+```typescript
+geometry.hitTestLineSegment(A, B, distance)
+```
+
+### Distance and intersection
+
+Find the nearest point on the geometry to a given point:
+
+```typescript
+const nearest = geometry.nearestPoint(point)
+```
+
+Get the distance from a point to the geometry:
+
+```typescript
+const distance = geometry.distanceToPoint(point)
+```
+
+Negative distances mean the point is inside a filled geometry.
+
+Get intersection points with a line segment:
+
+```typescript
+const intersections = geometry.intersectLineSegment(A, B)
+```
+
+### Length, area, and interpolation
+
+Get the perimeter length and area:
+
+```typescript
+const length = geometry.length // perimeter length
+const area = geometry.area // enclosed area (0 for open paths)
+```
+
+Find a point at a fraction along the edge:
+
+```typescript
+const point = geometry.interpolateAlongEdge(0.5) // midpoint
+```
+
+Convert a point back to a fraction:
+
+```typescript
+const t = geometry.uninterpolateAlongEdge(point)
+```
+
+Generate an SVG path:
+
+```typescript
+const pathData = geometry.toSimpleSvgPath() // "M0,0 L100,0 L100,100 L0,100 Z"
+```
+
+## Implementing getGeometry
+
+The `getGeometry` method receives the shape and returns geometry in shape-local coordinates (origin at top-left of shape).
+
+### Simple shapes
+
+For shapes with a single outline:
+
+```typescript
+getGeometry(shape: MyShape) {
+	return new Rectangle2d({
+		width: shape.props.w,
+		height: shape.props.h,
+		isFilled: shape.props.fill !== 'none',
+	})
+}
+```
+
+### Shapes with labels
+
+Shapes that have text labels typically return a Group2d with the main geometry and a label rectangle:
+
+```typescript
+getGeometry(shape: MyShape) {
+	const outline = new Rectangle2d({
+		width: shape.props.w,
+		height: shape.props.h,
+		isFilled: shape.props.fill !== 'none',
+	})
+
+	const label = new Rectangle2d({
+		x: labelX,
+		y: labelY,
+		width: labelWidth,
+		height: labelHeight,
+		isFilled: true,
+		isLabel: true,
+	})
+
+	return new Group2d({
+		children: [outline, label],
+	})
+}
+```
+
+The `isLabel` property marks geometry that represents text labels. This affects filtering in some operations.
+
+### Custom polygons
+
+For non-rectangular shapes, calculate vertices and use Polygon2d:
+
+```typescript
+getGeometry(shape: HouseShape) {
+	const { w, h } = shape.props
+	const roofPeak = h * 0.3
+
+	return new Polygon2d({
+		points: [
+			new Vec(0, roofPeak),
+			new Vec(w / 2, 0),
+			new Vec(w, roofPeak),
+			new Vec(w, h),
+			new Vec(0, h),
+		],
+		isFilled: true,
+	})
+}
+```
+
+### Composite shapes
+
+For shapes with multiple distinct parts:
+
+```typescript
+getGeometry(shape: HouseShape) {
+	const house = new Polygon2d({
+		points: getHouseVertices(shape),
+		isFilled: true,
+	})
+
+	const door = new Rectangle2d({
+		x: shape.props.w / 2 - 15,
+		y: shape.props.h - 40,
+		width: 30,
+		height: 40,
+		isFilled: true,
+	})
+
+	return new Group2d({
+		children: [house, door],
+	})
+}
+```
+
+## Geometry caching
+
+The editor caches geometry computations. Without caching, dragging a selection box over hundreds of shapes would recompute each shape's geometry on every frame.
+
+Access cached geometry through the editor:
+
+```typescript
+const geometry = editor.getShapeGeometry(shape)
+const pageBounds = editor.getShapePageBounds(shape)
+```
+
+The cache invalidates automatically when shape props change. You don't need to manage invalidation yourself.
+
+## Geometry filtering
+
+Group2d supports filtering to include or exclude certain geometry children during operations. This lets you mark parts of a shape's geometry for different purposes.
+
+The `isLabel` flag marks geometry that represents text label bounds. Label geometry participates in click-to-edit detection but is typically excluded from outline calculations and snapping.
+
+The `isInternal` flag marks geometry that exists for internal calculations but shouldn't be part of the shape's visible outline.
+
+```typescript
+// Mark geometry as a label
+new Rectangle2d({
+	// ...
+	isLabel: true,
+})
+
+// Mark geometry as internal (not part of main outline)
+new Rectangle2d({
+	// ...
+	isInternal: true,
+})
+```
+
+The geometry system provides filter presets for common scenarios:
+
+| Filter                 | Includes labels | Includes internal |
+| ---------------------- | --------------- | ----------------- |
+| `EXCLUDE_NON_STANDARD` | No              | No                |
+| `INCLUDE_ALL`          | Yes             | Yes               |
+| `EXCLUDE_LABELS`       | No              | Yes               |
+| `EXCLUDE_INTERNAL`     | Yes             | No                |
+
+Most operations use `EXCLUDE_NON_STANDARD` by default, which gives you the shape's main outline without labels or internal geometry.
+
+## Advanced options
+
+Geometry2d has additional options for special cases.
+
+### excludeFromShapeBounds
+
+When set, the geometry won't contribute to the shape's bounding box calculation. The geometry still participates in hit testing and other operations, but `getBoundsVertices()` returns an empty array for it.
+
+```typescript
+const label = new Rectangle2d({
+	x: labelX,
+	y: labelY,
+	width: labelWidth,
+	height: labelHeight,
+	isFilled: true,
+	isLabel: true,
+	excludeFromShapeBounds: true, // label won't affect shape bounds
+})
+```
+
+This is useful for labels and other auxiliary geometry that shouldn't change the shape's overall size.
+
+### ignore
+
+When set on geometry inside a Group2d, that geometry is placed in an `ignoredChildren` array and won't participate in the group's operations like hit testing, bounds calculation, or rendering.
+
+```typescript
+new Group2d({
+	children: [
+		mainGeometry,
+		new Rectangle2d({
+			// ...
+			ignore: true, // won't participate in group operations
+		}),
+	],
+})
+```
+
+### debugColor
+
+A color string used when rendering geometry in the debug view. Defaults to red if not specified.
+
+```typescript
+new Rectangle2d({
+	width: 100,
+	height: 100,
+	isFilled: true,
+	debugColor: 'blue', // shows as blue in geometry debugging view
+})
+```
+
+Enable the geometry debug view through the debug panel to visualize shape geometry during development.
+
+## Transformed geometry
+
+The [TransformedGeometry2d](?) class wraps a geometry with a transformation matrix. This is useful when you need geometry in a different coordinate space without creating new geometry objects.
+
+```typescript
+const transformed = geometry.transform(matrix)
+```
+
+All operations on the transformed geometry apply the transformation automatically. One limitation: transformed geometry doesn't support `getSvgPathData()`—you'll need to transform the path data yourself if you need it.
+
+## Related examples
+
+- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-geometry)** - A house-shaped custom shape using Polygon2d and Group2d geometry.
+- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/cubic-bezier-shape)** - Interactive bezier curve editing with CubicBezier2d geometry and custom handles.
+- **[Custom bounds snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/bounds-snapping-shape)** - Playing card shapes with custom snap geometry so they stack with visible icons.

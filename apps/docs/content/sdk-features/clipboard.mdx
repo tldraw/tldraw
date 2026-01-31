@@ -1,0 +1,152 @@
+---
+title: Clipboard
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - clipboard
+  - copy
+  - paste
+  - cut
+  - content
+status: published
+date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The clipboard lets you copy, cut, and paste shapes within a single editor or between different editor instances. When you copy shapes, the editor serializes them along with their bindings and assets into a [TLContent](?) object. This format preserves document structure and relationships so shapes paste correctly elsewhere.
+
+## How clipboard operations work
+
+Clipboard operations have two flows: extracting content (copy/cut) and placing content (paste).
+
+### Extracting content
+
+When you copy or cut shapes, the editor calls [Editor#getContentFromCurrentPage](?) to serialize them into a [TLContent](?) object:
+
+```ts
+const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
+// content contains shapes, bindings, assets, and schema
+```
+
+This method collects the selected shapes and their descendants, gathers bindings between them, and includes any referenced assets. Root shapes (those whose parents aren't in the selection) get transformed to page coordinates so they paste at the correct position.
+
+The method keeps only bindings where both the `fromId` and `toId` shapes are in the copied set. This prevents dangling references to shapes that won't exist in the pasted content.
+
+### Placing content
+
+[Editor#putContentOntoCurrentPage](?) handles paste operations. It takes [TLContent](?) and reconstructs shapes on the current page:
+
+```ts
+// Paste at a specific point
+editor.putContentOntoCurrentPage(content, {
+	point: { x: 100, y: 100 },
+	select: true,
+})
+
+// Paste and preserve original positions
+editor.putContentOntoCurrentPage(content, {
+	preservePosition: true,
+})
+```
+
+The method migrates the content through the store's schema system to handle version differences, remaps shape and binding IDs to prevent collisions, and finds an appropriate parent for the pasted shapes.
+
+The parent selection logic works like this: if shapes are selected when pasting, the editor finds the selected shape with the fewest ancestors and uses its parent. This creates intuitive behavior where pasting with a frame selected places shapes inside the frame, while pasting with shapes on the page pastes beside them. When pasting at a specific point (like the cursor position), the editor looks for an appropriate parent at that location.
+
+### Browser clipboard integration
+
+The editor writes clipboard data in multiple formats. For HTML-aware applications, it embeds serialized [TLContent](?) in a `<div data-tldraw>` element. For plain text, it extracts text from text shapes. This multi-format approach preserves tldraw-specific data while staying compatible with other applications.
+
+The clipboard uses a versioned format with compression. Version 3 (the current format) stores assets as plain JSON and compresses other data using LZ compression. This reduces payload size while keeping asset information quickly accessible.
+
+When pasting, the editor tries the browser's Clipboard API first because it preserves metadata that the clipboard event API strips out. If that fails, it falls back to reading from the paste event's clipboard data. The editor handles images, files, URLs, HTML, and plain text, routing each through the appropriate handler.
+
+### Asset resolution
+
+Before writing to the clipboard, the editor calls [Editor#resolveAssetsInContent](?) to convert asset references into data URLs:
+
+```ts
+const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
+const resolved = await editor.resolveAssetsInContent(content)
+// resolved.assets now contain data URLs instead of asset references
+```
+
+This embeds images and videos directly in the clipboard data rather than relying on URLs that might not be accessible when pasting elsewhere. The resolved content becomes fully portable across editor instances.
+
+### Cut operations
+
+Cut combines copy and delete. The editor first copies the selected shapes to the clipboard, then deletes the originals. This order ensures the clipboard has the data before shapes disappear, preventing data loss if the copy fails.
+
+## Content structure
+
+The [TLContent](?) type defines the clipboard payload:
+
+```ts
+interface TLContent {
+	shapes: TLShape[]
+	bindings: TLBinding[] | undefined
+	rootShapeIds: TLShapeId[]
+	assets: TLAsset[]
+	schema: SerializedSchema
+}
+```
+
+- `shapes` contains all copied shapes in serialized form
+- `rootShapeIds` identifies which shapes have no parent in the copied set, distinguishing top-level shapes from nested children
+- `bindings` holds relationships between shapes, like arrows connected to boxes
+- `assets` includes images, videos, and other external resources
+- `schema` preserves the store schema version, enabling migration when pasting content from a different editor version
+
+## Position handling
+
+[Editor#putContentOntoCurrentPage](?) offers flexible positioning:
+
+- By default, shapes paste at a slight offset from their original position, making it clear that new shapes were created
+- When pasting with the shift key pressed (or with paste-at-cursor mode enabled), shapes paste at the cursor position
+- The `preservePosition` option places shapes at their exact stored coordinates, skipping offset calculation entirely
+
+The editor uses `preservePosition` internally when moving shapes between pages, where position preservation matters.
+
+## ID remapping
+
+Shape and binding IDs get remapped during paste to prevent collisions with existing shapes. The editor creates a mapping from old IDs to new IDs, then updates all references throughout the pasted content: parent-child relationships, binding endpoints, and asset references all get the new IDs.
+
+The `preserveIds` option disables remapping. This is useful when duplicating pages where you need to maintain specific IDs.
+
+## External content handling
+
+For non-tldraw content (images, URLs, plain text), use [Editor#putExternalContent](?) to route it through registered handlers:
+
+```ts
+// Paste files at a specific point
+await editor.putExternalContent({
+	type: 'files',
+	files: droppedFiles,
+	point: { x: 100, y: 200 },
+})
+
+// Paste a URL
+await editor.putExternalContent({
+	type: 'url',
+	url: 'https://example.com/image.png',
+	point: editor.inputs.getCurrentPagePoint(),
+})
+
+// Paste text
+await editor.putExternalContent({
+	type: 'text',
+	text: 'Hello world',
+	point: { x: 100, y: 100 },
+})
+```
+
+Register custom handlers with [Editor#registerExternalContentHandler](?) to customize how different content types are processed. See [External content](/sdk-features/external-content) for details on the handler system.
+
+## Related examples
+
+- [Custom paste behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-paste) shows how to customize paste by registering an external content handler that changes where pasted shapes are positioned.
+- [External content sources](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/external-content-sources) shows how to handle different content types when pasting into tldraw, including custom handling for HTML content.

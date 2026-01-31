@@ -27,6 +27,11 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 		priority: 9,
 		splitHeadings: true,
 	},
+	'sdk-features': {
+		index: 'docs',
+		priority: 9,
+		splitHeadings: true,
+	},
 	examples: {
 		index: 'docs',
 		priority: 8,
@@ -46,7 +51,11 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 			return `${article.title}.${heading}`
 		},
 	},
-
+	changelog: {
+		index: 'docs',
+		priority: 5,
+		splitHeadings: false,
+	},
 	releases: {
 		index: 'docs',
 		priority: 5,

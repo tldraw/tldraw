@@ -26,8 +26,13 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 		animal: T.number,
 	}
 
-	// [1] !!!
+	// [1]
 	override canEdit() {
+		return true
+	}
+
+	// [1b]
+	override canEditWhileLocked() {
 		return true
 	}
 
@@ -101,6 +106,11 @@ more information on the shape util, check out the custom shape example.
 
 [1]
 We override the canEdit method to allow the shape to enter the editing state.
+
+	[1b] We override canEditWhileLocked to allow the shape to be edited even
+		when it is locked. This is useful for shapes that need to remain
+		interactive despite being locked in place, preventing accidental
+		movement while still allowing content changes.
 
 [2]
 We want to conditionally render the component based on whether it is being

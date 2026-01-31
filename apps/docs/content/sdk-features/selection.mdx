@@ -1,0 +1,217 @@
+---
+title: Selection
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - selection
+  - select
+  - bounds
+  - rotation
+  - group
+status: published
+date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Opening paragraph is dense - split into overview and details. "Serves as the source of truth" is hollow phrasing.
+---
+
+The editor tracks which shapes are selected and gives you methods to change the selection, get the selected shapes, and compute their collective bounds and rotation. It automatically enforces rules like "you can't select both a group and its children at the same time" and manages focus groups when you select shapes inside groups.
+
+## Selected shape IDs
+
+The editor tracks selection through the `selectedShapeIds` array in the current page's instance state. This array stores the IDs of all currently selected shapes and serves as the source of truth for selection state.
+
+```typescript
+// Get currently selected shape IDs
+const selectedIds = editor.getSelectedShapeIds()
+
+// Get the actual shape objects
+const selectedShapes = editor.getSelectedShapes()
+```
+
+The `getSelectedShapes()` method resolves the IDs to actual shape records, filtering out any IDs that no longer exist in the store.
+
+## Selection methods
+
+### Basic selection
+
+The editor provides several methods for changing the selection:
+
+```typescript
+// Select specific shapes (replaces current selection)
+editor.select(shapeId1, shapeId2)
+editor.setSelectedShapes([shapeId1, shapeId2])
+
+// Deselect specific shapes (removes from current selection)
+editor.deselect(shapeId1)
+
+// Clear all selection
+editor.selectNone()
+```
+
+Both `select()` and `setSelectedShapes()` replace the current selection entirely. Use `deselect()` to remove specific shapes while keeping others selected.
+
+### Select all
+
+The `selectAll()` method selects all unlocked shapes, with smart scoping based on the current selection:
+
+```typescript
+editor.selectAll()
+```
+
+The behavior adapts to context:
+
+- If nothing is selected, it selects all page-level shapes
+- If you select shapes that share a common parent (like shapes inside a group), it selects all shapes within that parent
+- If the selected shapes have different parents, it does nothing
+
+This allows users to progressively select "outward" by calling `selectAll()` multiple times.
+
+### Adjacent selection
+
+Select the next or previous shape in reading order, or navigate by cardinal direction:
+
+```typescript
+editor.selectAdjacentShape('next')
+editor.selectAdjacentShape('prev')
+editor.selectAdjacentShape('left')
+editor.selectAdjacentShape('right')
+```
+
+When selecting by cardinal direction, the system uses geometric distance and directional scoring to find the most appropriate adjacent shape.
+
+### Hierarchical selection
+
+Navigate the shape hierarchy:
+
+```typescript
+// Select the parent of the currently selected shape
+editor.selectParentShape()
+
+// Select the first child of the currently selected shape
+editor.selectFirstChildShape()
+```
+
+Both methods automatically zoom to the selected shape if it's offscreen.
+
+## Single shape helpers
+
+When you need to work with exactly one selected shape, use these convenience methods:
+
+```typescript
+// Get the ID if exactly one shape is selected, null otherwise
+const id = editor.getOnlySelectedShapeId()
+
+// Get the shape if exactly one shape is selected, null otherwise
+const shape = editor.getOnlySelectedShape()
+```
+
+Both methods return `null` if zero shapes or multiple shapes are selected.
+
+### Selected shape at point
+
+To find which selected shape is at a specific point (useful for hit testing during interactions), use `getSelectedShapeAtPoint()`:
+
+```typescript
+const shape = editor.getSelectedShapeAtPoint({ x: 100, y: 200 })
+```
+
+This returns the top-most selected shape at the given point, ignoring groups. It returns `undefined` if no selected shape is at that point.
+
+## Selection bounds
+
+The editor computes bounds for the current selection in two ways: axis-aligned and rotated.
+
+### Axis-aligned bounds
+
+The `getSelectionPageBounds()` method returns the axis-aligned bounding box that contains all selected shapes:
+
+```typescript
+const bounds = editor.getSelectionPageBounds()
+if (bounds) {
+	console.log(bounds.x, bounds.y, bounds.width, bounds.height)
+}
+```
+
+If the selection includes rotated shapes, these bounds represent the smallest axis-aligned box that contains the rotated shapes. The method returns `null` if nothing is selected.
+
+### Rotated bounds
+
+The `getSelectionRotatedPageBounds()` method returns bounds that respect the shared rotation of the selection:
+
+```typescript
+const rotatedBounds = editor.getSelectionRotatedPageBounds()
+```
+
+The selection box UI uses this for display. If all selected shapes share the same rotation, the bounds rotate with them. If shapes have different rotations, this falls back to axis-aligned bounds.
+
+You can access the shared rotation angle via `getSelectionRotation()`, which returns `0` if shapes have different rotations.
+
+### Screen space bounds
+
+Both bound types have screen-space equivalents that account for the camera's zoom and pan:
+
+```typescript
+const screenBounds = editor.getSelectionScreenBounds()
+const rotatedScreenBounds = editor.getSelectionRotatedScreenBounds()
+```
+
+## Selection rules
+
+The editor automatically enforces selection consistency through store side effects.
+
+### Ancestor-descendant filtering
+
+When the selection changes, the editor filters out any shape whose ancestor is also selected:
+
+```typescript
+// If you try to select a shape and its parent, only the parent remains selected
+editor.select(groupId, childOfGroupId)
+// Result: only groupId is selected
+```
+
+This prevents ambiguous situations where both a container and its contents are selected. The filtering happens in the `instance_page_state` after-change side effect.
+
+### Focused group management
+
+When you select shapes that are children of a group, the editor automatically updates the focused group. A **focused group** is the group shape that defines the current editing scope—it determines which shapes are available for selection and manipulation. When you enter a group by selecting its children, that group becomes focused, restricting your editing context to shapes within that group.
+
+```typescript
+// Selecting shapes inside a group focuses that group
+editor.select(shapeInsideGroup)
+// The group becomes the focused group
+```
+
+If all selected shapes share a common group ancestor, that group becomes focused. If you clear the selection or select shapes without a common group ancestor, the editor clears the focused group.
+
+## Locked shapes
+
+The editor excludes locked shapes from bulk selection operations:
+
+```typescript
+// selectAll only selects unlocked shapes
+editor.selectAll()
+
+// Operations like delete and duplicate also respect locks
+editor.deleteShapes(shapeIds) // Only deletes unlocked shapes
+```
+
+Locks do not restrict individual shape selection through `select()`, allowing users to explicitly select locked shapes when needed.
+
+## Ancestor checking
+
+To determine if a shape's ancestor is selected, use `isAncestorSelected()`:
+
+```typescript
+const hasSelectedAncestor = editor.isAncestorSelected(shape)
+```
+
+This walks up the shape's parent chain and returns `true` if any ancestor is in the current selection. This is useful for determining whether a shape is implicitly selected through its parent.
+
+## Related examples
+
+- **[Selection UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/selection-ui)** - Add custom UI elements that appear around the current selection using selection bounds.
+- **[Prevent multi-shape selection](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/prevent-multi-shape-selection)** - Use side effects to restrict selection to a single shape at a time.
+- **[Lasso select tool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/lasso-select-tool)** - Create a custom freehand selection tool.

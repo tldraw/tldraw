@@ -1,0 +1,169 @@
+---
+title: Animation
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - animation
+  - easing
+  - interpolation
+  - transition
+  - animateShape
+status: published
+date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Voice issues with "enable" and passive constructions ("are interpolated", "is useful for").
+---
+
+The animation system controls smooth transitions for shapes and camera movements. Shape animations handle properties like position, rotation, and opacity. Camera animations manage viewport transitions for panning and zooming.
+
+Shape animations run independently and can be interrupted or replaced. Camera animations integrate with the camera system and respect user animation speed preferences for accessibility.
+
+## How it works
+
+Animations in tldraw use the tick system to drive frame-by-frame updates. On each tick, active animations calculate elapsed time, apply easing functions to determine progress, and interpolate between start and end values.
+
+The editor emits `tick` events at the browser's animation frame rate. The animation methods handle all of this internally: when you call `animateShape()` or `setCamera()` with animation options, the editor subscribes to tick events, calculates progress using the easing function, and updates the shape or camera state until the animation completes.
+
+Camera animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. Shape animations do not check this preference. If you need reduced motion support for shape animations, check `editor.user.getAnimationSpeed()` yourself and skip the animation when it returns zero.
+
+## Shape animations
+
+Shape animations enable smooth transitions for individual shape properties. The editor tracks each animating shape independently, allowing multiple concurrent animations that can be interrupted or replaced.
+
+Use `animateShape()` to animate a single shape or `animateShapes()` to animate multiple shapes simultaneously:
+
+```typescript
+import { createShapeId, EASINGS } from 'tldraw'
+
+const shapeId = createShapeId('myshape')
+
+editor.animateShape(
+	{ id: shapeId, type: 'geo', x: 200, y: 100 },
+	{ animation: { duration: 500, easing: EASINGS.easeOutCubic } }
+)
+```
+
+### Animated properties
+
+The animation system handles interpolation for core shape properties that are common across all shape types. These built-in properties use linear interpolation (lerp) to calculate intermediate values between the start and end states:
+
+- `x` - Horizontal position
+- `y` - Vertical position
+- `opacity` - Shape transparency (0 to 1)
+- `rotation` - Shape rotation angle in radians
+
+For shape-specific properties like width, height, or custom values, shape utilities can define their own interpolation logic by implementing the `getInterpolatedProps()` method. This allows each shape type to control how its unique properties animate. For example, box shapes interpolate their dimensions:
+
+```typescript
+getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
+  return {
+    ...endShape.props,
+    w: lerp(startShape.props.w, endShape.props.w, t),
+    h: lerp(startShape.props.h, endShape.props.h, t),
+  }
+}
+```
+
+### Animation lifecycle
+
+Each animation receives a unique ID when started. The editor maintains a map of shape IDs to animation IDs to track which shapes are currently animating.
+
+You can interrupt animations in two ways. Calling `updateShapes()` on an animating shape cancels its animation and immediately applies the new values. Starting a new animation for a shape automatically cancels any existing animation for that shape.
+
+User interactions always take precedence over ongoing animations. If you drag a shape that's currently animating, the animation stops and the shape responds to your input immediately.
+
+## Camera animations
+
+Camera animations move the viewport smoothly using easing functions. These animations integrate with the camera system and can be interrupted by user input like panning or zooming.
+
+### Viewport animations
+
+The `setCamera()` method accepts an animation option to smoothly transition to a new camera position:
+
+```typescript
+editor.setCamera(
+	{ x: 0, y: 0, z: 1 },
+	{ animation: { duration: 320, easing: EASINGS.easeInOutCubic } }
+)
+```
+
+Camera animations automatically stop when the user interacts with the viewport through mouse wheel, pinch gestures, or keyboard navigation.
+
+### Zooming to bounds
+
+Use `zoomToBounds()` to animate the camera so a specific area fills the viewport. This is useful for focusing on shapes, navigating between sections, or implementing slideshow-style transitions:
+
+```typescript
+const bounds = { x: 0, y: 0, w: 800, h: 600 }
+editor.zoomToBounds(bounds, { animation: { duration: 500 } })
+```
+
+You can also specify a target zoom level and inset padding:
+
+```typescript
+editor.zoomToBounds(bounds, {
+	animation: { duration: 500 },
+	targetZoom: 1, // zoom to 100%
+	inset: 50, // padding around the bounds in pixels
+})
+```
+
+The `zoomToFit()` method is a convenience wrapper that zooms to fit all shapes on the current page:
+
+```typescript
+editor.zoomToFit({ animation: { duration: 200 } })
+```
+
+### Camera slide
+
+The `slideCamera()` method creates momentum-based camera movement that gradually decelerates:
+
+```typescript
+editor.slideCamera({
+	speed: 2,
+	direction: { x: 1, y: 0 },
+	friction: 0.1,
+})
+```
+
+This method respects the user's animation speed preference. If animation speed is set to zero, the slide animation is disabled.
+
+## Easing functions
+
+Easing functions control the rate of change during animations, making movements feel natural rather than mechanical. Choose an easing based on the interaction: use `easeOut` variants when responding to user actions (the animation starts fast and settles), `easeIn` for exits or dismissals (gradual start, quick finish), and `easeInOut` for autonomous movements like camera transitions (smooth start and end).
+
+The editor provides these easing functions in `EASINGS`:
+
+- `linear` - Constant rate of change, useful for progress indicators
+- `easeInQuad`, `easeOutQuad`, `easeInOutQuad` - Subtle, gentle curves
+- `easeInCubic`, `easeOutCubic`, `easeInOutCubic` - Balanced, natural-feeling motion
+- `easeInQuart`, `easeOutQuart`, `easeInOutQuart` - More pronounced acceleration
+- `easeInQuint`, `easeOutQuint`, `easeInOutQuint` - Strong acceleration curves
+- `easeInSine`, `easeOutSine`, `easeInOutSine` - Very gentle, sinusoidal curves
+- `easeInExpo`, `easeOutExpo`, `easeInOutExpo` - Dramatic, exponential curves
+
+Shape animations default to `linear` easing. Camera animations default to `easeInOutCubic`. For shape animations responding to user actions, `easeOutCubic` or `easeOutQuad` often feel more responsive since the animation starts fast and settles gradually.
+
+## User preferences
+
+Camera animations check `editor.user.getAnimationSpeed()` before running. This value multiplies animation durations, so users can speed up, slow down, or disable animations entirely.
+
+When animation speed is zero, camera methods like `setCamera()`, `slideCamera()`, `zoomToBounds()`, and `zoomToFit()` skip the animation and jump immediately to the final position. Shape animations via `animateShape()` and `animateShapes()` do not check this preference automatically. If you need reduced motion support for shape animations, check the animation speed yourself:
+
+```typescript
+if (editor.user.getAnimationSpeed() > 0) {
+	editor.animateShape(
+		{ id: shapeId, type: 'geo', x: 200, y: 100 },
+		{ animation: { duration: 500 } }
+	)
+} else {
+	editor.updateShape({ id: shapeId, type: 'geo', x: 200, y: 100 })
+}
+```
+
+## Related examples
+
+The [slideshow example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/slideshow) uses camera animations to smoothly transition between slides using `zoomToBounds` with animation options. The [camera options example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/camera-options) demonstrates camera constraints and animations for bounded canvas experiences.
