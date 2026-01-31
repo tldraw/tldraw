@@ -377,7 +377,6 @@ describe('MyFeature', () => {
 - `@tiptap/pm` ^2.6.6 - ProseMirror integration
 - `@use-gesture/react` ^10.3.1 - Touch/gesture handling
 - `classnames` ^2.5.1 - CSS class utility
-- `core-js` ^3.39.0 - JavaScript polyfills
 - `eventemitter3` ^5.0.1 - Event system
 - `idb` ^8.0.0 - IndexedDB wrapper
 - `is-plain-object` ^5.0.0 - Object type checking

@@ -9619,7 +9619,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.5"
-    "@types/core-js": "npm:^2.5.8"
     "@types/rbush": "npm:^4.0.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
@@ -9627,7 +9626,6 @@ __metadata:
     "@use-gesture/react": "npm:^10.3.1"
     benchmark: "npm:^2.1.4"
     classnames: "npm:^2.5.1"
-    core-js: "npm:^3.40.0"
     eventemitter3: "npm:^4.0.7"
     fake-indexeddb: "npm:^4.0.2"
     idb: "npm:^7.1.1"
@@ -10243,13 +10241,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/7eb1bc5342a9604facd57598a6c62621e244822442976c443efb84ff745246b10d06e8b309b6e80130026a396f19bf6793b7cecd7380169f369dac3bfc46fb99
-  languageName: node
-  linkType: hard
-
-"@types/core-js@npm:^2.5.8":
-  version: 2.5.8
-  resolution: "@types/core-js@npm:2.5.8"
-  checksum: 10/58c4b86102b13b778d3631d38913c788ef7f688d99fbd741f6241a9cedc7e986e670011bdccd58b32e28e97b9c0fa6fffedef6ba0f670a005b321788a5a01a65
   languageName: node
   linkType: hard
 
@@ -14337,7 +14328,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.38.1, core-js@npm:^3.40.0":
+"core-js@npm:^3.38.1":
   version: 3.40.0
   resolution: "core-js@npm:3.40.0"
   checksum: 10/9c7e7d2839db6c3c7b72725a3ce5edf6dd61fc771e1551e08b5622ca7da330f2f5d3c7dcd6a6e7889baa8d4cc5a909ba75b4add0d1f3da940a2a60a3e0603be5
