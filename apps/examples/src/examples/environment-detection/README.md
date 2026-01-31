@@ -3,7 +3,18 @@ title: Environment detection with tlenv and tlenvReactive
 component: ./EnvironmentDetectionExample.tsx
 category: configuration
 priority: 2
-keywords: [tlenv, tlenvReactive, environment, platform, browser, pointer, touch, mobile]
+keywords:
+  [
+    tlenv,
+    tlenvreactive,
+    platform detection,
+    browser,
+    iscoarsepointer,
+    touch,
+    mobile,
+    adaptive ui,
+    usevalue,
+  ]
 ---
 
 Detect platform, browser, and input device type.

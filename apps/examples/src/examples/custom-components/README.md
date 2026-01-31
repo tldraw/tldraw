@@ -5,30 +5,22 @@ category: ui
 priority: 2
 keywords:
   [
-    custom,
+    components,
     Background,
-    SvgDefs,
     Brush,
-    ZoomBrush,
-    ShapeIndicator,
-    Cursor,
-    Canvas,
-    CollaboratorBrush,
-    CollaboratorCursor,
-    CollaboratorHint,
-    CollaboratorShapeIndicator,
-    Grid,
     Scribble,
-    CollaboratorScribble,
     SnapIndicator,
     Handles,
-    Handle,
-    Spinner,
+    Canvas,
+    Grid,
+    Cursor,
+    ShapeIndicator,
     SelectionForeground,
     SelectionBackground,
     OnTheCanvas,
     InFrontOfTheCanvas,
-    LoadingScreen,
+    custom ui,
+    override,
   ]
 ---
 

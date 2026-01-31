@@ -3,7 +3,7 @@ title: Inset canvas
 component: ./InsetCanvasExample.tsx
 category: layout
 priority: 1
-keywords: []
+keywords: [canvas position, inset, css, custom layout, canvas offset]
 ---
 
 Handling events when the canvas is inset within the editor.

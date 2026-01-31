@@ -3,7 +3,17 @@ title: UI events
 component: ./UiEventsExample.tsx
 category: events
 priority: 1
-keywords: [ui, events, api, x-ray]
+keywords:
+  [
+    ui events,
+    onUiEvent,
+    TLUiEventHandler,
+    event logging,
+    keyboard shortcuts,
+    actions,
+    tools,
+    debugging,
+  ]
 ---
 
 Listen to UI events.

@@ -3,7 +3,7 @@ title: Zoom to bounds
 component: ./ZoomToBoundsExample.tsx
 category: editor-api
 priority: 1
-keywords: [zoom, camera, bounds, inset]
+keywords: [zoom, zoomToBounds, camera, bounds, Box, inset, animation, viewport, programmatic zoom]
 ---
 
 Zoom the camera to specific bounds using the editor's `zoomToBounds` function.

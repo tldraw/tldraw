@@ -3,7 +3,19 @@ title: Add a tool to the toolbar
 component: ./ToolInToolbarExample.tsx
 category: ui
 priority: 0
-keyword: [override, custom, icon]
+keywords:
+  [
+    custom tool,
+    toolbar,
+    icon,
+    asset urls,
+    keyboard shortcuts dialog,
+    defaulttoolbar,
+    tldrawuimenuitem,
+    useistoolselected,
+    usetools,
+    components,
+  ]
 ---
 
 Add your custom tool to the toolbar.

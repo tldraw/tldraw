@@ -3,7 +3,18 @@ title: Custom actions
 component: ./ActionOverridesExample.tsx
 category: ui
 priority: 3
-keywords: [keyboard, shortcut, copy, paste, group, align]
+keywords:
+  [
+    actions,
+    overrides,
+    keyboard shortcuts,
+    kbd,
+    custom actions,
+    useactions,
+    helpers,
+    addtoast,
+    tluiactionitem,
+  ]
 ---
 
 Customize and override tldraw's actions.

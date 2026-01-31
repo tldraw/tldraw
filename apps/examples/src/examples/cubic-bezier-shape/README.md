@@ -3,7 +3,20 @@ title: Cubic bezier curve shape
 component: ./CubicBezierShapeExample.tsx
 category: shapes/tools
 priority: 1
-keywords: [shape, util, handles, geometry, pen]
+keywords:
+  [
+    bezier,
+    curve,
+    handles,
+    control points,
+    shapeutil,
+    custom tool,
+    draggable,
+    editing mode,
+    statenode,
+    getHandles,
+    onHandleDrag,
+  ]
 ---
 
 A custom shape with interactive bezier curve editing.

@@ -3,7 +3,18 @@ title: Custom clipping shape
 component: ./CustomClippingExample.tsx
 category: editor-api
 priority: 1
-keywords: [clipping, shape]
+keywords:
+  [
+    clipping,
+    clip path,
+    mask,
+    getClipPath,
+    shouldClipChild,
+    polygon,
+    children,
+    parent-child,
+    circular,
+  ]
 ---
 
 # Custom clipping shape example

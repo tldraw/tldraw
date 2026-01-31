@@ -3,7 +3,19 @@ title: Education canvas
 component: ./EducationCanvasExample.tsx
 category: use-cases
 priority: 1
-keywords: [education, math, geometry, GCSE, teaching, learning, canvas, fixed camera]
+keywords:
+  [
+    education,
+    math,
+    geometry,
+    gcse,
+    teaching,
+    learning,
+    camera constraints,
+    grid,
+    split layout,
+    worksheet,
+  ]
 ---
 
 An educational application template with a math question on the left and a drawing canvas on the right.

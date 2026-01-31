@@ -3,7 +3,8 @@ title: Hide UI components
 component: ./UiComponentsHiddenExample.tsx
 category: ui
 priority: 1
-keywords: [hide, ui, overrides]
+keywords:
+  [hide ui, components override, minimal ui, headless, remove ui, TLUiComponents, null components]
 ---
 
 Hide individual UI components.

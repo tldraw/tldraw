@@ -3,7 +3,18 @@ title: Custom shape SVG export
 component: ./CustomShapeToSvgExample.tsx
 category: shapes/tools
 priority: 3
-keywords: [basic, svg, custom, export, copy]
+keywords:
+  [
+    svg export,
+    toSvg,
+    toBackgroundSvg,
+    custom shape export,
+    SvgExportContext,
+    export image,
+    copy as svg,
+    foreignObject,
+    shapeutil,
+  ]
 ---
 
 Determine how your custom shapes look when copied/exported as an image.

@@ -3,7 +3,7 @@ title: Controlling the canvas
 component: ./APIExample.tsx
 category: editor-api
 priority: 0
-keywords: [api, create shape, update shape, mount, context]
+keywords: [editor api, createshapes, updateshape, rotateshapesby, zoomtofit, select, useeditor, onmount, setstyle, context]
 ---
 
 Manipulate the contents of the canvas using the editor API.

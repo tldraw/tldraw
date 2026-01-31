@@ -3,7 +3,16 @@ title: Custom shape with tldraw styles
 component: ./ShapeWithTldrawStylesExample.tsx
 category: shapes/tools
 priority: 1.5
-keywords: [default styles, style panel]
+keywords:
+  [
+    default styles,
+    defaultsizestyle,
+    defaultcolorstyle,
+    style panel,
+    usedefaultcolortheme,
+    getcolorvalue,
+    shapeutil,
+  ]
 ---
 
 Use the tldraw style panel with your custom shapes.

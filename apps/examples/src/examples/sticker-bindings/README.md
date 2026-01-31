@@ -2,7 +2,19 @@
 title: Attach shapes together (bindings)
 component: ./StickerExample.tsx
 category: shapes/tools
-keywords: [attach]
+keywords:
+  [
+    bindings,
+    bindingutil,
+    relationships,
+    attach,
+    stick,
+    canbind,
+    createbinding,
+    onafterchangetoshape,
+    anchor,
+    relative position,
+  ]
 priority: 10
 ---
 

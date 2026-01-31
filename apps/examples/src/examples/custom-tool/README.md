@@ -3,7 +3,8 @@ title: Custom tool (sticker)
 component: ./CustomToolExample.tsx
 category: shapes/tools
 priority: 0
-keywords: [state, machine, chart, node, sticker]
+keywords:
+  [statenode, tool, pointer events, onpointerdown, onenter, cursor, createshape, state machine]
 ---
 
 A simple custom tool.

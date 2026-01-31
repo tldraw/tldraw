@@ -3,7 +3,20 @@ title: Image annotator
 component: ./ImageAnnotatorExample.tsx
 category: use-cases
 priority: 1
-keywords: [annotation, camera options, constraints, zoom, pan, camera bounds, pan speed, zoom speed]
+keywords:
+  [
+    annotation,
+    image annotation,
+    cameraoptions,
+    constraints,
+    zoom,
+    pan,
+    bounds,
+    panspeed,
+    zoomspeed,
+    zoomsteps,
+    image editor,
+  ]
 ---
 
 An image annotator built with tldraw.

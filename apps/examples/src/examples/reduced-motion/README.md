@@ -3,7 +3,20 @@ title: Reduced motion preferences
 component: ./ReducedMotionExample.tsx
 category: configuration
 priority: 1
-keywords: [accessibility, a11y, reduced motion, animation, prefers-reduced-motion, custom shape]
+keywords:
+  [
+    accessibility,
+    a11y,
+    reduced motion,
+    animation,
+    prefers-reduced-motion,
+    useprefersreducedmotion,
+    animationspeed,
+    user preferences,
+    custom shape,
+    css animation,
+    vestibular,
+  ]
 ---
 
 Respecting user motion preferences in custom shapes.

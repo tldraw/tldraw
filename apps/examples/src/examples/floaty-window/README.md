@@ -4,6 +4,19 @@ hide: true
 component: ./FloatyExample.tsx
 category: ui
 priority: 30
+keywords:
+  [
+    camera,
+    setcamera,
+    window position,
+    screenx,
+    screeny,
+    screenleft,
+    screentop,
+    tick event,
+    vec,
+    usecontainer,
+  ]
 ---
 
 Create an illusion of a floating window.

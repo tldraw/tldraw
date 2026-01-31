@@ -3,7 +3,20 @@ title: Reactive inputs
 component: ./ReactiveInputsExample.tsx
 category: editor-api
 priority: 3
-keywords: ['input', 'mouse', 'pointer', 'position', 'velocity', 'reactive', 'state']
+keywords:
+  [
+    inputs manager,
+    pointer tracking,
+    mouse position,
+    velocity,
+    usevalue,
+    reactive state,
+    screen point,
+    page point,
+    origin point,
+    pointer events,
+    atom,
+  ]
 ---
 
 Reactively track mouse positions and velocities using the editor's inputs manager.

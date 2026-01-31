@@ -3,7 +3,7 @@ title: External dialog
 component: ./ExternalDialog.tsx
 category: layout
 priority: 20
-keywords: [css]
+keywords: [dialog, modal, css, styling, custom styles, embed, insert]
 ---
 
 Make dialogs open outside of the `Tldraw` component.

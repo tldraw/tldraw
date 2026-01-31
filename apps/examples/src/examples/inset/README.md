@@ -3,7 +3,7 @@ title: Inset editor
 component: ./InsetExample.tsx
 category: layout
 priority: 0
-keywords: [inline]
+keywords: [inline, embedded, non-fullscreen, layout, container, positioning, inset, wrapper]
 ---
 
 Using the tldraw component in a non-fullscreen layout.
