@@ -10421,9 +10421,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.getIsPinching()) return
 
 						if (!inputs.getIsEditing()) {
-							if (!this._selectedShapeIdsAtPointerDown.length) {
-								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
-							}
+							// Always capture the current selection when pinch starts.
+							// This ensures Safari (which uses gesture events instead of wheel)
+							// doesn't restore a stale selection from an earlier pointer_down.
+							this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 
 							this._didPinch = true
 
@@ -10734,6 +10735,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this.setCurrentTool(this._restoreToolId)
 							}
 						}
+
+						// Clear the stashed selection so the next pinch captures fresh state.
+						// This fixes Safari pinch zoom restoring outdated selections.
+						this._selectedShapeIdsAtPointerDown = []
+
 						break
 					}
 				}
