@@ -782,7 +782,7 @@ const interval = setInterval(() => {
 canvas.zoomToFit({ animation: { duration: 400 } })`,
 
 	'Dot Sphere': `// 3D sphere using freehand dots with organic, wobbly movement
-// Drag the slider handle to change the spiral factor!
+// Watch the spiral factor oscillate automatically!
 
 const cx = 400, cy = 300
 const scale3d = 200
@@ -814,17 +814,16 @@ canvas.createRect(sliderX, sliderY, sliderWidth, sliderHeight, {
   color: 'grey', fill: 'solid'
 })
 
-// Create slider handle (drag this!)
-// Start at the right end (value = 2, the original default)
+// Create slider handle (animates automatically)
 const handleId = canvas.createCircle(
-  sliderX + sliderWidth,
+  sliderX + sliderWidth / 2,
   sliderY + sliderHeight / 2,
   handleSize / 2,
   { color: 'blue', fill: 'solid' }
 )
 
 // Create label
-const labelId = canvas.createText(sliderX, sliderY - 25, 'Spiral factor: 2', { size: 's' })
+const labelId = canvas.createText(sliderX, sliderY - 25, 'Spiral factor: 1.66', { size: 's' })
 
 // === SPHERE SETUP ===
 const numPoints = 160
@@ -848,27 +847,31 @@ const interval = setInterval(() => {
   angleX += 0.008
   angleY += 0.015
 
-  // Read slider handle position to get spiral factor
-  const handle = editor.getShape(handleId)
-  if (!handle) return
-
-  // Calculate spiral factor from handle x position
-  const handleX = handle.x + handleSize / 2
-  const t = Math.max(0, Math.min(1, (handleX - sliderX) / sliderWidth))
-  // Linear mapping: 1.0 -> 2.0
+  // Auto-oscillate the spiral factor using a sine wave
+  // Oscillates smoothly between minFactor and maxFactor
+  const t = (Math.sin(time * 0.5) + 1) / 2  // 0 to 1, slowly
   const spiralFactor = minFactor + t * (maxFactor - minFactor)
 
-  // Update label
-  editor.updateShapes([{
-    id: labelId,
-    type: 'text',
-    props: {
-      richText: {
-        type: 'doc',
-        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spiral factor: ' + spiralFactor.toFixed(2) }] }]
+  // Update the slider handle position and label to match
+  const handleX = sliderX + t * sliderWidth - handleSize / 2
+  editor.updateShapes([
+    {
+      id: handleId,
+      type: 'geo',
+      x: handleX,
+      y: sliderY + sliderHeight / 2 - handleSize / 2
+    },
+    {
+      id: labelId,
+      type: 'text',
+      props: {
+        richText: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spiral factor: ' + spiralFactor.toFixed(2) }] }]
+        }
       }
     }
-  }])
+  ])
 
   // Recalculate point positions with the new spiral factor
   const points = []

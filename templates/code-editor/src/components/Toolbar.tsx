@@ -1,10 +1,9 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
-import { examples } from '../lib/examples'
+import { ReactNode } from 'react'
 
 interface ToolbarProps {
 	onRun: () => void
 	onClear: () => void
-	onLoadExample: (name: string, code: string) => void
+	onOpenExamples: () => void
 	isExecuting: boolean
 	isLiveMode: boolean
 	generatedShapeCount: number
@@ -13,33 +12,20 @@ interface ToolbarProps {
 }
 
 /**
- * Toolbar component with Run, Clear buttons and examples dropdown.
+ * Toolbar component with Run, Clear buttons and examples sidebar trigger.
  */
 export function Toolbar({
 	onRun,
 	onClear,
-	onLoadExample,
+	onOpenExamples,
 	isExecuting,
 	isLiveMode,
 	generatedShapeCount,
 	selectedExample,
 	children,
 }: ToolbarProps) {
-	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-	const dropdownRef = useRef<HTMLDivElement>(null)
 	const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
 	const shortcut = isMac ? '⌘+Enter' : 'Ctrl+Enter'
-
-	useEffect(() => {
-		if (!isDropdownOpen) return
-		function handleClickOutside(e: MouseEvent) {
-			if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-				setIsDropdownOpen(false)
-			}
-		}
-		document.addEventListener('click', handleClickOutside)
-		return () => document.removeEventListener('click', handleClickOutside)
-	}, [isDropdownOpen])
 
 	return (
 		<div className="code-toolbar">
@@ -61,34 +47,24 @@ export function Toolbar({
 				Clear
 			</button>
 
-			<div className="toolbar-dropdown" ref={dropdownRef}>
-				<button
-					className="toolbar-dropdown-trigger"
-					onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+			<button
+				className="toolbar-button examples-button"
+				onClick={onOpenExamples}
+				title="Browse examples"
+			>
+				<svg
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
 				>
-					{selectedExample ?? 'Examples'}
-					<svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor">
-						<path d="M0 0l4 5 4-5z" />
-					</svg>
-				</button>
-				{isDropdownOpen && (
-					<div className="toolbar-dropdown-menu">
-						{Object.keys(examples).map((name) => (
-							<button
-								key={name}
-								className={`toolbar-dropdown-item ${name === selectedExample ? 'selected' : ''}`}
-								onClick={(e) => {
-									e.stopPropagation()
-									onLoadExample(name, examples[name])
-									setIsDropdownOpen(false)
-								}}
-							>
-								{name}
-							</button>
-						))}
-					</div>
-				)}
-			</div>
+					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+				</svg>
+				{selectedExample ?? 'Examples'}
+			</button>
 
 			{children}
 

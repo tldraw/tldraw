@@ -1,10 +1,11 @@
 import Editor, { BeforeMount, Monaco, OnMount } from '@monaco-editor/react'
 import type { editor } from 'monaco-editor'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { JsonObject, Editor as TldrawEditor, useValue } from 'tldraw'
 import { ExecutionError } from '../lib/code-executor'
 import { editorTypeDefinitions } from '../lib/editor-types'
-import { defaultCode, examples } from '../lib/examples'
+import { defaultCode, examplesRecord } from '../lib/examples/index'
+import { ExamplesSidebar } from './ExamplesSidebar'
 import { darkTheme, lightTheme } from './themes'
 import { Toolbar } from './Toolbar'
 
@@ -53,11 +54,14 @@ export function CodeEditor({
 
 	// Derive selected example by matching code against known examples
 	const selectedExample = useMemo(() => {
-		for (const [name, exampleCode] of Object.entries(examples)) {
+		for (const [name, exampleCode] of Object.entries(examplesRecord)) {
 			if (code === exampleCode) return name
 		}
 		return null
 	}, [code])
+
+	// Sidebar open/close state
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
 	// Helper to update document meta
 	const updateMeta = useCallback(
@@ -235,10 +239,17 @@ export function CodeEditor({
 			onKeyDown={(e) => e.stopPropagation()}
 			onKeyUp={(e) => e.stopPropagation()}
 		>
+			<ExamplesSidebar
+				isOpen={isSidebarOpen}
+				onClose={() => setIsSidebarOpen(false)}
+				onLoadExample={handleLoadExample}
+				selectedExample={selectedExample}
+			/>
+
 			<Toolbar
 				onRun={() => onRun(code)}
 				onClear={onClear}
-				onLoadExample={handleLoadExample}
+				onOpenExamples={() => setIsSidebarOpen(true)}
 				isExecuting={isExecuting}
 				isLiveMode={isLiveMode}
 				generatedShapeCount={generatedShapeCount}
