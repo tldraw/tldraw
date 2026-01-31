@@ -5,10 +5,19 @@
 Use these sections in order (omit empty sections):
 
 1. **Introduction paragraph** - 1-2 sentence summary of the release highlights
-2. **Featured sections** - Major features and breaking changes with migration guides (separated by `---`)
-3. **API changes** - New methods, properties, options, deprecations, and breaking changes
-4. **Improvements** - Enhancements to existing functionality
-5. **Bug fixes** - Fixed issues
+2. **What's new** (`## What's new`) - Contains featured sections (H3s) for major features and breaking changes
+3. **API changes** (`## API changes`) - New methods, properties, options, deprecations, and breaking changes
+4. **Improvements** (`## Improvements`) - Enhancements to existing functionality
+5. **Bug fixes** (`## Bug fixes`) - Fixed issues
+6. **Patch releases** (`## Patch releases`) - Separated by `---`, contains bulleted changes for each patch version
+
+## GitHub release link
+
+Add a link to the GitHub release immediately after the frontmatter:
+
+```markdown
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.3.0)
+```
 
 ## Introduction paragraph
 
@@ -17,6 +26,10 @@ Start each release with a 1-2 sentence summary highlighting the most significant
 ```markdown
 This release introduces several significant changes: a new pattern for defining custom shape/binding typings, pluggable storage for `TLSocketRoom` with a new SQLite option, reactive `editor.inputs`, and optimized draw shape encoding. It also adds various other API improvements, performance optimizations, and bug fixes.
 ```
+
+## Horizontal rules
+
+Use `---` only before the `## Patch releases` section to visually separate it from the main release content. Do not use horizontal rules elsewhere.
 
 ## Headings
 
@@ -73,16 +86,22 @@ Or for collaborative work:
 (thanks to [@username](https://github.com/username) for help on this one)
 ```
 
-## Featured sections
+## What's new section
 
-For headline features and major breaking changes, add dedicated sections with comprehensive details. Separate featured sections with horizontal rules (`---`).
+The `## What's new` section contains featured subsections (H3s) for headline features and major breaking changes.
 
 ### Basic structure
 
 ```markdown
+## What's new
+
 ### Feature name ([#7320](https://github.com/tldraw/tldraw/pull/7320))
 
 Brief description of what this feature does and why it matters.
+
+### Another feature ([#7321](https://github.com/tldraw/tldraw/pull/7321))
+
+Description of the second feature.
 ```
 
 ### Collapsible details
@@ -193,21 +212,28 @@ Include code examples when helpful for API changes:
 
 ## Patch releases
 
-Add patch releases at the bottom of the minor release file, after a horizontal rule:
+Add patch releases at the bottom of the minor release file, after a horizontal rule. Use bulleted lists for changes, with a GitHub release link after each patch heading:
 
 ```markdown
 ---
 
 ## Patch releases
 
+### v4.2.2
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.2.2)
+
+- Fix arrow binding when target shape is rotated. ([#3650](https://github.com/tldraw/tldraw/pull/3650))
+- Fix copy/paste not working in Safari. ([#3652](https://github.com/tldraw/tldraw/pull/3652))
+
 ### v4.2.1
 
-Fix text selection flakiness when clicking into text shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
-
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.2.1)
+
+- Fix text selection flakiness when clicking into text shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
 ```
 
-Every patch release must have a description.
+Each patch version gets an H3 heading, a GitHub release link, and bulleted changes.
 
 ## Frontmatter
 
