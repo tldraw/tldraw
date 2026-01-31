@@ -108,7 +108,7 @@ Short clarifying comparisons are fine—"shapes are just records (JSON objects)"
 
 ## Avoiding AI writing tells
 
-AI-generated text has recognizable patterns. Avoid these to keep our writing sounding human.
+AI-generated text has recognizable patterns. Avoid these to keep our writing sounding human. For a comprehensive catalog, see [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
 
 ### Hollow importance claims
 
@@ -283,6 +283,38 @@ In prose writing, this format is a ChatGPT signature:
 > The store is reactive: it automatically notifies subscribers when data changes. All records are fully typed. You can persist data to IndexedDB or sync it to a server.
 
 This format is fine for reference material (API docs, style guides, changelogs) where scanability matters more than flow. Use a table if you have genuinely parallel information to present.
+
+### Regression to the mean
+
+AI replaces specific, unusual details with generic positive-sounding language. LLMs are trained on text where notable things are described with important-sounding words, so they tend to smooth over unique facts in favor of statistical averages.
+
+**Don't:**
+
+> The arrow tool is a powerful and versatile feature that enables users to create professional-looking diagrams.
+
+> Steve is a visionary leader who has made significant contributions to the field.
+
+**Do:**
+
+> The arrow tool draws arrows between shapes. Arrows can have different heads, labels, and curve styles.
+
+> Steve invented the train-coupling device used in most modern rail systems.
+
+The fix: preserve specific facts. If you don't know the specifics, research them or omit the claim entirely. Vague importance claims add nothing.
+
+### Uniform sentence structure
+
+AI defaults to sentences of similar length and paragraphs of similar size. Real writing has rhythm—short punchy sentences, then longer ones with more detail. Paragraphs vary based on content, not formula.
+
+**Don't:**
+
+> The editor manages document state. The store holds shape records. Bindings connect related shapes. Tools handle user interactions.
+
+**Do:**
+
+> The editor manages all document state. It holds shapes in a reactive store—when data changes, the UI updates automatically. Tools handle user interaction: each tool is a state machine that responds to pointer and keyboard events.
+
+If your prose feels monotonous, vary your sentence lengths. Start some sentences with the subject, others with a clause. Let the content dictate structure.
 
 ## Grammar and mechanics
 

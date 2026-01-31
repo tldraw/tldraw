@@ -1,18 +1,18 @@
-name: Update changelog
+name: Update release notes
 
 on:
   workflow_dispatch:
 
 concurrency:
-  group: update-changelog
+  group: update-release-notes
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  update-changelog:
-    name: 'Update changelog with Claude Code'
+  update-release-notes:
+    name: 'Update release notes with Claude Code'
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
@@ -41,16 +41,16 @@ jobs:
       - name: Create branch
         id: branch
         run: |
-          BRANCH_NAME="changelog/update-$(date +%Y%m%d-%H%M%S)"
+          BRANCH_NAME="release-notes/update-$(date +%Y%m%d-%H%M%S)"
           git checkout -b "$BRANCH_NAME"
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
 
-      - name: Run update-changelog skill
+      - name: Run update-release-notes skill
         run: |
-          claude --skip-permissions --print "/update-changelog"
+          claude --skip-permissions --print "/update-release-notes"
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -68,15 +68,15 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           git add -A
-          git commit -m "Update changelog"
+          git commit -m "Update release notes"
           git push -u origin "${{ steps.branch.outputs.branch_name }}"
 
       - name: Create PR
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           gh pr create \
-            --title "Update changelog" \
-            --body "Automated changelog update using Claude Code." \
+            --title "Update release notes" \
+            --body "Automated release notes update using Claude Code." \
             --base main \
             --head "${{ steps.branch.outputs.branch_name }}"
         env:
@@ -84,4 +84,4 @@ jobs:
 
       - name: No changes
         if: steps.changes.outputs.has_changes == 'false'
-        run: echo "No changelog updates needed"
+        run: echo "No release notes updates needed"
