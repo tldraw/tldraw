@@ -7,7 +7,7 @@ import {
 /**
  * Type guard to check if a sidebar link has children
  */
-export function hasChildren(
+function hasChildren(
 	link: SidebarContentLink
 ): link is SidebarContentLink & { children: SidebarContentLink[] } {
 	return 'children' in link
