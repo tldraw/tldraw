@@ -150,6 +150,14 @@ export class PointingShape extends StateNode {
 										this.editor.select(selectingShape.id)
 
 										if (!this.editor.canEditShape(selectingShape)) return
+
+										const util = this.editor.getShapeUtil(selectingShape)
+										if (this.editor.getIsReadonly()) {
+											if (!util.canEditInReadonly(selectingShape)) {
+												return
+											}
+										}
+
 										this.editor.setEditingShape(selectingShape.id)
 										this.editor.setCurrentTool('select.editing_shape')
 
