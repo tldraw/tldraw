@@ -18,17 +18,17 @@ Custom shapes can opt into canvas indicators by implementing the new `getIndicat
 
 ```tsx
 class MyShapeUtil extends ShapeUtil<MyShape> {
-  getIndicatorPath(shape: MyShape): TLIndicatorPath | null {
-    return {
-      path: new Path2D(),
-      // optional clip path for complex shapes like arrows with labels
-    }
-  }
+	getIndicatorPath(shape: MyShape): TLIndicatorPath | null {
+		return {
+			path: new Path2D(),
+			// optional clip path for complex shapes like arrows with labels
+		}
+	}
 
-  // Return false to use the new canvas indicators (default is true for backwards compatibility)
-  useLegacyIndicator(): boolean {
-    return false
-  }
+	// Return false to use the new canvas indicators (default is true for backwards compatibility)
+	useLegacyIndicator(): boolean {
+		return false
+	}
 }
 ```
 

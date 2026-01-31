@@ -22,13 +22,13 @@ When you hover over or select a shape, tldraw renders an SVG outline that matche
 
 Indicators appear in three contexts:
 
-| Context      | When it appears                                         | Stroke weight |
-| ------------ | ------------------------------------------------------- | ------------- |
-| Selected     | Shape is in the current selection                       | 1.5px         |
-| Hovered      | Pointer is over an unselected shape                     | 1.5px         |
-| Hinting      | Shape is highlighted during a drag operation (e.g., drop target) | 2.5px         |
+| Context  | When it appears                               | Stroke weight |
+| -------- | --------------------------------------------- | ------------- |
+| Selected | Shape is in the current selection             | 1.5px         |
+| Hovered  | Pointer is over an unselected shape           | 1.5px         |
+| Hinting  | Shape is a drop target during drag operations | 2.5px         |
 
-For collaborative editing, indicators also show which shapes other users have selected, using each collaborator's cursor color.
+For collaborative editing, indicators also show which shapes other users have selected, using each collaborator's cursor color. Locked shapes never show indicators.
 
 ## Defining an indicator
 
@@ -100,11 +100,11 @@ indicator(shape: MyShape) {
 
 ### Indicators with labels
 
-Shapes with labels may need to clip the indicator where the label appears. Arrow shapes do this to prevent the indicator from overlapping label text. The indicator method can return a more complex SVG structure when needed.
+Shapes with labels may need to clip the indicator where the label appears. Arrow shapes do this to prevent the indicator from overlapping label text. Return a more complex SVG structure to handle clipping.
 
 ## Canvas-based indicators
 
-For performance-critical shapes, you can implement `getIndicatorPath()` to render indicators directly to a canvas instead of using SVG. This is faster when many shapes are selected.
+For performance-critical shapes, you can implement `getIndicatorPath()` to render indicators directly to a canvas instead of using SVG. Canvas rendering performs better with large selections.
 
 ```tsx
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -127,7 +127,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-When `useLegacyIndicator()` returns `false`, tldraw calls `getIndicatorPath()` instead of `indicator()`. The Path2D is stroked directly on an overlay canvas.
+When `useLegacyIndicator()` returns `false`, tldraw calls `getIndicatorPath()` instead of `indicator()`. Tldraw strokes the Path2D directly on an overlay canvas.
 
 For shapes that need clipping (like arrows with labels), return an object with additional path information:
 
@@ -173,7 +173,7 @@ export default function App() {
 }
 ```
 
-Pass `showAll` to always show indicators for every visible shape, or `hideAll` to suppress them entirely.
+Pass `showAll` to always show indicators for every visible shape. Pass `hideAll` to suppress them entirely.
 
 ### Custom indicator logic
 
@@ -217,14 +217,14 @@ export default function App() {
 
 ## Hinting shapes
 
-Hinting shapes are shapes that receive a highlighted indicator during drag operations. Use [Editor#setHintingShapeIds](?) to mark shapes as drop targets:
+Hinting shapes are shapes that receive a highlighted indicator during drag operations. Use [Editor#setHintingShapes](?) to mark shapes as drop targets:
 
 ```tsx
 // Highlight a shape as a potential drop target
-editor.setHintingShapeIds([targetShapeId])
+editor.setHintingShapes([targetShapeId])
 
 // Clear hinting
-editor.setHintingShapeIds([])
+editor.setHintingShapes([])
 ```
 
 Hinting indicators render with a thicker stroke (2.5px vs 1.5px) to distinguish them from regular selection.
@@ -255,13 +255,14 @@ export default function App() {
 
 The [TLShapeIndicatorProps](?) interface includes:
 
-| Prop        | Description                                        |
-| ----------- | -------------------------------------------------- |
-| `shapeId`   | The shape's ID                                     |
-| `color`     | Stroke color (defaults to selection color)         |
-| `opacity`   | Opacity from 0 to 1                                |
-| `className` | Additional CSS class                               |
-| `hidden`    | Whether to hide this indicator                     |
+| Prop        | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `shapeId`   | The shape's ID                                 |
+| `userId`    | User ID for collaborator indicators (optional) |
+| `color`     | Stroke color (defaults to selection color)     |
+| `opacity`   | Opacity from 0 to 1                            |
+| `className` | Additional CSS class                           |
+| `hidden`    | Whether to hide this indicator                 |
 
 ## Related articles
 

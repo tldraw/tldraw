@@ -55,10 +55,10 @@ class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 
 ### Culling methods
 
-| Method                                      | Description                                                                    |
-| ------------------------------------------- | ------------------------------------------------------------------------------ |
-| [Editor#getCulledShapes](?)                 | Returns the set of shape IDs that are currently culled.                        |
-| [Editor#getNotVisibleShapes](?)             | Returns shape IDs outside the viewport (before selection filtering).           |
+| Method                                          | Description                                                                   |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Editor#getCulledShapes](?)                     | Returns the set of shape IDs that are currently culled.                       |
+| [Editor#getNotVisibleShapes](?)                 | Returns shape IDs outside the viewport (before selection filtering).          |
 | [Editor#getCurrentPageRenderingShapesSorted](?) | Returns shapes that will actually render (excludes culled and hidden shapes). |
 
 ## Hidden shapes
@@ -85,11 +85,11 @@ export default function App() {
 
 The function can return:
 
-| Return value          | Behavior                                           |
-| --------------------- | -------------------------------------------------- |
+| Return value               | Behavior                                                |
+| -------------------------- | ------------------------------------------------------- |
 | `'inherit'` or `undefined` | Shape is visible unless its parent is hidden (default). |
-| `'hidden'`            | Shape is always hidden.                            |
-| `'visible'`           | Shape is always visible, even if parent is hidden. |
+| `'hidden'`                 | Shape is always hidden.                                 |
+| `'visible'`                | Shape is always visible, even if parent is hidden.      |
 
 Hidden shapes are still in the store. They're just excluded from:
 
@@ -162,9 +162,9 @@ interface TLRenderingShape {
 	id: TLShapeId
 	shape: TLShape
 	util: ShapeUtil
-	index: number           // z-index for the shape layer
+	index: number // z-index for the shape layer
 	backgroundIndex: number // z-index for the background layer
-	opacity: number         // cumulative opacity
+	opacity: number // cumulative opacity
 }
 ```
 
