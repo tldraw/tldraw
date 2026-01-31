@@ -10,9 +10,12 @@ export function Example({ article }: { article: Article }) {
 		...Object.keys(additionalFiles).map((key) => ({ name: key, content: additionalFiles[key] })),
 	]
 
+	// article.id is in format "sectionId/categoryId/articleId", we need just the articleId
+	const slug = article.id.split('/').pop()
+
 	return (
 		<div className="w-full mt-8">
-			<Embed src={`${server}/${article.id}/full?utm_source=docs-embed`} />
+			<Embed src={`${server}/${slug}/full?utm_source=docs-embed`} />
 			<CodeFiles files={files} />
 		</div>
 	)
