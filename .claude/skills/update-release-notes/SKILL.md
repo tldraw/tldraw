@@ -19,6 +19,7 @@ Run the status script to determine versions and diff branch:
 ```
 
 This returns:
+
 - `diff_branch` (e.g., `v4.3.x`) - the branch to diff against
 - `latest_release` - the most recent published release
 - Whether archival is needed
@@ -65,6 +66,7 @@ For each PR not already in `next.mdx`:
 ### 6. Verify
 
 Check that:
+
 - PR links are correct
 - Community contributors are credited
 - Sections are in the correct order
@@ -76,5 +78,5 @@ The `next.mdx` frontmatter includes a `last_version` field that tracks the most 
 
 ## References
 
-- **Style guide**: See `../shared/release-notes-formatting.md` for all rules, PR categorization, formatting conventions, and examples
+- **Style guide**: See `../shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
 - **Scripts**: See `scripts/` for automation helpers

@@ -2,6 +2,8 @@
 
 This document defines the rules and conventions for tldraw SDK release notes articles in `apps/docs/content/releases/`.
 
+**Prerequisite**: Read the [writing guide](./writing-guide.md) first. This document builds on those foundations with release-notes-specific patterns.
+
 ## Editorial guidance
 
 ### What to include
@@ -55,16 +57,6 @@ Skip PRs with these labels:
 - `dotcom`
 
 Also skip reverts unless they fix something user-facing.
-
-## Voice and style
-
-Semi-casual and confident. Professional but not stodgy.
-
-- "significant performance improvements" not "loads of performance improvements"
-- "an overhaul to our migration system" not "big changes to migrations"
-- Lead with concrete features, then infrastructure, then performance
-- American English spelling
-- Avoid complicated grammar, obscure vocabulary, jokes, or cultural idioms
 
 ## Team members (do not credit)
 

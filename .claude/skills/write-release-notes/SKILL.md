@@ -92,4 +92,4 @@ Check that:
 
 ## References
 
-- **Style guide**: See `../shared/release-notes-formatting.md` for all rules, formatting conventions, and examples
+- **Style guide**: See `../shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
