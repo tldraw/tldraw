@@ -39,25 +39,25 @@ The embed system recognizes URLs from supported services and converts them to th
 
 ## Supported services
 
-| Service         | Hostnames                      | Resizable | Aspect ratio locked |
-| --------------- | ------------------------------ | --------- | ------------------- |
-| tldraw          | tldraw.com, beta.tldraw.com    | Yes       | No                  |
-| Figma           | figma.com                      | Yes       | No                  |
-| YouTube         | youtube.com, youtu.be          | Yes       | Yes                 |
-| Google Maps     | google.com/maps                | Yes       | No                  |
-| Google Calendar | calendar.google.com            | Yes       | No                  |
-| Google Slides   | docs.google.com/presentation   | Yes       | No                  |
-| CodeSandbox     | codesandbox.io                 | Yes       | No                  |
-| CodePen         | codepen.io                     | Yes       | No                  |
-| Scratch         | scratch.mit.edu                | No        | No                  |
-| Val Town        | val.town                       | Yes       | No                  |
-| GitHub Gist     | gist.github.com                | Yes       | No                  |
-| Replit          | replit.com                     | Yes       | No                  |
-| Felt            | felt.com                       | Yes       | No                  |
-| Spotify         | open.spotify.com               | Yes       | No                  |
-| Vimeo           | vimeo.com, player.vimeo.com    | Yes       | Yes                 |
-| Observable      | observablehq.com               | Yes       | No                  |
-| Desmos          | desmos.com                     | Yes       | No                  |
+| Service         | Hostnames                    | Resizable | Aspect ratio locked |
+| --------------- | ---------------------------- | --------- | ------------------- |
+| tldraw          | tldraw.com, beta.tldraw.com  | Yes       | No                  |
+| Figma           | figma.com                    | Yes       | No                  |
+| YouTube         | youtube.com, youtu.be        | Yes       | Yes                 |
+| Google Maps     | google.com/maps              | Yes       | No                  |
+| Google Calendar | calendar.google.com          | Yes       | No                  |
+| Google Slides   | docs.google.com/presentation | Yes       | No                  |
+| CodeSandbox     | codesandbox.io               | Yes       | No                  |
+| CodePen         | codepen.io                   | Yes       | No                  |
+| Scratch         | scratch.mit.edu              | No        | No                  |
+| Val Town        | val.town                     | Yes       | No                  |
+| GitHub Gist     | gist.github.com              | Yes       | No                  |
+| Replit          | replit.com                   | Yes       | No                  |
+| Felt            | felt.com                     | Yes       | No                  |
+| Spotify         | open.spotify.com             | Yes       | No                  |
+| Vimeo           | vimeo.com, player.vimeo.com  | Yes       | Yes                 |
+| Observable      | observablehq.com             | Yes       | No                  |
+| Desmos          | desmos.com                   | Yes       | No                  |
 
 Each service has default dimensions appropriate for its content type. YouTube embeds default to 800×450 (16:9), while Spotify defaults to 720×500.
 
@@ -106,17 +106,17 @@ if (embedInfo) {
 
 Embeds run in sandboxed iframes with restricted permissions. The default sandbox settings are:
 
-| Permission                  | Default | Description                                       |
-| --------------------------- | ------- | ------------------------------------------------- |
-| `allow-scripts`             | Yes     | Allow JavaScript execution                        |
-| `allow-same-origin`         | Yes     | Allow access to same-origin storage and APIs      |
-| `allow-forms`               | Yes     | Allow form submission                             |
-| `allow-popups`              | Yes     | Allow opening new windows (for linking to source) |
-| `allow-downloads`           | No      | Block file downloads                              |
-| `allow-modals`              | No      | Block modal dialogs like `window.prompt()`        |
-| `allow-pointer-lock`        | No      | Block pointer lock API                            |
-| `allow-top-navigation`      | No      | Block navigating away from tldraw                 |
-| `allow-storage-access-by-user-activation` | No | Block access to parent storage               |
+| Permission                                | Default | Description                                       |
+| ----------------------------------------- | ------- | ------------------------------------------------- |
+| `allow-scripts`                           | Yes     | Allow JavaScript execution                        |
+| `allow-same-origin`                       | Yes     | Allow access to same-origin storage and APIs      |
+| `allow-forms`                             | Yes     | Allow form submission                             |
+| `allow-popups`                            | Yes     | Allow opening new windows (for linking to source) |
+| `allow-downloads`                         | No      | Block file downloads                              |
+| `allow-modals`                            | No      | Block modal dialogs like `window.prompt()`        |
+| `allow-pointer-lock`                      | No      | Block pointer lock API                            |
+| `allow-top-navigation`                    | No      | Block navigating away from tldraw                 |
+| `allow-storage-access-by-user-activation` | No      | Block access to parent storage                    |
 
 Individual embed definitions can override these defaults. YouTube embeds allow `allow-presentation` for fullscreen video. Tldraw embeds allow `allow-top-navigation` so users can open rooms in new tabs.
 
@@ -172,25 +172,25 @@ export default function App() {
 
 ### Embed definition properties
 
-| Property                | Type                            | Required | Description                                                               |
-| ----------------------- | ------------------------------- | -------- | ------------------------------------------------------------------------- |
-| `type`                  | `string`                        | Yes      | Unique identifier for this embed type                                     |
-| `title`                 | `string`                        | Yes      | Display name shown in the UI                                              |
-| `hostnames`             | `string[]`                      | Yes      | URL hostnames to match (supports glob patterns like `*.youtube.com`)      |
-| `width`                 | `number`                        | Yes      | Default width in pixels                                                   |
-| `height`                | `number`                        | Yes      | Default height in pixels                                                  |
-| `doesResize`            | `boolean`                       | Yes      | Whether the shape can be resized                                          |
-| `toEmbedUrl`            | `(url: string) => string \| undefined` | Yes | Convert shareable URL to embed URL                                   |
-| `fromEmbedUrl`          | `(url: string) => string \| undefined` | Yes | Convert embed URL to shareable URL                                   |
-| `minWidth`              | `number`                        | No       | Minimum width when resizing                                               |
-| `minHeight`             | `number`                        | No       | Minimum height when resizing                                              |
-| `isAspectRatioLocked`   | `boolean`                       | No       | Lock aspect ratio when resizing                                           |
-| `canEditWhileLocked`    | `boolean`                       | No       | Allow interaction when shape is locked (default: true)                    |
-| `overridePermissions`   | `TLEmbedShapePermissions`       | No       | Custom iframe sandbox permissions                                         |
-| `backgroundColor`       | `string`                        | No       | Background color for the embed container                                  |
-| `overrideOutlineRadius` | `number`                        | No       | Custom border radius (Spotify uses 12px)                                  |
-| `embedOnPaste`          | `boolean`                       | No       | When true, URLs are auto-converted to embeds on paste                     |
-| `instructionLink`       | `string`                        | No       | Help URL for services requiring setup (like Google Calendar public links) |
+| Property                | Type                                   | Required | Description                                                               |
+| ----------------------- | -------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| `type`                  | `string`                               | Yes      | Unique identifier for this embed type                                     |
+| `title`                 | `string`                               | Yes      | Display name shown in the UI                                              |
+| `hostnames`             | `string[]`                             | Yes      | URL hostnames to match (supports glob patterns like `*.youtube.com`)      |
+| `width`                 | `number`                               | Yes      | Default width in pixels                                                   |
+| `height`                | `number`                               | Yes      | Default height in pixels                                                  |
+| `doesResize`            | `boolean`                              | Yes      | Whether the shape can be resized                                          |
+| `toEmbedUrl`            | `(url: string) => string \| undefined` | Yes      | Convert shareable URL to embed URL                                        |
+| `fromEmbedUrl`          | `(url: string) => string \| undefined` | Yes      | Convert embed URL to shareable URL                                        |
+| `minWidth`              | `number`                               | No       | Minimum width when resizing                                               |
+| `minHeight`             | `number`                               | No       | Minimum height when resizing                                              |
+| `isAspectRatioLocked`   | `boolean`                              | No       | Lock aspect ratio when resizing                                           |
+| `canEditWhileLocked`    | `boolean`                              | No       | Allow interaction when shape is locked (default: true)                    |
+| `overridePermissions`   | `TLEmbedShapePermissions`              | No       | Custom iframe sandbox permissions                                         |
+| `backgroundColor`       | `string`                               | No       | Background color for the embed container                                  |
+| `overrideOutlineRadius` | `number`                               | No       | Custom border radius (Spotify uses 12px)                                  |
+| `embedOnPaste`          | `boolean`                              | No       | When true, URLs are auto-converted to embeds on paste                     |
+| `instructionLink`       | `string`                               | No       | Help URL for services requiring setup (like Google Calendar public links) |
 
 ## Embed-on-paste behavior
 
@@ -215,3 +215,4 @@ Embed shapes render as blank rectangles in SVG exports. The iframe content can't
 - [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shape types
 - [Bookmark shape](/sdk-features/default-shapes#bookmark) — URL link cards (fallback for non-embeddable URLs)
 - [External content handling](/sdk-features/external-content) — Handling pasted and dropped content
+- [Embedded example](/examples/misc/embedded) — Interactive example of embedding tldraw
