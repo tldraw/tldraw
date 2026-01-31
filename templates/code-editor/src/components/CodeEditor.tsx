@@ -1,6 +1,6 @@
 import Editor, { BeforeMount, Monaco, OnMount } from '@monaco-editor/react'
 import type { editor } from 'monaco-editor'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { JsonObject, Editor as TldrawEditor, useValue } from 'tldraw'
 import { ExecutionError } from '../lib/code-executor'
 import { editorTypeDefinitions } from '../lib/editor-types'
@@ -59,9 +59,6 @@ export function CodeEditor({
 		}
 		return null
 	}, [code])
-
-	// Sidebar open/close state
-	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
 	// Helper to update document meta
 	const updateMeta = useCallback(
@@ -229,8 +226,10 @@ export function CodeEditor({
 				monacoEditorRef.current.setValue(exampleCode)
 				monacoEditorRef.current.focus()
 			}
+			// Auto-run the new example
+			onRun(exampleCode)
 		},
-		[updateMeta]
+		[updateMeta, onRun]
 	)
 
 	return (
@@ -239,22 +238,7 @@ export function CodeEditor({
 			onKeyDown={(e) => e.stopPropagation()}
 			onKeyUp={(e) => e.stopPropagation()}
 		>
-			<ExamplesSidebar
-				isOpen={isSidebarOpen}
-				onClose={() => setIsSidebarOpen(false)}
-				onLoadExample={handleLoadExample}
-				selectedExample={selectedExample}
-			/>
-
-			<Toolbar
-				onRun={() => onRun(code)}
-				onClear={onClear}
-				onOpenExamples={() => setIsSidebarOpen(true)}
-				isExecuting={isExecuting}
-				isLiveMode={isLiveMode}
-				generatedShapeCount={generatedShapeCount}
-				selectedExample={selectedExample}
-			>
+			<Toolbar onRun={() => onRun(code)} isExecuting={isExecuting} isLiveMode={isLiveMode}>
 				<button
 					className={`toolbar-button live-toggle ${isLiveMode ? 'active' : ''}`}
 					onClick={toggleLiveMode}
@@ -262,7 +246,24 @@ export function CodeEditor({
 					title={isLiveMode ? 'Live mode on (auto-runs on valid changes)' : 'Live mode off'}
 				>
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M8 5v14l11-7z" />
+						<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+					</svg>
+				</button>
+				<button
+					className="toolbar-button clear-button"
+					onClick={onClear}
+					disabled={generatedShapeCount === 0}
+					title={`Clear generated shapes (${generatedShapeCount} shapes)`}
+				>
+					<svg
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+					>
+						<path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
 					</svg>
 				</button>
 				<button
@@ -297,39 +298,43 @@ export function CodeEditor({
 				</button>
 			</Toolbar>
 
-			<div className="code-editor-wrapper">
-				<Editor
-					height="100%"
-					defaultLanguage="typescript"
-					value={code}
-					onChange={handleEditorChange}
-					beforeMount={handleBeforeMount}
-					onMount={handleEditorMount}
-					theme={isDarkTheme ? 'dark' : 'light'}
-					options={{
-						fontSize: 14,
-						fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-						lineHeight: 1.5,
-						minimap: { enabled: false },
-						scrollBeyondLastLine: false,
-						automaticLayout: true,
-						tabSize: 2,
-						wordWrap: 'on',
-						padding: { top: 0 },
-						glyphMargin: false,
-						folding: false,
-						lineNumbers: 'on',
-						lineNumbersMinChars: 1,
-						lineDecorationsWidth: 20,
-						renderLineHighlight: 'line',
-						suggestOnTriggerCharacters: true,
-						quickSuggestions: true,
-						parameterHints: { enabled: true },
-						formatOnPaste: true,
-						formatOnType: true,
-						fixedOverflowWidgets: true,
-					}}
-				/>
+			<div className="code-panel-main">
+				<ExamplesSidebar onLoadExample={handleLoadExample} selectedExample={selectedExample} />
+
+				<div className="code-editor-wrapper">
+					<Editor
+						height="100%"
+						defaultLanguage="typescript"
+						value={code}
+						onChange={handleEditorChange}
+						beforeMount={handleBeforeMount}
+						onMount={handleEditorMount}
+						theme={isDarkTheme ? 'dark' : 'light'}
+						options={{
+							fontSize: 13,
+							fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+							lineHeight: 1.5,
+							minimap: { enabled: false },
+							scrollBeyondLastLine: false,
+							automaticLayout: true,
+							tabSize: 2,
+							wordWrap: 'on',
+							padding: { top: 8 },
+							glyphMargin: false,
+							folding: false,
+							lineNumbers: 'on',
+							lineNumbersMinChars: 1,
+							lineDecorationsWidth: 12,
+							renderLineHighlight: 'line',
+							suggestOnTriggerCharacters: true,
+							quickSuggestions: true,
+							parameterHints: { enabled: true },
+							formatOnPaste: true,
+							formatOnType: true,
+							fixedOverflowWidgets: true,
+						}}
+					/>
+				</div>
 			</div>
 
 			{error && (

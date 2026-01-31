@@ -1,24 +1,21 @@
 export const name = 'Spirograph'
 
-export const code = `// Animated spirograph pattern
-
+export const code = `
 const cx = 400, cy = 300
-const R = 150  // outer radius
-const r = 55   // inner radius
-const d = 80   // pen distance
+const R = 150
+const r = 55
+const d = 80
 const colors = ['red', 'blue', 'green', 'violet', 'orange']
 
 let points = []
 let colorIndex = 0
 
-// Calculate spirograph points
 for (let t = 0; t < Math.PI * 40; t += 0.05) {
   const x = cx + (R - r) * Math.cos(t) + d * Math.cos((R - r) / r * t)
   const y = cy + (R - r) * Math.sin(t) - d * Math.sin((R - r) / r * t)
   points.push({ x, y })
 }
 
-// Draw the spirograph incrementally
 let index = 0
 const batchSize = 20
 

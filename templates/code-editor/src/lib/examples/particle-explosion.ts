@@ -1,12 +1,10 @@
 export const name = 'Particle explosion'
 
-export const code = `// Particle explosion effect with physics
-
+export const code = `
 const cx = 400, cy = 300
 const particles = []
 const numParticles = 40
 
-// Create particles
 for (let i = 0; i < numParticles; i++) {
   const angle = (i / numParticles) * Math.PI * 2
   const speed = 3 + Math.random() * 5
@@ -31,7 +29,6 @@ for (let i = 0; i < numParticles; i++) {
   })
 }
 
-// Animate with gravity and fade
 let frame = 0
 const interval = setInterval(() => {
   frame++
@@ -41,14 +38,12 @@ const interval = setInterval(() => {
     if (p.life <= 0) return
     allDead = false
 
-    // Physics
     p.x += p.vx
     p.y += p.vy
-    p.vy += 0.15  // gravity
-    p.vx *= 0.99  // drag
+    p.vy += 0.15
+    p.vx *= 0.99
     p.life -= 0.015
 
-    // Update position
     editor.updateShapes([{
       id: p.id,
       type: 'geo',

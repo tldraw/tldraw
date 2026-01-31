@@ -1,7 +1,6 @@
 export const name = 'Cloth Physics'
 
-export const code = `// Cloth simulation using verlet integration
-
+export const code = `
 const gridW = 8, gridH = 6
 const spacing = 25
 const startX = 300, startY = 80
@@ -9,7 +8,6 @@ const gravity = 0.4
 const damping = 0.98
 const iterations = 3
 
-// Create grid of points
 const points = []
 for (let y = 0; y < gridH; y++) {
   for (let x = 0; x < gridW; x++) {
@@ -18,28 +16,24 @@ for (let y = 0; y < gridH; y++) {
       y: startY + y * spacing,
       oldX: startX + x * spacing,
       oldY: startY + y * spacing,
-      pinned: y === 0  // top row is pinned
+      pinned: y === 0
     })
   }
 }
 
-// Create constraints (horizontal and vertical)
 const constraints = []
 for (let y = 0; y < gridH; y++) {
   for (let x = 0; x < gridW; x++) {
     const i = y * gridW + x
-    // Horizontal
     if (x < gridW - 1) {
       constraints.push({ a: i, b: i + 1, len: spacing })
     }
-    // Vertical
     if (y < gridH - 1) {
       constraints.push({ a: i, b: i + gridW, len: spacing })
     }
   }
 }
 
-// Create visual nodes
 const nodeIds = points.map((p, i) =>
   canvas.createCircle(p.x, p.y, p.pinned ? 5 : 3, {
     color: p.pinned ? 'red' : 'blue',
@@ -47,7 +41,6 @@ const nodeIds = points.map((p, i) =>
   })
 )
 
-// Create segments using beziers
 const segmentIds = constraints.map(c =>
   canvas.createBezier(points[c.a].x, points[c.a].y, {
     start: { x: 0, y: 0 },
@@ -61,11 +54,9 @@ let time = 0
 const interval = setInterval(() => {
   time += 0.02
 
-  // Wind force (oscillating)
   const windX = Math.sin(time * 2) * 0.8
   const windY = Math.cos(time * 1.5) * 0.3
 
-  // Verlet integration
   points.forEach(p => {
     if (p.pinned) return
 
@@ -79,7 +70,6 @@ const interval = setInterval(() => {
     p.y += vy + gravity + windY
   })
 
-  // Constraint satisfaction
   for (let iter = 0; iter < iterations; iter++) {
     constraints.forEach(c => {
       const p1 = points[c.a]
@@ -105,10 +95,8 @@ const interval = setInterval(() => {
     })
   }
 
-  // Update visuals
   const updates = []
 
-  // Update nodes
   points.forEach((p, i) => {
     const size = p.pinned ? 5 : 3
     updates.push({
@@ -119,14 +107,12 @@ const interval = setInterval(() => {
     })
   })
 
-  // Update segments
   constraints.forEach((c, i) => {
     const p1 = points[c.a]
     const p2 = points[c.b]
     const dx = p2.x - p1.x
     const dy = p2.y - p1.y
 
-    // Color based on tension (stretch)
     const dist = Math.sqrt(dx * dx + dy * dy)
     const tension = Math.abs(dist - c.len) / c.len
 

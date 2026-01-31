@@ -1,8 +1,6 @@
 export const name = 'Watercolor Mesh Sphere'
 
-export const code = `// 3D sphere with watercolor strokes connecting neighboring points
-// Creates an organic, painterly mesh surface
-
+export const code = `
 const cx = 400, cy = 300
 const scale3d = 160
 const cameraZ = 2.2
@@ -21,14 +19,12 @@ function rotateY({ x, y, z }, a) {
   return { x: x*c + z*s, y, z: -x*s + z*c }
 }
 
-// Generate latitude-longitude grid points
 const latSteps = 8
 const lonSteps = 12
 const colors = ['blue', 'light-blue', 'violet', 'light-violet', 'green']
 const shapeIds = []
 const connections = []
 
-// Build grid and connections
 const gridPoints = []
 for (let lat = 0; lat <= latSteps; lat++) {
   const phi = (lat / latSteps) * Math.PI
@@ -45,18 +41,15 @@ for (let lat = 0; lat <= latSteps; lat++) {
   gridPoints.push(row)
 }
 
-// Create connections (edges between neighboring points)
 for (let lat = 0; lat < latSteps; lat++) {
   for (let lon = 0; lon < lonSteps; lon++) {
     const nextLon = (lon + 1) % lonSteps
 
-    // Horizontal edge (same latitude)
     connections.push({
       from: { lat, lon },
       to: { lat, lon: nextLon }
     })
 
-    // Vertical edge (same longitude)
     if (lat < latSteps) {
       connections.push({
         from: { lat, lon },
@@ -66,7 +59,6 @@ for (let lat = 0; lat < latSteps; lat++) {
   }
 }
 
-// Create watercolor strokes for each connection
 for (let i = 0; i < connections.length; i++) {
   const id = canvas.createWatercolor([
     { x: cx, y: cy },
@@ -87,10 +79,8 @@ const interval = setInterval(() => {
   angleX += 0.004
   angleY += 0.009
 
-  // Breathing
   const breathe = 1 + 0.06 * Math.sin(time * 1.5)
 
-  // Transform all grid points
   const transformedGrid = gridPoints.map(row =>
     row.map(p => {
       let tp = {
@@ -115,14 +105,11 @@ const interval = setInterval(() => {
     const fromPt = transformedGrid[conn.from.lat][conn.from.lon]
     const toPt = transformedGrid[conn.to.lat][conn.to.lon]
 
-    // Average depth for opacity
     const avgDepth = (fromPt.depth + toPt.depth) / 2
     const depthFactor = 1 - (avgDepth / breathe + 1) / 2
 
-    // Create curved stroke between points
     const midX = (fromPt.screenX + toPt.screenX) / 2
     const midY = (fromPt.screenY + toPt.screenY) / 2
-    // Add slight curve based on time
     const curveOffset = Math.sin(time * 2 + i * 0.3) * 3
 
     const newPoints = [

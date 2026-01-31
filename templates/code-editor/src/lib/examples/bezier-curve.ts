@@ -1,24 +1,19 @@
 export const name = 'Bezier curve'
 
-export const code = `// Here's a flower made using bezier curves
-// Double-click any curve to edit it and drag the control handles!
+export const code = `
+const cx = 400
+const cy = 280
+const size = 120
 
-const cx = 400  // Center X
-const cy = 280  // Center Y
-const size = 120 // Petal size
-
-// Create 6 petals radiating from center
 for (let i = 0; i < 6; i++) {
   const angle = (i * Math.PI) / 3
   const nextAngle = angle + Math.PI / 3
 
-  // Direction vectors
   const dx = Math.cos(angle)
   const dy = Math.sin(angle)
   const ndx = Math.cos(nextAngle)
   const ndy = Math.sin(nextAngle)
 
-  // Each petal curves outward and back
   canvas.createBezier(cx, cy, {
     start: { x: 0, y: 0 },
     cp1: { x: dx * size * 1.8, y: dy * size * 1.8 },
@@ -27,7 +22,6 @@ for (let i = 0; i < 6; i++) {
   })
 }
 
-// Inner petals nested inside the outer ones
 for (let i = 0; i < 6; i++) {
   const angle = (i * Math.PI) / 3
   const nextAngle = angle + Math.PI / 3
@@ -37,7 +31,6 @@ for (let i = 0; i < 6; i++) {
   const ndx = Math.cos(nextAngle)
   const ndy = Math.sin(nextAngle)
 
-  // Smaller petal inside each outer petal
   canvas.createBezier(cx, cy, {
     start: { x: 0, y: 0 },
     cp1: { x: dx * size * 0.9, y: dy * size * 0.9 },

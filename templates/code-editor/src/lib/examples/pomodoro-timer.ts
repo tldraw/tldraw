@@ -1,18 +1,15 @@
 export const name = 'Pomodoro Timer'
 
-export const code = `// Pomodoro Timer - Click to start/pause, shift+click to reset
-
+export const code = `
 const cx = 400, cy = 280
 const radius = 120
 
-// Timer state
-let timeLeft = 25 * 60  // 25 minutes in seconds
+let timeLeft = 25 * 60
 let isWork = true
 let running = false
 const workTime = 25 * 60
 const breakTime = 5 * 60
 
-// Create visual elements
 const bgCircle = canvas.createCircle(cx, cy, radius + 10, { color: 'grey', fill: 'solid' })
 const progressCircle = canvas.createCircle(cx, cy, radius, { color: 'red', fill: 'solid' })
 const innerCircle = canvas.createCircle(cx, cy, radius - 15, { color: 'white', fill: 'solid' })
@@ -20,15 +17,12 @@ const timeText = canvas.createText(cx - 50, cy - 20, '25:00', { size: 'xl' })
 const modeText = canvas.createText(cx - 30, cy + 25, 'WORK', { size: 'm', color: 'red' })
 const instructionText = canvas.createText(cx - 80, cy + 100, 'Click to start/pause', { size: 's', color: 'grey' })
 
-// Session counter
 let workSessions = 0
 const sessionText = canvas.createText(cx - 40, cy - 80, 'Sessions: 0', { size: 's', color: 'grey' })
 
-// Click handler
 const canvasEl = document.querySelector('.tl-canvas')
 canvasEl?.addEventListener('click', (e) => {
   if (e.shiftKey) {
-    // Reset
     timeLeft = workTime
     isWork = true
     running = false
@@ -47,7 +41,6 @@ const interval = setInterval(() => {
   if (running && timeLeft > 0) {
     timeLeft--
   } else if (running && timeLeft === 0) {
-    // Switch modes
     if (isWork) {
       workSessions++
       timeLeft = breakTime

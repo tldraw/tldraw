@@ -1,7 +1,6 @@
 export const name = 'Mouse Attract'
 
-export const code = `// Move your mouse to attract particles!
-
+export const code = `
 const cx = 400, cy = 300
 const numParticles = 40
 
@@ -27,7 +26,6 @@ const particleIds = particles.map((p, i) =>
 
 canvas.createText(200, 30, 'Move mouse to attract, hold shift to repel!', { size: 'm', color: 'grey' })
 
-// Track mouse
 let mouseX = cx, mouseY = cy, shiftHeld = false
 const canvasEl = document.querySelector('.tl-canvas')
 
@@ -53,15 +51,12 @@ const interval = setInterval(() => {
       p.vy += (dy / dist) * force
     }
 
-    // Damping
     p.vx *= 0.96
     p.vy *= 0.96
 
-    // Move
     p.x += p.vx
     p.y += p.vy
 
-    // Soft bounds
     if (p.x < 50) p.vx += 0.5
     if (p.x > 750) p.vx -= 0.5
     if (p.y < 50) p.vy += 0.5

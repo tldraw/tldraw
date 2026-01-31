@@ -1,8 +1,6 @@
 export const name = 'Watercolor Spokes Sphere'
 
-export const code = `// 3D sphere with watercolor strokes radiating from center
-// Creates a painterly starburst effect
-
+export const code = `
 const cx = 200, cy = 300
 const scale3d = 120
 const cameraZ = 1.4
@@ -60,7 +58,6 @@ const interval = setInterval(() => {
   angleX += 0.005
   angleY += 0.01
 
-  // Pulsing effect
   const pulse = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * 2))
 
   const updates = shapeIds.map((id, i) => {
@@ -74,16 +71,13 @@ const interval = setInterval(() => {
     const screenX = cx + proj.x * scale3d
     const screenY = cy - proj.y * scale3d
 
-    // Depth affects opacity and spoke length
     const depth = 1 - (p.z + 1) / 2
     const spokeLength = pulse * depth
 
-    // Generate spoke points from center to surface
     const numPoints = 8
     const newPoints = []
     for (let j = 0; j < numPoints; j++) {
       const t = j / (numPoints - 1) * spokeLength
-      // Add slight wobble
       const wobble = Math.sin(time * 3 + i + j * 0.5) * 2
       newPoints.push({
         x: (screenX - cx) * t + wobble,

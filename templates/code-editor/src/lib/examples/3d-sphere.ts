@@ -1,7 +1,6 @@
 export const name = '3D Sphere'
 
-export const code = `// 3D sphere with breathing, flicker, and pattern fill
-
+export const code = `
 const cx = 400, cy = 300
 const scale3d = 100
 
@@ -19,7 +18,6 @@ function rotateY({ x, y, z }, a) {
   return { x: x*c + z*s, y, z: -x*s + z*c }
 }
 
-// Generate sphere points
 const points = []
 const radius = 1.0
 const latSteps = 10, lonSteps = 16
@@ -54,19 +52,15 @@ const interval = setInterval(() => {
   angleX += 0.012
   angleY += 0.018
 
-  // Breathing - sphere pulses
   const breathe = 1 + 0.15 * Math.sin(time * 2)
 
   const updates = shapeIds.map((id, i) => {
     const pt = points[i]
 
-    // Flicker - randomly hide some points
     const flicker = Math.random() > 0.12
 
-    // Apply breathing scale
     let p = { x: pt.x * breathe, y: pt.y * breathe, z: pt.z * breathe }
 
-    // Rotations
     p = rotateX(p, angleX)
     p = rotateY(p, angleY)
 
@@ -75,11 +69,9 @@ const interval = setInterval(() => {
     const screenX = cx + proj.x * scale3d
     const screenY = cy - proj.y * scale3d
 
-    // Depth for size/opacity
     const depth = 1 - (p.z / breathe + radius) / (radius * 2)
     const size = 2 + depth * 4
 
-    // Color shifts based on time and position
     const colorIdx = Math.floor(time + pt.lon * 0.5) % 6
 
     return {

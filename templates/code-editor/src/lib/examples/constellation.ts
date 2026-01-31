@@ -1,7 +1,6 @@
 export const name = 'Constellation'
 
-export const code = `// Draw a constellation with stars and connecting lines
-
+export const code = `
 const stars = [
   { x: 200, y: 100, size: 35, name: 'Polaris' },
   { x: 280, y: 180, size: 25 },
@@ -12,7 +11,6 @@ const stars = [
   { x: 220, y: 260, size: 24 },
 ]
 
-// Draw connecting lines first (so stars appear on top)
 const connections = [
   [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 0], [1, 6], [2, 4]
 ]
@@ -27,7 +25,6 @@ connections.forEach(([from, to]) => {
   })
 })
 
-// Create stars
 stars.forEach((star, i) => {
   const id = canvas.createStar(
     star.x - star.size / 2,
@@ -37,7 +34,6 @@ stars.forEach((star, i) => {
     { color: 'yellow', fill: 'solid' }
   )
 
-  // Add label for named stars
   if (star.name) {
     canvas.createText(star.x - 25, star.y - star.size - 15, star.name, {
       color: 'light-blue',
@@ -47,7 +43,6 @@ stars.forEach((star, i) => {
   }
 })
 
-// Add some background small stars
 for (let i = 0; i < 20; i++) {
   const x = 100 + Math.random() * 400
   const y = 50 + Math.random() * 350

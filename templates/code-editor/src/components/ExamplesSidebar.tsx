@@ -1,106 +1,35 @@
-import { useEffect, useRef, useState } from 'react'
 import { Example, examples } from '../lib/examples/index'
 
 interface ExamplesSidebarProps {
-	isOpen: boolean
-	onClose: () => void
 	onLoadExample: (name: string, code: string) => void
 	selectedExample: string | null
 }
 
 /**
- * Collapsible sidebar showing all available examples.
- * Opens from the left side of the code panel.
+ * Thin sidebar bar showing all available examples.
+ * Always visible on the left side of the code panel.
  */
-export function ExamplesSidebar({
-	isOpen,
-	onClose,
-	onLoadExample,
-	selectedExample,
-}: ExamplesSidebarProps) {
-	const sidebarRef = useRef<HTMLDivElement>(null)
-	const [searchQuery, setSearchQuery] = useState('')
-
-	// Close on escape key
-	useEffect(() => {
-		if (!isOpen) return
-		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') {
-				onClose()
-			}
-		}
-		document.addEventListener('keydown', handleKeyDown)
-		return () => document.removeEventListener('keydown', handleKeyDown)
-	}, [isOpen, onClose])
-
-	// Close when clicking outside
-	useEffect(() => {
-		if (!isOpen) return
-		function handleClickOutside(e: MouseEvent) {
-			if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
-				onClose()
-			}
-		}
-		// Use timeout to avoid immediate close from the button click that opened it
-		const timeout = setTimeout(() => {
-			document.addEventListener('click', handleClickOutside)
-		}, 0)
-		return () => {
-			clearTimeout(timeout)
-			document.removeEventListener('click', handleClickOutside)
-		}
-	}, [isOpen, onClose])
-
-	// Filter examples by search query
-	const filteredExamples = examples.filter((example) =>
-		example.name.toLowerCase().includes(searchQuery.toLowerCase())
-	)
-
+export function ExamplesSidebar({ onLoadExample, selectedExample }: ExamplesSidebarProps) {
 	// Group examples by category based on naming patterns
-	const categorizedExamples = categorizeExamples(filteredExamples)
+	const categorizedExamples = categorizeExamples(examples)
 
 	return (
-		<div className={`examples-sidebar ${isOpen ? 'open' : ''}`} ref={sidebarRef}>
-			<div className="examples-sidebar-header">
-				<h2>Examples</h2>
-				<button className="examples-sidebar-close" onClick={onClose} title="Close (Esc)">
-					<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-						<path d="M1.4 14L0 12.6L5.6 7L0 1.4L1.4 0L7 5.6L12.6 0L14 1.4L8.4 7L14 12.6L12.6 14L7 8.4L1.4 14Z" />
-					</svg>
-				</button>
-			</div>
-
-			<div className="examples-sidebar-search">
-				<input
-					type="text"
-					placeholder="Search examples..."
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
-					autoFocus
-				/>
-			</div>
-
+		<div className="examples-sidebar">
 			<div className="examples-sidebar-content">
 				{Object.entries(categorizedExamples).map(([category, categoryExamples]) => (
 					<div key={category} className="examples-category">
 						<div className="examples-category-header">{category}</div>
-						<div className="examples-category-list">
-							{categoryExamples.map((example) => (
-								<button
-									key={example.name}
-									className={`examples-item ${example.name === selectedExample ? 'selected' : ''}`}
-									onClick={() => {
-										onLoadExample(example.name, example.code)
-										onClose()
-									}}
-								>
-									{example.name}
-								</button>
-							))}
-						</div>
+						{categoryExamples.map((example) => (
+							<button
+								key={example.name}
+								className={`examples-item ${example.name === selectedExample ? 'selected' : ''}`}
+								onClick={() => onLoadExample(example.name, example.code)}
+							>
+								{example.name}
+							</button>
+						))}
 					</div>
 				))}
-				{filteredExamples.length === 0 && <div className="examples-empty">No examples found</div>}
 			</div>
 		</div>
 	)

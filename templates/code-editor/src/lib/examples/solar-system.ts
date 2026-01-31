@@ -1,25 +1,21 @@
 export const name = 'Solar system'
 
-export const code = `// Animated solar system with orbiting planets
-
+export const code = `
 const cx = 400, cy = 300
 
-// Create the sun
 canvas.createCircle(cx, cy, 50, {
   color: 'yellow',
   fill: 'solid'
 })
 
-// Planet data: distance, size, speed, color
 const planets = [
-  { dist: 90, size: 12, speed: 0.03, color: 'grey' },      // Mercury
-  { dist: 130, size: 18, speed: 0.022, color: 'orange' },  // Venus
-  { dist: 180, size: 20, speed: 0.018, color: 'blue' },    // Earth
-  { dist: 230, size: 16, speed: 0.014, color: 'red' },     // Mars
-  { dist: 300, size: 35, speed: 0.008, color: 'orange' },  // Jupiter
+  { dist: 90, size: 12, speed: 0.03, color: 'grey' },
+  { dist: 130, size: 18, speed: 0.022, color: 'orange' },
+  { dist: 180, size: 20, speed: 0.018, color: 'blue' },
+  { dist: 230, size: 16, speed: 0.014, color: 'red' },
+  { dist: 300, size: 35, speed: 0.008, color: 'orange' },
 ]
 
-// Create planets with initial positions
 const planetIds = planets.map((p, i) => {
   const x = cx + p.dist
   return canvas.createCircle(x, cy, p.size, {
@@ -28,7 +24,6 @@ const planetIds = planets.map((p, i) => {
   })
 })
 
-// Draw orbit paths (subtle rings)
 planets.forEach(p => {
   canvas.createCircle(cx, cy, p.dist, {
     color: 'grey',
@@ -37,7 +32,6 @@ planets.forEach(p => {
   })
 })
 
-// Animate orbits
 let time = 0
 const interval = setInterval(() => {
   time += 1

@@ -1,16 +1,13 @@
 export const name = 'Turing Machine'
 
-export const code = `// Turing Machine - binary increment
-
+export const code = `
 const tapeLen = 21
 const cellSize = 32
 const startX = 100, startY = 200
 
-// Tape: starts with binary number (e.g., 1011 = 11)
 const tape = Array(tapeLen).fill('0')
-tape[10] = '1'; tape[11] = '0'; tape[12] = '1'; tape[13] = '1'  // 1011
+tape[10] = '1'; tape[11] = '0'; tape[12] = '1'; tape[13] = '1'
 
-// Create tape cells
 const cellIds = []
 for (let i = 0; i < tapeLen; i++) {
   cellIds[i] = canvas.createRect(
@@ -20,7 +17,6 @@ for (let i = 0; i < tapeLen; i++) {
   )
 }
 
-// Create tape symbols
 const symbolIds = []
 for (let i = 0; i < tapeLen; i++) {
   symbolIds[i] = canvas.createText(
@@ -30,54 +26,48 @@ for (let i = 0; i < tapeLen; i++) {
   )
 }
 
-// Head indicator
 const headId = canvas.createTriangle(
   startX + 10 * cellSize, startY - 30,
   cellSize - 2, 25,
   { color: 'red', fill: 'solid' }
 )
 
-// State display
 const stateId = canvas.createText(
   startX, startY - 60,
   'State: scanRight',
   { size: 'm', color: 'black' }
 )
 
-// Machine state
-let head = 10  // start at leftmost 1
+let head = 10
 let state = 'scanRight'
 let halted = false
 
-// Transition function for binary increment
-// Scans right to end, then carries back left
 function step() {
   const sym = tape[head]
 
   if (state === 'scanRight') {
     if (sym === '1' || sym === '0') {
-      head++  // move right
+      head++
     } else {
-      head--  // found blank, go back
+      head--
       state = 'carry'
     }
   } else if (state === 'carry') {
     if (sym === '1') {
-      tape[head] = '0'  // 1 + 1 = 10, write 0, carry
+      tape[head] = '0'
       head--
     } else if (sym === '0') {
-      tape[head] = '1'  // 0 + 1 = 1, done
+      tape[head] = '1'
       state = 'halt'
       halted = true
     } else {
-      tape[head] = '1'  // blank + carry = 1
+      tape[head] = '1'
       state = 'halt'
       halted = true
     }
   }
 }
 
-// Animation
 const interval = setInterval(() => {
   if (halted) {
     clearInterval(interval)
@@ -86,31 +76,26 @@ const interval = setInterval(() => {
 
   step()
 
-  // Update visuals
   const updates = []
 
-  // Update head position
   updates.push({
     id: headId,
     type: 'geo',
     x: startX + head * cellSize
   })
 
-  // Update state display
   editor.updateShapes([{
     id: stateId,
     type: 'text',
     props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'State: ' + state }] }] } }
   }])
 
-  // Update tape symbols and highlight current cell
   for (let i = 0; i < tapeLen; i++) {
     updates.push({
       id: cellIds[i],
       type: 'geo',
       props: { color: i === head ? 'yellow' : 'light-blue' }
     })
-    // Update symbol text
     editor.updateShapes([{
       id: symbolIds[i],
       type: 'text',

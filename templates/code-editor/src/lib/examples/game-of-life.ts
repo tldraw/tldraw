@@ -1,12 +1,10 @@
 export const name = 'Game of Life'
 
-export const code = `// Conway's Game of Life cellular automaton
-
+export const code = `
 const cols = 20, rows = 15
 const cellSize = 22
 const startX = 150, startY = 100
 
-// Initialize grid with random state
 let grid = []
 for (let y = 0; y < rows; y++) {
   grid[y] = []
@@ -15,7 +13,6 @@ for (let y = 0; y < rows; y++) {
   }
 }
 
-// Create cell shapes
 const cellIds = []
 for (let y = 0; y < rows; y++) {
   cellIds[y] = []
@@ -34,13 +31,12 @@ for (let y = 0; y < rows; y++) {
   }
 }
 
-// Count live neighbors
 function countNeighbors(g, x, y) {
   let count = 0
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
       if (dx === 0 && dy === 0) continue
-      const ny = (y + dy + rows) % rows  // wrap around
+      const ny = (y + dy + rows) % rows
       const nx = (x + dx + cols) % cols
       count += g[ny][nx]
     }
@@ -48,7 +44,6 @@ function countNeighbors(g, x, y) {
   return count
 }
 
-// Compute next generation
 function nextGen() {
   const next = []
   for (let y = 0; y < rows; y++) {
@@ -58,18 +53,17 @@ function nextGen() {
       const alive = grid[y][x]
 
       if (alive && (neighbors === 2 || neighbors === 3)) {
-        next[y][x] = 1  // survives
+        next[y][x] = 1
       } else if (!alive && neighbors === 3) {
-        next[y][x] = 1  // birth
+        next[y][x] = 1
       } else {
-        next[y][x] = 0  // dies
+        next[y][x] = 0
       }
     }
   }
   return next
 }
 
-// Animation loop
 const colors = ['light-blue', 'blue', 'violet', 'green']
 let generation = 0
 
@@ -77,7 +71,6 @@ const interval = setInterval(() => {
   generation++
   grid = nextGen()
 
-  // Update cell visibility
   const updates = []
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {

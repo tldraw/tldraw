@@ -1,10 +1,8 @@
 export const name = 'Clock'
 
-export const code = `// An animated analog clock
-
+export const code = `
 const cx = 400, cy = 300, radius = 150
 
-// Clock face
 canvas.createCircle(cx, cy, radius, {
   color: 'black',
   fill: 'none',
@@ -15,7 +13,6 @@ canvas.createCircle(cx, cy, radius - 10, {
   fill: 'solid'
 })
 
-// Hour markers
 for (let i = 0; i < 12; i++) {
   const angle = (i / 12) * Math.PI * 2 - Math.PI / 2
   const inner = radius - 30
@@ -29,7 +26,6 @@ for (let i = 0; i < 12; i++) {
   )
 }
 
-// Create clock hands (we'll update these)
 const hourHand = canvas.createArrow(cx, cy, cx, cy - 60, {
   color: 'black', size: 'xl',
   arrowheadStart: 'none', arrowheadEnd: 'none'
@@ -43,10 +39,8 @@ const secondHand = canvas.createArrow(cx, cy, cx, cy - 110, {
   arrowheadStart: 'none', arrowheadEnd: 'none'
 })
 
-// Center dot
 canvas.createCircle(cx, cy, 8, { color: 'black', fill: 'solid' })
 
-// Update hands every second
 const updateClock = () => {
   const now = new Date()
   const seconds = now.getSeconds()

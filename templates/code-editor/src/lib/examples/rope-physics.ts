@@ -1,15 +1,13 @@
 export const name = 'Rope Physics'
 
-export const code = `// Verlet integration rope simulation
-
+export const code = `
 const anchorX = 400, anchorY = 100
 const numPoints = 15
 const segmentLen = 20
 const gravity = 0.5
 const damping = 0.99
-const iterations = 5  // constraint iterations for stability
+const iterations = 5
 
-// Create points with verlet positions (current and previous)
 const points = []
 for (let i = 0; i < numPoints; i++) {
   points.push({
@@ -17,11 +15,10 @@ for (let i = 0; i < numPoints; i++) {
     y: anchorY + i * segmentLen,
     oldX: anchorX,
     oldY: anchorY + i * segmentLen,
-    pinned: i === 0  // first point is fixed
+    pinned: i === 0
   })
 }
 
-// Create visual elements
 const nodeIds = points.map((p, i) =>
   canvas.createCircle(p.x, p.y, i === 0 ? 8 : 5, {
     color: i === 0 ? 'red' : 'orange',
@@ -29,7 +26,6 @@ const nodeIds = points.map((p, i) =>
   })
 )
 
-// Rope segments using bezier curves
 const segmentIds = []
 for (let i = 0; i < numPoints - 1; i++) {
   segmentIds.push(canvas.createBezier(points[i].x, points[i].y, {
@@ -40,7 +36,6 @@ for (let i = 0; i < numPoints - 1; i++) {
   }))
 }
 
-// Mouse interaction
 let mouseX = anchorX, mouseY = anchorY + numPoints * segmentLen
 const canvasEl = document.querySelector('.tl-canvas')
 canvasEl?.addEventListener('mousemove', (e) => {
@@ -50,7 +45,6 @@ canvasEl?.addEventListener('mousemove', (e) => {
   mouseY = (e.clientY - rect.top) / camera.z - camera.y
 })
 
-// Add weight at bottom
 const weightId = canvas.createCircle(anchorX, anchorY + numPoints * segmentLen, 15, {
   color: 'blue',
   fill: 'solid'
@@ -60,13 +54,11 @@ let time = 0
 const interval = setInterval(() => {
   time += 0.05
 
-  // Gently move anchor point in a circle
   const newAnchorX = 400 + Math.sin(time) * 80
   const newAnchorY = 100 + Math.cos(time * 0.7) * 30
   points[0].x = newAnchorX
   points[0].y = newAnchorY
 
-  // Verlet integration - update positions
   points.forEach(p => {
     if (p.pinned) return
 
@@ -80,7 +72,6 @@ const interval = setInterval(() => {
     p.y += vy + gravity
   })
 
-  // Satisfy distance constraints (multiple iterations)
   for (let iter = 0; iter < iterations; iter++) {
     for (let i = 0; i < numPoints - 1; i++) {
       const p1 = points[i]
@@ -106,10 +97,8 @@ const interval = setInterval(() => {
     }
   }
 
-  // Update visuals
   const updates = []
 
-  // Update nodes
   points.forEach((p, i) => {
     const size = i === 0 ? 8 : 5
     updates.push({
@@ -120,7 +109,6 @@ const interval = setInterval(() => {
     })
   })
 
-  // Update rope segments
   for (let i = 0; i < numPoints - 1; i++) {
     const p1 = points[i]
     const p2 = points[i + 1]
@@ -141,7 +129,6 @@ const interval = setInterval(() => {
     })
   }
 
-  // Update weight at end
   const lastPoint = points[points.length - 1]
   updates.push({
     id: weightId,

@@ -1,23 +1,20 @@
 export const name = 'Tetris'
 
-export const code = `// Tetris - Arrow keys to move/rotate, Down to drop faster
-
+export const code = `
 const cols = 10, rows = 20
 const cellSize = 22
 const startX = 250, startY = 50
 
-// Tetromino shapes and colors
 const pieces = [
-  { shape: [[1,1,1,1]], color: 'light-blue' },           // I
-  { shape: [[1,1],[1,1]], color: 'yellow' },             // O
-  { shape: [[0,1,0],[1,1,1]], color: 'violet' },         // T
-  { shape: [[0,1,1],[1,1,0]], color: 'green' },          // S
-  { shape: [[1,1,0],[0,1,1]], color: 'red' },            // Z
-  { shape: [[1,0,0],[1,1,1]], color: 'blue' },           // L
-  { shape: [[0,0,1],[1,1,1]], color: 'orange' }          // J
+  { shape: [[1,1,1,1]], color: 'light-blue' },
+  { shape: [[1,1],[1,1]], color: 'yellow' },
+  { shape: [[0,1,0],[1,1,1]], color: 'violet' },
+  { shape: [[0,1,1],[1,1,0]], color: 'green' },
+  { shape: [[1,1,0],[0,1,1]], color: 'red' },
+  { shape: [[1,0,0],[1,1,1]], color: 'blue' },
+  { shape: [[0,0,1],[1,1,1]], color: 'orange' }
 ]
 
-// Create grid cells
 const cellIds = []
 for (let y = 0; y < rows; y++) {
   cellIds[y] = []
@@ -30,14 +27,12 @@ for (let y = 0; y < rows; y++) {
   }
 }
 
-// Game state
 const grid = Array(rows).fill(null).map(() => Array(cols).fill(null))
 let current = null
 let curX = 0, curY = 0
 let score = 0
 let gameOver = false
 
-// Score display
 const scoreId = canvas.createText(startX, startY - 30, 'Score: 0', { size: 'm' })
 
 function newPiece() {
@@ -93,7 +88,6 @@ function clearLines() {
   score += [0, 100, 300, 500, 800][cleared]
 }
 
-// Controls
 document.addEventListener('keydown', (e) => {
   if (gameOver || !current) return
   if (e.key === 'ArrowLeft' && !collides(curX - 1, curY, current.shape)) curX--
@@ -113,7 +107,6 @@ function render() {
       let color = grid[y][x]
       let fill = color ? 'solid' : 'none'
 
-      // Draw current piece
       if (current) {
         const py = y - curY, px = x - curX
         if (py >= 0 && py < current.shape.length && px >= 0 && px < current.shape[0].length) {

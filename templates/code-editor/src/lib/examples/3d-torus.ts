@@ -1,7 +1,6 @@
 export const name = '3D Torus'
 
-export const code = `// Rotating 3D torus (donut) with perspective projection
-
+export const code = `
 const cx = 400, cy = 300
 const scale3d = 100
 
@@ -19,10 +18,9 @@ function rotateY({ x, y, z }, a) {
   return { x: x*c + z*s, y, z: -x*s + z*c }
 }
 
-// Generate torus points
 const points = []
-const R = 1.0   // major radius (center of tube to center of torus)
-const r = 0.4  // minor radius (tube radius)
+const R = 1.0
+const r = 0.4
 const uSteps = 24, vSteps = 12
 
 for (let u = 0; u < uSteps; u++) {
@@ -34,14 +32,12 @@ for (let u = 0; u < uSteps; u++) {
       x: (R + r * Math.cos(phi)) * Math.cos(theta),
       y: r * Math.sin(phi),
       z: (R + r * Math.cos(phi)) * Math.sin(theta),
-      u, v  // store for coloring
+      u, v
     })
   }
 }
 
-// Create shapes
 const shapeIds = points.map((p, i) => {
-  // Color based on position on torus
   const hueIdx = p.u % 6
   const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
   return canvas.createCircle(cx, cy, 3, {
@@ -67,7 +63,6 @@ const interval = setInterval(() => {
     const screenX = cx + proj.x * scale3d
     const screenY = cy - proj.y * scale3d
 
-    // Depth-based size and opacity
     const depth = (pt.z + R + r) / (2 * (R + r))
     const size = 2 + (1 - depth) * 5
     const opacity = 0.3 + (1 - depth) * 0.7

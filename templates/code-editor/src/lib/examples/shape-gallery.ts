@@ -1,7 +1,6 @@
 export const name = 'Shape gallery'
 
-export const code = `// A gallery showcasing all available shapes
-
+export const code = `
 const shapes = [
   { fn: 'createRect', args: [0, 0, 80, 80], label: 'Rectangle' },
   { fn: 'createCircle', args: [140, 40, 40], label: 'Circle' },
@@ -22,13 +21,11 @@ const shapes = [
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet', 'light-blue']
 
 shapes.forEach((shape, i) => {
-  // Create shape
   canvas[shape.fn](...shape.args, {
     color: colors[i % colors.length],
     fill: 'solid'
   })
 
-  // Add label below
   const x = shape.args[0]
   const y = shape.args[1] + (shape.args[3] || shape.args[2] * 2) + 5
   canvas.createText(x, y, shape.label, {
@@ -37,7 +34,6 @@ shapes.forEach((shape, i) => {
   })
 })
 
-// Add arrows section
 canvas.createText(220, 340, 'Arrow Styles:', { size: 'm' })
 const arrowStyles = ['arrow', 'triangle', 'diamond', 'dot', 'bar']
 arrowStyles.forEach((style, i) => {

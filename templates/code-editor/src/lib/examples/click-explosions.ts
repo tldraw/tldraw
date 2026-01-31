@@ -1,7 +1,6 @@
 export const name = 'Click Explosions'
 
-export const code = `// Click anywhere to create explosions!
-
+export const code = `
 const cx = 400, cy = 300
 const maxParticles = 60
 
@@ -10,7 +9,6 @@ const particleIds = []
 
 const colors = ['red', 'orange', 'yellow', 'light-green', 'light-blue', 'violet']
 
-// Pre-create particle shapes
 for (let i = 0; i < maxParticles; i++) {
   particleIds.push(canvas.createCircle(cx, cy, 4, {
     color: colors[i % colors.length],
@@ -21,7 +19,6 @@ for (let i = 0; i < maxParticles; i++) {
 
 canvas.createText(250, 30, 'Click to create explosions!', { size: 'm', color: 'grey' })
 
-// Click handler
 const canvasEl = document.querySelector('.tl-canvas')
 let nextParticle = 0
 
@@ -31,7 +28,6 @@ canvasEl?.addEventListener('click', (e) => {
   const clickX = (e.clientX - rect.left) / camera.z - camera.x
   const clickY = (e.clientY - rect.top) / camera.z - camera.y
 
-  // Spawn burst of particles
   for (let i = 0; i < 12; i++) {
     const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.3
     const speed = 4 + Math.random() * 6
@@ -50,7 +46,7 @@ const interval = setInterval(() => {
 
   particles.forEach((p, i) => {
     if (p.life > 0) {
-      p.vy += 0.15  // gravity
+      p.vy += 0.15
       p.vx *= 0.98
       p.vy *= 0.98
       p.x += p.vx

@@ -1,13 +1,11 @@
 export const name = 'Whack-a-Mole'
 
-export const code = `// Whack-a-Mole - Click the moles!
-
+export const code = `
 const gridCols = 3, gridRows = 3
 const holeSize = 80
 const spacing = 100
 const startX = 220, startY = 120
 
-// Create holes and moles
 const holes = []
 const moleIds = []
 const holeIds = []
@@ -17,29 +15,24 @@ for (let r = 0; r < gridRows; r++) {
     const x = startX + c * spacing
     const y = startY + r * spacing
 
-    // Hole (dark ellipse)
     holeIds.push(canvas.createEllipse(x + holeSize/2, y + holeSize/2 + 15, holeSize, 30, {
       color: 'black', fill: 'solid'
     }))
 
-    // Mole (circle that pops up)
     const moleId = canvas.createCircle(x + holeSize/2, y + holeSize/2, holeSize/2 - 5, {
       color: 'orange', fill: 'solid'
     })
     moleIds.push(moleId)
 
-    // Eyes
     canvas.createCircle(x + holeSize/2 - 12, y + holeSize/2 - 8, 6, { color: 'black', fill: 'solid' })
     canvas.createCircle(x + holeSize/2 + 12, y + holeSize/2 - 8, 6, { color: 'black', fill: 'solid' })
 
-    // Nose
     canvas.createCircle(x + holeSize/2, y + holeSize/2 + 5, 8, { color: 'red', fill: 'solid' })
 
     holes.push({ x, y, active: false, timer: 0 })
   }
 }
 
-// Score and timer
 let score = 0
 let timeLeft = 30
 let gameOver = false
@@ -47,12 +40,10 @@ let gameOver = false
 const scoreId = canvas.createText(startX, startY - 60, 'Score: 0', { size: 'l' })
 const timerId = canvas.createText(startX + 180, startY - 60, 'Time: 30', { size: 'l' })
 
-// Hide all moles initially
 moleIds.forEach(id => {
   editor.updateShapes([{ id, type: 'geo', opacity: 0 }])
 })
 
-// Click detection
 const canvasEl = document.querySelector('.tl-canvas')
 const clickHandler = (e) => {
   if (gameOver) return
@@ -60,7 +51,6 @@ const clickHandler = (e) => {
   const rect = canvasEl?.getBoundingClientRect()
   if (!rect) return
 
-  // Get camera for coordinate transform
   const camera = canvas.getCamera()
   const clickX = (e.clientX - rect.left) / camera.z - camera.x
   const clickY = (e.clientY - rect.top) / camera.z - camera.y
@@ -73,7 +63,6 @@ const clickHandler = (e) => {
     const dist = Math.sqrt((clickX - moleCenterX) ** 2 + (clickY - moleCenterY) ** 2)
 
     if (dist < holeSize/2) {
-      // Whacked!
       hole.active = false
       score += 10
       editor.updateShapes([{ id: moleIds[i], type: 'geo', opacity: 0 }])
@@ -82,11 +71,9 @@ const clickHandler = (e) => {
 }
 document.addEventListener('click', clickHandler)
 
-// Game loop
 const interval = setInterval(() => {
   if (gameOver) return
 
-  // Countdown
   timeLeft -= 0.1
   if (timeLeft <= 0) {
     gameOver = true
@@ -97,18 +84,16 @@ const interval = setInterval(() => {
     return
   }
 
-  // Random mole popup
   if (Math.random() < 0.08) {
     const inactiveHoles = holes.map((h, i) => ({ h, i })).filter(x => !x.h.active)
     if (inactiveHoles.length > 0) {
       const { h, i } = inactiveHoles[Math.floor(Math.random() * inactiveHoles.length)]
       h.active = true
-      h.timer = 15 + Math.random() * 15  // visible for 1.5-3 seconds
+      h.timer = 15 + Math.random() * 15
       editor.updateShapes([{ id: moleIds[i], type: 'geo', opacity: 1 }])
     }
   }
 
-  // Update mole timers
   holes.forEach((hole, i) => {
     if (hole.active) {
       hole.timer -= 1
@@ -119,7 +104,6 @@ const interval = setInterval(() => {
     }
   })
 
-  // Update display
   editor.updateShapes([
     { id: scoreId, type: 'text', props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Score: ' + score }] }] } } },
     { id: timerId, type: 'text', props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Time: ' + Math.ceil(timeLeft) }] }] } } }

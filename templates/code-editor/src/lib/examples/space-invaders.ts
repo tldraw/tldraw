@@ -1,14 +1,11 @@
 export const name = 'Space Invaders'
 
-export const code = `// Space Invaders - Arrow keys to move, Space to shoot
-
+export const code = `
 const fieldW = 400, fieldH = 400
 const startX = 200, startY = 50
 
-// Draw field
 canvas.createFrame(startX, startY, fieldW, fieldH, { name: 'Space Invaders' })
 
-// Create aliens (5 rows x 8 cols)
 const alienRows = 5, alienCols = 8
 const alienW = 30, alienH = 20
 const aliens = []
@@ -27,7 +24,6 @@ for (let r = 0; r < alienRows; r++) {
   }
 }
 
-// Player
 const playerW = 40, playerH = 15
 let playerX = fieldW / 2 - playerW / 2
 const playerY = fieldH - 40
@@ -37,7 +33,6 @@ const playerId = canvas.createRect(
   { color: 'green', fill: 'solid' }
 )
 
-// Bullets
 const bullets = []
 const bulletIds = []
 for (let i = 0; i < 10; i++) {
@@ -45,17 +40,14 @@ for (let i = 0; i < 10; i++) {
   bullets.push({ x: 0, y: 0, active: false })
 }
 
-// Score
 let score = 0
 let gameOver = false
 const scoreId = canvas.createText(startX, startY - 25, 'Score: 0', { size: 'm' })
 
-// Alien movement
 let alienDir = 1
 let alienSpeed = 1.5
 let alienDropCounter = 0
 
-// Controls
 const keys = {}
 document.addEventListener('keydown', (e) => {
   keys[e.key] = true
@@ -73,11 +65,9 @@ document.addEventListener('keyup', (e) => { keys[e.key] = false })
 const interval = setInterval(() => {
   if (gameOver) return
 
-  // Move player
   if (keys['ArrowLeft']) playerX = Math.max(0, playerX - 5)
   if (keys['ArrowRight']) playerX = Math.min(fieldW - playerW, playerX + 5)
 
-  // Move aliens
   let hitEdge = false
   aliens.forEach(a => {
     if (!a.alive) return
@@ -91,7 +81,6 @@ const interval = setInterval(() => {
     alienSpeed += 0.2
   }
 
-  // Move bullets
   bullets.forEach(b => {
     if (b.active) {
       b.y -= 8
@@ -99,7 +88,6 @@ const interval = setInterval(() => {
     }
   })
 
-  // Bullet-alien collision
   bullets.forEach(b => {
     if (!b.active) return
     aliens.forEach((a, i) => {
@@ -112,7 +100,6 @@ const interval = setInterval(() => {
     })
   })
 
-  // Check win/lose
   const aliveAliens = aliens.filter(a => a.alive)
   if (aliveAliens.length === 0) {
     canvas.createText(startX + 120, startY + fieldH / 2, 'YOU WIN!', { size: 'xl', color: 'green' })
@@ -123,7 +110,6 @@ const interval = setInterval(() => {
     gameOver = true
   }
 
-  // Render
   const updates = [
     { id: playerId, type: 'geo', x: startX + playerX },
     { id: scoreId, type: 'text', props: { richText: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Score: ' + score }] }] } } }

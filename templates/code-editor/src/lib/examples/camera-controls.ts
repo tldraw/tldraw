@@ -1,12 +1,10 @@
 export const name = 'Camera controls'
 
-export const code = `// Generate shapes and get camera to follow
-
+export const code = `
 const centerX = 400
 const centerY = 300
 const radius = 180
 
-// Order shapes in a pentagon formation
 const shapes = [
   { angle: -90, geo: 'diamond', color: 'violet', size: 50 },
   { angle: -18, geo: 'hexagon', color: 'blue', size: 55 },
@@ -15,13 +13,11 @@ const shapes = [
   { angle: 198, geo: 'pentagon', color: 'red', size: 58 },
 ]
 
-// Start super zoomed in on first shape position
 const firstAngle = shapes[0].angle * (Math.PI / 180)
 const firstX = centerX + Math.cos(firstAngle) * radius
 const firstY = centerY + Math.sin(firstAngle) * radius
 canvas.setCamera({ x: -firstX + 300, y: -firstY + 200, z: 4 })
 
-// Sequentially create shapes and follow with camera
 let delay = 300
 shapes.forEach((shape, i) => {
   setTimeout(() => {
@@ -35,7 +31,6 @@ shapes.forEach((shape, i) => {
       geo: shape.geo
     })
 
-    // Snappy camera animation
     setTimeout(() => {
       canvas.centerOnPoint(
         { x: x + shape.size / 2, y: y + shape.size / 2 },
@@ -46,7 +41,6 @@ shapes.forEach((shape, i) => {
   delay += 350
 })
 
-// Zoom out at the end to reveal the pentagon formation
 setTimeout(() => {
   canvas.zoomToFit({ animation: { duration: 500 } })
 }, delay + 200)`

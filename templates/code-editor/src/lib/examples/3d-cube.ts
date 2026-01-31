@@ -1,9 +1,8 @@
 export const name = '3D Cube'
 
-export const code = `// Rotating 3D wireframe cube with perspective projection
-
+export const code = `
 const cx = 400, cy = 300
-const scale3d = 80  // smaller scale
+const scale3d = 80
 
 function project({ x, y, z }) {
   return { x: x / z, y: y / z }
@@ -24,7 +23,6 @@ function rotateZ({ x, y, z }, a) {
   return { x: x*c - y*s, y: x*s + y*c, z }
 }
 
-// Cube vertices (centered at origin)
 const size = 1
 const vertices = [
   { x: -size, y: -size, z: -size },
@@ -37,14 +35,12 @@ const vertices = [
   { x: -size, y:  size, z:  size },
 ]
 
-// Edges connect vertex indices
 const edges = [
-  [0,1], [1,2], [2,3], [3,0],  // back face
-  [4,5], [5,6], [6,7], [7,4],  // front face
-  [0,4], [1,5], [2,6], [3,7],  // connecting edges
+  [0,1], [1,2], [2,3], [3,0],
+  [4,5], [5,6], [6,7], [7,4],
+  [0,4], [1,5], [2,6], [3,7],
 ]
 
-// Create vertex dots only (simpler approach)
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet', 'light-blue', 'light-green']
 const vertexIds = vertices.map((_, i) =>
   canvas.createCircle(cx, cy, 4, {
@@ -53,7 +49,6 @@ const vertexIds = vertices.map((_, i) =>
   })
 )
 
-// Create edge lines using bezier curves (more reliable for updates)
 const edgeIds = edges.map((_, i) =>
   canvas.createBezier(cx, cy, {
     start: { x: 0, y: 0 },
@@ -71,7 +66,6 @@ const interval = setInterval(() => {
   angleY += 0.024
   angleZ += 0.01
 
-  // Transform all vertices
   const transformed = vertices.map(v => {
     let p = rotateX(v, angleX)
     p = rotateY(p, angleY)
@@ -79,7 +73,6 @@ const interval = setInterval(() => {
     return p
   })
 
-  // Project vertices to screen
   const projected = transformed.map(p => {
     const z = p.z + cameraZ
     const proj = project({ x: p.x, y: p.y, z })
@@ -90,7 +83,6 @@ const interval = setInterval(() => {
     }
   })
 
-  // Update vertices with depth-based size
   const vertexUpdates = projected.map((p, i) => {
     const depthFactor = (transformed[i].z + size) / (size * 2)
     const dotSize = 3 + (1 - depthFactor) * 5
@@ -104,7 +96,6 @@ const interval = setInterval(() => {
     }
   })
 
-  // Update edges as straight bezier lines
   const edgeUpdates = edges.map(([i, j], idx) => {
     const p1 = projected[i], p2 = projected[j]
     const dx = p2.x - p1.x, dy = p2.y - p1.y
