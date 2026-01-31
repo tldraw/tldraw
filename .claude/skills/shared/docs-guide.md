@@ -16,6 +16,18 @@ Start with a clear, direct definition:
 
 > In tldraw, persistence means storing information about the editor's state to a database and then restoring it later.
 
+**One concept per sentence.** If your opening packs definition, use cases, and API references together, split it:
+
+**Don't:**
+
+> The scribble system draws temporary freehand paths for pointer-based interactions, used for visual feedback during erasing, laser drawing, or scribble-brush selection, accessed through Editor#scribbles.
+
+**Do:**
+
+> The scribble system draws temporary freehand paths for pointer-based interactions. Use scribbles to show visual feedback during tool operations like erasing, laser pointer drawing, or scribble-brush selection.
+
+The API reference can come after the opening paragraph or inline where first relevant.
+
 ### Concept, explanation, code
 
 Every concept should be followed by a working example:
@@ -191,8 +203,20 @@ The reader learns from seeing our approach, not from being told what to do.
 
 1. **Accuracy** — Code must work. API refs must be correct.
 2. **Clarity** — Understand on first read.
-3. **Brevity** — Say it once, move on.
+3. **Brevity** — Say it once, move on. Cut sections that repeat what's already shown elsewhere.
 4. **Scannability** — Short paragraphs, clear headers, lots of code.
+
+### Avoid redundant sections
+
+If detailed examples already demonstrate a pattern, don't repeat the same information in a "Common use cases" section with shorter snippets. Either:
+
+- Keep only the detailed examples (preferred)
+- Keep only the quick-reference snippets
+- Ensure each section adds genuinely new information
+
+**Don't:** Show a complete eraser implementation, then have a "Common use cases > Eraser" section with the same code trimmed down.
+
+**Do:** Show complete implementations once. If you need a quick-reference section, make it a table pointing to the detailed examples.
 
 ## Evaluation checklist
 

@@ -79,6 +79,8 @@ VOICE - How well does it follow the writing guide?
 - Appropriate tone (expert-to-developer)
 - Sentence case headings
 
+Important! Include as many high-priority fixes as needed.
+
 Return in this exact format:
 
 STYLE REPORT: [filename]
@@ -95,6 +97,7 @@ PRIORITY FIXES:
 1. [Most important style issue]
 2. [Second most important]
 3. [Third most important]
+4. ...
 ```
 
 ### Content agent prompt
@@ -122,6 +125,8 @@ ACCURACY - Is the technical content correct?
 
 For accuracy issues, include file:line references to the source code.
 
+Important! Include as many high-priority fixes as needed. Make sure that all accuracy issues are flagged.
+
 Return in this exact format:
 
 CONTENT REPORT: [filename]
@@ -140,8 +145,6 @@ PRIORITY FIXES:
 3. [Third most important]
 4. ...
 ```
-
-Include as many priority fixes as needed. Accuracy issues are always important: make sure that all accuracy issues are flagged.
 
 ## Step 2: Summarize and prompt user
 

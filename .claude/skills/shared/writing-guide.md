@@ -147,6 +147,20 @@ AI ends sentences with vague gerund clauses that claim importance without substa
 
 > The editor batches updates automatically. This keeps renders fast even when many shapes change at once.
 
+Even neutral trailing gerunds weaken sentences by burying the point at the end. Rewrite as separate sentences or lead with the effect:
+
+**Don't:**
+
+> When `shrink` is greater than zero, the stroke width also decreases during fade-out, creating a smooth disappearance effect.
+
+**Do:**
+
+> When `shrink` is greater than zero, the stroke width also decreases during fade-out. This creates a smooth disappearance effect.
+
+Or even better, lead with what matters:
+
+> Set `shrink` above zero for a smooth disappearance effect—the stroke width decreases during fade-out.
+
 ### Formulaic transitions
 
 These transitions are overused by AI and often unnecessary:
@@ -205,6 +219,8 @@ AI picks up marketing speak from its training data. We're writing technical cont
 
 AI writing often features multiple em dashes where a comma or period would be more natural. One em dash per paragraph is fine; several is a red flag. Also avoid dramatic formulations that call for an em dash.
 
+LLMs especially use em dashes in formulaic, punched-up ways—often mimicking sales copy by over-emphasizing clauses. They also use em dashes where humans would use commas, parentheses, or colons.
+
 **Don't:**
 
 > It's not just a history manager—it's a way to track changes across time.
@@ -216,6 +232,41 @@ AI writing often features multiple em dashes where a comma or period would be mo
 > You can also use the history manager to track changes across time.
 
 > The store is reactive: it notifies subscribers when data changes. All records are fully typed.
+
+### Negation parallelism
+
+The "It's not X, it's Y" structure is an AI signature. Real writing just says what something is.
+
+**Don't:**
+
+> It's not just a canvas—it's a complete editing experience.
+
+> The editor isn't simply a state container; it's a reactive system.
+
+**Do:**
+
+> The editor is a reactive system that manages all document state.
+
+### Overused AI vocabulary
+
+Certain words appear disproportionately in LLM output. Avoid these unless they're genuinely the right word:
+
+| Avoid        | Use instead                |
+| ------------ | -------------------------- |
+| delve (into) | explore, examine, look at  |
+| pivotal      | important, key, critical   |
+| underscore   | emphasize, show, highlight |
+| leverage     | use                        |
+| utilize      | use                        |
+| multifaceted | complex, varied            |
+| nuanced      | subtle, detailed           |
+| foster       | encourage, create          |
+| bolster      | strengthen, support        |
+| spearhead    | lead                       |
+| paradigm     | model, approach            |
+| synergy      | (usually delete entirely)  |
+
+These words aren't wrong, but their overuse signals AI authorship. If you find yourself reaching for them, consider whether a simpler word works.
 
 ### Bullet points with bolded headers
 
@@ -281,6 +332,14 @@ Don't say "we support X" when you mean "the editor supports X"—it conflates th
 > Data is kept here as a table of JSON serializable records.
 
 > The event is first processed in order to update its inputs.
+
+**Tables still prefer active voice.** When describing states or behaviors in tables, make the subject act rather than be acted upon:
+
+| Don't                                | Do                                                                |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| "The scribble is temporarily paused" | "The manager pauses the scribble" or "Drawing pauses temporarily" |
+| "The request is being processed"     | "The server processes the request"                                |
+| "Points are removed from the tail"   | "The scribble removes points from its tail"                       |
 
 ### Sentence structure
 
