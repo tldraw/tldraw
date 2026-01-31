@@ -354,7 +354,9 @@ Bookmark shapes don't have configuration options. URL metadata fetching is handl
 
 ### Embed
 
-The embed shape displays interactive content from external services within an iframe. The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. When an embed shape is locked, you can interact with the content (play videos, use embedded applications) without accidentally moving the shape.
+The embed shape displays interactive content from external services (YouTube, Figma, CodeSandbox, and more) within an iframe. When you paste a URL from a supported service, tldraw automatically converts it to an interactive embed with appropriate dimensions.
+
+For complete documentation on supported services, URL transformation, iframe security, custom embed definitions, and interaction modes, see [Embed shape](/sdk-features/embed-shape).
 
 ```tsx
 editor.createShape({
@@ -369,28 +371,6 @@ editor.createShape({
 })
 ```
 
-Supported services:
-
-| Service         | Hostnames                    |
-| --------------- | ---------------------------- |
-| tldraw          | tldraw.com, beta.tldraw.com  |
-| Figma           | figma.com                    |
-| YouTube         | youtube.com, youtu.be        |
-| Google Maps     | google.com/maps              |
-| Google Calendar | calendar.google.com          |
-| Google Slides   | docs.google.com/presentation |
-| CodeSandbox     | codesandbox.io               |
-| CodePen         | codepen.io                   |
-| Scratch         | scratch.mit.edu              |
-| Val Town        | val.town                     |
-| GitHub Gist     | gist.github.com              |
-| Replit          | replit.com                   |
-| Felt            | felt.com                     |
-| Spotify         | open.spotify.com             |
-| Vimeo           | vimeo.com                    |
-| Observable      | observablehq.com             |
-| Desmos          | desmos.com                   |
-
 Properties:
 
 | Property | Type     | Description                                          |
@@ -398,8 +378,6 @@ Properties:
 | `url`    | `string` | The original URL (converted to embed URL internally) |
 | `w`      | `number` | Width of the embed container                         |
 | `h`      | `number` | Height of the embed container                        |
-
-Embed shapes don't have per-instance configuration options, but you can customize the set of supported embed types globally using `EmbedShapeUtil.setEmbedDefinitions()`.
 
 ## Structural shapes
 
