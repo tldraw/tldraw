@@ -960,11 +960,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const doc = storage.get(id) as R | undefined
 
 			// Check for parent-child cycles in shape records and repair if necessary.
-			// Note: wouldCreateCycle() only returns true if the shape already exists in storage
-			// as an ancestor of newParentId, so doc will always be defined here.
 			if (isShape(state)) {
 				const newParentId = (state as any).parentId as string
-				if (wouldCreateCycle(storage, id, newParentId) && doc) {
+
+				// Self-referential check (shape is its own parent) - applies to both new and existing shapes
+				if (newParentId === id) {
+					if (doc) {
+						const originalParentId = (doc as any).parentId as string
+						console.warn(
+							`[TLSyncRoom] Prevented self-referential parent: shape ${id} cannot be its own parent, keeping original parent ${originalParentId}`
+						)
+						state = { ...state, parentId: originalParentId } as R
+					} else {
+						// New shape trying to be its own parent - skip this malformed record
+						console.warn(
+							`[TLSyncRoom] Rejected self-referential new shape: shape ${id} cannot be its own parent`
+						)
+						return Result.ok(undefined)
+					}
+				}
+				// Cycle check for existing shapes (A → B → A)
+				else if (wouldCreateCycle(storage, id, newParentId) && doc) {
 					// Keep the original parentId (consistent with client beforeChange handler)
 					const originalParentId = (doc as any).parentId as string
 					console.warn(
