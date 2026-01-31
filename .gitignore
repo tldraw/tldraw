@@ -12,6 +12,7 @@ lerna-debug.log*
 
 # Temporary files
 *.tmp.ts
+.x-article-temp/
 
 node_modules
 dist
