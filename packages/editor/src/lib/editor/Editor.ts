@@ -5294,7 +5294,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			// Frames have labels positioned above the shape (outside bounds), so always include them
-			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+			if (
+				!candidateIds.has(shape.id) &&
+				!this.isShapeOfType(shape, 'frame') &&
+				(shape as any).type !== 'grid'
+			)
+				return false
 
 			if (
 				(shape.isLocked && !hitLocked) ||
@@ -5316,13 +5321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
 			// Check labels first
-			if (
-				this.isShapeOfType(shape, 'frame') ||
-				((this.isShapeOfType(shape, 'note') ||
-					this.isShapeOfType(shape, 'arrow') ||
-					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
-					this.getShapeUtil(shape).getText(shape)?.trim())
-			) {
+			if (geometry instanceof Group2d) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
 						return shape
@@ -5330,7 +5329,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
+			if (this.isShapeOfType(shape, 'frame') || (shape as any).type === 'grid') {
 				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
@@ -5489,7 +5488,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => {
 				if (this.isShapeHidden(shape)) return false
-				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				if (
+					!candidateIds.has(shape.id) &&
+					!this.isShapeOfType(shape, 'frame') &&
+					(shape as any).type !== 'grid'
+				)
+					return false
 				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
@@ -9363,7 +9367,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		for (const shape of this.getSelectedShapes()) {
 			if (lowestDepth === 0) break
 
-			const isFrame = this.isShapeOfType(shape, 'frame')
+			const isFrame = this.isShapeOfType(shape, 'frame') || (shape as any).type == 'grid'
 			const ancestors = this.getShapeAncestors(shape)
 			if (isFrame) ancestors.push(shape)
 
@@ -9425,11 +9429,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 				} else {
 					if (rootShapeIds.length === 1) {
 						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
+
+						const isParentFrame =
+							this.isShapeOfType(parent, 'frame') || (parent as any).type == 'grid'
+						const isRootFrame =
+							this.isShapeOfType(rootShape, 'frame') || (rootShape as any).type == 'grid'
+
 						if (
-							this.isShapeOfType(parent, 'frame') &&
-							this.isShapeOfType(rootShape, 'frame') &&
-							rootShape.props.w === parent?.props.w &&
-							rootShape.props.h === parent?.props.h
+							isParentFrame &&
+							isRootFrame &&
+							(rootShape as any).props.w === (parent as any).props.w &&
+							(rootShape as any).props.h === (parent as any).props.h
 						) {
 							isDuplicating = true
 						}
@@ -9602,13 +9612,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const onlyRoot = rootShapes[0] as TLFrameShape
 				// If the old bounds are in the viewport...
 				// todo: replace frame references with shapes that can accept children
-				if (this.isShapeOfType(onlyRoot, 'frame')) {
+				if (this.isShapeOfType(onlyRoot, 'frame') || (onlyRoot as any).type == 'grid') {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
-								this.isShapeOfType(shape, 'frame') &&
-								shape.props.w === onlyRoot.props.w &&
-								shape.props.h === onlyRoot.props.h
+								(this.isShapeOfType(shape, 'frame') || (shape as any).type == 'grid') &&
+								(shape as any).props.w === (onlyRoot as any).props.w &&
+								(shape as any).props.h === (onlyRoot as any).props.h
 						)
 					) {
 						point.x += bounds.w + 16
