@@ -215,11 +215,13 @@ When using the session API, you can configure how scribbles behave:
 | `fadeEasing`     | `'linear'` or `'ease-in'` | Easing for grouped fade. Defaults to `'ease-in'` when fadeMode is `'grouped'`       |
 | `fadeDurationMs` | `laserFadeoutMs` (500ms)  | Duration of the fade in milliseconds                                                |
 
-By default, points are removed from the start as you draw, maintaining a constant scribble length. This works well for tools like the eraser that need immediate visual feedback without a persistent trail. When `selfConsume` is `false`, points accumulate while the session is active and only fade after the session stops. The laser pointer uses this with grouped fade mode so all strokes from a drawing session disappear together.
+By default, points are removed from the start as you draw, maintaining a constant scribble length. This works well for tools like the eraser that need immediate visual feedback without a persistent trail.
+
+When `selfConsume` is `false`, points accumulate while the session is active and only fade after the session stops. The laser pointer uses this with grouped fade mode so all strokes from a drawing session disappear together.
 
 ## Customizing scribble rendering
 
-You can override the scribble component to customize how scribbles render. Pass a custom `Scribble` component through [TLEditorComponents](?):
+You can override the scribble component to customize how scribbles render. Pass a custom `Scribble` component through [TLEditorComponents](?). The component receives [TLScribbleProps](?) with `scribble`, `zoom`, `color`, `opacity`, and `className`:
 
 ```tsx
 import { Tldraw, TLEditorComponents } from 'tldraw'
