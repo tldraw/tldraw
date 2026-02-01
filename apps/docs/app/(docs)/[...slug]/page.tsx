@@ -76,7 +76,8 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 					</div>
 					<DocsFooter article={content.article} />
 				</main>
-			) : content.article.sectionId === 'starter-kits' && content.article.id !== 'overview' ? (
+			) : content.article.sectionId === 'starter-kits' &&
+			  content.article.id !== 'starter-kits/starter-kits_ucg/overview' ? (
 				<main className="relative w-full px-5 pt-12 shrink md:pt-0 min-w-[1px]">
 					<DocsHeader article={content.article} />
 					<div
