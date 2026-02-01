@@ -153,7 +153,13 @@ import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndex
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLEditStartInfo, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import {
+	ShapeUtil,
+	TLEditStartInfo,
+	TLGeometryOpts,
+	TLResizeMode,
+	TLShapeUtilCanBindOpts,
+} from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -6246,7 +6252,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
 		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindOpts = { fromShapeType, toShapeType, bindingType } as const
+		const fromShapeObj =
+			typeof fromShape === 'object' && 'id' in fromShape ? (fromShape as TLShape) : undefined
+		const toShapeObj =
+			typeof toShape === 'object' && 'id' in toShape ? (toShape as TLShape) : undefined
+
+		const canBindOpts: TLShapeUtilCanBindOpts = {
+			fromShape: fromShapeObj,
+			toShape: toShapeObj,
+			fromShapeType,
+			toShapeType,
+			bindingType,
+		}
 
 		if (fromShapeType === toShapeType) {
 			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)

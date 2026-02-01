@@ -4340,7 +4340,11 @@ export interface TLShapeUtilCanBeLaidOutOpts {
 // @public
 export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
     bindingType: string;
+    fromShape: TLShape | undefined;
+    // @deprecated
     fromShapeType: TLShape['type'];
+    toShape: TLShape | undefined;
+    // @deprecated
     toShapeType: TLShape['type'];
 }
 
