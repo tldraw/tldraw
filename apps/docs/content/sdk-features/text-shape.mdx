@@ -1,0 +1,270 @@
+---
+title: Text shape
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - text
+  - text shape
+  - text tool
+  - autoSize
+  - fixed width
+  - wrapping
+  - textAlign
+  - alignment
+  - font
+  - rich text
+  - editing
+status: published
+date: 1/31/2026
+---
+
+The text shape displays formatted text content on the canvas. Text shapes support rich text formatting, automatic sizing, and two distinct modes: auto-sized (where the shape expands to fit content) and fixed-width (where text wraps at a specified boundary). The text tool creates text shapes and manages text entry interactions.
+
+## Auto-size vs fixed-width
+
+Text shapes operate in two modes controlled by the `autoSize` property:
+
+| Mode        | Behavior                                                         | Use case                                  |
+| ----------- | ---------------------------------------------------------------- | ----------------------------------------- |
+| Auto-size   | Shape width expands to fit content; text never wraps             | Labels, titles, short annotations         |
+| Fixed-width | Text wraps at the shape's width boundary; height grows as needed | Paragraphs, longer descriptions, callouts |
+
+### Auto-size mode
+
+When `autoSize` is true (the default), the text shape automatically adjusts its width to accommodate the text content. The shape grows horizontally as you type, and text never wraps to a new line unless you press Enter.
+
+```tsx
+import { toRichText } from 'tldraw'
+
+editor.createShape({
+	type: 'text',
+	x: 100,
+	y: 100,
+	props: {
+		richText: toRichText('This text will never wrap'),
+		autoSize: true,
+	},
+})
+```
+
+Auto-sized text shapes maintain their position based on the `textAlign` property. When text expands:
+
+- **Start** alignment: Shape grows to the right; left edge stays fixed
+- **Middle** alignment: Shape grows equally in both directions; center stays fixed
+- **End** alignment: Shape grows to the left; right edge stays fixed
+
+### Fixed-width mode
+
+When `autoSize` is false, the shape uses a fixed width specified by the `w` property. Text wraps when it reaches this boundary, and the shape grows vertically to accommodate additional lines.
+
+```tsx
+editor.createShape({
+	type: 'text',
+	x: 100,
+	y: 100,
+	props: {
+		richText: toRichText('This text will wrap when it reaches the specified width'),
+		autoSize: false,
+		w: 200, // Width in pixels
+	},
+})
+```
+
+To convert an auto-sized shape to fixed-width, resize it by dragging the left or right edge handles. The shape switches to fixed-width mode and maintains that width as you continue typing.
+
+## Text alignment
+
+The `textAlign` property controls horizontal text alignment:
+
+| Value    | Description                                    |
+| -------- | ---------------------------------------------- |
+| `start`  | Left-aligned (or right-aligned in RTL locales) |
+| `middle` | Center-aligned                                 |
+| `end`    | Right-aligned (or left-aligned in RTL locales) |
+
+```tsx
+editor.createShape({
+	type: 'text',
+	x: 100,
+	y: 100,
+	props: {
+		richText: toRichText('Centered text'),
+		textAlign: 'middle',
+		autoSize: false,
+		w: 300,
+	},
+})
+```
+
+Text shapes always align vertically to the middle of the shape's geometry.
+
+## Creating text with the text tool
+
+The text tool (`T` key) provides two ways to create text shapes:
+
+### Click to create auto-sized text
+
+Click anywhere on the canvas to create an auto-sized text shape. The shape appears centered at your click position and immediately enters edit mode. Start typing to add content.
+
+### Drag to create fixed-width text
+
+Click and drag horizontally to create a fixed-width text shape. The drag distance determines the initial width. After dragging far enough (approximately 6× the base drag distance), the tool switches to resize mode—continue dragging to adjust the width, then release to start editing.
+
+The drag must exceed a minimum threshold (based on pointer type and timing) to trigger fixed-width creation. Quick, short drags create auto-sized shapes instead.
+
+### Tool shortcuts
+
+| Action                     | Result                                      |
+| -------------------------- | ------------------------------------------- |
+| **Click**                  | Create auto-sized text at click position    |
+| **Drag horizontally**      | Create fixed-width text with dragged width  |
+| **Enter** (shape selected) | Enter edit mode for the selected text shape |
+| **Escape**                 | Exit text tool, return to select tool       |
+| **Cmd/Ctrl+Enter**         | Confirm text and exit edit mode             |
+
+## Editing text
+
+Double-click a text shape or press Enter while it's selected to enter edit mode. The shape displays a cursor and you can type, select, and format text using the rich text editor.
+
+Text shapes use the same rich text system as notes, geo shapes, and arrow labels. You get formatting options like bold, italic, code, and highlighting through keyboard shortcuts or the rich text toolbar.
+
+### Empty text deletion
+
+When you exit edit mode (by clicking outside or pressing Escape), the shape checks if it contains only whitespace. Empty text shapes delete themselves automatically—you don't end up with invisible shapes cluttering the canvas.
+
+## Scaling and resize
+
+Text shapes support two resize behaviors:
+
+### Aspect-ratio locked scaling
+
+Dragging corner handles scales the entire shape proportionally. The `scale` property tracks this multiplier. Scaling preserves the text's appearance while making it larger or smaller.
+
+```tsx
+// A text shape at 2x scale
+editor.createShape({
+	type: 'text',
+	props: {
+		richText: toRichText('Scaled up'),
+		scale: 2,
+	},
+})
+```
+
+### Width adjustment
+
+Dragging the left or right edge handles adjusts only the width. For auto-sized shapes, this converts them to fixed-width mode. For already fixed-width shapes, this changes where text wraps.
+
+## Dynamic resize mode
+
+When `editor.user.getIsDynamicResizeMode()` is true, new text shapes are created with a scale inversely proportional to the current zoom level. At 200% zoom, new shapes get `scale: 0.5`; at 50% zoom, they get `scale: 2`. This keeps text visually consistent regardless of your zoom level when creating it.
+
+```tsx
+const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+```
+
+## Arrow bindings
+
+Arrows can bind to text shapes just like other shapes. The text shape's geometry includes extra horizontal padding (configurable via `extraArrowHorizontalPadding`) to prevent arrowheads from overlapping the text content.
+
+```tsx
+const ConfiguredTextUtil = TextShapeUtil.configure({
+	extraArrowHorizontalPadding: 20, // More space for arrows (default: 10)
+})
+```
+
+## Text outline
+
+Text shapes can display an outline effect using the canvas background color. This improves readability when text overlaps other shapes or complex backgrounds.
+
+The outline is implemented using CSS text-shadow and is enabled by default. On Safari, the outline is skipped because text-shadow is not performant on that browser.
+
+```tsx
+const ConfiguredTextUtil = TextShapeUtil.configure({
+	showTextOutline: false, // Disable the outline effect
+})
+```
+
+## Properties
+
+| Property    | Type                      | Description                                     |
+| ----------- | ------------------------- | ----------------------------------------------- |
+| `richText`  | `TLRichText`              | Text content with formatting                    |
+| `color`     | `TLDefaultColorStyle`     | Text color                                      |
+| `size`      | `TLDefaultSizeStyle`      | Font size preset (`s`, `m`, `l`, `xl`)          |
+| `font`      | `TLDefaultFontStyle`      | Font family (`draw`, `sans`, `serif`, `mono`)   |
+| `textAlign` | `TLDefaultTextAlignStyle` | Horizontal alignment (`start`, `middle`, `end`) |
+| `autoSize`  | `boolean`                 | When true, shape resizes to fit content         |
+| `w`         | `number`                  | Width when autoSize is false                    |
+| `scale`     | `number`                  | Scale factor applied to the shape               |
+
+## Configuration
+
+| Option                        | Type      | Default | Description                                                              |
+| ----------------------------- | --------- | ------- | ------------------------------------------------------------------------ |
+| `extraArrowHorizontalPadding` | `number`  | `10`    | Additional horizontal padding for arrow binding geometry                 |
+| `showTextOutline`             | `boolean` | `true`  | Display text outline for readability (skipped on Safari for performance) |
+
+```tsx
+import { Tldraw, TextShapeUtil } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const ConfiguredTextUtil = TextShapeUtil.configure({
+	extraArrowHorizontalPadding: 20,
+	showTextOutline: false,
+})
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={[ConfiguredTextUtil]} />
+		</div>
+	)
+}
+```
+
+## Grid snapping
+
+When grid mode is enabled (`editor.getInstanceState().isGridMode`), new text shapes snap to grid positions. The tool calculates the snapped position after creating the shape and adjusts for the shape's alignment-based offset.
+
+## Programmatic text formatting
+
+To create text with formatting, construct the rich text JSON structure directly:
+
+```tsx
+editor.createShape({
+	type: 'text',
+	x: 100,
+	y: 100,
+	props: {
+		richText: {
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'text', text: 'Regular and ' },
+						{ type: 'text', text: 'bold', marks: [{ type: 'bold' }] },
+						{ type: 'text', text: ' text' },
+					],
+				},
+			],
+		},
+		autoSize: true,
+	},
+})
+```
+
+Available marks include `bold`, `italic`, `code`, `link`, and `highlight`. See [Rich text](/sdk-features/rich-text) for complete documentation on the formatting system.
+
+## Related articles
+
+- [Rich text](/sdk-features/rich-text) — Text formatting system and TipTap integration
+- [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shapes
+- [Tools](/sdk-features/tools) — How tools handle user input
+- [Styles](/sdk-features/styles) — Working with shape styles like color and size
+
+## Related examples
+
+- [Programmatic text shape creation](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/text-shape-configuration) — Creating text shapes with various configurations
+- [Outlined text with TipTap mark](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/outlined-text) — Adding text outline styling via a custom TipTap mark extension

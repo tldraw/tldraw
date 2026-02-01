@@ -175,18 +175,18 @@ See the [UI components hidden example](/examples/ui-components-hidden) for a com
 
 ## Overrides
 
-The content of tldraw's menus can be controlled via the `overrides` prop. This prop accepts a [TLUiOverrides](/reference/tldraw/TLUiOverrides) object, which has methods for each part of the user interface, such as the `toolbar` or `keyboardShortcutsMenu`.
+Control tldraw's menu content with the `overrides` prop. This prop accepts a [TLUiOverrides](/reference/tldraw/TLUiOverrides) object, which has methods for `actions` and `tools`, and a `translations` property.
 
 ### Actions
 
-The user interface has a set of shared actions used in the menus and keyboard shortcuts. Override these by providing an `actions` method that receives the editor and the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) and returns a mutated actions object.
+The user interface has a set of shared actions used in the menus and keyboard shortcuts. Override these by providing an `actions` method that receives the editor, the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx), and a helpers object, then returns a mutated actions object.
 
 ```tsx
 import { Tldraw, TLUiOverrides } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const myOverrides: TLUiOverrides = {
-	actions(editor, actions) {
+	actions(editor, actions, helpers) {
 		// Delete an action (remember to also delete any menu items that reference it)
 		delete actions['insert-embed']
 
@@ -195,7 +195,7 @@ const myOverrides: TLUiOverrides = {
 			id: 'my-new-action',
 			label: 'My new action',
 			readonlyOk: true,
-			kbd: 'cmd+u,ctrl+u',
+			kbd: 'cmd+shift+u,ctrl+shift+u',
 			onSelect(source) {
 				window.alert('My new action just happened!')
 			},
@@ -217,11 +217,11 @@ The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionIt
 
 ### Tools
 
-Tools work the same way as actions. Provide a `tools` method that accepts the [default tools object](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useTools.tsx) and returns a mutated version.
+Override tools the same way you override actions. Provide a `tools` method that accepts the editor, the [default tools object](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useTools.tsx), and a helpers object, then returns a mutated version.
 
 ```tsx
 const myOverrides: TLUiOverrides = {
-	tools(editor, tools) {
+	tools(editor, tools, helpers) {
 		// Create a tool item in the UI's context
 		tools.card = {
 			id: 'card',
@@ -276,7 +276,7 @@ export default function App() {
 }
 ```
 
-The callback receives the event name as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and possibly other data specific to each event, such as the direction in an `align-shapes` event.
+The callback receives the event name as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and other data specific to each event, such as the direction in an `align-shapes` event.
 
 Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShapes](?) directly won't trigger this callback. See the [UI events example](/examples/ui-events) for more.
 

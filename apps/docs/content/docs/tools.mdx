@@ -8,132 +8,61 @@ keywords:
   - custom
   - tools
   - state
-readability: 8
-voice: 8
-completeness: 6
-accuracy: 8
-notes: 'Clear explanation of state chart and event handling. Needs more content: lifecycle hooks, onEnter/onExit, tick handlers, and complete custom tool example.'
 ---
 
-In tldraw, a **tool** is what we call any top-level state in our state chart. For example, the select tool, the draw tool, and the arrow tool are all top-level states that the user can be in.
+In tldraw, a **tool** is a top-level state in our state chart. The select tool, draw tool, and arrow tool are all examples of tools—each defines how the editor responds to user input while that tool is active.
 
 <Image
-	title="Tools"
 	src="/images/api/tools.png"
 	alt="A diagram showing the state chart of tldraw. The top row of states (apart from the Root state) are annotated as tools."
-	title="The first level of states in the start chart are known as tools."
+	caption="The first level of states in the state chart are known as tools."
 />
 
-For more detailed information about the state chart, and how it works, go to the [Editor page](/docs/editor). Or read below for more information about tools, and how to make your own.
+For a full guide to the tool system, including state hierarchy, event handling, child states, tool lock, creating custom tools, and overriding defaults, see the [Tools](/sdk-features/tools) page.
 
-## Types of tool
+## Default and custom tools
 
-The tldraw editor comes with some in-built **core tools**: the [select tool](/reference/tldraw/SelectTool), the [zoom tool](/reference/tldraw/ZoomTool), and the [text tool](/reference/tldraw/TextShapeTool). These are always added to the state chart.
+The `<Tldraw>` component includes default tools like [select](/reference/tldraw/SelectTool), [hand](/reference/tldraw/HandTool), [draw](/reference/tldraw/DrawShapeTool), and [arrow](/reference/tldraw/ArrowShapeTool). The core `@tldraw/editor` package has no built-in tools—if you use `<TldrawEditor>` directly, you provide your own.
 
-There are also some **default tools** available, like the [draw tool](/reference/tldraw/DrawShapeTool), the [hand tool](/reference/tldraw/HandTool), the [arrow tool](/reference/tldraw/ArrowShapeTool), and more. The `<Tldraw>` component automatically adds these tools to the state chart.
+You can create custom tools by extending [StateNode](/reference/editor/StateNode) and passing them to the `tools` prop:
 
-You can also create your own **custom tools**. You can add them to the state chart by passing an array of them to the [Tldraw](?) component's `tools` prop.
+```tsx
+import { StateNode, TLPointerEventInfo, Tldraw } from 'tldraw'
 
-Note: You might also want to add a tool to the user interface in various ways, such as the toolbar. See the [User Interface](/docs/user-interface) section for more on changing the menus.
+class StampTool extends StateNode {
+	static override id = 'stamp'
 
-## Transitioning
+	onPointerDown(info: TLPointerEventInfo) {
+		// Create a shape at the click position
+	}
+}
 
-You can change the current active tool using [editor.setCurrentTool](/reference/editor/Editor#setCurrentTool).
+export default function App() {
+	return <Tldraw tools={[StampTool]} />
+}
+```
+
+## Changing tools
+
+Change the active tool with [editor.setCurrentTool](/reference/editor/Editor#setCurrentTool):
 
 ```ts
 editor.setCurrentTool('select')
+editor.setCurrentTool('hand')
+editor.setCurrentTool('draw')
 ```
 
-You can "deep transition" by using a path of active tool ids.
+## Learn more
 
-```ts
-editor.setCurrentTool('select.eraser.pointing')
-```
+For comprehensive coverage of tools, see these guides:
 
-## Inside a tool
+- **[Tools](/sdk-features/tools)** — Full guide to the tool system: state hierarchy, event handling, child states, tool lock, creating custom tools, and overriding defaults
+- **[Events](/sdk-features/events)** — How the editor dispatches events and how to subscribe to them
+- **[Input handling](/sdk-features/input-handling)** — Pointer tracking, keyboard state, and the `editor.inputs` API
+- **[Ticks](/sdk-features/ticks)** — Frame-synchronized updates for animations and continuous interactions
 
-Every tool has an **id**. This is used to identify it in the state chart.
+## Examples
 
-```ts
-class MyTool extends StateNode {
-	static override id = 'my-tool'
-}
-```
-
-Tools can contain **children**. For example, the [hand tool](/reference/tldraw/HandTool) has three children, `Idle`, `Pointing` and `Dragging`. If a state has children, it must also have an `initial` state, so that it knows which state to start in.
-
-```ts
-class MyIdleState extends StateNode {
-	static override id = 'my-idle-state'
-}
-
-class MyPointingState extends StateNode {
-	static override id = 'my-pointing-state'
-}
-
-class MyTool extends StateNode {
-	static override id = 'my-tool'
-	static override initial = 'my-idle-state'
-	static override children() {
-		return [MyIdleState, MyPointingState]
-	}
-}
-```
-
-### Handling events
-
-When the editor receives an [event](/reference/editor/TLEventHandlers) via its [Editor#dispatch](?) method, the event is first processed in order to update its inputs, then passed to the editor's state chart.
-
-Beginning at the root, each node will first handle the event and then pass the event to its current active child state. This continues until either: the event is handled on a state without any children; or the event is handled in a way that produces a transition.
-
-### Parents handle events before children
-
-```ts
-class MyIdleState extends StateNode {
-	static override id = 'my-idle-state'
-
-	onPointerDown(info: TLPointerEventInfo) {
-		console.log('world')
-	}
-}
-
-class MyTool extends StateNode {
-	static override id = 'my-tool'
-	static override initial = 'my-idle-state'
-	static override children() {
-		return [MyIdleState]
-	}
-
-	onPointerDown(info: TLPointerEventInfo) {
-		console.log('hello')
-	}
-}
-```
-
-Using the example above, if a `pointer_down` event is passed to the editor while the `MyTool` state is active, `MyTool`'s `onPointerDown` method will be called first, then `MyIdleState`'s `onPointerDown` method will be called second.
-
-### Transitions stop the process
-
-```ts
-class MyIdleState extends StateNode {
-	static override id = 'my-idle-state'
-
-	onPointerDown(info: TLPointerEventInfo) {
-		console.log("this won't run")
-	}
-}
-
-class MyTool extends StateNode {
-	static override id = 'my-tool'
-	static override initial = 'my-idle-state'
-	static override children() {
-		return [MyIdleState]
-	}
-
-	onPointerDown(info: TLPointerEventInfo) {
-		editor.setCurrentTool('select')
-	}
-}
-```
-
-If `MyTool`'s `onPointerDown` handler produced a transition (changing anything about which states are active) then the chain would stop and the event would not be handled on `MyIdleState`.
+- [Custom tool](/examples/shapes/tools/custom-tool) — A simple tool that adds stickers to the canvas
+- [Tool with child states](/examples/shapes/tools/tool-with-child-states) — A tool with multiple states for complex interactions
+- [Screenshot tool](/examples/shapes/tools/screenshot-tool) — A tool for capturing canvas regions

@@ -13,54 +13,28 @@ keywords:
   - collaboration
   - server
   - websockets
-readability: 8
-voice: 8
-completeness: 7
-accuracy: 8
-notes: 'Clear structure with good code examples. Minor voice issues: "great for prototyping" could be stronger. Missing deep dive on presence internals.'
 ---
 
-The tldraw SDK includes deep support for real-time collaboration. The easiest way to add collaboration to your project is with our [tldraw sync](#tldraw-sync) library. Or you can use our low-level data APIs to integrate [other backends](#Using-other-collaboration-backends).
+The tldraw SDK supports real-time collaboration. Add collaboration to your project with our [tldraw sync](/docs/sync) library, or use our low-level data APIs to integrate other backends.
 
 <div className="article__image" style={{ border: 'none' }}>
 	<img
 		alt="Multiplayer example using tldraw sync"
 		src="/images/multiplayer.gif"
 		style={{
-			// learn this one weird trick for transparent animated gifs. doctors hate her!!!
 			mask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
 			WebkitMask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
 		}}
 	/>
 </div>
 
-## tldraw sync
+## Quick start
 
-[tldraw sync](/docs/sync) is our library for fast multi-user collaboration. It's purpose-built for the tldraw canvas and it's what we use to power collaboration on our flagship app tldraw.com.
-
-You can read our full article on [tldraw sync](/docs/sync).
-
-### tldraw sync demo
-
-To make it easier to get started with collaboration in tldraw, we've included a "demo" hook in the sync library that connects to a hosted backend. You can see a working example at [this example](https://tldraw.dev/examples/sync-demo).
-
-Let's say you have an app running locally that looks like this:
-
-```tsx
-import { Tldraw } from 'tldraw'
-
-function MyApp() {
-	return <Tldraw />
-}
-```
-
-To make this app collaborative, first install the `@tldraw/sync` library:
+The fastest way to add multiplayer is with the `useSyncDemo` hook from [`@tldraw/sync`](/docs/sync). This connects to a hosted demo server that handles synchronization.
 
 ```bash
 npm install @tldraw/sync
 ```
-
-Back in your code, import the `useSyncDemo` hook from the `@tldraw/sync` library. In the `MyApp` component, call the `useSyncDemo` hook with a room ID. Pass the [`store`](/docs/persistence#The-store-prop) returned by `useSyncDemo` to the tldraw component's `store` prop.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -72,46 +46,25 @@ function MyApp() {
 }
 ```
 
-In your browser, open an incognito window and visit your project's URL. You can also use a different browser or different device. The key is the room ID: any apps connecting to the same room ID will enter into a shared collaboration session.
+Any apps connecting to the same room ID will enter a shared collaboration session. Open your project in an incognito window or different browser to test it out.
 
-### Limitations of the demo
+The demo server is great for prototyping, but data only lasts 24 hours and rooms are publicly accessible. For production, you'll need to self-host the tldraw sync server—see our full guide on [tldraw sync](/docs/sync).
 
-The sync demo is great for prototyping but you should not use it in production. Data on the demo server only lasts for up to 24 hours, and anyone using the same room id will be able to edit the same room's project.
+## Using other backends
 
-### Using tldraw sync in production
+While [tldraw sync](/docs/sync) is our recommended solution, the tldraw SDK works with any real-time data backend. For example, [Liveblocks offers a tldraw integration](https://liveblocks.io/examples/tldraw-whiteboard), and many teams have connected tldraw to their own infrastructure.
 
-To use tldraw sync in production, you will need to self-host the tldraw sync server. To learn more, see our article on [tldraw sync](/docs/sync).
+Collaboration involves three concerns:
 
-> We don't offer a hosted solution for tldraw sync in production, but if you're interested in that please let us know at hello@tldraw.com.
+- **Synchronizing data** — Getting document changes in and out of the [store](/sdk-features/store). See [Persistence](/docs/persistence) for the basics, or [Collaboration](/sdk-features/collaboration) for building custom sync.
+- **User presence** — Sharing cursor positions, selections, and viewports with other users. See [Collaboration](/sdk-features/collaboration) for presence APIs and [Cursors](/sdk-features/cursors) for customizing how collaborator cursors appear.
+- **Collaboration UI** — The visual elements that show other users on the canvas. See [UI components](/sdk-features/ui-components) for overriding components like `CollaboratorCursor`, `CollaboratorBrush`, and `SharePanel`.
 
-## Using other collaboration backends
+## Related
 
-While [tldraw sync](/docs/sync) is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution. For example, Liveblocks offers a [tldraw starter](https://liveblocks.io/examples/tldraw-whiteboard), and many product teams have plugged tldraw into their own real-time data solutions.
-
-### Manual setup
-
-Collaboration in tldraw involves synchronizing data, sharing user presence, and handling user assets.
-
-#### Synchronizing data
-
-For more information about how to synchronize the tldraw editor's store with other processes—how to get data out and put data in, including from remote sources—see the [Persistence](/docs/persistence) page.
-
-#### User presence
-
-The tldraw SDK has support for displaying the 'presence' of other users. Presence information consists of the user id, name, and color, as well as their canvas context, such as their current page, pointer position, selection, viewport.
-
-A user's presence is stored as `instance_presence` ([TLInstancePresence](?))records in the editor's store, however the data itself may be derived from other sources.
-
-We provide a helper, [createPresenceStateDerivation](?), for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow.
-
-To the editor, any `instance_presence` records that belong to other users (i.e. those with a different user id than the editor's configured user id) are considered "collaborators". The editor has two methods, `getCollaborators` and `getCollaboratorsOnCurrentPage`, which return reactive signals about the current collaborators.
-
-#### Collaboration UI
-
-The `tldraw` library includes several components specifically designed for collaboration.
-You can remove, replace, or customize these using the editor's `components` prop. See [TLComponents](?) for more info.
-
-- Collaborator cursors: [`TLComponents#CollaboratorCursor`](?)
-- Cursor chat: [`TLComponents#CursorChatBubble`](?)
-- Offline indicator: [`TLComponents#TopPanel`](?)
-- Collaborator list: [`TLComponents#SharePanel`](?)
+- [tldraw sync](/docs/sync) — Our recommended multiplayer solution
+- [Collaboration](/sdk-features/collaboration) — Deep dive on presence, sync hooks, and building custom sync
+- [Cursors](/sdk-features/cursors) — Cursor types and collaborator cursor customization
+- [User following](/sdk-features/user-following) — Track collaborator viewports in real-time
+- [Store](/sdk-features/store) — Understanding the reactive store
+- [UI components](/sdk-features/ui-components) — Override collaboration UI components

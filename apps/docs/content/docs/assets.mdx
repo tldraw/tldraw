@@ -11,36 +11,24 @@ keywords:
   - images
   - videos
   - files
-readability: 6
-voice: 8
-completeness: 4
-accuracy: 8
-notes: Lacks code snippets and TLAssetStore API coverage. Good voice and accurate content. Needs inline examples showing upload/resolve methods.
 ---
 
-Assets are dynamic records that store data about a shared asset. For example, our image and video
-shapes refer to assets rather than embedding their source files directly. Asset storage and
-retrieval is controlled by [`TLAssetStore`](?). Different [`TLStore`](?) setups require different asset setups:
+Assets are records that store data about shared resources like images and videos. Shapes reference assets by ID rather than embedding files directly, so you can reuse the same image across multiple shapes without duplicating data.
 
-- By default, the store is in-memory only, so [`inlineBase64AssetStore`](?) converts images to data
-  URLs.
-- When using the [`persistenceKey` prop](/docs/persistence#The-persistenceKey-prop), the store is
-  synced to the browser's local
-  [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), so we store images
-  there too.
-- When using a [multiplayer sync server](/docs/sync), you would implement TLAssetStore to upload
-  images to e.g. an S3 bucket.
+For the complete guide to working with assets, see the [Assets](/sdk-features/assets) reference.
+
+## Default storage behavior
+
+[`TLAssetStore`](?) controls how assets are stored and retrieved. The default behavior depends on your store setup:
+
+- **In-memory only** (default): [`inlineBase64AssetStore`](?) converts images to data URLs
+- **With [`persistenceKey`](/docs/persistence#The-persistenceKey-prop)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+- **With a [sync server](/docs/sync)**: Implement `TLAssetStore` to upload to a storage service like S3
 
 ## Examples
 
-While we're working on docs for this part of the project, please refer to the examples below:
-
 - [Using hosted images](/examples/data/assets/hosted-images)
-- [Customizing the default asset
-  options](/examples/data/assets/asset-props)
-- [Handling pasted / dropped external
-  content](/examples/data/assets/external-content-sources)
-- [A simple asset store that uploads content to a remote
-  server](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx)
-- [A more complex asset store that optimizes images when retrieving
-  them](https://github.com/tldraw/tldraw/blob/main/packages/sync/src/useSyncDemo.ts#L87)
+- [Customizing default asset options](/examples/configuration/asset-props)
+- [Handling pasted/dropped external content](/examples/data/assets/external-content-sources)
+- [Simple asset store with server upload](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx)
+- [Asset store with image optimization](https://github.com/tldraw/tldraw/blob/main/packages/sync/src/useSyncDemo.ts#L178-L256)

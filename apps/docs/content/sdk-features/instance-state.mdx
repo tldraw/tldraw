@@ -1,0 +1,293 @@
+---
+title: Instance state
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - instance
+  - state
+  - session
+  - TLInstance
+  - preferences
+  - debug mode
+  - grid mode
+  - focus mode
+  - pen mode
+  - readonly
+  - cursor
+status: published
+date: 1/31/2026
+---
+
+Instance state is the per-tab state that tracks your current session. It includes which page you're viewing, whether the grid is visible, if debug mode is on, and transient interaction state like the current cursor position. Unlike document state (shapes, pages, assets), instance state belongs to a single browser tab and isn't synced between collaborators.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Enable grid mode and debug mode
+					editor.updateInstanceState({
+						isGridMode: true,
+						isDebugMode: true,
+					})
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+## Reading instance state
+
+Use [Editor#getInstanceState](?) to access the current instance state. The returned object contains all session properties:
+
+```typescript
+const instance = editor.getInstanceState()
+
+// Check modes
+instance.isGridMode // true if grid is visible
+instance.isDebugMode // true if debug overlays are shown
+instance.isFocusMode // true if UI is minimized
+instance.isPenMode // true if stylus input detected
+instance.isToolLocked // true if tool stays active after creating shapes
+instance.isReadonly // true if editing is disabled
+
+// Current state
+instance.currentPageId // which page is active
+instance.cursor // cursor type and rotation
+instance.isFocused // whether the editor has focus
+
+// Screen information
+instance.screenBounds // viewport dimensions
+instance.devicePixelRatio // display scaling factor
+instance.isCoarsePointer // true for touch input
+```
+
+The result is reactive. When you access it inside a `track` component or `react` callback, your code re-runs when the state changes:
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+const DebugIndicator = track(function DebugIndicator() {
+	const editor = useEditor()
+	const { isDebugMode, isGridMode } = editor.getInstanceState()
+
+	return (
+		<div>
+			Debug: {isDebugMode ? 'on' : 'off'}, Grid: {isGridMode ? 'on' : 'off'}
+		</div>
+	)
+})
+```
+
+## Updating instance state
+
+Use [Editor#updateInstanceState](?) to modify instance properties:
+
+```typescript
+// Enable grid mode
+editor.updateInstanceState({ isGridMode: true })
+
+// Enable multiple options at once
+editor.updateInstanceState({
+	isDebugMode: true,
+	isToolLocked: true,
+})
+
+// Toggle a mode
+const { isGridMode } = editor.getInstanceState()
+editor.updateInstanceState({ isGridMode: !isGridMode })
+```
+
+Changes take effect immediately and persist for the session. When using a `persistenceKey`, some properties persist across sessions (see [Session persistence](#session-persistence) below).
+
+Note that `currentPageId` cannot be changed through `updateInstanceState`. Use [Editor#setCurrentPage](?) instead.
+
+## Available properties
+
+### Mode flags
+
+These boolean flags control major editor behaviors:
+
+| Property       | Description                                     | Persists |
+| -------------- | ----------------------------------------------- | -------- |
+| `isGridMode`   | Show grid overlay on the canvas                 | Yes      |
+| `isDebugMode`  | Show debug information overlays                 | Yes      |
+| `isFocusMode`  | Minimize the UI to just the canvas              | Yes      |
+| `isToolLocked` | Keep current tool active after creating a shape | Yes      |
+| `isReadonly`   | Prevent all document modifications              | Yes      |
+| `isPenMode`    | Track whether stylus input has been detected    | No       |
+| `isFocused`    | Whether the editor currently has keyboard focus | Yes      |
+
+### Display state
+
+Properties that track the current display environment:
+
+| Property           | Description                                                   | Persists |
+| ------------------ | ------------------------------------------------------------- | -------- |
+| `screenBounds`     | Viewport position and dimensions (x, y, w, h)                 | Yes      |
+| `devicePixelRatio` | Display scaling factor (e.g., 2 for Retina)                   | Yes      |
+| `isCoarsePointer`  | Indicates touch or low-precision input is active              | Yes      |
+| `isHoveringCanvas` | Whether pointer is over the canvas (null if no hover support) | No       |
+| `insets`           | Safe area insets as `[top, right, bottom, left]` booleans     | Yes      |
+
+### Navigation state
+
+| Property        | Description                      | Persists |
+| --------------- | -------------------------------- | -------- |
+| `currentPageId` | ID of the currently active page  | No       |
+| `openMenus`     | Array of currently open menu IDs | No       |
+
+### Interaction state
+
+Temporary state used during user interactions:
+
+| Property          | Description                                      | Persists |
+| ----------------- | ------------------------------------------------ | -------- |
+| `cursor`          | Current cursor type and rotation                 | No       |
+| `brush`           | Selection brush bounds during drag selection     | No       |
+| `zoomBrush`       | Zoom brush bounds during zoom-to-area            | No       |
+| `scribbles`       | Active scribble animations (eraser trails, etc.) | No       |
+| `isChangingStyle` | True while style picker is active                | No       |
+
+### Shape creation
+
+Settings that affect newly created shapes:
+
+| Property              | Description                         | Persists |
+| --------------------- | ----------------------------------- | -------- |
+| `opacityForNextShape` | Opacity applied to new shapes (0-1) | No       |
+| `stylesForNextShape`  | Style values applied to new shapes  | No       |
+| `duplicateProps`      | State for smart duplicate offset    | No       |
+
+### Collaboration
+
+Properties for multiplayer features:
+
+| Property             | Description                                | Persists |
+| -------------------- | ------------------------------------------ | -------- |
+| `followingUserId`    | ID of user being followed, or null         | No       |
+| `highlightedUserIds` | IDs of users whose cursors are highlighted | No       |
+| `chatMessage`        | Current chat message being composed        | No       |
+| `isChatting`         | Whether chat input is active               | No       |
+
+### Custom data
+
+| Property           | Description                              | Persists |
+| ------------------ | ---------------------------------------- | -------- |
+| `meta`             | Arbitrary JSON data for your application | No       |
+| `exportBackground` | Include background color when exporting  | Yes      |
+
+## Common patterns
+
+### Focus mode
+
+Focus mode hides most of the UI for presentation or distraction-free editing:
+
+```typescript
+editor.updateInstanceState({ isFocusMode: true })
+```
+
+### Grid mode
+
+Show a grid overlay to help with alignment:
+
+```typescript
+editor.updateInstanceState({ isGridMode: true })
+```
+
+The grid respects the camera zoom level. You can customize the grid appearance by overriding the `Grid` component.
+
+### Debug mode
+
+Debug mode shows useful overlays including shape bounds, geometry points, and performance information:
+
+```typescript
+editor.updateInstanceState({ isDebugMode: true })
+```
+
+### Tool lock
+
+When tool lock is enabled, the current tool stays active after creating a shape instead of returning to the select tool:
+
+```typescript
+// Enable tool lock
+editor.updateInstanceState({ isToolLocked: true })
+
+// Check if locked
+if (editor.getInstanceState().isToolLocked) {
+	// Tool will stay active after creating shapes
+}
+```
+
+Custom tools should check this property to decide whether to return to select after completing their action. See [Tools](/sdk-features/tools#tool-lock) for implementation details.
+
+### Cursor customization
+
+Set a custom cursor type and rotation:
+
+```typescript
+// Use the setCursor helper
+editor.setCursor({ type: 'cross', rotation: 0 })
+
+// Or update directly
+editor.updateInstanceState({
+	cursor: { type: 'grab', rotation: 0 },
+})
+```
+
+See [Cursors](/sdk-features/cursors) for the full list of cursor types and rotation handling.
+
+### Detecting touch input
+
+Check `isCoarsePointer` to adapt your UI for touch:
+
+```tsx
+const { isCoarsePointer } = editor.getInstanceState()
+const buttonSize = isCoarsePointer ? 48 : 32 // Larger touch targets
+```
+
+The value updates automatically when the user switches between mouse and touch.
+
+## Session persistence
+
+When you use a `persistenceKey` on the [Tldraw](?) component, some instance properties persist across browser sessions. Properties marked "Persists: Yes" in the tables above are saved and restored.
+
+Temporary state like cursor position, selection brushes, and open menus always reset when the page reloads. Navigation state like `currentPageId` doesn't persist because the referenced page might not exist in a fresh session.
+
+## Instance state vs page state
+
+Instance state ([TLInstance](?)) is global to the editor—there's one instance record per browser tab. Page state ([TLInstancePageState](?)) is per-page and tracks page-specific information like selection:
+
+```typescript
+// Instance state: global to the editor
+const instance = editor.getInstanceState()
+instance.currentPageId // which page is active
+instance.isGridMode // applies to all pages
+
+// Page state: specific to the current page
+const pageState = editor.getCurrentPageState()
+pageState.selectedShapeIds // selection on this page
+pageState.editingShapeId // shape being edited on this page
+pageState.hoveredShapeId // shape under cursor on this page
+```
+
+When you switch pages, the instance's `currentPageId` changes, but each page retains its own selection and editing state.
+
+## Related articles
+
+- [Cursors](/sdk-features/cursors) — Cursor types and rotation handling
+- [Readonly mode](/sdk-features/readonly) — Disable editing with `isReadonly`
+- [Focus](/sdk-features/focus) — Editor focus state with `isFocused`
+- [Tools](/sdk-features/tools#tool-lock) — Tool lock behavior with `isToolLocked`
+- [User preferences](/sdk-features/user-preferences) — Global preferences that persist across editor instances
+
+## Related examples
+
+- **[Focus mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/focus-mode)** — Enable focus mode to minimize the UI.
+- **[Custom grid](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-grid)** — Use `isGridMode` with a custom grid component.
+- **[Read-only](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/readonly)** — Disable editing with `isReadonly`.

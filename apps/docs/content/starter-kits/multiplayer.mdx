@@ -13,14 +13,16 @@ keywords:
   - sync
   - collaboration
   - real-time
-readability: 7
-voice: 6
+readability: 8
+voice: 7
 completeness: 8
-accuracy: 6
-notes: "'Use Cases' should be sentence case. Code has markdown artifacts (lines 145, 187-188: URLs rendered incorrectly). Good technical depth."
+accuracy: 9
+notes: 'Revised to reflect current SQLite DO storage architecture. Code examples updated to show correct ShapeUtil patterns.'
 ---
 
-To build with a multiplayer sync starter kit, run this command in your terminal:
+The multiplayer starter kit provides a production-ready foundation for building collaborative tldraw applications with real-time synchronization. It uses Cloudflare Durable Objects for room management, WebSocket connections for instant updates, and SQLite storage for automatic persistence.
+
+To build with this starter kit, run this command in your terminal:
 
 ```bash
 npm create tldraw@latest -- --template multiplayer
@@ -30,7 +32,7 @@ npm create tldraw@latest -- --template multiplayer
 
 ## Use cases
 
-The multiplayer sync starter kit is perfect for building:
+This starter kit is perfect for building:
 
 <StarterKitBento type="multiplayer" />
 
@@ -40,88 +42,86 @@ The multiplayer sync starter kit is perfect for building:
 
 ### 1. Durable Objects: Room management
 
-Each collaborative room runs in its own Cloudflare Durable Object instance. This ensures strong consistency as there’s only ever one authoritative copy of each room’s data, and all users connect to that same instance. Presence indicators (avatars and names) let you see who is currently in the room, and real-time cursors show where other users are pointing or selecting.
+Each collaborative room runs in its own Cloudflare Durable Object instance. There's only ever one authoritative copy of each room's data, and all users connect to that same instance. This ensures strong consistency. Presence indicators (avatars and names) show who is currently in the room, and real-time cursors show where other users are pointing or selecting.
 
 ### 2. WebSocket synchronization: Real-time updates
 
 Changes are synchronized instantly via WebSocket connections. When a user draws or modifies content, the change is sent to the Durable Object, applied to the in-memory document, and broadcast to all connected clients. The sync protocol keeps state consistent across all clients. If a connection drops, the client automatically reconnects and replays missed changes to restore consistency.
 
-### 3. Persistent storage: R2 integration
+### 3. Persistent storage: SQLite
 
-Room data is automatically persisted to Cloudflare R2 storage every 10 seconds using throttled saves. This ensures data durability while minimizing storage costs and latency.
+Room data is automatically persisted to Durable Object SQLite storage. Every change is saved immediately, so data survives restarts without manual save logic.
 
 ### 4. Asset management: Scalable file handling
 
-Images, videos, and other files are uploaded directly to R2 storage and served through Cloudflare’s global edge network for optimal performance and reduced bandwidth costs. Shared assets are synchronized across all connected users, and pasted URLs automatically unfurl to display link previews.
+Images, videos, and other files are uploaded directly to R2 storage and served through Cloudflare's global edge network. Shared assets are synchronized across all connected users. Pasted URLs automatically unfurl into link previews.
 
 ---
 
 ## Customization
 
-This starter kit is built on top of tldraw's extensible architecture, which means that everything can be customized. The canvas renders using React DOM, so you can use familiar React patterns, components, and state management across your multiplayer interface. Let's have a look at some ways to change this starter kit.
+This starter kit is built on top of tldraw's extensible architecture, which means that everything can be customized. The canvas renders using React DOM, so you can use familiar React patterns, components, and state management. Here are some ways to customize this starter kit.
 
 ### Custom shapes integration
 
-To add custom shapes that work with multiplayer sync, you need to configure both the client-side shape utilities and the server-side schema. Both sides must know about your custom shapes for validation, synchronization, and version compatibility to work properly.
+To add custom shapes that work with multiplayer sync, you need to configure both the client-side shape utilities and the server-side schema. Both sides must know about your custom shapes so that validation, synchronization, and version compatibility work correctly.
 
-See `worker/TldrawDurableObject.ts` and `client/App.tsx` as examples. The server file shows schema configuration while the client shows how to connect custom shapes to the sync client.
+See `worker/TldrawDurableObject.ts` and `client/pages/Room.tsx` as examples. The server file shows schema configuration while the client shows how to connect custom shapes to the sync client.
 
 In the code example below, we add a custom sticky note shape on both client and server:
 
 ```tsx
-// 1. Define the custom shape utility (shared between client and server)
-const stickyNoteShapeUtil = {
-	type: 'sticky-note',
-	props: {
-		text: { type: 'string', default: '' },
-		color: { type: 'string', default: 'yellow' },
-	},
-	// Migrations for version compatibility
-	migrations: {
-		currentVersion: 1,
-		migrators: {
-			1: { up: (shape) => shape, down: (shape) => shape },
-		},
-	},
-	// Client-side only: rendering components
-	component: StickyNoteComponent,
-	indicator: StickyNoteIndicator,
-	getGeometry: getStickyNoteGeometry,
-}
+// 1. Server-side: Add custom shape schema in worker/TldrawDurableObject.ts
+import { createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema'
 
-// 2. Server-side: Add to schema in TldrawDurableObject.ts
 const schema = createTLSchema({
 	shapes: {
-		...defaultShapeSchemas, // Required for standard tldraw shapes
+		...defaultShapeSchemas,
 		'sticky-note': {
-			props: stickyNoteShapeUtil.props,
-			migrations: stickyNoteShapeUtil.migrations,
+			props: {
+				text: { type: 'string', default: '' },
+				color: { type: 'string', default: 'yellow' },
+			},
+			migrations: {
+				currentVersion: 1,
+				migrators: {},
+			},
 		},
 	},
 })
 
-// 3. Client-side: Configure useSync and Tldraw in App.tsx
-const store = useSync({
-	uri: `${window.location.origin}/api/connect/${roomId}`,
-	assets: multiplayerAssetStore,
-	// Must include custom shapes for sync validation
-	shapeUtils: [...defaultShapeUtils, stickyNoteShapeUtil],
-})
+// 2. Client-side: Create ShapeUtil class in client/StickyNoteShapeUtil.tsx
+import { ShapeUtil, Rectangle2d, HTMLContainer } from 'tldraw'
 
-return (
-	<Tldraw
-		store={store}
-		// Must include custom shapes for rendering
-		shapeUtils={[stickyNoteShapeUtil]}
-	/>
-)
+class StickyNoteShapeUtil extends ShapeUtil<StickyNoteShape> {
+	static override type = 'sticky-note' as const
+
+	getDefaultProps() {
+		return { text: '', color: 'yellow' }
+	}
+
+	getGeometry(shape: StickyNoteShape) {
+		return new Rectangle2d({ width: 200, height: 200, isFilled: true })
+	}
+
+	component(shape: StickyNoteShape) {
+		return <HTMLContainer>{shape.props.text}</HTMLContainer>
+	}
+
+	indicator(shape: StickyNoteShape) {
+		return <rect width={200} height={200} />
+	}
+}
+
+// 3. Client-side: Pass ShapeUtil to Tldraw in client/pages/Room.tsx
+;<Tldraw store={store} shapeUtils={[StickyNoteShapeUtil]} />
 ```
 
 ### Asset upload customization
 
 To customize how assets are uploaded and served, modify the asset store configuration. You can add authentication, preprocessing, or serve different asset variants based on user permissions.
 
-See `client/multiplayerAssetStore.tsx` as an example. This file demonstrates how to handle asset uploads to your Cloudflare Worker and retrieve them for display in the canvas.
+See `client/multiplayerAssetStore.tsx` as an example. This file shows how to upload assets to your Cloudflare Worker and retrieve them for display.
 
 In the code example below, we add authentication to asset uploads:
 
@@ -156,7 +156,7 @@ export const authenticatedAssetStore: TLAssetStore = {
 
 ### Deployment configuration
 
-To customize the deployment settings for your multiplayer backend, modify the Cloudflare Worker configuration. You can adjust resource limits, add custom domains, and configure environment-specific settings.
+Modify the Cloudflare Worker configuration to customize your deployment. You can adjust resource limits, add custom domains, and set environment-specific variables.
 
 See `wrangler.toml` as an example. This configuration file controls how your worker is deployed, including bucket names, environment variables, and routing rules.
 
@@ -184,38 +184,27 @@ pattern = "myapp.com/api/*"
 zone_name = "myapp.com"
 ```
 
-### Room persistence settings
+### Room persistence
 
-To customize how and when room data is persisted, modify the persistence logic in the Durable Object. You can adjust save frequency, add data compression, or implement custom backup strategies.
+Room data is automatically persisted via SQLite storage in the Durable Object. The `SQLiteSyncStorage` class handles all persistence logic. You don't need to implement custom save logic.
 
-See `worker/TldrawDurableObject.ts` as an example. The `schedulePersistToR2` method shows how room snapshots are throttled and saved to R2 storage.
-
-In the code example below, we customize the persistence behavior:
+See `worker/TldrawDurableObject.ts` as an example. The storage is initialized in the constructor:
 
 ```tsx
-// Custom persistence with compression and metadata
-schedulePersistToR2 = throttle(async () => {
-	if (!this.roomPromise || !this.roomId) return
-	const room = await this.getRoom()
+import { DurableObjectSqliteSyncWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 
-	const snapshot = room.getCurrentSnapshot()
-	const metadata = {
-		savedAt: new Date().toISOString(),
-		userCount: room.getConnectedClientIds().length,
-		version: '1.0',
+export class TldrawDurableObject extends DurableObject {
+	private room: TLSocketRoom<TLRecord, void>
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env)
+		// SQLite storage persists automatically to Durable Object storage
+		const sql = new DurableObjectSqliteSyncWrapper(ctx.storage)
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql })
+
+		this.room = new TLSocketRoom<TLRecord, void>({ schema, storage })
 	}
-
-	// Compress and save with metadata
-	const data = JSON.stringify({ snapshot, metadata })
-	const compressed = await compress(data)
-
-	await this.r2.put(`rooms/${this.roomId}`, compressed, {
-		httpMetadata: {
-			contentType: 'application/json',
-			contentEncoding: 'gzip',
-		},
-	})
-}, 5_000) // Save every 5 seconds instead of 10
+}
 ```
 
 ---

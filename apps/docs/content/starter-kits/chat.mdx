@@ -13,11 +13,6 @@ keywords:
   - messaging
   - collaboration
   - communication
-readability: 8
-voice: 7
-completeness: 7
-accuracy: 8
-notes: "'Use Cases' should be sentence case. Good concise coverage. Line number references are helpful. Could use a code example."
 ---
 
 To build with a chat starter kit, run this command in your terminal:
@@ -50,11 +45,11 @@ This starter kit demonstrates how to add tldraw's visual capabilities to an exis
 
 ### 1. Whiteboard modal
 
-The whiteboard opens a modal tldraw editor whenever users want to create or edit visual content. The modal supports uploaded images, freehand drawing, and editing images from chat history.
+The whiteboard opens a modal tldraw editor whenever users want to create or edit visual content. The modal supports uploaded images, freehand drawing, and editing of images from chat history.
 
 ### 2. Automatic image annotation
 
-When an image is uploaded for the first time, it is placed on the canvas, the camera is centered on it, and the editor switches into cropping mode using `editor.setCurrentTool('select.crop')`. From there, users can quickly crop their image to the desired section or add annotations on top.
+When an image is uploaded for the first time, the editor places it on the canvas, centers the camera on it, and switches into cropping mode using `editor.setCurrentTool('select.crop')`. From there, users can quickly crop their image to the desired section or add annotations on top.
 
 ### 3. Snapshot saving
 
@@ -64,25 +59,25 @@ Once the user has finished sketching or annotating, the editor exports the work 
 
 ## Customization
 
-This starter kit provides a minimal integration between tldraw and a chat app. You can tailor the modal's appearance, available tools, and overall behavior to fit your design system.
+This starter kit provides a minimal integration between tldraw and a chat app. You can tailor the modal's appearance, available tools, and overall behavior.
 
 ### Modifying the upload workflow
 
 You can customize the automatic crop behavior, add image processing steps, or extend support for additional file types to match your app's needs.
 
-See `src/components/WhiteboardModal.tsx:196` for the automatic crop activation and `src/components/Chat.tsx:148` for drag-and-drop handling.
+See `src/components/WhiteboardModal.tsx:195` for the automatic crop activation and `src/components/Chat.tsx:148` for drag-and-drop handling.
 
 ### Adapting to your design system
 
-Since tldraw is built with React, you can adapt both the modal behavior and its appearance for seamless integration with your chat interface. This includes controlling when the modal opens, how it looks, and which tools are available.
+Since tldraw is built with React, you can adapt both the modal behavior and its appearance to integrate with your chat interface. This includes controlling when the modal opens, how it looks, and which tools are available.
 
-For example, see `src/components/WhiteboardModal.tsx:93` for UI component overrides, `src/components/Chat.tsx:114` for modal trigger logic, and `src/app/styles.css` for styling to match your design system.
+For example, see `src/components/WhiteboardModal.tsx:92` for UI component overrides, `src/components/Chat.tsx:113` for the history image click handler, and `src/app/styles.css` for styling.
 
 ---
 
 ## Further reading
 
-- **[Custom Shape Utilities](/docs/shapes#Custom-shapes-1)**: Learn how to create advanced custom shapes with complex interactions and state management in tldraw applications.
+- **[Custom Shape Utilities](/docs/shapes#Custom-shapes-1)**: Learn how to create custom shapes with their own interactions.
 
 - **[Editor API](/docs/editor)**: Learn about the tldraw Editor.
 
