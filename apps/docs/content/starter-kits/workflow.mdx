@@ -13,11 +13,6 @@ keywords:
   - process
   - diagram
   - flowchart
-readability: 8
-voice: 6
-completeness: 8
-accuracy: 8
-notes: "'Use Cases' should be sentence case. 'Perfect for building' is promotional. Good code examples and technical depth."
 ---
 
 To build with a workflow starter kit, run this command in your terminal:
@@ -145,7 +140,7 @@ The execution system is defined in `src/execution/ExecutionGraph.tsx`. It’s de
 Customizing tldraw’s UI mostly works by replacing specific components. Take a look at `src/App.tsx` to see how we diverge from tldraw’s default UI:
 
 - We add the on-canvas component picker and workflow outline/play buttons in `InFrontOfTheCanvas`.
-- We add a custom vertical toolbar to the left of the screen and some extra actions in the bottom of the screen in `Toolbar` .
+- We add a custom vertical toolbar to the left of the screen and some extra actions in the bottom of the screen in `Toolbar`.
 - We remove the `MenuPanel` entirely.
 - We selectively hide the `StylePanel` depending on what’s selected.
 
