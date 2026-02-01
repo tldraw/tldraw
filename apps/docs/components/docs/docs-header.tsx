@@ -4,7 +4,6 @@ import { Article } from '@/types/content-types'
 import { cn } from '@/utils/cn'
 import { version } from '@/version'
 import { CopyMarkdownButton } from './copy-markdown-button'
-import { OpenWithAiDropdown } from './open-with-ai-dropdown'
 
 export async function DocsHeader({ article }: { article: Article }) {
 	let sourceUrlWithVersionTag
@@ -14,9 +13,6 @@ export async function DocsHeader({ article }: { article: Article }) {
 			'/tldraw/tldraw/blob/v' + version
 		)
 	}
-
-	const isExamples = article.sectionId === 'examples'
-	const pageUrl = `https://tldraw.dev${article.path}`
 
 	return (
 		<section
@@ -29,12 +25,7 @@ export async function DocsHeader({ article }: { article: Article }) {
 			<div className="flex flex-wrap justify-between gap-x-8 gap-y-3">
 				<PageTitle>{article.title}</PageTitle>
 				<div className="flex flex-wrap items-center gap-2 mt-1">
-					{isExamples && article.content && (
-						<>
-							<CopyMarkdownButton markdown={article.content} />
-							<OpenWithAiDropdown pageUrl={pageUrl} />
-						</>
-					)}
+					{article.content && <CopyMarkdownButton markdown={article.content} />}
 					{sourceUrlWithVersionTag && (
 						<Button
 							id="see-source-code"
