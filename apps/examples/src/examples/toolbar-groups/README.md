@@ -2,7 +2,17 @@
 title: Toolbar groups
 component: ./ToolbarGroupsExample.tsx
 category: ui
-keyword: [custom, vertical, toolbar, groups]
+keywords:
+  [
+    toolbar,
+    toolbar groups,
+    TldrawUiMenuGroup,
+    DefaultToolbar,
+    customize toolbar,
+    toolbar items,
+    toolbar layout,
+    orientation,
+  ]
 ---
 
 Create groups within the toolbar to separate related concepts.

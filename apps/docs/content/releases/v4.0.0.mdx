@@ -1,0 +1,123 @@
+---
+title: 'v4.0.0'
+created_at: 9/18/2025
+updated_at: 9/18/2025
+keywords:
+  - changelog
+  - release
+  - v4.0
+  - v4.0.0
+  - v4.0.1
+  - v4.0.2
+  - v4.0.3
+  - v4.0.4
+  - starter-kits
+  - cli
+  - accessibility
+  - licensing
+  - rich-text
+status: published
+---
+
+This major release introduces new starter kits, a CLI tool, WCAG 2.2 Level AA accessibility compliance, and significant API enhancements for building custom canvas applications.
+
+## What's new
+
+### npm create tldraw ([#6753](https://github.com/tldraw/tldraw/pull/6753))
+
+A new CLI tool for quickly scaffolding tldraw projects. Run `npm create tldraw` to initialize projects using templates and starter kits.
+
+### Starter kits
+
+Five new MIT-licensed starter kits demonstrate different applications of tldraw's canvas:
+
+- **[agent](https://tldraw.dev/starter-kits/agent)** - Cursor-style chatbot interface where conversations occur on the canvas with AI assistance
+- **[workflow](https://tldraw.dev/starter-kits/workflow)** - Node-and-wire visual programming interface for automation workflows and state machines
+- **[branching-chat](https://tldraw.dev/starter-kits/branching-chat)** - Multi-path conversation explorer for managing conversation branches
+- **[chat](https://tldraw.dev/starter-kits/chat)** - Canvas-based image annotation with integrated chatbot
+- **[multiplayer](https://tldraw.dev/starter-kits/multiplayer)** - Collaborative whiteboard foundation built on tldraw sync
+
+### Licensing ([#6707](https://github.com/tldraw/tldraw/pull/6707))
+
+Production deployments now require a license key. Development and localhost environments remain exempt. Available licenses include:
+
+- Free 100-day trial license
+- Commercial license for commercial projects
+- Hobby license for non-commercial use
+
+### Accessibility ([#6695](https://github.com/tldraw/tldraw/pull/6695))
+
+Achieves WCAG 2.2 Level AA compliance with an accessibility mode, improved keyboard shortcuts, comprehensive aria-labels, and scrollable menus.
+
+### Drag from toolbar ([#6681](https://github.com/tldraw/tldraw/pull/6681))
+
+Create shapes by dragging directly from the toolbar, eliminating the click-then-draw workflow.
+
+### Custom shape clipping ([#6649](https://github.com/tldraw/tldraw/pull/6649))
+
+Shapes can now clip their children, enabling complex visual hierarchies and container-style shapes.
+
+### Vertical toolbar support ([#6623](https://github.com/tldraw/tldraw/pull/6623))
+
+The toolbar supports vertical orientation for alternative layout configurations.
+
+### Rich text arrows ([#6594](https://github.com/tldraw/tldraw/pull/6594))
+
+Arrow labels support rich text formatting including bold, italic, and text styling.
+
+## API changes
+
+- 💥 **CSS variables** now start with `--tl-` prefix. Update custom CSS: `--color-background` → `--tl-color-background`, `--space-4` → `--tl-space-4`. ([#6712](https://github.com/tldraw/tldraw/pull/6712))
+- 💥 **`Geometry2D.isLabel`** replaced with `excludeFromShapeBounds` flag. ([#6668](https://github.com/tldraw/tldraw/pull/6668))
+- 💥 **`open-url` event** now uses `destinationUrl` instead of `url`. ([#6641](https://github.com/tldraw/tldraw/pull/6641))
+- 💥 **Arrow shapes** now use `richText` instead of `text` property. Data migrates automatically, but direct access to `arrow.props.text` must update to `arrow.props.richText`. ([#6594](https://github.com/tldraw/tldraw/pull/6594))
+- 💥 **`@tldraw/ai` module** removed. Use the [agent starter kit](https://tldraw.dev/starter-kits/agent) instead.
+- 💥 **Event propagation behavior** changed. Use `editor.markEventAsHandled()` for custom event handling. ([#6592](https://github.com/tldraw/tldraw/pull/6592))
+- 💥 **Style panel** redesigned with legacy picker components removed. ([#6573](https://github.com/tldraw/tldraw/pull/6573))
+- 💥 **Toolbar CSS class names** updated for consistency. ([#6551](https://github.com/tldraw/tldraw/pull/6551))
+- Add custom messages in `TLSocketRoom` via `sendCustomMessage()` and `onCustomMessageReceived`. ([#6614](https://github.com/tldraw/tldraw/pull/6614)) (contributed by [@mootari](https://github.com/mootari))
+- Add `Editor.getShapesAtPoint()` with flexible margin options for precise hit testing. ([#6724](https://github.com/tldraw/tldraw/pull/6724))
+- Add `editor.toImageDataUrl()` for generating image data URLs directly from shapes. ([#6658](https://github.com/tldraw/tldraw/pull/6658))
+- Add `ShapeUtil.isExportBoundsContainer` and `canCull` methods for controlling export behavior and rendering optimization. ([#6649](https://github.com/tldraw/tldraw/pull/6649))
+- Add `EditorAtom` for managing UI state outside React components. ([#6687](https://github.com/tldraw/tldraw/pull/6687))
+- Add enhanced handle drag callbacks with timing events for custom drag interactions. ([#6702](https://github.com/tldraw/tldraw/pull/6702))
+
+## Bug fixes
+
+- Fix arrow labels being cut off in exports. ([#6783](https://github.com/tldraw/tldraw/pull/6783))
+- Fix PNG physical pixel dimensions parsing. ([#6771](https://github.com/tldraw/tldraw/pull/6771))
+- Fix pointer events on mobile firing inconsistently. ([#6738](https://github.com/tldraw/tldraw/pull/6738))
+- Fix Chrome embed positioning at non-100% zoom levels. ([#6724](https://github.com/tldraw/tldraw/pull/6724))
+- Fix hollow shapes not being properly bound-to by arrows. ([#6705](https://github.com/tldraw/tldraw/pull/6705))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.0.0)
+
+---
+
+## Patch releases
+
+### v4.0.1
+
+- Fix template exports. ([#6804](https://github.com/tldraw/tldraw/pull/6804))
+- Fix documentation. ([#6805](https://github.com/tldraw/tldraw/pull/6805))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.0.1)
+
+### v4.0.2
+
+- Fix focus mode SDK issue that caused problems when using focus mode in the SDK. ([#6815](https://github.com/tldraw/tldraw/pull/6815))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.0.2)
+
+### v4.0.3
+
+- Add Claude 4.5 Sonnet to agent starter kit. ([#6852](https://github.com/tldraw/tldraw/pull/6852))
+- Ensure templates don't use internal functions. ([#6871](https://github.com/tldraw/tldraw/pull/6871))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.0.3)
+
+### v4.0.4
+
+- Fix shape index jitter for the first shape created, preventing potential index collisions. ([#6884](https://github.com/tldraw/tldraw/pull/6884))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.0.4)

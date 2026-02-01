@@ -1,0 +1,118 @@
+---
+title: 'v2.1.0'
+status: published
+created_at: 4/23/2024
+updated_at: 4/23/2024
+keywords:
+  - changelog
+  - release
+  - v2.1
+  - v2.1.0
+  - v2.1.1
+  - v2.1.2
+  - v2.1.3
+  - v2.1.4
+  - migrations
+  - sticky-notes
+  - performance
+  - svg-exports
+  - input-buffering
+---
+
+This release includes completely redesigned sticky notes, an overhaul to our migration system, and significant performance improvements.
+
+## What's new
+
+### New stickies ([#3249](https://github.com/tldraw/tldraw/pull/3249))
+
+Sticky notes have been completely redesigned with a fresh look and improved functionality.
+
+### 💥 New migrations ([#3220](https://github.com/tldraw/tldraw/pull/3220))
+
+The migrations system has been overhauled for better reliability and developer experience.
+
+- The `Migrations` type is now called `LegacyMigrations`
+- The serialized schema format (returned by `StoreSchema.serialize()` and `Store.getSnapshot()`) has changed
+- `compareRecordVersions` and `RecordVersion` have been removed
+- `compareSchemas` is gone—use `schema.getMigrationsSince(prevSchema)` instead
+- `defineMigrations` has been deprecated. See [updating legacy shape migrations](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations) for upgrade instructions
+- `migrate` has been removed
+
+### 💥 Input buffering ([#3223](https://github.com/tldraw/tldraw/pull/3223))
+
+Events are now buffered and sent to state nodes every tick, instead of immediately. This unlocks big performance improvements but could introduce subtle issues with custom tools—make sure to test any custom tools thoroughly.
+
+### 💥 React-powered SVG exports ([#3117](https://github.com/tldraw/tldraw/pull/3117))
+
+If any of your shapes implement `toSvg` for exports, you'll need to replace your implementation with a new version that returns JSX instead of manually constructing SVG DOM nodes.
+
+`editor.getSvg` is deprecated. Use `editor.getSvgElement` or `editor.getSvgString` instead.
+
+### 💥 Component-based toolbar customization ([#3067](https://github.com/tldraw/tldraw/pull/3067))
+
+If you're using the `toolbar` callback to override toolbar items, switch to using the new `Toolbar` component override. See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) for details.
+
+## API changes
+
+- 💥 **`getRenderingShapes`** no longer returns `isCulled`—use `getCulledShapes` instead.
+- Add `Editor.getStyleForNextShape`. ([#3039](https://github.com/tldraw/tldraw/pull/3039))
+- Add `usePreloadAssets` export. ([#3545](https://github.com/tldraw/tldraw/pull/3545))
+
+## Improvements
+
+- Improve color contrast. ([#3486](https://github.com/tldraw/tldraw/pull/3486))
+- Add long press event. ([#3275](https://github.com/tldraw/tldraw/pull/3275))
+- Add severity colors and icons to toasts. ([#2988](https://github.com/tldraw/tldraw/pull/2988))
+- Improve handling of broken images/videos. ([#2990](https://github.com/tldraw/tldraw/pull/2990))
+- Improve performance of draw shapes. ([#3464](https://github.com/tldraw/tldraw/pull/3464))
+- Use WebGL to draw the minimap. ([#3510](https://github.com/tldraw/tldraw/pull/3510))
+- Improve reactivity bookkeeping performance. ([#3471](https://github.com/tldraw/tldraw/pull/3471)) ([#3487](https://github.com/tldraw/tldraw/pull/3487))
+- Improve selection/erasing performance. ([#3454](https://github.com/tldraw/tldraw/pull/3454))
+- Improve performance of text shapes on iOS/Safari. ([#3429](https://github.com/tldraw/tldraw/pull/3429))
+- Reduce rendered DOM nodes for geo shapes and arrows. ([#3283](https://github.com/tldraw/tldraw/pull/3283))
+- Improve shape rendering performance. ([#3176](https://github.com/tldraw/tldraw/pull/3176))
+
+## Bug fixes
+
+- Fix copy error sound in Safari. ([#3536](https://github.com/tldraw/tldraw/pull/3536))
+- Fix arrow label positioning overlapping bound shapes. ([#3512](https://github.com/tldraw/tldraw/pull/3512))
+- Fix cursor chat button appearing when not in select tool. ([#3485](https://github.com/tldraw/tldraw/pull/3485))
+- Fix alt-duplicating shapes sometimes not working. ([#3488](https://github.com/tldraw/tldraw/pull/3488))
+- Fix camera sliding after pinch. ([#3462](https://github.com/tldraw/tldraw/pull/3462))
+- Fix text shapes overflowing their bounds when resized. ([#3327](https://github.com/tldraw/tldraw/pull/3327))
+- Fix incorrectly rotated handles on rotated cropping images. ([#3093](https://github.com/tldraw/tldraw/pull/3093))
+- Fix videos not being sized correctly. ([#3047](https://github.com/tldraw/tldraw/pull/3047))
+- Fix `localStorage` crash in React Native webviews. ([#3043](https://github.com/tldraw/tldraw/pull/3043))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.0)
+
+---
+
+## Patch releases
+
+### v2.1.1
+
+- Fix missing export for `createShapePropsMigrationIds`, part of the new migrations API. ([#3594](https://github.com/tldraw/tldraw/pull/3594))
+- Add exports for `defaultEditorAssetUrls`, `PORTRAIT_BREAKPOINT`, `useDefaultColorTheme`, and `getPerfectDashProps`. ([#3594](https://github.com/tldraw/tldraw/pull/3594))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.1)
+
+### v2.1.2
+
+- Revert a performance optimization that caused computed caches to sometimes not invalidate correctly, leading to stale data and crashes. ([#3611](https://github.com/tldraw/tldraw/pull/3611))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.2)
+
+### v2.1.3
+
+- Expose migrations, validators, and versions from tlschema. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+- Add `defaultShapeSchemas` which can be passed directly to `createTLSchema`. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.3)
+
+### v2.1.4
+
+- Fix text selection flakiness when clicking into text shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+- Fix edit→edit not working correctly when unfilled geo shapes are on top of other shapes. ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.1.4)

@@ -3,7 +3,20 @@ title: Inset editor (common practices)
 component: ./InlineBehavior.tsx
 category: layout
 priority: 0.5
-keywords: [focus, blur, multiple]
+keywords:
+  [
+    inline,
+    embedded,
+    focus,
+    blur,
+    multiple editors,
+    autofocus,
+    hand tool,
+    edge scrolling,
+    edgescrollspeed,
+    maxpages,
+    context,
+  ]
 ---
 
 Common practices for using the `Tldraw` component as a block within a larger page.

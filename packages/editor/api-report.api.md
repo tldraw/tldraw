@@ -2010,9 +2010,9 @@ export class HistoryManager<R extends UnknownRecord> {
             diff: RecordsDiff<R>;
             isEmpty: boolean;
         };
-        redos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
+        redos: TLHistoryEntry<R>[];
         state: string;
-        undos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
+        undos: TLHistoryEntry<R>[];
     };
     // (undocumented)
     readonly dispose: () => void;

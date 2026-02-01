@@ -1,0 +1,153 @@
+---
+title: Readonly mode
+created_at: 12/28/2025
+updated_at: 12/28/2025
+keywords:
+  - readonly
+  - view only
+  - disable editing
+  - presentation
+  - embed
+status: published
+date: 12/28/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: '"What readonly mode allows" paragraph is dense - could use bullet points or a table.'
+---
+
+Readonly mode turns the editor into a viewer. Users can pan, zoom, and select shapes to inspect them, but they can't create, modify, or delete anything. Use readonly mode when you want to display canvas content without allowing changes: embedding documents in a presentation, sharing a design for feedback, or showing a preview of saved work.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function ReadOnlyViewer() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					editor.updateInstanceState({ isReadonly: true })
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+## Enabling readonly mode
+
+Readonly state lives in the editor's instance state. Toggle it with `updateInstanceState`:
+
+```typescript
+// Enable readonly mode
+editor.updateInstanceState({ isReadonly: true })
+
+// Disable readonly mode
+editor.updateInstanceState({ isReadonly: false })
+
+// Check current state
+const isReadonly = editor.getIsReadonly()
+```
+
+The state persists across sessions when using a `persistenceKey`. A document saved in readonly mode opens in readonly mode next time.
+
+## What readonly mode blocks
+
+When readonly is enabled, the editor prevents all document mutations.
+
+| Category   | Blocked methods                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| Shapes     | `createShape`, `deleteShapes`, `updateShape`, `groupShapes`, `ungroupShapes`                   |
+| Pages      | `createPage`, `deletePage`, `renamePage`, `moveShapesToPage`                                   |
+| Assets     | `createAssets`, `updateAssets`, `deleteAssets`                                                 |
+| Transforms | `flipShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `rotateShapesBy`, `resizeShape` |
+| Styles     | `setStyleForSelectedShapes`, `setOpacityForSelectedShapes`, `setOpacityForNextShapes`          |
+| Clipboard  | `cut`, `paste` (for external content)                                                          |
+
+The toolbar automatically hides editing tools. Only the select tool, hand tool, and laser pointer remain visible. UI actions like undo and redo are also disabled in readonly mode.
+
+## What readonly mode allows
+
+Navigation and viewing operations work normally. You can pan, zoom, and use camera methods like `zoomIn`, `zoomOut`, `zoomToFit`, and `zoomToSelection`. Selection works too: clicking shapes, brush selection, `selectAll`, and `selectNone` all function as expected. You can hover over shapes to inspect them, switch between pages, and export the document using the `exportAs` or `copyAs` helper functions since exporting doesn't modify the document.
+
+## Using the useReadonly hook
+
+In React components, the `useReadonly` hook provides reactive access to the readonly state. Import it from `tldraw`:
+
+```tsx
+import { useReadonly } from 'tldraw'
+
+function ReadonlyIndicator() {
+	const isReadonly = useReadonly()
+
+	if (!isReadonly) return null
+
+	return <div className="readonly-badge">View only</div>
+}
+```
+
+The component re-renders automatically when readonly state changes. Use this hook when building custom UI that needs to respond to the readonly state.
+
+## Actions in readonly mode
+
+Actions have a `readonlyOk` property that determines whether they work in readonly mode. When an action has `readonlyOk: false` (the default), triggering it in readonly mode does nothing.
+
+Built-in actions that work in readonly mode include zoom controls (`zoom-in`, `zoom-out`, `zoom-to-fit`, `zoom-to-selection`), selection actions (`select-all`, `select-none`, `copy`), export actions (`export-as-svg`, `export-as-png`, `print`), navigation (`back-to-content`, `change-page-prev`, `change-page-next`), and preference toggles like `toggle-dark-mode`.
+
+When defining custom actions, set `readonlyOk: true` if the action should work in readonly mode:
+
+```typescript
+const overrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		actions['share-link'] = {
+			id: 'share-link',
+			label: 'action.share-link',
+			readonlyOk: true,
+			onSelect() {
+				// This works in readonly mode
+				navigator.clipboard.writeText(window.location.href)
+			},
+		}
+		return actions
+	},
+}
+```
+
+## Shapes that remain interactive
+
+Some shapes have interactive content that works even when the document is readonly. Embed shapes (YouTube videos, Figma files, interactive maps) are a good example. The embed itself is locked in place, but users can still play videos or interact with the embedded content.
+
+ShapeUtils can override `canEditInReadonly` to allow editing interactions on their shapes:
+
+```typescript
+class InteractiveWidgetUtil extends ShapeUtil<InteractiveWidget> {
+	canEditInReadonly(shape: InteractiveWidget): boolean {
+		return true
+	}
+}
+```
+
+When this returns `true`, double-clicking the shape enters edit mode even in readonly mode. The shape's interactive content becomes usable while the shape itself stays fixed.
+
+## Forcing operations in readonly mode
+
+For programmatic use cases like migrations or admin tools, you can bypass the readonly check by passing `force: true` to certain operations:
+
+```typescript
+// This works even in readonly mode
+editor.putExternalContent({ type: 'files', files: myFiles, point: { x: 0, y: 0 } }, { force: true })
+```
+
+Only `putExternalContent` and `replaceExternalContent` support this option. Use it sparingly since readonly mode exists to prevent unintended changes.
+
+## Collaboration and readonly mode
+
+When using tldraw's sync packages for collaboration, readonly mode integrates with room permissions. A user with read-only access to a shared document sees the editor in readonly mode automatically. The sync layer communicates the mode through a reactive signal, and the editor updates `isReadonly` in response.
+
+Changes from other collaborators still appear (the document updates in real time) but the readonly user can't contribute changes themselves.
+
+## Related examples
+
+- **[Read-only](/examples/configuration/readonly)** — Set up a readonly editor that disables all editing functionality.

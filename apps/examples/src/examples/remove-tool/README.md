@@ -3,7 +3,16 @@ title: Remove a tool from the toolbar
 component: ./RemoveToolExample.tsx
 category: ui
 priority: 0
-keywords: [remove, tool]
+keywords:
+  [
+    hide tool,
+    remove tool,
+    overrides,
+    customization,
+    toolbar customization,
+    disable tool,
+    tool visibility,
+  ]
 ---
 
 You can remove a tool from the user interface.

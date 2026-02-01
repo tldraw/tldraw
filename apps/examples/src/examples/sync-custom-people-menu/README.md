@@ -3,7 +3,18 @@ title: Multiplayer sync with custom people menu
 component: ./SyncCustomPeopleMenuExample.tsx
 category: collaboration
 priority: 3
-keywords: [multiplayer, sync, collaboration, custom shape, presence, people, ui, facepile]
+keywords:
+  [
+    multiplayer,
+    collaboration,
+    presence,
+    facepile,
+    people menu,
+    getcollaborators,
+    tlinstancepresence,
+    cursor position,
+    custom ui,
+  ]
 multiplayer: true
 ---
 

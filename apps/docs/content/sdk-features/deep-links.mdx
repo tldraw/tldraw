@@ -1,0 +1,124 @@
+---
+title: Deep links
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - deep link
+  - URL
+  - share
+  - navigation
+  - state
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 8
+accuracy: 10
+notes: ''
+---
+
+Deep links serialize editor state into URL-safe strings. They let users share links that open the editor at specific locations: individual shapes, viewport positions, or entire pages.
+
+The simplest way to enable deep links is with the `deepLinks` prop:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="example" deepLinks />
+		</div>
+	)
+}
+```
+
+With `deepLinks` enabled, the URL updates as users navigate. Anyone opening the URL sees the same page and viewport position.
+
+For more control, use the editor methods directly: `createDeepLink()` generates URLs with encoded state, `navigateToDeepLink()` moves the editor to a specified location, and `registerDeepLinkListener()` updates URLs automatically as users navigate.
+
+## Deep link types
+
+| Type       | Purpose                      | Encoded prefix | Example use case                  |
+| ---------- | ---------------------------- | -------------- | --------------------------------- |
+| `shapes`   | Links to specific shapes     | `s`            | Share selected shapes with a team |
+| `viewport` | Links to a bounding box view | `v`            | Share current viewport position   |
+| `page`     | Links to a specific page     | `p`            | Navigate to a particular page     |
+
+Shape links focus the editor on specific elements. Viewport links preserve the exact camera position and zoom level. Page links navigate to particular pages in multi-page documents.
+
+## How it works
+
+Deep links are encoded as compact strings with a single-character prefix identifying the type:
+
+- Shape links (`s`) encode shape IDs separated by dots: `s<id1>.<id2>.<id3>`
+- Viewport links (`v`) encode bounding box coordinates: `v<x>.<y>.<w>.<h>` with optional page ID
+- Page links (`p`) encode a page ID: `p<pageId>`
+
+All IDs are URL-encoded to handle special characters. The default query parameter is `d`, but you can customize this. When navigating to a shapes deep link, the editor switches to the page containing the most shapes and zooms to fit them. Viewport links set the camera to the exact specified bounds.
+
+## API methods
+
+### createDeepLink
+
+Creates a URL with a deep link query parameter encoding the current viewport and page:
+
+```typescript
+// Create a link to the current viewport
+const url = editor.createDeepLink()
+navigator.clipboard.writeText(url.toString())
+```
+
+Specify a target to link to specific shapes:
+
+```typescript
+// Link to currently selected shapes
+const url = editor.createDeepLink({
+	to: { type: 'shapes', shapeIds: editor.getSelectedShapeIds() },
+})
+```
+
+### navigateToDeepLink
+
+Navigates the editor to the location specified by a deep link URL or object:
+
+```typescript
+// Navigate using the current URL's query parameter
+editor.navigateToDeepLink()
+
+// Navigate to a specific URL
+editor.navigateToDeepLink({ url: 'https://example.com?d=v100.100.200.200' })
+
+// Navigate directly to shapes
+editor.navigateToDeepLink({
+	type: 'shapes',
+	shapeIds: ['shape:abc' as TLShapeId, 'shape:xyz' as TLShapeId],
+})
+```
+
+### registerDeepLinkListener
+
+Sets up automatic URL updates as the viewport changes. The listener debounces updates (500ms by default) to avoid excessive history entries:
+
+```typescript
+// Use default behavior (updates window.location)
+const unlisten = editor.registerDeepLinkListener()
+
+// Custom change handler with longer debounce
+const unlisten = editor.registerDeepLinkListener({
+	onChange(url) {
+		window.history.replaceState({}, document.title, url.toString())
+	},
+	debounceMs: 1000,
+})
+
+// Clean up when done
+unlisten()
+```
+
+You can also enable this via the `deepLinks` prop on the Tldraw component instead of calling this method directly.
+
+## Related examples
+
+- **[Deep links](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/deep-links)** - Demonstrates how to use the `deepLinks` prop to enable URL-based navigation and how to create, parse, and handle deep links manually using the editor methods.

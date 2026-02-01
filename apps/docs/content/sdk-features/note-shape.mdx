@@ -1,0 +1,141 @@
+---
+title: Note shape
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - note
+  - sticky note
+  - note tool
+  - clone handles
+  - adjacent notes
+status: published
+date: 1/31/2026
+---
+
+The note shape is one of the default shapes in tldraw. It renders as a sticky note with a colored background and text content. Notes have special interaction behaviors that make them ideal for brainstorming and clustering ideas: you can quickly spawn new notes adjacent to existing ones using clone handles or keyboard shortcuts.
+
+```tsx
+import { toRichText } from 'tldraw'
+
+editor.createShape({
+	type: 'note',
+	x: 100,
+	y: 100,
+	props: {
+		color: 'yellow',
+		labelColor: 'black',
+		richText: toRichText('My note'),
+		size: 'm',
+		font: 'draw',
+		align: 'middle',
+		verticalAlign: 'middle',
+	},
+})
+```
+
+## Sizing behavior
+
+Notes have a fixed base width of 200 pixels. Unlike most shapes, you can't manually resize a note by default. Instead, notes automatically grow vertically to fit their text content. The `growY` property tracks how much extra height the note needs beyond its base size.
+
+When text is too wide, the note shrinks the font size (down to a minimum of 14px) before allowing text to wrap. This keeps notes compact without hiding content.
+
+## Clone handles
+
+Notes display clone handles on their edges—small plus buttons at the top, right, bottom, and left sides. These handles let you quickly create adjacent notes.
+
+**Click a clone handle** to either:
+
+- Create a new note in that direction, or
+- If a note already exists there, select it and start editing
+
+**Drag a clone handle** to create a new note and immediately begin moving it. When you release, the new note enters edit mode. Spawn notes and position them freely.
+
+Clone handles only appear when the note is selected and the zoom level is high enough. At very low zoom levels (below 25%), handles are hidden entirely. Between 25-50% zoom, only the bottom handle appears to reduce visual clutter.
+
+```tsx
+// Clone handles are returned by getHandles on the note shape
+const handles = editor.getShapeHandles(noteShape)
+// Each handle has type: 'clone' and an id like 'top', 'right', 'bottom', 'left'
+```
+
+## Adjacent snapping
+
+When you create a new note with the note tool, tldraw checks if you're clicking near an "adjacent position"—an empty slot next to an existing note. If you're within 10 pixels of one of these slots, the new note snaps into place with consistent spacing.
+
+This snapping only works between notes with the same rotation and scale. The spacing between adjacent notes uses `editor.options.adjacentShapeMargin` (10 pixels by default).
+
+## Keyboard navigation
+
+When editing a note, you can use keyboard shortcuts to create adjacent notes:
+
+| Shortcut            | Action                      |
+| ------------------- | --------------------------- |
+| **Tab**             | Create or select note right |
+| **Shift+Tab**       | Create or select note left  |
+| **Cmd/Ctrl+Enter**  | Create or select note below |
+| **Shift+Cmd+Enter** | Create or select note above |
+
+These shortcuts respect the current note's rotation. They also handle right-to-left text: in RTL content, Tab moves left instead of right.
+
+When moving down, the keyboard shortcut accounts for the current note's `growY`. This keeps notes from overlapping when one note has grown taller than the base size.
+
+## Visual appearance
+
+Notes render with a subtle drop shadow that varies based on the shape's ID. Each note has slightly different lift and rotation. The shadow responds to the note's rotation on the canvas.
+
+In dark mode, shadows are replaced with a simple bottom border since shadows don't render well against dark backgrounds. Shadows are also hidden when zoomed out below 25% to improve performance.
+
+The note's text color is determined by its `labelColor` property. When set to `'black'` (the default), the note uses a color that contrasts well with the background. Other label colors override this automatic selection.
+
+## Properties
+
+| Property             | Type                            | Description                                                 |
+| -------------------- | ------------------------------- | ----------------------------------------------------------- |
+| `color`              | `TLDefaultColorStyle`           | Background color of the note                                |
+| `labelColor`         | `TLDefaultColorStyle`           | Text color (independent of background)                      |
+| `richText`           | `TLRichText`                    | Note content with formatting                                |
+| `size`               | `TLDefaultSizeStyle`            | Size preset (`s`, `m`, `l`, `xl`) affecting base font       |
+| `font`               | `TLDefaultFontStyle`            | Font family (`draw`, `sans`, `serif`, `mono`)               |
+| `align`              | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                                   |
+| `verticalAlign`      | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                                     |
+| `fontSizeAdjustment` | `number`                        | Runtime font size (set automatically based on content)      |
+| `growY`              | `number`                        | Additional height beyond the base 200px (set automatically) |
+| `url`                | `string`                        | Optional hyperlink URL                                      |
+| `scale`              | `number`                        | Scale factor applied to the shape                           |
+
+## Configuration
+
+Notes support one configuration option:
+
+| Option       | Type                  | Default  | Description                                                       |
+| ------------ | --------------------- | -------- | ----------------------------------------------------------------- |
+| `resizeMode` | `'none'` \| `'scale'` | `'none'` | How the note resizes. Set to `'scale'` for manual resize handles. |
+
+By default, notes can't be manually resized—they only grow based on text content. To allow user resizing with locked aspect ratio:
+
+```tsx
+import { Tldraw, NoteShapeUtil } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const ConfiguredNoteUtil = NoteShapeUtil.configure({
+	resizeMode: 'scale',
+})
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={[ConfiguredNoteUtil]} />
+		</div>
+	)
+}
+```
+
+## Dynamic resize mode
+
+When `editor.user.getIsDynamicResizeMode()` is true, new notes are created at a scale inversely proportional to the current zoom level. Notes stay visually consistent regardless of zoom level when created.
+
+```tsx
+// If dynamic resize mode is on and zoom is 2x, new notes get scale: 0.5
+// If zoom is 0.5x, new notes get scale: 2
+const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+```
