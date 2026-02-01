@@ -30,7 +30,7 @@ export function CopyMarkdownButton({
 		<Button
 			id="copy-markdown"
 			onClick={handleClick}
-			caption={copied ? 'Copied!' : 'Copy markdown'}
+			caption={copied ? 'Copy markdown' : 'Copy markdown'}
 			icon={copied ? 'check' : 'copy'}
 			size="sm"
 			type="secondary"
