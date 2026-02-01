@@ -65,6 +65,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			isGenerated: isReferenceSection,
 			extension,
 			componentCode: getComponentCode({ dir, filename, parsed }),
+			componentCodeFilename: getComponentCodeFilename({ parsed }),
 			componentCodeFiles: getComponentCodeFiles({ dir, filename, parsed }),
 		})
 
@@ -164,6 +165,7 @@ function getArticleData({
 	isGenerated,
 	extension,
 	componentCode,
+	componentCodeFilename,
 	componentCodeFiles,
 }: {
 	articleId: Article['id']
@@ -172,6 +174,7 @@ function getArticleData({
 	isGenerated: boolean
 	extension: string
 	componentCode: string | null
+	componentCodeFilename: string | null
 	componentCodeFiles: { [key: string]: string }
 }): Article {
 	const {
@@ -226,6 +229,7 @@ function getArticleData({
 		apiTags,
 		path: getArticlePath({ sectionId, categoryId, articleId }),
 		componentCode,
+		componentCodeFilename,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
 		embed,
 		githubLink,
@@ -283,6 +287,14 @@ function getComponentCode({
 				)
 				.toString()
 		: null
+}
+
+function getComponentCodeFilename({ parsed }: { parsed: matter.GrayMatterFile<string> }) {
+	if (!parsed.data.component) return null
+	const component = parsed.data.component as string
+	// Remove leading ./ if present and ensure .tsx extension
+	const name = component.replace(/^\.\//, '')
+	return name.endsWith('.tsx') ? name : `${name}.tsx`
 }
 
 function getComponentCodeFiles({
