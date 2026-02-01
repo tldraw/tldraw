@@ -342,7 +342,7 @@ export class Translating extends StateNode {
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
 			const shape = editor.getShape(shapeSnapshot.shape.id)
-			if (!shape) return null
+			if (!shape) return
 			movingShapes.push(shape)
 
 			const parentTransform = isPageId(shape.parentId)

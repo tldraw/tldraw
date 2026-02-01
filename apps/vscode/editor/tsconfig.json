@@ -16,7 +16,6 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"incremental": true,
-		"baseUrl": ".",
 		"composite": true,
 		"importHelpers": false,
 		"skipDefaultLibCheck": true

@@ -1,7 +1,8 @@
 /* eslint-disable local/no-whilst */
 import { TSDocParser } from '@microsoft/tsdoc'
 import * as utils from '@typescript-eslint/utils'
-import { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
+// @ts-ignore - internal path required for this type (tsgo-specific error)
+import type { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
 import { isReassignmentTarget } from 'tsutils'
 import ts from 'typescript'
 

@@ -16,13 +16,18 @@ export { BemoDO } from './BemoDO'
 
 const { preflight, corsify } = cors({ origin: '*' })
 
+// Helper to cast R2Bucket to the expected type for worker-shared functions
+// This is needed because tsgo distinguishes between ambient and imported Cloudflare types
+const asR2Bucket = (bucket: R2Bucket) =>
+	bucket as Parameters<typeof handleUserAssetGet>[0]['bucket']
+
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
 		.all('*', preflight)
 		.get('/uploads/:objectName', (request) => {
 			return handleUserAssetGet({
 				request,
-				bucket: this.env.BEMO_BUCKET,
+				bucket: asR2Bucket(this.env.BEMO_BUCKET),
 				objectName: `asset-uploads/${request.params.objectName}`,
 				context: this.ctx,
 			})
@@ -31,7 +36,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			return handleUserAssetUpload({
 				headers: request.headers,
 				body: request.body,
-				bucket: this.env.BEMO_BUCKET,
+				bucket: asR2Bucket(this.env.BEMO_BUCKET),
 				objectName: `asset-uploads/${request.params.objectName}`,
 			})
 		})
@@ -46,7 +51,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 					const response = await handleUserAssetUpload({
 						body,
 						headers,
-						bucket: this.env.BEMO_BUCKET,
+						bucket: asR2Bucket(this.env.BEMO_BUCKET),
 						objectName: `bookmark-assets/${objectName}`,
 					})
 					if (!response.ok) throw new Error('Failed to upload image')
@@ -59,7 +64,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.get('/bookmarks/assets/:objectName', (request) => {
 			return handleUserAssetGet({
 				request,
-				bucket: this.env.BEMO_BUCKET,
+				bucket: asR2Bucket(this.env.BEMO_BUCKET),
 				objectName: `bookmark-assets/${request.params.objectName}`,
 				context: this.ctx,
 			})

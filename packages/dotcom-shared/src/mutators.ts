@@ -1,4 +1,5 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
+// @ts-ignore - internal module path required for Transaction type (tsgo-specific error)
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	assert,
@@ -80,7 +81,7 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 
 	if (tx.location === 'client') {
 		const files = await tx.query.file.run()
-		const count = files.filter((f) => {
+		const count = files.filter((f: TlaFile) => {
 			if (f.isDeleted) return false
 			// For migrated users, count files owned by their home group
 			// For unmigrated users, count files owned directly by userId

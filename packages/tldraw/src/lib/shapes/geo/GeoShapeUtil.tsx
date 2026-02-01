@@ -404,6 +404,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				props: { ...props, growY: unscaledGrowY * props.scale },
 			}
 		}
+
+		return undefined
 	}
 
 	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
@@ -416,7 +418,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			prevProps.font === nextProps.font &&
 			prevProps.size === nextProps.size
 		) {
-			return
+			return undefined
 		}
 
 		const wasEmpty = isEmptyRichText(prevProps.richText)
@@ -424,7 +426,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		// If label is empty and used to be empty, skip label measurement and dimension adjustment
 		if (wasEmpty && isEmpty) {
-			return
+			return undefined
 		}
 
 		// Text was removed - reset growY
@@ -467,6 +469,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				},
 			}
 		}
+
+		return undefined
 	}
 
 	override onDoubleClick(shape: TLGeoShape) {

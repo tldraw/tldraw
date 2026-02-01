@@ -1,6 +1,22 @@
-import { R2Bucket } from '@cloudflare/workers-types'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
+
+// Minimal interface for R2Bucket operations used in this file
+// This avoids type conflicts between ambient and imported Cloudflare types
+// Using 'any' for return types to allow compatibility with different R2Bucket type definitions
+interface R2BucketLike {
+	head(key: string): Promise<any>
+	get(key: string, options?: any): Promise<any>
+	put(key: string, value: any, options?: any): Promise<any>
+}
+
+// Cloudflare's caches global has a 'default' property for the default cache
+declare const caches: {
+	default: {
+		match(request: unknown): Promise<Response | undefined>
+		put(request: unknown, response: Response): Promise<void>
+	}
+}
 
 /**
  * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
@@ -37,7 +53,7 @@ export async function handleUserAssetUpload({
 	objectName,
 }: {
 	objectName: string
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	body: ReadableStream | null
 	headers: Headers
 }): Promise<Response> {
@@ -88,15 +104,17 @@ export async function handleUserAssetGet({
 	context,
 }: {
 	request: IRequest
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	objectName: string
 	context: ExecutionContext
 }): Promise<Response> {
 	// this cache automatically handles range responses etc.
-	const cacheKey = new Request(request.url, { headers: request.headers })
+	const cacheKey = new Request(request.url, { headers: request.headers }) as unknown as Parameters<
+		typeof caches.default.match
+	>[0]
 	const cachedResponse = await caches.default.match(cacheKey)
 	if (cachedResponse) {
-		return cachedResponse
+		return cachedResponse as unknown as Response
 	}
 
 	const object = await bucket.get(objectName, {
@@ -147,9 +165,11 @@ export async function handleUserAssetGet({
 	if (status === 200) {
 		const [cacheBody, responseBody] = body!.tee()
 		// cache the response
-		context.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
-		return new Response(responseBody, { headers, status })
+		context.waitUntil(
+			caches.default.put(cacheKey, new Response(cacheBody as BodyInit, { headers, status }))
+		)
+		return new Response(responseBody as BodyInit, { headers, status })
 	}
 
-	return new Response(body, { headers, status })
+	return new Response(body as BodyInit | null, { headers, status })
 }

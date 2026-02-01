@@ -482,7 +482,7 @@ export class Idle extends StateNode {
 							...info,
 							target: 'shape',
 							shape: onlySelectedShape,
-						},
+						} as unknown as TLClickEventInfo,
 						true /* select all */
 					)
 					return
@@ -545,7 +545,7 @@ export class Idle extends StateNode {
 							...info,
 							target: 'shape',
 							shape: onlySelectedShape,
-						},
+						} as unknown as TLClickEventInfo,
 						true /* select all */
 					)
 					return

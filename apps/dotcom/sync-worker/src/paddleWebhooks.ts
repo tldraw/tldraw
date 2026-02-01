@@ -291,7 +291,7 @@ export const paddleWebhooks = createRouter<Environment>().post(
 	async (req, env, ctx) => {
 		const db = createPostgresConnectionPool(env, 'paddleWebhook')
 		try {
-			const event = await verifyWebhookSignature(env, req.clone())
+			const event = await verifyWebhookSignature(env, req.clone() as unknown as Request)
 			const { userId } = extractUserData(event.data.custom_data)
 
 			const record = await insertAndLockPaddleTransaction(db, event, userId)

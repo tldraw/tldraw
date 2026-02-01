@@ -1,4 +1,5 @@
 import { SchemaValue } from '@rocicorp/zero'
+// @ts-ignore - internal module path required for this type (tsgo-specific error)
 import { TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,

@@ -17,6 +17,7 @@ export function getLegacyOffsetX(
 			return -(totalWidth - 2 * padding - spansBounds.width) / 2
 		}
 	}
+	return undefined
 }
 
 // sneaky TLDefaultHorizontalAlignStyle for legacies

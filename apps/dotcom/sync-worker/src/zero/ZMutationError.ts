@@ -1,11 +1,14 @@
 import { ZErrorCode } from '@tldraw/dotcom-shared'
 
 export class ZMutationError extends Error {
+	public originalCause?: unknown
+
 	constructor(
 		public errorCode: ZErrorCode,
 		message: string,
-		public cause?: unknown
+		originalCause?: unknown
 	) {
 		super(message)
+		this.originalCause = originalCause
 	}
 }
