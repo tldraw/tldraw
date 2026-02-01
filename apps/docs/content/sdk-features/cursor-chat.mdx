@@ -1,0 +1,206 @@
+---
+title: Cursor chat
+created_at: 01/31/2026
+updated_at: 01/31/2026
+keywords:
+  - cursor chat
+  - chat
+  - collaboration
+  - presence
+  - messaging
+  - chatMessage
+  - isChatting
+status: published
+date: 01/31/2026
+---
+
+Cursor chat lets users send short messages that appear as bubbles near their cursor. It's designed for quick, ephemeral communication during collaborative sessions—a fast "look here" or "nice work" that doesn't interrupt the canvas workflow.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Start chatting programmatically
+					editor.updateInstanceState({ isChatting: true })
+
+					// Or set a message directly
+					editor.updateInstanceState({
+						chatMessage: 'Hello from the canvas!',
+					})
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Cursor chat only appears when collaboration UI is enabled. On desktop, users press `/` to open the chat input, type their message (up to 64 characters), and press Enter to send. The message follows their cursor for a few seconds, then fades away.
+
+## Chat state
+
+Chat state lives in instance state with two properties:
+
+| Property      | Type      | Description                             |
+| ------------- | --------- | --------------------------------------- |
+| `isChatting`  | `boolean` | Whether the user is actively typing     |
+| `chatMessage` | `string`  | The current message (max 64 characters) |
+
+Read the current state with [Editor#getInstanceState](?):
+
+```tsx
+const { isChatting, chatMessage } = editor.getInstanceState()
+```
+
+Update it with [Editor#updateInstanceState](?):
+
+```tsx
+// Start chatting
+editor.updateInstanceState({ isChatting: true })
+
+// Update the message
+editor.updateInstanceState({ chatMessage: 'Looking at this shape' })
+
+// Stop chatting and clear the message
+editor.updateInstanceState({ isChatting: false, chatMessage: '' })
+```
+
+Both properties are ephemeral—they don't persist to storage or survive page reloads.
+
+## How it works
+
+When a user starts chatting:
+
+1. The `CursorChatBubble` component renders an input field at the cursor position
+2. The input tracks the cursor via `pointermove` events
+3. As the user types, `chatMessage` updates in instance state
+4. When they press Enter or the input loses focus, `isChatting` becomes `false`
+5. The message displays for 2 seconds, then clears automatically
+
+Messages time out after 5 seconds while typing, or 2 seconds after the user stops.
+
+## Keyboard shortcuts
+
+The default keyboard action for cursor chat is `/`. You can find it under the action ID `open-cursor-chat`:
+
+```tsx
+import { Tldraw, useActions } from 'tldraw'
+
+function ChatButton() {
+	const actions = useActions()
+
+	return (
+		<button onClick={() => actions['open-cursor-chat'].onSelect('menu')}>Open cursor chat</button>
+	)
+}
+```
+
+Inside the chat input:
+
+| Key      | Action                                                            |
+| -------- | ----------------------------------------------------------------- |
+| `Enter`  | Clear input (if content exists) or stop chatting (if input empty) |
+| `Escape` | Stop chatting                                                     |
+
+## Presence synchronization
+
+In multiplayer sessions, chat messages synchronize automatically through presence records. The `chatMessage` field in [TLInstancePresence](?) contains the message other users see:
+
+```tsx
+import { InstancePresenceRecordType, Tldraw } from 'tldraw'
+
+// Creating a remote user's presence with a chat message
+const peerPresence = InstancePresenceRecordType.create({
+	id: InstancePresenceRecordType.createId(editor.store.id),
+	currentPageId: editor.getCurrentPageId(),
+	userId: 'peer-1',
+	userName: 'Alice',
+	cursor: { x: 100, y: 200, type: 'default', rotation: 0 },
+	chatMessage: 'Check out this arrow!',
+})
+
+editor.store.mergeRemoteChanges(() => {
+	editor.store.put([peerPresence])
+})
+```
+
+The presence derivation automatically includes the local user's `chatMessage` from instance state. Changes broadcast to other users automatically.
+
+## Customizing the chat bubble
+
+You can replace the default chat bubble by providing a custom `CursorChatBubble` component:
+
+```tsx
+import { Tldraw, TLUiComponents, useEditor, track } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const CustomCursorChat = track(function CustomCursorChat() {
+	const editor = useEditor()
+	const { isChatting, chatMessage } = editor.getInstanceState()
+
+	if (!isChatting && !chatMessage) return null
+
+	return (
+		<div
+			style={{
+				position: 'fixed',
+				bottom: 20,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				padding: '8px 16px',
+				background: editor.user.getColor(),
+				borderRadius: 8,
+				color: 'white',
+			}}
+		>
+			{isChatting ? 'Typing...' : chatMessage}
+		</div>
+	)
+})
+
+const components: TLUiComponents = {
+	CursorChatBubble: CustomCursorChat,
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw components={components} />
+		</div>
+	)
+}
+```
+
+For customizing how remote users' chat messages appear, override the `CollaboratorCursor` component instead. See [Cursors](/sdk-features/cursors) for details.
+
+## Availability
+
+Cursor chat requires:
+
+- Collaboration enabled (`editor.store.props.collaboration !== undefined`)
+- A non-touch device (disabled on mobile/tablet)
+
+Check availability before triggering chat programmatically:
+
+```tsx
+const hasCollaboration = editor.store.props.collaboration !== undefined
+const isTouchDevice = editor.getInstanceState().isCoarsePointer
+
+if (hasCollaboration && !isTouchDevice) {
+	editor.updateInstanceState({ isChatting: true })
+}
+```
+
+## Related articles
+
+- [Cursors](/sdk-features/cursors) — Cursor types, colors, and collaborator cursor customization
+- [Collaboration](/sdk-features/collaboration) — Presence synchronization and multiplayer setup
+- [User preferences](/sdk-features/user-preferences) — User colors and identity
+
+## Related examples
+
+- [User presence](/examples/collaboration/user-presence) — Display collaborator cursors and chat messages

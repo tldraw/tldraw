@@ -9,98 +9,29 @@ keywords:
   - shapes
   - shapeutils
   - utils
-readability: 8
-voice: 9
-completeness: 8
-accuracy: 8
-notes: 'Strong voice with good code examples. Great coverage of custom shapes, meta, rich text. Could expand on ShapeUtil flags and interaction sections.'
 ---
 
-In tldraw, a shape is something that can exist on the page, like an arrow, an image, or some text.
+In tldraw, a shape is something that can exist on the page, like an arrow, an image, or some text. This article provides an overview of shapes and how to create custom ones.
 
-This article is about shapes: what they are, how they work, and how to create your own shapes. If you'd prefer to see an example, see the tldraw repository's [examples app](https://github.com/tldraw/tldraw/tree/main/apps/examples) for examples of how to create custom shapes in tldraw.
+## Shape basics
 
-## Types of shape
+Shapes are JSON records stored in the editor's [store](/sdk-features/store). Each shape has base properties (position, rotation, opacity) plus a `props` object for shape-specific data. See [Shapes](/sdk-features/shapes) for the full shape system architecture.
 
-We make a distinction between three types of shapes: "core", "default", and "custom".
+The [Tldraw](?) component includes [default shapes](/sdk-features/default-shapes) like geo, text, arrow, and draw. The only core shape (always present) is the [group](/sdk-features/groups).
 
-### Core shapes
+## ShapeUtil
 
-The editor's core shapes are shapes that are built in and always present. At the moment the only core shape is the [group shape](/reference/tlschema/TLGroupShape).
-
-### Default shapes
-
-The default shapes are all of the shapes that are included by default in the [Tldraw](?) component, such as the [TLArrowShape](?) or [TLDrawShape](?). They are exported from the `tldraw` library as [defaultShapeUtils](?).
-
-### Custom shapes
-
-Custom shapes are shapes that were created by you or someone you love. Find more information about custom shapes [below](#Custom-shapes-1).
-
-## The shape object
-
-Shapes are just records (JSON objects) that sit in the [store](/docs/editor#Store). For example, here's a shape record for a rectangle geo shape:
-
-```ts
-{
-    "parentId": "page:somePage",
-    "id": "shape:someId",
-    "typeName": "shape",
-    "type": "geo",
-    "x": 106,
-    "y": 294,
-    "rotation": 0,
-    "index": "a28",
-    "opacity": 1,
-    "isLocked": false,
-    "props": {
-        "w": 200,
-        "h": 200,
-        "geo": "rectangle",
-        "color": "black",
-        "labelColor": "black",
-        "fill": "none",
-        "dash": "draw",
-        "size": "m",
-        "font": "draw",
-        "text": "diagram",
-        "align": "middle",
-        "verticalAlign": "middle",
-        "growY": 0,
-        "url": ""
-    },
-    "meta": {},
-}
-```
-
-### Base properties
-
-Every shape contains some base information. These include the shape's type, position, rotation, opacity, and more. You can find the full list of base properties [here](/reference/tlschema/TLBaseShape).
-
-### Props
-
-Every shape also contains some shape-specific information, called `props`. Each type of shape can have different props. For example, the `props` of a text shape are much different than the props of an arrow shape.
-
-### Meta
-
-Meta information is information that is not used by tldraw but is instead used by your application. For example, you might want to store the name of the user who created a shape, or the date that the shape was created. You can find more information about meta information [below](#Meta-information).
-
-## The `ShapeUtil` class
-
-While tldraw's shapes themselves are simple JSON objects, we use [ShapeUtil](?) classes to answer questions about shapes. For example, when the editor needs to render a text shape, it will find the [TextShapeUtil](?) and call its [ShapeUtil#component](?) method, passing in the text shape object as an argument.
-
----
+Each shape type has a [ShapeUtil](?) class that defines its behavior: how it renders, its geometry for hit testing, and how it responds to interactions. See [Shapes](/sdk-features/shapes#shapeutil) for details on ShapeUtil methods, lifecycle hooks, and configuration.
 
 ## Custom shapes
 
-You can create your own custom shapes. In the examples below, we will create a custom "card" shape. It'll be a simple rectangle with some text inside.
+You can create your own shapes by defining a shape type and a ShapeUtil class.
 
-> For an example of how to create custom shapes, see our [custom shapes example](/examples/shapes/tools/custom-shape).
+> For a working example, see our [custom shapes example](/examples/shapes/tools/custom-shape).
 
-### Shape type
+### Defining the shape type
 
-In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like.
-
-First, we register the shape's props using TypeScript module augmentation:
+Register your shape's props using TypeScript module augmentation:
 
 ```ts
 const CARD_TYPE = 'card'
@@ -110,39 +41,22 @@ declare module 'tldraw' {
 		[CARD_TYPE]: { w: number; h: number }
 	}
 }
-```
-
-Then, we can extract the shape type using `TLShape`:
-
-```ts
-import { TLShape } from 'tldraw'
 
 type CardShape = TLShape<typeof CARD_TYPE>
 ```
 
-The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+### Creating a ShapeUtil
 
-The created shape types extend [TLBaseShape](?) and thus include all the base properties of a shape, such as `x`, `y`, `rotation`, and `opacity`.
-
-### Shape Util
-
-While tldraw's shapes themselves are simple JSON objects, we use [ShapeUtil](?) classes to answer questions about shapes.
-
-Let's create a [ShapeUtil](?) class for the shape.
+Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `indicator`:
 
 ```tsx
 import { HTMLContainer, Rectangle2d, ShapeUtil } from 'tldraw'
-
-// ...
 
 class CardShapeUtil extends ShapeUtil<CardShape> {
 	static override type = CARD_TYPE
 
 	getDefaultProps(): CardShape['props'] {
-		return {
-			w: 100,
-			h: 100,
-		}
+		return { w: 100, h: 100 }
 	}
 
 	getGeometry(shape: CardShape) {
@@ -163,36 +77,20 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 }
 ```
 
-This is a minimal [ShapeUtil](?). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [ShapeUtil#getDefaultProps](?), [ShapeUtil#getGeometry](?), [ShapeUtil#component](?), and [ShapeUtil#indicator](?).
+See [Geometry](/sdk-features/geometry) for available geometry classes.
 
-We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the [Tldraw](?) component.
+### Registering your shape
 
-### The `shapeUtils` prop
-
-We pass an array of our shape utils into the [Tldraw](?) component's `shapeUtils` prop.
-
-```tsx
-const MyCustomShapes = [CardShapeUtil]
-
-export default function () {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw shapeUtils={MyCustomShapes} />
-		</div>
-	)
-}
-```
-
-We can create one of our custom card shapes using the [Editor](?) API. We'll do this by setting the `onMount` prop of the [Tldraw](?) component.
+Pass your ShapeUtil to the [Tldraw](?) component:
 
 ```tsx
 export default function () {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				shapeUtils={MyCustomShapes}
+				shapeUtils={[CardShapeUtil]}
 				onMount={(editor) => {
-					editor.createShapes([{ type: 'card' }])
+					editor.createShape({ type: 'card' })
 				}}
 			/>
 		</div>
@@ -200,113 +98,21 @@ export default function () {
 }
 ```
 
-Once the page refreshes, we should now have our custom shape on the canvas.
+## Extending shapes
 
-### Meta information
+- **[BaseBoxShapeUtil](?)** - Extend this for standard rectangular shape behavior
+- **[ShapeUtil#configure](?)** - Customize built-in shapes without subclassing
 
-Shapes also have a `meta` property (see [TLBaseShape#meta](?)) that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's existing shapes but also want to attach a bit of extra data to the shape.
+## Related topics
 
-Note that tldraw's regular shape definitions have an unknown object for the shape's `meta` property. To type your shape's meta, use a union like this:
-
-```ts
-type MyShapeWithMeta = TLGeoShape & { meta: { createdBy: string } }
-
-const shape = editor.getShape<MyShapeWithMeta>(myGeoShape.id)
-```
-
-You can update a shape's `meta` property in the same way you would update its props, using [Editor#updateShapes](?).
-
-```ts
-editor.updateShapes<MyShapeWithMeta>([
-	{
-		id: myGeoShape.id,
-		type: 'geo',
-		meta: {
-			createdBy: 'Steve',
-		},
-	},
-])
-```
-
-Like [TLBaseShape#props](?), the data in a [TLBaseShape#meta](?) object must be JSON serializable.
-
-In addition to setting meta properties this way, you can also set the default meta data for shapes using the Editor's [Editor#getInitialMetaForShape](?) method.
-
-```tsx
-editor.getInitialMetaForShape = (shape: TLShape) => {
-	if (shape.type === 'text') {
-		return { createdBy: currentUser.id, lastModified: Date.now() }
-	} else {
-		return { createdBy: currentUser.id }
-	}
-}
-```
-
-Whenever new shapes are created using the [Editor#createShapes](?) method, the shape's meta property will be set using the [Editor#getInitialMetaForShape](?) method. By default this method returns an empty object.
-
-### Using starter shapes
-
-You can use "starter" shape utils like [BaseBoxShapeUtil](?) to get regular rectangular shape behavior.
-
-### Flags
-
-You can use flags like [ShapeUtil#hideRotateHandle](?) to hide different parts of the UI when the shape is selected, or else to control different behaviors of the shape.
-
-### Interaction
-
-You can turn on `pointer-events` to allow users to interact inside of the shape.
-
-### Editing
-
-You can make shapes "editable" to help decide when they're interactive or not.
-
-### Labels (plain text and rich text)
-
-Our shapes have the ability to have include labels. Those labels can either have plain text (the `text` prop) or rich text (`richText`), as desired.
-For rich text, the tldraw editor provides first-class support for [TipTap](https://tiptap.dev/) out of the box. The underlying document for the richText is
-a TipTap JSON-stringified document that is stored within the `richText` property. (For that reason, we don't do character-by-character synchronization of
-the text within a shape. This was a design choice as much of tldraw's text ends up being short-form).
-
-If you would like to use rich text within your shape you can use our [RichTextLabel](?) component to help you get started with rendering rich text. Under the hood
-this uses [RichTextArea](?) which loads a TipTap instance and to handle the editing of rich text.
-
-If you would like to use plain text you would use the corresponding [PlainTextLabel](?) and [PlainTextArea](?) components.
-
-#### Text measurement
-
-One of the challenges with our shapes is getting an accurate measurement of the bounds of the shape.
-Traditionally you could have used our [TextManager#measureText](?). However, because rich text is HTML, the API to use for that is [TextManager#measureHtml](?)
-
-#### Extending TipTap
-
-Here's a simple example of how you could add a custom extension (in this case `FontFamily`) to the editor:
-
-```ts
-const textOptions = {
-	tipTapConfig: {
-		extensions: [...tipTapDefaultExtensions, FontFamily],
-	},
-}
-
-export default function RichTextCustomExtensionExample() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="rich-text-custom-extension"
-				components={components}
-				textOptions={textOptions}
-			/>
-		</div>
-	)
-}
-```
-
-Check out our [rich text examples](/examples/rich-text-custom-extension) to see how to add custom extensions or UI to tailor the rich text.
-
-### Clipping
-
-Custom shapes can clip their children so content outside the parent's boundary is hidden. Implement the `getClipPath` method to define the clipping polygon, and optionally `shouldClipChild` to control which children are clipped. See [Shape clipping](/sdk-features/shape-clipping) for the full API and examples.
-
-### Migrations
-
-You can add migrations for your shape props by adding a `migrations` property to your shape's util class. See [the persistence docs](/docs/persistence#Shape-props-migrations) for more information.
+| Topic                                          | Description                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| [Shapes](/sdk-features/shapes)                 | Full shape system architecture, ShapeUtil methods, lifecycle hooks |
+| [Default shapes](/sdk-features/default-shapes) | Built-in shape types and their properties                          |
+| [Geometry](/sdk-features/geometry)             | Geometry classes for hit testing and bounds                        |
+| [Bindings](/sdk-features/bindings)             | Connecting shapes together (like arrows)                           |
+| [Rich text](/sdk-features/rich-text)           | Adding text labels to shapes                                       |
+| [Shape clipping](/sdk-features/shape-clipping) | Clipping children within shape boundaries                          |
+| [Snapping](/sdk-features/snapping)             | Shape snapping behavior                                            |
+| [Persistence](/sdk-features/persistence)       | Shape migrations and data persistence                              |
+| [Groups](/sdk-features/groups)                 | Grouping shapes together                                           |

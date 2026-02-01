@@ -31,52 +31,29 @@ The tldraw package includes thirteen shape types that cover common diagramming a
 
 ## Shape overview
 
-The default shapes fall into five categories based on their primary function:
+The default shapes loosely fall into five categories based on their primary function:
 
-| Category   | Shape types                           | Description                                         |
-| ---------- | ------------------------------------- | --------------------------------------------------- |
-| Basic      | `geo`, `text`, `note`                 | Geometric shapes, text labels, and sticky notes     |
-| Drawing    | `draw`, `line`, `highlight`           | Freehand strokes, multi-point lines, and highlights |
-| Media      | `image`, `video`, `bookmark`, `embed` | External content and media files                    |
-| Structural | `frame`, `group`                      | Organization and containment                        |
-| Connectors | `arrow`                               | Lines that connect shapes together                  |
+| Category   | Shape types                           | Description                                                           |
+| ---------- | ------------------------------------- | --------------------------------------------------------------------- |
+| Text       | `text`, `note`                        | Text labels and sticky notes                                          |
+| Drawing    | `geo`, `draw`, `line`, `highlight`    | Freehand strokes, multi-point lines, geometric shapes, and highlights |
+| Media      | `image`, `video`, `bookmark`, `embed` | External content and media files                                      |
+| Structural | `frame`, `group`                      | Organization and containment                                          |
+| Connectors | `arrow`                               | Lines that connect shapes together                                    |
 
 ## Basic shapes
 
 ### Geo
 
-The geo shape renders geometric primitives with optional text labels. It supports 20 different geometric forms including rectangles, ellipses, triangles, stars, and directional arrows. Geo shapes can display rich text labels with configurable alignment, making them useful for flowcharts, diagrams, and annotated illustrations.
+The geo shape renders geometric primitives with optional text labels. It supports 20 different geometric forms—rectangles, ellipses, triangles, stars, polygons, directional arrows, and special shapes like clouds and hearts. Geo shapes can display rich text labels with configurable alignment, making them the foundation for flowcharts, diagrams, and annotated illustrations.
 
-```tsx
-import { toRichText } from 'tldraw'
+For complete documentation on geometric forms, label positioning, tool interactions, and configuration, see [Geo shape](/sdk-features/geo-shape).
 
-editor.createShape({
-	type: 'geo',
-	x: 100,
-	y: 100,
-	props: {
-		geo: 'rectangle',
-		w: 200,
-		h: 150,
-		color: 'blue',
-		fill: 'solid',
-		dash: 'draw',
-		size: 'm',
-		richText: toRichText('Label'),
-		labelColor: 'black',
-		align: 'middle',
-		verticalAlign: 'middle',
-	},
-})
-```
-
-The available geometric forms are: `rectangle`, `ellipse`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`, `star`, `rhombus`, `rhombus-2`, `oval`, `trapezoid`, `arrow-right`, `arrow-left`, `arrow-up`, `arrow-down`, `x-box`, `check-box`, `cloud`, `heart`
-
-Properties:
+Quick reference:
 
 | Property        | Type                            | Description                                     |
 | --------------- | ------------------------------- | ----------------------------------------------- |
-| `geo`           | `TLGeoShapeGeoStyle`            | The geometric shape type                        |
+| `geo`           | `TLGeoShapeGeoStyle`            | The geometric form                              |
 | `w`             | `number`                        | Width in pixels                                 |
 | `h`             | `number`                        | Height in pixels                                |
 | `richText`      | `TLRichText`                    | Text label displayed inside the shape           |
@@ -92,21 +69,11 @@ Properties:
 | `url`           | `string`                        | Optional hyperlink URL                          |
 | `scale`         | `number`                        | Scale factor applied to the shape               |
 
-Configuration options:
-
-| Option            | Type      | Default | Description                                                                                      |
-| ----------------- | --------- | ------- | ------------------------------------------------------------------------------------------------ |
-| `showTextOutline` | `boolean` | `true`  | Whether to show a text outline (using the canvas background color) to improve label readability. |
-
-```tsx
-const ConfiguredGeoUtil = GeoShapeUtil.configure({
-	showTextOutline: false,
-})
-```
-
 ### Text
 
 The text shape displays formatted text content with automatic sizing. Text shapes resize to fit their content by default, or you can set them to a fixed width with text wrapping. The shape supports rich text formatting including bold, italic, and other inline styles.
+
+For a complete guide to text shapes, including auto-size vs fixed-width modes, the text tool's interaction patterns, and configuration options, see [Text shape](/sdk-features/text-shape).
 
 ```tsx
 editor.createShape({
@@ -125,7 +92,7 @@ editor.createShape({
 })
 ```
 
-Properties:
+Quick reference:
 
 | Property    | Type                      | Description                                     |
 | ----------- | ------------------------- | ----------------------------------------------- |
@@ -138,23 +105,11 @@ Properties:
 | `w`         | `number`                  | Width when autoSize is false                    |
 | `scale`     | `number`                  | Scale factor applied to the shape               |
 
-Configuration options:
-
-| Option                        | Type      | Default | Description                                                                                                                                                    |
-| ----------------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `extraArrowHorizontalPadding` | `number`  | `10`    | Additional horizontal padding added to the shape's geometry when arrows bind to it. Prevents arrows from overlapping the text.                                 |
-| `showTextOutline`             | `boolean` | `true`  | Whether to show a text outline using the canvas background color. Improves readability when text overlaps other shapes. Disabled on Safari due to performance. |
-
-```tsx
-const ConfiguredTextUtil = TextShapeUtil.configure({
-	extraArrowHorizontalPadding: 20,
-	showTextOutline: false,
-})
-```
-
 ### Note
 
-The note shape renders as a sticky note with a colored background. Notes support rich text and have special interaction behavior: dragging from a note's edge creates a new adjacent note, making it easy to build clusters of related notes. Notes have a fixed base size but grow vertically to accommodate text content.
+The note shape renders as a sticky note with a colored background and rich text content. Notes have special interaction behaviors: clone handles on the edges let you quickly create adjacent notes, and keyboard shortcuts navigate between them. Notes have a fixed base size but grow vertically to fit their content.
+
+For a complete guide to note interactions, clone handles, keyboard navigation, and configuration, see [Note shape](/sdk-features/note-shape).
 
 ```tsx
 editor.createShape({
@@ -169,38 +124,7 @@ editor.createShape({
 		font: 'draw',
 		align: 'middle',
 		verticalAlign: 'middle',
-		fontSizeAdjustment: 0,
-		growY: 0,
-		url: '',
 	},
-})
-```
-
-Properties:
-
-| Property             | Type                            | Description                                          |
-| -------------------- | ------------------------------- | ---------------------------------------------------- |
-| `color`              | `TLDefaultColorStyle`           | Background color of the note                         |
-| `labelColor`         | `TLDefaultColorStyle`           | Text color (independent of background)               |
-| `richText`           | `TLRichText`                    | Note content with formatting                         |
-| `size`               | `TLDefaultSizeStyle`            | Size preset affecting base dimensions                |
-| `font`               | `TLDefaultFontStyle`            | Font family for the text                             |
-| `align`              | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                            |
-| `verticalAlign`      | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                              |
-| `fontSizeAdjustment` | `number`                        | Adjustment to the base font size (positive = larger) |
-| `growY`              | `number`                        | Additional height beyond the base note size          |
-| `url`                | `string`                        | Optional hyperlink URL                               |
-| `scale`              | `number`                        | Scale factor applied to the shape                    |
-
-Configuration options:
-
-| Option       | Type                  | Default  | Description                                                                                                                                       |
-| ------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resizeMode` | `'none'` \| `'scale'` | `'none'` | How the note shape resizes. By default, notes don't resize (except automatically based on text content). Set to `'scale'` to allow user resizing. |
-
-```tsx
-const ConfiguredNoteUtil = NoteShapeUtil.configure({
-	resizeMode: 'scale',
 })
 ```
 
@@ -208,61 +132,22 @@ const ConfiguredNoteUtil = NoteShapeUtil.configure({
 
 ### Draw
 
-The draw shape captures freehand strokes. It stores point data as segments that can be either smooth curves (`free`) or straight lines (`straight`). Draw shapes detect pen input through pressure data, enabling variable-width strokes that respond to stylus pressure. Points are stored in base64-encoded format for efficiency.
+The draw shape captures freehand strokes and straight line segments. It supports pressure-sensitive input from pens and styluses, automatic shape closing, angle snapping when holding Shift, and hybrid freehand/straight-line drawing modes. Points are stored in a delta-encoded base64 format for efficiency.
 
-The draw tool creates new shapes when an existing shape exceeds the maximum point count, preventing performance issues with very long strokes.
+For complete documentation on the draw shape and draw tool, including drawing modes, pen support, angle snapping, and programmatic creation, see the [Draw shape](/sdk-features/draw-shape) article.
 
-```tsx
-editor.createShape({
-	type: 'draw',
-	x: 100,
-	y: 100,
-	props: {
-		color: 'black',
-		fill: 'none',
-		dash: 'solid',
-		size: 'm',
-		segments: [
-			{
-				type: 'free',
-				points: '...', // Base64-encoded point data
-			},
-		],
-		isComplete: true,
-		isClosed: false,
-		isPen: false,
-		scale: 1,
-	},
-})
-```
+Quick reference:
 
-Properties:
-
-| Property     | Type                   | Description                                                     |
-| ------------ | ---------------------- | --------------------------------------------------------------- |
-| `color`      | `TLDefaultColorStyle`  | Stroke color                                                    |
-| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)                    |
-| `dash`       | `TLDefaultDashStyle`   | Stroke pattern                                                  |
-| `size`       | `TLDefaultSizeStyle`   | Stroke width preset                                             |
-| `segments`   | `TLDrawShapeSegment[]` | Array of segments, each with `type` and base64-encoded `points` |
-| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke               |
-| `isClosed`   | `boolean`              | Whether the path forms a closed shape                           |
-| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width)      |
-| `scale`      | `number`               | Scale factor applied to the shape                               |
-| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                         |
-| `scaleY`     | `number`               | Vertical scale factor for lazy resize                           |
-
-Configuration options:
-
-| Option              | Type     | Default | Description                                                                                                                              |
-| ------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `maxPointsPerShape` | `number` | `600`   | Maximum points in a single draw shape before the tool starts a new shape. Higher values allow longer strokes but may impact performance. |
-
-```tsx
-const ConfiguredDrawUtil = DrawShapeUtil.configure({
-	maxPointsPerShape: 1000,
-})
-```
+| Property     | Type                   | Description                                                |
+| ------------ | ---------------------- | ---------------------------------------------------------- |
+| `color`      | `TLDefaultColorStyle`  | Stroke color                                               |
+| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)               |
+| `dash`       | `TLDefaultDashStyle`   | Stroke pattern                                             |
+| `size`       | `TLDefaultSizeStyle`   | Stroke width preset                                        |
+| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type` and base64-encoded `path`    |
+| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke          |
+| `isClosed`   | `boolean`              | Whether the path forms a closed shape                      |
+| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width) |
 
 ### Line
 
@@ -469,7 +354,9 @@ Bookmark shapes don't have configuration options. URL metadata fetching is handl
 
 ### Embed
 
-The embed shape displays interactive content from external services within an iframe. The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. When an embed shape is locked, you can interact with the content (play videos, use embedded applications) without accidentally moving the shape.
+The embed shape displays interactive content from external services (YouTube, Figma, CodeSandbox, and more) within an iframe. When you paste a URL from a supported service, tldraw automatically converts it to an interactive embed with appropriate dimensions.
+
+For complete documentation on supported services, URL transformation, iframe security, custom embed definitions, and interaction modes, see [Embed shape](/sdk-features/embed-shape).
 
 ```tsx
 editor.createShape({
@@ -484,28 +371,6 @@ editor.createShape({
 })
 ```
 
-Supported services:
-
-| Service         | Hostnames                    |
-| --------------- | ---------------------------- |
-| tldraw          | tldraw.com, beta.tldraw.com  |
-| Figma           | figma.com                    |
-| YouTube         | youtube.com, youtu.be        |
-| Google Maps     | google.com/maps              |
-| Google Calendar | calendar.google.com          |
-| Google Slides   | docs.google.com/presentation |
-| CodeSandbox     | codesandbox.io               |
-| CodePen         | codepen.io                   |
-| Scratch         | scratch.mit.edu              |
-| Val Town        | val.town                     |
-| GitHub Gist     | gist.github.com              |
-| Replit          | replit.com                   |
-| Felt            | felt.com                     |
-| Spotify         | open.spotify.com             |
-| Vimeo           | vimeo.com                    |
-| Observable      | observablehq.com             |
-| Desmos          | desmos.com                   |
-
 Properties:
 
 | Property | Type     | Description                                          |
@@ -513,8 +378,6 @@ Properties:
 | `url`    | `string` | The original URL (converted to embed URL internally) |
 | `w`      | `number` | Width of the embed container                         |
 | `h`      | `number` | Height of the embed container                        |
-
-Embed shapes don't have per-instance configuration options, but you can customize the set of supported embed types globally using `EmbedShapeUtil.setEmbedDefinitions()`.
 
 ## Structural shapes
 
