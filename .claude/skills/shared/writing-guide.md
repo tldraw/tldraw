@@ -131,7 +131,9 @@ AI loves to emphasize significance without saying anything concrete. These phras
 
 ### Trailing gerund phrases
 
-AI ends sentences with vague gerund clauses that claim importance without substance:
+**This is one of the most common AI writing patterns. Actively hunt for and eliminate trailing gerunds.**
+
+AI ends sentences with gerund clauses (-ing phrases) that claim importance without substance:
 
 - "...emphasizing the significance of X"
 - "...reflecting the continued relevance of Y"
@@ -147,19 +149,42 @@ AI ends sentences with vague gerund clauses that claim importance without substa
 
 > The editor batches updates automatically. This keeps renders fast even when many shapes change at once.
 
-Even neutral trailing gerunds weaken sentences by burying the point at the end. Rewrite as separate sentences or lead with the effect:
+**Even neutral trailing gerunds are a problem.** They weaken sentences by burying the point at the end, making prose feel monotonous and AI-generated. This isn't just about avoiding hollow importance claims—it's about sentence structure.
+
+Common neutral trailing gerunds to eliminate:
+
+- "...allowing you to X"
+- "...enabling users to X"
+- "...making it easy to X"
+- "...giving you X"
+- "...providing X"
+- "...creating X"
+- "...resulting in X"
+- "...causing X to Y"
 
 **Don't:**
 
+> The store is reactive, allowing you to subscribe to changes.
+
 > When `shrink` is greater than zero, the stroke width also decreases during fade-out, creating a smooth disappearance effect.
+
+> The editor exposes methods for shape manipulation, making it easy to create complex diagrams.
 
 **Do:**
 
+> The store is reactive. You can subscribe to changes.
+
 > When `shrink` is greater than zero, the stroke width also decreases during fade-out. This creates a smooth disappearance effect.
 
-Or even better, lead with what matters:
+> The editor exposes methods for shape manipulation. You can use these to create complex diagrams.
+
+Or lead with what matters:
 
 > Set `shrink` above zero for a smooth disappearance effect—the stroke width decreases during fade-out.
+
+> You can create complex diagrams using the editor's shape manipulation methods.
+
+**The fix is simple**: Split into two sentences, or restructure so the important information comes first. When you see a comma followed by an -ing word near the end of a sentence, that's your signal to rewrite.
 
 ### Formulaic transitions
 

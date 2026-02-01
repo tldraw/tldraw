@@ -5,7 +5,7 @@ status: published
 author: tldraw
 date: 10/14/2024
 order: 7
-description: The Shader Starter Kit demonstrates how to integrate WebGL shaders with [tldraw](https://github.com/tldraw/tldraw), creating dynamic backgrounds that respond to canvas interactions. It includes four complete examples and a reusable `WebGLManager` base class for building custom shader effects.
+description: The Shader Starter Kit demonstrates how to integrate WebGL shaders with [tldraw](https://github.com/tldraw/tldraw). It creates dynamic backgrounds that respond to canvas interactions, and includes four complete examples and a reusable `WebGLManager` base class for building custom shader effects.
 embed: shader
 githubLink: https://github.com/tldraw/tldraw/tree/main/templates/shader
 keywords:
@@ -14,11 +14,6 @@ keywords:
   - graphics
   - visual effects
   - renderer
-readability: 8
-voice: 7
-completeness: 8
-accuracy: 8
-notes: "'Use Cases' should be sentence case. Well-structured for technical topic. Good external resource links and GitHub references."
 ---
 
 To build with a shader starter kit, run this command in your terminal:
@@ -31,7 +26,7 @@ npm create tldraw@latest -- --template shader
 
 ## Use cases
 
-The shader starter kit is perfect for building:
+Use the shader starter kit to build:
 
 <StarterKitBento type="shader" />
 
@@ -41,7 +36,7 @@ The shader starter kit is perfect for building:
 
 ### WebGLManager lifecycle
 
-The reusable `WebGLManager` class ([`src/WebGLManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/WebGLManager.ts)) creates and manages a WebGL2 context that is synchronized with the tldraw canvas. It owns the render loop and exposes lifecycle hooks—`onInitialize()`, `onUpdate()`, `onRender()`, and `onDispose()`—so each shader manager can focus on its effect-specific logic while sharing viewport coordination, resolution control, and animation timing.
+The reusable `WebGLManager` class ([`src/WebGLManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/WebGLManager.ts)) creates and manages a WebGL2 context that is synchronized with the tldraw canvas. It owns the render loop and exposes lifecycle hooks—`onInitialize()`, `onUpdate()`, `onRender()`, and `onDispose()`. Each shader manager can focus on its effect-specific logic while sharing viewport coordination, resolution control, and animation timing. The Minimal, Rainbow, and Shadows examples extend this base class; the Fluid example uses a different architecture with its own simulation system.
 
 ### Config panel system
 
@@ -56,11 +51,11 @@ The template ships with four complete demos that follow the same pattern of mana
 - **Shadows** ([`src/shadow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/shadow/)) — Raymarched shadow effect using signed distance fields derived from canvas geometry.
 - **Minimal** ([`src/minimal/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/)) — Dark-mode-aware solid color shader that makes it easy to start your own effect, with a [step-by-step walkthrough](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/minimal-example.md).
 
-Switch between demos from the style panel inside the starter kit to see how different managers plug into the same infrastructure.
+Switch between demos from the example menu next to the style panel to see how different managers plug into the same infrastructure.
 
 #### Fluid simulation
 
-A real-time fluid simulation that creates dynamic flows from shape interactions. Based on Pavel Dobryakov's WebGL fluid implementation.
+A real-time fluid simulation based on Pavel Dobryakov's WebGL fluid implementation. Shape movements create dynamic flows in the simulation.
 
 - Navier-Stokes fluid dynamics
 - Shape movements create velocity-based splats
@@ -120,7 +115,7 @@ Every manager receives the live tldraw editor instance, which lets you:
 - Subscribe to document changes through `editor.store.listen()`.
 - Read the current camera via `editor.getCamera()`.
 - Convert coordinates with `editor.pageToViewport()`.
-- Track pointer data from `editor.inputs.currentPagePoint`.
+- Track pointer data from `editor.inputs.getCurrentScreenPoint()`.
 
 See [`src/fluid/FluidManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/FluidManager.ts) for a full example of mixing editor state with GPU simulation.
 
@@ -134,11 +129,7 @@ See [`src/fluid/FluidManager.ts`](https://github.com/tldraw/tldraw/tree/main/tem
 
 ## Further reading
 
-- **[Multiplayer Starter Kit](/starter-kits/multiplayer)**: Use a tldraw multiplayer sync starter kit to build multi-user shader environments.
-
-- **[Shape Utilities](/docs/shapes#Custom-shapes-1)**: Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
-
-- **[Editor State Management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
+For multi-user shader environments, see the [Multiplayer Starter Kit](/starter-kits/multiplayer). To create custom shapes with advanced geometry and rendering, see [Shape Utilities](/docs/shapes#Custom-shapes-1). For working with tldraw's reactive state system and event handling, see [Editor State Management](/docs/editor).
 
 ---
 

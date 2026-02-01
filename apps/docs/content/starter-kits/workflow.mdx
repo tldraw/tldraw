@@ -5,7 +5,7 @@ status: published
 author: tldraw
 date: 9/16/2024
 order: 2
-description: The Workflow Starter Kit demonstrates how to build visual programming interfaces with node-based workflows on infinite canvas. It features an interactive workflow system where users can create, connect, and execute nodes to build automation pipelines, data transformations, or AI agent workflows. Use it as a foundation to create automation builders, AI agentic workflows, or visual scripting tools.
+description: Demonstrates how to build visual programming interfaces with node-based workflows on infinite canvas. Features an interactive workflow system where users can create, connect, and execute nodes. Includes node and connection shapes, port-based bindings, a graph execution engine, and data flow between nodes.
 embed: workflow
 githubLink: https://github.com/tldraw/tldraw/tree/main/templates/workflow
 keywords:
@@ -13,11 +13,6 @@ keywords:
   - process
   - diagram
   - flowchart
-readability: 8
-voice: 6
-completeness: 8
-accuracy: 8
-notes: "'Use Cases' should be sentence case. 'Perfect for building' is promotional. Good code examples and technical depth."
 ---
 
 To build with a workflow starter kit, run this command in your terminal:
@@ -30,7 +25,7 @@ npm create tldraw@latest -- --template workflow
 
 ## Use cases
 
-The Workflow Starter Kit is perfect for building:
+Use the Workflow Starter Kit to build:
 
 <StarterKitBento type="workflow" />
 
@@ -46,19 +41,19 @@ Nodes are custom tldraw shapes that represent workflow steps. Each node has inpu
 
 ### 2. Binding system: Smart connections
 
-When you create a connection between nodes, tldraw's binding system tracks the relationship. A connection is created by dragging from a port. If you move a node, its connections update automatically. You can also drag an existing connection to reconnect it elsewhere or disconnect it entirely. The binding utilities handle connection lifecycle as nodes change.
+When you create a connection between nodes, tldraw's binding system tracks the relationship. To create a connection, drag from a port. If you move a node, its connections update automatically. You can also drag an existing connection to reconnect it elsewhere or disconnect it entirely. The binding utilities handle connection lifecycle as nodes change.
 
 ### 3. Interaction layer: Port tools
 
-The starter kit extends tldraw's select tool with custom port interactions. When you click or drag near a port, the `PointingPort` tool activates, letting you create connections or insert new nodes (for example, by dragging from an output or clicking in the middle of a port). These behaviors are implemented using tldraw's state machine system, where tools are organized as states that can have child states.
+The starter kit extends tldraw's select tool with custom port interactions. When you click or drag near a port, the `PointingPort` tool activates. You can create connections by dragging from any port, or click an output port to open a node picker and insert a new connected node. These behaviors are implemented using tldraw's state machine system, where tools are organized as states that can have child states.
 
 ### 4. Execution engine
 
-The execution system is the main part designed to be replaced by your own business logic. It reads your node graph, resolves dependencies (which nodes need to run before others), and executes them in the correct order. Nodes expose their computation through a simple interface, and the engine handles the complex orchestration. You can run a workflow graph (by, for example, using a “Play” action) to see how information flows between nodes.
+The execution system is designed to be replaced by your own business logic. It reads your node graph, resolves dependencies (which nodes need to run before others), and executes them in the correct order. Nodes expose their computation through a simple interface, and the engine handles the orchestration. You can run a workflow graph (for example, using a "Play" action) to see how information flows between nodes.
 
 ### 5. Data flow and processing
 
-The data that flows through your workflow and what happens to that data is completely up to you (or your user). The starter kit provides the infrastructure: nodes update instantly to show their results as data flows through the connections. The framework handles moving data between nodes and triggering updates when values change. Your data can come from anywhere: user inputs, external APIs, databases, or file uploads.
+You control the data that flows through your workflow and what happens to it. The starter kit provides the infrastructure: nodes update instantly to show their results as data flows through the connections. The framework moves data between nodes and triggers updates when values change. Your data can come from user inputs, external APIs, databases, or file uploads.
 
 ---
 
@@ -91,8 +86,9 @@ export class CustomNodeDefinition extends NodeDefinition<CustomNode> {
 	static type = 'custom' // This must match "type" from above
 	static validator = CustomNode
 
-	// How do we label your node in the UI?
+	// How to label your node in the UI
 	title = 'My custom node'
+	heading = 'Custom' // Shown in the node header
 	icon = <span>🐝</span>
 
 	// Return a default version of your node
@@ -101,7 +97,8 @@ export class CustomNodeDefinition extends NodeDefinition<CustomNode> {
 	// Return the height of your node, in pixels
 	getBodyHeightPx(shape, node) { ... }
 
-	// Return all the ports (inputs & outputs) for your node
+	// Return all ports for your node. Each port has a terminal:
+	// 'end' = input port (receives data), 'start' = output port (sends data)
 	getPorts(shape, node) { ... }
 
 	// Run this node! Work through the input port values and
@@ -143,7 +140,7 @@ The execution system is defined in `src/execution/ExecutionGraph.tsx`. It’s de
 Customizing tldraw’s UI mostly works by replacing specific components. Take a look at `src/App.tsx` to see how we diverge from tldraw’s default UI:
 
 - We add the on-canvas component picker and workflow outline/play buttons in `InFrontOfTheCanvas`.
-- We add a custom vertical toolbar to the left of the screen and some extra actions in the bottom of the screen in `Toolbar` .
+- We add a custom vertical toolbar to the left of the screen and some extra actions in the bottom of the screen in `Toolbar`.
 - We remove the `MenuPanel` entirely.
 - We selectively hide the `StylePanel` depending on what’s selected.
 

@@ -15,12 +15,12 @@ keywords:
   - websockets
 readability: 8
 voice: 8
-completeness: 9
+completeness: 8
 accuracy: 8
-notes: 'Very thorough coverage of sync architecture. Good code examples for both storage backends. Long migration section may benefit from separate page.'
+notes: 'Thorough sync architecture coverage with good code examples. Migration sections are comprehensive but lengthy.'
 ---
 
-You can add realtime multi-user collaboration to your tldraw app by using **tldraw sync**. It's our library for fast, fault-tolerant shared document syncing, and is used in production on our flagship app [tldraw.com](https://tldraw.com).
+You can add realtime multi-user collaboration to your tldraw app by using **tldraw sync**. It's our library for fast, fault-tolerant shared document syncing. We use it in production on our flagship app [tldraw.com](https://tldraw.com).
 
 We offer a [hosted demo](/docs/collaboration#tldraw-sync-demo) of tldraw sync which is suitable for prototyping. To use tldraw sync in production, you will need to host it yourself.
 
@@ -33,19 +33,14 @@ There are two main ways to go about hosting tldraw sync:
 
 ### Use our Cloudflare template
 
-The best way to get started hosting your own backend is to clone and deploy [our Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare). The template provides a production-grade minimal setup of the system that runs on tldraw.com.
+The best way to get started hosting your own backend is to clone and deploy [our Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare). The template provides the same setup that runs on tldraw.com.
 
 It uses:
 
 - [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room.
 - [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
 
-There are some features that we have not provided and you might want to add yourself:
-
-- Authentication and authorization.
-- Rate limiting and size limiting for asset uploads.
-- Storing snapshots of documents over time for long-term history.
-- Listing and searching for rooms.
+There are some features that we have not provided and you might want to add yourself, such as authentication and authorization, rate limiting and size limiting for asset uploads, storing snapshots of documents over time for long-term history, and listing and searching for rooms.
 
 Make sure you also read the section below about [deployment concerns](#deployment-concerns).
 
@@ -53,7 +48,7 @@ Make sure you also read the section below about [deployment concerns](#deploymen
 
 ### Integrate tldraw sync into your own backend
 
-We recommend using Cloudflare, but the `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
+We recommend Cloudflare. The `@tldraw/sync-core` library also integrates tldraw sync into any JavaScript server environment that supports WebSockets.
 
 We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
 
@@ -67,7 +62,7 @@ A backend for tldraw sync consists of two or three parts:
 
 On the frontend, there is just one part: the **sync client**, created using the [`useSync`](?) hook from the `@tldraw/sync` package.
 
-Pulling all four of these together, here's what a simple client implementation might look like:
+Here's a simple client implementation:
 
 ```tsx
 import { Tldraw, TLAssetStore, Editor } from 'tldraw'
@@ -75,7 +70,7 @@ import { useSync } from '@tldraw/sync'
 import { uploadFileAndReturnUrl } from './assets'
 import { convertUrlToBookmarkAsset } from './unfurl'
 
-function MyEditorComponent({myRoomId}) {
+function MyEditorComponent({ myRoomId }) {
 	// This hook creates a sync client that manages the websocket connection to the server
 	// and coordinates updates to the document state.
 	const store = useSync({
@@ -88,8 +83,8 @@ function MyEditorComponent({myRoomId}) {
 	return <Tldraw store={store} onMount={registerUrlHandler} />
 }
 
-const myAssetStore: TLAssetStore {
-	upload(file, asset) {
+const myAssetStore: TLAssetStore = {
+	upload(asset, file) {
 		return uploadFileAndReturnUrl(file)
 	},
 	resolve(asset) {
@@ -98,7 +93,7 @@ const myAssetStore: TLAssetStore {
 }
 
 function registerUrlHandler(editor: Editor) {
-	editor.registerExternalAssetHandler('url', async ({url}) => {
+	editor.registerExternalAssetHandler('url', async ({ url }) => {
 		return await convertUrlToBookmarkAsset(url)
 	})
 }
@@ -131,7 +126,7 @@ Read the reference docs for [`TLSocketRoom`](?), and see an example of how to us
 
 #### InMemorySyncStorage (default)
 
-[`InMemorySyncStorage`](?) keeps all document state in memory. It's simple to use but loses data when the process restarts. You'll need to implement your own persistence by listening to the `onChange` callback and saving snapshots to your database.
+[`InMemorySyncStorage`](?) keeps all document state in memory. It's simple to use, but data is lost when the process restarts. To persist data, pass an `onChange` callback to the constructor and save snapshots to your database.
 
 ```tsx
 import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
@@ -149,7 +144,7 @@ const room = new TLSocketRoom({ storage })
 
 #### SQLiteSyncStorage (recommended for persistence)
 
-[`SQLiteSyncStorage`](?) stores document state in SQLite, providing automatic persistence that survives process restarts. This is the recommended approach for production deployments.
+[`SQLiteSyncStorage`](?) stores document state in SQLite. Data survives process restarts automatically. This is the recommended approach for production deployments.
 
 **For Cloudflare Durable Objects:**
 
@@ -188,8 +183,7 @@ const room = new TLSocketRoom({ storage })
 
 ### Asset storage
 
-As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
-retrieve large binary assets like images or videos.
+Tldraw also needs a way to store and retrieve large binary assets like images and videos.
 
 You'll need to make sure your backend can handle asset uploads & downloads, then implement
 [`TLAssetStore`](?) to connect it to tldraw.
@@ -465,11 +459,6 @@ Make sure both classes are exported from your worker entry point:
 export { TldrawDurableObject, TldrawDurableObjectSqlite } from './TldrawDurableObject'
 ```
 
-This approach:
-
-1. Checks SQLite first (fast path for already-migrated rooms)
-2. Falls back to R2 if SQLite is empty (one-time migration)
-3. Creates fresh storage for new rooms
-4. Optionally deletes R2 data after migration to save storage costs
+The `loadRoom` function checks SQLite first (fast path for already-migrated rooms), falls back to R2 if SQLite is empty (one-time migration), and creates fresh storage for new rooms. You can optionally delete R2 data after migration to save storage costs.
 
 Once all your rooms have been accessed at least once, the migration is complete. You can then remove the R2 fallback code and the stub `TldrawDurableObject` class.

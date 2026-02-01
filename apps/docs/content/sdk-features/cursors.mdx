@@ -1,0 +1,231 @@
+---
+title: Cursors
+created_at: 01/31/2026
+updated_at: 01/31/2026
+keywords:
+  - cursor
+  - pointer
+  - setCursor
+  - rotation
+  - color
+  - presence
+  - collaborator
+status: published
+date: 01/31/2026
+---
+
+The cursor system controls what cursor users see when interacting with the canvas. The current cursor is stored in instance state and changes automatically as users hover over different elements or use different tools. You can also set the cursor manually for custom tools.
+
+## Cursor state
+
+The cursor state consists of a type and a rotation angle. Access it through [Editor#getInstanceState](?):
+
+```typescript
+const { type, rotation } = editor.getInstanceState().cursor
+```
+
+The `type` determines the visual appearance—like `'default'`, `'grab'`, or `'nwse-resize'`. The `rotation` is an angle in radians that rotates the cursor icon. Rotation is mainly used for resize and rotate cursors so they align with the shape being manipulated.
+
+## Cursor types
+
+tldraw supports these cursor types:
+
+| Type            | Description                                    |
+| --------------- | ---------------------------------------------- |
+| `default`       | Standard pointer arrow                         |
+| `pointer`       | Hand indicating clickable element              |
+| `cross`         | Crosshair for precise positioning              |
+| `grab`          | Open hand for draggable content                |
+| `grabbing`      | Closed hand while dragging                     |
+| `text`          | I-beam for text editing                        |
+| `move`          | Four-way arrow for moving elements             |
+| `zoom-in`       | Magnifying glass with plus                     |
+| `zoom-out`      | Magnifying glass with minus                    |
+| `ew-resize`     | Horizontal resize (east-west)                  |
+| `ns-resize`     | Vertical resize (north-south)                  |
+| `nesw-resize`   | Diagonal resize (northeast-southwest)          |
+| `nwse-resize`   | Diagonal resize (northwest-southeast)          |
+| `resize-edge`   | Edge resize (used for edge handles)            |
+| `resize-corner` | Corner resize (used for corner handles)        |
+| `nesw-rotate`   | Rotation handle (northeast-southwest position) |
+| `nwse-rotate`   | Rotation handle (northwest-southeast position) |
+| `senw-rotate`   | Rotation handle (southeast-northwest position) |
+| `swne-rotate`   | Rotation handle (southwest-northeast position) |
+| `rotate`        | General rotation cursor                        |
+| `none`          | Hidden cursor                                  |
+
+Static cursors like `default`, `pointer`, and `grab` use CSS cursor values directly. Dynamic cursors like the resize and rotate types render as custom SVGs with rotation applied.
+
+## Setting the cursor
+
+Use [Editor#setCursor](?) to change the cursor:
+
+```typescript
+editor.setCursor({ type: 'cross', rotation: 0 })
+```
+
+You can update just the type or just the rotation—the other property keeps its current value:
+
+```typescript
+// Change only the type
+editor.setCursor({ type: 'grab' })
+
+// Change only the rotation
+editor.setCursor({ type: 'nwse-resize', rotation: Math.PI / 4 })
+```
+
+### Cursor rotation
+
+Rotation is specified in radians. When users resize or rotate shapes that are themselves rotated, the cursor rotates to match:
+
+```typescript
+// Get the selection's rotation and apply it to a resize cursor
+const selectionRotation = editor.getSelectionRotation()
+editor.setCursor({
+	type: 'nwse-resize',
+	rotation: selectionRotation,
+})
+```
+
+This keeps the cursor aligned with the shape's edges rather than the screen axes. The default tools handle cursor rotation automatically. You only need to set it manually for custom tools.
+
+## Cursors in custom tools
+
+Custom tools typically set the cursor when entering a state and reset it when exiting:
+
+```typescript
+import { StateNode } from 'tldraw'
+
+export class MyCustomTool extends StateNode {
+	static override id = 'my-tool'
+
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
+
+	override onExit() {
+		this.editor.setCursor({ type: 'default', rotation: 0 })
+	}
+}
+```
+
+For tools with child states, each state can set its own cursor. A drawing state might use `'cross'`, while a dragging state uses `'grabbing'`.
+
+## Cursor colors
+
+Dynamic cursors (resize and rotate types) adapt to the current color scheme. In light mode, the cursor style color is set to black. In dark mode, it's set to white. The SVG patterns themselves have fixed black and white fills for contrast. This happens automatically through the internal `useCursor` hook.
+
+## Collaborator cursors
+
+In multiplayer sessions, each user's cursor appears on other users' canvases. These remote cursors use the user's presence color—a randomly assigned color from the user color palette.
+
+### User color palette
+
+When a user first loads tldraw, they're assigned a random color from this palette:
+
+```typescript
+const USER_COLORS = [
+	'#FF802B',
+	'#EC5E41',
+	'#F2555A',
+	'#F04F88',
+	'#E34BA9',
+	'#BD54C6',
+	'#9D5BD2',
+	'#7B66DC',
+	'#02B1CC',
+	'#11B3A3',
+	'#39B178',
+	'#55B467',
+]
+```
+
+You can read or change a user's color through user preferences:
+
+```typescript
+// Get the user's color
+const color = editor.user.getColor()
+
+// Set a specific color
+editor.user.updateUserPreferences({ color: '#FF802B' })
+```
+
+### Rendering collaborator cursors
+
+Remote cursors render through the `CollaboratorCursor` component. The default implementation ([DefaultCursor](?)) displays:
+
+- The cursor icon in the user's color
+- The user's name as a label below the cursor
+- Any active chat message in a bubble
+
+You can customize this by providing your own `CollaboratorCursor` component through [TLEditorComponents](?):
+
+```tsx
+import { Tldraw, TLEditorComponents, TLCursorProps } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+function CustomCursor({ point, color, name, zoom }: TLCursorProps) {
+	if (!point) return null
+
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				transform: `translate(${point.x}px, ${point.y}px) scale(${1 / zoom})`,
+			}}
+		>
+			<div
+				style={{
+					width: 16,
+					height: 16,
+					borderRadius: '50%',
+					backgroundColor: color,
+				}}
+			/>
+			{name && <span style={{ color }}>{name}</span>}
+		</div>
+	)
+}
+
+const components: TLEditorComponents = {
+	CollaboratorCursor: CustomCursor,
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw components={components} />
+		</div>
+	)
+}
+```
+
+### Cursor position in presence
+
+Collaborator cursor positions are stored in presence records ([TLInstancePresence](?)). The cursor field includes position, type, and rotation:
+
+```typescript
+{
+  cursor: {
+    x: number
+    y: number
+    type: TLCursorType
+    rotation: number
+  } | null
+}
+```
+
+The editor automatically broadcasts cursor position updates to other users in the same room. Cursor position is null when the user's pointer is outside the canvas.
+
+## Related articles
+
+- [Cursor chat](/sdk-features/cursor-chat) - Send ephemeral chat messages at the cursor position
+- [Tools](/sdk-features/tools) - Learn how tools handle input and set cursors
+- [Collaboration](/sdk-features/collaboration) - User presence and multiplayer features
+- [User preferences](/sdk-features/user-preferences) - Manage user colors and other preferences
+- [UI components](/sdk-features/ui-components) - Customize the collaborator cursor component
+
+## Related examples
+
+- [Custom tool](/examples/shapes/tools/custom-tool) - Build a custom tool with cursor handling
+- [User presence](/examples/collaboration/user-presence) - Display collaborator cursors and presence
