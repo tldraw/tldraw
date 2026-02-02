@@ -3,7 +3,18 @@ title: Align and distribute shapes
 component: ./AlignAndDistributeShapesExample.tsx
 category: editor-api
 priority: 3
-keywords: [align, distribute, layout, position, arrange]
+keywords:
+  [
+    align,
+    distribute,
+    alignshapes,
+    distributeshapes,
+    layout,
+    position,
+    arrange,
+    horizontal,
+    vertical,
+  ]
 ---
 
 Align and distribute shapes using the editor's built-in methods.

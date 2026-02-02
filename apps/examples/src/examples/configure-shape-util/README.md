@@ -3,7 +3,16 @@ title: Shape options
 component: ./ConfigureShapeUtilExample.tsx
 category: configuration
 priority: 0
-keywords: [config, configure, shape, util, frame]
+keywords:
+  [
+    configure,
+    shapeutil,
+    shape options,
+    noteshapeoptions,
+    frameshapeoptions,
+    builtin shapes,
+    customization,
+  ]
 ---
 
 Change the behavior of built-in shapes by setting their options.

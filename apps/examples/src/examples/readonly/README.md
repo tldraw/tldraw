@@ -3,7 +3,16 @@ title: Read-only
 component: ./ReadOnlyExample
 category: configuration
 priority: 1
-keywords: [read, only mode]
+keywords:
+  [
+    readonly,
+    read-only mode,
+    isreadonly,
+    view only,
+    disable editing,
+    presentation mode,
+    locked editor,
+  ]
 ---
 
 Use the editor in read-only mode.

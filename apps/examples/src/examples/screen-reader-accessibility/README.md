@@ -3,7 +3,21 @@ title: Screen reader accessibility
 component: ./ScreenReaderAccessibilityExample.tsx
 category: ui
 priority: 1
-keywords: [accessibility, a11y, screen reader, aria]
+keywords:
+  [
+    accessibility,
+    a11y,
+    screen reader,
+    aria,
+    getariadescriptor,
+    gettext,
+    usea11y,
+    announcements,
+    aria live region,
+    polite,
+    assertive,
+    wcag,
+  ]
 ---
 
 Implement accessible custom shapes and custom screen reader announcements.

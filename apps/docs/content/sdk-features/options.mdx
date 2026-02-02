@@ -1,0 +1,368 @@
+---
+title: Options
+created_at: 12/25/2025
+updated_at: 12/25/2025
+keywords:
+  - options
+  - TldrawOptions
+  - configuration
+  - settings
+  - defaults
+status: published
+date: 12/25/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The tldraw editor accepts two kinds of configuration: **editor options** for core behavior (timing, limits, performance) and **component props** for features like persistence and custom shapes. Editor options are immutable after initialization; component props configure how the editor sets up.
+
+## Editor options
+
+The `options` prop accepts a `Partial<TldrawOptions>` object that configures core editor behavior: limits like maximum pages and shapes, timing for interactions and animations, sizing for handles and hit testing, and feature toggles.
+
+Options are set once when the editor initializes and cannot change afterward. Pass a partial options object to override specific values; everything else uses sensible defaults.
+
+```tsx
+import { Tldraw, TldrawOptions } from 'tldraw'
+
+const options: Partial<TldrawOptions> = {
+	maxPages: 3,
+	maxShapesPerPage: 1000,
+}
+
+function App() {
+	return <Tldraw options={options} />
+}
+```
+
+The `TldrawOptions` type defines all available options. Since you typically only need to customize a few values, pass `Partial<TldrawOptions>` to override specific options while accepting defaults for the rest.
+
+## Reading options at runtime
+
+After the editor initializes, access options through `editor.options`:
+
+```typescript
+const maxPages = editor.options.maxPages
+const animationDuration = editor.options.animationMediumMs
+```
+
+The options object is readonly. Attempting to modify it has no effect and TypeScript will flag the error.
+
+## Editor option categories
+
+### Limits
+
+Control maximum quantities to prevent performance issues or enforce business rules:
+
+| Option             | Default | Description                         |
+| ------------------ | ------- | ----------------------------------- |
+| `maxShapesPerPage` | 4000    | Maximum shapes allowed on one page  |
+| `maxPages`         | 40      | Maximum pages in a document         |
+| `maxFilesAtOnce`   | 100     | Maximum files to handle in one drop |
+
+Setting `maxPages` to 1 effectively disables multi-page functionality and removes the page menu from the UI.
+
+### Interaction timing
+
+Configure how the editor interprets user input timing:
+
+| Option                  | Default | Description                                       |
+| ----------------------- | ------- | ------------------------------------------------- |
+| `doubleClickDurationMs` | 450     | Maximum interval for double-click detection       |
+| `multiClickDurationMs`  | 200     | Maximum interval for triple/quadruple click       |
+| `longPressDurationMs`   | 500     | Duration to trigger long press                    |
+| `animationMediumMs`     | 320     | Duration for camera animations (zoom, pan to fit) |
+
+### Drag detection
+
+Control when pointer movement becomes a drag operation:
+
+| Option                        | Default | Description                              |
+| ----------------------------- | ------- | ---------------------------------------- |
+| `dragDistanceSquared`         | 16      | Distance² threshold for mouse drag (4px) |
+| `coarseDragDistanceSquared`   | 36      | Distance² threshold for touch drag (6px) |
+| `uiDragDistanceSquared`       | 16      | Distance² for UI element drag (4px)      |
+| `uiCoarseDragDistanceSquared` | 625     | Distance² for touch UI drag (25px)       |
+
+Values are squared to avoid computing square roots during hit testing. The larger touch thresholds prevent accidental drags on mobile devices.
+
+### Handle and hit testing
+
+Configure selection handles and click target areas:
+
+| Option               | Default | Description                                   |
+| -------------------- | ------- | --------------------------------------------- |
+| `handleRadius`       | 12      | Radius of selection handles                   |
+| `coarseHandleRadius` | 20      | Handle radius for touch input                 |
+| `coarsePointerWidth` | 12      | Expanded pointer size for touch               |
+| `hitTestMargin`      | 8       | Additional margin around shapes for hit tests |
+
+### Edge scrolling
+
+Configure auto-scroll behavior when dragging near viewport edges:
+
+| Option                   | Default | Description                              |
+| ------------------------ | ------- | ---------------------------------------- |
+| `edgeScrollDelay`        | 200     | Milliseconds before scroll starts        |
+| `edgeScrollEaseDuration` | 200     | Milliseconds to accelerate to full speed |
+| `edgeScrollSpeed`        | 25      | Base scroll speed in pixels per tick     |
+| `edgeScrollDistance`     | 8       | Width of the edge scroll trigger zone    |
+
+See [Edge scrolling](./edge-scrolling.mdx) for details on how these options affect behavior.
+
+### Camera
+
+Control camera movement and viewport behavior:
+
+| Option                    | Default | Description                                       |
+| ------------------------- | ------- | ------------------------------------------------- |
+| `cameraSlideFriction`     | 0.09    | Friction applied to camera momentum               |
+| `cameraMovingTimeoutMs`   | 64      | Time before camera is considered stopped          |
+| `followChaseViewportSnap` | 2       | Snap threshold when following collaborators       |
+| `spacebarPanning`         | true    | Enable spacebar to activate pan mode              |
+| `zoomToFitPadding`        | 128     | Padding around content when zooming to fit bounds |
+
+### Snapping
+
+| Option          | Default | Description                                  |
+| --------------- | ------- | -------------------------------------------- |
+| `snapThreshold` | 8       | Distance in pixels at which snapping engages |
+
+### Collaboration
+
+Configure timing for collaborator presence:
+
+| Option                          | Default | Description                               |
+| ------------------------------- | ------- | ----------------------------------------- |
+| `collaboratorInactiveTimeoutMs` | 60000   | Time before collaborator marked inactive  |
+| `collaboratorIdleTimeoutMs`     | 3000    | Time before collaborator marked idle      |
+| `collaboratorCheckIntervalMs`   | 1200    | Interval for checking collaborator status |
+
+### Export
+
+Configure image and SVG export behavior:
+
+| Option                      | Default  | Description                              |
+| --------------------------- | -------- | ---------------------------------------- |
+| `defaultSvgPadding`         | 32       | Padding around exported SVG content      |
+| `maxExportDelayMs`          | 5000     | Maximum wait time for export completion  |
+| `flattenImageBoundsExpand`  | 64       | Expansion when flattening images         |
+| `flattenImageBoundsPadding` | 16       | Padding when flattening images           |
+| `exportProvider`            | Fragment | React provider wrapping exported content |
+
+The `exportProvider` option wraps exported content in a React component. Use this when your custom shapes depend on context providers that must be present during rendering:
+
+```tsx
+const options: Partial<TldrawOptions> = {
+	exportProvider: ({ children }) => <ThemeProvider theme={myTheme}>{children}</ThemeProvider>,
+}
+```
+
+### Grid
+
+Configure the alignment grid:
+
+```typescript
+gridSteps: [
+	{ min: -1, mid: 0.15, step: 64 },
+	{ min: 0.05, mid: 0.375, step: 16 },
+	{ min: 0.15, mid: 1, step: 4 },
+	{ min: 0.7, mid: 2.5, step: 1 },
+]
+```
+
+Each entry defines a grid step size based on zoom level. The `min` and `mid` values define the zoom range where the `step` applies. At lower zoom levels, larger grid steps are used; at higher zoom levels, finer grid steps appear.
+
+### Performance
+
+Options that affect rendering performance:
+
+| Option                       | Default  | Description                              |
+| ---------------------------- | -------- | ---------------------------------------- |
+| `debouncedZoom`              | true     | Use cached zoom while camera is moving   |
+| `debouncedZoomThreshold`     | 500      | Shape count threshold for debounced zoom |
+| `maxFontsToLoadBeforeRender` | Infinity | Fonts to load before showing canvas      |
+| `textShadowLod`              | 0.35     | Zoom threshold for text shadow rendering |
+
+When `debouncedZoom` is enabled and the page has more shapes than `debouncedZoomThreshold`, the editor returns a cached zoom level during camera movement. This reduces re-renders of complex documents.
+
+### UI and features
+
+| Option                           | Default   | Description                                    |
+| -------------------------------- | --------- | ---------------------------------------------- |
+| `createTextOnCanvasDoubleClick`  | true      | Create text shape on empty canvas double-click |
+| `enableToolbarKeyboardShortcuts` | true      | Enable number keys (1-9) for toolbar items     |
+| `actionShortcutsLocation`        | 'swap'    | Where to show keyboard shortcuts in menus      |
+| `tooltipDelayMs`                 | 700       | Delay before showing tooltips                  |
+| `laserDelayMs`                   | 1200      | Duration laser pointer remains visible         |
+| `branding`                       | undefined | App name for accessibility labels              |
+| `nonce`                          | undefined | CSP nonce for inline styles                    |
+
+The `actionShortcutsLocation` option controls where keyboard shortcuts appear:
+
+- `'menu'` - Show shortcuts in menu items only
+- `'toolbar'` - Show shortcuts in toolbar tooltips only
+- `'swap'` - Show in menus when toolbar is collapsed, toolbar when expanded
+
+### Asset handling
+
+| Option                            | Default | Description                                       |
+| --------------------------------- | ------- | ------------------------------------------------- |
+| `temporaryAssetPreviewLifetimeMs` | 180000  | How long temporary asset previews persist (3 min) |
+| `adjacentShapeMargin`             | 10      | Margin between auto-positioned shapes             |
+
+## Default values
+
+The `defaultTldrawOptions` export provides all default values:
+
+```typescript
+import { defaultTldrawOptions } from 'tldraw'
+
+console.log(defaultTldrawOptions.maxPages) // 40
+```
+
+Use this to check defaults or spread into your own options:
+
+```typescript
+const options: Partial<TldrawOptions> = {
+	...defaultTldrawOptions,
+	maxPages: 10,
+}
+```
+
+## Tldraw component props
+
+The `<Tldraw>` component accepts additional props beyond those available on `<TldrawEditor>`. These props configure the UI layer, external content handling, and other features that the full SDK provides.
+
+### UI configuration
+
+| Prop          | Type                    | Description                                        |
+| ------------- | ----------------------- | -------------------------------------------------- |
+| `hideUi`      | `boolean`               | Hide all UI elements, showing only the canvas      |
+| `forceMobile` | `boolean`               | Force mobile breakpoints regardless of screen size |
+| `overrides`   | `TLUiOverrides`         | Override actions, tools, and translations          |
+| `onUiEvent`   | `TLUiEventHandler`      | Callback for UI interaction events                 |
+| `components`  | `TLComponents`          | Override or disable UI and canvas components       |
+| `assetUrls`   | `TLUiAssetUrlOverrides` | Custom URLs for fonts, icons, and other UI assets  |
+
+The `hideUi` prop is useful when building custom interfaces around the canvas:
+
+```tsx
+function CustomEditor() {
+	return (
+		<Tldraw hideUi>
+			<MyCustomToolbar />
+		</Tldraw>
+	)
+}
+```
+
+### External content handling
+
+These props control how the editor handles dropped or pasted files:
+
+| Prop                     | Default                         | Description                                             |
+| ------------------------ | ------------------------------- | ------------------------------------------------------- |
+| `maxImageDimension`      | 5000                            | Maximum width/height for images (larger images resized) |
+| `maxAssetSize`           | 10485760                        | Maximum file size in bytes (10 MB)                      |
+| `acceptedImageMimeTypes` | `DEFAULT_SUPPORTED_IMAGE_TYPES` | Allowed image MIME types                                |
+| `acceptedVideoMimeTypes` | `DEFAULT_SUPPORT_VIDEO_TYPES`   | Allowed video MIME types                                |
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			maxImageDimension={2000}
+			maxAssetSize={5 * 1024 * 1024} // 5 MB
+			acceptedImageMimeTypes={['image/png', 'image/jpeg']}
+		/>
+	)
+}
+```
+
+### Embeds
+
+The `embeds` prop customizes which embed types the editor recognizes:
+
+```tsx
+import { Tldraw, TLEmbedDefinition } from 'tldraw'
+
+const customEmbeds: TLEmbedDefinition[] = [
+	{
+		type: 'custom-video',
+		title: 'Custom Video',
+		hostnames: ['videos.example.com'],
+		width: 560,
+		height: 315,
+		doesResize: true,
+		toEmbedUrl: (url) => url.replace('/watch/', '/embed/'),
+		fromEmbedUrl: (url) => url.replace('/embed/', '/watch/'),
+	},
+]
+
+function App() {
+	return <Tldraw embeds={customEmbeds} />
+}
+```
+
+### Editor setup
+
+These props configure how the editor initializes:
+
+| Prop                 | Type                                                    | Description                                 |
+| -------------------- | ------------------------------------------------------- | ------------------------------------------- |
+| `autoFocus`          | `boolean`                                               | Automatically focus the editor on mount     |
+| `initialState`       | `string`                                                | Initial tool state (defaults to `'select'`) |
+| `shapeUtils`         | `TLShapeUtilConstructor[]`                              | Custom shape utilities                      |
+| `bindingUtils`       | `TLBindingUtilConstructor[]`                            | Custom binding utilities                    |
+| `tools`              | `TLStateNodeConstructor[]`                              | Custom tools                                |
+| `onMount`            | `TLOnMountHandler`                                      | Callback when editor mounts                 |
+| `cameraOptions`      | `Partial<TLCameraOptions>`                              | Camera constraints and behavior             |
+| `textOptions`        | `TLTextOptions`                                         | Rich text editor configuration              |
+| `deepLinks`          | `true \| TLDeepLinkOptions`                             | Sync camera state with URL                  |
+| `getShapeVisibility` | `(shape, editor) => 'visible' \| 'hidden' \| 'inherit'` | Conditionally hide shapes                   |
+| `user`               | `TLUser`                                                | Current user information                    |
+| `inferDarkMode`      | `boolean`                                               | Infer dark mode from OS preference          |
+| `licenseKey`         | `string`                                                | License key to remove watermark             |
+
+The `getShapeVisibility` callback lets you conditionally hide shapes based on their properties:
+
+```tsx
+<Tldraw
+	getShapeVisibility={(shape, editor) => {
+		// Hide shapes marked as hidden in meta
+		if (shape.meta.hidden) return 'hidden'
+		// Force-show shapes regardless of parent visibility
+		if (shape.meta.alwaysVisible) return 'visible'
+		// Default: visible unless parent is hidden
+		return 'inherit'
+	}}
+/>
+```
+
+### Store configuration
+
+When not providing your own store, these props configure automatic store creation:
+
+| Prop             | Type                  | Description                                           |
+| ---------------- | --------------------- | ----------------------------------------------------- |
+| `persistenceKey` | `string`              | Key for IndexedDB persistence (enables local storage) |
+| `sessionId`      | `string`              | Session identifier for persistence                    |
+| `snapshot`       | `TLEditorSnapshot`    | Initial document state                                |
+| `migrations`     | `MigrationSequence[]` | Additional migrations for custom schemas              |
+
+```tsx
+function App() {
+	return <Tldraw persistenceKey="my-document" snapshot={savedSnapshot} />
+}
+```
+
+Alternatively, provide your own store with the `store` prop for full control over data management.
+
+## Examples
+
+- **[Editor options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/custom-options)** - Override default options like max pages and animation speed.
+- **[Disable pages](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/disable-pages)** - Set `maxPages` to 1 to create a single-page editor.

@@ -3,7 +3,19 @@ title: Hosted images
 component: ./HostedImagesExample.tsx
 category: data/assets
 priority: 2
-keywords: [assets, video, image, png, jpg, file]
+keywords:
+  [
+    upload,
+    images,
+    assets,
+    tlassetstore,
+    file upload,
+    asset handling,
+    resolve,
+    fetch,
+    storage,
+    hosting,
+  ]
 ---
 
 How to handle images uploaded by the user.

@@ -10,18 +10,12 @@ export interface ChatHistoryGroup {
 	withDiff: boolean
 }
 
-export function ChatHistoryGroup({
-	group,
-	agent,
-}: {
-	group: ChatHistoryGroup
-	agent: TldrawAgent
-}) {
+export function ChatHistoryGroup({ group }: { group: ChatHistoryGroup }) {
 	if (group.withDiff) {
-		return <ChatHistoryGroupWithDiff group={group} agent={agent} />
+		return <ChatHistoryGroupWithDiff group={group} />
 	}
 
-	return <ChatHistoryGroupWithoutDiff group={group} agent={agent} />
+	return <ChatHistoryGroupWithoutDiff group={group} />
 }
 
 /**

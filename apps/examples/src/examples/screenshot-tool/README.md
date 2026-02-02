@@ -3,7 +3,20 @@ title: Custom tool (screenshot)
 component: ./ScreenshotToolExample.tsx
 category: shapes/tools
 priority: 0.5
-keywords: [state chart, state machine, child states]
+keywords:
+  [
+    custom tool,
+    statenode,
+    screenshot,
+    export,
+    state machine,
+    child states,
+    brush selection,
+    dragging state,
+    overrides,
+    toolbar,
+    asset urls,
+  ]
 ---
 
 A custom tool that takes a screenshot of the canvas.

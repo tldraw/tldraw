@@ -181,6 +181,11 @@ const nextConfig = {
 					'/?utm_source=mostlytechnical&utm_medium=paid_podcast&utm_campaign=ad_mostlytechnical_2025',
 				permanent: true,
 			},
+			{
+				source: '/starter-kits',
+				destination: '/starter-kits/overview',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
@@ -261,10 +266,6 @@ const nextConfig = {
 				{
 					source: '/showcase',
 					destination: `https://${REWRITE_DOMAIN}/showcase`,
-				},
-				{
-					source: '/starter-kits',
-					destination: `https://${REWRITE_DOMAIN}/starter-kits`,
 				},
 				{
 					source: '/thanks',

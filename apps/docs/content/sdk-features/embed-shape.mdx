@@ -1,0 +1,218 @@
+---
+title: Embed shape
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - embed
+  - youtube
+  - figma
+  - iframe
+  - codesandbox
+  - codepen
+  - google maps
+  - spotify
+  - vimeo
+status: published
+date: 1/31/2026
+---
+
+The embed shape displays interactive content from external services within an iframe. When you paste a URL from a supported service onto the canvas, tldraw automatically converts it to an embed with the appropriate dimensions and settings.
+
+## Creating embeds
+
+Paste a supported URL onto the canvas, or create an embed shape programmatically:
+
+```tsx
+editor.createShape({
+	type: 'embed',
+	x: 100,
+	y: 100,
+	props: {
+		url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+		w: 560,
+		h: 315,
+	},
+})
+```
+
+The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. A YouTube watch URL becomes an embed URL automatically.
+
+## Supported services
+
+| Service         | Hostnames                    | Resizable | Aspect ratio locked |
+| --------------- | ---------------------------- | --------- | ------------------- |
+| tldraw          | tldraw.com, beta.tldraw.com  | Yes       | No                  |
+| Figma           | figma.com                    | Yes       | No                  |
+| YouTube         | youtube.com, youtu.be        | Yes       | Yes                 |
+| Google Maps     | google.com/maps              | Yes       | No                  |
+| Google Calendar | calendar.google.com          | Yes       | No                  |
+| Google Slides   | docs.google.com/presentation | Yes       | No                  |
+| CodeSandbox     | codesandbox.io               | Yes       | No                  |
+| CodePen         | codepen.io                   | Yes       | No                  |
+| Scratch         | scratch.mit.edu              | No        | No                  |
+| Val Town        | val.town                     | Yes       | No                  |
+| GitHub Gist     | gist.github.com              | Yes       | No                  |
+| Replit          | replit.com                   | Yes       | No                  |
+| Felt            | felt.com                     | Yes       | No                  |
+| Spotify         | open.spotify.com             | Yes       | No                  |
+| Vimeo           | vimeo.com, player.vimeo.com  | Yes       | Yes                 |
+| Observable      | observablehq.com             | Yes       | No                  |
+| Desmos          | desmos.com                   | Yes       | No                  |
+
+Each service has default dimensions appropriate for its content type. YouTube embeds default to 800×450 (16:9), while Spotify defaults to 720×500.
+
+## Interacting with embeds
+
+Embed shapes behave differently from other shapes because they contain live interactive content.
+
+**Locked embeds**: When an embed shape is locked, you can interact with the content inside—play videos, scroll through code, use the embedded application—without accidentally moving the shape. This is the recommended way to use embeds for viewing content.
+
+**Unlocked embeds**: When an embed is unlocked, clicking on it selects the shape rather than interacting with the content. To interact with an unlocked embed, double-click to enter editing mode or hold Shift while clicking to interact directly.
+
+**Editing mode**: In editing mode, pointer events pass through to the iframe. You can scroll, click buttons, and interact with the embedded content. Click outside the shape or press Escape to exit editing mode.
+
+## URL transformation
+
+The embed system converts user-facing URLs to embed URLs automatically. When you paste `https://www.youtube.com/watch?v=dQw4w9WgXcQ`, the embed shape stores the original URL and renders `https://www.youtube.com/embed/dQw4w9WgXcQ`.
+
+Each embed definition includes two transformation functions:
+
+- `toEmbedUrl`: Converts a shareable URL to an embeddable URL
+- `fromEmbedUrl`: Converts an embed URL back to the original URL
+
+This bidirectional transformation means the shape can display the original URL to users while rendering the embed version internally.
+
+## Fallback to bookmarks
+
+When you paste a URL that isn't recognized as embeddable, the embed shape falls back to rendering as a [bookmark](/sdk-features/default-shapes#bookmark). The shape's geometry changes to match the bookmark dimensions, and a link card replaces the iframe.
+
+You can check whether a URL is embeddable before creating a shape:
+
+```tsx
+import { getEmbedInfo, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
+
+const embedInfo = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, 'https://youtube.com/watch?v=abc123')
+
+if (embedInfo) {
+	// URL is embeddable
+	console.log(embedInfo.definition.title) // "YouTube"
+	console.log(embedInfo.embedUrl) // "https://www.youtube.com/embed/abc123"
+} else {
+	// URL is not embeddable, will render as bookmark
+}
+```
+
+## Iframe security
+
+Embeds run in sandboxed iframes with restricted permissions. The default sandbox settings are:
+
+| Permission                                | Default | Description                                       |
+| ----------------------------------------- | ------- | ------------------------------------------------- |
+| `allow-scripts`                           | Yes     | Allow JavaScript execution                        |
+| `allow-same-origin`                       | Yes     | Allow access to same-origin storage and APIs      |
+| `allow-forms`                             | Yes     | Allow form submission                             |
+| `allow-popups`                            | Yes     | Allow opening new windows (for linking to source) |
+| `allow-downloads`                         | No      | Block file downloads                              |
+| `allow-modals`                            | No      | Block modal dialogs like `window.prompt()`        |
+| `allow-pointer-lock`                      | No      | Block pointer lock API                            |
+| `allow-top-navigation`                    | No      | Block navigating away from tldraw                 |
+| `allow-storage-access-by-user-activation` | No      | Block access to parent storage                    |
+
+Individual embed definitions can override these defaults. YouTube embeds allow `allow-presentation` for fullscreen video. Tldraw embeds allow `allow-top-navigation` so users can open rooms in new tabs.
+
+GitHub Gist embeds receive special handling: they use `srcDoc` instead of `src` to load the gist script, with an additional security check that restricts gist IDs to hexadecimal characters only. This prevents JSONP callback attacks.
+
+## Custom embed definitions
+
+Replace or extend the default embed definitions using `EmbedShapeUtil.setEmbedDefinitions()`:
+
+```tsx
+import { Tldraw, EmbedShapeUtil, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+// Add a custom embed definition
+const myEmbedDefinitions = [
+	...DEFAULT_EMBED_DEFINITIONS,
+	{
+		type: 'myservice',
+		title: 'My Service',
+		hostnames: ['myservice.com'],
+		width: 600,
+		height: 400,
+		doesResize: true,
+		toEmbedUrl: (url) => {
+			const match = url.match(/myservice\.com\/item\/(\w+)/)
+			if (match) {
+				return `https://myservice.com/embed/${match[1]}`
+			}
+			return undefined
+		},
+		fromEmbedUrl: (url) => {
+			const match = url.match(/myservice\.com\/embed\/(\w+)/)
+			if (match) {
+				return `https://myservice.com/item/${match[1]}`
+			}
+			return undefined
+		},
+		embedOnPaste: true,
+	},
+]
+
+// Set before mounting the editor
+EmbedShapeUtil.setEmbedDefinitions(myEmbedDefinitions)
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
+}
+```
+
+### Embed definition properties
+
+| Property                | Type                                   | Required | Description                                                               |
+| ----------------------- | -------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| `type`                  | `string`                               | Yes      | Unique identifier for this embed type                                     |
+| `title`                 | `string`                               | Yes      | Display name shown in the UI                                              |
+| `hostnames`             | `string[]`                             | Yes      | URL hostnames to match (supports glob patterns like `*.youtube.com`)      |
+| `width`                 | `number`                               | Yes      | Default width in pixels                                                   |
+| `height`                | `number`                               | Yes      | Default height in pixels                                                  |
+| `doesResize`            | `boolean`                              | Yes      | Whether the shape can be resized                                          |
+| `toEmbedUrl`            | `(url: string) => string \| undefined` | Yes      | Convert shareable URL to embed URL                                        |
+| `fromEmbedUrl`          | `(url: string) => string \| undefined` | Yes      | Convert embed URL to shareable URL                                        |
+| `minWidth`              | `number`                               | No       | Minimum width when resizing                                               |
+| `minHeight`             | `number`                               | No       | Minimum height when resizing                                              |
+| `isAspectRatioLocked`   | `boolean`                              | No       | Lock aspect ratio when resizing                                           |
+| `canEditWhileLocked`    | `boolean`                              | No       | Allow interaction when shape is locked (default: true)                    |
+| `overridePermissions`   | `TLEmbedShapePermissions`              | No       | Custom iframe sandbox permissions                                         |
+| `backgroundColor`       | `string`                               | No       | Background color for the embed container                                  |
+| `overrideOutlineRadius` | `number`                               | No       | Custom border radius (Spotify uses 12px)                                  |
+| `embedOnPaste`          | `boolean`                              | No       | When true, URLs are auto-converted to embeds on paste                     |
+| `instructionLink`       | `string`                               | No       | Help URL for services requiring setup (like Google Calendar public links) |
+
+## Embed-on-paste behavior
+
+By default, pasting a URL from a supported service creates an embed shape. Set `embedOnPaste: false` in the embed definition to create a bookmark instead.
+
+The tldraw embed definition uses `embedOnPaste: false` because nested tldraw canvases are blocked when the current page is already inside an iframe (to prevent infinite nesting).
+
+## Shape properties
+
+| Property | Type     | Description                                          |
+| -------- | -------- | ---------------------------------------------------- |
+| `url`    | `string` | The original URL (converted to embed URL internally) |
+| `w`      | `number` | Width of the embed container                         |
+| `h`      | `number` | Height of the embed container                        |
+
+## SVG export
+
+Embed shapes render as blank rectangles in SVG exports. The iframe content can't be captured directly, so exports show a placeholder with the embed's background color and border radius.
+
+## Related
+
+- [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shape types
+- [Bookmark shape](/sdk-features/default-shapes#bookmark) — URL link cards (fallback for non-embeddable URLs)
+- [External content handling](/sdk-features/external-content) — Handling pasted and dropped content
+- [Embedded example](/examples/misc/embedded) — Interactive example of embedding tldraw
