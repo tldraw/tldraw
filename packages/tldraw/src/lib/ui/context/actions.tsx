@@ -369,18 +369,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'select-zoom-tool',
+				label: 'action.select-zoom-tool',
 				readonlyOk: true,
-				kbd: 'z',
+				kbd: 'z, !z',
 				onSelect(source) {
+					// Noop if user is actually cmd/ctrl+z'ing
+					if (editor.inputs.getAccelKey()) return
+
+					// Noop unless in the current tool's idle state
+					const path = editor.getPath()
+					if (!path.endsWith('.idle')) return
+
+					// Noop if already in zoom tool
 					if (editor.root.getCurrent()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
-					if (!(editor.inputs.getShiftKey() || editor.inputs.getCtrlKey())) {
-						const currentTool = editor.root.getCurrent()
-						if (currentTool && currentTool.getCurrent()?.id === 'idle') {
-							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
-						}
-					}
+					editor.setCurrentTool('zoom', {
+						onInteractionEnd: path,
+						maskAs: 'zoom',
+					})
 				},
 			},
 			{
