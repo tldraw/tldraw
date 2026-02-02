@@ -4,7 +4,19 @@ component: ./LassoSelectToolExample.tsx
 category: editor-api
 priority: 3
 keywords:
-  [tools, state machine, custom tool, selection, lasso, overlays, editor atom, freehand drawing]
+  [
+    lasso,
+    selection,
+    freehand,
+    overlays,
+    custom tool,
+    state machine,
+    atom,
+    statenode,
+    getstrokepoints,
+    getsupathfromstrokepoints,
+    usevalue,
+  ]
 ---
 
 Add a lasso select tool to tldraw.

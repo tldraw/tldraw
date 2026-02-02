@@ -2,7 +2,7 @@
 title: Static assets
 component: ./StaticAssetsExample.tsx
 category: data/assets
-keywords: [icons, fonts, pre-load]
+keywords: [assets, asseturls, custom fonts, custom icons, cdn, static files, preload, configuration]
 priority: 0
 ---
 

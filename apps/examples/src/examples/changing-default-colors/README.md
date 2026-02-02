@@ -3,7 +3,18 @@ title: Change default colors
 component: ./ChangingDefaultColorsExample.tsx
 category: ui
 priority: 0.5
-keywords: [colours, styles, palette, style panel]
+keywords:
+  [
+    colors,
+    colours,
+    theme,
+    palette,
+    style panel,
+    defaultcolorstyle,
+    color values,
+    theming,
+    customization,
+  ]
 ---
 
 Change the tldraw theme colors.

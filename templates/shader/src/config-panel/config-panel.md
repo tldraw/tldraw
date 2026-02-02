@@ -2,8 +2,6 @@
 
 A collapsible, reusable configuration panel component for building interactive controls for shader templates. The config panel provides a consistent UI for adjusting shader parameters in real-time.
 
-## Overview
-
 The config panel system consists of:
 
 - **ConfigPanel**: Container component with collapse/expand functionality and reset button

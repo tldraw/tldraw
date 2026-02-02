@@ -3,7 +3,19 @@ title: Persist to storage
 component: ./LocalStorageExample.tsx
 category: data/assets
 priority: 0
-keywords: [store, snapshot, debounce]
+keywords:
+  [
+    persistence,
+    localstorage,
+    save,
+    load,
+    snapshot,
+    getsnapshot,
+    loadsnapshot,
+    createtlstore,
+    store.listen,
+    throttle,
+  ]
 ---
 
 Manually persist the contents of the editor to storage.

@@ -3,7 +3,7 @@ title: Toggle focus mode
 component: ./FocusModeExample.tsx
 category: editor-api
 priority: 3
-keywords: [focus, mode, editor, state, instance]
+keywords: [focus mode, isfocusmode, updateinstancestate, distraction free, hide ui, onmount]
 ---
 
 How to enable focus mode by using the editor API.

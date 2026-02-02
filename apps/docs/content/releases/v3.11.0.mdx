@@ -1,0 +1,63 @@
+---
+title: 'v3.11.0'
+created_at: 3/20/2025
+updated_at: 3/20/2025
+keywords:
+  - changelog
+  - release
+  - v3.11
+  - v3.11.0
+  - v3.11.1
+  - v3.11.2
+  - rich-text
+  - zoom
+  - accessibility
+  - react-19
+status: published
+---
+
+This release addresses rich text issues following v3.10, adds zoom improvements, and introduces accessibility enhancements.
+
+## API changes
+
+- 💥 **`editor.user.getName()`** no longer returns "New user" when unnamed; returns empty string instead.
+- 💥 **`defaultUserPreferences.name`** changed from "New user" to empty string.
+- Export `RichTextSVG` from the package.
+
+## Improvements
+
+- Add a new minimum zoom step at 5%.
+- Add keyboard shortcuts (Shift +/Shift -) for zooming toward your cursor.
+- Add option to hit Enter to continue editing after selection in the style panel.
+- Improve rich text rendering performance with many shapes.
+- Improve hiding/showing shape indicators on large projects.
+- Add page navigation shortcuts (option + arrows).
+- Add support for satellite mode in Google Map embeds.
+- Add focus rings for accessibility.
+- Add nonce support for the editor security.
+
+## Bug fixes
+
+- Fix rich text numbered list geometry bounds.
+- Fix React 19 StrictMode compatibility.
+- Fix export styling issues.
+- Fix missing internationalization strings for rich text elements.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.11.0)
+
+---
+
+## Patch releases
+
+### v3.11.1
+
+- Fix application of zoomSpeed setting to pinch gestures. ([#5696](https://github.com/tldraw/tldraw/pull/5696))
+- Fix unexpected borders in exports from Tailwind CSS pages. ([#5696](https://github.com/tldraw/tldraw/pull/5696))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.11.1)
+
+### v3.11.2
+
+- Fix sync core bug. ([#6667](https://github.com/tldraw/tldraw/pull/6667))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.11.2)

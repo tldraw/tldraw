@@ -3,7 +3,8 @@ title: Precise exact arrows
 component: ./ArrowsPreciseExactExample.tsx
 category: configuration
 priority: 5
-keywords: [arrow, configure, isPrecise, isExact]
+keywords:
+  [arrow, configure, isprecise, isexact, arrow behavior, arrowshapeutil, arrow tool, alt key]
 ---
 
 Make arrows adopt "isExact" behavior instead of "isPrecise".
