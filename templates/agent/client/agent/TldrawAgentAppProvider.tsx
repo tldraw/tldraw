@@ -180,7 +180,7 @@ export function useTldrawAgentApp(): TldrawAgentApp {
  */
 export function useAgent(): TldrawAgent {
 	const app = useTldrawAgentApp()
-	const agent = app.agents.getAgent()
+	const agent = useValue('agent', () => app.agents.getAgent(), [app])
 	if (!agent) {
 		throw new Error('No agent found. Make sure an agent has been created.')
 	}

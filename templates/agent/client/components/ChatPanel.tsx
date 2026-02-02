@@ -1,12 +1,10 @@
 import { FormEventHandler, useCallback, useRef } from 'react'
-import { uniqueId } from 'tldraw'
-import { useAgent, useTldrawAgentApp } from '../agent/TldrawAgentAppProvider'
+import { useAgent } from '../agent/TldrawAgentAppProvider'
 import { ChatHistory } from './chat-history/ChatHistory'
 import { ChatInput } from './ChatInput'
 import { TodoList } from './TodoList'
 
 export function ChatPanel() {
-	const app = useTldrawAgentApp()
 	const agent = useAgent()
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -42,19 +40,6 @@ export function ChatPanel() {
 	const handleNewChat = useCallback(() => {
 		agent.reset()
 	}, [agent])
-
-	// Agent management methods (available for programmatic use)
-	const _createAgent = useCallback(() => {
-		const newId = `agent-${uniqueId()}`
-		return app.agents.createAgent(newId)
-	}, [app])
-
-	const _deleteAgent = useCallback(
-		(id: string) => {
-			return app.agents.deleteAgent(id)
-		},
-		[app]
-	)
 
 	return (
 		<div className="chat-panel tl-theme__dark">
