@@ -13,7 +13,6 @@ export const UpsertTodoListItemActionUtil = registerActionUtil(
 
 		override applyAction(action: Streaming<UpsertPersonalTodoItemAction>) {
 			if (!action.complete) return
-			if (!this.agent) return
 
 			const { id, text, status } = action
 
