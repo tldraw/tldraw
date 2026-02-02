@@ -16,6 +16,7 @@
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
+		"@cloudflare/sandbox": "^0.1.0",
 		"@ai-sdk/anthropic": "^2.0.2",
 		"@ai-sdk/google": "^2.0.14",
 		"@ai-sdk/openai": "^2.0.24",

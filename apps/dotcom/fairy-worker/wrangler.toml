@@ -8,6 +8,14 @@ port = 8789
 [observability]
 enabled = true
 
+#################### Containers (Sandbox) ####################
+# Defines the sandbox container for fairy code execution
+[[containers]]
+class_name = "Sandbox"
+image = "./Dockerfile"
+instance_type = "lite"
+max_instances = 10
+
 # Environment variables (set via wrangler secret or .dev.vars)
 # Required secrets:
 # - CLERK_SECRET_KEY: Clerk secret key for authentication
@@ -42,16 +50,22 @@ renamed_classes = [
     { from = "TldrawAiDurableObject", to = "AgentDurableObject" },
 ]
 
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["Sandbox"]
+
 # Durable objects have the same configuration in all environments
 [env.dev.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
     { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "dev-tldraw-multiplayer" },
+    { name = "SANDBOX", class_name = "Sandbox" },
 ]
 
 [env.preview.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "SANDBOX", class_name = "Sandbox" },
     # Preview script_name is set dynamically by deploy-dotcom.ts based on PR number
 ]
 
@@ -59,16 +73,19 @@ bindings = [
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
     { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "tldraw-multiplayer" },
+    { name = "SANDBOX", class_name = "Sandbox" },
 ]
 
 [env.staging.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
     { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "main-tldraw-multiplayer" },
+    { name = "SANDBOX", class_name = "Sandbox" },
 ]
 
 [env.production.durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
     { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "tldraw-multiplayer" },
+    { name = "SANDBOX", class_name = "Sandbox" },
 ]

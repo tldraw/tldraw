@@ -116,3 +116,6 @@ async function requireFairyAccess(request: IRequest, env: Environment) {
 
 // Make the durable object available to the cloudflare worker
 export { AgentDurableObject } from './do/AgentDurableObject'
+
+// Export Sandbox for Cloudflare container support
+export { Sandbox } from '@cloudflare/sandbox'

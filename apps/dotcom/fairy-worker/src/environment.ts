@@ -1,6 +1,9 @@
+import type { Sandbox } from '@cloudflare/sandbox'
+
 export interface Environment {
 	AGENT_DURABLE_OBJECT: DurableObjectNamespace
 	TL_USER: DurableObjectNamespace
+	SANDBOX: DurableObjectNamespace<Sandbox>
 	OPENAI_API_KEY: string
 	ANTHROPIC_API_KEY: string
 	GOOGLE_API_KEY: string
