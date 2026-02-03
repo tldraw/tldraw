@@ -6,40 +6,23 @@ let editor: TestEditor
 
 const ids = {
 	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
 }
 
 vi.useFakeTimers()
 
-beforeEach(() => {
-	editor = new TestEditor()
-	editor
-		.selectAll()
-		.deleteShapes(editor.getSelectedShapeIds())
-		.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
-})
-
 describe('TLSelectTool.Zooming', () => {
-	it('Correctly enters and exists zooming mode when pressing and relasing z', () => {
-		editor.expectToBeIn('select.idle')
-		editor.keyDown('z')
-		editor.expectToBeIn('zoom.idle')
-		editor.keyUp('z')
-		editor.expectToBeIn('select.idle')
-	})
-
-	it('Correctly enters and exists zooming mode when holding alt and pressing and relasing z', () => {
-		editor.expectToBeIn('select.idle')
-		editor.keyDown('Alt')
-		editor.keyDown('z')
-		editor.expectToBeIn('zoom.idle')
-		editor.keyUp('z')
-		editor.expectToBeIn('select.idle')
-		editor.keyUp('Alt')
-		editor.expectToBeIn('select.idle')
+	beforeEach(() => {
+		editor = new TestEditor()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 	})
 
 	it('Correctly zooms in when clicking', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
@@ -50,7 +33,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Correctly zooms out when clicking while pressing Alt', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.keyDown('Alt')
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
@@ -61,7 +44,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Cancels while pointing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown()
 		editor.expectToBeIn('zoom.pointing')
@@ -72,7 +55,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Cancels while brushing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('zoom.pointing')
@@ -85,7 +68,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Interrupts while pointing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown()
 		editor.expectToBeIn('zoom.pointing')
@@ -96,7 +79,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Interrupts while brushing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('zoom.pointing')
@@ -115,7 +98,7 @@ describe('TLSelectTool.Zooming', () => {
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject(originalPageBounds)
 		expect(editor.getViewportPageCenter()).toMatchObject(originalCenter)
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('zoom.pointing')
@@ -146,7 +129,7 @@ describe('TLSelectTool.Zooming', () => {
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
@@ -184,7 +167,7 @@ describe('TLSelectTool.Zooming', () => {
 		expect(editor.getZoomLevel()).toBe(originalZoomLevel)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		editor.expectToBeIn('zoom.idle')
 		editor.keyDown('Alt')
 		editor.pointerDown(newBoundsX, newBoundsY)
@@ -209,5 +192,207 @@ describe('TLSelectTool.Zooming', () => {
 			y: newBoundsY + newBoundsHeight / 2,
 		})
 		editor.expectToBeIn('zoom.idle')
+	})
+})
+
+describe('TLSelectTool.ZoomQuick', () => {
+	beforeEach(() => {
+		editor = new TestEditor()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				{ id: ids.box3, type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } },
+			])
+	})
+
+	it('Correctly handles zoom out and zoom back in', () => {
+		editor.zoomIn()
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(4)
+
+		// Zoomed out to 5%, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.05)
+
+		// Go back to original zoom level (centered on brush which is at cursor position)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(4)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Correctly handles manual quick zoom via a pointer move', () => {
+		editor.zoomIn()
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 405, y: 270, w: 270, h: 180 })
+
+		// Zoomed out to 5%, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.05)
+
+		// Move mouse somewhere and let go of keyboard shortcut.
+		editor.pointerMove(100, 100)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds().w).toBe(270)
+		expect(editor.getViewportPageBounds().h).toBe(180)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Zooms to 5% regardless of content bounds', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				{ id: ids.box3, type: 'geo', x: 10000, y: 10000, props: { w: 100, h: 100 } },
+			])
+
+		editor.zoomOut()
+		editor.zoomOut()
+		editor.zoomOut()
+		expect(editor.getZoomLevel()).toBe(0.1)
+
+		// Zoomed out to 5%, eagle eyes - always zooms to 5% regardless of content
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.05)
+
+		// Release - zooms to brush bounds
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		vi.advanceTimersByTime(300)
+		// Zoom level depends on brush size which is clamped
+		expect(editor.getZoomLevel()).toBeGreaterThan(0.05)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Correctly handles manual zoom via manual click', () => {
+		editor.zoomIn()
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 405, y: 270, w: 270, h: 180 })
+
+		// Zoomed out to 5%, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.05)
+
+		// Click to zoom in back to original zoom level.
+		editor.pointerUp(100, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds().w).toBe(270)
+		expect(editor.getViewportPageBounds().h).toBe(180)
+
+		// Complete operation.
+		editor.expectToBeIn('zoom.zoom_quick')
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Handles quick zoom cancel', () => {
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(2)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		editor.pointerDown(100, 100)
+		editor.cancel()
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(2)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Handles several quick zooms in succession consistently', () => {
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(2)
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		vi.advanceTimersByTime(300)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		vi.advanceTimersByTime(150)
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+		vi.advanceTimersByTime(300)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(2)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Returns to original tool on cancel, not hardcoded select', () => {
+		editor.setCurrentTool('draw')
+		editor.expectToBeIn('draw.idle')
+
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'draw.idle' })
+		vi.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.05)
+
+		editor.cancel()
+		vi.advanceTimersByTime(300)
+		editor.expectToBeIn('draw.idle')
+	})
+
+	it('Enters quick zoom via keyboard flow from zoom.idle', () => {
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select.idle' })
+		editor.expectToBeIn('zoom.idle')
+
+		// Press Shift to enter quick zoom
+		editor.keyDown('Shift')
+		editor.expectToBeIn('zoom.zoom_quick')
+		expect(editor.getZoomLevel()).toBe(0.05)
+
+		// Release Shift to return to zoom.idle
+		editor.keyUp('Shift')
+		vi.advanceTimersByTime(300)
+		editor.expectToBeIn('zoom.idle')
+	})
+})
+
+describe('ZoomTool edge cases', () => {
+	beforeEach(() => {
+		editor = new TestEditor()
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+	})
+
+	it('Exits zoom tool when releasing Z while holding Shift (uppercase Z)', () => {
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select.idle' })
+		editor.expectToBeIn('zoom.idle')
+
+		// Simulate releasing 'z' key while Shift is held, which produces 'Z'
+		editor.keyUp('Z')
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Exits zoom tool when releasing lowercase z', () => {
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select.idle' })
+		editor.expectToBeIn('zoom.idle')
+
+		editor.keyUp('z')
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Returns to draw tool after zoom operation completes', () => {
+		editor.setCurrentTool('draw')
+		editor.expectToBeIn('draw.idle')
+
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'draw.idle' })
+		editor.expectToBeIn('zoom.idle')
+
+		// Complete the zoom operation by releasing z
+		editor.keyUp('z')
+		editor.expectToBeIn('draw.idle')
 	})
 })

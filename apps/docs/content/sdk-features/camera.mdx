@@ -171,6 +171,10 @@ editor.zoomToBounds(bounds, { inset: 100 })
 
 The `zoomToBounds` method accepts `inset` to add padding around the bounds and `targetZoom` to limit the maximum zoom level.
 
+### Quick zoom navigation
+
+The default tldraw UI includes a quick zoom tool activated by pressing `z`. This zooms out to show the entire canvas with a viewport brush indicating where you'll zoom to. Move the cursor to reposition the target viewport, then release to zoom to that location. Press Escape to cancel and return to the original view. This provides a fast way to navigate large canvases without losing your place.
+
 ### Animated movement
 
 Add smooth transitions using the `animation` option. The `EASINGS` object provides common easing functions:

@@ -144,9 +144,11 @@ export type StarterKitType = keyof typeof KITS
 
 export function StarterKitBento({
 	type,
+	href,
 	img,
 }: {
 	type: StarterKitType
+	href: string
 	img?: { src: string; alt?: string }
 }) {
 	const content = KITS[type]
@@ -155,9 +157,12 @@ export function StarterKitBento({
 	return (
 		<div className="my-8 rounded-xl border border-zinc-200 bg-zinc-100 p-2 shadow-sm not-prose">
 			{img && (
-				<div className="relative mb-2 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+				<a
+					href={href}
+					className="block relative mb-2 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50"
+				>
 					<img src={img.src} alt={img.alt || type} className="!my-0 h-auto w-full object-cover" />
-				</div>
+				</a>
 			)}
 
 			<div className="grid grid-cols-1 gap-2 md:grid-cols-6">
