@@ -207,7 +207,7 @@ export function ZoomToFitMenuItem() {
 
 /** @public @react */
 export function ZoomToSelectionMenuItem() {
-	const shapesSelected = useUnlockedSelectedShapesCount(1)
+	const shapesSelected = useAnySelectedShapesCount(1)
 	const isInSelectState = useIsInSelectState()
 	const enabled = shapesSelected && isInSelectState
 
