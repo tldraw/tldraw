@@ -8,6 +8,7 @@ import {
 	useAllowUngroup,
 	useAnySelectedShapesCount,
 	useHasLinkShapeSelected,
+	useIsInSelectState,
 	useOnlyFlippableShape,
 	useShowAutoSizeToggle,
 	useThreeStackableItems,
@@ -206,12 +207,9 @@ export function ZoomToFitMenuItem() {
 
 /** @public @react */
 export function ZoomToSelectionMenuItem() {
-	const editor = useEditor()
-	const enabled = useValue(
-		'has shapes and in select',
-		() => editor.isIn('select') && editor.getSelectedShapeIds().length > 0,
-		[editor]
-	)
+	const shapesSelected = useUnlockedSelectedShapesCount(1)
+	const isInSelectState = useIsInSelectState()
+	const enabled = shapesSelected && isInSelectState
 
 	return (
 		<TldrawUiMenuActionItem
