@@ -207,14 +207,16 @@ export function ZoomToFitMenuItem() {
 /** @public @react */
 export function ZoomToSelectionMenuItem() {
 	const editor = useEditor()
-	const hasSelected = useValue('has shapes', () => editor.getSelectedShapeIds().length > 0, [
-		editor,
-	])
+	const enabled = useValue(
+		'has shapes and in select',
+		() => editor.isIn('select') && editor.getSelectedShapeIds().length > 0,
+		[editor]
+	)
 
 	return (
 		<TldrawUiMenuActionItem
 			actionId="zoom-to-selection"
-			disabled={!hasSelected}
+			disabled={!enabled}
 			data-testid="minimap.zoom-menu.zoom-to-selection"
 			noClose
 		/>
