@@ -1,4 +1,4 @@
-// flashbang protection, runs
+// flashbang protection, runs before CSS loads
 ;(function () {
 	try {
 		var stored = localStorage.getItem('tldrawapp_session_3')
@@ -18,6 +18,6 @@
 			}
 		}
 	} catch (e) {
-	 	// noop
+		// noop
 	}
 })()
