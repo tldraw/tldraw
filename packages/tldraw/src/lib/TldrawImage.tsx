@@ -6,7 +6,7 @@ import {
 	TLImageExportOptions,
 	TLPageId,
 	TLStoreSnapshot,
-	TLTextOptions,
+	TldrawOptions,
 	mergeArraysAndReplaceDefaults,
 	useShallowArrayIdentity,
 	useTLStore,
@@ -52,16 +52,18 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 */
 	assetUrls?: TLUiAssetUrlOverrides
 	/**
-	 * Text options for the editor.
+	 * Options for the editor.
 	 */
-	textOptions?: TLTextOptions
+	options?: Partial<TldrawOptions>
 }
 
-const defaultTextOptions = {
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const defaultOptions: Partial<TldrawOptions> = {
+	text: {
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
+		addFontsFromNode: defaultAddFontsFromNode,
 	},
-	addFontsFromNode: defaultAddFontsFromNode,
 }
 
 /**
@@ -110,8 +112,20 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		format = 'svg',
 		licenseKey,
 		assetUrls,
-		textOptions = defaultTextOptions,
+		options: _options,
 	} = props
+
+	const options = useMemo(
+		() => ({
+			...defaultOptions,
+			..._options,
+			text: {
+				...defaultOptions.text,
+				..._options?.text,
+			},
+		}),
+		[_options]
+	)
 	const assetUrlsWithOverrides = useDefaultEditorAssetsWithOverrides(assetUrls)
 
 	useLayoutEffect(() => {
@@ -132,7 +146,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			getContainer: () => tempElm,
 			licenseKey,
 			fontAssetUrls: assetUrlsWithOverrides.fonts,
-			textOptions,
+			options,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -180,7 +194,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		licenseKey,
 		pixelRatio,
 		assetUrlsWithOverrides,
-		textOptions,
+		options,
 	])
 
 	useEffect(() => {

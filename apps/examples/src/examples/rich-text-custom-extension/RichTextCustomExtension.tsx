@@ -93,9 +93,11 @@ const components: TLComponents = {
 	},
 }
 
-const textOptions = {
-	tipTapConfig: {
-		extensions: [StarterKit, Wavy],
+const options = {
+	text: {
+		tipTapConfig: {
+			extensions: [StarterKit, Wavy],
+		},
 	},
 }
 
@@ -105,7 +107,7 @@ export default function RichTextCustomExtensionExample() {
 			<Tldraw
 				persistenceKey="rich-text-custom-extension"
 				components={components}
-				textOptions={textOptions}
+				options={options}
 			/>
 		</div>
 	)
