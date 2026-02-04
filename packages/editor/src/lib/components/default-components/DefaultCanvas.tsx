@@ -428,6 +428,25 @@ function ReflowIfNeeded() {
 	return null
 }
 
+/**
+ * Centralized culling controller that updates shape container visibility.
+ * This single reactor replaces per-shape subscriptions for O(1) instead of O(N) subscriptions.
+ */
+function CullingController() {
+	const editor = useEditor()
+
+	useQuickReactor(
+		'update shape culling',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			editor.shapeCulling.updateCulling(culledShapes)
+		},
+		[editor]
+	)
+
+	return null
+}
+
 function ShapesToDisplay() {
 	const editor = useEditor()
 
@@ -438,6 +457,7 @@ function ShapesToDisplay() {
 			{renderingShapes.map((result) => (
 				<Shape key={result.id + '_shape'} {...result} />
 			))}
+			<CullingController />
 			{tlenv.isSafari && <ReflowIfNeeded />}
 		</>
 	)

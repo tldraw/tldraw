@@ -1481,6 +1481,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
+    // @internal
+    readonly shapeCulling: ShapeCullingManager;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
     };
@@ -2748,6 +2750,13 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
+
+// @internal
+export class ShapeCullingManager {
+    register(id: TLShapeId, container: HTMLDivElement, bgContainer: HTMLDivElement | null, isCulled: boolean): void;
+    unregister(id: TLShapeId): void;
+    updateCulling(culledShapes: Set<TLShapeId>): void;
+}
 
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {

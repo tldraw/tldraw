@@ -147,6 +147,7 @@ export {
 	type ScribbleItem,
 	type ScribbleSessionOptions,
 } from './lib/editor/managers/ScribbleManager/ScribbleManager'
+export { ShapeCullingManager } from './lib/editor/managers/ShapeCullingManager/ShapeCullingManager'
 export {
 	BoundsSnaps,
 	type BoundsSnapGeometry,
