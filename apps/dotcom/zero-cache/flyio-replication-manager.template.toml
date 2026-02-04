@@ -17,7 +17,7 @@ method = "GET"
 timeout = "5s"
 path = "/keepalive"
 
-[restart]
+[[restart]]
 policy = "always"
 
 [[vm]]

@@ -19,7 +19,7 @@ import {
 } from 'kysely'
 import { PoolClient, QueryResult, QueryResultRow } from 'pg'
 import { ZMutationError } from './ZMutationError'
-const quote = (s: string) => JSON.stringify(s)
+const quote = (s: string) => '"' + s.replace(/"/g, '""') + '"'
 
 export type ChangeAccumulator = {
 	[table in ZTable]?: {

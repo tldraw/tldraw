@@ -1,5 +1,6 @@
 import type {
 	AST,
+	Condition,
 	CustomMutatorImpl,
 	HumanReadable,
 	Query,
@@ -333,34 +334,41 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async executeServerQuery(client: PoolClient, ast: AST): Promise<unknown[] | unknown> {
 		const table = ast.table
+		if (!(table in schema.tables)) {
+			throw new Error(`Unknown table: ${table}`)
+		}
 		const whereConditions: string[] = []
 		const params: unknown[] = []
 		let paramIndex = 1
 
-		const processCondition = (condition: NonNullable<AST['where']>): string => {
-			if ('type' in condition) {
-				if (condition.type === 'and') {
+		const quoteIdentifier = (s: string) => '"' + s.replace(/"/g, '""') + '"'
+
+		const processCondition = (condition: Condition): string => {
+			switch (condition.type) {
+				case 'and':
 					return `(${condition.conditions.map(processCondition).join(' AND ')})`
-				}
-				if (condition.type === 'or') {
+				case 'or':
 					return `(${condition.conditions.map(processCondition).join(' OR ')})`
+				case 'simple': {
+					if (condition.left.type !== 'column') {
+						throw new Error(`Unsupported left operand type: ${condition.left.type}`)
+					}
+					if (condition.right.type !== 'literal') {
+						throw new Error(`Unsupported right operand type: ${condition.right.type}`)
+					}
+					const field = quoteIdentifier(condition.left.name)
+					const ALLOWED_OPS = ['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT']
+					if (!ALLOWED_OPS.includes(condition.op)) {
+						throw new Error(`Unsupported operator in server query executor: ${condition.op}`)
+					}
+					params.push(condition.right.value)
+					return `${field} ${condition.op} $${paramIndex++}`
 				}
+				case 'correlatedSubquery':
+					throw new Error('Correlated subquery conditions are not supported')
+				default:
+					throw new Error(`Unknown condition type: ${(condition as any).type}`)
 			}
-			// Simple condition: { left: { name }, op, right: { value } }
-			const simpleCondition = condition as {
-				left: { name: string }
-				op: string
-				right: { value: unknown }
-			}
-			const field = JSON.stringify(simpleCondition.left?.name)
-			const op = simpleCondition.op
-			const ALLOWED_OPS = ['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT']
-			if (!ALLOWED_OPS.includes(op)) {
-				throw new Error(`Invalid operator: ${op}`)
-			}
-			const value = simpleCondition.right?.value
-			params.push(value)
-			return `${field} ${op} $${paramIndex++}`
 		}
 
 		if (ast.where) {
@@ -368,7 +376,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-		const sql = `SELECT * FROM "${table}" ${whereClause}`
+		const sql = `SELECT * FROM ${quoteIdentifier(table)} ${whereClause}`
 		const res = await client.query(sql, params)
 
 		// ast.limit === 1 means .one() was called
