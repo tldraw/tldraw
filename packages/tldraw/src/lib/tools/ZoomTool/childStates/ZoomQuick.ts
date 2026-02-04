@@ -24,6 +24,7 @@ export class ZoomQuick extends StateNode {
 		this.didZoom = false
 		this.initialViewport = editor.getViewportPageBounds()
 		this.originScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
+		editor.setCursor({ type: 'zoom-in', rotation: 0 })
 
 		editor.zoomToFit()
 
