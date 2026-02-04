@@ -4,6 +4,7 @@ import {
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLTickEventInfo,
+	Vec,
 } from '@tldraw/editor'
 
 export class ZoomQuick extends StateNode {
@@ -14,6 +15,7 @@ export class ZoomQuick extends StateNode {
 	didZoom = false
 	zoomBrush = null as Box | null
 	initialViewport = new Box()
+	originScreenPoint = null as null | Vec
 
 	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		const { editor } = this
@@ -21,11 +23,14 @@ export class ZoomQuick extends StateNode {
 		this.zoomBrush = null
 		this.didZoom = false
 		this.initialViewport = editor.getViewportPageBounds()
+		this.originScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
 
 		editor.zoomToFit()
 
-		// Show the viewport brush immediately
-		this.updateBrush()
+		// We don't show the brush immediately, because the user might just
+		// want to have a quick look at the top level and zoom back to where they were.
+		// If we update the brush immediately, then the user will accidentally zoom
+		// to a new place without meaning to.
 	}
 
 	override onExit() {
@@ -34,7 +39,13 @@ export class ZoomQuick extends StateNode {
 	}
 
 	override onPointerMove() {
-		this.updateBrush()
+		if (
+			this.zoomBrush ||
+			!Vec.DistMin(this.editor.inputs.getCurrentScreenPoint(), this.originScreenPoint!, 16)
+		) {
+			// See note in onEnter. We only update the brush if the user has moved the pointer a bit.
+			this.updateBrush()
+		}
 	}
 
 	override onPointerUp() {
