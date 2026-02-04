@@ -54,11 +54,11 @@ The `indicator` method returns SVG elements that describe the shape's outline. T
 
 By default, indicators appear in these situations:
 
-| State    | Description                                               |
-| -------- | --------------------------------------------------------- |
-| Selected | The shape is in the current selection                     |
-| Hovered  | The pointer is over the shape (desktop only, not touch)   |
-| Hinting  | The shape is being referenced during an operation         |
+| State    | Description                                             |
+| -------- | ------------------------------------------------------- |
+| Selected | The shape is in the current selection                   |
+| Hovered  | The pointer is over the shape (desktop only, not touch) |
+| Hinting  | The shape is being referenced during an operation       |
 
 Indicators are hidden during certain interactions, like when changing styles or during tool operations that would make indicators distracting.
 
@@ -170,13 +170,7 @@ const components: TLComponents = {
 For complete control over which shapes show indicators, use the `OnTheCanvas` component:
 
 ```tsx
-import {
-	TLComponents,
-	Tldraw,
-	useEditor,
-	useEditorComponents,
-	useValue,
-} from 'tldraw'
+import { TLComponents, Tldraw, useEditor, useEditorComponents, useValue } from 'tldraw'
 
 const components: TLComponents = {
 	OnTheCanvas: () => {
@@ -184,11 +178,12 @@ const components: TLComponents = {
 
 		const renderingShapes = useValue(
 			'rendering shapes',
-			() => editor.getRenderingShapes().filter((info) => {
-				// Custom filter logic here
-				const shape = editor.getShape(info.id)
-				return shape?.type === 'geo' // Only show indicators for geo shapes
-			}),
+			() =>
+				editor.getRenderingShapes().filter((info) => {
+					// Custom filter logic here
+					const shape = editor.getShape(info.id)
+					return shape?.type === 'geo' // Only show indicators for geo shapes
+				}),
 			[editor]
 		)
 
@@ -224,13 +219,13 @@ const components: TLComponents = {
 
 The [DefaultShapeIndicator](?) component accepts these props:
 
-| Prop      | Type     | Description                                            |
-| --------- | -------- | ------------------------------------------------------ |
-| shapeId   | TLShapeId | The shape to show an indicator for                    |
-| color     | string   | Stroke color (default: `var(--tl-color-selected)`)     |
-| opacity   | number   | Opacity from 0 to 1                                    |
-| className | string   | Additional CSS class                                   |
-| hidden    | boolean  | Whether to hide this indicator                         |
+| Prop      | Type      | Description                                        |
+| --------- | --------- | -------------------------------------------------- |
+| shapeId   | TLShapeId | The shape to show an indicator for                 |
+| color     | string    | Stroke color (default: `var(--tl-color-selected)`) |
+| opacity   | number    | Opacity from 0 to 1                                |
+| className | string    | Additional CSS class                               |
+| hidden    | boolean   | Whether to hide this indicator                     |
 
 ## Collaborator indicators
 
@@ -238,8 +233,8 @@ In multiplayer sessions, indicators also show what other users have selected. Th
 
 ## Related topics
 
-| Topic                                              | Description                              |
-| -------------------------------------------------- | ---------------------------------------- |
-| [Shapes](/docs/shapes)                             | Creating custom shapes with ShapeUtil    |
-| [User interface](/docs/user-interface)             | Customizing tldraw's UI components       |
+| Topic                                                       | Description                                |
+| ----------------------------------------------------------- | ------------------------------------------ |
+| [Shapes](/docs/shapes)                                      | Creating custom shapes with ShapeUtil      |
+| [User interface](/docs/user-interface)                      | Customizing tldraw's UI components         |
 | [Custom indicators example](/examples/ui/custom-indicators) | Working example of indicator customization |
