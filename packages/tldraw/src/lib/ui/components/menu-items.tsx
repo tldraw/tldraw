@@ -7,8 +7,8 @@ import {
 	useAllowGroup,
 	useAllowUngroup,
 	useAnySelectedShapesCount,
+	useCanApplySelectionAction,
 	useHasLinkShapeSelected,
-	useIsInSelectState,
 	useOnlyFlippableShape,
 	useShowAutoSizeToggle,
 	useThreeStackableItems,
@@ -207,14 +207,12 @@ export function ZoomToFitMenuItem() {
 
 /** @public @react */
 export function ZoomToSelectionMenuItem() {
-	const shapesSelected = useAnySelectedShapesCount(1)
-	const isInSelectState = useIsInSelectState()
-	const enabled = shapesSelected && isInSelectState
+	const canApplySelectionAction = useCanApplySelectionAction()
 
 	return (
 		<TldrawUiMenuActionItem
 			actionId="zoom-to-selection"
-			disabled={!enabled}
+			disabled={!canApplySelectionAction}
 			data-testid="minimap.zoom-menu.zoom-to-selection"
 			noClose
 		/>
@@ -267,16 +265,22 @@ export function CopyAsMenuGroup() {
 
 /** @public @react */
 export function CutMenuItem() {
-	const shouldDisplay = useUnlockedSelectedShapesCount(1)
+	const canApplySelectionAction = useCanApplySelectionAction()
+	const hasUnlockedShapes = useUnlockedSelectedShapesCount(1)
 
-	return <TldrawUiMenuActionItem actionId="cut" disabled={!shouldDisplay} />
+	return (
+		<TldrawUiMenuActionItem
+			actionId="cut"
+			disabled={!canApplySelectionAction || !hasUnlockedShapes}
+		/>
+	)
 }
 
 /** @public @react */
 export function CopyMenuItem() {
-	const shouldDisplay = useAnySelectedShapesCount(1)
+	const canApplySelectionAction = useCanApplySelectionAction()
 
-	return <TldrawUiMenuActionItem actionId="copy" disabled={!shouldDisplay} />
+	return <TldrawUiMenuActionItem actionId="copy" disabled={!canApplySelectionAction} />
 }
 
 /** @public @react */
@@ -333,9 +337,15 @@ export function SelectAllMenuItem() {
 
 /** @public @react */
 export function DeleteMenuItem() {
-	const oneSelected = useUnlockedSelectedShapesCount(1)
+	const canApplySelectionAction = useCanApplySelectionAction()
+	const hasUnlockedShapes = useUnlockedSelectedShapesCount(1)
 
-	return <TldrawUiMenuActionItem actionId="delete" disabled={!oneSelected} />
+	return (
+		<TldrawUiMenuActionItem
+			actionId="delete"
+			disabled={!canApplySelectionAction || !hasUnlockedShapes}
+		/>
+	)
 }
 
 /* --------------------- Modify --------------------- */
