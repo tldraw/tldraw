@@ -12,7 +12,7 @@ keywords:
   - custom shapes
 ---
 
-Indicators are the outlines that appear around shapes when they're selected or hovered. They provide visual feedback about which shapes are active and help users understand the bounds of each shape.
+Indicators are the outlines that appear around shapes when they're selected or hovered. They provide visual feedback about which shapes are active. They also help users understand the bounds of each shape.
 
 ## How indicators work
 
@@ -48,7 +48,7 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 }
 ```
 
-The `indicator` method returns SVG elements that describe the shape's outline. The editor automatically positions and styles these elements.
+The `indicator` method returns SVG elements that describe the shape's outline. The editor automatically positions and styles these elements based on selection state.
 
 ## When indicators appear
 
@@ -64,11 +64,11 @@ Indicators are hidden during certain interactions, like when changing styles or 
 
 ## Rendering approaches
 
-tldraw supports two ways to render indicators: SVG-based (legacy) and canvas-based.
+tldraw supports two ways to render indicators: SVG-based and canvas-based.
 
 ### SVG indicators (default)
 
-The default approach uses React to render indicators as SVG elements. This is simpler to implement and works well for most shapes:
+The default approach uses React to render indicators as SVG elements. This is simpler to implement. It works well for most shapes:
 
 ```tsx
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -82,7 +82,7 @@ SVG indicators support any valid SVG elements. The editor wraps them in a styled
 
 ### Canvas indicators
 
-For better performance with complex shapes, you can use canvas-based rendering. Override `useLegacyIndicator` to return `false` and implement `getIndicatorPath`:
+Canvas-based rendering improves performance for complex shapes. Override `useLegacyIndicator` to return `false` and implement `getIndicatorPath`:
 
 ```tsx
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -97,13 +97,13 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 	}
 
 	indicator(shape: MyShape) {
-		// Still required, but won't be used when useLegacyIndicator returns false
+		// Required method. Used only when useLegacyIndicator returns true (the default).
 		return <rect width={shape.props.w} height={shape.props.h} rx={5} />
 	}
 }
 ```
 
-Canvas indicators are drawn on a single canvas layer, which is more efficient when many shapes are selected. Most built-in shapes use canvas indicators.
+Canvas indicators are drawn on a single canvas layer. This is more efficient when many shapes are selected. Most built-in shapes use canvas indicators.
 
 ### Complex canvas indicators
 
@@ -133,7 +133,7 @@ override getIndicatorPath(shape: MyShape): TLIndicatorPath | undefined {
 
 ## Customizing indicator display
 
-You can control when and how indicators appear by overriding the indicator components.
+Override the indicator components to control when and how indicators appear.
 
 ### Show all indicators
 
@@ -222,6 +222,7 @@ The [DefaultShapeIndicator](?) component accepts these props:
 | Prop      | Type      | Description                                        |
 | --------- | --------- | -------------------------------------------------- |
 | shapeId   | TLShapeId | The shape to show an indicator for                 |
+| userId    | string    | The collaborator's user ID (for multiplayer)       |
 | color     | string    | Stroke color (default: `var(--tl-color-selected)`) |
 | opacity   | number    | Opacity from 0 to 1                                |
 | className | string    | Additional CSS class                               |
@@ -229,7 +230,7 @@ The [DefaultShapeIndicator](?) component accepts these props:
 
 ## Collaborator indicators
 
-In multiplayer sessions, indicators also show what other users have selected. These appear with the collaborator's assigned color and slightly reduced opacity. The canvas indicator system handles collaborator indicators automatically.
+In multiplayer sessions, indicators show other users' selections. These appear with the collaborator's assigned color and slightly reduced opacity. The canvas indicator system handles collaborator indicators automatically.
 
 ## Related topics
 
