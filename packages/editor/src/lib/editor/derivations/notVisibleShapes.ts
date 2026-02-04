@@ -12,12 +12,12 @@ export function notVisibleShapes(editor: Editor) {
 	const emptySet = new Set<TLShapeId>()
 
 	return computed<Set<TLShapeId>>('notVisibleShapes', function (prevValue) {
-		const allShapeIds = editor.getCurrentPageShapeIds()
+		const allShapes = editor.getCurrentPageShapes()
 		const viewportPageBounds = editor.getViewportPageBounds()
 		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
 
 		// Fast path: if all shapes are visible, return empty set
-		if (visibleIds.size === allShapeIds.size) {
+		if (visibleIds.size === allShapes.length) {
 			if (isUninitialized(prevValue) || prevValue.size > 0) {
 				return emptySet
 			}
@@ -27,15 +27,10 @@ export function notVisibleShapes(editor: Editor) {
 		// First run: compute from scratch
 		if (isUninitialized(prevValue)) {
 			const nextValue = new Set<TLShapeId>()
-			for (const id of allShapeIds) {
-				if (visibleIds.has(id)) continue
-
-				const shape = editor.getShape(id)
-				if (!shape) continue
-
+			for (const shape of allShapes) {
+				if (visibleIds.has(shape.id)) continue
 				if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
-
-				nextValue.add(id)
+				nextValue.add(shape.id)
 			}
 			return nextValue
 		}
@@ -44,16 +39,12 @@ export function notVisibleShapes(editor: Editor) {
 		let count = 0
 		let hasDiff = false
 
-		for (const id of allShapeIds) {
-			if (visibleIds.has(id)) continue
-
-			const shape = editor.getShape(id)
-			if (!shape) continue
-
+		for (const shape of allShapes) {
+			if (visibleIds.has(shape.id)) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
 
 			count++
-			if (!hasDiff && !prevValue.has(id)) {
+			if (!hasDiff && !prevValue.has(shape.id)) {
 				hasDiff = true
 			}
 		}
@@ -70,15 +61,10 @@ export function notVisibleShapes(editor: Editor) {
 
 		// Build the new Set (only when needed)
 		const nextValue = new Set<TLShapeId>()
-		for (const id of allShapeIds) {
-			if (visibleIds.has(id)) continue
-
-			const shape = editor.getShape(id)
-			if (!shape) continue
-
+		for (const shape of allShapes) {
+			if (visibleIds.has(shape.id)) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
-
-			nextValue.add(id)
+			nextValue.add(shape.id)
 		}
 
 		return nextValue
