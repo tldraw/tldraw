@@ -1,5 +1,5 @@
 import { computed, isUninitialized } from '@tldraw/state'
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
 /**
@@ -16,6 +16,8 @@ export function notVisibleShapes(editor: Editor) {
 		const viewportPageBounds = editor.getViewportPageBounds()
 		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
 
+		let shape: TLShape | undefined
+
 		// Fast path: if all shapes are visible, return empty set
 		if (visibleIds.size === allShapes.length) {
 			if (isUninitialized(prevValue) || prevValue.size > 0) {
@@ -27,7 +29,8 @@ export function notVisibleShapes(editor: Editor) {
 		// First run: compute from scratch
 		if (isUninitialized(prevValue)) {
 			const nextValue = new Set<TLShapeId>()
-			for (const shape of allShapes) {
+			for (let i = 0; i < allShapes.length; i++) {
+				shape = allShapes[i]
 				if (visibleIds.has(shape.id)) continue
 				if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
 				nextValue.add(shape.id)
@@ -39,7 +42,8 @@ export function notVisibleShapes(editor: Editor) {
 		let count = 0
 		let hasDiff = false
 
-		for (const shape of allShapes) {
+		for (let i = 0; i < allShapes.length; i++) {
+			shape = allShapes[i]
 			if (visibleIds.has(shape.id)) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
 
@@ -61,7 +65,8 @@ export function notVisibleShapes(editor: Editor) {
 
 		// Build the new Set (only when needed)
 		const nextValue = new Set<TLShapeId>()
-		for (const shape of allShapes) {
+		for (let i = 0; i < allShapes.length; i++) {
+			shape = allShapes[i]
 			if (visibleIds.has(shape.id)) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
 			nextValue.add(shape.id)
