@@ -29,9 +29,13 @@ export class ZoomQuick extends StateNode {
 
 		editor.setCursor({ type: 'zoom-in', rotation: 0 })
 
-		// Zoom to 10% while preserving cursor position
+		// Zoom to the 2nd zoom step while preserving cursor position
+		// If already below that, zoom to the 1st zoom step instead
 		const baseZoom = editor.getBaseZoom()
-		const targetZoom = 0.1 * baseZoom
+		const { zoomSteps } = editor.getCameraOptions()
+		const currentZoom = editor.getCamera().z
+		const targetZoom =
+			currentZoom < zoomSteps[1] * baseZoom ? zoomSteps[0] * baseZoom : zoomSteps[1] * baseZoom
 
 		const { x: cx, y: cy, z: cz } = editor.getCamera()
 		const { x: px, y: py } = this.initialPp
