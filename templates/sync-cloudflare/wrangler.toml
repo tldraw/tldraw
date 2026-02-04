@@ -20,14 +20,24 @@ directory = "./dist/client"
 # Set up the durable object used for each tldraw room
 [durable_objects]
 bindings = [
-    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
+    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObjectSqlite" },
 ]
 
 # Durable objects require migrations to create/modify/delete them
-# Using new_sqlite_classes for SQLite-backed storage
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["TldrawDurableObject"]
+new_classes = ["TldrawDurableObject"]
+
+# v2 was a no-op: classes_with_sqlite is not a valid Cloudflare migration directive
+[[migrations]]
+tag = "v2"
+classes_with_sqlite = ["TldrawDurableObject"]
+
+# New SQLite-backed class to replace KV-backed TldrawDurableObject
+[[migrations]]
+tag = "v3"
+deleted_classes = ["TldrawDurableObject"]
+new_sqlite_classes = ["TldrawDurableObjectSqlite"]
 
 # We store asset uploads (images, videos) in an R2 bucket.
 # Room data is stored in Durable Object SQLite storage.
