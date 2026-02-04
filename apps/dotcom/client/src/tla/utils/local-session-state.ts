@@ -45,7 +45,7 @@ export interface TldrawAppSessionState {
 	hasManualBeenOpened?: boolean
 }
 
-let prev: TldrawAppSessionState = {
+const defaultSessionState: TldrawAppSessionState = {
 	createdAt: Date.now(),
 	_sidebarToggle: true,
 	isSidebarOpenMobile: false,
@@ -66,6 +66,8 @@ let prev: TldrawAppSessionState = {
 	fairiesDebugEnabled: false,
 	hasManualBeenOpened: false,
 }
+
+let prev: TldrawAppSessionState = { ...defaultSessionState }
 
 try {
 	const stored = getFromLocalStorage(STORAGE_KEY)
@@ -104,9 +106,29 @@ export function useIsSidebarOpenMobile() {
 	return useValue('isSidebarOpenMobile', getIsSidebarOpenMobile, [])
 }
 
+export function getDefaultSessionState() {
+	return {
+		...defaultSessionState,
+		createdAt: Date.now(),
+	}
+}
+
 export function clearLocalSessionState() {
 	return deleteFromLocalStorage(STORAGE_KEY)
 }
+
+// we use this to help remove flashbangs on signout/signin
+export function resetLocalSessionStateButKeepTheme() {
+	const currentTheme = getLocalSessionStateUnsafe().theme
+	clearLocalSessionState()
+	const newState: TldrawAppSessionState = {
+		...getDefaultSessionState(),
+		theme: currentTheme,
+	}
+	localSessionState.set(newState)
+	setInLocalStorage(STORAGE_KEY, JSON.stringify(newState))
+}
+
 export function getLocalSessionStateUnsafe() {
 	return localSessionState.__unsafe__getWithoutCapture()
 }
