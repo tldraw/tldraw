@@ -108,7 +108,7 @@ export class EdgeScrollManager {
 	private moveCameraWhenCloseToEdge(proximityFactor: { x: number; y: number }) {
 		const { editor } = this
 		if (
-			(!editor.getPath().endsWith('.zoom_quick') &&
+			(!editor.getInstanceState().zoomBrush &&
 				(!editor.inputs.getIsDragging() || editor.inputs.getIsPanning())) ||
 			editor.getCameraOptions().isLocked
 		)

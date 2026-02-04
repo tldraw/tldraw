@@ -95,7 +95,6 @@ describe('EdgeScrollManager', () => {
 			getZoomLevel: vi.fn(() => 1),
 			getCamera: vi.fn(() => new Vec(0, 0, 1)),
 			setCamera: vi.fn(),
-			getPath: vi.fn(() => 'select.idle'),
 		} as unknown as Mocked<
 			Editor & {
 				user: { getEdgeScrollSpeed: Mock }
