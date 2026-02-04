@@ -522,6 +522,9 @@ export function uniqueId(size?: number): string;
 // @internal
 export function validateIndexKey(index: string): asserts index is IndexKey;
 
+// @public
+export type Values<T> = T[keyof T];
+
 // @internal
 export function warnDeprecatedGetter(name: string): void;
 

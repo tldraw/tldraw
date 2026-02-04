@@ -139,3 +139,21 @@ export type MakeUndefinedOptional<T extends object> = Expand<
 		[P in { [K in keyof T]: undefined extends T[K] ? K : never }[keyof T]]?: T[P]
 	}
 >
+
+/**
+ * Extracts the union of all value types from an object type.
+ *
+ * @example
+ * ```ts
+ * type Colors = {
+ *   red: '#ff0000',
+ *   green: '#00ff00',
+ *   blue: '#0000ff'
+ * }
+ *
+ * type ColorValues = Values<Colors> // '#ff0000' | '#00ff00' | '#0000ff'
+ * ```
+ *
+ * @public
+ */
+export type Values<T> = T[keyof T]

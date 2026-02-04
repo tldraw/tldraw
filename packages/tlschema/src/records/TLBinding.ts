@@ -5,7 +5,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
+import { Values, mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
@@ -62,7 +62,7 @@ export interface TLGlobalBindingPropsMap {}
 
 /** @public */
 // prettier-ignore
-export type TLIndexedBindings = {
+export type TLUnionizedBindings = Values<{
 	// We iterate over a union of augmented keys and default binding types.
 	// This allows us to include (or conditionally exclude or override) the default bindings in one go.
 	//
@@ -83,7 +83,7 @@ export type TLIndexedBindings = {
 					Extract<TLDefaultBinding, { type: K }>
 			: // use the custom binding definition
 				TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>
-}
+}>
 
 /**
  * The set of all bindings that are available in the editor.
@@ -114,8 +114,8 @@ export type TLIndexedBindings = {
  *
  * @public
  */
-export type TLBinding<K extends keyof TLIndexedBindings = keyof TLIndexedBindings> =
-	TLIndexedBindings[K]
+export type TLBinding<K extends TLUnionizedBindings['type'] = TLUnionizedBindings['type']> =
+	Extract<TLUnionizedBindings, { type: K }>
 
 /**
  * Type for updating existing bindings with partial properties.

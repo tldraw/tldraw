@@ -5,7 +5,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
+import { Values, mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
@@ -85,7 +85,7 @@ export interface TLGlobalShapePropsMap {}
 
 /** @public */
 // prettier-ignore
-export type TLIndexedShapes = {
+export type TLUnionizedShapes = Values<{
 	// We iterate over a union of augmented keys and default shape types.
 	// This allows us to include (or conditionally exclude or override) the default shapes in one go.
 	//
@@ -112,7 +112,7 @@ export type TLIndexedShapes = {
 					Extract<TLDefaultShape, { type: K }>
 			: // use the custom shape definition
 				TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>
-}
+}>
 
 /**
  * The set of all shapes that are available in the editor.
@@ -143,7 +143,10 @@ export type TLIndexedShapes = {
  *
  * @public
  */
-export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K]
+export type TLShape<K extends TLUnionizedShapes['type'] = TLUnionizedShapes['type']> = Extract<
+	TLUnionizedShapes,
+	{ type: K }
+>
 
 /**
  * A partial version of a shape, useful for updates and patches.

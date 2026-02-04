@@ -65,18 +65,17 @@ interface CommonBindingReactProps extends BindingReactConnections {
 type ReactPropsForBinding<Type extends TLBinding['type']> = CommonBindingReactProps &
 	Partial<TLBinding<Type>['props']>
 
-type BindingToCreate = TLBinding extends infer E
-	? E extends TLBinding
-		? {
-				type: E['type']
-				props: Partial<TLBinding<E['type']>['props']>
-				id: TLBindingId | undefined
-				parentId: TLShapeId | undefined
-				ref: string | undefined
-				connections: BindingReactConnections
-			}
-		: never
+type _BindingToCreate<E extends TLBinding = TLBinding> = E extends E
+	? {
+			type: E['type']
+			props: Partial<TLBinding<E['type']>['props']>
+			id: TLBindingId | undefined
+			parentId: TLShapeId | undefined
+			ref: string | undefined
+			connections: BindingReactConnections
+		}
 	: never
+type BindingToCreate = _BindingToCreate
 
 const createElement = (
 	type: typeof shapeTypeSymbol | typeof assetTypeSymbol | typeof bindingTypeSymbol,

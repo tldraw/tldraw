@@ -23,6 +23,7 @@ import { StoreSnapshot } from '@tldraw/store';
 import { StoreValidator } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
+import { Values } from '@tldraw/utils';
 
 // @public
 export const arrowBindingMigrations: TLPropsMigrations;
@@ -853,7 +854,9 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 }
 
 // @public
-export type TLBinding<K extends keyof TLIndexedBindings = keyof TLIndexedBindings> = TLIndexedBindings[K];
+export type TLBinding<K extends TLUnionizedBindings['type'] = TLUnionizedBindings['type']> = Extract<TLUnionizedBindings, {
+    type: K;
+}>;
 
 // @public
 export type TLBindingCreate<T extends TLBinding = TLBinding> = T extends T ? {
@@ -1154,22 +1157,6 @@ export interface TLImageShapeProps {
     w: number;
 }
 
-// @public (undocumented)
-export type TLIndexedBindings = {
-    [K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLGlobalBindingPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLBaseBinding<K, TLGlobalBindingPropsMap[K]> : Extract<TLDefaultBinding, {
-        type: K;
-    }> : TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>;
-};
-
-// @public (undocumented)
-export type TLIndexedShapes = {
-    [K in keyof TLGlobalShapePropsMap | TLDefaultShape['type'] as K extends TLDefaultShape['type'] ? K extends 'group' ? K : K extends keyof TLGlobalShapePropsMap ? TLGlobalShapePropsMap[K] extends null | undefined ? never : K : K : K]: K extends 'group' ? Extract<TLDefaultShape, {
-        type: K;
-    }> : K extends TLDefaultShape['type'] ? K extends keyof TLGlobalShapePropsMap ? TLBaseShape<K, TLGlobalShapePropsMap[K]> : Extract<TLDefaultShape, {
-        type: K;
-    }> : TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>;
-};
-
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
@@ -1445,7 +1432,9 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K];
+export type TLShape<K extends TLUnionizedShapes['type'] = TLUnionizedShapes['type']> = Extract<TLUnionizedShapes, {
+    type: K;
+}>;
 
 // @public
 export interface TLShapeCrop {
@@ -1510,6 +1499,22 @@ export interface TLTextShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public (undocumented)
+export type TLUnionizedBindings = Values<{
+    [K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLGlobalBindingPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLBaseBinding<K, TLGlobalBindingPropsMap[K]> : Extract<TLDefaultBinding, {
+        type: K;
+    }> : TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>;
+}>;
+
+// @public (undocumented)
+export type TLUnionizedShapes = Values<{
+    [K in keyof TLGlobalShapePropsMap | TLDefaultShape['type'] as K extends TLDefaultShape['type'] ? K extends 'group' ? K : K extends keyof TLGlobalShapePropsMap ? TLGlobalShapePropsMap[K] extends null | undefined ? never : K : K : K]: K extends 'group' ? Extract<TLDefaultShape, {
+        type: K;
+    }> : K extends TLDefaultShape['type'] ? K extends keyof TLGlobalShapePropsMap ? TLBaseShape<K, TLGlobalShapePropsMap[K]> : Extract<TLDefaultShape, {
+        type: K;
+    }> : TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>;
+}>;
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

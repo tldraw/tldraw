@@ -98,6 +98,7 @@ export {
 	type MakeUndefinedOptional,
 	type RecursivePartial,
 	type Required,
+	type Values,
 } from './lib/types'
 export { safeParseUrl } from './lib/url'
 export {
