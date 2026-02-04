@@ -5355,6 +5355,9 @@ export function useAssetUrls(): TLUiAssetUrls;
 // @public (undocumented)
 export function useBreakpoint(): number;
 
+// @public
+export function useCanApplySelectionAction(): boolean;
+
 // @public (undocumented)
 export function useCanRedo(): boolean;
 

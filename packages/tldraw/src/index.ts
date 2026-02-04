@@ -637,7 +637,12 @@ export {
 	type TLUiToastsContextType,
 	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
-export { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from './lib/ui/hooks/menu-hooks'
+export {
+	useCanApplySelectionAction,
+	useCanRedo,
+	useCanUndo,
+	useUnlockedSelectedShapesCount,
+} from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
