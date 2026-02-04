@@ -2,7 +2,18 @@
 title: Manually update user presence
 component: ./UserPresenceExample.tsx
 category: collaboration
-keywords: [cursor]
+keywords:
+  [
+    presence,
+    cursors,
+    InstancePresenceRecordType,
+    collaboration cursors,
+    fake users,
+    cursor position,
+    chat message,
+    cursor animation,
+    mergeRemoteChanges,
+  ]
 priority: 5
 ---
 

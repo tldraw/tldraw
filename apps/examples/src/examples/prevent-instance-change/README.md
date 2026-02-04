@@ -3,7 +3,17 @@ title: Prevent instance changes
 component: ./PreventInstanceChangeExample.tsx
 category: events
 priority: 2
-keywords: [side, effect, instance, grid, mode, prevent]
+keywords:
+  [
+    instance state,
+    prevent change,
+    registerbeforechangehandler,
+    side effects,
+    grid mode,
+    isgridmode,
+    validation,
+    state protection,
+  ]
 ---
 
 Prevent a change to the "instance" record that would turn off grid mode.

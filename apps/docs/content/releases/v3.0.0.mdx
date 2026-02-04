@@ -1,0 +1,133 @@
+---
+title: 'v3.0.0'
+created_at: 9/13/2024
+updated_at: 12/20/2024
+keywords:
+  - changelog
+  - release
+  - v3.0
+  - v3.0.0
+  - v3.0.1
+  - v3.0.2
+  - v3.0.3
+  - licensing
+  - deep-links
+  - export
+  - embeds
+  - text-search
+status: published
+---
+
+This release introduces a revised licensing model alongside deep links, enhanced image export, custom embeds, and a new text search API.
+
+## What's new
+
+### Licensing
+
+The most significant change involves updated licenses permitting use in both commercial and non-commercial projects when displaying a "Made with tldraw" watermark. Users can now purchase Business Licenses to remove the watermark, with details available at [tldraw.dev](https://tldraw.dev). ([#4449](https://github.com/tldraw/tldraw/pull/4449), [#4517](https://github.com/tldraw/tldraw/pull/4517), [#4561](https://github.com/tldraw/tldraw/pull/4561))
+
+### Deep links
+
+New APIs enable creation of shareable URLs pointing to specific canvas locations, such as particular shapes or pages, with automatic URL updates as users navigate.
+
+```typescript
+// Create a deep link to a specific shape
+const url = editor.createDeepLink({
+	shapeId: 'shape-id',
+	viewport: 'fit',
+})
+
+// The URL updates automatically as you navigate
+editor.on('change', () => {
+	const currentUrl = editor.getCurrentDeepLink()
+})
+```
+
+See the [deep links guide](https://tldraw.dev/docs/editor#Deep-links) for more information. ([#4498](https://github.com/tldraw/tldraw/pull/4498))
+
+### Enhanced image export
+
+Custom shapes now export as images by default through HTML/CSS embedding within SVG files, eliminating the need for developers to implement custom SVG rendering methods.
+
+```typescript
+// Custom shapes automatically export as images
+class MyShapeUtil extends ShapeUtil<MyShape> {
+  // No need to implement toSvg() anymore
+  component(shape: MyShape) {
+    return <div className="my-shape">{/* ... */}</div>
+  }
+}
+```
+
+### Custom embeds API
+
+Developers can now customize which external websites (YouTube, Google Maps, CodeSandbox, etc.) appear as embeddable content, or add entirely new embed types.
+
+```typescript
+// Add a custom embed type
+const customEmbedDef = {
+  type: 'custom',
+  title: 'My Custom Embed',
+  hostnames: ['mysite.com'],
+  toEmbedUrl: (url: string) => `https://mysite.com/embed/${url}`,
+  fromEmbedUrl: (url: string) => url.replace('/embed/', '/')
+}
+
+<Tldraw embedDefs={[customEmbedDef, ...defaultEmbedDefs]} />
+```
+
+### Text search via getText API
+
+A new `getText` API provides reliable access to human-readable shape content, facilitating text search implementation within applications.
+
+```typescript
+// Search through all shapes for text content
+const searchResults = editor.getCurrentPageShapes().filter((shape) => {
+	const text = editor.getText(shape.id)
+	return text?.toLowerCase().includes(searchTerm.toLowerCase())
+})
+```
+
+## API changes
+
+- 💥 **`TLRotationSnapshot`** type removed from the public API. Use `editor.getShapePageTransform(shape).rotation()` instead.
+- 💥 **`onEditorMount`** callback in `createTLStore` renamed to `onMount` for consistency.
+- 💥 **`Editor.mark()`** deprecated in favor of `Editor.markHistoryStoppingPoint()` for clearer intent.
+- 💥 **`TLSvgOptions`** type renamed to `TLImageExportOptions` to better reflect its broader use in image export.
+- 💥 **Focus event behavior**: Calling `updateInstanceState({isFocused: true})` now triggers standard focus events consistently. Use `editor.focus()` for reliable focus behavior.
+- Add `editor.getText(shapeId)` method for accessing shape text content.
+- Add `editor.createDeepLink(options)` for generating shareable URLs.
+- Add `embedDefs` prop to Tldraw component for customizing embed types.
+- Expose additional shape export utilities for custom image generation.
+
+## Improvements
+
+- Improve bookmark rendering for URLs without preview images. ([#4460](https://github.com/tldraw/tldraw/pull/4460))
+- Improve handling of asset storage and persistence. ([#4542](https://github.com/tldraw/tldraw/pull/4542))
+- Improve documentation search functionality. ([#4485](https://github.com/tldraw/tldraw/pull/4485))
+- Refine watermark appearance and behavior. ([#4589](https://github.com/tldraw/tldraw/pull/4589), [#4622](https://github.com/tldraw/tldraw/pull/4622))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.0)
+
+---
+
+## Patch releases
+
+### v3.0.1
+
+- Fix documentation search functionality and article issues. ([#4515](https://github.com/tldraw/tldraw/pull/4515))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.1)
+
+### v3.0.2
+
+- Fix build caching issue causing "You have multiple versions of tldraw libraries installed" errors. ([#4525](https://github.com/tldraw/tldraw/pull/4525))
+- Fix container null error. ([#4524](https://github.com/tldraw/tldraw/pull/4524))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.2)
+
+### v3.0.3
+
+- Fix bugs in the editor and tldraw packages. ([#4541](https://github.com/tldraw/tldraw/pull/4541))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.0.3)

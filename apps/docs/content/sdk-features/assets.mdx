@@ -1,0 +1,307 @@
+---
+title: Assets
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - assets
+  - images
+  - videos
+  - bookmarks
+  - files
+  - upload
+  - media
+  - storage
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+Assets are external resources like images, videos, and bookmarks that shapes display on the canvas. They're stored as separate records in the store and referenced by ID from shapes. This lets you reuse the same image across multiple shapes without duplicating data, and swap out storage backends without touching your shapes.
+
+The SDK includes three asset types: image, video, and bookmark. Each asset record holds metadata (dimensions, MIME type, source URL) while the actual file lives wherever you want to put it. You provide upload and resolve handlers that tell tldraw how to store files and fetch them for rendering.
+
+## How it works
+
+### Asset records and the store
+
+Assets live in the store alongside shapes and pages. Each asset record contains metadata (dimensions, MIME type, name) but not the actual file bytes—those live in your storage backend.
+
+When someone drops an image onto the canvas, tldraw creates two records: an asset record with dimensions and metadata, and a shape record with position and size. The shape references the asset through its `assetId` property. Multiple shapes can reference the same asset, so deleting one image shape won't remove the asset if other shapes still use it.
+
+Asset records have a `props` object for type-specific properties and a `meta` object for your custom data. The `src` property in props holds the URL returned by your upload handler—this can be an HTTP URL, a data URL, or any string your resolve handler understands.
+
+### Asset types
+
+The SDK defines three built-in asset types.
+
+**Image assets** store raster images like PNG, JPEG, or GIF. They track width, height, MIME type, animation status, and file size. The `isAnimated` flag is true for animated GIFs.
+
+```typescript
+const imageAsset: TLImageAsset = {
+	id: 'asset:image123' as TLAssetId,
+	typeName: 'asset',
+	type: 'image',
+	props: {
+		w: 1920,
+		h: 1080,
+		name: 'photo.jpg',
+		isAnimated: false,
+		mimeType: 'image/jpeg', // can be null if unknown
+		src: 'https://storage.example.com/uploads/photo.jpg', // can be null before upload
+		fileSize: 245000, // optional
+	},
+	meta: {},
+}
+```
+
+**Video assets** store video files like MP4 or WebM. They have the same structure as image assets: dimensions, MIME type, source URL, and `isAnimated` (which is typically true for videos).
+
+```typescript
+const videoAsset: TLVideoAsset = {
+	id: 'asset:video456' as TLAssetId,
+	typeName: 'asset',
+	type: 'video',
+	props: {
+		w: 1920,
+		h: 1080,
+		name: 'clip.mp4',
+		isAnimated: true,
+		mimeType: 'video/mp4',
+		src: 'https://storage.example.com/uploads/clip.mp4',
+		fileSize: 5242880,
+	},
+	meta: {},
+}
+```
+
+**Bookmark assets** store web page previews. When someone pastes a URL, tldraw fetches metadata from the page and creates a bookmark that renders as a preview card.
+
+```typescript
+const bookmarkAsset: TLBookmarkAsset = {
+	id: 'asset:bookmark1' as TLAssetId,
+	typeName: 'asset',
+	type: 'bookmark',
+	props: {
+		title: 'Example Website',
+		description: 'A great example of web design',
+		image: 'https://example.com/preview.jpg',
+		favicon: 'https://example.com/favicon.ico',
+		src: 'https://example.com',
+	},
+	meta: {},
+}
+```
+
+### The TLAssetStore interface
+
+[TLAssetStore](?) defines how tldraw talks to your storage backend. You provide an implementation when creating the editor, and tldraw calls your handlers whenever someone adds or accesses assets.
+
+The default behavior depends on your store setup:
+
+- **In-memory only** (default): [`inlineBase64AssetStore`](?) converts images to data URLs—quick for prototyping but doesn't persist across sessions
+- **With [`persistenceKey`](/docs/persistence#The-persistenceKey-prop)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) alongside other document data
+- **With a [sync server](/docs/sync)**: Implement `TLAssetStore` to upload files to a storage service like S3, Google Cloud Storage, or your own API
+
+The interface has three methods:
+
+| Method    | Purpose                                           |
+| --------- | ------------------------------------------------- |
+| `upload`  | Store a file and return its URL                   |
+| `resolve` | Return the URL to use when rendering an asset     |
+| `remove`  | Clean up files when assets are deleted (optional) |
+
+The **upload** method receives an asset record (with metadata already populated) and the File to store. Return an object with `src` (the URL) and optionally `meta` (custom metadata to merge into the asset record). You also get an AbortSignal for cancellation.
+
+```typescript
+async upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{ src: string; meta?: JsonObject }>
+```
+
+The **resolve** method receives an asset and a [TLAssetContext](?) describing how the asset is being displayed. Return the URL to use for rendering, or null if unavailable. This is where you can get clever—return optimized thumbnails when zoomed out, high-resolution images for export, or add authentication tokens.
+
+```typescript
+resolve(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+```
+
+The **remove** method receives asset IDs that are no longer needed—clean up the stored files to free space. This method is optional.
+
+```typescript
+async remove(assetIds: TLAssetId[]): Promise<void>
+```
+
+Here's a minimal implementation that converts files to data URLs (good for prototyping, not so great for production):
+
+```typescript
+import { Tldraw, TLAssetStore } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const assetStore: TLAssetStore = {
+	async upload(asset, file) {
+		const dataUrl = await new Promise<string>((resolve) => {
+			const reader = new FileReader()
+			reader.onload = () => resolve(reader.result as string)
+			reader.readAsDataURL(file)
+		})
+		return { src: dataUrl }
+	},
+
+	resolve(asset, ctx) {
+		return asset.props.src
+	},
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw assets={assetStore} />
+		</div>
+	)
+}
+```
+
+### The TLAssetContext
+
+When resolving assets, tldraw gives you a [TLAssetContext](?) with information about the current render environment. Use this to optimize asset delivery.
+
+| Property                  | Type             | Description                                                                                                       |
+| ------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `screenScale`             | `number`         | How much the asset is scaled relative to native dimensions. A 1000px image rendered at 500px has screenScale 0.5. |
+| `steppedScreenScale`      | `number`         | screenScale rounded to the nearest power of 2, useful for tiered caching.                                         |
+| `dpr`                     | `number`         | Device pixel ratio. Retina displays are 2 or 3.                                                                   |
+| `networkEffectiveType`    | `string \| null` | Browser's connection type: 'slow-2g', '2g', '3g', or '4g'.                                                        |
+| `shouldResolveToOriginal` | `boolean`        | True when exporting or copy-pasting. Return full quality.                                                         |
+
+Here's a resolve handler that serves optimized images based on context—notice how you can tailor the response to network conditions and zoom level:
+
+```typescript
+resolve(asset, ctx) {
+	const baseUrl = asset.props.src
+	if (!baseUrl) return null
+
+	// For exports, always return original
+	if (ctx.shouldResolveToOriginal) {
+		return baseUrl
+	}
+
+	// On slow connections, serve lower quality
+	if (ctx.networkEffectiveType === 'slow-2g' || ctx.networkEffectiveType === '2g') {
+		return `${baseUrl}?quality=low`
+	}
+
+	// Serve resolution appropriate for current zoom
+	const targetWidth = Math.ceil(asset.props.w * ctx.steppedScreenScale * ctx.dpr)
+	return `${baseUrl}?w=${targetWidth}`
+}
+```
+
+## Key components
+
+### Editor asset methods
+
+The [Editor](?) class provides methods for managing assets:
+
+| Method                      | Description                               |
+| --------------------------- | ----------------------------------------- |
+| [Editor#createAssets](?)    | Add asset records to the store            |
+| [Editor#updateAssets](?)    | Update existing assets with partial data  |
+| [Editor#deleteAssets](?)    | Remove assets and call the remove handler |
+| [Editor#getAsset](?)        | Get an asset by ID                        |
+| [Editor#getAssets](?)       | Get all assets in the store               |
+| [Editor#resolveAssetUrl](?) | Resolve an asset ID to a renderable URL   |
+
+Asset operations happen outside the undo/redo history since they're typically part of larger operations like pasting images—you don't want "undo" to magically un-upload a file.
+
+```typescript
+// Create an asset
+editor.createAssets([imageAsset])
+
+// Update an asset (only provide changed fields)
+editor.updateAssets([{ id: imageAsset.id, type: 'image', props: { name: 'new-name.jpg' } }])
+
+// Get an asset with type safety
+const asset = editor.getAsset<TLImageAsset>(imageAsset.id)
+
+// Resolve to a URL for rendering
+const url = await editor.resolveAssetUrl(imageAsset.id, { screenScale: 0.5 })
+
+// Delete assets
+editor.deleteAssets([imageAsset.id])
+```
+
+### Shape and asset relationships
+
+Shapes reference assets through an `assetId` property in their props. Image shapes, video shapes, and bookmark shapes all follow this pattern. The shape stores position, size, rotation, and crop settings while the asset stores the media metadata and source URL.
+
+This separation pays off:
+
+- Update an asset's `src` and every shape referencing it updates immediately
+- Duplicate a shape without duplicating storage
+- Implement lazy loading where assets only load when shapes become visible
+
+When you delete an asset, shapes referencing it fall back to displaying the URL directly or show a placeholder.
+
+## Extension points
+
+### Custom storage backends
+
+Implement [TLAssetStore](?) to integrate with any storage backend. For local development, convert files to data URLs. For production, upload to S3, Google Cloud Storage, or your own API—whatever works for you.
+
+Here's an example that uploads to a custom API:
+
+```typescript
+const assetStore: TLAssetStore = {
+	async upload(asset, file, abortSignal) {
+		const formData = new FormData()
+		formData.append('file', file)
+		formData.append('assetId', asset.id)
+
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: formData,
+			signal: abortSignal,
+		})
+
+		const { url, uploadedAt } = await response.json()
+		return {
+			src: url,
+			meta: { uploadedAt }, // Custom metadata gets merged into the asset
+		}
+	},
+
+	resolve(asset, ctx) {
+		// Add auth token for private content
+		const token = getAuthToken()
+		return `${asset.props.src}?token=${token}`
+	},
+
+	async remove(assetIds) {
+		await fetch('/api/assets', {
+			method: 'DELETE',
+			body: JSON.stringify({ ids: assetIds }),
+		})
+	},
+}
+```
+
+### Custom asset types
+
+You can define custom asset types by extending [TLBaseAsset](?). Create a validator with [createAssetValidator](?), then implement shapes that reference your custom assets.
+
+Custom asset types follow the same storage lifecycle as built-in types. Your upload, resolve, and remove handlers need to support them, and your custom shapes handle the rendering.
+
+### Asset validation and migrations
+
+Asset records use the migration system to evolve their schema. Each asset type has its own migration sequence that handles adding properties, renaming fields, and validating data. When you load a document with old asset records, migrations transform them to the current schema automatically.
+
+Validators ensure asset data matches the expected structure at runtime. The [assetValidator](?) uses a discriminated union on the `type` field. If you're creating custom asset types, create validators following the same pattern and add migration sequences to handle schema changes.
+
+## Related examples
+
+- [Hosted images](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/hosted-images) - Implement a TLAssetStore that uploads images to a server
+- [Local images](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/local-images) - Create image shapes from local asset records
+- [Local videos](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/local-videos) - Create video shapes from local asset records
+- [Asset options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/asset-props) - Control allowed asset types, max size, and dimensions
+- [Static assets](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/static-assets) - Pre-load custom fonts and icons

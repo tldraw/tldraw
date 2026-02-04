@@ -3,7 +3,19 @@ title: Permissions 2
 component: ./PermissionsExample2.tsx
 category: events
 priority: 5
-keywords: [constraints, bounds, side effects, permissions, clamping]
+keywords:
+  [
+    constraints,
+    bounds,
+    side effects,
+    permissions,
+    clamping,
+    registerbeforechangehandler,
+    movement restriction,
+    bounded region,
+    shape geometry,
+    resize constraint,
+  ]
 ---
 
 A second example of how to use side effect APIs to constrain shape movement within a bounding box.

@@ -144,6 +144,53 @@ yarn refresh-api         # API docs only
 
 ## API reference generation
 
+### TSDoc `{@link}` syntax rules
+
+When writing JSDoc/TSDoc comments with `{@link}` references, follow these rules to avoid "Error processing API: The package X could not be located" errors during docs build:
+
+**Cross-package references** - Always use the full package name:
+
+```ts
+// ✅ Correct - explicit package reference
+{@link @tldraw/editor#Editor}
+{@link tldraw#Tldraw}
+{@link @tldraw/editor#TLStoreSchemaOptions}
+
+// ❌ Wrong - parser treats "Editor" as a package name
+{@link Editor}
+{@link Editor#createDeepLink}
+```
+
+**Same-file references** - Use `.` not `#` for members:
+
+```ts
+// ✅ Correct - dot notation for same-file references
+{@link Editor.createDeepLink}
+
+// ❌ Wrong - # makes parser look for "Editor" package
+{@link Editor#createDeepLink}
+```
+
+**Package names in API json** - Use the actual package name from the generated `.api.json` files:
+
+- `tldraw` (not `@tldraw/tldraw`)
+- `@tldraw/editor`
+- `@tldraw/sync`
+- `@tldraw/store`
+- etc.
+
+**Member notation**:
+
+- Use `#` after package name to reference exports: `{@link tldraw#TLUiToolItem}`
+- Use `.` for properties/methods: `{@link tldraw#TLUiToolItem.onDragStart}`
+
+**Finding the right package** - Check where the export is defined:
+
+- `TLStoreSchemaOptions` → `@tldraw/editor` (not `tldraw`)
+- `inlineBase64AssetStore` → `@tldraw/editor`
+- `Tldraw` component → `tldraw`
+- `TLUiToolItem` → `tldraw`
+
 ### Source processing
 
 Uses Microsoft API Extractor to process TypeScript:

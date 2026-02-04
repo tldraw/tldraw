@@ -3,6 +3,19 @@ title: Custom text outline
 component: ./CustomTextOutlineExample.tsx
 category: configuration
 priority: 1
+keywords:
+  [
+    text,
+    outline,
+    showTextOutline,
+    configure,
+    TextShapeUtil,
+    ArrowShapeUtil,
+    GeoShapeUtil,
+    label,
+    performance,
+    styling,
+  ]
 ---
 
 Disable text outlines on text and arrow labels.

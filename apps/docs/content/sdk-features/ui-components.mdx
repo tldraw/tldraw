@@ -1,0 +1,298 @@
+---
+title: UI components
+created_at: 12/17/2025
+updated_at: 12/29/2025
+keywords:
+  - ui
+  - components
+  - toolbar
+  - menu
+  - customization
+status: published
+date: 12/29/2025
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The `@tldraw/tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
+
+The UI connects to the editor through React hooks and context providers. Components automatically update when editor state changes. You can replace individual parts of the interface without reimplementing the logic that connects UI actions to editor operations.
+
+## How it works
+
+### Component slot architecture
+
+The UI divides the screen into distinct layout zones:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Top Panel                             │
+├────────────┬──────────────────────────┬─────────────────┤
+│   Left     │         Canvas           │     Right       │
+│   Panel    │                          │     Panel       │
+├────────────┴──────────────────────────┴─────────────────┤
+│                   Bottom Panel                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+The top zone contains the main menu, helper buttons (like "Back to content"), the top panel for collaboration features, and the share and style panels. The bottom zone houses navigation controls, the main toolbar with drawing tools, and the help menu. On desktop, the style panel appears in the top-right zone; on mobile it moves to a modal overlay.
+
+Each zone can host multiple components. The toolbar includes the tool selector, tool-specific options, and the tool lock button. These components share context and coordinate through the editor's state.
+
+### Context providers and state management
+
+The UI establishes a hierarchy of React context providers that manage different aspects of the interface. At the root, `TldrawUiContextProvider` coordinates all other providers and merges your overrides. Specialized providers handle translations, tooltips, dialogs, toasts, breakpoints for responsive behavior, and the component registry.
+
+The actions and tools providers transform raw editor methods into UI-friendly actions with labels, icons, and keyboard shortcuts. When you click a toolbar button, the component calls an action from context, which invokes the appropriate editor method. This indirection means the same action can be triggered from multiple places (toolbar, menu, keyboard shortcut) with consistent behavior.
+
+### Reactive UI updates
+
+UI components read editor state through hooks like `useEditor`, `useValue`, and `useReactor`. These hooks use the editor's reactive signal system to automatically re-render when relevant state changes. The style panel uses `useRelevantStyles` to determine which style controls to show based on the current selection—when you select a different shape, the hook detects the change and the panel updates.
+
+This reactive approach means you don't need to manually manage subscriptions or worry about stale state. Components declare their dependencies, and the reactivity system handles the rest.
+
+## Key components
+
+### Component slots
+
+The UI defines several component slots you can override or hide.
+
+The **Toolbar** contains the primary tool selector with buttons for each available tool (select, draw, shapes, etc.). On mobile, it hides automatically when editing text to make room for the virtual keyboard.
+
+The **TopPanel** displays the page name and collaboration indicators when multiplayer features are enabled. It's hidden in single-player mode.
+
+The **StylePanel** shows style controls for selected shapes: color, fill, stroke, size, opacity. It appears in the top-right on desktop and as a modal on mobile.
+
+The **MenuPanel** houses the main application menu with actions like export, print, and preferences. It's typically in the top-left corner.
+
+The **NavigationPanel** provides page navigation, zoom controls, and the minimap toggle. It sits in the bottom-left area.
+
+**HelperButtons** are context-sensitive buttons that appear based on editor state—"Back to content" when the camera is far from shapes, "Exit pen mode" on touch devices.
+
+**ActionsMenu**, **ContextMenu**, and **HelpMenu** provide access to actions and information through different interaction patterns.
+
+Each slot is optional. Pass `null` as an override to hide a component entirely, or provide your own React component to replace the default implementation.
+
+### UI hooks
+
+Components access editor functionality through specialized hooks.
+
+`useEditor` returns the editor instance, providing direct access to all editor methods and state.
+
+`useActions` returns a collection of UI actions (copy, paste, delete) with their labels, icons, and keyboard shortcuts. Each action is a function you can call from your custom UI.
+
+`useTools` returns the available tools with their metadata. The toolbar uses this to render tool buttons.
+
+`useRelevantStyles` determines which styles are relevant to the current selection and returns their values. It powers the style panel.
+
+`useBreakpoint` returns a numeric breakpoint index (0-7) that maps to the `PORTRAIT_BREAKPOINT` enum. Compare against values like `PORTRAIT_BREAKPOINT.MOBILE` or `PORTRAIT_BREAKPOINT.TABLET_SM` to adapt layout for different screen sizes.
+
+These hooks encapsulate common UI patterns and keep your custom components in sync with editor state.
+
+## Hiding the UI
+
+You can hide the default tldraw user interface entirely using the `hideUi` prop. This turns off both the visuals and the keyboard shortcuts.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw hideUi />
+		</div>
+	)
+}
+```
+
+When the UI is hidden, you can't select tools using keyboard shortcuts. You can still control the editor programmatically through `Editor` methods. Open the console and try:
+
+```ts
+editor.setCurrentTool('draw')
+```
+
+All of tldraw's user interface works by controlling the editor via its methods. If you hide the user interface, you can still use these same methods to control the editor. See the [custom user interface example](/examples/custom-ui) for this in action.
+
+## Extension points
+
+### Overriding components
+
+Override individual components by passing them to the `components` prop:
+
+```tsx
+import { Tldraw, useEditor, useTools } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+function CustomToolbar() {
+	const editor = useEditor()
+	const tools = useTools()
+
+	return (
+		<div className="my-toolbar">
+			{Object.values(tools).map((tool) => (
+				<button key={tool.id} onClick={() => editor.setCurrentTool(tool.id)}>
+					{tool.label}
+				</button>
+			))}
+		</div>
+	)
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				components={{
+					Toolbar: CustomToolbar,
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+The `useTools` hook returns an object mapping tool IDs to [TLUiToolItem](/reference/tldraw/TLUiToolItem) objects. Each tool item contains metadata like `id`, `label`, `icon`, and `kbd` (keyboard shortcut).
+
+### Hiding components
+
+Pass `null` to hide a component entirely. This is useful for focused experiences that don't need the full default UI:
+
+```tsx
+<Tldraw
+	components={{
+		HelpMenu: null,
+		DebugMenu: null,
+		SharePanel: null,
+	}}
+/>
+```
+
+See the [UI components hidden example](/examples/ui-components-hidden) for a complete list of hideable components.
+
+## Overrides
+
+Control tldraw's menu content with the `overrides` prop. This prop accepts a [TLUiOverrides](/reference/tldraw/TLUiOverrides) object, which has methods for `actions` and `tools`, and a `translations` property.
+
+### Actions
+
+The user interface has a set of shared actions used in the menus and keyboard shortcuts. Override these by providing an `actions` method that receives the editor, the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx), and a helpers object, then returns a mutated actions object.
+
+```tsx
+import { Tldraw, TLUiOverrides } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const myOverrides: TLUiOverrides = {
+	actions(editor, actions, helpers) {
+		// Delete an action (remember to also delete any menu items that reference it)
+		delete actions['insert-embed']
+
+		// Create a new action or replace an existing one
+		actions['my-new-action'] = {
+			id: 'my-new-action',
+			label: 'My new action',
+			readonlyOk: true,
+			kbd: 'cmd+shift+u,ctrl+shift+u',
+			onSelect(source) {
+				window.alert('My new action just happened!')
+			},
+		}
+		return actions
+	},
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw overrides={myOverrides} />
+		</div>
+	)
+}
+```
+
+The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, keyed by their `id`. See the [action overrides example](/examples/action-overrides) for more.
+
+### Tools
+
+Override tools the same way you override actions. Provide a `tools` method that accepts the editor, the [default tools object](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useTools.tsx), and a helpers object, then returns a mutated version.
+
+```tsx
+const myOverrides: TLUiOverrides = {
+	tools(editor, tools, helpers) {
+		// Create a tool item in the UI's context
+		tools.card = {
+			id: 'card',
+			icon: 'color',
+			label: 'tools.card',
+			kbd: 'c',
+			onSelect: () => {
+				editor.setCurrentTool('card')
+			},
+		}
+		return tools
+	},
+}
+```
+
+The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, keyed by their `id`. See the [add tool to toolbar example](/examples/add-tool-to-toolbar) for a complete implementation.
+
+### Translations
+
+The `translations` property accepts a table of new translations. If you add a tool with `label: 'tools.card'`, you need to provide an English translation for that key:
+
+```tsx
+const myOverrides: TLUiOverrides = {
+	translations: {
+		en: {
+			'tools.card': 'Card',
+		},
+	},
+}
+```
+
+See [internationalization](/sdk-features/internationalization) for more about tldraw's translation system.
+
+## UI events
+
+The [Tldraw](?) component has an `onUiEvent` prop that fires when users interact with the UI:
+
+```tsx
+import { Tldraw, TLUiEventHandler } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const handleUiEvent: TLUiEventHandler = (name, data) => {
+		console.log('UI event:', name, data)
+	}
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw onUiEvent={handleUiEvent} />
+		</div>
+	)
+}
+```
+
+The callback receives the event name as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and other data specific to each event, such as the direction in an `align-shapes` event.
+
+Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShapes](?) directly won't trigger this callback. See the [UI events example](/examples/ui-events) for more.
+
+## Related articles
+
+- [UI primitives](/sdk-features/ui-primitives) - Use tldraw's button, menu, dialog, and other UI components in your custom interfaces
+- [Internationalization](/sdk-features/internationalization) - Customize translations and add new languages
+- [Tools](/sdk-features/tools) - Learn how tools work and create your own
+
+## Related examples
+
+- [Replace the entire UI](/examples/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
+- [Custom canvas components](/examples/custom-components) - Override individual canvas components like the brush selection box and scribble
+- [Hide the entire UI](/examples/hide-ui) - Use hideUi to hide the entire default interface
+- [Hide UI components](/examples/ui-components-hidden) - Selectively hide specific UI components
+- [Changing menus](/examples/custom-menus) - Create custom menus using tldraw's menu system
+- [Vertical toolbar](/examples/vertical-toolbar) - Switch to a vertical toolbar layout
+- [Add tool to toolbar](/examples/add-tool-to-toolbar) - Add a custom tool to the toolbar
+- [UI events](/examples/ui-events) - Listen to UI events like tool selection and menu interactions

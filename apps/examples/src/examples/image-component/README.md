@@ -3,7 +3,19 @@ title: Snapshot image component
 component: ./TldrawImageExample.tsx
 category: layout
 priority: 20
-keywords: [snapshot, export]
+keywords:
+  [
+    tldrawimage,
+    snapshot,
+    display snapshot,
+    read only,
+    getsnapshot,
+    store snapshot,
+    tlstoresnapshot,
+    format,
+    svg,
+    png,
+  ]
 ---
 
 Display a tldraw snapshot as an image by using the `TldrawImage` component.

@@ -1,0 +1,41 @@
+---
+title: 'v3.1.0'
+created_at: 9/25/2024
+updated_at: 9/25/2024
+keywords:
+  - changelog
+  - release
+  - v3.1
+  - v3.1.0
+  - visibility
+  - sync
+  - server-side
+  - assets
+status: published
+---
+
+This release introduces shape visibility control and server-side data manipulation capabilities, alongside API enhancements and bug fixes.
+
+## What's new
+
+### Shape visibility control ([#4570](https://github.com/tldraw/tldraw/pull/4570))
+
+The new `isShapeHidden` predicate option prevents shapes from being rendered or reacting to pointer events. This is useful for implementing permission systems in collaborative applications where certain shapes should be invisible to specific users.
+
+### Server-side document manipulation ([#4581](https://github.com/tldraw/tldraw/pull/4581))
+
+The tldraw sync server now supports server-side document manipulation through the `updateShapes` method, enabling integration with third-party services and automated document updates.
+
+## API changes
+
+- Add option to `Editor.rotateShapesBy` specifying rotation center point.
+- Add `useAsset` hook for resolving responsive asset versions.
+
+## Bug fixes
+
+- Fix arrow label text measurement calculations.
+- Fix arrow collaborator indicators overlapping labels.
+- Fix binding processing error handling.
+- Fix watermark opacity and animation behavior.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.1.0)

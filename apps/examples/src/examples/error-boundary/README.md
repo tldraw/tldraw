@@ -3,7 +3,8 @@ title: Error boundary
 component: ./ErrorBoundaryExample.tsx
 category: ui
 priority: 2
-keywords: [shape]
+keywords:
+  [error handling, shapeerrorfallback, error boundary, components, crash recovery, fallback ui]
 ---
 
 Customize the error fallback that appears when a shape throws an error.

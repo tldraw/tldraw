@@ -60,6 +60,7 @@
 
 	/* Misc */
 	--tl-zoom: 1;
+	--tl-tab-size: 2;
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -893,6 +894,10 @@ input,
 	 * white-space in contenteditable is incredible.
 	 *
 	/* white-space: break-spaces; */
+}
+
+.tl-rich-text {
+	tab-size: var(--tl-tab-size, 2);
 }
 
 .tl-rich-text p {

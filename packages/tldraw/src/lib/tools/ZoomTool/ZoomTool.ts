@@ -7,13 +7,14 @@ import {
 import { Idle } from './childStates/Idle'
 import { Pointing } from './childStates/Pointing'
 import { ZoomBrushing } from './childStates/ZoomBrushing'
+import { ZoomQuick } from './childStates/ZoomQuick'
 
 /** @public */
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
 	static override children(): TLStateNodeConstructor[] {
-		return [Idle, ZoomBrushing, Pointing]
+		return [Idle, Pointing, ZoomBrushing, ZoomQuick]
 	}
 	static override isLockable = false
 
@@ -21,14 +22,15 @@ export class ZoomTool extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		// onInteractionEnd is a path like 'select.idle', extract just the tool ID for the mask
+		const toolId = info.onInteractionEnd?.split('.')[0]
+		this.parent.setCurrentToolIdMask(toolId)
 		this.updateCursor()
 	}
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState({ zoomBrush: null, cursor: { type: 'default', rotation: 0 } })
-		this.parent.setCurrentToolIdMask(undefined)
 	}
 
 	override onKeyDown() {
@@ -38,7 +40,8 @@ export class ZoomTool extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		this.updateCursor()
 
-		if (info.code === 'KeyZ') {
+		// Use toLowerCase to handle case when Shift is held (produces 'Z')
+		if (info.key.toLowerCase() === 'z') {
 			this.complete()
 		}
 	}
@@ -48,12 +51,9 @@ export class ZoomTool extends StateNode {
 	}
 
 	private complete() {
-		// Go back to the previous tool. If we are already in select we want to transition to idle
-		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
-		} else {
-			this.parent.transition('select')
-		}
+		// onInteractionEnd is a path like 'select.idle', extract just the tool ID
+		const toolId = this.info.onInteractionEnd?.split('.')[0] ?? 'select'
+		this.editor.setCurrentTool(toolId)
 	}
 
 	private updateCursor() {

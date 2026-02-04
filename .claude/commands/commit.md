@@ -57,4 +57,4 @@ Do NOT:
 - Commit files that look like secrets (.env, credentials, API keys)
 - Include "Generated with Claude Code", "Co-Authored-By: Claude", or any AI attribution
 
-If the commit fails due to pre-commit hooks, fix the issues and try again.
+If the commit fails due to pre-commit hooks, attempt to fix the issues and try again. If the issues seem meaningful, notify the user and ask if they want to fix them.

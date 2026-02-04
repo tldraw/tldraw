@@ -3,7 +3,19 @@ title: Menu system hover
 component: ./MenuSystemHoverExample.tsx
 category: ui
 priority: 1
-keywords: [menu, hover, dropdown, programmatic, control]
+keywords:
+  [
+    menu,
+    hover,
+    dropdown,
+    programmatic,
+    control,
+    editor.menus,
+    addopenmenu,
+    deleteopenmenu,
+    usemenuisopen,
+    ui,
+  ]
 ---
 
 Programmatically control dropdown menus via hover interactions using the editor's menu tracking API.

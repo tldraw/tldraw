@@ -3,7 +3,7 @@ title: Inset editor (fixed sizes)
 component: ./InlineExample.tsx
 category: layout
 priority: 0
-keywords: [focus, auto, focus, multiple, editors]
+keywords: [inline, embedded, fixed size, width, height, responsive, multiple editors]
 ---
 
 Use the `Tldraw` component with a set height and width.

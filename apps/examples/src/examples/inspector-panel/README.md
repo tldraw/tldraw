@@ -2,7 +2,20 @@
 title: Inspector panel
 component: ./InspectorPanelExample.tsx
 category: ui
-keywords: [inspector, properties, props, selection, panel]
+keywords:
+  [
+    inspector,
+    properties,
+    props,
+    selection,
+    panel,
+    debug,
+    usevalue,
+    bindings,
+    shared styles,
+    getselectedshapes,
+    getbindingsinvolvingshape,
+  ]
 ---
 
 Display an inspector panel that shows the properties of the currently selected shape.

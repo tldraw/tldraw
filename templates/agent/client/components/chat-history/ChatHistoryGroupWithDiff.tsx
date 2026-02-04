@@ -1,26 +1,21 @@
 import { useCallback, useMemo } from 'react'
 import { reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
+import { AgentIcon, AgentIconType } from '../../../shared/icons/AgentIcon'
 import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
-import { TldrawAgent } from '../../agent/TldrawAgent'
-import { AgentIcon, AgentIconType } from '../icons/AgentIcon'
+import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { TldrawDiffViewer } from './TldrawDiffViewer'
 import { getActionInfo } from './getActionInfo'
 
-export function ChatHistoryGroupWithDiff({
-	group,
-	agent,
-}: {
-	group: ChatHistoryGroup
-	agent: TldrawAgent
-}) {
+export function ChatHistoryGroupWithDiff({ group }: { group: ChatHistoryGroup }) {
+	const agent = useAgent()
 	const { items } = group
 	const { editor } = agent
 	const diff = useMemo(() => squashRecordDiffs(items.map((item) => item.diff)), [items])
 
 	// Accept all changes from this group
 	const handleAccept = useCallback(() => {
-		agent.$chatHistory.update((currentChatHistoryItems) => {
+		agent.chat.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -37,11 +32,11 @@ export function ChatHistoryGroupWithDiff({
 			}
 			return newItems
 		})
-	}, [items, editor, agent.$chatHistory])
+	}, [items, editor, agent.chat])
 
 	// Reject all changes from this group
 	const handleReject = useCallback(() => {
-		agent.$chatHistory.update((currentChatHistoryItems) => {
+		agent.chat.update((currentChatHistoryItems) => {
 			const newItems = [...currentChatHistoryItems]
 			for (const item of items) {
 				const index = newItems.findIndex((v) => v === item)
@@ -59,7 +54,7 @@ export function ChatHistoryGroupWithDiff({
 			}
 			return newItems
 		})
-	}, [items, editor, agent.$chatHistory])
+	}, [items, editor, agent.chat])
 
 	// Get the acceptance status of the group
 	// If all items are accepted, the group is accepted
