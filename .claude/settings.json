@@ -12,7 +12,6 @@
 			"selecting",
 			"deselecting",
 			"duplicating",
-			"deleting",
 			"nudging",
 			"resizing",
 			"rotating",
@@ -24,15 +23,9 @@
 			"packing",
 			"grouping",
 			"ungrouping",
-			"reordering",
 			"editing",
 			"cropping",
 			"styling",
-			"locking",
-			"undoing",
-			"redoing",
-			"sharing",
-			"exporting",
 			"embedding"
 		]
 	},
