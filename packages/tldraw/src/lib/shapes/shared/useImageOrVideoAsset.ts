@@ -59,11 +59,18 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	// A flag for whether we've resolved the asset URL at least once, after which we can debounce
 	const didAlreadyResolve = useRef(false)
 
+	// Track the previous assetId to detect when the asset itself changes
+	const previousAssetId = useRef<TLAssetId | null>(null)
+
 	// The last URL that we've seen for the shape
 	const previousUrl = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (!assetId) return
+
+		// Check if the assetId changed (not just resolution/scale updates)
+		const assetIdChanged = previousAssetId.current !== assetId
+		previousAssetId.current = assetId
 
 		let isCancelled = false
 		let cancelDebounceFn: (() => void) | undefined
@@ -107,9 +114,9 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				exportIsReady() // let the SVG export know we're ready for export
 			}
 
-			// Debounce fetching potentially multiple image variations while the camera is moving (zooming).
-			// Don't debounce when the asset changes (e.g. assetId update) - resolve immediately.
-			if (didAlreadyResolve.current && editor.getCameraState() === 'moving') {
+			// Debounce fetching potentially multiple image variations (e.g. during zoom or resize).
+			// Don't debounce when the asset itself changes - resolve immediately.
+			if (didAlreadyResolve.current && !assetIdChanged) {
 				let tick = 0
 
 				const resolveAssetAfterAWhile = () => {
@@ -125,8 +132,8 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				editor.on('tick', resolveAssetAfterAWhile)
 				cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
 			} else {
-				// If we were previously debouncing while the camera was moving, make sure to
-				// cancel that listener before resolving immediately (prevents stale updates).
+				// Resolve immediately when: first resolution, or the asset itself changed.
+				// Cancel any pending debounce to prevent stale updates.
 				cancelDebounceFn?.()
 				resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
 			}
