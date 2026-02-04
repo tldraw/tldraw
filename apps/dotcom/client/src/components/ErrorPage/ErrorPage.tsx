@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { F, IntlProvider } from '../../tla/utils/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
@@ -48,7 +49,7 @@ export function ErrorPage({
 }) {
 	return (
 		// This sits outside the regular providers, it needs to be able to have the intl object in the app context.
-		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
+		<IntlProvider defaultLocale="en" locale="en" messages={translationsEnJson}>
 			<div className="error-page">
 				<div className="error-page__container">
 					{icon}
