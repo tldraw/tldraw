@@ -16,6 +16,7 @@ import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
@@ -434,14 +435,15 @@ function ReflowIfNeeded() {
  */
 function CullingController() {
 	const editor = useEditor()
+	const { updateCulling } = useShapeCulling()
 
 	useQuickReactor(
 		'update shape culling',
 		() => {
 			const culledShapes = editor.getCulledShapes()
-			editor.shapeCulling.updateCulling(culledShapes)
+			updateCulling(culledShapes)
 		},
-		[editor]
+		[editor, updateCulling]
 	)
 
 	return null
@@ -453,13 +455,13 @@ function ShapesToDisplay() {
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
-		<>
+		<ShapeCullingProvider>
 			{renderingShapes.map((result) => (
 				<Shape key={result.id + '_shape'} {...result} />
 			))}
 			<CullingController />
 			{tlenv.isSafari && <ReflowIfNeeded />}
-		</>
+		</ShapeCullingProvider>
 	)
 }
 

@@ -148,7 +148,6 @@ import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
-import { ShapeCullingManager } from './managers/ShapeCullingManager/ShapeCullingManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
@@ -328,8 +327,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this.fonts = new FontManager(this, fontAssetUrls)
-
-		this.shapeCulling = new ShapeCullingManager()
 
 		this._tickManager = new TickManager(this)
 
@@ -933,13 +930,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly fonts: FontManager
-
-	/**
-	 * A manager for centralized shape container culling updates.
-	 *
-	 * @internal
-	 */
-	readonly shapeCulling: ShapeCullingManager
 
 	/**
 	 * A manager for the editor's scribbles.

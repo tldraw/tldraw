@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
+import { useShapeCulling } from '../hooks/useShapeCulling'
 import { Mat } from '../primitives/Mat'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { setStyleProperty } from '../utils/dom'
@@ -117,20 +118,21 @@ export const Shape = memo(function Shape({
 		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 	}, [opacity, index, backgroundIndex])
 
-	// Register container refs with the centralized culling manager.
+	// Register container refs with the centralized culling context.
 	// This runs on mount and handles initial display state.
+	const { register, unregister } = useShapeCulling()
 	useLayoutEffect(() => {
 		const container = containerRef.current
 		if (!container) return
 
-		// Check initial culling state and register with the manager
+		// Check initial culling state and register with the context
 		const isCulled = editor.getCulledShapes().has(id)
-		editor.shapeCulling.register(id, container, bgContainerRef.current, isCulled)
+		register(id, container, bgContainerRef.current, isCulled)
 
 		return () => {
-			editor.shapeCulling.unregister(id)
+			unregister(id)
 		}
-	}, [editor, id])
+	}, [editor, id, register, unregister])
 	const annotateError = useCallback(
 		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]
