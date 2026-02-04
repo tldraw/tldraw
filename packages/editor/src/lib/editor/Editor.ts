@@ -443,6 +443,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
+
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
@@ -4180,22 +4181,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// unmount / remount in the DOM, which is expensive; and computing visibility is
 	// also expensive in large projects. For this reason, we use a second bounding
 	// box just for rendering, and we only update after the camera stops moving.
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
 	private _cameraStateTimeoutRemaining = 0
 	private _decayCameraStateTimeout(elapsed: number) {
 		this._cameraStateTimeoutRemaining -= elapsed
 		if (this._cameraStateTimeoutRemaining > 0) return
 		this.off('tick', this._decayCameraStateTimeout)
-		this._cameraState.set('idle')
+		this._setCameraState('idle')
 	}
 	private _tickCameraState() {
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
-		this._cameraState.set('moving')
+		if (this.getInstanceState().cameraState !== 'idle') return
+		this._setCameraState('moving')
 		this._debouncedZoomLevel.set(unsafe__withoutCapture(() => this.getCamera().z))
 		this.on('tick', this._decayCameraStateTimeout)
+	}
+	private _setCameraState(cameraState: 'idle' | 'moving') {
+		this.updateInstanceState({ cameraState }, { history: 'ignore' })
 	}
 
 	/**
@@ -4209,7 +4212,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCameraState() {
-		return this._cameraState.get()
+		return this.getInstanceState().cameraState
 	}
 
 	/**

@@ -1174,6 +1174,7 @@ export type TLIndexedShapes = {
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: BoxModel | null;
+    cameraState: 'idle' | 'moving';
     // (undocumented)
     chatMessage: string;
     // (undocumented)
