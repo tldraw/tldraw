@@ -46,12 +46,12 @@ class MyContainerShapeUtil extends ShapeUtil<MyContainerShape> {
 
 When a user drags shapes across the canvas, the editor tracks which shape (if any) is under the cursor. Your shape util can implement these callbacks to respond:
 
-| Callback            | When it fires                                              |
-| ------------------- | ---------------------------------------------------------- |
-| `onDragShapesIn`    | Shapes are first dragged over this shape                   |
-| `onDragShapesOver`  | Shapes continue being dragged over this shape (every tick) |
-| `onDragShapesOut`   | Shapes are dragged away from this shape                    |
-| `onDropShapesOver`  | Shapes are dropped onto this shape                         |
+| Callback           | When it fires                                                                     |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `onDragShapesIn`   | Shapes are first dragged over this shape                                          |
+| `onDragShapesOver` | Shapes continue being dragged over this shape (on an interval, when cursor moves) |
+| `onDragShapesOut`  | Shapes are dragged away from this shape                                           |
+| `onDropShapesOver` | Shapes are dropped onto this shape                                                |
 
 The callbacks receive the target shape (the one being dragged over), an array of the shapes being dragged, and an info object with context about the drag operation.
 
@@ -71,7 +71,7 @@ override onDragShapesIn(shape: MyContainerShape, draggingShapes: TLShape[]) {
 
 ### onDragShapesOver
 
-Called continuously while shapes are being dragged over this shape. Use it for visual feedback or continuous updates like snapping to a grid:
+Called on an interval while shapes are being dragged over this shape, but only when the cursor moves. Use it for visual feedback or grid snapping:
 
 ```typescript
 override onDragShapesOver(shape: MyGridShape, draggingShapes: TLShape[]) {
@@ -146,20 +146,20 @@ All drag callbacks receive an info object with context about the drag operation.
 
 All info types share these common properties:
 
-| Property                     | Description                                              |
-| ---------------------------- | -------------------------------------------------------- |
-| `initialDraggingOverShapeId` | The shape that was under the cursor when drag started    |
-| `initialParentIds`           | Map of each shape's parent ID at drag start              |
-| `initialIndices`             | Map of each shape's z-index at drag start                |
+| Property                     | Description                                           |
+| ---------------------------- | ----------------------------------------------------- |
+| `initialDraggingOverShapeId` | The shape that was under the cursor when drag started |
+| `initialParentIds`           | Map of each shape's parent ID at drag start           |
+| `initialIndices`             | Map of each shape's z-index at drag start             |
 
 Some callbacks have additional properties:
 
-| Property                  | Available in       | Description                              |
-| ------------------------- | ------------------ | ---------------------------------------- |
-| `prevDraggingOverShapeId` | `onDragShapesIn`   | The previous shape that was dragged over |
-| `nextDraggingOverShapeId` | `onDragShapesOut`  | The next shape being dragged into        |
+| Property                  | Available in      | Description                              |
+| ------------------------- | ----------------- | ---------------------------------------- |
+| `prevDraggingOverShapeId` | `onDragShapesIn`  | The previous shape that was dragged over |
+| `nextDraggingOverShapeId` | `onDragShapesOut` | The next shape being dragged into        |
 
-The `initialParentIds` and `initialIndices` maps let you restore shapes to their original positions if needed. Frames use this to preserve z-ordering when shapes are dragged back to their original parent.
+The `initialParentIds` and `initialIndices` maps let you restore shapes to their original positions. Frames use this to preserve z-ordering when shapes are dragged back to their original parent.
 
 ## Determining what's under the cursor
 
@@ -178,7 +178,7 @@ override canReceiveNewChildrenOfType(shape: MyContainerShape, type: TLShape['typ
 }
 ```
 
-The editor checks this before calling your drag callbacks.
+You must check this yourself in your drag callbacks. The editor does not call it automatically.
 
 ## Example: slot container
 
