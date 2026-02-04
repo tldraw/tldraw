@@ -28,10 +28,9 @@ bindings = [
 tag = "v1"
 new_classes = ["TldrawDurableObject"]
 
-# v2 was a no-op: classes_with_sqlite is not a valid Cloudflare migration directive
+# v2 was a no-op, kept because existing deployments already applied it
 [[migrations]]
 tag = "v2"
-classes_with_sqlite = ["TldrawDurableObject"]
 
 # New SQLite-backed class to replace KV-backed TldrawDurableObject
 [[migrations]]
