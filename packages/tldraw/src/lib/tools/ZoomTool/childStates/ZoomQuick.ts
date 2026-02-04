@@ -1,4 +1,10 @@
-import { Box, StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	Box,
+	StateNode,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+	TLTickEventInfo,
+} from '@tldraw/editor'
 
 export class ZoomQuick extends StateNode {
 	static override id = 'zoom_quick'
@@ -16,17 +22,7 @@ export class ZoomQuick extends StateNode {
 		this.didZoom = false
 		this.initialViewport = editor.getViewportPageBounds()
 
-		// Zoom out to 5%, keeping the cursor over the same page point.
-		// To maintain the cursor position, we adjust the camera by the difference
-		// in how the cursor offset scales between the old and new zoom levels.
-		const { x: cx, y: cy, z: cz } = editor.getCamera()
-		const { x: sx, y: sy } = editor.inputs.getCurrentScreenPoint()
-		const newZoom = 0.05
-		editor.setCamera({
-			x: cx + sx * (1 / newZoom - 1 / cz),
-			y: cy + sy * (1 / newZoom - 1 / cz),
-			z: newZoom,
-		})
+		editor.zoomToFit()
 
 		// Show the viewport brush immediately
 		this.updateBrush()
@@ -84,5 +80,10 @@ export class ZoomQuick extends StateNode {
 		editor.zoomToBounds(newViewport, { inset: 0 })
 
 		this.didZoom = true
+	}
+
+	override onTick({ elapsed }: TLTickEventInfo) {
+		const { editor } = this
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 }
