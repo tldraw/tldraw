@@ -168,14 +168,16 @@ export interface TldrawEditorBaseProps {
 	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
-	 * Text options for the editor.
-	 */
-	textOptions?: TLTextOptions
-
-	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 
 	/**
 	 * The license key.
@@ -248,6 +250,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	className,
 	user: _user,
 	options: _options,
+	textOptions: _textOptions,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -255,6 +258,16 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
+
+	// Merge deprecated textOptions prop with options.textOptions
+	// options.textOptions takes precedence over the deprecated textOptions prop
+	const mergedOptions = useMemo(() => {
+		if (!_textOptions) return _options
+		return {
+			..._options,
+			text: _options?.text ?? _textOptions,
+		}
+	}, [_options, _textOptions])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -265,7 +278,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
-		options: useShallowObjectIdentity(_options),
+		options: useShallowObjectIdentity(mergedOptions),
 	}
 
 	return (
@@ -398,7 +411,6 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
-	textOptions,
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
@@ -458,7 +470,6 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
-				textOptions,
 				options,
 				licenseKey,
 				getShapeVisibility,
@@ -497,7 +508,6 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			getShapeVisibility,
-			textOptions,
 			assetUrls,
 		]
 	)
