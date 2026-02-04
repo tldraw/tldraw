@@ -9,14 +9,14 @@ interface ShapeContainerEntry {
 }
 
 interface ShapeCullingContextValue {
-	register: (
+	register(
 		id: TLShapeId,
 		container: HTMLDivElement,
 		bgContainer: HTMLDivElement | null,
 		isCulled: boolean
-	) => void
-	unregister: (id: TLShapeId) => void
-	updateCulling: (culledShapes: Set<TLShapeId>) => void
+	): void
+	unregister(id: TLShapeId): void
+	updateCulling(culledShapes: Set<TLShapeId>): void
 }
 
 const ShapeCullingContext = createContext<ShapeCullingContextValue | null>(null)
