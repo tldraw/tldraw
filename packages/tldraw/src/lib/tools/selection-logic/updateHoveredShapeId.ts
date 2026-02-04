@@ -60,7 +60,7 @@ function _updateHoveredShapeId(editor: Editor) {
 		return editor.setHoveredShape(nextHoveredId)
 	}
 
-	if (hoverLockedEditors.has(editor)) {
+	if (hoverLockedEditors.get(editor)) {
 		return
 	}
 
