@@ -43,12 +43,12 @@ Handle coordinates are in the shape's local coordinate system, where `(0, 0)` is
 
 There are four handle types:
 
-| Type      | Description                                                                    |
-| --------- | ------------------------------------------------------------------------------ |
-| `vertex`  | A primary control point that defines part of the shape's geometry              |
-| `virtual` | A secondary handle between vertices. Use it to add new points to a path.       |
-| `create`  | A handle for extending geometry. Line shapes use these to add endpoints.       |
-| `clone`   | A handle for duplicating the shape. Note shapes use these for adjacent copies. |
+| Type      | Description                                                                 |
+| --------- | --------------------------------------------------------------------------- |
+| `vertex`  | A primary control point that defines part of the shape's geometry           |
+| `virtual` | A secondary handle between vertices, often used for adding new points       |
+| `create`  | A handle for extending geometry, like adding a point to the end of a line   |
+| `clone`   | A handle for duplicating the shape, used by notes for quick adjacent copies |
 
 Most custom shapes use `vertex` handles. The `virtual` and `create` types are used by the line shape to let users add points to a path.
 
@@ -125,7 +125,7 @@ When the user holds Shift while dragging, handles snap to 15-degree angles. By d
 }
 ```
 
-Bezier curves use this so control points snap to angles relative to their associated endpoint.
+This is useful for bezier curves where control points should snap to angles relative to their associated endpoint.
 
 ### Custom snap geometry
 
