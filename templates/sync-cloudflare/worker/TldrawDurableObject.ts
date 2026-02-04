@@ -19,7 +19,7 @@ const schema = createTLSchema({
 //
 // There's only ever one durable object instance per room. Room state is
 // persisted automatically to SQLite via ctx.storage.
-export class TldrawDurableObjectSqlite extends DurableObject {
+export class TldrawDurableObject extends DurableObject {
 	private room: TLSocketRoom<TLRecord, void>
 
 	constructor(ctx: DurableObjectState, env: Env) {

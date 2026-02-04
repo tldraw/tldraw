@@ -3,7 +3,7 @@ import { AutoRouter, error, IRequest } from 'itty-router'
 import { handleAssetDownload, handleAssetUpload } from './assetUploads'
 
 // make sure our sync durable object is made available to cloudflare
-export { TldrawDurableObjectSqlite } from './TldrawDurableObjectSqlite'
+export { TldrawDurableObject } from './TldrawDurableObject'
 
 // we use itty-router (https://itty.dev/) to handle routing. in this example we turn on CORS because
 // we're hosting the worker separately to the client. you should restrict this to your own domain.

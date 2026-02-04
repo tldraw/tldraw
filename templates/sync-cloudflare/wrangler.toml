@@ -20,22 +20,14 @@ directory = "./dist/client"
 # Set up the durable object used for each tldraw room
 [durable_objects]
 bindings = [
-    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObjectSqlite" },
+    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
 ]
 
 # Durable objects require migrations to create/modify/delete them
+# Using new_sqlite_classes for SQLite-backed storage
 [[migrations]]
 tag = "v1"
-new_classes = ["TldrawDurableObject"]
-
-# v2 was a no-op, kept because existing deployments already applied it
-[[migrations]]
-tag = "v2"
-
-# New SQLite-backed class to replace KV-backed TldrawDurableObject
-[[migrations]]
-tag = "v3"
-new_sqlite_classes = ["TldrawDurableObjectSqlite"]
+new_sqlite_classes = ["TldrawDurableObject"]
 
 # We store asset uploads (images, videos) in an R2 bucket.
 # Room data is stored in Durable Object SQLite storage.
