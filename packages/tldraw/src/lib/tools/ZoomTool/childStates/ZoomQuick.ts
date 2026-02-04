@@ -12,26 +12,33 @@ export class ZoomQuick extends StateNode {
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	didZoom = false
-	zoomBrush = null as Box | null
-	initialViewport = new Box()
-	originScreenPoint = null as null | Vec
+	qzState = 'idle' as 'idle' | 'moving'
+
+	initialVpb = new Box()
+	initialPp = new Vec()
+
+	nextVpb = new Box()
 
 	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		const { editor } = this
 		this.info = info
-		this.zoomBrush = null
-		this.didZoom = false
-		this.initialViewport = editor.getViewportPageBounds()
-		this.originScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
+		this.qzState = 'idle'
+
+		this.initialVpb = editor.getViewportPageBounds()
+		this.initialPp = Vec.From(editor.inputs.getCurrentPagePoint())
+
 		editor.setCursor({ type: 'zoom-in', rotation: 0 })
 
-		editor.zoomToFit()
+		// Zoom to 10% while preserving cursor position
+		const baseZoom = editor.getBaseZoom()
+		const targetZoom = 0.1 * baseZoom
 
-		// We don't show the brush immediately, because the user might just
-		// want to have a quick look at the top level and zoom back to where they were.
-		// If we update the brush immediately, then the user will accidentally zoom
-		// to a new place without meaning to.
+		const { x: cx, y: cy, z: cz } = editor.getCamera()
+		const { x: px, y: py } = this.initialPp
+		const ratio = cz / targetZoom
+		editor.setCamera(new Vec((cx + px) * ratio - px, (cy + py) * ratio - py, targetZoom))
+
+		this.updateBrush()
 	}
 
 	override onExit() {
@@ -39,24 +46,14 @@ export class ZoomQuick extends StateNode {
 		this.editor.updateInstanceState({ zoomBrush: null })
 	}
 
-	override onPointerMove() {
-		if (
-			this.zoomBrush ||
-			!Vec.DistMin(this.editor.inputs.getCurrentScreenPoint(), this.originScreenPoint!, 16)
-		) {
-			// See note in onEnter. We only update the brush if the user has moved the pointer a bit.
-			this.updateBrush()
-		}
-	}
-
 	override onPointerUp() {
-		this.updateBrush()
-		this.zoomToNewViewport()
+		// Exit the zoom tool entirely, returning to the original tool
+		const toolId = this.info.onInteractionEnd?.split('.')[0] ?? 'select'
+		this.editor.setCurrentTool(toolId)
 	}
 
 	override onCancel() {
-		// Clear brush so onExit zooms back to initial viewport
-		this.zoomBrush = null
+		this.qzState = 'idle'
 		// Exit the zoom tool entirely, returning to the original tool
 		const toolId = this.info.onInteractionEnd?.split('.')[0] ?? 'select'
 		this.editor.setCurrentTool(toolId)
@@ -69,33 +66,60 @@ export class ZoomQuick extends StateNode {
 	}
 
 	private updateBrush() {
-		if (this.didZoom) return
 		const { editor } = this
-
-		const screenBounds = editor.getViewportScreenBounds()
-		const zoom = editor.getZoomLevel()
-
-		// Brush is at most 1/4 of screen size (in page coordinates), clamped to initial viewport
-		const brushW = Math.min(screenBounds.w / zoom / 4, this.initialViewport.w)
-		const brushH = Math.min(screenBounds.h / zoom / 4, this.initialViewport.h)
-
-		const { x, y } = editor.inputs.getCurrentPagePoint()
-		this.zoomBrush = new Box(x - brushW / 2, y - brushH / 2, brushW, brushH)
-		editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })
+		const nextVpb = this.getNextVpb()
+		this.nextVpb.setTo(nextVpb)
+		editor.updateInstanceState({ zoomBrush: nextVpb.toJson() })
 	}
 
 	private zoomToNewViewport() {
-		if (this.didZoom) return
 		const { editor } = this
+		switch (this.qzState) {
+			case 'idle':
+				// return to original viewport
+				editor.zoomToBounds(this.initialVpb, { inset: 0 })
+				break
+			case 'moving':
+				// zoom to the new viewport
+				editor.zoomToBounds(this.nextVpb, { inset: 0 })
+				break
+		}
+	}
 
-		const newViewport = this.zoomBrush ?? this.initialViewport
-		editor.zoomToBounds(newViewport, { inset: 0 })
-
-		this.didZoom = true
+	override onPointerMove() {
+		if (this.qzState !== 'moving') return
+		this.updateBrush()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
-		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+
+		switch (this.qzState) {
+			case 'idle':
+				if (
+					Vec.Dist2(editor.inputs.getCurrentPagePoint(), this.initialPp) >
+					editor.options.dragDistanceSquared
+				) {
+					this.qzState = 'moving'
+					this.updateBrush()
+				}
+				break
+			case 'moving':
+				editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+				break
+		}
+	}
+
+	private getNextVpb() {
+		const { editor } = this
+		const { w, h } = this.initialVpb
+		const { x, y } = editor.inputs.getCurrentPagePoint()
+
+		// Normalize the offset on the current screen point within the curren viewport screen bounds
+		const vsb = editor.getViewportScreenBounds()
+		const vsp = editor.inputs.getCurrentScreenPoint()
+		const { x: nx, y: ny } = new Vec((vsp.x - vsb.x) / vsb.w, (vsp.y - vsb.y) / vsb.h)
+
+		return new Box(x - nx * w, y - ny * h, w, h)
 	}
 }
