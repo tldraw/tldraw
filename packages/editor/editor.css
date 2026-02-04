@@ -861,7 +861,6 @@ input,
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 	white-space: pre-wrap;
-	tab-size: var(--tl-tab-size, 2);
 
 	/**
 	 * Note: ProseMirror disables this in https://github.com/ProseMirror/prosemirror-view/commit/6b3b2205e2f3029cb8e8e86c55a190a22491df31
@@ -895,6 +894,10 @@ input,
 	 * white-space in contenteditable is incredible.
 	 *
 	/* white-space: break-spaces; */
+}
+
+.tl-rich-text {
+	tab-size: var(--tl-tab-size, 2);
 }
 
 .tl-rich-text p {
