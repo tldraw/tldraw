@@ -3,7 +3,9 @@
 // Runtime types generated with workerd@1.20250617.0 2025-05-08 nodejs_compat
 declare namespace Cloudflare {
 	interface Env {
-		TLDRAW_DURABLE_OBJECT: DurableObjectNamespace<import('./worker/worker').TldrawDurableObject>
+		TLDRAW_DURABLE_OBJECT: DurableObjectNamespace<
+			import('./worker/worker').TldrawDurableObjectSqlite
+		>
 		TLDRAW_BUCKET: R2Bucket
 	}
 }
