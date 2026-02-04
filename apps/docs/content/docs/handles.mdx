@@ -62,10 +62,7 @@ import { ShapeUtil, TLHandleDragInfo } from 'tldraw'
 class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	// ...
 
-	override onHandleDrag(
-		shape: SpeechBubbleShape,
-		{ handle }: TLHandleDragInfo<SpeechBubbleShape>
-	) {
+	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
 		return {
 			...shape,
 			props: {
@@ -84,11 +81,11 @@ The `handle` object in `TLHandleDragInfo` contains the updated `x` and `y` coord
 
 For more control over handle interactions, implement these additional methods:
 
-| Method              | When it's called                    |
-| ------------------- | ----------------------------------- |
-| `onHandleDragStart` | When the user starts dragging       |
-| `onHandleDragEnd`   | When the user releases the handle   |
-| `onHandleDragCancel`| When the drag is cancelled (escape) |
+| Method               | When it's called                    |
+| -------------------- | ----------------------------------- |
+| `onHandleDragStart`  | When the user starts dragging       |
+| `onHandleDragEnd`    | When the user releases the handle   |
+| `onHandleDragCancel` | When the drag is cancelled (escape) |
 
 ## Handle snapping
 
@@ -107,10 +104,10 @@ Handles can snap to other shapes' geometry. Set `snapType` on the handle:
 
 The `snapType` options are:
 
-| Value     | Behavior                                                |
-| --------- | ------------------------------------------------------- |
-| `'point'` | Snaps to key points on other shapes (corners, centers)  |
-| `'align'` | Snaps to alignment guides from other shapes             |
+| Value     | Behavior                                               |
+| --------- | ------------------------------------------------------ |
+| `'point'` | Snaps to key points on other shapes (corners, centers) |
+| `'align'` | Snaps to alignment guides from other shapes            |
 
 ### Angle snapping
 
@@ -159,26 +156,19 @@ class BezierCurveUtil extends ShapeUtil<BezierCurveShape> {
 
 The `HandleSnapGeometry` object has these properties:
 
-| Property            | Description                                                    |
-| ------------------- | -------------------------------------------------------------- |
-| `outline`           | Custom outline geometry for snapping (default: shape geometry) |
-| `points`            | Key points to snap to (corners, centers, etc.)                 |
-| `getSelfSnapOutline`| Returns outline for self-snapping given a handle               |
-| `getSelfSnapPoints` | Returns points for self-snapping given a handle                |
+| Property             | Description                                                    |
+| -------------------- | -------------------------------------------------------------- |
+| `outline`            | Custom outline geometry for snapping (default: shape geometry) |
+| `points`             | Key points to snap to (corners, centers, etc.)                 |
+| `getSelfSnapOutline` | Returns outline for self-snapping given a handle               |
+| `getSelfSnapPoints`  | Returns points for self-snapping given a handle                |
 
 ## Complete example
 
 Here's a speech bubble shape with a draggable tail handle:
 
 ```tsx
-import {
-	Polygon2d,
-	ShapeUtil,
-	TLHandle,
-	TLHandleDragInfo,
-	TLShape,
-	ZERO_INDEX_KEY,
-} from 'tldraw'
+import { Polygon2d, ShapeUtil, TLHandle, TLHandleDragInfo, TLShape, ZERO_INDEX_KEY } from 'tldraw'
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 
@@ -226,10 +216,7 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		]
 	}
 
-	override onHandleDrag(
-		shape: SpeechBubbleShape,
-		{ handle }: TLHandleDragInfo<SpeechBubbleShape>
-	) {
+	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
 		return {
 			...shape,
 			props: {
