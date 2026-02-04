@@ -674,6 +674,7 @@ export const defaultTldrawOptions: {
     readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
+    readonly camera: TLCameraOptions;
     readonly cameraMovingTimeoutMs: 64;
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
@@ -3415,6 +3416,7 @@ export interface TldrawEditorBaseProps {
     };
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+    // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
     children?: ReactNode;
     className?: string;
@@ -3464,6 +3466,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly animationMediumMs: number;
     readonly branding?: string;
+    readonly camera: Partial<TLCameraOptions>;
     // (undocumented)
     readonly cameraMovingTimeoutMs: number;
     // (undocumented)
@@ -3626,6 +3629,7 @@ export interface TLEditorComponents {
 export interface TLEditorOptions {
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
+    // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
     // (undocumented)
     fontAssetUrls?: {

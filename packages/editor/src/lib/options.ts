@@ -1,4 +1,6 @@
 import { ComponentType, Fragment } from 'react'
+import { DEFAULT_CAMERA_OPTIONS } from './constants'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { TLTextOptions } from './utils/richText'
 
 /**
@@ -122,6 +124,11 @@ export interface TldrawOptions {
 	 */
 	readonly snapThreshold: number
 	/**
+	 * Options for the editor's camera. These are the initial camera options.
+	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
+	 */
+	readonly camera: Partial<TLCameraOptions>
+	/**
 	 * Options for the editor's text rendering. These include TipTap configuration and
 	 * font handling. These are the initial text options and cannot be changed at runtime.
 	 */
@@ -184,5 +191,6 @@ export const defaultTldrawOptions = {
 	spacebarPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
+	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 } as const satisfies TldrawOptions

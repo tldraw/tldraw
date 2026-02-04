@@ -164,6 +164,8 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Camera options for the editor.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
 
@@ -410,6 +412,7 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	cameraOptions,
 	options,
 	licenseKey,
@@ -520,11 +523,12 @@ function TldrawEditorWithReadyStore({
 	}, [editor, deepLinks])
 
 	// keep the editor up to date with the latest camera options
+	// options.cameraOptions takes precedence over the deprecated cameraOptions prop
 	useLayoutEffect(() => {
-		if (editor && cameraOptions) {
-			editor.setCameraOptions(cameraOptions)
+		if (editor && (cameraOptions || options?.camera)) {
+			editor.setCameraOptions({ ...cameraOptions, ...options?.camera })
 		}
-	}, [editor, cameraOptions])
+	}, [editor, cameraOptions, options?.camera])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
