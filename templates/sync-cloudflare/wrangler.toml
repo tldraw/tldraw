@@ -24,10 +24,13 @@ bindings = [
 ]
 
 # Durable objects require migrations to create/modify/delete them
-# Using new_sqlite_classes for SQLite-backed storage
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["TldrawDurableObject"]
+new_classes = ["TldrawDurableObject"]
+
+[[migrations]]
+tag = "v2"
+classes_with_sqlite = ["TldrawDurableObject"]
 
 # We store asset uploads (images, videos) in an R2 bucket.
 # Room data is stored in Durable Object SQLite storage.
