@@ -36,7 +36,6 @@ classes_with_sqlite = ["TldrawDurableObject"]
 # New SQLite-backed class to replace KV-backed TldrawDurableObject
 [[migrations]]
 tag = "v3"
-deleted_classes = ["TldrawDurableObject"]
 new_sqlite_classes = ["TldrawDurableObjectSqlite"]
 
 # We store asset uploads (images, videos) in an R2 bucket.
