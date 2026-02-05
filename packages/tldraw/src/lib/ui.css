@@ -37,13 +37,15 @@
 	z-index: 0;
 }
 
-.tlui-button:disabled {
+.tlui-button:disabled,
+.tlui-button[data-disabled] {
 	color: var(--tl-color-text-3);
 	text-shadow: none;
 	cursor: default;
 }
 
-.tlui-button:disabled .tlui-kbd {
+.tlui-button:disabled .tlui-kbd,
+.tlui-button[data-disabled] .tlui-kbd {
 	color: var(--tl-color-text-3);
 }
 
@@ -92,7 +94,7 @@
 }
 
 .tlui-button[data-isactive='true']::after,
-.tlui-button[data-isactive='true']:not(:disabled, :focus-visible):active:after {
+.tlui-button[data-isactive='true']:not(:disabled, [data-disabled], :focus-visible):active:after {
 	background: var(--tl-color-hint);
 	opacity: 1;
 }
@@ -108,11 +110,11 @@
 		opacity: 1;
 	}
 
-	.tlui-button:not(:disabled):hover {
+	.tlui-button:not(:disabled, [data-disabled]):hover {
 		z-index: 1;
 	}
 
-	.tlui-button:not(:disabled):hover::after {
+	.tlui-button:not(:disabled, [data-disabled]):hover::after {
 		opacity: 1;
 	}
 }
@@ -151,11 +153,11 @@
 }
 
 @media (hover: hover) {
-	.tlui-button__primary:not(:disabled, :focus-visible):hover {
+	.tlui-button__primary:not(:disabled, [data-disabled], :focus-visible):hover {
 		color: var(--tl-color-primary);
 	}
 
-	.tlui-button__danger:not(:disabled, :focus-visible):hover {
+	.tlui-button__danger:not(:disabled, [data-disabled], :focus-visible):hover {
 		color: var(--tl-color-danger);
 		text-shadow: none;
 	}
@@ -243,11 +245,11 @@
 	color: var(--tl-color-selected-contrast);
 }
 
-.tlui-button__tool[aria-pressed='true']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-pressed='true']:not(:disabled, [data-disabled], :focus-visible):active {
 	color: var(--tl-color-selected-contrast);
 }
 
-.tlui-button__tool[aria-pressed='true']:not(:disabled)::after {
+.tlui-button__tool[aria-pressed='true']:not(:disabled, [data-disabled])::after {
 	background: var(--tl-color-selected);
 	opacity: 1;
 }
@@ -521,6 +523,52 @@
 	}
 }
 
+/* --------------------- Select --------------------- */
+
+/* Trigger extends .tlui-button with space-between layout */
+.tlui-select__trigger {
+	justify-content: space-between;
+	gap: var(--tl-space-3);
+}
+
+.tlui-select__trigger[data-state='open']::after {
+	opacity: 1;
+}
+
+.tlui-select__value {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+}
+
+.tlui-select__chevron {
+	flex-shrink: 0;
+	color: var(--tl-color-text-2);
+}
+
+/* Content extends .tlui-menu with Radix-aware sizing */
+.tlui-select__content {
+	min-width: var(--radix-select-trigger-width);
+	max-height: var(--radix-select-content-available-height);
+}
+
+.tlui-select__viewport {
+	padding: 4px 0;
+}
+
+/* Item extends .tlui-button__checkbox with left-aligned text */
+.tlui-select__item {
+	justify-content: flex-start;
+}
+
+.tlui-select__item-indicator {
+	visibility: hidden;
+}
+
+.tlui-select__item[data-state='checked'] .tlui-select__item-indicator {
+	visibility: visible;
+}
+
 /* ----------------------- Kbd ---------------------- */
 
 .tlui-kbd {
@@ -609,25 +657,31 @@
 
 /* Submenu triggers */
 
-.tlui-menu__submenu__trigger[data-state='open']::after {
-	opacity: 1;
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+.tlui-menu__submenu__trigger {
+	--gradient-angle: 90deg;
 }
 
-.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']::after {
+.tlui-menu__submenu__trigger[data-direction='left'] {
+	--gradient-angle: 270deg;
+}
+
+.tlui-menu__submenu__trigger[data-state='open']::after {
 	opacity: 1;
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: linear-gradient(
+		var(--gradient-angle),
+		rgba(144, 144, 144, 0) 0%,
+		var(--tl-color-muted-2) 100%
+	);
 }
 
 @media (hover: hover) {
-	.tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
+	.tlui-menu__submenu__trigger:is(:hover, [data-state='open'])::after {
 		opacity: 1;
-		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-	}
-
-	.tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-		opacity: 1;
-		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: linear-gradient(
+			var(--gradient-angle),
+			rgba(144, 144, 144, 0) 0%,
+			var(--tl-color-muted-2) 100%
+		);
 	}
 }
 
@@ -946,16 +1000,15 @@
 
 .tlui-offline-indicator {
 	display: flex;
-	flex-direction: row;
-	gap: var(--tl-space-3);
-	color: var(--tl-color-text);
-	background-color: var(--tl-color-low);
-	border: 3px solid var(--tl-color-background);
-	padding: 0px var(--tl-space-5);
-	height: 42px;
+	color: var(--tl-color-background);
+	background-color: var(--tl-color-text);
+	border: none;
+	width: 32px;
+	height: 32px;
 	align-items: center;
 	justify-content: center;
 	border-radius: 99px;
+	cursor: default;
 	opacity: 0;
 	animation: tl-fade-in;
 	animation-duration: 0.12s;
@@ -1721,6 +1774,12 @@ tldraw? probably.
 
 	/* Terrible fix to allow firefox users to scroll the dialog */
 	overflow-x: auto;
+
+	scrollbar-width: none;
+}
+
+.tlui-shortcuts-dialog__body::-webkit-scrollbar {
+	display: none;
 }
 
 .tlui-shortcuts-dialog__body__tablet {

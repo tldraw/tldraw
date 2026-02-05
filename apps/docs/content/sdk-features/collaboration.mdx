@@ -1,0 +1,506 @@
+---
+title: Collaboration
+created_at: 12/26/2025
+updated_at: 12/29/2025
+keywords:
+  - multiplayer
+  - sync
+  - collaboration
+  - real-time
+  - presence
+  - cursors
+  - websocket
+  - custom sync
+  - store listeners
+  - RecordsDiff
+status: published
+date: 12/26/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Some sections could be more direct.
+---
+
+The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
+
+Collaboration requires a server component to coordinate changes between clients. Use tldraw's demo server for prototyping, or run your own server for production.
+
+## Quick start with the demo server
+
+The fastest way to add multiplayer is with `useSyncDemo`. This hook connects to a hosted demo server that handles synchronization:
+
+```tsx
+import { useSyncDemo } from '@tldraw/sync'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	const store = useSyncDemo({ roomId: 'my-room-id' })
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} />
+		</div>
+	)
+}
+```
+
+Anyone who opens the app with the same `roomId` will see the same document and each other's cursors. The demo server is great for prototyping, but data is deleted after a day and rooms are publicly accessible by ID. Don't use it in production.
+
+## Production setup with useSync
+
+For production, use the `useSync` hook with your own server:
+
+```tsx
+import { useSync } from '@tldraw/sync'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function Room({ roomId }: { roomId: string }) {
+	const store = useSync({
+		uri: `wss://your-server.com/sync/${roomId}`,
+		assets: myAssetStore,
+	})
+
+	if (store.status === 'loading') {
+		return <div>Connecting...</div>
+	}
+
+	if (store.status === 'error') {
+		return <div>Connection error: {store.error.message}</div>
+	}
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store.store} />
+		</div>
+	)
+}
+```
+
+The `useSync` hook returns a `RemoteTLStoreWithStatus` object with three possible states:
+
+| Status          | Description                                                    |
+| --------------- | -------------------------------------------------------------- |
+| `loading`       | Establishing connection and performing initial sync            |
+| `synced-remote` | Connected and syncing. Includes `store` and `connectionStatus` |
+| `error`         | Connection failed. Includes `error` with details               |
+
+### Asset storage
+
+Production setups require an asset store for handling images, videos, and other files:
+
+```tsx
+const myAssetStore: TLAssetStore = {
+	upload: async (asset, file) => {
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: file,
+		})
+		const { url } = await response.json()
+		return { src: url }
+	},
+	resolve: (asset, context) => {
+		// context includes dpr, networkEffectiveType, and shouldResolveToOriginal
+		return asset.props.src
+	},
+}
+
+const store = useSync({
+	uri: `wss://your-server.com/sync/${roomId}`,
+	assets: myAssetStore,
+})
+```
+
+See the [Assets](/docs/assets) documentation for more on implementing asset stores.
+
+## User identity
+
+By default, users get a random name and color. To customize this, pass `userInfo`:
+
+```tsx
+const store = useSyncDemo({
+	roomId: 'my-room',
+	userInfo: {
+		id: 'user-123',
+		name: 'Alice',
+		color: '#ff0000',
+	},
+})
+```
+
+For dynamic user info that updates during the session, use an atom:
+
+```tsx
+import { atom } from 'tldraw'
+
+const userInfo = atom('userInfo', {
+	id: 'user-123',
+	name: 'Alice',
+	color: '#ff0000',
+})
+
+// Later, update the user info
+userInfo.set({ ...userInfo.get(), name: 'Alice (away)' })
+
+const store = useSyncDemo({
+	roomId: 'my-room',
+	userInfo,
+})
+```
+
+### Integrating with useTldrawUser
+
+If you need to let users edit their preferences through tldraw's UI, use `useTldrawUser`:
+
+```tsx
+import { useSyncDemo } from '@tldraw/sync'
+import { useState } from 'react'
+import { TLUserPreferences, Tldraw, useTldrawUser } from 'tldraw'
+
+export default function App({ roomId }: { roomId: string }) {
+	const [userPreferences, setUserPreferences] = useState<TLUserPreferences>({
+		id: 'user-123',
+		name: 'Alice',
+		color: 'coral',
+		colorScheme: 'dark',
+	})
+
+	const store = useSyncDemo({ roomId, userInfo: userPreferences })
+	const user = useTldrawUser({ userPreferences, setUserPreferences })
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} user={user} />
+		</div>
+	)
+}
+```
+
+## Connection status
+
+When using `useSync`, the store object includes connection status information:
+
+```tsx
+const store = useSync({ uri, assets })
+
+if (store.status === 'synced-remote') {
+	// store.connectionStatus is 'online' or 'offline'
+	console.log('Connection:', store.connectionStatus)
+}
+```
+
+The connection status reflects the WebSocket connection state. When offline, changes are queued locally and sync when the connection resumes.
+
+## Custom presence
+
+The presence system controls what information is shared with other users. By default, it includes cursor position, selected shapes, and viewport bounds. You can customize this with `getUserPresence`:
+
+```tsx
+import { getDefaultUserPresence } from 'tldraw'
+
+const store = useSyncDemo({
+	roomId: 'my-room',
+	getUserPresence(store, user) {
+		const defaults = getDefaultUserPresence(store, user)
+		if (!defaults) return null
+
+		return {
+			...defaults,
+			// Remove camera/viewport to disable follow functionality
+			camera: undefined,
+		}
+	},
+})
+```
+
+Return `null` from `getUserPresence` to hide this user's presence entirely. This is useful for spectator modes where you want a user to observe without appearing in the room.
+
+## Authentication
+
+To add authentication, generate the WebSocket URI dynamically:
+
+```tsx
+const store = useSync({
+	uri: async () => {
+		const token = await getAuthToken()
+		return `wss://your-server.com/sync/${roomId}?token=${token}`
+	},
+	assets: myAssetStore,
+})
+```
+
+The `uri` option accepts a function that returns a string or Promise. This runs when establishing the connection and on reconnection, so tokens can refresh automatically.
+
+## Running your own server
+
+For production, you'll need to run a sync server. The `@tldraw/sync-core` package provides `TLSocketRoom` for server-side room management.
+
+We provide a complete Cloudflare Workers template that includes:
+
+- WebSocket sync via Durable Objects (one per room)
+- Asset storage with R2
+- Bookmark unfurling for URL previews
+- Production-ready architecture that scales automatically
+
+Get started with the template:
+
+```bash
+npx create-tldraw@latest --template sync-cloudflare
+```
+
+Or copy the relevant pieces to your existing infrastructure. The template handles the complexity of room lifecycle, connection management, and state persistence.
+
+### Server architecture
+
+The sync server uses a room-based model:
+
+1. Each document has a unique room ID
+2. Clients connect via WebSocket to their room
+3. The server maintains one `TLSocketRoom` per active room
+4. Changes broadcast to all connected clients in real-time
+5. The server is authoritative for conflict resolution
+
+```
+┌─────────┐     ┌─────────────────┐     ┌─────────┐
+│ Client  │────▶│   TLSocketRoom  │◀────│ Client  │
+└─────────┘     │   (per room)    │     └─────────┘
+                └────────┬────────┘
+                         │
+                    ┌────▼────┐
+                    │ Storage │
+                    └─────────┘
+```
+
+## Custom shapes and bindings
+
+If you use custom shapes or bindings, register them with the sync hooks using schema options:
+
+```tsx
+import { useSyncDemo } from '@tldraw/sync'
+import { Tldraw } from 'tldraw'
+import { MyCustomShapeUtil } from './MyCustomShape'
+import { MyCustomBindingUtil } from './MyCustomBinding'
+
+const customShapes = [MyCustomShapeUtil]
+const customBindings = [MyCustomBindingUtil]
+
+export default function App({ roomId }: { roomId: string }) {
+	const store = useSyncDemo({
+		roomId,
+		shapeUtils: customShapes,
+		bindingUtils: customBindings,
+	})
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} shapeUtils={customShapes} bindingUtils={customBindings} />
+		</div>
+	)
+}
+```
+
+Pass the shape and binding utilities to both the sync hook (for schema registration) and the Tldraw component (for rendering). If they don't match, shapes may fail to sync or render correctly.
+
+## Building custom sync
+
+The `@tldraw/sync` package handles many complexities: connection management, reconnection, conflict resolution, and protocol versioning. For most applications, it's the right choice. However, you might need custom sync when integrating with existing infrastructure, using a different transport (like WebRTC), or implementing specialized conflict resolution.
+
+tldraw's store provides the primitives you need to build your own sync layer.
+
+### Listening to changes
+
+The store's `listen` method notifies you when records change:
+
+```tsx
+const unsubscribe = editor.store.listen(
+	(entry) => {
+		// entry.changes contains all modifications
+		// entry.source is 'user' (local) or 'remote'
+		console.log('Changes:', entry.changes)
+	},
+	{ source: 'user', scope: 'document' }
+)
+
+// Later: stop listening
+unsubscribe()
+```
+
+Filter options narrow what changes you receive:
+
+| Filter   | Values                                           | Description               |
+| -------- | ------------------------------------------------ | ------------------------- |
+| `source` | `'user'`, `'remote'`, `'all'`                    | Who made the change       |
+| `scope`  | `'document'`, `'session'`, `'presence'`, `'all'` | What type of data changed |
+
+For sync, you typically want `source: 'user'` (only local changes) and `scope: 'document'` (only persistent data).
+
+### Change structure
+
+Changes arrive as a `RecordsDiff` object with three categories:
+
+```tsx
+interface RecordsDiff<R> {
+	added: Record<string, R> // New records
+	updated: Record<string, [from: R, to: R]> // Changed records (before/after)
+	removed: Record<string, R> // Deleted records
+}
+```
+
+Each entry is keyed by record ID. For updates, you get both the previous and current state, which is useful for conflict detection or generating patches.
+
+### Applying remote changes
+
+When you receive changes from other clients, wrap them in `mergeRemoteChanges`:
+
+```tsx
+function applyRemoteChanges(records: TLRecord[], deletedIds: TLRecord['id'][]) {
+	editor.store.mergeRemoteChanges(() => {
+		if (records.length > 0) {
+			editor.store.put(records)
+		}
+		if (deletedIds.length > 0) {
+			editor.store.remove(deletedIds)
+		}
+	})
+}
+```
+
+This marks the changes as `'remote'` source, so your own listener won't echo them back to the server. It also batches the operations into a single history entry.
+
+### Snapshots and serialization
+
+For initial sync or persistence, serialize the entire store:
+
+```tsx
+// Get all document records as a plain object
+const data = editor.store.serialize('document')
+// Returns: { 'shape:abc': {...}, 'page:xyz': {...}, ... }
+
+// Get a snapshot with schema information (recommended for persistence)
+const snapshot = editor.store.getStoreSnapshot('document')
+// Returns: { store: {...}, schema: {...} }
+
+// Restore from snapshot (handles migrations automatically)
+editor.store.loadStoreSnapshot(snapshot)
+```
+
+The snapshot format includes schema information, so tldraw can automatically migrate old data when your schema evolves.
+
+### Presence records
+
+User presence (cursors, selections, viewports) uses special `instance_presence` records:
+
+```tsx
+import { InstancePresenceRecordType } from 'tldraw'
+
+// Create a presence record for a remote user
+const presence = InstancePresenceRecordType.create({
+	id: InstancePresenceRecordType.createId(
+		editor.store.id // Store ID identifies this client
+	),
+	userId: 'user-123',
+	userName: 'Alice',
+	color: '#ff6b6b',
+	currentPageId: editor.getCurrentPageId(),
+	cursor: { x: 100, y: 200, type: 'default', rotation: 0 },
+	selectedShapeIds: [],
+	camera: { x: 0, y: 0, z: 1 },
+	screenBounds: { x: 0, y: 0, w: 1920, h: 1080 },
+	lastActivityTimestamp: Date.now(),
+	chatMessage: '',
+	brush: null,
+	scribbles: [],
+	followingUserId: null,
+	meta: {},
+})
+
+// Add to store
+editor.store.put([presence])
+
+// Update cursor position
+editor.store.update(presence.id, (record) => ({
+	...record,
+	cursor: { ...record.cursor, x: 150, y: 250 },
+}))
+
+// Remove when user disconnects
+editor.store.remove([presence.id])
+```
+
+Listen for presence changes separately from document changes:
+
+```tsx
+editor.store.listen(
+	(entry) => {
+		// Broadcast presence to other clients
+		sendPresence(entry.changes)
+	},
+	{ source: 'user', scope: 'presence' }
+)
+```
+
+### Example: simple broadcast sync
+
+Here's a minimal example using a WebSocket for broadcast sync (no conflict resolution):
+
+```tsx
+import { Tldraw, createTLStore, defaultShapeUtils, TLRecord } from 'tldraw'
+
+function App() {
+	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
+	const wsRef = useRef<WebSocket | null>(null)
+
+	useEffect(() => {
+		const ws = new WebSocket('wss://your-server.com/room/123')
+		wsRef.current = ws
+
+		// Send local changes to server
+		const unsubscribe = store.listen(
+			(entry) => {
+				ws.send(
+					JSON.stringify({
+						type: 'changes',
+						added: Object.values(entry.changes.added),
+						updated: Object.values(entry.changes.updated).map(([, to]) => to),
+						removed: Object.keys(entry.changes.removed),
+					})
+				)
+			},
+			{ source: 'user', scope: 'document' }
+		)
+
+		// Apply remote changes
+		ws.onmessage = (event) => {
+			const msg = JSON.parse(event.data)
+			if (msg.type === 'changes') {
+				store.mergeRemoteChanges(() => {
+					if (msg.added.length || msg.updated.length) {
+						store.put([...msg.added, ...msg.updated])
+					}
+					if (msg.removed.length) {
+						store.remove(msg.removed)
+					}
+				})
+			}
+		}
+
+		return () => {
+			unsubscribe()
+			ws.close()
+		}
+	}, [store])
+
+	return <Tldraw store={store} />
+}
+```
+
+This example omits important concerns like initial state sync, reconnection handling, and conflict resolution. For production use, consider starting with `@tldraw/sync` and customizing it, or studying its implementation for guidance on handling these edge cases.
+
+## Related examples
+
+- [Multiplayer sync](/examples/collaboration/sync-demo) — Basic multiplayer setup with the demo server
+- [Custom user](/examples/collaboration/sync-custom-user) — Setting custom user identity for multiplayer
+- [Custom presence](/examples/collaboration/sync-custom-presence) — Customizing presence data sent to collaborators
+- [Custom shapes](/examples/collaboration/sync-custom-shape) — Syncing custom shapes with multiplayer

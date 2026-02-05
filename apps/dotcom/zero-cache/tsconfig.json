@@ -15,7 +15,6 @@
 		"jsx": "preserve",
 		"jsxImportSource": "react",
 		"incremental": true,
-		"downlevelIteration": true,
 		"plugins": [{ "name": "next" }]
 	},
 	"include": ["**/*.ts", "**/*.tsx", "src/tla/layouts/TlaAnonLayout", "zero.config.ts"],

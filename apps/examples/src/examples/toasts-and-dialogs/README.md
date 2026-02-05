@@ -3,7 +3,18 @@ title: Toasts and dialogs
 component: ./ToastsDialogsExample.tsx
 category: ui
 priority: 1
-keywords: [ui, components, dialogs, toasts]
+keywords:
+  [
+    toasts,
+    dialogs,
+    useToasts,
+    useDialogs,
+    addToast,
+    addDialog,
+    notifications,
+    modals,
+    TldrawUiDialog,
+  ]
 ---
 
 Add, remove and clear toasts and dialogs in your app using the `useToasts` and `useDialogs` hooks.

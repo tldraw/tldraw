@@ -2,6 +2,7 @@ import {
 	BaseBoxShapeUtil,
 	Circle2d,
 	Geometry2d,
+	PI2,
 	RecordProps,
 	SVGContainer,
 	T,
@@ -9,6 +10,7 @@ import {
 	TLShape,
 	Vec,
 	atom,
+	clamp,
 	resizeBox,
 	toDomPrecision,
 } from 'tldraw'
@@ -27,6 +29,9 @@ declare module 'tldraw' {
 export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
+
+// The stroke width used when rendering the circle
+const STROKE_WIDTH = 3
 
 export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 	static override type = CIRCLE_CLIP_TYPE
@@ -65,17 +70,20 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 	}
 
 	override getClipPath(shape: CircleClipShape): Vec[] | undefined {
-		// Generate a polygon approximation of the circle
+		// Generate a polygon approximation of the circle.
+		// We inset the clip path by half the stroke width so that children are
+		// clipped to the inner edge of the stroke, not the center line.
 		const centerX = shape.props.w / 2
 		const centerY = shape.props.h / 2
-		const radius = Math.min(shape.props.w, shape.props.h) / 2
-		const segments = 48 // More segments = smoother circle
+		const outerRadius = Math.min(shape.props.w, shape.props.h) / 2
+		const clipRadius = outerRadius - STROKE_WIDTH / 2
+		const segments = clamp(Math.round((PI2 * clipRadius) / 8), 3, 360) // More segments = smoother circle
 
 		const points: Vec[] = []
 		for (let i = 0; i < segments; i++) {
 			const angle = (i / segments) * Math.PI * 2
-			const x = centerX + Math.cos(angle) * radius
-			const y = centerY + Math.sin(angle) * radius
+			const x = centerX + Math.cos(angle) * clipRadius
+			const y = centerY + Math.sin(angle) * clipRadius
 			points.push(new Vec(x, y))
 		}
 
@@ -102,7 +110,7 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 					r={toDomPrecision(radius)}
 					fill={clippingEnabled ? 'rgba(100, 150, 255, 0.1)' : 'rgba(150, 150, 150, 0.1)'}
 					stroke={clippingEnabled ? '#4285f4' : '#999'}
-					strokeWidth={2}
+					strokeWidth={STROKE_WIDTH}
 					strokeDasharray={clippingEnabled ? 'none' : '5,5'}
 				/>
 				{/* Visual indicator */}

@@ -1,7 +1,7 @@
 import { Computed, computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
 import { CollectionDiff, RecordsDiff } from '@tldraw/store'
-import { isShape, TLParentId, TLRecord, TLShapeId, TLStore } from '@tldraw/tlschema'
-import { compact, sortByIndex } from '@tldraw/utils'
+import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { sortByIndex } from '@tldraw/utils'
 
 type ParentShapeIdsToChildShapeIds = Record<TLParentId, TLShapeId[]>
 
@@ -98,12 +98,23 @@ export const parentsToChildren = (store: TLStore) => {
 				}
 			}
 
-			// Sort the arrays that have been marked for sorting
+			// Sort the arrays that have been marked for sorting (in-place to avoid intermediate arrays)
 			for (const arr of toSort) {
-				// It's possible that some of the shapes may be deleted. But in which case would this be so?
-				const shapesInArr = compact(arr.map((id) => store.get(id)))
-				shapesInArr.sort(sortByIndex)
-				arr.splice(0, arr.length, ...shapesInArr.map((shape) => shape.id))
+				// Filter out any deleted shapes in-place
+				let writeIdx = 0
+				for (let readIdx = 0; readIdx < arr.length; readIdx++) {
+					if (store.get(arr[readIdx])) {
+						arr[writeIdx++] = arr[readIdx]
+					}
+				}
+				arr.length = writeIdx
+
+				// Sort in-place by index
+				arr.sort((a, b) => {
+					const shapeA = store.get(a) as TLShape
+					const shapeB = store.get(b) as TLShape
+					return sortByIndex(shapeA, shapeB)
+				})
 			}
 
 			return newValue ?? lastValue

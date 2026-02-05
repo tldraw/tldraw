@@ -32,6 +32,11 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 
 	if (!shape || shape.isLocked) return null
 
+	const util = editor.getShapeUtil(shape)
+
+	// If the shape uses canvas indicators, it will be rendered by CanvasShapeIndicators
+	if (!util.useLegacyIndicator()) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
@@ -39,7 +44,7 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}
 		>
-			<EvenInnererIndicator key={shape.id} shape={shape} util={editor.getShapeUtil(shape)} />
+			<EvenInnererIndicator key={shape.id} shape={shape} util={util} />
 		</OptionalErrorBoundary>
 	)
 })

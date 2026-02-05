@@ -3,7 +3,17 @@ title: Selection UI
 component: ./SelectionUiExample.tsx
 category: ui
 priority: 2
-keywords: [duplication controls, handles]
+keywords:
+  [
+    selection,
+    ui overlay,
+    infrontofthecanvas,
+    custom controls,
+    duplicate,
+    handles,
+    usevalue,
+    getselectionrotatedscreenbounds,
+  ]
 ---
 
 Add extra UI elements around the user's selection.

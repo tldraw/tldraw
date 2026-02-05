@@ -1,0 +1,16 @@
+.announcement-panel {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin: 8px;
+}
+
+.card-shape {
+	padding: var(--tl-space-5);
+	background-color: white;
+	border: 1px solid var(--tl-color-low-border);
+	border-radius: var(--tl-radius-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-3);
+}

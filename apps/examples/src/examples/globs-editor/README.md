@@ -2,7 +2,19 @@
 title: Globs
 component: ./GlobsExample.tsx
 category: shapes/tools
-keywords: []
+keywords:
+  [
+    custom shape,
+    custom tool,
+    bindings,
+    bindingutil,
+    handles,
+    custom handles,
+    statenode,
+    vector editor,
+    bezier,
+    tension handles,
+  ]
 ---
 
 A globs based vector editor, based on the https://jcgt.org/published/0004/03/01/paper-lowres.pdf paper.

@@ -104,6 +104,7 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
 	Base64: 2,
+	LegacyPointsConversion: 3,
 })
 
 /**
@@ -134,29 +135,51 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.Base64,
 			up: (props) => {
+				// Convert VecModel[] arrays directly to delta-encoded base64 in 'path'
 				props.segments = props.segments.map((segment: any) => {
+					if (segment.path !== undefined) return segment
+					const { points, ...rest } = segment
+					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
-						...segment,
-						// Only encode if points is an array (not already base64 string)
-						points:
-							typeof segment.points === 'string'
-								? segment.points
-								: b64Vecs.encodePoints(segment.points),
+						...rest,
+						path: b64Vecs.encodePoints(vecModels),
 					}
 				})
 				props.scaleX = props.scaleX ?? 1
 				props.scaleY = props.scaleY ?? 1
 			},
 			down: (props) => {
-				props.segments = props.segments.map((segment: any) => ({
-					...segment,
-					// Only decode if points is a string (not already VecModel[])
-					points: Array.isArray(segment.points)
-						? segment.points
-						: b64Vecs.decodePoints(segment.points),
-				}))
+				// Convert delta-encoded 'path' back to VecModel[] arrays in 'points'
+				props.segments = props.segments.map((segment: any) => {
+					const { path, ...rest } = segment
+					return {
+						...rest,
+						points: b64Vecs.decodePoints(path),
+					}
+				})
 				delete props.scaleX
 				delete props.scaleY
+			},
+		},
+		{
+			id: Versions.LegacyPointsConversion,
+			up: (props) => {
+				// Handle legacy data that was already migrated to v2 with absolute Float16 in 'points'
+				// Convert 'points' to delta-encoded 'path'
+				props.segments = props.segments.map((segment: any) => {
+					// If segment already has 'path', it's already in the new format
+					if (segment.path !== undefined) return segment
+
+					const { points, ...rest } = segment
+					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
+					return {
+						...rest,
+						path: b64Vecs.encodePoints(vecModels),
+					}
+				})
+			},
+			down: (_props) => {
+				// handled by the previous down migration
 			},
 		},
 	],

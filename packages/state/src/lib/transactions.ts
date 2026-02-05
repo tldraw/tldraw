@@ -111,7 +111,10 @@ export function getIsReacting() {
 	return inst.globalIsReacting
 }
 
-function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
+// Reusable state for traverse to avoid closure allocation
+let traverseReactors: Set<EffectScheduler<unknown>>
+
+function traverseChild(child: Child) {
 	if (child.lastTraversedEpoch === inst.globalEpoch) {
 		return
 	}
@@ -119,10 +122,15 @@ function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
 	child.lastTraversedEpoch = inst.globalEpoch
 
 	if (child instanceof EffectScheduler) {
-		reactors.add(child)
+		traverseReactors.add(child)
 	} else {
-		;(child as any as Signal<any>).children.visit((c) => traverse(reactors, c))
+		;(child as any as Signal<any>).children.visit(traverseChild)
 	}
+}
+
+function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
+	traverseReactors = reactors
+	traverseChild(child)
 }
 
 /**
@@ -169,6 +177,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.cleanupReactors = null
 		inst.globalIsReacting = false
 		inst.currentTransaction = outerTxn
+		traverseReactors = undefined! // free memory
 	}
 }
 

@@ -25,10 +25,32 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Publish Prerelease Packages
-        run: yarn tsx ./internal/scripts/publish-prerelease.ts ${{ github.ref == 'refs/heads/production' && 'next' || 'canary' }}
+        id: publish
+        run: |
+          yarn tsx ./internal/scripts/publish-prerelease.ts ${{ github.ref == 'refs/heads/production' && 'next' || 'canary' }}
+          echo "VERSION=$(jq -r .version ./packages/tldraw/package.json)" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://canary-demo.tldraw.xyz
+
+      - name: Generate a token
+        if: github.ref == 'refs/heads/production'
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+          owner: tldraw
+          repositories: tldraw-desktop
+
+      - name: Notify tldraw-desktop
+        if: github.ref == 'refs/heads/production'
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ steps.generate_token.outputs.token }}" \
+            https://api.github.com/repos/tldraw/tldraw-desktop/dispatches \
+            -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.publish.outputs.VERSION }}","tag":"next"}}'

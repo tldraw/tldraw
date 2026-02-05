@@ -1,0 +1,93 @@
+---
+title: Next release
+description: Changes coming in the next release
+author: tldraw
+date: 01/31/2025
+order: 0
+status: published
+last_version: v4.3.1
+---
+
+This release adds 2D canvas rendering for shape indicators, R-tree spatial indexing for faster queries, telestrator-style laser behavior, a preference for inverting mouse wheel zoom direction, and improved sync performance. It also includes various bug fixes for collaborator indicators, hidden shape handling, and spatial indexing.
+
+## What's new
+
+### 2D canvas rendering for shape indicators ([#7708](https://github.com/tldraw/tldraw/pull/7708))
+
+Shape indicators (selection outlines, hover states) now render using a 2D canvas instead of SVG elements. This significantly improves performance when selecting or hovering over many shapes, with up to 25x faster rendering in some scenarios.
+
+Custom shapes can opt into canvas indicators by implementing the new `getIndicatorPath()` method on their ShapeUtil:
+
+```tsx
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	getIndicatorPath(shape: MyShape): TLIndicatorPath | null {
+		return {
+			path: new Path2D(),
+			// optional clip path for complex shapes like arrows with labels
+		}
+	}
+
+	// Return false to use the new canvas indicators (default is true for backwards compatibility)
+	useLegacyIndicator(): boolean {
+		return false
+	}
+}
+```
+
+### Invert mouse wheel zoom direction ([#7732](https://github.com/tldraw/tldraw/pull/7732))
+
+Added a new user preference to invert mouse wheel zoom direction. Some users prefer "natural" scrolling behavior where scrolling down zooms out, which this option now enables.
+
+Access it via Menu → Preferences → Input device → Invert mouse zoom.
+
+### R-tree spatial indexing ([#7676](https://github.com/tldraw/tldraw/pull/7676))
+
+Shape queries now use an R-tree (RBush) for O(log n) lookups instead of O(n) iteration. This significantly improves performance of brushing, scribble selection, and erasing operations, especially with many shapes on the canvas.
+
+The spatial index is maintained internally and accessed through existing public methods like `editor.getShapesAtPoint()` and `editor.getShapeAtPoint()`.
+
+### Telestrator-style laser pointer ([#7681](https://github.com/tldraw/tldraw/pull/7681))
+
+The laser pointer now behaves like a telestrator: all strokes remain visible while you're drawing and fade together when you stop. Previously, each stroke segment would fade independently, creating a trailing effect.
+
+New API additions for controlling laser sessions:
+
+```tsx
+// End the active laser session manually
+editor.scribbles.endLaserSession()
+
+// Check if a scribble belongs to the active session
+editor.scribbles.isScribbleInLaserSession(scribbleId)
+```
+
+New options in `TldrawOptions`:
+
+- `laserSessionTimeoutMs` (default: 2000ms) - Inactivity duration before the laser session ends
+- `laserMaxSessionDurationMs` (default: 60000ms) - Maximum duration for a laser session
+
+## API changes
+
+- Remove `editor.spatialIndex` from public API. The spatial index is now internal; use `editor.getShapesAtPoint()` and `editor.getShapeAtPoint()` for shape queries. ([#7699](https://github.com/tldraw/tldraw/pull/7699))
+- Add `ShapeUtil.getIndicatorPath()` method and `TLIndicatorPath` type for canvas-based indicator rendering. Add `ShapeUtil.useLegacyIndicator()` to control whether shapes use SVG or canvas indicators. ([#7708](https://github.com/tldraw/tldraw/pull/7708))
+- Add `isZoomDirectionInverted` to `TLUserPreferences` interface and `UserPreferencesManager.getIsZoomDirectionInverted()` method. Add `ToggleInvertZoomItem` component export and `toggle-invert-zoom` action. ([#7732](https://github.com/tldraw/tldraw/pull/7732))
+- Add `complete` to `TL_SCRIBBLE_STATES` enum and `ScribbleManager.complete(id)` method for marking scribbles as complete before fading. ([#7760](https://github.com/tldraw/tldraw/pull/7760))
+- Add `ScribbleManager.endLaserSession()` and `ScribbleManager.isScribbleInLaserSession()` methods for controlling laser sessions. Add `laserSessionTimeoutMs` and `laserMaxSessionDurationMs` to `TldrawOptions`. ([#7681](https://github.com/tldraw/tldraw/pull/7681))
+- Add `FpsScheduler` class to create FPS-throttled function queues with configurable target rates. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
+
+## Improvements
+
+- Add R-tree spatial indexing for O(log n) shape queries, improving performance of brushing, selection, and erasing with many shapes. ([#7676](https://github.com/tldraw/tldraw/pull/7676))
+- Improve laser pointer to keep all strokes visible during a session (telestrator pattern), with strokes fading together when drawing stops. ([#7681](https://github.com/tldraw/tldraw/pull/7681))
+- Improve laser pointer strokes with proper taper when lifting the pointer by adding a 'complete' state to the scribble lifecycle. ([#7760](https://github.com/tldraw/tldraw/pull/7760))
+- Reduce network traffic by squashing pending push requests before sending, so rapid edits result in fewer network calls. ([#7724](https://github.com/tldraw/tldraw/pull/7724))
+- Reduce solo-mode network traffic by using a dedicated FPS-based scheduler that throttles to 1 FPS when no collaborators are present. ([#7657](https://github.com/tldraw/tldraw/pull/7657))
+- Improve performance by separating UI and network scheduling into independent queues with configurable target FPS. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
+- Improve frame label sizing on smaller viewports and when zoomed out. ([#7746](https://github.com/tldraw/tldraw/pull/7746))
+
+## Bug fixes
+
+- Fix `zoomToFit` and `getCurrentPageBounds` to ignore hidden shapes when computing bounds. ([#7770](https://github.com/tldraw/tldraw/pull/7770))
+- Fix collaborator shape indicators not rendering after the canvas indicator change. ([#7759](https://github.com/tldraw/tldraw/pull/7759))
+- Fix rich text content not updating correctly with message squashing due to reference comparison. ([#7758](https://github.com/tldraw/tldraw/pull/7758))
+- Fix keyboard shortcut menu item labels to use consistent ellipsis formatting. ([#7757](https://github.com/tldraw/tldraw/pull/7757))
+- Fix spatial index not removing shapes when moved to a different page. ([#7700](https://github.com/tldraw/tldraw/pull/7700))

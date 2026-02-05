@@ -246,6 +246,29 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		})
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
+		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+
+		const { size, dash, scale } = shape.props
+		const strokeWidth = STROKE_SIZES[size]
+
+		const path = getGeoShapePath(shape)
+
+		return path.toPath2D({
+			style: dash === 'draw' ? 'draw' : 'solid',
+			strokeWidth: 1,
+			passes: 1,
+			randomSeed: shape.id,
+			offset: 0,
+			roundness: strokeWidth * 2 * scale,
+			forceSolid: isForceSolid,
+		})
+	}
+
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const scale = shape.props.scale
 		// We need to scale the shape to 1x for export

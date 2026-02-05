@@ -3,7 +3,21 @@ title: Custom tool with child states
 component: ./ToolWithChildStatesExample.tsx
 category: shapes/tools
 priority: 2
-keywords: [state machine, custom tool, state node, interactions]
+keywords:
+  [
+    custom tool,
+    state machine,
+    StateNode,
+    child states,
+    tool states,
+    onPointerDown,
+    onPointerMove,
+    onEnter,
+    transitions,
+    pointing,
+    dragging,
+    idle,
+  ]
 ---
 
 You can implement more complex behaviour in a custom tool by using child states

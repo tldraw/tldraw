@@ -100,7 +100,7 @@
 }
 
 .cookieAcceptButton {
-	color: var(--tla-color-contrast);
+	color: var(--tla-color-sidebar);
 	background-color: var(--tla-color-text-1);
 	overflow: hidden;
 	position: relative;
@@ -140,7 +140,7 @@
 
 @media (hover: hover) {
 	.cookieAcceptButton:hover {
-		color: var(--tla-color-contrast);
+		color: var(--tla-color-sidebar);
 		background-color: var(--tla-color-text-1);
 	}
 }

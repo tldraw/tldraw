@@ -3,7 +3,17 @@ title: Custom shape with custom styles
 component: ./ShapeWithCustomStylesExample.tsx
 category: shapes/tools
 priority: 1.5
-keywords: [style panel, rating]
+keywords:
+  [
+    custom styles,
+    styleprop,
+    defineenum,
+    style panel,
+    defaultstylepanel,
+    userelevantsstyles,
+    setstyleforselectedshapes,
+    shapeutil,
+  ]
 ---
 
 Use the custom styles API with your custom shapes.

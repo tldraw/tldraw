@@ -181,7 +181,9 @@ export function filterEntries<Key extends string, Value>(
 ): { [K in Key]: Value } {
 	const result: { [K in Key]?: Value } = {}
 	let didChange = false
-	for (const [key, value] of objectMapEntries(object)) {
+	for (const key in object) {
+		if (!Object.prototype.hasOwnProperty.call(object, key)) continue
+		const value = object[key]
 		if (predicate(key, value)) {
 			result[key] = value
 		} else {
@@ -238,11 +240,10 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
  */
 export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): boolean {
 	if (obj1 === obj2) return true
-	const keys1 = new Set(Object.keys(obj1))
-	const keys2 = new Set(Object.keys(obj2))
-	if (keys1.size !== keys2.size) return false
+	const keys1 = Object.keys(obj1)
+	if (keys1.length !== Object.keys(obj2).length) return false
 	for (const key of keys1) {
-		if (!keys2.has(key)) return false
+		if (!hasOwnProperty(obj2, key)) return false
 		if (!Object.is((obj1 as any)[key], (obj2 as any)[key])) return false
 	}
 	return true

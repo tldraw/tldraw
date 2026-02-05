@@ -54,6 +54,12 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
+	/**
+	 * How long (in milliseconds) to fade all laser scribbles after the session ends.
+	 * The total points across all scribbles will be removed proportionally over this duration.
+	 * Defaults to 500ms (0.5 seconds).
+	 */
+	readonly laserFadeoutMs: number
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
@@ -103,6 +109,17 @@ export interface TldrawOptions {
 	 * When false, the spacebar will not pan the camera.
 	 */
 	readonly spacebarPanning: boolean
+	/**
+	 * The default padding (in pixels) used when zooming to fit content in the viewport.
+	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
+	 * The actual padding used is the minimum of this value and 28% of the viewport width.
+	 * Defaults to 128 pixels.
+	 */
+	readonly zoomToFitPadding: number
+	/**
+	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
+	 */
+	readonly snapThreshold: number
 }
 
 /** @public */
@@ -146,6 +163,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
+	laserFadeoutMs: 500,
 	maxExportDelayMs: 5000,
 	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,
@@ -158,4 +176,6 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	zoomToFitPadding: 128,
+	snapThreshold: 8,
 } as const satisfies TldrawOptions

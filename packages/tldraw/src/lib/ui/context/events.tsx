@@ -24,7 +24,6 @@ export type TLUiEventSource =
 	| 'rich-text-menu'
 	| 'image-toolbar'
 	| 'video-toolbar'
-	| 'fairy-panel'
 	| 'unknown'
 
 /** @public */
@@ -104,6 +103,7 @@ export interface TLUiEventMap {
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'input-mode': { value: string }
+	'toggle-invert-zoom': null
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
 	'toggle-paste-at-cursor': null

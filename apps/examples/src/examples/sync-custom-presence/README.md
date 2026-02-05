@@ -3,7 +3,17 @@ title: Multiplayer sync with custom presence
 component: ./SyncCustomPresence.tsx
 category: collaboration
 priority: 3
-keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration, presence]
+keywords:
+  [
+    multiplayer,
+    collaboration,
+    presence,
+    custom data,
+    sync,
+    tlinstancepresence,
+    user state,
+    real-time,
+  ]
 multiplayer: true
 ---
 

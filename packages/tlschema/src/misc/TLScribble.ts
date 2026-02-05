@@ -11,6 +11,7 @@ import { VecModel, vecModelValidator } from './geometry-types'
  * - `starting`: The scribble is being initiated
  * - `paused`: The scribble is temporarily paused
  * - `active`: The scribble is actively being drawn
+ * - `complete`: The scribble is done being drawn but not yet fading
  * - `stopping`: The scribble is being finished
  *
  * These states help manage the drawing lifecycle and apply appropriate
@@ -29,7 +30,13 @@ import { VecModel, vecModelValidator } from './geometry-types'
  *
  * @public
  */
-export const TL_SCRIBBLE_STATES = new Set(['starting', 'paused', 'active', 'stopping'] as const)
+export const TL_SCRIBBLE_STATES = new Set([
+	'starting',
+	'paused',
+	'active',
+	'complete',
+	'stopping',
+] as const)
 
 /**
  * A scribble object representing a drawing stroke in tldraw.

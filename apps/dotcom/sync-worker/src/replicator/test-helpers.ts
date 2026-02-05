@@ -200,6 +200,7 @@ export function createMockUser(
 		inputMode: null,
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
+		isZoomDirectionInverted: false,
 		allowAnalyticsCookie: false,
 	}
 }

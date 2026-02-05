@@ -592,14 +592,21 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		for (const migration of migrationsToApply) {
 			if (migration.scope === 'record') {
+				// Collect updates during iteration, then apply them after.
+				// This avoids issues with live iterators (e.g., SQLite) where updating
+				// records during iteration can cause them to be visited multiple times.
+				const updates: [string, R][] = []
 				for (const [id, state] of storage.entries()) {
 					const shouldApply = migration.filter ? migration.filter(state) : true
 					if (!shouldApply) continue
 					const record = structuredClone(state)
 					const result = migration.up!(record as any) ?? record
 					if (!isEqual(result, state)) {
-						storage.set(id, result as R)
+						updates.push([id, result as R])
 					}
+				}
+				for (const [id, record] of updates) {
+					storage.set(id, record)
 				}
 			} else if (migration.scope === 'store') {
 				// legacy

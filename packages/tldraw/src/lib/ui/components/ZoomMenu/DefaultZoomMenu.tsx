@@ -48,7 +48,7 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 const ZoomTriggerButton = () => {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
-	const zoom = useValue('zoom', () => editor.getEfficientZoomLevel(), [editor])
+	const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
 	const msg = useTranslation()
 
 	const handleDoubleClick = useCallback(() => {

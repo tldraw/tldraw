@@ -1,0 +1,56 @@
+---
+title: 'v3.4.0'
+created_at: 10/24/2024
+updated_at: 10/24/2024
+keywords:
+  - changelog
+  - release
+  - v3.4
+  - v3.4.0
+  - v3.4.1
+  - image-performance
+  - video-performance
+  - excalidraw
+  - dom-ids
+status: published
+---
+
+This release addresses UI bugs, enhances image/video performance, and improves Excalidraw content compatibility.
+
+## API changes
+
+- 💥 **`id` DOM attribute** on shapes removed in favor of a `data-shape-id` attribute on shape wrappers.
+- Add `labelColor` property to note shapes.
+- Add `useUniqueSafeId` and `useSharedSafeId` utilities for managing DOM IDs in tldraw components.
+
+## Improvements
+
+- Improve tooltip wording in the style panel.
+- Prevent arrow label indicators from displaying behind labels.
+- Limit page name length in the move-to-page menu.
+- Improve image and video rendering performance.
+
+## Bug fixes
+
+- Fix re-render loops caused by inline `options` in the Tldraw component.
+- Fix toolbar button outline border-radius alignment.
+- Fix color preservation when pasting Excalidraw content.
+- Fix unhighlighted menu triggers.
+- Fix drag event type handling.
+- Fix duplicate image creation on canvas drops.
+- Fix link indicator visibility on sticky notes.
+- Fix URL parsing in embed dialogs.
+- Fix cross-instance rendering conflicts.
+- Fix menu options in read-only mode.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.4.0)
+
+---
+
+## Patch releases
+
+### v3.4.1
+
+- Fix arrows being clipped incorrectly when multiple tldraw instances or exports are present in the DOM. ([#4819](https://github.com/tldraw/tldraw/pull/4819))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.4.1)

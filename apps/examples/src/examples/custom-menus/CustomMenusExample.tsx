@@ -228,14 +228,15 @@ function CustomToolbar() {
 				<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isScreenshotSelected} />
 
 				<DefaultToolbarContent />
-				<button
+				<TldrawUiButton
+					type="icon"
 					onClick={() => {
 						editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 					}}
 					title="delete all"
 				>
 					🧨
-				</button>
+				</TldrawUiButton>
 			</DefaultToolbar>
 		</div>
 	)
