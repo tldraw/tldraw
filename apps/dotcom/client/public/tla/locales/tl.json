@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Menu ng file"
   },
-  "0befa10111": {
-    "translation": "Mga diwata"
-  },
   "0d1f2bb523": {
     "translation": "Magpadala ng feedback"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Ngayong araw"
   },
-  "23f879f41a": {
-    "translation": "Naabot na ang iyong lingguhang limitasyon sa paggamit ng engkanto. Ire-reset ito sa simula ng susunod na linggo."
-  },
-  "243924bfd5": {
-    "translation": "Matulog"
-  },
   "2445e5e347": {
     "translation": "Lumikha ng pangkat"
   },
   "250ddea65c": {
     "translation": "Tungkol sa tldraw"
-  },
-  "269097080b": {
-    "translation": "Naghihintay ang iyong mga diwata"
-  },
-  "275173253d": {
-    "translation": "Ipatawag lahat"
   },
   "284d5cd0dd": {
     "translation": "modelo:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Aking mga file"
   },
-  "30cd34258a": {
-    "translation": "Dumating ang isang kumag na <b>mga engkanto</b> sa tldraw para sa buwan ng Disyembre. Para mag-imbestiga pa, hanapin ang diwata at i-click ito."
-  },
   "31246941ad": {
     "translation": "Kailangan mong mag-sign in upang tingnan ang file na ito."
   },
   "31418ce4ad": {
     "translation": "i18n: Nawawala ang Highlight"
-  },
-  "3209f407ed": {
-    "translation": "tatlong diwata"
   },
   "32210b37e4": {
     "translation": "Magdagdag ng link"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Tulog lahat"
   },
   "34e34c43ec": {
     "translation": "Pamahalaan"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Humingi ng tulong sa Discord"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Mga diwata</strong> ay dumating upang tldraw para sa buwan ng Disyembre."
-  },
   "46137245cd": {
     "translation": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Walang napiling mga engkanto"
   },
   "477df802ca": {
     "translation": "Upang magpatuloy sa pag-edit, mangyaring kopyahin ang file sa iyong mga file."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Ilagay ang iyong email address"
   },
-  "688761c83e": {
-    "translation": "Gumising ka"
-  },
   "68d390535e": {
     "translation": "Ilagay ang iyong mensahe"
-  },
-  "6910bbdc82": {
-    "translation": "pangalan ng diwata"
   },
   "6a26f54883": {
     "translation": "Tulong"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Di-wastong kahilingan."
   },
-  "77f0abf1aa": {
-    "translation": "Inimbitahan ka sa <strong>tldraw fairies</strong>"
-  },
   "7827371d1a": {
     "translation": "Read-only na ngayon ang hindi kilalang tldraw multiplayer file na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Magsumite ng isyu sa GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Ang isang engkanto ay isang maliit na tao na maaaring makipagtulungan sa iyo sa canvas. Ang mga diwata ay maaaring magtrabaho nang mag-isa o bilang isang pangkat. Walang limitasyon ang kayang gawin ng isang diwata. Walang nakakaalam kung saan sila nanggaling."
   },
   "7b1329f5ca": {
     "translation": "User manual"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Hard reset"
   },
-  "88e83b88c5": {
-    "translation": "Bumili ng Fairy Bundle"
-  },
   "8ad4303b83": {
     "translation": "Hindi salamat"
-  },
-  "8be569f100": {
-    "translation": "isang beses na pagbabayad"
   },
   "8c2d3d730c": {
     "translation": "Tingnan ang iyong email para sa isang verification code."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Lumalaki ang file"
   },
-  "a8de4c27a8": {
-    "translation": "Naabot na ang lingguhang limitasyon ng engkanto"
-  },
   "a917baaf14": {
     "translation": "Bagong chat"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Ibinahagi ni {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Mag-zoom sa diwata"
   },
   "c2276c9127": {
     "translation": "Matuto pa tungkol sa pagbabahagi."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Ang file na ito ay papalapit na sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
   },
-  "ce1424d44b": {
-    "translation": "May fairy access ka na!"
-  },
   "cea291e45e": {
     "translation": "Matuto pa tungkol sa pag-publish."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Di-wastong tldraw file URL"
-  },
-  "df6ff49394": {
-    "translation": "Ang mga engkanto ay isang <strong>pansamantalang</strong> na tampok. Sa ika-1 ng Enero, 2026, ang lahat ng mga engkanto ay aalisin sa aplikasyon. Baka balang araw babalik din sila. Ang iyong pagbili ay para sa pag-access sa mga engkanto para sa Disyembre 2025 lamang."
   },
   "dfdb78a4e4": {
     "translation": "Mga flag ng pag-debug ng app"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "pinili"
-  },
-  "efde983742": {
-    "translation": "Ipatawag"
   },
   "f09b16bc5f": {
     "translation": "Gumagamit kami ng cookies upang panatilihin kang naka-log in, upang i-sync ang iyong mga file, at upang mangolekta ng analytics upang matulungan kaming mapabuti ang tldraw."

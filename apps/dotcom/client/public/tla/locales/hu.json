@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Fájl menü"
   },
-  "0befa10111": {
-    "translation": "Tündérek"
-  },
   "0d1f2bb523": {
     "translation": "Visszajelzés küldése"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Ma"
   },
-  "23f879f41a": {
-    "translation": "Elérted a heti tündérhasználati korlátodat. A jövő hét elején újraindul."
-  },
-  "243924bfd5": {
-    "translation": "Alvás"
-  },
   "2445e5e347": {
     "translation": "Csoport létrehozása"
   },
   "250ddea65c": {
     "translation": "A tldraw-ról"
-  },
-  "269097080b": {
-    "translation": "A tündéreid várnak"
-  },
-  "275173253d": {
-    "translation": "Összes idézése"
   },
   "284d5cd0dd": {
     "translation": "Modell:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Saját fájlok"
   },
-  "30cd34258a": {
-    "translation": "Egy csapat <b>tündér</b> érkezett a decemberi sorsolásra. A további nyomozáshoz keresd meg a tündért és kattints rá."
-  },
   "31246941ad": {
     "translation": "A fájl megtekintéséhez be kell jelentkeznie."
   },
   "31418ce4ad": {
     "translation": "i18n: Hiányzó kiemelés"
-  },
-  "3209f407ed": {
-    "translation": "három tündér"
   },
   "32210b37e4": {
     "translation": "Link hozzáadása"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Szerkesztő"
-  },
-  "34abfe7a0d": {
-    "translation": "Aludj mindet"
   },
   "34e34c43ec": {
     "translation": "Kezelés"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Kérjen segítséget a Discordhoz"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Tündérek</strong> jöttek rajzolni december hónapra."
-  },
   "46137245cd": {
     "translation": "Köszönjük, hogy segít a tldraw fejlesztésében!"
-  },
-  "465a8a92a4": {
-    "translation": "Nincsenek kiválasztva tündérek"
   },
   "477df802ca": {
     "translation": "A szerkesztés folytatásához másolja a fájlt a Fájlok mappába."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Add meg az e-mail címed"
   },
-  "688761c83e": {
-    "translation": "Ébred"
-  },
   "68d390535e": {
     "translation": "Írd be az üzeneted"
-  },
-  "6910bbdc82": {
-    "translation": "Tündér neve"
   },
   "6a26f54883": {
     "translation": "Segítség"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Érvénytelen kérés."
   },
-  "77f0abf1aa": {
-    "translation": "Meghívtak a <strong>tündérek rajzolására</strong>"
-  },
   "7827371d1a": {
     "translation": "Ez a névtelen tldraw többjátékos fájl mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Probléma benyújtása a GitHubon"
-  },
-  "79cc22ac6b": {
-    "translation": "A tündér egy apró fickó, akivel együtt dolgozhatsz a vásznon. A tündérek egyedül vagy csapatban is dolgozhatnak. Nincsenek határok abban, hogy mire képes egy tündér. Senki sem tudja, honnan jött."
   },
   "7b1329f5ca": {
     "translation": "Felhasználói kézikönyv"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Hard reset"
   },
-  "88e83b88c5": {
-    "translation": "Tündércsomag vásárlása"
-  },
   "8ad4303b83": {
     "translation": "Nem, köszönöm"
-  },
-  "8be569f100": {
-    "translation": "egyszeri fizetés"
   },
   "8c2d3d730c": {
     "translation": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "A fájl mérete növekszik"
   },
-  "a8de4c27a8": {
-    "translation": "Elérted a heti tündérkorlátot"
-  },
   "a917baaf14": {
     "translation": "Új csevegés"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Megosztva: {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Nagyítás a tündérhez"
   },
   "c2276c9127": {
     "translation": "További információ a megosztásról."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Ez a fájl közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
   },
-  "ce1424d44b": {
-    "translation": "Már van tündér hozzáférésed!"
-  },
   "cea291e45e": {
     "translation": "További információ a közzétételről."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Érvénytelen tldraw fájl URL"
-  },
-  "df6ff49394": {
-    "translation": "A tündérek <strong>ideiglenes</strong> funkciót jelentenek. 2026. január 1-jén az összes tündér eltávolításra kerül az alkalmazásból. Talán egy napon újra visszatérnek. A vásárlásoddal csak 2025 decemberében férhetsz hozzá a tündérekhez."
   },
   "dfdb78a4e4": {
     "translation": "Alkalmazás-hibakeresési jelzők"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "kiválasztott"
-  },
-  "efde983742": {
-    "translation": "Idézés"
   },
   "f09b16bc5f": {
     "translation": "Sütiket használunk a bejelentkezéshez, a fájlok szinkronizálásához és a tldraw fejlesztését segítő elemzések gyűjtéséhez."

@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Menu tệp"
   },
-  "0befa10111": {
-    "translation": "Tiên nữ"
-  },
   "0d1f2bb523": {
     "translation": "Gửi phản hồi"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Hôm nay"
   },
-  "23f879f41a": {
-    "translation": "Giới hạn sử dụng tiên hằng tuần của bạn đã đạt đến. Giới hạn này sẽ được đặt lại vào đầu tuần sau."
-  },
-  "243924bfd5": {
-    "translation": "Ngủ"
-  },
   "2445e5e347": {
     "translation": "Tạo nhóm"
   },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
-  },
-  "269097080b": {
-    "translation": "Các nàng tiên của bạn đang chờ đợi"
-  },
-  "275173253d": {
-    "translation": "Triệu hồi tất cả"
   },
   "284d5cd0dd": {
     "translation": "Người mẫu:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Các tập tin của tôi"
   },
-  "30cd34258a": {
-    "translation": "Một đàn <b>tiên</b> nữ đã đến để vẽ tranh trong tháng 12. Để tìm hiểu thêm, hãy tìm tiên nữ và nhấp vào nó."
-  },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
   },
   "31418ce4ad": {
     "translation": "i18n: Thiếu đánh dấu"
-  },
-  "3209f407ed": {
-    "translation": "ba nàng tiên"
   },
   "32210b37e4": {
     "translation": "Thêm liên kết"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Biên tập viên"
-  },
-  "34abfe7a0d": {
-    "translation": "Ngủ tất cả"
   },
   "34e34c43ec": {
     "translation": "Quản lý"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Các nàng tiên</strong> đã đến để vẽ tranh trong tháng 12."
-  },
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Không có nàng tiên nào được chọn"
   },
   "477df802ca": {
     "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào thư mục của bạn."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Nhập địa chỉ email của bạn"
   },
-  "688761c83e": {
-    "translation": "Thức dậy"
-  },
   "68d390535e": {
     "translation": "Nhập tin nhắn của bạn"
-  },
-  "6910bbdc82": {
-    "translation": "Tên của nàng tiên"
   },
   "6a26f54883": {
     "translation": "Trợ giúp"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
   },
-  "77f0abf1aa": {
-    "translation": "Bạn đã được mời <strong>vẽ tiên</strong>"
-  },
   "7827371d1a": {
     "translation": "Tệp tldraw nhiều người chơi ẩn danh này hiện ở chế độ chỉ đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Gửi vấn đề trên GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Tiên là một chàng trai nhỏ có thể cùng bạn vẽ tranh. Tiên có thể làm việc độc lập hoặc theo nhóm. Không có giới hạn nào cho những gì tiên có thể làm. Không ai biết họ đến từ đâu."
   },
   "7b1329f5ca": {
     "translation": "Hướng dẫn sử dụng"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Đặt lại cứng"
   },
-  "88e83b88c5": {
-    "translation": "Mua Fairy Bundle"
-  },
   "8ad4303b83": {
     "translation": "Không, cảm ơn"
-  },
-  "8be569f100": {
-    "translation": "thanh toán một lần"
   },
   "8c2d3d730c": {
     "translation": "Kiểm tra email của bạn để lấy mã xác minh."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Tệp đang trở nên lớn hơn"
   },
-  "a8de4c27a8": {
-    "translation": "Đã đạt đến giới hạn tiên nữ hàng tuần"
-  },
   "a917baaf14": {
     "translation": "Trò chuyện mới"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Phóng to đến tiên"
   },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Tệp này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo tệp mới."
   },
-  "ce1424d44b": {
-    "translation": "Bạn đã có quyền truy cập vào Fairy rồi!"
-  },
   "cea291e45e": {
     "translation": "Tìm hiểu thêm về xuất bản."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "URL tệp tldraw không hợp lệ"
-  },
-  "df6ff49394": {
-    "translation": "Tiên là một tính năng <strong>tạm thời</strong>. Vào ngày 1 tháng 1 năm 2026, tất cả tiên sẽ bị xóa khỏi ứng dụng. Có thể chúng sẽ quay trở lại vào một ngày nào đó. Giao dịch mua của bạn chỉ dành cho quyền truy cập vào tiên trong tháng 12 năm 2025."
   },
   "dfdb78a4e4": {
     "translation": "Cờ gỡ lỗi ứng dụng"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "đã chọn"
-  },
-  "efde983742": {
-    "translation": "Triệu hồi"
   },
   "f09b16bc5f": {
     "translation": "Chúng tôi sử dụng cookie để giữ cho bạn đăng nhập, đồng bộ hóa các tệp của bạn và thu thập số liệu phân tích để giúp chúng tôi cải thiện tldraw."

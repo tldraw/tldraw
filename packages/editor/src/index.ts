@@ -1,9 +1,4 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
-import 'core-js/stable/array/at.js'
-import 'core-js/stable/array/flat-map.js'
-import 'core-js/stable/array/flat.js'
-import 'core-js/stable/string/at.js'
-import 'core-js/stable/string/replace-all.js'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/state'

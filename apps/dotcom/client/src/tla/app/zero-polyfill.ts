@@ -7,7 +7,6 @@ import {
 	TlaGroupFile,
 	TlaGroupUser,
 	TlaSchema,
-	TlaUser,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZServerSentMessage,
@@ -293,19 +292,6 @@ export class Zero {
 		}
 
 		// Handle table-specific relation expansion
-		if (tableName === 'user') {
-			rows = rows.map((row) => {
-				const user = row as TlaUser
-				const userFairies = data.user_fairies.find((uf) => uf.userId === user.id)
-				return {
-					...user,
-					fairies: userFairies?.fairies || null,
-					fairyAccessExpiresAt: userFairies?.fairyAccessExpiresAt ?? null,
-					fairyLimit: userFairies?.fairyLimit ?? null,
-				}
-			})
-		}
-
 		if (tableName === 'file_state' && ast.related?.length) {
 			rows = compact(
 				rows.map((row) => {
@@ -315,8 +301,6 @@ export class Zero {
 					return {
 						...fileState,
 						file,
-						fairyState:
-							data.file_fairies.find((ff) => ff.fileId === fileState.fileId)?.fairyState || null,
 					}
 				})
 			)

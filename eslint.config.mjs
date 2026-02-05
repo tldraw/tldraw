@@ -298,7 +298,6 @@ export default [
 		files: ['apps/dotcom/client/**/*'],
 
 		rules: {
-			'local/no-fairy-imports': 'error',
 			'no-restricted-globals': [
 				'error',
 				{

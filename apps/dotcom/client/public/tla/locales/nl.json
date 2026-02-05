@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Bestandsmenu"
   },
-  "0befa10111": {
-    "translation": "Feeën"
-  },
   "0d1f2bb523": {
     "translation": "Feedback sturen"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
-  "23f879f41a": {
-    "translation": "Je wekelijkse fee-gebruikslimiet is bereikt. Deze wordt begin volgende week gereset."
-  },
-  "243924bfd5": {
-    "translation": "Slaap"
-  },
   "2445e5e347": {
     "translation": "Groep aanmaken"
   },
   "250ddea65c": {
     "translation": "Over tldraw"
-  },
-  "269097080b": {
-    "translation": "Je feeën wachten"
-  },
-  "275173253d": {
-    "translation": "Roep iedereen op"
   },
   "284d5cd0dd": {
     "translation": "Model:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Mijn bestanden"
   },
-  "30cd34258a": {
-    "translation": "Een heleboel <b>feeën</b> zijn naar tldraw gekomen voor de maand december. Om verder te kijken, zoek de fee en klik erop."
-  },
   "31246941ad": {
     "translation": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
   },
   "31418ce4ad": {
     "translation": "i18n: Markering ontbreekt"
-  },
-  "3209f407ed": {
-    "translation": "drie feeën"
   },
   "32210b37e4": {
     "translation": "Link toevoegen"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Slaap allemaal"
   },
   "34e34c43ec": {
     "translation": "Beheren"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Feeën</strong> zijn gekomen om te tekenen voor de maand december."
-  },
   "46137245cd": {
     "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Geen feeën geselecteerd"
   },
   "477df802ca": {
     "translation": "Om door te kunnen gaan met bewerken, kopieer het bestand naar uw bestanden."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Voer uw e-mailadres in"
   },
-  "688761c83e": {
-    "translation": "Wakker worden"
-  },
   "68d390535e": {
     "translation": "Voer uw bericht in"
-  },
-  "6910bbdc82": {
-    "translation": "Naam van de fee"
   },
   "6a26f54883": {
     "translation": "Hulp"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
   },
-  "77f0abf1aa": {
-    "translation": "Je bent uitgenodigd om <strong>tldraw feeën</strong> te tekenen"
-  },
   "7827371d1a": {
     "translation": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je het naar je bestanden."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Een probleem melden op GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Een fee is een klein mannetje dat met je aan het doek kan werken. Feeën kunnen alleen werken of in teamverband. Er zijn geen grenzen aan wat een fee kan doen. Niemand weet waar ze vandaan komen."
   },
   "7b1329f5ca": {
     "translation": "Gebruikershandleiding"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Harde reset"
   },
-  "88e83b88c5": {
-    "translation": "Koop Fairy Bundle"
-  },
   "8ad4303b83": {
     "translation": "Nee bedankt"
-  },
-  "8be569f100": {
-    "translation": "eenmalige betaling"
   },
   "8c2d3d730c": {
     "translation": "Controleer uw e-mail voor een verificatiecode."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Het bestand wordt groot"
   },
-  "a8de4c27a8": {
-    "translation": "Wekelijkse fee-limiet bereikt"
-  },
   "a917baaf14": {
     "translation": "Nieuwe chat"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Gedeeld door {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoom naar fee"
   },
   "c2276c9127": {
     "translation": "Meer informatie over delen."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Dit bestand nadert de maximale bestandsgrootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
   },
-  "ce1424d44b": {
-    "translation": "Je hebt al feeëntoegang!"
-  },
   "cea291e45e": {
     "translation": "Meer informatie over publiceren."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Ongeldige tldraw-bestands-URL"
-  },
-  "df6ff49394": {
-    "translation": "Feeën zijn een <strong>tijdelijke</strong> functie. Op 1 januari 2026 worden alle feeën uit de app verwijderd. Misschien komen ze ooit nog eens terug. Uw aankoop is alleen voor toegang tot feeën in december 2025."
   },
   "dfdb78a4e4": {
     "translation": "App-debug vlaggen"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "gekozen"
-  },
-  "efde983742": {
-    "translation": "Oproepen"
   },
   "f09b16bc5f": {
     "translation": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren."

@@ -59,12 +59,6 @@ export const queries = defineQueries({
 	groupFiles: defineQuery(({ ctx }) =>
 		zql.group_file.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
 	),
-
-	/** User's fairy access info (single) */
-	userFairies: defineQuery(({ ctx }) => zql.user_fairies.where('userId', '=', ctx.userId).one()),
-
-	/** File fairy states for files the user can access */
-	fileFairies: defineQuery(({ ctx }) => zql.file_fairies.where('userId', '=', ctx.userId)),
 })
 
 export type TlaQueries = typeof queries

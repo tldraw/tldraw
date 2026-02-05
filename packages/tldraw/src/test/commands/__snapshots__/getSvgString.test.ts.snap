@@ -94,7 +94,7 @@ exports[`Matches a snapshot > Basic SVG 1`] = `
           xmlns="http://www.w3.org/1999/xhtml"
         >
           <div
-            style="font-size: 22px; color: rgb(0, 0, 0); line-height: 1.35; text-align: center; width: 0px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-shadow: var(--tl-text-outline); position: static; height: 0px; margin: 0px; padding: 0px; border: 0px;"
+            style="font-size: 22px; color: rgb(0, 0, 0); line-height: 1.35; text-align: center; width: 0px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-shadow: var(--tl-text-outline); tab-size: var(--tl-tab-size, 2); position: static; height: 0px; margin: 0px; padding: 0px; border: 0px;"
           >
             <p
               dir="auto"
@@ -234,7 +234,7 @@ exports[`Returns all shapes when no ids are provided > All shapes 1`] = `
           xmlns="http://www.w3.org/1999/xhtml"
         >
           <div
-            style="font-size: 22px; color: rgb(0, 0, 0); line-height: 1.35; text-align: center; width: 0px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-shadow: var(--tl-text-outline); position: static; height: 0px; margin: 0px; padding: 0px; border: 0px;"
+            style="font-size: 22px; color: rgb(0, 0, 0); line-height: 1.35; text-align: center; width: 0px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-shadow: var(--tl-text-outline); tab-size: var(--tl-tab-size, 2); position: static; height: 0px; margin: 0px; padding: 0px; border: 0px;"
           >
             <p
               dir="auto"

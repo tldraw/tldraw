@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Nabídka Soubor"
   },
-  "0befa10111": {
-    "translation": "Víly"
-  },
   "0d1f2bb523": {
     "translation": "Odeslat zpětnou vazbu"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Dnes"
   },
-  "23f879f41a": {
-    "translation": "Váš týdenní limit pro využití víl byl dosažen. Na začátku příštího týdne bude resetován."
-  },
-  "243924bfd5": {
-    "translation": "Spát"
-  },
   "2445e5e347": {
     "translation": "Vytvořit skupinu"
   },
   "250ddea65c": {
     "translation": "O tldraw"
-  },
-  "269097080b": {
-    "translation": "Tvoje víly čekají"
-  },
-  "275173253d": {
-    "translation": "Přivolat všechny"
   },
   "284d5cd0dd": {
     "translation": "Model:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Moje soubory"
   },
-  "30cd34258a": {
-    "translation": "V prosinci se do tldraw sjela skupinka <b>víl</b>. Chcete-li se o tom dozvědět více, najděte vílu a klikněte na ni."
-  },
   "31246941ad": {
     "translation": "Chcete-li zobrazit tento soubor, musíte se přihlásit."
   },
   "31418ce4ad": {
     "translation": "i18n: Zvýraznění chybí"
-  },
-  "3209f407ed": {
-    "translation": "tři víly"
   },
   "32210b37e4": {
     "translation": "Přidat odkaz"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Spát všichni"
   },
   "34e34c43ec": {
     "translation": "Spravovat"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Získejte pomoc na Discordu"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Víly</strong> přišly kreslit v prosinci."
-  },
   "46137245cd": {
     "translation": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Nebyly vybrány žádné víly"
   },
   "477df802ca": {
     "translation": "Chcete-li pokračovat v úpravách, zkopírujte soubor do svých souborů."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Zadejte svou e-mailovou adresu"
   },
-  "688761c83e": {
-    "translation": "Probudit"
-  },
   "68d390535e": {
     "translation": "Zadejte svou zprávu"
-  },
-  "6910bbdc82": {
-    "translation": "Jméno víly"
   },
   "6a26f54883": {
     "translation": "Pomoc"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
   },
-  "77f0abf1aa": {
-    "translation": "Byli jste pozváni k <strong>kreslení víl</strong>"
-  },
   "7827371d1a": {
     "translation": "Tento anonymní soubor pro více hráčů ve hře tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte jej do svých souborů."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Odešlete problém na GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Víla je malý chlapík, který s vámi může pracovat na plátně. Víly mohou pracovat samy nebo v týmu. Neexistují žádná omezení toho, co víla dokáže. Nikdo neví, odkud se vzaly."
   },
   "7b1329f5ca": {
     "translation": "Uživatelská příručka"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Tvrdý reset"
   },
-  "88e83b88c5": {
-    "translation": "Zakoupit balíček víl"
-  },
   "8ad4303b83": {
     "translation": "Ne, děkuji."
-  },
-  "8be569f100": {
-    "translation": "jednorázová platba"
   },
   "8c2d3d730c": {
     "translation": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Soubor se zvětšuje"
   },
-  "a8de4c27a8": {
-    "translation": "Dosažen týdenní limit víl"
-  },
   "a917baaf14": {
     "translation": "Nový chat"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Sdílel {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Přiblížit na vílu"
   },
   "c2276c9127": {
     "translation": "Další informace o sdílení."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Tento soubor se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
   },
-  "ce1424d44b": {
-    "translation": "Už máš přístup k vílám!"
-  },
   "cea291e45e": {
     "translation": "Další informace o publikování."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Neplatná adresa URL souboru tldraw"
-  },
-  "df6ff49394": {
-    "translation": "Víly jsou <strong>dočasnou</strong> funkcí. 1. ledna 2026 budou všechny víly z aplikace odstraněny. Možná se někdy vrátí. Váš nákup je pouze pro přístup k vílám v prosinci 2025."
   },
   "dfdb78a4e4": {
     "translation": "Příznaky ladění aplikace"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "vybraný"
-  },
-  "efde983742": {
-    "translation": "Přivolat"
   },
   "f09b16bc5f": {
     "translation": "Používáme soubory cookie, abychom vás udrželi přihlášené, synchronizovali vaše soubory a shromažďovali analytické údaje, které nám pomáhají vylepšovat tldraw."
