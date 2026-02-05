@@ -10263,6 +10263,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _longPressTimeout = -1 as any
 
 	/** @internal */
+	private _rightClickCursorTimeout = -1 as any
+
+	/** @internal */
 	capturedPointerId: number | null = null
 
 	/** @internal */
@@ -10640,11 +10643,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
 						} else if (info.button === RIGHT_MOUSE_BUTTON && this.user.getIsRightClickToDrag()) {
-							if (!this.inputs.isPanning) {
+							if (!this.inputs.getIsPanning()) {
 								this._prevCursor = this.getInstanceState().cursor.type
 							}
-							this.inputs.isPanning = true
+							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
+							// Debounce the cursor change for right-click to prevent flash on quick clicks
+							clearTimeout(this._rightClickCursorTimeout)
+							this._rightClickCursorTimeout = this.timers.setTimeout(() => {
+								if (this.inputs.getIsPanning()) {
+									this.setCursor({ type: 'grabbing', rotation: 0 })
+								}
+							}, 100)
+							this.stopCameraAnimation()
+							return this
 						}
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
@@ -10673,6 +10685,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							// When actually dragging, show the grabbing cursor immediately
+							clearTimeout(this._rightClickCursorTimeout)
+							this.setCursor({ type: 'grabbing', rotation: 0 })
 							return
 						}
 
@@ -10697,6 +10712,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsDragging(false)
 						inputs.setIsPointing(false)
 						clearTimeout(this._longPressTimeout)
+						clearTimeout(this._rightClickCursorTimeout)
 
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
@@ -10727,11 +10743,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 								case MIDDLE_MOUSE_BUTTON:
 								case RIGHT_MOUSE_BUTTON: {
-									if (this.inputs.keys.has(' ')) {
+									if (this.inputs.keys.has('Space')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
 										this.setCursor({ type: this._prevCursor, rotation: 0 })
 									}
+									// Don't pass middle/right mouse button panning events to the state chart
+									// as it could cause unintended shape selection
+									if (slideSpeed > 0) {
+										this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+									}
+									this._selectedShapeIdsAtPointerDown = []
+									return this
 								}
 							}
 

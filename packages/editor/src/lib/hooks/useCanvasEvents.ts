@@ -18,25 +18,28 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				rPointerMoved.current = false
 
-				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
-
-				setPointerCapture(e.currentTarget, e)
-
-				if (e.button == 2 && !editor.user.getIsRightClickToDrag()) {
+				// Handle right-click when right-click-to-drag is disabled
+				// This matches main branch behavior - dispatch right_click and return early
+				if (e.button === 2 && !editor.user.getIsRightClickToDrag()) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
 						name: 'right_click',
 						...getPointerInfo(editor, e),
 					})
-				} else {
-					editor.dispatch({
-						type: 'pointer',
-						target: 'canvas',
-						name: 'pointer_down',
-						...getPointerInfo(editor, e),
-					})
+					return
 				}
+
+				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
+
+				setPointerCapture(e.currentTarget, e)
+
+				editor.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_down',
+					...getPointerInfo(editor, e),
+				})
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
@@ -46,8 +49,8 @@ export function useCanvasEvents() {
 				// check if pointer moved since pointer down
 				if (
 					e.button == 2 &&
-					editor.inputs.currentScreenPoint.x === editor.inputs.originScreenPoint.x &&
-					editor.inputs.currentScreenPoint.y === editor.inputs.originScreenPoint.y
+					editor.inputs.getCurrentScreenPoint().x === editor.inputs.getOriginScreenPoint().x &&
+					editor.inputs.getCurrentScreenPoint().y === editor.inputs.getOriginScreenPoint().y
 				) {
 					rPointerMoved.current = true
 					const contextMenuEvent = new MouseEvent('contextmenu', {
