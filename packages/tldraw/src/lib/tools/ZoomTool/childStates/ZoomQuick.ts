@@ -34,8 +34,10 @@ export class ZoomQuick extends StateNode {
 		const baseZoom = editor.getBaseZoom()
 		const { zoomSteps } = editor.getCameraOptions()
 		const currentZoom = editor.getCamera().z
+		// Safely access zoomSteps - use first element if only one exists
+		const secondStep = zoomSteps.length > 1 ? zoomSteps[1] : zoomSteps[0]
 		const targetZoom =
-			currentZoom < zoomSteps[1] * baseZoom ? zoomSteps[0] * baseZoom : zoomSteps[1] * baseZoom
+			currentZoom < secondStep * baseZoom ? zoomSteps[0] * baseZoom : secondStep * baseZoom
 
 		const { x: cx, y: cy, z: cz } = editor.getCamera()
 		const { x: px, y: py } = this.initialPp
