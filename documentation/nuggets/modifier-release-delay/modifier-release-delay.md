@@ -16,6 +16,8 @@ date: 12/29/2025
 order: 4
 ---
 
+In tldraw,
+
 # Modifier key release delay
 
 Hold shift while dragging a shape to constrain it to horizontal or vertical movement. Hold alt to duplicate. These modifier-enhanced drags feel natural—until you release both keys at once.
@@ -47,11 +49,11 @@ The fix is simple: don't trust that a modifier release is intentional. When shif
 
 ```typescript
 if (info.shiftKey) {
-  clearTimeout(this._shiftKeyTimeout)
-  this._shiftKeyTimeout = -1
-  inputs.setShiftKey(true)
+	clearTimeout(this._shiftKeyTimeout)
+	this._shiftKeyTimeout = -1
+	inputs.setShiftKey(true)
 } else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
-  this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
+	this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
 }
 ```
 

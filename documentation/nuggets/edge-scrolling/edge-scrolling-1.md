@@ -17,7 +17,9 @@ order: 0
 
 # Edge scrolling
 
-Your finger isn't a point. When you drag a shape with touch, the contact area is roughly 12 pixels wide—but the browser only reports the center point. This creates a problem: edge scrolling needs to trigger when your finger gets close to the viewport edge, but your finger might reach the edge 12 pixels before the reported contact point does.
+Our fingers aren't points; they have thickness. We need to account for this thickness when dragging outside of the screen.
+
+When you drag a shape with touch, the contact area is roughly 12 pixels wide—but the browser only reports the center point. This creates a problem: edge scrolling needs to trigger when your finger gets close to the viewport edge, but your finger might reach the edge 12 pixels before the reported contact point does.
 
 The solution is to treat touch pointers as having width. When calculating edge scroll proximity, tldraw extends the touch pointer position 12 pixels in each direction. A finger at 20 pixels from the edge is treated as potentially being at 8 pixels from the edge. Mouse pointers get no adjustment—they're single pixels and users expect pixel-perfect precision.
 
