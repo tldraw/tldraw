@@ -6618,6 +6618,71 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Toggle the sticky state of one or more shapes. If there is a mix of sticky and non-sticky shapes, all shapes will be made sticky.
+	 * When a shape is sticky, it will attach to other shapes when dragged over them.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.toggleSticky(['id1', 'id2'])
+	 * editor.toggleSticky([myShape])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to toggle.
+	 *
+	 * @public
+	 */
+	toggleSticky(shapes: TLShapeId[] | TLShape[]): this {
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
+
+		if (this.getIsReadonly() || ids.length === 0) return this
+
+		let allSticky = true,
+			allNotSticky = true
+		const shapesToToggle: TLShape[] = []
+		for (const id of ids) {
+			const shape = this.getShape(id)
+			if (shape) {
+				shapesToToggle.push(shape)
+				if (shape.isSticky) {
+					allNotSticky = false
+				} else {
+					allSticky = false
+				}
+			}
+		}
+		this.run(() => {
+			if (allNotSticky) {
+				// Make all shapes sticky
+				this.updateShapes(
+					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isSticky: true }))
+				)
+			} else if (allSticky) {
+				// Make all shapes not sticky and remove any existing sticky bindings
+				this.updateShapes(
+					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isSticky: false }))
+				)
+				// Remove sticky bindings from shapes that are no longer sticky
+				for (const shape of shapesToToggle) {
+					const bindings = this.getBindingsFromShape(shape.id, 'sticky')
+					if (bindings.length > 0) {
+						this.deleteBindings(bindings)
+					}
+				}
+			} else {
+				// Mixed state - make all sticky
+				this.updateShapes(
+					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isSticky: true }))
+				)
+			}
+		})
+
+		return this
+	}
+
+	/**
 	 * Send shapes to the back of the page's object list.
 	 *
 	 * @example

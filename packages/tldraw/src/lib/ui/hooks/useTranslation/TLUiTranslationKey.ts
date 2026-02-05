@@ -113,6 +113,7 @@ export type TLUiTranslationKey =
 	| 'action.toggle-grid.menu'
 	| 'action.toggle-grid'
 	| 'action.toggle-lock'
+	| 'action.toggle-sticky'
 	| 'action.flatten-to-image'
 	| 'action.toggle-snap-mode.menu'
 	| 'action.toggle-snap-mode'

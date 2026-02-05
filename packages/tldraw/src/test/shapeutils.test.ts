@@ -418,6 +418,7 @@ describe('When interacting with a shape...', () => {
 			y: 100,
 			rotation: 0,
 			isLocked: false,
+			isSticky: false,
 			opacity: 1,
 			meta: {},
 			props: {
@@ -501,6 +502,7 @@ describe('When interacting with a shape...', () => {
 			y: 100,
 			rotation: 0,
 			isLocked: false,
+			isSticky: false,
 			opacity: 1,
 			meta: {},
 			props: {

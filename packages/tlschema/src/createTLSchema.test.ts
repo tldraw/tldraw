@@ -62,7 +62,7 @@ describe('defaultShapeSchemas', () => {
 })
 
 describe('defaultBindingSchemas', () => {
-	const expectedBindingTypes: Array<TLDefaultBinding['type']> = ['arrow']
+	const expectedBindingTypes: Array<TLDefaultBinding['type']> = ['arrow', 'sticky']
 
 	it('should contain all default binding types', () => {
 		const actualBindingTypes = Object.keys(defaultBindingSchemas)

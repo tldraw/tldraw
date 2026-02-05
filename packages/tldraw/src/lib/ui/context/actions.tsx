@@ -1458,6 +1458,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-sticky',
+				label: 'action.toggle-sticky',
+				kbd: 'shift+s',
+				onSelect(source) {
+					editor.markHistoryStoppingPoint('sticky')
+					trackEvent('toggle-sticky', { source })
+					editor.toggleSticky(editor.getSelectedShapeIds())
+				},
+			},
+			{
 				id: 'move-to-new-page',
 				label: 'context.pages.new-page',
 				onSelect(source) {

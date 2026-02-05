@@ -46,6 +46,7 @@ describe('FontManager', () => {
 		parentId: 'page:page' as TLParentId,
 		opacity: 1,
 		isLocked: false,
+		isSticky: false,
 		meta: {},
 		props: {
 			color: 'black',

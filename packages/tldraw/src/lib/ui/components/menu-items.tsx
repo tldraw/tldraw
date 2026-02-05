@@ -150,6 +150,17 @@ export function ToggleLockMenuItem() {
 }
 
 /** @public @react */
+export function ToggleStickyMenuItem() {
+	const editor = useEditor()
+	const shouldDisplay = useValue('selected shapes', () => editor.getSelectedShapes().length > 0, [
+		editor,
+	])
+	if (!shouldDisplay) return null
+
+	return <TldrawUiMenuActionItem actionId="toggle-sticky" />
+}
+
+/** @public @react */
 export function ToggleTransparentBgMenuItem() {
 	const editor = useEditor()
 	const isTransparentBg = useValue(
@@ -358,6 +369,7 @@ export function EditMenuSubmenu() {
 			<ConvertToBookmarkMenuItem />
 			<ToggleAutoSizeMenuItem />
 			<ToggleLockMenuItem />
+			<ToggleStickyMenuItem />
 		</TldrawUiMenuSubmenu>
 	)
 }

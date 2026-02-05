@@ -44,6 +44,13 @@ export {
 	type TLArrowBindingProps,
 } from './bindings/TLArrowBinding'
 export {
+	stickyBindingMigrations,
+	stickyBindingProps,
+	stickyBindingVersions,
+	type TLStickyBinding,
+	type TLStickyBindingProps,
+} from './bindings/TLStickyBinding'
+export {
 	bindingIdValidator,
 	createBindingValidator,
 	type TLBaseBinding,

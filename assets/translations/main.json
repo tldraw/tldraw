@@ -109,6 +109,7 @@
 	"action.toggle-grid.menu": "Show grid",
 	"action.toggle-grid": "Toggle grid",
 	"action.toggle-lock": "Toggle locked",
+	"action.toggle-sticky": "Toggle sticky",
 	"action.flatten-to-image": "Flatten",
 	"action.toggle-snap-mode.menu": "Always snap",
 	"action.toggle-snap-mode": "Toggle always snap",

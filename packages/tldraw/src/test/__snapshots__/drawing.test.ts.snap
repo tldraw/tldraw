@@ -4,6 +4,7 @@ exports[`Draws a bunch > draw shape 1`] = `
 {
   "index": "a1",
   "isLocked": false,
+  "isSticky": false,
   "meta": {},
   "opacity": 1,
   "parentId": "page:page",

@@ -71,6 +71,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 	index: IndexKey
 	parentId: TLParentId
 	isLocked: boolean
+	isSticky: boolean
 	opacity: TLOpacityType
 	props: Props
 	meta: JsonObject
@@ -174,6 +175,7 @@ export function createShapeValidator<
 		parentId: parentIdValidator,
 		type: T.literal(type),
 		isLocked: T.boolean,
+		isSticky: T.boolean,
 		opacity: opacityValidator,
 		props: props ? T.object(props) : (T.jsonValue as any),
 		meta: meta ? T.object(meta) : (T.jsonValue as any),

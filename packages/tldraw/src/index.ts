@@ -55,6 +55,11 @@ export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTr
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
+export {
+	createStickyBinding,
+	removeStickyBindings,
+	StickyBindingUtil,
+} from './lib/bindings/sticky/StickyBindingUtil'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
@@ -318,6 +323,7 @@ export {
 	ToggleInvertZoomItem,
 	ToggleKeyboardShortcutsItem,
 	ToggleLockMenuItem,
+	ToggleStickyMenuItem,
 	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,

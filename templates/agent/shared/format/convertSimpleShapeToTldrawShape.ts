@@ -201,6 +201,7 @@ function convertTextShapeToTldrawShape(
 			index: defaultTextShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultTextShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultTextShape.isLocked ?? false,
+			isSticky: false,
 			opacity: defaultTextShape.opacity ?? 1,
 			props: {
 				size: textSize,
@@ -245,6 +246,7 @@ function convertLineShapeToTldrawShape(
 			index: defaultLineShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultLineShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultLineShape.isLocked ?? false,
+			isSticky: false,
 			opacity: defaultLineShape.opacity ?? 1,
 			props: {
 				size: defaultLineShape.props?.size ?? 's',
@@ -309,6 +311,7 @@ function convertArrowShapeToTldrawShape(
 		index: defaultArrowShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 		parentId: defaultArrowShape.parentId ?? editor.getCurrentPageId(),
 		isLocked: defaultArrowShape.isLocked ?? false,
+		isSticky: false,
 		opacity: defaultArrowShape.opacity ?? 1,
 		props: {
 			arrowheadEnd: defaultArrowShape.props?.arrowheadEnd ?? 'arrow',
@@ -426,6 +429,7 @@ function convertGeoShapeToTldrawShape(
 			index: defaultGeoShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultGeoShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultGeoShape.isLocked ?? false,
+			isSticky: false,
 			opacity: defaultGeoShape.opacity ?? 1,
 			props: {
 				align: simpleShape.textAlign ?? defaultGeoShape.props?.align ?? 'middle',
@@ -481,6 +485,7 @@ function convertNoteShapeToTldrawShape(
 			index: defaultNoteShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultNoteShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultNoteShape.isLocked ?? false,
+			isSticky: false,
 			opacity: defaultNoteShape.opacity ?? 1,
 			props: {
 				color: asColor(simpleShape.color ?? defaultNoteShape.props?.color ?? 'black'),
@@ -531,6 +536,7 @@ function convertDrawShapeToTldrawShape(
 			index: defaultDrawShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultDrawShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultDrawShape.isLocked ?? false,
+			isSticky: false,
 			opacity: defaultDrawShape.opacity ?? 1,
 			props: {
 				...editor.getShapeUtil('draw').getDefaultProps(),
@@ -562,6 +568,7 @@ function convertUnknownShapeToTldrawShape(
 			index: defaultShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultShape.isLocked ?? false,
+			isSticky: false,
 			opacity: defaultShape.opacity ?? 1,
 			props: defaultShape.props ?? ({} as any),
 			meta: {

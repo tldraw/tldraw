@@ -5,6 +5,7 @@ import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { arrowBindingMigrations, arrowBindingProps } from './bindings/TLArrowBinding'
+import { stickyBindingMigrations, stickyBindingProps } from './bindings/TLStickyBinding'
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
 import { TLBinding, TLDefaultBinding, createBindingRecordType } from './records/TLBinding'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
@@ -161,6 +162,7 @@ export const defaultShapeSchemas = {
  *
  * Currently includes:
  * - arrow: Bindings that connect arrow shapes to other shapes at specific anchor points
+ * - sticky: Bindings that attach sticky shapes to other shapes when dragged over them
  *
  * @public
  * @example
@@ -186,6 +188,7 @@ export const defaultShapeSchemas = {
  */
 export const defaultBindingSchemas = {
 	arrow: { migrations: arrowBindingMigrations, props: arrowBindingProps },
+	sticky: { migrations: stickyBindingMigrations, props: stickyBindingProps },
 } satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
 
 /**

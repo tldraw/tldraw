@@ -110,13 +110,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 
 			// Create new bindings
 			for (const binding of result.bindings) {
-				editor.createBinding({
-					type: binding.type,
-					fromId: binding.fromId,
-					toId: binding.toId,
-					props: binding.props,
-					meta: binding.meta,
-				})
+				editor.createBinding(binding)
 			}
 		}
 	}

@@ -91,6 +91,7 @@ export async function putExcalidrawContent(
 			y: element.y,
 			rotation: 0,
 			isLocked: element.locked,
+			isSticky: false,
 			opacity: getOpacity(element.opacity),
 			meta: {},
 		} as const

@@ -290,6 +290,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
+	AddIsSticky: 5,
 })
 
 /**
@@ -350,6 +351,15 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 				if (record.props.color === 'white') {
 					record.props.color = 'black'
 				}
+			},
+		},
+		{
+			id: rootShapeVersions.AddIsSticky,
+			up: (record: any) => {
+				record.isSticky = false
+			},
+			down: (record: any) => {
+				delete record.isSticky
 			},
 		},
 	],
@@ -580,6 +590,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 		y: 0,
 		rotation: 0,
 		isLocked: false,
+		isSticky: false,
 		opacity: 1,
 		meta: {},
 	}))

@@ -1269,6 +1269,7 @@ describe('Migration and patch handling', () => {
 			id: 'shape:existing_arrow' as TLShapeId,
 			index: ZERO_INDEX_KEY,
 			isLocked: false,
+			isSticky: false,
 			parentId: PageRecordType.createId(),
 			rotation: 0,
 			x: 0,

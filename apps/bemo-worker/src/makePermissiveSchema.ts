@@ -23,6 +23,7 @@ export function makePermissiveSchema(): TLSchema {
 		parentId: parentIdValidator,
 		type: T.string,
 		isLocked: T.boolean,
+		isSticky: T.boolean,
 		opacity: opacityValidator,
 		props: T.jsonValue as any,
 		meta: T.jsonValue as any,

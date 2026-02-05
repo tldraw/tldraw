@@ -5,6 +5,7 @@ exports[`Misc > resizes > line shape after resize 1`] = `
   "id": "shape:line1",
   "index": "a1",
   "isLocked": false,
+  "isSticky": false,
   "meta": {},
   "opacity": 1,
   "parentId": "page:page",

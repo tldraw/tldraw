@@ -22,6 +22,7 @@ import {
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	ToggleStickyMenuItem,
 	TogglePasteAtCursorItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
@@ -105,6 +106,7 @@ export function LockGroup() {
 	return (
 		<TldrawUiMenuGroup id="lock">
 			<ToggleLockMenuItem />
+			<ToggleStickyMenuItem />
 			<UnlockAllMenuItem />
 		</TldrawUiMenuGroup>
 	)

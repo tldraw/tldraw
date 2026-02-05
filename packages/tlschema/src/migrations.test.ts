@@ -447,6 +447,18 @@ describe('Adding isLocked prop', () => {
 	})
 })
 
+describe('Adding isSticky prop', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AddIsSticky)
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ isSticky: false })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isSticky: false })).toEqual({})
+	})
+})
+
 describe('Adding labelColor prop to geo / arrow shapes', () => {
 	for (const [name, { up }] of [
 		['arrow shape', getTestMigration(arrowShapeVersions.AddLabelColor)],

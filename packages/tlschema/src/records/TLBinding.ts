@@ -9,12 +9,13 @@ import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
+import { TLStickyBinding } from '../bindings/TLStickyBinding'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 
 /**
  * The default set of bindings that are available in the editor.
- * Currently includes only arrow bindings, but can be extended with custom bindings.
+ * Includes arrow bindings and sticky bindings.
  *
  * @example
  * ```ts
@@ -36,7 +37,7 @@ import { TLPropsMigrations } from '../recordsWithProps'
  *
  * @public
  */
-export type TLDefaultBinding = TLArrowBinding
+export type TLDefaultBinding = TLArrowBinding | TLStickyBinding
 
 /**
  * A type for a binding that is available in the editor but whose type is

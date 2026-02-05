@@ -5,6 +5,7 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
   "id": "shape:lineA",
   "index": "a3",
   "isLocked": false,
+  "isSticky": false,
   "meta": {},
   "opacity": 1,
   "parentId": "shape:boxA",

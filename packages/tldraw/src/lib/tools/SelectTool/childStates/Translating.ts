@@ -16,6 +16,7 @@ import {
 	isPageId,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import { createStickyBinding, removeStickyBindings } from '../../../bindings/sticky/StickyBindingUtil'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	NOTE_CENTER_OFFSET,
@@ -186,6 +187,10 @@ export class Translating extends StateNode {
 	protected complete() {
 		this.updateShapes()
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
+
+		// Handle sticky shapes - create bindings for sticky shapes dropped over other shapes
+		this.handleStickyBindings()
+
 		this.handleEnd()
 		kickoutOccludedShapes(
 			this.editor,
@@ -209,6 +214,53 @@ export class Translating extends StateNode {
 			this.onCreate?.(this.editor.getOnlySelectedShape())
 		} else {
 			this.parent.transition('idle')
+		}
+	}
+
+	/**
+	 * Handle sticky bindings for sticky shapes that were dropped over other shapes.
+	 * This creates bindings between sticky shapes and the shapes they were dropped on.
+	 */
+	private handleStickyBindings() {
+		const { editor } = this
+		const { movingShapes } = this.snapshot
+
+		for (const shape of movingShapes) {
+			// Get the fresh shape from the store
+			const currentShape = editor.getShape(shape.id)
+			if (!currentShape || !currentShape.isSticky) continue
+
+			// Remove any existing sticky bindings from this shape
+			removeStickyBindings(editor, currentShape.id)
+
+			// Find the center of the sticky shape in page coordinates
+			const shapeBounds = editor.getShapePageBounds(currentShape)
+			if (!shapeBounds) continue
+
+			const shapeCenter = shapeBounds.center
+
+			// Find shapes at the center point (excluding the sticky shape itself and other moving shapes)
+			const movingShapeIds = new Set(movingShapes.map((s) => s.id))
+			const shapesAtPoint = editor
+				.getShapesAtPoint(shapeCenter, {
+					hitInside: true,
+					margin: 0,
+				})
+				.filter(
+					(s) =>
+						!movingShapeIds.has(s.id) &&
+						!s.isLocked &&
+						s.id !== currentShape.id &&
+						!editor.hasAncestor(currentShape, s.id) &&
+						!editor.hasAncestor(s, currentShape.id)
+				)
+
+			// Find the topmost shape (last in the array, which is sorted by z-index)
+			const targetShape = shapesAtPoint[shapesAtPoint.length - 1]
+			if (!targetShape) continue
+
+			// Create a sticky binding
+			createStickyBinding(editor, currentShape.id, targetShape.id, shapeCenter)
 		}
 	}
 
