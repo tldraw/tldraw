@@ -1,6 +1,7 @@
 import { ComponentType, Fragment } from 'react'
 import { DEFAULT_CAMERA_OPTIONS } from './constants'
 import { TLCameraOptions } from './editor/types/misc-types'
+import { TLDeepLinkOptions } from './utils/deepLinks'
 import { TLTextOptions } from './utils/richText'
 
 /**
@@ -133,6 +134,20 @@ export interface TldrawOptions {
 	 * font handling. These are the initial text options and cannot be changed at runtime.
 	 */
 	readonly text: TLTextOptions
+	/**
+	 * Options for syncing the editor's camera state with the URL. Set to `true` to enable
+	 * with default options, or pass an options object to customize behavior.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Enable with defaults
+	 * <Tldraw options={{ deepLinks: true }} />
+	 *
+	 * // Enable with custom options
+	 * <Tldraw options={{ deepLinks: { param: 'd', debounceMs: 500 } }} />
+	 * ```
+	 */
+	readonly deepLinks: true | TLDeepLinkOptions | undefined
 }
 
 /** @public */
@@ -193,4 +208,5 @@ export const defaultTldrawOptions = {
 	snapThreshold: 8,
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
+	deepLinks: undefined,
 } as const satisfies TldrawOptions

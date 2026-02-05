@@ -686,6 +686,7 @@ export const defaultTldrawOptions: {
     readonly createTextOnCanvasDoubleClick: true;
     readonly debouncedZoom: true;
     readonly debouncedZoomThreshold: 500;
+    readonly deepLinks: undefined;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -3421,6 +3422,7 @@ export interface TldrawEditorBaseProps {
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
+    // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
@@ -3487,6 +3489,7 @@ export interface TldrawOptions {
     readonly createTextOnCanvasDoubleClick: boolean;
     readonly debouncedZoom: boolean;
     readonly debouncedZoomThreshold: number;
+    readonly deepLinks: TLDeepLinkOptions | true | undefined;
     // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)

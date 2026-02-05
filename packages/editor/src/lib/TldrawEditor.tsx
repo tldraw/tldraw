@@ -188,6 +188,8 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Options for syncing the editor's camera state with the URL.
+	 *
+	 * @deprecated Use `options.deepLinks` instead. This prop will be removed in a future release.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
 
@@ -252,7 +254,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 	className,
 	user: _user,
 	options: _options,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	textOptions: _textOptions,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -261,15 +266,18 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// Merge deprecated textOptions prop with options.textOptions
-	// options.textOptions takes precedence over the deprecated textOptions prop
+	// Merge deprecated props with options
+	// options values take precedence over the deprecated props
 	const mergedOptions = useMemo(() => {
-		if (!_textOptions) return _options
-		return {
-			..._options,
-			text: _options?.text ?? _textOptions,
+		let result = _options
+		if (_textOptions) {
+			result = { ...result, text: result?.text ?? _textOptions }
 		}
-	}, [_options, _textOptions])
+		if (_deepLinks !== undefined) {
+			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
+		}
+		return result
+	}, [_options, _textOptions, _deepLinks])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -416,7 +424,6 @@ function TldrawEditorWithReadyStore({
 	cameraOptions,
 	options,
 	licenseKey,
-	deepLinks: _deepLinks,
 	getShapeVisibility,
 	assetUrls,
 }: Required<
@@ -433,6 +440,7 @@ function TldrawEditorWithReadyStore({
 
 	const canvasRef = useRef<HTMLDivElement | null>(null)
 
+	const _deepLinks = options?.deepLinks
 	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
 
 	// props in this ref can be changed without causing the editor to be recreated.
