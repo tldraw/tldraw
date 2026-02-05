@@ -99,10 +99,10 @@ this.\_altKeyTimeout = this.timers.setTimeout(this.\_setAltKeyTimeout, 150)
 }
 ```
 
-## Intent vs. timing
+## Further reading
 
-This is part of a broader pattern in input handling: user intent doesn't always match event timing. The browser reports events accurately—the keyboard really did release before the mouse—but accuracy isn't the same as intent.
+This is part of a broader pattern we've found with input handling - where user intent doesn't match event timing.
 
-We use similar deferred-commitment patterns elsewhere. The [click state machine](../click-state-machine/click-state-machine.md) uses timeouts to detect double and triple clicks, waiting to see if another click arrives before committing to "single click." [Pinch gesture detection](../pinch-gesture/pinch-gesture.md) waits before deciding whether a two-finger touch is a pinch or a multi-select. In each case, we delay commitment until the user's intent becomes clear.
+We use other deferred commitment patterns elsewhere. tldraw's [click state machine](https://tldraw.dev/sdk-features/click-detection) uses timeouts to detect double and triple clicks, waiting to see if another click arrives before committing to a "single click."
 
-Touch devices don't have this particular problem—there are no modifier keys. But wherever hardware events need to be interpreted as human intent, timing gaps create ambiguity that software has to resolve.
+And on mobile devices, [pinch gesture detection](https://tldraw.dev/sdk-features/input-handling) waits before deciding whether a two-finger touch is a pinch or a multi-select.

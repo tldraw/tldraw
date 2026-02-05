@@ -13,6 +13,8 @@ order: 4
 
 # Click detection state machine
 
+handling clicks
+
 Double-click to edit text. Triple-click to select a paragraph. These interactions feel natural, but detecting them is surprisingly tricky. Most implementations devolve into nested timeouts and boolean flags—a mess that's hard to reason about and easy to break. tldraw uses a proper state machine instead.
 
 ## The timeout spaghetti problem
