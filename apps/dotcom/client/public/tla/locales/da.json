@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Fil menu"
   },
-  "0befa10111": {
-    "translation": "Feer"
-  },
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
-  "23f879f41a": {
-    "translation": "Din ugentlige grænse for fe-forbrug er nået. Den nulstilles i starten af næste uge."
-  },
-  "243924bfd5": {
-    "translation": "Sove"
-  },
   "2445e5e347": {
     "translation": "Opret gruppe"
   },
   "250ddea65c": {
     "translation": "Om tldraw"
-  },
-  "269097080b": {
-    "translation": "Dine feer venter"
-  },
-  "275173253d": {
-    "translation": "Indkald alle"
   },
   "284d5cd0dd": {
     "translation": "Model:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Mine filer"
   },
-  "30cd34258a": {
-    "translation": "En flok <b>feer</b> er kommet til tldraw i december måned. For at undersøge sagen nærmere, find feen og klik på den."
-  },
   "31246941ad": {
     "translation": "Du skal logge ind for at se denne fil."
   },
   "31418ce4ad": {
     "translation": "i18n: Fremhæv mangler"
-  },
-  "3209f407ed": {
-    "translation": "tre feer"
   },
   "32210b37e4": {
     "translation": "Tilføj link"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Redaktør"
-  },
-  "34abfe7a0d": {
-    "translation": "Sov alle"
   },
   "34e34c43ec": {
     "translation": "Styre"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Få hjælp til Discord"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Feer</strong> er kommet for at tegne i december måned."
-  },
   "46137245cd": {
     "translation": "Tak, fordi du hjælper os med at forbedre tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Ingen feer valgt"
   },
   "477df802ca": {
     "translation": "For at fortsætte redigeringen, kopier venligst filen til dine filer."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Indtast din e-mailadresse"
   },
-  "688761c83e": {
-    "translation": "Vågne"
-  },
   "68d390535e": {
     "translation": "Indtast din besked"
-  },
-  "6910bbdc82": {
-    "translation": "Feens navn"
   },
   "6a26f54883": {
     "translation": "Hjælp"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
   },
-  "77f0abf1aa": {
-    "translation": "Du er blevet inviteret til at <strong>tldraw feer</strong>"
-  },
   "7827371d1a": {
     "translation": "Denne anonyme tldraw multiplayer-fil er nu skrivebeskyttet. For at fortsætte med at redigere, skal du logge ind og kopiere den til dine filer."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Indsend et problem på GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "En fe er en lille fyr, der kan arbejde sammen med dig på lærredet. Feer kan arbejde alene eller som et hold. Der er ingen grænser for, hvad en fe kan gøre. Ingen ved, hvor de kommer fra."
   },
   "7b1329f5ca": {
     "translation": "Brugermanual"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Hård nulstilling"
   },
-  "88e83b88c5": {
-    "translation": "Køb fe-pakke"
-  },
   "8ad4303b83": {
     "translation": "Nej tak"
-  },
-  "8be569f100": {
-    "translation": "engangsbetaling"
   },
   "8c2d3d730c": {
     "translation": "Tjek din e-mail for en bekræftelseskode."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Filen bliver stor"
   },
-  "a8de4c27a8": {
-    "translation": "Ugentlig fe-grænse nået"
-  },
   "a917baaf14": {
     "translation": "Ny chat"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Delt af {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoom til fe"
   },
   "c2276c9127": {
     "translation": "Få mere at vide om deling."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Denne fil nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
   },
-  "ce1424d44b": {
-    "translation": "Du har allerede adgang til feer!"
-  },
   "cea291e45e": {
     "translation": "Få mere at vide om udgivelse."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Ugyldig URL til tldraw-fil"
-  },
-  "df6ff49394": {
-    "translation": "Feer er en <strong>midlertidig</strong> funktion. Den 1. januar 2026 fjernes alle feer fra applikationen. Måske vender de tilbage igen en dag. Dit køb gælder kun adgang til feer i december 2025."
   },
   "dfdb78a4e4": {
     "translation": "App debug flag"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "udvalgte"
-  },
-  "efde983742": {
-    "translation": "Tilkalde"
   },
   "f09b16bc5f": {
     "translation": "Vi bruger cookies til at holde dig logget ind, synkronisere dine filer og indsamle analyser, der kan hjælpe os med at forbedre tldraw."

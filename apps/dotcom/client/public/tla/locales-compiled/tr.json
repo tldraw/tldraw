@@ -69,12 +69,6 @@
       "value": "Dosya menüsü"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Periler"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Bugün"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Haftalık peri kullanım limitiniz doldu. Gelecek haftanın başında sıfırlanacak."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Uyumak"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "tldraw hakkında"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Perileriniz sizi bekliyor"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Hepsini çağır"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Dosyalarım"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Aralık ayı boyunca tldraw'a bir grup "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "peri"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " geldi. Daha fazla araştırma yapmak için periyi bulup üzerine tıklayın."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Vurgu Eksik"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "üç peri"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Düzenleyici"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Hepiniz uyuyun"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Discord'da yardım alın"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Periler"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " Aralık ayı için tldraw'a geldiler."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Hiçbir peri seçilmedi"
     }
   ],
   "477df802ca": [
@@ -621,22 +537,10 @@
       "value": "E-posta adresinizi girin"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Uyan"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Mesajınızı girin"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Peri'nin adı"
     }
   ],
   "6a26f54883": [
@@ -729,22 +633,6 @@
       "value": "Geçersiz istek"
     }
   ],
-  "77f0abf1aa": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw fairies"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": "'e davet edildiniz"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -761,12 +649,6 @@
     {
       "type": 0,
       "value": "GitHub'da bir sorun bildirin"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Peri, tuval üzerinde sizinle birlikte çalışabilen küçük bir adamdır. Periler tek başlarına veya ekip halinde çalışabilirler. Bir perinin yapabileceklerinin sınırı yoktur. Kimse nereden geldiğini bilmez."
     }
   ],
   "7b1329f5ca": [
@@ -891,22 +773,10 @@
       "value": "Sert sıfırlama"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Peri Paketini Satın Alın"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Hayır, teşekkürler"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "tek seferlik ödeme"
     }
   ],
   "8c2d3d730c": [
@@ -1139,12 +1009,6 @@
       "value": "Dosya büyüyor"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Haftalık peri limiti aşıldı"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1283,12 +1147,6 @@
       "value": " tarafından paylaşıldı"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Periye yakınlaştır"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1405,12 +1263,6 @@
       "value": "Bu dosya boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Zaten peri erişiminiz var!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1515,26 +1367,6 @@
     {
       "type": 0,
       "value": "Geçersiz tldraw dosya URL'si"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Periler "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "geçici"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " bir özelliktir. 1 Ocak 2026'da tüm periler uygulamadan kaldırılacak. Belki bir gün tekrar geri dönerler. Satın aldığınız ürün, yalnızca Aralık 2025'te perilere erişim içindir."
     }
   ],
   "dfdb78a4e4": [
@@ -1669,12 +1501,6 @@
     {
       "type": 0,
       "value": "seçilmiş"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Çağırmak"
     }
   ],
   "f09b16bc5f": [

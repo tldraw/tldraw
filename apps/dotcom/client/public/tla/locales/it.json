@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Menu file"
   },
-  "0befa10111": {
-    "translation": "Fate"
-  },
   "0d1f2bb523": {
     "translation": "Invia feedback"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Oggi"
   },
-  "23f879f41a": {
-    "translation": "Il limite settimanale di utilizzo delle fate è stato raggiunto. Verrà azzerato all'inizio della prossima settimana."
-  },
-  "243924bfd5": {
-    "translation": "Sonno"
-  },
   "2445e5e347": {
     "translation": "Crea gruppo"
   },
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
-  },
-  "269097080b": {
-    "translation": "Le tue fate ti stanno aspettando"
-  },
-  "275173253d": {
-    "translation": "Evoca tutti"
   },
   "284d5cd0dd": {
     "translation": "Modello:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "I miei file"
   },
-  "30cd34258a": {
-    "translation": "Un gruppo di <b>fate</b> è arrivato su tldraw per il mese di dicembre. Per approfondire, trova la fata e cliccaci sopra."
-  },
   "31246941ad": {
     "translation": "Per vedere questo file devi accedere."
   },
   "31418ce4ad": {
     "translation": "i18n: evidenziazione mancante"
-  },
-  "3209f407ed": {
-    "translation": "tre fate"
   },
   "32210b37e4": {
     "translation": "Aggiungi collegamento"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Dormire tutto"
   },
   "34e34c43ec": {
     "translation": "Maneggio"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Chiedi aiuto su Discord"
   },
-  "45b43c2d28": {
-    "translation": "Le <strong>fate</strong> sono arrivate a tldraw per il mese di dicembre."
-  },
   "46137245cd": {
     "translation": "Grazie per averci aiutato a migliorare tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Nessuna fata selezionata"
   },
   "477df802ca": {
     "translation": "Per continuare la modifica, copia il file nei tuoi file."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Inserisci il tuo indirizzo email"
   },
-  "688761c83e": {
-    "translation": "Veglia"
-  },
   "68d390535e": {
     "translation": "Inserisci il tuo messaggio"
-  },
-  "6910bbdc82": {
-    "translation": "Nome della fata"
   },
   "6a26f54883": {
     "translation": "Aiuto"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Richiesta non valida."
   },
-  "77f0abf1aa": {
-    "translation": "Sei stato invitato a <strong>tldraw fairies</strong>"
-  },
   "7827371d1a": {
     "translation": "Questo file multigiocatore tldraw anonimo è ora di sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Segnala un problema su GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Una fata è un piccolo essere che può lavorare con te sulla tela. Le fate possono lavorare da sole o in gruppo. Non c'è limite a ciò che una fata può fare. Nessuno sa da dove vengano."
   },
   "7b1329f5ca": {
     "translation": "Manuale utente"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Ripristino completo"
   },
-  "88e83b88c5": {
-    "translation": "Acquista il pacchetto Fairy"
-  },
   "8ad4303b83": {
     "translation": "No grazie"
-  },
-  "8be569f100": {
-    "translation": "pagamento una tantum"
   },
   "8c2d3d730c": {
     "translation": "Controlla la tua email per un codice di verifica."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Il file sta diventando grande"
   },
-  "a8de4c27a8": {
-    "translation": "Limite settimanale di fate raggiunto"
-  },
   "a917baaf14": {
     "translation": "Nuova chat"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Condivisi da {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoom su fata"
   },
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Questo file sta per raggiungere il limite di dimensione. Valuta la possibilità di rimuovere parte del contenuto o di crearne uno nuovo."
   },
-  "ce1424d44b": {
-    "translation": "Hai già accesso alle fate!"
-  },
   "cea291e45e": {
     "translation": "Maggiori informazioni sulla pubblicazione."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "URL del file tldraw non valido"
-  },
-  "df6ff49394": {
-    "translation": "Le fate sono una funzionalità <strong>temporanea</strong>. Il 1° gennaio 2026, tutte le fate saranno rimosse dall'applicazione. Forse torneranno un giorno. Il tuo acquisto è valido solo per l'accesso alle fate per dicembre 2025."
   },
   "dfdb78a4e4": {
     "translation": "Flag di debug dell'app"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "selezionato"
-  },
-  "efde983742": {
-    "translation": "Convocare"
   },
   "f09b16bc5f": {
     "translation": "Utilizziamo i cookie per mantenerti connesso, per sincronizzare i tuoi file e per raccogliere analisi che ci aiutano a migliorare tldraw."

@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Tiedosto-valikko"
   },
-  "0befa10111": {
-    "translation": "Keijut"
-  },
   "0d1f2bb523": {
     "translation": "Lähetä palautetta"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Tänään"
   },
-  "23f879f41a": {
-    "translation": "Viikoittainen keijujen käyttökiintiösi on saavutettu. Se nollautuu ensi viikon alussa."
-  },
-  "243924bfd5": {
-    "translation": "Nukkua"
-  },
   "2445e5e347": {
     "translation": "Luo ryhmä"
   },
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
-  },
-  "269097080b": {
-    "translation": "Keijut odottavat"
-  },
-  "275173253d": {
-    "translation": "Kutsu kaikki"
   },
   "284d5cd0dd": {
     "translation": "Malli:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Omat tiedostoni"
   },
-  "30cd34258a": {
-    "translation": "Parvi <b>keijuja</b> on saapunut arpomaan joulukuuta. Jos haluat tutkia asiaa tarkemmin, etsi keiju ja napsauta sitä."
-  },
   "31246941ad": {
     "translation": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
   },
   "31418ce4ad": {
     "translation": "i18n: Korosta puuttuu"
-  },
-  "3209f407ed": {
-    "translation": "kolme keijua"
   },
   "32210b37e4": {
     "translation": "Lisää linkki"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Toimittaja"
-  },
-  "34abfe7a0d": {
-    "translation": "Nuku kaikki"
   },
   "34e34c43ec": {
     "translation": "Hallitse"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Hanki apua Discordissa"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Keijut</strong> ovat tulleet piirtämään joulukuun viettoon."
-  },
   "46137245cd": {
     "translation": "Kiitos, että autat meitä parantamaan tldraw:ta!"
-  },
-  "465a8a92a4": {
-    "translation": "Ei valittuja keijuja"
   },
   "477df802ca": {
     "translation": "Jatkaaksesi muokkaamista, kopioi tiedosto tiedostoihisi."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Anna sähköpostiosoitteesi"
   },
-  "688761c83e": {
-    "translation": "Herätä"
-  },
   "68d390535e": {
     "translation": "Kirjoita viestisi"
-  },
-  "6910bbdc82": {
-    "translation": "Keijun nimi"
   },
   "6a26f54883": {
     "translation": "Auttaa"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Virheellinen pyyntö."
   },
-  "77f0abf1aa": {
-    "translation": "Sinut on kutsuttu <strong>tldraw-keijuihin</strong>"
-  },
   "7827371d1a": {
     "translation": "Tämä anonyymi tldraw-moninpelitiedosto on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Lähetä ongelma GitHubissa"
-  },
-  "79cc22ac6b": {
-    "translation": "Keiju on pieni hahmo, joka voi työskennellä kanssasi kankaalla. Keijut voivat työskennellä yksin tai tiiminä. Keijun kyvyillä ei ole rajoja. Kukaan ei tiedä, mistä he ovat kotoisin."
   },
   "7b1329f5ca": {
     "translation": "Käyttöohje"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Pakkolunastus"
   },
-  "88e83b88c5": {
-    "translation": "Osta keijupaketti"
-  },
   "8ad4303b83": {
     "translation": "Ei kiitos"
-  },
-  "8be569f100": {
-    "translation": "kertaluonteinen maksu"
   },
   "8c2d3d730c": {
     "translation": "Tarkista sähköpostistasi vahvistuskoodi."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Tiedosto kasvaa suureksi"
   },
-  "a8de4c27a8": {
-    "translation": "Viikoittainen keijuraja saavutettu"
-  },
   "a917baaf14": {
     "translation": "Uusi keskustelu"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Jakaja {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoomaa keijuun"
   },
   "c2276c9127": {
     "translation": "Lisätietoja jakamisesta."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Tämä tiedosto lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
   },
-  "ce1424d44b": {
-    "translation": "Sinulla on jo keijujen käyttöoikeus!"
-  },
   "cea291e45e": {
     "translation": "Lisätietoja julkaisemisesta."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Virheellinen tldraw-tiedoston URL-osoite"
-  },
-  "df6ff49394": {
-    "translation": "Keijut ovat <strong>väliaikainen</strong> ominaisuus. Kaikki keijut poistetaan sovelluksesta 1. tammikuuta 2026. Ehkä ne palaavat jonain päivänä. Ostoksesi oikeuttaa keijujen käyttöoikeuteen vain joulukuussa 2025."
   },
   "dfdb78a4e4": {
     "translation": "Sovelluksen virheenkorjausliput"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "valittu"
-  },
-  "efde983742": {
-    "translation": "Kutsu"
   },
   "f09b16bc5f": {
     "translation": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldrawin parantamiseksi."

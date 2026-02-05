@@ -69,12 +69,6 @@
       "value": "Arkivmenyn"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Älvor"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Idag"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Din veckogräns för användning av älvor har nåtts. Den återställs i början av nästa vecka."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Sova"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "Om tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Dina älvor väntar"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Kalla fram alla"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Mina filer"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "En fladdrande mängd "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "älvor"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " har kommit till tldraw under december månad. För att undersöka saken närmare, hitta fen och klicka på den."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Markering saknas"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "tre älvor"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Redigeringsverktyg"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Sov alla"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Få hjälp med Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Féer"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " har kommit för att dra i december månad."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Tack för att du hjälper oss att förbättra tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Inga älvor valda"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Ange din e-postadress"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Vakna"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Ange ditt meddelande"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Féens namn"
     }
   ],
   "6a26f54883": [
@@ -733,22 +637,6 @@
       "value": "Ogiltig begäran."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Du har blivit inbjuden till att "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "draw älvor"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +653,6 @@
     {
       "type": 0,
       "value": "Skicka ett problem på GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "En älva är en liten kille som kan arbeta med dig på duken. Älvor kan arbeta ensamma eller i team. Det finns ingen gräns för vad en älva kan göra. Ingen vet var de kommer ifrån."
     }
   ],
   "7b1329f5ca": [
@@ -899,22 +781,10 @@
       "value": "Hård återställning"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Köp älvpaket"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Nej tack"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "engångsbetalning"
     }
   ],
   "8c2d3d730c": [
@@ -1147,12 +1017,6 @@
       "value": "Filen blir stor"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Veckogränsen för feer nådd"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1295,12 +1159,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zooma till älva"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1417,12 +1275,6 @@
       "value": "Den här filen närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Du har redan tillgång till älvor!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1527,26 +1379,6 @@
     {
       "type": 0,
       "value": "Ogiltig URL för tldraw-fil"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Älvor är en "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tillfällig"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " funktion. Den 1 januari 2026 kommer alla älvor att tas bort från appen. De kanske återvänder någon dag. Ditt köp gäller endast åtkomst till älvor i december 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1681,12 +1513,6 @@
     {
       "type": 0,
       "value": "vald"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Kalla"
     }
   ],
   "f09b16bc5f": [

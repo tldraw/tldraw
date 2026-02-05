@@ -69,12 +69,6 @@
       "value": "Menu file"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Peri"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Hari ini"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Batas penggunaan peri mingguan Anda telah tercapai. Batas tersebut akan direset pada awal minggu depan."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Tidur"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "Tentang tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Peri-peri Anda sedang menunggu"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Panggil semua"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "File saya"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Sekumpulan "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "peri"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " telah datang untuk menggambar di bulan Desember. Untuk menyelidiki lebih lanjut, temukan peri tersebut dan klik."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Sorotan Tidak Ada"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "tiga peri"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Tidur semuanya"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Dapatkan bantuan di Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Peri"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " telah datang untuk menggambar di bulan Desember."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Terima kasih telah membantu kami meningkatkan tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Tidak ada peri yang dipilih"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Masukkan alamat email Anda"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Bangun"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Masukkan pesan Anda"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Nama peri"
     }
   ],
   "6a26f54883": [
@@ -733,22 +637,6 @@
       "value": "Permintaan tidak valid."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Anda telah diundang untuk "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "menggambar peri"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +653,6 @@
     {
       "type": 0,
       "value": "Kirimkan masalah di GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Peri adalah makhluk kecil yang bisa bekerja bersamamu di atas kanvas. Peri bisa bekerja sendiri atau sebagai tim. Tak ada batasan untuk apa yang bisa dilakukan peri. Tak seorang pun tahu dari mana asal mereka."
     }
   ],
   "7b1329f5ca": [
@@ -899,22 +781,10 @@
       "value": "Reset keras"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Beli Paket Peri"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Tidak, terima kasih"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "pembayaran satu kali"
     }
   ],
   "8c2d3d730c": [
@@ -1147,12 +1017,6 @@
       "value": "File menjadi besar"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Batas peri mingguan tercapai"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1287,12 +1151,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Perbesar ke peri"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1409,12 +1267,6 @@
       "value": "Berkas ini hampir mencapai batas ukurannya. Pertimbangkan untuk menghapus sebagian konten atau membuat berkas baru."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Anda sudah memiliki akses peri!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1519,26 +1371,6 @@
     {
       "type": 0,
       "value": "URL file tldraw tidak valid"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Peri adalah fitur "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "sementara"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". Pada 1 Januari 2026, semua peri akan dihapus dari aplikasi. Mungkin mereka akan kembali lagi suatu hari nanti. Pembelian Anda hanya untuk akses ke peri selama Desember 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1673,12 +1505,6 @@
     {
       "type": 0,
       "value": "terpilih"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Memanggil"
     }
   ],
   "f09b16bc5f": [
