@@ -62,15 +62,23 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	// Track the previous assetId to detect when the asset itself changes
 	const previousAssetId = useRef<TLAssetId | null>(null)
 
+	// Track whether we should skip debouncing for the next immediate resolution
+	const shouldSkipDebounce = useRef(false)
+
 	// The last URL that we've seen for the shape
 	const previousUrl = useRef<string | null>(null)
 
 	useEffect(() => {
-		if (!assetId) return
-
 		// Check if the assetId changed (not just resolution/scale updates)
 		const assetIdChanged = previousAssetId.current !== assetId
 		previousAssetId.current = assetId
+
+		// Set flag to skip debouncing for the next immediate resolution
+		if (assetIdChanged) {
+			shouldSkipDebounce.current = true
+		}
+
+		if (!assetId) return
 
 		let isCancelled = false
 		let cancelDebounceFn: (() => void) | undefined
@@ -116,7 +124,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 			// Debounce fetching potentially multiple image variations (e.g. during zoom or resize).
 			// Don't debounce when the asset itself changes - resolve immediately.
-			if (didAlreadyResolve.current && !assetIdChanged) {
+			if (didAlreadyResolve.current && !shouldSkipDebounce.current) {
 				let tick = 0
 
 				const resolveAssetAfterAWhile = () => {
@@ -136,6 +144,8 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				// Cancel any pending debounce to prevent stale updates.
 				cancelDebounceFn?.()
 				resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
+				// Reset the flag after immediate resolution so subsequent updates are debounced
+				shouldSkipDebounce.current = false
 			}
 		})
 
