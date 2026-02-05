@@ -4343,9 +4343,13 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
     fromShape: {
         type: TLShape['type'];
     } | TLShape;
+    // @deprecated
+    fromShapeType: TLShape['type'];
     toShape: {
         type: TLShape['type'];
     } | TLShape;
+    // @deprecated
+    toShapeType: TLShape['type'];
 }
 
 // @public (undocumented)

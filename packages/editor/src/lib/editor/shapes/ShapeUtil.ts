@@ -50,6 +50,16 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
 	toShape: TLShape | { type: TLShape['type'] }
 	/** The type of binding. */
 	bindingType: string
+	/**
+	 * The type of shape referenced by the `fromId` of the binding.
+	 * @deprecated Use `fromShape.type` instead.
+	 */
+	fromShapeType: TLShape['type']
+	/**
+	 * The type of shape referenced by the `toId` of the binding.
+	 * @deprecated Use `toShape.type` instead.
+	 */
+	toShapeType: TLShape['type']
 }
 
 /**

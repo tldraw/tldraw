@@ -6256,6 +6256,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			fromShape: typeof fromShape === 'string' ? { type: fromShape } : fromShape,
 			toShape: typeof toShape === 'string' ? { type: toShape } : toShape,
 			bindingType,
+			fromShapeType,
+			toShapeType,
 		}
 
 		if (fromShapeType === toShapeType) {
