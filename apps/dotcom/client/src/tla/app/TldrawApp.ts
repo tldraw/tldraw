@@ -261,10 +261,15 @@ export class TldrawApp {
 		if (useProperZero) {
 			// Ensure user exists in DB before Zero can query
 			const token = await this.getToken()
-			await fetch(`/api/app/${this.userId}/init`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}` },
-			})
+			if (!token) {
+				console.error('No auth token available for init')
+			} else {
+				const res = await fetch(`/api/app/${this.userId}/init`, {
+					method: 'POST',
+					headers: { Authorization: `Bearer ${token}` },
+				})
+				if (!res.ok) console.error(`Init failed: ${res.status}`)
+			}
 		}
 		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
