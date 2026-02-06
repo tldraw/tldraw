@@ -172,6 +172,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				)
 			}
 		})
+		.post('/app/:userId/init', () => new Response('ok', { status: 200 }))
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
 	// Handle a request to the Durable Object.
