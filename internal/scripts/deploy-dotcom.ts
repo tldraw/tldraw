@@ -121,7 +121,7 @@ if (previewId) {
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
 }
 
-const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
+const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/mutate`
 const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/query`
 
 async function main() {

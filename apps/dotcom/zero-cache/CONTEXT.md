@@ -21,11 +21,37 @@ The primary synchronization engine that provides:
   upstreamDB: postgresConnectionString,        // Source of truth
   cvrDB: postgresConnectionString,             // Conflict resolution database
   changeDB: postgresConnectionString,          // Change log database
-  authJWKSURL: "/.well-known/jwks.json",       // JWT verification
   mutateURL: "/app/zero/mutate",               // Mutation endpoint
+  queryURL: "/app/zero/query",                 // Query endpoint
   lazyStartup: true                            // Performance optimization
 }
 ```
+
+#### Authentication (Zero 0.24+)
+
+Zero no longer validates JWTs via JWKS. Instead, auth tokens are passed through to the mutate/query endpoints via `Authorization: Bearer <token>` header:
+
+```
+Client                          Zero Cache                      Sync Worker
+   │                                 │                                │
+   │──auth: token (WebSocket)───────►│                                │
+   │                                 │──Authorization: Bearer token──►│
+   │                                 │   (HTTP to mutate/query)       │
+   │                                 │                                │
+   │                                 │◄─────────401 Unauthorized──────│
+   │◄──needs-auth state─────────────│                                │
+   │                                 │                                │
+   │──z.connection.connect({auth})──►│  (reconnect with fresh token) │
+```
+
+**Token flow:**
+1. Client passes Clerk JWT via `auth` option to Zero
+2. Zero forwards token in `Authorization: Bearer <token>` header to mutate/query endpoints
+3. Sync-worker validates via `clerk.authenticateRequest()`
+4. On 401, Zero transitions to `needs-auth` state
+5. Client refreshes token and reconnects
+
+This allows flexibility in auth mechanisms (JWT, opaque tokens, cookies).
 
 #### PostgreSQL database
 
@@ -309,8 +335,8 @@ ZERO_REPLICA_FILE = "/data/sync-replica.db"
 ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
 ZERO_CVR_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
 ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
-ZERO_AUTH_JWKS_URL = "https://clerk.staging.tldraw.com/.well-known/jwks.json"
-ZERO_PUSH_URL = "__ZERO_PUSH_URL"
+ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
+ZERO_QUERY_URL = "__ZERO_QUERY_URL"
 ZERO_LAZY_STARTUP = 'true'
 ```
 

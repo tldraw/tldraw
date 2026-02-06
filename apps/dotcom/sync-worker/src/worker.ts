@@ -176,8 +176,11 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
-	.post('/app/zero/push', async (req, env) => {
-		const auth = await requireAuth(req, env)
+	.post('/app/zero/mutate', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
 			'debug'
@@ -186,7 +189,10 @@ const router = createRouter<Environment>()
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {
-		const auth = await requireAuth(req, env)
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
 		const result = await handleQueryRequest(
 			(name, args) => {
 				const query = mustGetQuery(queries, name)
