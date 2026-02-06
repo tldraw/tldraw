@@ -62,6 +62,9 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "2319670994": {
+    "translation": "Been a long time!"
+  },
   "2445e5e347": {
     "translation": "Create group"
   },
@@ -420,6 +423,9 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "b995b72679": {
+    "translation": "You've been working on this file for a while, maybe consider saving it by creating an account or logging in!"
+  },
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
@@ -473,6 +479,9 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
+  },
+  "d01bd00f78": {
+    "translation": "This file is getting quite large, maybe consider saving it by creating an account or logging in!"
   },
   "d3d2e61733": {
     "translation": "Close"

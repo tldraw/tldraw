@@ -15,6 +15,7 @@ import {
 	usePassThroughWheelEvents,
 	useTranslation,
 } from 'tldraw'
+import { LocalFileHandler } from '../../../components/LocalFileHandler/LocalFileHandler'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -47,6 +48,7 @@ export function TlaEditorTopRightPanel({
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
+				<LocalFileHandler />
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton

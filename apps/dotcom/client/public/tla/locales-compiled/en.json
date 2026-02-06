@@ -129,6 +129,12 @@
       "value": "Today"
     }
   ],
+  "2319670994": [
+    {
+      "type": 0,
+      "value": "Been a long time!"
+    }
+  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -937,6 +943,12 @@
       "value": "Copy link"
     }
   ],
+  "b995b72679": [
+    {
+      "type": 0,
+      "value": "You've been working on this file for a while, maybe consider saving it by creating an account or logging in!"
+    }
+  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1097,6 +1109,12 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
+    }
+  ],
+  "d01bd00f78": [
+    {
+      "type": 0,
+      "value": "This file is getting quite large, maybe consider saving it by creating an account or logging in!"
     }
   ],
   "d3d2e61733": [
