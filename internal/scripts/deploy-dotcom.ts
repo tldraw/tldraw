@@ -93,7 +93,7 @@ const env = makeEnv([
 ])
 
 const deployZero =
-	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode' | 'sst')
+	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 const flyioAppName =
 	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
@@ -209,8 +209,6 @@ function getZeroUrl() {
 		case 'preview': {
 			if (deployZero === 'flyio' || deployZero === 'flyio-multinode') {
 				return `https://${flyioAppName}.fly.dev/`
-			} else if (deployZero === 'sst') {
-				return `https://${previewId}.zero.tldraw.com/`
 			} else {
 				return 'https://zero-backend-not-deployed.tldraw.com'
 			}
@@ -402,23 +400,6 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	)
 }
 
-async function deployZeroViaSst() {
-	const stage = previewId ? previewId : env.TLDRAW_ENV
-	await exec('yarn', [
-		'sst',
-		'secret',
-		'set',
-		'PostgresConnectionString',
-		env.BOTCOM_POSTGRES_CONNECTION_STRING,
-		'--stage',
-		stage,
-	])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroMutateUrl', zeroMutateUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroQueryUrl', zeroQueryUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'unlock', '--stage', stage])
-	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
-}
-
 function updateFlyioToml(appName: string): void {
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
@@ -580,8 +561,6 @@ async function deployZeroBackend() {
 		await deployZeroViaFlyIo()
 	} else if (deployZero === 'flyio-multinode') {
 		await deployZeroViaFlyIoMultiNode()
-	} else if (deployZero === 'sst') {
-		await deployZeroViaSst()
 	}
 }
 
