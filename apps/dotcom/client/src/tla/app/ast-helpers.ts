@@ -81,18 +81,7 @@ export function evaluateCondition(
 			return (rowValue as number) >= (value as number)
 		case '<=':
 			return (rowValue as number) <= (value as number)
-		case 'IS':
-		case 'IS NOT':
-			throw new Error(`Unsupported operator: ${op} is not implemented in polyfill`)
-		case 'LIKE':
-		case 'NOT LIKE':
-		case 'ILIKE':
-		case 'NOT ILIKE':
-			throw new Error(`Unsupported operator: ${op} is not implemented in polyfill`)
-		case 'IN':
-		case 'NOT IN':
-			throw new Error(`Unsupported operator: ${op} is not implemented in polyfill`)
 		default:
-			throw new Error(`Unknown operator: ${op}. Supported: =, !=, >, <, >=, <=`)
+			throw new Error(`Unsupported operator: ${op}`)
 	}
 }

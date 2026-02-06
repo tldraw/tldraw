@@ -106,8 +106,8 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 				`select count(*) from "file" where "isDeleted" = false and ("ownerId" = $1 OR "owningGroupId" = $1)`,
 				[userId]
 			)
-		) as { count: number }[]
-		assert(rows[0].count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
+		) as { count: string }[]
+		assert(Number(rows[0].count) < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
 	}
 }
 
@@ -766,10 +766,15 @@ export function createMutators(userId: string) {
 				operation,
 			}: { fileId: string; groupId: string; operation: DragFileOperation }
 		) => {
-			// TODO: auth
+			await assertUserHasFlag(tx, userId, 'groups_backend')
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			if (!file) return
+			await assertUserCanAccessFile(tx, userId, file)
+			await assertUserIsGroupMember(tx, userId, groupId)
 			const finalGroupId = operation.move?.targetId ?? groupId
+			if (finalGroupId !== groupId) {
+				await assertUserIsGroupMember(tx, userId, finalGroupId)
+			}
 			const isFileLink = file.owningGroupId !== groupId
 
 			// Execute move operation first (if any)

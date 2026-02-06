@@ -40,6 +40,8 @@ import { getClerkClient } from './utils/tla/getAuth'
 import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
 import { ZMutationError } from './zero/ZMutationError'
 
+const ALLOWED_OPS = new Set(['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT'])
+
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
@@ -237,7 +239,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		if (!(table in schema.tables)) {
 			throw new Error(`Unknown table: ${table}`)
 		}
-		const whereConditions: string[] = []
 		const params: unknown[] = []
 		let paramIndex = 1
 
@@ -257,8 +258,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						throw new Error(`Unsupported right operand type: ${condition.right.type}`)
 					}
 					const field = quoteIdentifier(condition.left.name)
-					const ALLOWED_OPS = ['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT']
-					if (!ALLOWED_OPS.includes(condition.op)) {
+					if (!ALLOWED_OPS.has(condition.op)) {
 						throw new Error(`Unsupported operator in server query executor: ${condition.op}`)
 					}
 					params.push(condition.right.value)
@@ -271,11 +271,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		}
 
-		if (ast.where) {
-			whereConditions.push(processCondition(ast.where))
-		}
-
-		const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+		const whereClause = ast.where ? `WHERE ${processCondition(ast.where)}` : ''
 		const sql = `SELECT * FROM ${quoteIdentifier(table)} ${whereClause}`
 		const res = await client.query(sql, params)
 

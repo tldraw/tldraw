@@ -178,25 +178,31 @@ export class Zero {
 	}
 
 	/**
-	 * Materialize a query built with createBuilder(schema).
-	 * Extracts the AST and creates a reactive view over the internal store.
-	 * Also handles QueryRequest from synced queries by evaluating with context.
+	 * Resolve a query or QueryRequest into an AST.
+	 * Handles QueryRequest from synced queries by evaluating with context.
 	 */
-	materialize<T>(query: unknown) {
-		// Handle QueryRequest from synced queries - extract the actual query
+	private resolveQuery(query: unknown): AST {
 		let actualQuery = query
 		const maybeQueryRequest = query as {
 			query?: { fn?(opts: unknown): unknown }
 			args?: unknown
 		}
 		if (maybeQueryRequest.query?.fn) {
-			// This is a QueryRequest - call fn with context to get the actual Query
 			actualQuery = maybeQueryRequest.query.fn({
 				args: maybeQueryRequest.args,
 				ctx: { userId: this.opts.userId },
 			})
 		}
-		const ast = (actualQuery as { ast: AST }).ast
+		return (actualQuery as { ast: AST }).ast
+	}
+
+	/**
+	 * Materialize a query built with createBuilder(schema).
+	 * Extracts the AST and creates a reactive view over the internal store.
+	 * Also handles QueryRequest from synced queries by evaluating with context.
+	 */
+	materialize<T>(query: unknown) {
+		const ast = this.resolveQuery(query)
 		const data$ = computed(`${ast.table} materialize`, () => this.executeAST(ast))
 		let unlisten = () => {}
 		return {
@@ -225,20 +231,7 @@ export class Zero {
 	 * Preload a query - waits for initial data to be available.
 	 */
 	preload(query: unknown): { cleanup(): void; complete: Promise<void> } {
-		// Handle QueryRequest from synced queries - extract the actual query
-		let actualQuery = query
-		const maybeQueryRequest = query as {
-			query?: { fn?(opts: unknown): unknown }
-			args?: unknown
-		}
-		if (maybeQueryRequest.query?.fn) {
-			actualQuery = maybeQueryRequest.query.fn({
-				args: maybeQueryRequest.args,
-				ctx: { userId: this.opts.userId },
-			})
-		}
-		// Validate it's a proper query with AST
-		const _ = (actualQuery as { ast: AST }).ast
+		this.resolveQuery(query)
 
 		if (this.store.getFullData()) {
 			return { cleanup: () => {}, complete: Promise.resolve() }
@@ -251,6 +244,7 @@ export class Zero {
 				if (this.store.getFullData()) {
 					clearInterval(interval!)
 					interval = null
+					cancelled = true
 					resolve()
 				}
 			}, 10)
