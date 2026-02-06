@@ -42,6 +42,8 @@ const localFileCache = new WeakMap<TLAsset, { file: File; url: string }>()
 // this is used by our multiplayer asset store to load slurped assets from indexedDb
 // temporarily while they are being uploaded to the server.
 export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: string } | null> {
+	if (!asset.props.src) return null
+
 	const existing = localFileCache.get(asset)
 	if (existing) return existing
 	const slurpPersistenceKey = getGlobalSlurpPersistenceKey()
@@ -49,7 +51,7 @@ export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: 
 
 	const db = new LocalIndexedDb(slurpPersistenceKey)
 	try {
-		const file = await db.getAsset(asset.props.src || asset.id)
+		const file = await db.getAsset(asset.props.src)
 		if (!file) {
 			console.error(
 				`Failed to find local file for asset ({id: ${asset.id}, src ${asset.props.src}})`
