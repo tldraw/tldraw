@@ -40,8 +40,7 @@
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
+		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
 		"@types/react": "^19.2.7",

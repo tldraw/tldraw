@@ -6,8 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the tldraw monorepo - an infinite canvas SDK for React applications. It's organized using yarn workspaces with packages for the core editor, UI components, shapes, tools, and supporting infrastructure.
 
-**Important**: There are CONTEXT.md files throughout this repository designed specifically for AI agents. Always read the relevant CONTEXT.md files to understand packages and their architecture.
-
 ## Setup
 
 Enable corepack to ensure correct yarn version:
@@ -25,8 +23,6 @@ npm i -g corepack && yarn
 - `yarn dev-docs` - Start documentation site development
 - `yarn dev-vscode` - Start VSCode extension development
 - `yarn dev-template <template name>` - Runs a template
-- `yarn context` - Find and display nearest CONTEXT.md file (supports -v, -r, -u flags)
-- `yarn refresh-context` - Update CONTEXT.md files using Claude Code CLI
 
 ### Building
 
@@ -241,7 +237,6 @@ Uses `lazyrepo` for incremental builds with caching:
   - Bold labels in lists (**Label**:)
   - Documentation titles
   - Code comments describing features
-  - CONTEXT.md files
 
 ## Important instruction reminders
 
