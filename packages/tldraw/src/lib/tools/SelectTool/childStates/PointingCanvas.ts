@@ -15,6 +15,12 @@ export class PointingCanvas extends StateNode {
 		}
 	}
 
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (info.phase === 'down' && this.editor.getInstanceState().isCoarsePointer) {
+			this.parent.transition('one_finger_zooming', info)
+		}
+	}
+
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('brushing', info)
