@@ -36,7 +36,7 @@ Holding ctrl/command toggles snapping.
 
 The issue with modifier keys is that they create a race condition. If you try to release the mouse button and a modifier key at the same time, the events will almost always arrive separately.
 
-If the modifier key-up arrives even slightly before the mouse-up, then we lose the modifier’s effect. Without addressing this, you would strain and carefully lift one key after the other.
+If the modifier key-up arrives even slightly before the mouse-up, then we lose the modifier’s effect. Without addressing this, users would have to strain and carefully lift one key after the other.
 
 ## Small delay
 
@@ -75,13 +75,13 @@ In fact, if you’re still holding onto the shape after this, it’s possible to
 
 ## Independent timeouts
 
-Modifier keys can also be composed together. Holding option while dragging a shape and then pressing command will create a duplicate and align that duplicate to the axes.
+In tldraw, modifier keys can be composed together. For example, holding option while dragging a shape and then pressing command will create a duplicate and align that duplicate to the axes.
 
 [opt+cmd.mp4](attachment:25683870-24b0-4691-87e3-d0c6458520c5:optcmd.mp4)
 
 For this, timeouts need to be independent; each modifier tracks its own timeout, and each key gets a 150ms delay from when it releases.
 
-```markdown
+```
 if (info.shiftKey) {
 clearTimeout(this.\_shiftKeyTimeout)
 this.\_shiftKeyTimeout = -1
