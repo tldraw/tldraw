@@ -266,9 +266,7 @@ describe('evaluateCondition', () => {
 				op: 'IS' as const,
 				right: { type: 'literal' as const, value: null },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported operator: IS is not implemented in polyfill'
-			)
+			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: IS')
 		})
 
 		it('should throw for IS NOT operator', () => {
@@ -278,9 +276,7 @@ describe('evaluateCondition', () => {
 				op: 'IS NOT' as const,
 				right: { type: 'literal' as const, value: null },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported operator: IS NOT is not implemented in polyfill'
-			)
+			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: IS NOT')
 		})
 
 		it('should throw for LIKE operator', () => {
@@ -290,9 +286,7 @@ describe('evaluateCondition', () => {
 				op: 'LIKE' as const,
 				right: { type: 'literal' as const, value: '%Alice%' },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported operator: LIKE is not implemented in polyfill'
-			)
+			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: LIKE')
 		})
 
 		it('should throw for ILIKE operator', () => {
@@ -302,9 +296,7 @@ describe('evaluateCondition', () => {
 				op: 'ILIKE' as const,
 				right: { type: 'literal' as const, value: '%alice%' },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported operator: ILIKE is not implemented in polyfill'
-			)
+			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: ILIKE')
 		})
 
 		it('should throw for IN operator', () => {
@@ -314,9 +306,7 @@ describe('evaluateCondition', () => {
 				op: 'IN' as const,
 				right: { type: 'literal' as const, value: ['Alice', 'Bob'] },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported operator: IN is not implemented in polyfill'
-			)
+			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: IN')
 		})
 
 		it('should throw for NOT IN operator', () => {
@@ -326,9 +316,7 @@ describe('evaluateCondition', () => {
 				op: 'NOT IN' as const,
 				right: { type: 'literal' as const, value: ['Bob', 'Charlie'] },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported operator: NOT IN is not implemented in polyfill'
-			)
+			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: NOT IN')
 		})
 
 		it('should throw for static parameter references', () => {
@@ -360,7 +348,7 @@ describe('evaluateCondition', () => {
 				right: { type: 'literal' as const, value: 'test' },
 			}
 			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unknown operator: UNKNOWN. Supported: =, !=, >, <, >=, <='
+				'Unsupported operator: UNKNOWN'
 			)
 		})
 	})
