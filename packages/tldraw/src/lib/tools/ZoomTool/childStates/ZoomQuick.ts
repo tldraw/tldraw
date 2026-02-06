@@ -101,16 +101,19 @@ export class ZoomQuick extends StateNode {
 		const { editor } = this
 
 		switch (this.qzState) {
-			case 'idle':
+			case 'idle': {
+				const zoomLevel = editor.getZoomLevel()
 				if (
-					Vec.Dist2(editor.inputs.getCurrentPagePoint(), this.initialPp) >
-					editor.options.dragDistanceSquared
+					Vec.Dist2(editor.inputs.getCurrentPagePoint(), this.initialPp) * zoomLevel >
+					editor.options.dragDistanceSquared / zoomLevel
 				) {
 					this.qzState = 'moving'
 					this.updateBrush()
 				}
 				break
+			}
 			case 'moving':
+				if (editor.getCameraOptions().isLocked) break
 				editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 				break
 		}
