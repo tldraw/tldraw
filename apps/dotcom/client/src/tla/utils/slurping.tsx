@@ -49,8 +49,13 @@ export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: 
 
 	const db = new LocalIndexedDb(slurpPersistenceKey)
 	try {
-		const file = await db.getAsset(asset.id)
-		if (!file) return null
+		const file = await db.getAsset(asset.props.src || asset.id)
+		if (!file) {
+			console.error(
+				`Failed to find local file for asset ({id: ${asset.id}, src ${asset.props.src}})`
+			)
+			return null
+		}
 		const url = URL.createObjectURL(file)
 		const result = { file, url }
 		localFileCache.set(asset, result)
