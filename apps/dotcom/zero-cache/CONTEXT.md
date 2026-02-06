@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `zero-cache` is a specialized database caching and synchronization layer for tldraw's real-time collaboration system. It serves as an intermediary between the PostgreSQL database and client applications, providing efficient data synchronization using Rocicorp's Zero framework. The system enables real-time, offline-first synchronization of user data, file metadata, and collaborative state across all tldraw applications.
+The `zero-cache` is a specialized database caching and synchronization layer for tldraw's real-time collaboration system. It serves as an intermediary between the PostgreSQL database and client applications, providing efficient data synchronization using Rocicorp's Zero framework (v0.25.12). The system enables real-time, offline-first synchronization of user data, file metadata, and collaborative state across all tldraw applications.
 
 ## Architecture
 
@@ -10,7 +10,7 @@ The `zero-cache` is a specialized database caching and synchronization layer for
 
 The zero-cache system consists of several integrated components:
 
-#### Zero server (Rocicorp Zero)
+#### Zero server (Rocicorp Zero 0.25.12)
 
 The primary synchronization engine that provides:
 
@@ -45,6 +45,7 @@ Client                          Zero Cache                      Sync Worker
 ```
 
 **Token flow:**
+
 1. Client passes Clerk JWT via `auth` option to Zero
 2. Zero forwards token in `Authorization: Bearer <token>` header to mutate/query endpoints
 3. Sync-worker validates via `clerk.authenticateRequest()`
@@ -52,6 +53,52 @@ Client                          Zero Cache                      Sync Worker
 5. Client refreshes token and reconnects
 
 This allows flexibility in auth mechanisms (JWT, opaque tokens, cookies).
+
+#### Synced Queries (permissions model)
+
+As of Zero 0.25.x, permissions are no longer defined via `definePermissions()`. Instead, permissions are enforced via **Synced Queries** defined in `packages/dotcom-shared/src/queries.ts`:
+
+```typescript
+import { createBuilder, defineQueriesWithType, defineQueryWithType } from '@rocicorp/zero'
+import { schema, TlaSchema } from './tlaSchema'
+
+const zql = createBuilder(schema)
+
+/** Context provided by server - contains authenticated user ID */
+export interface ZeroContext {
+	userId: string
+}
+
+const defineQuery = defineQueryWithType<TlaSchema, ZeroContext>()
+const defineQueries = defineQueriesWithType<TlaSchema>()
+
+export const queries = defineQueries({
+	/** Current user's own record (single) */
+	user: defineQuery(({ ctx }) => zql.user.where('id', '=', ctx.userId).one()),
+
+	/** Files the user can access: owned, shared via file_state, or via group membership */
+	files: defineQuery(({ ctx }) =>
+		zql.file.where(({ or, cmp, exists }) =>
+			or(
+				cmp('ownerId', '=', ctx.userId),
+				exists('states', (q) => q.where('userId', '=', ctx.userId)),
+				exists('groupFiles', (q) =>
+					q.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
+				)
+			)
+		)
+	),
+
+	// ... additional queries for fileStates, groups, groupUsers, groupFiles
+})
+```
+
+**Key differences from old permissions model:**
+
+- Server sets `ctx.userId` based on authenticated user
+- Queries filter data based on `ctx.userId` - no explicit "permissions" to define
+- Permissions are "baked into" the query definitions
+- No need to "push" permissions separately
 
 #### PostgreSQL database
 
@@ -124,6 +171,122 @@ pool_mode = transaction    # Efficient transaction-level pooling
 max_client_conn = 450     # High concurrency support
 default_pool_size = 100   # Connection pool size
 max_prepared_statements = 10
+```
+
+### Multi-node production architecture
+
+Production deployments use a separated architecture with specialized node types:
+
+```
+                                      ┌─────────────────────┐
+                                      │     PostgreSQL      │
+                                      │  (Source of Truth)  │
+                                      └──────────┬──────────┘
+                                                 │
+                                      ┌──────────▼──────────┐
+                                      │ Replication Manager │
+                                      │   (1 node, port 4849)│
+                                      │   ─ Litestream → R2  │
+                                      └──────────┬──────────┘
+                                                 │
+                            ┌────────────────────┼────────────────────┐
+                            │                    │                    │
+                   ┌────────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
+                   │   View Syncer   │  │   View Syncer   │  │   View Syncer   │
+                   │  (port 4848)    │  │  (port 4848)    │  │  (port 4848)    │
+                   │  nginx + zero   │  │  nginx + zero   │  │  nginx + zero   │
+                   └────────┬────────┘  └────────┬────────┘  └────────┬────────┘
+                            │                    │                    │
+                   ┌────────▼────────────────────▼────────────────────▼────────┐
+                   │                     Client WebSockets                      │
+                   │              (sticky sessions via cookie)                  │
+                   └───────────────────────────────────────────────────────────┘
+```
+
+#### Replication Manager (1 node)
+
+Handles PostgreSQL logical replication and change streaming:
+
+- Connects to PostgreSQL, maintains replication slot
+- Streams changes to View Syncers
+- Uses Litestream for SQLite backup to R2
+- **Port 4849**, min 1 machine
+- **Config**: `flyio-replication-manager.template.toml`
+
+```toml
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_NUM_SYNC_WORKERS = "0"              # No client connections
+ZERO_CHANGE_MAX_CONNS = "3"
+ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
+ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
+```
+
+#### View Syncer (N nodes)
+
+Handles client WebSocket connections:
+
+- Connects to Replication Manager for change stream via `ZERO_CHANGE_STREAMER_URI`
+- Uses nginx for session affinity (sticky sessions via `fly_machine_id` cookie)
+- Supervisord manages nginx + zero-cache processes
+- **Port 4848** (nginx), internal 4849 (zero-cache)
+- **Min 2 machines** for high availability
+- **Config**: `flyio-view-syncer.template.toml`
+
+```toml
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_CHANGE_STREAMER_URI = "__REPLICATION_MANAGER_URI"  # Connect to repl manager
+ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
+ZERO_QUERY_URL = "__ZERO_QUERY_URL"
+ZERO_LAZY_STARTUP = "true"
+```
+
+**Dockerfile for View Syncer** (`Dockerfile.template`):
+
+```dockerfile
+FROM rocicorp/zero:__ZERO_VERSION
+
+# Install nginx, supervisor, and envsubst
+RUN apk add --no-cache nginx supervisor gettext
+
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+COPY supervisord.conf /etc/supervisord.conf
+COPY start.sh /start.sh
+
+EXPOSE 4848
+CMD ["/start.sh"]
+```
+
+**nginx sticky sessions** (`nginx.conf.template`):
+
+- Sets `fly_machine_id` cookie on first request
+- Subsequent requests route to same machine via `fly-replay` header
+- Handles machine failover gracefully (sets new cookie if target dead)
+
+**supervisord** manages both processes:
+
+- `zero-cache` on internal port 4849
+- `nginx` forwarding from external port 4848
+
+### Single-node deployment
+
+For simpler deployments or staging, use `flyio.template.toml` (single node with all components):
+
+```toml
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CVR_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
+ZERO_APP_PUBLICATIONS = "zero_data"
+ZERO_ADMIN_PASSWORD = "__ZERO_ADMIN_PASSWORD"
+ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
+ZERO_QUERY_URL = "__ZERO_QUERY_URL"
+ZERO_LAZY_STARTUP = 'true'
+DO_NOT_TRACK = '1'
 ```
 
 ### Data synchronization flow
@@ -267,7 +430,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: password
     command: |
-      postgres 
+      postgres
       -c wal_level=logical           # Enable logical replication
       -c max_wal_senders=10          # Multiple replication slots
       -c max_replication_slots=5     # Concurrent replications
@@ -310,9 +473,9 @@ esbuild --bundle --platform=node --format=esm \
   --outfile=./.schema.js \
   ../../../packages/dotcom-shared/src/tlaSchema.ts
 
-# Watch mode for development
+# Watch mode for development (no longer uses -p flag for schema)
 nodemon --watch ./.schema.js \
-  --exec 'zero-cache-dev -p ./.schema.js' \
+  --exec 'zero-cache-dev' \
   --signal SIGINT
 ```
 
@@ -327,18 +490,24 @@ BOTCOM_POSTGRES_POOLED_CONNECTION_STRING="postgresql://user:password@127.0.0.1:6
 ZERO_REPLICA_FILE="/tmp/sync-replica.db"
 ```
 
-#### Production (Fly.io template)
+#### Production environment variables
 
-```toml
-[env]
-ZERO_REPLICA_FILE = "/data/sync-replica.db"
-ZERO_UPSTREAM_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
-ZERO_CVR_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
-ZERO_CHANGE_DB = "__BOTCOM_POSTGRES_CONNECTION_STRING"
-ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
-ZERO_QUERY_URL = "__ZERO_QUERY_URL"
-ZERO_LAZY_STARTUP = 'true'
-```
+| Variable                      | Description                                     |
+| ----------------------------- | ----------------------------------------------- |
+| `ZERO_REPLICA_FILE`           | Path to local SQLite replica                    |
+| `ZERO_UPSTREAM_DB`            | PostgreSQL connection string                    |
+| `ZERO_CVR_DB`                 | CVR database connection string                  |
+| `ZERO_CHANGE_DB`              | Change log database connection string           |
+| `ZERO_APP_PUBLICATIONS`       | PostgreSQL publication name (e.g., `zero_data`) |
+| `ZERO_MUTATE_URL`             | Backend mutation endpoint                       |
+| `ZERO_QUERY_URL`              | Backend query endpoint                          |
+| `ZERO_ADMIN_PASSWORD`         | Admin API access password                       |
+| `ZERO_CHANGE_STREAMER_URI`    | View syncer → replication manager URI           |
+| `ZERO_LITESTREAM_CONFIG_PATH` | Litestream config for R2 backup                 |
+| `ZERO_LITESTREAM_BACKUP_URL`  | S3/R2 backup URL                                |
+| `ZERO_LAZY_STARTUP`           | Defer startup until first request               |
+| `ZERO_NUM_SYNC_WORKERS`       | Number of sync workers (0 for repl manager)     |
+| `DO_NOT_TRACK`                | Disable telemetry (`'1'` to disable)            |
 
 ## Data model and relationships
 
@@ -524,7 +693,9 @@ if (serverChange.timestamp > localChange.timestamp) {
 
 The zero-cache deploys to Fly.io with specialized configuration:
 
-#### Resource allocation
+#### Single-node deployment
+
+Use `flyio.template.toml` for simple/staging deployments:
 
 ```toml
 [[vm]]
@@ -537,6 +708,38 @@ internal_port = 4848            # Zero server port
 force_https = true             # Security requirement
 auto_stop_machines = "off"     # Always-on for real-time sync
 min_machines_running = 1       # High availability
+```
+
+#### Multi-node deployment
+
+**Replication Manager** (`flyio-replication-manager.template.toml`):
+
+```toml
+[[vm]]
+memory = "1gb"
+cpus = 1
+min_machines_running = 1
+
+[http_service]
+internal_port = 4849    # Change streamer port
+```
+
+**View Syncer** (`flyio-view-syncer.template.toml`):
+
+```toml
+[[vm]]
+memory = "2gb"
+cpus = 2
+min_machines_running = 2    # HA requires 2+
+
+[http_service]
+internal_port = 4848
+
+# Sticky sessions via cookie
+[[http_service.http_options.replay_cache]]
+type = "cookie"
+name = "fly_machine_id"
+ttl_seconds = 3600
 ```
 
 #### Persistent storage
