@@ -56,8 +56,14 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 			if (!eligiblePorts) return false
 			if (eligiblePorts.terminal !== port.terminal) return false
 			if (eligiblePorts.excludeNodes?.has(shapeId)) return false
-			// type compatibility: the dragging port's data type must match
-			if (eligiblePorts.dataType && eligiblePorts.dataType !== port.dataType) return false
+			// type compatibility: 'any' matches everything, otherwise types must match
+			if (
+				eligiblePorts.dataType &&
+				eligiblePorts.dataType !== 'any' &&
+				port.dataType !== 'any' &&
+				eligiblePorts.dataType !== port.dataType
+			)
+				return false
 			if (port.terminal === 'end') {
 				const connections = getNodePortConnections(editor, shapeId)
 				return !connections.some((c) => c.ownPortId === portId)

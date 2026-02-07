@@ -13,17 +13,48 @@ import {
 	updateNode,
 } from './shared'
 
-const MODELS = [
-	{ id: 'sd-1.5', label: 'Stable Diffusion 1.5' },
-	{ id: 'sdxl', label: 'Stable Diffusion XL' },
-	{ id: 'sd-3', label: 'Stable Diffusion 3' },
-	{ id: 'flux-dev', label: 'Flux Dev' },
-	{ id: 'flux-schnell', label: 'Flux Schnell' },
-] as const
+interface ModelInfo {
+	id: string
+	label: string
+}
+
+const PROVIDERS: Record<string, { label: string; models: ModelInfo[] }> = {
+	'stable-diffusion': {
+		label: 'Stable Diffusion',
+		models: [
+			{ id: 'sd-1.5', label: 'SD 1.5' },
+			{ id: 'sdxl', label: 'SDXL' },
+			{ id: 'sd-3', label: 'SD 3' },
+		],
+	},
+	flux: {
+		label: 'Flux',
+		models: [
+			{ id: 'flux-dev', label: 'Flux Dev' },
+			{ id: 'flux-schnell', label: 'Flux Schnell' },
+			{ id: 'flux-pro', label: 'Flux Pro' },
+		],
+	},
+	dalle: {
+		label: 'DALL-E',
+		models: [
+			{ id: 'dall-e-3', label: 'DALL-E 3' },
+			{ id: 'dall-e-2', label: 'DALL-E 2' },
+		],
+	},
+	midjourney: {
+		label: 'Midjourney',
+		models: [
+			{ id: 'mj-v6', label: 'v6' },
+			{ id: 'mj-v5', label: 'v5.2' },
+		],
+	},
+}
 
 export type ModelNode = T.TypeOf<typeof ModelNode>
 export const ModelNode = T.object({
 	type: T.literal('model'),
+	provider: T.string,
 	modelId: T.string,
 })
 
@@ -37,11 +68,12 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 	getDefault(): ModelNode {
 		return {
 			type: 'model',
+			provider: 'stable-diffusion',
 			modelId: 'sdxl',
 		}
 	}
 	getBodyHeightPx() {
-		return NODE_ROW_HEIGHT_PX
+		return NODE_ROW_HEIGHT_PX * 2
 	}
 	getPorts(): Record<string, ShapePort> {
 		return {
@@ -56,12 +88,12 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 	}
 	async execute(_shape: NodeShape, node: ModelNode): Promise<ExecutionResult> {
 		await sleep(500)
-		return { output: node.modelId }
+		return { output: `${node.provider}:${node.modelId}` }
 	}
 	getOutputInfo(shape: NodeShape, node: ModelNode): InfoValues {
 		return {
 			output: {
-				value: node.modelId,
+				value: `${node.provider}:${node.modelId}`,
 				isOutOfDate: shape.props.isOutOfDate,
 				dataType: 'model',
 			},
@@ -72,23 +104,51 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 
 function ModelNodeComponent({ shape, node }: NodeComponentProps<ModelNode>) {
 	const editor = useEditor()
+	const provider = PROVIDERS[node.provider] ?? PROVIDERS['stable-diffusion']
+	const models = provider.models
+
 	return (
-		<NodeRow>
-			<select
-				value={node.modelId}
-				onChange={(e) =>
-					updateNode<ModelNode>(editor, shape, (n) => ({
-						...n,
-						modelId: e.target.value,
-					}))
-				}
-			>
-				{MODELS.map((m) => (
-					<option key={m.id} value={m.id}>
-						{m.label}
-					</option>
-				))}
-			</select>
-		</NodeRow>
+		<>
+			<NodeRow>
+				<span className="NodeInputRow-label">Provider</span>
+				<select
+					value={node.provider}
+					onChange={(e) => {
+						const newProvider = e.target.value
+						const newModels = PROVIDERS[newProvider]?.models
+						const firstModel = newModels?.[0]?.id ?? ''
+						updateNode<ModelNode>(editor, shape, (n) => ({
+							...n,
+							provider: newProvider,
+							modelId: firstModel,
+						}))
+					}}
+				>
+					{Object.entries(PROVIDERS).map(([id, p]) => (
+						<option key={id} value={id}>
+							{p.label}
+						</option>
+					))}
+				</select>
+			</NodeRow>
+			<NodeRow>
+				<span className="NodeInputRow-label">Model</span>
+				<select
+					value={node.modelId}
+					onChange={(e) =>
+						updateNode<ModelNode>(editor, shape, (n) => ({
+							...n,
+							modelId: e.target.value,
+						}))
+					}
+				>
+					{models.map((m) => (
+						<option key={m.id} value={m.id}>
+							{m.label}
+						</option>
+					))}
+				</select>
+			</NodeRow>
+		</>
 	)
 }

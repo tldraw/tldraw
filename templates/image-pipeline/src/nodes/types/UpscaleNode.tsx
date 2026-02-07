@@ -1,0 +1,195 @@
+import { T, useEditor, useValue } from 'tldraw'
+import { UpscaleIcon } from '../../components/icons/UpscaleIcon'
+import {
+	NODE_HEADER_HEIGHT_PX,
+	NODE_IMAGE_PREVIEW_HEIGHT_PX,
+	NODE_ROW_HEADER_GAP_PX,
+	NODE_ROW_HEIGHT_PX,
+	NODE_WIDTH_PX,
+} from '../../constants'
+import { Port, ShapePort } from '../../ports/Port'
+import { sleep } from '../../utils/sleep'
+import { getNodeInputPortValues } from '../nodePorts'
+import { NodeShape } from '../NodeShapeUtil'
+import {
+	areAnyInputsOutOfDate,
+	ExecutionResult,
+	InfoValues,
+	InputValues,
+	NodeComponentProps,
+	NodeDefinition,
+	NodePlaceholder,
+	NodePortLabel,
+	NodeRow,
+	STOP_EXECUTION,
+	updateNode,
+} from './shared'
+
+const SCALE_FACTORS = [
+	{ id: '2', label: '2x' },
+	{ id: '4', label: '4x' },
+] as const
+
+const METHODS = [
+	{ id: 'bilinear', label: 'Bilinear' },
+	{ id: 'lanczos', label: 'Lanczos' },
+	{ id: 'ai_enhanced', label: 'AI enhanced' },
+] as const
+
+export type UpscaleNode = T.TypeOf<typeof UpscaleNode>
+export const UpscaleNode = T.object({
+	type: T.literal('upscale'),
+	scale: T.string,
+	method: T.string,
+	lastResultUrl: T.string.nullable(),
+})
+
+function simulateUpscale(scale: string, method: string): string {
+	const factor = Number(scale) || 2
+	const size = 512 * factor
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+		<defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="hsl(200,60%,50%)"/>
+			<stop offset="100%" stop-color="hsl(200,60%,70%)"/>
+		</linearGradient></defs>
+		<rect width="${size}" height="${size}" fill="url(#ug)"/>
+		<text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="24">${scale}x ${method}</text>
+		<text x="${size / 2}" y="${size / 2 + 30}" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">${size}×${size}</text>
+	</svg>`
+	return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
+export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
+	static type = 'upscale'
+	static validator = UpscaleNode
+	title = 'Upscale'
+	heading = 'Upscale'
+	icon = (<UpscaleIcon />)
+	category = 'process'
+	getDefault(): UpscaleNode {
+		return {
+			type: 'upscale',
+			scale: '2',
+			method: 'lanczos',
+			lastResultUrl: null,
+		}
+	}
+	getBodyHeightPx() {
+		return NODE_ROW_HEIGHT_PX * 3 + NODE_IMAGE_PREVIEW_HEIGHT_PX
+	}
+	getPorts(): Record<string, ShapePort> {
+		const baseY = NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX
+		return {
+			image: {
+				id: 'image',
+				x: 0,
+				y: baseY + NODE_ROW_HEIGHT_PX * 0.5,
+				terminal: 'end',
+				dataType: 'image',
+			},
+			output: {
+				id: 'output',
+				x: NODE_WIDTH_PX,
+				y: NODE_HEADER_HEIGHT_PX / 2,
+				terminal: 'start',
+				dataType: 'image',
+			},
+		}
+	}
+	async execute(
+		shape: NodeShape,
+		node: UpscaleNode,
+		_inputs: InputValues
+	): Promise<ExecutionResult> {
+		await sleep(1200)
+		const result = simulateUpscale(node.scale, node.method)
+		updateNode<UpscaleNode>(this.editor, shape, (n) => ({
+			...n,
+			lastResultUrl: result,
+		}))
+		return { output: result }
+	}
+	getOutputInfo(shape: NodeShape, node: UpscaleNode, inputs: InfoValues): InfoValues {
+		return {
+			output: {
+				value: node.lastResultUrl,
+				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
+				dataType: 'image',
+			},
+		}
+	}
+	Component = UpscaleNodeComponent
+}
+
+function UpscaleNodeComponent({ shape, node }: NodeComponentProps<UpscaleNode>) {
+	const editor = useEditor()
+	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
+		editor,
+		shape.id,
+	])
+
+	return (
+		<>
+			<NodeRow>
+				<Port shapeId={shape.id} portId="image" />
+				<NodePortLabel dataType="image">Image</NodePortLabel>
+				{imageInput ? (
+					<span className="NodeRow-connected-value">
+						{imageInput.isOutOfDate || imageInput.value === STOP_EXECUTION ? (
+							<NodePlaceholder />
+						) : (
+							'connected'
+						)}
+					</span>
+				) : (
+					<span className="NodeRow-disconnected">not connected</span>
+				)}
+			</NodeRow>
+			<NodeRow>
+				<span className="NodeInputRow-label">Scale</span>
+				<select
+					value={node.scale}
+					onChange={(e) =>
+						updateNode<UpscaleNode>(editor, shape, (n) => ({
+							...n,
+							scale: e.target.value,
+						}))
+					}
+				>
+					{SCALE_FACTORS.map((s) => (
+						<option key={s.id} value={s.id}>
+							{s.label}
+						</option>
+					))}
+				</select>
+			</NodeRow>
+			<NodeRow>
+				<span className="NodeInputRow-label">Method</span>
+				<select
+					value={node.method}
+					onChange={(e) =>
+						updateNode<UpscaleNode>(editor, shape, (n) => ({
+							...n,
+							method: e.target.value,
+						}))
+					}
+				>
+					{METHODS.map((m) => (
+						<option key={m.id} value={m.id}>
+							{m.label}
+						</option>
+					))}
+				</select>
+			</NodeRow>
+			<div className="NodeImagePreview">
+				{node.lastResultUrl ? (
+					<img src={node.lastResultUrl} alt="Upscaled" />
+				) : (
+					<div className="NodeImagePreview-empty">
+						<span>Connect an image to upscale</span>
+					</div>
+				)}
+			</div>
+		</>
+	)
+}

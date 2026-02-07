@@ -8,12 +8,17 @@ import { PortId, ShapePort } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { AdjustNodeDefinition } from './types/AdjustNode'
 import { BlendNodeDefinition } from './types/BlendNode'
+import { ControlNetNodeDefinition } from './types/ControlNetNode'
 import { GenerateNodeDefinition } from './types/GenerateNode'
+import { IteratorNodeDefinition } from './types/IteratorNode'
 import { LoadImageNodeDefinition } from './types/LoadImageNode'
 import { ModelNodeDefinition } from './types/ModelNode'
 import { NumberNodeDefinition } from './types/NumberNode'
 import { PreviewNodeDefinition } from './types/PreviewNode'
+import { PromptConcatNodeDefinition } from './types/PromptConcatNode'
 import { PromptNodeDefinition } from './types/PromptNode'
+import { RouterNodeDefinition } from './types/RouterNode'
+import { UpscaleNodeDefinition } from './types/UpscaleNode'
 import {
 	ExecutionResult,
 	InfoValues,
@@ -25,12 +30,17 @@ import {
 export const NodeDefinitions = {
 	model: ModelNodeDefinition,
 	prompt: PromptNodeDefinition,
+	prompt_concat: PromptConcatNodeDefinition,
 	generate: GenerateNodeDefinition,
+	controlnet: ControlNetNodeDefinition,
 	load_image: LoadImageNodeDefinition,
 	preview: PreviewNodeDefinition,
 	blend: BlendNodeDefinition,
 	adjust: AdjustNodeDefinition,
+	upscale: UpscaleNodeDefinition,
 	number: NumberNodeDefinition,
+	router: RouterNodeDefinition,
+	iterator: IteratorNodeDefinition,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
 
 /**

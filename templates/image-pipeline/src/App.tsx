@@ -14,6 +14,7 @@ import {
 import { OnCanvasNodePicker } from './components/OnCanvasNodePicker.tsx'
 import { PipelineRegions } from './components/PipelineRegions.tsx'
 import { overrides, PipelineToolbar } from './components/PipelineToolbar.tsx'
+import { TemplatePicker } from './components/TemplatePicker.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
@@ -36,6 +37,7 @@ const components: TLComponents = {
 			<PipelineToolbar />
 			<div className="tlui-main-toolbar tlui-main-toolbar--horizontal">
 				<TldrawUiToolbar className="tlui-main-toolbar__tools" label="Actions">
+					<TemplatePicker />
 					<DefaultQuickActions />
 					<DefaultActionsMenu />
 				</TldrawUiToolbar>
@@ -113,7 +115,7 @@ function createDefaultPipeline(editor: Editor) {
 			x: 100,
 			y: 200,
 			props: {
-				node: { type: 'model', modelId: 'sdxl' },
+				node: { type: 'model', provider: 'stable-diffusion', modelId: 'sdxl' },
 			},
 		},
 		{

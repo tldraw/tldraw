@@ -76,7 +76,7 @@ export const overrides: TLUiOverrides = {
 
 export function PipelineToolbar() {
 	return (
-		<DefaultToolbar orientation="vertical" maxItems={12}>
+		<DefaultToolbar orientation="vertical" maxItems={18}>
 			<TldrawUiMenuGroup id="selection">
 				<SelectToolbarItem />
 				<HandToolbarItem />
@@ -85,18 +85,26 @@ export function PipelineToolbar() {
 			<TldrawUiMenuGroup id="inputs">
 				<ToolbarItem tool="node-model" />
 				<ToolbarItem tool="node-prompt" />
+				<ToolbarItem tool="node-prompt_concat" />
 				<ToolbarItem tool="node-load_image" />
 				<ToolbarItem tool="node-number" />
 			</TldrawUiMenuGroup>
 
 			<TldrawUiMenuGroup id="process">
 				<ToolbarItem tool="node-generate" />
+				<ToolbarItem tool="node-controlnet" />
 				<ToolbarItem tool="node-blend" />
 				<ToolbarItem tool="node-adjust" />
+				<ToolbarItem tool="node-upscale" />
 			</TldrawUiMenuGroup>
 
 			<TldrawUiMenuGroup id="output">
 				<ToolbarItem tool="node-preview" />
+			</TldrawUiMenuGroup>
+
+			<TldrawUiMenuGroup id="utility">
+				<ToolbarItem tool="node-router" />
+				<ToolbarItem tool="node-iterator" />
 			</TldrawUiMenuGroup>
 
 			<TldrawUiMenuGroup id="shapes">
