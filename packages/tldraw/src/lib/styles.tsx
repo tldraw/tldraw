@@ -29,8 +29,8 @@ export const STYLES = {
 	],
 	fillExtra: [
 		{ value: 'pattern', icon: 'fill-pattern' },
-		{ value: 'fill', icon: 'fill-fill' },
 		{ value: 'lined-fill', icon: 'fill-lined-fill' },
+		{ value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [
 		{ value: 'draw', icon: 'dash-draw' },
