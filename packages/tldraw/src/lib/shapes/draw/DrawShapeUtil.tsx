@@ -30,8 +30,14 @@ import {
 	getDotsFillDefForCanvas,
 	getFillDefForCanvas,
 	getFillDefForExport,
+	getLargeCheckFillDefForCanvas,
+	getLinedChevronsFillDefForCanvas,
+	getLinedCrossesFillDefForCanvas,
 	getLinedDenseDotsFillDefForCanvas,
+	getLinedDotsFillDefForCanvas,
 	getLinedPatternFillDefForCanvas,
+	getLinedSparseDotsFillDefForCanvas,
+	getSmallCheckFillDefForCanvas,
 	getSparseDotsFillDefForCanvas,
 } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
@@ -243,6 +249,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			getCrossesFillDefForCanvas(),
 			getLinedPatternFillDefForCanvas(),
 			getLinedDenseDotsFillDefForCanvas(),
+			getLinedChevronsFillDefForCanvas(),
+			getLinedCrossesFillDefForCanvas(),
+			getLinedDotsFillDefForCanvas(),
+			getLinedSparseDotsFillDefForCanvas(),
+			getLargeCheckFillDefForCanvas(),
+			getSmallCheckFillDefForCanvas(),
 		]
 	}
 

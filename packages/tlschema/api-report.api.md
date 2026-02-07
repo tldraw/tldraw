@@ -209,7 +209,7 @@ export const DefaultColorThemePalette: {
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public
-export const DefaultFillStyle: EnumStyleProp<"chevrons" | "crosses" | "dense-dots" | "dots" | "fill" | "lined-dense-dots" | "lined-fill" | "lined-pattern" | "none" | "pattern" | "semi" | "solid" | "sparse-dots">;
+export const DefaultFillStyle: EnumStyleProp<"chevrons" | "crosses" | "dense-dots" | "dots" | "fill" | "large-check" | "lined-chevrons" | "lined-crosses" | "lined-dense-dots" | "lined-dots" | "lined-fill" | "lined-pattern" | "lined-sparse-dots" | "none" | "pattern" | "semi" | "small-check" | "solid" | "sparse-dots">;
 
 // @public
 export const DefaultFontFamilies: {

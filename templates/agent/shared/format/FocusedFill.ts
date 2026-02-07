@@ -27,6 +27,12 @@ const SHAPE_TO_FOCUSED_FILLS: Record<TLDefaultFillStyle, FocusedFill> = {
 	crosses: 'pattern',
 	'lined-pattern': 'pattern',
 	'lined-dense-dots': 'pattern',
+	'lined-chevrons': 'pattern',
+	'lined-crosses': 'pattern',
+	'lined-dots': 'pattern',
+	'lined-sparse-dots': 'pattern',
+	'large-check': 'pattern',
+	'small-check': 'pattern',
 }
 
 export function convertFocusedFillToTldrawFill(fill: FocusedFill): TLDefaultFillStyle {

@@ -14,8 +14,14 @@ import {
 	useGetDenseDotsPatternZoomName,
 	useGetDotsPatternZoomName,
 	useGetHashPatternZoomName,
+	useGetLargeCheckPatternZoomName,
+	useGetLinedChevronsPatternZoomName,
+	useGetLinedCrossesPatternZoomName,
 	useGetLinedDenseDotsPatternZoomName,
+	useGetLinedDotsPatternZoomName,
 	useGetLinedPatternZoomName,
+	useGetLinedSparseDotsPatternZoomName,
+	useGetSmallCheckPatternZoomName,
 	useGetSparseDotsPatternZoomName,
 } from './defaultStyleDefs'
 
@@ -70,6 +76,24 @@ export const ShapeFill = React.memo(function ShapeFill({
 		}
 		case 'lined-dense-dots': {
 			return <LinedDenseDotsFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'lined-chevrons': {
+			return <LinedChevronsFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'lined-crosses': {
+			return <LinedCrossesFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'lined-dots': {
+			return <LinedDotsFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'lined-sparse-dots': {
+			return <LinedSparseDotsFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'large-check': {
+			return <LargeCheckFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'small-check': {
+			return <SmallCheckFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
 		case 'lined-fill': {
 			return <path fill={getColorValue(theme, color, 'linedFill')} d={d} />
@@ -270,6 +294,156 @@ export function LinedDenseDotsFill({ d, color, theme }: ShapeFillProps) {
 						: teenyTiny
 							? getColorValue(theme, color, 'fill')
 							: `url(#${getLinedDenseDotsPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LinedChevronsFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLinedChevronsPatternZoomName = useGetLinedChevronsPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLinedChevronsPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'fill')
+							: `url(#${getLinedChevronsPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LinedCrossesFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLinedCrossesPatternZoomName = useGetLinedCrossesPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLinedCrossesPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'fill')
+							: `url(#${getLinedCrossesPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LinedDotsFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLinedDotsPatternZoomName = useGetLinedDotsPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLinedDotsPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'fill')
+							: `url(#${getLinedDotsPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LinedSparseDotsFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLinedSparseDotsPatternZoomName = useGetLinedSparseDotsPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLinedSparseDotsPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'fill')
+							: `url(#${getLinedSparseDotsPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LargeCheckFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLargeCheckPatternZoomName = useGetLargeCheckPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'pattern')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLargeCheckPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'semi')
+							: `url(#${getLargeCheckPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function SmallCheckFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getSmallCheckPatternZoomName = useGetSmallCheckPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'pattern')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getSmallCheckPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'semi')
+							: `url(#${getSmallCheckPatternZoomName(zoomLevel, theme.id)})`
 				}
 				d={d}
 			/>

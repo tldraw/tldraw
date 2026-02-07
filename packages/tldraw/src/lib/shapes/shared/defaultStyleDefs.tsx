@@ -30,6 +30,12 @@ export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
 			if (fill === 'crosses') return <CrossesPatternForExport />
 			if (fill === 'lined-pattern') return <LinedPatternForExport />
 			if (fill === 'lined-dense-dots') return <LinedDenseDotsPatternForExport />
+			if (fill === 'lined-chevrons') return <LinedChevronsPatternForExport />
+			if (fill === 'lined-crosses') return <LinedCrossesPatternForExport />
+			if (fill === 'lined-dots') return <LinedDotsPatternForExport />
+			if (fill === 'lined-sparse-dots') return <LinedSparseDotsPatternForExport />
+			if (fill === 'large-check') return <LargeCheckPatternForExport />
+			if (fill === 'small-check') return <SmallCheckPatternForExport />
 			return null
 		},
 	}
@@ -118,8 +124,10 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 
 const DENSE_DOTS_TILE_SIZE = 3
 const DOTS_TILE_SIZE = 4
-const SPARSE_DOTS_TILE_SIZE = 8
+const SPARSE_DOTS_TILE_SIZE = 6
 const DOT_RADIUS = 0.7
+const LARGE_CHECK_TILE_SIZE = 8
+const SMALL_CHECK_TILE_SIZE = 4
 const CHEVRONS_TILE_SIZE = 6
 const CROSSES_TILE_SIZE = 6
 const CROSS_ARM_LENGTH = 1.2
@@ -1605,6 +1613,1082 @@ function LinedDenseDotsPatternForExport() {
 				fill={theme.solid}
 			/>
 		</pattern>
+	)
+}
+
+// --- Lined dots (inverted dots) ---
+
+const generateLinedDotsImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+	return new Promise<Blob>((resolve, reject) => {
+		const size = DOTS_TILE_SIZE * currentZoom * dpr
+
+		const canvasEl = document.createElement('canvas')
+		canvasEl.width = size
+		canvasEl.height = size
+
+		const ctx = canvasEl.getContext('2d')
+		if (!ctx) return
+
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
+
+		const s = (v: number) => v * currentZoom * dpr
+		ctx.beginPath()
+		ctx.arc(s(DOTS_TILE_SIZE / 2), s(DOTS_TILE_SIZE / 2), s(DOT_RADIUS), 0, Math.PI * 2)
+		ctx.fill()
+
+		canvasEl.toBlob((blob) => {
+			if (!blob || debugFlags.throwToBlob.get()) {
+				reject()
+			} else {
+				resolve(blob)
+			}
+		})
+	})
+}
+
+export function useGetLinedDotsPatternZoomName() {
+	const id = useSharedSafeId('lined_dots_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
+}
+
+function useLinedDotsPattern() {
+	const editor = useEditor()
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
+	const [isReady, setIsReady] = useState(false)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
+	const getLinedDotsPatternZoomName = useGetLinedDotsPatternZoomName()
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateLinedDotsImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
+					url: URL.createObjectURL(blob),
+				})),
+				generateLinedDotsImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
+					url: URL.createObjectURL(blob),
+				})),
+			])
+		)
+
+		let isCancelled = false
+		promise.then((urls) => {
+			if (isCancelled) return
+			setBackgroundUrls(urls)
+			setIsReady(true)
+		})
+		return () => {
+			isCancelled = true
+			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
+		}
+	}, [dpr, maxZoom])
+
+	const defs = (
+		<>
+			{backgroundUrls.map((item) => {
+				const id = getLinedDotsPatternZoomName(item.zoom, item.theme)
+				return (
+					<pattern
+						key={id}
+						id={id}
+						width={DOTS_TILE_SIZE}
+						height={DOTS_TILE_SIZE}
+						patternUnits="userSpaceOnUse"
+					>
+						<image href={item.url} width={DOTS_TILE_SIZE} height={DOTS_TILE_SIZE} />
+					</pattern>
+				)
+			})}
+		</>
+	)
+
+	return { defs, isReady }
+}
+
+function LinedDotsFillDefForCanvas() {
+	const editor = useEditor()
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = useLinedDotsPattern()
+
+	useEffect(() => {
+		if (isReady && tlenv.isSafari) {
+			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			if (htmlLayer) {
+				editor.timers.requestAnimationFrame(() => {
+					htmlLayer.style.display = 'none'
+					editor.timers.requestAnimationFrame(() => {
+						htmlLayer.style.display = ''
+					})
+				})
+			}
+		}
+	}, [editor, isReady])
+
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-lined-dots-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
+}
+
+export function getLinedDotsFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
+	return {
+		key: `${DefaultFontStyle.id}:lined-dots`,
+		component: LinedDotsFillDefForCanvas,
+	}
+}
+
+function LinedDotsPatternForExport() {
+	const getLinedDotsPatternZoomName = useGetLinedDotsPatternZoomName()
+	const theme = useDefaultColorTheme()
+	return (
+		<pattern
+			id={getLinedDotsPatternZoomName(1, theme.id)}
+			width={DOTS_TILE_SIZE}
+			height={DOTS_TILE_SIZE}
+			patternUnits="userSpaceOnUse"
+		>
+			<circle cx={DOTS_TILE_SIZE / 2} cy={DOTS_TILE_SIZE / 2} r={DOT_RADIUS} fill={theme.solid} />
+		</pattern>
+	)
+}
+
+// --- Lined sparse dots (inverted sparse dots) ---
+
+const generateLinedSparseDotsImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+	return new Promise<Blob>((resolve, reject) => {
+		const size = SPARSE_DOTS_TILE_SIZE * currentZoom * dpr
+
+		const canvasEl = document.createElement('canvas')
+		canvasEl.width = size
+		canvasEl.height = size
+
+		const ctx = canvasEl.getContext('2d')
+		if (!ctx) return
+
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
+
+		const s = (v: number) => v * currentZoom * dpr
+		ctx.beginPath()
+		ctx.arc(
+			s(SPARSE_DOTS_TILE_SIZE / 2),
+			s(SPARSE_DOTS_TILE_SIZE / 2),
+			s(DOT_RADIUS),
+			0,
+			Math.PI * 2
+		)
+		ctx.fill()
+
+		canvasEl.toBlob((blob) => {
+			if (!blob || debugFlags.throwToBlob.get()) {
+				reject()
+			} else {
+				resolve(blob)
+			}
+		})
+	})
+}
+
+export function useGetLinedSparseDotsPatternZoomName() {
+	const id = useSharedSafeId('lined_sparse_dots_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
+}
+
+function useLinedSparseDotsPattern() {
+	const editor = useEditor()
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
+	const [isReady, setIsReady] = useState(false)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
+	const getLinedSparseDotsPatternZoomName = useGetLinedSparseDotsPatternZoomName()
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateLinedSparseDotsImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
+					url: URL.createObjectURL(blob),
+				})),
+				generateLinedSparseDotsImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
+					url: URL.createObjectURL(blob),
+				})),
+			])
+		)
+
+		let isCancelled = false
+		promise.then((urls) => {
+			if (isCancelled) return
+			setBackgroundUrls(urls)
+			setIsReady(true)
+		})
+		return () => {
+			isCancelled = true
+			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
+		}
+	}, [dpr, maxZoom])
+
+	const defs = (
+		<>
+			{backgroundUrls.map((item) => {
+				const id = getLinedSparseDotsPatternZoomName(item.zoom, item.theme)
+				return (
+					<pattern
+						key={id}
+						id={id}
+						width={SPARSE_DOTS_TILE_SIZE}
+						height={SPARSE_DOTS_TILE_SIZE}
+						patternUnits="userSpaceOnUse"
+					>
+						<image href={item.url} width={SPARSE_DOTS_TILE_SIZE} height={SPARSE_DOTS_TILE_SIZE} />
+					</pattern>
+				)
+			})}
+		</>
+	)
+
+	return { defs, isReady }
+}
+
+function LinedSparseDotsFillDefForCanvas() {
+	const editor = useEditor()
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = useLinedSparseDotsPattern()
+
+	useEffect(() => {
+		if (isReady && tlenv.isSafari) {
+			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			if (htmlLayer) {
+				editor.timers.requestAnimationFrame(() => {
+					htmlLayer.style.display = 'none'
+					editor.timers.requestAnimationFrame(() => {
+						htmlLayer.style.display = ''
+					})
+				})
+			}
+		}
+	}, [editor, isReady])
+
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-lined-sparse-dots-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
+}
+
+export function getLinedSparseDotsFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
+	return {
+		key: `${DefaultFontStyle.id}:lined-sparse-dots`,
+		component: LinedSparseDotsFillDefForCanvas,
+	}
+}
+
+function LinedSparseDotsPatternForExport() {
+	const getLinedSparseDotsPatternZoomName = useGetLinedSparseDotsPatternZoomName()
+	const theme = useDefaultColorTheme()
+	return (
+		<pattern
+			id={getLinedSparseDotsPatternZoomName(1, theme.id)}
+			width={SPARSE_DOTS_TILE_SIZE}
+			height={SPARSE_DOTS_TILE_SIZE}
+			patternUnits="userSpaceOnUse"
+		>
+			<circle
+				cx={SPARSE_DOTS_TILE_SIZE / 2}
+				cy={SPARSE_DOTS_TILE_SIZE / 2}
+				r={DOT_RADIUS}
+				fill={theme.solid}
+			/>
+		</pattern>
+	)
+}
+
+// --- Lined chevrons (inverted chevrons) ---
+
+const generateLinedChevronsImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+	return new Promise<Blob>((resolve, reject) => {
+		const size = CHEVRONS_TILE_SIZE * currentZoom * dpr
+
+		const canvasEl = document.createElement('canvas')
+		canvasEl.width = size
+		canvasEl.height = size
+
+		const ctx = canvasEl.getContext('2d')
+		if (!ctx) return
+
+		ctx.lineCap = 'round'
+		ctx.lineJoin = 'round'
+		ctx.lineWidth = 1.25 * currentZoom * dpr
+		ctx.strokeStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
+
+		const s = (v: number) => v * currentZoom * dpr
+
+		ctx.beginPath()
+		ctx.moveTo(0, s(CHEVRONS_TILE_SIZE * 0.75))
+		ctx.lineTo(s(CHEVRONS_TILE_SIZE / 2), s(CHEVRONS_TILE_SIZE * 0.25))
+		ctx.lineTo(size, s(CHEVRONS_TILE_SIZE * 0.75))
+		ctx.stroke()
+
+		canvasEl.toBlob((blob) => {
+			if (!blob || debugFlags.throwToBlob.get()) {
+				reject()
+			} else {
+				resolve(blob)
+			}
+		})
+	})
+}
+
+export function useGetLinedChevronsPatternZoomName() {
+	const id = useSharedSafeId('lined_chevrons_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
+}
+
+function useLinedChevronsPattern() {
+	const editor = useEditor()
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
+	const [isReady, setIsReady] = useState(false)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
+	const getLinedChevronsPatternZoomName = useGetLinedChevronsPatternZoomName()
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateLinedChevronsImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
+					url: URL.createObjectURL(blob),
+				})),
+				generateLinedChevronsImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
+					url: URL.createObjectURL(blob),
+				})),
+			])
+		)
+
+		let isCancelled = false
+		promise.then((urls) => {
+			if (isCancelled) return
+			setBackgroundUrls(urls)
+			setIsReady(true)
+		})
+		return () => {
+			isCancelled = true
+			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
+		}
+	}, [dpr, maxZoom])
+
+	const defs = (
+		<>
+			{backgroundUrls.map((item) => {
+				const id = getLinedChevronsPatternZoomName(item.zoom, item.theme)
+				return (
+					<pattern
+						key={id}
+						id={id}
+						width={CHEVRONS_TILE_SIZE}
+						height={CHEVRONS_TILE_SIZE}
+						patternUnits="userSpaceOnUse"
+					>
+						<image href={item.url} width={CHEVRONS_TILE_SIZE} height={CHEVRONS_TILE_SIZE} />
+					</pattern>
+				)
+			})}
+		</>
+	)
+
+	return { defs, isReady }
+}
+
+function LinedChevronsFillDefForCanvas() {
+	const editor = useEditor()
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = useLinedChevronsPattern()
+
+	useEffect(() => {
+		if (isReady && tlenv.isSafari) {
+			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			if (htmlLayer) {
+				editor.timers.requestAnimationFrame(() => {
+					htmlLayer.style.display = 'none'
+					editor.timers.requestAnimationFrame(() => {
+						htmlLayer.style.display = ''
+					})
+				})
+			}
+		}
+	}, [editor, isReady])
+
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-lined-chevrons-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
+}
+
+export function getLinedChevronsFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
+	return {
+		key: `${DefaultFontStyle.id}:lined-chevrons`,
+		component: LinedChevronsFillDefForCanvas,
+	}
+}
+
+function LinedChevronsPatternForExport() {
+	const getLinedChevronsPatternZoomName = useGetLinedChevronsPatternZoomName()
+	const theme = useDefaultColorTheme()
+	return (
+		<pattern
+			id={getLinedChevronsPatternZoomName(1, theme.id)}
+			width={CHEVRONS_TILE_SIZE}
+			height={CHEVRONS_TILE_SIZE}
+			patternUnits="userSpaceOnUse"
+		>
+			<polyline
+				points={`0,${CHEVRONS_TILE_SIZE * 0.75} ${CHEVRONS_TILE_SIZE / 2},${CHEVRONS_TILE_SIZE * 0.25} ${CHEVRONS_TILE_SIZE},${CHEVRONS_TILE_SIZE * 0.75}`}
+				stroke={theme.solid}
+				strokeWidth="1.25"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				fill="none"
+			/>
+		</pattern>
+	)
+}
+
+// --- Lined crosses (inverted crosses) ---
+
+const generateLinedCrossesImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+	return new Promise<Blob>((resolve, reject) => {
+		const size = CROSSES_TILE_SIZE * currentZoom * dpr
+
+		const canvasEl = document.createElement('canvas')
+		canvasEl.width = size
+		canvasEl.height = size
+
+		const ctx = canvasEl.getContext('2d')
+		if (!ctx) return
+
+		ctx.lineCap = 'round'
+		ctx.lineWidth = 1.25 * currentZoom * dpr
+		ctx.strokeStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
+
+		const s = (v: number) => v * currentZoom * dpr
+		const cx = CROSSES_TILE_SIZE / 2
+		const cy = CROSSES_TILE_SIZE / 2
+
+		ctx.beginPath()
+		ctx.moveTo(s(cx), s(cy - CROSS_ARM_LENGTH))
+		ctx.lineTo(s(cx), s(cy + CROSS_ARM_LENGTH))
+		ctx.moveTo(s(cx - CROSS_ARM_LENGTH), s(cy))
+		ctx.lineTo(s(cx + CROSS_ARM_LENGTH), s(cy))
+		ctx.stroke()
+
+		canvasEl.toBlob((blob) => {
+			if (!blob || debugFlags.throwToBlob.get()) {
+				reject()
+			} else {
+				resolve(blob)
+			}
+		})
+	})
+}
+
+export function useGetLinedCrossesPatternZoomName() {
+	const id = useSharedSafeId('lined_crosses_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
+}
+
+function useLinedCrossesPattern() {
+	const editor = useEditor()
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
+	const [isReady, setIsReady] = useState(false)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
+	const getLinedCrossesPatternZoomName = useGetLinedCrossesPatternZoomName()
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateLinedCrossesImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
+					url: URL.createObjectURL(blob),
+				})),
+				generateLinedCrossesImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
+					url: URL.createObjectURL(blob),
+				})),
+			])
+		)
+
+		let isCancelled = false
+		promise.then((urls) => {
+			if (isCancelled) return
+			setBackgroundUrls(urls)
+			setIsReady(true)
+		})
+		return () => {
+			isCancelled = true
+			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
+		}
+	}, [dpr, maxZoom])
+
+	const defs = (
+		<>
+			{backgroundUrls.map((item) => {
+				const id = getLinedCrossesPatternZoomName(item.zoom, item.theme)
+				return (
+					<pattern
+						key={id}
+						id={id}
+						width={CROSSES_TILE_SIZE}
+						height={CROSSES_TILE_SIZE}
+						patternUnits="userSpaceOnUse"
+					>
+						<image href={item.url} width={CROSSES_TILE_SIZE} height={CROSSES_TILE_SIZE} />
+					</pattern>
+				)
+			})}
+		</>
+	)
+
+	return { defs, isReady }
+}
+
+function LinedCrossesFillDefForCanvas() {
+	const editor = useEditor()
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = useLinedCrossesPattern()
+
+	useEffect(() => {
+		if (isReady && tlenv.isSafari) {
+			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			if (htmlLayer) {
+				editor.timers.requestAnimationFrame(() => {
+					htmlLayer.style.display = 'none'
+					editor.timers.requestAnimationFrame(() => {
+						htmlLayer.style.display = ''
+					})
+				})
+			}
+		}
+	}, [editor, isReady])
+
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-lined-crosses-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
+}
+
+export function getLinedCrossesFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
+	return {
+		key: `${DefaultFontStyle.id}:lined-crosses`,
+		component: LinedCrossesFillDefForCanvas,
+	}
+}
+
+function LinedCrossesPatternForExport() {
+	const getLinedCrossesPatternZoomName = useGetLinedCrossesPatternZoomName()
+	const theme = useDefaultColorTheme()
+	const cx = CROSSES_TILE_SIZE / 2
+	const cy = CROSSES_TILE_SIZE / 2
+	return (
+		<pattern
+			id={getLinedCrossesPatternZoomName(1, theme.id)}
+			width={CROSSES_TILE_SIZE}
+			height={CROSSES_TILE_SIZE}
+			patternUnits="userSpaceOnUse"
+		>
+			<g stroke={theme.solid} strokeWidth="1.25" strokeLinecap="round">
+				<line x1={cx} y1={cy - CROSS_ARM_LENGTH} x2={cx} y2={cy + CROSS_ARM_LENGTH} />
+				<line x1={cx - CROSS_ARM_LENGTH} y1={cy} x2={cx + CROSS_ARM_LENGTH} y2={cy} />
+			</g>
+		</pattern>
+	)
+}
+
+// --- Large check pattern ---
+
+const generateLargeCheckImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+	return new Promise<Blob>((resolve, reject) => {
+		const size = LARGE_CHECK_TILE_SIZE * currentZoom * dpr
+		const half = size / 2
+
+		const canvasEl = document.createElement('canvas')
+		canvasEl.width = size
+		canvasEl.height = size
+
+		const ctx = canvasEl.getContext('2d')
+		if (!ctx) return
+
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
+		ctx.fillRect(0, 0, size, size)
+
+		ctx.globalCompositeOperation = 'destination-out'
+		ctx.fillStyle = 'black'
+		// Punch out top-right and bottom-left quadrants
+		ctx.fillRect(half, 0, half, half)
+		ctx.fillRect(0, half, half, half)
+
+		canvasEl.toBlob((blob) => {
+			if (!blob || debugFlags.throwToBlob.get()) {
+				reject()
+			} else {
+				resolve(blob)
+			}
+		})
+	})
+}
+
+export function useGetLargeCheckPatternZoomName() {
+	const id = useSharedSafeId('large_check_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
+}
+
+function useLargeCheckPattern() {
+	const editor = useEditor()
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
+	const [isReady, setIsReady] = useState(false)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
+	const getLargeCheckPatternZoomName = useGetLargeCheckPatternZoomName()
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateLargeCheckImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
+					url: URL.createObjectURL(blob),
+				})),
+				generateLargeCheckImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
+					url: URL.createObjectURL(blob),
+				})),
+			])
+		)
+
+		let isCancelled = false
+		promise.then((urls) => {
+			if (isCancelled) return
+			setBackgroundUrls(urls)
+			setIsReady(true)
+		})
+		return () => {
+			isCancelled = true
+			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
+		}
+	}, [dpr, maxZoom])
+
+	const defs = (
+		<>
+			{backgroundUrls.map((item) => {
+				const id = getLargeCheckPatternZoomName(item.zoom, item.theme)
+				return (
+					<pattern
+						key={id}
+						id={id}
+						width={LARGE_CHECK_TILE_SIZE}
+						height={LARGE_CHECK_TILE_SIZE}
+						patternUnits="userSpaceOnUse"
+					>
+						<image href={item.url} width={LARGE_CHECK_TILE_SIZE} height={LARGE_CHECK_TILE_SIZE} />
+					</pattern>
+				)
+			})}
+		</>
+	)
+
+	return { defs, isReady }
+}
+
+function LargeCheckFillDefForCanvas() {
+	const editor = useEditor()
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = useLargeCheckPattern()
+
+	useEffect(() => {
+		if (isReady && tlenv.isSafari) {
+			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			if (htmlLayer) {
+				editor.timers.requestAnimationFrame(() => {
+					htmlLayer.style.display = 'none'
+					editor.timers.requestAnimationFrame(() => {
+						htmlLayer.style.display = ''
+					})
+				})
+			}
+		}
+	}, [editor, isReady])
+
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-large-check-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
+}
+
+export function getLargeCheckFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
+	return {
+		key: `${DefaultFontStyle.id}:large-check`,
+		component: LargeCheckFillDefForCanvas,
+	}
+}
+
+function LargeCheckPatternForExport() {
+	const getLargeCheckPatternZoomName = useGetLargeCheckPatternZoomName()
+	const maskId = useUniqueSafeId()
+	const theme = useDefaultColorTheme()
+	const half = LARGE_CHECK_TILE_SIZE / 2
+	return (
+		<>
+			<mask id={maskId}>
+				<rect
+					x="0"
+					y="0"
+					width={LARGE_CHECK_TILE_SIZE}
+					height={LARGE_CHECK_TILE_SIZE}
+					fill="white"
+				/>
+				<rect x={half} y="0" width={half} height={half} fill="black" />
+				<rect x="0" y={half} width={half} height={half} fill="black" />
+			</mask>
+			<pattern
+				id={getLargeCheckPatternZoomName(1, theme.id)}
+				width={LARGE_CHECK_TILE_SIZE}
+				height={LARGE_CHECK_TILE_SIZE}
+				patternUnits="userSpaceOnUse"
+			>
+				<rect
+					x="0"
+					y="0"
+					width={LARGE_CHECK_TILE_SIZE}
+					height={LARGE_CHECK_TILE_SIZE}
+					fill={theme.solid}
+					mask={`url(#${maskId})`}
+				/>
+			</pattern>
+		</>
+	)
+}
+
+// --- Small check pattern ---
+
+const generateSmallCheckImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+	return new Promise<Blob>((resolve, reject) => {
+		const size = SMALL_CHECK_TILE_SIZE * currentZoom * dpr
+		const half = size / 2
+
+		const canvasEl = document.createElement('canvas')
+		canvasEl.width = size
+		canvasEl.height = size
+
+		const ctx = canvasEl.getContext('2d')
+		if (!ctx) return
+
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
+		ctx.fillRect(0, 0, size, size)
+
+		ctx.globalCompositeOperation = 'destination-out'
+		ctx.fillStyle = 'black'
+		ctx.fillRect(half, 0, half, half)
+		ctx.fillRect(0, half, half, half)
+
+		canvasEl.toBlob((blob) => {
+			if (!blob || debugFlags.throwToBlob.get()) {
+				reject()
+			} else {
+				resolve(blob)
+			}
+		})
+	})
+}
+
+export function useGetSmallCheckPatternZoomName() {
+	const id = useSharedSafeId('small_check_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
+}
+
+function useSmallCheckPattern() {
+	const editor = useEditor()
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
+	const [isReady, setIsReady] = useState(false)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
+	const getSmallCheckPatternZoomName = useGetSmallCheckPatternZoomName()
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateSmallCheckImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
+					url: URL.createObjectURL(blob),
+				})),
+				generateSmallCheckImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
+					url: URL.createObjectURL(blob),
+				})),
+			])
+		)
+
+		let isCancelled = false
+		promise.then((urls) => {
+			if (isCancelled) return
+			setBackgroundUrls(urls)
+			setIsReady(true)
+		})
+		return () => {
+			isCancelled = true
+			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
+		}
+	}, [dpr, maxZoom])
+
+	const defs = (
+		<>
+			{backgroundUrls.map((item) => {
+				const id = getSmallCheckPatternZoomName(item.zoom, item.theme)
+				return (
+					<pattern
+						key={id}
+						id={id}
+						width={SMALL_CHECK_TILE_SIZE}
+						height={SMALL_CHECK_TILE_SIZE}
+						patternUnits="userSpaceOnUse"
+					>
+						<image href={item.url} width={SMALL_CHECK_TILE_SIZE} height={SMALL_CHECK_TILE_SIZE} />
+					</pattern>
+				)
+			})}
+		</>
+	)
+
+	return { defs, isReady }
+}
+
+function SmallCheckFillDefForCanvas() {
+	const editor = useEditor()
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = useSmallCheckPattern()
+
+	useEffect(() => {
+		if (isReady && tlenv.isSafari) {
+			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			if (htmlLayer) {
+				editor.timers.requestAnimationFrame(() => {
+					htmlLayer.style.display = 'none'
+					editor.timers.requestAnimationFrame(() => {
+						htmlLayer.style.display = ''
+					})
+				})
+			}
+		}
+	}, [editor, isReady])
+
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-small-check-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
+}
+
+export function getSmallCheckFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
+	return {
+		key: `${DefaultFontStyle.id}:small-check`,
+		component: SmallCheckFillDefForCanvas,
+	}
+}
+
+function SmallCheckPatternForExport() {
+	const getSmallCheckPatternZoomName = useGetSmallCheckPatternZoomName()
+	const maskId = useUniqueSafeId()
+	const theme = useDefaultColorTheme()
+	const half = SMALL_CHECK_TILE_SIZE / 2
+	return (
+		<>
+			<mask id={maskId}>
+				<rect
+					x="0"
+					y="0"
+					width={SMALL_CHECK_TILE_SIZE}
+					height={SMALL_CHECK_TILE_SIZE}
+					fill="white"
+				/>
+				<rect x={half} y="0" width={half} height={half} fill="black" />
+				<rect x="0" y={half} width={half} height={half} fill="black" />
+			</mask>
+			<pattern
+				id={getSmallCheckPatternZoomName(1, theme.id)}
+				width={SMALL_CHECK_TILE_SIZE}
+				height={SMALL_CHECK_TILE_SIZE}
+				patternUnits="userSpaceOnUse"
+			>
+				<rect
+					x="0"
+					y="0"
+					width={SMALL_CHECK_TILE_SIZE}
+					height={SMALL_CHECK_TILE_SIZE}
+					fill={theme.solid}
+					mask={`url(#${maskId})`}
+				/>
+			</pattern>
+		</>
 	)
 }
 

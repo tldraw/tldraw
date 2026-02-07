@@ -50,6 +50,12 @@ export const DefaultFillStyle = StyleProp.defineEnum('tldraw:fill', {
 		'crosses',
 		'lined-pattern',
 		'lined-dense-dots',
+		'lined-chevrons',
+		'lined-crosses',
+		'lined-dots',
+		'lined-sparse-dots',
+		'large-check',
+		'small-check',
 	],
 })
 

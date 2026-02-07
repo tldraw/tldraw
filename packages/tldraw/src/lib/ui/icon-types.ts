@@ -67,12 +67,18 @@ export type TLUiIconType =
 	| 'fill-dense-dots'
 	| 'fill-dots'
 	| 'fill-fill'
+	| 'fill-large-check'
+	| 'fill-lined-chevrons'
+	| 'fill-lined-crosses'
 	| 'fill-lined-dense-dots'
+	| 'fill-lined-dots'
 	| 'fill-lined-fill'
 	| 'fill-lined-pattern'
+	| 'fill-lined-sparse-dots'
 	| 'fill-none'
 	| 'fill-pattern'
 	| 'fill-semi'
+	| 'fill-small-check'
 	| 'fill-solid'
 	| 'fill-sparse-dots'
 	| 'follow'
@@ -239,12 +245,18 @@ export const iconTypes = [
 	'fill-dense-dots',
 	'fill-dots',
 	'fill-fill',
+	'fill-large-check',
+	'fill-lined-chevrons',
+	'fill-lined-crosses',
 	'fill-lined-dense-dots',
+	'fill-lined-dots',
 	'fill-lined-fill',
 	'fill-lined-pattern',
+	'fill-lined-sparse-dots',
 	'fill-none',
 	'fill-pattern',
 	'fill-semi',
+	'fill-small-check',
 	'fill-solid',
 	'fill-sparse-dots',
 	'follow',

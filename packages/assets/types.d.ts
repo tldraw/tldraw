@@ -87,12 +87,18 @@ export type AssetUrls = {
 		'fill-dense-dots': string
 		'fill-dots': string
 		'fill-fill': string
+		'fill-large-check': string
+		'fill-lined-chevrons': string
+		'fill-lined-crosses': string
 		'fill-lined-dense-dots': string
+		'fill-lined-dots': string
 		'fill-lined-fill': string
 		'fill-lined-pattern': string
+		'fill-lined-sparse-dots': string
 		'fill-none': string
 		'fill-pattern': string
 		'fill-semi': string
+		'fill-small-check': string
 		'fill-solid': string
 		'fill-sparse-dots': string
 		follow: string
