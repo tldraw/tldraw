@@ -70,7 +70,7 @@ export function LocalFileHandler() {
 
 		const timeSinceMount = Date.now()
 		if (
-			Date.now() - lastTimeSessionAcknowledged > ACKNOWLEDGEMENT_EXPIRY_MS &&
+			timeSinceMount - lastTimeSessionAcknowledged > ACKNOWLEDGEMENT_EXPIRY_MS &&
 			timeSinceMount - mountTime.current > MAX_SESSION_TIME_MS
 		) {
 			setLocalFileState(LocalFileState.LONG_SESSION)
@@ -120,6 +120,7 @@ function BigDocIndicator({ onClose }: { onClose(): void }) {
 			onClick={handleClick}
 			aria-label="File size warning - open for details"
 			className={styles.indicatorButton}
+			data-testid="tldraw-large-file-indicator"
 		>
 			<BigDocIcon />
 		</button>
@@ -142,6 +143,7 @@ function SessionTimeIndicator({ onClose }: { onClose(): void }) {
 			onClick={handleClick}
 			className={styles.indicatorButton}
 			aria-label="Session time warning - open for details"
+			data-testid="tldraw-session-time-indicator"
 		>
 			<OldDocIcon />
 		</button>
