@@ -6,6 +6,9 @@ const shapeUtils = [DiceShapeUtil]
 
 function App() {
 	const handleMount = useCallback((editor: Editor) => {
+		;(window as any).editor = editor
+		if (editor.getCurrentPageShapeIds().size > 0) return
+
 		// Place two dice on the canvas to start
 		editor.createShapes([
 			{
