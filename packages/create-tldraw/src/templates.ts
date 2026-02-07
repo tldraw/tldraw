@@ -58,4 +58,11 @@ export const TEMPLATES: Template[] = [
 		order: 7,
 		repo: 'tldraw/shader-starter-kit',
 	},
+	{
+		name: 'Tabletop',
+		description: 'A tabletop game starter kit with 3D dice and shake-to-roll physics.',
+		shortDescription: 'Tabletop game with 3D dice.',
+		order: 8,
+		repo: 'tldraw/tabletop-starter-kit',
+	},
 ]
