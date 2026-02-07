@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { Vec, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -464,6 +464,47 @@ describe('ZoomQuick', () => {
 			// The cursor position within the brush should match its position within the viewport
 			expect(Math.abs(cursorPage.x - brushCenterX)).toBeLessThan(brush.w)
 			expect(Math.abs(cursorPage.y - brushCenterY)).toBeLessThan(brush.h)
+		})
+	})
+
+	describe('quickZoomPreservesScreenBounds option', () => {
+		it('when true, brush resizes to preserve screen bounds on zoom change', () => {
+			editor.pointerMove(540, 360)
+			editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+
+			const brushBefore = editor.getInstanceState().zoomBrush!
+			const wBefore = brushBefore.w
+			const hBefore = brushBefore.h
+
+			// Zoom in on the overview (doubles the camera zoom)
+			const cam = editor.getCamera()
+			editor.setCamera(new Vec(cam.x, cam.y, cam.z * 2))
+
+			const brushAfter = editor.getInstanceState().zoomBrush!
+			// Brush page dimensions should halve to keep the same screen size
+			expect(brushAfter.w).toBeCloseTo(wBefore / 2)
+			expect(brushAfter.h).toBeCloseTo(hBefore / 2)
+		})
+
+		it('when false, brush keeps fixed page dimensions on zoom change', () => {
+			const noPreserve = new TestEditor({
+				options: { quickZoomPreservesScreenBounds: false },
+			})
+			noPreserve.pointerMove(540, 360)
+			noPreserve.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+
+			const brushBefore = noPreserve.getInstanceState().zoomBrush!
+			const wBefore = brushBefore.w
+			const hBefore = brushBefore.h
+
+			// Zoom in on the overview
+			const cam = noPreserve.getCamera()
+			noPreserve.setCamera(new Vec(cam.x, cam.y, cam.z * 2))
+
+			const brushAfter = noPreserve.getInstanceState().zoomBrush!
+			// Brush page dimensions should stay the same
+			expect(brushAfter.w).toBeCloseTo(wBefore)
+			expect(brushAfter.h).toBeCloseTo(hBefore)
 		})
 	})
 
