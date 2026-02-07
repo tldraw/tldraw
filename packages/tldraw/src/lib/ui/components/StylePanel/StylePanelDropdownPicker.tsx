@@ -59,10 +59,11 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 	const editor = useEditor()
 	const [isOpen, setIsOpen] = React.useState(false)
 
-	const icon = React.useMemo(
-		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
-		[items, value]
-	)
+	const icon = React.useMemo(() => {
+		if (value.type === 'mixed') return 'mixed' as TLUiIconType
+		const match = items.find((item) => item.value === value.value)?.icon
+		return match ?? items[0]?.icon
+	}, [items, value])
 
 	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
 
@@ -88,7 +89,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 					title={titleStr}
 				>
 					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
-					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
+					<TldrawUiButtonIcon icon={icon as TLUiIconType} />
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="left" align="center">
