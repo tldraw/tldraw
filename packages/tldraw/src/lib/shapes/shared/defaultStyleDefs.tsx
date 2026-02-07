@@ -1,6 +1,7 @@
 import {
 	DefaultColorThemePalette,
 	DefaultFontStyle,
+	SafeId,
 	SvgExportDef,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -17,26 +18,32 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './useDefaultColorTheme'
 
+type ExportPatternComponent = () => React.JSX.Element
+
+const exportFillComponents: Partial<Record<TLDefaultFillStyle, ExportPatternComponent>> = {
+	pattern: HashPatternForExport,
+	'dense-dots': DenseDotsPatternForExport,
+	dots: DotsPatternForExport,
+	'sparse-dots': SparseDotsPatternForExport,
+	chevrons: ChevronsPatternForExport,
+	crosses: CrossesPatternForExport,
+	'lined-pattern': LinedPatternForExport,
+	'lined-dense-dots': LinedDenseDotsPatternForExport,
+	'lined-chevrons': LinedChevronsPatternForExport,
+	'lined-crosses': LinedCrossesPatternForExport,
+	'lined-dots': LinedDotsPatternForExport,
+	'lined-sparse-dots': LinedSparseDotsPatternForExport,
+	'large-check': LargeCheckPatternForExport,
+	'small-check': SmallCheckPatternForExport,
+}
+
 /** @public */
 export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
+	const Component = exportFillComponents[fill]
 	return {
 		key: `${DefaultFontStyle.id}:${fill}`,
 		async getElement() {
-			if (fill === 'pattern') return <HashPatternForExport />
-			if (fill === 'dense-dots') return <DenseDotsPatternForExport />
-			if (fill === 'dots') return <DotsPatternForExport />
-			if (fill === 'sparse-dots') return <SparseDotsPatternForExport />
-			if (fill === 'chevrons') return <ChevronsPatternForExport />
-			if (fill === 'crosses') return <CrossesPatternForExport />
-			if (fill === 'lined-pattern') return <LinedPatternForExport />
-			if (fill === 'lined-dense-dots') return <LinedDenseDotsPatternForExport />
-			if (fill === 'lined-chevrons') return <LinedChevronsPatternForExport />
-			if (fill === 'lined-crosses') return <LinedCrossesPatternForExport />
-			if (fill === 'lined-dots') return <LinedDotsPatternForExport />
-			if (fill === 'lined-sparse-dots') return <LinedSparseDotsPatternForExport />
-			if (fill === 'large-check') return <LargeCheckPatternForExport />
-			if (fill === 'small-check') return <SmallCheckPatternForExport />
-			return null
+			return Component ? <Component /> : null
 		},
 	}
 }
@@ -337,6 +344,12 @@ interface PatternDef {
 	theme: 'light' | 'dark'
 }
 
+interface ImagePatternConfig {
+	tileSize: number
+	getZoomName: (zoom: number, theme: TLDefaultColorTheme['id']) => SafeId
+	generate: (dpr: number, currentZoom: number, darkMode: boolean) => Promise<Blob>
+}
+
 let defaultPixels: { white: string; black: string } | null = null
 function getDefaultPixels() {
 	if (!defaultPixels) {
@@ -358,71 +371,25 @@ function getPatternLodForZoomLevel(zoom: number) {
 	return Math.ceil(Math.log2(Math.max(1, zoom)))
 }
 
-export function useGetHashPatternZoomName() {
-	const id = useSharedSafeId('hash_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
+const makeUseGetPatternZoomName = (baseId: string) => {
+	return function useGetPatternZoomName() {
+		const id = useSharedSafeId(baseId)
+		return useCallback(
+			(zoom: number, theme: TLDefaultColorTheme['id']) => {
+				const lod = getPatternLodForZoomLevel(zoom)
+				return suffixSafeId(id, `${theme}_${lod}`)
+			},
+			[id]
+		)
+	}
 }
 
-export function useGetDotsPatternZoomName() {
-	const id = useSharedSafeId('dots_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
-
-export function useGetSparseDotsPatternZoomName() {
-	const id = useSharedSafeId('sparse_dots_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
-
-export function useGetDenseDotsPatternZoomName() {
-	const id = useSharedSafeId('dense_dots_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
-
-export function useGetChevronsPatternZoomName() {
-	const id = useSharedSafeId('chevrons_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
-
-export function useGetCrossesPatternZoomName() {
-	const id = useSharedSafeId('crosses_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetHashPatternZoomName = makeUseGetPatternZoomName('hash_pattern')
+export const useGetDotsPatternZoomName = makeUseGetPatternZoomName('dots_pattern')
+export const useGetSparseDotsPatternZoomName = makeUseGetPatternZoomName('sparse_dots_pattern')
+export const useGetDenseDotsPatternZoomName = makeUseGetPatternZoomName('dense_dots_pattern')
+export const useGetChevronsPatternZoomName = makeUseGetPatternZoomName('chevrons_pattern')
+export const useGetCrossesPatternZoomName = makeUseGetPatternZoomName('crosses_pattern')
 
 function getPatternLodsToGenerate(maxZoom: number) {
 	const levels = []
@@ -442,7 +409,7 @@ function getDefaultPatterns(maxZoom: number): PatternDef[] {
 	])
 }
 
-function usePattern() {
+function useImagePattern({ tileSize, getZoomName, generate }: ImagePatternConfig) {
 	const editor = useEditor()
 	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
 		editor,
@@ -454,7 +421,6 @@ function usePattern() {
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
 		getDefaultPatterns(maxZoom)
 	)
-	const getHashPatternZoomName = useGetHashPatternZoomName()
 
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'test') {
@@ -464,12 +430,12 @@ function usePattern() {
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateImage(dpr, zoom, false).then((blob) => ({
+				generate(dpr, zoom, false).then((blob) => ({
 					zoom,
 					theme: 'light',
 					url: URL.createObjectURL(blob),
 				})),
-				generateImage(dpr, zoom, true).then((blob) => ({
+				generate(dpr, zoom, true).then((blob) => ({
 					zoom,
 					theme: 'dark',
 					url: URL.createObjectURL(blob),
@@ -492,21 +458,21 @@ function usePattern() {
 				}
 			})
 		}
-	}, [dpr, maxZoom])
+	}, [dpr, generate, maxZoom])
 
 	const defs = (
 		<>
 			{backgroundUrls.map((item) => {
-				const id = getHashPatternZoomName(item.zoom, item.theme)
+				const id = getZoomName(item.zoom, item.theme)
 				return (
 					<pattern
 						key={id}
 						id={id}
-						width={TILE_PATTERN_SIZE}
-						height={TILE_PATTERN_SIZE}
+						width={tileSize}
+						height={tileSize}
 						patternUnits="userSpaceOnUse"
 					>
-						<image href={item.url} width={TILE_PATTERN_SIZE} height={TILE_PATTERN_SIZE} />
+						<image href={item.url} width={tileSize} height={tileSize} />
 					</pattern>
 				)
 			})}
@@ -516,20 +482,16 @@ function usePattern() {
 	return { defs, isReady }
 }
 
-function PatternFillDefForCanvas() {
+function useSafariPatternRefresh(containerRef: { current: SVGGElement | null }, isReady: boolean) {
 	const editor = useEditor()
-	const containerRef = useRef<SVGGElement>(null)
-	const { defs, isReady } = usePattern()
-
 	useEffect(() => {
 		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
+			const container = containerRef.current
+			if (!container) return
+			const htmlLayer = findHtmlLayerParent(container)
 			if (htmlLayer) {
-				// Wait for `patternContext` to be picked up
 				editor.timers.requestAnimationFrame(() => {
 					htmlLayer.style.display = 'none'
-
-					// Wait for 'display = "none"' to take effect
 					editor.timers.requestAnimationFrame(() => {
 						htmlLayer.style.display = ''
 					})
@@ -537,6 +499,22 @@ function PatternFillDefForCanvas() {
 			}
 		}
 	}, [editor, isReady])
+}
+
+function usePattern() {
+	const getHashPatternZoomName = useGetHashPatternZoomName()
+	return useImagePattern({
+		tileSize: TILE_PATTERN_SIZE,
+		getZoomName: getHashPatternZoomName,
+		generate: generateImage,
+	})
+}
+
+function PatternFillDefForCanvas() {
+	const containerRef = useRef<SVGGElement>(null)
+	const { defs, isReady } = usePattern()
+
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-pattern-fill-defs' : undefined}>
@@ -548,97 +526,19 @@ function PatternFillDefForCanvas() {
 // --- Dots pattern ---
 
 function useDotsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getDotsPatternZoomName = useGetDotsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateDotsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateDotsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getDotsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={DOTS_TILE_SIZE}
-						height={DOTS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={DOTS_TILE_SIZE} height={DOTS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: DOTS_TILE_SIZE,
+		getZoomName: getDotsPatternZoomName,
+		generate: generateDotsImage,
+	})
 }
 
 function DotsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useDotsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-dots-fill-defs' : undefined}>
@@ -686,97 +586,19 @@ function DotsPatternForExport() {
 // --- Sparse dots pattern ---
 
 function useSparseDotsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getSparseDotsPatternZoomName = useGetSparseDotsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateSparseDotsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateSparseDotsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getSparseDotsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={SPARSE_DOTS_TILE_SIZE}
-						height={SPARSE_DOTS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={SPARSE_DOTS_TILE_SIZE} height={SPARSE_DOTS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: SPARSE_DOTS_TILE_SIZE,
+		getZoomName: getSparseDotsPatternZoomName,
+		generate: generateSparseDotsImage,
+	})
 }
 
 function SparseDotsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useSparseDotsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-sparse-dots-fill-defs' : undefined}>
@@ -835,97 +657,19 @@ function SparseDotsPatternForExport() {
 // --- Dense dots pattern ---
 
 function useDenseDotsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getDenseDotsPatternZoomName = useGetDenseDotsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateDenseDotsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateDenseDotsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getDenseDotsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={DENSE_DOTS_TILE_SIZE}
-						height={DENSE_DOTS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={DENSE_DOTS_TILE_SIZE} height={DENSE_DOTS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: DENSE_DOTS_TILE_SIZE,
+		getZoomName: getDenseDotsPatternZoomName,
+		generate: generateDenseDotsImage,
+	})
 }
 
 function DenseDotsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useDenseDotsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-dense-dots-fill-defs' : undefined}>
@@ -978,97 +722,19 @@ function DenseDotsPatternForExport() {
 // --- Chevrons pattern ---
 
 function useChevronsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getChevronsPatternZoomName = useGetChevronsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateChevronsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateChevronsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getChevronsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={CHEVRONS_TILE_SIZE}
-						height={CHEVRONS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={CHEVRONS_TILE_SIZE} height={CHEVRONS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: CHEVRONS_TILE_SIZE,
+		getZoomName: getChevronsPatternZoomName,
+		generate: generateChevronsImage,
+	})
 }
 
 function ChevronsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useChevronsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-chevrons-fill-defs' : undefined}>
@@ -1123,97 +789,19 @@ function ChevronsPatternForExport() {
 // --- Crosses pattern ---
 
 function useCrossesPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getCrossesPatternZoomName = useGetCrossesPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateCrossesImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateCrossesImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getCrossesPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={CROSSES_TILE_SIZE}
-						height={CROSSES_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={CROSSES_TILE_SIZE} height={CROSSES_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: CROSSES_TILE_SIZE,
+		getZoomName: getCrossesPatternZoomName,
+		generate: generateCrossesImage,
+	})
 }
 
 function CrossesFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useCrossesPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-crosses-fill-defs' : undefined}>
@@ -1307,109 +895,22 @@ const generateLinedPatternImage = (dpr: number, currentZoom: number, darkMode: b
 	})
 }
 
-export function useGetLinedPatternZoomName() {
-	const id = useSharedSafeId('lined_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLinedPatternZoomName = makeUseGetPatternZoomName('lined_pattern')
 
 function useLinedPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLinedPatternZoomName = useGetLinedPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLinedPatternImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLinedPatternImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLinedPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={TILE_PATTERN_SIZE}
-						height={TILE_PATTERN_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={TILE_PATTERN_SIZE} height={TILE_PATTERN_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: TILE_PATTERN_SIZE,
+		getZoomName: getLinedPatternZoomName,
+		generate: generateLinedPatternImage,
+	})
 }
 
 function LinedPatternFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLinedPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-lined-pattern-fill-defs' : undefined}>
@@ -1478,109 +979,24 @@ const generateLinedDenseDotsImage = (dpr: number, currentZoom: number, darkMode:
 	})
 }
 
-export function useGetLinedDenseDotsPatternZoomName() {
-	const id = useSharedSafeId('lined_dense_dots_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLinedDenseDotsPatternZoomName = makeUseGetPatternZoomName(
+	'lined_dense_dots_pattern'
+)
 
 function useLinedDenseDotsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLinedDenseDotsPatternZoomName = useGetLinedDenseDotsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLinedDenseDotsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLinedDenseDotsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLinedDenseDotsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={DENSE_DOTS_TILE_SIZE}
-						height={DENSE_DOTS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={DENSE_DOTS_TILE_SIZE} height={DENSE_DOTS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: DENSE_DOTS_TILE_SIZE,
+		getZoomName: getLinedDenseDotsPatternZoomName,
+		generate: generateLinedDenseDotsImage,
+	})
 }
 
 function LinedDenseDotsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLinedDenseDotsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-lined-dense-dots-fill-defs' : undefined}>
@@ -1648,109 +1064,22 @@ const generateLinedDotsImage = (dpr: number, currentZoom: number, darkMode: bool
 	})
 }
 
-export function useGetLinedDotsPatternZoomName() {
-	const id = useSharedSafeId('lined_dots_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLinedDotsPatternZoomName = makeUseGetPatternZoomName('lined_dots_pattern')
 
 function useLinedDotsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLinedDotsPatternZoomName = useGetLinedDotsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLinedDotsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLinedDotsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLinedDotsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={DOTS_TILE_SIZE}
-						height={DOTS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={DOTS_TILE_SIZE} height={DOTS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: DOTS_TILE_SIZE,
+		getZoomName: getLinedDotsPatternZoomName,
+		generate: generateLinedDotsImage,
+	})
 }
 
 function LinedDotsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLinedDotsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-lined-dots-fill-defs' : undefined}>
@@ -1819,109 +1148,24 @@ const generateLinedSparseDotsImage = (dpr: number, currentZoom: number, darkMode
 	})
 }
 
-export function useGetLinedSparseDotsPatternZoomName() {
-	const id = useSharedSafeId('lined_sparse_dots_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLinedSparseDotsPatternZoomName = makeUseGetPatternZoomName(
+	'lined_sparse_dots_pattern'
+)
 
 function useLinedSparseDotsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLinedSparseDotsPatternZoomName = useGetLinedSparseDotsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLinedSparseDotsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLinedSparseDotsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLinedSparseDotsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={SPARSE_DOTS_TILE_SIZE}
-						height={SPARSE_DOTS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={SPARSE_DOTS_TILE_SIZE} height={SPARSE_DOTS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: SPARSE_DOTS_TILE_SIZE,
+		getZoomName: getLinedSparseDotsPatternZoomName,
+		generate: generateLinedSparseDotsImage,
+	})
 }
 
 function LinedSparseDotsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLinedSparseDotsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-lined-sparse-dots-fill-defs' : undefined}>
@@ -1995,109 +1239,23 @@ const generateLinedChevronsImage = (dpr: number, currentZoom: number, darkMode: 
 	})
 }
 
-export function useGetLinedChevronsPatternZoomName() {
-	const id = useSharedSafeId('lined_chevrons_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLinedChevronsPatternZoomName =
+	makeUseGetPatternZoomName('lined_chevrons_pattern')
 
 function useLinedChevronsPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLinedChevronsPatternZoomName = useGetLinedChevronsPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLinedChevronsImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLinedChevronsImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLinedChevronsPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={CHEVRONS_TILE_SIZE}
-						height={CHEVRONS_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={CHEVRONS_TILE_SIZE} height={CHEVRONS_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: CHEVRONS_TILE_SIZE,
+		getZoomName: getLinedChevronsPatternZoomName,
+		generate: generateLinedChevronsImage,
+	})
 }
 
 function LinedChevronsFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLinedChevronsPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-lined-chevrons-fill-defs' : undefined}>
@@ -2175,109 +1333,22 @@ const generateLinedCrossesImage = (dpr: number, currentZoom: number, darkMode: b
 	})
 }
 
-export function useGetLinedCrossesPatternZoomName() {
-	const id = useSharedSafeId('lined_crosses_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLinedCrossesPatternZoomName = makeUseGetPatternZoomName('lined_crosses_pattern')
 
 function useLinedCrossesPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLinedCrossesPatternZoomName = useGetLinedCrossesPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLinedCrossesImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLinedCrossesImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLinedCrossesPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={CROSSES_TILE_SIZE}
-						height={CROSSES_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={CROSSES_TILE_SIZE} height={CROSSES_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: CROSSES_TILE_SIZE,
+		getZoomName: getLinedCrossesPatternZoomName,
+		generate: generateLinedCrossesImage,
+	})
 }
 
 function LinedCrossesFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLinedCrossesPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-lined-crosses-fill-defs' : undefined}>
@@ -2348,109 +1419,22 @@ const generateLargeCheckImage = (dpr: number, currentZoom: number, darkMode: boo
 	})
 }
 
-export function useGetLargeCheckPatternZoomName() {
-	const id = useSharedSafeId('large_check_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetLargeCheckPatternZoomName = makeUseGetPatternZoomName('large_check_pattern')
 
 function useLargeCheckPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getLargeCheckPatternZoomName = useGetLargeCheckPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateLargeCheckImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateLargeCheckImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getLargeCheckPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={LARGE_CHECK_TILE_SIZE}
-						height={LARGE_CHECK_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={LARGE_CHECK_TILE_SIZE} height={LARGE_CHECK_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: LARGE_CHECK_TILE_SIZE,
+		getZoomName: getLargeCheckPatternZoomName,
+		generate: generateLargeCheckImage,
+	})
 }
 
 function LargeCheckFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useLargeCheckPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-large-check-fill-defs' : undefined}>
@@ -2537,109 +1521,22 @@ const generateSmallCheckImage = (dpr: number, currentZoom: number, darkMode: boo
 	})
 }
 
-export function useGetSmallCheckPatternZoomName() {
-	const id = useSharedSafeId('small_check_pattern')
-	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
-			const lod = getPatternLodForZoomLevel(zoom)
-			return suffixSafeId(id, `${theme}_${lod}`)
-		},
-		[id]
-	)
-}
+export const useGetSmallCheckPatternZoomName = makeUseGetPatternZoomName('small_check_pattern')
 
 function useSmallCheckPattern() {
-	const editor = useEditor()
-	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
-		editor,
-	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
-	const [isReady, setIsReady] = useState(false)
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
-	)
 	const getSmallCheckPatternZoomName = useGetSmallCheckPatternZoomName()
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
-		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateSmallCheckImage(dpr, zoom, false).then((blob) => ({
-					zoom,
-					theme: 'light',
-					url: URL.createObjectURL(blob),
-				})),
-				generateSmallCheckImage(dpr, zoom, true).then((blob) => ({
-					zoom,
-					theme: 'dark',
-					url: URL.createObjectURL(blob),
-				})),
-			])
-		)
-
-		let isCancelled = false
-		promise.then((urls) => {
-			if (isCancelled) return
-			setBackgroundUrls(urls)
-			setIsReady(true)
-		})
-		return () => {
-			isCancelled = true
-			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
-		}
-	}, [dpr, maxZoom])
-
-	const defs = (
-		<>
-			{backgroundUrls.map((item) => {
-				const id = getSmallCheckPatternZoomName(item.zoom, item.theme)
-				return (
-					<pattern
-						key={id}
-						id={id}
-						width={SMALL_CHECK_TILE_SIZE}
-						height={SMALL_CHECK_TILE_SIZE}
-						patternUnits="userSpaceOnUse"
-					>
-						<image href={item.url} width={SMALL_CHECK_TILE_SIZE} height={SMALL_CHECK_TILE_SIZE} />
-					</pattern>
-				)
-			})}
-		</>
-	)
-
-	return { defs, isReady }
+	return useImagePattern({
+		tileSize: SMALL_CHECK_TILE_SIZE,
+		getZoomName: getSmallCheckPatternZoomName,
+		generate: generateSmallCheckImage,
+	})
 }
 
 function SmallCheckFillDefForCanvas() {
-	const editor = useEditor()
 	const containerRef = useRef<SVGGElement>(null)
 	const { defs, isReady } = useSmallCheckPattern()
 
-	useEffect(() => {
-		if (isReady && tlenv.isSafari) {
-			const htmlLayer = findHtmlLayerParent(containerRef.current!)
-			if (htmlLayer) {
-				editor.timers.requestAnimationFrame(() => {
-					htmlLayer.style.display = 'none'
-					editor.timers.requestAnimationFrame(() => {
-						htmlLayer.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, isReady])
+	useSafariPatternRefresh(containerRef, isReady)
 
 	return (
 		<g ref={containerRef} data-testid={isReady ? 'ready-small-check-fill-defs' : undefined}>
