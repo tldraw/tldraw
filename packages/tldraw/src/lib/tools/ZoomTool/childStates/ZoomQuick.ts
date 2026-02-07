@@ -1,12 +1,4 @@
-import {
-	Box,
-	StateNode,
-	TLKeyboardEventInfo,
-	TLPointerEventInfo,
-	TLTickEventInfo,
-	Vec,
-	react,
-} from '@tldraw/editor'
+import { Box, StateNode, TLKeyboardEventInfo, TLPointerEventInfo, Vec, react } from '@tldraw/editor'
 
 export class ZoomQuick extends StateNode {
 	static override id = 'zoom_quick'
@@ -140,7 +132,7 @@ export class ZoomQuick extends StateNode {
 		this.updateBrush()
 	}
 
-	override onTick(_info: TLTickEventInfo) {
+	override onTick() {
 		const { editor } = this
 
 		// If the user is idle but has moved their camera, transition to the moving state
