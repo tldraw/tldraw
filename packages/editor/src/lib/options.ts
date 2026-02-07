@@ -120,6 +120,13 @@ export interface TldrawOptions {
 	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
 	 */
 	readonly snapThreshold: number
+	/**
+	 * Whether the quick-zoom brush preserves its screen-pixel size when the user
+	 * zooms the overview. When true, zooming in shrinks the target viewport (higher
+	 * return zoom); zooming out expands it. When false, the brush keeps the original
+	 * viewport's page dimensions regardless of overview zoom changes.
+	 */
+	readonly quickZoomPreservesScreenBounds: boolean
 }
 
 /** @public */
@@ -178,4 +185,5 @@ export const defaultTldrawOptions = {
 	spacebarPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
+	quickZoomPreservesScreenBounds: true,
 } as const satisfies TldrawOptions

@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLTickEventInfo,
 	Vec,
+	react,
 } from '@tldraw/editor'
 
 export class ZoomQuick extends StateNode {
@@ -16,6 +17,13 @@ export class ZoomQuick extends StateNode {
 
 	initialVpb = new Box()
 	initialPp = new Vec()
+
+	/** The camera zoom right after the overview zoom-out in onEnter. */
+	overviewZoom = 1
+
+	cleanupZoomReactor() {
+		void null
+	}
 
 	nextVpb = new Box()
 
@@ -29,25 +37,60 @@ export class ZoomQuick extends StateNode {
 
 		editor.setCursor({ type: 'zoom-in', rotation: 0 })
 
-		// Zoom to the 2nd zoom step while preserving cursor position
-		// If already below that, zoom to the 1st zoom step instead
-		const baseZoom = editor.getBaseZoom()
-		const { zoomSteps } = editor.getCameraOptions()
-		const currentZoom = editor.getCamera().z
-		// Safely access zoomSteps - use first element if only one exists
-		const secondStep = zoomSteps.length > 1 ? zoomSteps[1] : zoomSteps[0]
-		const targetZoom =
-			currentZoom < secondStep * baseZoom ? zoomSteps[0] * baseZoom : secondStep * baseZoom
+		// Find the union of the current viewport and all shapes on the page,
+		// then compute the zoom needed to fit it while preserving cursor position.
+		const vpb = this.initialVpb
+		const pageBounds = editor.getCurrentPageBounds()
+		const commonBounds = pageBounds ? Box.Expand(vpb, pageBounds) : vpb.clone()
 
-		const { x: cx, y: cy, z: cz } = editor.getCamera()
+		// The cursor stays fixed on screen, so the viewport extends:
+		//   left of cursor by sx/z, right by (vsb.w-sx)/z (in page units)
+		// We need each side to reach the common bounds edge.
+		const vsb = editor.getViewportScreenBounds()
+		const sp = editor.inputs.getCurrentScreenPoint()
+		const sx = sp.x - vsb.x
+		const sy = sp.y - vsb.y
 		const { x: px, y: py } = this.initialPp
+
+		const dLeft = px - commonBounds.minX
+		const dRight = commonBounds.maxX - px
+		const dTop = py - commonBounds.minY
+		const dBottom = commonBounds.maxY - py
+
+		let targetZoom = editor.getCamera().z
+		if (dLeft > 0) targetZoom = Math.min(targetZoom, sx / dLeft)
+		if (dRight > 0) targetZoom = Math.min(targetZoom, (vsb.w - sx) / dRight)
+		if (dTop > 0) targetZoom = Math.min(targetZoom, sy / dTop)
+		if (dBottom > 0) targetZoom = Math.min(targetZoom, (vsb.h - sy) / dBottom)
+
+		// Zoom out a little further to add breathing room for dragging
+		targetZoom *= 0.85
+
+		// Make sure we're not less than the minimum zoom
+		targetZoom = Math.max(editor.getCameraOptions().zoomSteps[0], targetZoom)
+		this.overviewZoom = targetZoom
+
+		// When preserving screen bounds, react to zoom changes to resize the brush.
+		// Otherwise the brush keeps fixed page dimensions.
+		if (editor.options.quickZoomPreservesScreenBounds) {
+			this.cleanupZoomReactor = react('zoom change in quick zoom', () => {
+				editor.getZoomLevel()
+				this.updateBrush()
+			})
+		}
+
+		// Set the camera — when the reactor is active it will update the brush automatically.
+		const { x: cx, y: cy, z: cz } = editor.getCamera()
 		const ratio = cz / targetZoom
 		editor.setCamera(new Vec((cx + px) * ratio - px, (cy + py) * ratio - py, targetZoom))
 
-		this.updateBrush()
+		if (!editor.options.quickZoomPreservesScreenBounds) {
+			this.updateBrush()
+		}
 	}
 
 	override onExit() {
+		this.cleanupZoomReactor()
 		this.zoomToNewViewport()
 		this.editor.updateInstanceState({ zoomBrush: null })
 	}
@@ -97,9 +140,10 @@ export class ZoomQuick extends StateNode {
 		this.updateBrush()
 	}
 
-	override onTick({ elapsed }: TLTickEventInfo) {
+	override onTick(_info: TLTickEventInfo) {
 		const { editor } = this
 
+		// If the user is idle but has moved their camera, transition to the moving state
 		switch (this.qzState) {
 			case 'idle': {
 				const zoomLevel = editor.getZoomLevel()
@@ -119,10 +163,22 @@ export class ZoomQuick extends StateNode {
 
 	private getNextVpb() {
 		const { editor } = this
-		const { w, h } = this.initialVpb
+		let w: number
+		let h: number
+		if (editor.options.quickZoomPreservesScreenBounds) {
+			// Scale the brush page dimensions so that its screen size stays constant
+			// as the overview zoom changes. When the user zooms in on the overview,
+			// the brush shrinks in page coords (higher target zoom); zooming out expands it.
+			const zoomRatio = this.overviewZoom / editor.getCamera().z
+			w = this.initialVpb.w * zoomRatio
+			h = this.initialVpb.h * zoomRatio
+		} else {
+			w = this.initialVpb.w
+			h = this.initialVpb.h
+		}
 		const { x, y } = editor.inputs.getCurrentPagePoint()
 
-		// Normalize the offset on the current screen point within the curren viewport screen bounds
+		// Normalize the offset on the current screen point within the current viewport screen bounds
 		const vsb = editor.getViewportScreenBounds()
 		const vsp = editor.inputs.getCurrentScreenPoint()
 		const { x: nx, y: ny } = new Vec((vsp.x - vsb.x) / vsb.w, (vsp.y - vsb.y) / vsb.h)
