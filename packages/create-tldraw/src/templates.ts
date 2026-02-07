@@ -45,6 +45,13 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/chat-template',
 	},
 	{
+		name: 'Image pipeline',
+		description: 'Create a node-based builder for image generation pipelines.',
+		shortDescription: 'Visual node-based builder for image pipelines.',
+		order: 5,
+		repo: 'tldraw/image-pipeline-template',
+	},
+	{
 		name: 'Branching chat',
 		description: 'Chat with an AI using a branching conversation interface.',
 		shortDescription: 'A branching chat interface.',
