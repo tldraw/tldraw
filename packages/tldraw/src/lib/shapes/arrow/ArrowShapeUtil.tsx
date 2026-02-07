@@ -53,7 +53,15 @@ import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getChevronsFillDefForCanvas,
+	getCrossesFillDefForCanvas,
+	getDenseDotsFillDefForCanvas,
+	getDotsFillDefForCanvas,
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getSparseDotsFillDefForCanvas,
+} from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
@@ -1084,6 +1092,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [
 			getFillDefForCanvas(),
+			getDenseDotsFillDefForCanvas(),
+			getDotsFillDefForCanvas(),
+			getSparseDotsFillDefForCanvas(),
+			getChevronsFillDefForCanvas(),
+			getCrossesFillDefForCanvas(),
 			{
 				key: `arrow:dot`,
 				component: ArrowheadDotDef,

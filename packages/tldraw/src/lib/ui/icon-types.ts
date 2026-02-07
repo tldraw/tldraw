@@ -62,12 +62,17 @@ export type TLUiIconType =
 	| 'duplicate'
 	| 'edit'
 	| 'external-link'
+	| 'fill-chevrons'
+	| 'fill-crosses'
+	| 'fill-dense-dots'
+	| 'fill-dots'
 	| 'fill-fill'
 	| 'fill-lined-fill'
 	| 'fill-none'
 	| 'fill-pattern'
 	| 'fill-semi'
 	| 'fill-solid'
+	| 'fill-sparse-dots'
 	| 'follow'
 	| 'following'
 	| 'font-draw'
@@ -227,12 +232,17 @@ export const iconTypes = [
 	'duplicate',
 	'edit',
 	'external-link',
+	'fill-chevrons',
+	'fill-crosses',
+	'fill-dense-dots',
+	'fill-dots',
 	'fill-fill',
 	'fill-lined-fill',
 	'fill-none',
 	'fill-pattern',
 	'fill-semi',
 	'fill-solid',
+	'fill-sparse-dots',
 	'follow',
 	'following',
 	'font-draw',

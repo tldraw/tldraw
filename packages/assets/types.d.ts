@@ -82,12 +82,17 @@ export type AssetUrls = {
 		duplicate: string
 		edit: string
 		'external-link': string
+		'fill-chevrons': string
+		'fill-crosses': string
+		'fill-dense-dots': string
+		'fill-dots': string
 		'fill-fill': string
 		'fill-lined-fill': string
 		'fill-none': string
 		'fill-pattern': string
 		'fill-semi': string
 		'fill-solid': string
+		'fill-sparse-dots': string
 		follow: string
 		following: string
 		'font-draw': string

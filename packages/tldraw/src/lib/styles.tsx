@@ -29,6 +29,11 @@ export const STYLES = {
 	],
 	fillExtra: [
 		{ value: 'pattern', icon: 'fill-pattern' },
+		{ value: 'chevrons', icon: 'fill-chevrons' },
+		{ value: 'crosses', icon: 'fill-crosses' },
+		{ value: 'dense-dots', icon: 'fill-dense-dots' },
+		{ value: 'dots', icon: 'fill-dots' },
+		{ value: 'sparse-dots', icon: 'fill-sparse-dots' },
 		{ value: 'lined-fill', icon: 'fill-lined-fill' },
 		{ value: 'fill', icon: 'fill-fill' },
 	],

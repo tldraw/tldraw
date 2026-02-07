@@ -23,7 +23,15 @@ import {
 
 import { ShapeFill } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getChevronsFillDefForCanvas,
+	getCrossesFillDefForCanvas,
+	getDenseDotsFillDefForCanvas,
+	getDotsFillDefForCanvas,
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getSparseDotsFillDefForCanvas,
+} from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
@@ -224,7 +232,14 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
-		return [getFillDefForCanvas()]
+		return [
+			getFillDefForCanvas(),
+			getDenseDotsFillDefForCanvas(),
+			getDotsFillDefForCanvas(),
+			getSparseDotsFillDefForCanvas(),
+			getChevronsFillDefForCanvas(),
+			getCrossesFillDefForCanvas(),
+		]
 	}
 
 	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {

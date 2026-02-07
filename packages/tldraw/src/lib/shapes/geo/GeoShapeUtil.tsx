@@ -41,7 +41,15 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getChevronsFillDefForCanvas,
+	getCrossesFillDefForCanvas,
+	getDenseDotsFillDefForCanvas,
+	getDotsFillDefForCanvas,
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getSparseDotsFillDefForCanvas,
+} from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
@@ -312,7 +320,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
-		return [getFillDefForCanvas()]
+		return [
+			getFillDefForCanvas(),
+			getDenseDotsFillDefForCanvas(),
+			getDotsFillDefForCanvas(),
+			getSparseDotsFillDefForCanvas(),
+			getChevronsFillDefForCanvas(),
+			getCrossesFillDefForCanvas(),
+		]
 	}
 
 	override onResize(
