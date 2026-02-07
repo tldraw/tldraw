@@ -113,8 +113,6 @@ export class ZoomQuick extends StateNode {
 				break
 			}
 			case 'moving':
-				if (editor.getCameraOptions().isLocked) break
-				editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 				break
 		}
 	}
