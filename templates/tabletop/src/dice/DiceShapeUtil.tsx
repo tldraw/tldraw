@@ -4,37 +4,31 @@ import {
 	Circle2d,
 	DefaultColorStyle,
 	HTMLContainer,
-	Mat,
 	RecordProps,
 	T,
 	TLDefaultColorStyle,
 	TLShape,
 	TLShapePartial,
-	Vec,
-	getColorValue,
-	getDefaultColorTheme,
 	useEditor,
 	useIsDarkMode,
 	useQuickReactor,
 } from 'tldraw'
+import {
+	DEG_TO_RAD,
+	LIGHT_DIR,
+	MAX_SHADOW,
+	ShakeState,
+	computePerspective,
+	convexHull,
+	createShakeState,
+	getBorderColor,
+	getFaceColor,
+	getTextColor,
+	rotateVert2,
+	updateShakeState,
+} from './shared'
 
 // --- Shape type ---
-
-function getFaceColor(color: TLDefaultColorStyle, isDarkMode: boolean) {
-	const theme = getDefaultColorTheme({ isDarkMode })
-	if (color === 'black') {
-		return theme.white.solid
-	}
-	return getColorValue(theme, color, 'solid')
-}
-
-function getPipColor(color: TLDefaultColorStyle, isDarkMode: boolean) {
-	const theme = getDefaultColorTheme({ isDarkMode })
-	if (color === 'black') {
-		return theme.black.solid
-	}
-	return theme.white.solid
-}
 
 export const DICE_TYPE = 'tabletop-dice' as const
 
@@ -53,12 +47,6 @@ declare module 'tldraw' {
 type IDiceShape = TLShape<typeof DICE_TYPE>
 
 // --- Constants ---
-
-const DEG_TO_RAD = Math.PI / 180
-
-/** Light direction (toward source): from above and slightly toward the viewer. */
-const LIGHT_DIR: [number, number, number] = [0, -0.6, 0.8]
-const MAX_SHADOW = 0.4
 
 /** Cube rotation (degrees) to bring each face value toward the viewer. */
 const FACE_ROTATIONS: Record<number, { x: number; y: number }> = {
@@ -111,13 +99,13 @@ const FACE_DATA = [
  * Pip patterns for each face as a 3x3 grid (row-major).
  * Grid: [0][1][2] / [3][4][5] / [6][7][8]
  */
-const PIP_PATTERNS: Record<number, boolean[]> = {
-	1: [false, false, false, false, true, false, false, false, false],
-	2: [false, false, true, false, false, false, true, false, false],
-	3: [false, false, true, false, true, false, true, false, false],
-	4: [true, false, true, false, false, false, true, false, true],
-	5: [true, false, true, false, true, false, true, false, true],
-	6: [true, false, true, true, false, true, true, false, true],
+const PIP_PATTERNS: Record<number, number[]> = {
+	1: [0, 0, 0, 0, 1, 0, 0, 0, 0],
+	2: [0, 0, 1, 0, 0, 0, 1, 0, 0],
+	3: [0, 0, 1, 0, 1, 0, 1, 0, 0],
+	4: [1, 0, 1, 0, 0, 0, 1, 0, 1],
+	5: [1, 0, 1, 0, 1, 0, 1, 0, 1],
+	6: [1, 0, 1, 1, 0, 1, 1, 0, 1],
 }
 
 /** Pip grid center positions as fraction of face size (~15% padding). */
@@ -134,51 +122,6 @@ const CUBE_VERTS: [number, number, number][] = [
 	[1, 1, 1],
 	[-1, 1, 1],
 ]
-
-/** Rotate a point by RY then RX (matching the cube's CSS transform order). */
-function rotateVert(
-	x: number,
-	y: number,
-	z: number,
-	cosRx: number,
-	sinRx: number,
-	cosRy: number,
-	sinRy: number
-): [number, number, number] {
-	// RY
-	const x1 = x * cosRy + z * sinRy
-	const z1 = -x * sinRy + z * cosRy
-	// RX
-	const y2 = y * cosRx - z1 * sinRx
-	const z2 = y * sinRx + z1 * cosRx
-	return [x1, y2, z2]
-}
-
-/** Convex hull of 2D points (Andrew's monotone chain). Returns CW polygon. */
-function convexHull(points: [number, number][]): [number, number][] {
-	const pts = points.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1])
-	if (pts.length <= 1) return pts
-	const cross = (o: [number, number], a: [number, number], b: [number, number]) =>
-		(a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
-	const lower: [number, number][] = []
-	for (const p of pts) {
-		while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0)
-			lower.pop()
-		lower.push(p)
-	}
-	const upper: [number, number][] = []
-	for (let i = pts.length - 1; i >= 0; i--) {
-		while (
-			upper.length >= 2 &&
-			cross(upper[upper.length - 2], upper[upper.length - 1], pts[i]) <= 0
-		)
-			upper.pop()
-		upper.push(pts[i])
-	}
-	lower.pop()
-	upper.pop()
-	return lower.concat(upper)
-}
 
 /** Get the perspective-projected 2D convex hull outline of the cube at a given rotation. */
 function getCubeOutlineFromRotation(
@@ -198,7 +141,7 @@ function getCubeOutlineFromRotation(
 		sinRy = Math.sin(ryR)
 
 	const projected: [number, number][] = CUBE_VERTS.map(([vx, vy, vz]) => {
-		const [rx, ry, rz] = rotateVert(vx, vy, vz, cosRx, sinRx, cosRy, sinRy)
+		const [rx, ry, rz] = rotateVert2(vx, vy, vz, cosRx, sinRx, cosRy, sinRy)
 		const cx = rx * half + half
 		const cy = ry * half + half
 		const cz = rz * half
@@ -208,16 +151,6 @@ function getCubeOutlineFromRotation(
 
 	const hull = convexHull(projected)
 	return hull.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join('') + 'Z'
-}
-
-// --- Shake detection ---
-
-interface ShakeState {
-	directionChanges: number
-	lastVelocityX: number
-	lastVelocityY: number
-	lastChangeTime: number
-	hasRolled: boolean
 }
 
 // --- Component ---
@@ -237,10 +170,9 @@ function DiceComponent({ shape }: { shape: IDiceShape }) {
 	const size = shape.props.w
 	const half = size / 2
 	const isDarkMode = useIsDarkMode()
-	const theme = getDefaultColorTheme({ isDarkMode })
 	const faceColor = getFaceColor(shape.props.color, isDarkMode)
-	const borderColor = getColorValue(theme, shape.props.color, 'solid')
-	const pipColor = getPipColor(shape.props.color, isDarkMode)
+	const borderColor = getBorderColor(shape.props.color, isDarkMode)
+	const pipColor = getTextColor(shape.props.color, isDarkMode)
 	const pipR = Math.max(2, size * 0.08)
 
 	// Shared vanishing point based on viewport center
@@ -250,28 +182,16 @@ function DiceComponent({ shape }: { shape: IDiceShape }) {
 			const elm = containerRef.current
 			if (!elm) return
 
-			const viewport = editor.getViewportPageBounds()
-			const transform = editor.getShapePageTransform(shape.id)
-			const { x, y, rotation } = Mat.Decompose(transform)
+			const { ox, oy, d } = computePerspective(editor, shape.id, half)
+			elm.style.perspectiveOrigin = `${ox}px ${oy}px`
+			elm.style.perspective = `${d}px`
 
-			const vpCenter = viewport.center
-			const originX = half + (vpCenter.x - x - half)
-			const originY = half + (vpCenter.y - y - half)
-
-			const origin = new Vec(originX, originY).rot(-rotation)
-			const distance = Math.hypot(viewport.w, viewport.h)
-			elm.style.perspectiveOrigin = `${origin.x}px ${origin.y}px`
-			elm.style.perspective = `${distance}px`
-
-			perspectiveRef.current = { ox: origin.x, oy: origin.y, d: distance }
+			perspectiveRef.current = { ox, oy, d }
 
 			const outlineElm = outlineRef.current
 			if (outlineElm) {
 				const { x: rx, y: ry } = currentRotation.current
-				outlineElm.setAttribute(
-					'd',
-					getCubeOutlineFromRotation(rx, ry, size, origin.x, origin.y, distance)
-				)
+				outlineElm.setAttribute('d', getCubeOutlineFromRotation(rx, ry, size, ox, oy, d))
 			}
 		},
 		[editor, half, shape.props.value, size]
@@ -472,24 +392,13 @@ function DiceIndicator({ shape }: { shape: IDiceShape }) {
 			const el = pathRef.current
 			if (!el) return
 
-			const half = shape.props.w / 2
-			const viewport = editor.getViewportPageBounds()
-			const transform = editor.getShapePageTransform(shape.id)
-			const { x, y, rotation } = Mat.Decompose(transform)
-			const vpCenter = viewport.center
-			const originX = half + (vpCenter.x - x - half)
-			const originY = half + (vpCenter.y - y - half)
-			const origin = new Vec(originX, originY).rot(-rotation)
-			const distance = Math.hypot(viewport.w, viewport.h)
+			const { ox, oy, d } = computePerspective(editor, shape.id, shape.props.w / 2)
 
 			const util = editor.getShapeUtil<DiceShapeUtil>(DICE_TYPE)
 			const rot =
 				util.rotations.get(shape.id) ?? FACE_ROTATIONS[shape.props.value] ?? FACE_ROTATIONS[1]
 
-			el.setAttribute(
-				'd',
-				getCubeOutlineFromRotation(rot.x, rot.y, shape.props.w, origin.x, origin.y, distance)
-			)
+			el.setAttribute('d', getCubeOutlineFromRotation(rot.x, rot.y, shape.props.w, ox, oy, d))
 		},
 		[editor, shape.id, shape.props.value, shape.props.w]
 	)
@@ -559,13 +468,7 @@ export class DiceShapeUtil extends BaseBoxShapeUtil<IDiceShape> {
 	// --- Shake detection ---
 
 	override onTranslateStart(shape: IDiceShape) {
-		this.shakeStates.set(shape.id, {
-			directionChanges: 0,
-			lastVelocityX: 0,
-			lastVelocityY: 0,
-			lastChangeTime: Date.now(),
-			hasRolled: false,
-		})
+		this.shakeStates.set(shape.id, createShakeState())
 		if (shape.props.isRolling) {
 			return {
 				id: shape.id,
@@ -584,40 +487,9 @@ export class DiceShapeUtil extends BaseBoxShapeUtil<IDiceShape> {
 		if (!state || state.hasRolled || current.props.isRolling) return
 
 		const velocity = this.editor.inputs.getPointerVelocity()
-		const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y)
-		const now = Date.now()
+		const shouldRoll = updateShakeState(state, velocity)
 
-		if (speed > 0.3) {
-			if (
-				state.lastVelocityX !== 0 &&
-				velocity.x !== 0 &&
-				Math.sign(velocity.x) !== Math.sign(state.lastVelocityX) &&
-				Math.abs(velocity.x) > 0.15
-			) {
-				state.directionChanges++
-				state.lastChangeTime = now
-			}
-
-			if (
-				state.lastVelocityY !== 0 &&
-				velocity.y !== 0 &&
-				Math.sign(velocity.y) !== Math.sign(state.lastVelocityY) &&
-				Math.abs(velocity.y) > 0.15
-			) {
-				state.directionChanges++
-				state.lastChangeTime = now
-			}
-
-			if (velocity.x !== 0) state.lastVelocityX = velocity.x
-			if (velocity.y !== 0) state.lastVelocityY = velocity.y
-		}
-
-		if (now - state.lastChangeTime > 500) {
-			state.directionChanges = Math.max(0, state.directionChanges - 1)
-			state.lastChangeTime = now
-		}
-
-		if (state.directionChanges >= 4) {
+		if (shouldRoll) {
 			state.hasRolled = true
 			return {
 				id: current.id,
