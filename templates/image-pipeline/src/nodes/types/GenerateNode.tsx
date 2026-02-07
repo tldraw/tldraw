@@ -1,4 +1,5 @@
 import { T, useEditor, useValue } from 'tldraw'
+import { apiGenerate } from '../../api/pipelineApi'
 import { GenerateIcon } from '../../components/icons/GenerateIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -8,7 +9,6 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
@@ -33,30 +33,6 @@ export const GenerateNode = T.object({
 	seed: T.number,
 	lastResultUrl: T.string.nullable(),
 })
-
-/**
- * Generate a deterministic placeholder image URL based on a seed and prompt.
- * In a real app, this would call an image generation API.
- */
-function generatePlaceholderImage(seed: number, prompt: string): string {
-	const hue = (((seed * 137 + prompt.length * 43) % 360) + 360) % 360
-	const saturation = 60 + (seed % 30)
-	const lightness = 45 + ((seed * 7) % 20)
-	const hue2 = (hue + 40 + (prompt.length % 60)) % 360
-
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-		<defs>
-			<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" style="stop-color:hsl(${hue},${saturation}%,${lightness}%)"/>
-				<stop offset="100%" style="stop-color:hsl(${hue2},${saturation}%,${lightness + 10}%)"/>
-			</linearGradient>
-			<filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.${65 + (seed % 30)}" numOctaves="4" seed="${seed}"/><feColorMatrix type="saturate" values="0"/><feBlend in="SourceGraphic" mode="overlay"/></filter>
-		</defs>
-		<rect width="512" height="512" fill="url(#bg)" filter="url(#n)"/>
-		<text x="256" y="480" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="14">seed: ${seed}</text>
-	</svg>`
-	return `data:image/svg+xml,${encodeURIComponent(svg)}`
-}
 
 export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 	static type = 'generate'
@@ -116,18 +92,25 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 		node: GenerateNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		// Simulate generation time proportional to steps
-		await sleep(Math.min(node.steps * 50, 2000))
-
+		const model = (inputs.model as string) ?? 'stable-diffusion:sdxl'
 		const prompt = (inputs.prompt as string) ?? 'default'
-		const imageUrl = generatePlaceholderImage(node.seed, prompt)
+		const negativePrompt = inputs.negative as string | undefined
+
+		const result = await apiGenerate({
+			model,
+			prompt,
+			negativePrompt: negativePrompt ?? undefined,
+			steps: node.steps,
+			cfgScale: node.cfgScale,
+			seed: node.seed,
+		})
 
 		updateNode<GenerateNode>(this.editor, shape, (n) => ({
 			...n,
-			lastResultUrl: imageUrl,
+			lastResultUrl: result.imageUrl,
 		}))
 
-		return { output: imageUrl }
+		return { output: result.imageUrl }
 	}
 	getOutputInfo(shape: NodeShape, node: GenerateNode, inputs: InfoValues): InfoValues {
 		return {

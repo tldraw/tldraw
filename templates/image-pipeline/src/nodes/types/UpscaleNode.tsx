@@ -1,4 +1,5 @@
 import { T, useEditor, useValue } from 'tldraw'
+import { apiUpscale } from '../../api/pipelineApi'
 import { UpscaleIcon } from '../../components/icons/UpscaleIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -8,7 +9,6 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
@@ -43,21 +43,6 @@ export const UpscaleNode = T.object({
 	method: T.string,
 	lastResultUrl: T.string.nullable(),
 })
-
-function simulateUpscale(scale: string, method: string): string {
-	const factor = Number(scale) || 2
-	const size = 512 * factor
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
-		<defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0%" stop-color="hsl(200,60%,50%)"/>
-			<stop offset="100%" stop-color="hsl(200,60%,70%)"/>
-		</linearGradient></defs>
-		<rect width="${size}" height="${size}" fill="url(#ug)"/>
-		<text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="24">${scale}x ${method}</text>
-		<text x="${size / 2}" y="${size / 2 + 30}" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">${size}×${size}</text>
-	</svg>`
-	return `data:image/svg+xml,${encodeURIComponent(svg)}`
-}
 
 export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
 	static type = 'upscale'
@@ -99,15 +84,21 @@ export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
 	async execute(
 		shape: NodeShape,
 		node: UpscaleNode,
-		_inputs: InputValues
+		inputs: InputValues
 	): Promise<ExecutionResult> {
-		await sleep(1200)
-		const result = simulateUpscale(node.scale, node.method)
+		const imageUrl = (inputs.image as string) ?? ''
+
+		const result = await apiUpscale({
+			imageUrl,
+			scale: Number(node.scale) || 2,
+			method: node.method,
+		})
+
 		updateNode<UpscaleNode>(this.editor, shape, (n) => ({
 			...n,
-			lastResultUrl: result,
+			lastResultUrl: result.imageUrl,
 		}))
-		return { output: result }
+		return { output: result.imageUrl }
 	}
 	getOutputInfo(shape: NodeShape, node: UpscaleNode, inputs: InfoValues): InfoValues {
 		return {

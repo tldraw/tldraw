@@ -1,4 +1,5 @@
 import { T, useEditor, useValue } from 'tldraw'
+import { apiGenerate } from '../../api/pipelineApi'
 import { ControlNetIcon } from '../../components/icons/ControlNetIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -8,7 +9,6 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
@@ -40,44 +40,6 @@ export const ControlNetNode = T.object({
 	steps: T.number,
 	lastResultUrl: T.string.nullable(),
 })
-
-function simulateControlNet(mode: string, strength: number, steps: number): string {
-	const hue = mode === 'canny' ? 180 : mode === 'depth' ? 220 : mode === 'pose' ? 30 : 120
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-		<rect width="512" height="512" fill="hsl(${hue}, 30%, 20%)"/>
-		<g opacity="${strength / 100}">
-			${
-				mode === 'canny'
-					? `
-				<path d="M100 400 L200 200 L300 300 L400 100" stroke="hsl(${hue},80%,70%)" stroke-width="3" fill="none"/>
-				<path d="M80 350 L180 180 L280 250 L420 80" stroke="hsl(${hue},60%,60%)" stroke-width="2" fill="none"/>
-			`
-					: mode === 'depth'
-						? `
-				<rect x="60" y="60" width="392" height="392" rx="8" fill="hsl(${hue},20%,40%)"/>
-				<rect x="120" y="120" width="272" height="272" rx="8" fill="hsl(${hue},20%,55%)"/>
-				<rect x="180" y="180" width="152" height="152" rx="8" fill="hsl(${hue},20%,70%)"/>
-			`
-						: mode === 'pose'
-							? `
-				<circle cx="256" cy="120" r="30" stroke="hsl(${hue},80%,60%)" stroke-width="3" fill="none"/>
-				<line x1="256" y1="150" x2="256" y2="300" stroke="hsl(${hue},80%,60%)" stroke-width="3"/>
-				<line x1="256" y1="200" x2="180" y2="260" stroke="hsl(${hue},80%,60%)" stroke-width="3"/>
-				<line x1="256" y1="200" x2="332" y2="260" stroke="hsl(${hue},80%,60%)" stroke-width="3"/>
-				<line x1="256" y1="300" x2="190" y2="400" stroke="hsl(${hue},80%,60%)" stroke-width="3"/>
-				<line x1="256" y1="300" x2="322" y2="400" stroke="hsl(${hue},80%,60%)" stroke-width="3"/>
-			`
-							: `
-				<rect x="60" y="200" width="160" height="200" rx="4" fill="hsl(90,40%,50%)" opacity="0.7"/>
-				<rect x="250" y="100" width="200" height="300" rx="4" fill="hsl(210,40%,50%)" opacity="0.7"/>
-				<circle cx="150" cy="140" r="60" fill="hsl(50,50%,60%)" opacity="0.7"/>
-			`
-			}
-		</g>
-		<text x="256" y="480" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="14">${mode} · ${strength}% · ${steps} steps</text>
-	</svg>`
-	return `data:image/svg+xml,${encodeURIComponent(svg)}`
-}
 
 export class ControlNetNodeDefinition extends NodeDefinition<ControlNetNode> {
 	static type = 'controlnet'
@@ -135,15 +97,27 @@ export class ControlNetNodeDefinition extends NodeDefinition<ControlNetNode> {
 	async execute(
 		shape: NodeShape,
 		node: ControlNetNode,
-		_inputs: InputValues
+		inputs: InputValues
 	): Promise<ExecutionResult> {
-		await sleep(2000)
-		const result = simulateControlNet(node.mode, node.strength, node.steps)
+		const model = (inputs.model as string) ?? 'stable-diffusion:sdxl'
+		const prompt = (inputs.prompt as string) ?? ''
+		const referenceImageUrl = (inputs.image as string) ?? undefined
+
+		const result = await apiGenerate({
+			model,
+			prompt,
+			steps: node.steps,
+			cfgScale: 7,
+			controlNetMode: node.mode,
+			controlNetStrength: node.strength,
+			referenceImageUrl,
+		})
+
 		updateNode<ControlNetNode>(this.editor, shape, (n) => ({
 			...n,
-			lastResultUrl: result,
+			lastResultUrl: result.imageUrl,
 		}))
-		return { output: result }
+		return { output: result.imageUrl }
 	}
 	getOutputInfo(shape: NodeShape, node: ControlNetNode, inputs: InfoValues): InfoValues {
 		return {
