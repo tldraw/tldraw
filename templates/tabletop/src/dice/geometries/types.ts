@@ -118,6 +118,59 @@ export function polygonBounds(polygon: [number, number][]): { w: number; h: numb
 	return { w: maxX - minX, h: maxY - minY }
 }
 
+/**
+ * Compute the die rotation {x, y, z} (degrees) that brings a face's normal
+ * to point at the camera (+Z) with text upright.
+ *
+ * rotX/rotY align the normal with +Z. rotZ corrects for faces whose local
+ * "up" (yAxis) would otherwise appear sideways on screen (e.g. d6 top/bottom).
+ */
+export function computeFaceRotation(
+	normal: [number, number, number],
+	localUp: [number, number, number] = [0, 1, 0]
+): { x: number; y: number; z: number } {
+	const [nx, ny, nz] = normal
+	const rotY = Math.atan2(nx, nz)
+	const rotX = Math.asin(Math.max(-1, Math.min(1, ny)))
+
+	// Compute face yAxis (same logic as makeFace)
+	let xAxis: [number, number, number] = [
+		localUp[1] * nz - localUp[2] * ny,
+		localUp[2] * nx - localUp[0] * nz,
+		localUp[0] * ny - localUp[1] * nx,
+	]
+	let len = Math.sqrt(xAxis[0] ** 2 + xAxis[1] ** 2 + xAxis[2] ** 2)
+	if (len < 1e-8) {
+		const fb: [number, number, number] = Math.abs(nx) < 0.9 ? [1, 0, 0] : [0, 1, 0]
+		xAxis = [fb[1] * nz - fb[2] * ny, fb[2] * nx - fb[0] * nz, fb[0] * ny - fb[1] * nx]
+		len = Math.sqrt(xAxis[0] ** 2 + xAxis[1] ** 2 + xAxis[2] ** 2)
+	}
+	xAxis = [xAxis[0] / len, xAxis[1] / len, xAxis[2] / len]
+	const yAxis: [number, number, number] = [
+		ny * xAxis[2] - nz * xAxis[1],
+		nz * xAxis[0] - nx * xAxis[2],
+		nx * xAxis[1] - ny * xAxis[0],
+	]
+
+	// Apply RY(-rotY) then RX(rotX) to yAxis, find screen projection
+	const cosRy = Math.cos(-rotY),
+		sinRy = Math.sin(-rotY)
+	const cosRx = Math.cos(rotX),
+		sinRx = Math.sin(rotX)
+	// RY
+	const x1 = yAxis[0] * cosRy + yAxis[2] * sinRy
+	const z1 = -yAxis[0] * sinRy + yAxis[2] * cosRy
+	// RX
+	const xR = x1
+	const yR = yAxis[1] * cosRx - z1 * sinRx
+
+	// rotZ corrects the screen angle so yAxis projects to screen +Y
+	const rotZ = Math.atan2(xR, yR)
+
+	const DEG = 180 / Math.PI
+	return { x: rotX * DEG, y: -rotY * DEG, z: rotZ * DEG }
+}
+
 /** Helper to create a FaceDefinition from 3D vertex data. */
 export function makeFace(
 	value: number | string,

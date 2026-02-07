@@ -256,8 +256,13 @@ function DiceComponent({ shape }: { shape: IDiceShape }) {
 			const dirX = Math.random() > 0.5 ? 1 : -1
 			const dirY = Math.random() > 0.5 ? 1 : -1
 
-			const endX = target.x + spinsX * dirX
-			const endY = target.y + spinsY * dirY
+			const jitterX = (Math.random() - 0.5) * 6
+			const jitterY = (Math.random() - 0.5) * 6
+			const util = editor.getShapeUtil<DiceShapeUtil>(DICE_TYPE)
+			util.jitters.set(shape.id, { x: jitterX, y: jitterY })
+
+			const endX = target.x + jitterX + spinsX * dirX
+			const endY = target.y + jitterY + spinsY * dirY
 			const duration = 1200 + Math.random() * 600
 			const startTime = performance.now()
 
@@ -285,7 +290,9 @@ function DiceComponent({ shape }: { shape: IDiceShape }) {
 		} else if (!shape.props.isRolling && !isAnimating.current) {
 			prevIsRolling.current = false
 			const target = FACE_ROTATIONS[shape.props.value] || FACE_ROTATIONS[1]
-			updateCube(target.x, target.y)
+			const util = editor.getShapeUtil<DiceShapeUtil>(DICE_TYPE)
+			const jitter = util.jitters.get(shape.id) ?? { x: 0, y: 0 }
+			updateCube(target.x + jitter.x, target.y + jitter.y)
 		}
 
 		return () => {
@@ -428,6 +435,7 @@ export class DiceShapeUtil extends BaseBoxShapeUtil<IDiceShape> {
 
 	private shakeStates = new Map<string, ShakeState>()
 	rotations = new Map<string, { x: number; y: number }>()
+	jitters = new Map<string, { x: number; y: number }>()
 	indicatorPaths = new Map<string, SVGPathElement>()
 
 	override getGeometry(shape: IDiceShape) {

@@ -1,4 +1,4 @@
-import { DieGeometry, makeFace } from './types'
+import { DieGeometry, computeFaceRotation, makeFace } from './types'
 
 /**
  * D8 — Regular octahedron.
@@ -35,11 +35,8 @@ const faces = faceIndices.map(({ value, verts: [a, b, c] }) =>
 )
 
 const faceRotations: Record<number, { x: number; y: number; z: number }> = {}
-for (let i = 0; i < faces.length; i++) {
-	const [nx, ny, nz] = faces[i].normal
-	const rotY = Math.atan2(nx, nz) * (180 / Math.PI)
-	const rotX = Math.asin(Math.max(-1, Math.min(1, ny))) * (180 / Math.PI)
-	faceRotations[faces[i].value as number] = { x: rotX, y: -rotY, z: 0 }
+for (const face of faces) {
+	faceRotations[face.value as number] = computeFaceRotation(face.normal)
 }
 
 export const d8Geometry: DieGeometry = {

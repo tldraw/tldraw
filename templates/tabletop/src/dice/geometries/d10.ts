@@ -1,4 +1,4 @@
-import { DieGeometry, makeFace } from './types'
+import { DieGeometry, computeFaceRotation, makeFace } from './types'
 
 /**
  * D10 — Pentagonal trapezohedron.
@@ -57,15 +57,9 @@ for (let i = 0; i < 5; i++) {
 
 const faces = faceIndices.map(({ value, verts }) => makeFace(value, verts))
 
-// Rotation entries for each face value
 const faceRotations: Record<number, { x: number; y: number; z: number }> = {}
 for (let i = 0; i < 10; i++) {
-	const face = faces[i]
-	// Compute rotation to face the camera: align face normal with +Z
-	const [nx, ny, nz] = face.normal
-	const rotY = Math.atan2(nx, nz) * (180 / Math.PI)
-	const rotX = Math.asin(ny) * (180 / Math.PI)
-	faceRotations[i] = { x: rotX, y: -rotY, z: 0 }
+	faceRotations[i] = computeFaceRotation(faces[i].normal)
 }
 
 export const d10Geometry: DieGeometry = {
@@ -86,11 +80,7 @@ const d100Faces = faceIndices.map(({ value, verts }) => {
 const d100FaceRotations: Record<string, { x: number; y: number; z: number }> = {}
 for (let i = 0; i < 10; i++) {
 	const label = String(i * 10).padStart(2, '0')
-	const face = d100Faces[i]
-	const [nx, ny, nz] = face.normal
-	const rotY = Math.atan2(nx, nz) * (180 / Math.PI)
-	const rotX = Math.asin(ny) * (180 / Math.PI)
-	d100FaceRotations[label] = { x: rotX, y: -rotY, z: 0 }
+	d100FaceRotations[label] = computeFaceRotation(d100Faces[i].normal)
 }
 
 export const d100Geometry: DieGeometry = {

@@ -1,4 +1,4 @@
-import { DieGeometry, makeFace } from './types'
+import { DieGeometry, computeFaceRotation, makeFace } from './types'
 
 /**
  * D6 — Cube.
@@ -35,10 +35,7 @@ const faces = [
 
 const faceRotations: Record<number, { x: number; y: number; z: number }> = {}
 for (const face of faces) {
-	const [nx, ny, nz] = face.normal
-	const rotY = Math.atan2(nx, nz) * (180 / Math.PI)
-	const rotX = Math.asin(ny) * (180 / Math.PI)
-	faceRotations[face.value as number] = { x: rotX, y: -rotY, z: 0 }
+	faceRotations[face.value as number] = computeFaceRotation(face.normal)
 }
 
 export const d6Geometry: DieGeometry = {

@@ -338,9 +338,15 @@ function DiceGeometryShape({ shape, geometry }: { shape: IPolyDiceShape; geometr
 			const dirY = Math.random() > 0.5 ? 1 : -1
 			const dirZ = Math.random() > 0.5 ? 1 : -1
 
-			const endX = target.x + spinsX * dirX
-			const endY = target.y + spinsY * dirY
-			const endZ = target.z + spinsZ * dirZ
+			const jitterX = (Math.random() - 0.5) * 6
+			const jitterY = (Math.random() - 0.5) * 6
+			const jitterZ = (Math.random() - 0.5) * 6
+			const util = editor.getShapeUtil<PolyDiceShapeUtil>(POLY_DICE_TYPE)
+			util.jitters.set(shape.id, { x: jitterX, y: jitterY, z: jitterZ })
+
+			const endX = target.x + jitterX + spinsX * dirX
+			const endY = target.y + jitterY + spinsY * dirY
+			const endZ = target.z + jitterZ + spinsZ * dirZ
 			const duration = 1200 + Math.random() * 600
 			const startTime = performance.now()
 
@@ -373,7 +379,9 @@ function DiceGeometryShape({ shape, geometry }: { shape: IPolyDiceShape; geometr
 			prevIsRolling.current = false
 			const target = geometry.faceRotations[shape.props.value] ??
 				geometry.faceRotations[1] ?? { x: 0, y: 0, z: 0 }
-			updateDie(target.x, target.y, target.z)
+			const util = editor.getShapeUtil<PolyDiceShapeUtil>(POLY_DICE_TYPE)
+			const jitter = util.jitters.get(shape.id) ?? { x: 0, y: 0, z: 0 }
+			updateDie(target.x + jitter.x, target.y + jitter.y, target.z + jitter.z)
 		}
 
 		return () => {
@@ -523,6 +531,7 @@ export class PolyDiceShapeUtil extends BaseBoxShapeUtil<IPolyDiceShape> {
 
 	private shakeStates = new Map<string, ShakeState>()
 	rotations = new Map<string, { x: number; y: number; z: number }>()
+	jitters = new Map<string, { x: number; y: number; z: number }>()
 	indicatorPaths = new Map<string, SVGPathElement>()
 
 	override getGeometry(shape: IPolyDiceShape) {

@@ -1,4 +1,4 @@
-import { DieGeometry, makeFace } from './types'
+import { DieGeometry, computeFaceRotation, makeFace } from './types'
 
 /**
  * D20 — Regular icosahedron.
@@ -66,10 +66,7 @@ const faces = faceVertexIndices.map((indices, i) =>
 // Compute face rotations from normals
 const faceRotations: Record<number, { x: number; y: number; z: number }> = {}
 for (let i = 0; i < faces.length; i++) {
-	const [nx, ny, nz] = faces[i].normal
-	const rotY = Math.atan2(nx, nz) * (180 / Math.PI)
-	const rotX = Math.asin(Math.max(-1, Math.min(1, ny))) * (180 / Math.PI)
-	faceRotations[faceValues[i]] = { x: rotX, y: -rotY, z: 0 }
+	faceRotations[faceValues[i]] = computeFaceRotation(faces[i].normal)
 }
 
 export const d20Geometry: DieGeometry = {
