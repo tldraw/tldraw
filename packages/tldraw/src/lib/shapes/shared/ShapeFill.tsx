@@ -14,6 +14,8 @@ import {
 	useGetDenseDotsPatternZoomName,
 	useGetDotsPatternZoomName,
 	useGetHashPatternZoomName,
+	useGetLinedDenseDotsPatternZoomName,
+	useGetLinedPatternZoomName,
 	useGetSparseDotsPatternZoomName,
 } from './defaultStyleDefs'
 
@@ -62,6 +64,12 @@ export const ShapeFill = React.memo(function ShapeFill({
 		}
 		case 'crosses': {
 			return <CrossesFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'lined-pattern': {
+			return <LinedPatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+		}
+		case 'lined-dense-dots': {
+			return <LinedDenseDotsFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
 		case 'lined-fill': {
 			return <path fill={getColorValue(theme, color, 'linedFill')} d={d} />
@@ -212,6 +220,56 @@ export function CrossesFill({ d, color, theme }: ShapeFillProps) {
 						: teenyTiny
 							? getColorValue(theme, color, 'semi')
 							: `url(#${getCrossesPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LinedPatternFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLinedPatternZoomName = useGetLinedPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLinedPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'fill')
+							: `url(#${getLinedPatternZoomName(zoomLevel, theme.id)})`
+				}
+				d={d}
+			/>
+		</>
+	)
+}
+
+export function LinedDenseDotsFill({ d, color, theme }: ShapeFillProps) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const getLinedDenseDotsPatternZoomName = useGetLinedDenseDotsPatternZoomName()
+
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getLinedDenseDotsPatternZoomName(1, theme.id)})`
+						: teenyTiny
+							? getColorValue(theme, color, 'fill')
+							: `url(#${getLinedDenseDotsPatternZoomName(zoomLevel, theme.id)})`
 				}
 				d={d}
 			/>

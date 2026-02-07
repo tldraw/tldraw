@@ -25,6 +25,8 @@ const SHAPE_TO_FOCUSED_FILLS: Record<TLDefaultFillStyle, FocusedFill> = {
 	'sparse-dots': 'pattern',
 	chevrons: 'pattern',
 	crosses: 'pattern',
+	'lined-pattern': 'pattern',
+	'lined-dense-dots': 'pattern',
 }
 
 export function convertFocusedFillToTldrawFill(fill: FocusedFill): TLDefaultFillStyle {

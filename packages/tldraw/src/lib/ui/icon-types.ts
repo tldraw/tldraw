@@ -67,7 +67,9 @@ export type TLUiIconType =
 	| 'fill-dense-dots'
 	| 'fill-dots'
 	| 'fill-fill'
+	| 'fill-lined-dense-dots'
 	| 'fill-lined-fill'
+	| 'fill-lined-pattern'
 	| 'fill-none'
 	| 'fill-pattern'
 	| 'fill-semi'
@@ -237,7 +239,9 @@ export const iconTypes = [
 	'fill-dense-dots',
 	'fill-dots',
 	'fill-fill',
+	'fill-lined-dense-dots',
 	'fill-lined-fill',
+	'fill-lined-pattern',
 	'fill-none',
 	'fill-pattern',
 	'fill-semi',

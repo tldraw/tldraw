@@ -60,6 +60,8 @@ import {
 	getDotsFillDefForCanvas,
 	getFillDefForCanvas,
 	getFillDefForExport,
+	getLinedDenseDotsFillDefForCanvas,
+	getLinedPatternFillDefForCanvas,
 	getSparseDotsFillDefForCanvas,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -1097,6 +1099,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			getSparseDotsFillDefForCanvas(),
 			getChevronsFillDefForCanvas(),
 			getCrossesFillDefForCanvas(),
+			getLinedPatternFillDefForCanvas(),
+			getLinedDenseDotsFillDefForCanvas(),
 			{
 				key: `arrow:dot`,
 				component: ArrowheadDotDef,

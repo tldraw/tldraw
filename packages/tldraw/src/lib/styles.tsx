@@ -34,6 +34,8 @@ export const STYLES = {
 		{ value: 'dense-dots', icon: 'fill-dense-dots' },
 		{ value: 'dots', icon: 'fill-dots' },
 		{ value: 'sparse-dots', icon: 'fill-sparse-dots' },
+		{ value: 'lined-pattern', icon: 'fill-lined-pattern' },
+		{ value: 'lined-dense-dots', icon: 'fill-lined-dense-dots' },
 		{ value: 'lined-fill', icon: 'fill-lined-fill' },
 		{ value: 'fill', icon: 'fill-fill' },
 	],

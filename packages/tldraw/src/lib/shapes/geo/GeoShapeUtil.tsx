@@ -48,6 +48,8 @@ import {
 	getDotsFillDefForCanvas,
 	getFillDefForCanvas,
 	getFillDefForExport,
+	getLinedDenseDotsFillDefForCanvas,
+	getLinedPatternFillDefForCanvas,
 	getSparseDotsFillDefForCanvas,
 } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -327,6 +329,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			getSparseDotsFillDefForCanvas(),
 			getChevronsFillDefForCanvas(),
 			getCrossesFillDefForCanvas(),
+			getLinedPatternFillDefForCanvas(),
+			getLinedDenseDotsFillDefForCanvas(),
 		]
 	}
 
