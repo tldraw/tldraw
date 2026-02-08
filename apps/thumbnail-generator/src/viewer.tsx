@@ -38,7 +38,7 @@ function Viewer() {
 							}
 						}
 
-						if (opts?.bounds) {
+						if (opts?.bounds && opts.bounds.w > 0 && opts.bounds.h > 0) {
 							// Set camera to show specific bounds
 							const { x, y, w, h } = opts.bounds
 							const viewportW = editor.getViewportScreenBounds().width

@@ -5,7 +5,64 @@ import { Browser, chromium } from 'playwright-core'
 const VIEWER_URL = process.env.VIEWER_URL ?? 'http://localhost:5421'
 const PORT = parseInt(process.env.PORT ?? '5422', 10)
 
+// Comma-separated list of allowed URL patterns for the /api/screenshot endpoint.
+// Supports exact origins or wildcard subdomains (e.g. "https://*.example.com").
+// If empty, only the VIEWER_URL origin is allowed.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? '')
+	.split(',')
+	.map((s) => s.trim())
+	.filter(Boolean)
+
 let browser: Browser
+
+function isUrlAllowed(url: string): boolean {
+	let parsed: URL
+	try {
+		parsed = new URL(url)
+	} catch {
+		return false
+	}
+
+	// Block non-http(s) schemes
+	if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+		return false
+	}
+
+	// Block requests to private/internal IPs
+	const hostname = parsed.hostname
+	if (
+		hostname === 'localhost' ||
+		hostname === '127.0.0.1' ||
+		hostname === '::1' ||
+		hostname === '0.0.0.0' ||
+		hostname.startsWith('10.') ||
+		hostname.startsWith('192.168.') ||
+		hostname.startsWith('172.') ||
+		hostname === '169.254.169.254' ||
+		hostname.endsWith('.internal') ||
+		hostname.endsWith('.local')
+	) {
+		return false
+	}
+
+	// If no allowlist configured, block all (screenshot endpoint is opt-in)
+	if (ALLOWED_ORIGINS.length === 0) {
+		return false
+	}
+
+	const origin = parsed.origin
+	for (const pattern of ALLOWED_ORIGINS) {
+		if (pattern.includes('*')) {
+			// Wildcard match: "https://*.example.com" matches "https://foo.example.com"
+			const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '[^.]+') + '$')
+			if (regex.test(origin)) return true
+		} else {
+			if (origin === pattern) return true
+		}
+	}
+
+	return false
+}
 
 /**
  * Find a Chromium executable. Checks Playwright cache directories, then
@@ -114,14 +171,17 @@ app.post('/api/thumbnail', async (req, res) => {
 			return
 		}
 
-		// Create a context with the desired device scale factor for high-DPI output
-		const context = await browser.newContext({
-			viewport: { width, height },
-			deviceScaleFactor: scale,
-		})
-		const page = await context.newPage()
-
+		// Create a context with the desired device scale factor for high-DPI output.
+		// Declared outside try so the finally block can always clean it up,
+		// even if newPage() fails after context creation.
+		let context
 		try {
+			context = await browser.newContext({
+				viewport: { width, height },
+				deviceScaleFactor: scale,
+			})
+			const page = await context.newPage()
+
 			// Navigate to the viewer
 			await page.goto(VIEWER_URL, { waitUntil: 'domcontentloaded' })
 			await page.waitForFunction(() => window.__tldraw_ready === true, undefined, {
@@ -151,7 +211,7 @@ app.post('/api/thumbnail', async (req, res) => {
 			res.set('X-Generation-Time', `${elapsed}ms`)
 			res.send(screenshot)
 		} finally {
-			await context.close()
+			await context?.close()
 		}
 	} catch (err) {
 		console.error('Error generating thumbnail:', err)
@@ -179,13 +239,23 @@ app.get('/api/screenshot', async (req, res) => {
 			return
 		}
 
-		const context = await browser.newContext({
-			viewport: { width, height },
-			deviceScaleFactor: scale,
-		})
-		const page = await context.newPage()
+		if (!isUrlAllowed(url)) {
+			res.status(403).json({
+				error: 'URL not allowed',
+				details:
+					'Configure ALLOWED_ORIGINS env var with permitted origins (e.g. "https://example.com,https://*.tldraw.com")',
+			})
+			return
+		}
 
+		let context
 		try {
+			context = await browser.newContext({
+				viewport: { width, height },
+				deviceScaleFactor: scale,
+			})
+			const page = await context.newPage()
+
 			await page.goto(url, { waitUntil: 'networkidle' })
 			await page.waitForTimeout(2000)
 
@@ -198,7 +268,7 @@ app.get('/api/screenshot', async (req, res) => {
 			res.set('X-Generation-Time', `${elapsed}ms`)
 			res.send(screenshot)
 		} finally {
-			await context.close()
+			await context?.close()
 		}
 	} catch (err) {
 		console.error('Error taking screenshot:', err)
