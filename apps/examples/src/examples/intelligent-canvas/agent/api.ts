@@ -1,0 +1,74 @@
+/** Gemini API types — adapted for function calling with generateContent */
+
+export interface GeminiPart {
+	text?: string
+	functionCall?: { name: string; args: Record<string, unknown> }
+	functionResponse?: { name: string; response: Record<string, unknown> }
+	inlineData?: { mimeType: string; data: string }
+}
+
+export interface GeminiContent {
+	role: 'user' | 'model'
+	parts: GeminiPart[]
+}
+
+export interface FunctionDeclaration {
+	name: string
+	description: string
+	parameters: Record<string, unknown>
+}
+
+export interface GeminiResponse {
+	candidates: {
+		content: { role: string; parts: GeminiPart[] }
+		finishReason: string
+	}[]
+}
+
+export async function callGemini(
+	systemPrompt: string,
+	contents: GeminiContent[],
+	tools: FunctionDeclaration[]
+): Promise<GeminiResponse> {
+	const response = await fetch('/api/gemini', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			system_instruction: { parts: [{ text: systemPrompt }] },
+			contents,
+			tools: [{ functionDeclarations: tools }],
+		}),
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(`Gemini API error ${response.status}: ${errorText}`)
+	}
+
+	return response.json()
+}
+
+/**
+ * Generate text from Gemini without tools (simple text completion).
+ */
+export async function generateGeminiText(
+	systemPrompt: string,
+	userPrompt: string
+): Promise<string> {
+	const response = await fetch('/api/gemini', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			system_instruction: { parts: [{ text: systemPrompt }] },
+			contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+		}),
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(`Gemini API error ${response.status}: ${errorText}`)
+	}
+
+	const data: GeminiResponse = await response.json()
+	return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}

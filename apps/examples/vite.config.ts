@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
+import { geminiProxy } from './src/examples/intelligent-canvas/vite-plugin-gemini-proxy'
 
 const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
@@ -47,7 +48,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [react({ tsDecorators: true }), exampleReadmePlugin(), geminiProxy()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {

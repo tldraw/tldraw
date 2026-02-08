@@ -1,0 +1,9 @@
+.intelligent-canvas {
+	width: 100%;
+	height: 100%;
+}
+
+@keyframes rec-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.3; }
+}
