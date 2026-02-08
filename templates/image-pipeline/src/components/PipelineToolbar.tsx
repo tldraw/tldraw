@@ -15,6 +15,8 @@ import {
 	TldrawUiMenuGroup,
 	TLShapeId,
 	TLUiOverrides,
+	ToolbarItem,
+	useEditor,
 	Vec,
 } from 'tldraw'
 import { NodeShape } from '../nodes/NodeShapeUtil'
@@ -77,6 +79,9 @@ export const overrides: TLUiOverrides = {
 }
 
 export function PipelineToolbar() {
+	const editor = useEditor()
+	const nodeDefs = Object.values(getNodeDefinitions(editor))
+
 	return (
 		<DefaultToolbar>
 			<TldrawUiMenuGroup id="selection">
@@ -89,6 +94,11 @@ export function PipelineToolbar() {
 				<RectangleToolbarItem />
 				<TextToolbarItem />
 				<AssetToolbarItem />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="nodes">
+				{nodeDefs.map((nodeDef) => (
+					<ToolbarItem key={nodeDef.type} tool={`node-${nodeDef.type}`} />
+				))}
 			</TldrawUiMenuGroup>
 			<TemplatePicker />
 			<DefaultQuickActions />

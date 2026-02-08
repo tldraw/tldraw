@@ -1,7 +1,8 @@
 import { createShapeId, Editor } from 'tldraw'
 import { onCanvasNodePickerState } from '../components/OnCanvasNodePicker'
 import { DEFAULT_NODE_SPACING_PX, NODE_WIDTH_PX } from '../constants'
-import { getNodePorts } from '../nodes/nodePorts'
+import { getNodePorts, getPortDataType } from '../nodes/nodePorts'
+import { findFirstCompatiblePort } from '../ports/portCompatibility'
 import { createOrUpdateConnectionBinding, getConnectionBindings } from './ConnectionBindingUtil'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
@@ -35,16 +36,32 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 				props: { node: nodeType },
 			})
 
+			const sourceType = getPortDataType(
+				editor,
+				originalBindings.start.toId,
+				originalBindings.start.props.portId
+			)
+			const targetType = getPortDataType(
+				editor,
+				originalBindings.end.toId,
+				originalBindings.end.props.portId
+			)
+
 			const ports = getNodePorts(editor, newNodeId)
-			const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
-			const firstOutputPort = Object.values(ports).find((p) => p.terminal === 'start')
-			if (!firstInputPort || !firstOutputPort) {
+			const firstCompatibleInputPort = sourceType
+				? findFirstCompatiblePort(Object.values(ports), 'end', sourceType)
+				: Object.values(ports).find((p) => p.terminal === 'end')
+			const firstCompatibleOutputPort = targetType
+				? findFirstCompatiblePort(Object.values(ports), 'start', targetType)
+				: Object.values(ports).find((p) => p.terminal === 'start')
+
+			if (!firstCompatibleInputPort || !firstCompatibleOutputPort) {
 				editor.bailToMark(mark)
 				return
 			}
 
 			createOrUpdateConnectionBinding(editor, connection, newNodeId, {
-				portId: firstInputPort.id,
+				portId: firstCompatibleInputPort.id,
 				terminal: 'end',
 			})
 
@@ -54,7 +71,7 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 				id: newConnectionId,
 			})
 			createOrUpdateConnectionBinding(editor, newConnectionId, newNodeId, {
-				portId: firstOutputPort.id,
+				portId: firstCompatibleOutputPort.id,
 				terminal: 'start',
 			})
 			createOrUpdateConnectionBinding(editor, newConnectionId, originalBindings.end.toId, {

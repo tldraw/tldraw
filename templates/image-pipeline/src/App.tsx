@@ -111,7 +111,7 @@ function createDefaultPipeline(editor: Editor) {
 			x: 100,
 			y: 200,
 			props: {
-				node: { type: 'model', provider: 'stable-diffusion', modelId: 'sdxl' },
+				node: { type: 'model', provider: 'flux', modelId: 'flux-dev' },
 			},
 		},
 		{
@@ -136,7 +136,7 @@ function createDefaultPipeline(editor: Editor) {
 					type: 'generate',
 					steps: 20,
 					cfgScale: 7,
-					seed: 42,
+					seed: Math.floor(Math.random() * 99999),
 					lastResultUrl: null,
 				},
 			},

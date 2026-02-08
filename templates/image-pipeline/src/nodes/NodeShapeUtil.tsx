@@ -32,6 +32,7 @@ import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTy
 import { NodeValue, STOP_EXECUTION } from './types/shared'
 
 const NODE_TYPE = 'node'
+const RESULT_KEYS = ['lastResultUrl', 'lastResultText', 'lastImageUrl'] as const
 
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
@@ -254,11 +255,15 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 	)?.value as string | undefined
 
 	const node = shape.props.node as Record<string, unknown>
-	const hasResult = typeof node.lastResultUrl === 'string' && node.lastResultUrl !== ''
+	const hasResult = RESULT_KEYS.some((key) => typeof node[key] === 'string' && node[key] !== '')
+	const textOutput = Object.values(outputInfo).find(
+		(info) => info.dataType === 'text' && typeof info.value === 'string' && info.value !== ''
+	)?.value as string | undefined
 	const textResult =
-		typeof node.lastResultText === 'string' && node.lastResultText !== ''
+		textOutput ??
+		(typeof node.lastResultText === 'string' && node.lastResultText !== ''
 			? (node.lastResultText as string)
-			: null
+			: null)
 
 	const handleDuplicate = useCallback(() => {
 		editor.markHistoryStoppingPoint('duplicate node')
@@ -286,15 +291,21 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 	}, [textResult])
 
 	const handleClearResult = useCallback(() => {
+		const updates = RESULT_KEYS.reduce<Record<string, null>>((acc, key) => {
+			if (key in node) acc[key] = null
+			return acc
+		}, {})
+		if (Object.keys(updates).length === 0) return
+
 		editor.updateShape({
 			id: shape.id,
 			type: shape.type,
 			props: {
-				node: { ...(shape.props.node as any), lastResultUrl: null },
+				node: { ...(shape.props.node as any), ...updates },
 				isOutOfDate: true,
 			},
 		})
-	}, [editor, shape])
+	}, [editor, node, shape])
 
 	return (
 		<div className="NodeFooterMenu" onPointerDown={(e) => e.stopPropagation()}>

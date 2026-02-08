@@ -35,6 +35,7 @@ import {
 } from '../nodes/nodePorts'
 import { STOP_EXECUTION } from '../nodes/types/shared'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
+import { findFirstCompatiblePort } from '../ports/portCompatibility'
 import { updatePortState } from '../ports/portState'
 import {
 	createOrUpdateConnectionBinding,
@@ -257,18 +258,28 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 					})
 					this.editor.select(newNodeId)
 
+					const bindings = getConnectionBindings(this.editor, connection)
+					const sourceType = bindings.start
+						? (getPortDataType(this.editor, bindings.start.toId, bindings.start.props.portId) ??
+							'any')
+						: 'any'
+
 					const ports = getNodePorts(this.editor, newNodeId)
-					const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
-					if (firstInputPort) {
+					const firstCompatibleInputPort = findFirstCompatiblePort(
+						Object.values(ports),
+						'end',
+						sourceType
+					)
+					if (firstCompatibleInputPort) {
 						this.editor.updateShape({
 							id: newNodeId,
 							type: 'node',
-							x: terminalInPageSpace.x - firstInputPort.x,
-							y: terminalInPageSpace.y - firstInputPort.y,
+							x: terminalInPageSpace.x - firstCompatibleInputPort.x,
+							y: terminalInPageSpace.y - firstCompatibleInputPort.y,
 						})
 
 						createOrUpdateConnectionBinding(this.editor, connection, newNodeId, {
-							portId: firstInputPort.id,
+							portId: firstCompatibleInputPort.id,
 							terminal: draggingTerminal,
 						})
 					}

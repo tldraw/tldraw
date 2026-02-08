@@ -121,6 +121,15 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 		return { output: lastResult, current_item: items[items.length - 1] }
 	}
 	getOutputInfo(shape: NodeShape, node: IteratorNode, inputs: InfoValues): InfoValues {
+		const items = node.items
+			.split('\n')
+			.map((s) => s.trim())
+			.filter((s) => s.length > 0)
+		const currentItem =
+			node.completedCount > 0
+				? (items[Math.min(node.completedCount - 1, items.length - 1)] ?? null)
+				: null
+
 		return {
 			output: {
 				value: node.lastResultUrl,
@@ -128,7 +137,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 				dataType: 'image',
 			},
 			current_item: {
-				value: null,
+				value: currentItem,
 				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
 				dataType: 'text',
 			},

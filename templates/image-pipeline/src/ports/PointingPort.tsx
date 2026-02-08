@@ -14,6 +14,7 @@ import {
 } from '../constants.tsx'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
 import { PortId } from '../ports/Port'
+import { findFirstCompatiblePort } from './portCompatibility'
 
 interface PointingPortInfo {
 	shapeId: TLShapeId
@@ -95,11 +96,6 @@ export class PointingPort extends StateNode {
 	private onClick() {
 		if (this.info?.terminal !== 'start') return
 
-		const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
-			(c) => c.ownPortId === this.info!.portId
-		)
-		if (hasExistingConnection) return
-
 		const bounds = this.editor.getShapePageBounds(this.info!.shapeId)
 		if (!bounds) return
 
@@ -151,17 +147,21 @@ export class PointingPort extends StateNode {
 				this.editor.select(newNodeId)
 
 				const ports = getNodePorts(this.editor, newNodeId)
-				const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
-				if (firstInputPort) {
+				const firstCompatibleInputPort = findFirstCompatiblePort(
+					Object.values(ports),
+					'end',
+					this.info!.dataType
+				)
+				if (firstCompatibleInputPort) {
 					this.editor.updateShape({
 						id: newNodeId,
 						type: 'node',
-						x: terminalInPageSpace.x - firstInputPort.x,
-						y: terminalInPageSpace.y - firstInputPort.y,
+						x: terminalInPageSpace.x - firstCompatibleInputPort.x,
+						y: terminalInPageSpace.y - firstCompatibleInputPort.y,
 					})
 
 					createOrUpdateConnectionBinding(this.editor, connectionShapeId, newNodeId, {
-						portId: firstInputPort.id,
+						portId: firstCompatibleInputPort.id,
 						terminal: 'end',
 					})
 				}
