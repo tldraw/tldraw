@@ -90,7 +90,7 @@ tldraw adjusts rendering fidelity based on zoom level and on-screen size, a tech
 
 **Image resolution scaling**
 
-When you zoom out or resize an image shape, tldraw requests a lower-resolution version from your asset store. The `resolve` method on [TLAssetStore](?) receives a [TLAssetContext](?) with `steppedScreenScale`—the ratio of the shape's on-screen size to the image's native size, stepped to the nearest power of two. Use this to serve appropriately sized images:
+When you zoom out or resize an image shape, tldraw requests a lower-resolution version from your asset store. The `resolve` method on [TLAssetStore](?) receives a [TLAssetContext](?) with `steppedScreenScale`—the ratio of the shape's on-screen size to the image's native size, rounded up to the nearest power of two. Use this to serve appropriately sized images:
 
 ```ts
 const assetStore: TLAssetStore = {
