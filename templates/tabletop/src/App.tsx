@@ -6,30 +6,20 @@ import {
 	DefaultStylePanelContent,
 	Editor,
 	TLComponents,
-	TLShapeId,
 	TLUiContextMenuProps,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	createShapeId,
 	useEditor,
 	useRelevantStyles,
 } from 'tldraw'
-import { CardShapeUtil } from './cards/CardShapeUtil'
-import { DECK_TYPE, DeckShapeUtil } from './cards/DeckShapeUtil'
-import { createStandardDeck } from './cards/card-data'
-import {
-	collectIntoDeck,
-	dealTopCard,
-	fanCards,
-	flipCards,
-	getSelectedCardAndDeckIds,
-	shuffleDeck,
-} from './cards/card-helpers'
+import { CARD_TYPE, CardShapeUtil } from './cards/CardShapeUtil'
+import { CARD_BOX_TYPE, CardBoxShapeUtil } from './cards/DeckShapeUtil'
+import { fanCards, flipCards, getSelectedCardIds } from './cards/card-helpers'
 import { DICE_TYPE, DiceShapeUtil } from './dice/DiceShapeUtil'
 import { DiceSidesStyle, POLY_DICE_TYPE, PolyDiceShapeUtil } from './dice/PolyDiceShapeUtil'
 
-const shapeUtils = [DiceShapeUtil, PolyDiceShapeUtil, CardShapeUtil, DeckShapeUtil]
+const shapeUtils = [DiceShapeUtil, PolyDiceShapeUtil, CardShapeUtil, CardBoxShapeUtil]
 
 // --- Style panel (poly dice sides selector) ---
 
@@ -80,27 +70,24 @@ function CustomStylePanel() {
 	)
 }
 
-// --- Context menu (card/deck actions) ---
+// --- Context menu (card actions) ---
 
 function TabletopContextMenuItems() {
 	const editor = useEditor()
-	const { cardIds, deckIds } = getSelectedCardAndDeckIds(editor)
+	const cardIds = getSelectedCardIds(editor)
 
 	const hasCards = cardIds.length > 0
-	const hasDeck = deckIds.length > 0
 
-	if (!hasCards && !hasDeck) return null
+	if (!hasCards) return null
 
 	return (
 		<TldrawUiMenuGroup id="tabletop-actions">
-			{hasCards && (
-				<TldrawUiMenuItem
-					id="flip-cards"
-					label={cardIds.length === 1 ? 'Flip card' : 'Flip cards'}
-					onSelect={() => flipCards(editor, cardIds)}
-				/>
-			)}
-			{hasCards && cardIds.length > 1 && (
+			<TldrawUiMenuItem
+				id="flip-cards"
+				label={cardIds.length === 1 ? 'Flip card' : 'Flip cards'}
+				onSelect={() => flipCards(editor, cardIds)}
+			/>
+			{cardIds.length > 1 && (
 				<TldrawUiMenuItem
 					id="fan-cards"
 					label="Fan cards"
@@ -110,37 +97,6 @@ function TabletopContextMenuItems() {
 							fanCards(editor, cardIds, { x: bounds.midX, y: bounds.midY })
 						}
 					}}
-				/>
-			)}
-			{hasDeck &&
-				deckIds.map((deckId) => {
-					const deck = editor.getShape(deckId)
-					if (!deck) return null
-					return (
-						<TldrawUiMenuItem
-							key={`shuffle-${deckId}`}
-							id="shuffle-deck"
-							label="Shuffle deck"
-							onSelect={() => shuffleDeck(editor, deckId)}
-						/>
-					)
-				})}
-			{hasDeck &&
-				deckIds.map((deckId) => (
-					<TldrawUiMenuItem
-						key={`deal-${deckId}`}
-						id="deal-card"
-						label="Deal card"
-						onSelect={() => {
-							dealTopCard(editor, deckId)
-						}}
-					/>
-				))}
-			{hasCards && hasDeck && (
-				<TldrawUiMenuItem
-					id="collect-into-deck"
-					label="Collect into deck"
-					onSelect={() => collectIntoDeck(editor, cardIds, deckIds[0])}
 				/>
 			)}
 		</TldrawUiMenuGroup>
@@ -166,6 +122,29 @@ const components: TLComponents = {
 function App() {
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).editor = editor
+
+		// Uniqueness side-effect: prevent duplicate cards (same suit+rank) on the page
+		editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
+			if (shape.type !== CARD_TYPE) return
+			const newCard = shape as any
+			const pageId = editor.getCurrentPageId()
+			const allIds = editor.getSortedChildIdsForParent(pageId)
+			for (const id of allIds) {
+				if (id === shape.id) continue
+				const existing = editor.getShape(id)
+				if (
+					existing &&
+					existing.type === CARD_TYPE &&
+					(existing as any).props.suit === newCard.props.suit &&
+					(existing as any).props.rank === newCard.props.rank
+				) {
+					// Duplicate found — delete the newly created one
+					editor.deleteShapes([shape.id])
+					return
+				}
+			}
+		})
+
 		if (editor.getCurrentPageShapeIds().size > 0) return
 
 		// Dice: two D6 and a sample of poly dice
@@ -206,20 +185,12 @@ function App() {
 			},
 		])
 
-		// A deck of 52 cards
-		const deckId: TLShapeId = createShapeId()
+		// A card box (starts full, double-click to deal)
 		editor.createShape({
-			id: deckId,
-			type: DECK_TYPE,
+			type: CARD_BOX_TYPE,
 			x: 100,
 			y: 300,
 		})
-		createStandardDeck(editor, deckId)
-
-		// Deal a few cards face-up so the user can see them immediately
-		for (let i = 0; i < 3; i++) {
-			dealTopCard(editor, deckId, { x: 800 + i * 100, y: 300 })
-		}
 	}, [])
 
 	return (
