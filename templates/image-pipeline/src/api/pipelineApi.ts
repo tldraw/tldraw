@@ -162,11 +162,16 @@ export interface GenerateTextResult {
  * Falls back to a local placeholder if the worker is not available.
  */
 export async function apiGenerateText(params: GenerateTextParams): Promise<GenerateTextResult> {
+	// Coerce input to string so the worker always receives a string
+	const coercedParams = {
+		...params,
+		input: params.input != null ? String(params.input) : undefined,
+	}
 	try {
 		const response = await fetch('/api/generate-text', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(params),
+			body: JSON.stringify(coercedParams),
 		})
 
 		if (!response.ok) {
@@ -243,10 +248,11 @@ function ipAdapterLocalPlaceholder(params: IPAdapterParams): IPAdapterResult {
 }
 
 function generateTextLocalPlaceholder(params: GenerateTextParams): GenerateTextResult {
-	const inputDesc = params.input
-		? params.input.startsWith('data:image/')
+	const inputStr = params.input != null ? String(params.input) : null
+	const inputDesc = inputStr
+		? inputStr.startsWith('data:image/')
 			? '[image provided]'
-			: `"${params.input.slice(0, 30)}${params.input.length > 30 ? '...' : ''}"`
+			: `"${inputStr.slice(0, 30)}${inputStr.length > 30 ? '...' : ''}"`
 		: '[no input]'
 	return {
 		text: `[Placeholder] Prompt: "${params.prompt.slice(0, 50)}${params.prompt.length > 50 ? '...' : ''}" | Input: ${inputDesc} — Set REPLICATE_API_TOKEN for real generation.`,

@@ -81,6 +81,7 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	abstract readonly icon: TLUiIconJsx
 	/** A short category label for grouping in the toolbar. */
 	abstract readonly category: string
+	readonly resultKeys?: readonly string[]
 
 	abstract getDefault(): Node
 	abstract getBodyHeightPx(shape: NodeShape, node: Node): number
@@ -328,4 +329,48 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
 		reader.onerror = reject
 		reader.readAsDataURL(blob)
 	})
+}
+
+// ---------------------------------------------------------------------------
+// Input coercion helpers
+// ---------------------------------------------------------------------------
+
+/** Coerce any pipeline value to a string. */
+export function coerceToText(value: PipelineValue, fallback = ''): string {
+	if (value == null) return fallback
+	if (typeof value === 'number') return String(value)
+	return value
+}
+
+/** Coerce any pipeline value to a number. */
+export function coerceToNumber(value: PipelineValue, fallback = 0): number {
+	if (value == null) return fallback
+	if (typeof value === 'number') return value
+	const n = parseFloat(value)
+	return Number.isNaN(n) ? fallback : n
+}
+
+/** Extract a single value from an InputValues entry (takes first element if array). */
+export function getInput(inputs: InputValues, key: string): PipelineValue {
+	const v = inputs[key]
+	if (Array.isArray(v)) return v[0] ?? null
+	return v ?? null
+}
+
+/** Always return an array from an InputValues entry. */
+export function getInputMulti(inputs: InputValues, key: string): PipelineValue[] {
+	const v = inputs[key]
+	if (v == null) return []
+	if (Array.isArray(v)) return v
+	return [v]
+}
+
+/** Extract a single value and coerce to string. */
+export function getInputText(inputs: InputValues, key: string, fallback = ''): string {
+	return coerceToText(getInput(inputs, key), fallback)
+}
+
+/** Extract a single value and coerce to number. */
+export function getInputNumber(inputs: InputValues, key: string, fallback = 0): number {
+	return coerceToNumber(getInput(inputs, key), fallback)
 }

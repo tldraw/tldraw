@@ -35,6 +35,7 @@ export interface NodePortConnection {
 	terminal: 'start' | 'end'
 	ownPortId: PortId
 	connectedPortId: PortId
+	order: number
 }
 
 /**
@@ -63,6 +64,7 @@ const nodePortConnectionsCache = createComputedCache(
 				terminal: binding.props.terminal,
 				ownPortId: binding.props.portId,
 				connectedPortId: oppositeBinding.props.portId,
+				order: binding.props.order ?? 0,
 			})
 		}
 
@@ -83,10 +85,11 @@ const nodeInputPortValuesCache = createComputedCache(
 	'node input port values',
 	(editor: Editor, node: NodeShape) => {
 		const connections = getNodePortConnections(editor, node)
+		const sorted = [...connections].sort((a, b) => a.order - b.order)
 		const ports = getNodePorts(editor, node)
 
 		const values: InfoValues = {}
-		for (const connection of connections) {
+		for (const connection of sorted) {
 			if (!connection || connection.terminal !== 'end') continue
 
 			const connectedShapeOutputs = getNodeOutputPortInfo(editor, connection.connectedShapeId)
@@ -95,6 +98,7 @@ const nodeInputPortValuesCache = createComputedCache(
 			}
 
 			const output = connectedShapeOutputs[connection.connectedPortId]
+			if (!output) continue
 			const port = ports[connection.ownPortId]
 
 			if (port?.multi) {

@@ -48,6 +48,7 @@ export class ControlNetNodeDefinition extends NodeDefinition<ControlNetNode> {
 	heading = 'ControlNet'
 	icon = (<ControlNetIcon />)
 	category = 'process'
+	resultKeys = ['lastResultUrl'] as const
 	getDefault(): ControlNetNode {
 		return {
 			type: 'controlnet',

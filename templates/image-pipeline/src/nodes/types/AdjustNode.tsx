@@ -63,6 +63,7 @@ export class AdjustNodeDefinition extends NodeDefinition<AdjustNode> {
 	heading = 'Adjust'
 	icon = (<AdjustIcon />)
 	category = 'process'
+	resultKeys = ['lastResultUrl'] as const
 	getDefault(): AdjustNode {
 		return {
 			type: 'adjust',

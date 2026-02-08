@@ -35,6 +35,7 @@ export class PreviewNodeDefinition extends NodeDefinition<PreviewNode> {
 	heading = 'Preview'
 	icon = (<PreviewIcon />)
 	category = 'output'
+	resultKeys = ['lastImageUrl'] as const
 	getDefault(): PreviewNode {
 		return {
 			type: 'preview',

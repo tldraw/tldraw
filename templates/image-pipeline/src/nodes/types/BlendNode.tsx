@@ -76,6 +76,7 @@ export class BlendNodeDefinition extends NodeDefinition<BlendNode> {
 	heading = 'Blend'
 	icon = (<BlendIcon />)
 	category = 'process'
+	resultKeys = ['lastResultUrl'] as const
 	getDefault(): BlendNode {
 		return {
 			type: 'blend',

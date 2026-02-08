@@ -85,8 +85,9 @@ export class ExecutionGraph {
 
 		const inputs: Record<string, PipelineValue | PipelineValue[]> = {}
 		const ports = getNodePorts(this.editor, nodeId)
+		const sortedConnections = [...node.connections].sort((a, b) => a.order - b.order)
 
-		for (const connection of node.connections) {
+		for (const connection of sortedConnections) {
 			if (!connection || connection.terminal !== 'end') continue
 
 			const dependency = this.nodesById.get(connection.connectedShapeId)

@@ -32,7 +32,6 @@ import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTy
 import { NodeValue, STOP_EXECUTION } from './types/shared'
 
 const NODE_TYPE = 'node'
-const RESULT_KEYS = ['lastResultUrl', 'lastResultText', 'lastImageUrl'] as const
 
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
@@ -255,7 +254,10 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 	)?.value as string | undefined
 
 	const node = shape.props.node as Record<string, unknown>
-	const hasResult = RESULT_KEYS.some((key) => typeof node[key] === 'string' && node[key] !== '')
+	const definition = getNodeDefinition(editor, shape.props.node)
+	const resultKeys = definition.resultKeys
+	const defaults = definition.getDefault() as Record<string, unknown>
+	const hasResult = resultKeys ? resultKeys.some((key) => node[key] !== defaults[key]) : false
 	const textOutput = Object.values(outputInfo).find(
 		(info) => info.dataType === 'text' && typeof info.value === 'string' && info.value !== ''
 	)?.value as string | undefined
@@ -291,11 +293,11 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 	}, [textResult])
 
 	const handleClearResult = useCallback(() => {
-		const updates = RESULT_KEYS.reduce<Record<string, null>>((acc, key) => {
-			if (key in node) acc[key] = null
-			return acc
-		}, {})
-		if (Object.keys(updates).length === 0) return
+		if (!resultKeys || resultKeys.length === 0) return
+		const updates: Record<string, unknown> = {}
+		for (const key of resultKeys) {
+			updates[key] = defaults[key]
+		}
 
 		editor.updateShape({
 			id: shape.id,
@@ -305,7 +307,7 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 				isOutOfDate: true,
 			},
 		})
-	}, [editor, node, shape])
+	}, [editor, resultKeys, defaults, shape])
 
 	return (
 		<div className="NodeFooterMenu" onPointerDown={(e) => e.stopPropagation()}>

@@ -48,6 +48,7 @@ export class StyleTransferNodeDefinition extends NodeDefinition<StyleTransferNod
 	heading = 'Style transfer'
 	icon = (<StyleTransferIcon />)
 	category = 'process'
+	resultKeys = ['lastResultUrl'] as const
 	getDefault(): StyleTransferNode {
 		return {
 			type: 'style_transfer',

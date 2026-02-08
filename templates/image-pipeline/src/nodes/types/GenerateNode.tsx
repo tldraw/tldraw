@@ -42,6 +42,7 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 	heading = 'Generate'
 	icon = (<GenerateIcon />)
 	category = 'process'
+	resultKeys = ['lastResultUrl'] as const
 	getDefault(): GenerateNode {
 		return {
 			type: 'generate',

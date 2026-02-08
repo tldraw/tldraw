@@ -51,6 +51,7 @@ export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
 	heading = 'Upscale'
 	icon = (<UpscaleIcon />)
 	category = 'process'
+	resultKeys = ['lastResultUrl'] as const
 	getDefault(): UpscaleNode {
 		return {
 			type: 'upscale',

@@ -24,6 +24,7 @@ declare module 'tldraw' {
 		[CONNECTION_TYPE]: {
 			portId: PortId
 			terminal: 'start' | 'end'
+			order?: number
 		}
 	}
 }
@@ -35,6 +36,7 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	static override props = {
 		portId: T.string,
 		terminal: T.literalEnum('start', 'end'),
+		order: T.number.optional(),
 	}
 
 	override getDefaultProps() {
@@ -144,19 +146,29 @@ export function createOrUpdateConnectionBinding(
 		editor.deleteBindings(existingMany.slice(1))
 	}
 
+	// Auto-assign order for end-terminal (input port) bindings when not explicitly provided
+	let order = props.order
+	if (props.terminal === 'end' && order == null) {
+		const existingBindingsToTarget = editor
+			.getBindingsToShape(targetId, CONNECTION_TYPE)
+			.filter((b) => b.props.terminal === 'end' && b.props.portId === props.portId)
+		order = existingBindingsToTarget.reduce((max, b) => Math.max(max, b.props.order ?? 0), 0) + 1
+	}
+	const propsWithOrder = { ...props, order: order ?? props.order ?? 0 }
+
 	const existing = existingMany[0]
 	if (existing) {
 		editor.updateBinding({
 			...existing,
 			toId: targetId,
-			props,
+			props: { ...propsWithOrder, order: existing.props.order ?? propsWithOrder.order },
 		})
 	} else {
 		editor.createBinding({
 			type: CONNECTION_TYPE,
 			fromId: connectionId,
 			toId: targetId,
-			props,
+			props: propsWithOrder,
 		})
 	}
 }

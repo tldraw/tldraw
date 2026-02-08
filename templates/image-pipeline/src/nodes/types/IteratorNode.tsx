@@ -14,6 +14,7 @@ import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
 	ExecutionResult,
+	getInputText,
 	InfoValues,
 	InputValues,
 	NodeComponentProps,
@@ -39,6 +40,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 	heading = 'Iterator'
 	icon = (<IteratorIcon />)
 	category = 'utility'
+	resultKeys = ['lastResultUrl', 'completedCount', 'totalCount'] as const
 	getDefault(): IteratorNode {
 		return {
 			type: 'iterator',
@@ -104,7 +106,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 			totalCount: items.length,
 		}))
 
-		const template = (inputs.template as string | null) ?? ''
+		const template = getInputText(inputs, 'template')
 
 		let lastResult: string | null = null
 		for (let i = 0; i < items.length; i++) {

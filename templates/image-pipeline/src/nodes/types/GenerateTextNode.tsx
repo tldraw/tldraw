@@ -12,7 +12,10 @@ import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
+	coerceToText,
 	ExecutionResult,
+	getInput,
+	getInputText,
 	InfoValues,
 	InputValues,
 	NodeComponentProps,
@@ -38,6 +41,7 @@ export class GenerateTextNodeDefinition extends NodeDefinition<GenerateTextNode>
 	heading = 'Generate text'
 	icon = (<GenerateTextIcon />)
 	category = 'process'
+	resultKeys = ['lastResultText'] as const
 	getDefault(): GenerateTextNode {
 		return {
 			type: 'generate_text',
@@ -79,11 +83,11 @@ export class GenerateTextNodeDefinition extends NodeDefinition<GenerateTextNode>
 		_node: GenerateTextNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		const input = inputs.input as string | undefined
-		const prompt = (inputs.prompt as string) || DEFAULT_PROMPT
+		const input = coerceToText(getInput(inputs, 'input')) || undefined
+		const prompt = getInputText(inputs, 'prompt', DEFAULT_PROMPT)
 
 		const result = await apiGenerateText({
-			input: input ?? undefined,
+			input,
 			prompt,
 		})
 

@@ -30,22 +30,24 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 		})
 	}
 
+	// Coerce input to string so downstream .startsWith() never crashes
+	const inputStr = body.input != null ? String(body.input) : null
+
 	// Detect whether the input is an image or text
 	const isImage =
-		body.input != null &&
-		(body.input.startsWith('data:image/') || body.input.startsWith('/api/images/'))
+		inputStr != null && (inputStr.startsWith('data:image/') || inputStr.startsWith('/api/images/'))
 
 	try {
 		// Build the prompt — if input is text, prepend it to the prompt
 		let prompt = body.prompt
-		if (body.input && !isImage) {
-			prompt = `Context:\n${body.input}\n\n${body.prompt}`
+		if (inputStr && !isImage) {
+			prompt = `Context:\n${inputStr}\n\n${body.prompt}`
 		}
 
 		// Build the images array if we have an image input
 		const images: string[] = []
-		if (body.input && isImage) {
-			const { dataUrl } = await resolveImage(body.input, env)
+		if (inputStr && isImage) {
+			const { dataUrl } = await resolveImage(inputStr, env)
 			images.push(dataUrl)
 		}
 
@@ -92,13 +94,13 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 }
 
 function generateTextPlaceholder(body: GenerateTextRequest): { text: string } {
+	const inputStr = body.input != null ? String(body.input) : null
 	const isImage =
-		body.input != null &&
-		(body.input.startsWith('data:image/') || body.input.startsWith('/api/images/'))
-	const inputDesc = body.input
+		inputStr != null && (inputStr.startsWith('data:image/') || inputStr.startsWith('/api/images/'))
+	const inputDesc = inputStr
 		? isImage
 			? '[image provided]'
-			: `[text: "${body.input.slice(0, 40)}${body.input.length > 40 ? '...' : ''}"]`
+			: `[text: "${inputStr.slice(0, 40)}${inputStr.length > 40 ? '...' : ''}"]`
 		: '[no input]'
 	return {
 		text: `[Placeholder] Prompt: "${body.prompt.slice(0, 60)}${body.prompt.length > 60 ? '...' : ''}" | Input: ${inputDesc} — Set REPLICATE_API_TOKEN for real text generation.`,
