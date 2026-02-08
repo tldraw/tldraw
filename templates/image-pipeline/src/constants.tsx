@@ -3,10 +3,11 @@ export const CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX = 24
 
 export const NODE_WIDTH_PX = 260
 export const NODE_HEADER_HEIGHT_PX = 40
-export const NODE_ROW_HEADER_GAP_PX = 4
+export const NODE_ROW_HEADER_GAP_PX = 8
 export const NODE_ROW_BOTTOM_PADDING_PX = 8
+export const NODE_FOOTER_HEIGHT_PX = 40
 export const NODE_ROW_HEIGHT_PX = 44
-export const NODE_IMAGE_PREVIEW_HEIGHT_PX = 160
+export const NODE_IMAGE_PREVIEW_HEIGHT_PX = 160 + 8
 
 export const PORT_RADIUS_PX = 6
 

@@ -10,6 +10,7 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	VecModel,
@@ -62,6 +63,9 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		start: vecModelValidator,
 		end: vecModelValidator,
 	}
+
+	/** Connection ID that will be replaced if the current drag completes on an occupied port. */
+	private pendingReplacementId: TLShapeId | null = null
 
 	getDefaultProps(): ConnectionShape['props'] {
 		return {
@@ -142,10 +146,8 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			terminal: handle.id as 'start' | 'end',
 		})
 
-		const allowsMultipleConnections = draggingTerminal === 'start'
-
-		const hasExistingConnection =
-			target?.existingConnections.some((c) => c.connectionId !== connection.id) ?? false
+		const existingConnectionOnTarget =
+			target?.existingConnections.find((c) => c.connectionId !== connection.id) ?? null
 
 		const nodesWhichWouldCreateACycle = oppositeTerminalShapeId
 			? getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal)
@@ -171,15 +173,16 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		})
 
 		// Check type compatibility
-		const isTypeIncompatible = target && dragDataType && target.port.dataType !== dragDataType
+		const isTypeIncompatible =
+			target &&
+			dragDataType &&
+			dragDataType !== 'any' &&
+			target.port.dataType !== 'any' &&
+			target.port.dataType !== dragDataType
 
 		const wouldCreateACycle = (target && nodesWhichWouldCreateACycle?.has(target.shape.id)) ?? false
-		if (
-			!target ||
-			(hasExistingConnection && !allowsMultipleConnections) ||
-			wouldCreateACycle ||
-			isTypeIncompatible
-		) {
+		if (!target || wouldCreateACycle || isTypeIncompatible) {
+			this.pendingReplacementId = null
 			updatePortState(this.editor, { hintingPort: null })
 
 			removeConnectionBinding(this.editor, connection, draggingTerminal)
@@ -191,6 +194,12 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 				},
 			}
 		}
+
+		// Track the connection that would be replaced, but don't delete it yet.
+		this.pendingReplacementId =
+			existingConnectionOnTarget && draggingTerminal === 'end'
+				? existingConnectionOnTarget.connectionId
+				: null
 
 		updatePortState(this.editor, {
 			hintingPort: { portId: target.port.id, shapeId: target.shape.id },
@@ -208,6 +217,12 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		connection: ConnectionShape,
 		{ handle, isCreatingShape }: TLHandleDragInfo<ConnectionShape>
 	) {
+		// Delete the connection being replaced now that the drag is committed.
+		if (this.pendingReplacementId) {
+			this.editor.deleteShapes([this.pendingReplacementId])
+			this.pendingReplacementId = null
+		}
+
 		updatePortState(this.editor, { hintingPort: null, eligiblePorts: null })
 
 		const draggingTerminal = handle.id as 'start' | 'end'
@@ -266,6 +281,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	}
 
 	onHandleDragCancel() {
+		this.pendingReplacementId = null
 		updatePortState(this.editor, { hintingPort: null, eligiblePorts: null })
 	}
 

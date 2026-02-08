@@ -1,6 +1,8 @@
 import {
 	AssetToolbarItem,
 	createShapeId,
+	DefaultActionsMenu,
+	DefaultQuickActions,
 	DefaultToolbar,
 	DrawToolbarItem,
 	Editor,
@@ -13,11 +15,11 @@ import {
 	TldrawUiMenuGroup,
 	TLShapeId,
 	TLUiOverrides,
-	ToolbarItem,
 	Vec,
 } from 'tldraw'
 import { NodeShape } from '../nodes/NodeShapeUtil'
 import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { TemplatePicker } from './TemplatePicker'
 
 function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: NodeType) {
 	const markId = editor.markHistoryStoppingPoint('create node')
@@ -76,37 +78,11 @@ export const overrides: TLUiOverrides = {
 
 export function PipelineToolbar() {
 	return (
-		<DefaultToolbar orientation="vertical" maxItems={18}>
+		<DefaultToolbar>
 			<TldrawUiMenuGroup id="selection">
 				<SelectToolbarItem />
 				<HandToolbarItem />
 			</TldrawUiMenuGroup>
-
-			<TldrawUiMenuGroup id="inputs">
-				<ToolbarItem tool="node-model" />
-				<ToolbarItem tool="node-prompt" />
-				<ToolbarItem tool="node-prompt_concat" />
-				<ToolbarItem tool="node-load_image" />
-				<ToolbarItem tool="node-number" />
-			</TldrawUiMenuGroup>
-
-			<TldrawUiMenuGroup id="process">
-				<ToolbarItem tool="node-generate" />
-				<ToolbarItem tool="node-controlnet" />
-				<ToolbarItem tool="node-blend" />
-				<ToolbarItem tool="node-adjust" />
-				<ToolbarItem tool="node-upscale" />
-			</TldrawUiMenuGroup>
-
-			<TldrawUiMenuGroup id="output">
-				<ToolbarItem tool="node-preview" />
-			</TldrawUiMenuGroup>
-
-			<TldrawUiMenuGroup id="utility">
-				<ToolbarItem tool="node-router" />
-				<ToolbarItem tool="node-iterator" />
-			</TldrawUiMenuGroup>
-
 			<TldrawUiMenuGroup id="shapes">
 				<DrawToolbarItem />
 				<NoteToolbarItem />
@@ -114,6 +90,9 @@ export function PipelineToolbar() {
 				<TextToolbarItem />
 				<AssetToolbarItem />
 			</TldrawUiMenuGroup>
+			<TemplatePicker />
+			<DefaultQuickActions />
+			<DefaultActionsMenu />
 		</DefaultToolbar>
 	)
 }

@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { useCallback } from 'react'
 import {
 	Circle2d,
 	Group2d,
@@ -8,14 +9,23 @@ import {
 	resizeBox,
 	ShapeUtil,
 	T,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	TLResizeInfo,
 	TLShape,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
 } from 'tldraw'
+import { PlayIcon } from '../components/icons/PlayIcon'
+import { StopIcon } from '../components/icons/StopIcon'
 import { NODE_WIDTH_PX, PORT_RADIUS_PX, PORT_TYPE_COLORS } from '../constants'
-import { executionState } from '../execution/executionState'
+import { executionState, startExecution, stopExecution } from '../execution/executionState'
 import { Port, ShapePort } from '../ports/Port'
 import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
 import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTypes'
@@ -171,6 +181,12 @@ function NodeShapeComponent({ shape }: { shape: NodeShape }) {
 		[editor, shape.id]
 	)
 
+	const isGraphRunning = useValue(
+		'is graph running',
+		() => executionState.get(editor).runningGraph !== null,
+		[editor]
+	)
+
 	const nodeDefinition = getNodeDefinition(editor, shape.props.node)
 
 	return (
@@ -192,6 +208,113 @@ function NodeShapeComponent({ shape }: { shape: NodeShape }) {
 				)}
 			</div>
 			<NodeBody shape={shape} />
+			<div className="NodeShape-footer">
+				<button
+					className={classNames('NodeShape-footer-action', {
+						'NodeShape-footer-action_executing': isExecuting,
+					})}
+					onPointerDown={(e) => e.stopPropagation()}
+					onClick={() => {
+						if (isGraphRunning) {
+							stopExecution(editor)
+						} else {
+							startExecution(editor, new Set([shape.id]))
+						}
+					}}
+				>
+					{isExecuting ? <StopIcon /> : <PlayIcon />}
+					<span>{isExecuting ? 'Stop' : 'Play from here'}</span>
+				</button>
+				<NodeFooterMenu shape={shape} />
+			</div>
 		</HTMLContainer>
+	)
+}
+
+function NodeFooterMenu({ shape }: { shape: NodeShape }) {
+	const editor = useEditor()
+
+	const outputInfo = useValue('output info', () => getNodeOutputPortInfo(editor, shape.id), [
+		editor,
+		shape.id,
+	])
+
+	// Find any image output that has a valid URL
+	const imageUrl = Object.values(outputInfo).find(
+		(info) =>
+			info.dataType === 'image' && typeof info.value === 'string' && info.value && info.value !== ''
+	)?.value as string | undefined
+
+	const node = shape.props.node as Record<string, unknown>
+	const hasResult = typeof node.lastResultUrl === 'string' && node.lastResultUrl !== ''
+
+	const handleDuplicate = useCallback(() => {
+		editor.markHistoryStoppingPoint('duplicate node')
+		editor.duplicateShapes([shape.id])
+	}, [editor, shape.id])
+
+	const handleDownloadImage = useCallback(async () => {
+		if (!imageUrl) return
+		const response = await fetch(imageUrl)
+		const blob = await response.blob()
+		const ext = blob.type.split('/')[1] ?? 'png'
+		const blobUrl = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = blobUrl
+		a.download = `image.${ext}`
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+		URL.revokeObjectURL(blobUrl)
+	}, [imageUrl])
+
+	const handleClearResult = useCallback(() => {
+		editor.updateShape({
+			id: shape.id,
+			type: shape.type,
+			props: {
+				node: { ...(shape.props.node as any), lastResultUrl: null },
+				isOutOfDate: true,
+			},
+		})
+	}, [editor, shape])
+
+	return (
+		<div className="NodeFooterMenu" onPointerDown={(e) => e.stopPropagation()}>
+			<TldrawUiDropdownMenuRoot id={`node-menu-${shape.id}`}>
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="icon" title="More options" className="NodeFooterMenu-trigger">
+						<svg width="12" height="12" viewBox="0 0 12 12">
+							<circle cx="6" cy="2" r="1.2" fill="currentColor" />
+							<circle cx="6" cy="6" r="1.2" fill="currentColor" />
+							<circle cx="6" cy="10" r="1.2" fill="currentColor" />
+						</svg>
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="top" align="end" sideOffset={4} alignOffset={0}>
+					<TldrawUiDropdownMenuGroup>
+						<TldrawUiDropdownMenuItem>
+							<TldrawUiButton type="menu" onClick={handleDuplicate}>
+								<TldrawUiButtonLabel>Duplicate</TldrawUiButtonLabel>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
+						{imageUrl && (
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton type="menu" onClick={handleDownloadImage}>
+									<TldrawUiButtonLabel>Download image</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
+						)}
+						{hasResult && (
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton type="menu" onClick={handleClearResult}>
+									<TldrawUiButtonLabel>Clear result</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
+						)}
+					</TldrawUiDropdownMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
+		</div>
 	)
 }

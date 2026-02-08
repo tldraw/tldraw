@@ -1,5 +1,6 @@
 import { Editor, T, useEditor, WeakCache } from 'tldraw'
 import {
+	NODE_FOOTER_HEIGHT_PX,
 	NODE_HEADER_HEIGHT_PX,
 	NODE_ROW_BOTTOM_PADDING_PX,
 	NODE_ROW_HEADER_GAP_PX,
@@ -10,6 +11,7 @@ import { AdjustNodeDefinition } from './types/AdjustNode'
 import { BlendNodeDefinition } from './types/BlendNode'
 import { ControlNetNodeDefinition } from './types/ControlNetNode'
 import { GenerateNodeDefinition } from './types/GenerateNode'
+import { IPAdapterNodeDefinition } from './types/IPAdapterNode'
 import { IteratorNodeDefinition } from './types/IteratorNode'
 import { LoadImageNodeDefinition } from './types/LoadImageNode'
 import { ModelNodeDefinition } from './types/ModelNode'
@@ -18,6 +20,7 @@ import { PreviewNodeDefinition } from './types/PreviewNode'
 import { PromptConcatNodeDefinition } from './types/PromptConcatNode'
 import { PromptNodeDefinition } from './types/PromptNode'
 import { RouterNodeDefinition } from './types/RouterNode'
+import { StyleTransferNodeDefinition } from './types/StyleTransferNode'
 import { UpscaleNodeDefinition } from './types/UpscaleNode'
 import {
 	ExecutionResult,
@@ -38,6 +41,8 @@ export const NodeDefinitions = {
 	blend: BlendNodeDefinition,
 	adjust: AdjustNodeDefinition,
 	upscale: UpscaleNodeDefinition,
+	ip_adapter: IPAdapterNodeDefinition,
+	style_transfer: StyleTransferNodeDefinition,
 	number: NumberNodeDefinition,
 	router: RouterNodeDefinition,
 	iterator: IteratorNodeDefinition,
@@ -84,7 +89,8 @@ export function getNodeHeightPx(editor: Editor, shape: NodeShape): number {
 		NODE_HEADER_HEIGHT_PX +
 		NODE_ROW_HEADER_GAP_PX +
 		getNodeBodyHeightPx(editor, shape) +
-		NODE_ROW_BOTTOM_PADDING_PX
+		NODE_ROW_BOTTOM_PADDING_PX +
+		NODE_FOOTER_HEIGHT_PX
 	)
 }
 

@@ -8,14 +8,15 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
+	blobToDataUrl,
 	ExecutionResult,
 	InfoValues,
 	InputValues,
+	loadImage,
 	NodeComponentProps,
 	NodeDefinition,
 	NodePlaceholder,
@@ -41,32 +42,31 @@ export const BlendNode = T.object({
 	lastResultUrl: T.string.nullable(),
 })
 
-/**
- * Simulate blending two images. In reality this would use canvas compositing.
- */
-function simulateBlend(
-	_imageA: string | null,
-	_imageB: string | null,
+const COMPOSITE_OPS: Record<string, GlobalCompositeOperation> = {
+	normal: 'source-over',
+	multiply: 'multiply',
+	screen: 'screen',
+	overlay: 'overlay',
+	difference: 'difference',
+}
+
+async function blendImages(
+	imageAUrl: string,
+	imageBUrl: string,
 	mode: string,
 	opacity: number
-): string {
-	const hue =
-		mode === 'multiply'
-			? 300
-			: mode === 'screen'
-				? 60
-				: mode === 'overlay'
-					? 180
-					: mode === 'difference'
-						? 0
-						: 120
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-		<rect width="512" height="512" fill="hsl(${hue}, 40%, 50%)" opacity="${opacity / 100}"/>
-		<rect x="40" y="40" width="432" height="432" rx="16" fill="hsl(${hue + 30}, 30%, 60%)" opacity="0.7"/>
-		<text x="256" y="256" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.6)" font-family="sans-serif" font-size="16">${mode} blend</text>
-		<text x="256" y="480" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="12">opacity: ${opacity}%</text>
-	</svg>`
-	return `data:image/svg+xml,${encodeURIComponent(svg)}`
+): Promise<string> {
+	const [imgA, imgB] = await Promise.all([loadImage(imageAUrl), loadImage(imageBUrl)])
+	const w = Math.max(imgA.naturalWidth, imgB.naturalWidth)
+	const h = Math.max(imgA.naturalHeight, imgB.naturalHeight)
+	const canvas = new OffscreenCanvas(w, h)
+	const ctx = canvas.getContext('2d')!
+	ctx.drawImage(imgA, 0, 0, w, h)
+	ctx.globalCompositeOperation = COMPOSITE_OPS[mode] ?? 'source-over'
+	ctx.globalAlpha = opacity / 100
+	ctx.drawImage(imgB, 0, 0, w, h)
+	const blob = await canvas.convertToBlob({ type: 'image/png' })
+	return blobToDataUrl(blob)
 }
 
 export class BlendNodeDefinition extends NodeDefinition<BlendNode> {
@@ -114,10 +114,18 @@ export class BlendNodeDefinition extends NodeDefinition<BlendNode> {
 		}
 	}
 	async execute(shape: NodeShape, node: BlendNode, inputs: InputValues): Promise<ExecutionResult> {
-		await sleep(800)
 		const imageA = inputs.imageA as string | null
 		const imageB = inputs.imageB as string | null
-		const result = simulateBlend(imageA, imageB, node.mode, node.opacity)
+
+		let result: string | null = null
+		if (imageA && imageB) {
+			result = await blendImages(imageA, imageB, node.mode, node.opacity)
+		} else if (imageA) {
+			result = imageA
+		} else if (imageB) {
+			result = imageB
+		}
+
 		updateNode<BlendNode>(this.editor, shape, (n) => ({
 			...n,
 			lastResultUrl: result,

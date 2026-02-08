@@ -9,8 +9,7 @@ body {
 .tl-container {
 	--node-shadows: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 	--node-shadow-border:
-		0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.08),
-		0 1px 2px rgba(0, 0, 0, 0.04);
+		0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 	--node-shadow-highlight:
 		0 0 0 calc(1.2px / var(--tl-zoom)) var(--tl-color-selected), 0 2px 6px rgba(0, 0, 0, 0.08),
 		0 1px 2px rgba(0, 0, 0, 0.04);
@@ -34,16 +33,15 @@ body {
 	height: fit-content;
 	display: flex;
 	flex-direction: column;
-	padding-bottom: var(--tl-space-3);
 
 	.NodeShape-heading {
 		padding: 0 var(--tl-space-4);
+		margin-bottom: var(--tl-space-3);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: var(--tl-space-3);
 		height: 40px;
-		margin-bottom: var(--tl-space-2);
 		border-bottom: 1px solid var(--tl-color-divider);
 	}
 
@@ -68,6 +66,62 @@ body {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	/* Enable pointer events on the entire node body so all interactive
+	   elements work. The heading stays inert (drag handle for tldraw). */
+	[data-state='select.idle'] & > :not(.NodeShape-heading) {
+		pointer-events: all;
+	}
+
+	.NodeShape-footer {
+		display: flex;
+		align-items: center;
+		gap: var(--tl-space-2);
+		height: 40px;
+		padding: 0 var(--tl-space-4);
+		border-top: 1px solid var(--tl-color-divider);
+		margin-top: var(--tl-space-3);
+	}
+
+	.NodeShape-footer-action {
+		display: flex;
+		align-items: center;
+		gap: var(--tl-space-2);
+		border: none;
+		background: none;
+		padding: 2px 6px;
+		margin: 0 -6px;
+		border-radius: var(--tl-radius-2);
+		font: inherit;
+		font-size: 11px;
+		color: var(--tl-color-text-3);
+		cursor: pointer;
+
+		svg {
+			width: 12px;
+			height: 12px;
+		}
+
+		&:hover {
+			background: var(--tl-color-muted-0);
+			color: var(--tl-color-text-1);
+		}
+
+		&.NodeShape-footer-action_executing {
+			color: var(--tl-color-selected);
+		}
+	}
+
+	.NodeFooterMenu {
+		margin-left: auto;
+	}
+
+	.NodeFooterMenu-trigger {
+		width: 24px;
+		min-width: 24px;
+		height: 24px;
+		color: var(--tl-color-text-3);
 	}
 
 	&.NodeShape_executing {
@@ -105,19 +159,11 @@ body {
 		&:focus {
 			border-color: var(--tl-color-selected);
 		}
-
-		[data-state='select.idle'] & {
-			pointer-events: all;
-		}
 	}
 
 	input[type='range'] {
 		flex: 1 1 auto;
 		accent-color: var(--tl-color-selected);
-
-		[data-state='select.idle'] & {
-			pointer-events: all;
-		}
 	}
 
 	select {
@@ -143,10 +189,6 @@ body {
 
 		&:focus {
 			border-color: var(--tl-color-selected);
-		}
-
-		[data-state='select.idle'] & {
-			pointer-events: all;
 		}
 	}
 }
@@ -240,6 +282,47 @@ body {
 	}
 }
 
+.NodeImagePreview_dragover {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+	background: var(--tl-color-selected-0);
+}
+
+/* ---- Load image node ---- */
+
+.LoadImageNode-browse {
+	flex: 1 1 auto;
+	border: 1px solid var(--tl-color-hint);
+	border-radius: var(--tl-radius-3);
+	padding: var(--tl-space-2) var(--tl-space-3);
+	font: inherit;
+	font-size: 11px;
+	background: var(--tl-color-panel);
+	cursor: pointer;
+
+	&:hover {
+		background: var(--tl-color-muted-0);
+	}
+}
+
+.LoadImageNode-clear {
+	flex: 0 0 auto;
+	border: 1px solid var(--tl-color-hint);
+	border-radius: var(--tl-radius-3);
+	padding: var(--tl-space-2) var(--tl-space-3);
+	font: inherit;
+	font-size: 14px;
+	line-height: 1;
+	background: var(--tl-color-panel);
+	cursor: pointer;
+	color: var(--tl-color-text-3);
+
+	&:hover {
+		background: var(--tl-color-muted-0);
+		color: var(--tl-color-text-1);
+	}
+}
+
 .NodeImagePreview-empty {
 	width: 100%;
 	height: 100%;
@@ -274,10 +357,6 @@ body {
 
 		&:has(.tlui-slider__thumb:focus-visible) {
 			outline: none;
-		}
-
-		[data-state='select.idle'] & {
-			pointer-events: all;
 		}
 	}
 }
@@ -479,16 +558,12 @@ body {
 /* ---- Template picker ---- */
 
 .TemplatePicker-popover {
-	position: absolute;
-	left: 48px;
-	top: 0;
 	width: 240px;
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-3);
 	box-shadow:
 		0 0 0 1px rgba(0, 0, 0, 0.06),
 		0 4px 12px rgba(0, 0, 0, 0.12);
-	z-index: var(--tl-layer-overlays);
 	overflow: hidden;
 }
 
@@ -539,4 +614,129 @@ body {
 	.TemplatePicker-item-button {
 		flex: 1 1 auto;
 	}
+}
+
+/* ---- Image pipeline layout ---- */
+
+.image-pipeline-layout {
+	display: grid;
+	grid-template-columns: 260px 1fr;
+	grid-template-rows: 1fr;
+	grid-template-areas:
+		'sidebar canvas'
+		'sidebar canvas';
+}
+
+.image-pipeline-sidebar {
+	grid-area: sidebar;
+	background: var(--tl-color-panel);
+	border-right: 1px solid var(--tl-color-divider);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+/* ---- Sidebar node list ---- */
+
+.ImagePipelineSidebar {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+.ImagePipelineSidebar-header {
+	padding: 0 12px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	font-weight: 500;
+	font-size: 12px;
+	flex: 0 0 auto;
+	border-bottom: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text-3);
+}
+
+.ImagePipelineSidebar-list {
+	flex: 1 1 auto;
+	overflow-y: auto;
+}
+
+.ImagePipelineSidebar-group {
+	margin: 8px 0px;
+	border-bottom: 1px solid var(--tl-color-divider);
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.ImagePipelineSidebar-category {
+	padding: 8px 12px 0;
+	margin-bottom: 8px;
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+}
+
+.ImagePipelineSidebar-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	height: 40px;
+	padding: 0 12px;
+	border: none;
+	background: transparent;
+	font-family: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	color: var(--tl-color-text-1);
+	text-align: left;
+	touch-action: none;
+
+	&::after {
+		content: '';
+		display: block;
+		position: absolute;
+		inset: 4px;
+		border-radius: var(--tl-radius-2);
+		background: var(--tl-color-muted-2);
+		opacity: 0;
+	}
+
+	& > * {
+		position: relative;
+		z-index: 1;
+	}
+}
+
+@media (hover: hover) {
+	.ImagePipelineSidebar-item:hover::after {
+		opacity: 1;
+	}
+}
+
+.ImagePipelineSidebar-item:active::after {
+	opacity: 1;
+}
+
+.ImagePipelineSidebar-item-icon {
+	flex: 0 0 auto;
+	width: 18px;
+	height: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tl-color-text-1);
+}
+
+.ImagePipelineSidebar-item-title {
+	flex: 1 1 auto;
+}
+
+.image-pipeline-canvas {
+	grid-area: canvas;
+	background: var(--tl-color-background);
 }

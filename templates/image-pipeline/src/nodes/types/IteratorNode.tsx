@@ -1,4 +1,5 @@
 import { T, useEditor, useValue } from 'tldraw'
+import { apiGenerate } from '../../api/pipelineApi'
 import { IteratorIcon } from '../../components/icons/IteratorIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -8,7 +9,6 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
@@ -31,18 +31,6 @@ export const IteratorNode = T.object({
 	totalCount: T.number,
 	lastResultUrl: T.string.nullable(),
 })
-
-function simulateIterationResult(items: string[], index: number): string {
-	const hue = (index * 37) % 360
-	const label = items[index] || `item ${index + 1}`
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-		<rect width="512" height="512" fill="hsl(${hue}, 40%, 45%)"/>
-		<rect x="30" y="30" width="452" height="452" rx="12" fill="hsl(${hue + 20}, 35%, 55%)" opacity="0.6"/>
-		<text x="256" y="240" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.8)" font-family="sans-serif" font-size="18">${label}</text>
-		<text x="256" y="280" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">${index + 1} / ${items.length}</text>
-	</svg>`
-	return `data:image/svg+xml,${encodeURIComponent(svg)}`
-}
 
 export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 	static type = 'iterator'
@@ -93,7 +81,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 	async execute(
 		shape: NodeShape,
 		node: IteratorNode,
-		_inputs: InputValues
+		inputs: InputValues
 	): Promise<ExecutionResult> {
 		const items = node.items
 			.split('\n')
@@ -116,10 +104,13 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 			totalCount: items.length,
 		}))
 
+		const template = (inputs.template as string | null) ?? ''
+
 		let lastResult: string | null = null
 		for (let i = 0; i < items.length; i++) {
-			await sleep(600)
-			lastResult = simulateIterationResult(items, i)
+			const prompt = template ? `${template}, ${items[i]}` : items[i]
+			const result = await apiGenerate({ model: 'stable-diffusion:sdxl', prompt })
+			lastResult = result.imageUrl
 			updateNode<IteratorNode>(this.editor, shape, (n) => ({
 				...n,
 				completedCount: i + 1,

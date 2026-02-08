@@ -42,6 +42,13 @@ const PROVIDERS: Record<string, { label: string; models: ModelInfo[] }> = {
 			{ id: 'dall-e-2', label: 'DALL-E 2' },
 		],
 	},
+	'nano-banana': {
+		label: 'Nano Banana',
+		models: [
+			{ id: 'nano-banana-pro', label: 'Nano Banana Pro' },
+			{ id: 'nano-banana', label: 'Nano Banana' },
+		],
+	},
 	midjourney: {
 		label: 'Midjourney',
 		models: [

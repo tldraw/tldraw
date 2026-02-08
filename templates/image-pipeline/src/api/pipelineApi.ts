@@ -79,6 +79,75 @@ export async function apiUpscale(params: UpscaleParams): Promise<UpscaleResult> 
 	}
 }
 
+export interface IPAdapterParams {
+	imageUrl: string
+	prompt: string
+	scale: number
+	steps: number
+}
+
+export interface IPAdapterResult {
+	imageUrl: string
+}
+
+/**
+ * Call the /api/ip-adapter endpoint to generate an image guided by a reference.
+ */
+export async function apiIPAdapter(params: IPAdapterParams): Promise<IPAdapterResult> {
+	try {
+		const response = await fetch('/api/ip-adapter', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(params),
+		})
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ error: response.statusText }))
+			throw new Error((err as { error?: string }).error ?? 'IP-Adapter failed')
+		}
+
+		return (await response.json()) as IPAdapterResult
+	} catch (e) {
+		console.warn('Backend unavailable, using placeholder:', e)
+		return ipAdapterLocalPlaceholder(params)
+	}
+}
+
+export interface StyleTransferParams {
+	styleImageUrl: string
+	contentImageUrl?: string
+	prompt?: string
+	model: string
+	strength: number
+}
+
+export interface StyleTransferResult {
+	imageUrl: string
+}
+
+/**
+ * Call the /api/style-transfer endpoint to transfer style between images.
+ */
+export async function apiStyleTransfer(params: StyleTransferParams): Promise<StyleTransferResult> {
+	try {
+		const response = await fetch('/api/style-transfer', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(params),
+		})
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ error: response.statusText }))
+			throw new Error((err as { error?: string }).error ?? 'Style transfer failed')
+		}
+
+		return (await response.json()) as StyleTransferResult
+	} catch (e) {
+		console.warn('Backend unavailable, using placeholder:', e)
+		return styleTransferLocalPlaceholder(params)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Local placeholders (used when no backend is available)
 // ---------------------------------------------------------------------------
@@ -117,6 +186,40 @@ function upscaleLocalPlaceholder(params: UpscaleParams): UpscaleResult {
 		<rect width="${size}" height="${size}" fill="url(#ug)"/>
 		<text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="24">${params.scale}x ${params.method}</text>
 		<text x="${size / 2}" y="${size / 2 + 30}" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">${size}×${size} · local placeholder</text>
+	</svg>`
+	return {
+		imageUrl: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+	}
+}
+
+function ipAdapterLocalPlaceholder(params: IPAdapterParams): IPAdapterResult {
+	const hue = Math.floor(Math.random() * 360)
+	const prompt = (params.prompt || 'IP-Adapter').slice(0, 30)
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
+		<defs><linearGradient id="ip" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="hsl(${hue},50%,40%)"/>
+			<stop offset="100%" stop-color="hsl(${(hue + 80) % 360},45%,55%)"/>
+		</linearGradient></defs>
+		<rect width="1024" height="1024" fill="url(#ip)"/>
+		<text x="512" y="490" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="22">${prompt}</text>
+		<text x="512" y="530" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">IP-Adapter · scale ${params.scale} · local placeholder</text>
+	</svg>`
+	return {
+		imageUrl: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+	}
+}
+
+function styleTransferLocalPlaceholder(params: StyleTransferParams): StyleTransferResult {
+	const hue = Math.floor(Math.random() * 360)
+	const model = params.model || 'fast'
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
+		<defs><linearGradient id="st" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="hsl(${hue},55%,35%)"/>
+			<stop offset="100%" stop-color="hsl(${(hue + 120) % 360},50%,50%)"/>
+		</linearGradient></defs>
+		<rect width="1024" height="1024" fill="url(#st)"/>
+		<text x="512" y="490" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="22">Style Transfer</text>
+		<text x="512" y="530" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">${model} · strength ${params.strength} · local placeholder</text>
 	</svg>`
 	return {
 		imageUrl: `data:image/svg+xml,${encodeURIComponent(svg)}`,

@@ -1,20 +1,18 @@
+import { useState } from 'react'
 import {
 	createShapeId,
-	DefaultActionsMenu,
-	DefaultQuickActions,
 	DefaultStylePanel,
 	Editor,
 	TLComponents,
 	Tldraw,
 	TldrawOptions,
-	TldrawUiToolbar,
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { ImagePipelineSidebar } from './components/ImagePipelineSidebar.tsx'
 import { OnCanvasNodePicker } from './components/OnCanvasNodePicker.tsx'
 import { PipelineRegions } from './components/PipelineRegions.tsx'
 import { overrides, PipelineToolbar } from './components/PipelineToolbar.tsx'
-import { TemplatePicker } from './components/TemplatePicker.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
@@ -32,18 +30,7 @@ const components: TLComponents = {
 			<PipelineRegions />
 		</>
 	),
-	Toolbar: () => (
-		<>
-			<PipelineToolbar />
-			<div className="tlui-main-toolbar tlui-main-toolbar--horizontal">
-				<TldrawUiToolbar className="tlui-main-toolbar__tools" label="Actions">
-					<TemplatePicker />
-					<DefaultQuickActions />
-					<DefaultActionsMenu />
-				</TldrawUiToolbar>
-			</div>
-		</>
-	),
+	Toolbar: PipelineToolbar,
 
 	MenuPanel: () => null,
 	StylePanel: () => {
@@ -69,32 +56,41 @@ const options: Partial<TldrawOptions> = {
 }
 
 function App() {
+	const [editor, setEditor] = useState<Editor | null>(null)
+
 	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw
-				persistenceKey="image-pipeline"
-				options={options}
-				overrides={overrides}
-				shapeUtils={shapeUtils}
-				bindingUtils={bindingUtils}
-				components={components}
-				onMount={(editor) => {
-					;(window as any).editor = editor
+		<div className="image-pipeline-layout" style={{ position: 'fixed', inset: 0 }}>
+			<div className="image-pipeline-sidebar">
+				{editor ? <ImagePipelineSidebar editor={editor} /> : <div />}
+			</div>
+			<div className="image-pipeline-canvas">
+				<Tldraw
+					persistenceKey="image-pipeline"
+					options={options}
+					overrides={overrides}
+					shapeUtils={shapeUtils}
+					bindingUtils={bindingUtils}
+					components={components}
+					onMount={(editor) => {
+						;(window as any).editor = editor
 
-					// Create a default pipeline if the canvas is empty
-					if (!editor.getCurrentPageShapes().some((s) => s.type === 'node')) {
-						createDefaultPipeline(editor)
-					}
+						setEditor(editor)
 
-					editor.user.updateUserPreferences({ isSnapMode: true })
+						// Create a default pipeline if the canvas is empty
+						if (!editor.getCurrentPageShapes().some((s) => s.type === 'node')) {
+							createDefaultPipeline(editor)
+						}
 
-					editor.getStateDescendant('select')!.addChild(PointingPort)
+						editor.user.updateUserPreferences({ isSnapMode: true })
 
-					keepConnectionsAtBottom(editor)
+						editor.getStateDescendant('select')!.addChild(PointingPort)
 
-					disableTransparency(editor, ['node', 'connection'])
-				}}
-			/>
+						keepConnectionsAtBottom(editor)
+
+						disableTransparency(editor, ['node', 'connection'])
+					}}
+				/>
+			</div>
 		</div>
 	)
 }

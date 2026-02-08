@@ -306,3 +306,28 @@ function formatNumber(value: number): string {
 export function areAnyInputsOutOfDate(inputs: InfoValues): boolean {
 	return Object.values(inputs).some((input) => input.isOutOfDate)
 }
+
+/**
+ * Load a URL (data URL or http URL) into an HTMLImageElement.
+ */
+export function loadImage(url: string): Promise<HTMLImageElement> {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => resolve(img)
+		img.onerror = (_e) => reject(new Error('Failed to load image'))
+		img.crossOrigin = 'anonymous'
+		img.src = url
+	})
+}
+
+/**
+ * Convert a Blob to a data URL via FileReader.
+ */
+export function blobToDataUrl(blob: Blob): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onloadend = () => resolve(reader.result as string)
+		reader.onerror = reject
+		reader.readAsDataURL(blob)
+	})
+}

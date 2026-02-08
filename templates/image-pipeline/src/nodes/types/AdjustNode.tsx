@@ -8,14 +8,15 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
+	blobToDataUrl,
 	ExecutionResult,
 	InfoValues,
 	InputValues,
+	loadImage,
 	NodeComponentProps,
 	NodeDefinition,
 	NodePlaceholder,
@@ -34,17 +35,25 @@ export const AdjustNode = T.object({
 	lastResultUrl: T.string.nullable(),
 })
 
-function simulateAdjust(brightness: number, contrast: number, saturation: number): string {
-	const l = 50 + brightness
-	const s = Math.max(0, 50 + saturation)
-	const c = Math.max(10, 40 + contrast)
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-		<rect width="512" height="512" fill="hsl(220, ${s}%, ${l}%)"/>
-		<circle cx="256" cy="200" r="100" fill="hsl(40, ${s + 10}%, ${l + 10}%)"/>
-		<rect x="100" y="330" width="312" height="80" rx="8" fill="hsl(140, ${c}%, ${l - 5}%)"/>
-		<text x="256" y="480" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="12">B:${brightness} C:${contrast} S:${saturation}</text>
-	</svg>`
-	return `data:image/svg+xml,${encodeURIComponent(svg)}`
+async function adjustImage(
+	imageUrl: string,
+	brightness: number,
+	contrast: number,
+	saturation: number
+): Promise<string> {
+	const img = await loadImage(imageUrl)
+	const w = img.naturalWidth
+	const h = img.naturalHeight
+	const canvas = new OffscreenCanvas(w, h)
+	const ctx = canvas.getContext('2d')!
+	// Map slider ranges (-50..50) to CSS filter multipliers
+	const b = 1 + brightness / 50 // 0.0 – 2.0, default 1.0
+	const c = 1 + contrast / 50 // 0.0 – 2.0, default 1.0
+	const s = 1 + saturation / 50 // 0.0 – 2.0, default 1.0
+	ctx.filter = `brightness(${b}) contrast(${c}) saturate(${s})`
+	ctx.drawImage(img, 0, 0, w, h)
+	const blob = await canvas.convertToBlob({ type: 'image/png' })
+	return blobToDataUrl(blob)
 }
 
 export class AdjustNodeDefinition extends NodeDefinition<AdjustNode> {
@@ -85,13 +94,13 @@ export class AdjustNodeDefinition extends NodeDefinition<AdjustNode> {
 			},
 		}
 	}
-	async execute(
-		shape: NodeShape,
-		node: AdjustNode,
-		_inputs: InputValues
-	): Promise<ExecutionResult> {
-		await sleep(500)
-		const result = simulateAdjust(node.brightness, node.contrast, node.saturation)
+	async execute(shape: NodeShape, node: AdjustNode, inputs: InputValues): Promise<ExecutionResult> {
+		const imageUrl = inputs.image as string | null
+		if (!imageUrl) {
+			updateNode<AdjustNode>(this.editor, shape, (n) => ({ ...n, lastResultUrl: null }))
+			return { output: null }
+		}
+		const result = await adjustImage(imageUrl, node.brightness, node.contrast, node.saturation)
 		updateNode<AdjustNode>(this.editor, shape, (n) => ({
 			...n,
 			lastResultUrl: result,

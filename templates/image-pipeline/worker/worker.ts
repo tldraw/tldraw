@@ -1,6 +1,8 @@
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { handleGenerate } from './routes/generate'
 import { handleImageDownload, handleImageUpload } from './routes/images'
+import { handleIPAdapter } from './routes/ipAdapter'
+import { handleStyleTransfer } from './routes/styleTransfer'
 import { handleUpscale } from './routes/upscale'
 
 const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
@@ -14,6 +16,12 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 
 	// Upscale endpoint — accepts an image URL and scale factor
 	.post('/api/upscale', handleUpscale)
+
+	// IP-Adapter endpoint — reference image + prompt guided generation
+	.post('/api/ip-adapter', handleIPAdapter)
+
+	// Style transfer endpoint — transfers style between images
+	.post('/api/style-transfer', handleStyleTransfer)
 
 	// Upload/download generated images to/from R2 bucket
 	.post('/api/images/:imageId', handleImageUpload)

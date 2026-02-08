@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
 import { PORT_TYPE_COLORS, PortDataType } from '../constants'
-import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
+import { getNodePorts } from '../nodes/nodePorts'
 import { portState } from './portState'
 
 export type PortId = string
@@ -64,10 +64,6 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 				eligiblePorts.dataType !== port.dataType
 			)
 				return false
-			if (port.terminal === 'end') {
-				const connections = getNodePortConnections(editor, shapeId)
-				return !connections.some((c) => c.ownPortId === portId)
-			}
 			return true
 		},
 		[editor, shapeId, port.terminal, port.dataType]

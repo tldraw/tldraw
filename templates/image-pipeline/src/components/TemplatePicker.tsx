@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiButtonLabel, useEditor } from 'tldraw'
+import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+	useEditor,
+} from 'tldraw'
 import { saveSelectionAsTemplate, stampTemplate } from '../templates/templateActions'
 import { deleteTemplate, loadTemplates, PipelineTemplate } from '../templates/templateState'
 import { TemplateIcon } from './icons/TemplateIcon'
@@ -48,11 +56,13 @@ export function TemplatePicker() {
 	)
 
 	return (
-		<div className="TemplatePicker" style={{ position: 'relative' }}>
-			<TldrawUiButton type="icon" title="Templates" onClick={() => setIsOpen(!isOpen)}>
-				<TldrawUiButtonIcon icon={<TemplateIcon />} />
-			</TldrawUiButton>
-			{isOpen && (
+		<TldrawUiPopover id="template-picker" open={isOpen} onOpenChange={setIsOpen}>
+			<TldrawUiPopoverTrigger>
+				<TldrawUiButton type="icon" title="Templates">
+					<TldrawUiButtonIcon icon={<TemplateIcon />} />
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={8}>
 				<div className="TemplatePicker-popover">
 					<div className="TemplatePicker-header">Templates</div>
 					<div className="TemplatePicker-save">
@@ -97,7 +107,7 @@ export function TemplatePicker() {
 						)}
 					</div>
 				</div>
-			)}
-		</div>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 }
