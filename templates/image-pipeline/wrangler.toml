@@ -6,6 +6,10 @@ compatibility_flags = ["nodejs_compat"]
 upload_source_maps = true
 preview_urls = true
 
+[[routes]]
+pattern = "image-pipeline.templates.tldraw.dev"
+custom_domain = true
+
 [observability]
 enabled = true
 
