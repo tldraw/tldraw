@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { AdjustIcon } from '../../components/icons/AdjustIcon'
 import {
@@ -177,7 +178,11 @@ function AdjustNodeComponent({ shape, node }: NodeComponentProps<AdjustNode>) {
 			{makeSlider('Brightness', 'brightness', -50, 50)}
 			{makeSlider('Contrast', 'contrast', -50, 50)}
 			{makeSlider('Saturation', 'saturation', -50, 50)}
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="Adjusted" />
 				) : (

@@ -44,7 +44,7 @@ export async function handleGenerate(request: IRequest, env: Env) {
 		})
 	}
 
-	const [providerName, modelId] = (body.model ?? 'stable-diffusion:sdxl').split(':')
+	const [providerName, modelId] = (body.model ?? 'flux:flux-dev').split(':')
 
 	try {
 		const provider = getProvider(providerName)

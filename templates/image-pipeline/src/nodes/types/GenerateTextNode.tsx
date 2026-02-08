@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiGenerateText } from '../../api/pipelineApi'
 import { GenerateTextIcon } from '../../components/icons/GenerateTextIcon'
@@ -162,7 +163,9 @@ function GenerateTextNodeComponent({ shape, node }: NodeComponentProps<GenerateT
 				)}
 			</NodeRow>
 			<div
-				className="GenerateTextNode-result"
+				className={classNames('GenerateTextNode-result', {
+					'GenerateTextNode-result_loading': shape.props.isOutOfDate,
+				})}
 				onPointerDown={(e) => e.stopPropagation()}
 				onWheel={(e) => e.stopPropagation()}
 			>

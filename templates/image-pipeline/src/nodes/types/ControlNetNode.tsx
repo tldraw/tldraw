@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiGenerate } from '../../api/pipelineApi'
 import { ControlNetIcon } from '../../components/icons/ControlNetIcon'
@@ -254,7 +255,11 @@ function ControlNetNodeComponent({ shape, node }: NodeComponentProps<ControlNetN
 				/>
 				<span className="NodeRow-value">{node.steps}</span>
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="ControlNet result" />
 				) : (

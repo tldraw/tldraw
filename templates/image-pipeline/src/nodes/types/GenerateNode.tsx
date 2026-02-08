@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiGenerate } from '../../api/pipelineApi'
 import { GenerateIcon } from '../../components/icons/GenerateIcon'
@@ -53,8 +54,8 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 		}
 	}
 	getBodyHeightPx() {
-		// 3 port rows + image preview + 3 parameter rows
-		return NODE_ROW_HEIGHT_PX * 6 + NODE_IMAGE_PREVIEW_HEIGHT_PX
+		// 4 port rows + image preview + 3 parameter rows
+		return NODE_ROW_HEIGHT_PX * 7 + NODE_IMAGE_PREVIEW_HEIGHT_PX
 	}
 	getPorts(_shape: NodeShape, _node: GenerateNode): Record<string, ShapePort> {
 		const baseY = NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX
@@ -81,6 +82,13 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 				terminal: 'end',
 				dataType: 'text',
 			},
+			image: {
+				id: 'image',
+				x: 0,
+				y: baseY + NODE_ROW_HEIGHT_PX * 3.5,
+				terminal: 'end',
+				dataType: 'image',
+			},
 			output: {
 				id: 'output',
 				x: NODE_WIDTH_PX,
@@ -95,12 +103,16 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 		node: GenerateNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		const model = (inputs.model as string) ?? 'stable-diffusion:sdxl'
+		const model = (inputs.model as string) ?? 'flux:flux-dev'
 		const rawPrompt = inputs.prompt
-		const prompt = Array.isArray(rawPrompt)
-			? rawPrompt.filter((v): v is string => typeof v === 'string').join(', ')
-			: ((rawPrompt as string) ?? 'default')
+		const promptValues = Array.isArray(rawPrompt) ? rawPrompt : [rawPrompt ?? 'default']
+		const prompt =
+			promptValues
+				.filter((v) => v != null)
+				.map(String)
+				.join(', ') || 'default'
 		const negativePrompt = inputs.negative as string | undefined
+		const referenceImageUrl = (inputs.image as string) ?? undefined
 
 		const result = await apiGenerate({
 			model,
@@ -109,6 +121,7 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 			steps: node.steps,
 			cfgScale: node.cfgScale,
 			seed: node.seed,
+			referenceImageUrl,
 		})
 
 		updateNode<GenerateNode>(this.editor, shape, (n) => ({
@@ -147,6 +160,10 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 		() => getNodeInputPortValues(editor, shape.id).negative,
 		[editor, shape.id]
 	)
+	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
+		editor,
+		shape.id,
+	])
 
 	return (
 		<>
@@ -203,7 +220,22 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 					<span className="NodeRow-disconnected">optional</span>
 				)}
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<NodeRow>
+				<Port shapeId={shape.id} portId="image" />
+				<NodePortLabel dataType="image">Ref image</NodePortLabel>
+				{imageInput ? (
+					<span className="NodeRow-connected-value">
+						{imageInput.isOutOfDate ? <NodePlaceholder /> : 'connected'}
+					</span>
+				) : (
+					<span className="NodeRow-disconnected">optional</span>
+				)}
+			</NodeRow>
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="Generated" />
 				) : (

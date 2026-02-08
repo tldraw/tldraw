@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiGenerate } from '../../api/pipelineApi'
 import { IteratorIcon } from '../../components/icons/IteratorIcon'
@@ -214,7 +215,11 @@ function IteratorNodeComponent({ shape, node }: NodeComponentProps<IteratorNode>
 					</div>
 				)}
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="Iterator result" />
 				) : (

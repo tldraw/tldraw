@@ -194,6 +194,13 @@ function NodeShapeComponent({ shape }: { shape: NodeShape }) {
 			className={classNames('NodeShape', {
 				NodeShape_executing: isExecuting,
 			})}
+			onContextMenu={(e) => {
+				const target = e.target as HTMLElement
+				const tag = target.tagName
+				if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+					e.stopPropagation()
+				}
+			}}
 		>
 			<div className="NodeShape-heading">
 				<div className="NodeShape-icon">{nodeDefinition.icon}</div>

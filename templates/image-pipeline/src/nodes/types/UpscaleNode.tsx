@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiUpscale } from '../../api/pipelineApi'
 import { UpscaleIcon } from '../../components/icons/UpscaleIcon'
@@ -173,7 +174,11 @@ function UpscaleNodeComponent({ shape, node }: NodeComponentProps<UpscaleNode>) 
 					))}
 				</select>
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="Upscaled" />
 				) : (

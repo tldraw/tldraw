@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { BlendIcon } from '../../components/icons/BlendIcon'
 import {
@@ -226,7 +227,11 @@ function BlendNodeComponent({ shape, node }: NodeComponentProps<BlendNode>) {
 				/>
 				<span className="NodeRow-value">{node.opacity}%</span>
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="Blended" />
 				) : (

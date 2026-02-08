@@ -27,13 +27,6 @@ const PROVIDERS: Record<string, { label: string; models: ModelInfo[] }> = {
 			{ id: 'flux-pro', label: 'Flux Pro' },
 		],
 	},
-	'stable-diffusion': {
-		label: 'Stable Diffusion',
-		models: [
-			{ id: 'sdxl', label: 'SDXL' },
-			{ id: 'sd-3', label: 'SD 3' },
-		],
-	},
 	google: {
 		label: 'Google',
 		models: [

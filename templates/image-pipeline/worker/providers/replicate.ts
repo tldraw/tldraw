@@ -31,11 +31,6 @@ export const replicate: ImageProvider = {
 			return generateWithControlNet(params, apiToken, env)
 		}
 
-		// Stable Diffusion models
-		if (params.modelId === 'sdxl' || params.modelId === 'sd-3') {
-			return generateWithSD(params, apiToken)
-		}
-
 		// Google models (Nano Banana, Imagen)
 		if (
 			params.modelId === 'nano-banana-pro' ||
@@ -110,6 +105,7 @@ async function generateWithFlux(params: GenerateParams, apiToken: string): Promi
 					...(params.modelId === 'flux-pro'
 						? { safety_tolerance: 1 }
 						: { disable_safety_checker: false }),
+					...(params.referenceImageUrl ? { image: params.referenceImageUrl } : {}),
 				},
 			}),
 		}
@@ -118,54 +114,6 @@ async function generateWithFlux(params: GenerateParams, apiToken: string): Promi
 	if (!response.ok) {
 		const text = await response.text()
 		throw new Error(`Replicate error ${response.status}: ${text}`)
-	}
-
-	const data = (await response.json()) as {
-		output: string | string[]
-		seed?: number
-	}
-
-	const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output
-	return {
-		imageUrl,
-		seed: data.seed ?? params.seed ?? 0,
-	}
-}
-
-/**
- * Use a Stable Diffusion model on Replicate (SDXL or SD 3).
- */
-async function generateWithSD(params: GenerateParams, apiToken: string): Promise<GenerateResult> {
-	const replicateModel =
-		params.modelId === 'sd-3' ? 'stability-ai/stable-diffusion-3' : 'stability-ai/sdxl'
-
-	const response = await fetch(
-		`https://api.replicate.com/v1/models/${replicateModel}/predictions`,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${apiToken}`,
-				Prefer: 'wait',
-			},
-			body: JSON.stringify({
-				input: {
-					prompt: params.prompt,
-					...(params.negativePrompt ? { negative_prompt: params.negativePrompt } : {}),
-					num_inference_steps: params.steps ?? 20,
-					guidance_scale: params.cfgScale ?? 7,
-					...(params.seed != null ? { seed: params.seed } : {}),
-					width: 1024,
-					height: 1024,
-					disable_safety_checker: false,
-				},
-			}),
-		}
-	)
-
-	if (!response.ok) {
-		const text = await response.text()
-		throw new Error(`Replicate SD error ${response.status}: ${text}`)
 	}
 
 	const data = (await response.json()) as {
@@ -207,6 +155,7 @@ async function generateWithGoogle(
 				input: {
 					prompt: params.prompt,
 					aspect_ratio: '1:1',
+					...(params.referenceImageUrl ? { image_input: [params.referenceImageUrl] } : {}),
 				},
 			}),
 		}

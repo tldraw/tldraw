@@ -26,5 +26,5 @@ export const PORT_TYPE_COLORS: Record<PortDataType, string> = {
 	model: '#2196f3',
 	number: '#9e9e9e',
 	latent: '#ff9800',
-	any: '#b0b0b0',
+	any: '#c08520',
 }

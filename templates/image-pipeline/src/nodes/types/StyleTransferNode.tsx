@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiStyleTransfer } from '../../api/pipelineApi'
 import { StyleTransferIcon } from '../../components/icons/StyleTransferIcon'
@@ -233,7 +234,11 @@ function StyleTransferNodeComponent({ shape, node }: NodeComponentProps<StyleTra
 				/>
 				<span className="NodeRow-value">{node.strength}%</span>
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="Style transfer result" />
 				) : (

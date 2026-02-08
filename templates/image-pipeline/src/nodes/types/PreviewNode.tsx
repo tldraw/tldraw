@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { PreviewIcon } from '../../components/icons/PreviewIcon'
 import {
@@ -100,7 +101,11 @@ function PreviewNodeComponent({ shape, node }: NodeComponentProps<PreviewNode>) 
 					<span className="NodeRow-disconnected">not connected</span>
 				)}
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{displayUrl ? (
 					<img src={displayUrl} alt="Preview" />
 				) : (

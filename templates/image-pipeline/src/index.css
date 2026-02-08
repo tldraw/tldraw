@@ -79,7 +79,7 @@ body {
 		align-items: center;
 		gap: var(--tl-space-2);
 		height: 40px;
-		padding: 0 var(--tl-space-4);
+		padding: 0 var(--tl-space-1) 0 var(--tl-space-4);
 		border-top: 1px solid var(--tl-color-divider);
 		margin-top: var(--tl-space-3);
 	}
@@ -118,9 +118,10 @@ body {
 	}
 
 	.NodeFooterMenu-trigger {
-		width: 24px;
-		min-width: 24px;
-		height: 24px;
+		width: 32px;
+		min-width: 32px;
+		height: 32px;
+		flex-shrink: 0;
 		color: var(--tl-color-text-3);
 	}
 
@@ -272,13 +273,20 @@ body {
 	height: 160px;
 	border-radius: var(--tl-radius-3);
 	overflow: hidden;
-	background: var(--tl-color-muted-0);
+	background-color: hsl(0 0% 96%);
+	background-image:
+		linear-gradient(45deg, hsl(0 0% 92%) 25%, transparent 25%, transparent 75%, hsl(0 0% 92%) 75%),
+		linear-gradient(45deg, hsl(0 0% 92%) 25%, transparent 25%, transparent 75%, hsl(0 0% 92%) 75%);
+	background-size: 12px 12px;
+	background-position:
+		0 0,
+		6px 6px;
 	border: 1px solid var(--tl-color-divider);
 
 	img {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit: contain;
 	}
 }
 
@@ -286,6 +294,32 @@ body {
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: -2px;
 	background: var(--tl-color-selected-0);
+}
+
+.NodeImagePreview_loading {
+	position: relative;
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.3) 50%,
+			transparent 100%
+		);
+		animation: shimmer 1.5s ease-in-out infinite;
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
 }
 
 /* ---- Load image node ---- */
@@ -358,6 +392,23 @@ body {
 	overflow: hidden;
 	background: var(--tl-color-muted-0);
 	border: 1px solid var(--tl-color-divider);
+}
+
+.GenerateTextNode-result_loading {
+	position: relative;
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.3) 50%,
+			transparent 100%
+		);
+		animation: shimmer 1.5s ease-in-out infinite;
+	}
 }
 
 .GenerateTextNode-result-text {

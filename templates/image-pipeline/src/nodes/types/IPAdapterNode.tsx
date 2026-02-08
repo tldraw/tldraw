@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { T, useEditor, useValue } from 'tldraw'
 import { apiIPAdapter } from '../../api/pipelineApi'
 import { IPAdapterIcon } from '../../components/icons/IPAdapterIcon'
@@ -197,7 +198,11 @@ function IPAdapterNodeComponent({ shape, node }: NodeComponentProps<IPAdapterNod
 				/>
 				<span className="NodeRow-value">{node.steps}</span>
 			</NodeRow>
-			<div className="NodeImagePreview">
+			<div
+				className={classNames('NodeImagePreview', {
+					NodeImagePreview_loading: shape.props.isOutOfDate,
+				})}
+			>
 				{node.lastResultUrl ? (
 					<img src={node.lastResultUrl} alt="IP-Adapter result" />
 				) : (
