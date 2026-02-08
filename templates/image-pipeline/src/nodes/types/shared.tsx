@@ -12,7 +12,7 @@ import {
 } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
 import { SubtractIcon } from '../../components/icons/SubtractIcon'
-import { PORT_TYPE_COLORS, PortDataType } from '../../constants'
+import { NODE_WIDTH_PX, PORT_TYPE_COLORS, PortDataType } from '../../constants'
 import { Port, PortId, ShapePort } from '../../ports/Port'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
@@ -82,6 +82,11 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	/** A short category label for grouping in the toolbar. */
 	abstract readonly category: string
 	readonly resultKeys?: readonly string[]
+	readonly canResizeNode: boolean = false
+
+	getWidthPx(_shape: NodeShape, _node: Node): number {
+		return NODE_WIDTH_PX
+	}
 
 	abstract getDefault(): Node
 	abstract getBodyHeightPx(shape: NodeShape, node: Node): number

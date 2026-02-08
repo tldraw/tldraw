@@ -9,6 +9,7 @@ import { PortId, ShapePort } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { AdjustNodeDefinition } from './types/AdjustNode'
 import { BlendNodeDefinition } from './types/BlendNode'
+import { CaptureNodeDefinition } from './types/CaptureNode'
 import { ControlNetNodeDefinition } from './types/ControlNetNode'
 import { GenerateNodeDefinition } from './types/GenerateNode'
 import { GenerateTextNodeDefinition } from './types/GenerateTextNode'
@@ -48,6 +49,7 @@ export const NodeDefinitions = {
 	number: NumberNodeDefinition,
 	router: RouterNodeDefinition,
 	iterator: IteratorNodeDefinition,
+	capture: CaptureNodeDefinition,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
 
 /**
@@ -80,6 +82,10 @@ export function getNodeDefinition(
 	return getNodeDefinitions(editor)[
 		typeof node === 'string' ? node : node.type
 	] as NodeDefinition<NodeType>
+}
+
+export function getNodeWidthPx(editor: Editor, shape: NodeShape): number {
+	return getNodeDefinition(editor, shape.props.node).getWidthPx(shape, shape.props.node)
 }
 
 export function getNodeBodyHeightPx(editor: Editor, shape: NodeShape): number {

@@ -24,11 +24,18 @@ import {
 } from 'tldraw'
 import { PlayIcon } from '../components/icons/PlayIcon'
 import { StopIcon } from '../components/icons/StopIcon'
-import { NODE_WIDTH_PX, PORT_RADIUS_PX, PORT_TYPE_COLORS } from '../constants'
+import {
+	NODE_FOOTER_HEIGHT_PX,
+	NODE_HEADER_HEIGHT_PX,
+	NODE_ROW_BOTTOM_PADDING_PX,
+	NODE_ROW_HEADER_GAP_PX,
+	PORT_RADIUS_PX,
+	PORT_TYPE_COLORS,
+} from '../constants'
 import { executionState, startExecution, stopExecution } from '../execution/executionState'
 import { Port, ShapePort } from '../ports/Port'
 import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
-import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTypes'
+import { getNodeDefinition, getNodeHeightPx, getNodeWidthPx, NodeBody, NodeType } from './nodeTypes'
 import { NodeValue, STOP_EXECUTION } from './types/shared'
 
 const NODE_TYPE = 'node'
@@ -58,20 +65,20 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override canEdit() {
 		return false
 	}
-	override canResize() {
-		return false
+	override canResize(shape: NodeShape) {
+		return getNodeDefinition(this.editor, shape.props.node).canResizeNode
 	}
-	override hideResizeHandles() {
-		return true
+	override hideResizeHandles(shape: NodeShape) {
+		return !this.canResize(shape)
 	}
 	override hideRotateHandle() {
 		return true
 	}
-	override hideSelectionBoundsBg() {
-		return true
+	override hideSelectionBoundsBg(shape: NodeShape) {
+		return !this.canResize(shape)
 	}
-	override hideSelectionBoundsFg() {
-		return true
+	override hideSelectionBoundsFg(shape: NodeShape) {
+		return !this.canResize(shape)
 	}
 	override isAspectRatioLocked() {
 		return false
@@ -84,6 +91,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 	getGeometry(shape: NodeShape) {
 		const ports = getNodePorts(this.editor, shape)
+		const width = getNodeWidthPx(this.editor, shape)
 
 		const portGeometries = Object.values(ports).map(
 			(port) =>
@@ -98,7 +106,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		)
 
 		const bodyGeometry = new Rectangle2d({
-			width: NODE_WIDTH_PX,
+			width,
 			height: getNodeHeightPx(this.editor, shape),
 			isFilled: true,
 		})
@@ -109,6 +117,36 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
+		const definition = getNodeDefinition(this.editor, shape.props.node)
+		if (definition.canResizeNode) {
+			const node = shape.props.node as { w: number; h: number; type: string }
+			const prevW = getNodeWidthPx(this.editor, shape)
+			const prevH = getNodeHeightPx(this.editor, shape)
+			const newW = Math.max(200, Math.round(prevW * info.scaleX))
+			const newH = Math.max(120, Math.round(prevH * info.scaleY))
+			const bodyH =
+				newH -
+				NODE_HEADER_HEIGHT_PX -
+				NODE_ROW_HEADER_GAP_PX -
+				NODE_ROW_BOTTOM_PADDING_PX -
+				NODE_FOOTER_HEIGHT_PX
+			return {
+				...resizeBox(shape, info),
+				props: {
+					...shape.props,
+					node: {
+						...node,
+						w: newW,
+						h:
+							NODE_HEADER_HEIGHT_PX +
+							NODE_ROW_HEADER_GAP_PX +
+							Math.max(0, bodyH) +
+							NODE_ROW_BOTTOM_PADDING_PX +
+							NODE_FOOTER_HEIGHT_PX,
+					},
+				},
+			}
+		}
 		return resizeBox(shape, info)
 	}
 
@@ -125,12 +163,13 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePort[] }) {
 	const id = useUniqueSafeId()
 	const editor = useEditor()
+	const width = getNodeWidthPx(editor, shape)
 
 	return (
 		<>
 			<mask id={id}>
 				<rect
-					width={NODE_WIDTH_PX + 10}
+					width={width + 10}
 					height={getNodeHeightPx(editor, shape) + 10}
 					fill="white"
 					x={-5}
@@ -147,12 +186,7 @@ function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePo
 					/>
 				))}
 			</mask>
-			<rect
-				rx={9}
-				width={NODE_WIDTH_PX}
-				height={getNodeHeightPx(editor, shape)}
-				mask={`url(#${id})`}
-			/>
+			<rect rx={9} width={width} height={getNodeHeightPx(editor, shape)} mask={`url(#${id})`} />
 			{ports.map((port) => (
 				<circle
 					key={port.id}
@@ -193,6 +227,7 @@ function NodeShapeComponent({ shape }: { shape: NodeShape }) {
 		<HTMLContainer
 			className={classNames('NodeShape', {
 				NodeShape_executing: isExecuting,
+				NodeShape_capture: shape.props.node.type === 'capture',
 			})}
 			onContextMenu={(e) => {
 				const target = e.target as HTMLElement

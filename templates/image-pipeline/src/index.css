@@ -133,6 +133,24 @@ body {
 	}
 }
 
+/* ---- Capture node ---- */
+
+.NodeShape_capture {
+	background: transparent;
+	box-shadow: none;
+	border: 2px dashed rgba(128, 128, 128, 0.4);
+}
+
+.NodeShape_capture .NodeShape-heading {
+	background: rgba(255, 255, 255, 0.85);
+	border-radius: var(--tl-radius-3) var(--tl-radius-3) 0 0;
+}
+
+.NodeShape_capture .NodeShape-footer {
+	background: rgba(255, 255, 255, 0.85);
+	border-radius: 0 0 var(--tl-radius-3) var(--tl-radius-3);
+}
+
 /* ---- Node rows ---- */
 
 .NodeRow {
