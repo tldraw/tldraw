@@ -3,6 +3,7 @@ import { NodeShape } from '../nodes/NodeShapeUtil'
 import {
 	getNodeOutputPortInfo,
 	getNodePortConnections,
+	getNodePorts,
 	NodePortConnection,
 } from '../nodes/nodePorts'
 import { executeNode } from '../nodes/nodeTypes'
@@ -82,12 +83,14 @@ export class ExecutionGraph {
 		const node = this.nodesById.get(nodeId)
 		if (!node || node.state !== 'waiting') return
 
-		const inputs: Record<string, PipelineValue> = {}
+		const inputs: Record<string, PipelineValue | PipelineValue[]> = {}
+		const ports = getNodePorts(this.editor, nodeId)
 
 		for (const connection of node.connections) {
 			if (!connection || connection.terminal !== 'end') continue
 
 			const dependency = this.nodesById.get(connection.connectedShapeId)
+			let value: PipelineValue | STOP_EXECUTION
 			if (dependency) {
 				if (dependency.state !== 'executed') {
 					return
@@ -98,16 +101,28 @@ export class ExecutionGraph {
 					return
 				}
 
-				inputs[connection.ownPortId] = output as PipelineValue
+				value = output as PipelineValue
 			} else {
 				const outputs = getNodeOutputPortInfo(this.editor, connection.connectedShapeId)
 				const output = outputs[connection.connectedPortId]
 
-				if (output.value === STOP_EXECUTION) {
+				if (!output || output.value === STOP_EXECUTION) {
 					return
 				}
 
-				inputs[connection.ownPortId] = output.value as PipelineValue
+				value = output.value as PipelineValue
+			}
+
+			const port = ports[connection.ownPortId]
+			if (port?.multi) {
+				const existing = inputs[connection.ownPortId]
+				if (Array.isArray(existing)) {
+					existing.push(value)
+				} else {
+					inputs[connection.ownPortId] = [value]
+				}
+			} else {
+				inputs[connection.ownPortId] = value
 			}
 		}
 

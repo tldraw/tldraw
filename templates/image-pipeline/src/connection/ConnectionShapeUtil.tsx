@@ -196,8 +196,9 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		}
 
 		// Track the connection that would be replaced, but don't delete it yet.
+		// Multi-ports accept multiple connections, so skip replacement for them.
 		this.pendingReplacementId =
-			existingConnectionOnTarget && draggingTerminal === 'end'
+			existingConnectionOnTarget && draggingTerminal === 'end' && !target.port.multi
 				? existingConnectionOnTarget.connectionId
 				: null
 
@@ -329,7 +330,7 @@ function ConnectionShapeComponent({ connection }: { connection: ConnectionShape 
 			if (!originShapeId) return false
 			const outputs = getNodeOutputPortInfo(editor, originShapeId)
 			const output = outputs[bindings.start.props.portId]
-			return output.value === STOP_EXECUTION
+			return output?.value === STOP_EXECUTION
 		},
 		[connection.id, editor]
 	)

@@ -118,7 +118,7 @@ function createDefaultPipeline(editor: Editor) {
 			id: promptId,
 			type: 'node',
 			x: 100,
-			y: 380,
+			y: 450,
 			props: {
 				node: {
 					type: 'prompt',

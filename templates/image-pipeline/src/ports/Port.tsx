@@ -22,6 +22,8 @@ export interface ShapePort extends VecModel {
 	id: PortId
 	terminal: 'start' | 'end'
 	dataType: PortDataType
+	/** When true, this input port accepts multiple simultaneous connections. */
+	multi?: boolean
 }
 
 /**

@@ -201,7 +201,15 @@ function NodeShapeComponent({ shape }: { shape: NodeShape }) {
 				{output !== undefined && (
 					<>
 						<div className="NodeShape-output">
-							<NodeValue value={output.isOutOfDate ? STOP_EXECUTION : output.value} />
+							<NodeValue
+								value={
+									output.isOutOfDate
+										? STOP_EXECUTION
+										: output.multi
+											? output.value[0]
+											: output.value
+								}
+							/>
 						</div>
 						<Port shapeId={shape.id} portId="output" />
 					</>
@@ -247,6 +255,10 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 
 	const node = shape.props.node as Record<string, unknown>
 	const hasResult = typeof node.lastResultUrl === 'string' && node.lastResultUrl !== ''
+	const textResult =
+		typeof node.lastResultText === 'string' && node.lastResultText !== ''
+			? (node.lastResultText as string)
+			: null
 
 	const handleDuplicate = useCallback(() => {
 		editor.markHistoryStoppingPoint('duplicate node')
@@ -267,6 +279,11 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 		document.body.removeChild(a)
 		URL.revokeObjectURL(blobUrl)
 	}, [imageUrl])
+
+	const handleCopyText = useCallback(async () => {
+		if (!textResult) return
+		await navigator.clipboard.writeText(textResult)
+	}, [textResult])
 
 	const handleClearResult = useCallback(() => {
 		editor.updateShape({
@@ -302,6 +319,13 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 							<TldrawUiDropdownMenuItem>
 								<TldrawUiButton type="menu" onClick={handleDownloadImage}>
 									<TldrawUiButtonLabel>Download image</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
+						)}
+						{textResult && (
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton type="menu" onClick={handleCopyText}>
+									<TldrawUiButtonLabel>Copy text</TldrawUiButtonLabel>
 								</TldrawUiButton>
 							</TldrawUiDropdownMenuItem>
 						)}

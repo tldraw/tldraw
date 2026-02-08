@@ -349,6 +349,43 @@ body {
 	height: 100%;
 }
 
+/* ---- Generate text node ---- */
+
+.GenerateTextNode-result {
+	margin: var(--tl-space-2) var(--tl-space-4);
+	height: 88px;
+	border-radius: var(--tl-radius-3);
+	overflow: hidden;
+	background: var(--tl-color-muted-0);
+	border: 1px solid var(--tl-color-divider);
+}
+
+.GenerateTextNode-result-text {
+	width: 100%;
+	height: 100%;
+	padding: var(--tl-space-3) var(--tl-space-4);
+	font-size: 11px;
+	line-height: 1.4;
+	color: var(--tl-color-text-1);
+	overflow-y: scroll;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.GenerateTextNode-result-empty {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	span {
+		font-size: 11px;
+		color: var(--tl-color-text-3);
+		opacity: 0.5;
+	}
+}
+
 /* ---- Number node ---- */
 
 .NumberNode {
@@ -475,6 +512,10 @@ body {
 }
 
 /* ---- Pipeline regions ---- */
+
+.tl-canvas__in-front {
+	z-index: var(--tl-layer-above);
+}
 
 .PipelineRegion {
 	position: absolute;

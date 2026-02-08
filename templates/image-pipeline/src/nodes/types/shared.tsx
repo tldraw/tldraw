@@ -12,12 +12,7 @@ import {
 } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
 import { SubtractIcon } from '../../components/icons/SubtractIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_WIDTH_PX,
-	PORT_TYPE_COLORS,
-	PortDataType,
-} from '../../constants'
+import { PORT_TYPE_COLORS, PortDataType } from '../../constants'
 import { Port, PortId, ShapePort } from '../../ports/Port'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
@@ -35,12 +30,28 @@ export type PipelineValue = string | number | null
 export type STOP_EXECUTION = typeof STOP_EXECUTION
 export const STOP_EXECUTION = Symbol('STOP_EXECUTION')
 
+export interface SingleInfoValue {
+	value: PipelineValue | STOP_EXECUTION
+	isOutOfDate: boolean
+	dataType: PortDataType
+	multi?: false
+}
+
+export interface MultiInfoValue {
+	value: (PipelineValue | STOP_EXECUTION)[]
+	isOutOfDate: boolean
+	dataType: PortDataType
+	multi: true
+}
+
+export type InfoValue = SingleInfoValue | MultiInfoValue
+
+export function isMultiInfoValue(v: InfoValue): v is MultiInfoValue {
+	return v.multi === true
+}
+
 export interface InfoValues {
-	[key: string]: {
-		value: PipelineValue | STOP_EXECUTION
-		isOutOfDate: boolean
-		dataType: PortDataType
-	}
+	[key: string]: InfoValue
 }
 
 export interface ExecutionResult {
@@ -48,7 +59,7 @@ export interface ExecutionResult {
 }
 
 export interface InputValues {
-	[key: string]: PipelineValue
+	[key: string]: PipelineValue | PipelineValue[]
 }
 
 export interface NodeComponentProps<Node extends { type: string }> {
@@ -85,19 +96,6 @@ export interface NodeDefinitionConstructor<Node extends { type: string }> {
 	new (editor: Editor): NodeDefinition<Node>
 	readonly type: Node['type']
 	readonly validator: T.Validator<Node>
-}
-
-/**
- * The standard output port for a node, appearing in the node header.
- */
-export function makeOutputPort(dataType: PortDataType): ShapePort {
-	return {
-		id: 'output',
-		x: NODE_WIDTH_PX,
-		y: NODE_HEADER_HEIGHT_PX / 2,
-		terminal: 'start',
-		dataType,
-	}
 }
 
 /**

@@ -68,7 +68,7 @@ export class RouterNodeDefinition extends NodeDefinition<RouterNode> {
 		node: RouterNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		const value = inputs.input ?? null
+		const value = (inputs.input as string | number | null) ?? null
 		const result: ExecutionResult = {}
 		for (let i = 0; i < node.outputCount; i++) {
 			result[`out_${i}`] = value
@@ -79,17 +79,21 @@ export class RouterNodeDefinition extends NodeDefinition<RouterNode> {
 		const inputInfo = inputs.input
 		const result: InfoValues = {}
 		for (let i = 0; i < node.outputCount; i++) {
-			result[`out_${i}`] = inputInfo
-				? {
-						value: inputInfo.value,
-						isOutOfDate: inputInfo.isOutOfDate || shape.props.isOutOfDate,
-						dataType: inputInfo.dataType,
-					}
-				: {
-						value: null,
-						isOutOfDate: shape.props.isOutOfDate,
-						dataType: 'any',
-					}
+			if (inputInfo) {
+				// Router input is always single; forward the value to each output.
+				const singleValue = inputInfo.multi ? inputInfo.value[0] : inputInfo.value
+				result[`out_${i}`] = {
+					value: singleValue,
+					isOutOfDate: inputInfo.isOutOfDate || shape.props.isOutOfDate,
+					dataType: inputInfo.dataType,
+				}
+			} else {
+				result[`out_${i}`] = {
+					value: null,
+					isOutOfDate: shape.props.isOutOfDate,
+					dataType: 'any',
+				}
+			}
 		}
 		return result
 	}

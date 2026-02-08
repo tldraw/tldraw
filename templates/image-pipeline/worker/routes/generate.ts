@@ -63,7 +63,7 @@ export async function handleGenerate(request: IRequest, env: Env) {
 		let result = await provider.generate(params, env)
 
 		// Optionally persist the image to R2.
-		if (env.IMAGE_BUCKET && result.imageUrl.startsWith('data:')) {
+		if (env.IMAGE_BUCKET && result.imageUrl?.startsWith('data:')) {
 			const imageId = `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 			const blob = dataUrlToBlob(result.imageUrl)
 			await env.IMAGE_BUCKET.put(imageId, blob, {

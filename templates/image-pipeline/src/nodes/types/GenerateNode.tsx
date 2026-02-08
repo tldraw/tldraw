@@ -16,6 +16,7 @@ import {
 	ExecutionResult,
 	InfoValues,
 	InputValues,
+	isMultiInfoValue,
 	NodeComponentProps,
 	NodeDefinition,
 	NodePlaceholder,
@@ -70,6 +71,7 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 				y: baseY + NODE_ROW_HEIGHT_PX * 1.5,
 				terminal: 'end',
 				dataType: 'text',
+				multi: true,
 			},
 			negative: {
 				id: 'negative',
@@ -93,7 +95,10 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 		inputs: InputValues
 	): Promise<ExecutionResult> {
 		const model = (inputs.model as string) ?? 'stable-diffusion:sdxl'
-		const prompt = (inputs.prompt as string) ?? 'default'
+		const rawPrompt = inputs.prompt
+		const prompt = Array.isArray(rawPrompt)
+			? rawPrompt.filter((v): v is string => typeof v === 'string').join(', ')
+			: ((rawPrompt as string) ?? 'default')
 		const negativePrompt = inputs.negative as string | undefined
 
 		const result = await apiGenerate({
@@ -163,10 +168,17 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 						{promptInput.isOutOfDate ? (
 							<NodePlaceholder />
 						) : (
-							<span title={String(promptInput.value)}>
-								{String(promptInput.value ?? '').slice(0, 20)}
-								{String(promptInput.value ?? '').length > 20 ? '...' : ''}
-							</span>
+							(() => {
+								const display = isMultiInfoValue(promptInput)
+									? promptInput.value.filter((v): v is string => typeof v === 'string').join(', ')
+									: String(promptInput.value ?? '')
+								return (
+									<span title={display}>
+										{display.slice(0, 20)}
+										{display.length > 20 ? '...' : ''}
+									</span>
+								)
+							})()
 						)}
 					</span>
 				) : (

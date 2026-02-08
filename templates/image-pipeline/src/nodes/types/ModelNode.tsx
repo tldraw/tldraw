@@ -19,14 +19,6 @@ interface ModelInfo {
 }
 
 const PROVIDERS: Record<string, { label: string; models: ModelInfo[] }> = {
-	'stable-diffusion': {
-		label: 'Stable Diffusion',
-		models: [
-			{ id: 'sd-1.5', label: 'SD 1.5' },
-			{ id: 'sdxl', label: 'SDXL' },
-			{ id: 'sd-3', label: 'SD 3' },
-		],
-	},
 	flux: {
 		label: 'Flux',
 		models: [
@@ -35,25 +27,19 @@ const PROVIDERS: Record<string, { label: string; models: ModelInfo[] }> = {
 			{ id: 'flux-pro', label: 'Flux Pro' },
 		],
 	},
-	dalle: {
-		label: 'DALL-E',
+	'stable-diffusion': {
+		label: 'Stable Diffusion',
 		models: [
-			{ id: 'dall-e-3', label: 'DALL-E 3' },
-			{ id: 'dall-e-2', label: 'DALL-E 2' },
+			{ id: 'sdxl', label: 'SDXL' },
+			{ id: 'sd-3', label: 'SD 3' },
 		],
 	},
-	'nano-banana': {
-		label: 'Nano Banana',
+	google: {
+		label: 'Google',
 		models: [
 			{ id: 'nano-banana-pro', label: 'Nano Banana Pro' },
 			{ id: 'nano-banana', label: 'Nano Banana' },
-		],
-	},
-	midjourney: {
-		label: 'Midjourney',
-		models: [
-			{ id: 'mj-v6', label: 'v6' },
-			{ id: 'mj-v5', label: 'v5.2' },
+			{ id: 'imagen-4-fast', label: 'Imagen 4 Fast' },
 		],
 	},
 }
@@ -75,8 +61,8 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 	getDefault(): ModelNode {
 		return {
 			type: 'model',
-			provider: 'stable-diffusion',
-			modelId: 'sdxl',
+			provider: 'flux',
+			modelId: 'flux-dev',
 		}
 	}
 	getBodyHeightPx() {
@@ -111,7 +97,7 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 
 function ModelNodeComponent({ shape, node }: NodeComponentProps<ModelNode>) {
 	const editor = useEditor()
-	const provider = PROVIDERS[node.provider] ?? PROVIDERS['stable-diffusion']
+	const provider = PROVIDERS[node.provider] ?? PROVIDERS['flux']
 	const models = provider.models
 
 	return (

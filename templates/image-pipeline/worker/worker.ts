@@ -1,5 +1,6 @@
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { handleGenerate } from './routes/generate'
+import { handleGenerateText } from './routes/generateText'
 import { handleImageDownload, handleImageUpload } from './routes/images'
 import { handleIPAdapter } from './routes/ipAdapter'
 import { handleStyleTransfer } from './routes/styleTransfer'
@@ -22,6 +23,9 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 
 	// Style transfer endpoint — transfers style between images
 	.post('/api/style-transfer', handleStyleTransfer)
+
+	// Text generation endpoint — multimodal AI text generation
+	.post('/api/generate-text', handleGenerateText)
 
 	// Upload/download generated images to/from R2 bucket
 	.post('/api/images/:imageId', handleImageUpload)

@@ -148,6 +148,39 @@ export async function apiStyleTransfer(params: StyleTransferParams): Promise<Sty
 	}
 }
 
+export interface GenerateTextParams {
+	input?: string
+	prompt: string
+}
+
+export interface GenerateTextResult {
+	text: string
+}
+
+/**
+ * Call the /api/generate-text endpoint to generate text from a multimodal AI model.
+ * Falls back to a local placeholder if the worker is not available.
+ */
+export async function apiGenerateText(params: GenerateTextParams): Promise<GenerateTextResult> {
+	try {
+		const response = await fetch('/api/generate-text', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(params),
+		})
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ error: response.statusText }))
+			throw new Error((err as { error?: string }).error ?? 'Text generation failed')
+		}
+
+		return (await response.json()) as GenerateTextResult
+	} catch (e) {
+		console.warn('Backend unavailable, using placeholder:', e)
+		return generateTextLocalPlaceholder(params)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Local placeholders (used when no backend is available)
 // ---------------------------------------------------------------------------
@@ -206,6 +239,17 @@ function ipAdapterLocalPlaceholder(params: IPAdapterParams): IPAdapterResult {
 	</svg>`
 	return {
 		imageUrl: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+	}
+}
+
+function generateTextLocalPlaceholder(params: GenerateTextParams): GenerateTextResult {
+	const inputDesc = params.input
+		? params.input.startsWith('data:image/')
+			? '[image provided]'
+			: `"${params.input.slice(0, 30)}${params.input.length > 30 ? '...' : ''}"`
+		: '[no input]'
+	return {
+		text: `[Placeholder] Prompt: "${params.prompt.slice(0, 50)}${params.prompt.length > 50 ? '...' : ''}" | Input: ${inputDesc} — Set REPLICATE_API_TOKEN for real generation.`,
 	}
 }
 

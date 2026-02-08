@@ -22,10 +22,10 @@ export async function startExecution(editor: Editor, startingNodeIds: Set<TLShap
 	try {
 		await graph.execute()
 	} finally {
-		executionState.update(editor, (state) => ({
-			...state,
-			runningGraph: null,
-		}))
+		executionState.update(editor, (state) => {
+			if (state.runningGraph !== graph) return state
+			return { ...state, runningGraph: null }
+		})
 	}
 }
 

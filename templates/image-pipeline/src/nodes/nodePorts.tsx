@@ -7,7 +7,13 @@ import { PortDataType } from '../constants'
 import { PortId } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { getNodeOutputInfo, getNodeTypePorts } from './nodeTypes'
-import { areAnyInputsOutOfDate, InfoValues, PipelineValue, STOP_EXECUTION } from './types/shared'
+import {
+	areAnyInputsOutOfDate,
+	InfoValues,
+	isMultiInfoValue,
+	PipelineValue,
+	STOP_EXECUTION,
+} from './types/shared'
 
 /**
  * Get the ports for a node. This is cached, because we only want to re-evaluate it when the
@@ -77,6 +83,7 @@ const nodeInputPortValuesCache = createComputedCache(
 	'node input port values',
 	(editor: Editor, node: NodeShape) => {
 		const connections = getNodePortConnections(editor, node)
+		const ports = getNodePorts(editor, node)
 
 		const values: InfoValues = {}
 		for (const connection of connections) {
@@ -88,7 +95,26 @@ const nodeInputPortValuesCache = createComputedCache(
 			}
 
 			const output = connectedShapeOutputs[connection.connectedPortId]
-			values[connection.ownPortId] = output
+			const port = ports[connection.ownPortId]
+
+			if (port?.multi) {
+				// Output ports are always single-valued; extract the scalar value.
+				const singleValue = isMultiInfoValue(output) ? output.value[0] : output.value
+				const existing = values[connection.ownPortId]
+				if (existing && isMultiInfoValue(existing)) {
+					existing.value.push(singleValue)
+					existing.isOutOfDate = existing.isOutOfDate || output.isOutOfDate
+				} else {
+					values[connection.ownPortId] = {
+						value: [singleValue],
+						isOutOfDate: output.isOutOfDate,
+						dataType: output.dataType,
+						multi: true,
+					}
+				}
+			} else {
+				values[connection.ownPortId] = output
+			}
 		}
 
 		return values
@@ -104,11 +130,18 @@ const nodeInputPortValuesCache = createComputedCache(
 export function getNodeOutputPortInfo(editor: Editor, shape: NodeShape | TLShapeId): InfoValues {
 	return nodeOutputPortInfoCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
+function hasStopExecution(input: InfoValues[string]): boolean {
+	if (isMultiInfoValue(input)) {
+		return input.value.some((v) => v === STOP_EXECUTION)
+	}
+	return input.value === STOP_EXECUTION
+}
+
 const nodeOutputPortInfoCache = createComputedCache(
 	'node output port info',
 	(editor: Editor, node: NodeShape): InfoValues => {
 		const inputs = getNodeInputPortValues(editor, node)
-		if (Object.values(inputs).some((input) => input.value === STOP_EXECUTION)) {
+		if (Object.values(inputs).some(hasStopExecution)) {
 			const ports = getNodePorts(editor, node)
 			return Object.fromEntries(
 				Object.values(ports)

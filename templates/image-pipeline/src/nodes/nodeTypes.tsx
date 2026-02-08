@@ -11,6 +11,7 @@ import { AdjustNodeDefinition } from './types/AdjustNode'
 import { BlendNodeDefinition } from './types/BlendNode'
 import { ControlNetNodeDefinition } from './types/ControlNetNode'
 import { GenerateNodeDefinition } from './types/GenerateNode'
+import { GenerateTextNodeDefinition } from './types/GenerateTextNode'
 import { IPAdapterNodeDefinition } from './types/IPAdapterNode'
 import { IteratorNodeDefinition } from './types/IteratorNode'
 import { LoadImageNodeDefinition } from './types/LoadImageNode'
@@ -35,6 +36,7 @@ export const NodeDefinitions = {
 	prompt: PromptNodeDefinition,
 	prompt_concat: PromptConcatNodeDefinition,
 	generate: GenerateNodeDefinition,
+	generate_text: GenerateTextNodeDefinition,
 	controlnet: ControlNetNodeDefinition,
 	load_image: LoadImageNodeDefinition,
 	preview: PreviewNodeDefinition,
@@ -101,7 +103,7 @@ export function getNodeTypePorts(editor: Editor, shape: NodeShape): Record<strin
 export async function executeNode(
 	editor: Editor,
 	shape: NodeShape,
-	inputs: Record<string, string | number | null>
+	inputs: Record<string, string | number | null | (string | number | null)[]>
 ): Promise<ExecutionResult> {
 	return await getNodeDefinition(editor, shape.props.node).execute(shape, shape.props.node, inputs)
 }
