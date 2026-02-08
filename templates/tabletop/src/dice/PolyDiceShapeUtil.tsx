@@ -69,7 +69,7 @@ function rollValue(sides: number): number | string {
 	if (sides === 10) {
 		return Math.floor(Math.random() * 10)
 	}
-	return Math.ceil(Math.random() * sides)
+	return Math.floor(Math.random() * sides) + 1
 }
 
 // --- PolyFace component ---
@@ -564,7 +564,7 @@ export class PolyDiceShapeUtil extends BaseBoxShapeUtil<IPolyDiceShape> {
 			w: 100,
 			h: 100,
 			sides: 20,
-			value: Math.ceil(Math.random() * 20),
+			value: Math.floor(Math.random() * 20) + 1,
 			isRolling: false,
 			color: 'black',
 		}

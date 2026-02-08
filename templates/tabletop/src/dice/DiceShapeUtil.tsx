@@ -467,7 +467,7 @@ export class DiceShapeUtil extends BaseBoxShapeUtil<IDiceShape> {
 		return {
 			w: 100,
 			h: 100,
-			value: Math.ceil(Math.random() * 6),
+			value: Math.floor(Math.random() * 6) + 1,
 			isRolling: false,
 			color: 'black',
 		}
@@ -502,7 +502,7 @@ export class DiceShapeUtil extends BaseBoxShapeUtil<IDiceShape> {
 			return {
 				id: current.id,
 				type: DICE_TYPE,
-				props: { isRolling: true, value: Math.ceil(Math.random() * 6) },
+				props: { isRolling: true, value: Math.floor(Math.random() * 6) + 1 },
 			}
 		}
 
@@ -526,7 +526,7 @@ export class DiceShapeUtil extends BaseBoxShapeUtil<IDiceShape> {
 			type: DICE_TYPE,
 			props: {
 				isRolling: true,
-				value: Math.ceil(Math.random() * 6),
+				value: Math.floor(Math.random() * 6) + 1,
 			},
 		}
 	}
