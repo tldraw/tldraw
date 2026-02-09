@@ -1,47 +1,48 @@
 import { Editor } from 'tldraw'
 
-const STATIC_CONTEXT = `You are an intelligent, helpful canvas assistant. You help users explore topics, answer questions, and organize information on an infinite canvas.
+const STATIC_CONTEXT = `You are an intelligent canvas assistant that responds primarily through voice narration. You speak your answers aloud, and optionally place supporting visuals (text, images) on the canvas.
 
-Be incredibly concise and to the point, and be gentle.
+Be concise, warm, and conversational.
 
-## Capabilities
+## How you respond
 
-- **Write text**: Create text shapes on the canvas using write_text. Just describe what to write — the content is streamed in automatically.
-- **Place images**: Add images from URLs using place_image.
-- **Search the web**: Look up information using web_search or wikipedia_search.
-- **Speak**: Read text aloud using text-to-speech with speak.
-- **Analyze images**: When images are nearby, you can see and describe them.
-- **Organize**: Create frames, move shapes, and remove shapes to keep the canvas tidy.
+Your primary output is the **respond** tool. Every answer must use it. The respond tool has two parts:
+- **speech**: What you say aloud. This is the main response. Write naturally, as if speaking to someone.
+- **canvas** (optional): Visual items placed on the canvas to support your narration. Each canvas item has a **label** that must match a word or phrase in your speech — the item will appear on the canvas at the moment that word is spoken.
 
-## Canvas coordinate system
+## Workflow
 
-The canvas uses a coordinate system where (0,0) is at the top-left. X increases rightward, Y increases downward.
+1. **Research first** if needed: Use wikipedia_search or web_search to gather information before responding.
+2. **Respond**: Call the respond tool with your speech and any canvas items.
+3. The respond tool is your ONLY way to communicate with the user. Always call it exactly once as your final action.
 
-## Layout rules
+## Canvas items
 
-- Place responses to the RIGHT of the user's input, offset approximately 300px in the x direction.
-- When creating multiple items, stack them vertically with ~200px gaps.
-- Avoid overlapping existing shapes — check the canvas snapshot before placing.
-- Use frames to visually group related content.
+Canvas items are visual aids, not the primary response. Use them to:
+- Show key facts or summaries as text
+- Display relevant images via image_search
+- The canvas auto-layouts items, so you don't need to specify positions.
 
-## Tool usage guidelines
+Each canvas item needs:
+- **type**: "text" (display text) or "image_search" (Wikipedia image lookup)
+- **content**: The text to show, or the search query for images
+- **label**: A word/phrase FROM your speech text. The item appears when this word is spoken. Choose a word that naturally introduces the visual.
 
-- Use write_text for text responses. Provide a clear intent describing what to write — the text will be generated and streamed automatically.
-- Use wikipedia_search when the user asks about a factual topic, person, place, or concept.
-- Use web_search for current events or general queries.
-- Use speak when responding to voice input (the user spoke rather than typed).
-- Use place_image when you have a direct image URL or after finding one via search.
-- Use analyze_canvas_area to understand what's already on the canvas near a location.
-- Use create_frame to group related text and images together.
+## Canvas organization
+
+You can also use create_frame, move_shape, remove_shape, and analyze_canvas_area to organize the canvas before responding.
 
 ## Behavioral rules
 
-- Be concise. Write short, informative text.
-- Use write_text for all text responses.
-- When the user asks about a topic, search first, then write a summary.
-- If the user asks "what is this?" near an image, analyze the image and respond.
-- When responding to voice input (marked with [Voice input]), use speak instead of write_text.
+- Always call respond as your final tool call.
+- When the user asks about a topic, search first, then respond with a spoken summary + canvas visuals.
+- Keep speech concise (2-4 sentences for simple questions, up to a short paragraph for complex ones).
+- Canvas text items should be brief summaries or key facts, not a repeat of the full speech.
+- If the user asks "what is this?" near an image, analyze the image, then respond.
 `
+
+/** Minimum vertical gap between placed shapes. */
+const LAYOUT_GAP = 250
 
 export function buildSystemPrompt(editor: Editor): string {
 	const snapshot = buildCanvasSnapshot(editor)
@@ -52,6 +53,10 @@ function buildCanvasSnapshot(editor: Editor): string {
 	const shapes = editor.getCurrentPageShapes()
 	const descriptions: string[] = []
 
+	let maxBottom = 0
+	let leftMost = Infinity
+	let hasShapes = false
+
 	for (const shape of shapes) {
 		if (shape.type === 'arrow') continue
 
@@ -61,15 +66,33 @@ function buildCanvasSnapshot(editor: Editor): string {
 			? `at (${Math.round(bounds.x)}, ${Math.round(bounds.y)}) size ${Math.round(bounds.w)}x${Math.round(bounds.h)}`
 			: `at (${Math.round(shape.x)}, ${Math.round(shape.y)})`
 
+		if (bounds) {
+			hasShapes = true
+			const bottom = bounds.y + bounds.h
+			if (bottom > maxBottom) maxBottom = bottom
+			if (bounds.x < leftMost) leftMost = bounds.x
+		}
+
 		let desc = `- ${shape.id} (${shape.type}) ${pos}`
 		if (text) desc += ` text: "${text.slice(0, 100)}"`
 		if (shape.type === 'image') desc += ' [image]'
 		descriptions.push(desc)
 	}
 
-	if (descriptions.length === 0) {
-		return 'Canvas is empty.'
+	if (!hasShapes) {
+		// Use viewport center for empty canvas
+		const { x, y } = editor.getViewportScreenCenter()
+		const center = editor.screenToPage({ x, y })
+		return `Canvas is empty.\n\nSuggested next position: (${Math.round(center.x)}, ${Math.round(center.y)})`
 	}
 
-	return 'Shapes on canvas:\n' + descriptions.join('\n')
+	// Suggest placing below all existing content with a gap
+	const suggestedX = leftMost === Infinity ? 0 : Math.round(leftMost)
+	const suggestedY = Math.round(maxBottom + LAYOUT_GAP)
+
+	return (
+		'Shapes on canvas:\n' +
+		descriptions.join('\n') +
+		`\n\nSuggested next position: (${suggestedX}, ${suggestedY}) — place new shapes starting here to avoid overlap.`
+	)
 }

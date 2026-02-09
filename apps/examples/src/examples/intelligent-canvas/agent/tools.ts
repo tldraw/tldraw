@@ -7,43 +7,22 @@ import {
 	getHashForString,
 	toRichText,
 } from 'tldraw'
-import { ELEVENLABS_DEFAULT_VOICE_ID } from '../lib/constants'
 import type { FunctionDeclaration } from './api'
 
+/** Canvas item in an orchestrator response — a visual aid for the narration. */
+export interface CanvasItem {
+	type: 'text' | 'image_search'
+	content: string
+	label: string
+}
+
+/** The parsed output of the 'respond' tool call. */
+export interface OrchestratorResponse {
+	speech: string
+	canvas?: CanvasItem[]
+}
+
 export const AGENT_TOOLS: FunctionDeclaration[] = [
-	{
-		name: 'write_text',
-		description:
-			'Create a text shape on the canvas. The text content will be streamed in automatically — just describe what to write.',
-		parameters: {
-			type: 'object',
-			properties: {
-				intent: {
-					type: 'string',
-					description:
-						'Brief description of what to write, e.g. "A summary of black holes" or "Three fun facts about dolphins".',
-				},
-				x: { type: 'number', description: 'X position on canvas.' },
-				y: { type: 'number', description: 'Y position on canvas.' },
-			},
-			required: ['intent', 'x', 'y'],
-		},
-	},
-	{
-		name: 'place_image',
-		description: 'Place an image on the canvas from a URL.',
-		parameters: {
-			type: 'object',
-			properties: {
-				url: { type: 'string', description: 'The image URL.' },
-				x: { type: 'number', description: 'X position on canvas.' },
-				y: { type: 'number', description: 'Y position on canvas.' },
-				w: { type: 'number', description: 'Width in pixels. Default 300.' },
-				h: { type: 'number', description: 'Height in pixels. Default 300.' },
-			},
-			required: ['url', 'x', 'y'],
-		},
-	},
 	{
 		name: 'web_search',
 		description:
@@ -66,17 +45,6 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 				topic: { type: 'string', description: 'The Wikipedia article title or topic to search.' },
 			},
 			required: ['topic'],
-		},
-	},
-	{
-		name: 'speak',
-		description: 'Speak text aloud using text-to-speech. Use when responding to voice input.',
-		parameters: {
-			type: 'object',
-			properties: {
-				text: { type: 'string', description: 'The text to speak aloud.' },
-			},
-			required: ['text'],
 		},
 	},
 	{
@@ -133,15 +101,59 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 			required: ['shapeId'],
 		},
 	},
+	{
+		name: 'respond',
+		description:
+			'Respond to the user with spoken narration and optional canvas visuals. This is your primary way to communicate — always use this tool to deliver your final response. The speech will be read aloud and canvas items will appear progressively, synced to the narration.',
+		parameters: {
+			type: 'object',
+			properties: {
+				speech: {
+					type: 'string',
+					description:
+						'The full text to speak aloud. Use a natural, conversational tone. This is the primary response the user will hear.',
+				},
+				canvas: {
+					type: 'array',
+					description:
+						'Optional visual items to place on the canvas alongside the narration. Each item appears when its label is mentioned in the speech.',
+					items: {
+						type: 'object',
+						properties: {
+							type: {
+								type: 'string',
+								enum: ['text', 'image_search'],
+								description:
+									'Type of canvas item: "text" for a text shape, "image_search" for a Wikipedia image lookup.',
+							},
+							content: {
+								type: 'string',
+								description:
+									'For "text": the text to display on the canvas. For "image_search": the Wikipedia search query.',
+							},
+							label: {
+								type: 'string',
+								description:
+									'A word or short phrase that appears in the speech text. The canvas item will appear when this word is spoken. Must match text in the speech field.',
+							},
+						},
+						required: ['type', 'content', 'label'],
+					},
+				},
+			},
+			required: ['speech'],
+		},
+	},
 ]
 
 export interface ToolResult {
 	success: boolean
 	message: string
 	imageUrl?: string
-	/** For write_text: the created shape ID and intent for streaming */
-	shapeId?: string
-	intent?: string
+	/** Set to true when the 'respond' tool is called, signaling the loop should end. */
+	isResponse?: boolean
+	/** The parsed orchestrator response, if this is a 'respond' tool call. */
+	orchestratorResponse?: OrchestratorResponse
 }
 
 export async function executeToolCall(
@@ -150,16 +162,10 @@ export async function executeToolCall(
 	toolInput: Record<string, unknown>
 ): Promise<ToolResult> {
 	switch (toolName) {
-		case 'write_text':
-			return executeWriteText(editor, toolInput)
-		case 'place_image':
-			return executePlaceImage(editor, toolInput)
 		case 'web_search':
 			return executeWebSearch(toolInput)
 		case 'wikipedia_search':
 			return executeWikipediaSearch(toolInput)
-		case 'speak':
-			return executeSpeak(toolInput)
 		case 'analyze_canvas_area':
 			return executeAnalyzeCanvasArea(editor, toolInput)
 		case 'create_frame':
@@ -168,16 +174,28 @@ export async function executeToolCall(
 			return executeMoveShape(editor, toolInput)
 		case 'remove_shape':
 			return executeRemoveShape(editor, toolInput)
+		case 'respond':
+			return executeRespond(toolInput)
 		default:
 			return { success: false, message: `Unknown tool: ${toolName}` }
 	}
 }
 
-function executeWriteText(editor: Editor, input: Record<string, unknown>): ToolResult {
-	const intent = input.intent as string
-	const x = input.x as number
-	const y = input.y as number
+function executeRespond(input: Record<string, unknown>): ToolResult {
+	const speech = input.speech as string
+	const canvas = input.canvas as CanvasItem[] | undefined
 
+	const orchestratorResponse: OrchestratorResponse = { speech, canvas }
+	return {
+		success: true,
+		message: `Responding with speech (${speech.length} chars) and ${canvas?.length ?? 0} canvas items.`,
+		isResponse: true,
+		orchestratorResponse,
+	}
+}
+
+/** Place a text shape on the canvas. Used by the orchestrator pipeline. */
+export function placeTextShape(editor: Editor, text: string, x: number, y: number): TLShapeId {
 	const id = createShapeId()
 	editor.createShape({
 		id,
@@ -185,42 +203,30 @@ function executeWriteText(editor: Editor, input: Record<string, unknown>): ToolR
 		x,
 		y,
 		props: {
-			richText: toRichText(''),
+			richText: toRichText(text),
 			autoSize: false,
 			w: 500,
 		},
 	})
-
-	return {
-		success: true,
-		message: `Created text shape ${id} at (${x}, ${y}) — content will be streamed for: ${intent}`,
-		shapeId: id,
-		intent,
-	}
+	return id
 }
 
-/** Update a text shape's content progressively. */
-export function updateTextShapeContent(editor: Editor, shapeId: TLShapeId, text: string) {
-	const shape = editor.getShape(shapeId)
-	if (!shape) return
-	editor.updateShape({
-		id: shapeId,
-		type: 'text',
-		props: { richText: toRichText(text) },
-	})
-}
+/** Place an image on the canvas from a URL. Used by the orchestrator pipeline. */
+export async function placeImageFromSearch(
+	editor: Editor,
+	query: string,
+	x: number,
+	y: number
+): Promise<{ shapeId: TLShapeId; imageUrl: string } | null> {
+	const result = await executeWikipediaSearch({ topic: query })
+	if (!result.imageUrl) return null
 
-function executePlaceImage(editor: Editor, input: Record<string, unknown>): ToolResult {
-	const url = input.url as string
-	const x = input.x as number
-	const y = input.y as number
-	const w = (input.w as number) || 300
-	const h = (input.h as number) || 300
-
+	const url = result.imageUrl
+	const w = 300
+	const h = 300
 	const hash = getHashForString(url)
 	const assetId = AssetRecordType.createId(hash)
 
-	// Create asset if it doesn't exist
 	if (!editor.getAsset(assetId)) {
 		editor.createAssets([
 			AssetRecordType.create({
@@ -247,19 +253,14 @@ function executePlaceImage(editor: Editor, input: Record<string, unknown>): Tool
 		type: 'image',
 		x,
 		y,
-		props: {
-			assetId,
-			w,
-			h,
-		},
+		props: { assetId, w, h },
 	})
 
-	return { success: true, message: `Placed image ${shapeId} at (${x}, ${y})` }
+	return { shapeId, imageUrl: url }
 }
 
 async function executeWebSearch(input: Record<string, unknown>): Promise<ToolResult> {
 	const query = input.query as string
-	// Delegate to Wikipedia search as a starting point
 	return executeWikipediaSearch({ topic: query })
 }
 
@@ -294,55 +295,6 @@ async function executeWikipediaSearch(input: Record<string, unknown>): Promise<T
 	}
 }
 
-let elevenLabsAvailable: boolean | null = null
-
-async function executeSpeak(input: Record<string, unknown>): Promise<ToolResult> {
-	const text = input.text as string
-
-	// Check ElevenLabs availability (cache the result)
-	if (elevenLabsAvailable === null) {
-		try {
-			const res = await fetch('/api/elevenlabs/status')
-			const data = (await res.json()) as { available: boolean }
-			elevenLabsAvailable = data.available
-		} catch {
-			elevenLabsAvailable = false
-		}
-	}
-
-	// Try ElevenLabs TTS if available
-	if (elevenLabsAvailable) {
-		try {
-			const res = await fetch('/api/elevenlabs/tts', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ text, voiceId: ELEVENLABS_DEFAULT_VOICE_ID }),
-			})
-			if (res.ok) {
-				const blob = await res.blob()
-				const url = URL.createObjectURL(blob)
-				const audio = new Audio(url)
-				audio.onended = () => URL.revokeObjectURL(url)
-				audio.play()
-				return { success: true, message: 'Speaking text aloud via ElevenLabs.' }
-			}
-			console.warn('[ElevenLabs] TTS request failed:', res.status, await res.text())
-		} catch (err) {
-			console.warn('[ElevenLabs] TTS error, falling back to browser TTS:', err)
-		}
-	}
-
-	// Fallback to browser speech synthesis
-	if (typeof window !== 'undefined' && window.speechSynthesis) {
-		const utterance = new SpeechSynthesisUtterance(text)
-		utterance.rate = 1.0
-		utterance.pitch = 1.0
-		window.speechSynthesis.speak(utterance)
-	}
-
-	return { success: true, message: 'Speaking text aloud.' }
-}
-
 function executeAnalyzeCanvasArea(editor: Editor, input: Record<string, unknown>): ToolResult {
 	const x = input.x as number
 	const y = input.y as number
@@ -357,7 +309,6 @@ function executeAnalyzeCanvasArea(editor: Editor, input: Record<string, unknown>
 		const bounds = editor.getShapePageBounds(shape.id)
 		if (!bounds) continue
 
-		// Check if shape bounds intersect with the search area
 		if (
 			bounds.x + bounds.w < x ||
 			bounds.x > x + w ||

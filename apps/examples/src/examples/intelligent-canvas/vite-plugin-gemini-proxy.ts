@@ -120,6 +120,66 @@ export function geminiProxy(): Plugin {
 					}
 				})
 			})
+
+			server.middlewares.use('/api/elevenlabs/tts-with-timestamps', (req, res) => {
+				if (req.method !== 'POST') {
+					res.statusCode = 405
+					res.end('Method not allowed')
+					return
+				}
+
+				if (!elevenLabsApiKey) {
+					res.statusCode = 403
+					res.setHeader('Content-Type', 'application/json')
+					res.end(JSON.stringify({ error: 'ELEVENLABS_API_KEY not configured' }))
+					return
+				}
+
+				const chunks: Buffer[] = []
+				req.on('data', (chunk: Buffer) => chunks.push(chunk))
+				req.on('end', async () => {
+					try {
+						const body = JSON.parse(Buffer.concat(chunks).toString())
+						const text = body.text as string
+						const voiceId = (body.voiceId as string) || 'oTQK6KgOJHp8UGGZjwUu'
+						const upstream = await fetch(
+							`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`,
+							{
+								method: 'POST',
+								headers: {
+									'xi-api-key': elevenLabsApiKey,
+									'Content-Type': 'application/json',
+								},
+								body: JSON.stringify({
+									text,
+									model_id: 'eleven_multilingual_v2',
+									output_format: 'mp3_22050_32',
+								}),
+							}
+						)
+						if (!upstream.ok) {
+							const errText = await upstream.text()
+							console.error(
+								`[ElevenLabs] TTS-with-timestamps failed (${upstream.status}):`,
+								errText
+							)
+							res.statusCode = upstream.status
+							res.setHeader('Content-Type', 'application/json')
+							res.end(JSON.stringify({ error: errText }))
+							return
+						}
+						const data = await upstream.text()
+						res.statusCode = 200
+						res.setHeader('Content-Type', 'application/json')
+						res.end(data)
+					} catch (err) {
+						console.error('[ElevenLabs] TTS-with-timestamps proxy error:', err)
+						res.statusCode = 502
+						res.setHeader('Content-Type', 'application/json')
+						res.end(JSON.stringify({ error: String(err) }))
+					}
+				})
+			})
 		},
 	}
 }
