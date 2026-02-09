@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
@@ -7,6 +7,7 @@ import {
 	TLShape,
 	TLShapePartial,
 	useEditor,
+	useSharedSafeId,
 } from 'tldraw'
 import { SUIT_COLORS, SUIT_SYMBOLS, Suit } from './card-data'
 
@@ -204,32 +205,58 @@ function CardBack({ w, h }: { w: number; h: number }) {
 	)
 }
 
-// --- Peek configuration (corner fold via clip-path) ---
+// --- Peek geometry ---
+// The card is divided by two parallel diagonal fold lines into three regions:
+//   A (top-left triangle), B (middle rhombus), C (bottom-right triangle).
+// When peeking, triangle A or C reflects across its fold line to reveal the card face.
 
-const FOLD_PCT = 55
+const FOLD_PCT = 30 // how far down the left edge (%) the top fold line reaches
 
-function getPeekClips(corner: string) {
-	const f = FOLD_PCT
-	const r = 100 - f
-	switch (corner) {
-		case 'top-left':
-			return {
-				backInit: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%)',
-				backFold: `polygon(${f}% 0%, 100% 0%, 100% 100%, 0% 100%, 0% ${f}%)`,
-				flapInit: 'polygon(0% 0%, 0% 0%, 0% 0%)',
-				flapFold: `polygon(${f}% 0%, ${f}% ${f}%, 0% ${f}%)`,
-				flapGradient: 'linear-gradient(135deg, #f0f0f0 0%, #d8d8d8 100%)',
-			}
-		case 'bottom-right':
-			return {
-				backInit: 'polygon(0% 0%, 100% 0%, 100% 100%, 100% 100%, 0% 100%)',
-				backFold: `polygon(0% 0%, 100% 0%, 100% ${r}%, ${r}% 100%, 0% 100%)`,
-				flapInit: 'polygon(100% 100%, 100% 100%, 100% 100%)',
-				flapFold: `polygon(${r}% ${r}%, 100% ${r}%, ${r}% 100%)`,
-				flapGradient: 'linear-gradient(315deg, #f0f0f0 0%, #d8d8d8 100%)',
-			}
-		default:
-			return null
+function computePeekGeometry(corner: string, w: number, h: number) {
+	const fh = (FOLD_PCT * h) / 100
+	const D = w * w + fh * fh
+	const cos2t = (w * w - fh * fh) / D
+	const sin2t = (-2 * w * fh) / D
+
+	function reflect(px: number, py: number, e: number, f: number) {
+		return {
+			x: cos2t * px + sin2t * py + e,
+			y: sin2t * px + -cos2t * py + f,
+		}
+	}
+
+	if (corner === 'top-left') {
+		// Fold line: (0, fh) → (w, 0). Pivot: (w, 0)
+		const e = (2 * w * fh * fh) / D
+		const f = (2 * w * w * fh) / D
+		const apex = reflect(0, 0, e, f)
+		// Reflect the face's top-left indicator to get text position
+		const textPos = reflect(w * 0.18, h * 0.15, e, f)
+		// Short side: from apex to (0, fh)
+		const textAngle = 135
+		return {
+			foldLine: `0,${fh} ${w},0`,
+			reflectedTriangle: `${apex.x},${apex.y} ${w},0 0,${fh}`,
+			remainingRegion: `0,${fh} ${w},0 ${w},${h} 0,${h}`,
+			textPos,
+			foldAngle: textAngle,
+		}
+	} else {
+		// Fold line: (0, h) → (w, h-fh). Pivot: (0, h)
+		const e = (2 * w * fh * h) / D
+		const f = (2 * h * w * w) / D
+		const apex = reflect(w, h, e, f)
+		// Reflect the face's bottom-right indicator to get text position
+		const textPos = reflect(w * 0.88, h * 0.92, e, f)
+		// Short side: from apex to (w, h-fh)
+		const textAngle = -45
+		return {
+			foldLine: `0,${h} ${w},${h - fh}`,
+			reflectedTriangle: `0,${h} ${w},${h - fh} ${apex.x},${apex.y}`,
+			remainingRegion: `0,0 ${w},0 ${w},${h - fh} 0,${h}`,
+			textPos,
+			foldAngle: textAngle,
+		}
 	}
 }
 
@@ -241,15 +268,9 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 	const animRef = useRef(0)
 	const isAnimating = useRef(false)
 	const prevIsFlipping = useRef(false)
-	// Track the visual Y rotation. 0 = face-up showing, 180 = face-down showing.
 	const currentRotY = useRef(shape.props.isFaceUp ? 0 : 180)
-
-	// Peek refs (client-side only — no shape state changes)
-	const peekOverlayRef = useRef<HTMLDivElement>(null)
-	const peekBackRef = useRef<HTMLDivElement>(null)
-	const peekFlapRef = useRef<HTMLDivElement>(null)
 	const isPeekingRef = useRef(false)
-	const peekQuadrantRef = useRef<string | null>(null)
+	const [peekCorner, setPeekCorner] = useState<string | null>(null)
 
 	const { w, h, suit, rank, isFaceUp, isFlipping } = shape.props
 
@@ -302,62 +323,14 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 		}
 	}, [isFlipping, isFaceUp, editor, shape.id, applyFlip])
 
-	// --- Peek logic (Shift+hover, client-side only) ---
-
-	const startPeek = useCallback((quadrant: string) => {
-		const clips = getPeekClips(quadrant)
-		if (!clips) return
-		isPeekingRef.current = true
-		peekQuadrantRef.current = quadrant
-
-		if (peekOverlayRef.current) {
-			peekOverlayRef.current.style.display = 'block'
-		}
-
-		// Set initial (flat) clip paths
-		if (peekBackRef.current) {
-			peekBackRef.current.style.clipPath = clips.backInit
-		}
-		if (peekFlapRef.current) {
-			peekFlapRef.current.style.clipPath = clips.flapInit
-			peekFlapRef.current.style.background = clips.flapGradient
-		}
-
-		// Force reflow, then animate to folded state
-		void peekBackRef.current?.offsetHeight
-
-		if (peekBackRef.current) {
-			peekBackRef.current.style.clipPath = clips.backFold
-		}
-		if (peekFlapRef.current) {
-			peekFlapRef.current.style.clipPath = clips.flapFold
-		}
-	}, [])
-
-	const stopPeek = useCallback(() => {
-		isPeekingRef.current = false
-		const clips = peekQuadrantRef.current ? getPeekClips(peekQuadrantRef.current) : null
-
-		if (clips) {
-			if (peekBackRef.current) {
-				peekBackRef.current.style.clipPath = clips.backInit
-			}
-			if (peekFlapRef.current) {
-				peekFlapRef.current.style.clipPath = clips.flapInit
-			}
-		}
-
-		peekQuadrantRef.current = null
-		setTimeout(() => {
-			if (!isPeekingRef.current && peekOverlayRef.current) {
-				peekOverlayRef.current.style.display = 'none'
-			}
-		}, 300)
-	}, [])
+	// --- Peek logic (Shift key, client-side only) ---
 
 	useEffect(() => {
 		if (isFaceUp) {
-			if (isPeekingRef.current) stopPeek()
+			if (isPeekingRef.current) {
+				isPeekingRef.current = false
+				setPeekCorner(null)
+			}
 			return
 		}
 
@@ -365,26 +338,27 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 			if (e.key !== 'Shift' || e.repeat || isPeekingRef.current) return
 			if (editor.getCurrentToolId() !== 'select') return
 
-			const pagePoint = editor.inputs.currentPagePoint
 			const bounds = editor.getShapePageBounds(shape.id)
 			if (!bounds) return
-			if (
-				pagePoint.x < bounds.x ||
-				pagePoint.x > bounds.x + bounds.w ||
-				pagePoint.y < bounds.y ||
-				pagePoint.y > bounds.y + bounds.h
-			)
-				return
 
+			const pagePoint = editor.inputs.getCurrentPagePoint()
+			const isHovered =
+				pagePoint.x >= bounds.x &&
+				pagePoint.x <= bounds.x + bounds.w &&
+				pagePoint.y >= bounds.y &&
+				pagePoint.y <= bounds.y + bounds.h
+			const isSelected = editor.getSelectedShapeIds().includes(shape.id)
+			if (!isHovered && !isSelected) return
+
+			isPeekingRef.current = true
 			const relY = (pagePoint.y - bounds.y) / bounds.h
-			const quadrant = relY < 0.5 ? 'top-left' : 'bottom-right'
-
-			startPeek(quadrant)
+			setPeekCorner(relY >= 0.5 ? 'bottom-right' : 'top-left')
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
 			if (e.key !== 'Shift') return
-			if (isPeekingRef.current) stopPeek()
+			isPeekingRef.current = false
+			setPeekCorner(null)
 		}
 
 		document.addEventListener('keydown', handleKeyDown)
@@ -392,9 +366,21 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 		return () => {
 			document.removeEventListener('keydown', handleKeyDown)
 			document.removeEventListener('keyup', handleKeyUp)
-			if (isPeekingRef.current) stopPeek()
+			if (isPeekingRef.current) {
+				isPeekingRef.current = false
+				setPeekCorner(null)
+			}
 		}
-	}, [editor, shape.id, isFaceUp, startPeek, stopPeek])
+	}, [editor, shape.id, isFaceUp])
+
+	const peek = peekCorner ? computePeekGeometry(peekCorner, w, h) : null
+	const clipId = shape.id.replace(/[^a-zA-Z0-9]/g, '_')
+	const r = w * 0.06
+
+	const clipPathId1 = useSharedSafeId(`remaining-${clipId}`)
+	const clipPathId2 = useSharedSafeId(`reflected-${clipId}`)
+	const clipPathId3 = useSharedSafeId(`shadow-${clipId}`)
+	const clipPathId4 = useSharedSafeId(`card-bounds-${clipId}`)
 
 	return (
 		<HTMLContainer style={{ width: w, height: h }}>
@@ -406,7 +392,7 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 					perspective: w * 4,
 				}}
 			>
-				{/* Normal card flip container */}
+				{/* Normal card with CSS 3D flip */}
 				<div
 					ref={containerRef}
 					style={{
@@ -415,9 +401,9 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 						position: 'relative',
 						transformStyle: 'preserve-3d',
 						transform: `rotateY(${currentRotY.current}deg)`,
+						visibility: peek ? 'hidden' : 'visible',
 					}}
 				>
-					{/* Front face (visible when rotateY ~= 0 mod 360) */}
 					<div
 						style={{
 							position: 'absolute',
@@ -428,7 +414,6 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 					>
 						<CardFront suit={suit} rank={rank} w={w} h={h} />
 					</div>
-					{/* Back face (rotated 180deg, visible when rotateY ~= 180 mod 360) */}
 					<div
 						style={{
 							position: 'absolute',
@@ -442,43 +427,83 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 					</div>
 				</div>
 
-				{/* Peek overlay — corner fold, client-side only */}
-				{!isFaceUp && (
-					<div
-						ref={peekOverlayRef}
-						style={{
-							position: 'absolute',
-							inset: 0,
-							display: 'none',
-							pointerEvents: 'none',
-						}}
+				{/* Peek overlay — SVG with three clipped groups */}
+				{peek && (
+					<svg
+						width={w}
+						height={h}
+						style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
 					>
-						{/* Revealed card face */}
-						<div style={{ position: 'absolute', inset: 0 }}>
-							<CardFront suit={suit} rank={rank} w={w} h={h} />
-						</div>
-						{/* Card back with corner clipped away */}
-						<div
-							ref={peekBackRef}
-							style={{
-								position: 'absolute',
-								inset: 0,
-								transition: 'clip-path 0.25s ease-out',
-							}}
-						>
-							<CardBack w={w} h={h} />
-						</div>
-						{/* Fold flap (paper underside) */}
-						<div
-							ref={peekFlapRef}
-							style={{
-								position: 'absolute',
-								inset: 0,
-								transition: 'clip-path 0.25s ease-out',
-								filter: 'drop-shadow(1px 1px 4px rgba(0,0,0,0.25))',
-							}}
-						/>
-					</div>
+						<defs>
+							<clipPath id={clipPathId4}>
+								<rect width={w} height={h} rx={r} ry={r} />
+							</clipPath>
+							<clipPath id={clipPathId1}>
+								<polygon points={peek.remainingRegion} />
+							</clipPath>
+							<clipPath id={clipPathId2}>
+								<polygon points={peek.reflectedTriangle} />
+							</clipPath>
+							<filter id={clipPathId3}>
+								<feDropShadow dx="1" dy="2" stdDeviation="3" floodOpacity="0.3" />
+							</filter>
+						</defs>
+
+						{/* Clip everything to the card's rounded rect */}
+						<g clipPath={`url(#${clipPathId4})`}>
+							{/* Remaining card back (B + other triangle) */}
+							<g clipPath={`url(#${clipPathId1})`}>
+								<foreignObject width={w} height={h}>
+									<CardBack w={w} h={h} />
+								</foreignObject>
+							</g>
+
+							{/* Reflected triangle flap — white with rank/suit at reflected position */}
+							<g clipPath={`url(#${clipPathId2})`} filter={`url(#${clipPathId3})`}>
+								<polygon
+									points={peek.reflectedTriangle}
+									fill="white"
+									stroke="#ddd"
+									strokeWidth={0.5}
+								/>
+								<g
+									transform={`rotate(${peek.foldAngle}, ${peek.textPos.x}, ${peek.textPos.y + h * 0.045})`}
+								>
+									<text
+										x={peek.textPos.x}
+										y={peek.textPos.y}
+										textAnchor="middle"
+										dominantBaseline="central"
+										fontSize={Math.max(14, h * 0.09)}
+										fontWeight={700}
+										fontFamily="Inter, system-ui, sans-serif"
+										fill={SUIT_COLORS[suit as Suit] || '#1a1a1a'}
+									>
+										{rank}
+									</text>
+									<text
+										x={peek.textPos.x}
+										y={peek.textPos.y + h * 0.09}
+										textAnchor="middle"
+										dominantBaseline="central"
+										fontSize={Math.max(16, h * 0.11)}
+										fontFamily="Inter, system-ui, sans-serif"
+										fill={SUIT_COLORS[suit as Suit] || '#1a1a1a'}
+									>
+										{SUIT_SYMBOLS[suit as Suit] || '\u2660'}
+									</text>
+								</g>
+							</g>
+
+							{/* Fold crease line */}
+							<polyline
+								points={peek.foldLine}
+								fill="none"
+								stroke="rgba(0,0,0,0.12)"
+								strokeWidth={1}
+							/>
+						</g>
+					</svg>
 				)}
 			</div>
 		</HTMLContainer>
