@@ -85,7 +85,7 @@ export class IntelligentCanvasAgent {
 		)
 		const nearbyShapes = findNearbyShapes(this.editor, searchArea)
 
-		this.runAgentPipeline(text, nearbyShapes, null)
+		this.runAgentPipeline(`[Voice input] ${text}`, nearbyShapes, null)
 	}
 
 	private async runAgentPipeline(

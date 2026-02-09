@@ -40,7 +40,7 @@ The canvas uses a coordinate system where (0,0) is at the top-left. X increases 
 - Use write_text for all text responses.
 - When the user asks about a topic, search first, then write a summary.
 - If the user asks "what is this?" near an image, analyze the image and respond.
-- When responding to voice, always call speak in addition to write_text.
+- When responding to voice input (marked with [Voice input]), use speak instead of write_text.
 `
 
 export function buildSystemPrompt(editor: Editor): string {
