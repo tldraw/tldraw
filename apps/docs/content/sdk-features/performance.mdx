@@ -98,9 +98,7 @@ const assetStore: TLAssetStore = {
 		if (asset.type !== 'image') return asset.props.src
 
 		// Request a version of the image scaled to what's actually visible on screen
-		const width = Math.ceil(
-			asset.props.w * context.steppedScreenScale * context.dpr
-		)
+		const width = Math.ceil(asset.props.w * context.steppedScreenScale * context.dpr)
 		return `${asset.props.src}?w=${width}`
 	},
 }
