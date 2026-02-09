@@ -42,7 +42,7 @@ You can also use create_frame, move_shape, remove_shape, and analyze_canvas_area
 `
 
 /** Minimum vertical gap between placed shapes. */
-const LAYOUT_GAP = 250
+const LAYOUT_GAP = 60
 
 export function buildSystemPrompt(editor: Editor): string {
 	const snapshot = buildCanvasSnapshot(editor)

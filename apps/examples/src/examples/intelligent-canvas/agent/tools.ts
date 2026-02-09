@@ -150,6 +150,8 @@ export interface ToolResult {
 	success: boolean
 	message: string
 	imageUrl?: string
+	imageWidth?: number
+	imageHeight?: number
 	/** Set to true when the 'respond' tool is called, signaling the loop should end. */
 	isResponse?: boolean
 	/** The parsed orchestrator response, if this is a 'respond' tool call. */
@@ -206,10 +208,14 @@ export function placeTextShape(editor: Editor, text: string, x: number, y: numbe
 			richText: toRichText(text),
 			autoSize: false,
 			w: 500,
+			font: 'mono',
 		},
 	})
 	return id
 }
+
+/** Target display width for images on the canvas. */
+const IMAGE_DISPLAY_WIDTH = 400
 
 /** Place an image on the canvas from a URL. Used by the orchestrator pipeline. */
 export async function placeImageFromSearch(
@@ -222,8 +228,12 @@ export async function placeImageFromSearch(
 	if (!result.imageUrl) return null
 
 	const url = result.imageUrl
-	const w = 300
-	const h = 300
+	const srcW = result.imageWidth ?? IMAGE_DISPLAY_WIDTH
+	const srcH = result.imageHeight ?? IMAGE_DISPLAY_WIDTH
+	const aspect = srcW / srcH
+	const w = IMAGE_DISPLAY_WIDTH
+	const h = Math.round(IMAGE_DISPLAY_WIDTH / aspect)
+
 	const hash = getHashForString(url)
 	const assetId = AssetRecordType.createId(hash)
 
@@ -236,8 +246,8 @@ export async function placeImageFromSearch(
 				props: {
 					name: 'image',
 					src: url,
-					w,
-					h,
+					w: srcW,
+					h: srcH,
 					mimeType: 'image/png',
 					isAnimated: false,
 					fileSize: undefined,
@@ -278,18 +288,25 @@ async function executeWikipediaSearch(input: Record<string, unknown>): Promise<T
 		const data = (await response.json()) as {
 			title: string
 			extract: string
-			thumbnail?: { source: string }
+			thumbnail?: { source: string; width: number; height: number }
+			originalimage?: { source: string; width: number; height: number }
 		}
 
 		let message = `**${data.title}**: ${data.extract}`
 		let imageUrl: string | undefined
+		let imageWidth: number | undefined
+		let imageHeight: number | undefined
 
-		if (data.thumbnail?.source) {
-			imageUrl = data.thumbnail.source
-			message += `\n\n[Thumbnail available: ${imageUrl}]`
+		// Prefer originalimage for better quality, fall back to thumbnail
+		const image = data.originalimage ?? data.thumbnail
+		if (image?.source) {
+			imageUrl = image.source
+			imageWidth = image.width
+			imageHeight = image.height
+			message += `\n\n[Image available: ${imageUrl} (${imageWidth}x${imageHeight})]`
 		}
 
-		return { success: true, message, imageUrl }
+		return { success: true, message, imageUrl, imageWidth, imageHeight }
 	} catch {
 		return { success: false, message: `Failed to search Wikipedia for "${topic}"` }
 	}

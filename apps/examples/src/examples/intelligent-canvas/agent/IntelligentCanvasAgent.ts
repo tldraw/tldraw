@@ -11,14 +11,7 @@ import {
 	MAX_AGENT_ITERATIONS,
 	NEARBY_MARGIN,
 } from '../lib/constants'
-import {
-	callGemini,
-	fetchTTSWithTimestamps,
-	getWordTimings,
-	type GeminiContent,
-	type GeminiPart,
-	type WordTiming,
-} from './api'
+import { callGemini, type GeminiContent, type GeminiPart } from './api'
 import { buildSystemPrompt } from './systemPrompt'
 import {
 	AGENT_TOOLS,
@@ -206,91 +199,163 @@ export class IntelligentCanvasAgent {
 		}
 	}
 
-	/** Execute the orchestrator response: play speech via ElevenLabs and sync canvas items. */
+	/** IDs of shapes placed during the current response, used for relayout. */
+	private placedShapeIds: TLShapeId[] = []
+
+	/** Execute the orchestrator response: place canvas items immediately, play audio, animate camera. */
 	private async executeResponse(response: OrchestratorResponse) {
-		this.callbacks.onStatusChange('thinking', 'Speaking...')
+		this.callbacks.onStatusChange('thinking', 'Preparing canvas...')
 
 		const canvasItems = response.canvas ?? []
-
-		// Compute canvas layout starting position
 		const startPos = this.getNextCanvasPosition()
 		const ITEM_GAP = 350
+		this.placedShapeIds = []
 
-		// Try ElevenLabs with timestamps for synced playback
-		let usedElevenLabs = false
+		// 1. Place all canvas items immediately
+		await this.placeAllCanvasItems(canvasItems, startPos, ITEM_GAP)
+
+		// 2. Relayout so they stack tightly
+		if (this.placedShapeIds.length > 0) {
+			this.relayoutPlacedShapes(startPos.x)
+			await new Promise((r) => setTimeout(r, 50))
+		}
+
+		// 3. Fetch audio and play, with camera tour in parallel
+		const fillers = ['Preparing...', 'Processing...', 'Composing...', 'Generating...']
+		// Shuffle fillers and cycle through them while TTS loads
+		const shuffled = fillers.sort(() => Math.random() - 0.5)
+		let fillerIndex = 0
+		this.callbacks.onStatusChange('thinking', shuffled[fillerIndex])
+		const fillerInterval = setInterval(() => {
+			fillerIndex = (fillerIndex + 1) % shuffled.length
+			this.callbacks.onStatusChange('thinking', shuffled[fillerIndex])
+		}, 1500)
+
 		try {
-			const ttsResponse = await fetchTTSWithTimestamps(response.speech, ELEVENLABS_DEFAULT_VOICE_ID)
-			const wordTimings = getWordTimings(ttsResponse.alignment)
+			const audioBlob = await this.fetchTTSAudio(response.speech)
+			clearInterval(fillerInterval)
+			const audioUrl = URL.createObjectURL(audioBlob)
+			const audio = new Audio(audioUrl)
 
-			// Play audio
-			const audio = new Audio(`data:audio/mpeg;base64,${ttsResponse.audio_base64}`)
 			const audioPromise = new Promise<void>((resolve) => {
-				audio.onended = () => resolve()
-				audio.onerror = () => resolve()
+				audio.onended = () => {
+					URL.revokeObjectURL(audioUrl)
+					resolve()
+				}
+				audio.onerror = () => {
+					URL.revokeObjectURL(audioUrl)
+					resolve()
+				}
 			})
+
+			this.callbacks.onStatusChange('thinking', 'Speaking...')
 			audio.play()
-			usedElevenLabs = true
 
-			// Schedule canvas items to appear synced to speech
-			await this.scheduleCanvasItems(canvasItems, wordTimings, response.speech, startPos, ITEM_GAP)
+			// Run camera tour alongside playback
+			if (this.placedShapeIds.length > 0) {
+				this.scheduleCameraTour(response.speech, canvasItems, audio)
+			}
 
-			// Wait for audio to finish
 			await audioPromise
 		} catch {
-			// ElevenLabs unavailable — fall back to browser TTS + immediate canvas placement
-			if (!usedElevenLabs) {
-				this.fallbackSpeak(response.speech)
-				await this.placeAllCanvasItems(canvasItems, startPos, ITEM_GAP)
+			clearInterval(fillerInterval)
+			// ElevenLabs unavailable — fall back to browser TTS with camera tour
+			if (this.placedShapeIds.length > 0) {
+				this.scheduleFallbackCameraTour(response.speech, canvasItems)
 			}
+			this.fallbackSpeak(response.speech)
+		}
+
+		// Zoom out to show everything once narration ends
+		if (this.placedShapeIds.length > 0) {
+			this.editor.zoomToFit({ animation: { duration: 400 } })
 		}
 	}
 
-	/** Schedule canvas items to appear at the moment their label is spoken. */
-	private async scheduleCanvasItems(
-		items: CanvasItem[],
-		wordTimings: WordTiming[],
-		speechText: string,
-		startPos: { x: number; y: number },
-		gap: number
-	) {
-		if (items.length === 0) return
-
-		// For each item, find when its label appears in the speech
-		const scheduled = items.map((item, index) => {
-			const labelLower = item.label.toLowerCase()
-
-			// Find the first word timing that contains/matches the label
-			const timing = wordTimings.find((w) => {
-				const wordLower = w.word.toLowerCase()
-				return wordLower.includes(labelLower) || labelLower.includes(wordLower)
-			})
-
-			let startTime = timing?.startTime ?? 0
-
-			// If no direct word match, estimate based on character position in speech
-			if (!timing) {
-				const labelIndex = speechText.toLowerCase().indexOf(labelLower)
-				if (labelIndex >= 0) {
-					const ratio = labelIndex / speechText.length
-					const totalDuration = wordTimings[wordTimings.length - 1]?.endTime ?? 0
-					startTime = ratio * totalDuration
-				}
-			}
-
-			return { item, startTime, y: startPos.y + index * gap }
+	/** Fetch TTS audio from the streaming ElevenLabs endpoint as a blob. */
+	private async fetchTTSAudio(text: string): Promise<Blob> {
+		const response = await fetch('/api/elevenlabs/tts', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ text, voiceId: ELEVENLABS_DEFAULT_VOICE_ID }),
 		})
 
-		// Sort by time and schedule placement
-		scheduled.sort((a, b) => a.startTime - b.startTime)
-
-		const baseTime = Date.now()
-		for (const { item, startTime: itemTime, y } of scheduled) {
-			const delay = itemTime * 1000 - (Date.now() - baseTime)
-			if (delay > 0) {
-				await new Promise((r) => setTimeout(r, delay))
-			}
-			await this.placeCanvasItem(item, startPos.x, y)
+		if (!response.ok) {
+			throw new Error(`ElevenLabs TTS error ${response.status}`)
 		}
+
+		return response.blob()
+	}
+
+	/** Schedule camera animations to zoom to each canvas item at estimated times during audio playback. */
+	private scheduleCameraTour(speech: string, canvasItems: CanvasItem[], audio: HTMLAudioElement) {
+		// Estimate when each item's label appears in the speech as a fraction
+		const schedule = this.buildCameraSchedule(speech, canvasItems)
+
+		// Wait for audio to have a known duration, then schedule
+		const onCanPlay = () => {
+			audio.removeEventListener('canplaythrough', onCanPlay)
+			const duration = audio.duration
+
+			for (const { shapeId, fraction } of schedule) {
+				const delayMs = fraction * duration * 1000
+				setTimeout(() => {
+					const bounds = this.editor.getShapePageBounds(shapeId)
+					if (!bounds) return
+					// Zoom to the shape with some padding
+					const padded = bounds.clone().expandBy(100)
+					this.editor.zoomToBounds(padded, { animation: { duration: 600 } })
+				}, delayMs)
+			}
+		}
+
+		if (audio.readyState >= 4) {
+			onCanPlay()
+		} else {
+			audio.addEventListener('canplaythrough', onCanPlay)
+		}
+	}
+
+	/** Schedule camera tour using estimated duration for browser TTS fallback. */
+	private scheduleFallbackCameraTour(speech: string, canvasItems: CanvasItem[]) {
+		const schedule = this.buildCameraSchedule(speech, canvasItems)
+		// Estimate speech duration: ~2.5 words per second
+		const wordCount = speech.split(/\s+/).length
+		const estimatedDuration = wordCount / 2.5
+
+		for (const { shapeId, fraction } of schedule) {
+			const delayMs = fraction * estimatedDuration * 1000
+			setTimeout(() => {
+				const bounds = this.editor.getShapePageBounds(shapeId)
+				if (!bounds) return
+				const padded = bounds.clone().expandBy(100)
+				this.editor.zoomToBounds(padded, { animation: { duration: 600 } })
+			}, delayMs)
+		}
+	}
+
+	/** Build a schedule mapping each canvas item to a fractional position in the speech. */
+	private buildCameraSchedule(
+		speech: string,
+		canvasItems: CanvasItem[]
+	): { shapeId: TLShapeId; fraction: number }[] {
+		const speechLower = speech.toLowerCase()
+		const schedule: { shapeId: TLShapeId; fraction: number }[] = []
+
+		for (let i = 0; i < canvasItems.length; i++) {
+			const shapeId = this.placedShapeIds[i]
+			if (!shapeId) continue
+
+			const labelLower = canvasItems[i].label.toLowerCase()
+			const labelIndex = speechLower.indexOf(labelLower)
+			// Fraction of how far through the speech this label appears
+			const fraction = labelIndex >= 0 ? labelIndex / speech.length : i / canvasItems.length
+
+			schedule.push({ shapeId, fraction })
+		}
+
+		schedule.sort((a, b) => a.fraction - b.fraction)
+		return schedule
 	}
 
 	/** Place all canvas items immediately (fallback when ElevenLabs is unavailable). */
@@ -304,12 +369,41 @@ export class IntelligentCanvasAgent {
 		}
 	}
 
-	/** Place a single canvas item (text or image) on the canvas. */
+	/** Place a single canvas item (text or image) on the canvas and track its ID. */
 	private async placeCanvasItem(item: CanvasItem, x: number, y: number) {
 		if (item.type === 'text') {
-			placeTextShape(this.editor, item.content, x, y)
+			const id = placeTextShape(this.editor, item.content, x, y)
+			this.placedShapeIds.push(id)
 		} else if (item.type === 'image_search') {
-			await placeImageFromSearch(this.editor, item.content, x, y)
+			const result = await placeImageFromSearch(this.editor, item.content, x, y)
+			if (result) this.placedShapeIds.push(result.shapeId)
+		}
+	}
+
+	/** Relayout placed shapes so they stack vertically with a small gap, no overlap. */
+	private relayoutPlacedShapes(startX: number) {
+		const GAP = 30
+		let currentY: number | null = null
+
+		for (const id of this.placedShapeIds) {
+			const shape = this.editor.getShape(id)
+			if (!shape) continue
+			const bounds = this.editor.getShapePageBounds(id)
+			if (!bounds) continue
+
+			if (currentY === null) {
+				// First shape — use its current Y as the starting point
+				currentY = shape.y
+			}
+
+			// Move shape to the correct stacked position
+			if (shape.x !== startX || shape.y !== currentY) {
+				this.editor.updateShape({ id, type: shape.type, x: startX, y: currentY } as any)
+			}
+
+			// Advance past this shape's actual height
+			const updatedBounds = this.editor.getShapePageBounds(id)
+			currentY += (updatedBounds?.h ?? bounds.h) + GAP
 		}
 	}
 
@@ -338,7 +432,7 @@ export class IntelligentCanvasAgent {
 
 		return {
 			x: leftMost === Infinity ? 0 : Math.round(leftMost),
-			y: Math.round(maxBottom + 250),
+			y: Math.round(maxBottom + 60),
 		}
 	}
 
