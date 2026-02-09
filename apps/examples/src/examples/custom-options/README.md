@@ -3,6 +3,7 @@ title: Editor options
 component: ./CustomOptionsExample.tsx
 category: configuration
 priority: 0
+keywords: [options, configuration, pages, animation, camera]
 ---
 
 Override default editor options like max number of pages and animation speed.

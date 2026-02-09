@@ -3,7 +3,18 @@ title: Custom double-click behavior
 component: ./CustomDoubleClickBehaviorExample.tsx
 category: events
 priority: 4
-keywords: [double click, runtime override, state node, select tool, custom behavior]
+keywords:
+  [
+    double click,
+    override,
+    statenode,
+    select tool,
+    method replacement,
+    handleDoubleClickOnCanvas,
+    getStateDescendant,
+    runtime,
+    idle state,
+  ]
 ---
 
 Override the default double-click behavior by replacing the SelectTool's Idle state method at runtime.

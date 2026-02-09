@@ -3,7 +3,19 @@ title: Format rich text on multiple shapes
 component: ./RichTextFormatOnMultipleShapesExample.tsx
 category: ui
 priority: 0.5
-keywords: [rich text, format, tiptap, multiple]
+keywords:
+  [
+    rich text,
+    formatting,
+    batch edit,
+    multiple shapes,
+    style panel,
+    bold,
+    marks,
+    programmatic formatting,
+    tlrichtext,
+    document traversal,
+  ]
 ---
 
 Add a toggle button to the style panel that allows you to make all text bold (or remove bold) from multiple selected shapes at once.

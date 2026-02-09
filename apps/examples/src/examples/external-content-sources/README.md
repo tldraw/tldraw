@@ -3,7 +3,19 @@ title: External content sources
 component: ./ExternalContentSourcesExample.tsx
 category: data/assets
 priority: 3
-keywords: [copy, paste, html]
+keywords:
+  [
+    paste,
+    copy,
+    clipboard,
+    html,
+    registerexternalcontenthandler,
+    text content,
+    custom shape,
+    baseboxshapeutil,
+    htmlcontainer,
+    dangerouslysetinnerhtml,
+  ]
 ---
 
 Handle different types of content when pasting into tldraw.

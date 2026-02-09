@@ -28,7 +28,6 @@ import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/a
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
-import { FairyInviteHandler } from '../components/FairyInviteHandler'
 import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -42,7 +41,6 @@ import {
 	clearLocalSessionState,
 	getLocalSessionState,
 	updateLocalSessionState,
-	useAreFairiesEnabled,
 } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
@@ -92,7 +90,6 @@ export function Component() {
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
 		[]
 	)
-	const areFairiesEnabled = useAreFairiesEnabled()
 
 	// Set the data-coarse attribute on the container based on the pointer type
 	// we use a layout effect because we don't want there to be any perceptible delay between the
@@ -111,7 +108,6 @@ export function Component() {
 				'tla-theme__light tl-theme__light': theme === 'light',
 				'tla-theme__dark tl-theme__dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
-				'tla-fairies-enabled': areFairiesEnabled,
 			})}
 		>
 			<IntlWrapper locale={locale}>
@@ -183,7 +179,6 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
-					<FairyInviteHandler />
 					<GroupInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>

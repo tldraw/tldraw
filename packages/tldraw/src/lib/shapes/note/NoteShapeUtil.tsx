@@ -356,6 +356,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLNoteShape): Path2D {
+		const { scale } = shape.props
+		const path = new Path2D()
+		path.roundRect(0, 0, NOTE_SIZE * scale, getNoteHeight(shape), scale)
+		return path
+	}
+
 	override toSvg(shape: TLNoteShape, _ctx: SvgExportContext) {
 		const styles = this.editor.getShapeStyles<TLNoteShapeResolvedStyles>(shape)!
 		const bounds = getBoundsForSVG(shape)

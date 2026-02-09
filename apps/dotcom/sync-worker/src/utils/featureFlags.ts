@@ -1,4 +1,4 @@
-import { FeatureFlagKey, FeatureFlagValue, hasActiveFairyAccess } from '@tldraw/dotcom-shared'
+import { FeatureFlagKey, FeatureFlagValue } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 
@@ -7,14 +7,6 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 	const defaultEnabled = env.TLDRAW_ENV === 'development'
 
 	return {
-		fairies: {
-			enabled: defaultEnabled,
-			description: 'When OFF: completely disables all fairy features for everyone',
-		},
-		fairies_purchase: {
-			enabled: defaultEnabled,
-			description: 'When OFF: hides purchase button (respects in-flight webhooks)',
-		},
 		sqlite_file_storage: {
 			enabled: defaultEnabled,
 			description: 'When ON: uses SQLite storage for TLFileDurableObject instead of in-memory',
@@ -22,7 +14,7 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 	}
 }
 
-const ALL_FLAGS: FeatureFlagKey[] = ['fairies', 'fairies_purchase', 'sqlite_file_storage']
+const ALL_FLAGS: FeatureFlagKey[] = ['sqlite_file_storage']
 
 /**
  * Get feature flag value from KV store
@@ -66,20 +58,6 @@ export async function setFeatureFlag(
 	const current = await getFeatureFlagValue(env, flag)
 	const updated: FeatureFlagValue = { ...current, enabled }
 	await env.FEATURE_FLAGS.put(flag, JSON.stringify(updated))
-}
-
-/**
- * Check if user has fairy access (flag + existing checks)
- */
-export async function checkFairyAccess(
-	env: Environment,
-	fairyLimit: number | null,
-	fairyAccessExpiresAt: number | null
-): Promise<boolean> {
-	const flagEnabled = await getFeatureFlag(env, 'fairies')
-	if (!flagEnabled) return false
-
-	return hasActiveFairyAccess(fairyAccessExpiresAt, fairyLimit)
 }
 
 /**

@@ -60,6 +60,7 @@
 
 	/* Misc */
 	--tl-zoom: 1;
+	--tl-tab-size: 2;
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -895,6 +896,10 @@ input,
 	/* white-space: break-spaces; */
 }
 
+.tl-rich-text {
+	tab-size: var(--tl-tab-size, 2);
+}
+
 .tl-rich-text p {
 	margin: 0;
 	/* Depending on the extensions, <p> tags can be empty, without a <br />. */
@@ -1160,6 +1165,12 @@ input,
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
 	contain: size layout;
+}
+
+.tl-canvas-indicators {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
 }
 
 /* ---------------------- Shape --------------------- */
@@ -1534,15 +1545,6 @@ input,
 	-webkit-user-select: text;
 	white-space: pre;
 	cursor: var(--tl-cursor-text);
-}
-
-/* If mobile use 16px as font size */
-/* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
-/* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
-@media (max-width: 600px) {
-	.tl-frame-heading {
-		font-size: 16px;
-	}
 }
 
 /* ------------------- Embed Shape ------------------ */

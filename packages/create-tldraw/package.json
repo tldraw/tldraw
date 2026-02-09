@@ -1,7 +1,7 @@
 {
 	"name": "create-tldraw",
 	"description": "tldraw infinite canvas SDK (create cli).",
-	"version": "4.2.3",
+	"version": "4.3.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -38,8 +38,7 @@
 		"build": "./scripts/build.sh",
 		"prepack": "yarn build",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@bomb.sh/args": "^0.3.1",

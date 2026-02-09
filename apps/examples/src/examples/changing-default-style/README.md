@@ -3,7 +3,7 @@ title: Change default styles
 component: ./ChangingDefaultStyleExample.tsx
 category: ui
 priority: 0.5
-keywords: [size, styles, default]
+keywords: [styles, default style, style props, size, color, dash, fill, setdefaultvalue]
 ---
 
 Change the default value for a style prop.

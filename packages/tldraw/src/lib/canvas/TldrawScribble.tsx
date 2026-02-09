@@ -9,7 +9,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 	const stroke = getStroke(scribble.points, {
 		size: scribble.size / zoom,
 		start: { taper: scribble.taper, easing: EASINGS.linear },
-		last: scribble.state === 'stopping',
+		last: scribble.state === 'complete' || scribble.state === 'stopping',
 		simulatePressure: false,
 		streamline: 0.32,
 	})

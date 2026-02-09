@@ -54,6 +54,12 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
+	/**
+	 * How long (in milliseconds) to fade all laser scribbles after the session ends.
+	 * The total points across all scribbles will be removed proportionally over this duration.
+	 * Defaults to 500ms (0.5 seconds).
+	 */
+	readonly laserFadeoutMs: number
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
@@ -89,13 +95,13 @@ export interface TldrawOptions {
 	readonly branding?: string
 	/**
 	 * Whether to use debounced zoom level for certain rendering optimizations. When true,
-	 * `editor.getDebouncedZoomLevel()` returns a cached zoom value while the camera is moving,
+	 * `editor.getEfficientZoomLevel()` returns a cached zoom value while the camera is moving,
 	 * reducing re-renders. When false, it always returns the current zoom level.
 	 */
 	readonly debouncedZoom: boolean
 	/**
 	 * The number of shapes that must be on the page for the debounced zoom level to be used.
-	 * Defaults to 300 shapes.
+	 * Defaults to 500 shapes.
 	 */
 	readonly debouncedZoomThreshold: number
 	/**
@@ -157,6 +163,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
+	laserFadeoutMs: 500,
 	maxExportDelayMs: 5000,
 	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,

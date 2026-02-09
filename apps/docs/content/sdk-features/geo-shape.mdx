@@ -1,0 +1,312 @@
+---
+title: Geo shape
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - geo
+  - geometric
+  - rectangle
+  - ellipse
+  - triangle
+  - star
+  - polygon
+  - shapes
+  - label
+  - text
+  - flowchart
+  - diagram
+status: published
+date: 1/31/2026
+---
+
+The geo shape is one of the default shapes in tldraw. It renders geometric primitives with optional text labels. Geo shapes support 20 different geometric forms—from basic shapes like rectangles and ellipses to specialized forms like stars, clouds, and directional arrows. They can display rich text labels with configurable alignment. These capabilities make geo shapes the foundation for flowcharts, diagrams, and annotated illustrations.
+
+## Geometric forms
+
+The geo shape supports a variety of built-in forms, grouped by type:
+
+### Basic shapes
+
+| Form        | Description                                  |
+| ----------- | -------------------------------------------- |
+| `rectangle` | Four-sided shape with right angles (default) |
+| `ellipse`   | Oval or circular shape                       |
+| `triangle`  | Three-sided shape pointing upward            |
+| `diamond`   | Square rotated 45 degrees                    |
+| `oval`      | Stadium shape (rectangle with rounded ends)  |
+
+### Polygons
+
+| Form       | Description                 |
+| ---------- | --------------------------- |
+| `pentagon` | Five-sided regular polygon  |
+| `hexagon`  | Six-sided regular polygon   |
+| `octagon`  | Eight-sided regular polygon |
+| `star`     | Five-pointed star           |
+
+### Parallelograms
+
+| Form        | Description                                   |
+| ----------- | --------------------------------------------- |
+| `rhombus`   | Parallelogram slanted to the right            |
+| `rhombus-2` | Parallelogram slanted to the left             |
+| `trapezoid` | Four-sided shape with parallel top and bottom |
+
+### Directional arrows
+
+| Form          | Description                   |
+| ------------- | ----------------------------- |
+| `arrow-up`    | Block arrow pointing upward   |
+| `arrow-down`  | Block arrow pointing downward |
+| `arrow-left`  | Block arrow pointing left     |
+| `arrow-right` | Block arrow pointing right    |
+
+### Special shapes
+
+| Form        | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `cloud`     | Organic cloud shape with randomly varied bumps |
+| `heart`     | Heart shape                                    |
+| `x-box`     | Rectangle with an X through it                 |
+| `check-box` | Rectangle with a checkmark inside              |
+
+## Creating geo shapes
+
+Create a geo shape using [Editor#createShape](?):
+
+```tsx
+import { toRichText } from 'tldraw'
+
+editor.createShape({
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: {
+		geo: 'rectangle',
+		w: 200,
+		h: 150,
+		color: 'blue',
+		fill: 'solid',
+		dash: 'draw',
+		size: 'm',
+	},
+})
+```
+
+### Adding text labels
+
+Geo shapes support rich text labels positioned inside the shape:
+
+```tsx
+editor.createShape({
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: {
+		geo: 'ellipse',
+		w: 200,
+		h: 150,
+		richText: toRichText('Process step'),
+		labelColor: 'black',
+		align: 'middle',
+		verticalAlign: 'middle',
+		font: 'draw',
+	},
+})
+```
+
+The label text automatically wraps within the shape bounds. When text overflows the shape height, the shape grows vertically to accommodate it. The `growY` property tracks this additional height.
+
+### Changing the geometric form
+
+Switch between forms by updating the `geo` property:
+
+```tsx
+// Change a rectangle to an ellipse
+editor.updateShape({
+	id: shapeId,
+	type: 'geo',
+	props: {
+		geo: 'ellipse',
+	},
+})
+```
+
+You can also set the default geometric form for the geo tool by updating the style for the next shape:
+
+```tsx
+import { GeoShapeGeoStyle } from 'tldraw'
+
+// Set the default geo style to star
+editor.setStyleForNextShapes(GeoShapeGeoStyle, 'star')
+```
+
+## Using the geo tool
+
+The geo tool creates shapes through click or click-and-drag interactions.
+
+### Click to create
+
+Click anywhere on the canvas to create a shape at the default size. The shape centers on your click position. Different geometric forms have different default sizes:
+
+| Form    | Default size |
+| ------- | ------------ |
+| `star`  | 200 × 190    |
+| `cloud` | 300 × 180    |
+| Other   | 200 × 200    |
+
+### Click and drag to create
+
+Click and drag to create a shape at a custom size. The shape's corner follows your pointer as you drag. Release to complete the shape.
+
+### Editing labels
+
+Press Enter while a geo shape is selected to edit its label. The shape enters edit mode, allowing you to type or modify the rich text content. Press Escape to exit edit mode.
+
+### Tool lock
+
+When tool lock is enabled (via the toolbar or [Editor#setCurrentTool](?)), you can create multiple shapes without returning to the select tool after each one.
+
+## Shape properties
+
+| Property        | Type                            | Description                                         |
+| --------------- | ------------------------------- | --------------------------------------------------- |
+| `geo`           | `TLGeoShapeGeoStyle`            | The geometric form                                  |
+| `w`             | `number`                        | Width in pixels                                     |
+| `h`             | `number`                        | Height in pixels                                    |
+| `richText`      | `TLRichText`                    | Text label displayed inside the shape               |
+| `color`         | `TLDefaultColorStyle`           | Stroke/outline color                                |
+| `labelColor`    | `TLDefaultColorStyle`           | Text label color (separate from stroke)             |
+| `fill`          | `TLDefaultFillStyle`            | Fill style: `none`, `semi`, `solid`, `pattern`      |
+| `dash`          | `TLDefaultDashStyle`            | Stroke pattern: `draw`, `solid`, `dashed`, `dotted` |
+| `size`          | `TLDefaultSizeStyle`            | Size preset affecting stroke width                  |
+| `font`          | `TLDefaultFontStyle`            | Font family for the label                           |
+| `align`         | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                           |
+| `verticalAlign` | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                             |
+| `growY`         | `number`                        | Additional vertical space for text overflow         |
+| `url`           | `string`                        | Optional hyperlink URL                              |
+| `scale`         | `number`                        | Scale factor applied to the shape                   |
+
+## Configuration options
+
+Configure the geo shape utility to adjust rendering behavior:
+
+| Option            | Type      | Default | Description                                                                                      |
+| ----------------- | --------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `showTextOutline` | `boolean` | `true`  | Whether to show a text outline (using the canvas background color) to improve label readability. |
+
+```tsx
+import { GeoShapeUtil } from 'tldraw'
+
+const ConfiguredGeoUtil = GeoShapeUtil.configure({
+	showTextOutline: false,
+})
+```
+
+Pass the configured utility to the `shapeUtils` prop:
+
+```tsx
+<Tldraw shapeUtils={[ConfiguredGeoUtil]} />
+```
+
+## Label positioning
+
+The `align` and `verticalAlign` properties control where labels appear within the shape:
+
+### Horizontal alignment
+
+| Value    | Position              |
+| -------- | --------------------- |
+| `start`  | Left edge of shape    |
+| `middle` | Horizontally centered |
+| `end`    | Right edge of shape   |
+
+### Vertical alignment
+
+| Value    | Position            |
+| -------- | ------------------- |
+| `start`  | Top of shape        |
+| `middle` | Vertically centered |
+| `end`    | Bottom of shape     |
+
+When the label text exceeds the shape's height, the shape automatically grows by adding to `growY`. The shape never shrinks below its original `h` value to accommodate shorter text—instead, `growY` returns to 0.
+
+## Resizing behavior
+
+Geo shapes resize from any corner or edge handle. When resizing a shape with a label:
+
+- The shape respects a minimum unscaled size of 51 × 51 pixels when it contains text
+- The shape won't shrink smaller than the label's required dimensions
+- `growY` resets to 0 when you resize, letting the shape recalculate the needed height
+
+## Special interactions
+
+### Rectangle/checkbox toggle
+
+Double-click a rectangle while holding Alt to convert it to a checkbox. Double-click the checkbox with Alt held to convert it back to a rectangle. This lets you quickly add checkmarks to items.
+
+### Cloud shape variation
+
+The cloud shape generates its bumps procedurally based on the shape's ID. Each cloud has unique bump positions, giving visual variety while maintaining a consistent style. Larger clouds have more bumps; smaller clouds have fewer but at least six.
+
+### Handle snap geometry
+
+Arrows snap to geo shapes at meaningful positions:
+
+- **Polygon-based shapes** (rectangle, triangle, pentagon, etc.): Arrows snap to each vertex and the center
+- **Curved shapes** (ellipse, oval, cloud, heart): Arrows snap only to the center point
+
+## Dynamic resize mode
+
+When dynamic resize mode is enabled in user preferences, new geo shapes scale inversely with zoom level. Drawing while zoomed out creates shapes that appear the same size on screen as they would at 100% zoom.
+
+```tsx
+// Enable dynamic resize mode
+editor.user.updateUserPreferences({ isDynamicResizeMode: true })
+```
+
+## Hyperlinks
+
+Geo shapes can link to URLs. When a shape has a URL, a link button appears on the shape:
+
+```tsx
+editor.createShape({
+	type: 'geo',
+	x: 100,
+	y: 100,
+	props: {
+		geo: 'rectangle',
+		w: 200,
+		h: 100,
+		url: 'https://tldraw.dev',
+	},
+})
+```
+
+Click the link button to open the URL in a new tab.
+
+## Path rendering
+
+Geo shapes use a path-based rendering system. Each geometric form has a corresponding path definition in `getGeoShapePath`, which generates the outline used for both fill rendering and stroke styles. The path system supports:
+
+- **Fill rendering**: Solid, semi-transparent, or pattern fills
+- **Stroke styles**: Solid lines, dashed patterns, dotted patterns, and hand-drawn "draw" style
+- **Efficient caching**: Path calculations are cached per shape instance
+
+When the `dash` property is set to `'draw'`, the shape renders with organic, hand-drawn strokes that vary slightly based on the shape's position and size.
+
+## Geometry
+
+The shape's geometry returns a [Group2d](?) containing:
+
+1. The outline path geometry (polygon or curve depending on the form)
+2. A label rectangle for hit testing text interactions
+
+This compound geometry enables accurate point-in-shape detection for both the shape outline and its text label.
+
+## Related articles
+
+- [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shapes
+- [Rich text](/sdk-features/rich-text) — Working with formatted text content
+- [Styles](/sdk-features/styles) — Working with shape styles like color and fill
+- [Tools](/sdk-features/tools) — How tools handle user input

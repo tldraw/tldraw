@@ -486,7 +486,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				const rateLimitTimer = this.timer()
 				if (auth?.userId) {
-					const rateLimited = await isRateLimited(this.env, auth?.userId)
+					const rateLimited = await isRateLimited(this.env, auth.userId)
 					if (rateLimited) {
 						this.logEvent({
 							type: 'client',

@@ -3,7 +3,21 @@ title: Timeline scrubber
 component: ./TimelineScrubberExample.tsx
 category: use-cases
 priority: 10
-keywords: [timeline, history, undo, redo, time travel, scrubber]
+keywords:
+  [
+    timeline,
+    history,
+    undo,
+    redo,
+    time travel,
+    scrubber,
+    store.listen,
+    RecordsDiff,
+    squashRecordDiffs,
+    reverseRecordsDiff,
+    applyDiff,
+    document changes,
+  ]
 ---
 
 A timeline scrubber that records document changes and allows time travel through editor history.

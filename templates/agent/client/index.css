@@ -391,6 +391,16 @@ body {
 	background: var(--tl-color-text-3);
 }
 
+.chat-history-prompt-content {
+	white-space: pre-wrap;
+}
+
+/* Messages from other agents are italicized and lighter */
+.chat-history-prompt-other-agent {
+	color: var(--tl-color-text-3);
+	font-style: italic;
+}
+
 .chat-history-group {
 	display: flex;
 	flex-direction: column;
@@ -659,15 +669,16 @@ button.prompt-tag span {
 }
 
 /* Context Highlights */
+/* Uses --tl-scale (1/zoom) to keep visual size constant at different zoom levels */
 
 .context-highlight {
 	pointer-events: none;
 }
 
 .context-highlight line {
-	stroke-dasharray: 4px;
+	stroke-dasharray: calc(4px * var(--tl-scale));
 	stroke-linecap: round;
-	stroke-width: 1px;
+	stroke-width: calc(1px * var(--tl-scale));
 }
 
 .context-highlight-generating line {
@@ -675,15 +686,15 @@ button.prompt-tag span {
 }
 
 .context-highlight circle {
-	stroke-width: 1px;
+	stroke-width: calc(1px * var(--tl-scale));
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
 }
 
 .context-highlight-generating circle {
-	stroke-dasharray: 3px;
-	stroke-width: 2px;
+	stroke-dasharray: calc(3px * var(--tl-scale));
+	stroke-width: calc(2px * var(--tl-scale));
 	fill: none;
 	animation: dash 100s linear infinite;
 }
@@ -697,10 +708,11 @@ button.prompt-tag span {
 	border-radius: 0px 0px 6px 0px;
 	font-weight: 500;
 	white-space: nowrap;
-	margin-top: -0.5px;
-	margin-left: -0.5px;
 	pointer-events: none;
 	font-family: 'Inter', sans-serif;
+	/* Scale the label to maintain constant visual size */
+	transform: scale(var(--tl-scale));
+	transform-origin: top left;
 }
 
 @keyframes dash {

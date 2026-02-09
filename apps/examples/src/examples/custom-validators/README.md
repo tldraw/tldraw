@@ -3,7 +3,18 @@ title: Custom validators for shape props
 component: ./CustomValidatorsExample.tsx
 category: shapes/tools
 priority: 4
-keywords: [validation, validators, check, refine, constraints, props, custom, shape]
+keywords:
+  [
+    validation,
+    validators,
+    check,
+    refine,
+    constraints,
+    props,
+    shapeutil,
+    recordprops,
+    error handling,
+  ]
 ---
 
 Demonstrates using custom validators with `.check()` and `.refine()` methods to add validation constraints to shape props.

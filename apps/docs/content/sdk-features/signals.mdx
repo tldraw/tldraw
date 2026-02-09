@@ -1,0 +1,418 @@
+---
+title: Signals
+created_at: 12/28/2025
+updated_at: 12/28/2025
+keywords:
+  - signals
+  - reactive
+  - state
+  - atoms
+  - computed
+  - reactor
+  - hooks
+status: published
+date: 12/28/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The tldraw SDK uses signals for state management. Signals automatically track dependencies and update efficiently: when state changes, only the parts of your application that depend on that state will update.
+
+The editor exposes many of its internal values as signals. Methods like `editor.getSelectedShapeIds()` and `editor.getCurrentPageShapes()` return reactive values that update automatically when the underlying state changes. The React bindings connect these signals to components, so your UI stays in sync without manual subscription management.
+
+## Core concepts
+
+### Atoms
+
+An atom holds a mutable value. When you change the value, any computeds or effects that depend on the atom will update.
+
+```ts
+import { atom } from '@tldraw/state'
+
+const count = atom('count', 0)
+
+count.get() // 0
+count.set(5)
+count.get() // 5
+
+// Update based on current value
+count.update((n) => n + 1)
+count.get() // 6
+```
+
+The first argument is a name for debugging. The second is the initial value. Atoms support a few options:
+
+- `isEqual` — Custom equality function to determine if a value has changed
+- `historyLength` — Number of diffs to retain for incremental updates
+- `computeDiff` — Function to compute diffs between values
+
+### Computed values
+
+A computed derives its value from other signals. It recomputes only when its dependencies change.
+
+```ts
+import { atom, computed } from '@tldraw/state'
+
+const firstName = atom('firstName', 'Jane')
+const lastName = atom('lastName', 'Doe')
+
+const fullName = computed('fullName', () => {
+	return `${firstName.get()} ${lastName.get()}`
+})
+
+fullName.get() // 'Jane Doe'
+
+firstName.set('John')
+fullName.get() // 'John Doe' — recomputed automatically
+```
+
+Computed values are lazy: they don't calculate until you call `.get()`. They also cache their result. If you call `.get()` multiple times without any dependencies changing, the derivation function runs only once.
+
+The `@computed` decorator provides the same functionality for class methods:
+
+```ts
+import { atom, computed } from '@tldraw/state'
+
+class Counter {
+	count = atom('count', 0)
+
+	@computed getDoubled() {
+		return this.count.get() * 2
+	}
+}
+```
+
+### Effects and reactors
+
+Effects run side effects in response to signal changes. There are two ways to create them:
+
+```ts
+import { atom, react, reactor } from '@tldraw/state'
+
+const count = atom('count', 0)
+
+// react() starts immediately and returns a cleanup function
+const stop = react('log count', () => {
+	console.log('Count is:', count.get())
+})
+
+count.set(1) // logs: Count is: 1
+count.set(2) // logs: Count is: 2
+
+stop() // Stop listening
+
+// reactor() gives you control over when to start
+const r = reactor('log count', () => {
+	console.log('Count is:', count.get())
+})
+
+r.start() // Begin listening
+r.stop() // Stop listening
+```
+
+Effects track which signals they read and re-run when those signals change. The `scheduleEffect` option lets you batch updates, for example using `requestAnimationFrame`:
+
+```ts
+react(
+	'update-dom',
+	() => {
+		// DOM updates based on signal state
+	},
+	{
+		scheduleEffect: (execute) => requestAnimationFrame(execute),
+	}
+)
+```
+
+### Transactions
+
+Transactions batch multiple changes into a single update. Effects only run once after all changes complete:
+
+```ts
+import { atom, react, transact } from '@tldraw/state'
+
+const a = atom('a', 1)
+const b = atom('b', 2)
+
+react('sum', () => {
+	console.log('Sum:', a.get() + b.get())
+})
+
+// Without transaction: effect runs twice
+a.set(10) // logs: Sum: 12
+b.set(20) // logs: Sum: 30
+
+// With transaction: effect runs once
+transact(() => {
+	a.set(100)
+	b.set(200)
+})
+// logs: Sum: 300
+```
+
+The `transaction` function supports rollback:
+
+```ts
+import { transaction } from '@tldraw/state'
+
+transaction((rollback) => {
+	a.set(999)
+	if (somethingWentWrong) {
+		rollback() // Restores original values
+	}
+})
+```
+
+## React integration
+
+The `@tldraw/state-react` package connects signals to React components.
+
+### useValue
+
+The most common hook. It reads a signal value and subscribes the component to changes:
+
+```tsx
+import { atom } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
+
+const count = atom('count', 0)
+
+function Counter() {
+	const value = useValue(count)
+	return <div>Count: {value}</div>
+}
+```
+
+You can also compute a value inline with a dependency array:
+
+```tsx
+function ShapeInfo({ editor }) {
+	const selectedCount = useValue('selected count', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
+	return <div>{selectedCount} shapes selected</div>
+}
+```
+
+### track
+
+The `track` higher-order component automatically tracks signal access during render:
+
+```tsx
+import { track } from '@tldraw/state-react'
+
+const Counter = track(function Counter() {
+	return <div>Count: {count.get()}</div>
+})
+```
+
+Tracked components re-render when any signal accessed during render changes. This is the pattern used throughout tldraw's internal components. The component is also wrapped in `React.memo`, so it only re-renders when props change or tracked signals update.
+
+### useAtom and useComputed
+
+Create component-local signals that persist across renders:
+
+```tsx
+import { useAtom, useComputed } from '@tldraw/state-react'
+
+function Counter() {
+	const count = useAtom('count', 0)
+	const doubled = useComputed('doubled', () => count.get() * 2, [count])
+
+	return (
+		<div>
+			<button onClick={() => count.update((n) => n + 1)}>Increment</button>
+			<div>Count: {count.get()}</div>
+			<div>Doubled: {doubled.get()}</div>
+		</div>
+	)
+}
+```
+
+### useReactor and useQuickReactor
+
+Run effects tied to component lifecycle. The effect automatically tracks which signals it reads:
+
+```tsx
+import { useReactor, useQuickReactor } from '@tldraw/state-react'
+
+function SelectionLogger({ editor }) {
+	// Throttled to next animation frame — good for DOM updates
+	useReactor(
+		'update title',
+		() => {
+			const count = editor.getSelectedShapeIds().length
+			document.title = `${count} shapes selected`
+		},
+		[editor]
+	)
+
+	// Runs immediately — for critical state synchronization
+	useQuickReactor(
+		'sync data',
+		() => {
+			syncToServer(editor.getDocumentState())
+		},
+		[editor]
+	)
+
+	return null
+}
+```
+
+### useStateTracking
+
+Lower-level hook for manual tracking. This is what `track` uses internally:
+
+```tsx
+import { useStateTracking } from '@tldraw/state-react'
+
+function CustomComponent() {
+	return useStateTracking('CustomComponent', () => {
+		return <div>{someSignal.get()}</div>
+	})
+}
+```
+
+## Signals in the editor
+
+The editor uses signals extensively. Most getter methods return reactive values:
+
+```tsx
+function SelectionInfo({ editor }) {
+	const selectedShapes = useValue('shapes', () => editor.getSelectedShapes(), [editor])
+	const currentPage = useValue('page', () => editor.getCurrentPage(), [editor])
+	const zoomLevel = useValue('zoom', () => editor.getZoomLevel(), [editor])
+
+	return (
+		<div>
+			<div>Page: {currentPage.name}</div>
+			<div>Zoom: {Math.round(zoomLevel * 100)}%</div>
+			<div>{selectedShapes.length} shapes selected</div>
+		</div>
+	)
+}
+```
+
+You can use `track` for cleaner syntax when accessing many signals:
+
+```tsx
+const SelectionInfo = track(function SelectionInfo({ editor }) {
+	const shapes = editor.getSelectedShapes()
+	const page = editor.getCurrentPage()
+	const zoom = editor.getZoomLevel()
+
+	return (
+		<div>
+			<div>Page: {page.name}</div>
+			<div>Zoom: {Math.round(zoom * 100)}%</div>
+			<div>{shapes.length} shapes selected</div>
+		</div>
+	)
+})
+```
+
+## Debugging
+
+The `whyAmIRunning` function helps trace what triggered an update. Call it inside an effect or computed to see which signals changed:
+
+```ts
+import { atom, react, whyAmIRunning } from '@tldraw/state'
+
+const name = atom('name', 'Bob')
+
+react('greeting', () => {
+	whyAmIRunning()
+	console.log('Hello', name.get())
+})
+
+name.set('Alice')
+// Console output:
+// Effect(greeting) is executing because:
+//  ↳ Atom(name) changed
+```
+
+For nested dependencies, the output shows the full chain:
+
+```ts
+const firstName = atom('firstName', 'Jane')
+const lastName = atom('lastName', 'Doe')
+const fullName = computed('fullName', () => `${firstName.get()} ${lastName.get()}`)
+
+react('log name', () => {
+	whyAmIRunning()
+	console.log(fullName.get())
+})
+
+firstName.set('John')
+// Console output:
+// Effect(log name) is executing because:
+//  ↳ Computed(fullName) changed
+//    ↳ Atom(firstName) changed
+```
+
+All signals have a `name` property (the first argument when creating them) that appears in debug output.
+
+## Reading without tracking
+
+Sometimes you want to read a signal's value without creating a dependency. Use `unsafe__withoutCapture` to read signals without triggering re-runs:
+
+```ts
+import { atom, react, unsafe__withoutCapture } from '@tldraw/state'
+
+const name = atom('name', 'Sam')
+const time = atom('time', Date.now())
+
+// Update time every second
+setInterval(() => time.set(Date.now()), 1000)
+
+react('log name changes', () => {
+	// Only re-run when name changes, not when time changes
+	const currentTime = unsafe__withoutCapture(() => time.get())
+	console.log(name.get(), 'was changed at', currentTime)
+})
+```
+
+## API reference
+
+### @tldraw/state
+
+| Export                       | Description                                                     |
+| ---------------------------- | --------------------------------------------------------------- |
+| `atom(name, value, options)` | Create a mutable signal                                         |
+| `computed(name, fn)`         | Create a derived signal                                         |
+| `@computed`                  | Decorator for computed class methods                            |
+| `react(name, fn, options)`   | Run an effect immediately, returns cleanup function             |
+| `reactor(name, fn, options)` | Create a controllable effect with `start()` and `stop()`        |
+| `transact(fn)`               | Batch changes into a single update                              |
+| `transaction(fn)`            | Batch changes with rollback support                             |
+| `isAtom(value)`              | Type guard for atoms                                            |
+| `isSignal(value)`            | Type guard for any signal                                       |
+| `getComputedInstance(o, p)`  | Get the underlying computed for a `@computed` decorated method  |
+| `whyAmIRunning()`            | Debug helper to trace update triggers                           |
+| `unsafe__withoutCapture(fn)` | Read signals without creating dependencies                      |
+| `RESET_VALUE`                | Symbol returned by `getDiffSince` when history is insufficient  |
+| `isUninitialized(value)`     | Check if a computed is running its first derivation             |
+| `withDiff(value, diff)`      | Manually provide a diff when returning from a computed          |
+| `localStorageAtom(name, v)`  | Returns `[atom, cleanup]` tuple; atom persists to localStorage  |
+| `deferAsyncEffects(fn)`      | Queue effects for async operations (used internally for stores) |
+
+### @tldraw/state-react
+
+| Export                             | Description                                 |
+| ---------------------------------- | ------------------------------------------- |
+| `useValue(signal)`                 | Subscribe to a signal, returns its value    |
+| `useValue(name, fn, deps)`         | Compute and subscribe to a derived value    |
+| `useAtom(name, initialValue)`      | Create a component-local atom               |
+| `useComputed(name, fn, deps)`      | Create a component-local computed           |
+| `useReactor(name, fn, deps)`       | Effect throttled to animation frames        |
+| `useQuickReactor(name, fn, deps)`  | Effect that runs immediately                |
+| `useStateTracking(name, renderFn)` | Manual signal tracking for render functions |
+| `track(Component)`                 | HOC that tracks signal access during render |
+
+## Related examples
+
+- **[Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/reactive-inputs)** — Using `useValue` with editor input state.

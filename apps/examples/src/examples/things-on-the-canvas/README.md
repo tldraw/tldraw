@@ -3,7 +3,18 @@ title: Things on the canvas
 component: ./OnTheCanvasExample.tsx
 category: ui
 priority: 1
-keywords: [in front of the canvas, scale, zoom, ui]
+keywords:
+  [
+    canvas overlay,
+    OnTheCanvas,
+    InFrontOfTheCanvas,
+    components,
+    custom component,
+    camera,
+    page coordinates,
+    pageToViewport,
+    track,
+  ]
 ---
 
 Add custom components to the canvas.

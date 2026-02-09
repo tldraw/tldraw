@@ -2,7 +2,16 @@
 title: Custom renderer
 component: ./CustomRendererExample.tsx
 category: ui
-keywords: [html, canvas, background, context]
+keywords:
+  [
+    renderer,
+    canvas,
+    Background component,
+    Canvas component,
+    custom rendering,
+    2d context,
+    alternative rendering,
+  ]
 priority: 100
 ---
 

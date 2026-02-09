@@ -20,7 +20,7 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "scaleY": 1.1,
     "segments": [
       {
-        "points": "AAAAAAA4QFZAVgA4",
+        "path": "AAAAAAAAAAAAAAA/QFZAVgAA",
         "type": "free",
       },
     ],
