@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	body {
+		@apply antialiased;
+	}
+
+	.prose h2,
+	.prose h3,
+	.prose h4,
+	.prose h5,
+	.prose h6 {
+		scroll-margin-top: 90px;
+	}
+
+	.prose blockquote p {
+		margin: 0;
+	}
+
+	.prose blockquote p:before,
+	.prose blockquote p:after {
+		content: none;
+	}
+}

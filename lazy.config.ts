@@ -50,6 +50,11 @@ const config = {
 						],
 					},
 				},
+				'apps/website': {
+					cache: {
+						inputs: ['app/**/*', 'components/**/*', 'sanity/**/*', 'lib/**/*', 'public/**/*'],
+					},
+				},
 			},
 		},
 		dev: {

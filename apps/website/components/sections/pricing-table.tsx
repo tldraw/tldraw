@@ -1,0 +1,69 @@
+import { cn } from '@/lib/utils'
+import type { PricingTier } from '@/sanity/types'
+import Link from 'next/link'
+
+interface PricingTableProps {
+	tiers: PricingTier[]
+}
+
+export function PricingTable({ tiers }: PricingTableProps) {
+	return (
+		<div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+			{tiers.map((tier) => (
+				<div
+					key={tier._id}
+					className={cn(
+						'relative rounded-2xl border p-8',
+						tier.isHighlighted
+							? 'border-zinc-900 shadow-lg dark:border-white'
+							: 'border-zinc-200 dark:border-zinc-800'
+					)}
+				>
+					{tier.isHighlighted && (
+						<div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white dark:bg-white dark:text-zinc-900">
+							Most popular
+						</div>
+					)}
+					<h3 className="text-lg font-semibold text-zinc-900 dark:text-white">{tier.name}</h3>
+					<div className="mt-4 flex items-baseline">
+						<span className="text-4xl font-bold text-zinc-900 dark:text-white">{tier.price}</span>
+						{tier.period && (
+							<span className="ml-1 text-sm text-zinc-500 dark:text-zinc-400">/{tier.period}</span>
+						)}
+					</div>
+					<p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{tier.description}</p>
+					<ul className="mt-8 space-y-3">
+						{tier.features.map((feature) => (
+							<li
+								key={feature}
+								className="flex items-start gap-3 text-sm text-zinc-600 dark:text-zinc-400"
+							>
+								<svg
+									className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-900 dark:text-white"
+									fill="none"
+									viewBox="0 0 24 24"
+									strokeWidth="2"
+									stroke="currentColor"
+								>
+									<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+								</svg>
+								{feature}
+							</li>
+						))}
+					</ul>
+					<Link
+						href={tier.ctaUrl}
+						className={cn(
+							'mt-8 block w-full rounded-lg py-3 text-center text-sm font-semibold transition-colors',
+							tier.isHighlighted
+								? 'bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200'
+								: 'border border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800'
+						)}
+					>
+						{tier.ctaLabel}
+					</Link>
+				</div>
+			))}
+		</div>
+	)
+}
