@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Menu du fichier"
   },
-  "0befa10111": {
-    "translation": "fées"
-  },
   "0d1f2bb523": {
     "translation": "Envoyer des commentaires"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Aujourd'hui"
   },
-  "23f879f41a": {
-    "translation": "Votre limite hebdomadaire d'utilisation des fées a été atteinte. Elle sera réinitialisée au début de la semaine prochaine."
-  },
-  "243924bfd5": {
-    "translation": "Dormir"
-  },
   "2445e5e347": {
     "translation": "Créer un groupe"
   },
   "250ddea65c": {
     "translation": "À propos de tldraw"
-  },
-  "269097080b": {
-    "translation": "Vos fées vous attendent"
-  },
-  "275173253d": {
-    "translation": "Invoquer tout"
   },
   "284d5cd0dd": {
     "translation": "Modèle:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Mes fichiers"
   },
-  "30cd34258a": {
-    "translation": "Une volée de <b>fées</b> est arrivée sur tldraw pour le mois de décembre. Pour en savoir plus, trouvez la fée et cliquez dessus."
-  },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
   },
   "31418ce4ad": {
     "translation": "i18n : surlignement manquant"
-  },
-  "3209f407ed": {
-    "translation": "trois fées"
   },
   "32210b37e4": {
     "translation": "Ajouter un lien"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Éditeur"
-  },
-  "34abfe7a0d": {
-    "translation": "Dormez tout"
   },
   "34e34c43ec": {
     "translation": "Gérer"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Obtenir de l'aide sur Discord"
   },
-  "45b43c2d28": {
-    "translation": "Les <strong>fées</strong> sont venues à tldraw pour le mois de décembre."
-  },
   "46137245cd": {
     "translation": "Merci de nous aider à améliorer tldraw !"
-  },
-  "465a8a92a4": {
-    "translation": "Aucune fée sélectionnée"
   },
   "477df802ca": {
     "translation": "Pour continuer la modification, veuillez copier le fichier dans vos fichiers."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Saisissez votre adresse e-mail"
   },
-  "688761c83e": {
-    "translation": "Se réveiller"
-  },
   "68d390535e": {
     "translation": "Saisissez votre message"
-  },
-  "6910bbdc82": {
-    "translation": "Nom de la fée"
   },
   "6a26f54883": {
     "translation": "Aide"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Demande invalide."
   },
-  "77f0abf1aa": {
-    "translation": "Vous avez été invité à <strong>dessiner des fées</strong>"
-  },
   "7827371d1a": {
     "translation": "Ce fichier tldraw multijoueur anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Soumettre un problème sur GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Une fée est un petit être qui peut vous accompagner sur la toile. Les fées peuvent travailler seules ou en équipe. Leurs possibilités sont infinies. Nul ne sait d'où elles viennent."
   },
   "7b1329f5ca": {
     "translation": "Manuel d'utilisation"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Réinitialisation matérielle"
   },
-  "88e83b88c5": {
-    "translation": "Achetez le pack féerique"
-  },
   "8ad4303b83": {
     "translation": "Non merci"
-  },
-  "8be569f100": {
-    "translation": "paiement unique"
   },
   "8c2d3d730c": {
     "translation": "Consultez votre boîte mail pour obtenir un code de vérification."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Le fichier devient volumineux."
   },
-  "a8de4c27a8": {
-    "translation": "Limite hebdomadaire de fées atteinte"
-  },
   "a917baaf14": {
     "translation": "Nouvelle conversation"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Partagé par {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoom sur la fée"
   },
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Ce fichier approche de sa limite de taille. Pensez à supprimer du contenu ou à créer un nouveau fichier."
   },
-  "ce1424d44b": {
-    "translation": "Vous avez déjà accès aux fées !"
-  },
   "cea291e45e": {
     "translation": "En savoir plus sur la publication."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "URL de fichier tldraw invalide"
-  },
-  "df6ff49394": {
-    "translation": "Les fées sont une fonctionnalité <strong>temporaire</strong>. Le 1er janvier 2026, elles seront retirées de l'application. Elles reviendront peut-être un jour. Votre achat vous donne accès aux fées uniquement pour le mois de décembre 2025."
   },
   "dfdb78a4e4": {
     "translation": "Indicateurs de débogage de l'application"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "choisi"
-  },
-  "efde983742": {
-    "translation": "Convoquer"
   },
   "f09b16bc5f": {
     "translation": "Nous utilisons des cookies pour vous garder connecté, pour synchroniser vos fichiers et pour collecter des analyses pour nous aider à améliorer tldraw."

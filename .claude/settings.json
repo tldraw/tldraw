@@ -1,4 +1,34 @@
 {
+	"spinnerVerbs": {
+		"mode": "replace",
+		"verbs": [
+			"panning",
+			"zooming",
+			"scrolling",
+			"drawing",
+			"erasing",
+			"creating",
+			"typing",
+			"selecting",
+			"deselecting",
+			"duplicating",
+			"nudging",
+			"resizing",
+			"rotating",
+			"flipping",
+			"stretching",
+			"aligning",
+			"distributing",
+			"stacking",
+			"packing",
+			"grouping",
+			"ungrouping",
+			"editing",
+			"cropping",
+			"styling",
+			"embedding"
+		]
+	},
 	"permissions": {
 		"allow": [
 			"WebSearch",

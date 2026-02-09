@@ -2,7 +2,6 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFileFairy,
 	TlaFileState,
 	TlaGroup,
 	TlaGroupFile,
@@ -10,7 +9,6 @@ import {
 	TlaRow,
 	TlaRowPartial,
 	TlaUser,
-	TlaUserFairy,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -124,8 +122,6 @@ export interface ZStoreData {
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
 	group_file: TlaGroupFile[]
-	user_fairies: TlaUserFairy[]
-	file_fairies: TlaFileFairy[]
 	lsn: string
 }
 
@@ -143,15 +139,7 @@ export interface ZRowDeleteOrUpdate {
 	event: 'update' | 'delete'
 }
 
-export type ZTable =
-	| 'file'
-	| 'file_state'
-	| 'user'
-	| 'group'
-	| 'group_user'
-	| 'group_file'
-	| 'user_fairies'
-	| 'file_fairies'
+export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 
@@ -229,28 +217,11 @@ export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
 export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
 
-/* ----------------------- Fairy Access ---------------------- */
+/* ----------------------- Feature Flags ---------------------- */
 
-export interface PaddleCustomData {
-	userId: string
-	email?: string
-}
-
-export type FeatureFlagKey = 'fairies' | 'fairies_purchase' | 'sqlite_file_storage'
+export type FeatureFlagKey = 'sqlite_file_storage'
 
 export interface FeatureFlagValue {
 	enabled: boolean
 	description: string
-}
-
-export function hasActiveFairyAccess(
-	fairyAccessExpiresAt: number | null,
-	fairyLimit: number | null
-): boolean {
-	return (
-		fairyLimit !== null &&
-		fairyLimit > 0 &&
-		fairyAccessExpiresAt !== null &&
-		fairyAccessExpiresAt > Date.now()
-	)
 }

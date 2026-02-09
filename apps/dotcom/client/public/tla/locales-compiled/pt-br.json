@@ -69,12 +69,6 @@
       "value": "Guia do arquivo"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Fadas"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Hoje"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Seu limite semanal de uso de fadas foi atingido. Ele será reiniciado no início da próxima semana."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Dormir"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "Sobre tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Suas fadas estão esperando"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Invoque todos"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Meus arquivos"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Um bando de "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "fadas"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " chegou ao tldraw durante o mês de dezembro. Para investigar mais a fundo, encontre a fada e clique nela."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Destaque ausente"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "três fadas"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Durma tudo"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Obtenha ajuda no Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "As fadas"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " vieram desenhar durante o mês de dezembro."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Obrigado por nos ajudar a melhorar o tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Nenhuma fada selecionada"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Insira seu endereço de e-mail"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Acordar"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Digite sua mensagem"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Nome da fada"
     }
   ],
   "6a26f54883": [
@@ -733,26 +637,6 @@
       "value": "Solicitação inválida."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Você foi convidado(a) para "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw fadas"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": "."
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -769,12 +653,6 @@
     {
       "type": 0,
       "value": "Envie um problema no GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Uma fada é um pequeno ser que pode trabalhar com você na tela. As fadas podem trabalhar sozinhas ou em equipe. Não há limites para o que uma fada pode fazer. Ninguém sabe de onde elas vieram."
     }
   ],
   "7b1329f5ca": [
@@ -903,22 +781,10 @@
       "value": "reinicialização completa"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Adquira o Pacote de Fadas"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Não, obrigado"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "pagamento único"
     }
   ],
   "8c2d3d730c": [
@@ -1151,12 +1017,6 @@
       "value": "O arquivo está ficando grande."
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Limite semanal de fadas atingido"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1299,12 +1159,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoom para fada"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1421,12 +1275,6 @@
       "value": "Este arquivo está se aproximando do limite de tamanho. Considere remover parte do conteúdo ou criar um novo arquivo."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Você já tem acesso às fadas!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1531,26 +1379,6 @@
     {
       "type": 0,
       "value": "URL de arquivo tldraw inválida"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "As fadas são um recurso "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "temporário"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". Em 1º de janeiro de 2026, todas as fadas serão removidas do aplicativo. Talvez elas retornem algum dia. Sua compra dá acesso às fadas apenas em dezembro de 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1685,12 +1513,6 @@
     {
       "type": 0,
       "value": "selecionado"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Invocar"
     }
   ],
   "f09b16bc5f": [

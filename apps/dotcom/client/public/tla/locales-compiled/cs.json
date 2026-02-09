@@ -69,12 +69,6 @@
       "value": "Nabídka Soubor"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Víly"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Dnes"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Váš týdenní limit pro využití víl byl dosažen. Na začátku příštího týdne bude resetován."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Spát"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "O tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Tvoje víly čekají"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Přivolat všechny"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Moje soubory"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "V prosinci se do tldraw sjela skupinka "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "víl"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": ". Chcete-li se o tom dozvědět více, najděte vílu a klikněte na ni."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Zvýraznění chybí"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "tři víly"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Spát všichni"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Získejte pomoc na Discordu"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Víly"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " přišly kreslit v prosinci."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Nebyly vybrány žádné víly"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Zadejte svou e-mailovou adresu"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Probudit"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Zadejte svou zprávu"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Jméno víly"
     }
   ],
   "6a26f54883": [
@@ -733,22 +637,6 @@
       "value": "Neplatný požadavek."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Byli jste pozváni k "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "kreslení víl"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +653,6 @@
     {
       "type": 0,
       "value": "Odešlete problém na GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Víla je malý chlapík, který s vámi může pracovat na plátně. Víly mohou pracovat samy nebo v týmu. Neexistují žádná omezení toho, co víla dokáže. Nikdo neví, odkud se vzaly."
     }
   ],
   "7b1329f5ca": [
@@ -899,22 +781,10 @@
       "value": "Tvrdý reset"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Zakoupit balíček víl"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Ne, děkuji."
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "jednorázová platba"
     }
   ],
   "8c2d3d730c": [
@@ -1147,12 +1017,6 @@
       "value": "Soubor se zvětšuje"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Dosažen týdenní limit víl"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1303,12 +1167,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Přiblížit na vílu"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1425,12 +1283,6 @@
       "value": "Tento soubor se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Už máš přístup k vílám!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1535,26 +1387,6 @@
     {
       "type": 0,
       "value": "Neplatná adresa URL souboru tldraw"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Víly jsou "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "dočasnou"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " funkcí. 1. ledna 2026 budou všechny víly z aplikace odstraněny. Možná se někdy vrátí. Váš nákup je pouze pro přístup k vílám v prosinci 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1689,12 +1521,6 @@
     {
       "type": 0,
       "value": "vybraný"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Přivolat"
     }
   ],
   "f09b16bc5f": [

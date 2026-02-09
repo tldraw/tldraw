@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Menú Fitxer"
   },
-  "0befa10111": {
-    "translation": "Fades"
-  },
   "0d1f2bb523": {
     "translation": "Enviar comentaris"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Avui"
   },
-  "23f879f41a": {
-    "translation": "S'ha assolit el límit d'ús setmanal de fades. Es restablirà a principis de la setmana vinent."
-  },
-  "243924bfd5": {
-    "translation": "Dormir"
-  },
   "2445e5e347": {
     "translation": "Crea un grup"
   },
   "250ddea65c": {
     "translation": "Sobre tldraw"
-  },
-  "269097080b": {
-    "translation": "Les teves fades t'esperen"
-  },
-  "275173253d": {
-    "translation": "Convoca tots"
   },
   "284d5cd0dd": {
     "translation": "Model:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Els meus fitxers"
   },
-  "30cd34258a": {
-    "translation": "Un grup de <b>fades</b> han vingut a tldraw durant el mes de desembre. Per investigar més a fons, busqueu la fada i feu-hi clic."
-  },
   "31246941ad": {
     "translation": "Heu d'iniciar la sessió per veure aquest fitxer."
   },
   "31418ce4ad": {
     "translation": "i18n: Ressaltar que falta"
-  },
-  "3209f407ed": {
-    "translation": "tres fades"
   },
   "32210b37e4": {
     "translation": "Afegeix un enllaç"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Dormir tots"
   },
   "34e34c43ec": {
     "translation": "Gestiona"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Obteniu ajuda a Discord"
   },
-  "45b43c2d28": {
-    "translation": "Les <strong>fades</strong> han vingut a dibuixar durant el mes de desembre."
-  },
   "46137245cd": {
     "translation": "Gràcies per ajudar-nos a millorar tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "No s'ha seleccionat cap fada"
   },
   "477df802ca": {
     "translation": "Per continuar editant, copieu el fitxer als vostres fitxers."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Introdueix la teva adreça electrònica"
   },
-  "688761c83e": {
-    "translation": "Despertar"
-  },
   "68d390535e": {
     "translation": "Introdueix el teu missatge"
-  },
-  "6910bbdc82": {
-    "translation": "Nom de la fada"
   },
   "6a26f54883": {
     "translation": "Ajuda"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Sol·licitud no vàlida."
   },
-  "77f0abf1aa": {
-    "translation": "T'han convidat a <strong>dibuixar fades</strong>"
-  },
   "7827371d1a": {
     "translation": "Aquest fitxer multijugador anònim de tldraw ara és de només lectura. Per continuar editant-lo, inicia la sessió i copia'l als teus fitxers."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Envieu un problema a GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Una fada és un petit noi que pot treballar amb tu al llenç. Les fades poden treballar soles o en equip. No hi ha límit al que pot fer una fada. Ningú sap d'on ve."
   },
   "7b1329f5ca": {
     "translation": "Manual d'usuari"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Restabliment complet"
   },
-  "88e83b88c5": {
-    "translation": "Compra el paquet de fades"
-  },
   "8ad4303b83": {
     "translation": "No, gràcies."
-  },
-  "8be569f100": {
-    "translation": "pagament únic"
   },
   "8c2d3d730c": {
     "translation": "Revisa el teu correu electrònic per obtenir un codi de verificació."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "El fitxer s'està fent gran"
   },
-  "a8de4c27a8": {
-    "translation": "S'ha arribat al límit setmanal de fades"
-  },
   "a917baaf14": {
     "translation": "Nou xat"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoom a la fada"
   },
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Aquest fitxer s'està acostant al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o començar un fitxer nou."
   },
-  "ce1424d44b": {
-    "translation": "Ja tens accés de fada!"
-  },
   "cea291e45e": {
     "translation": "Més informació sobre la publicació."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "URL de fitxer tldraw no vàlida"
-  },
-  "df6ff49394": {
-    "translation": "Les fades són una funció <strong>temporal</strong>. L'1 de gener de 2026, totes les fades s'eliminaran de l'aplicació. Potser algun dia tornaran a aparèixer. La teva compra és per accedir a les fades només durant el desembre de 2025."
   },
   "dfdb78a4e4": {
     "translation": "Senyals de depuració d'aplicacions"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "seleccionat"
-  },
-  "efde983742": {
-    "translation": "Invocar"
   },
   "f09b16bc5f": {
     "translation": "Fem servir galetes per mantenir la sessió iniciada, sincronitzar els vostres fitxers i recopilar dades analítiques que ens ajudin a millorar tldraw."

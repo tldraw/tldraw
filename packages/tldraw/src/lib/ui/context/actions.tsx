@@ -1459,6 +1459,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.toggle-lock',
 				kbd: 'shift+l',
 				onSelect(source) {
+					if (!canApplySelectionAction()) return
 					editor.markHistoryStoppingPoint('locking')
 					trackEvent('toggle-lock', { source })
 					editor.toggleLock(editor.getSelectedShapeIds())
@@ -1673,6 +1674,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
 				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
 					scaleShapes(1.1)
 					trackEvent('enlarge-shapes', { source })
 				},
@@ -1682,6 +1684,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.shrink-shape',
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
 				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
 					scaleShapes(1 / 1.1)
 					trackEvent('shrink-shapes', { source })
 				},

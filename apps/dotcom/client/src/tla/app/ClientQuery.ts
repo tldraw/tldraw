@@ -4,7 +4,6 @@ import {
 	TlaGroupUser,
 	TlaRow,
 	TlaSchema,
-	TlaUser,
 } from '@tldraw/dotcom-shared'
 import { assert, compact, computed, react, sleep } from 'tldraw'
 
@@ -40,18 +39,6 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 			this.wheres.every(([key, value]) => row[key] === value)
 		) as any[]
 
-		if (this.table === 'user') {
-			rows = rows.map((row: TlaUser) => {
-				const userFairies = data.user_fairies.find((uf) => uf.userId === row.id)
-				return {
-					...row,
-					fairies: userFairies?.fairies || null,
-					fairyAccessExpiresAt: userFairies?.fairyAccessExpiresAt ?? null,
-					fairyLimit: userFairies?.fairyLimit ?? null,
-				}
-			})
-		}
-
 		if (this.table === 'file_state') {
 			rows = compact(
 				rows.map((row: TlaFileState) => {
@@ -60,8 +47,6 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 					return {
 						...row,
 						file,
-						fairyState:
-							data.file_fairies.find((ff) => ff.fileId === row.fileId)?.fairyState || null,
 					}
 				})
 			)

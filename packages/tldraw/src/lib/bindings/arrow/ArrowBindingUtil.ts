@@ -58,8 +58,20 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 	// when the arrow itself changes
 	override onAfterChangeFromShape({
+		shapeBefore,
 		shapeAfter,
+		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		// When translating arrows together with their bound shapes, only x/y changes.
+		// In this case, bindings remain valid and no reparenting is needed.
+		// This is a significant performance optimization when moving many bound shapes.
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
 		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)
 	}
 
