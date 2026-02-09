@@ -34,8 +34,8 @@ export type ICardShape = TLShape<typeof CARD_TYPE>
 function CardFront({ suit, rank, w, h }: { suit: string; rank: string; w: number; h: number }) {
 	const symbol = SUIT_SYMBOLS[suit as Suit] || '\u2660'
 	const color = SUIT_COLORS[suit as Suit] || '#1a1a1a'
-	const fontSize = Math.max(10, h * 0.14)
-	const symbolFontSize = Math.max(14, h * 0.28)
+	const fontSize = Math.max(10, h * 0.1)
+	const symbolFontSize = Math.max(14, h * 0.2)
 
 	return (
 		<div
