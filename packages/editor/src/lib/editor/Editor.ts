@@ -486,6 +486,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
+					beforeCreate: (shape) => {
+						// Cycle detection for newly created shapes: prevent self-referential or circular parentIds.
+						// This handles batch creates (e.g., createShapes([{id: 'a', parentId: 'b'}, {id: 'b', parentId: 'a'}]))
+						// and direct store.put calls (e.g., from multiplayer sync).
+						if (isShapeId(shape.parentId)) {
+							if (shape.parentId === shape.id) {
+								console.warn(
+									`Detected circular parent reference: shape ${shape.id} cannot be a child of itself. Reparenting to page.`
+								)
+								return {
+									...shape,
+									parentId: this.getCurrentPageId(),
+								}
+							}
+							if (this.hasAncestor(shape.parentId, shape.id)) {
+								console.warn(
+									`Detected circular parent reference: shape ${shape.id} cannot be a child of ${shape.parentId}. Reparenting to page.`
+								)
+								return {
+									...shape,
+									parentId: this.getCurrentPageId(),
+								}
+							}
+						}
+						return shape
+					},
 					beforeChange: (shapeBefore, shapeAfter) => {
 						// Cycle detection and repair: When a shape's parent changes, check if this would create a cycle.
 						// This can happen during multiplayer sync when two clients independently make reparenting

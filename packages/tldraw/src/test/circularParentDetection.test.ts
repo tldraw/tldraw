@@ -343,6 +343,119 @@ describe('Circular parent detection', () => {
 		})
 	})
 
+	describe('createShapes cycle prevention', () => {
+		it('prevents self-referential shapes in createShapes', () => {
+			editor.createShapes([
+				{
+					type: 'frame',
+					id: ids.frameA,
+					x: 0,
+					y: 0,
+					parentId: ids.frameA,
+					props: { w: 200, h: 200 },
+				},
+			])
+
+			const shape = editor.getShape(ids.frameA)
+			expect(shape).toBeDefined()
+			// Shape should NOT be its own parent - should be reparented to the page
+			expect(shape?.parentId).not.toBe(ids.frameA)
+			expect(shape?.parentId).toBe(editor.getCurrentPageId())
+		})
+
+		it('prevents mutual cycles in batch createShapes', () => {
+			// Both shapes reference each other as parents
+			editor.createShapes([
+				{
+					type: 'frame',
+					id: ids.frameA,
+					x: 0,
+					y: 0,
+					parentId: ids.frameB,
+					props: { w: 200, h: 200 },
+				},
+				{
+					type: 'frame',
+					id: ids.frameB,
+					x: 300,
+					y: 0,
+					parentId: ids.frameA,
+					props: { w: 200, h: 200 },
+				},
+			])
+
+			const frameA = editor.getShape(ids.frameA)
+			const frameB = editor.getShape(ids.frameB)
+			expect(frameA).toBeDefined()
+			expect(frameB).toBeDefined()
+
+			// At least one of them must NOT have the other as parent (cycle broken)
+			const hasCycle = frameA?.parentId === ids.frameB && frameB?.parentId === ids.frameA
+			expect(hasCycle).toBe(false)
+		})
+
+		it('prevents 3-way cycles in batch createShapes', () => {
+			// A→B, B→C, C→A
+			editor.createShapes([
+				{
+					type: 'frame',
+					id: ids.frameA,
+					x: 0,
+					y: 0,
+					parentId: ids.frameB,
+					props: { w: 200, h: 200 },
+				},
+				{
+					type: 'frame',
+					id: ids.frameB,
+					x: 300,
+					y: 0,
+					parentId: ids.frameC,
+					props: { w: 200, h: 200 },
+				},
+				{
+					type: 'frame',
+					id: ids.frameC,
+					x: 600,
+					y: 0,
+					parentId: ids.frameA,
+					props: { w: 200, h: 200 },
+				},
+			])
+
+			const frameA = editor.getShape(ids.frameA)
+			const frameB = editor.getShape(ids.frameB)
+			const frameC = editor.getShape(ids.frameC)
+			expect(frameA).toBeDefined()
+			expect(frameB).toBeDefined()
+			expect(frameC).toBeDefined()
+
+			// Should not have a full 3-way cycle
+			const has3WayCycle =
+				frameA?.parentId === ids.frameB &&
+				frameB?.parentId === ids.frameC &&
+				frameC?.parentId === ids.frameA
+			expect(has3WayCycle).toBe(false)
+		})
+
+		it('allows valid parent references in batch createShapes', () => {
+			// A is parent of B (valid chain, no cycle)
+			editor.createShapes([
+				{ type: 'frame', id: ids.frameA, x: 0, y: 0, props: { w: 200, h: 200 } },
+				{
+					type: 'frame',
+					id: ids.frameB,
+					x: 50,
+					y: 50,
+					parentId: ids.frameA,
+					props: { w: 100, h: 100 },
+				},
+			])
+
+			expect(editor.getShape(ids.frameB)?.parentId).toBe(ids.frameA)
+		})
+	})
+
 	describe('Multiplayer sync scenario simulation', () => {
 		it('handles the issue repro scenario: two frames reparented into each other', () => {
 			// Create two independent frames (simulating initial state)
