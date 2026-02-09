@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Revalidate based on document type
-		revalidateTag(_type)
+		revalidateTag(_type, 'default')
 
 		return NextResponse.json({
 			revalidated: true,

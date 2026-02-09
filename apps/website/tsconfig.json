@@ -10,6 +10,8 @@
 		"allowJs": true,
 		"emitDeclarationOnly": false,
 		"noEmit": true,
+		"module": "esnext",
+		"moduleResolution": "bundler",
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"strictNullChecks": true

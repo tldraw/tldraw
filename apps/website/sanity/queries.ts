@@ -15,9 +15,21 @@ import type {
 	SiteSettings,
 } from './types'
 
+async function fetchOrNull<T>(query: string, params?: Record<string, string>): Promise<T | null> {
+	if (!client) return null
+	if (params) return client.fetch<T>(query, params)
+	return client.fetch<T>(query)
+}
+
+async function fetchOrEmpty<T>(query: string, params?: Record<string, string>): Promise<T[]> {
+	if (!client) return []
+	if (params) return client.fetch<T[]>(query, params)
+	return client.fetch<T[]>(query)
+}
+
 // Site settings
-export async function getSiteSettings(): Promise<SiteSettings> {
-	return client.fetch(
+export async function getSiteSettings(): Promise<SiteSettings | null> {
+	return fetchOrNull(
 		`*[_type == "siteSettings"][0]{
 			...,
 		}`
@@ -25,8 +37,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 }
 
 // Homepage
-export async function getHomepage(): Promise<Homepage> {
-	return client.fetch(
+export async function getHomepage(): Promise<Homepage | null> {
+	return fetchOrNull(
 		`*[_type == "homepage"][0]{
 			...,
 			testimonials[]->,
@@ -44,7 +56,7 @@ export async function getBlogPosts(category?: string): Promise<BlogPost[]> {
 		? `*[_type == "blogPost" && category->slug.current == $category]`
 		: `*[_type == "blogPost"]`
 
-	return client.fetch(
+	return fetchOrEmpty(
 		`${filter} | order(publishedAt desc) {
 			_id,
 			title,
@@ -59,8 +71,8 @@ export async function getBlogPosts(category?: string): Promise<BlogPost[]> {
 	)
 }
 
-export async function getBlogPost(slug: string): Promise<BlogPost> {
-	return client.fetch(
+export async function getBlogPost(slug: string): Promise<BlogPost | null> {
+	return fetchOrNull(
 		`*[_type == "blogPost" && slug.current == $slug][0]{
 			...,
 			"author": author->{ name, slug, bio, avatar, role },
@@ -71,7 +83,7 @@ export async function getBlogPost(slug: string): Promise<BlogPost> {
 }
 
 export async function getBlogCategories(): Promise<BlogCategory[]> {
-	return client.fetch(
+	return fetchOrEmpty(
 		`*[_type == "blogCategory"] | order(title asc) {
 			_id,
 			title,
@@ -82,8 +94,8 @@ export async function getBlogCategories(): Promise<BlogCategory[]> {
 }
 
 // Pricing
-export async function getPricingPage(): Promise<PricingPage> {
-	return client.fetch(
+export async function getPricingPage(): Promise<PricingPage | null> {
+	return fetchOrNull(
 		`*[_type == "pricingPage"][0]{
 			...,
 			"tiers": tiers[]->{ ... } | order(order asc),
@@ -93,8 +105,8 @@ export async function getPricingPage(): Promise<PricingPage> {
 }
 
 // Company
-export async function getCompanyPage(): Promise<CompanyPage> {
-	return client.fetch(
+export async function getCompanyPage(): Promise<CompanyPage | null> {
+	return fetchOrNull(
 		`*[_type == "companyPage"][0]{
 			...,
 			"team": team[]->{ ... } | order(order asc),
@@ -104,7 +116,7 @@ export async function getCompanyPage(): Promise<CompanyPage> {
 
 // Careers
 export async function getJobListings(): Promise<JobListing[]> {
-	return client.fetch(
+	return fetchOrEmpty(
 		`*[_type == "jobListing" && isActive == true] | order(department asc, title asc) {
 			...
 		}`
@@ -113,7 +125,7 @@ export async function getJobListings(): Promise<JobListing[]> {
 
 // Events
 export async function getEvents(): Promise<Event[]> {
-	return client.fetch(
+	return fetchOrEmpty(
 		`*[_type == "event"] | order(date desc) {
 			...
 		}`
@@ -122,7 +134,7 @@ export async function getEvents(): Promise<Event[]> {
 
 // FAQ
 export async function getFaqItems(): Promise<FaqItem[]> {
-	return client.fetch(
+	return fetchOrEmpty(
 		`*[_type == "faqItem"] | order(order asc) {
 			...
 		}`
@@ -131,7 +143,7 @@ export async function getFaqItems(): Promise<FaqItem[]> {
 
 // Features
 export async function getFeaturePages(): Promise<FeaturePage[]> {
-	return client.fetch(
+	return fetchOrEmpty(
 		`*[_type == "featurePage"] | order(title asc) {
 			_id,
 			title,
@@ -143,8 +155,8 @@ export async function getFeaturePages(): Promise<FeaturePage[]> {
 	)
 }
 
-export async function getFeaturePage(slug: string): Promise<FeaturePage> {
-	return client.fetch(
+export async function getFeaturePage(slug: string): Promise<FeaturePage | null> {
+	return fetchOrNull(
 		`*[_type == "featurePage" && slug.current == $slug][0]{
 			...
 		}`,
@@ -154,7 +166,7 @@ export async function getFeaturePage(slug: string): Promise<FeaturePage> {
 
 // Showcase
 export async function getCaseStudies(): Promise<CaseStudy[]> {
-	return client.fetch(
+	return fetchOrEmpty(
 		`*[_type == "caseStudy"] | order(_createdAt desc) {
 			...,
 			"testimonial": testimonial->,
@@ -163,8 +175,8 @@ export async function getCaseStudies(): Promise<CaseStudy[]> {
 }
 
 // Legal
-export async function getLegalPage(slug: string): Promise<LegalPage> {
-	return client.fetch(
+export async function getLegalPage(slug: string): Promise<LegalPage | null> {
+	return fetchOrNull(
 		`*[_type == "legalPage" && slug.current == $slug][0]{
 			...
 		}`,
@@ -173,8 +185,8 @@ export async function getLegalPage(slug: string): Promise<LegalPage> {
 }
 
 // Generic pages
-export async function getPage(slug: string): Promise<Page> {
-	return client.fetch(
+export async function getPage(slug: string): Promise<Page | null> {
+	return fetchOrNull(
 		`*[_type == "page" && slug.current == $slug][0]{
 			...
 		}`,

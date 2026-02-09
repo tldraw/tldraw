@@ -20,7 +20,7 @@ export default async function PricingPage() {
 				description={page?.subtitle || 'Simple, transparent pricing for teams of all sizes.'}
 			/>
 			<div className="py-12 sm:py-24">
-				{page?.tiers?.length > 0 ? (
+				{(page?.tiers?.length ?? 0) > 0 && page ? (
 					<PricingTable tiers={page.tiers} />
 				) : (
 					<div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">

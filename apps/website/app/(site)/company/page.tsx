@@ -38,7 +38,7 @@ export default async function CompanyPage() {
 						</div>
 					</div>
 				)}
-				{page?.team?.length > 0 && (
+				{(page?.team?.length ?? 0) > 0 && page && (
 					<div>
 						<h2 className="mb-8 text-2xl font-bold text-zinc-900 dark:text-white">Our team</h2>
 						<TeamGrid members={page.team} />
