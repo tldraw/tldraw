@@ -24,18 +24,6 @@ export interface OrchestratorResponse {
 
 export const AGENT_TOOLS: FunctionDeclaration[] = [
 	{
-		name: 'web_search',
-		description:
-			'Search the web for information on a topic. Returns a text summary. Currently delegates to Wikipedia.',
-		parameters: {
-			type: 'object',
-			properties: {
-				query: { type: 'string', description: 'The search query.' },
-			},
-			required: ['query'],
-		},
-	},
-	{
 		name: 'wikipedia_search',
 		description:
 			'Look up a topic on Wikipedia. Returns the page summary and thumbnail image URL if available.',
@@ -164,8 +152,6 @@ export async function executeToolCall(
 	toolInput: Record<string, unknown>
 ): Promise<ToolResult> {
 	switch (toolName) {
-		case 'web_search':
-			return executeWebSearch(toolInput)
 		case 'wikipedia_search':
 			return executeWikipediaSearch(toolInput)
 		case 'analyze_canvas_area':
@@ -267,11 +253,6 @@ export async function placeImageFromSearch(
 	})
 
 	return { shapeId, imageUrl: url }
-}
-
-async function executeWebSearch(input: Record<string, unknown>): Promise<ToolResult> {
-	const query = input.query as string
-	return executeWikipediaSearch({ topic: query })
 }
 
 async function executeWikipediaSearch(input: Record<string, unknown>): Promise<ToolResult> {

@@ -12,7 +12,7 @@ Your primary output is the **respond** tool. Every answer must use it. The respo
 
 ## Workflow
 
-1. **Research first** if needed: Use wikipedia_search or web_search to gather information before responding.
+1. **Research first** if needed: Use wikipedia_search to gather information before responding.
 2. **Respond**: Call the respond tool with your speech and any canvas items.
 3. The respond tool is your ONLY way to communicate with the user. Always call it exactly once as your final action.
 

@@ -33,6 +33,12 @@ export class IntelligentCanvasAgent {
 	private callbacks: AgentCallbacks
 	private disposeHandler: (() => void) | null = null
 	private processing = false
+	private conversationHistory: GeminiContent[] = []
+	private pendingCommand: {
+		text: string
+		nearbyShapes: ShapeContext[]
+		textShapeId: TLShapeId | null
+	} | null = null
 
 	constructor(editor: Editor, callbacks: AgentCallbacks) {
 		this.editor = editor
@@ -60,8 +66,6 @@ export class IntelligentCanvasAgent {
 	}
 
 	private handleTextEditEnd(shapeId: TLShapeId) {
-		if (this.processing) return
-
 		const shape = this.editor.getShape(shapeId)
 		if (!shape) return
 
@@ -76,12 +80,10 @@ export class IntelligentCanvasAgent {
 		const searchArea = textBounds.clone().expandBy(NEARBY_MARGIN)
 		const nearbyShapes = findNearbyShapes(this.editor, searchArea)
 
-		this.runAgentPipeline(text, nearbyShapes, shapeId)
+		this.enqueue(text, nearbyShapes, shapeId)
 	}
 
 	handleVoiceCommand(text: string) {
-		if (this.processing) return
-
 		const { x, y } = this.editor.getViewportScreenCenter()
 		const center = this.editor.screenToPage({ x, y })
 		const searchArea = new Box(
@@ -92,7 +94,24 @@ export class IntelligentCanvasAgent {
 		)
 		const nearbyShapes = findNearbyShapes(this.editor, searchArea)
 
-		this.runAgentPipeline(`[Voice input] ${text}`, nearbyShapes, null)
+		this.enqueue(`[Voice input] ${text}`, nearbyShapes, null)
+	}
+
+	private enqueue(text: string, nearbyShapes: ShapeContext[], textShapeId: TLShapeId | null) {
+		if (this.processing) {
+			// Queue command — will run when current pipeline finishes
+			this.pendingCommand = { text, nearbyShapes, textShapeId }
+			return
+		}
+		this.runAgentPipeline(text, nearbyShapes, textShapeId)
+	}
+
+	private drainQueue() {
+		if (this.pendingCommand) {
+			const { text, nearbyShapes, textShapeId } = this.pendingCommand
+			this.pendingCommand = null
+			this.runAgentPipeline(text, nearbyShapes, textShapeId)
+		}
 	}
 
 	private async runAgentPipeline(
@@ -130,13 +149,18 @@ export class IntelligentCanvasAgent {
 			}
 
 			const systemPrompt = buildSystemPrompt(this.editor)
-			const contents: GeminiContent[] = [{ role: 'user', parts: userParts }]
+
+			// Build working contents: persistent history + current user turn
+			const workingContents: GeminiContent[] = [
+				...this.conversationHistory,
+				{ role: 'user', parts: userParts },
+			]
 
 			// Agentic loop — runs until 'respond' tool is called or max iterations
 			let orchestratorResponse: OrchestratorResponse | null = null
 
 			for (let i = 0; i < MAX_AGENT_ITERATIONS; i++) {
-				const response = await callGemini(systemPrompt, contents, AGENT_TOOLS)
+				const response = await callGemini(systemPrompt, workingContents, AGENT_TOOLS)
 
 				const candidate = response.candidates?.[0]
 				if (!candidate) break
@@ -149,8 +173,8 @@ export class IntelligentCanvasAgent {
 
 				if (functionCalls.length === 0) break
 
-				// Add model response to conversation
-				contents.push({ role: 'model', parts })
+				// Add model response to working contents
+				workingContents.push({ role: 'model', parts })
 
 				// Execute function calls and build responses
 				const responseParts: GeminiPart[] = []
@@ -176,10 +200,19 @@ export class IntelligentCanvasAgent {
 					})
 				}
 
-				contents.push({ role: 'user', parts: responseParts })
+				workingContents.push({ role: 'user', parts: responseParts })
 
 				// If we got a respond call, stop the loop
 				if (gotResponse) break
+			}
+
+			// Condense this turn into clean user/model text for conversation memory
+			this.conversationHistory.push({ role: 'user', parts: [{ text: userContent }] })
+			if (orchestratorResponse) {
+				this.conversationHistory.push({
+					role: 'model',
+					parts: [{ text: orchestratorResponse.speech }],
+				})
 			}
 
 			// Execute the orchestrator response: voice + canvas
@@ -196,6 +229,7 @@ export class IntelligentCanvasAgent {
 			}, ERROR_CLEAR_DELAY_MS)
 		} finally {
 			this.processing = false
+			this.drainQueue()
 		}
 	}
 
