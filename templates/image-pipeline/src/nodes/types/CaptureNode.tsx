@@ -1,4 +1,4 @@
-import { Box, T } from 'tldraw'
+import { Box, T, useEditor, useValue } from 'tldraw'
 import { CaptureIcon } from '../../components/icons/CaptureIcon'
 import {
 	NODE_FOOTER_HEIGHT_PX,
@@ -123,6 +123,22 @@ export class CaptureNodeDefinition extends NodeDefinition<CaptureNode> {
 	Component = CaptureNodeComponent
 }
 
-function CaptureNodeComponent(_props: NodeComponentProps<CaptureNode>) {
-	return <div className="CaptureNode-body" />
+function CaptureNodeComponent(props: NodeComponentProps<CaptureNode>) {
+	const editor = useEditor()
+	const { shape } = props
+	const geometry = useValue('geometry', () => editor.getShapeGeometry(shape.id), [editor, shape.id])
+	return (
+		<div
+			className="CaptureNode-body"
+			style={{
+				width: geometry.bounds.w,
+				height:
+					geometry.bounds.h -
+					NODE_HEADER_HEIGHT_PX -
+					NODE_ROW_HEADER_GAP_PX -
+					NODE_ROW_BOTTOM_PADDING_PX -
+					NODE_FOOTER_HEIGHT_PX,
+			}}
+		/>
+	)
 }

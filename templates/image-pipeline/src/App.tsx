@@ -1,14 +1,5 @@
 import { useState } from 'react'
-import {
-	createShapeId,
-	DefaultStylePanel,
-	Editor,
-	TLComponents,
-	Tldraw,
-	TldrawOptions,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { createShapeId, Editor, TLComponents, Tldraw, TldrawOptions } from 'tldraw'
 import { ImagePipelineSidebar } from './components/ImagePipelineSidebar.tsx'
 import { OnCanvasNodePicker } from './components/OnCanvasNodePicker.tsx'
 import { PipelineRegions } from './components/PipelineRegions.tsx'
@@ -31,23 +22,6 @@ const components: TLComponents = {
 		</>
 	),
 	Toolbar: PipelineToolbar,
-
-	MenuPanel: () => null,
-	StylePanel: () => {
-		const editor = useEditor()
-		const shouldShowStylePanel = useValue(
-			'shouldShowStylePanel',
-			() => {
-				return (
-					!editor.isIn('select') ||
-					editor.getSelectedShapes().some((s) => s.type !== 'node' && s.type !== 'connection')
-				)
-			},
-			[editor]
-		)
-		if (!shouldShowStylePanel) return
-		return <DefaultStylePanel />
-	},
 }
 
 const options: Partial<TldrawOptions> = {
@@ -87,7 +61,7 @@ function App() {
 
 						keepConnectionsAtBottom(editor)
 
-						disableTransparency(editor, ['node', 'connection'])
+						disableTransparency(editor, ['connection'])
 					}}
 				/>
 			</div>

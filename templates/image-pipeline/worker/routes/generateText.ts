@@ -10,7 +10,7 @@ interface GenerateTextRequest {
  * POST /api/generate-text
  *
  * Takes an optional input (image or text) and a prompt, then calls
- * google/gemini-3-flash-preview on Replicate to generate text.
+ * google/gemini-3-flash on Replicate to generate text.
  * Falls back to a placeholder if no API token is configured.
  */
 export async function handleGenerateText(request: IRequest, env: Env) {
@@ -35,7 +35,11 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 
 	// Detect whether the input is an image or text
 	const isImage =
-		inputStr != null && (inputStr.startsWith('data:image/') || inputStr.startsWith('/api/images/'))
+		inputStr != null &&
+		(inputStr.startsWith('data:image/') ||
+			inputStr.startsWith('/api/images/') ||
+			inputStr.startsWith('https://') ||
+			inputStr.startsWith('http://'))
 
 	try {
 		// Build the prompt — if input is text, prepend it to the prompt
@@ -60,7 +64,7 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 		}
 
 		const response = await fetch(
-			'https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions',
+			'https://api.replicate.com/v1/models/google/gemini-3-flash/predictions',
 			{
 				method: 'POST',
 				headers: {
@@ -96,7 +100,11 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 function generateTextPlaceholder(body: GenerateTextRequest): { text: string } {
 	const inputStr = body.input != null ? String(body.input) : null
 	const isImage =
-		inputStr != null && (inputStr.startsWith('data:image/') || inputStr.startsWith('/api/images/'))
+		inputStr != null &&
+		(inputStr.startsWith('data:image/') ||
+			inputStr.startsWith('/api/images/') ||
+			inputStr.startsWith('https://') ||
+			inputStr.startsWith('http://'))
 	const inputDesc = inputStr
 		? isImage
 			? '[image provided]'

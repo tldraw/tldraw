@@ -36,6 +36,7 @@ import { executionState, startExecution, stopExecution } from '../execution/exec
 import { Port, ShapePort } from '../ports/Port'
 import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
 import { getNodeDefinition, getNodeHeightPx, getNodeWidthPx, NodeBody, NodeType } from './nodeTypes'
+import { resizeNode } from './resizeNode'
 import { NodeValue, STOP_EXECUTION } from './types/shared'
 
 const NODE_TYPE = 'node'
@@ -130,8 +131,9 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 				NODE_ROW_HEADER_GAP_PX -
 				NODE_ROW_BOTTOM_PADDING_PX -
 				NODE_FOOTER_HEIGHT_PX
+
 			return {
-				...resizeBox(shape, info),
+				...resizeNode(shape, info),
 				props: {
 					...shape.props,
 					node: {

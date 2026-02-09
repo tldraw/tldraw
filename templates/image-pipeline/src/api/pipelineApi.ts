@@ -249,8 +249,14 @@ function ipAdapterLocalPlaceholder(params: IPAdapterParams): IPAdapterResult {
 
 function generateTextLocalPlaceholder(params: GenerateTextParams): GenerateTextResult {
 	const inputStr = params.input != null ? String(params.input) : null
+	const isImage =
+		inputStr != null &&
+		(inputStr.startsWith('data:image/') ||
+			inputStr.startsWith('/api/images/') ||
+			inputStr.startsWith('https://') ||
+			inputStr.startsWith('http://'))
 	const inputDesc = inputStr
-		? inputStr.startsWith('data:image/')
+		? isImage
 			? '[image provided]'
 			: `"${inputStr.slice(0, 30)}${inputStr.length > 30 ? '...' : ''}"`
 		: '[no input]'
