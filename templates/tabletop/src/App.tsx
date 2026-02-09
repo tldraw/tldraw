@@ -7,6 +7,7 @@ import {
 	Editor,
 	TLComponents,
 	TLUiContextMenuProps,
+	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -15,11 +16,34 @@ import {
 } from 'tldraw'
 import { CARD_TYPE, CardShapeUtil } from './cards/CardShapeUtil'
 import { CARD_BOX_TYPE, CardBoxShapeUtil } from './cards/DeckShapeUtil'
-import { fanCards, flipCards, getSelectedCardIds } from './cards/card-helpers'
+import { fanCards, flipCards, getSelectedCardIds, makeHand } from './cards/card-helpers'
 import { DICE_TYPE, DiceShapeUtil } from './dice/DiceShapeUtil'
 import { DiceSidesStyle, POLY_DICE_TYPE, PolyDiceShapeUtil } from './dice/PolyDiceShapeUtil'
 
 const shapeUtils = [DiceShapeUtil, PolyDiceShapeUtil, CardShapeUtil, CardBoxShapeUtil]
+
+// --- Overrides (custom actions + keyboard shortcuts) ---
+
+const overrides: TLUiOverrides = {
+	actions(editor, actions) {
+		return {
+			...actions,
+			'make-hand': {
+				id: 'make-hand',
+				label: 'Make hand',
+				kbd: '!j',
+				onSelect() {
+					const cardIds = getSelectedCardIds(editor)
+					if (cardIds.length === 0) return
+					const bounds = editor.getSelectionPageBounds()
+					if (bounds) {
+						makeHand(editor, cardIds, { x: bounds.midX, y: bounds.midY })
+					}
+				},
+			},
+		}
+	},
+}
 
 // --- Style panel (poly dice sides selector) ---
 
@@ -88,16 +112,29 @@ function TabletopContextMenuItems() {
 				onSelect={() => flipCards(editor, cardIds)}
 			/>
 			{cardIds.length > 1 && (
-				<TldrawUiMenuItem
-					id="fan-cards"
-					label="Fan cards"
-					onSelect={() => {
-						const bounds = editor.getSelectionPageBounds()
-						if (bounds) {
-							fanCards(editor, cardIds, { x: bounds.midX, y: bounds.midY })
-						}
-					}}
-				/>
+				<>
+					<TldrawUiMenuItem
+						id="fan-cards"
+						label="Fan cards"
+						onSelect={() => {
+							const bounds = editor.getSelectionPageBounds()
+							if (bounds) {
+								fanCards(editor, cardIds, { x: bounds.midX, y: bounds.midY })
+							}
+						}}
+					/>
+					<TldrawUiMenuItem
+						id="make-hand"
+						label="Make hand"
+						kbd="!j"
+						onSelect={() => {
+							const bounds = editor.getSelectionPageBounds()
+							if (bounds) {
+								makeHand(editor, cardIds, { x: bounds.midX, y: bounds.midY })
+							}
+						}}
+					/>
+				</>
 			)}
 		</TldrawUiMenuGroup>
 	)
@@ -197,6 +234,7 @@ function App() {
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
 				shapeUtils={shapeUtils}
+				overrides={overrides}
 				onMount={handleMount}
 				persistenceKey="tabletop"
 				components={components}

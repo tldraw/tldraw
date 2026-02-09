@@ -206,13 +206,11 @@ function CardBack({ w, h }: { w: number; h: number }) {
 }
 
 // --- Peek geometry ---
-// The card is divided by two parallel diagonal fold lines into three regions:
-//   A (top-left triangle), B (middle rhombus), C (bottom-right triangle).
-// When peeking, triangle A or C reflects across its fold line to reveal the card face.
+// The bottom-right corner of the card folds up to reveal the face value.
 
-const FOLD_PCT = 30 // how far down the left edge (%) the top fold line reaches
+const FOLD_PCT = 30 // how far up the right edge (%) the fold line reaches
 
-function computePeekGeometry(corner: string, w: number, h: number) {
+function computePeekGeometry(w: number, h: number) {
 	const fh = (FOLD_PCT * h) / 100
 	const D = w * w + fh * fh
 	const cos2t = (w * w - fh * fh) / D
@@ -225,38 +223,18 @@ function computePeekGeometry(corner: string, w: number, h: number) {
 		}
 	}
 
-	if (corner === 'top-left') {
-		// Fold line: (0, fh) → (w, 0). Pivot: (w, 0)
-		const e = (2 * w * fh * fh) / D
-		const f = (2 * w * w * fh) / D
-		const apex = reflect(0, 0, e, f)
-		// Reflect the face's top-left indicator to get text position
-		const textPos = reflect(w * 0.18, h * 0.15, e, f)
-		// Short side: from apex to (0, fh)
-		const textAngle = 135
-		return {
-			foldLine: `0,${fh} ${w},0`,
-			reflectedTriangle: `${apex.x},${apex.y} ${w},0 0,${fh}`,
-			remainingRegion: `0,${fh} ${w},0 ${w},${h} 0,${h}`,
-			textPos,
-			foldAngle: textAngle,
-		}
-	} else {
-		// Fold line: (0, h) → (w, h-fh). Pivot: (0, h)
-		const e = (2 * w * fh * h) / D
-		const f = (2 * h * w * w) / D
-		const apex = reflect(w, h, e, f)
-		// Reflect the face's bottom-right indicator to get text position
-		const textPos = reflect(w * 0.88, h * 0.92, e, f)
-		// Short side: from apex to (w, h-fh)
-		const textAngle = -45
-		return {
-			foldLine: `0,${h} ${w},${h - fh}`,
-			reflectedTriangle: `0,${h} ${w},${h - fh} ${apex.x},${apex.y}`,
-			remainingRegion: `0,0 ${w},0 ${w},${h - fh} 0,${h}`,
-			textPos,
-			foldAngle: textAngle,
-		}
+	// Fold line: (0, h) → (w, h-fh). Pivot: (0, h)
+	const e = (2 * w * fh * h) / D
+	const f = (2 * h * w * w) / D
+	const apex = reflect(w, h, e, f)
+	const textPos = reflect(w * 0.88, h * 0.92, e, f)
+	const textAngle = -45
+	return {
+		foldLine: `0,${h} ${w},${h - fh}`,
+		reflectedTriangle: `0,${h} ${w},${h - fh} ${apex.x},${apex.y}`,
+		remainingRegion: `0,0 ${w},0 ${w},${h - fh} 0,${h}`,
+		textPos,
+		foldAngle: textAngle,
 	}
 }
 
@@ -270,7 +248,7 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 	const prevIsFlipping = useRef(false)
 	const currentRotY = useRef(shape.props.isFaceUp ? 0 : 180)
 	const isPeekingRef = useRef(false)
-	const [peekCorner, setPeekCorner] = useState<string | null>(null)
+	const [isPeeking, setIsPeeking] = useState(false)
 
 	const { w, h, suit, rank, isFaceUp, isFlipping } = shape.props
 
@@ -329,7 +307,7 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 		if (isFaceUp) {
 			if (isPeekingRef.current) {
 				isPeekingRef.current = false
-				setPeekCorner(null)
+				setIsPeeking(false)
 			}
 			return
 		}
@@ -337,28 +315,16 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Shift' || e.repeat || isPeekingRef.current) return
 			if (editor.getCurrentToolId() !== 'select') return
-
-			const bounds = editor.getShapePageBounds(shape.id)
-			if (!bounds) return
-
-			const pagePoint = editor.inputs.getCurrentPagePoint()
-			const isHovered =
-				pagePoint.x >= bounds.x &&
-				pagePoint.x <= bounds.x + bounds.w &&
-				pagePoint.y >= bounds.y &&
-				pagePoint.y <= bounds.y + bounds.h
-			const isSelected = editor.getSelectedShapeIds().includes(shape.id)
-			if (!isHovered && !isSelected) return
+			if (!editor.getSelectedShapeIds().includes(shape.id)) return
 
 			isPeekingRef.current = true
-			const relY = (pagePoint.y - bounds.y) / bounds.h
-			setPeekCorner(relY >= 0.5 ? 'bottom-right' : 'top-left')
+			setIsPeeking(true)
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
 			if (e.key !== 'Shift') return
 			isPeekingRef.current = false
-			setPeekCorner(null)
+			setIsPeeking(false)
 		}
 
 		document.addEventListener('keydown', handleKeyDown)
@@ -368,12 +334,12 @@ function CardComponent({ shape }: { shape: ICardShape }) {
 			document.removeEventListener('keyup', handleKeyUp)
 			if (isPeekingRef.current) {
 				isPeekingRef.current = false
-				setPeekCorner(null)
+				setIsPeeking(false)
 			}
 		}
 	}, [editor, shape.id, isFaceUp])
 
-	const peek = peekCorner ? computePeekGeometry(peekCorner, w, h) : null
+	const peek = isPeeking ? computePeekGeometry(w, h) : null
 	const clipId = shape.id.replace(/[^a-zA-Z0-9]/g, '_')
 	const r = w * 0.06
 
