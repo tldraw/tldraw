@@ -65,6 +65,10 @@ export async function handleAssetDownload(request: IRequest, env: Env, ctx: Exec
 	// cache, which isn't allowed by cloudflare.
 	headers.set('access-control-allow-origin', '*')
 
+	// Prevent XSS from user-uploaded SVGs (or any file served with an executable content-type).
+	headers.set('content-security-policy', "default-src 'none'")
+	headers.set('x-content-type-options', 'nosniff')
+
 	// cloudflare doesn't set the content-range header automatically in writeHttpMetadata, so we
 	// need to do it ourselves.
 	let contentRange
