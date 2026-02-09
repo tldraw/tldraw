@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 		<article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
 			{post.category && (
 				<Link
-					href={`/blog/${post.category.slug.current}`}
+					href={`/blog/category/${post.category.slug.current}`}
 					className="text-sm font-medium uppercase tracking-wider text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
 				>
 					{post.category.title}

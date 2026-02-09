@@ -125,3 +125,5 @@ license-report.md
 # ESLint cache
 .eslintcache
 opencode.json
+
+.next

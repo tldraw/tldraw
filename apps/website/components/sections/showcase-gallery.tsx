@@ -1,7 +1,6 @@
 import { urlFor } from '@/sanity/image'
 import type { CaseStudy } from '@/sanity/types'
 import Image from 'next/image'
-import Link from 'next/link'
 
 interface ShowcaseGalleryProps {
 	items: CaseStudy[]
@@ -11,10 +10,9 @@ export function ShowcaseGallery({ items }: ShowcaseGalleryProps) {
 	return (
 		<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
 			{items.map((item) => (
-				<Link
+				<div
 					key={item._id}
-					href={`/showcase/${item.slug.current}`}
-					className="group overflow-hidden rounded-xl border border-zinc-200 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+					className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800"
 				>
 					{item.coverImage && (
 						<div className="aspect-video overflow-hidden">
@@ -23,7 +21,7 @@ export function ShowcaseGallery({ items }: ShowcaseGalleryProps) {
 								alt={item.title}
 								width={640}
 								height={360}
-								className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+								className="h-full w-full object-cover"
 							/>
 						</div>
 					)}
@@ -43,7 +41,7 @@ export function ShowcaseGallery({ items }: ShowcaseGalleryProps) {
 							{item.excerpt}
 						</p>
 					</div>
-				</Link>
+				</div>
 			))}
 		</div>
 	)

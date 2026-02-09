@@ -27,7 +27,7 @@ export default async function BlogPage() {
 						{categories.map((cat) => (
 							<Link
 								key={cat._id}
-								href={`/blog/${cat.slug.current}`}
+								href={`/blog/category/${cat.slug.current}`}
 								className="rounded-full border border-zinc-200 px-4 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-white"
 							>
 								{cat.title}

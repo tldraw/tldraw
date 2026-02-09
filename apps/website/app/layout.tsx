@@ -1,9 +1,6 @@
-import { Footer } from '@/components/navigation/footer'
-import { Header } from '@/components/navigation/header'
 import { cn } from '@/lib/utils'
 import { GeistSans } from 'geist/font/sans'
 import { Metadata, Viewport } from 'next'
-import { ThemeProvider } from 'next-themes'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -37,11 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	return (
 		<html lang="en" className={cn(GeistSans.variable, 'font-sans antialiased')}>
 			<body className="overflow-x-hidden bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-					<Header />
-					<main>{children}</main>
-					<Footer />
-				</ThemeProvider>
+				{children}
 			</body>
 		</html>
 	)

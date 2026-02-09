@@ -46,7 +46,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
 					{categories?.map((cat) => (
 						<Link
 							key={cat._id}
-							href={`/blog/${cat.slug.current}`}
+							href={`/blog/category/${cat.slug.current}`}
 							className={
 								cat.slug.current === category
 									? 'rounded-full bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900'

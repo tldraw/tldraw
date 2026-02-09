@@ -4,12 +4,13 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 interface LicensePageProps {
-	params: Promise<{ slug: string[] }>
+	params: Promise<{ slug?: string[] }>
 }
 
 export async function generateMetadata({ params }: LicensePageProps): Promise<Metadata> {
 	const { slug } = await params
-	const page = await getPage(`get-a-license/${slug.join('/')}`)
+	const path = slug ? `get-a-license/${slug.join('/')}` : 'get-a-license'
+	const page = await getPage(path)
 	if (!page) return {}
 	return {
 		title: page.seo?.metaTitle || page.title,
@@ -19,7 +20,8 @@ export async function generateMetadata({ params }: LicensePageProps): Promise<Me
 
 export default async function LicensePage({ params }: LicensePageProps) {
 	const { slug } = await params
-	const page = await getPage(`get-a-license/${slug.join('/')}`)
+	const path = slug ? `get-a-license/${slug.join('/')}` : 'get-a-license'
+	const page = await getPage(path)
 
 	if (!page) notFound()
 

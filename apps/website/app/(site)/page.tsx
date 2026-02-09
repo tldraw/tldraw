@@ -20,12 +20,14 @@ export default async function HomePage() {
 
 	return (
 		<>
-			<HeroSection
-				title={homepage.hero.title}
-				subtitle={homepage.hero.subtitle}
-				ctaPrimary={homepage.hero.ctaPrimary}
-				ctaSecondary={homepage.hero.ctaSecondary}
-			/>
+			{homepage.hero && (
+				<HeroSection
+					title={homepage.hero.title}
+					subtitle={homepage.hero.subtitle}
+					ctaPrimary={homepage.hero.ctaPrimary}
+					ctaSecondary={homepage.hero.ctaSecondary}
+				/>
+			)}
 			{homepage.features?.length > 0 && <FeatureGrid features={homepage.features} />}
 			{homepage.testimonials?.length > 0 && (
 				<TestimonialCarousel title="Trusted by developers" testimonials={homepage.testimonials} />

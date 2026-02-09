@@ -1,0 +1,30 @@
+"Slug",":draft","Title","Subtitle","Section 1 title","key_features","deep_dive","Content"
+"real-time-collaboration","true","Build infinite canvas apps in React with tje tldraw SDK","Make whiteboards and more with tldraw's high-performance web canvas.","Fast collaboration","# Collaborative Cursors & Chat
+Implement real-time cursors, selections, chat bubbles, and viewport activity, all rendered with smooth animations.
+-
+# Live Updates
+Enable simultaneous editing for many users with a built-in conflict resolution system that keeps canvas state consistent.
+-
+# Viewport following
+Add follow-mode to your app, letting teammates share their viewports for presentations, tours, or guided editing.
+-
+# Access Control
+Define granular editor and viewer roles with APIs that plug into your existing authentication system.
+-
+# Session Management
+Use tldraw sync for automatic reconnection, multi-tab sync, and cross-device consistency with full state preservation.
+-
+# Distributed Architecture
+Power real-time collaboration at scale with up to 50 users editing together on the same canvas.
+","# High-Performance Synchronization Engine
+Our collaboration system runs on tldraw sync, a production-grade real-time synchronization engine. This engine was specifically optimized for canvas interactions to ensure that drawing strokes, shape manipulations, and text edits are in sync across all users with almost no delay. When users work on the same element, it keeps separate layers for confirmed server data and pending edits, resolving conflicts automatically.
+
+# Scalable Room Distribution System
+Each collaborative canvas runs on its own Durable Object instance, creating a dedicated mini-server that can handle up to 50 simultaneous collaborators. This architecture eliminates scaling bottlenecks by distributing load across individual canvas instances, with Cloudflare automatically managing instance creation, routing, and geographic distribution for optimal performance.
+
+# Cross-Device State Synchronization
+Comprehensive synchronization extends beyond real-time editing to support multi-tab consistency and seamless device handoff. Camera position and UI preferences sync automatically across browser sessions. Users transition effortlessly between desktop, tablet, and mobile devices with automatic state recovery and reconnection logic.
+
+# Asset Handling and Storage Integration
+Large assets like images and videos are handled separately from real-time synchronization to maintain performance. Files are uploaded to cloud storage (R2) and cached on Cloudflare's edge network. In this way, loading is fast worldwide, and WebSocket connections stay focused on lightweight canvas interactions data.
+","<h4>Title</h4><p>Content</p><p>-</p><h4>Title</h4><p>Content</p><p>-</p><h4>Title</h4><p>Content</p>"
