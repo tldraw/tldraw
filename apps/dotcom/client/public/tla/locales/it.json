@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Questo file ha raggiunto il limite di dimensione e le modifiche potrebbero non essere più salvate. Rimuovi parte del contenuto o crea un nuovo file."
   },
-  "0ab1ef22a3": {
-    "translation": "Parla con il gruppo…"
-  },
   "0b27918290": {
     "translation": "File"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Pubblica"
-  },
-  "11a755d598": {
-    "translation": "Fermare"
   },
   "129b9e34ea": {
     "translation": "Lascia il gruppo"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Modello:"
-  },
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Maneggio"
-  },
-  "3596c1b1f7": {
-    "translation": "Non seguire più"
-  },
-  "3903aab323": {
-    "translation": "Seguire"
-  },
-  "3b6c2b4caa": {
-    "translation": "Termini di servizio"
   },
   "3bc7d6ea2f": {
     "translation": "Continua con l'email"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Nome"
   },
-  "4c41e0bd95": {
-    "translation": "Seleziona tutto"
-  },
   "4d0d3ddec9": {
     "translation": "Questo sito utilizza i cookie per far funzionare l'app e per raccogliere dati analitici."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Elimina gruppo…"
-  },
-  "4dab36ac83": {
-    "translation": "Altre opzioni"
   },
   "4e6fbf032b": {
     "translation": "Vuoi davvero eliminare questo gruppo? Questa azione non può essere annullata."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Politica sulla riservatezza"
   },
-  "5a2ccdc00a": {
-    "translation": "Impossibile riscattare il codice di invito"
-  },
   "5a86b22fa0": {
     "translation": "Trascina i file qui, <create>crea un file</create> o <invite>copia il link di invito</invite> per iniziare."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Più tardi"
   },
-  "61daf2e53d": {
-    "translation": "Parla con {name}…"
-  },
   "625fd29749": {
     "translation": "Meno recenti"
   },
   "639bae9ac6": {
     "translation": "Voi"
-  },
-  "6602bbeb29": {
-    "translation": "Guida"
   },
   "6609dd239e": {
     "translation": "Si è verificato un errore"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Inserisci il tuo indirizzo email"
-  },
-  "68d390535e": {
-    "translation": "Inserisci il tuo messaggio"
   },
   "6a26f54883": {
     "translation": "Aiuto"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Hai un bug, un problema o un'idea per tldraw? Faccelo sapere! Compila questo modulo e ti contatteremo via email se necessario. Puoi anche <discord>chattare con noi su Discord</discord> o <github>segnalare un problema su GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Cancella tutto"
-  },
-  "83218ac34c": {
-    "translation": "Benvenuto"
-  },
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Rinomina file"
   },
-  "8726ef8909": {
-    "translation": "Ripristino completo"
-  },
   "8ad4303b83": {
     "translation": "No grazie"
   },
   "8c2d3d730c": {
     "translation": "Controlla la tua email per un codice di verifica."
   },
-  "8cf04a9734": {
-    "translation": "Casa"
-  },
   "8eb2c00e96": {
     "translation": "Condivisi con te"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Di"
   },
   "8ff3d0a705": {
     "translation": "Richieste limitate"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Link di invito copiato"
   },
-  "94186070ef": {
-    "translation": "Deseleziona"
-  },
   "9489b2f82a": {
     "translation": "Sei già un membro di questo gruppo"
-  },
-  "94966d9074": {
-    "translation": "Inviare"
   },
   "95aacd4d4a": {
     "translation": "Accedi con Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Chiaro"
-  },
-  "9953e9946b": {
-    "translation": "Vista di debug"
   },
   "9b33f5c63c": {
     "translation": "Non hai ricevuto il codice? <resend>Invia di nuovo</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Esporta immagine"
   },
-  "a286d9991c": {
-    "translation": "Giuntura"
-  },
   "a3debabee7": {
     "translation": "Politica sui cookie"
   },
   "a4d3b161ce": {
     "translation": "Invia"
-  },
-  "a603905470": {
-    "translation": "Debug"
   },
   "a6cc403d56": {
     "translation": "Chiunque abbia il link"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Il file sta diventando grande"
-  },
-  "a917baaf14": {
-    "translation": "Nuova chat"
   },
   "a9ded1e5ce": {
     "translation": "Sfondo"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Il file è pieno"
-  },
-  "b34a671e2c": {
-    "translation": "Tempo di risposta del registro"
   },
   "b357b524e7": {
     "translation": "Indirizzo e-mail"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Impossibile pubblicare il file."
   },
-  "c3bf447eab": {
-    "translation": "Aprire"
-  },
-  "c3eb5c3b90": {
-    "translation": "Capisco"
-  },
   "c4b39a1cc3": {
     "translation": "Cookie essenziali"
   },
-  "c54a624f46": {
-    "translation": "Accetta l'invito"
-  },
   "c6155aaecc": {
     "translation": "Nome del gruppo"
-  },
-  "c64518704c": {
-    "translation": "Utilizzo"
   },
   "c655b27b1e": {
     "translation": "i18n: stringa lunga"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Solo su invito"
   },
-  "dc30bc0c79": {
-    "translation": "Chiaro"
-  },
   "dcdaa754fe": {
     "translation": "URL del file tldraw non valido"
   },
   "dfdb78a4e4": {
     "translation": "Flag di debug dell'app"
-  },
-  "e062622261": {
-    "translation": "Selezionare"
   },
   "e0c88179b3": {
     "translation": "Invita i membri"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Termini di servizio"
-  },
-  "e43ec38a93": {
-    "translation": "Vai a"
   },
   "e81c4e4f2b": {
     "translation": "O"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Per saperne di più, leggi la nostra <a>informativa sui cookie</a>."
   },
-  "eee6f05922": {
-    "translation": "Sciogliere"
-  },
   "ef53538ae4": {
     "translation": "Membri"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Impostazioni utente"
-  },
-  "f1206f9fad": {
-    "translation": "Configurare"
   },
   "f2569594b2": {
     "translation": "Utilizziamo questi cookie per salvare i tuoi file e le tue impostazioni."

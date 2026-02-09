@@ -90,6 +90,7 @@
 	"action.save-copy": "שמירת עותק",
 	"action.select-all": "בחירת הכל",
 	"action.select-none": "ביטול בחירה",
+	"action.select-zoom-tool": "זום",
 	"action.send-backward": "שליחה אחורנית",
 	"action.send-to-back": "שליחה לאחור עד הסוף",
 	"action.share-project": "שיתוף פרויקט זה",
