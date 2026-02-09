@@ -7,6 +7,7 @@ import {
 	getHashForString,
 	toRichText,
 } from 'tldraw'
+import { ELEVENLABS_DEFAULT_VOICE_ID } from '../lib/constants'
 import type { FunctionDeclaration } from './api'
 
 export const AGENT_TOOLS: FunctionDeclaration[] = [
@@ -293,9 +294,45 @@ async function executeWikipediaSearch(input: Record<string, unknown>): Promise<T
 	}
 }
 
-function executeSpeak(input: Record<string, unknown>): ToolResult {
+let elevenLabsAvailable: boolean | null = null
+
+async function executeSpeak(input: Record<string, unknown>): Promise<ToolResult> {
 	const text = input.text as string
 
+	// Check ElevenLabs availability (cache the result)
+	if (elevenLabsAvailable === null) {
+		try {
+			const res = await fetch('/api/elevenlabs/status')
+			const data = (await res.json()) as { available: boolean }
+			elevenLabsAvailable = data.available
+		} catch {
+			elevenLabsAvailable = false
+		}
+	}
+
+	// Try ElevenLabs TTS if available
+	if (elevenLabsAvailable) {
+		try {
+			const res = await fetch('/api/elevenlabs/tts', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ text, voiceId: ELEVENLABS_DEFAULT_VOICE_ID }),
+			})
+			if (res.ok) {
+				const blob = await res.blob()
+				const url = URL.createObjectURL(blob)
+				const audio = new Audio(url)
+				audio.onended = () => URL.revokeObjectURL(url)
+				audio.play()
+				return { success: true, message: 'Speaking text aloud via ElevenLabs.' }
+			}
+			console.warn('[ElevenLabs] TTS request failed:', res.status, await res.text())
+		} catch (err) {
+			console.warn('[ElevenLabs] TTS error, falling back to browser TTS:', err)
+		}
+	}
+
+	// Fallback to browser speech synthesis
 	if (typeof window !== 'undefined' && window.speechSynthesis) {
 		const utterance = new SpeechSynthesisUtterance(text)
 		utterance.rate = 1.0
