@@ -14,6 +14,11 @@ if (!process.env.IMAGE_WORKER) {
 }
 export const IMAGE_WORKER = process.env.IMAGE_WORKER
 
+if (!process.env.TLDRAWFILES_URL) {
+	throw new Error('Missing TLDRAWFILES_URL env var')
+}
+export const TLDRAWFILES_URL: string = process.env.TLDRAWFILES_URL
+
 if (!process.env.MULTIPLAYER_SERVER) {
 	throw new Error('Missing MULTIPLAYER_SERVER env var')
 }

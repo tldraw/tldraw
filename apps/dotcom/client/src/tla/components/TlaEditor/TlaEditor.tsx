@@ -166,8 +166,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	})
 	const hasUser = !!user
 	const assets = useMemo(() => {
-		return multiplayerAssetStore(() => fileId)
-	}, [fileId])
+		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
+	}, [fileId, getUserToken])
 
 	const store = useSync({
 		uri: useCallback(async () => {

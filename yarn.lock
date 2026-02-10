@@ -14995,6 +14995,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"dotcom-tldrawfiles@workspace:apps/dotcom/tldrawfiles-worker":
+  version: 0.0.0-use.local
+  resolution: "dotcom-tldrawfiles@workspace:apps/dotcom/tldrawfiles-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
+    "@tldraw/worker-shared": "workspace:*"
+    "@types/ws": "npm:^8.18.1"
+    itty-router: "npm:^5.0.18"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    wrangler: "npm:^4.37.1"
+  languageName: unknown
+  linkType: soft
+
 "dotcom@workspace:apps/dotcom/client":
   version: 0.0.0-use.local
   resolution: "dotcom@workspace:apps/dotcom/client"
