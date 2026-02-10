@@ -22,16 +22,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.all('*', blockUnknownOrigins)
 		.get('/:objectName', async (request) => {
 			const objectName = request.params.objectName
-			console.error('[tldrawfiles] GET', request.url, { objectName })
-			const head = await this.env.UPLOADS.head(objectName)
-			console.error('[tldrawfiles] R2 head result:', head ? 'found' : 'not found', { objectName })
-			if (!head) {
-				const list = await this.env.UPLOADS.list({ limit: 10 })
-				console.error(
-					'[tldrawfiles] R2 bucket sample:',
-					list.objects.map((o) => o.key)
-				)
-			}
 			return handleUserAssetGet({
 				request,
 				bucket: this.env.UPLOADS,
@@ -41,7 +31,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		})
 		.post('/:objectName', async (request) => {
 			const objectName = request.params.objectName
-			console.error('[tldrawfiles] POST', request.url, { objectName })
 			const res = await handleUserAssetUpload({
 				headers: request.headers,
 				body: request.body,
@@ -71,7 +60,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.all('*', notFound)
 
 	override async fetch(request: Request) {
-		console.error('[tldrawfiles] incoming request:', request.method, request.url)
 		return handleApiRequest({
 			router: this.router,
 			request,
