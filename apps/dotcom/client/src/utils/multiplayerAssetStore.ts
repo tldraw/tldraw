@@ -130,8 +130,7 @@ export function multiplayerAssetStore(opts?: {
 					)
 				)
 
-				const quality = Math.ceil(networkCompensation * 92)
-				return `${TLDRAWFILES_URL}/cdn-cgi/image/w=${width},q=${quality},format=auto/${objectName}`
+				return `${TLDRAWFILES_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
 			}
 
 			return `${TLDRAWFILES_URL}/cdn-cgi/image/format=auto/${objectName}`

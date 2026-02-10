@@ -163,7 +163,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: null,
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=100,q=92,format=auto/image.jpg')
+		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=100,format=auto/image.jpg')
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
@@ -179,7 +179,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '3g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=50,q=46,format=auto/image.jpg')
+		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=50,format=auto/image.jpg')
 	})
 
 	it('should not scale image above natural size', async () => {
@@ -195,6 +195,6 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=100,q=92,format=auto/image.jpg')
+		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=100,format=auto/image.jpg')
 	})
 })
