@@ -15,9 +15,8 @@ services = [{ binding = "SYNC_WORKER", service = "dev-tldraw-multiplayer" }]
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
-# staging is the same as a preview on main:
 [env.staging]
-name = "main-tldraw-tldrawfiles"
+name = "staging-tldraw-tldrawfiles"
 services = [{ binding = "SYNC_WORKER", service = "main-tldraw-multiplayer" }]
 
 # production gets the proper name
