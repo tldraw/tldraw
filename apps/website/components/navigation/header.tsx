@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { ChevronRight } from '@/components/ui/chevron-icon'
 import { cn } from '@/lib/utils'
 import type { NavGroup, NavItem } from '@/sanity/types'
@@ -57,9 +58,9 @@ export function Header({
 	return (
 		<>
 			<header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-950/95">
-				<div className="mx-auto flex min-h-[72px] md:min-h-[100px] lg:min-h-[110px] max-w-content items-center justify-between px-4 sm:px-8">
+				<div className="mx-auto flex min-h-[72px] max-w-content items-center justify-between px-4 sm:px-8 md:min-h-[100px] lg:min-h-[110px]">
 					<div className="flex items-center gap-6">
-						<Link href="/" className="flex items-center mb-[3px]">
+						<Link href="/" className="mb-[3px] flex items-center">
 							<svg
 								width="70"
 								height="19"
@@ -222,10 +223,7 @@ export function Header({
 							</svg>
 							45K
 						</a>
-						<Link
-							href="/quick-start"
-							className="hidden items-center gap-1.5 rounded-lg bg-brand-blue px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:inline-flex"
-						>
+						<Button variant="blue" href="/quick-start" className="hidden sm:inline-flex">
 							Quick Start
 							<svg
 								className="h-3.5 w-3.5"
@@ -240,7 +238,7 @@ export function Header({
 									d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
 								/>
 							</svg>
-						</Link>
+						</Button>
 						<button
 							type="button"
 							className="inline-flex items-center justify-center rounded-md p-2 text-body hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 md:hidden"

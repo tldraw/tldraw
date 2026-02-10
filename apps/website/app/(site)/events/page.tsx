@@ -1,3 +1,4 @@
+import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/ui/page-header'
 import { formatDate } from '@/lib/utils'
 import { urlFor } from '@/sanity/image'
@@ -58,7 +59,7 @@ function EventCard({
 	event: NonNullable<Awaited<ReturnType<typeof getEvents>>>[number]
 }) {
 	const content = (
-		<div className="flex gap-6 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+		<Card className="flex gap-6">
 			{event.coverImage && (
 				<Image
 					src={urlFor(event.coverImage).width(120).height(120).url()}
@@ -77,7 +78,7 @@ function EventCard({
 					<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{event.description}</p>
 				)}
 			</div>
-		</div>
+		</Card>
 	)
 
 	if (event.url) {

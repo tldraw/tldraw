@@ -24,7 +24,7 @@ function LogoItems({
 					alt={entry.name}
 					width={100}
 					height={20}
-					className="flex items-center justify-center h-5 w-[140px] flex-shrink-0 opacity-90 grayscale"
+					className="flex h-5 w-[140px] flex-shrink-0 items-center justify-center opacity-90 grayscale"
 				/>
 			))}
 		</>
@@ -39,7 +39,7 @@ export async function LogoBar({ entries: entriesProp }: LogoBarProps = {}) {
 	if (logosWithImages.length === 0) return null
 
 	return (
-		<div className="border-b border-zinc-200 pt-12 pb-16 dark:border-zinc-800">
+		<div className="border-b border-zinc-200 pb-16 pt-12 dark:border-zinc-800">
 			<div className="relative mx-auto max-w-content overflow-hidden px-4 sm:px-6 lg:px-8">
 				{/* Gradient masks for fade at edges */}
 				<div
@@ -51,7 +51,7 @@ export async function LogoBar({ entries: entriesProp }: LogoBarProps = {}) {
 					aria-hidden
 				/>
 				{/* Marquee: two identical copies, animate track -50% for seamless loop (no gap between copies) */}
-				<div className="logo-bar-marquee flex overflow-hidden select-none">
+				<div className="logo-bar-marquee flex select-none overflow-hidden">
 					<div className="logo-bar-marquee__track flex shrink-0">
 						<div
 							className="flex flex-row items-center"

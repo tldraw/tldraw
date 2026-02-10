@@ -110,6 +110,47 @@
 	}
 }
 
+/* Feature page prose: 2-column layout matching production tldraw.dev */
+.prose-feature {
+	columns: 2;
+	column-gap: 3rem;
+}
+
+.prose-feature h2 {
+	column-span: all;
+	margin-top: 3rem;
+	margin-bottom: 1.5rem;
+}
+
+.prose-feature h2:first-child {
+	margin-top: 0;
+}
+
+.prose-feature h3 {
+	break-after: avoid;
+	font-size: 0.95rem;
+	margin-top: 0;
+	margin-bottom: 0.25rem;
+}
+
+.prose-feature p {
+	break-inside: avoid;
+	font-size: 0.875rem;
+	line-height: 1.6;
+	margin-top: 0;
+	margin-bottom: 1.5rem;
+}
+
+.prose-feature figure {
+	column-span: all;
+}
+
+@media (max-width: 480px) {
+	.prose-feature {
+		columns: 1;
+	}
+}
+
 /* Hero demo canvas - tldraw.dev-style layout */
 .tldraw_demo {
 	height: 100%;

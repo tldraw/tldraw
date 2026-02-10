@@ -57,16 +57,18 @@ export async function getHomepage(): Promise<Homepage | null> {
 	)
 }
 
-// Shared sections used across multiple pages (community, finalCta, testimonialSection)
+// Shared sections used across multiple pages (community, finalCta, testimonialSection, starterKits, hero CTA)
 export async function getSharedSections(): Promise<Pick<
 	Homepage,
-	'community' | 'testimonialSection' | 'finalCta'
+	'community' | 'testimonialSection' | 'finalCta' | 'starterKits' | 'hero'
 > | null> {
 	return fetchOrNull(
 		`*[_type == "homepage"][0]{
 			community,
 			testimonialSection,
 			finalCta,
+			starterKits,
+			hero { ctaPrimary, ctaSecondary },
 		}`
 	)
 }
@@ -240,11 +242,21 @@ export async function getFeaturePageByParentAndSlug(
 	// First try to find a standalone capability document
 	const standalone = await fetchOrNull<FeaturePage>(
 		`*[_type == "featurePage" && parentGroup == $parentGroup && slug.current == $slug][0]{
-			...
+			...,
+			"parentEyebrow": *[_type == "featurePage" && category == "group" && slug.current == $parentGroup][0].eyebrow
 		}`,
 		{ parentGroup, slug }
 	)
-	if (standalone) return standalone
+	if (standalone) {
+		// Inherit eyebrow from parent if not set on child
+		if (
+			!standalone.eyebrow &&
+			(standalone as FeaturePage & { parentEyebrow?: string }).parentEyebrow
+		) {
+			standalone.eyebrow = (standalone as FeaturePage & { parentEyebrow?: string }).parentEyebrow
+		}
+		return standalone
+	}
 
 	// Fall back to the embedded child in the parent group document
 	const result = await fetchOrNull<{ parent: FeaturePage; child: FeaturePageChild }>(
@@ -256,7 +268,7 @@ export async function getFeaturePageByParentAndSlug(
 	)
 	if (!result?.child) return null
 
-	// Synthesize a FeaturePage from the embedded child data
+	// Synthesize a FeaturePage from the embedded child data, inheriting parent's eyebrow
 	return {
 		_id: result.parent._id + ':' + result.child.slug,
 		_type: 'featurePage',
@@ -266,6 +278,7 @@ export async function getFeaturePageByParentAndSlug(
 		body: [],
 		category: 'capability',
 		parentGroup,
+		eyebrow: result.parent.eyebrow,
 	}
 }
 

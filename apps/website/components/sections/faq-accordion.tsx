@@ -62,7 +62,7 @@ function AccordionItem({
 				</svg>
 			</button>
 			{isOpen && (
-				<div className="prose prose-sm pb-4 text-body prose-a:text-brand-link prose-a:underline dark:prose-invert dark:text-zinc-400">
+				<div className="prose prose-sm pb-4 text-body dark:prose-invert prose-a:text-brand-link prose-a:underline dark:text-zinc-400">
 					{children}
 				</div>
 			)}
@@ -125,7 +125,7 @@ export function FAQAccordionGrouped({ sections }: FAQAccordionGroupedProps) {
 			{sections.map((section) => (
 				<div key={section.heading} className="py-10 lg:py-14">
 					<div className="flex flex-col gap-8 lg:flex-row lg:gap-8">
-						<div className="lg:w-1/2 pt-4">
+						<div className="pt-4 lg:w-1/2">
 							<h2 className="text-2xl font-semibold text-black dark:text-white lg:text-3xl">
 								{section.heading}
 							</h2>

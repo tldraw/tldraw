@@ -103,7 +103,7 @@ export function Footer({ tagline, columns, socialLinks }: FooterProps) {
 						</div>
 					</div>
 					{/* Link columns */}
-					<div className="grid grid-cols-2 gap-x-16 gap-y-12 lg:grid-cols-4 lg:flex-1">
+					<div className="grid grid-cols-2 gap-x-16 gap-y-12 lg:flex-1 lg:grid-cols-4">
 						{columns.map((column) => (
 							<div key={column.heading}>
 								<h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">

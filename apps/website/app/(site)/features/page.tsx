@@ -1,4 +1,5 @@
-import { ChevronRight } from '@/components/ui/chevron-icon'
+import { ActionLink } from '@/components/ui/action-link'
+import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/ui/page-header'
 import { getFeaturePagesByCategory } from '@/sanity/queries'
 import type { Metadata } from 'next'
@@ -23,10 +24,12 @@ export default async function FeaturesPage() {
 				{featured.length > 0 && (
 					<div className="mb-16">
 						{featured.map((f) => (
-							<Link
+							<Card
 								key={f._id}
+								as={Link}
 								href={`/features/${f.slug.current}`}
-								className="block rounded-xl border border-zinc-200 p-8 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+								hover
+								className="p-8"
 							>
 								{f.eyebrow && (
 									<p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
@@ -37,7 +40,7 @@ export default async function FeaturesPage() {
 									{f.title}
 								</h2>
 								<p className="mt-2 text-body dark:text-zinc-400">{f.description}</p>
-							</Link>
+							</Card>
 						))}
 					</div>
 				)}
@@ -63,19 +66,24 @@ export default async function FeaturesPage() {
 							{group.children && group.children.length > 0 && (
 								<div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 									{group.children.map((child) => (
-										<Link
+										<Card
 											key={child.slug}
+											as={Link}
 											href={`/features/${group.slug.current}/${child.slug}`}
-											className="rounded-xl border border-zinc-200 p-5 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+											hover
+											className="p-5"
 										>
 											<h3 className="font-semibold text-black dark:text-white">{child.title}</h3>
-											<p className="mt-1 text-sm leading-relaxed text-body dark:text-zinc-400 line-clamp-3">
+											<p className="mt-1 line-clamp-3 text-sm leading-relaxed text-body dark:text-zinc-400">
 												{child.description}
 											</p>
-											<span className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link">
-												Learn more <ChevronRight />
-											</span>
-										</Link>
+											<ActionLink
+												href={`/features/${group.slug.current}/${child.slug}`}
+												className="mt-2"
+											>
+												Learn more
+											</ActionLink>
+										</Card>
 									))}
 								</div>
 							)}

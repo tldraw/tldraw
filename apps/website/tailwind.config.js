@@ -13,7 +13,7 @@ module.exports = {
 					blue: '#155DFC',
 					link: '#155DFC',
 				},
-				body: '#404047',
+				body: '#27272a' /* zinc-800 - darker for readability */,
 			},
 			letterSpacing: {
 				heading: '-0.02em',

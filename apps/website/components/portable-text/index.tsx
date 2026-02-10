@@ -74,11 +74,19 @@ const components: PortableTextComponents = {
 interface RichTextProps {
 	value: PortableTextBlock[]
 	className?: string
+	/** Use 'feature' variant for feature pages to get 2-column grid layout */
+	variant?: 'default' | 'feature'
 }
 
-export function RichText({ value, className }: RichTextProps) {
+export function RichText({ value, className, variant = 'default' }: RichTextProps) {
 	return (
-		<div className={cn('prose prose-zinc max-w-none dark:prose-invert', className)}>
+		<div
+			className={cn(
+				'prose prose-zinc max-w-none dark:prose-invert',
+				variant === 'feature' && 'prose-feature',
+				className
+			)}
+		>
 			<PortableText value={value} components={components} />
 		</div>
 	)

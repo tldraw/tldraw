@@ -1,3 +1,4 @@
+import { Section } from '@/components/ui/section'
 import Link from 'next/link'
 
 interface CTASectionProps {
@@ -8,21 +9,19 @@ interface CTASectionProps {
 
 export function CTASection({ title, description, cta }: CTASectionProps) {
 	return (
-		<section className="py-16 sm:py-24">
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
-				<div className="rounded-2xl bg-zinc-900 px-8 py-16 text-center dark:bg-zinc-800 sm:px-16">
-					<h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h2>
-					{description && <p className="mt-4 text-lg text-zinc-300">{description}</p>}
-					<div className="mt-8">
-						<Link
-							href={cta.url}
-							className="inline-flex rounded-lg bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-sm transition-colors hover:bg-zinc-100"
-						>
-							{cta.label}
-						</Link>
-					</div>
+		<Section>
+			<div className="rounded-2xl bg-zinc-900 px-8 py-16 text-center dark:bg-zinc-800 sm:px-16">
+				<h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h2>
+				{description && <p className="mt-4 text-lg text-zinc-300">{description}</p>}
+				<div className="mt-8">
+					<Link
+						href={cta.url}
+						className="inline-flex rounded-lg bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-sm transition-colors hover:bg-zinc-100"
+					>
+						{cta.label}
+					</Link>
 				</div>
 			</div>
-		</section>
+		</Section>
 	)
 }

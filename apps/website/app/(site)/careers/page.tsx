@@ -2,6 +2,8 @@ import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
 import { FinalCtaSection } from '@/components/sections/final-cta-section'
 import { PitchYourselfForm } from '@/components/sections/pitch-yourself-form'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { careersContent } from '@/content/careers'
 import { getJobListings, getSharedSections } from '@/sanity/queries'
 import type { Metadata } from 'next'
@@ -37,10 +39,7 @@ export default async function CareersPage() {
 								Open roles
 							</h2>
 							{jobs.map((job) => (
-								<div
-									key={job._id}
-									className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800"
-								>
+								<Card key={job._id}>
 									<div className="flex flex-wrap items-start justify-between gap-4">
 										<div>
 											<h3 className="text-xl font-semibold text-zinc-900 dark:text-white">
@@ -58,21 +57,16 @@ export default async function CareersPage() {
 												</span>
 											</div>
 										</div>
-										<a
-											href={job.applyUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-										>
+										<Button href={job.applyUrl} className="px-4 py-2">
 											Apply
-										</a>
+										</Button>
 									</div>
 									{job.description && job.description.length > 0 && (
 										<div className="mt-4">
 											<RichText value={job.description} />
 										</div>
 									)}
-								</div>
+								</Card>
 							))}
 						</div>
 					) : (

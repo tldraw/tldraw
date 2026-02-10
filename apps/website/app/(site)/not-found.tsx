@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
 	return (
@@ -9,12 +9,9 @@ export default function NotFound() {
 				<p className="mt-2 text-zinc-600 dark:text-zinc-400">
 					Sorry, we couldn&apos;t find the page you&apos;re looking for.
 				</p>
-				<Link
-					href="/"
-					className="mt-8 inline-flex rounded-lg bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-				>
+				<Button href="/" className="mt-8 font-semibold">
 					Go home
-				</Link>
+				</Button>
 			</div>
 		</div>
 	)

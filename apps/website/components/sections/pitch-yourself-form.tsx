@@ -1,5 +1,7 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { FormField } from '@/components/ui/form-field'
 import { useState } from 'react'
 
 interface PitchYourselfFormProps {
@@ -39,143 +41,71 @@ export function PitchYourselfForm({ title, description }: PitchYourselfFormProps
 					) : (
 						<form onSubmit={handleSubmit} className="space-y-6">
 							<div className="grid gap-6 sm:grid-cols-2">
-								<div>
-									<label
-										htmlFor="firstName"
-										className="mb-2 block text-sm font-medium text-black dark:text-white"
-									>
-										First name
-									</label>
-									<input
-										id="firstName"
-										name="firstName"
-										type="text"
-										required
-										placeholder="Kelly"
-										className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-									/>
-								</div>
-								<div>
-									<label
-										htmlFor="lastName"
-										className="mb-2 block text-sm font-medium text-black dark:text-white"
-									>
-										Last name
-									</label>
-									<input
-										id="lastName"
-										name="lastName"
-										type="text"
-										required
-										placeholder="O'Malley"
-										className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-									/>
-								</div>
+								<FormField
+									label="First name"
+									id="firstName"
+									name="firstName"
+									required
+									placeholder="Kelly"
+								/>
+								<FormField
+									label="Last name"
+									id="lastName"
+									name="lastName"
+									required
+									placeholder="O'Malley"
+								/>
 							</div>
 							<div className="grid gap-6 sm:grid-cols-2">
-								<div>
-									<label
-										htmlFor="email"
-										className="mb-2 block text-sm font-medium text-black dark:text-white"
-									>
-										Email
-									</label>
-									<input
-										id="email"
-										name="email"
-										type="email"
-										required
-										placeholder="hello@tldraw.com"
-										className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-									/>
-								</div>
-								<div>
-									<label
-										htmlFor="location"
-										className="mb-2 block text-sm font-medium text-black dark:text-white"
-									>
-										Location
-									</label>
-									<input
-										id="location"
-										name="location"
-										type="text"
-										required
-										placeholder="London, UK"
-										className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-									/>
-								</div>
-							</div>
-							<div>
-								<label
-									htmlFor="link"
-									className="mb-2 block text-sm font-medium text-black dark:text-white"
-								>
-									LinkedIn / GitHub / Portfolio
-								</label>
-								<input
-									id="link"
-									name="link"
-									type="url"
+								<FormField
+									label="Email"
+									id="email"
+									name="email"
+									type="email"
 									required
-									placeholder="https://www.linkedin.com/in/kellyomalley/"
-									className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
+									placeholder="hello@tldraw.com"
+								/>
+								<FormField
+									label="Location"
+									id="location"
+									name="location"
+									required
+									placeholder="London, UK"
 								/>
 							</div>
-							<div>
-								<label
-									htmlFor="currentlyWorkingOn"
-									className="mb-2 block text-sm font-medium text-black dark:text-white"
-								>
-									Currently working on
-								</label>
-								<textarea
-									id="currentlyWorkingOn"
-									name="currentlyWorkingOn"
-									rows={4}
-									required
-									placeholder="What are you doing now?"
-									className="w-full resize-y rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-								/>
-							</div>
-							<div>
-								<label
-									htmlFor="workingAtTldraw"
-									className="mb-2 block text-sm font-medium text-black dark:text-white"
-								>
-									Working at tldraw
-								</label>
-								<textarea
-									id="workingAtTldraw"
-									name="workingAtTldraw"
-									rows={4}
-									required
-									placeholder="What work are you interested in doing?"
-									className="w-full resize-y rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-								/>
-							</div>
-							<div>
-								<label
-									htmlFor="whyTldraw"
-									className="mb-2 block text-sm font-medium text-black dark:text-white"
-								>
-									Why tldraw?
-								</label>
-								<textarea
-									id="whyTldraw"
-									name="whyTldraw"
-									rows={4}
-									required
-									placeholder="What interests you about tldraw specifically?"
-									className="w-full resize-y rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-								/>
-							</div>
-							<button
-								type="submit"
-								className="rounded-lg bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-							>
-								Submit
-							</button>
+							<FormField
+								label="LinkedIn / GitHub / Portfolio"
+								id="link"
+								name="link"
+								type="url"
+								required
+								placeholder="https://www.linkedin.com/in/kellyomalley/"
+							/>
+							<FormField
+								label="Currently working on"
+								id="currentlyWorkingOn"
+								name="currentlyWorkingOn"
+								rows={4}
+								required
+								placeholder="What are you doing now?"
+							/>
+							<FormField
+								label="Working at tldraw"
+								id="workingAtTldraw"
+								name="workingAtTldraw"
+								rows={4}
+								required
+								placeholder="What work are you interested in doing?"
+							/>
+							<FormField
+								label="Why tldraw?"
+								id="whyTldraw"
+								name="whyTldraw"
+								rows={4}
+								required
+								placeholder="What interests you about tldraw specifically?"
+							/>
+							<Button type="submit">Submit</Button>
 						</form>
 					)}
 				</div>

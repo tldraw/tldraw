@@ -1,9 +1,9 @@
 'use client'
 
-import Image from 'next/image'
-import { useMemo } from 'react'
 import { urlFor } from '@/sanity/image'
 import type { SanityImage } from '@/sanity/types'
+import Image from 'next/image'
+import { useMemo } from 'react'
 
 export interface PullQuoteTestimonial {
 	quote: string
@@ -31,7 +31,10 @@ export function PullQuote({ testimonials }: PullQuoteProps) {
 		testimonial.avatar &&
 		(typeof testimonial.avatar === 'string'
 			? testimonial.avatar
-			: urlFor(testimonial.avatar as SanityImage).width(48).height(48).url())
+			: urlFor(testimonial.avatar as SanityImage)
+					.width(48)
+					.height(48)
+					.url())
 
 	return (
 		<div>

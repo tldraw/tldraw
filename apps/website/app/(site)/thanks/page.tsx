@@ -1,5 +1,5 @@
+import { Button } from '@/components/ui/button'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const metadata: Metadata = {
 	title: 'Thank you',
@@ -15,12 +15,9 @@ export default function ThanksPage() {
 				<p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
 					We&apos;ve received your submission. We&apos;ll be in touch soon.
 				</p>
-				<Link
-					href="/"
-					className="mt-8 inline-flex rounded-lg bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-				>
+				<Button href="/" className="mt-8 font-semibold">
 					Back to home
-				</Link>
+				</Button>
 			</div>
 		</div>
 	)

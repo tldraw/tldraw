@@ -1,6 +1,7 @@
-import { ChevronRight } from '@/components/ui/chevron-icon'
+import { ActionLink } from '@/components/ui/action-link'
+import { Section } from '@/components/ui/section'
+import { SectionHeading } from '@/components/ui/section-heading'
 import Image from 'next/image'
-import Link from 'next/link'
 
 interface ShowcaseItem {
 	company: string
@@ -33,62 +34,49 @@ export function ShowcaseSection({
 	items,
 }: ShowcaseSectionProps) {
 	return (
-		<section className="bg-zinc-50 py-16 dark:bg-zinc-900 sm:py-24">
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-					<div>
-						<h2 className="text-3xl font-semibold text-black dark:text-white sm:text-4xl">
-							{title}
-						</h2>
-						<p className="mt-4 text-lg text-body dark:text-zinc-400">{subtitle}</p>
-					</div>
-					<Link
-						href={ctaUrl}
-						className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-link underline underline-offset-4 hover:text-brand-link/90 dark:hover:text-brand-link/90"
-					>
-						{ctaLabel} <ChevronRight />
-					</Link>
-				</div>
-				<div className="mt-12 grid gap-6 sm:grid-cols-2">
-					{items.map((item) => (
-						<div
-							key={item.company}
-							className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-						>
-							<div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
-								{(item.image ?? SHOWCASE_IMAGE_MAP[item.company]) ? (
-									<Image
-										src={item.image ?? SHOWCASE_IMAGE_MAP[item.company]!}
-										alt={item.company}
-										fill
-										className="object-cover"
-										sizes="(max-width: 640px) 100vw, 50vw"
-									/>
-								) : (
-									<span className="flex h-full items-center justify-center text-sm text-zinc-400 dark:text-zinc-500">
-										{item.company} image placeholder
-									</span>
-								)}
-							</div>
-							<div className="flex flex-1 flex-col p-6">
-								<h3 className="text-lg font-semibold text-black dark:text-white">{item.company}</h3>
-								<span className="mt-1 text-xs font-medium text-body dark:text-zinc-400">
-									{item.category}
-								</span>
-								<p className="mt-4 flex-1 text-sm leading-relaxed text-body dark:text-zinc-400">
-									{item.description}
-								</p>
-								<Link
-									href={item.url}
-									className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link underline underline-offset-4 hover:text-brand-link/90 dark:hover:text-brand-link/90"
-								>
-									Read case study <ChevronRight />
-								</Link>
-							</div>
-						</div>
-					))}
-				</div>
+		<Section bg="muted">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+				<SectionHeading title={title} description={subtitle} />
+				<ActionLink href={ctaUrl} underline>
+					{ctaLabel}
+				</ActionLink>
 			</div>
-		</section>
+			<div className="mt-12 grid gap-6 sm:grid-cols-2">
+				{items.map((item) => (
+					<div
+						key={item.company}
+						className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+					>
+						<div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+							{(item.image ?? SHOWCASE_IMAGE_MAP[item.company]) ? (
+								<Image
+									src={item.image ?? SHOWCASE_IMAGE_MAP[item.company]!}
+									alt={item.company}
+									fill
+									className="object-cover"
+									sizes="(max-width: 640px) 100vw, 50vw"
+								/>
+							) : (
+								<span className="flex h-full items-center justify-center text-sm text-zinc-400 dark:text-zinc-500">
+									{item.company} image placeholder
+								</span>
+							)}
+						</div>
+						<div className="flex flex-1 flex-col p-6">
+							<h3 className="text-lg font-semibold text-black dark:text-white">{item.company}</h3>
+							<span className="mt-1 text-xs font-medium text-body dark:text-zinc-400">
+								{item.category}
+							</span>
+							<p className="mt-4 flex-1 text-sm leading-relaxed text-body dark:text-zinc-400">
+								{item.description}
+							</p>
+							<ActionLink href={item.url} underline className="mt-4">
+								Read case study
+							</ActionLink>
+						</div>
+					</div>
+				))}
+			</div>
+		</Section>
 	)
 }

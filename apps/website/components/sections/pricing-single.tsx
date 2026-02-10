@@ -1,3 +1,5 @@
+import { ActionLink } from '@/components/ui/action-link'
+import { Card } from '@/components/ui/card'
 import { ChevronDown, ChevronRight } from '@/components/ui/chevron-icon'
 import Link from 'next/link'
 
@@ -98,27 +100,21 @@ export function PricingSingle({
 			{/* Auxiliary cards */}
 			<div className="mt-8 grid gap-6 lg:grid-cols-2">
 				{/* Startup pricing */}
-				<div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+				<Card>
 					<h3 className="text-lg font-bold text-black dark:text-white">{startup.title}</h3>
 					<p className="mt-2 text-sm text-body dark:text-zinc-400">{startup.description}</p>
-					<Link
-						href={startup.ctaUrl}
-						className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
-					>
-						{startup.ctaLabel} <ChevronRight />
-					</Link>
-				</div>
+					<ActionLink href={startup.ctaUrl} className="mt-4">
+						{startup.ctaLabel}
+					</ActionLink>
+				</Card>
 
 				{/* Hobby license */}
-				<div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+				<Card>
 					<p className="text-sm text-body dark:text-zinc-400">{hobby.description}</p>
-					<Link
-						href={hobby.ctaUrl}
-						className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
-					>
-						{hobby.ctaLabel} <ChevronRight />
-					</Link>
-				</div>
+					<ActionLink href={hobby.ctaUrl} className="mt-4">
+						{hobby.ctaLabel}
+					</ActionLink>
+				</Card>
 			</div>
 		</div>
 	)

@@ -1,3 +1,6 @@
+import { Section } from '@/components/ui/section'
+import { SectionHeading } from '@/components/ui/section-heading'
+
 interface WhyTldrawItem {
 	title: string
 	description: string
@@ -67,25 +70,21 @@ const ICONS = [
 
 export function WhyTldrawGrid({ title, items }: WhyTldrawGridProps) {
 	return (
-		<section className="py-16 sm:py-24">
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
-				<h2 className="text-3xl font-semibold tracking-heading text-black dark:text-white sm:text-4xl">
-					{title}
-				</h2>
-				<div className="mt-12 grid gap-x-12 gap-y-12 sm:grid-cols-2">
-					{items.map((item, i) => (
-						<div key={item.title} className="flex gap-4">
-							<div className="mt-0.5">{ICONS[i % ICONS.length]}</div>
-							<div>
-								<h3 className="text-lg font-semibold text-black dark:text-white">{item.title}</h3>
-								<p className="mt-3 text-sm leading-relaxed text-body dark:text-zinc-400">
-									{item.description}
-								</p>
-							</div>
+		<Section>
+			<SectionHeading title={title} />
+			<div className="mt-12 grid gap-x-12 gap-y-12 sm:grid-cols-2">
+				{items.map((item, i) => (
+					<div key={item.title} className="flex gap-4">
+						<div className="mt-0.5">{ICONS[i % ICONS.length]}</div>
+						<div>
+							<h3 className="text-lg font-semibold text-black dark:text-white">{item.title}</h3>
+							<p className="mt-3 text-sm leading-relaxed text-body dark:text-zinc-400">
+								{item.description}
+							</p>
 						</div>
-					))}
-				</div>
+					</div>
+				))}
 			</div>
-		</section>
+		</Section>
 	)
 }

@@ -89,7 +89,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						{prevPost ? (
 							<Link
 								href={`/blog/${prevPost.slug.current}`}
-								className="group flex min-w-0 flex-1 basis-0 items-start gap-2 text-md text-brand-link hover:text-brand-link/90 sm:min-w-[200px] dark:hover:text-brand-link/90"
+								className="text-md group flex min-w-0 flex-1 basis-0 items-start gap-2 text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90 sm:min-w-[200px]"
 							>
 								<ChevronLeft className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
 								<span className="min-w-0 break-words">{prevPost.title}</span>
@@ -100,7 +100,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						{nextPost ? (
 							<Link
 								href={`/blog/${nextPost.slug.current}`}
-								className="group flex min-w-0 flex-1 basis-0 flex-row-reverse items-start justify-end gap-2 text-md text-brand-link hover:text-brand-link/90 sm:min-w-[200px] sm:justify-end dark:hover:text-brand-link/90"
+								className="text-md group flex min-w-0 flex-1 basis-0 flex-row-reverse items-start justify-end gap-2 text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90 sm:min-w-[200px] sm:justify-end"
 							>
 								<ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
 								<span className="min-w-0 break-words text-right">{nextPost.title}</span>

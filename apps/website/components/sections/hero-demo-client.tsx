@@ -13,7 +13,7 @@ function HeroDemoLoading() {
 					</div>
 					<div className="h-32 animate-pulse bg-zinc-900 dark:bg-zinc-950" />
 				</div>
-				<div className="relative flex min-h-[280px] flex-1 overflow-visible items-center justify-center border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:w-1/2 lg:border-t-0 lg:border-l-0">
+				<div className="relative flex min-h-[280px] flex-1 items-center justify-center overflow-visible border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:w-1/2 lg:border-l-0 lg:border-t-0">
 					<div className="flex h-full w-full items-center justify-center border-2 border-blue-500 dark:border-blue-400">
 						<span className="animate-pulse text-zinc-400 dark:text-zinc-500">Loading canvas…</span>
 					</div>

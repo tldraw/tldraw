@@ -97,7 +97,7 @@ export function HeroDemo({ codeHtml }: HeroDemoProps) {
 					)}
 				</div>
 				{/* Canvas - white bg and blue border match tldraw.dev reference */}
-				<div className="relative flex min-h-[280px] flex-1 overflow-visible border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:w-1/2 lg:border-t-0 lg:border-l-0">
+				<div className="relative flex min-h-[280px] flex-1 overflow-visible border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:w-1/2 lg:border-l-0 lg:border-t-0">
 					<div
 						className="tldraw_demo w-full border-2 border-blue-500 dark:border-blue-400"
 						onPointerDown={(e) => e.stopPropagation()}

@@ -1,8 +1,8 @@
 import { BlogCard } from '@/components/sections/blog-card'
+import { CategoryNav } from '@/components/ui/category-nav'
 import { PageHeader } from '@/components/ui/page-header'
 import { getBlogCategories, getBlogPosts } from '@/sanity/queries'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 interface CategoryPageProps {
@@ -36,27 +36,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
 		<>
 			<PageHeader title={currentCategory.title} description={currentCategory.description} />
 			<div className="mx-auto max-w-content px-4 py-12 sm:px-6 lg:px-8">
-				<nav className="mb-8 flex flex-wrap gap-2">
-					<Link
-						href="/blog"
-						className="rounded-full border border-zinc-200 px-4 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-white"
-					>
-						All
-					</Link>
-					{categories?.map((cat) => (
-						<Link
-							key={cat._id}
-							href={`/blog/category/${cat.slug.current}`}
-							className={
-								cat.slug.current === category
-									? 'rounded-full bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900'
-									: 'rounded-full border border-zinc-200 px-4 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-white'
-							}
-						>
-							{cat.title}
-						</Link>
-					))}
-				</nav>
+				{categories && <CategoryNav categories={categories} activeCategory={category} />}
 				{posts?.length > 0 ? (
 					<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
 						{posts.map((post) => (
