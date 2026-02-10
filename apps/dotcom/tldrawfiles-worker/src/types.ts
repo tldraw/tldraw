@@ -8,7 +8,6 @@ export interface Environment {
 
 	// environment variables
 	TLDRAW_ENV: string | undefined
-	SENTRY_DSN: string | undefined
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 }
