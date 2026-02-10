@@ -40,6 +40,7 @@ jobs:
         with:
           path: |
             .lazy
+            **/.lazy
             .eslintcache
           key: lint-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-${{ github.sha }}
           restore-keys: |
