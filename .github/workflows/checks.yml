@@ -35,6 +35,16 @@ jobs:
       - name: Check packages
         run: yarn check-packages
 
+      - name: Restore Lazy and ESLint cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .lazy
+            .eslintcache
+          key: lint-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            lint-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-
+
       - name: Typecheck
         run: yarn build-types
 
