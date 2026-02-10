@@ -19,7 +19,7 @@ import {
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors, json } from 'itty-router'
+import { IRequest, cors, json } from 'itty-router'
 import {
 	PostgresJSConnection,
 	PushProcessor,
@@ -44,7 +44,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
-import { associateAsset, upload } from './routes/tla/uploads'
+import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
@@ -135,7 +135,6 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
-	.post('/app/associate-asset/:objectName', associateAsset)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
@@ -227,6 +226,58 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 			throw err
 		})
+	}
+
+	// RPC method — only callable by workers with a service binding, not from the public internet.
+	async associateAsset(
+		objectName: string,
+		fileId: string,
+		authorizationHeader: string | null
+	): Promise<{ ok: boolean; error?: string }> {
+		const db = createPostgresConnectionPool(this.env, 'sync-worker')
+		const file = await db
+			.selectFrom('file')
+			.where('id', '=', fileId)
+			.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType'])
+			.executeTakeFirst()
+		if (!file) return { ok: false, error: 'File not found' }
+
+		// Verify auth from the forwarded Authorization header
+		let userId: string | null = null
+		if (authorizationHeader) {
+			const fakeReq = new Request('https://internal', {
+				headers: { Authorization: authorizationHeader },
+			}) as unknown as IRequest
+			const auth = await getAuth(fakeReq, this.env)
+			userId = auth?.userId ?? null
+		}
+
+		if (userId) {
+			// Authenticated: allow owner, group members, or shared-edit
+			const isOwner = file.ownerId === userId
+			let isGroupMember = false
+			if (!isOwner && file.owningGroupId) {
+				const member = await db
+					.selectFrom('group_user')
+					.select('role')
+					.where('groupId', '=', file.owningGroupId)
+					.where('userId', '=', userId)
+					.executeTakeFirst()
+				isGroupMember = !!member
+			}
+			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
+			if (!isOwner && !isGroupMember && !isSharedEdit) {
+				return { ok: false, error: 'Forbidden' }
+			}
+		} else {
+			// Unauthenticated: only allow shared-edit files
+			if (!file.shared || file.sharedLinkType !== 'edit') {
+				return { ok: false, error: 'Forbidden' }
+			}
+		}
+
+		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
+		return { ok: true }
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {

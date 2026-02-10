@@ -1,10 +1,18 @@
-import { Fetcher, R2Bucket, WorkerVersionMetadata } from '@cloudflare/workers-types'
+import { R2Bucket, WorkerVersionMetadata } from '@cloudflare/workers-types'
+
+interface SyncWorkerRpc {
+	associateAsset(
+		objectName: string,
+		fileId: string,
+		authorizationHeader: string | null
+	): Promise<{ ok: boolean; error?: string }>
+}
 
 export interface Environment {
 	// bindings
 	UPLOADS: R2Bucket
 	CF_VERSION_METADATA: WorkerVersionMetadata
-	SYNC_WORKER: Fetcher
+	SYNC_WORKER: SyncWorkerRpc
 
 	// environment variables
 	TLDRAW_ENV: string | undefined

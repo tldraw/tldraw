@@ -38,20 +38,14 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				objectName,
 			})
 
-			// For app file uploads, notify sync-worker to validate auth and
-			// queue the DB association via service binding.
+			// For app file uploads, validate auth and queue DB association
+			// via sync-worker RPC (only callable via service binding, not HTTP).
 			const fileId = new URL(request.url).searchParams.get('fileId')
 			if (res.status === 200 && fileId) {
-				const associateUrl = new URL(request.url)
-				associateUrl.pathname = `/app/associate-asset/${objectName}`
-				const associateRes = await this.env.SYNC_WORKER.fetch(
-					new Request(associateUrl.toString(), {
-						method: 'POST',
-						headers: request.headers,
-					})
-				)
-				if (!associateRes.ok) {
-					console.error('[tldrawfiles] associate-asset failed:', associateRes.status)
+				const authHeader = request.headers.get('Authorization')
+				const result = await this.env.SYNC_WORKER.associateAsset(objectName, fileId, authHeader)
+				if (!result.ok) {
+					console.error('[tldrawfiles] associate-asset failed:', result.error)
 				}
 			}
 
