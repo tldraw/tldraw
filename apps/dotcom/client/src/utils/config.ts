@@ -2,18 +2,6 @@ import { isPreviewEnv, isProductionEnv, isStagingEnv } from './env'
 
 export const BOOKMARK_ENDPOINT = '/api/unfurl'
 
-// some boilerplate to get the URL of the server to upload/fetch assets
-
-if (!process.env.ASSET_UPLOAD) {
-	throw new Error('Missing ASSET_UPLOAD env var')
-}
-export const ASSET_UPLOADER_URL: string = process.env.ASSET_UPLOAD
-
-if (!process.env.IMAGE_WORKER) {
-	throw new Error('Missing IMAGE_WORKER env var')
-}
-export const IMAGE_WORKER = process.env.IMAGE_WORKER
-
 if (!process.env.TLDRAWFILES_URL) {
 	throw new Error('Missing TLDRAWFILES_URL env var')
 }

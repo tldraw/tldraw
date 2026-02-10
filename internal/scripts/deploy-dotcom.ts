@@ -229,8 +229,6 @@ async function prepareDotcomApp() {
 	await exec('yarn', ['build-app'], {
 		env: {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
-			ASSET_UPLOAD: env.ASSET_UPLOAD,
-			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			TLDRAWFILES_URL: env.TLDRAWFILES_URL,
 			ZERO_SERVER: getZeroUrl(),
