@@ -18,6 +18,7 @@
 	},
 	"scripts": {
 		"dev": "next dev --port=3002",
+		"upload-logos": "tsx scripts/upload-logos-to-sanity.ts",
 		"build": "next build",
 		"start": "next start",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",

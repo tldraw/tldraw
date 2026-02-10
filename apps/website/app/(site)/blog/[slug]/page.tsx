@@ -47,7 +47,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 	return (
 		<>
-			<article className="mx-auto max-w-[720px] px-4 py-16 sm:px-6 sm:py-24">
+			<article className="mx-auto max-w-content px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
 				<div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-link">
 					<Link href="/blog" className="hover:text-blue-700 dark:hover:text-blue-300">
 						Blog
@@ -81,11 +81,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						priority
 					/>
 				)}
-				<div className="mt-12">
-					<RichText value={post.body} />
+				<div className="mt-12 lg:px-10">
+					<RichText value={post.body} className="text-base" />
 				</div>
 				{(prevPost || nextPost) && (
-					<nav className="mt-16 flex flex-wrap items-start justify-between gap-6">
+					<nav className="mt-16 flex flex-wrap items-start justify-between gap-6 lg:px-8">
 						{prevPost ? (
 							<Link
 								href={`/blog/${prevPost.slug.current}`}

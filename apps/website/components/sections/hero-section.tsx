@@ -45,7 +45,7 @@ export function HeroSection({
 
 	return (
 		<section className="relative overflow-hidden">
-			<div className="mx-auto max-w-content px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-32 lg:px-8">
+			<div className="mx-auto max-w-content px-4 pb-8 pt-20 sm:px-6 sm:pb-8 sm:pt-32 lg:px-8">
 				<div className="max-w-3xl">
 					<h1 className="text-4xl font-semibold tracking-heading text-black dark:text-white sm:text-5xl lg:text-6xl">
 						{title}

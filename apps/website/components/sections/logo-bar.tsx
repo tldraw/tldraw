@@ -1,51 +1,71 @@
 import { urlFor } from '@/sanity/image'
-import type { SanityImage } from '@/sanity/types'
+import { getLogoBarEntries } from '@/sanity/queries'
+import type { ShowcaseEntryDoc } from '@/sanity/types'
 import Image from 'next/image'
 
-interface LogoBarEntry {
-	name: string
-	logo?: SanityImage
-}
-
 interface LogoBarProps {
-	entries: LogoBarEntry[]
+	/** Pass entries when parent already has them (e.g. showcase page). Otherwise fetches from Sanity. */
+	entries?: ShowcaseEntryDoc[]
 }
 
-export function LogoBar({ entries }: LogoBarProps) {
-	const logosWithImages = entries.filter((e) => e.logo)
-	if (logosWithImages.length === 0) return null
-
+function LogoItems({
+	entries,
+	keyPrefix,
+}: {
+	entries: { name: string; logo: NonNullable<ShowcaseEntryDoc['logo']> }[]
+	keyPrefix: string
+}) {
 	return (
-		<div className="border-b border-zinc-200 py-8 dark:border-zinc-800">
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
-				<div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 sm:gap-x-16">
-					{logosWithImages.map((entry) => (
-						<Image
-							key={entry.name}
-							src={urlFor(entry.logo!).height(28).url()}
-							alt={entry.name}
-							width={120}
-							height={28}
-							className="h-6 w-auto opacity-60 grayscale transition-opacity hover:opacity-100 sm:h-7"
-						/>
-					))}
-				</div>
-			</div>
-		</div>
+		<>
+			{entries.map((entry) => (
+				<Image
+					key={`${keyPrefix}-${entry.name}`}
+					src={urlFor(entry.logo).height(20).url()}
+					alt={entry.name}
+					width={100}
+					height={20}
+					className="flex items-center justify-center h-5 w-[140px] flex-shrink-0 opacity-90 grayscale"
+				/>
+			))}
+		</>
 	)
 }
 
-/** Fallback logo bar using placeholder text when no Sanity images are available */
-export function LogoBarPlaceholder({ names }: { names: string[] }) {
+export async function LogoBar({ entries: entriesProp }: LogoBarProps = {}) {
+	const entries = entriesProp ?? (await getLogoBarEntries())
+	const logosWithImages = entries.filter(
+		(e): e is typeof e & { logo: NonNullable<(typeof e)['logo']> } => !!e.logo
+	)
+	if (logosWithImages.length === 0) return null
+
 	return (
-		<div className="border-b border-zinc-200 py-8 dark:border-zinc-800">
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
-				<div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-16">
-					{names.map((name) => (
-						<span key={name} className="text-sm font-semibold text-zinc-400 dark:text-zinc-500">
-							{name}
-						</span>
-					))}
+		<div className="border-b border-zinc-200 pt-12 pb-16 dark:border-zinc-800">
+			<div className="relative mx-auto max-w-content overflow-hidden px-4 sm:px-6 lg:px-8">
+				{/* Gradient masks for fade at edges */}
+				<div
+					className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-white to-transparent dark:from-zinc-950"
+					aria-hidden
+				/>
+				<div
+					className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-white to-transparent dark:from-zinc-950"
+					aria-hidden
+				/>
+				{/* Marquee: two identical copies, animate track -50% for seamless loop (no gap between copies) */}
+				<div className="logo-bar-marquee flex overflow-hidden select-none">
+					<div className="logo-bar-marquee__track flex shrink-0">
+						<div
+							className="flex flex-row items-center"
+							style={{ width: logosWithImages.length * 140 }}
+						>
+							<LogoItems entries={logosWithImages} keyPrefix="a" />
+						</div>
+						<div
+							className="flex flex-row items-center"
+							style={{ width: logosWithImages.length * 140 }}
+						>
+							<LogoItems entries={logosWithImages} keyPrefix="b" />
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -2,7 +2,7 @@ import { CommunitySection } from '@/components/sections/community-section'
 import { FinalCtaSection } from '@/components/sections/final-cta-section'
 import { HeroDemoClient } from '@/components/sections/hero-demo-client'
 import { HeroSection } from '@/components/sections/hero-section'
-import { LogoBarPlaceholder } from '@/components/sections/logo-bar'
+import { LogoBar } from '@/components/sections/logo-bar'
 import { ShowcaseSection } from '@/components/sections/showcase-section'
 import { StarterKitsSection } from '@/components/sections/starter-kits-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
@@ -12,7 +12,6 @@ import { WhyTldrawGrid } from '@/components/sections/why-tldraw-grid'
 import {
 	finalCtaContent,
 	heroContent,
-	heroLogoBarNames,
 	showcaseContent,
 	starterKitsContent,
 	testimonialContent,
@@ -109,7 +108,7 @@ export default async function HomePage() {
 						heroImage={<HeroDemoClient codeHtml={heroDemoCodeHtml} />}
 						codeHtml={heroCodeHtml}
 					/>
-					<LogoBarPlaceholder names={heroLogoBarNames} />
+					<LogoBar />
 				</>
 			)}
 			{data.whyTldraw && (

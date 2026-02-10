@@ -45,6 +45,14 @@
 		content: none;
 	}
 
+	/* Prose body text - darker for better readability */
+	.prose.prose-zinc {
+		--tw-prose-body: #27272a; /* zinc-800 */
+	}
+	.dark .prose.prose-zinc {
+		--tw-prose-body: #a1a1aa; /* zinc-400 */
+	}
+
 	/* Inline code - match production tldraw.dev (grey pill, no backticks) */
 	.prose :not(pre):not(.not-prose):not(.code-block-content) > code {
 		background-color: rgba(0, 0, 0, 0.05);
@@ -161,4 +169,26 @@
 
 .tl-watermark_SEE-LICENSE {
 	display: none !important;
+}
+
+/* Logo bar marquee: animate track -50%; two equal copies, no gap between = seamless infinite loop */
+.logo-bar-marquee__track {
+	animation: logo-bar-scroll 20s linear infinite;
+	display: flex;
+	flex-shrink: 0;
+}
+
+@keyframes logo-bar-scroll {
+	0% {
+		transform: translateX(0%);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.logo-bar-marquee__track {
+		animation: none;
+	}
 }

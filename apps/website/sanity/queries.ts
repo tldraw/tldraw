@@ -278,6 +278,16 @@ export async function getFeatureChildPages(parentGroup: string): Promise<Feature
 	)
 }
 
+// Logo bar (from showcase page, used on homepage and showcase)
+export async function getLogoBarEntries(): Promise<ShowcaseEntryDoc[]> {
+	const page = await fetchOrNull<{ logoBarEntries: ShowcaseEntryDoc[] }>(
+		`*[_type == "showcasePage"][0]{
+			"logoBarEntries": logoBarEntries[]->{ _id, _type, name, slug, logo },
+		}`
+	)
+	return page?.logoBarEntries ?? []
+}
+
 // Showcase
 export async function getCaseStudies(): Promise<CaseStudy[]> {
 	return fetchOrEmpty(

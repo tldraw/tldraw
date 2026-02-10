@@ -1,4 +1,5 @@
 import { CodeBlock } from '@/components/ui/code-block'
+import { cn } from '@/lib/utils'
 import { urlFor } from '@/sanity/image'
 import type { PortableTextBlock } from '@portabletext/react'
 import { PortableText, type PortableTextComponents } from '@portabletext/react'
@@ -72,11 +73,12 @@ const components: PortableTextComponents = {
 
 interface RichTextProps {
 	value: PortableTextBlock[]
+	className?: string
 }
 
-export function RichText({ value }: RichTextProps) {
+export function RichText({ value, className }: RichTextProps) {
 	return (
-		<div className="prose prose-zinc max-w-none dark:prose-invert">
+		<div className={cn('prose prose-zinc max-w-none dark:prose-invert', className)}>
 			<PortableText value={value} components={components} />
 		</div>
 	)
