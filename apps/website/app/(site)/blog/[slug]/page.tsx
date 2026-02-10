@@ -1,5 +1,5 @@
 import { RichText } from '@/components/portable-text'
-import { formatDate } from '@/lib/utils'
+import { formatDate, stripHtml } from '@/lib/utils'
 import { urlFor } from '@/sanity/image'
 import { getBlogPost, getBlogPosts } from '@/sanity/queries'
 import type { Metadata } from 'next'
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 	return {
 		title: post.seo?.metaTitle || post.title,
-		description: post.seo?.metaDescription || post.excerpt,
+		description: post.seo?.metaDescription || stripHtml(post.excerpt),
 		openGraph: post.seo?.ogImage
 			? { images: [{ url: urlFor(post.seo.ogImage).width(1200).height(630).url() }] }
 			: post.coverImage

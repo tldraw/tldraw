@@ -1,13 +1,6 @@
-import Image from 'next/image'
 import Link from 'next/link'
-
-interface FeaturedTestimonial {
-	quote: string
-	author: string
-	role: string
-	company: string
-	avatar?: string
-}
+import type { PullQuoteTestimonial } from './pull-quote'
+import { PullQuote } from './pull-quote'
 
 interface CaseStudySummary {
 	company: string
@@ -16,39 +9,18 @@ interface CaseStudySummary {
 }
 
 interface TestimonialFeatureProps {
-	featured: FeaturedTestimonial
+	testimonials: PullQuoteTestimonial[]
 	caseStudies: CaseStudySummary[]
 }
 
-export function TestimonialFeature({ featured, caseStudies }: TestimonialFeatureProps) {
+export function TestimonialFeature({ testimonials, caseStudies }: TestimonialFeatureProps) {
 	const [firstStudy, ...restStudies] = caseStudies
 
 	return (
 		<section className="py-16 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-3xl">
-					{/* Author info at top */}
-					<div className="mb-8 flex items-center gap-3">
-						{featured.avatar && (
-							<Image
-								src={featured.avatar}
-								alt={featured.author}
-								width={32}
-								height={32}
-								className="rounded-full"
-							/>
-						)}
-						<p className="text-sm text-body dark:text-zinc-400">
-							<span className="font-semibold text-black dark:text-white">{featured.author},</span>{' '}
-							{featured.role} at{' '}
-							<span className="font-semibold text-black dark:text-white">{featured.company}</span>
-						</p>
-					</div>
-
-					{/* Quote */}
-					<blockquote className="text-2xl font-semibold italic leading-[1.3] tracking-heading text-black dark:text-white sm:text-3xl">
-						&ldquo;{featured.quote}&rdquo;
-					</blockquote>
+					<PullQuote testimonials={testimonials} />
 
 					{/* First case study inline */}
 					{firstStudy && (

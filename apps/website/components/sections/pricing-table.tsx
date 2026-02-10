@@ -8,7 +8,7 @@ interface PricingTableProps {
 
 export function PricingTable({ tiers }: PricingTableProps) {
 	return (
-		<div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+		<div className="mx-auto grid max-w-content gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
 			{tiers.map((tier) => (
 				<div
 					key={tier._id}

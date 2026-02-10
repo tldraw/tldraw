@@ -35,7 +35,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
 	return (
 		<>
 			<PageHeader title={currentCategory.title} description={currentCategory.description} />
-			<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 py-12 sm:px-6 lg:px-8">
 				<nav className="mb-8 flex flex-wrap gap-2">
 					<Link
 						href="/blog"

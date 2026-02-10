@@ -2,7 +2,12 @@ import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { urlFor } from '@/sanity/image'
-import { getFeaturePageByParentAndSlug, getFeaturePages, getSharedSections } from '@/sanity/queries'
+import {
+	getFeaturePageByParentAndSlug,
+	getFeaturePages,
+	getPullQuoteTestimonials,
+	getSharedSections,
+} from '@/sanity/queries'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -24,18 +29,37 @@ export async function generateMetadata({ params }: ChildFeaturePageProps): Promi
 
 export async function generateStaticParams() {
 	const features = await getFeaturePages()
-	const capabilities = features?.filter((f) => f.category === 'capability' && f.parentGroup) || []
-	return capabilities.map((f) => ({
+	if (!features) return []
+
+	// Standalone capability documents
+	const capabilities = features.filter((f) => f.category === 'capability' && f.parentGroup)
+	const standaloneParams = capabilities.map((f) => ({
 		slug: f.parentGroup!,
 		child: f.slug.current,
 	}))
+
+	// Embedded children from group documents
+	const groups = features.filter((f) => f.category === 'group')
+	const embeddedParams = groups.flatMap((g) =>
+		(g.children ?? []).map((c) => ({
+			slug: g.slug.current,
+			child: c.slug,
+		}))
+	)
+
+	// Deduplicate by slug+child
+	const seen = new Set(standaloneParams.map((p) => `${p.slug}/${p.child}`))
+	const uniqueEmbedded = embeddedParams.filter((p) => !seen.has(`${p.slug}/${p.child}`))
+
+	return [...standaloneParams, ...uniqueEmbedded]
 }
 
 export default async function ChildFeaturePage({ params }: ChildFeaturePageProps) {
 	const { slug, child } = await params
-	const [feature, shared] = await Promise.all([
+	const [feature, shared, pullQuoteTestimonials] = await Promise.all([
 		getFeaturePageByParentAndSlug(slug, child),
 		getSharedSections(),
+		getPullQuoteTestimonials(),
 	])
 
 	if (!feature) notFound()
@@ -43,7 +67,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 	return (
 		<>
 			{/* Breadcrumb */}
-			<div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 pt-8 sm:px-6 lg:px-8">
 				<Link href={`/features/${slug}`} className="text-sm text-brand-blue hover:text-blue-700">
 					&larr; Back to {slug.replace(/-/g, ' ')}
 				</Link>
@@ -51,7 +75,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 
 			{/* Hero */}
 			<section className="py-12 sm:py-20">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 					{feature.eyebrow && (
 						<p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
 							{feature.eyebrow}
@@ -88,7 +112,11 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			{/* Testimonial */}
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					featured={shared.testimonialSection.featured}
+					testimonials={
+						pullQuoteTestimonials.length > 0
+							? pullQuoteTestimonials
+							: [shared.testimonialSection.featured]
+					}
 					caseStudies={shared.testimonialSection.caseStudies}
 				/>
 			)}

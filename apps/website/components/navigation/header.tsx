@@ -56,7 +56,7 @@ export function Header({
 	return (
 		<>
 			<header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-950/95">
-				<div className="mx-auto flex min-h-[72px] md:min-h-[100px] lg:min-h-[110px] max-w-[1088px] items-center justify-between px-4 sm:px-8">
+				<div className="mx-auto flex min-h-[72px] md:min-h-[100px] lg:min-h-[110px] max-w-content items-center justify-between px-4 sm:px-8">
 					<div className="flex items-center gap-6">
 						<Link href="/" className="flex items-center mb-[3px]">
 							<svg

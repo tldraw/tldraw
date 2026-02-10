@@ -6,7 +6,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, description }: PageHeaderProps) {
 	return (
 		<div className="py-16 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<h1 className="text-4xl font-bold text-black dark:text-white sm:text-5xl lg:text-6xl">
 					{title}
 				</h1>

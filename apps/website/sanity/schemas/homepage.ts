@@ -14,6 +14,13 @@ export const homepage = defineType({
 				defineField({ name: 'title', title: 'Title', type: 'string' }),
 				defineField({ name: 'subtitle', title: 'Subtitle', type: 'string' }),
 				defineField({
+					name: 'subtitleHighlight',
+					title: 'Subtitle highlight phrase',
+					type: 'string',
+					description:
+						'Optional phrase to highlight in the subtitle (e.g. "high-performance web canvas")',
+				}),
+				defineField({
 					name: 'ctaPrimary',
 					title: 'Primary CTA',
 					type: 'object',

@@ -15,7 +15,7 @@ export function CommunitySection({ title, stats }: CommunitySectionProps) {
 
 	return (
 		<section className="py-16 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<h2 className="text-3xl font-semibold text-black dark:text-white sm:text-4xl">{title}</h2>
 				<div className="mt-12 grid gap-6 lg:grid-cols-[1fr_2fr]">
 					{/* Featured stat */}
@@ -63,7 +63,7 @@ export function CommunitySection({ title, stats }: CommunitySectionProps) {
 									href={stat.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="relative flex flex-col overflow-hidden rounded-xl border border-zinc-200 p-6 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+									className={`relative flex flex-col overflow-hidden rounded-xl border border-zinc-200 p-6 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700${isNpm ? ' order-last col-span-2 lg:order-none lg:col-span-1 lg:col-start-2 lg:row-span-2' : ''}`}
 								>
 									<span className="text-2xl font-bold text-black dark:text-white">
 										{stat.value}

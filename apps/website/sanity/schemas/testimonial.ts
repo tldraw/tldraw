@@ -36,6 +36,14 @@ export const testimonial = defineType({
 			type: 'image',
 			options: { hotspot: true },
 		}),
+		defineField({
+			name: 'useInPullQuote',
+			title: 'Use in pull quote',
+			type: 'boolean',
+			description:
+				'When enabled, this testimonial may appear randomly in the pull quote component.',
+			initialValue: true,
+		}),
 	],
 	preview: {
 		select: {

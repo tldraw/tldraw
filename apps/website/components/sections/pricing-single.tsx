@@ -22,7 +22,7 @@ export function PricingSingle({
 	hobby,
 }: PricingSingleProps) {
 	return (
-		<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 			{/* Main pricing card */}
 			<div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
 				<div className="flex">
@@ -48,29 +48,30 @@ export function PricingSingle({
 								</li>
 							))}
 						</ul>
-						<div className="mt-8 flex flex-col gap-3 lg:flex-row">
-							<Link
-								href={ctaPrimary.url}
-								className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-							>
-								{ctaPrimary.label}
-								<span aria-hidden="true">&rarr;</span>
-							</Link>
+						<div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-start">
+							<div>
+								<Link
+									href={ctaPrimary.url}
+									className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 lg:w-auto"
+								>
+									{ctaPrimary.label}
+									<span aria-hidden="true">&rarr;</span>
+								</Link>
+								{ctaPrimary.note && (
+									<p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{ctaPrimary.note}</p>
+								)}
+							</div>
 							<Link
 								href={ctaSecondary.url}
-								className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+								className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 lg:w-auto"
 							>
 								{ctaSecondary.label}
 								<span aria-hidden="true">&rarr;</span>
 							</Link>
 						</div>
-						{ctaPrimary.note && (
-							<p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">{ctaPrimary.note}</p>
-						)}
 					</div>
 					{/* Decorative toolbar image */}
 					<div className="relative hidden w-[35%] lg:block">
-						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img
 							src="/images/pricing-toolbar.png"
 							alt=""

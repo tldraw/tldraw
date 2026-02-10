@@ -20,7 +20,9 @@
 		"dev": "next dev --port=3002",
 		"build": "next build",
 		"start": "next start",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"screenshots": "yarn run -T tsx ../../.claude/skills/iterate-website-page/scripts/generate-screenshots.ts",
+		"compare": "yarn run -T tsx ../../.claude/skills/iterate-website-page/scripts/compare-screenshots.ts"
 	},
 	"dependencies": {
 		"@portabletext/react": "^6.0.2",
@@ -42,7 +44,8 @@
 		"sanity": "^5.8.1",
 		"shiki": "^3.22.0",
 		"styled-components": "^6.1.15",
-		"tailwind-merge": "^2.6.0"
+		"tailwind-merge": "^2.6.0",
+		"tldraw": "npm:tldraw@next"
 	},
 	"devDependencies": {
 		"@tailwindcss/typography": "^0.5.16",
@@ -51,7 +54,9 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"autoprefixer": "^10.4.20",
+		"playwright": "^1.49.1",
 		"postcss": "^8.5.1",
+		"sharp": "^0.33.5",
 		"tailwindcss": "^3.4.17",
 		"typescript": "^5.8.3"
 	}

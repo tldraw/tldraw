@@ -17,7 +17,7 @@ export function LogoBar({ entries }: LogoBarProps) {
 
 	return (
 		<div className="border-b border-zinc-200 py-8 dark:border-zinc-800">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 sm:gap-x-16">
 					{logosWithImages.map((entry) => (
 						<Image
@@ -39,13 +39,10 @@ export function LogoBar({ entries }: LogoBarProps) {
 export function LogoBarPlaceholder({ names }: { names: string[] }) {
 	return (
 		<div className="border-b border-zinc-200 py-8 dark:border-zinc-800">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-16">
 					{names.map((name) => (
-						<span
-							key={name}
-							className="text-sm font-semibold text-zinc-400 dark:text-zinc-500"
-						>
+						<span key={name} className="text-sm font-semibold text-zinc-400 dark:text-zinc-500">
 							{name}
 						</span>
 					))}

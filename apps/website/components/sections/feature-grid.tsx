@@ -13,7 +13,7 @@ interface FeatureGridProps {
 export function FeatureGrid({ title, subtitle, features }: FeatureGridProps) {
 	return (
 		<section className="py-16 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				{(title || subtitle) && (
 					<div className="mx-auto max-w-2xl text-center">
 						{title && (

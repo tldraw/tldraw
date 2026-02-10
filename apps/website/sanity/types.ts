@@ -204,6 +204,7 @@ export interface Testimonial {
 	role: string
 	company: string
 	avatar?: SanityImage
+	useInPullQuote?: boolean
 }
 
 export interface PricingTier {
@@ -276,6 +277,7 @@ export interface Homepage {
 	hero?: {
 		title: string
 		subtitle: string
+		subtitleHighlight?: string
 		ctaPrimary: HomepageCta
 		ctaSecondary?: HomepageCta
 		heroImage?: SanityImage

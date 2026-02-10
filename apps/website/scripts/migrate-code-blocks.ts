@@ -25,7 +25,9 @@ function getSanityClient() {
 	const token = process.env.SANITY_API_TOKEN
 	if (!projectId || !token) {
 		if (!DRY_RUN) {
-			console.error('NEXT_PUBLIC_SANITY_PROJECT_ID and SANITY_API_TOKEN are required for live mode.')
+			console.error(
+				'NEXT_PUBLIC_SANITY_PROJECT_ID and SANITY_API_TOKEN are required for live mode.'
+			)
 			process.exit(1)
 		}
 		return null

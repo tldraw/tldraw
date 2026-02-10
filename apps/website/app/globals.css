@@ -1,3 +1,5 @@
+@import 'tldraw/tldraw.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -55,4 +57,65 @@
 		color: var(--shiki-dark);
 		background-color: var(--shiki-dark-bg);
 	}
+}
+
+/* Hero demo canvas - tldraw.dev-style layout */
+.tldraw_demo {
+	height: 100%;
+	width: 100%;
+	overflow: visible;
+	position: relative;
+	touch-action: none;
+}
+
+.demo_ui .tl-container {
+	overflow: visible;
+	touch-action: none;
+	pointer-events: none;
+}
+
+.demo_ui {
+	position: absolute;
+	inset: 0;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	touch-action: none;
+}
+
+.demo_ui .tlui-style-panel {
+	position: absolute;
+	top: -32px;
+	right: -32px;
+	z-index: 8;
+	transform: scale(0.8);
+	transform-origin: top right;
+	pointer-events: all;
+	visibility: hidden;
+}
+
+.demo_ui .tlui-main-toolbar {
+	position: absolute;
+	bottom: -24px;
+	width: 100%;
+	z-index: 8;
+	transform: scale(0.8);
+	transform-origin: bottom center;
+	pointer-events: all;
+}
+
+@media (min-width: 1080px) {
+	.demo_ui .tlui-style-panel {
+		visibility: visible;
+		top: -16px;
+		right: -16px;
+	}
+
+	.demo_ui .tlui-main-toolbar__inner > div:nth-of-type(2) {
+		display: none;
+	}
+}
+
+.tl-watermark_SEE-LICENSE {
+	display: none !important;
 }

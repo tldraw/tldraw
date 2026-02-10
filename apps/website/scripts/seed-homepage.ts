@@ -1,6 +1,6 @@
 /**
  * Seed the homepage and site settings singletons into Sanity.
- * 
+ *
  * Usage:
  *   source .env.local && npx tsx scripts/seed-homepage.ts
  */
@@ -41,14 +41,17 @@ async function seedHomepage() {
 		hero: {
 			title: heroContent.title,
 			subtitle: heroContent.subtitle,
+			subtitleHighlight: heroContent.subtitleHighlight,
 			ctaPrimary: heroContent.ctaPrimary,
 			ctaSecondary: heroContent.ctaSecondary,
 		},
 		whyTldraw: {
 			title: whyTldrawContent.title,
 			items: whyTldrawContent.items.map((item, i) => ({
-				_type: 'object' as const, _key: key(i),
-				title: item.title, description: item.description,
+				_type: 'object' as const,
+				_key: key(i),
+				title: item.title,
+				description: item.description,
 			})),
 		},
 		showcaseSection: {
@@ -57,24 +60,34 @@ async function seedHomepage() {
 			ctaLabel: showcaseContent.ctaLabel,
 			ctaUrl: showcaseContent.ctaUrl,
 			items: showcaseContent.items.map((item, i) => ({
-				_type: 'object' as const, _key: key(i),
-				company: item.company, category: item.category,
-				description: item.description, url: item.url,
+				_type: 'object' as const,
+				_key: key(i),
+				company: item.company,
+				category: item.category,
+				description: item.description,
+				url: item.url,
 			})),
 		},
 		whatsInside: {
 			title: whatsInsideContent.title,
 			subtitle: whatsInsideContent.subtitle,
 			items: whatsInsideContent.items.map((item, i) => ({
-				_type: 'object' as const, _key: key(i),
-				title: item.title, description: item.description, url: item.url,
+				_type: 'object' as const,
+				_key: key(i),
+				title: item.title,
+				description: item.description,
+				url: item.url,
 			})),
 		},
 		community: {
 			title: communityContent.title,
 			stats: communityContent.stats.map((stat, i) => ({
-				_type: 'object' as const, _key: key(i),
-				value: stat.value, label: stat.label, linkText: stat.linkText, url: stat.url,
+				_type: 'object' as const,
+				_key: key(i),
+				value: stat.value,
+				label: stat.label,
+				linkText: stat.linkText,
+				url: stat.url,
 			})),
 		},
 		whiteboardKit: {
@@ -84,8 +97,10 @@ async function seedHomepage() {
 			ctaLabel: whiteboardKitContent.ctaLabel,
 			ctaUrl: whiteboardKitContent.ctaUrl,
 			features: whiteboardKitContent.features.map((f, i) => ({
-				_type: 'object' as const, _key: key(i),
-				title: f.title, description: f.description,
+				_type: 'object' as const,
+				_key: key(i),
+				title: f.title,
+				description: f.description,
 			})),
 		},
 		starterKits: {
@@ -94,8 +109,11 @@ async function seedHomepage() {
 			ctaLabel: starterKitsContent.ctaLabel,
 			ctaUrl: starterKitsContent.ctaUrl,
 			kits: starterKitsContent.kits.map((kit, i) => ({
-				_type: 'object' as const, _key: key(i),
-				title: kit.title, description: kit.description, url: kit.url,
+				_type: 'object' as const,
+				_key: key(i),
+				title: kit.title,
+				description: kit.description,
+				url: kit.url,
 			})),
 		},
 		testimonialSection: {
@@ -106,8 +124,11 @@ async function seedHomepage() {
 				company: testimonialContent.featured.company,
 			},
 			caseStudies: testimonialContent.caseStudies.map((cs, i) => ({
-				_type: 'object' as const, _key: key(i),
-				company: cs.company, description: cs.description, url: cs.url,
+				_type: 'object' as const,
+				_key: key(i),
+				company: cs.company,
+				description: cs.description,
+				url: cs.url,
 			})),
 		},
 		finalCta: {
@@ -127,32 +148,58 @@ async function seedSiteSettings() {
 		_type: 'siteSettings' as const,
 		_id: 'siteSettings',
 		navGroups: navGroups.map((group, gi) => ({
-			_type: 'object' as const, _key: `nav-${gi}`,
+			_type: 'object' as const,
+			_key: `nav-${gi}`,
 			label: group.label,
 			items: group.items.map((item, ii) => ({
-				_type: 'object' as const, _key: `nav-${gi}-${ii}`,
-				label: item.label, href: item.href,
+				_type: 'object' as const,
+				_key: `nav-${gi}-${ii}`,
+				label: item.label,
+				href: item.href,
 			})),
 		})),
 		standaloneNavLinks: standaloneNavLinks.map((link, i) => ({
-			_type: 'object' as const, _key: `standalone-${i}`,
-			label: link.label, href: link.href,
+			_type: 'object' as const,
+			_key: `standalone-${i}`,
+			label: link.label,
+			href: link.href,
 		})),
 		footerTagline: footerData.tagline,
 		footerColumns: footerData.columns.map((col, ci) => ({
-			_type: 'object' as const, _key: `footer-${ci}`,
+			_type: 'object' as const,
+			_key: `footer-${ci}`,
 			heading: col.heading,
 			links: col.links.map((link, li) => ({
-				_type: 'object' as const, _key: `footer-${ci}-${li}`,
-				label: link.label, href: link.href,
+				_type: 'object' as const,
+				_key: `footer-${ci}-${li}`,
+				label: link.label,
+				href: link.href,
 			})),
 		})),
 		socialLinks: footerData.socialLinks.map((link, i) => ({
-			_type: 'object' as const, _key: `social-${i}`,
-			label: link.label, href: link.href,
+			_type: 'object' as const,
+			_key: `social-${i}`,
+			label: link.label,
+			href: link.href,
 		})),
 	})
 	console.log('  + Site settings singleton created')
+}
+
+async function seedPullQuoteTestimonials() {
+	console.log('Seeding pull quote testimonials...')
+	const zachQuote = {
+		_type: 'testimonial' as const,
+		_id: 'testimonial-zach-blodgett',
+		quote:
+			"tldraw's technology enabled us to deliver a high-quality foundation and also develop native functionality ourselves. The technology and team have been great to work with.",
+		author: 'Zach Blodgett',
+		role: 'Staff Product Manager',
+		company: 'ClickUp',
+		useInPullQuote: true,
+	}
+	await client.createOrReplace(zachQuote)
+	console.log('  + Pull quote testimonial created (Zach Blodgett)')
 }
 
 async function main() {
@@ -160,6 +207,7 @@ async function main() {
 	console.log(`Dataset: ${process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'}`)
 	await seedHomepage()
 	await seedSiteSettings()
+	await seedPullQuoteTestimonials()
 	console.log('Done!')
 }
 

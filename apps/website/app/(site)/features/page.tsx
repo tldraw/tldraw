@@ -17,7 +17,7 @@ export default async function FeaturesPage() {
 	return (
 		<>
 			<PageHeader title="Features" description="Everything you need to build with tldraw." />
-			<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+			<div className="mx-auto max-w-content px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
 				{/* Featured */}
 				{featured.length > 0 && (
 					<div className="mb-16">

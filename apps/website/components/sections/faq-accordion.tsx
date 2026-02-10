@@ -33,7 +33,7 @@ function AccordionItem({
 }: {
 	question: string
 	isOpen: boolean
-	onToggle: () => void
+	onToggle(): void
 	children: React.ReactNode
 }) {
 	return (

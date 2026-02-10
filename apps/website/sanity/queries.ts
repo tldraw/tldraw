@@ -8,6 +8,7 @@ import type {
 	FaqItem,
 	FaqSectionDoc,
 	FeaturePage,
+	FeaturePageChild,
 	Homepage,
 	JobListing,
 	LegalPage,
@@ -16,6 +17,7 @@ import type {
 	ShowcaseEntryDoc,
 	ShowcasePage,
 	SiteSettings,
+	Testimonial,
 } from './types'
 
 async function fetchOrNull<T>(query: string, params?: Record<string, string>): Promise<T | null> {
@@ -65,6 +67,21 @@ export async function getSharedSections(): Promise<Pick<
 			community,
 			testimonialSection,
 			finalCta,
+		}`
+	)
+}
+
+// Pull quote testimonials (random selection pool for testimonial section)
+export async function getPullQuoteTestimonials(): Promise<Testimonial[]> {
+	return fetchOrEmpty(
+		`*[_type == "testimonial" && coalesce(useInPullQuote, true) == true] | order(_createdAt asc) {
+			_id,
+			_type,
+			quote,
+			author,
+			role,
+			company,
+			avatar,
 		}`
 	)
 }
@@ -220,12 +237,36 @@ export async function getFeaturePageByParentAndSlug(
 	parentGroup: string,
 	slug: string
 ): Promise<FeaturePage | null> {
-	return fetchOrNull(
+	// First try to find a standalone capability document
+	const standalone = await fetchOrNull<FeaturePage>(
 		`*[_type == "featurePage" && parentGroup == $parentGroup && slug.current == $slug][0]{
 			...
 		}`,
 		{ parentGroup, slug }
 	)
+	if (standalone) return standalone
+
+	// Fall back to the embedded child in the parent group document
+	const result = await fetchOrNull<{ parent: FeaturePage; child: FeaturePageChild }>(
+		`*[_type == "featurePage" && category == "group" && slug.current == $parentGroup][0]{
+			"parent": { ... },
+			"child": children[slug == $slug][0]
+		}`,
+		{ parentGroup, slug }
+	)
+	if (!result?.child) return null
+
+	// Synthesize a FeaturePage from the embedded child data
+	return {
+		_id: result.parent._id + ':' + result.child.slug,
+		_type: 'featurePage',
+		title: result.child.title,
+		slug: { current: result.child.slug },
+		description: result.child.description,
+		body: [],
+		category: 'capability',
+		parentGroup,
+	}
 }
 
 export async function getFeatureChildPages(parentGroup: string): Promise<FeaturePage[]> {

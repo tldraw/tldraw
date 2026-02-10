@@ -15,7 +15,7 @@ export default async function BlogPage() {
 	return (
 		<>
 			<PageHeader title="Blog" description="News, updates, and stories from the tldraw team." />
-			<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 py-12 sm:px-6 lg:px-8">
 				{categories?.length > 0 && (
 					<nav className="mb-8 flex flex-wrap gap-2">
 						<Link

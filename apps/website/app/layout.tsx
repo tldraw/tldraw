@@ -39,8 +39,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en" className={cn(archivo.variable, GeistMono.variable, 'font-sans antialiased')}>
-			<body className="overflow-x-hidden bg-white text-body dark:bg-zinc-950 dark:text-zinc-300">
+		<html
+			lang="en"
+			className={cn(archivo.variable, GeistMono.variable, 'font-sans antialiased')}
+			suppressHydrationWarning
+		>
+			<body
+				className="overflow-x-hidden bg-white text-body dark:bg-zinc-950 dark:text-zinc-300"
+				suppressHydrationWarning
+			>
 				{children}
 			</body>
 		</html>

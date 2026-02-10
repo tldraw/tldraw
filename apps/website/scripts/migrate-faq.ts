@@ -73,19 +73,10 @@ function cleanHtml(html: string): string {
 			// Remove dir attributes
 			.replace(/\s*dir="auto"/g, '')
 			// Clean Discord URLs: remove tracking params
-			.replace(
-				/https:\/\/discord\.tldraw\.com\/[^"]*(?=#|")/g,
-				'https://discord.tldraw.com/'
-			)
-			.replace(
-				/https:\/\/discord\.tldraw\.com\/\?[^"#]*/g,
-				'https://discord.tldraw.com/'
-			)
+			.replace(/https:\/\/discord\.tldraw\.com\/[^"]*(?=#|")/g, 'https://discord.tldraw.com/')
+			.replace(/https:\/\/discord\.tldraw\.com\/\?[^"#]*/g, 'https://discord.tldraw.com/')
 			// Clean tldraw.com URLs: remove session tracking
-			.replace(
-				/https:\/\/tldraw\.com\/#[^"']*/g,
-				'https://tldraw.com/'
-			)
+			.replace(/https:\/\/tldraw\.com\/#[^"']*/g, 'https://tldraw.com/')
 			// Convert absolute tldraw.dev URLs to relative
 			.replace(/https:\/\/tldraw\.dev\//g, '/')
 			// Normalize relative paths: ./foo → /foo
@@ -319,12 +310,7 @@ async function main() {
 	console.log(`Dataset: ${process.env.NEXT_PUBLIC_SANITY_DATASET || 'staging'}`)
 	console.log(`FAQ entries: ${faqEntries.length}`)
 
-	const sectionOrder = [
-		'Commercial',
-		'Technical',
-		'Store & multiplayer sync',
-		'Other projects',
-	]
+	const sectionOrder = ['Commercial', 'Technical', 'Store & multiplayer sync', 'Other projects']
 
 	let globalOrder = 0
 

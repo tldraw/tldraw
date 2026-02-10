@@ -127,3 +127,6 @@ license-report.md
 opencode.json
 
 .next
+
+apps/website/_comparison
+apps/website/_reference

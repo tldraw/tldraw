@@ -72,11 +72,32 @@ export const showcasePage = defineType({
 				{
 					type: 'object',
 					fields: [
-						defineField({ name: 'name', title: 'Name', type: 'string', validation: (r) => r.required() }),
-						defineField({ name: 'description', title: 'Description', type: 'text', rows: 3, validation: (r) => r.required() }),
-						defineField({ name: 'url', title: 'URL', type: 'url', validation: (r) => r.required() }),
+						defineField({
+							name: 'name',
+							title: 'Name',
+							type: 'string',
+							validation: (r) => r.required(),
+						}),
+						defineField({
+							name: 'description',
+							title: 'Description',
+							type: 'text',
+							rows: 3,
+							validation: (r) => r.required(),
+						}),
+						defineField({
+							name: 'url',
+							title: 'URL',
+							type: 'url',
+							validation: (r) => r.required(),
+						}),
 						defineField({ name: 'linkLabel', title: 'Link label', type: 'string' }),
-						defineField({ name: 'coverImage', title: 'Cover image', type: 'image', options: { hotspot: true } }),
+						defineField({
+							name: 'coverImage',
+							title: 'Cover image',
+							type: 'image',
+							options: { hotspot: true },
+						}),
 					],
 					preview: {
 						select: { title: 'name', subtitle: 'url', media: 'coverImage' },

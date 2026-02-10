@@ -1,78 +1,162 @@
 import { CommunitySection } from '@/components/sections/community-section'
 import { FinalCtaSection } from '@/components/sections/final-cta-section'
+import { HeroDemoClient } from '@/components/sections/hero-demo-client'
 import { HeroSection } from '@/components/sections/hero-section'
+import { LogoBarPlaceholder } from '@/components/sections/logo-bar'
 import { ShowcaseSection } from '@/components/sections/showcase-section'
 import { StarterKitsSection } from '@/components/sections/starter-kits-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { WhatsInsideGrid } from '@/components/sections/whats-inside-grid'
 import { WhiteboardKitSection } from '@/components/sections/whiteboard-kit-section'
 import { WhyTldrawGrid } from '@/components/sections/why-tldraw-grid'
-import { getHomepage } from '@/sanity/queries'
+import {
+	communityContent,
+	finalCtaContent,
+	heroContent,
+	heroLogoBarNames,
+	showcaseContent,
+	starterKitsContent,
+	testimonialContent,
+	whatsInsideContent,
+	whiteboardKitContent,
+	whyTldrawContent,
+} from '@/content/homepage'
+import { getHomepage, getPullQuoteTestimonials } from '@/sanity/queries'
+
+function toHomepageSection<T>(items: T[]): (T & { _key: string })[] {
+	return items.map((item, i) => ({ ...item, _key: `item-${i}` }))
+}
 
 export default async function HomePage() {
-	const hp = await getHomepage()
-	if (!hp) return null
+	const [hp, pullQuoteTestimonials] = await Promise.all([getHomepage(), getPullQuoteTestimonials()])
+	const data = hp ?? {
+		_id: 'homepage',
+		_type: 'homepage' as const,
+		hero: {
+			title: heroContent.title,
+			subtitle: heroContent.subtitle,
+			subtitleHighlight: heroContent.subtitleHighlight,
+			ctaPrimary: heroContent.ctaPrimary,
+			ctaSecondary: heroContent.ctaSecondary,
+		},
+		whyTldraw: {
+			title: whyTldrawContent.title,
+			items: toHomepageSection(whyTldrawContent.items),
+		},
+		showcaseSection: {
+			title: showcaseContent.title,
+			subtitle: showcaseContent.subtitle,
+			ctaLabel: showcaseContent.ctaLabel,
+			ctaUrl: showcaseContent.ctaUrl,
+			items: showcaseContent.items,
+		},
+		whatsInside: {
+			title: whatsInsideContent.title,
+			subtitle: whatsInsideContent.subtitle,
+			items: toHomepageSection(whatsInsideContent.items),
+		},
+		community: {
+			title: communityContent.title,
+			stats: toHomepageSection(communityContent.stats),
+		},
+		whiteboardKit: {
+			eyebrow: whiteboardKitContent.eyebrow,
+			title: whiteboardKitContent.title,
+			description: whiteboardKitContent.description,
+			ctaLabel: whiteboardKitContent.ctaLabel,
+			ctaUrl: whiteboardKitContent.ctaUrl,
+			features: toHomepageSection(whiteboardKitContent.features),
+		},
+		starterKits: {
+			title: starterKitsContent.title,
+			subtitle: starterKitsContent.subtitle,
+			ctaLabel: starterKitsContent.ctaLabel,
+			ctaUrl: starterKitsContent.ctaUrl,
+			kits: toHomepageSection(starterKitsContent.kits),
+		},
+		testimonialSection: {
+			caseStudies: testimonialContent.caseStudies,
+		},
+		finalCta: {
+			title: finalCtaContent.title,
+			description: finalCtaContent.description,
+			descriptionBold: finalCtaContent.descriptionBold,
+			ctaPrimary: finalCtaContent.ctaPrimary,
+			ctaSecondary: finalCtaContent.ctaSecondary,
+		},
+	}
 
 	return (
 		<>
-			{hp.hero && (
-				<HeroSection
-					title={hp.hero.title}
-					subtitle={hp.hero.subtitle}
-					ctaPrimary={hp.hero.ctaPrimary}
-					ctaSecondary={hp.hero.ctaSecondary}
-				/>
+			{data.hero && (
+				<>
+					<HeroSection
+						title={data.hero.title}
+						subtitle={data.hero.subtitle}
+						subtitleHighlight={data.hero.subtitleHighlight}
+						ctaPrimary={data.hero.ctaPrimary}
+						ctaSecondary={data.hero.ctaSecondary}
+						heroImage={<HeroDemoClient />}
+					/>
+					<LogoBarPlaceholder names={heroLogoBarNames} />
+				</>
 			)}
-			{hp.whyTldraw && <WhyTldrawGrid title={hp.whyTldraw.title} items={hp.whyTldraw.items} />}
-			{hp.showcaseSection && (
+			{data.whyTldraw && (
+				<WhyTldrawGrid title={data.whyTldraw.title} items={data.whyTldraw.items} />
+			)}
+			{data.showcaseSection && (
 				<ShowcaseSection
-					title={hp.showcaseSection.title}
-					subtitle={hp.showcaseSection.subtitle}
-					ctaLabel={hp.showcaseSection.ctaLabel}
-					ctaUrl={hp.showcaseSection.ctaUrl}
-					items={hp.showcaseSection.items}
+					title={data.showcaseSection.title}
+					subtitle={data.showcaseSection.subtitle}
+					ctaLabel={data.showcaseSection.ctaLabel}
+					ctaUrl={data.showcaseSection.ctaUrl}
+					items={data.showcaseSection.items}
 				/>
 			)}
-			{hp.whatsInside && (
+			{data.whatsInside && (
 				<WhatsInsideGrid
-					title={hp.whatsInside.title}
-					subtitle={hp.whatsInside.subtitle}
-					items={hp.whatsInside.items}
+					title={data.whatsInside.title}
+					subtitle={data.whatsInside.subtitle}
+					items={data.whatsInside.items}
 				/>
 			)}
-			{hp.community && <CommunitySection title={hp.community.title} stats={hp.community.stats} />}
-			{hp.whiteboardKit && (
+			{data.community && (
+				<CommunitySection title={data.community.title} stats={data.community.stats} />
+			)}
+			{data.whiteboardKit && (
 				<WhiteboardKitSection
-					eyebrow={hp.whiteboardKit.eyebrow}
-					title={hp.whiteboardKit.title}
-					description={hp.whiteboardKit.description}
-					ctaLabel={hp.whiteboardKit.ctaLabel}
-					ctaUrl={hp.whiteboardKit.ctaUrl}
-					features={hp.whiteboardKit.features}
+					eyebrow={data.whiteboardKit.eyebrow}
+					title={data.whiteboardKit.title}
+					description={data.whiteboardKit.description}
+					ctaLabel={data.whiteboardKit.ctaLabel}
+					ctaUrl={data.whiteboardKit.ctaUrl}
+					features={data.whiteboardKit.features}
 				/>
 			)}
-			{hp.starterKits && (
+			{data.starterKits && (
 				<StarterKitsSection
-					title={hp.starterKits.title}
-					subtitle={hp.starterKits.subtitle}
-					ctaLabel={hp.starterKits.ctaLabel}
-					ctaUrl={hp.starterKits.ctaUrl}
-					kits={hp.starterKits.kits}
+					title={data.starterKits.title}
+					subtitle={data.starterKits.subtitle}
+					ctaLabel={data.starterKits.ctaLabel}
+					ctaUrl={data.starterKits.ctaUrl}
+					kits={data.starterKits.kits}
 				/>
 			)}
-			{hp.testimonialSection && (
+			{data.testimonialSection && (
 				<TestimonialFeature
-					featured={hp.testimonialSection.featured}
-					caseStudies={hp.testimonialSection.caseStudies}
+					testimonials={
+						pullQuoteTestimonials.length > 0 ? pullQuoteTestimonials : [testimonialContent.featured]
+					}
+					caseStudies={data.testimonialSection.caseStudies}
 				/>
 			)}
-			{hp.finalCta && (
+			{data.finalCta && (
 				<FinalCtaSection
-					title={hp.finalCta.title}
-					description={hp.finalCta.description}
-					descriptionBold={hp.finalCta.descriptionBold}
-					ctaPrimary={hp.finalCta.ctaPrimary}
-					ctaSecondary={hp.finalCta.ctaSecondary}
+					title={data.finalCta.title}
+					description={data.finalCta.description}
+					descriptionBold={data.finalCta.descriptionBold}
+					ctaPrimary={data.finalCta.ctaPrimary}
+					ctaSecondary={data.finalCta.ctaSecondary}
 				/>
 			)}
 		</>

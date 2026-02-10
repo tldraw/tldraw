@@ -17,7 +17,7 @@ export function TestimonialCarousel({ title, testimonials }: TestimonialCarousel
 
 	return (
 		<section className="bg-zinc-50 py-16 dark:bg-zinc-900 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				{title && (
 					<h2 className="text-center text-3xl font-semibold tracking-tight text-black dark:text-white sm:text-4xl">
 						{title}

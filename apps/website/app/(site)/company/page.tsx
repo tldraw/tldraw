@@ -14,7 +14,7 @@ export default async function CompanyPage() {
 	return (
 		<>
 			<PageHeader title={page?.title || 'Company'} description={page?.intro} />
-			<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
+			<div className="mx-auto max-w-content px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
 				{page?.mission && (
 					<div className="mx-auto mb-16 max-w-3xl">
 						<h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Our mission</h2>

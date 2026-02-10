@@ -41,7 +41,7 @@ interface FooterProps {
 export function Footer({ tagline, columns, socialLinks }: FooterProps) {
 	return (
 		<footer className="bg-black text-white">
-			<div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+			<div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
 				<div className="flex flex-col lg:flex-row lg:gap-16">
 					{/* Logo, tagline, social */}
 					<div className="mb-12 lg:mb-0 lg:w-1/3 lg:shrink-0">

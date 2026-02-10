@@ -6,6 +6,7 @@ import { useState } from 'react'
 interface HeroSectionProps {
 	title: string
 	subtitle: string
+	subtitleHighlight?: string
 	ctaPrimary: { label: string; url: string; variant?: 'code' }
 	ctaSecondary?: { label: string; labelBold?: string; url: string }
 	heroImage?: React.ReactNode
@@ -14,6 +15,7 @@ interface HeroSectionProps {
 export function HeroSection({
 	title,
 	subtitle,
+	subtitleHighlight,
 	ctaPrimary,
 	ctaSecondary,
 	heroImage,
@@ -26,13 +28,26 @@ export function HeroSection({
 		setTimeout(() => setCopied(false), 2000)
 	}
 
+	const subtitleEl =
+		subtitleHighlight && subtitle.includes(subtitleHighlight) ? (
+			<>
+				{subtitle.slice(0, subtitle.indexOf(subtitleHighlight))}
+				<span className="font-medium text-brand-blue dark:text-blue-400">{subtitleHighlight}</span>
+				{subtitle.slice(subtitle.indexOf(subtitleHighlight) + subtitleHighlight.length)}
+			</>
+		) : (
+			subtitle
+		)
+
 	return (
 		<section className="relative overflow-hidden">
-			<div className="mx-auto max-w-7xl px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-32 lg:px-8">
-				<div className="mx-auto max-w-3xl text-center">
-					<h1 className="text-4xl font-semibold text-black dark:text-white sm:text-6xl">{title}</h1>
-					<p className="mt-6 text-lg leading-8 text-body dark:text-zinc-400">{subtitle}</p>
-					<div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+			<div className="mx-auto max-w-content px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-32 lg:px-8">
+				<div className="max-w-3xl">
+					<h1 className="text-4xl font-semibold tracking-heading text-black dark:text-white sm:text-5xl lg:text-6xl">
+						{title}
+					</h1>
+					<p className="mt-6 text-lg leading-8 text-body dark:text-zinc-400">{subtitleEl}</p>
+					<div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
 						{ctaPrimary.variant === 'code' ? (
 							<button
 								onClick={handleCopy}
@@ -87,7 +102,7 @@ export function HeroSection({
 						)}
 					</div>
 				</div>
-				{heroImage && <div className="mt-16">{heroImage}</div>}
+				{heroImage && <div className="mt-12 lg:mt-16">{heroImage}</div>}
 			</div>
 		</section>
 	)

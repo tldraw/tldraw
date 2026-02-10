@@ -22,11 +22,9 @@ interface ProjectsGridProps {
 export function ProjectsGrid({ title, subtitle, projects }: ProjectsGridProps) {
 	return (
 		<section className="bg-zinc-50 py-16 dark:bg-zinc-900 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<div>
-					<h2 className="text-3xl font-semibold text-black dark:text-white sm:text-4xl">
-						{title}
-					</h2>
+					<h2 className="text-3xl font-semibold text-black dark:text-white sm:text-4xl">{title}</h2>
 					<p className="mt-4 max-w-2xl text-lg text-body dark:text-zinc-400">{subtitle}</p>
 				</div>
 

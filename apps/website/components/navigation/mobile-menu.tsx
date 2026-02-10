@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 
 interface MobileMenuProps {
 	open: boolean
-	onClose: () => void
+	onClose(): void
 	navGroups: NavGroup[]
 	standaloneNavLinks: NavItem[]
 }

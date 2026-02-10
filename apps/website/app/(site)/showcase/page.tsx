@@ -53,12 +53,7 @@ export default async function ShowcasePage() {
 
 			{sanityPage.testimonial && sanityPage.caseStudySummaries && (
 				<TestimonialFeature
-					featured={{
-						quote: sanityPage.testimonial.quote,
-						author: sanityPage.testimonial.author,
-						role: sanityPage.testimonial.role,
-						company: sanityPage.testimonial.company,
-					}}
+					testimonials={[sanityPage.testimonial]}
 					caseStudies={sanityPage.caseStudySummaries.map((s) => ({
 						company: s.heading,
 						description: s.description,

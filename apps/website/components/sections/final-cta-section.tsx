@@ -30,7 +30,7 @@ export function FinalCtaSection({
 
 	return (
 		<section className="py-16 sm:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<div className="border-t border-zinc-200 px-8 py-16 text-center dark:border-zinc-800 sm:px-16">
 					<h2 className="text-3xl font-semibold tracking-tight text-black dark:text-white sm:text-4xl">
 						{title}

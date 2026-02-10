@@ -2,7 +2,12 @@ import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { urlFor } from '@/sanity/image'
-import { getFeaturePage, getFeaturePages, getSharedSections } from '@/sanity/queries'
+import {
+	getFeaturePage,
+	getFeaturePages,
+	getPullQuoteTestimonials,
+	getSharedSections,
+} from '@/sanity/queries'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -33,7 +38,11 @@ export async function generateStaticParams() {
 
 export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 	const { slug } = await params
-	const [feature, shared] = await Promise.all([getFeaturePage(slug), getSharedSections()])
+	const [feature, shared, pullQuoteTestimonials] = await Promise.all([
+		getFeaturePage(slug),
+		getSharedSections(),
+		getPullQuoteTestimonials(),
+	])
 
 	if (!feature) notFound()
 
@@ -43,7 +52,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 		<>
 			{/* Hero */}
 			<section className="py-16 sm:py-24">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 					{feature.eyebrow && (
 						<p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
 							{feature.eyebrow}
@@ -71,7 +80,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Child capabilities list (for group pages) */}
 			{isGroup && feature.children && feature.children.length > 0 && (
 				<section className="py-16 sm:py-24">
-					<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+					<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 						<div className="space-y-8">
 							{feature.children.map((child) => (
 								<div
@@ -109,7 +118,11 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Testimonial */}
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					featured={shared.testimonialSection.featured}
+					testimonials={
+						pullQuoteTestimonials.length > 0
+							? pullQuoteTestimonials
+							: [shared.testimonialSection!.featured]
+					}
 					caseStudies={shared.testimonialSection.caseStudies}
 				/>
 			)}

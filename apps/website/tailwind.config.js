@@ -17,6 +17,9 @@ module.exports = {
 			letterSpacing: {
 				heading: '-0.02em',
 			},
+			maxWidth: {
+				content: '1088px',
+			},
 		},
 	},
 	plugins: [require('@tailwindcss/typography')],

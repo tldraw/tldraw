@@ -1,4 +1,4 @@
-import { formatDate } from '@/lib/utils'
+import { formatDate, stripHtml } from '@/lib/utils'
 import { urlFor } from '@/sanity/image'
 import type { BlogPost } from '@/sanity/types'
 import Image from 'next/image'
@@ -30,7 +30,9 @@ export function BlogCard({ post }: BlogCardProps) {
 						</span>
 					)}
 					<h3 className="mt-2 text-lg font-semibold text-black dark:text-white">{post.title}</h3>
-					<p className="mt-2 line-clamp-2 text-sm text-body dark:text-zinc-400">{post.excerpt}</p>
+					<p className="mt-2 line-clamp-2 text-sm text-body dark:text-zinc-400">
+						{stripHtml(post.excerpt)}
+					</p>
 					<div className="mt-4 flex items-center gap-3">
 						{post.author?.avatar && (
 							<Image

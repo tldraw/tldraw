@@ -2,7 +2,7 @@ import { CommunitySection } from '@/components/sections/community-section'
 import { PricingSingle } from '@/components/sections/pricing-single'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { PageHeader } from '@/components/ui/page-header'
-import { getPricingPage, getSharedSections } from '@/sanity/queries'
+import { getPricingPage, getPullQuoteTestimonials, getSharedSections } from '@/sanity/queries'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 }
 
 export default async function PricingPage() {
-	const [pricing, shared] = await Promise.all([getPricingPage(), getSharedSections()])
+	const [pricing, shared, pullQuoteTestimonials] = await Promise.all([
+		getPricingPage(),
+		getSharedSections(),
+		getPullQuoteTestimonials(),
+	])
 
 	return (
 		<>
@@ -32,12 +36,22 @@ export default async function PricingPage() {
 					/>
 				)}
 			</div>
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
+				<hr className="border-zinc-200 dark:border-zinc-800" />
+			</div>
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					featured={shared.testimonialSection.featured}
+					testimonials={
+						pullQuoteTestimonials.length > 0
+							? pullQuoteTestimonials
+							: [shared.testimonialSection.featured]
+					}
 					caseStudies={shared.testimonialSection.caseStudies.slice(0, 1)}
 				/>
 			)}
+			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
+				<hr className="border-zinc-200 dark:border-zinc-800" />
+			</div>
 			{shared?.community && (
 				<CommunitySection title={shared.community.title} stats={shared.community.stats} />
 			)}

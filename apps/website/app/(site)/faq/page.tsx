@@ -23,7 +23,7 @@ export default async function FAQPage() {
 
 	return (
 		<>
-			<div className="mx-auto max-w-[1088px] border-b border-zinc-200 px-4 pb-10 pt-12 dark:border-zinc-800 sm:px-8 sm:pb-14 sm:pt-[72px]">
+			<div className="mx-auto max-w-content border-b border-zinc-200 px-4 pb-10 pt-12 dark:border-zinc-800 sm:px-8 sm:pb-14 sm:pt-[72px]">
 				<h1 className="text-3xl font-semibold text-black dark:text-white sm:text-5xl">FAQ</h1>
 				<p className="mt-4 text-sm leading-relaxed text-body dark:text-zinc-400 sm:mt-6">
 					Frequently asked questions about the tldraw SDK product, pricing, and more.
@@ -60,7 +60,7 @@ export default async function FAQPage() {
 					</a>
 				</div>
 			</div>
-			<div className="mx-auto max-w-[1088px] px-4 sm:px-8">
+			<div className="mx-auto max-w-content px-4 sm:px-8">
 				<FAQAccordionGrouped sections={sections} />
 			</div>
 			{shared?.community && (

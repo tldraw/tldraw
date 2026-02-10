@@ -4,6 +4,7 @@
 export const heroContent = {
 	title: 'Build infinite canvas apps in React with the tldraw SDK',
 	subtitle: 'Make whiteboards and more with tldraw\u2019s high-performance web canvas.',
+	subtitleHighlight: 'high-performance web canvas',
 	ctaPrimary: { label: 'npm create tldraw', url: '/quick-start', variant: 'code' as const },
 	ctaSecondary: {
 		label: 'or build with a starter kit',
@@ -11,6 +12,17 @@ export const heroContent = {
 		url: '/starter-kits/overview',
 	},
 }
+
+export const heroLogoBarNames = [
+	'ClickUp',
+	'Padlet',
+	'Mobbin',
+	'Jam',
+	'Cursor',
+	'Replit',
+	'Vercel',
+	'Stripe',
+]
 
 export const whyTldrawContent = {
 	title: 'Why tldraw?',
@@ -50,6 +62,7 @@ export const showcaseContent = {
 			description:
 				'ClickUp modernized its whiteboard for millions of users, replacing legacy infrastructure with the tldraw SDK.',
 			url: '/blog/clickup',
+			image: '/images/showcase/clickup.png',
 		},
 		{
 			company: 'Padlet',
@@ -57,6 +70,7 @@ export const showcaseContent = {
 			description:
 				'When Padlet saw an opportunity for a new whiteboard, they built it with tldraw — and shipped Sandbox in record time.',
 			url: '/blog/padlet',
+			image: '/images/showcase/padlet.png',
 		},
 		{
 			company: 'Mobbin',
@@ -64,6 +78,7 @@ export const showcaseContent = {
 			description:
 				'Faced with slow, rigid software, Mobbin used tldraw to build custom tools — faster than off-the-shelf solutions.',
 			url: '/blog/mobbin',
+			image: '/images/showcase/mobbin.png',
 		},
 		{
 			company: 'Jam',
@@ -71,6 +86,7 @@ export const showcaseContent = {
 			description:
 				'A collaborative bug reporting tool that helps teams capture issues, add context, and share feedback visually.',
 			url: '/blog/jam',
+			image: '/images/showcase/jam.png',
 		},
 	],
 }
