@@ -135,7 +135,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 						<Link
 							href="/quick-start"
 							onClick={onClose}
-							className="mt-4 rounded-lg bg-brand-blue px-4 py-3 text-center text-base text-white transition-colors hover:bg-blue-700"
+							className="mt-4 rounded-md bg-brand-blue px-4 py-3 text-center text-base text-white transition-colors hover:bg-blue-700"
 						>
 							Quick Start
 						</Link>

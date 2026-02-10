@@ -1,5 +1,6 @@
 import { ActionLink } from '@/components/ui/action-link'
 import { Card } from '@/components/ui/card'
+import { Eyebrow } from '@/components/ui/eyebrow'
 import { PageHeader } from '@/components/ui/page-header'
 import { getFeaturePagesByCategory } from '@/sanity/queries'
 import type { Metadata } from 'next'
@@ -31,11 +32,7 @@ export default async function FeaturesPage() {
 								hover
 								className="p-8"
 							>
-								{f.eyebrow && (
-									<p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-										{f.eyebrow}
-									</p>
-								)}
+								{f.eyebrow && <Eyebrow>{f.eyebrow}</Eyebrow>}
 								<h2 className="mt-2 text-2xl font-semibold text-black dark:text-white">
 									{f.title}
 								</h2>
@@ -50,11 +47,7 @@ export default async function FeaturesPage() {
 					{groups.map((group) => (
 						<div key={group._id}>
 							<Link href={`/features/${group.slug.current}`} className="group">
-								{group.eyebrow && (
-									<p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-										{group.eyebrow}
-									</p>
-								)}
+								{group.eyebrow && <Eyebrow>{group.eyebrow}</Eyebrow>}
 								<h2 className="mt-2 text-2xl font-semibold text-black group-hover:text-brand-blue dark:text-white">
 									{group.title}
 								</h2>

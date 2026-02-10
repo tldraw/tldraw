@@ -66,9 +66,9 @@ export function HeroDemo({ codeHtml }: HeroDemoProps) {
 
 	return (
 		<div className="mt-12 w-full overflow-visible">
-			<div className="flex flex-col gap-0 overflow-visible rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 lg:flex-row">
+			<div className="flex flex-col gap-8 overflow-visible rounded-xl lg:flex-row">
 				{/* Code editor - dark theme matches tldraw.dev reference */}
-				<div className="min-w-0 flex-1 border-b border-zinc-200 dark:border-zinc-800 lg:w-1/2 lg:border-b-0 lg:border-r">
+				<div className="min-w-0 flex-1 overflow-hidden rounded-lg border-b border-zinc-200 dark:border-zinc-800 lg:flex-[2] lg:border-b-0 lg:border-r">
 					<div className="flex items-center gap-2 border-b border-zinc-700 bg-zinc-900 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950">
 						<svg
 							className="h-4 w-4 text-zinc-500 dark:text-zinc-400"
@@ -97,7 +97,7 @@ export function HeroDemo({ codeHtml }: HeroDemoProps) {
 					)}
 				</div>
 				{/* Canvas - white bg and blue border match tldraw.dev reference */}
-				<div className="relative flex min-h-[280px] flex-1 overflow-visible border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:w-1/2 lg:border-l-0 lg:border-t-0">
+				<div className="relative flex min-h-[280px] flex-1 overflow-visible border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:flex-[3] lg:border-l-0 lg:border-t-0">
 					<div
 						className="tldraw_demo w-full border-2 border-blue-500 dark:border-blue-400"
 						onPointerDown={(e) => e.stopPropagation()}

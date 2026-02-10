@@ -12,8 +12,8 @@ interface ButtonProps {
 
 const variants = {
 	primary:
-		'rounded-lg bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200',
-	blue: 'rounded-lg bg-brand-blue px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700',
+		'rounded-md bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200',
+	blue: 'rounded-md bg-brand-blue px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700',
 }
 
 export function Button({

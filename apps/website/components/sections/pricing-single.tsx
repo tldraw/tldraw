@@ -1,5 +1,6 @@
 import { ActionLink } from '@/components/ui/action-link'
 import { Card } from '@/components/ui/card'
+import { CheckIcon } from '@/components/ui/check-icon'
 import { ChevronDown, ChevronRight } from '@/components/ui/chevron-icon'
 import Link from 'next/link'
 
@@ -38,15 +39,7 @@ export function PricingSingle({
 									key={feature}
 									className="flex items-start gap-3 text-sm text-body dark:text-zinc-400"
 								>
-									<svg
-										className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-blue"
-										fill="none"
-										viewBox="0 0 24 24"
-										strokeWidth="2"
-										stroke="currentColor"
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-									</svg>
+									<CheckIcon />
 									{feature}
 								</li>
 							))}

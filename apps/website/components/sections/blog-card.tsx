@@ -1,3 +1,4 @@
+import { Card } from '@/components/ui/card'
 import { formatDate, stripHtml } from '@/lib/utils'
 import { urlFor } from '@/sanity/image'
 import type { BlogPost } from '@/sanity/types'
@@ -11,7 +12,7 @@ interface BlogCardProps {
 export function BlogCard({ post }: BlogCardProps) {
 	return (
 		<Link href={`/blog/${post.slug.current}`} className="group">
-			<article className="overflow-hidden rounded-xl border border-zinc-200 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700">
+			<Card hover className="overflow-hidden p-0">
 				{post.coverImage && (
 					<div className="aspect-video overflow-hidden">
 						<Image
@@ -49,7 +50,7 @@ export function BlogCard({ post }: BlogCardProps) {
 						</div>
 					</div>
 				</div>
-			</article>
+			</Card>
 		</Link>
 	)
 }

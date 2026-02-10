@@ -4,6 +4,7 @@ import { FeatureHeroCta } from '@/components/sections/feature-hero-cta'
 import { FinalCtaSection } from '@/components/sections/final-cta-section'
 import { StarterKitsSection } from '@/components/sections/starter-kits-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
+import { Eyebrow } from '@/components/ui/eyebrow'
 import { splitAtFirstH2, stripLeadingHero } from '@/lib/portable-text-utils'
 import { urlFor } from '@/sanity/image'
 import {
@@ -73,11 +74,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			{/* Hero */}
 			<section className="pt-20 sm:pt-32">
 				<div className="mx-auto max-w-content px-5 sm:px-8">
-					{feature.eyebrow && (
-						<p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-							{feature.eyebrow}
-						</p>
-					)}
+					{feature.eyebrow && <Eyebrow>{feature.eyebrow}</Eyebrow>}
 					<h1 className="mt-4 text-4xl font-semibold tracking-heading text-black dark:text-white sm:text-5xl lg:text-6xl">
 						{feature.title}
 					</h1>

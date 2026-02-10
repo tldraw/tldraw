@@ -1,3 +1,5 @@
+import { Card } from '@/components/ui/card'
+import { CheckIcon } from '@/components/ui/check-icon'
 import { cn } from '@/lib/utils'
 import type { PricingTier } from '@/sanity/types'
 import Link from 'next/link'
@@ -10,13 +12,11 @@ export function PricingTable({ tiers }: PricingTableProps) {
 	return (
 		<div className="mx-auto grid max-w-content gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
 			{tiers.map((tier) => (
-				<div
+				<Card
 					key={tier._id}
 					className={cn(
-						'relative rounded-2xl border p-8',
-						tier.isHighlighted
-							? 'border-brand-blue shadow-lg dark:border-brand-blue'
-							: 'border-zinc-200 dark:border-zinc-800'
+						'relative rounded-2xl p-8',
+						tier.isHighlighted && 'border-brand-blue shadow-lg dark:border-brand-blue'
 					)}
 				>
 					{tier.isHighlighted && (
@@ -38,15 +38,7 @@ export function PricingTable({ tiers }: PricingTableProps) {
 								key={feature}
 								className="flex items-start gap-3 text-sm text-body dark:text-zinc-400"
 							>
-								<svg
-									className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-blue dark:text-brand-blue"
-									fill="none"
-									viewBox="0 0 24 24"
-									strokeWidth="2"
-									stroke="currentColor"
-								>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-								</svg>
+								<CheckIcon />
 								{feature}
 							</li>
 						))}
@@ -54,7 +46,7 @@ export function PricingTable({ tiers }: PricingTableProps) {
 					<Link
 						href={tier.ctaUrl}
 						className={cn(
-							'mt-8 block w-full rounded-lg py-3 text-center text-sm font-semibold transition-colors',
+							'mt-8 block w-full rounded-md py-3 text-center text-sm font-semibold transition-colors',
 							tier.isHighlighted
 								? 'bg-brand-blue text-white hover:bg-blue-700 dark:bg-brand-blue dark:text-white dark:hover:bg-blue-700'
 								: 'border border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800'
@@ -62,7 +54,7 @@ export function PricingTable({ tiers }: PricingTableProps) {
 					>
 						{tier.ctaLabel}
 					</Link>
-				</div>
+				</Card>
 			))}
 		</div>
 	)

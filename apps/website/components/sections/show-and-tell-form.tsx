@@ -58,7 +58,7 @@ export function ShowAndTellForm({ title, description }: ShowAndTellFormProps) {
 					<Button
 						variant="blue"
 						type="submit"
-						className="flex w-full items-center justify-center gap-1.5 rounded-lg px-6 py-3 font-semibold sm:w-auto sm:min-w-[200px]"
+						className="flex w-full items-center justify-center gap-1.5 rounded-md px-6 py-3 font-semibold sm:w-auto sm:min-w-[200px]"
 					>
 						Submit <ChevronRight />
 					</Button>

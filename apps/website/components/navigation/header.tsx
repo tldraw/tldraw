@@ -110,7 +110,7 @@ export function Header({
 								>
 									<button
 										type="button"
-										className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm text-zinc-700 transition-colors hover:text-black dark:text-zinc-300 dark:hover:text-white"
+										className="inline-flex items-center gap-1 rounded px-3 py-2 text-sm text-zinc-700 transition-colors hover:text-black dark:text-zinc-300 dark:hover:text-white"
 									>
 										{group.label}
 										<svg

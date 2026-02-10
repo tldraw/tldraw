@@ -2,6 +2,7 @@ import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
 import { FinalCtaSection } from '@/components/sections/final-cta-section'
 import { PitchYourselfForm } from '@/components/sections/pitch-yourself-form'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { careersContent } from '@/content/careers'
@@ -46,15 +47,9 @@ export default async function CareersPage() {
 												{job.title}
 											</h3>
 											<div className="mt-2 flex flex-wrap gap-2">
-												<span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-													{job.department}
-												</span>
-												<span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-													{job.location}
-												</span>
-												<span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-													{job.type}
-												</span>
+												<Badge>{job.department}</Badge>
+												<Badge>{job.location}</Badge>
+												<Badge>{job.type}</Badge>
 											</div>
 										</div>
 										<Button href={job.applyUrl} className="px-4 py-2">
