@@ -2,7 +2,6 @@
 
 import { urlFor } from '@/sanity/image'
 import type { Testimonial } from '@/sanity/types'
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useState } from 'react'
 
@@ -20,19 +19,13 @@ export function TestimonialCarousel({ title, testimonials }: TestimonialCarousel
 		<section className="bg-zinc-50 py-16 dark:bg-zinc-900 sm:py-24">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				{title && (
-					<h2 className="text-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+					<h2 className="text-center text-3xl font-semibold tracking-tight text-black dark:text-white sm:text-4xl">
 						{title}
 					</h2>
 				)}
 				<div className="mt-12">
-					<motion.div
-						key={current}
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.3 }}
-						className="mx-auto max-w-3xl text-center"
-					>
-						<blockquote className="text-xl font-medium leading-relaxed text-zinc-700 dark:text-zinc-300">
+					<div className="mx-auto max-w-3xl text-center">
+						<blockquote className="text-xl font-semibold italic leading-[1.3] text-black dark:text-white sm:text-2xl">
 							&ldquo;{testimonials[current].quote}&rdquo;
 						</blockquote>
 						<div className="mt-8 flex items-center justify-center gap-4">
@@ -46,15 +39,15 @@ export function TestimonialCarousel({ title, testimonials }: TestimonialCarousel
 								/>
 							)}
 							<div className="text-left">
-								<p className="font-semibold text-zinc-900 dark:text-white">
+								<p className="font-semibold text-black dark:text-white">
 									{testimonials[current].author}
 								</p>
-								<p className="text-sm text-zinc-500 dark:text-zinc-400">
+								<p className="text-sm text-body dark:text-zinc-400">
 									{testimonials[current].role}, {testimonials[current].company}
 								</p>
 							</div>
 						</div>
-					</motion.div>
+					</div>
 					{testimonials.length > 1 && (
 						<div className="mt-8 flex items-center justify-center gap-2">
 							{testimonials.map((_, i) => (

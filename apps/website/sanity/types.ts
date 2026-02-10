@@ -99,6 +99,23 @@ export interface FaqItem {
 	order: number
 }
 
+export interface FaqSectionDoc {
+	_id: string
+	_type: 'faqSection'
+	heading: string
+	description: string
+	slug: { current: string }
+	items: FaqItem[]
+	order: number
+}
+
+export interface FeaturePageChild {
+	_key: string
+	title: string
+	description: string
+	slug: string
+}
+
 export interface FeaturePage {
 	_id: string
 	_type: 'featurePage'
@@ -107,8 +124,63 @@ export interface FeaturePage {
 	description: string
 	body: PortableTextBlock[]
 	icon?: string
+	category?: 'featured' | 'group' | 'capability'
+	parentGroup?: string
+	eyebrow?: string
+	heroSubtitle?: string
+	children?: FeaturePageChild[]
+	order?: number
 	coverImage?: SanityImage
 	seo?: Seo
+}
+
+export interface ShowcaseEntryDoc {
+	_id: string
+	_type: 'showcaseEntry'
+	name: string
+	slug: { current: string }
+	category: string
+	description: string
+	url: string
+	caseStudyUrl?: string
+	logo?: SanityImage
+	coverImage?: SanityImage
+	order?: number
+}
+
+export interface ShowcaseProject {
+	_key: string
+	name: string
+	description: string
+	url: string
+	linkLabel?: string
+	coverImage?: SanityImage
+}
+
+export interface ShowcaseCaseStudySummary {
+	_key: string
+	heading: string
+	description: string
+	url: string
+}
+
+export interface ShowcasePage {
+	_id: string
+	_type: 'showcasePage'
+	heroTitle: string
+	heroSubtitle?: string
+	logoBarEntries?: ShowcaseEntryDoc[]
+	showcaseTitle?: string
+	showcaseSubtitle?: string
+	showAndTellTitle?: string
+	showAndTellDescription?: string
+	projectsTitle?: string
+	projectsSubtitle?: string
+	projects?: ShowcaseProject[]
+	testimonial?: Testimonial
+	caseStudySummaries?: ShowcaseCaseStudySummary[]
+	ctaTitle?: string
+	ctaDescription?: string
 }
 
 export interface CaseStudy {
@@ -166,31 +238,93 @@ export interface Page {
 	seo?: Seo
 }
 
+// Shared sub-types for homepage sections
+export interface HomepageCta {
+	label: string
+	url: string
+	variant?: 'code'
+	labelBold?: string
+}
+
+export interface HomepageShowcaseItem {
+	_key: string
+	company: string
+	category: string
+	description: string
+	url: string
+}
+
+export interface HomepageFeaturedTestimonial {
+	quote: string
+	author: string
+	role: string
+	company: string
+	avatar?: string
+}
+
+export interface HomepageCaseStudy {
+	_key: string
+	company: string
+	description: string
+	url: string
+}
+
 // Singleton types
 export interface Homepage {
 	_id: string
 	_type: 'homepage'
-	hero: {
+	hero?: {
 		title: string
 		subtitle: string
-		ctaPrimary: CtaBlock
-		ctaSecondary?: CtaBlock
+		ctaPrimary: HomepageCta
+		ctaSecondary?: HomepageCta
 		heroImage?: SanityImage
 	}
-	features: {
+	whyTldraw?: {
 		title: string
-		description: string
-		icon?: string
-	}[]
-	testimonials: Testimonial[]
+		items: { _key: string; title: string; description: string }[]
+	}
 	showcaseSection?: {
 		title: string
-		items: CaseStudy[]
+		subtitle: string
+		ctaLabel: string
+		ctaUrl: string
+		items: HomepageShowcaseItem[]
 	}
-	ctaSection?: {
+	whatsInside?: {
+		title: string
+		subtitle: string
+		items: { _key: string; title: string; description: string; url: string }[]
+	}
+	community?: {
+		title: string
+		stats: { _key: string; value: string; label: string; linkText: string; url: string }[]
+	}
+	whiteboardKit?: {
+		eyebrow: string
 		title: string
 		description: string
-		cta: CtaBlock
+		ctaLabel: string
+		ctaUrl: string
+		features: { _key: string; title: string; description: string }[]
+	}
+	starterKits?: {
+		title: string
+		subtitle: string
+		ctaLabel: string
+		ctaUrl: string
+		kits: { _key: string; title: string; description: string; url: string }[]
+	}
+	testimonialSection?: {
+		featured: HomepageFeaturedTestimonial
+		caseStudies: HomepageCaseStudy[]
+	}
+	finalCta?: {
+		title: string
+		description: string
+		descriptionBold: string
+		ctaPrimary: HomepageCta
+		ctaSecondary: HomepageCta
 	}
 }
 
@@ -199,9 +333,29 @@ export interface PricingPage {
 	_type: 'pricingPage'
 	title: string
 	subtitle?: string
-	tiers: PricingTier[]
-	faqItems?: FaqItem[]
-	contactCta?: CtaBlock
+	sdkLicense?: {
+		title: string
+		description: string
+		features: string[]
+		ctaPrimary: { label: string; url: string; note?: string }
+		ctaSecondary: { label: string; url: string }
+	}
+	premiumNote?: {
+		text: string
+		linkLabel: string
+		linkUrl: string
+	}
+	startupCard?: {
+		title: string
+		description: string
+		ctaLabel: string
+		ctaUrl: string
+	}
+	hobbyCard?: {
+		description: string
+		ctaLabel: string
+		ctaUrl: string
+	}
 }
 
 export interface CompanyPage {
@@ -214,11 +368,31 @@ export interface CompanyPage {
 	values?: { title: string; description: string }[]
 }
 
+export interface NavItem {
+	_key: string
+	label: string
+	href: string
+}
+
+export interface NavGroup {
+	_key: string
+	label: string
+	items: NavItem[]
+}
+
+export interface FooterColumn {
+	_key: string
+	heading: string
+	links: NavItem[]
+}
+
 export interface SiteSettings {
 	_id: string
 	_type: 'siteSettings'
 	logo?: SanityImage
-	navLinks: { label: string; url: string }[]
-	footerLinks: { heading: string; links: { label: string; url: string }[] }[]
-	socialLinks: { platform: string; url: string }[]
+	navGroups?: NavGroup[]
+	standaloneNavLinks?: NavItem[]
+	footerTagline?: string
+	footerColumns?: FooterColumn[]
+	socialLinks?: NavItem[]
 }

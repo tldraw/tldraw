@@ -6,12 +6,15 @@ import type {
 	CompanyPage,
 	Event,
 	FaqItem,
+	FaqSectionDoc,
 	FeaturePage,
 	Homepage,
 	JobListing,
 	LegalPage,
 	Page,
 	PricingPage,
+	ShowcaseEntryDoc,
+	ShowcasePage,
 	SiteSettings,
 } from './types'
 
@@ -31,7 +34,14 @@ async function fetchOrEmpty<T>(query: string, params?: Record<string, string>): 
 export async function getSiteSettings(): Promise<SiteSettings | null> {
 	return fetchOrNull(
 		`*[_type == "siteSettings"][0]{
-			...,
+			_id,
+			_type,
+			logo,
+			navGroups,
+			standaloneNavLinks,
+			footerTagline,
+			footerColumns,
+			socialLinks,
 		}`
 	)
 }
@@ -40,12 +50,21 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
 export async function getHomepage(): Promise<Homepage | null> {
 	return fetchOrNull(
 		`*[_type == "homepage"][0]{
-			...,
-			testimonials[]->,
-			"showcaseSection": showcaseSection{
-				title,
-				"items": items[]->{ ..., testimonial-> }
-			},
+			...
+		}`
+	)
+}
+
+// Shared sections used across multiple pages (community, finalCta, testimonialSection)
+export async function getSharedSections(): Promise<Pick<
+	Homepage,
+	'community' | 'testimonialSection' | 'finalCta'
+> | null> {
+	return fetchOrNull(
+		`*[_type == "homepage"][0]{
+			community,
+			testimonialSection,
+			finalCta,
 		}`
 	)
 }
@@ -97,9 +116,7 @@ export async function getBlogCategories(): Promise<BlogCategory[]> {
 export async function getPricingPage(): Promise<PricingPage | null> {
 	return fetchOrNull(
 		`*[_type == "pricingPage"][0]{
-			...,
-			"tiers": tiers[]->{ ... } | order(order asc),
-			"faqItems": faqItems[]->{ ... } | order(order asc),
+			...
 		}`
 	)
 }
@@ -141,6 +158,20 @@ export async function getFaqItems(): Promise<FaqItem[]> {
 	)
 }
 
+export async function getFaqSections(): Promise<FaqSectionDoc[]> {
+	return fetchOrEmpty(
+		`*[_type == "faqSection"] | order(order asc) {
+			_id,
+			_type,
+			heading,
+			description,
+			slug,
+			"items": items[]->{ _id, _type, question, answer, category, order },
+			order
+		}`
+	)
+}
+
 // Features
 export async function getFeaturePages(): Promise<FeaturePage[]> {
 	return fetchOrEmpty(
@@ -150,6 +181,27 @@ export async function getFeaturePages(): Promise<FeaturePage[]> {
 			slug,
 			description,
 			icon,
+			category,
+			order,
+			coverImage,
+		}`
+	)
+}
+
+export async function getFeaturePagesByCategory(): Promise<FeaturePage[]> {
+	return fetchOrEmpty(
+		`*[_type == "featurePage"] | order(order asc) {
+			_id,
+			title,
+			slug,
+			description,
+			icon,
+			category,
+			parentGroup,
+			eyebrow,
+			heroSubtitle,
+			children,
+			order,
 			coverImage,
 		}`
 	)
@@ -164,11 +216,50 @@ export async function getFeaturePage(slug: string): Promise<FeaturePage | null> 
 	)
 }
 
+export async function getFeaturePageByParentAndSlug(
+	parentGroup: string,
+	slug: string
+): Promise<FeaturePage | null> {
+	return fetchOrNull(
+		`*[_type == "featurePage" && parentGroup == $parentGroup && slug.current == $slug][0]{
+			...
+		}`,
+		{ parentGroup, slug }
+	)
+}
+
+export async function getFeatureChildPages(parentGroup: string): Promise<FeaturePage[]> {
+	return fetchOrEmpty(
+		`*[_type == "featurePage" && parentGroup == $parentGroup] | order(order asc) {
+			_id, title, slug, description, parentGroup, order
+		}`,
+		{ parentGroup }
+	)
+}
+
 // Showcase
 export async function getCaseStudies(): Promise<CaseStudy[]> {
 	return fetchOrEmpty(
 		`*[_type == "caseStudy"] | order(_createdAt desc) {
 			...,
+			"testimonial": testimonial->,
+		}`
+	)
+}
+
+export async function getShowcaseEntries(): Promise<ShowcaseEntryDoc[]> {
+	return fetchOrEmpty(
+		`*[_type == "showcaseEntry"] | order(order asc) {
+			...
+		}`
+	)
+}
+
+export async function getShowcasePage(): Promise<ShowcasePage | null> {
+	return fetchOrNull(
+		`*[_type == "showcasePage"][0]{
+			...,
+			"logoBarEntries": logoBarEntries[]->{ _id, name, slug, logo },
 			"testimonial": testimonial->,
 		}`
 	)

@@ -1,7 +1,14 @@
 import { cn } from '@/lib/utils'
-import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { Metadata, Viewport } from 'next'
+import { Archivo } from 'next/font/google'
 import './globals.css'
+
+const archivo = Archivo({
+	subsets: ['latin'],
+	variable: '--font-archivo',
+	display: 'swap',
+})
 
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
@@ -32,8 +39,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en" className={cn(GeistSans.variable, 'font-sans antialiased')}>
-			<body className="overflow-x-hidden bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+		<html lang="en" className={cn(archivo.variable, GeistMono.variable, 'font-sans antialiased')}>
+			<body className="overflow-x-hidden bg-white text-body dark:bg-zinc-950 dark:text-zinc-300">
 				{children}
 			</body>
 		</html>

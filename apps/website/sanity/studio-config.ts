@@ -1,3 +1,4 @@
+import { codeInput } from '@sanity/code-input'
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
 import { sanityConfig } from './config'
@@ -8,7 +9,8 @@ export default defineConfig({
 	title: 'tldraw Website',
 	projectId: sanityConfig.projectId,
 	dataset: sanityConfig.dataset,
-	plugins: [structureTool()],
+	basePath: '/studio',
+	plugins: [structureTool(), codeInput()],
 	schema: {
 		types: schemas,
 	},

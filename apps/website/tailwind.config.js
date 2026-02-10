@@ -5,16 +5,17 @@ module.exports = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['var(--font-geist-sans)'],
-				mono: [
-					'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
-				],
+				sans: ['var(--font-archivo)', 'Archivo', 'sans-serif'],
+				mono: ['var(--font-geist-mono)', 'Geist Mono', 'Fragment Mono', 'monospace'],
 			},
 			colors: {
 				brand: {
-					blue: '#2F80ED',
-					yellow: '#FFD700',
+					blue: '#155DFC',
 				},
+				body: '#404047',
+			},
+			letterSpacing: {
+				heading: '-0.02em',
 			},
 		},
 	},

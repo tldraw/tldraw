@@ -7,67 +7,74 @@ import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { WhatsInsideGrid } from '@/components/sections/whats-inside-grid'
 import { WhiteboardKitSection } from '@/components/sections/whiteboard-kit-section'
 import { WhyTldrawGrid } from '@/components/sections/why-tldraw-grid'
-import {
-	communityContent,
-	finalCtaContent,
-	heroContent,
-	showcaseContent,
-	starterKitsContent,
-	testimonialContent,
-	whatsInsideContent,
-	whiteboardKitContent,
-	whyTldrawContent,
-} from '@/content/homepage'
+import { getHomepage } from '@/sanity/queries'
 
-export default function HomePage() {
+export default async function HomePage() {
+	const hp = await getHomepage()
+	if (!hp) return null
+
 	return (
 		<>
-			<HeroSection
-				title={heroContent.title}
-				subtitle={heroContent.subtitle}
-				ctaPrimary={heroContent.ctaPrimary}
-				ctaSecondary={heroContent.ctaSecondary}
-			/>
-			<WhyTldrawGrid title={whyTldrawContent.title} items={whyTldrawContent.items} />
-			<ShowcaseSection
-				title={showcaseContent.title}
-				subtitle={showcaseContent.subtitle}
-				ctaLabel={showcaseContent.ctaLabel}
-				ctaUrl={showcaseContent.ctaUrl}
-				items={showcaseContent.items}
-			/>
-			<WhatsInsideGrid
-				title={whatsInsideContent.title}
-				subtitle={whatsInsideContent.subtitle}
-				items={whatsInsideContent.items}
-			/>
-			<CommunitySection title={communityContent.title} stats={communityContent.stats} />
-			<WhiteboardKitSection
-				eyebrow={whiteboardKitContent.eyebrow}
-				title={whiteboardKitContent.title}
-				description={whiteboardKitContent.description}
-				ctaLabel={whiteboardKitContent.ctaLabel}
-				ctaUrl={whiteboardKitContent.ctaUrl}
-				features={whiteboardKitContent.features}
-			/>
-			<StarterKitsSection
-				title={starterKitsContent.title}
-				subtitle={starterKitsContent.subtitle}
-				ctaLabel={starterKitsContent.ctaLabel}
-				ctaUrl={starterKitsContent.ctaUrl}
-				kits={starterKitsContent.kits}
-			/>
-			<TestimonialFeature
-				featured={testimonialContent.featured}
-				caseStudies={testimonialContent.caseStudies}
-			/>
-			<FinalCtaSection
-				title={finalCtaContent.title}
-				description={finalCtaContent.description}
-				descriptionBold={finalCtaContent.descriptionBold}
-				ctaPrimary={finalCtaContent.ctaPrimary}
-				ctaSecondary={finalCtaContent.ctaSecondary}
-			/>
+			{hp.hero && (
+				<HeroSection
+					title={hp.hero.title}
+					subtitle={hp.hero.subtitle}
+					ctaPrimary={hp.hero.ctaPrimary}
+					ctaSecondary={hp.hero.ctaSecondary}
+				/>
+			)}
+			{hp.whyTldraw && <WhyTldrawGrid title={hp.whyTldraw.title} items={hp.whyTldraw.items} />}
+			{hp.showcaseSection && (
+				<ShowcaseSection
+					title={hp.showcaseSection.title}
+					subtitle={hp.showcaseSection.subtitle}
+					ctaLabel={hp.showcaseSection.ctaLabel}
+					ctaUrl={hp.showcaseSection.ctaUrl}
+					items={hp.showcaseSection.items}
+				/>
+			)}
+			{hp.whatsInside && (
+				<WhatsInsideGrid
+					title={hp.whatsInside.title}
+					subtitle={hp.whatsInside.subtitle}
+					items={hp.whatsInside.items}
+				/>
+			)}
+			{hp.community && <CommunitySection title={hp.community.title} stats={hp.community.stats} />}
+			{hp.whiteboardKit && (
+				<WhiteboardKitSection
+					eyebrow={hp.whiteboardKit.eyebrow}
+					title={hp.whiteboardKit.title}
+					description={hp.whiteboardKit.description}
+					ctaLabel={hp.whiteboardKit.ctaLabel}
+					ctaUrl={hp.whiteboardKit.ctaUrl}
+					features={hp.whiteboardKit.features}
+				/>
+			)}
+			{hp.starterKits && (
+				<StarterKitsSection
+					title={hp.starterKits.title}
+					subtitle={hp.starterKits.subtitle}
+					ctaLabel={hp.starterKits.ctaLabel}
+					ctaUrl={hp.starterKits.ctaUrl}
+					kits={hp.starterKits.kits}
+				/>
+			)}
+			{hp.testimonialSection && (
+				<TestimonialFeature
+					featured={hp.testimonialSection.featured}
+					caseStudies={hp.testimonialSection.caseStudies}
+				/>
+			)}
+			{hp.finalCta && (
+				<FinalCtaSection
+					title={hp.finalCta.title}
+					description={hp.finalCta.description}
+					descriptionBold={hp.finalCta.descriptionBold}
+					ctaPrimary={hp.finalCta.ctaPrimary}
+					ctaSecondary={hp.finalCta.ctaSecondary}
+				/>
+			)}
 		</>
 	)
 }

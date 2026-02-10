@@ -7,6 +7,25 @@
 		@apply antialiased;
 	}
 
+	h1,
+	h2,
+	h3 {
+		letter-spacing: -0.02em;
+		line-height: 1;
+	}
+
+	h1 {
+		@apply font-semibold text-black dark:text-white;
+	}
+
+	h2 {
+		@apply font-semibold text-black dark:text-white;
+	}
+
+	h3 {
+		@apply font-semibold text-black dark:text-white;
+	}
+
 	.prose h2,
 	.prose h3,
 	.prose h4,
@@ -22,5 +41,18 @@
 	.prose blockquote p:before,
 	.prose blockquote p:after {
 		content: none;
+	}
+
+	/* Shiki dual-theme support: light mode shows light theme, dark mode shows dark */
+	.code-block-content .shiki,
+	.code-block-content .shiki span {
+		color: var(--shiki-light);
+		background-color: var(--shiki-light-bg);
+	}
+
+	.dark .code-block-content .shiki,
+	.dark .code-block-content .shiki span {
+		color: var(--shiki-dark);
+		background-color: var(--shiki-dark-bg);
 	}
 }

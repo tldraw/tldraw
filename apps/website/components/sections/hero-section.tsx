@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -31,36 +30,17 @@ export function HeroSection({
 		<section className="relative overflow-hidden">
 			<div className="mx-auto max-w-7xl px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-32 lg:px-8">
 				<div className="mx-auto max-w-3xl text-center">
-					<motion.h1
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5 }}
-						className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-6xl"
-					>
-						{title}
-					</motion.h1>
-					<motion.p
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.1 }}
-						className="mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-400"
-					>
-						{subtitle}
-					</motion.p>
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.2 }}
-						className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-					>
+					<h1 className="text-4xl font-semibold text-black dark:text-white sm:text-6xl">{title}</h1>
+					<p className="mt-6 text-lg leading-8 text-body dark:text-zinc-400">{subtitle}</p>
+					<div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
 						{ctaPrimary.variant === 'code' ? (
 							<button
 								onClick={handleCopy}
-								className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-zinc-100 px-6 py-3 font-mono text-sm text-zinc-800 transition-colors hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+								className="inline-flex items-center gap-2 rounded-lg bg-black px-6 py-3 font-mono text-sm text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
 							>
 								<span className="text-zinc-400">$</span> {ctaPrimary.label}
 								<svg
-									className="h-4 w-4 text-zinc-400"
+									className="h-4 w-4 text-zinc-400 dark:text-zinc-400"
 									fill="none"
 									viewBox="0 0 24 24"
 									strokeWidth="1.5"
@@ -80,7 +60,7 @@ export function HeroSection({
 						) : (
 							<Link
 								href={ctaPrimary.url}
-								className="rounded-lg bg-zinc-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+								className="rounded-lg bg-black px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
 							>
 								{ctaPrimary.label}
 							</Link>
@@ -88,12 +68,12 @@ export function HeroSection({
 						{ctaSecondary && (
 							<Link
 								href={ctaSecondary.url}
-								className="text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+								className="text-sm text-body transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
 							>
 								{ctaSecondary.labelBold ? (
 									<>
 										or{' '}
-										<span className="font-semibold underline underline-offset-4">
+										<span className="font-semibold text-brand-blue underline underline-offset-4">
 											{ctaSecondary.labelBold}
 										</span>{' '}
 										&rarr;
@@ -105,18 +85,9 @@ export function HeroSection({
 								)}
 							</Link>
 						)}
-					</motion.div>
+					</div>
 				</div>
-				{heroImage && (
-					<motion.div
-						initial={{ opacity: 0, y: 40 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.7, delay: 0.3 }}
-						className="mt-16"
-					>
-						{heroImage}
-					</motion.div>
-				)}
+				{heroImage && <div className="mt-16">{heroImage}</div>}
 			</div>
 		</section>
 	)

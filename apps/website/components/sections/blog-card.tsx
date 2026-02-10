@@ -29,10 +29,8 @@ export function BlogCard({ post }: BlogCardProps) {
 							{post.category.title}
 						</span>
 					)}
-					<h3 className="mt-2 text-lg font-semibold text-zinc-900 dark:text-white">{post.title}</h3>
-					<p className="mt-2 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
-						{post.excerpt}
-					</p>
+					<h3 className="mt-2 text-lg font-semibold text-black dark:text-white">{post.title}</h3>
+					<p className="mt-2 line-clamp-2 text-sm text-body dark:text-zinc-400">{post.excerpt}</p>
 					<div className="mt-4 flex items-center gap-3">
 						{post.author?.avatar && (
 							<Image
@@ -44,7 +42,7 @@ export function BlogCard({ post }: BlogCardProps) {
 							/>
 						)}
 						<div className="text-sm">
-							<p className="font-medium text-zinc-900 dark:text-white">{post.author?.name}</p>
+							<p className="font-medium text-black dark:text-white">{post.author?.name}</p>
 							<p className="text-zinc-500 dark:text-zinc-400">{formatDate(post.publishedAt)}</p>
 						</div>
 					</div>

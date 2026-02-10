@@ -10,9 +10,11 @@ export const siteSettings = defineType({
 			title: 'Logo',
 			type: 'image',
 		}),
+
+		// Navigation groups (dropdowns in header)
 		defineField({
-			name: 'navLinks',
-			title: 'Navigation links',
+			name: 'navGroups',
+			title: 'Navigation groups',
 			type: 'array',
 			of: [
 				{
@@ -22,27 +24,75 @@ export const siteSettings = defineType({
 							name: 'label',
 							title: 'Label',
 							type: 'string',
-							validation: (rule) => rule.required(),
+							validation: (r) => r.required(),
 						}),
 						defineField({
-							name: 'url',
-							title: 'URL',
-							type: 'string',
-							validation: (rule) => rule.required(),
+							name: 'items',
+							title: 'Items',
+							type: 'array',
+							of: [
+								{
+									type: 'object',
+									fields: [
+										defineField({
+											name: 'label',
+											title: 'Label',
+											type: 'string',
+											validation: (r) => r.required(),
+										}),
+										defineField({
+											name: 'href',
+											title: 'URL',
+											type: 'string',
+											validation: (r) => r.required(),
+										}),
+									],
+									preview: { select: { title: 'label', subtitle: 'href' } },
+								},
+							],
 						}),
 					],
-					preview: {
-						select: {
-							title: 'label',
-							subtitle: 'url',
-						},
-					},
+					preview: { select: { title: 'label' } },
 				},
 			],
 		}),
+
+		// Standalone nav links (shown directly in header, not in dropdowns)
 		defineField({
-			name: 'footerLinks',
-			title: 'Footer links',
+			name: 'standaloneNavLinks',
+			title: 'Standalone nav links',
+			type: 'array',
+			of: [
+				{
+					type: 'object',
+					fields: [
+						defineField({
+							name: 'label',
+							title: 'Label',
+							type: 'string',
+							validation: (r) => r.required(),
+						}),
+						defineField({
+							name: 'href',
+							title: 'URL',
+							type: 'string',
+							validation: (r) => r.required(),
+						}),
+					],
+					preview: { select: { title: 'label', subtitle: 'href' } },
+				},
+			],
+		}),
+
+		// Footer
+		defineField({
+			name: 'footerTagline',
+			title: 'Footer tagline',
+			type: 'string',
+		}),
+		defineField({
+			name: 'footerColumns',
+			title: 'Footer columns',
 			type: 'array',
 			of: [
 				{
@@ -52,7 +102,7 @@ export const siteSettings = defineType({
 							name: 'heading',
 							title: 'Heading',
 							type: 'string',
-							validation: (rule) => rule.required(),
+							validation: (r) => r.required(),
 						}),
 						defineField({
 							name: 'links',
@@ -66,30 +116,21 @@ export const siteSettings = defineType({
 											name: 'label',
 											title: 'Label',
 											type: 'string',
-											validation: (rule) => rule.required(),
+											validation: (r) => r.required(),
 										}),
 										defineField({
-											name: 'url',
+											name: 'href',
 											title: 'URL',
 											type: 'string',
-											validation: (rule) => rule.required(),
+											validation: (r) => r.required(),
 										}),
 									],
-									preview: {
-										select: {
-											title: 'label',
-											subtitle: 'url',
-										},
-									},
+									preview: { select: { title: 'label', subtitle: 'href' } },
 								},
 							],
 						}),
 					],
-					preview: {
-						select: {
-							title: 'heading',
-						},
-					},
+					preview: { select: { title: 'heading' } },
 				},
 			],
 		}),
@@ -102,33 +143,26 @@ export const siteSettings = defineType({
 					type: 'object',
 					fields: [
 						defineField({
-							name: 'platform',
-							title: 'Platform',
+							name: 'label',
+							title: 'Label',
 							type: 'string',
-							validation: (rule) => rule.required(),
+							validation: (r) => r.required(),
 						}),
 						defineField({
-							name: 'url',
+							name: 'href',
 							title: 'URL',
-							type: 'url',
-							validation: (rule) => rule.required(),
+							type: 'string',
+							validation: (r) => r.required(),
 						}),
 					],
-					preview: {
-						select: {
-							title: 'platform',
-							subtitle: 'url',
-						},
-					},
+					preview: { select: { title: 'label', subtitle: 'href' } },
 				},
 			],
 		}),
 	],
 	preview: {
 		prepare() {
-			return {
-				title: 'Site settings',
-			}
+			return { title: 'Site settings' }
 		},
 	},
 })

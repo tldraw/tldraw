@@ -1,9 +1,9 @@
-import { FAQAccordion } from '@/components/sections/faq-accordion'
-import { PricingTable } from '@/components/sections/pricing-table'
+import { CommunitySection } from '@/components/sections/community-section'
+import { PricingSingle } from '@/components/sections/pricing-single'
+import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { PageHeader } from '@/components/ui/page-header'
-import { getPricingPage } from '@/sanity/queries'
+import { getPricingPage, getSharedSections } from '@/sanity/queries'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const metadata: Metadata = {
 	title: 'Pricing',
@@ -11,41 +11,35 @@ export const metadata: Metadata = {
 }
 
 export default async function PricingPage() {
-	const page = await getPricingPage()
+	const [pricing, shared] = await Promise.all([getPricingPage(), getSharedSections()])
 
 	return (
 		<>
-			<PageHeader
-				title={page?.title || 'Pricing'}
-				description={page?.subtitle || 'Simple, transparent pricing for teams of all sizes.'}
-			/>
-			<div className="py-12 sm:py-24">
-				{(page?.tiers?.length ?? 0) > 0 && page ? (
-					<PricingTable tiers={page.tiers} />
-				) : (
-					<div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-						<p className="text-zinc-500 dark:text-zinc-400">Pricing information coming soon.</p>
-					</div>
+			<PageHeader title={pricing?.title ?? ''} description={pricing?.subtitle ?? ''} />
+			<div className="pb-12 sm:pb-24">
+				{pricing?.sdkLicense && (
+					<PricingSingle
+						title={pricing.sdkLicense.title}
+						description={pricing.sdkLicense.description}
+						features={pricing.sdkLicense.features}
+						ctaPrimary={pricing.sdkLicense.ctaPrimary}
+						ctaSecondary={pricing.sdkLicense.ctaSecondary}
+						premiumNote={pricing.premiumNote}
+						startup={
+							pricing.startupCard ?? { title: '', description: '', ctaLabel: '', ctaUrl: '' }
+						}
+						hobby={pricing.hobbyCard ?? { description: '', ctaLabel: '', ctaUrl: '' }}
+					/>
 				)}
 			</div>
-			{page?.faqItems && page.faqItems.length > 0 && (
-				<div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-					<h2 className="mb-8 text-2xl font-bold text-zinc-900 dark:text-white">
-						Frequently asked questions
-					</h2>
-					<FAQAccordion items={page.faqItems} />
-				</div>
+			{shared?.testimonialSection && (
+				<TestimonialFeature
+					featured={shared.testimonialSection.featured}
+					caseStudies={shared.testimonialSection.caseStudies.slice(0, 1)}
+				/>
 			)}
-			{page?.contactCta && (
-				<div className="mx-auto max-w-7xl px-4 pb-16 text-center sm:px-6 sm:pb-24 lg:px-8">
-					<p className="mb-4 text-lg text-zinc-600 dark:text-zinc-400">Need a custom plan?</p>
-					<Link
-						href={page.contactCta.url}
-						className="inline-flex rounded-lg bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-					>
-						{page.contactCta.label}
-					</Link>
-				</div>
+			{shared?.community && (
+				<CommunitySection title={shared.community.title} stats={shared.community.stats} />
 			)}
 		</>
 	)

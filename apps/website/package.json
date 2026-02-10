@@ -31,7 +31,6 @@
 		"@sanity/schema": "^5.8.1",
 		"@sanity/visual-editing": "^5.2.1",
 		"clsx": "^2.1.1",
-		"framer-motion": "^12.34.0",
 		"geist": "^1.3.1",
 		"jsdom": "^28.0.0",
 		"next": "^16.1.6",
@@ -41,6 +40,7 @@
 		"react-dom": "^19.2.4",
 		"react-is": "^19.0.0",
 		"sanity": "^5.8.1",
+		"shiki": "^3.22.0",
 		"styled-components": "^6.1.15",
 		"tailwind-merge": "^2.6.0"
 	},

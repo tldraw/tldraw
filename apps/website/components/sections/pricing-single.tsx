@@ -1,0 +1,123 @@
+import Link from 'next/link'
+
+interface PricingSingleProps {
+	title: string
+	description: string
+	features: string[]
+	ctaPrimary: { label: string; url: string; note?: string }
+	ctaSecondary: { label: string; url: string }
+	premiumNote?: { text: string; linkLabel: string; linkUrl: string }
+	startup: { title: string; description: string; ctaLabel: string; ctaUrl: string }
+	hobby: { description: string; ctaLabel: string; ctaUrl: string }
+}
+
+export function PricingSingle({
+	title,
+	description,
+	features,
+	ctaPrimary,
+	ctaSecondary,
+	premiumNote,
+	startup,
+	hobby,
+}: PricingSingleProps) {
+	return (
+		<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			{/* Main pricing card */}
+			<div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+				<div className="flex">
+					<div className="flex-1 p-8 sm:p-10">
+						<h2 className="text-2xl font-bold text-black dark:text-white">{title}</h2>
+						<p className="mt-3 text-sm text-body dark:text-zinc-400">{description}</p>
+						<ul className="mt-8 grid gap-4 sm:gap-3 min-[1200px]:grid-cols-2">
+							{features.map((feature) => (
+								<li
+									key={feature}
+									className="flex items-start gap-3 text-sm text-body dark:text-zinc-400"
+								>
+									<svg
+										className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-blue"
+										fill="none"
+										viewBox="0 0 24 24"
+										strokeWidth="2"
+										stroke="currentColor"
+									>
+										<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+									</svg>
+									{feature}
+								</li>
+							))}
+						</ul>
+						<div className="mt-8 flex flex-col gap-3 lg:flex-row">
+							<Link
+								href={ctaPrimary.url}
+								className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+							>
+								{ctaPrimary.label}
+								<span aria-hidden="true">&rarr;</span>
+							</Link>
+							<Link
+								href={ctaSecondary.url}
+								className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+							>
+								{ctaSecondary.label}
+								<span aria-hidden="true">&rarr;</span>
+							</Link>
+						</div>
+						{ctaPrimary.note && (
+							<p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">{ctaPrimary.note}</p>
+						)}
+					</div>
+					{/* Decorative toolbar image */}
+					<div className="relative hidden w-[35%] lg:block">
+						{/* eslint-disable-next-line @next/next/no-img-element */}
+						<img
+							src="/images/pricing-toolbar.png"
+							alt=""
+							className="absolute inset-0 h-full w-full object-contain object-right-bottom"
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Premium modules note */}
+			{premiumNote && (
+				<div className="mt-6 flex flex-col gap-1 border-y border-zinc-200 py-4 dark:border-zinc-800 lg:flex-row lg:items-center lg:justify-between">
+					<p className="text-sm text-body dark:text-zinc-400">{premiumNote.text}</p>
+					<Link
+						href={premiumNote.linkUrl}
+						className="whitespace-nowrap text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+					>
+						{premiumNote.linkLabel} &darr;
+					</Link>
+				</div>
+			)}
+
+			{/* Auxiliary cards */}
+			<div className="mt-8 grid gap-6 lg:grid-cols-2">
+				{/* Startup pricing */}
+				<div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+					<h3 className="text-lg font-bold text-black dark:text-white">{startup.title}</h3>
+					<p className="mt-2 text-sm text-body dark:text-zinc-400">{startup.description}</p>
+					<Link
+						href={startup.ctaUrl}
+						className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+					>
+						{startup.ctaLabel} <span aria-hidden="true">&rarr;</span>
+					</Link>
+				</div>
+
+				{/* Hobby license */}
+				<div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+					<p className="text-sm text-body dark:text-zinc-400">{hobby.description}</p>
+					<Link
+						href={hobby.ctaUrl}
+						className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+					>
+						{hobby.ctaLabel} <span aria-hidden="true">&rarr;</span>
+					</Link>
+				</div>
+			</div>
+		</div>
+	)
+}

@@ -1,3 +1,4 @@
+import { CodeBlock } from '@/components/ui/code-block'
 import { urlFor } from '@/sanity/image'
 import type { PortableTextBlock } from '@portabletext/react'
 import { PortableText, type PortableTextComponents } from '@portabletext/react'
@@ -23,12 +24,8 @@ const components: PortableTextComponents = {
 				</figure>
 			)
 		},
-		code: ({ value }: { value: { code: string; language?: string } }) => {
-			return (
-				<pre className="my-6 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm dark:bg-zinc-800">
-					<code className={value.language ? `language-${value.language}` : ''}>{value.code}</code>
-				</pre>
-			)
+		code: ({ value }: { value: { code: string; language?: string; caption?: string } }) => {
+			return <CodeBlock code={value.code} language={value.language} caption={value.caption} />
 		},
 		callout: ({ value }: { value: { text: string; tone?: string } }) => {
 			return (

@@ -11,7 +11,7 @@ export function CTASection({ title, description, cta }: CTASectionProps) {
 		<section className="py-16 sm:py-24">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="rounded-2xl bg-zinc-900 px-8 py-16 text-center dark:bg-zinc-800 sm:px-16">
-					<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{title}</h2>
+					<h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h2>
 					{description && <p className="mt-4 text-lg text-zinc-300">{description}</p>}
 					<div className="mt-8">
 						<Link

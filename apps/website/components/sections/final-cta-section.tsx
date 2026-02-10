@@ -1,15 +1,14 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useState } from 'react'
 
-interface FinalCtaSectionProps {
+export interface FinalCtaSectionProps {
 	title: string
 	description: string
 	descriptionBold: string
-	ctaPrimary: { label: string; url: string; variant: 'code' }
-	ctaSecondary: { label: string; labelBold: string; url: string }
+	ctaPrimary: { label: string; url: string; variant?: string }
+	ctaSecondary: { label?: string; labelBold?: string; url: string }
 }
 
 export function FinalCtaSection({
@@ -32,27 +31,23 @@ export function FinalCtaSection({
 	return (
 		<section className="py-16 sm:py-24">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.5 }}
-					className="rounded-2xl bg-zinc-900 px-8 py-16 text-center dark:bg-zinc-800 sm:px-16"
-				>
-					<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{title}</h2>
-					<p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-300">
+				<div className="border-t border-zinc-200 px-8 py-16 text-center dark:border-zinc-800 sm:px-16">
+					<h2 className="text-3xl font-semibold tracking-tight text-black dark:text-white sm:text-4xl">
+						{title}
+					</h2>
+					<p className="mx-auto mt-4 max-w-2xl text-lg text-body dark:text-zinc-400">
 						{descriptionParts[0]}
-						<strong className="text-white">{descriptionBold}</strong>
+						<strong className="font-semibold text-black dark:text-white">{descriptionBold}</strong>
 						{descriptionParts[1] || ''}
 					</p>
 					<div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
 						<button
 							onClick={handleCopy}
-							className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-6 py-3 font-mono text-sm text-zinc-200 transition-colors hover:bg-zinc-700"
+							className="inline-flex items-center gap-2 rounded-lg bg-black px-6 py-3 font-mono text-sm text-white transition-colors hover:bg-zinc-800"
 						>
 							<span>$</span> {ctaPrimary.label}
 							<svg
-								className="h-4 w-4 text-zinc-400"
+								className="h-4 w-4 text-zinc-300"
 								fill="none"
 								viewBox="0 0 24 24"
 								strokeWidth="1.5"
@@ -71,15 +66,19 @@ export function FinalCtaSection({
 						</button>
 						<Link
 							href={ctaSecondary.url}
-							className="text-sm text-zinc-400 transition-colors hover:text-zinc-200"
+							className="text-sm text-body transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
 						>
-							{ctaSecondary.label.replace(ctaSecondary.labelBold, '')}{' '}
-							<span className="font-semibold text-white underline underline-offset-4">
-								{ctaSecondary.labelBold}
-							</span>
+							{ctaSecondary.labelBold
+								? (ctaSecondary.label ?? '').replace(ctaSecondary.labelBold, '')
+								: ctaSecondary.label}{' '}
+							{ctaSecondary.labelBold && (
+								<span className="font-semibold text-brand-blue underline underline-offset-4">
+									{ctaSecondary.labelBold}
+								</span>
+							)}
 						</Link>
 					</div>
-				</motion.div>
+				</div>
 			</div>
 		</section>
 	)

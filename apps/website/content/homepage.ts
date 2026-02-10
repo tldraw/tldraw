@@ -284,6 +284,8 @@ export const navGroups = [
 export const standaloneNavLinks = [
 	{ label: 'Showcase', href: '/showcase' },
 	{ label: 'Pricing', href: '/pricing' },
+	{ label: 'Blog', href: '/blog' },
+	{ label: 'Docs', href: 'https://tldraw.dev/docs' },
 ]
 
 export const footerData = {

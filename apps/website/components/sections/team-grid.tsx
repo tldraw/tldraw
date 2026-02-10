@@ -20,13 +20,9 @@ export function TeamGrid({ members }: TeamGridProps) {
 							className="mx-auto rounded-full"
 						/>
 					)}
-					<h3 className="mt-4 text-base font-semibold text-zinc-900 dark:text-white">
-						{member.name}
-					</h3>
+					<h3 className="mt-4 text-base font-semibold text-black dark:text-white">{member.name}</h3>
 					<p className="text-sm text-zinc-500 dark:text-zinc-400">{member.role}</p>
-					{member.bio && (
-						<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{member.bio}</p>
-					)}
+					{member.bio && <p className="mt-2 text-sm text-body dark:text-zinc-400">{member.bio}</p>}
 				</div>
 			))}
 		</div>
