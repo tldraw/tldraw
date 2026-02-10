@@ -11,6 +11,7 @@ module.exports = {
 			colors: {
 				brand: {
 					blue: '#155DFC',
+					link: '#155DFC',
 				},
 				body: '#404047',
 			},

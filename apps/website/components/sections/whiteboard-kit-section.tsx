@@ -1,3 +1,4 @@
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -37,9 +38,9 @@ export function WhiteboardKitSection({
 						<p className="mt-4 text-lg text-body dark:text-zinc-400">{description}</p>
 						<Link
 							href={ctaUrl}
-							className="mt-6 inline-block text-sm font-medium text-brand-blue underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+							className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link underline underline-offset-4 hover:text-brand-link/90 dark:hover:text-brand-link/90"
 						>
-							{ctaLabel} &rarr;
+							{ctaLabel} <ChevronRight />
 						</Link>
 						<div className="mt-10 space-y-6">
 							{features.map((feature) => (

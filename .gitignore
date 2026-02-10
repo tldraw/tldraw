@@ -128,5 +128,6 @@ opencode.json
 
 .next
 
-apps/website/_comparison
-apps/website/_reference
+_comparison
+_reference
+.claude/skills/iterate-website-page/assets

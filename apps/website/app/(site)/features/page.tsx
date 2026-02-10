@@ -1,3 +1,4 @@
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import { PageHeader } from '@/components/ui/page-header'
 import { getFeaturePagesByCategory } from '@/sanity/queries'
 import type { Metadata } from 'next'
@@ -71,8 +72,8 @@ export default async function FeaturesPage() {
 											<p className="mt-1 text-sm leading-relaxed text-body dark:text-zinc-400 line-clamp-3">
 												{child.description}
 											</p>
-											<span className="mt-2 inline-block text-sm font-medium text-brand-blue">
-												Learn more &rarr;
+											<span className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link">
+												Learn more <ChevronRight />
 											</span>
 										</Link>
 									))}

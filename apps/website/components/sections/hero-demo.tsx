@@ -1,5 +1,7 @@
 'use client'
 
+import { heroDemoCodeSnippet } from '@/lib/hero-demo-code'
+import { useEffect, useState } from 'react'
 import type { Editor } from 'tldraw'
 import {
 	ContainerProvider,
@@ -10,7 +12,6 @@ import {
 	TldrawUiContextProvider,
 	defaultEditorAssetUrls,
 } from 'tldraw'
-import { useEffect, useState } from 'react'
 
 const options = {
 	actionShortcutsLocation: 'toolbar' as const,
@@ -23,22 +24,12 @@ const components = {
 	Toolbar: null,
 }
 
-const codeSnippet = `import { Tldraw } from 'tldraw'
-import 'tldraw/tldraw.css'
+export interface HeroDemoProps {
+	/** Pre-rendered syntax-highlighted HTML for the code block (from Shiki) */
+	codeHtml?: string
+}
 
-export default function App() {
-  return (
-    <div className="editor">
-      <Tldraw
-        onMount={(editor) => {
-          editor.selectAll()
-        }}
-      />
-    </div>
-  )
-}`
-
-export function HeroDemo() {
+export function HeroDemo({ codeHtml }: HeroDemoProps) {
 	const [editor, setEditor] = useState<Editor | null>(null)
 
 	function handleMount(ed: Editor) {
@@ -94,9 +85,16 @@ export function HeroDemo() {
 						</svg>
 						<span className="font-mono text-sm text-zinc-400">App.tsx</span>
 					</div>
-					<pre className="overflow-x-auto bg-zinc-900 p-4 font-mono text-sm leading-relaxed text-zinc-200 dark:bg-zinc-950 dark:text-zinc-300">
-						<code>{codeSnippet}</code>
-					</pre>
+					{codeHtml ? (
+						<div
+							className="code-block-content hero-demo-code-content overflow-x-auto bg-zinc-900 p-4 font-mono text-sm leading-relaxed dark:bg-zinc-950 [&_.shiki]:!bg-transparent [&_pre]:!m-0 [&_pre]:!rounded-none [&_pre]:!p-0"
+							dangerouslySetInnerHTML={{ __html: codeHtml }}
+						/>
+					) : (
+						<pre className="overflow-x-auto bg-zinc-900 p-4 font-mono text-sm leading-relaxed text-zinc-200 dark:bg-zinc-950 dark:text-zinc-300">
+							<code>{heroDemoCodeSnippet}</code>
+						</pre>
+					)}
 				</div>
 				{/* Canvas - white bg and blue border match tldraw.dev reference */}
 				<div className="relative flex min-h-[280px] flex-1 overflow-visible border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:min-h-[320px] lg:w-1/2 lg:border-t-0 lg:border-l-0">

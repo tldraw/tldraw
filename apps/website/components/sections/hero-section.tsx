@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -10,6 +11,8 @@ interface HeroSectionProps {
 	ctaPrimary: { label: string; url: string; variant?: 'code' }
 	ctaSecondary?: { label: string; labelBold?: string; url: string }
 	heroImage?: React.ReactNode
+	/** Pre-rendered syntax-highlighted HTML for code CTA (from Shiki) */
+	codeHtml?: string
 }
 
 export function HeroSection({
@@ -19,6 +22,7 @@ export function HeroSection({
 	ctaPrimary,
 	ctaSecondary,
 	heroImage,
+	codeHtml,
 }: HeroSectionProps) {
 	const [copied, setCopied] = useState(false)
 
@@ -53,7 +57,16 @@ export function HeroSection({
 								onClick={handleCopy}
 								className="inline-flex items-center gap-2 rounded-lg bg-black px-6 py-3 font-mono text-sm text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
 							>
-								<span className="text-zinc-400">$</span> {ctaPrimary.label}
+								{codeHtml ? (
+									<span
+										className="hero-code-content [&_.shiki]:!m-0 [&_.shiki]:!p-0 [&_pre]:!m-0 [&_pre]:!inline"
+										dangerouslySetInnerHTML={{ __html: codeHtml }}
+									/>
+								) : (
+									<>
+										<span className="text-zinc-400">$</span> {ctaPrimary.label}
+									</>
+								)}
 								<svg
 									className="h-4 w-4 text-zinc-400 dark:text-zinc-400"
 									fill="none"
@@ -83,7 +96,7 @@ export function HeroSection({
 						{ctaSecondary && (
 							<Link
 								href={ctaSecondary.url}
-								className="text-sm text-body transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
+								className="inline-flex items-center gap-1.5 text-sm text-body transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
 							>
 								{ctaSecondary.labelBold ? (
 									<>
@@ -91,11 +104,11 @@ export function HeroSection({
 										<span className="font-semibold text-brand-blue underline underline-offset-4">
 											{ctaSecondary.labelBold}
 										</span>{' '}
-										&rarr;
+										<ChevronRight />
 									</>
 								) : (
 									<>
-										{ctaSecondary.label} <span aria-hidden="true">&rarr;</span>
+										{ctaSecondary.label} <ChevronRight />
 									</>
 								)}
 							</Link>

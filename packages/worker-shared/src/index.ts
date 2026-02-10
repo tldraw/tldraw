@@ -1,4 +1,3 @@
-/// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
 export { handleExtractBookmarkMetadataRequest } from './bookmarks'
@@ -12,4 +11,4 @@ export {
 } from './handleRequest'
 export { blockUnknownOrigins, isAllowedOrigin } from './origins'
 export { createSentry } from './sentry'
-export { handleUserAssetGet, handleUserAssetUpload } from './userAssetUploads'
+export { handleUserAssetGet, handleUserAssetUpload, type R2BucketLike } from './userAssetUploads'

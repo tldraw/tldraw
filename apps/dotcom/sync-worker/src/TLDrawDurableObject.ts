@@ -245,9 +245,10 @@ export class TLDrawDurableObject extends DurableObject {
 		this.pierreClient = createPierreClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
+		// Type assertion: env bindings use runtime R2Bucket which is compatible but has slight type variance
 		this.r2 = {
-			rooms: env.ROOMS,
-			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
+			rooms: env.ROOMS as unknown as R2Bucket,
+			versionCache: env.ROOMS_HISTORY_EPHEMERAL as unknown as R2Bucket,
 		}
 
 		state.blockConcurrencyWhile(async () => {
@@ -1249,14 +1250,20 @@ export class TLDrawDurableObject extends DurableObject {
 				isApp: true,
 			})
 
-			const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
+			const publishedHistory = await listAllObjectKeys(
+				this.env.ROOM_SNAPSHOTS as unknown as R2Bucket,
+				publishedPrefixKey
+			)
 			if (publishedHistory.length > 0) {
 				await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
 			}
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
+			const editHistory = await listAllObjectKeys(
+				this.env.ROOMS_HISTORY_EPHEMERAL as unknown as R2Bucket,
+				r2Key
+			)
 			if (editHistory.length > 0) {
 				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
 			}
@@ -1293,7 +1300,10 @@ export class TLDrawDurableObject extends DurableObject {
 		const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
 		// remove edit history
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
+		const editHistory = await listAllObjectKeys(
+			this.env.ROOMS_HISTORY_EPHEMERAL as unknown as R2Bucket,
+			roomKey
+		)
 		if (editHistory.length > 0) {
 			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
 		}

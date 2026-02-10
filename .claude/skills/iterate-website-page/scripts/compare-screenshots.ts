@@ -1,7 +1,8 @@
+import { mkdirSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
 import { chromium } from 'playwright'
 import sharp from 'sharp'
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'fs'
-import { join } from 'path'
+import { fileURLToPath } from 'url'
 
 const VIEWPORTS = {
 	desktop: { width: 1200, height: 800 },
@@ -28,6 +29,10 @@ const PAGES: PageConfig[] = [
 	{ path: '/faq', name: 'faq' },
 	{ path: '/pricing', name: 'pricing' },
 	{ path: '/showcase', name: 'showcase' },
+	{
+		path: '/blog/adding-delays-to-modifier-keys',
+		name: 'blog-article-adding-delays',
+	},
 ]
 
 interface BoundingBox {
@@ -119,6 +124,10 @@ async function compareImages(
 	let localWidth = localMeta.width!
 	let localHeight = localMeta.height!
 
+	// Track extract params for reuse in side-by-side
+	let prodExtract: { left: number; top: number; width: number; height: number } | undefined
+	let localExtract: { left: number; top: number; width: number; height: number } | undefined
+
 	// Apply bounding box crop if specified
 	if (boundingBox) {
 		const { x, y } = boundingBox
@@ -129,12 +138,8 @@ async function compareImages(
 		const prodCropWidth = Math.min(width, prodWidth - x)
 		const prodCropHeight = Math.min(height, prodHeight - y)
 		if (x < prodWidth && y < prodHeight && prodCropWidth > 0 && prodCropHeight > 0) {
-			prodImage = sharp(prodBuffer).extract({
-				left: x,
-				top: y,
-				width: prodCropWidth,
-				height: prodCropHeight,
-			})
+			prodExtract = { left: x, top: y, width: prodCropWidth, height: prodCropHeight }
+			prodImage = sharp(prodBuffer).extract(prodExtract)
 			prodWidth = prodCropWidth
 			prodHeight = prodCropHeight
 		} else {
@@ -147,12 +152,8 @@ async function compareImages(
 		const localCropWidth = Math.min(width, localWidth - x)
 		const localCropHeight = Math.min(height, localHeight - y)
 		if (x < localWidth && y < localHeight && localCropWidth > 0 && localCropHeight > 0) {
-			localImage = sharp(localBuffer).extract({
-				left: x,
-				top: y,
-				width: localCropWidth,
-				height: localCropHeight,
-			})
+			localExtract = { left: x, top: y, width: localCropWidth, height: localCropHeight }
+			localImage = sharp(localBuffer).extract(localExtract)
 			localWidth = localCropWidth
 			localHeight = localCropHeight
 		} else {
@@ -243,30 +244,37 @@ async function compareImages(
 		.png()
 		.toFile(outputPath)
 
-	// Create side-by-side comparison
+	// Create side-by-side comparison (production on left, local on right)
+	// Canvas is as tall as the tallest of the two images
 	const sideBySidePath = outputPath.replace('diff.png', 'sidebyside.png')
+	const sideBySideHeight = Math.max(prodHeight, localHeight)
 
-	const prodResizedPng = await prodImage
-		.resize(compareWidth, compareHeight, resizeOpts)
+	// Build fresh images at each image's own height for side-by-side
+	const prodSidePng = await (
+		prodExtract ? sharp(prodBuffer).extract(prodExtract) : sharp(prodBuffer)
+	)
+		.resize(compareWidth)
 		.png()
 		.toBuffer()
 
-	const localResizedPng = await localImage
-		.resize(compareWidth, compareHeight, resizeOpts)
+	const localSidePng = await (
+		localExtract ? sharp(localBuffer).extract(localExtract) : sharp(localBuffer)
+	)
+		.resize(compareWidth)
 		.png()
 		.toBuffer()
 
 	await sharp({
 		create: {
 			width: compareWidth * 2,
-			height: compareHeight,
+			height: sideBySideHeight,
 			channels: 4,
 			background: { r: 255, g: 255, b: 255, alpha: 1 },
 		},
 	})
 		.composite([
-			{ input: prodResizedPng, left: 0, top: 0 },
-			{ input: localResizedPng, left: compareWidth, top: 0 },
+			{ input: prodSidePng, left: 0, top: 0 },
+			{ input: localSidePng, left: compareWidth, top: 0 },
 		])
 		.png()
 		.toFile(sideBySidePath)
@@ -283,7 +291,8 @@ async function compareScreenshots(
 	const results: ComparisonResult[] = []
 	const browser = await chromium.launch({ headless: true })
 
-	const outputDir = join(process.cwd(), '_comparison')
+	const scriptDir = dirname(fileURLToPath(import.meta.url))
+	const outputDir = join(scriptDir, '..', 'assets')
 	mkdirSync(outputDir, { recursive: true })
 
 	for (const pageConfig of pages) {
@@ -320,12 +329,16 @@ async function compareScreenshots(
 
 				// Select bounding box for this viewport
 				const boundingBox = boundingBoxConfig
-					? (boundingBoxConfig[viewportName as keyof typeof VIEWPORTS] ??
-						boundingBoxConfig.default)
+					? (boundingBoxConfig[viewportName as keyof typeof VIEWPORTS] ?? boundingBoxConfig.default)
 					: undefined
 
 				console.log(`    Comparing...`)
-				const comparison = await compareImages(prodScreenshot, localScreenshot, diffPath, boundingBox)
+				const comparison = await compareImages(
+					prodScreenshot,
+					localScreenshot,
+					diffPath,
+					boundingBox
+				)
 
 				const result: ComparisonResult = {
 					page: pageConfig.name,
@@ -431,7 +444,7 @@ function generateSummary(results: ComparisonResult[]): string {
 			}
 
 			if (result.notes.length > 0) {
-				result.notes.forEach((note) => md += `  - ${note}\n`)
+				result.notes.forEach((note) => (md += `  - ${note}\n`))
 			}
 		}
 		md += '\n'
@@ -482,7 +495,12 @@ function parseBoundingBox(bboxArg: string): BoundingBox {
 	const width = parts[2] === 'auto' ? 'auto' : parseInt(parts[2], 10)
 	const height = parts[3] === 'auto' ? 'auto' : parseInt(parts[3], 10)
 
-	if (isNaN(x) || isNaN(y) || (width !== 'auto' && isNaN(width)) || (height !== 'auto' && isNaN(height))) {
+	if (
+		isNaN(x) ||
+		isNaN(y) ||
+		(width !== 'auto' && isNaN(width)) ||
+		(height !== 'auto' && isNaN(height))
+	) {
 		console.error(`\n❌ Error: Invalid bounding box format: ${bboxArg}`)
 		console.log(`\nExpected format: x,y,width,height where width/height can be numbers or "auto"`)
 		process.exit(1)
@@ -636,4 +654,9 @@ if (hasBoundingBox) {
 }
 console.log()
 
-compareScreenshots(productionUrl, localUrl, pagesToCompare, hasBoundingBox ? boundingBoxConfig : undefined).catch(console.error)
+compareScreenshots(
+	productionUrl,
+	localUrl,
+	pagesToCompare,
+	hasBoundingBox ? boundingBoxConfig : undefined
+).catch(console.error)

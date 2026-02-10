@@ -45,17 +45,60 @@
 		content: none;
 	}
 
-	/* Shiki dual-theme support: light mode shows light theme, dark mode shows dark */
-	.code-block-content .shiki,
-	.code-block-content .shiki span {
-		color: var(--shiki-light);
-		background-color: var(--shiki-light-bg);
+	/* Inline code - match production tldraw.dev (grey pill, no backticks) */
+	.prose :not(pre):not(.not-prose):not(.code-block-content) > code {
+		background-color: rgba(0, 0, 0, 0.05);
+		border-radius: 6px;
+		color: rgb(29, 29, 29);
+		font-family: var(--font-geist-mono), 'Geist Mono', monospace;
+		font-size: 12.6px;
+		font-weight: 600;
+		line-height: 18.9px;
+		padding: 1.26px 3.78px;
+	}
+	.prose :not(pre):not(.not-prose):not(.code-block-content) > code::before,
+	.prose :not(pre):not(.not-prose):not(.code-block-content) > code::after {
+		content: none;
+	}
+	.dark .prose :not(pre):not(.not-prose):not(.code-block-content) > code {
+		background-color: rgba(255, 255, 255, 0.1);
+		color: rgb(228, 228, 231);
 	}
 
-	.dark .code-block-content .shiki,
-	.dark .code-block-content .shiki span {
-		color: var(--shiki-dark);
-		background-color: var(--shiki-dark-bg);
+	/* All code blocks use dark syntax highlighting */
+	.code-block-content .shiki {
+		color: var(--shiki-dark) !important;
+		background-color: var(--shiki-dark-bg) !important;
+	}
+	.code-block-content .shiki span {
+		color: var(--shiki-dark) !important;
+		background-color: transparent !important;
+		background: none !important;
+	}
+
+	/* Remove line-level background highlights from code blocks */
+	.code-block-content .shiki .line,
+	.code-block-content .line,
+	.code-block-content .line.highlighted,
+	.code-block-content .line[class*='highlight'],
+	.code-block-content .line.diff,
+	.code-block-content .line.focused {
+		background-color: transparent !important;
+		background: none !important;
+	}
+
+	/* Hero CTA code: always use dark theme (button has dark background) */
+	.hero-code-content .shiki,
+	.hero-code-content .shiki span {
+		color: var(--shiki-dark) !important;
+		background-color: transparent !important;
+	}
+
+	/* Hero demo App.tsx code block: always use dark theme (dark background) */
+	.hero-demo-code-content .shiki,
+	.hero-demo-code-content .shiki span {
+		color: var(--shiki-dark) !important;
+		background-color: transparent !important;
 	}
 }
 

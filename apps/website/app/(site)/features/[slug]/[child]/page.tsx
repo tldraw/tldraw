@@ -1,6 +1,7 @@
 import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
+import { ChevronLeft } from '@/components/ui/chevron-icon'
 import { urlFor } from '@/sanity/image'
 import {
 	getFeaturePageByParentAndSlug,
@@ -68,8 +69,12 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 		<>
 			{/* Breadcrumb */}
 			<div className="mx-auto max-w-content px-4 pt-8 sm:px-6 lg:px-8">
-				<Link href={`/features/${slug}`} className="text-sm text-brand-blue hover:text-blue-700">
-					&larr; Back to {slug.replace(/-/g, ' ')}
+				<Link
+					href={`/features/${slug}`}
+					className="flex items-center gap-1.5 text-sm text-brand-link hover:text-brand-link/90"
+				>
+					<ChevronLeft className="h-3.5 w-3.5 flex-shrink-0" />
+					Back to {slug.replace(/-/g, ' ')}
 				</Link>
 			</div>
 
@@ -122,9 +127,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			)}
 
 			{/* Community */}
-			{shared?.community && (
-				<CommunitySection title={shared.community.title} stats={shared.community.stats} />
-			)}
+			<CommunitySection />
 		</>
 	)
 }

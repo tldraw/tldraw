@@ -14,14 +14,17 @@ Port content and design from tldraw.dev (Framer) into `apps/website` (Next.js + 
 When invoking this skill, the user may specify:
 
 **Threshold**: Custom exit criteria
+
 - Default: `< 10%`
 - Examples: `< 5%`, `< 1%`, `under 3 percent`
 
 **Viewports**: Which breakpoints to test
+
 - Default: All (desktop, tablet, mobile)
 - Examples: `desktop only`, `mobile and tablet`, `just mobile`
 
 **Region/Focus**: Specific areas to compare
+
 - Default: Full page
 - Examples:
   - `hero section` → bbox covering top ~800px
@@ -31,26 +34,31 @@ When invoking this skill, the user may specify:
   - `bbox 0,1000,auto,500` → explicit coordinates
 
 **Parse the user's instructions** to extract these parameters, then use them throughout the workflow to:
+
 1. Run comparisons with appropriate `--bbox` arguments
 2. Check only the specified viewports in summary
 3. Apply the specified threshold as exit criteria
 
 ## Workflow
 
+**CRITICAL: Always work top-to-bottom.** Spacing and layout issues near the top of the page cascade downward — a wrong margin or padding in the header or hero section will push everything below it out of alignment. Always fix issues higher up on the page before comparing or attempting to fix issues lower down. When analyzing diffs, ignore differences in the lower half of the page until the upper half matches. Re-run comparisons after each fix to see if lower sections improved as a side effect.
+
 Repeat this loop until the section(s) are majority correct:
 
 1. **Compare** - Generate fresh screenshots
-2. **Analyze** - Read the diff/side-by-side, identify problems
-3. **Focus** - Use bounding box to isolate problem areas
-4. **Fix** - Edit components/styles
+2. **Analyze** - Read the diff/side-by-side (production on left, local on right), identify the **highest** problem area on the page
+3. **Focus** - Use bounding box to isolate that top-most problem area
+4. **Fix** - Edit components/styles for that area
 5. **Verify** - Re-run comparison on the fixed area
-6. **Check viewports** - Repeat for tablet and mobile
+6. **Progress downward** - Move to the next section down the page and repeat
+7. **Check viewports** - Once a section matches on desktop, check tablet and mobile before moving further down
 
 ## Exit Criteria: "Majority Correct Across All Breakpoints"
 
 **Default threshold**: **< 10% pixel difference** across all tested viewports.
 
 The user may specify tighter thresholds, specific viewports, or focused regions when invoking this skill. Check the task parameters for:
+
 - Custom threshold (e.g., "< 5%", "< 1%")
 - Specific viewports to test (e.g., "desktop only", "mobile and tablet")
 - Specific regions via bounding boxes (e.g., "hero section", "pricing table")
@@ -63,12 +71,14 @@ Stop iterating when **all three conditions** are met:
 **Default: All viewports (desktop, tablet, mobile) must be < 10%**
 
 Override examples from user:
+
 - "Focus on desktop only" → only check desktop
 - "< 5% threshold" → use 5% instead of 10%
 - "Compare hero section only" → use bounding box for hero area
 - "Mobile and tablet" → skip desktop comparison
 
 Run final comparison:
+
 ```bash
 # Full page (default)
 yarn compare --page <page-name>
@@ -80,11 +90,12 @@ yarn compare --page <page-name> --bbox 0,1000,auto,1000
 yarn compare --page <page-name>  # Then verify only requested viewports
 ```
 
-Check `_comparison/summary.md` - requested viewports should meet the threshold.
+Check `assets/summary.md` (in the skill folder) - requested viewports should meet the threshold.
 
 ### 2. Visual Structure Match (Qualitative)
 
-Compare `sidebyside.png` for each viewport and verify:
+Compare `sidebyside.png` for each viewport (production on left, local on right) and verify:
+
 - ✅ **Layout structure**: Sections in correct order, proper stacking/flow
 - ✅ **Grid/column layouts**: Correct number of columns at each breakpoint
 - ✅ **Spacing**: Section padding, element gaps, margins match visually
@@ -98,6 +109,7 @@ Compare `sidebyside.png` for each viewport and verify:
 Some differences are expected and acceptable. Document these in your final summary:
 
 **Always acceptable (ignore these):**
+
 - Interactive canvas demos (tldraw editor instances)
 - Dynamic timestamps or dates
 - Cookie consent banners
@@ -107,6 +119,7 @@ Some differences are expected and acceptable. Document these in your final summa
 - Font rendering micro-differences (subpixel antialiasing)
 
 **Conditionally acceptable (document in summary):**
+
 - Content differences (if Sanity CMS content doesn't match production yet)
 - Missing features not yet implemented (note these as "Known gaps:")
 - Placeholder images vs. final assets
@@ -193,6 +206,7 @@ cd apps/website && npx tsx ../../.claude/skills/iterate-website-page/scripts/com
 ```
 
 Arguments:
+
 - `--page <name>` or `-p <name>`: Compare a single page (home, careers, blog, pricing, etc.)
 - `--bbox x,y,width,height`: Crop to a region (applies to all viewports, use "auto" for dimensions)
 - `--bbox-desktop x,y,width,height`: Desktop-specific bounding box
@@ -205,16 +219,18 @@ Available page names: home, careers, blog, blog-category-product, blog-article-e
 
 See `scripts/README.md` in this skill folder for complete documentation.
 
-Output goes to `apps/website/_comparison/<page>/<viewport>/`:
+Output goes to `.claude/skills/iterate-website-page/assets/<page>/<viewport>/`:
+
 - `production.png` - Screenshot from tldraw.dev
 - `local.png` - Screenshot from localhost
 - `diff.png` - Red highlights on grayscale (red = different)
-- `sidebyside.png` - Production (left) and local (right)
-- `apps/website/_comparison/summary.md` - Overall report
+- `sidebyside.png` - Side-by-side: production site (left) vs local `apps/website` (right). Canvas height matches the tallest of the two images; the shorter image has white space at the bottom.
+- `.claude/skills/iterate-website-page/assets/summary.md` - Overall report
 
 ## Step 2: Analyze
 
 Read the diff images and summary. Look for:
+
 - **Layout shifts**: Elements at different vertical positions
 - **Spacing**: Padding/margin/gap differences
 - **Typography**: Font size, weight, line-height, letter-spacing
@@ -244,7 +260,7 @@ yarn compare --page home \
 
 Use the full-page screenshots to estimate y-coordinates for problem sections.
 
-Tip: Start from the top of the page and work down. Early layout differences cascade into everything below.
+**IMPORTANT**: Always start from the top of the page and work down. Spacing and layout differences at the top cascade into everything below — a section with wrong padding will shift every subsequent section's y-position, making the entire lower page appear as a diff even though only the upstream spacing is wrong. Fix the topmost discrepancy first, re-compare, and only then move to the next section.
 
 ## Step 4: Fix
 
@@ -278,13 +294,17 @@ apps/website/
 - **Sanity content**: Dynamic content comes from Sanity CMS via server components. Don't hardcode content that should come from the CMS.
 - **Reference screenshots**: `_reference/<page>/<viewport>/` contains numbered screenshots of the production page at that viewport, captured in viewport-height segments. Use these to understand what the page should look like.
 
+### Prefer theme-level fixes over local overrides
+
+When you notice a recurring issue — e.g., font sizes are consistently too large, section spacing is uniformly off, or colors don't match — check whether the fix belongs in the Tailwind theme (`tailwind.config.ts`) or global styles (`app/globals.css`) rather than adding one-off overrides to individual components. A single theme-level change (font scale, spacing scale, color value) can fix many components at once and keeps the codebase consistent. Local overrides and exceptions are fine when a specific component genuinely differs from the pattern, but always look for the systemic fix first.
+
 ### Common fixes
 
-- **Vertical spacing**: Check section padding (`py-`, `my-`, `gap-`, `space-y-`)
+- **Vertical spacing**: Check section padding (`py-`, `my-`, `gap-`, `space-y-`). If many sections have the same offset, the issue may be in the theme spacing scale.
 - **Max width**: The site uses a centered container; check `max-w-` and `mx-auto`
-- **Font sizing**: Production uses specific sizes; compare against reference screenshots
+- **Font sizing**: Production uses specific sizes; compare against reference screenshots. If all headings are off by the same amount, check the theme's font-size scale in `tailwind.config.ts`.
 - **Grid layouts**: Check `grid-cols-`, `gap-`, responsive variants (`md:grid-cols-3`, etc.)
-- **Colors**: The production site has specific brand colors; check `tailwind.config.ts`
+- **Colors**: The production site has specific brand colors; check `tailwind.config.ts`. If a color is wrong everywhere, fix the theme value, not each usage.
 
 ## Step 5: Verify
 
@@ -305,7 +325,8 @@ The comparison script runs all three viewports by default. After fixing desktop,
 yarn compare --page home
 ```
 
-Review `_comparison/home/tablet/` and `_comparison/home/mobile/` for responsive issues. Common problems:
+Review `assets/home/tablet/` and `assets/home/mobile/` (in the skill folder) for responsive issues. Common problems:
+
 - Grids that should collapse to fewer columns
 - Font sizes that should scale down
 - Horizontal padding that should decrease
@@ -318,3 +339,5 @@ Review `_comparison/home/tablet/` and `_comparison/home/mobile/` for responsive 
 - Height differences between production and local are normal during porting; focus on matching sections top-down rather than overall height.
 - Some differences are acceptable: cookie banners, dynamic content timestamps, animation states.
 - The tldraw hero demo on the home page will always differ from production (it's interactive canvas vs static).
+- - The header will be different between production and local; that's acceptable. The header on desktop is 100px tall; you can skip comparing it using bounding boxes (e.g. --bbox -0,100,auto,600)
+- Don't forget: work "top to bottom" because spacing and layout issues at the top of the page cascade downward.

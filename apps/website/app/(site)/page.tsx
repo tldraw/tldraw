@@ -10,7 +10,6 @@ import { WhatsInsideGrid } from '@/components/sections/whats-inside-grid'
 import { WhiteboardKitSection } from '@/components/sections/whiteboard-kit-section'
 import { WhyTldrawGrid } from '@/components/sections/why-tldraw-grid'
 import {
-	communityContent,
 	finalCtaContent,
 	heroContent,
 	heroLogoBarNames,
@@ -21,7 +20,9 @@ import {
 	whiteboardKitContent,
 	whyTldrawContent,
 } from '@/content/homepage'
+import { heroDemoCodeSnippet } from '@/lib/hero-demo-code'
 import { getHomepage, getPullQuoteTestimonials } from '@/sanity/queries'
+import { codeToHtml } from 'shiki'
 
 function toHomepageSection<T>(items: T[]): (T & { _key: string })[] {
 	return items.map((item, i) => ({ ...item, _key: `item-${i}` }))
@@ -55,10 +56,6 @@ export default async function HomePage() {
 			subtitle: whatsInsideContent.subtitle,
 			items: toHomepageSection(whatsInsideContent.items),
 		},
-		community: {
-			title: communityContent.title,
-			stats: toHomepageSection(communityContent.stats),
-		},
 		whiteboardKit: {
 			eyebrow: whiteboardKitContent.eyebrow,
 			title: whiteboardKitContent.title,
@@ -86,6 +83,19 @@ export default async function HomePage() {
 		},
 	}
 
+	const [heroCodeHtml, heroDemoCodeHtml] = await Promise.all([
+		data.hero?.ctaPrimary?.variant === 'code'
+			? codeToHtml(`$ ${data.hero.ctaPrimary.label}`, {
+					lang: 'bash',
+					themes: { light: 'github-light', dark: 'github-dark' },
+				})
+			: Promise.resolve(undefined),
+		codeToHtml(heroDemoCodeSnippet, {
+			lang: 'tsx',
+			themes: { light: 'github-light', dark: 'github-dark' },
+		}),
+	])
+
 	return (
 		<>
 			{data.hero && (
@@ -96,7 +106,8 @@ export default async function HomePage() {
 						subtitleHighlight={data.hero.subtitleHighlight}
 						ctaPrimary={data.hero.ctaPrimary}
 						ctaSecondary={data.hero.ctaSecondary}
-						heroImage={<HeroDemoClient />}
+						heroImage={<HeroDemoClient codeHtml={heroDemoCodeHtml} />}
+						codeHtml={heroCodeHtml}
 					/>
 					<LogoBarPlaceholder names={heroLogoBarNames} />
 				</>
@@ -120,9 +131,7 @@ export default async function HomePage() {
 					items={data.whatsInside.items}
 				/>
 			)}
-			{data.community && (
-				<CommunitySection title={data.community.title} stats={data.community.stats} />
-			)}
+			<CommunitySection />
 			{data.whiteboardKit && (
 				<WhiteboardKitSection
 					eyebrow={data.whiteboardKit.eyebrow}

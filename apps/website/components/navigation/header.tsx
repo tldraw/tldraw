@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import { cn } from '@/lib/utils'
 import type { NavGroup, NavItem } from '@/sanity/types'
 import Link from 'next/link'
@@ -163,8 +164,8 @@ export function Header({
 													<p className="mt-1.5 max-w-lg text-sm leading-relaxed text-body dark:text-zinc-400">
 														{productMenuFeatured.description}
 													</p>
-													<span className="mt-2 inline-block text-sm font-medium text-brand-blue">
-														Learn more &rarr;
+													<span className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link">
+														Learn more <ChevronRight />
 													</span>
 												</Link>
 											)}

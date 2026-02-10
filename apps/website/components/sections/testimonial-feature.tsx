@@ -1,3 +1,4 @@
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import Link from 'next/link'
 import type { PullQuoteTestimonial } from './pull-quote'
 import { PullQuote } from './pull-quote'
@@ -30,9 +31,9 @@ export function TestimonialFeature({ testimonials, caseStudies }: TestimonialFea
 							</p>
 							<Link
 								href={firstStudy.url}
-								className="mt-2 inline-block text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+								className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
 							>
-								Read the case study &rarr;
+								Read the case study <ChevronRight />
 							</Link>
 						</div>
 					)}
@@ -48,9 +49,9 @@ export function TestimonialFeature({ testimonials, caseStudies }: TestimonialFea
 								</p>
 								<Link
 									href={study.url}
-									className="mt-2 inline-block text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+									className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
 								>
-									Read the case study &rarr;
+									Read the case study <ChevronRight />
 								</Link>
 							</div>
 						))}

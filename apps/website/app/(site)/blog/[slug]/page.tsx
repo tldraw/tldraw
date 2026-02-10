@@ -1,5 +1,7 @@
 import { RichText } from '@/components/portable-text'
-import { formatDate, stripHtml } from '@/lib/utils'
+import { CommunitySection } from '@/components/sections/community-section'
+import { ChevronLeft, ChevronRight } from '@/components/ui/chevron-icon'
+import { formatDateShort, stripHtml } from '@/lib/utils'
 import { urlFor } from '@/sanity/image'
 import { getBlogPost, getBlogPosts } from '@/sanity/queries'
 import type { Metadata } from 'next'
@@ -38,47 +40,78 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 	if (!post) notFound()
 
+	const allPosts = await getBlogPosts()
+	const currentIndex = allPosts.findIndex((p) => p.slug.current === slug)
+	const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null
+	const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null
+
 	return (
-		<article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
-			{post.category && (
-				<Link
-					href={`/blog/category/${post.category.slug.current}`}
-					className="text-sm font-medium uppercase tracking-wider text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-				>
-					{post.category.title}
-				</Link>
-			)}
-			<h1 className="mt-4 text-4xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
-				{post.title}
-			</h1>
-			<div className="mt-6 flex items-center gap-4">
-				{post.author?.avatar && (
+		<>
+			<article className="mx-auto max-w-[720px] px-4 py-16 sm:px-6 sm:py-24">
+				<div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-link">
+					<Link href="/blog" className="hover:text-blue-700 dark:hover:text-blue-300">
+						Blog
+					</Link>
+					{post.category && (
+						<>
+							<span>/</span>
+							<Link
+								href={`/blog/category/${post.category.slug.current}`}
+								className="hover:text-blue-700 dark:hover:text-blue-300"
+							>
+								{post.category.title}
+							</Link>
+						</>
+					)}
+				</div>
+				<h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
+					{post.title}
+				</h1>
+				<p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+					{formatDateShort(post.publishedAt)}
+					{post.author?.name && <> · {post.author.name}</>}
+				</p>
+				{post.coverImage && (
 					<Image
-						src={urlFor(post.author.avatar).width(40).height(40).url()}
-						alt={post.author.name}
-						width={40}
-						height={40}
-						className="rounded-full"
+						src={urlFor(post.coverImage).width(1200).height(630).url()}
+						alt={post.coverImage.alt || post.title}
+						width={1200}
+						height={630}
+						className="mt-12 rounded-lg"
+						priority
 					/>
 				)}
-				<div>
-					<p className="font-medium text-zinc-900 dark:text-white">{post.author?.name}</p>
-					<p className="text-sm text-zinc-500 dark:text-zinc-400">{formatDate(post.publishedAt)}</p>
+				<div className="mt-12">
+					<RichText value={post.body} />
 				</div>
-			</div>
-			{post.coverImage && (
-				<Image
-					src={urlFor(post.coverImage).width(1200).height(630).url()}
-					alt={post.coverImage.alt || post.title}
-					width={1200}
-					height={630}
-					className="mt-8 rounded-lg"
-					priority
-				/>
-			)}
-			<div className="mt-8">
-				<RichText value={post.body} />
-			</div>
-		</article>
+				{(prevPost || nextPost) && (
+					<nav className="mt-16 flex flex-wrap items-start justify-between gap-6">
+						{prevPost ? (
+							<Link
+								href={`/blog/${prevPost.slug.current}`}
+								className="group flex min-w-0 flex-1 basis-0 items-start gap-2 text-md text-brand-link hover:text-brand-link/90 sm:min-w-[200px] dark:hover:text-brand-link/90"
+							>
+								<ChevronLeft className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+								<span className="min-w-0 break-words">{prevPost.title}</span>
+							</Link>
+						) : (
+							<div />
+						)}
+						{nextPost ? (
+							<Link
+								href={`/blog/${nextPost.slug.current}`}
+								className="group flex min-w-0 flex-1 basis-0 flex-row-reverse items-start justify-end gap-2 text-md text-brand-link hover:text-brand-link/90 sm:min-w-[200px] sm:justify-end dark:hover:text-brand-link/90"
+							>
+								<ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+								<span className="min-w-0 break-words text-right">{nextPost.title}</span>
+							</Link>
+						) : (
+							<div />
+						)}
+					</nav>
+				)}
+			</article>
+			<CommunitySection />
+		</>
 	)
 }

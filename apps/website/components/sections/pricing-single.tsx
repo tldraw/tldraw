@@ -1,3 +1,4 @@
+import { ChevronDown, ChevronRight } from '@/components/ui/chevron-icon'
 import Link from 'next/link'
 
 interface PricingSingleProps {
@@ -55,7 +56,7 @@ export function PricingSingle({
 									className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 lg:w-auto"
 								>
 									{ctaPrimary.label}
-									<span aria-hidden="true">&rarr;</span>
+									<ChevronRight />
 								</Link>
 								{ctaPrimary.note && (
 									<p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{ctaPrimary.note}</p>
@@ -66,7 +67,7 @@ export function PricingSingle({
 								className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 lg:w-auto"
 							>
 								{ctaSecondary.label}
-								<span aria-hidden="true">&rarr;</span>
+								<ChevronRight />
 							</Link>
 						</div>
 					</div>
@@ -87,9 +88,9 @@ export function PricingSingle({
 					<p className="text-sm text-body dark:text-zinc-400">{premiumNote.text}</p>
 					<Link
 						href={premiumNote.linkUrl}
-						className="whitespace-nowrap text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+						className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
 					>
-						{premiumNote.linkLabel} &darr;
+						{premiumNote.linkLabel} <ChevronDown />
 					</Link>
 				</div>
 			)}
@@ -102,9 +103,9 @@ export function PricingSingle({
 					<p className="mt-2 text-sm text-body dark:text-zinc-400">{startup.description}</p>
 					<Link
 						href={startup.ctaUrl}
-						className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+						className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
 					>
-						{startup.ctaLabel} <span aria-hidden="true">&rarr;</span>
+						{startup.ctaLabel} <ChevronRight />
 					</Link>
 				</div>
 
@@ -113,9 +114,9 @@ export function PricingSingle({
 					<p className="text-sm text-body dark:text-zinc-400">{hobby.description}</p>
 					<Link
 						href={hobby.ctaUrl}
-						className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-brand-blue dark:hover:text-blue-400"
+						className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
 					>
-						{hobby.ctaLabel} <span aria-hidden="true">&rarr;</span>
+						{hobby.ctaLabel} <ChevronRight />
 					</Link>
 				</div>
 			</div>

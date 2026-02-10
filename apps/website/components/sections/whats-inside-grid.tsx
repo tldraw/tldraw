@@ -1,3 +1,4 @@
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import Link from 'next/link'
 
 interface WhatsInsideItem {
@@ -52,9 +53,9 @@ export function WhatsInsideGrid({ title, subtitle, items }: WhatsInsideGridProps
 								</p>
 								<Link
 									href={item.url}
-									className="mt-4 inline-block text-sm font-medium text-brand-blue underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+									className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link underline underline-offset-4 hover:text-brand-link/90 dark:hover:text-brand-link/90"
 								>
-									Learn more &rarr;
+									Learn more <ChevronRight />
 								</Link>
 							</div>
 						</div>

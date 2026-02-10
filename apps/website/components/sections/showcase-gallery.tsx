@@ -1,3 +1,4 @@
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import { urlFor } from '@/sanity/image'
 import type { SanityImage } from '@/sanity/types'
 import Image from 'next/image'
@@ -91,9 +92,9 @@ export function ShowcaseGallery({ title, subtitle, items }: ShowcaseGalleryProps
 								{item.caseStudyUrl && (
 									<Link
 										href={item.caseStudyUrl}
-										className="mt-3 text-sm font-medium text-brand-blue hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+										className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90"
 									>
-										Read case study &rarr;
+										Read case study <ChevronRight />
 									</Link>
 								)}
 							</div>
@@ -174,18 +175,18 @@ export function ShowcaseGallerySimple({ title, subtitle, items }: ShowcaseGaller
 									{item.caseStudyUrl ? (
 										<Link
 											href={item.caseStudyUrl}
-											className="text-sm font-medium text-brand-blue hover:text-blue-700"
+											className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90"
 										>
-											Read case study &rarr;
+											Read case study <ChevronRight />
 										</Link>
 									) : (
 										<a
 											href={item.url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="text-sm font-medium text-brand-blue hover:text-blue-700"
+											className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90"
 										>
-											Visit &rarr;
+											Visit <ChevronRight />
 										</a>
 									)}
 								</div>

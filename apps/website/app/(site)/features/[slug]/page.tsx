@@ -1,6 +1,7 @@
 import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import { urlFor } from '@/sanity/image'
 import {
 	getFeaturePage,
@@ -95,9 +96,10 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 									</p>
 									<Link
 										href={`/features/${slug}/${child.slug}`}
-										className="mt-3 inline-block text-sm font-medium text-brand-blue hover:text-blue-700"
+										className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link hover:text-brand-link/90"
 									>
-										Learn more &rarr;
+										Learn more
+										<ChevronRight />
 									</Link>
 								</div>
 							))}
@@ -128,9 +130,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			)}
 
 			{/* Community */}
-			{shared?.community && (
-				<CommunitySection title={shared.community.title} stats={shared.community.stats} />
-			)}
+			<CommunitySection />
 		</>
 	)
 }

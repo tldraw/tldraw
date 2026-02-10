@@ -59,20 +59,14 @@ const components: PortableTextComponents = {
 			return (
 				<a
 					href={href}
-					className="text-blue-600 underline decoration-blue-600/30 transition-colors hover:text-blue-500 dark:text-blue-400"
+					className="text-brand-link underline decoration-brand-link/30 transition-colors hover:text-brand-link/90 dark:text-brand-link dark:decoration-brand-link/30 dark:hover:text-brand-link/90"
 					{...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
 				>
 					{children}
 				</a>
 			)
 		},
-		code: ({ children }: { children: React.ReactNode }) => {
-			return (
-				<code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
-					{children}
-				</code>
-			)
-		},
+		code: ({ children }: { children: React.ReactNode }) => <code>{children}</code>,
 	},
 }
 

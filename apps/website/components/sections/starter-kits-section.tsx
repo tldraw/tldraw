@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -39,9 +40,9 @@ export function StarterKitsSection({
 					</div>
 					<Link
 						href={ctaUrl}
-						className="text-sm font-medium text-brand-blue underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+						className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-link underline underline-offset-4 hover:text-brand-link/90 dark:hover:text-brand-link/90"
 					>
-						{ctaLabel} &rarr;
+						{ctaLabel} <ChevronRight />
 					</Link>
 				</div>
 				<div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-start">
@@ -75,9 +76,9 @@ export function StarterKitsSection({
 										</p>
 										<Link
 											href={kit.url}
-											className="mt-4 inline-block text-sm font-medium text-brand-blue underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+											className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link underline underline-offset-4 hover:text-brand-link/90 dark:hover:text-brand-link/90"
 										>
-											Learn more &rarr;
+											Learn more <ChevronRight />
 										</Link>
 									</div>
 								)}

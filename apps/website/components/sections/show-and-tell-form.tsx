@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight } from '@/components/ui/chevron-icon'
 import { useState } from 'react'
 
 interface ShowAndTellFormProps {
@@ -114,9 +115,9 @@ export function ShowAndTellForm({ title, description }: ShowAndTellFormProps) {
 						</div>
 						<button
 							type="submit"
-							className="w-full rounded-lg bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:w-auto sm:min-w-[200px]"
+							className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:w-auto sm:min-w-[200px]"
 						>
-							Submit &rarr;
+							Submit <ChevronRight />
 						</button>
 					</form>
 				)}

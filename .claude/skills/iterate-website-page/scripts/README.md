@@ -90,6 +90,7 @@ yarn compare [options] [productionUrl] [localUrl]
 - `--help, -h`: Show detailed help
 
 **Bounding box values:**
+
 - Use numbers for exact dimensions: `0,1000,1200,1000`
 - Use `auto` for width/height to match viewport size: `0,1000,auto,1000`
 
@@ -120,16 +121,16 @@ yarn compare --help
 
 ### Output
 
-Results are saved to `apps/website/_comparison/`:
+Results are saved to `.claude/skills/iterate-website-page/assets/`:
 
 ```
-_comparison/
+assets/
 ├── {page-name}/
 │   ├── desktop/
 │   │   ├── production.png      # Screenshot from production
 │   │   ├── local.png           # Screenshot from localhost
 │   │   ├── diff.png            # Visual diff (red = differences, gray = matches)
-│   │   └── sidebyside.png      # Side-by-side comparison
+│   │   └── sidebyside.png      # Side-by-side: production (left) vs local (right)
 │   ├── tablet/
 │   └── mobile/
 ├── comparison-report.json      # Structured JSON report
@@ -139,11 +140,13 @@ _comparison/
 ### Understanding Results
 
 The script outputs:
+
 - **Pixel difference**: Number of pixels that differ
 - **Percent difference**: Percentage of total pixels that differ
 - **Size differences**: Height/width mismatches
 
 **Difference levels:**
+
 - ✅ **< 1%**: Perfect match or trivial differences
 - ⚠️ **1-5%**: Minor differences (may be acceptable)
 - ❌ **> 5%**: Major differences (needs attention)
@@ -151,10 +154,11 @@ The script outputs:
 ### Visual Diffs
 
 **`diff.png`**: Shows exactly where differences occur
+
 - **Red pixels**: Areas that differ between production and local
 - **Grayscale**: Areas that match
 
-**`sidebyside.png`**: Production (left) vs Local (right) for easy comparison
+**`sidebyside.png`**: Production (left) vs Local (right) for easy comparison. Canvas height matches the tallest of the two images.
 
 ### Available Pages
 
@@ -166,6 +170,7 @@ yarn compare https://tldraw.dev http://localhost:3002 invalid-page-name
 ```
 
 Current pages:
+
 - `home`
 - `careers`
 - `blog`
@@ -191,6 +196,7 @@ The comparison tool is specifically designed to help AI agents understand visual
    - `production.png` and `local.png` for detailed inspection
 
 4. **Focus on problem areas**: Use bounding boxes to isolate specific sections:
+
    ```bash
    # Compare just the hero section (example coordinates)
    yarn compare --page home --bbox 0,0,auto,800
@@ -222,8 +228,8 @@ Edit the `PAGES` array in either script:
 
 ```typescript
 const PAGES: PageConfig[] = [
-  { path: '/your-page', name: 'your-page' },
-  // ...
+	{ path: '/your-page', name: 'your-page' },
+	// ...
 ]
 ```
 
@@ -233,9 +239,9 @@ Edit the `VIEWPORTS` object:
 
 ```typescript
 const VIEWPORTS = {
-  desktop: { width: 1200, height: 800 },
-  tablet: { width: 1199, height: 800 },
-  mobile: { width: 809, height: 600 },
+	desktop: { width: 1200, height: 800 },
+	tablet: { width: 1199, height: 800 },
+	mobile: { width: 809, height: 600 },
 }
 ```
 
@@ -258,16 +264,20 @@ const threshold = 10 // Pixels can differ by 10 in RGB before counting as differ
 ## Troubleshooting
 
 **Screenshots timing out**:
+
 - Increase timeout in the script: `waitUntil: 'networkidle', timeout: 60000`
 
 **Cookie banners not dismissed**:
+
 - Add selectors to `dismissCookieBanner()` function
 
 **High difference percentages**:
+
 - Check if content differs (blog posts, dynamic content)
 - Verify fonts are loading correctly
 - Check for timing issues (animations, loading states)
 
 **Out of memory**:
+
 - Compare pages one at a time using the page filter
 - Reduce concurrent browser contexts

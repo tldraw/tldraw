@@ -98,9 +98,7 @@ export default async function CareersPage() {
 				/>
 			</div>
 
-			{shared?.community && (
-				<CommunitySection title={shared.community.title} stats={shared.community.stats} />
-			)}
+			<CommunitySection />
 			{shared?.finalCta && (
 				<FinalCtaSection
 					title={shared.finalCta.title}

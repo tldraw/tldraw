@@ -52,9 +52,7 @@ export default async function PricingPage() {
 			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
 				<hr className="border-zinc-200 dark:border-zinc-800" />
 			</div>
-			{shared?.community && (
-				<CommunitySection title={shared.community.title} stats={shared.community.stats} />
-			)}
+			<CommunitySection />
 		</>
 	)
 }
