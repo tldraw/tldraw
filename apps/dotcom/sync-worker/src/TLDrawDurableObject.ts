@@ -839,8 +839,8 @@ export class TLDrawDurableObject extends DurableObject {
 				const src = asset.props.src
 				if (!src) continue
 
-				// Migrate old-format URLs to tldrawfiles.com (same R2 bucket, no copy needed)
-				if (meta?.fileId === slug && !src.startsWith(tldrawfilesUrl)) {
+				// Migrate old-format HTTP URLs to tldrawfiles.com (same R2 bucket, no copy needed)
+				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(tldrawfilesUrl)) {
 					const objectName = src.split('/').pop()
 					if (objectName) {
 						assetsToMigrate.push({
