@@ -148,9 +148,9 @@ async function main() {
 
 	await discord.step('cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
-		await deployTldrawfilesWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
+		await deployTldrawfilesWorker({ dryRun: true })
 		await deployImageResizeWorker({ dryRun: true })
 	})
 
@@ -162,11 +162,11 @@ async function main() {
 	await discord.step('deploying asset uploader to cloudflare', async () => {
 		await deployAssetUploadWorker({ dryRun: false })
 	})
-	await discord.step('deploying tldrawfiles worker to cloudflare', async () => {
-		await deployTldrawfilesWorker({ dryRun: false })
-	})
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discord.step('deploying tldrawfiles worker to cloudflare', async () => {
+		await deployTldrawfilesWorker({ dryRun: false })
 	})
 	await discord.step('deploying image resizer to cloudflare', async () => {
 		await deployImageResizeWorker({ dryRun: false })
