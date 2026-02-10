@@ -252,28 +252,21 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			userId = auth?.userId ?? null
 		}
 
-		if (userId) {
-			// Authenticated: allow owner, group members, or shared-edit
-			const isOwner = file.ownerId === userId
-			let isGroupMember = false
-			if (!isOwner && file.owningGroupId) {
-				const member = await db
-					.selectFrom('group_user')
-					.select('role')
-					.where('groupId', '=', file.owningGroupId)
-					.where('userId', '=', userId)
-					.executeTakeFirst()
-				isGroupMember = !!member
-			}
-			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (!isOwner && !isGroupMember && !isSharedEdit) {
-				return { ok: false, error: 'Forbidden' }
-			}
+		const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
+		if (file.ownerId === userId) {
+			// owner
+		} else if (isSharedEdit) {
+			// shared for editing
+		} else if (userId && file.owningGroupId) {
+			const member = await db
+				.selectFrom('group_user')
+				.select('role')
+				.where('groupId', '=', file.owningGroupId)
+				.where('userId', '=', userId)
+				.executeTakeFirst()
+			if (!member) return { ok: false, error: 'Forbidden' }
 		} else {
-			// Unauthenticated: only allow shared-edit files
-			if (!file.shared || file.sharedLinkType !== 'edit') {
-				return { ok: false, error: 'Forbidden' }
-			}
+			return { ok: false, error: 'Forbidden' }
 		}
 
 		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
