@@ -17,8 +17,8 @@ async function getUrl(file: File, fileId: string | undefined) {
 }
 
 export function multiplayerAssetStore(opts?: {
-	getFileId?: () => string
-	getToken?: () => Promise<string | undefined>
+	getFileId?(): string
+	getToken?(): Promise<string | undefined>
 }) {
 	const { getFileId, getToken } = opts ?? {}
 	return {
