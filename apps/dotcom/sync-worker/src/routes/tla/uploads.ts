@@ -38,11 +38,13 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 }
 
 // Called by tldrawfiles-worker via service binding after an upload.
-// Validates auth + file ownership, then queues the DB association.
+// Checks file exists and queues the DB association.
+// Auth is intentionally permissive here (matching the old upload handler behavior):
+// the real write-access gate is the sync-worker WebSocket connection, which enforces
+// permissions before a user can add shapes to the canvas.
 export async function associateAsset(request: IRequest, env: Environment): Promise<Response> {
 	const auth = await getAuth(request, env)
-	if (!auth) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-
+	const userId = auth?.userId || null
 	const searchParams = new URL(request.url).searchParams
 	const fileId = searchParams.get('fileId')
 	if (!fileId) return Response.json({ error: 'File id is required' }, { status: 400 })
@@ -51,18 +53,15 @@ export async function associateAsset(request: IRequest, env: Environment): Promi
 	if (!objectName) return Response.json({ error: 'Object name is required' }, { status: 400 })
 
 	const db = createPostgresConnectionPool(env, 'sync-worker')
-	const file = await db
+	const fileExists = await db
 		.selectFrom('file')
 		.where('id', '=', fileId)
-		.select('ownerId')
+		.selectAll()
 		.executeTakeFirst()
-	if (!file) {
-		return Response.json({ error: 'File not found' }, { status: 404 })
-	}
-	if (file.ownerId !== auth.userId) {
-		return Response.json({ error: 'Forbidden' }, { status: 403 })
+	if (!fileExists) {
+		return Response.json({ error: 'File not found' }, { status: 400 })
 	}
 
-	await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId: auth.userId })
+	await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
 	return Response.json({ ok: true })
 }
