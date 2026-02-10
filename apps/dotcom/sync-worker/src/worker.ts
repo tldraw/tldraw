@@ -254,7 +254,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 
 			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (file.ownerId === userId) {
+			if (userId && file.ownerId === userId) {
 				// owner
 			} else if (isSharedEdit) {
 				// shared for editing
