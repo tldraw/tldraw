@@ -28,7 +28,7 @@ export function multiplayerAssetStore(opts?: {
 			const headers: Record<string, string> = {}
 			if (fileId && getToken) {
 				const token = await getToken()
-				if (token) {
+				if (token && token !== 'not-logged-in') {
 					headers['Authorization'] = `Bearer ${token}`
 				}
 			}
