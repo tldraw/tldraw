@@ -149,6 +149,7 @@ export async function defaultHandleExternalFileAsset(
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
 	const assetInfo = await getAssetInfo(sanitizedFile, options, assetId)
 	const result = await editor.uploadAsset(assetInfo, sanitizedFile)
 	assetInfo.props.src = result.src
@@ -167,6 +168,7 @@ export async function defaultHandleExternalFileReplaceContent(
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
 	const shape = editor.getShape(shapeId)
 	if (!shape) assert(false, 'Shape not found')
 
@@ -309,6 +311,9 @@ export async function defaultHandleExternalSvgTextContent(
 	{ point, text }: { point?: VecLike; text: string }
 ) {
 	text = defaultSanitizeSvg(text)
+	if (!text.includes('<svg')) {
+		throw new Error('SVG was fully sanitized — it contained no safe content')
+	}
 
 	const position =
 		point ??
@@ -408,6 +413,7 @@ export async function defaultHandleExternalFileContent(
 		if (!isSuccess) continue
 
 		const sanitizedFile = await maybeSanitizeSvgFile(file)
+		if (!sanitizedFile) continue
 		const assetInfo = await getAssetInfo(sanitizedFile, options)
 		if (acceptedImageMimeTypes.includes(sanitizedFile.type)) {
 			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
@@ -853,11 +859,12 @@ export function createEmptyBookmarkShape(
 	return editor.getShape(partial.id) as TLBookmarkShape
 }
 
-async function maybeSanitizeSvgFile(file: File): Promise<File> {
+async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 	if (file.type !== 'image/svg+xml') return file
 	const text = await file.text()
 	const sanitized = defaultSanitizeSvg(text)
-	return new File([sanitized], file.name, { type: file.type })
+	if (!sanitized.includes('<svg')) return null
+	return new File([sanitized], file.name, { type: file.type, lastModified: file.lastModified })
 }
 
 /**
