@@ -38,6 +38,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
+import { defaultSanitizeSvg } from './utils/svg/sanitizeSvg'
 import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -141,12 +142,13 @@ export function registerDefaultExternalContentHandlers(
 /** @public */
 export async function defaultHandleExternalFileAsset(
 	editor: Editor,
-	{ file, assetId }: TLFileExternalAsset,
+	{ file: inputFile, assetId }: TLFileExternalAsset,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = notifyIfFileNotAllowed(file, options)
+	const isSuccess = notifyIfFileNotAllowed(inputFile, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
+	const file = await maybeSanitizeSvgFile(inputFile)
 	const assetInfo = await getAssetInfo(file, options, assetId)
 	const result = await editor.uploadAsset(assetInfo, file)
 	assetInfo.props.src = result.src
@@ -158,12 +160,13 @@ export async function defaultHandleExternalFileAsset(
 /** @public */
 export async function defaultHandleExternalFileReplaceContent(
 	editor: Editor,
-	{ file, shapeId, isImage }: TLFileReplaceExternalContent,
+	{ file: inputFile, shapeId, isImage }: TLFileReplaceExternalContent,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = notifyIfFileNotAllowed(file, options)
+	const isSuccess = notifyIfFileNotAllowed(inputFile, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
+	const file = await maybeSanitizeSvgFile(inputFile)
 	const shape = editor.getShape(shapeId)
 	if (!shape) assert(false, 'Shape not found')
 
@@ -305,6 +308,8 @@ export async function defaultHandleExternalSvgTextContent(
 	editor: Editor,
 	{ point, text }: { point?: VecLike; text: string }
 ) {
+	text = defaultSanitizeSvg(text)
+
 	const position =
 		point ??
 		(editor.inputs.getShiftKey()
@@ -398,10 +403,11 @@ export async function defaultHandleExternalFileContent(
 		asset: TLAsset
 		file: File
 	}[] = []
-	for (const file of files) {
+	for (let file of files) {
 		const isSuccess = notifyIfFileNotAllowed(file, options)
 		if (!isSuccess) continue
 
+		file = await maybeSanitizeSvgFile(file)
 		const assetInfo = await getAssetInfo(file, options)
 		if (acceptedImageMimeTypes.includes(file.type)) {
 			editor.createTemporaryAssetPreview(assetInfo.id, file)
@@ -845,6 +851,13 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+async function maybeSanitizeSvgFile(file: File): Promise<File> {
+	if (file.type !== 'image/svg+xml') return file
+	const text = await file.text()
+	const sanitized = defaultSanitizeSvg(text)
+	return new File([sanitized], file.name, { type: file.type })
 }
 
 /**
