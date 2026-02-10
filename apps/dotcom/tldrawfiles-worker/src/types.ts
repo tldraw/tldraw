@@ -1,11 +1,11 @@
 import { R2Bucket, WorkerVersionMetadata } from '@cloudflare/workers-types'
 
 interface SyncWorkerRpc {
-	associateAsset(
-		objectName: string,
+	validateUpload(
 		fileId: string,
 		authorizationHeader: string | null
-	): Promise<{ ok: boolean; error?: string }>
+	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }>
+	confirmUpload(objectName: string, fileId: string, userId: string | null): Promise<void>
 }
 
 export interface Environment {

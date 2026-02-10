@@ -31,6 +31,20 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		})
 		.post('/:objectName', async (request) => {
 			const objectName = request.params.objectName
+			const fileId = new URL(request.url).searchParams.get('fileId')
+
+			// For app file uploads, validate auth + file access before writing to R2.
+			let userId: string | null = null
+			if (fileId) {
+				const authHeader = request.headers.get('Authorization')
+				const validation = await this.env.SYNC_WORKER.validateUpload(fileId, authHeader)
+				if (!validation.ok) {
+					const status = validation.error === 'File not found' ? 404 : 403
+					return Response.json({ error: validation.error }, { status })
+				}
+				userId = validation.userId
+			}
+
 			const res = await handleUserAssetUpload({
 				headers: request.headers,
 				body: request.body,
@@ -38,15 +52,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				objectName,
 			})
 
-			// For app file uploads, validate auth and queue DB association
-			// via sync-worker RPC (only callable via service binding, not HTTP).
-			const fileId = new URL(request.url).searchParams.get('fileId')
+			// Queue the DB association after successful upload.
 			if (res.status === 200 && fileId) {
-				const authHeader = request.headers.get('Authorization')
-				const result = await this.env.SYNC_WORKER.associateAsset(objectName, fileId, authHeader)
-				if (!result.ok) {
-					console.error('[tldrawfiles] associate-asset failed:', result.error)
-				}
+				await this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId)
 			}
 
 			return res
