@@ -142,15 +142,15 @@ export function registerDefaultExternalContentHandlers(
 /** @public */
 export async function defaultHandleExternalFileAsset(
 	editor: Editor,
-	{ file: inputFile, assetId }: TLFileExternalAsset,
+	{ file, assetId }: TLFileExternalAsset,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = notifyIfFileNotAllowed(inputFile, options)
+	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
-	const file = await maybeSanitizeSvgFile(inputFile)
-	const assetInfo = await getAssetInfo(file, options, assetId)
-	const result = await editor.uploadAsset(assetInfo, file)
+	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	const assetInfo = await getAssetInfo(sanitizedFile, options, assetId)
+	const result = await editor.uploadAsset(assetInfo, sanitizedFile)
 	assetInfo.props.src = result.src
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
@@ -160,21 +160,21 @@ export async function defaultHandleExternalFileAsset(
 /** @public */
 export async function defaultHandleExternalFileReplaceContent(
 	editor: Editor,
-	{ file: inputFile, shapeId, isImage }: TLFileReplaceExternalContent,
+	{ file, shapeId, isImage }: TLFileReplaceExternalContent,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = notifyIfFileNotAllowed(inputFile, options)
+	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
-	const file = await maybeSanitizeSvgFile(inputFile)
+	const sanitizedFile = await maybeSanitizeSvgFile(file)
 	const shape = editor.getShape(shapeId)
 	if (!shape) assert(false, 'Shape not found')
 
-	const hash = getHashForBuffer(await file.arrayBuffer())
+	const hash = getHashForBuffer(await sanitizedFile.arrayBuffer())
 	const assetId = AssetRecordType.createId(hash)
-	editor.createTemporaryAssetPreview(assetId, file)
+	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
 	const assetInfoPartial = await getMediaAssetInfoPartial(
-		file,
+		sanitizedFile,
 		assetId,
 		isImage /* isImage */,
 		!isImage /* isVideo */
@@ -238,7 +238,7 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	const asset = (await editor.getAssetForExternalContent({
 		type: 'file',
-		file,
+		file: sanitizedFile,
 		assetId,
 	})) as TLAsset
 
@@ -403,17 +403,17 @@ export async function defaultHandleExternalFileContent(
 		asset: TLAsset
 		file: File
 	}[] = []
-	for (let file of files) {
+	for (const file of files) {
 		const isSuccess = notifyIfFileNotAllowed(file, options)
 		if (!isSuccess) continue
 
-		file = await maybeSanitizeSvgFile(file)
-		const assetInfo = await getAssetInfo(file, options)
-		if (acceptedImageMimeTypes.includes(file.type)) {
-			editor.createTemporaryAssetPreview(assetInfo.id, file)
+		const sanitizedFile = await maybeSanitizeSvgFile(file)
+		const assetInfo = await getAssetInfo(sanitizedFile, options)
+		if (acceptedImageMimeTypes.includes(sanitizedFile.type)) {
+			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
 		}
 		assetPartials.push(assetInfo)
-		assetsToUpdate.push({ asset: assetInfo, file })
+		assetsToUpdate.push({ asset: assetInfo, file: sanitizedFile })
 	}
 
 	Promise.allSettled(
