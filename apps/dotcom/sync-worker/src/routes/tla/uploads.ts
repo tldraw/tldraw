@@ -38,10 +38,11 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 }
 
 // Called by tldrawfiles-worker via service binding after an upload.
-// Validates auth, checks file exists, and queues the DB association.
+// Validates auth + file ownership, then queues the DB association.
 export async function associateAsset(request: IRequest, env: Environment): Promise<Response> {
 	const auth = await getAuth(request, env)
-	const userId = auth?.userId || null
+	if (!auth) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
 	const searchParams = new URL(request.url).searchParams
 	const fileId = searchParams.get('fileId')
 	if (!fileId) return Response.json({ error: 'File id is required' }, { status: 400 })
@@ -50,15 +51,18 @@ export async function associateAsset(request: IRequest, env: Environment): Promi
 	if (!objectName) return Response.json({ error: 'Object name is required' }, { status: 400 })
 
 	const db = createPostgresConnectionPool(env, 'sync-worker')
-	const fileExists = await db
+	const file = await db
 		.selectFrom('file')
 		.where('id', '=', fileId)
-		.selectAll()
+		.select('ownerId')
 		.executeTakeFirst()
-	if (!fileExists) {
-		return Response.json({ error: 'File not found' }, { status: 400 })
+	if (!file) {
+		return Response.json({ error: 'File not found' }, { status: 404 })
+	}
+	if (file.ownerId !== auth.userId) {
+		return Response.json({ error: 'Forbidden' }, { status: 403 })
 	}
 
-	await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
+	await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId: auth.userId })
 	return Response.json({ ok: true })
 }
