@@ -69,12 +69,6 @@
       "value": "Menu pliku"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Wróżki"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Dzisiaj"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Twój tygodniowy limit wykorzystania wróżek został osiągnięty. Zostanie on zresetowany na początku przyszłego tygodnia."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Spać"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "O tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Twoje wróżki czekają"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Przywołaj wszystkich"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Moje pliki"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "W grudniu do naszego świata zawitała gromada "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "wróżek"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": ". Aby dowiedzieć się więcej, znajdź wróżkę i kliknij ją."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Brak wyróżnienia"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "trzy wróżki"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Edytor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Śpijcie wszyscy"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Uzyskaj pomoc na Discordzie"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Wróżki"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " przybyły, aby rysować przez cały grudzień."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Dziękujemy za pomoc w ulepszaniu tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Nie wybrano żadnych wróżek"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Podaj swój adres e-mail"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Budzić"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Wpisz swoją wiadomość"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Imię wróżki"
     }
   ],
   "6a26f54883": [
@@ -733,22 +637,6 @@
       "value": "Nieprawidłowe żądanie."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Zostałeś zaproszony do "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "rysowania wróżek"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +653,6 @@
     {
       "type": 0,
       "value": "Prześlij problem na GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Wróżka to mały człowieczek, który może pracować z tobą na płótnie. Wróżki mogą pracować samodzielnie lub w zespole. Nie ma ograniczeń co do możliwości wróżki. Nikt nie wie, skąd się wzięły."
     }
   ],
   "7b1329f5ca": [
@@ -899,22 +781,10 @@
       "value": "Twardy reset"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Kup pakiet Fairy"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Nie, dziękuję"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "jednorazowa płatność"
     }
   ],
   "8c2d3d730c": [
@@ -1147,12 +1017,6 @@
       "value": "Plik staje się duży"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Osiągnięto tygodniowy limit wróżek"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1303,12 +1167,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Powiększ do wróżki"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1425,12 +1283,6 @@
       "value": "Ten plik zbliża się do limitu rozmiaru. Rozważ usunięcie części zawartości lub utworzenie nowego pliku."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Masz już dostęp do wróżki!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1535,26 +1387,6 @@
     {
       "type": 0,
       "value": "Nieprawidłowy adres URL pliku tldraw"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Wróżki to funkcja "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tymczasowa"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". 1 stycznia 2026 roku wszystkie wróżki zostaną usunięte z aplikacji. Być może kiedyś powrócą. Zakup uprawnia do dostępu do wróżek tylko do grudnia 2025 roku."
     }
   ],
   "dfdb78a4e4": [
@@ -1689,12 +1521,6 @@
     {
       "type": 0,
       "value": "wybrany"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Wezwać"
     }
   ],
   "f09b16bc5f": [

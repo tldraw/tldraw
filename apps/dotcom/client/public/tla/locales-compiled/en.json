@@ -51,12 +51,6 @@
       "value": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Speak to the group…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -69,12 +63,6 @@
       "value": "File menu"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Fairies"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -85,12 +73,6 @@
     {
       "type": 0,
       "value": "Publish"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -147,18 +129,6 @@
       "value": "Today"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Sleep"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,24 +139,6 @@
     {
       "type": 0,
       "value": "About tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Your fairies are waiting"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Summon all"
-    }
-  ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
     }
   ],
   "299cb00a7a": [
@@ -201,26 +153,6 @@
       "value": "My files"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "A flutter of "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "fairies"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " have come to tldraw for the month of December. To investigate further, find the fairy and click it."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +163,6 @@
     {
       "type": 0,
       "value": "i18n: Highlight Missing"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "three fairies"
     }
   ],
   "32210b37e4": [
@@ -261,36 +187,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Sleep all"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Manage"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Unfollow"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Follow"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Terms of Service"
     }
   ],
   "3bc7d6ea2f": [
@@ -329,32 +225,10 @@
       "value": "Get help on Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Fairies"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " have come to tldraw for the month of December."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Thanks for helping us improve tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "No fairies selected"
     }
   ],
   "477df802ca": [
@@ -393,12 +267,6 @@
       "value": "Name"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Select all"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -415,12 +283,6 @@
     {
       "type": 0,
       "value": "Delete group…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "More options"
     }
   ],
   "4e6fbf032b": [
@@ -485,12 +347,6 @@
     {
       "type": 0,
       "value": "Privacy policy"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Failed to redeem invite code"
     }
   ],
   "5a86b22fa0": [
@@ -575,20 +431,6 @@
       "value": "Later"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Speak to "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -599,12 +441,6 @@
     {
       "type": 0,
       "value": "you"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Guide"
     }
   ],
   "6609dd239e": [
@@ -623,24 +459,6 @@
     {
       "type": 0,
       "value": "Enter your email address"
-    }
-  ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Wake"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Enter your message"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Fairy's name"
     }
   ],
   "6a26f54883": [
@@ -733,22 +551,6 @@
       "value": "Invalid request."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "You've been invited to "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw fairies"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +567,6 @@
     {
       "type": 0,
       "value": "Submit an issue on GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "A fairy is a little guy that can work with you on the canvas. Fairies can work alone or as a team. There is no limit to what a fairy can do. Nobody knows where they came from."
     }
   ],
   "7b1329f5ca": [
@@ -855,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Clear all"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Welcome"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -893,28 +677,10 @@
       "value": "Rename file"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Hard reset"
-    }
-  ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Purchase Fairy Bundle"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "No thanks"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "one time payment"
     }
   ],
   "8c2d3d730c": [
@@ -923,22 +689,10 @@
       "value": "Check your email for a verification code."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Home"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Shared with you"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "About"
     }
   ],
   "8ff3d0a705": [
@@ -971,22 +725,10 @@
       "value": "Copied invite link"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Deselect"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "You are already a member of this group"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Send"
     }
   ],
   "95aacd4d4a": [
@@ -1023,12 +765,6 @@
     {
       "type": 0,
       "value": "Light"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Debug view"
     }
   ],
   "9b33f5c63c": [
@@ -1105,12 +841,6 @@
       "value": "Export image"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Join"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1121,12 +851,6 @@
     {
       "type": 0,
       "value": "Submit"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Debug"
     }
   ],
   "a6cc403d56": [
@@ -1145,18 +869,6 @@
     {
       "type": 0,
       "value": "File is getting large"
-    }
-  ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Weekly fairy limit reached"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "New chat"
     }
   ],
   "a9ded1e5ce": [
@@ -1193,12 +905,6 @@
     {
       "type": 0,
       "value": "File is full"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Log response time"
     }
   ],
   "b357b524e7": [
@@ -1295,12 +1001,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoom to fairy"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1333,40 +1033,16 @@
       "value": "Unable to publish the file."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Open"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "I understand"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Essential cookies"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Accept invite"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Group name"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Usage"
     }
   ],
   "c655b27b1e": [
@@ -1415,12 +1091,6 @@
     {
       "type": 0,
       "value": "This file is approaching its size limit. Consider removing some content or starting a new file."
-    }
-  ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "You already have fairy access!"
     }
   ],
   "cea291e45e": [
@@ -1517,48 +1187,16 @@
       "value": "Invite only"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Clear"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Invalid tldraw file URL"
     }
   ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Fairies are a "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "temporary"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " feature. On January 1st, 2026, all fairies will be removed from the application. Perhaps they will return again someday. Your purchase is for access to fairies for December 2025 only."
-    }
-  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "App debug flags"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Select"
     }
   ],
   "e0c88179b3": [
@@ -1589,12 +1227,6 @@
     {
       "type": 0,
       "value": "Terms of service"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Go to"
     }
   ],
   "e81c4e4f2b": [
@@ -1665,12 +1297,6 @@
       "value": " to learn more."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Disband"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1683,12 +1309,6 @@
       "value": "selected"
     }
   ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Summon"
-    }
-  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1699,12 +1319,6 @@
     {
       "type": 0,
       "value": "User settings"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Configure"
     }
   ],
   "f2569594b2": [

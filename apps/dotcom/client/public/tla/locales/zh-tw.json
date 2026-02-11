@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "檔案選單"
   },
-  "0befa10111": {
-    "translation": "仙女"
-  },
   "0d1f2bb523": {
     "translation": "傳送回饋"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "今天"
   },
-  "23f879f41a": {
-    "translation": "您本週的仙女使用量已達上限，並將於下週初重置。"
-  },
-  "243924bfd5": {
-    "translation": "睡覺"
-  },
   "2445e5e347": {
     "translation": "建立群組"
   },
   "250ddea65c": {
     "translation": "關於tldraw"
-  },
-  "269097080b": {
-    "translation": "你的仙女們正在等待"
-  },
-  "275173253d": {
-    "translation": "召喚所有"
   },
   "284d5cd0dd": {
     "translation": "模型："
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "我的文件"
   },
-  "30cd34258a": {
-    "translation": "十二月，一群<b>仙子</b>來到了tldraw。想了解更多詳情，請找到仙子並點擊它。"
-  },
   "31246941ad": {
     "translation": "您必須登入才能檢視此檔案。"
   },
   "31418ce4ad": {
     "translation": "i18n：醒目顯示遺失"
-  },
-  "3209f407ed": {
-    "translation": "三個仙女"
   },
   "32210b37e4": {
     "translation": "添加連結"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "編輯器"
-  },
-  "34abfe7a0d": {
-    "translation": "睡光"
   },
   "34e34c43ec": {
     "translation": "管理"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "在 Discord 上獲得協助"
   },
-  "45b43c2d28": {
-    "translation": "<strong>仙女們</strong>在十二月來到了tldraw。"
-  },
   "46137245cd": {
     "translation": "感謝您幫助我們改進 tldraw！"
-  },
-  "465a8a92a4": {
-    "translation": "沒有選擇仙女"
   },
   "477df802ca": {
     "translation": "若要繼續編輯，請將文件複製到您的文件中。"
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "請輸入您的電子郵件地址"
   },
-  "688761c83e": {
-    "translation": "喚醒"
-  },
   "68d390535e": {
     "translation": "請輸入您的留言"
-  },
-  "6910bbdc82": {
-    "translation": "仙女的名字"
   },
   "6a26f54883": {
     "translation": "幫助"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "無效的請求。"
   },
-  "77f0abf1aa": {
-    "translation": "您已被邀請參加<strong>tldraw 仙女</strong>"
-  },
   "7827371d1a": {
     "translation": "這個匿名 tldraw 多人遊戲檔案現在處於唯讀狀態。若要繼續編輯，請登入並將其複製到您的文件中。"
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "在 GitHub 上提交問題"
-  },
-  "79cc22ac6b": {
-    "translation": "仙子是能與你一起在畫布上創作的小傢伙。仙子可以獨自工作，也可以組隊合作。仙子的能力沒有極限。沒人知道他們來自哪裡。"
   },
   "7b1329f5ca": {
     "translation": "使用者手冊"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "硬重置"
   },
-  "88e83b88c5": {
-    "translation": "購買仙女禮包"
-  },
   "8ad4303b83": {
     "translation": "不，謝謝"
-  },
-  "8be569f100": {
-    "translation": "一次付款"
   },
   "8c2d3d730c": {
     "translation": "請查看您的電子郵件，您會收到驗證碼。"
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "文件越來越大"
   },
-  "a8de4c27a8": {
-    "translation": "每週仙女數量已達上限"
-  },
   "a917baaf14": {
     "translation": "新聊天"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "由 {ownerName} 共享"
-  },
-  "be4f1c62d3": {
-    "translation": "放大到仙境"
   },
   "c2276c9127": {
     "translation": "瞭解有關共享的更多資訊。"
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "此文件已接近大小上限。請考慮刪除部分內容或新建一個檔案。"
   },
-  "ce1424d44b": {
-    "translation": "你已經擁有進入仙境的權限了！"
-  },
   "cea291e45e": {
     "translation": "瞭解有關發布的更多資訊。"
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "無效的tldraw檔案URL"
-  },
-  "df6ff49394": {
-    "translation": "仙子是<strong>限時</strong>功能。 2026年1月1日，所有仙子將從應用中移除。或許將來它們會再次出現。您購買的功能僅限2025年12月使用仙子。"
   },
   "dfdb78a4e4": {
     "translation": "應用程式的偵錯旗標"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "已選擇"
-  },
-  "efde983742": {
-    "translation": "召喚"
   },
   "f09b16bc5f": {
     "translation": "我們使用 cookie 來讓您保持登入狀態、同步您的檔案並收集分析資料以幫助我們改善 tldraw。"

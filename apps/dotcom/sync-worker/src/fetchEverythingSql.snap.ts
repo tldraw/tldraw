@@ -11,9 +11,7 @@ WITH
   all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
   group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
   group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
-  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files),
-  my_fairies AS (SELECT * FROM public."user_fairies" WHERE "userId" = $1),
-  file_fairies AS (SELECT * FROM public."file_fairies" WHERE "userId" = $1)
+  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files)
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -190,64 +188,6 @@ SELECT
 FROM all_group_users
 UNION ALL
 SELECT
-  'user_fairies' as "table",
-  null::boolean as "0",
-  null::boolean as "1",
-  null::boolean as "2",
-  null::boolean as "3",
-  null::boolean as "4",
-  null::boolean as "5",
-  null::boolean as "6",
-  null::boolean as "7",
-  null::boolean as "8",
-  null::boolean as "9",
-  "fairyAccessExpiresAt"::bigint as "10",
-  "fairyLimit"::bigint as "11",
-  "weeklyLimit"::bigint as "12",
-  null::bigint as "13",
-  "fairies"::text as "14",
-  "userId"::text as "15",
-  "weeklyUsage"::text as "16",
-  null::text as "17",
-  null::text as "18",
-  null::text as "19",
-  null::text as "20",
-  null::text as "21",
-  null::text as "22",
-  null::text as "23",
-  null::text as "24"
-FROM my_fairies
-UNION ALL
-SELECT
-  'file_fairies' as "table",
-  null::boolean as "0",
-  null::boolean as "1",
-  null::boolean as "2",
-  null::boolean as "3",
-  null::boolean as "4",
-  null::boolean as "5",
-  null::boolean as "6",
-  null::boolean as "7",
-  null::boolean as "8",
-  null::boolean as "9",
-  null::bigint as "10",
-  null::bigint as "11",
-  null::bigint as "12",
-  null::bigint as "13",
-  "fairyState"::text as "14",
-  "fileId"::text as "15",
-  "userId"::text as "16",
-  null::text as "17",
-  null::text as "18",
-  null::text as "19",
-  null::text as "20",
-  null::text as "21",
-  null::text as "22",
-  null::text as "23",
-  null::text as "24"
-FROM file_fairies
-UNION ALL
-SELECT
   'user_mutation_number' as "table",
   null::boolean as "0",
   null::boolean as "1",
@@ -387,19 +327,6 @@ export const columnNamesByAlias = {
 		'17': 'userColor',
 		'18': 'userId',
 		'19': 'userName',
-	},
-	user_fairies: {
-		'10': 'fairyAccessExpiresAt',
-		'11': 'fairyLimit',
-		'12': 'weeklyLimit',
-		'14': 'fairies',
-		'15': 'userId',
-		'16': 'weeklyUsage',
-	},
-	file_fairies: {
-		'14': 'fairyState',
-		'15': 'fileId',
-		'16': 'userId',
 	},
 	user_mutation_number: {
 		'10': 'mutationNumber',

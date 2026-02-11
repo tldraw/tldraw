@@ -69,12 +69,6 @@
       "value": "Menu file"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Fate"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Oggi"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Il limite settimanale di utilizzo delle fate è stato raggiunto. Verrà azzerato all'inizio della prossima settimana."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Sonno"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "Informazioni su tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Le tue fate ti stanno aspettando"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Evoca tutti"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "I miei file"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Un gruppo di "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "fate"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " è arrivato su tldraw per il mese di dicembre. Per approfondire, trova la fata e cliccaci sopra."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: evidenziazione mancante"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "tre fate"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Dormire tutto"
     }
   ],
   "34e34c43ec": [
@@ -329,36 +267,10 @@
       "value": "Chiedi aiuto su Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "type": 0,
-      "value": "Le "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "fate"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " sono arrivate a tldraw per il mese di dicembre."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Grazie per averci aiutato a migliorare tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Nessuna fata selezionata"
     }
   ],
   "477df802ca": [
@@ -629,22 +541,10 @@
       "value": "Inserisci il tuo indirizzo email"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Veglia"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Inserisci il tuo messaggio"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Nome della fata"
     }
   ],
   "6a26f54883": [
@@ -737,22 +637,6 @@
       "value": "Richiesta non valida."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Sei stato invitato a "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw fairies"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -769,12 +653,6 @@
     {
       "type": 0,
       "value": "Segnala un problema su GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Una fata è un piccolo essere che può lavorare con te sulla tela. Le fate possono lavorare da sole o in gruppo. Non c'è limite a ciò che una fata può fare. Nessuno sa da dove vengano."
     }
   ],
   "7b1329f5ca": [
@@ -903,22 +781,10 @@
       "value": "Ripristino completo"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Acquista il pacchetto Fairy"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "No grazie"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "pagamento una tantum"
     }
   ],
   "8c2d3d730c": [
@@ -1151,12 +1017,6 @@
       "value": "Il file sta diventando grande"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Limite settimanale di fate raggiunto"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1299,12 +1159,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoom su fata"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1421,12 +1275,6 @@
       "value": "Questo file sta per raggiungere il limite di dimensione. Valuta la possibilità di rimuovere parte del contenuto o di crearne uno nuovo."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Hai già accesso alle fate!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1531,26 +1379,6 @@
     {
       "type": 0,
       "value": "URL del file tldraw non valido"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Le fate sono una funzionalità "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "temporanea"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". Il 1° gennaio 2026, tutte le fate saranno rimosse dall'applicazione. Forse torneranno un giorno. Il tuo acquisto è valido solo per l'accesso alle fate per dicembre 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1685,12 +1513,6 @@
     {
       "type": 0,
       "value": "selezionato"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Convocare"
     }
   ],
   "f09b16bc5f": [
