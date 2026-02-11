@@ -2,6 +2,10 @@ import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
 import { TLDRAWFILES_URL } from './config'
 import { isDevelopmentEnv, isPreviewEnv } from './env'
+
+// Assets are uploaded to and served from a separate tldrawfiles worker (TLDRAWFILES_URL).
+// Same R2 bucket as before — the worker just adds auth gating and Cloudflare Image Transformations.
+// For app files, a fileId query param triggers server-side write-access validation and DB association.
 async function getUrl(file: File, fileId: string | undefined) {
 	const id = uniqueId()
 
@@ -94,8 +98,9 @@ export function multiplayerAssetStore(opts?: {
 			const objectName = url.pathname.split('/').pop()
 			if (!objectName) return asset.props.src
 
-			// /cdn-cgi/image/ only works with zone-level Image Transformations
-			// (production/staging). In dev/preview, serve the raw file.
+			// /cdn-cgi/image/ is Cloudflare's Image Transformations endpoint:
+			// https://developers.cloudflare.com/images/transform-images/transform-via-url/
+			// Only works with zone-level setup (production/staging). In dev/preview, serve raw file.
 			if (isDevelopmentEnv || isPreviewEnv) {
 				return `${TLDRAWFILES_URL}/${objectName}`
 			}

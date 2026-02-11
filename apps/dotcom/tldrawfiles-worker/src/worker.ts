@@ -59,8 +59,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			})
 
 			// Queue the DB association after successful upload.
+			// Wrapped in try/catch so a transient sync-worker failure doesn't
+			// turn a successful R2 upload into a 500. maybeAssociateFileAssets
+			// will pick up the association later if this fails.
 			if (res.status === 200 && fileId) {
-				await this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId)
+				try {
+					await this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId)
+				} catch (e) {
+					console.error('Failed to queue asset association', e)
+				}
 			}
 
 			return res
