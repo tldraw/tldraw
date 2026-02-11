@@ -6,6 +6,10 @@
 
 // Allowed SVG element names (lowercase for comparison).
 // Based on DOMPurify's SVG + SVG filter profiles, plus 'use'.
+// Note: <style> is intentionally excluded — sanitizing CSS in style blocks is
+// error-prone (CSS escape sequences can bypass regex filters), so like DOMPurify
+// we remove <style> elements entirely. Inline style= attributes are still
+// allowed and sanitized via decodeCssEscapes + sanitizeCss.
 const ALLOWED_TAGS = new Set([
 	// SVG elements
 	'svg',
@@ -41,7 +45,6 @@ const ALLOWED_TAGS = new Set([
 	'radialgradient',
 	'rect',
 	'stop',
-	'style',
 	'switch',
 	'symbol',
 	'text',
@@ -291,6 +294,7 @@ const CSS_IMPORT = /@import\b[^;]*;?/gi
 const IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i
 
 // Strips invisible whitespace that could be used to bypass protocol checks.
+// eslint-disable-next-line no-control-regex
 const ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g
 
 /** @internal */
@@ -319,16 +323,21 @@ function sanitizeNode(node: Element): void {
 			child.remove()
 		} else {
 			sanitizeAttributes(child)
-			if (child.tagName.toLowerCase() === 'style') {
-				child.textContent = sanitizeCss(child.textContent ?? '')
-			}
 			sanitizeNode(child)
 		}
 	}
 }
 
+function decodeCssEscapes(css: string): string {
+	return css.replace(/\\([0-9a-fA-F]{1,6})\s?|\\([^\n])/g, (_, hex, literal) => {
+		if (hex) return String.fromCodePoint(parseInt(hex, 16))
+		return literal
+	})
+}
+
 function sanitizeCss(css: string): string {
-	return css.replace(CSS_URL, '').replace(CSS_IMPORT, '')
+	const decoded = decodeCssEscapes(css)
+	return decoded.replace(CSS_URL, '').replace(CSS_IMPORT, '')
 }
 
 function sanitizeAttributes(el: Element): void {
