@@ -169,7 +169,7 @@ export function StylePanelFillPicker() {
 				<StylePanelDropdownPickerInline
 					type="icon"
 					id="fill-extra"
-					uiType="fill-extra"
+					uiType="fill"
 					stylePanelType="fill"
 					style={DefaultFillStyle}
 					items={STYLES.fillExtra}
