@@ -1,0 +1,134 @@
+---
+title: Image pipeline starter kit
+sidebarTitle: Image pipeline
+status: published
+author: tldraw
+date: 2/8/2026
+order: 5
+description: Demonstrates how to build visual node-based image generation pipelines on infinite canvas. Features a type-safe port system with six data types, parallel DAG execution, AI image generation via Replicate, and a Cloudflare Worker backend. Includes 17 node types across input, processing, and output categories.
+embed: image-pipeline
+githubLink: https://github.com/tldraw/tldraw/tree/main/templates/image-pipeline
+keywords:
+  - image
+  - pipeline
+  - generation
+  - nodes
+  - ai
+  - comfyui
+---
+
+To build with an image pipeline starter kit, run this command in your terminal:
+
+```bash
+npm create tldraw@latest -- --template image-pipeline
+```
+
+The template works out of the box with placeholder images. To connect real AI providers, create a `.dev.vars` file:
+
+```
+REPLICATE_API_TOKEN=<your key>
+```
+
+---
+
+## Use cases
+
+Use the Image Pipeline Starter Kit to build:
+
+<StarterKitBento type="image-pipeline" />
+
+---
+
+## How it works
+
+### 1. Shape system: Nodes and connections
+
+Nodes are custom tldraw shapes that represent pipeline steps. Each node has typed input and output ports — there are six port data types (image, text, model, number, latent, and any) that enforce connection compatibility. Connections are also shapes, rendered as color-coded bezier curves that use tldraw's binding system to stay attached to specific ports.
+
+### 2. Type-safe port system
+
+Ports are color-coded by data type and enforce compatibility during connection. When you drag a connection, only compatible ports highlight as valid targets. The system also prevents cycles, replaces existing connections on single-input ports, and supports multi-input ports that accept multiple connections.
+
+### 3. Pipeline execution
+
+The execution engine builds a DAG (directed acyclic graph) from your node connections and resolves dependencies automatically. Independent branches execute in parallel. Each node receives its input values, runs its operation, and passes results downstream. Nodes show loading states during execution and cache their results.
+
+### 4. AI image generation
+
+The starter kit integrates with AI providers through a Cloudflare Worker backend. The Generate node sends prompts, model selection, and parameters (steps, CFG scale, seed) to the worker, which dispatches to providers like Replicate. When no backend is configured, the system returns placeholder SVGs so you can explore the full UI without API credentials.
+
+### 5. Image processing pipeline
+
+Beyond generation, the template includes processing nodes for upscaling, style transfer, ControlNet-guided generation, IP-Adapter reference images, blending, and image adjustments. These can be chained together to build complex multi-step image processing workflows.
+
+---
+
+## Customization
+
+### Adding custom nodes
+
+To add a custom node type, create a new file in `src/nodes/types/`. The easiest approach is to duplicate an existing node like `AdjustNode.tsx`.
+
+Define your node's data shape:
+
+```tsx
+import { T } from 'tldraw'
+
+export const CustomNode = T.object({
+	type: T.literal('custom'),
+	// your node's parameters...
+})
+
+export type CustomNode = T.TypeOf<typeof CustomNode>
+```
+
+Then create a node definition:
+
+```tsx
+export class CustomNodeDefinition extends NodeDefinition<CustomNode> {
+	static type = 'custom'
+	static validator = CustomNode
+
+	title = 'My custom node'
+	icon = <span>🔧</span>
+	category = 'process'
+
+	getDefault() { ... }
+	getPorts(shape, node) { ... }
+	async execute(shape, node, inputs) { ... }
+	getOutputInfo(shape, node, inputs) { ... }
+	Component = CustomNodeComponent
+}
+```
+
+Register your node in `src/nodes/nodeTypes.tsx` by adding it to `NodeDefinitions`, and add it to the sidebar in `src/components/ImagePipelineSidebar.tsx`.
+
+### Adding AI providers
+
+The worker uses a provider abstraction. To add a new provider, create a class implementing the `ImageProvider` interface in `worker/providers/`. The provider receives generation parameters and returns image URLs. Register it in the provider resolution logic so it can be selected from the Model node.
+
+### UI customization
+
+The template overrides several tldraw UI components:
+
+- A sidebar node palette replaces the default toolbar, organized by category (input, process, output, utility)
+- Region overlays detect connected node groups and provide per-region play/stop controls
+- An on-canvas node picker appears when dragging a connection to empty space, filtered to show only type-compatible nodes
+- A template system lets users save and restore workflow configurations
+
+To further customize the UI, read up on [customizing tldraw's UI as a whole](/docs/user-interface).
+
+---
+
+## Further reading
+
+- **[Shape utilities](/docs/shapes)**: Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
+- **[Binding system](/docs/binding)**: Learn more about tldraw's binding system for creating relationships between shapes, automatic updates, and connection management.
+- **[Editor state management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
+- **[Customize the user interface](/docs/user-interface)**: Learn how to customize the user interface of your tldraw application.
+
+---
+
+## Building with this starter kit?
+
+If you build something great, please share it with us in our [#show-and-tell](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) channel on Discord. We want to see what you've built!

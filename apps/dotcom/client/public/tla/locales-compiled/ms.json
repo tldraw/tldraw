@@ -51,12 +51,6 @@
       "value": "Fail ini telah mencapai had saiznya dan perubahan mungkin tidak lagi disimpan. Alih keluar beberapa kandungan atau mulakan fail baharu."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Bercakap kepada kumpulan…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Terbitkan"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Berhenti"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Mengenai tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Uruskan"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "nyahikut"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Ikut"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Syarat Perkhidmatan"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Nama"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Pilih semua"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Padamkan kumpulan…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Lebih banyak pilihan"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Dasar privasi"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Gagal menebus kod jemputan"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Nanti"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Bercakap dengan "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "awak"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Panduan"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Masukkan alamat e-mel anda"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Masukkan mesej anda"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Kosongkan semua"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Selamat datang"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Namakan semula fail"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Tetapan semula keras"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Semak e-mel anda untuk mendapatkan kod pengesahan."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Rumah"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Dikongsi dengan anda"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Tentang"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Pautan jemputan disalin"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Nyahpilih"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Anda sudah pun menjadi ahli kumpulan ini"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Hantar"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Cahaya"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Paparan nyahpepijat"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Eksport imej"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Sertai"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Hantar"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Nyahpepijat"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Fail semakin besar"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Sembang baharu"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Fail sudah penuh"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Log masa tindak balas"
     }
   ],
   "b357b524e7": [
@@ -1183,40 +1025,16 @@
       "value": "Tidak dapat menerbitkan fail."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Buka"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "saya faham"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Kuki penting"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Terima jemputan"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Nama kumpulan"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Penggunaan"
     }
   ],
   "c655b27b1e": [
@@ -1361,12 +1179,6 @@
       "value": "Jemput sahaja"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Jelas"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1377,12 +1189,6 @@
     {
       "type": 0,
       "value": "Bendera nyahpepijat apl"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Pilih"
     }
   ],
   "e0c88179b3": [
@@ -1413,12 +1219,6 @@
     {
       "type": 0,
       "value": "Syarat perkhidmatan"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Pergi ke"
     }
   ],
   "e81c4e4f2b": [
@@ -1489,12 +1289,6 @@
       "value": " kami untuk mengetahui lebih lanjut."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "bubar"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1517,12 +1311,6 @@
     {
       "type": 0,
       "value": "Tetapan pengguna"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Konfigurasikan"
     }
   ],
   "f2569594b2": [

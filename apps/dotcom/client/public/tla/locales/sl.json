@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Ta datoteka je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite ustvarjati novo datoteko."
   },
-  "0ab1ef22a3": {
-    "translation": "Pogovorite se s skupino…"
-  },
   "0b27918290": {
     "translation": "Datoteka"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Objavi"
-  },
-  "11a755d598": {
-    "translation": "Ustavi se"
   },
   "129b9e34ea": {
     "translation": "Zapusti skupino"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "O tldrawu"
   },
-  "284d5cd0dd": {
-    "translation": "Model:"
-  },
   "299cb00a7a": {
     "translation": "Nalaganje ni uspelo"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Urednik"
-  },
-  "34e34c43ec": {
-    "translation": "Upravljanje"
-  },
-  "3596c1b1f7": {
-    "translation": "Ne sledi"
-  },
-  "3903aab323": {
-    "translation": "Sledi"
-  },
-  "3b6c2b4caa": {
-    "translation": "Pogoji storitve"
   },
   "3bc7d6ea2f": {
     "translation": "Nadaljuj z e-pošto"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Ime"
   },
-  "4c41e0bd95": {
-    "translation": "Izberi vse"
-  },
   "4d0d3ddec9": {
     "translation": "To spletno mesto uporablja piškotke za delovanje aplikacije in zbiranje analitičnih podatkov."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Izbriši skupino …"
-  },
-  "4dab36ac83": {
-    "translation": "Več možnosti"
   },
   "4e6fbf032b": {
     "translation": "Ali ste prepričani, da želite izbrisati to skupino? Tega dejanja ni mogoče razveljaviti."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Politika zasebnosti"
   },
-  "5a2ccdc00a": {
-    "translation": "Unovčenje kode povabila ni uspelo"
-  },
   "5a86b22fa0": {
     "translation": "Za začetek povlecite datoteke sem, <create>ustvarite datoteko</create> ali <invite>kopirajte povezavo za povabilo</invite>."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Kasneje"
   },
-  "61daf2e53d": {
-    "translation": "Pogovorite se z {name}…"
-  },
   "625fd29749": {
     "translation": "Starejši"
   },
   "639bae9ac6": {
     "translation": "ti"
-  },
-  "6602bbeb29": {
-    "translation": "Vodnik"
   },
   "6609dd239e": {
     "translation": "Nekaj je šlo narobe"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Vnesite svoj e-poštni naslov"
-  },
-  "68d390535e": {
-    "translation": "Vnesite svoje sporočilo"
   },
   "6a26f54883": {
     "translation": "Pomoč"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam! Izpolnite ta obrazec in po potrebi se vam bomo oglasili po e-pošti. Lahko pa tudi <discord>klepetate z nami na Discordu</discord> ali <github>oddate težavo na GitHubu</github>."
   },
-  "81aa2078d1": {
-    "translation": "Počisti vse"
-  },
-  "83218ac34c": {
-    "translation": "Dobrodošli"
-  },
   "85a082de1b": {
     "translation": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Preimenuj datoteko"
   },
-  "8726ef8909": {
-    "translation": "Trda ponastavitev"
-  },
   "8ad4303b83": {
     "translation": "Ne, hvala."
   },
   "8c2d3d730c": {
     "translation": "Preverite svojo e-pošto za potrditveno kodo."
   },
-  "8cf04a9734": {
-    "translation": "Domov"
-  },
   "8eb2c00e96": {
     "translation": "V skupni rabi z vami"
-  },
-  "8f7f4c1ce7": {
-    "translation": "O nas"
   },
   "8ff3d0a705": {
     "translation": "Omejili smo število akcij"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Povezava za povabilo je bila kopirana"
   },
-  "94186070ef": {
-    "translation": "Prekliči izbor"
-  },
   "9489b2f82a": {
     "translation": "Ste že član te skupine"
-  },
-  "94966d9074": {
-    "translation": "Pošlji"
   },
   "95aacd4d4a": {
     "translation": "Prijava z Googlom"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Svetlo"
-  },
-  "9953e9946b": {
-    "translation": "Pogled za odpravljanje napak"
   },
   "9b33f5c63c": {
     "translation": "Niste prejeli kode? <resend>Ponovno pošlji</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Izvozi sliko"
   },
-  "a286d9991c": {
-    "translation": "Pridruži se"
-  },
   "a3debabee7": {
     "translation": "Politika piškotkov"
   },
   "a4d3b161ce": {
     "translation": "Predloži"
-  },
-  "a603905470": {
-    "translation": "Odpravljanje napak"
   },
   "a6cc403d56": {
     "translation": "Vsak s povezavo"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Datoteka postaja velika"
-  },
-  "a917baaf14": {
-    "translation": "Nov klepet"
   },
   "a9ded1e5ce": {
     "translation": "Ozadje"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Datoteka je polna"
-  },
-  "b34a671e2c": {
-    "translation": "Čas odziva dnevnika"
   },
   "b357b524e7": {
     "translation": "E-poštni naslov"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Datoteke ni mogoče objaviti."
   },
-  "c3bf447eab": {
-    "translation": "Odprto"
-  },
-  "c3eb5c3b90": {
-    "translation": "Razumem"
-  },
   "c4b39a1cc3": {
     "translation": "Bistveni piškotki"
   },
-  "c54a624f46": {
-    "translation": "Sprejmi povabilo"
-  },
   "c6155aaecc": {
     "translation": "Ime skupine"
-  },
-  "c64518704c": {
-    "translation": "Uporaba"
   },
   "c655b27b1e": {
     "translation": "i18n: dolg niz"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Samo povabljeni"
   },
-  "dc30bc0c79": {
-    "translation": "Jasno"
-  },
   "dcdaa754fe": {
     "translation": "Neveljaven URL datoteke tldraw"
   },
   "dfdb78a4e4": {
     "translation": "Zastavice za odpravljanje napak v aplikaciji"
-  },
-  "e062622261": {
-    "translation": "Izberite"
   },
   "e0c88179b3": {
     "translation": "Povabi člane"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Pogoji storitve"
-  },
-  "e43ec38a93": {
-    "translation": "Pojdi na"
   },
   "e81c4e4f2b": {
     "translation": "ali"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Za več informacij preberite našo <a>pravilnik o piškotkih</a>."
   },
-  "eee6f05922": {
-    "translation": "Razpustitev"
-  },
   "ef53538ae4": {
     "translation": "Člani"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Uporabniške nastavitve"
-  },
-  "f1206f9fad": {
-    "translation": "Konfiguriraj"
   },
   "f2569594b2": {
     "translation": "Te piškotke uporabljamo za shranjevanje vaših datotek in nastavitev."

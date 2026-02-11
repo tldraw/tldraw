@@ -51,12 +51,6 @@
       "value": "Bu dosya boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Gruba konuş…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Yayınla"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Durmak"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "tldraw hakkında"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Modeli:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Düzenleyici"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Üstesinden gelmek"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Takipten çık"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Takip etmek"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Hizmet Şartları"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "İsim"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Tümünü seç"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Grubu sil…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Daha fazla seçenek"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Gizlilik Politikası"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Davet kodu kullanılamadı"
     }
   ],
   "5a86b22fa0": [
@@ -491,16 +431,6 @@
       "value": "Daha sonra"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " ile konuş…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -511,12 +441,6 @@
     {
       "type": 0,
       "value": "Sen"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Rehber"
     }
   ],
   "6609dd239e": [
@@ -535,12 +459,6 @@
     {
       "type": 0,
       "value": "E-posta adresinizi girin"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Mesajınızı girin"
     }
   ],
   "6a26f54883": [
@@ -733,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Tümünü temizle"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Hoş geldin"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -767,12 +673,6 @@
       "value": "Dosyayı yeniden adlandır"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Sert sıfırlama"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -785,22 +685,10 @@
       "value": "Doğrulama kodu için e-postanızı kontrol edin."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Ev"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Sizinle paylaşıldı"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Hakkında"
     }
   ],
   "8ff3d0a705": [
@@ -833,22 +721,10 @@
       "value": "Davet bağlantısı kopyalandı"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Seçimi kaldır"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Zaten bu grubun üyesisiniz"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Göndermek"
     }
   ],
   "95aacd4d4a": [
@@ -885,12 +761,6 @@
     {
       "type": 0,
       "value": "Açık"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Hata ayıklama görünümü"
     }
   ],
   "9b33f5c63c": [
@@ -967,12 +837,6 @@
       "value": "Resmi dışa aktar"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Katılmak"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -983,12 +847,6 @@
     {
       "type": 0,
       "value": "Göndermek"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Hata ayıklama"
     }
   ],
   "a6cc403d56": [
@@ -1007,12 +865,6 @@
     {
       "type": 0,
       "value": "Dosya büyüyor"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Yeni sohbet"
     }
   ],
   "a9ded1e5ce": [
@@ -1049,12 +901,6 @@
     {
       "type": 0,
       "value": "Dosya dolu"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Günlük yanıt süresi"
     }
   ],
   "b357b524e7": [
@@ -1179,40 +1025,16 @@
       "value": "Bu dosya yayınlanamıyor."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Açık"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Anladım"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Temel çerezler"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Daveti kabul et"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Grup adı"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Kullanım"
     }
   ],
   "c655b27b1e": [
@@ -1357,12 +1179,6 @@
       "value": "Yalnızca davetle"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Temizlemek"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1373,12 +1189,6 @@
     {
       "type": 0,
       "value": "Uygulama hata ayıklama bayrakları"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Seçme"
     }
   ],
   "e0c88179b3": [
@@ -1409,12 +1219,6 @@
     {
       "type": 0,
       "value": "Hizmet Şartları"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Git"
     }
   ],
   "e81c4e4f2b": [
@@ -1485,12 +1289,6 @@
       "value": " okuyun."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Dağılmak"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1513,12 +1311,6 @@
     {
       "type": 0,
       "value": "Kullanıcı ayarları"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Yapılandır"
     }
   ],
   "f2569594b2": [

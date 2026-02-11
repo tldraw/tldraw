@@ -5484,7 +5484,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param bounds - The bounds to search within.
 	 * @returns Unordered set of shape IDs within the given bounds.
 	 *
-	 * @internal
+	 * @public
 	 */
 	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
 		return this._spatialIndex.getShapeIdsInsideBounds(bounds)

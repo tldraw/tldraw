@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Tento soubor dosáhl limitu velikosti a změny se již nemusí uložit. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
   },
-  "0ab1ef22a3": {
-    "translation": "Promluvte si se skupinou…"
-  },
   "0b27918290": {
     "translation": "Soubor"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Publikovat"
-  },
-  "11a755d598": {
-    "translation": "Zastávka"
   },
   "129b9e34ea": {
     "translation": "Opustit skupinu"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "O tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Model:"
-  },
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Spravovat"
-  },
-  "3596c1b1f7": {
-    "translation": "Přestat sledovat"
-  },
-  "3903aab323": {
-    "translation": "Následovat"
-  },
-  "3b6c2b4caa": {
-    "translation": "Podmínky služby"
   },
   "3bc7d6ea2f": {
     "translation": "Pokračovat s e-mailem"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Jméno"
   },
-  "4c41e0bd95": {
-    "translation": "Vybrat vše"
-  },
   "4d0d3ddec9": {
     "translation": "Tato stránka používá soubory cookie k fungování aplikace a ke shromažďování analytických údajů."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Smazat skupinu…"
-  },
-  "4dab36ac83": {
-    "translation": "Více možností"
   },
   "4e6fbf032b": {
     "translation": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Zásady ochrany osobních údajů"
   },
-  "5a2ccdc00a": {
-    "translation": "Uplatnění pozvánkového kódu se nezdařilo"
-  },
   "5a86b22fa0": {
     "translation": "Přetáhněte soubory sem, <create>vytvořte soubor</create> nebo <invite>zkopírujte odkaz na pozvánku</invite> a začněte."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Později"
   },
-  "61daf2e53d": {
-    "translation": "Promluvte si s {name}…"
-  },
   "625fd29749": {
     "translation": "Starší"
   },
   "639bae9ac6": {
     "translation": "Vy"
-  },
-  "6602bbeb29": {
-    "translation": "Průvodce"
   },
   "6609dd239e": {
     "translation": "Něco se pokazilo"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Zadejte svou e-mailovou adresu"
-  },
-  "68d390535e": {
-    "translation": "Zadejte svou zprávu"
   },
   "6a26f54883": {
     "translation": "Pomoc"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Máte chybu, problém nebo nápad ohledně tldraw? Dejte nám vědět! Vyplňte tento formulář a v případě potřeby se vám ozveme e-mailem. Můžete si také <discord>chatovat s námi na Discordu</discord> nebo <github>nahlásit problém na GitHubu</github>."
   },
-  "81aa2078d1": {
-    "translation": "Vymazat vše"
-  },
-  "83218ac34c": {
-    "translation": "Vítejte"
-  },
   "85a082de1b": {
     "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
   },
-  "8726ef8909": {
-    "translation": "Tvrdý reset"
-  },
   "8ad4303b83": {
     "translation": "Ne, děkuji."
   },
   "8c2d3d730c": {
     "translation": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
   },
-  "8cf04a9734": {
-    "translation": "Domov"
-  },
   "8eb2c00e96": {
     "translation": "Sdíleno s vámi"
-  },
-  "8f7f4c1ce7": {
-    "translation": "O"
   },
   "8ff3d0a705": {
     "translation": "Sazba omezená"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Zkopírován odkaz na pozvánku"
   },
-  "94186070ef": {
-    "translation": "Zrušit výběr"
-  },
   "9489b2f82a": {
     "translation": "Již jste členem této skupiny"
-  },
-  "94966d9074": {
-    "translation": "Poslat"
   },
   "95aacd4d4a": {
     "translation": "Přihlásit se pomocí Googlu"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Světlo"
-  },
-  "9953e9946b": {
-    "translation": "Zobrazení ladění"
   },
   "9b33f5c63c": {
     "translation": "Neobdrželi jste kód? <resend>Znovu odeslat</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Export obrázku"
   },
-  "a286d9991c": {
-    "translation": "Připojit se"
-  },
   "a3debabee7": {
     "translation": "Zásady používání souborů cookie"
   },
   "a4d3b161ce": {
     "translation": "Předložit"
-  },
-  "a603905470": {
-    "translation": "Ladit"
   },
   "a6cc403d56": {
     "translation": "Kdokoli s odkazem"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Soubor se zvětšuje"
-  },
-  "a917baaf14": {
-    "translation": "Nový chat"
   },
   "a9ded1e5ce": {
     "translation": "Pozadí"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Soubor je plný"
-  },
-  "b34a671e2c": {
-    "translation": "Doba odezvy protokolu"
   },
   "b357b524e7": {
     "translation": "E-mailová adresa"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Soubor nelze publikovat."
   },
-  "c3bf447eab": {
-    "translation": "OTEVŘENO"
-  },
-  "c3eb5c3b90": {
-    "translation": "Rozumím"
-  },
   "c4b39a1cc3": {
     "translation": "Základní soubory cookie"
   },
-  "c54a624f46": {
-    "translation": "Přijmout pozvání"
-  },
   "c6155aaecc": {
     "translation": "Název skupiny"
-  },
-  "c64518704c": {
-    "translation": "Používání"
   },
   "c655b27b1e": {
     "translation": "i18n: Dlouhá struna"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Pouze na pozvání"
   },
-  "dc30bc0c79": {
-    "translation": "Jasný"
-  },
   "dcdaa754fe": {
     "translation": "Neplatná adresa URL souboru tldraw"
   },
   "dfdb78a4e4": {
     "translation": "Příznaky ladění aplikace"
-  },
-  "e062622261": {
-    "translation": "Vybrat"
   },
   "e0c88179b3": {
     "translation": "Pozvat členy"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Podmínky služby"
-  },
-  "e43ec38a93": {
-    "translation": "Jdi na"
   },
   "e81c4e4f2b": {
     "translation": "nebo"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Přečtěte si naše <a>zásady používání souborů cookie</a> a dozvíte se více."
   },
-  "eee6f05922": {
-    "translation": "Rozpustit"
-  },
   "ef53538ae4": {
     "translation": "Členové"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Uživatelská nastavení"
-  },
-  "f1206f9fad": {
-    "translation": "Konfigurovat"
   },
   "f2569594b2": {
     "translation": "Tyto soubory cookie používáme k ukládání vašich souborů a nastavení."

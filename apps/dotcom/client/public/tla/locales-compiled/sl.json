@@ -51,12 +51,6 @@
       "value": "Ta datoteka je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite ustvarjati novo datoteko."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Pogovorite se s skupino…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Objavi"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Ustavi se"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "O tldrawu"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Urednik"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Upravljanje"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Ne sledi"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Sledi"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Pogoji storitve"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Ime"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Izberi vse"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Izbriši skupino …"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Več možnosti"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Politika zasebnosti"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Unovčenje kode povabila ni uspelo"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Kasneje"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Pogovorite se z "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "ti"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Vodnik"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Vnesite svoj e-poštni naslov"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Vnesite svoje sporočilo"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Počisti vse"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Dobrodošli"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Preimenuj datoteko"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Trda ponastavitev"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Preverite svojo e-pošto za potrditveno kodo."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Domov"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "V skupni rabi z vami"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "O nas"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Povezava za povabilo je bila kopirana"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Prekliči izbor"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Ste že član te skupine"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Pošlji"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Svetlo"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Pogled za odpravljanje napak"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Izvozi sliko"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Pridruži se"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Predloži"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Odpravljanje napak"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Datoteka postaja velika"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Nov klepet"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Datoteka je polna"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Čas odziva dnevnika"
     }
   ],
   "b357b524e7": [
@@ -1199,40 +1041,16 @@
       "value": "Datoteke ni mogoče objaviti."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Odprto"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Razumem"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Bistveni piškotki"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Sprejmi povabilo"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Ime skupine"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Uporaba"
     }
   ],
   "c655b27b1e": [
@@ -1377,12 +1195,6 @@
       "value": "Samo povabljeni"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Jasno"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1393,12 +1205,6 @@
     {
       "type": 0,
       "value": "Zastavice za odpravljanje napak v aplikaciji"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Izberite"
     }
   ],
   "e0c88179b3": [
@@ -1429,12 +1235,6 @@
     {
       "type": 0,
       "value": "Pogoji storitve"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Pojdi na"
     }
   ],
   "e81c4e4f2b": [
@@ -1505,12 +1305,6 @@
       "value": "."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Razpustitev"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1533,12 +1327,6 @@
     {
       "type": 0,
       "value": "Uporabniške nastavitve"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Konfiguriraj"
     }
   ],
   "f2569594b2": [

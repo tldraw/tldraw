@@ -90,6 +90,7 @@
 	"action.save-copy": "Bir kopyasını kaydet",
 	"action.select-all": "Hepsini Seç",
 	"action.select-none": "Hiçbirini Seçme",
+	"action.select-zoom-tool": "Yakınlaştır",
 	"action.send-backward": "Arkaya doğru gönder",
 	"action.send-to-back": "Arkaya gönder",
 	"action.share-project": "Bu projeyi paylaş",
