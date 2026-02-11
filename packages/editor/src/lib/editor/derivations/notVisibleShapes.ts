@@ -38,40 +38,27 @@ export function notVisibleShapes(editor: Editor) {
 			return nextValue
 		}
 
-		// Subsequent runs: check if result differs before creating new Set
-		let count = 0
-		let hasDiff = false
-
+		// Subsequent runs: single pass to collect IDs and detect changes
+		const notVisibleIds: TLShapeId[] = []
 		for (let i = 0; i < allShapes.length; i++) {
 			shape = allShapes[i]
 			if (visibleIds.has(shape.id)) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+			notVisibleIds.push(shape.id)
+		}
 
-			count++
-			if (!hasDiff && !prevValue.has(shape.id)) {
-				hasDiff = true
+		// Check if the result changed
+		if (notVisibleIds.length === prevValue.size) {
+			let same = true
+			for (let i = 0; i < notVisibleIds.length; i++) {
+				if (!prevValue.has(notVisibleIds[i])) {
+					same = false
+					break
+				}
 			}
+			if (same) return prevValue
 		}
 
-		// Check if size changed
-		if (!hasDiff && prevValue.size !== count) {
-			hasDiff = true
-		}
-
-		// If nothing changed, return the previous value
-		if (!hasDiff) {
-			return prevValue
-		}
-
-		// Build the new Set (only when needed)
-		const nextValue = new Set<TLShapeId>()
-		for (let i = 0; i < allShapes.length; i++) {
-			shape = allShapes[i]
-			if (visibleIds.has(shape.id)) continue
-			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
-			nextValue.add(shape.id)
-		}
-
-		return nextValue
+		return new Set(notVisibleIds)
 	})
 }
