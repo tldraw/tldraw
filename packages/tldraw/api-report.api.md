@@ -2953,6 +2953,7 @@ export interface StylePanelDropdownPickerProps<T extends string> {
     style: StyleProp<T>;
     // (undocumented)
     stylePanelType: string;
+    testIdType?: string;
     // (undocumented)
     type: 'icon' | 'menu' | 'tool';
     // (undocumented)
