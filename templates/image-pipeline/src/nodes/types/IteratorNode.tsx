@@ -20,6 +20,7 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePortLabel,
 	NodeRow,
 	updateNode,
@@ -222,7 +223,7 @@ function IteratorNodeComponent({ shape, node }: NodeComponentProps<IteratorNode>
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="Iterator result" />
+					<NodeImage src={node.lastResultUrl} alt="Iterator result" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Run to iterate items</span>

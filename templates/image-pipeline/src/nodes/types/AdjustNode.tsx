@@ -20,6 +20,7 @@ import {
 	loadImage,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -184,7 +185,7 @@ function AdjustNodeComponent({ shape, node }: NodeComponentProps<AdjustNode>) {
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="Adjusted" />
+					<NodeImage src={node.lastResultUrl} alt="Adjusted" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Connect an image</span>

@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { PointerEvent, useCallback, useRef, useState } from 'react'
+import { PointerEvent, SyntheticEvent, useCallback, useRef, useState } from 'react'
 import {
 	Editor,
 	T,
@@ -264,6 +264,16 @@ export function NodeInputRow({
  */
 export function NodePlaceholder() {
 	return <div className="NodeValue_placeholder" />
+}
+
+/**
+ * An image element that hides itself if the source fails to load.
+ */
+export function NodeImage({ src, alt }: { src: string; alt: string }) {
+	const onError = useCallback((e: SyntheticEvent<HTMLImageElement>) => {
+		e.currentTarget.style.display = 'none'
+	}, [])
+	return <img src={src} alt={alt} onError={onError} />
 }
 
 /**

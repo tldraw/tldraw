@@ -20,6 +20,7 @@ import {
 	isMultiInfoValue,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -237,7 +238,7 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="Generated" />
+					<NodeImage src={node.lastResultUrl} alt="Generated" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Run pipeline to generate</span>

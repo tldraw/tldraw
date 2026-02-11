@@ -15,7 +15,7 @@ Create a `.dev.vars` file in the root directory and add your Replicate API key:
 REPLICATE_API_TOKEN=your_replicate_api_token_here
 ```
 
-Without a token, the worker returns placeholder images so you can still explore the UI.
+Without a token, generation requests will fail with an error.
 
 ## Local development
 
@@ -72,7 +72,7 @@ The app automatically detects groups of connected nodes and draws region overlay
 - **`worker/`:** Cloudflare Worker backend.
   - **`worker/worker.ts`:** The main worker entry-point with API routes.
   - **`worker/routes/`:** Route handlers for generate, upscale, style transfer, IP adapter, text generation, and image storage.
-  - **`worker/providers/`:** Provider abstractions — Replicate for real model calls, placeholder for local development without an API key.
+  - **`worker/providers/`:** Provider abstractions for Replicate API calls.
 
 ## Deployment
 

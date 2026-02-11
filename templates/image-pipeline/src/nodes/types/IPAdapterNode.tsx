@@ -19,6 +19,7 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -205,7 +206,7 @@ function IPAdapterNodeComponent({ shape, node }: NodeComponentProps<IPAdapterNod
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="IP-Adapter result" />
+					<NodeImage src={node.lastResultUrl} alt="IP-Adapter result" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Connect a reference image</span>

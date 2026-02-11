@@ -20,6 +20,7 @@ import {
 	loadImage,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -233,7 +234,7 @@ function BlendNodeComponent({ shape, node }: NodeComponentProps<BlendNode>) {
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="Blended" />
+					<NodeImage src={node.lastResultUrl} alt="Blended" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Connect images to blend</span>

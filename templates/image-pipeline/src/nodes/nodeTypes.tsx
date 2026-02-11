@@ -35,7 +35,6 @@ import {
 export const NodeDefinitions = {
 	model: ModelNodeDefinition,
 	prompt: PromptNodeDefinition,
-	prompt_concat: PromptConcatNodeDefinition,
 	generate: GenerateNodeDefinition,
 	generate_text: GenerateTextNodeDefinition,
 	controlnet: ControlNetNodeDefinition,
@@ -46,6 +45,7 @@ export const NodeDefinitions = {
 	upscale: UpscaleNodeDefinition,
 	ip_adapter: IPAdapterNodeDefinition,
 	style_transfer: StyleTransferNodeDefinition,
+	prompt_concat: PromptConcatNodeDefinition,
 	number: NumberNodeDefinition,
 	router: RouterNodeDefinition,
 	iterator: IteratorNodeDefinition,

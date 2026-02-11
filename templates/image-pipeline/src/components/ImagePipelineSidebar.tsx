@@ -142,6 +142,7 @@ export function ImagePipelineSidebar({ editor }: { editor: Editor }) {
 	for (const def of Object.values(defs)) {
 		const cat = def.category
 		if (!grouped[cat]) grouped[cat] = []
+		if (def.hidden) continue
 		grouped[cat].push(def)
 	}
 
@@ -151,7 +152,7 @@ export function ImagePipelineSidebar({ editor }: { editor: Editor }) {
 			<div className="ImagePipelineSidebar-list">
 				{CATEGORY_ORDER.map((cat) => {
 					const items = grouped[cat]
-					if (!items) return null
+					if (!items?.length) return null
 					return (
 						<div key={cat} className="ImagePipelineSidebar-group">
 							<div className="ImagePipelineSidebar-category">{CATEGORY_LABELS[cat] ?? cat}</div>

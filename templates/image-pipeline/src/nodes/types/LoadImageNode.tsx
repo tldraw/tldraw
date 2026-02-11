@@ -15,6 +15,7 @@ import {
 	InfoValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodeRow,
 	updateNode,
 } from './shared'
@@ -181,7 +182,7 @@ function LoadImageNodeComponent({ shape, node }: NodeComponentProps<LoadImageNod
 				onDragLeave={handleDragLeave}
 			>
 				{node.imageUrl ? (
-					<img src={node.imageUrl} alt="Loaded" draggable={false} />
+					<NodeImage src={node.imageUrl} alt="Loaded" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>{isDragOver ? 'Drop image here' : 'Drop or browse for an image'}</span>

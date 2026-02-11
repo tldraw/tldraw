@@ -19,6 +19,7 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -240,7 +241,7 @@ function StyleTransferNodeComponent({ shape, node }: NodeComponentProps<StyleTra
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="Style transfer result" />
+					<NodeImage src={node.lastResultUrl} alt="Style transfer result" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Connect a style image</span>

@@ -19,6 +19,7 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -261,7 +262,7 @@ function ControlNetNodeComponent({ shape, node }: NodeComponentProps<ControlNetN
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="ControlNet result" />
+					<NodeImage src={node.lastResultUrl} alt="ControlNet result" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Connect model + reference image</span>

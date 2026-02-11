@@ -17,6 +17,7 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePortLabel,
 	NodeRow,
 	STOP_EXECUTION,
@@ -107,7 +108,7 @@ function PreviewNodeComponent({ shape, node }: NodeComponentProps<PreviewNode>) 
 				})}
 			>
 				{displayUrl ? (
-					<img src={displayUrl} alt="Preview" />
+					<NodeImage src={displayUrl} alt="Preview" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>No image to preview</span>

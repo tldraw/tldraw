@@ -19,6 +19,7 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
+	NodeImage,
 	NodePlaceholder,
 	NodePortLabel,
 	NodeRow,
@@ -181,7 +182,7 @@ function UpscaleNodeComponent({ shape, node }: NodeComponentProps<UpscaleNode>) 
 				})}
 			>
 				{node.lastResultUrl ? (
-					<img src={node.lastResultUrl} alt="Upscaled" />
+					<NodeImage src={node.lastResultUrl} alt="Upscaled" />
 				) : (
 					<div className="NodeImagePreview-empty">
 						<span>Connect an image to upscale</span>

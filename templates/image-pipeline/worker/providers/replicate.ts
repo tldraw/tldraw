@@ -1,4 +1,3 @@
-import { placeholder } from './placeholder'
 import type {
 	GenerateParams,
 	GenerateResult,
@@ -23,7 +22,7 @@ export const replicate: ImageProvider = {
 	async generate(params: GenerateParams, env: Env): Promise<GenerateResult> {
 		const apiToken = env.REPLICATE_API_TOKEN
 		if (!apiToken) {
-			return placeholder.generate(params, env)
+			throw new Error('REPLICATE_API_TOKEN is not configured')
 		}
 
 		// Use a ControlNet model when ControlNet params are present
@@ -46,7 +45,7 @@ export const replicate: ImageProvider = {
 	async upscale(params: UpscaleParams, env: Env): Promise<UpscaleResult> {
 		const apiToken = env.REPLICATE_API_TOKEN
 		if (!apiToken) {
-			return placeholder.upscale!(params, env)
+			throw new Error('REPLICATE_API_TOKEN is not configured')
 		}
 
 		const response = await fetch(
