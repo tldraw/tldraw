@@ -305,6 +305,9 @@ export function defaultSanitizeSvg(svgText: string): string {
 	sanitizeAttributes(svg)
 	sanitizeNode(svg)
 
+	// If sanitization stripped all children, the SVG has no safe content.
+	if (svg.children.length === 0) return ''
+
 	return new XMLSerializer().serializeToString(svg)
 }
 
