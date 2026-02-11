@@ -1,12 +1,12 @@
 import { RichText } from '@/components/portable-text'
 import { CommunitySection } from '@/components/sections/community-section'
-import { FeatureHeroCta } from '@/components/sections/feature-hero-cta'
+import { CoverImage } from '@/components/sections/cover-image'
+import { FeatureHero } from '@/components/sections/feature-hero'
 import { FinalCtaSection } from '@/components/sections/final-cta-section'
 import { StarterKitsSection } from '@/components/sections/starter-kits-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
-import { Eyebrow } from '@/components/ui/eyebrow'
+import { Divider } from '@/components/ui/divider'
 import { splitAtFirstH2, stripLeadingHero } from '@/lib/portable-text-utils'
-import { urlFor } from '@/sanity/image'
 import {
 	getFeaturePageByParentAndSlug,
 	getFeaturePages,
@@ -14,7 +14,6 @@ import {
 	getSharedSections,
 } from '@/sanity/queries'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
 interface ChildFeaturePageProps {
@@ -71,29 +70,15 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 
 	return (
 		<>
-			{/* Hero */}
-			<section className="pt-20 sm:pt-32">
-				<div className="mx-auto max-w-content px-5 sm:px-8">
-					{feature.eyebrow && <Eyebrow>{feature.eyebrow}</Eyebrow>}
-					<h1 className="mt-4 text-4xl font-semibold tracking-heading text-black dark:text-white sm:text-5xl lg:text-6xl">
-						{feature.title}
-					</h1>
-					<p className="mt-6 max-w-2xl text-lg leading-8 text-body dark:text-zinc-400">
-						{feature.heroSubtitle || feature.description}
-					</p>
-					{shared?.hero?.ctaPrimary && (
-						<FeatureHeroCta
-							ctaPrimary={shared.hero.ctaPrimary}
-							ctaSecondary={shared.hero.ctaSecondary}
-						/>
-					)}
-				</div>
-			</section>
+			<FeatureHero
+				eyebrow={feature.eyebrow}
+				title={feature.title}
+				subtitle={feature.heroSubtitle || feature.description}
+				ctaPrimary={shared?.hero?.ctaPrimary}
+				ctaSecondary={shared?.hero?.ctaSecondary}
+			/>
 
-			{/* Divider */}
-			<div className="mx-auto max-w-content px-5 py-12 sm:px-8 sm:py-16">
-				<hr className="border-zinc-200 dark:border-zinc-800" />
-			</div>
+			<Divider />
 
 			{/* Body content — first section (before first h2 break) */}
 			{bodyTop.length > 0 && (
@@ -104,21 +89,8 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 				</section>
 			)}
 
-			{/* Cover image (between body sections, matching production layout) */}
-			{feature.coverImage && (
-				<section className="pb-12 sm:pb-16">
-					<div className="mx-auto max-w-content px-5 sm:px-8">
-						<Image
-							src={urlFor(feature.coverImage).width(1200).height(630).url()}
-							alt={feature.title}
-							width={1200}
-							height={630}
-							className="rounded-lg"
-							priority
-						/>
-					</div>
-				</section>
-			)}
+			{/* Cover image */}
+			{feature.coverImage && <CoverImage image={feature.coverImage} alt={feature.title} />}
 
 			{/* Body content — remaining sections (after first h2 break) */}
 			{bodyBottom.length > 0 && (
