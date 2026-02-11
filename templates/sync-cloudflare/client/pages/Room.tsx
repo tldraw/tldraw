@@ -22,7 +22,7 @@ export function Room() {
 				// we can pass the connected store into the Tldraw component which will handle
 				// loading states & enable multiplayer UX like cursors & a presence menu
 				store={store}
-				deepLinks
+				options={{ deepLinks: true }}
 				onMount={(editor) => {
 					// when the editor is ready, we need to register our bookmark unfurling service
 					editor.registerExternalAssetHandler('url', getBookmarkPreview)
