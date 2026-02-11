@@ -146,7 +146,7 @@ let _objHashUID = 0
 
 let stringHashCache: Record<string, number> = {}
 let stringHashCacheCount = 0
-const STRING_HASH_CACHE_SIZE = 12_000
+const STRING_HASH_CACHE_SIZE = 24_000
 
 // Constants describing the size of trie nodes.
 const SHIFT = 5 // Resulted in best performance after ______?
