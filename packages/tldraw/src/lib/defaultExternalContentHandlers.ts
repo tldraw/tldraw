@@ -38,7 +38,6 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
-import { defaultSanitizeSvg } from './utils/svg/sanitizeSvg'
 import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -310,6 +309,7 @@ export async function defaultHandleExternalSvgTextContent(
 	editor: Editor,
 	{ point, text }: { point?: VecLike; text: string }
 ) {
+	const { defaultSanitizeSvg } = await import('./utils/svg/sanitizeSvg')
 	text = defaultSanitizeSvg(text)
 	if (!text.includes('<svg')) {
 		throw new Error('SVG was fully sanitized — it contained no safe content')
@@ -862,6 +862,7 @@ export function createEmptyBookmarkShape(
 async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 	if (file.type !== 'image/svg+xml') return file
 	const text = await file.text()
+	const { defaultSanitizeSvg } = await import('./utils/svg/sanitizeSvg')
 	const sanitized = defaultSanitizeSvg(text)
 	if (!sanitized.includes('<svg')) return null
 	return new File([sanitized], file.name, { type: file.type, lastModified: file.lastModified })
