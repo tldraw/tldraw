@@ -276,6 +276,11 @@ const ALLOWED_ATTRS = new Set([
 // Attributes that contain URIs and need protocol validation.
 const URI_ATTRS = new Set(['href', 'xlink:href'])
 
+// Matches CSS url() declarations that could exfiltrate data or load external resources.
+const CSS_URL = /url\s*\(.*?\)/gi
+// Matches CSS @import rules that could load external stylesheets.
+const CSS_IMPORT = /@import\b[^;]*;?/gi
+
 // Blocks javascript:, vbscript:, data:, etc.
 const IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i
 
@@ -291,6 +296,7 @@ export function defaultSanitizeSvg(svgText: string): string {
 	if (parseError) return ''
 
 	const svg = doc.documentElement
+	sanitizeAttributes(svg)
 	sanitizeNode(svg)
 
 	return new XMLSerializer().serializeToString(svg)
@@ -304,9 +310,16 @@ function sanitizeNode(node: Element): void {
 			child.remove()
 		} else {
 			sanitizeAttributes(child)
+			if (child.tagName.toLowerCase() === 'style') {
+				child.textContent = sanitizeCss(child.textContent ?? '')
+			}
 			sanitizeNode(child)
 		}
 	}
+}
+
+function sanitizeCss(css: string): string {
+	return css.replace(CSS_URL, '').replace(CSS_IMPORT, '')
 }
 
 function sanitizeAttributes(el: Element): void {
@@ -324,6 +337,10 @@ function sanitizeAttributes(el: Element): void {
 			if (IS_SCRIPT_OR_DATA.test(val)) {
 				el.removeAttribute(attr.name)
 			}
+		}
+
+		if (name === 'style') {
+			attr.value = sanitizeCss(attr.value)
 		}
 	}
 }
