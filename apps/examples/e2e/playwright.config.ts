@@ -106,6 +106,7 @@ const config: PlaywrightTestConfig = {
 		port: 5420,
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../..'),
+		timeout: 300_000, // 5 minutes: preview-examples builds the app before starting the server
 	},
 }
 

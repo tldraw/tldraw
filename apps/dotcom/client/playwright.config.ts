@@ -100,6 +100,7 @@ export default defineConfig({
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
+		timeout: 300_000, // 5 minutes: preview-app builds the app before starting the server
 		// Uncomment if you need to see the server output:
 		// stdout: 'pipe',
 		// stderr: 'pipe',
