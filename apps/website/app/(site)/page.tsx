@@ -130,7 +130,6 @@ export default async function HomePage() {
 					items={data.whatsInside.items}
 				/>
 			)}
-			<CommunitySection />
 			{data.whiteboardKit && (
 				<WhiteboardKitSection
 					eyebrow={data.whiteboardKit.eyebrow}
@@ -141,6 +140,7 @@ export default async function HomePage() {
 					features={data.whiteboardKit.features}
 				/>
 			)}
+			<CommunitySection />
 			{data.starterKits && (
 				<StarterKitsSection
 					title={data.starterKits.title}

@@ -40,12 +40,6 @@ export const homepage = defineType({
 						defineField({ name: 'url', title: 'URL', type: 'string' }),
 					],
 				}),
-				defineField({
-					name: 'heroImage',
-					title: 'Hero image',
-					type: 'image',
-					options: { hotspot: true },
-				}),
 			],
 		}),
 
@@ -125,33 +119,6 @@ export const homepage = defineType({
 								defineField({ name: 'url', title: 'URL', type: 'string' }),
 							],
 							preview: { select: { title: 'title', subtitle: 'description' } },
-						},
-					],
-				}),
-			],
-		}),
-
-		// Community
-		defineField({
-			name: 'community',
-			title: 'Community',
-			type: 'object',
-			fields: [
-				defineField({ name: 'title', title: 'Title', type: 'string' }),
-				defineField({
-					name: 'stats',
-					title: 'Stats',
-					type: 'array',
-					of: [
-						{
-							type: 'object',
-							fields: [
-								defineField({ name: 'value', title: 'Value', type: 'string' }),
-								defineField({ name: 'label', title: 'Label', type: 'string' }),
-								defineField({ name: 'linkText', title: 'Link text', type: 'string' }),
-								defineField({ name: 'url', title: 'URL', type: 'string' }),
-							],
-							preview: { select: { title: 'linkText', subtitle: 'value' } },
 						},
 					],
 				}),
