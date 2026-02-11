@@ -3,7 +3,6 @@ title: Performance
 status: published
 author: steveruizok
 date: 1/31/2026
-order: 8
 keywords:
   - performance
   - optimization
@@ -13,6 +12,8 @@ keywords:
   - zoom
   - rendering
   - LOD
+  - level of detail
+  - image resolution
 ---
 
 The tldraw SDK uses several techniques to maintain smooth performance even with thousands of shapes on the canvas. Understanding these systems helps you build custom shapes that perform well and avoid common pitfalls.
@@ -82,6 +83,39 @@ function MyShapeComponent({ shape }) {
 Computing a shape's geometry—bounds, hit test regions, outline—can be expensive. The editor caches these computations and invalidates them only when a shape's props change.
 
 Access cached geometry through `editor.getShapeGeometry(shapeId)` rather than calling `shapeUtil.getGeometry()` directly. The editor handles caching, transforms, and bounds calculation.
+
+### Level of detail
+
+tldraw adjusts rendering fidelity based on zoom level and on-screen size, a technique called level of detail (LOD). When a shape is small on screen, rendering every pixel of a high-resolution image or every detail of a complex shape is wasted work.
+
+**Image resolution scaling**
+
+When you zoom out or resize an image shape, tldraw requests a lower-resolution version from your asset store. The `resolve` method on [TLAssetStore](?) receives a [TLAssetContext](?) with `steppedScreenScale`—the ratio of the shape's on-screen size to the image's native size, rounded up to the nearest power of two. Use this to serve appropriately sized images:
+
+```ts
+const assetStore: TLAssetStore = {
+	async resolve(asset, context) {
+		if (asset.type !== 'image') return asset.props.src
+
+		// Request a version of the image scaled to what's actually visible on screen
+		const width = Math.ceil(asset.props.w * context.steppedScreenScale * context.dpr)
+		return `${asset.props.src}?w=${width}`
+	},
+}
+```
+
+A 4000px-wide photo zoomed out to take up 200px on screen only needs 200 device pixels worth of data. This reduces memory usage and decoding cost. Resolution updates are debounced so images don't thrash between sizes during zooming.
+
+**Built-in shape simplifications**
+
+The built-in shapes reduce rendering complexity at low zoom levels:
+
+- **Note shadows** — Box shadows on sticky notes are hidden when zoomed out far enough, replaced by a simple border
+- **Draw shapes** — Freehand strokes switch from their detailed "draw" style to solid paths
+- **Pattern fills** — Hatch and cross-hatch fills switch to solid colors
+- **Text outlines** — Text shadow outlines disable below the `textShadowLod` threshold (default 0.35) to reduce compositing cost
+
+These transitions use [Editor#getEfficientZoomLevel](?) so they stay stable during camera movement rather than updating every frame. Custom shapes can use the same technique—see [Simplify at small sizes](#simplify-at-small-sizes) below.
 
 ## Tips for custom shapes
 

@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Guia do arquivo"
   },
-  "0befa10111": {
-    "translation": "Fadas"
-  },
   "0d1f2bb523": {
     "translation": "Enviar feedback"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Hoje"
   },
-  "23f879f41a": {
-    "translation": "Seu limite semanal de uso de fadas foi atingido. Ele será reiniciado no início da próxima semana."
-  },
-  "243924bfd5": {
-    "translation": "Dormir"
-  },
   "2445e5e347": {
     "translation": "Criar grupo"
   },
   "250ddea65c": {
     "translation": "Sobre tldraw"
-  },
-  "269097080b": {
-    "translation": "Suas fadas estão esperando"
-  },
-  "275173253d": {
-    "translation": "Invoque todos"
   },
   "284d5cd0dd": {
     "translation": "Modelo:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Meus arquivos"
   },
-  "30cd34258a": {
-    "translation": "Um bando de <b>fadas</b> chegou ao tldraw durante o mês de dezembro. Para investigar mais a fundo, encontre a fada e clique nela."
-  },
   "31246941ad": {
     "translation": "Para visualizar este arquivo, é necessário fazer login."
   },
   "31418ce4ad": {
     "translation": "i18n: Destaque ausente"
-  },
-  "3209f407ed": {
-    "translation": "três fadas"
   },
   "32210b37e4": {
     "translation": "Adicionar link"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Durma tudo"
   },
   "34e34c43ec": {
     "translation": "Gerenciar"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Obtenha ajuda no Discord"
   },
-  "45b43c2d28": {
-    "translation": "<strong>As fadas</strong> vieram desenhar durante o mês de dezembro."
-  },
   "46137245cd": {
     "translation": "Obrigado por nos ajudar a melhorar o tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Nenhuma fada selecionada"
   },
   "477df802ca": {
     "translation": "Para continuar a edição, copie o arquivo para a sua pasta de arquivos."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Insira seu endereço de e-mail"
   },
-  "688761c83e": {
-    "translation": "Acordar"
-  },
   "68d390535e": {
     "translation": "Digite sua mensagem"
-  },
-  "6910bbdc82": {
-    "translation": "Nome da fada"
   },
   "6a26f54883": {
     "translation": "Assistência"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Solicitação inválida."
   },
-  "77f0abf1aa": {
-    "translation": "Você foi convidado(a) para <strong>tldraw fadas</strong>."
-  },
   "7827371d1a": {
     "translation": "Este arquivo multiplayer anônimo do tldraw agora é somente leitura. Para continuar editando, faça login e copie-o para seus arquivos."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Envie um problema no GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Uma fada é um pequeno ser que pode trabalhar com você na tela. As fadas podem trabalhar sozinhas ou em equipe. Não há limites para o que uma fada pode fazer. Ninguém sabe de onde elas vieram."
   },
   "7b1329f5ca": {
     "translation": "Manual do usuário"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "reinicialização completa"
   },
-  "88e83b88c5": {
-    "translation": "Adquira o Pacote de Fadas"
-  },
   "8ad4303b83": {
     "translation": "Não, obrigado"
-  },
-  "8be569f100": {
-    "translation": "pagamento único"
   },
   "8c2d3d730c": {
     "translation": "Verifique seu e-mail para obter um código de verificação."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "O arquivo está ficando grande."
   },
-  "a8de4c27a8": {
-    "translation": "Limite semanal de fadas atingido"
-  },
   "a917baaf14": {
     "translation": "Novo bate-papo"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Compartilhado por {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Zoom para fada"
   },
   "c2276c9127": {
     "translation": "Saiba mais sobre como compartilhar."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Este arquivo está se aproximando do limite de tamanho. Considere remover parte do conteúdo ou criar um novo arquivo."
   },
-  "ce1424d44b": {
-    "translation": "Você já tem acesso às fadas!"
-  },
   "cea291e45e": {
     "translation": "Saiba mais sobre como publicar."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "URL de arquivo tldraw inválida"
-  },
-  "df6ff49394": {
-    "translation": "As fadas são um recurso <strong>temporário</strong>. Em 1º de janeiro de 2026, todas as fadas serão removidas do aplicativo. Talvez elas retornem algum dia. Sua compra dá acesso às fadas apenas em dezembro de 2025."
   },
   "dfdb78a4e4": {
     "translation": "Sinalizadores de depuração de aplicativos"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "selecionado"
-  },
-  "efde983742": {
-    "translation": "Invocar"
   },
   "f09b16bc5f": {
     "translation": "Usamos cookies para mantê-lo conectado, sincronizar seus arquivos e coletar análises para nos ajudar a melhorar o tldraw."

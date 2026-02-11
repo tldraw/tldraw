@@ -69,12 +69,6 @@
       "value": "Menu tệp"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Tiên nữ"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Hôm nay"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Giới hạn sử dụng tiên hằng tuần của bạn đã đạt đến. Giới hạn này sẽ được đặt lại vào đầu tuần sau."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Ngủ"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "Giới thiệu về tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Các nàng tiên của bạn đang chờ đợi"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Triệu hồi tất cả"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Các tập tin của tôi"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Một đàn "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tiên"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " nữ đã đến để vẽ tranh trong tháng 12. Để tìm hiểu thêm, hãy tìm tiên nữ và nhấp vào nó."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Thiếu đánh dấu"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "ba nàng tiên"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Biên tập viên"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Ngủ tất cả"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Nhận trợ giúp trên Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Các nàng tiên"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " đã đến để vẽ tranh trong tháng 12."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Không có nàng tiên nào được chọn"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Nhập địa chỉ email của bạn"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Thức dậy"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Nhập tin nhắn của bạn"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Tên của nàng tiên"
     }
   ],
   "6a26f54883": [
@@ -733,22 +637,6 @@
       "value": "Yêu cầu không hợp lệ."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Bạn đã được mời "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "vẽ tiên"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +653,6 @@
     {
       "type": 0,
       "value": "Gửi vấn đề trên GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Tiên là một chàng trai nhỏ có thể cùng bạn vẽ tranh. Tiên có thể làm việc độc lập hoặc theo nhóm. Không có giới hạn nào cho những gì tiên có thể làm. Không ai biết họ đến từ đâu."
     }
   ],
   "7b1329f5ca": [
@@ -899,22 +781,10 @@
       "value": "Đặt lại cứng"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Mua Fairy Bundle"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Không, cảm ơn"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "thanh toán một lần"
     }
   ],
   "8c2d3d730c": [
@@ -1147,12 +1017,6 @@
       "value": "Tệp đang trở nên lớn hơn"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Đã đạt đến giới hạn tiên nữ hàng tuần"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1287,12 +1151,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Phóng to đến tiên"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1409,12 +1267,6 @@
       "value": "Tệp này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo tệp mới."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Bạn đã có quyền truy cập vào Fairy rồi!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1519,26 +1371,6 @@
     {
       "type": 0,
       "value": "URL tệp tldraw không hợp lệ"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Tiên là một tính năng "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tạm thời"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". Vào ngày 1 tháng 1 năm 2026, tất cả tiên sẽ bị xóa khỏi ứng dụng. Có thể chúng sẽ quay trở lại vào một ngày nào đó. Giao dịch mua của bạn chỉ dành cho quyền truy cập vào tiên trong tháng 12 năm 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1673,12 +1505,6 @@
     {
       "type": 0,
       "value": "đã chọn"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Triệu hồi"
     }
   ],
   "f09b16bc5f": [

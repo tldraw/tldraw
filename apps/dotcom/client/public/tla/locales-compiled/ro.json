@@ -69,12 +69,6 @@
       "value": "meniul Fișier"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Zâne"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -147,18 +141,6 @@
       "value": "Astăzi"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Limita săptămânală de utilizare a zânelor a fost atinsă. Aceasta se va reseta la începutul săptămânii viitoare."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Dormi"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,18 +151,6 @@
     {
       "type": 0,
       "value": "Despre tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Zânele tale așteaptă"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Invocă-i pe toți"
     }
   ],
   "284d5cd0dd": [
@@ -201,26 +171,6 @@
       "value": "Fișierele mele"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "O mulțime de "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "zâne"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " au venit la tldraw pentru luna decembrie. Pentru a investiga mai departe, găsiți zâna și faceți clic pe ea."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +181,6 @@
     {
       "type": 0,
       "value": "i18n: Evidențiați Lipsă"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "trei zâne"
     }
   ],
   "32210b37e4": [
@@ -261,12 +205,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Dormiți toți"
     }
   ],
   "34e34c43ec": [
@@ -329,32 +267,10 @@
       "value": "Obțineți ajutor pe Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Zânele"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " au venit la desen în luna decembrie."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Nicio zână selectată"
     }
   ],
   "477df802ca": [
@@ -625,22 +541,10 @@
       "value": "Introdu adresa ta de e-mail"
     }
   ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Trezi"
-    }
-  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Introdu mesajul tău"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Numele zânei"
     }
   ],
   "6a26f54883": [
@@ -733,22 +637,6 @@
       "value": "Solicitare nevalidă."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Ai fost invitat la "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw zâne"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +653,6 @@
     {
       "type": 0,
       "value": "Trimiteți o problemă pe GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "O zână este un micuț care poate lucra cu tine pe pânză. Zânele pot lucra singure sau în echipă. Nu există limite la ceea ce poate face o zână. Nimeni nu știe de unde a venit."
     }
   ],
   "7b1329f5ca": [
@@ -899,22 +781,10 @@
       "value": "Resetare completă"
     }
   ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Cumpără pachetul Zâne"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Nu, mulțumesc"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "plată unică"
     }
   ],
   "8c2d3d730c": [
@@ -1147,12 +1017,6 @@
       "value": "Fișierul devine mare"
     }
   ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Limita săptămânală a zânelor a fost atinsă"
-    }
-  ],
   "a917baaf14": [
     {
       "type": 0,
@@ -1299,12 +1163,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoom către zână"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1421,12 +1279,6 @@
       "value": "Acest fișier se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau crearea unui fișier nou."
     }
   ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Ai deja acces la zâne!"
-    }
-  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1531,26 +1383,6 @@
     {
       "type": 0,
       "value": "Adresă URL fișier tldraw nevalidă"
-    }
-  ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Zânele sunt o funcție "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "temporară"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". Pe 1 ianuarie 2026, toate zânele vor fi eliminate din aplicație. Poate că vor reveni într-o zi. Achiziția dvs. este pentru acces la zâne doar pentru decembrie 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1685,12 +1517,6 @@
     {
       "type": 0,
       "value": "selectat"
-    }
-  ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Convoca"
     }
   ],
   "f09b16bc5f": [

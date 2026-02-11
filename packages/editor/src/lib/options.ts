@@ -95,13 +95,13 @@ export interface TldrawOptions {
 	readonly branding?: string
 	/**
 	 * Whether to use debounced zoom level for certain rendering optimizations. When true,
-	 * `editor.getDebouncedZoomLevel()` returns a cached zoom value while the camera is moving,
+	 * `editor.getEfficientZoomLevel()` returns a cached zoom value while the camera is moving,
 	 * reducing re-renders. When false, it always returns the current zoom level.
 	 */
 	readonly debouncedZoom: boolean
 	/**
 	 * The number of shapes that must be on the page for the debounced zoom level to be used.
-	 * Defaults to 300 shapes.
+	 * Defaults to 500 shapes.
 	 */
 	readonly debouncedZoomThreshold: number
 	/**

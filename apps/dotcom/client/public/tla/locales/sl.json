@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "Meni datoteke"
   },
-  "0befa10111": {
-    "translation": "Vile"
-  },
   "0d1f2bb523": {
     "translation": "Pošlji povratne informacije"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "Danes"
   },
-  "23f879f41a": {
-    "translation": "Vaša tedenska omejitev uporabe vil je bila dosežena. Ponastavljena bo na začetku naslednjega tedna."
-  },
-  "243924bfd5": {
-    "translation": "Spanje"
-  },
   "2445e5e347": {
     "translation": "Ustvari skupino"
   },
   "250ddea65c": {
     "translation": "O tldrawu"
-  },
-  "269097080b": {
-    "translation": "Tvoje vile čakajo"
-  },
-  "275173253d": {
-    "translation": "Prikliči vse"
   },
   "284d5cd0dd": {
     "translation": "Model:"
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "Moje datoteke"
   },
-  "30cd34258a": {
-    "translation": "V decembru je na tldraw prišla skupina <b>vil</b>. Če želite raziskati več, poiščite vilo in jo kliknite."
-  },
   "31246941ad": {
     "translation": "Za ogled te datoteke se morate prijaviti."
   },
   "31418ce4ad": {
     "translation": "i18n: Oznaka manjka"
-  },
-  "3209f407ed": {
-    "translation": "tri vile"
   },
   "32210b37e4": {
     "translation": "Dodaj povezavo"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "Urednik"
-  },
-  "34abfe7a0d": {
-    "translation": "Spi vse"
   },
   "34e34c43ec": {
     "translation": "Upravljanje"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Poiščite pomoč pri Discordu"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Vile</strong> so prišle risati za mesec december."
-  },
   "46137245cd": {
     "translation": "Hvala, ker nam pomagate izboljšati tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Ni izbranih vil"
   },
   "477df802ca": {
     "translation": "Za nadaljevanje urejanja kopirajte datoteko v svoje datoteke."
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "Vnesite svoj e-poštni naslov"
   },
-  "688761c83e": {
-    "translation": "Zbudi se"
-  },
   "68d390535e": {
     "translation": "Vnesite svoje sporočilo"
-  },
-  "6910bbdc82": {
-    "translation": "Ime vile"
   },
   "6a26f54883": {
     "translation": "Pomoč"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "Neveljavna zahteva."
   },
-  "77f0abf1aa": {
-    "translation": "Povabljeni ste bili k <strong>risanju vil</strong>"
-  },
   "7827371d1a": {
     "translation": "Ta anonimna datoteka za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "Predložite težavo na GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Vila je majhen fant, ki lahko dela z vami na platnu. Vile lahko delajo same ali v ekipi. Ni omejitev glede tega, kaj vila zmore. Nihče ne ve, od kod prihaja."
   },
   "7b1329f5ca": {
     "translation": "Uporabniški priročnik"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "Trda ponastavitev"
   },
-  "88e83b88c5": {
-    "translation": "Nakup paketa za vile"
-  },
   "8ad4303b83": {
     "translation": "Ne, hvala."
-  },
-  "8be569f100": {
-    "translation": "enkratno plačilo"
   },
   "8c2d3d730c": {
     "translation": "Preverite svojo e-pošto za potrditveno kodo."
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "Datoteka postaja velika"
   },
-  "a8de4c27a8": {
-    "translation": "Dosežena je bila tedenska omejitev vil."
-  },
   "a917baaf14": {
     "translation": "Nov klepet"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "Delil {ownerName}"
-  },
-  "be4f1c62d3": {
-    "translation": "Povečaj na vilo"
   },
   "c2276c9127": {
     "translation": "Preberite več o skupni rabi."
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "Ta datoteka se bliža svoji omejitvi velikosti. Razmislite o odstranitvi dela vsebine ali ustvarjanju nove datoteke."
   },
-  "ce1424d44b": {
-    "translation": "Že imaš dostop za vile!"
-  },
   "cea291e45e": {
     "translation": "Preberite več o objavljanju."
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "Neveljaven URL datoteke tldraw"
-  },
-  "df6ff49394": {
-    "translation": "Vile so <strong>začasna</strong> funkcija. 1. januarja 2026 bodo vse vile odstranjene iz aplikacije. Morda se bodo nekega dne spet vrnile. Vaš nakup velja samo za dostop do vil v decembru 2025."
   },
   "dfdb78a4e4": {
     "translation": "Zastavice za odpravljanje napak v aplikaciji"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "izbrano"
-  },
-  "efde983742": {
-    "translation": "Priklic"
   },
   "f09b16bc5f": {
     "translation": "Piškotke uporabljamo za ohranjanje vaše prijave, sinhronizacijo datotek in zbiranje analitičnih podatkov, ki nam pomagajo izboljšati tldraw."

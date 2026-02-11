@@ -34,18 +34,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
 		'https://fonts.googleapis.com',
-		// paddle
-		'https://*.paddle.com',
-		// profitwell (loaded by paddle)
-		'https://public.profitwell.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
-	'frame-src': [
-		`'self'`,
-		`https:`,
-		// paddle checkout
-		'https://*.paddle.com',
-	],
+	'frame-src': [`'self'`, `https:`],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
@@ -62,26 +53,15 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
-		// paddle
-		'https://*.paddle.com',
-		// profitwell (loaded by paddle)
-		'https://public.profitwell.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
-	'style-src': [
-		`'self'`,
-		`'unsafe-inline'`,
-		`https://fonts.googleapis.com`,
-		`https://*.paddle.com`,
-	],
+	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
 	'style-src-elem': [
 		`'self'`,
 		`'unsafe-inline'`,
 		`https://fonts.googleapis.com`,
 		// embeds that have styles
 		'https://github.githubassets.com',
-		// paddle
-		'https://*.paddle.com',
 	],
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }

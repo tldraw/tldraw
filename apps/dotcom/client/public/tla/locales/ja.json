@@ -32,9 +32,6 @@
   "0b9a4cde72": {
     "translation": "ファイルメニュー"
   },
-  "0befa10111": {
-    "translation": "妖精たち"
-  },
   "0d1f2bb523": {
     "translation": "フィードバックを送信"
   },
@@ -71,23 +68,11 @@
   "1dd1c5fb7f": {
     "translation": "今日"
   },
-  "23f879f41a": {
-    "translation": "妖精の週間使用制限に達しました。来週初めにリセットされます。"
-  },
-  "243924bfd5": {
-    "translation": "寝る"
-  },
   "2445e5e347": {
     "translation": "グループを作成"
   },
   "250ddea65c": {
     "translation": "tldrawについて"
-  },
-  "269097080b": {
-    "translation": "あなたの妖精たちが待っています"
-  },
-  "275173253d": {
-    "translation": "全員召喚"
   },
   "284d5cd0dd": {
     "translation": "モデル："
@@ -98,17 +83,11 @@
   "2c3ef76333": {
     "translation": "私のファイル"
   },
-  "30cd34258a": {
-    "translation": "12月はtldrawにたくさんの<b>妖精</b>がやって来ます。詳しく知りたい場合は、妖精を見つけてクリックしてください。"
-  },
   "31246941ad": {
     "translation": "このファイルを閲覧するにはサインインしてください。"
   },
   "31418ce4ad": {
     "translation": "i18n：ハイライト不足"
-  },
-  "3209f407ed": {
-    "translation": "3人の妖精"
   },
   "32210b37e4": {
     "translation": "リンクを追加"
@@ -121,9 +100,6 @@
   },
   "344a7f427f": {
     "translation": "エディタ"
-  },
-  "34abfe7a0d": {
-    "translation": "みんな寝る"
   },
   "34e34c43ec": {
     "translation": "管理"
@@ -155,14 +131,8 @@
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
-  "45b43c2d28": {
-    "translation": "12月は<strong>妖精たち</strong>がtldrawにやって来ます。"
-  },
   "46137245cd": {
     "translation": "tldraw の改善にご協力いただきありがとうございます。"
-  },
-  "465a8a92a4": {
-    "translation": "妖精が選択されていません"
   },
   "477df802ca": {
     "translation": "編集を続けるには、ファイルをファイルにコピーしてください。"
@@ -275,14 +245,8 @@
   "6832ac5936": {
     "translation": "メールアドレスを入力してください"
   },
-  "688761c83e": {
-    "translation": "ウェイク"
-  },
   "68d390535e": {
     "translation": "メッセージを入力してください"
-  },
-  "6910bbdc82": {
-    "translation": "妖精の名前"
   },
   "6a26f54883": {
     "translation": "ヘルプ"
@@ -329,9 +293,6 @@
   "777f9e90cf": {
     "translation": "無効なリクエストです。"
   },
-  "77f0abf1aa": {
-    "translation": "<strong>tldraw fairies</strong> に招待されました"
-  },
   "7827371d1a": {
     "translation": "この匿名tldrawマルチプレイヤーファイルは読み取り専用になりました。編集を続けるには、サインインしてファイルにコピーしてください。"
   },
@@ -340,9 +301,6 @@
   },
   "797799f35e": {
     "translation": "GitHubで問題を提出する"
-  },
-  "79cc22ac6b": {
-    "translation": "妖精はキャンバスの上であなたと一緒に作業してくれる小さな生き物です。妖精は一人でもチームでも作業できます。妖精のできることには限界がありません。妖精がどこから来たのかは誰も知りません。"
   },
   "7b1329f5ca": {
     "translation": "ユーザーマニュアル"
@@ -389,14 +347,8 @@
   "8726ef8909": {
     "translation": "ハードリセット"
   },
-  "88e83b88c5": {
-    "translation": "妖精バンドルを購入"
-  },
   "8ad4303b83": {
     "translation": "結構です"
-  },
-  "8be569f100": {
-    "translation": "1回限りの支払い"
   },
   "8c2d3d730c": {
     "translation": "確認コードをメールで確認してください。"
@@ -506,9 +458,6 @@
   "a8873770ab": {
     "translation": "ファイルが大きくなりつつあります"
   },
-  "a8de4c27a8": {
-    "translation": "週間妖精制限に達しました"
-  },
   "a917baaf14": {
     "translation": "新しいチャット"
   },
@@ -557,9 +506,6 @@
   },
   "bc88b0e89e": {
     "translation": "{ownerName}さんが共有"
-  },
-  "be4f1c62d3": {
-    "translation": "妖精にズーム"
   },
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
@@ -612,9 +558,6 @@
   "ce0547606c": {
     "translation": "このファイルのサイズ制限に近づいています。一部のコンテンツを削除するか、新しいファイルを作成することを検討してください。"
   },
-  "ce1424d44b": {
-    "translation": "あなたはすでに妖精へのアクセス権を持っています!"
-  },
   "cea291e45e": {
     "translation": "公開についてさらに詳しく。"
   },
@@ -653,9 +596,6 @@
   },
   "dcdaa754fe": {
     "translation": "無効なtldrawファイルURL"
-  },
-  "df6ff49394": {
-    "translation": "妖精は<strong>一時的な</strong>機能です。2026年1月1日以降、すべての妖精がアプリから削除されます。もしかしたら、いつかまた戻ってくるかもしれません。ご購入いただいた妖精へのアクセスは、2025年12月のみ有効です。"
   },
   "dfdb78a4e4": {
     "translation": "デバッグのフラグを追加"
@@ -716,9 +656,6 @@
   },
   "ef7de3f485": {
     "translation": "選択された"
-  },
-  "efde983742": {
-    "translation": "召喚"
   },
   "f09b16bc5f": {
     "translation": "弊社では、ログイン状態を維持し、ファイルを同期し、tldraw を改善するための分析情報を収集するために Cookie を使用します。"

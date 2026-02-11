@@ -147,6 +147,8 @@
 	--tl-color-selection-fill: hsl(210, 100%, 56%, 24%);
 	--tl-color-selection-stroke: hsl(214, 84%, 56%);
 	--tl-color-background: hsl(210, 20%, 98%);
+	/* if you ever update --tl-color-background, update the hardcoded values in theme-init.js and globals.css
+	they're there to make sure the background color matches the user's preference before the actual app loads*/
 	--tl-color-brush-fill: hsl(0, 0%, 56%, 10.2%);
 	--tl-color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
 	--tl-color-grid: hsl(0, 0%, 43%);
@@ -203,6 +205,8 @@
 	--tl-color-selection-fill: hsl(209, 100%, 57%, 20%);
 	--tl-color-selection-stroke: hsl(214, 84%, 56%);
 	--tl-color-background: hsl(240, 5%, 6.5%);
+	/* if you ever update --tl-color-background, update the hardcoded values in theme-init.js and globals.css
+	they're there to make sure the background color matches the user's preference before the actual app loads*/
 	--tl-color-brush-fill: hsl(0, 0%, 71%, 5.1%);
 	--tl-color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
 	--tl-color-grid: hsl(0, 0%, 40%);
