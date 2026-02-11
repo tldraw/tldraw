@@ -72,7 +72,12 @@ function cachedHashString(string: string) {
 	let hashed = stringHashCache[string]
 	if (hashed === undefined) {
 		hashed = hashString(string)
+		if (stringHashCacheCount === STRING_HASH_CACHE_SIZE) {
+			stringHashCacheCount = 0
+			stringHashCache = {}
+		}
 		stringHashCache[string] = hashed
+		stringHashCacheCount++
 	}
 	return hashed
 }
@@ -139,7 +144,9 @@ const symbolMap = Object.create(null)
 
 let _objHashUID = 0
 
-const stringHashCache: Record<string, number> = {}
+let stringHashCache: Record<string, number> = {}
+let stringHashCacheCount = 0
+const STRING_HASH_CACHE_SIZE = 12_000
 
 // Constants describing the size of trie nodes.
 const SHIFT = 5 // Resulted in best performance after ______?
