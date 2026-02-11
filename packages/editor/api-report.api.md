@@ -674,6 +674,7 @@ export const defaultTldrawOptions: {
     readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
+    readonly camera: TLCameraOptions;
     readonly cameraMovingTimeoutMs: 64;
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
@@ -685,6 +686,7 @@ export const defaultTldrawOptions: {
     readonly createTextOnCanvasDoubleClick: true;
     readonly debouncedZoom: true;
     readonly debouncedZoomThreshold: 500;
+    readonly deepLinks: undefined;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -730,6 +732,7 @@ export const defaultTldrawOptions: {
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
+    readonly text: {};
     readonly textShadowLod: 0.35;
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
@@ -809,7 +812,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -3414,10 +3417,12 @@ export interface TldrawEditorBaseProps {
     };
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+    // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
+    // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
@@ -3426,6 +3431,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    // @deprecated
     textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -3462,6 +3468,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly animationMediumMs: number;
     readonly branding?: string;
+    readonly camera: Partial<TLCameraOptions>;
     // (undocumented)
     readonly cameraMovingTimeoutMs: number;
     // (undocumented)
@@ -3482,6 +3489,7 @@ export interface TldrawOptions {
     readonly createTextOnCanvasDoubleClick: boolean;
     readonly debouncedZoom: boolean;
     readonly debouncedZoomThreshold: number;
+    readonly deepLinks: TLDeepLinkOptions | true | undefined;
     // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)
@@ -3537,6 +3545,7 @@ export interface TldrawOptions {
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
+    readonly text: TLTextOptions;
     // (undocumented)
     readonly textShadowLod: number;
     // (undocumented)
@@ -3624,6 +3633,7 @@ export interface TLEditorComponents {
 export interface TLEditorOptions {
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
+    // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
     // (undocumented)
     fontAssetUrls?: {
@@ -3639,7 +3649,7 @@ export interface TLEditorOptions {
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
-    // (undocumented)
+    // @deprecated
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;

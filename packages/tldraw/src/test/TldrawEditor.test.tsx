@@ -29,10 +29,12 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
 }
 
-const textOptions = {
-	addFontsFromNode: defaultAddFontsFromNode,
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const options = {
+	text: {
+		addFontsFromNode: defaultAddFontsFromNode,
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
 	},
 }
 
@@ -178,7 +180,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
-				textOptions={textOptions}
+				options={options}
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -302,7 +304,7 @@ describe('<TldrawEditor />', () => {
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(false)
 
-		renderer.rerender(<TldrawEditor onMount={onMount} cameraOptions={{ isLocked: true }} />)
+		renderer.rerender(<TldrawEditor onMount={onMount} options={{ camera: { isLocked: true } }} />)
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(true)
 	})
@@ -389,7 +391,7 @@ describe('<TldrawEditor />', () => {
 					onMount={onMount}
 					shapeUtils={defaultShapeUtils}
 					snapshot={snapshot}
-					textOptions={textOptions}
+					options={options}
 				/>
 			),
 			{ waitForPatterns: true }

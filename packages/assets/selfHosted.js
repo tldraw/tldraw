@@ -97,6 +97,7 @@ export function getAssetUrls(opts) {
 			edit: iconsIcon0MergedSvg + '#edit',
 			'external-link': iconsIcon0MergedSvg + '#external-link',
 			'fill-fill': iconsIcon0MergedSvg + '#fill-fill',
+			'fill-lined-fill': iconsIcon0MergedSvg + '#fill-lined-fill',
 			'fill-none': iconsIcon0MergedSvg + '#fill-none',
 			'fill-pattern': iconsIcon0MergedSvg + '#fill-pattern',
 			'fill-semi': iconsIcon0MergedSvg + '#fill-semi',

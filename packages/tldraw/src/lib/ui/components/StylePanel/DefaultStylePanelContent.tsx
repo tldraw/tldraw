@@ -148,19 +148,35 @@ export function StylePanelOpacityPicker() {
 
 /** @public @react */
 export function StylePanelFillPicker() {
-	const { styles } = useStylePanelContext()
+	const { styles, enhancedA11yMode } = useStylePanelContext()
 	const msg = useTranslation()
 	const fill = styles.get(DefaultFillStyle)
 	if (fill === undefined) return null
 
+	const title = msg('style-panel.fill')
+
 	return (
-		<StylePanelButtonPicker
-			title={msg('style-panel.fill')}
-			uiType="fill"
-			style={DefaultFillStyle}
-			items={STYLES.fill}
-			value={fill}
-		/>
+		<>
+			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
+			<TldrawUiToolbar orientation="horizontal" label={title}>
+				<StylePanelButtonPickerInline
+					title={title}
+					uiType="fill"
+					style={DefaultFillStyle}
+					items={STYLES.fill}
+					value={fill}
+				/>
+				<StylePanelDropdownPickerInline
+					type="icon"
+					id="fill-extra"
+					uiType="fill-extra"
+					stylePanelType="fill"
+					style={DefaultFillStyle}
+					items={STYLES.fillExtra}
+					value={fill}
+				/>
+			</TldrawUiToolbar>
+		</>
 	)
 }
 
