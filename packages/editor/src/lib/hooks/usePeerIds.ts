@@ -1,5 +1,4 @@
 import { useAtom, useComputed, useValue } from '@tldraw/state-react'
-import { isEqual } from '@tldraw/utils'
 import { useEffect } from 'react'
 import {
 	getCollaboratorStateFromElapsedTime,
@@ -7,6 +6,14 @@ import {
 } from '../utils/collaboratorState'
 import { uniq } from '../utils/uniq'
 import { useEditor } from './useEditor'
+
+function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+	if (a.size !== b.size) return false
+	for (const item of a) {
+		if (!b.has(item)) return false
+	}
+	return true
+}
 
 // TODO: maybe move this to a computed property on the App class?
 /**
@@ -60,7 +67,7 @@ export function useActivePeerIds$() {
 					.map((p) => p.userId)
 			)
 		},
-		{ isEqual },
+		{ isEqual: setsEqual },
 		[editor]
 	)
 }
