@@ -9,6 +9,11 @@ keywords:
 status: published
 date: 12/21/2025
 order: 0
+readability: 9
+voice: 8
+potential: 9
+accuracy: 9
+notes: "Strong problem framing and genuine insights (counter-rotating shadow, XOR flip logic). No AI tells. Code examples closely match source—CURSORS record trimmed to resize entries only, which is a fair editorial choice. Minor imprecision around the color parameter's actual effect on the SVG paths."
 ---
 
 # Resize handles on rotated shapes
