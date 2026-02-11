@@ -28,7 +28,7 @@ export function HeroSection({
 		subtitleHighlight && subtitle.includes(subtitleHighlight) ? (
 			<>
 				{subtitle.slice(0, subtitle.indexOf(subtitleHighlight))}
-				<span className="font-medium text-brand-blue dark:text-blue-400">{subtitleHighlight}</span>
+				<span className="text-brand-blue font-medium dark:text-blue-400">{subtitleHighlight}</span>
 				{subtitle.slice(subtitle.indexOf(subtitleHighlight) + subtitleHighlight.length)}
 			</>
 		) : (
@@ -37,12 +37,12 @@ export function HeroSection({
 
 	return (
 		<section className="relative overflow-hidden">
-			<div className="mx-auto max-w-content px-4 pb-8 pt-20 sm:px-6 sm:pb-8 sm:pt-32 lg:px-8">
+			<div className="max-w-content mx-auto px-4 pt-20 pb-8 sm:px-6 sm:pt-32 sm:pb-8 lg:px-8">
 				<div className="max-w-3xl">
-					<h1 className="text-4xl font-semibold tracking-heading text-black dark:text-white sm:text-5xl lg:text-6xl">
+					<h1 className="tracking-heading text-4xl font-semibold text-black sm:text-5xl lg:text-6xl dark:text-white">
 						{title}
 					</h1>
-					<p className="mt-6 text-lg leading-8 text-body dark:text-zinc-400">{subtitleEl}</p>
+					<p className="text-body mt-6 text-lg leading-8 dark:text-zinc-400">{subtitleEl}</p>
 					<div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
 						{ctaPrimary.variant === 'code' ? (
 							<CodeCopyButton
@@ -51,7 +51,7 @@ export function HeroSection({
 							>
 								{codeHtml ? (
 									<span
-										className="hero-code-content [&_.shiki]:!m-0 [&_.shiki]:!p-0 [&_pre]:!m-0 [&_pre]:!inline"
+										className="hero-code-content [&_.shiki]:m-0! [&_.shiki]:p-0! [&_pre]:m-0! [&_pre]:inline!"
 										dangerouslySetInnerHTML={{ __html: codeHtml }}
 									/>
 								) : (
@@ -63,7 +63,7 @@ export function HeroSection({
 						) : (
 							<Link
 								href={ctaPrimary.url}
-								className="rounded-md bg-black px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+								className="rounded-md bg-black px-6 py-3 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
 							>
 								{ctaPrimary.label}
 							</Link>
@@ -71,12 +71,12 @@ export function HeroSection({
 						{ctaSecondary && (
 							<Link
 								href={ctaSecondary.url}
-								className="inline-flex items-center gap-1.5 text-sm text-body transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
+								className="text-body inline-flex items-center gap-1.5 text-sm transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
 							>
 								{ctaSecondary.labelBold ? (
 									<>
 										or{' '}
-										<span className="font-semibold text-brand-blue underline underline-offset-4">
+										<span className="text-brand-blue font-semibold underline underline-offset-4">
 											{ctaSecondary.labelBold}
 										</span>{' '}
 										<ChevronRight />

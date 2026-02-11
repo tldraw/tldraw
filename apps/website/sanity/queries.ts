@@ -57,14 +57,13 @@ export async function getHomepage(): Promise<Homepage | null> {
 	)
 }
 
-// Shared sections used across multiple pages (community, finalCta, testimonialSection, starterKits, hero CTA)
+// Shared sections used across multiple pages (finalCta, testimonialSection, starterKits, hero CTA)
 export async function getSharedSections(): Promise<Pick<
 	Homepage,
-	'community' | 'testimonialSection' | 'finalCta' | 'starterKits' | 'hero'
+	'testimonialSection' | 'finalCta' | 'starterKits' | 'hero'
 > | null> {
 	return fetchOrNull(
 		`*[_type == "homepage"][0]{
-			community,
 			testimonialSection,
 			finalCta,
 			starterKits,

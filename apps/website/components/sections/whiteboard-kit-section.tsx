@@ -39,14 +39,14 @@ export function WhiteboardKitSection({
 								<h3 className="text-base font-semibold text-black dark:text-white">
 									{feature.title}
 								</h3>
-								<p className="mt-2 text-sm leading-relaxed text-body dark:text-zinc-400">
+								<p className="text-body mt-2 text-sm leading-relaxed dark:text-zinc-400">
 									{feature.description}
 								</p>
 							</div>
 						))}
 					</div>
 				</div>
-				<div className="relative aspect-video overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:aspect-[4/3]">
+				<div className="relative aspect-video overflow-hidden rounded-md border border-zinc-200 bg-white lg:aspect-4/3 dark:border-zinc-800 dark:bg-zinc-950">
 					<Image
 						src="/images/whiteboard-kit.png"
 						alt="tldraw whiteboard canvas"

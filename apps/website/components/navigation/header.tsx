@@ -58,7 +58,7 @@ export function Header({
 	return (
 		<>
 			<header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-950/95">
-				<div className="mx-auto flex min-h-[72px] max-w-content items-center justify-between px-4 sm:px-8 md:min-h-[100px] lg:min-h-[110px]">
+				<div className="max-w-content mx-auto flex min-h-[72px] items-center justify-between px-4 sm:px-8 md:min-h-[100px] lg:min-h-[110px]">
 					<div className="flex items-center gap-6">
 						<Link href="/" className="mb-[3px] flex items-center">
 							<svg
@@ -110,7 +110,7 @@ export function Header({
 								>
 									<button
 										type="button"
-										className="inline-flex items-center gap-1 rounded px-3 py-2 text-sm text-zinc-700 transition-colors hover:text-black dark:text-zinc-300 dark:hover:text-white"
+										className="inline-flex items-center gap-1 rounded-sm px-3 py-2 text-sm text-zinc-700 transition-colors hover:text-black dark:text-zinc-300 dark:hover:text-white"
 									>
 										{group.label}
 										<svg
@@ -133,11 +133,11 @@ export function Header({
 
 									{/* Product mega menu */}
 									{openDropdown === group.label && isProductGroup(group.label) && (
-										<div className="absolute -left-4 top-full z-50 mt-1 w-[780px] rounded-xl border border-zinc-200 bg-white px-8 pb-8 pt-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-950">
+										<div className="absolute top-full -left-4 z-50 mt-1 w-[780px] rounded-md border border-zinc-200 bg-white px-8 pt-6 pb-8 shadow-xl dark:border-zinc-800 dark:bg-zinc-950">
 											<div className="grid grid-cols-3 gap-x-12">
 												{productMenuGroups!.map((pg) => (
 													<div key={pg.slug}>
-														<p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500">
+														<p className="mb-4 text-[11px] font-semibold tracking-[0.15em] text-zinc-400 uppercase dark:text-zinc-500">
 															{pg.label}
 														</p>
 														<div>
@@ -145,7 +145,7 @@ export function Header({
 																<Link
 																	key={item.href}
 																	href={item.href}
-																	className="block py-1.5 text-[15px] text-zinc-900 transition-colors hover:text-brand-blue dark:text-zinc-200 dark:hover:text-blue-400"
+																	className="hover:text-brand-blue block py-1.5 text-[15px] text-zinc-900 transition-colors dark:text-zinc-200 dark:hover:text-blue-400"
 																>
 																	{item.label}
 																</Link>
@@ -162,10 +162,10 @@ export function Header({
 													<h4 className="text-base font-semibold text-black dark:text-white">
 														{productMenuFeatured.title}
 													</h4>
-													<p className="mt-1.5 max-w-lg text-sm leading-relaxed text-body dark:text-zinc-400">
+													<p className="text-body mt-1.5 max-w-lg text-sm leading-relaxed dark:text-zinc-400">
 														{productMenuFeatured.description}
 													</p>
-													<span className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-link">
+													<span className="text-brand-link mt-2 inline-flex items-center gap-1.5 text-sm font-medium">
 														Learn more <ChevronRight />
 													</span>
 												</Link>
@@ -175,12 +175,12 @@ export function Header({
 
 									{/* Regular dropdown */}
 									{openDropdown === group.label && !isProductGroup(group.label) && (
-										<div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-zinc-200 bg-white p-2 shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
+										<div className="absolute top-full left-0 z-50 mt-1 w-56 rounded-md border border-zinc-200 bg-white p-2 shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
 											{group.items.map((item) => (
 												<Link
 													key={item.label + item.href}
 													href={item.href}
-													className="block px-3 py-2.5 text-sm text-zinc-900 transition-colors hover:text-brand-blue dark:text-zinc-200 dark:hover:text-blue-400"
+													className="hover:text-brand-blue block px-3 py-2.5 text-sm text-zinc-900 transition-colors dark:text-zinc-200 dark:hover:text-blue-400"
 												>
 													{item.label}
 												</Link>
@@ -195,7 +195,7 @@ export function Header({
 									key={link.href}
 									href={link.href}
 									className={cn(
-										'rounded-md px-3 py-2 text-sm transition-colors hover:text-brand-blue dark:hover:text-blue-400',
+										'hover:text-brand-blue rounded-md px-3 py-2 text-sm transition-colors dark:hover:text-blue-400',
 										pathname?.startsWith(link.href)
 											? 'text-black dark:text-white'
 											: 'text-zinc-700 dark:text-zinc-300',
@@ -212,7 +212,7 @@ export function Header({
 							href="https://github.com/tldraw/tldraw"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="hidden items-center gap-1.5 text-sm text-zinc-700 transition-colors hover:text-black dark:text-zinc-300 dark:hover:text-white lg:inline-flex"
+							className="hidden items-center gap-1.5 text-sm text-zinc-700 transition-colors hover:text-black lg:inline-flex dark:text-zinc-300 dark:hover:text-white"
 						>
 							<svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
 								<path
@@ -241,7 +241,7 @@ export function Header({
 						</Button>
 						<button
 							type="button"
-							className="inline-flex items-center justify-center rounded-md p-2 text-body hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 md:hidden"
+							className="text-body inline-flex items-center justify-center rounded-md p-2 hover:bg-zinc-100 md:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
 							onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 						>
 							<span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>

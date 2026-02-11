@@ -44,11 +44,11 @@ function AccordionItem({
 				onClick={onToggle}
 				aria-expanded={isOpen}
 			>
-				<span className="text-sm font-medium leading-normal text-black dark:text-white">
+				<span className="text-sm leading-normal font-medium text-black dark:text-white">
 					{question}
 				</span>
 				<svg
-					className="h-[18px] w-[18px] flex-shrink-0 text-brand-blue"
+					className="text-brand-blue h-[18px] w-[18px] shrink-0"
 					fill="none"
 					viewBox="0 0 24 24"
 					strokeWidth="1.5"
@@ -62,7 +62,7 @@ function AccordionItem({
 				</svg>
 			</button>
 			{isOpen && (
-				<div className="prose prose-sm pb-4 text-body dark:prose-invert prose-a:text-brand-link prose-a:underline dark:text-zinc-400">
+				<div className="prose prose-sm text-body dark:prose-invert prose-a:text-brand-link prose-a:underline pb-4 dark:text-zinc-400">
 					{children}
 				</div>
 			)}
@@ -126,10 +126,10 @@ export function FAQAccordionGrouped({ sections }: FAQAccordionGroupedProps) {
 				<div key={section.heading} className="py-10 lg:py-14">
 					<div className="flex flex-col gap-8 lg:flex-row lg:gap-8">
 						<div className="pt-4 lg:w-1/2">
-							<h2 className="text-2xl font-semibold text-black dark:text-white lg:text-3xl">
+							<h2 className="text-2xl font-semibold text-black lg:text-3xl dark:text-white">
 								{section.heading}
 							</h2>
-							<p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-body dark:text-zinc-400 lg:mt-6">
+							<p className="text-body mt-4 text-sm leading-relaxed whitespace-pre-line lg:mt-6 dark:text-zinc-400">
 								{section.description}
 							</p>
 						</div>

@@ -20,23 +20,23 @@ export default async function CareersPage() {
 	return (
 		<>
 			{/* Page header - matches FAQ layout */}
-			<div className="mx-auto max-w-content border-b border-zinc-200 px-4 pb-10 pt-12 dark:border-zinc-800 sm:px-8 sm:pb-14 sm:pt-[72px]">
-				<h1 className="text-3xl font-semibold text-black dark:text-white sm:text-5xl">
+			<div className="max-w-content mx-auto border-b border-zinc-200 px-4 pt-12 pb-10 sm:px-8 sm:pt-[72px] sm:pb-14 dark:border-zinc-800">
+				<h1 className="text-3xl font-semibold text-black sm:text-5xl dark:text-white">
 					{careersContent.hero.title}
 				</h1>
-				<p className="mt-4 text-sm leading-relaxed text-body dark:text-zinc-400 sm:mt-6">
+				<p className="text-body mt-4 text-sm leading-relaxed sm:mt-6 dark:text-zinc-400">
 					{careersContent.hero.description}
 				</p>
 				{/* Hero image placeholder - replace with actual image */}
-				<div className="mt-8 aspect-[4/3] w-full overflow-hidden rounded-lg bg-zinc-200 dark:bg-zinc-800 sm:mt-10" />
+				<div className="mt-8 aspect-4/3 w-full overflow-hidden rounded-md bg-zinc-200 sm:mt-10 dark:bg-zinc-800" />
 			</div>
 
 			{/* Open roles or no roles message */}
-			<div className="mx-auto max-w-content px-4 sm:px-8">
-				<div className="border-b border-zinc-200 py-10 dark:border-zinc-800 sm:py-14">
+			<div className="max-w-content mx-auto px-4 sm:px-8">
+				<div className="border-b border-zinc-200 py-10 sm:py-14 dark:border-zinc-800">
 					{jobs && jobs.length > 0 ? (
 						<div className="space-y-8">
-							<h2 className="text-2xl font-semibold text-black dark:text-white sm:text-[32px]">
+							<h2 className="text-2xl font-semibold text-black sm:text-[32px] dark:text-white">
 								Open roles
 							</h2>
 							{jobs.map((job) => (
@@ -65,13 +65,13 @@ export default async function CareersPage() {
 							))}
 						</div>
 					) : (
-						<p className="text-sm leading-relaxed text-body dark:text-zinc-400">
+						<p className="text-body text-sm leading-relaxed dark:text-zinc-400">
 							{careersContent.noOpenRoles.beforeLink}
 							<a
 								href={careersContent.noOpenRoles.linkUrl}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="font-semibold text-brand-blue hover:underline dark:text-blue-400"
+								className="text-brand-blue font-semibold hover:underline dark:text-blue-400"
 							>
 								{careersContent.noOpenRoles.linkText}
 							</a>

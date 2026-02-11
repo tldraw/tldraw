@@ -66,7 +66,7 @@ function EventCard({
 					alt={event.title}
 					width={120}
 					height={120}
-					className="hidden rounded-lg object-cover sm:block"
+					className="hidden rounded-md object-cover sm:block"
 				/>
 			)}
 			<div>

@@ -15,10 +15,10 @@ export async function CommunitySection() {
 						href={stat.url}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex flex-col items-start rounded-xl border border-zinc-200 p-5 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+						className="flex flex-col items-start rounded-md border border-zinc-200 p-5 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
 					>
 						<div className="flex items-baseline gap-1.5">
-							<span className="text-3xl font-bold text-black dark:text-white sm:text-4xl">
+							<span className="text-3xl font-bold text-black sm:text-4xl dark:text-white">
 								{stat.value}
 							</span>
 							{stat.linkText.toLowerCase() === 'github' && (
@@ -37,9 +37,9 @@ export async function CommunitySection() {
 								</svg>
 							)}
 						</div>
-						<p className="mt-2 text-xs text-body dark:text-zinc-400 sm:text-sm">
+						<p className="text-body mt-2 text-xs sm:text-sm dark:text-zinc-400">
 							{stat.label}{' '}
-							<span className="font-semibold text-brand-blue dark:text-blue-400">
+							<span className="text-brand-blue font-semibold dark:text-blue-400">
 								{stat.linkText}
 							</span>
 						</p>

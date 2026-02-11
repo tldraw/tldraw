@@ -97,36 +97,42 @@ export const whatsInsideContent = {
 		'The tldraw SDK gives you a production-ready foundation out of the box. Skip the canvas setup and focus on what makes your product unique.',
 	items: [
 		{
+			icon: 'users',
 			title: 'Multiplayer collaboration',
 			description:
 				'Simultaneous editing with instant updates powered by a custom sync engine. User presence including live cursors, viewport following, and cursor chat.',
 			url: '/features/composable-primitives/multiplayer-collaboration',
 		},
 		{
+			icon: 'mouse-pointer-click',
 			title: 'Selection and transformation',
 			description:
 				'Full selection logic with interactions for translation, resizing, rotating with nested transforms. Flexible hit-testing using a full geometry system.',
 			url: '/features/composable-primitives/selection-and-transformation',
 		},
 		{
+			icon: 'accessibility',
 			title: 'User preferences and accessibility',
 			description:
 				'Theming with built-in dark mode and motion controls. Comprehensive screen reader support, keyboard navigation, and adaptive interfaces.',
 			url: '/features/composable-primitives/accessibility',
 		},
 		{
+			icon: 'database',
 			title: 'Data management',
 			description:
 				'Manage state and observe changes with a high-performance signals library and record store. Track events and create side effects.',
 			url: '/features/composable-primitives/data-management',
 		},
 		{
+			icon: 'layout-grid',
 			title: 'User interface and menus',
 			description:
 				'Complete user interface library with responsive components including toolbars, menu items, and an OpenGL mini-map.',
 			url: '/features/composable-primitives/ui-and-menus',
 		},
 		{
+			icon: 'network',
 			title: 'Layout and composition',
 			description:
 				'Built-in functions for alignment and distribution, a robust reordering system, and full support for drag and drop.',

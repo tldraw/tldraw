@@ -26,7 +26,7 @@ export function ShowAndTellForm({ title, description }: ShowAndTellFormProps) {
 			<SectionHeading title={title} description={description} />
 
 			{submitted ? (
-				<div className="mt-10 rounded-xl border border-green-200 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950">
+				<div className="mt-10 rounded-md border border-green-200 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950">
 					<p className="text-lg font-semibold text-green-800 dark:text-green-200">
 						Thanks for sharing! We&rsquo;ll take a look.
 					</p>

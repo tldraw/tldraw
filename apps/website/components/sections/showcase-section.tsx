@@ -45,7 +45,7 @@ export function ShowcaseSection({
 				{items.map((item) => (
 					<div
 						key={item.company}
-						className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+						className="flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
 					>
 						<div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
 							{(item.image ?? SHOWCASE_IMAGE_MAP[item.company]) ? (
@@ -64,10 +64,10 @@ export function ShowcaseSection({
 						</div>
 						<div className="flex flex-1 flex-col p-6">
 							<h3 className="text-lg font-semibold text-black dark:text-white">{item.company}</h3>
-							<span className="mt-1 text-xs font-medium text-body dark:text-zinc-400">
+							<span className="text-body mt-1 text-xs font-medium dark:text-zinc-400">
 								{item.category}
 							</span>
-							<p className="mt-4 flex-1 text-sm leading-relaxed text-body dark:text-zinc-400">
+							<p className="text-body mt-4 flex-1 text-sm leading-relaxed dark:text-zinc-400">
 								{item.description}
 							</p>
 							<ActionLink href={item.url} underline className="mt-4">

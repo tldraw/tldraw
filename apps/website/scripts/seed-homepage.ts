@@ -74,6 +74,7 @@ async function seedHomepage() {
 			items: whatsInsideContent.items.map((item, i) => ({
 				_type: 'object' as const,
 				_key: key(i),
+				icon: item.icon,
 				title: item.title,
 				description: item.description,
 				url: item.url,

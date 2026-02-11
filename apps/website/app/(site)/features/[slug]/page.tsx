@@ -73,7 +73,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Child capabilities list (for group pages) */}
 			{isGroup && feature.children && feature.children.length > 0 && (
 				<section className="pb-12 sm:pb-16">
-					<div className="mx-auto max-w-content px-5 sm:px-8">
+					<div className="max-w-content mx-auto px-5 sm:px-8">
 						<div className="grid gap-6 sm:grid-cols-2">
 							{feature.children.map((child) => (
 								<Card key={child.slug} hover className="group">
@@ -81,7 +81,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 										<h3 className="text-lg font-semibold text-black dark:text-white">
 											{child.title}
 										</h3>
-										<p className="mt-2 text-sm leading-relaxed text-body dark:text-zinc-400">
+										<p className="text-body mt-2 text-sm leading-relaxed dark:text-zinc-400">
 											{child.description}
 										</p>
 										<ActionLink href={`/features/${slug}/${child.slug}`} className="mt-3">
@@ -101,7 +101,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Body content — first section */}
 			{bodyTop.length > 0 && (
 				<section className="pb-12 sm:pb-16">
-					<div className="mx-auto max-w-content px-5 sm:px-8">
+					<div className="max-w-content mx-auto px-5 sm:px-8">
 						<RichText value={bodyTop} variant="feature" />
 					</div>
 				</section>
@@ -110,7 +110,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Body content — remaining sections */}
 			{bodyBottom.length > 0 && (
 				<section className="pb-16 sm:pb-24">
-					<div className="mx-auto max-w-content px-5 sm:px-8">
+					<div className="max-w-content mx-auto px-5 sm:px-8">
 						<RichText value={bodyBottom} variant="feature" />
 					</div>
 				</section>
@@ -119,11 +119,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Testimonial */}
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					testimonials={
-						pullQuoteTestimonials.length > 0
-							? pullQuoteTestimonials
-							: [shared.testimonialSection!.featured]
-					}
+					testimonials={pullQuoteTestimonials}
 					caseStudies={shared.testimonialSection.caseStudies}
 				/>
 			)}

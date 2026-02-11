@@ -20,7 +20,7 @@ export function FeatureHeroCta({ ctaPrimary, ctaSecondary }: FeatureHeroCtaProps
 			) : (
 				<Link
 					href={ctaPrimary.url}
-					className="rounded-md bg-black px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+					className="rounded-md bg-black px-6 py-3 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
 				>
 					{ctaPrimary.label}
 				</Link>
@@ -28,12 +28,12 @@ export function FeatureHeroCta({ ctaPrimary, ctaSecondary }: FeatureHeroCtaProps
 			{ctaSecondary && (
 				<Link
 					href={ctaSecondary.url}
-					className="inline-flex items-center gap-1.5 text-sm text-body transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
+					className="text-body inline-flex items-center gap-1.5 text-sm transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
 				>
 					{ctaSecondary.labelBold ? (
 						<>
 							or{' '}
-							<span className="font-semibold text-brand-blue underline underline-offset-4">
+							<span className="text-brand-blue font-semibold underline underline-offset-4">
 								{ctaSecondary.labelBold}
 							</span>{' '}
 							<ChevronRight />

@@ -36,7 +36,7 @@ export function ProjectsGrid({ title, subtitle, projects }: ProjectsGridProps) {
 					return (
 						<div
 							key={project.name}
-							className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+							className="overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
 						>
 							{imgSrc ? (
 								<div className="aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-800">
@@ -53,7 +53,7 @@ export function ProjectsGrid({ title, subtitle, projects }: ProjectsGridProps) {
 							)}
 							<div className="p-6">
 								<h3 className="text-lg font-semibold text-black dark:text-white">{project.name}</h3>
-								<p className="mt-2 text-sm leading-relaxed text-body dark:text-zinc-400">
+								<p className="text-body mt-2 text-sm leading-relaxed dark:text-zinc-400">
 									{project.description}
 								</p>
 								<ActionLink href={project.url} external className="mt-4">

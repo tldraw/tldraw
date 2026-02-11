@@ -9,7 +9,7 @@ interface FormFieldProps {
 }
 
 const inputClasses =
-	'w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-none transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500'
+	'w-full rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 outline-hidden transition-colors focus:border-brand-blue dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500'
 
 export function FormField({
 	label,

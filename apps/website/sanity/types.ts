@@ -255,14 +255,6 @@ export interface HomepageShowcaseItem {
 	url: string
 }
 
-export interface HomepageFeaturedTestimonial {
-	quote: string
-	author: string
-	role: string
-	company: string
-	avatar?: string
-}
-
 export interface HomepageCaseStudy {
 	_key: string
 	company: string
@@ -280,8 +272,8 @@ export interface Homepage {
 		subtitleHighlight?: string
 		ctaPrimary: HomepageCta
 		ctaSecondary?: HomepageCta
-		heroImage?: SanityImage
 	}
+	logoBar?: Record<string, never>
 	whyTldraw?: {
 		title: string
 		items: { _key: string; title: string; description: string }[]
@@ -296,11 +288,7 @@ export interface Homepage {
 	whatsInside?: {
 		title: string
 		subtitle: string
-		items: { _key: string; title: string; description: string; url: string }[]
-	}
-	community?: {
-		title: string
-		stats: { _key: string; value: string; label: string; linkText: string; url: string }[]
+		items: { _key: string; icon: string; title: string; description: string; url: string }[]
 	}
 	whiteboardKit?: {
 		eyebrow: string
@@ -318,7 +306,6 @@ export interface Homepage {
 		kits: { _key: string; title: string; description: string; url: string }[]
 	}
 	testimonialSection?: {
-		featured: HomepageFeaturedTestimonial
 		caseStudies: HomepageCaseStudy[]
 	}
 	finalCta?: {

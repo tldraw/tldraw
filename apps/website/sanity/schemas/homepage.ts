@@ -43,6 +43,32 @@ export const homepage = defineType({
 			],
 		}),
 
+		// Logo bar
+		defineField({
+			name: 'logoBar',
+			title: 'Logo bar',
+			type: 'object',
+			fields: [
+				defineField({ name: 'title', title: 'Title', type: 'string' }),
+				defineField({
+					name: 'logos',
+					title: 'Logos',
+					type: 'array',
+					of: [
+						{
+							type: 'object',
+							fields: [
+								defineField({ name: 'company', title: 'Company name', type: 'string' }),
+								defineField({ name: 'logo', title: 'Logo image', type: 'image' }),
+								defineField({ name: 'url', title: 'Company URL', type: 'url' }),
+							],
+							preview: { select: { title: 'company' } },
+						},
+					],
+				}),
+			],
+		}),
+
 		// Why tldraw
 		defineField({
 			name: 'whyTldraw',
@@ -114,6 +140,7 @@ export const homepage = defineType({
 						{
 							type: 'object',
 							fields: [
+								defineField({ name: 'icon', title: 'Icon', type: 'string' }),
 								defineField({ name: 'title', title: 'Title', type: 'string' }),
 								defineField({ name: 'description', title: 'Description', type: 'text', rows: 2 }),
 								defineField({ name: 'url', title: 'URL', type: 'string' }),
@@ -183,29 +210,12 @@ export const homepage = defineType({
 			],
 		}),
 
-		// Testimonial section (shared across pages)
+		// Testimonial section
 		defineField({
 			name: 'testimonialSection',
 			title: 'Testimonial section',
 			type: 'object',
 			fields: [
-				defineField({
-					name: 'featured',
-					title: 'Featured testimonial',
-					type: 'object',
-					fields: [
-						defineField({ name: 'quote', title: 'Quote', type: 'text', rows: 3 }),
-						defineField({ name: 'author', title: 'Author', type: 'string' }),
-						defineField({ name: 'role', title: 'Role', type: 'string' }),
-						defineField({ name: 'company', title: 'Company', type: 'string' }),
-						defineField({
-							name: 'avatar',
-							title: 'Avatar',
-							type: 'string',
-							description: 'Path to avatar image',
-						}),
-					],
-				}),
 				defineField({
 					name: 'caseStudies',
 					title: 'Case studies',

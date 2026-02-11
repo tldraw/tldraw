@@ -9,13 +9,13 @@ interface CoverImageProps {
 export function CoverImage({ image, alt }: CoverImageProps) {
 	return (
 		<section className="pb-12 sm:pb-16">
-			<div className="mx-auto max-w-content px-5 sm:px-8">
+			<div className="max-w-content mx-auto px-5 sm:px-8">
 				<Image
 					src={urlFor(image).width(1200).height(630).url()}
 					alt={alt}
 					width={1200}
 					height={630}
-					className="rounded-lg"
+					className="rounded-md"
 					priority
 				/>
 			</div>

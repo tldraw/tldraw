@@ -41,7 +41,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 			{/* Backdrop - starts below header so header stays visible */}
 			<div
 				className={cn(
-					'fixed inset-x-0 bottom-0 top-[72px] z-40 bg-black/20 backdrop-blur-sm transition-opacity duration-200 md:hidden',
+					'fixed inset-x-0 top-[72px] bottom-0 z-40 bg-black/20 backdrop-blur-xs transition-opacity duration-200 md:hidden',
 					open ? 'opacity-100' : 'pointer-events-none opacity-0'
 				)}
 				onClick={onClose}
@@ -49,7 +49,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 			{/* Panel - drops down from below header; only on mobile; wrapper clips so closed state shows nothing */}
 			<div
 				className={cn(
-					'fixed left-0 right-0 top-[72px] z-50 overflow-hidden md:hidden',
+					'fixed top-[72px] right-0 left-0 z-50 overflow-hidden md:hidden',
 					open ? 'max-h-[calc(100vh-72px)]' : 'max-h-0'
 				)}
 			>
@@ -65,7 +65,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 									type="button"
 									onClick={() => toggleGroup(group.label)}
 									className={cn(
-										'flex w-full items-center justify-between rounded-lg px-4 py-3 text-base transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800',
+										'flex w-full items-center justify-between rounded-md px-4 py-3 text-base transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800',
 										expandedGroup === group.label
 											? 'text-black dark:text-white'
 											: 'text-body dark:text-zinc-400'
@@ -103,7 +103,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 													href={item.href}
 													onClick={onClose}
 													className={cn(
-														'block rounded-lg px-4 py-2 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800',
+														'block rounded-md px-4 py-2 text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800',
 														pathname?.startsWith(item.href)
 															? 'text-black dark:text-white'
 															: 'text-body dark:text-zinc-400'
@@ -123,7 +123,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 								href={link.href}
 								onClick={onClose}
 								className={cn(
-									'rounded-lg px-4 py-3 text-base transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800',
+									'rounded-md px-4 py-3 text-base transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800',
 									pathname?.startsWith(link.href)
 										? 'text-black dark:text-white'
 										: 'text-body dark:text-zinc-400'
@@ -135,7 +135,7 @@ export function MobileMenu({ open, onClose, navGroups, standaloneNavLinks }: Mob
 						<Link
 							href="/quick-start"
 							onClick={onClose}
-							className="mt-4 rounded-md bg-brand-blue px-4 py-3 text-center text-base text-white transition-colors hover:bg-blue-700"
+							className="bg-brand-blue mt-4 rounded-md px-4 py-3 text-center text-base text-white transition-colors hover:bg-blue-700"
 						>
 							Quick Start
 						</Link>

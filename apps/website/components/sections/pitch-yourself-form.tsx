@@ -19,21 +19,21 @@ export function PitchYourselfForm({ title, description }: PitchYourselfFormProps
 	}
 
 	return (
-		<div className="border-b border-zinc-200 py-10 dark:border-zinc-800 sm:py-14">
+		<div className="border-b border-zinc-200 py-10 sm:py-14 dark:border-zinc-800">
 			<div className="flex flex-col gap-8 lg:flex-row lg:gap-8">
 				{/* Left column - heading and description (matches FAQ section layout) */}
 				<div className="lg:w-1/2">
-					<h2 className="text-2xl font-semibold text-black dark:text-white sm:text-[32px]">
+					<h2 className="text-2xl font-semibold text-black sm:text-[32px] dark:text-white">
 						{title}
 					</h2>
-					<p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-body dark:text-zinc-400 lg:mt-6">
+					<p className="text-body mt-4 text-sm leading-relaxed whitespace-pre-line lg:mt-6 dark:text-zinc-400">
 						{description}
 					</p>
 				</div>
 				{/* Right column - form */}
 				<div className="lg:w-1/2">
 					{submitted ? (
-						<div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950">
+						<div className="rounded-md border border-green-200 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950">
 							<p className="text-lg font-semibold text-green-800 dark:text-green-200">
 								Thanks for reaching out! We&rsquo;ll be in touch.
 							</p>

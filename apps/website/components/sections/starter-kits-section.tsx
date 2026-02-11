@@ -38,7 +38,7 @@ export function StarterKitsSection({
 				</ActionLink>
 			</div>
 			<div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-start">
-				<div className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+				<div className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
 					{kits.map((kit, i) => (
 						<div key={kit.title}>
 							<button
@@ -62,8 +62,8 @@ export function StarterKitsSection({
 								</svg>
 							</button>
 							{openIndex === i && (
-								<div className="border-t border-zinc-200 px-6 pb-4 pt-2 dark:border-zinc-800">
-									<p className="text-sm leading-relaxed text-body dark:text-zinc-400">
+								<div className="border-t border-zinc-200 px-6 pt-2 pb-4 dark:border-zinc-800">
+									<p className="text-body text-sm leading-relaxed dark:text-zinc-400">
 										{kit.description}
 									</p>
 									<ActionLink href={kit.url} underline className="mt-4">
@@ -74,7 +74,7 @@ export function StarterKitsSection({
 						</div>
 					))}
 				</div>
-				<div className="relative aspect-video overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:aspect-[4/3]">
+				<div className="relative aspect-video overflow-hidden rounded-md border border-zinc-200 bg-white lg:aspect-4/3 dark:border-zinc-800 dark:bg-zinc-950">
 					<Image
 						src="/images/starter-kits-preview.png"
 						alt="tldraw starter kits"

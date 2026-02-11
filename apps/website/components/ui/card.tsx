@@ -9,7 +9,7 @@ type CardProps = {
 
 export function Card({ children, className, hover, ...rest }: CardProps) {
 	const classes = cn(
-		'rounded-xl border border-zinc-200 p-6 dark:border-zinc-800',
+		'rounded-md border border-zinc-200 p-6 dark:border-zinc-800',
 		hover && 'transition-colors hover:border-zinc-300 dark:hover:border-zinc-700',
 		className
 	)

@@ -15,7 +15,7 @@ const components: PortableTextComponents = {
 						alt={value.alt || ''}
 						width={1200}
 						height={675}
-						className="rounded-lg"
+						className="rounded-md"
 					/>
 					{value.caption && (
 						<figcaption className="mt-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
@@ -30,7 +30,7 @@ const components: PortableTextComponents = {
 		},
 		callout: ({ value }: { value: { text: string; tone?: string } }) => {
 			return (
-				<div className="my-6 rounded-lg border-l-4 border-blue-500 bg-blue-50 p-4 dark:bg-blue-950/30">
+				<div className="my-6 rounded-md border-l-4 border-blue-500 bg-blue-50 p-4 dark:bg-blue-950/30">
 					<p className="text-sm text-blue-800 dark:text-blue-200">{value.text}</p>
 				</div>
 			)
@@ -41,7 +41,7 @@ const components: PortableTextComponents = {
 			)?.[1]
 			if (!videoId) return null
 			return (
-				<div className="my-8 aspect-video overflow-hidden rounded-lg">
+				<div className="my-8 aspect-video overflow-hidden rounded-md">
 					<iframe
 						src={`https://www.youtube.com/embed/${videoId}`}
 						title="YouTube video"
@@ -60,7 +60,7 @@ const components: PortableTextComponents = {
 			return (
 				<a
 					href={href}
-					className="text-brand-link underline decoration-brand-link/30 transition-colors hover:text-brand-link/90 dark:text-brand-link dark:decoration-brand-link/30 dark:hover:text-brand-link/90"
+					className="text-brand-link decoration-brand-link/30 hover:text-brand-link/90 dark:text-brand-link dark:decoration-brand-link/30 dark:hover:text-brand-link/90 underline transition-colors"
 					{...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
 				>
 					{children}
@@ -82,7 +82,7 @@ export function RichText({ value, className, variant = 'default' }: RichTextProp
 	return (
 		<div
 			className={cn(
-				'prose prose-zinc max-w-none dark:prose-invert',
+				'prose prose-zinc dark:prose-invert max-w-none',
 				variant === 'feature' && 'prose-feature',
 				className
 			)}

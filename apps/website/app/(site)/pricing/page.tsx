@@ -36,20 +36,16 @@ export default async function PricingPage() {
 					/>
 				)}
 			</div>
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
+			<div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
 				<hr className="border-zinc-200 dark:border-zinc-800" />
 			</div>
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					testimonials={
-						pullQuoteTestimonials.length > 0
-							? pullQuoteTestimonials
-							: [shared.testimonialSection.featured]
-					}
+					testimonials={pullQuoteTestimonials}
 					caseStudies={shared.testimonialSection.caseStudies.slice(0, 1)}
 				/>
 			)}
-			<div className="mx-auto max-w-content px-4 sm:px-6 lg:px-8">
+			<div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
 				<hr className="border-zinc-200 dark:border-zinc-800" />
 			</div>
 			<CommunitySection />

@@ -48,11 +48,11 @@ export function ShowcaseGallery({ title, subtitle, items }: ShowcaseGalleryProps
 				{items.map((item) => (
 					<div
 						key={getSlug(item.slug)}
-						className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 sm:flex-row"
+						className="flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white sm:flex-row dark:border-zinc-800 dark:bg-zinc-950"
 					>
 						{/* Image area */}
 						{item.coverImage ? (
-							<div className="aspect-[4/3] shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800 sm:w-1/2">
+							<div className="aspect-4/3 shrink-0 overflow-hidden bg-zinc-100 sm:w-1/2 dark:bg-zinc-800">
 								<Image
 									src={urlFor(item.coverImage).width(480).height(360).url()}
 									alt={item.name}
@@ -62,7 +62,7 @@ export function ShowcaseGallery({ title, subtitle, items }: ShowcaseGalleryProps
 								/>
 							</div>
 						) : (
-							<div className="hidden aspect-[4/3] shrink-0 bg-zinc-100 dark:bg-zinc-800 sm:block sm:w-1/2" />
+							<div className="hidden aspect-4/3 shrink-0 bg-zinc-100 sm:block sm:w-1/2 dark:bg-zinc-800" />
 						)}
 
 						{/* Content area */}
@@ -76,10 +76,10 @@ export function ShowcaseGallery({ title, subtitle, items }: ShowcaseGalleryProps
 									className="mb-2 h-5 w-auto"
 								/>
 							)}
-							<span className="text-xs font-medium text-body dark:text-zinc-400">
+							<span className="text-body text-xs font-medium dark:text-zinc-400">
 								{item.category}
 							</span>
-							<p className="mt-2 text-sm leading-relaxed text-body dark:text-zinc-400">
+							<p className="text-body mt-2 text-sm leading-relaxed dark:text-zinc-400">
 								{item.description}
 							</p>
 							{item.caseStudyUrl && (
@@ -126,11 +126,11 @@ export function ShowcaseGallerySimple({ title, subtitle, items }: ShowcaseGaller
 				{items.map((item) => (
 					<div
 						key={item.slug}
-						className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 sm:flex-row"
+						className="flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white sm:flex-row dark:border-zinc-800 dark:bg-zinc-950"
 					>
 						{/* Image area */}
 						{item.image ? (
-							<div className="aspect-[4/3] shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800 sm:w-1/2">
+							<div className="aspect-4/3 shrink-0 overflow-hidden bg-zinc-100 sm:w-1/2 dark:bg-zinc-800">
 								<Image
 									src={item.image}
 									alt={item.name}
@@ -140,16 +140,16 @@ export function ShowcaseGallerySimple({ title, subtitle, items }: ShowcaseGaller
 								/>
 							</div>
 						) : (
-							<div className="hidden aspect-[4/3] shrink-0 bg-zinc-100 dark:bg-zinc-800 sm:block sm:w-1/2" />
+							<div className="hidden aspect-4/3 shrink-0 bg-zinc-100 sm:block sm:w-1/2 dark:bg-zinc-800" />
 						)}
 
 						{/* Content */}
 						<div className="flex flex-1 flex-col justify-center p-6">
 							<h3 className="font-semibold text-black dark:text-white">{item.name}</h3>
-							<span className="mt-1 text-xs font-medium text-body dark:text-zinc-400">
+							<span className="text-body mt-1 text-xs font-medium dark:text-zinc-400">
 								{item.category}
 							</span>
-							<p className="mt-2 text-sm leading-relaxed text-body dark:text-zinc-400">
+							<p className="text-body mt-2 text-sm leading-relaxed dark:text-zinc-400">
 								{item.description}
 							</p>
 							<div className="mt-3 flex gap-4">

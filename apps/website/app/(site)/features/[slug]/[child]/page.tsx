@@ -83,7 +83,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			{/* Body content — first section (before first h2 break) */}
 			{bodyTop.length > 0 && (
 				<section className="pb-12 sm:pb-16">
-					<div className="mx-auto max-w-content px-5 sm:px-8">
+					<div className="max-w-content mx-auto px-5 sm:px-8">
 						<RichText value={bodyTop} variant="feature" />
 					</div>
 				</section>
@@ -95,7 +95,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			{/* Body content — remaining sections (after first h2 break) */}
 			{bodyBottom.length > 0 && (
 				<section className="pb-16 sm:pb-24">
-					<div className="mx-auto max-w-content px-5 sm:px-8">
+					<div className="max-w-content mx-auto px-5 sm:px-8">
 						<RichText value={bodyBottom} variant="feature" />
 					</div>
 				</section>
@@ -115,11 +115,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			{/* Testimonial */}
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					testimonials={
-						pullQuoteTestimonials.length > 0
-							? pullQuoteTestimonials
-							: [shared.testimonialSection.featured]
-					}
+					testimonials={pullQuoteTestimonials}
 					caseStudies={shared.testimonialSection.caseStudies}
 				/>
 			)}

@@ -47,8 +47,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 	return (
 		<>
-			<article className="mx-auto max-w-content px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-				<div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-link">
+			<article className="max-w-content mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+				<div className="text-brand-link flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase">
 					<Link href="/blog" className="hover:text-blue-700 dark:hover:text-blue-300">
 						Blog
 					</Link>
@@ -64,7 +64,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						</>
 					)}
 				</div>
-				<h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
+				<h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 sm:text-5xl dark:text-white">
 					{post.title}
 				</h1>
 				<p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
@@ -77,7 +77,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						alt={post.coverImage.alt || post.title}
 						width={1200}
 						height={630}
-						className="mt-12 rounded-lg"
+						className="mt-12 rounded-md"
 						priority
 					/>
 				)}
@@ -89,10 +89,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						{prevPost ? (
 							<Link
 								href={`/blog/${prevPost.slug.current}`}
-								className="text-md group flex min-w-0 flex-1 basis-0 items-start gap-2 text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90 sm:min-w-[200px]"
+								className="text-md group text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90 flex min-w-0 flex-1 basis-0 items-start gap-2 sm:min-w-[200px]"
 							>
-								<ChevronLeft className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-								<span className="min-w-0 break-words">{prevPost.title}</span>
+								<ChevronLeft className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+								<span className="min-w-0 wrap-break-word">{prevPost.title}</span>
 							</Link>
 						) : (
 							<div />
@@ -100,10 +100,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 						{nextPost ? (
 							<Link
 								href={`/blog/${nextPost.slug.current}`}
-								className="text-md group flex min-w-0 flex-1 basis-0 flex-row-reverse items-start justify-end gap-2 text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90 sm:min-w-[200px] sm:justify-end"
+								className="text-md group text-brand-link hover:text-brand-link/90 dark:hover:text-brand-link/90 flex min-w-0 flex-1 basis-0 flex-row-reverse items-start justify-end gap-2 sm:min-w-[200px] sm:justify-end"
 							>
-								<ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-								<span className="min-w-0 break-words text-right">{nextPost.title}</span>
+								<ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+								<span className="min-w-0 text-right wrap-break-word">{nextPost.title}</span>
 							</Link>
 						) : (
 							<div />
