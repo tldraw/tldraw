@@ -2,14 +2,6 @@ import { defineConfig, devices } from '@playwright/test'
 import path from 'path'
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
@@ -26,7 +18,7 @@ export default defineConfig({
 	// an open connection to the db when we are trying to clear it.
 	workers: process.env.STAGING_TESTS ? 6 : process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
-	reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
+	reporter: process.env.CI ? [['list'], ['github'], ['blob']] : 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	timeout: 30 * 1000,
 	use: {
@@ -80,17 +72,25 @@ export default defineConfig({
 		// },
 		// {
 		//   name: 'Mobile Safari',
-		//   use: { ...devices['iPhone 12'] },
+		//   use: {
+		//     ...devices['iPhone 12'],
+		//   },
 		// },
 
 		/* Test against branded browsers. */
 		// {
 		//   name: 'Microsoft Edge',
-		//   use: { ...devices['Desktop Edge'], channel: 'msedge' },
+		//   use: {
+		//     ...devices['Desktop Edge'],
+		//     channel: 'msedge',
+		//   },
 		// },
 		// {
 		//   name: 'Google Chrome',
-		//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+		//   use: {
+		//     ...devices['Desktop Chrome'],
+		//     channel: 'chrome',
+		//   },
 		// },
 	],
 

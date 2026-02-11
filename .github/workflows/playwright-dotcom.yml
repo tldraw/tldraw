@@ -17,11 +17,15 @@ defaults:
 
 jobs:
   build:
-    name: 'End to end tests (dotcom)'
+    name: 'End to end tests (dotcom) shard ${{ matrix.shard }}/3'
     timeout-minutes: 40
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
     if: ${{ github.event.pull_request.head.repo.fork == false }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     steps:
       - name: Check out code
@@ -53,17 +57,17 @@ jobs:
         run: |
           echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
           echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
-          yarn e2e-dotcom
+          yarn workspace dotcom e2e -- --shard=${{ matrix.shard }}/3
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10') }}
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'e2e-x10') }}
 
       - name: Run Playwright tests (x10)
         run: |
           echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
           echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
-          yarn e2e-dotcom-x10
+          yarn workspace dotcom e2e-x10 -- --shard=${{ matrix.shard }}/3
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
@@ -72,12 +76,44 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: always()
         with:
+          name: blob-report-${{ matrix.shard }}
+          path: apps/dotcom/client/blob-report
+          retention-days: 5
+
+  merge-reports:
+    name: 'Merge E2E reports (dotcom)'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: build
+    environment: 'e2e-dotcom'
+    if: always() && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: blob-report-*
+          path: blob-reports
+          merge-multiple: true
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Merge Playwright reports
+        run: npx playwright merge-reports --reporter=html ../../../blob-reports
+        working-directory: apps/dotcom/client
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
           name: playwright-report
           path: apps/dotcom/client/playwright-report
           retention-days: 30
 
       - uses: shallwefootball/s3-upload-action@master
-        # only upload if we have AWS credentials:
         env:
           HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
         if: always() && env.HAS_AWS_KEY == '1'
