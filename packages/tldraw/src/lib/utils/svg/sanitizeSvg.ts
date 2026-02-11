@@ -1,3 +1,9 @@
+/*!
+ * SVG sanitizer based on DOMPurify's allowed SVG tags, attributes, and filter profiles.
+ * MIT License: https://github.com/cure53/DOMPurify/blob/main/LICENSE
+ * Copyright (c) 2015 Mario Heiderich
+ */
+
 // Allowed SVG element names (lowercase for comparison).
 // Based on DOMPurify's SVG + SVG filter profiles, plus 'use'.
 const ALLOWED_TAGS = new Set([
