@@ -477,14 +477,14 @@ Alternatively, you can bypass the `PromptPartUtil` system by changing the `build
 You can set an agent's model by setting its `$modelName` property.
 
 ```tsx
-agent.$modelName.set('gemini-2.5-flash')
+agent.$modelName.set('gemini-3-flash-preview')
 ```
 
 To override an agent's model, specify a different model name with a request.
 
 ```tsx
 agent.prompt({
-	modelName: 'gemini-2.5-flash',
+	modelName: 'gemini-3-flash-preview',
 	message: 'Draw a diagram of a volcano.',
 })
 ```
@@ -493,7 +493,7 @@ You can conditionally override the model name by overriding the `getModelName()`
 
 ```tsx
 override getModelName(part: MyCustomPromptPart) {
-	return part.fastMode ? 'gemini-2.5-flash' : 'claude-4-sonnet'
+	return part.fastMode ? 'gemini-3-flash-preview' : 'claude-4-sonnet'
 }
 ```
 

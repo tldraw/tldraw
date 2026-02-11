@@ -60,6 +60,9 @@ app.register(async (app) => {
 	app.get('/uploads/:id', async (req, res) => {
 		const id = (req.params as any).id as string
 		const data = await loadAsset(id)
+		// Prevent XSS from user-uploaded SVGs
+		res.header('Content-Security-Policy', "default-src 'none'")
+		res.header('X-Content-Type-Options', 'nosniff')
 		res.send(data)
 	})
 
