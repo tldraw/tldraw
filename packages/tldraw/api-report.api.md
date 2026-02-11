@@ -3332,6 +3332,8 @@ export interface TldrawImageProps extends TLImageExportOptions {
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    // @deprecated
+    textOptions?: TLTextOptions;
 }
 
 // @public (undocumented)

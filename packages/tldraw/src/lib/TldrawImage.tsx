@@ -6,6 +6,7 @@ import {
 	TLImageExportOptions,
 	TLPageId,
 	TLStoreSnapshot,
+	TLTextOptions,
 	TldrawOptions,
 	mergeArraysAndReplaceDefaults,
 	useShallowArrayIdentity,
@@ -55,6 +56,12 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 const defaultOptions: Partial<TldrawOptions> = {
@@ -113,6 +120,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		licenseKey,
 		assetUrls,
 		options: _options,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		textOptions: _textOptions,
 	} = props
 
 	const options = useMemo(
@@ -121,10 +130,10 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			..._options,
 			text: {
 				...defaultOptions.text,
-				..._options?.text,
+				...(_options?.text ?? _textOptions),
 			},
 		}),
-		[_options]
+		[_options, _textOptions]
 	)
 	const assetUrlsWithOverrides = useDefaultEditorAssetsWithOverrides(assetUrls)
 
