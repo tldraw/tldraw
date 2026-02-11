@@ -10,18 +10,18 @@ binding = "MEASURE"
 #################### Environment names ####################
 # dev should never actually get deployed anywhere
 [env.dev]
-name = 'tldrawfiles-dev'
+name = 'tldrawusercontent-dev'
 services = [{ binding = "SYNC_WORKER", service = "dev-tldraw-multiplayer" }]
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
 [env.staging]
-name = "staging-tldrawfiles"
+name = "staging-tldrawusercontent"
 services = [{ binding = "SYNC_WORKER", service = "main-tldraw-multiplayer" }]
 
 # production gets the proper name
 [env.production]
-name = "tldrawfiles"
+name = "tldrawusercontent"
 services = [{ binding = "SYNC_WORKER", service = "tldraw-multiplayer" }]
 
 #################### Assets R2 bucket ####################
@@ -62,14 +62,14 @@ binding = "MEASURE"
 #################### Routes ####################
 # in production, we use a custom domain. others get a default *.tldraw.workers.dev domain
 [[env.production.routes]]
-pattern = 'tldrawfiles.com'
+pattern = 'tldrawusercontent.com'
 custom_domain = true
-zone_name = 'tldrawfiles.com'
+zone_name = 'tldrawusercontent.com'
 
 [[env.staging.routes]]
-pattern = 'staging.tldrawfiles.com'
+pattern = 'staging.tldrawusercontent.com'
 custom_domain = true
-zone_name = 'tldrawfiles.com'
+zone_name = 'tldrawusercontent.com'
 
 #################### Version metadata ####################
 [version_metadata]

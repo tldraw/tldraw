@@ -1,16 +1,16 @@
 import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
-import { TLDRAWFILES_URL } from './config'
+import { USER_CONTENT_URL } from './config'
 import { isDevelopmentEnv, isPreviewEnv } from './env'
 
-// Assets are uploaded to and served from a separate tldrawfiles worker (TLDRAWFILES_URL).
+// Assets are uploaded to and served from a separate tldrawusercontent worker (USER_CONTENT_URL).
 // Same R2 bucket as before — the worker just adds auth gating and Cloudflare Image Transformations.
 // For app files, a fileId query param triggers server-side write-access validation and DB association.
 async function getUrl(file: File, fileId: string | undefined) {
 	const id = uniqueId()
 
 	const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
-	const url = `${TLDRAWFILES_URL}/${objectName}`
+	const url = `${USER_CONTENT_URL}/${objectName}`
 	if (fileId) {
 		return {
 			fetchUrl: `${url}?${new URLSearchParams({ fileId }).toString()}`,
@@ -90,7 +90,7 @@ export function multiplayerAssetStore(opts?: {
 			const isTldrawImage =
 				isDevelopmentEnv ||
 				/\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host) ||
-				/(?:^|\.)tldrawfiles\.com$/.test(url.host)
+				/(?:^|\.)tldrawusercontent\.com$/.test(url.host)
 
 			if (!isTldrawImage) return asset.props.src
 
@@ -102,7 +102,7 @@ export function multiplayerAssetStore(opts?: {
 			// https://developers.cloudflare.com/images/transform-images/transform-via-url/
 			// Only works with zone-level setup (production/staging). In dev/preview, serve raw file.
 			if (isDevelopmentEnv || isPreviewEnv) {
-				return `${TLDRAWFILES_URL}/${objectName}`
+				return `${USER_CONTENT_URL}/${objectName}`
 			}
 
 			const isVector = MediaHelpers.isVectorImageType(asset?.props.mimeType)
@@ -111,7 +111,7 @@ export function multiplayerAssetStore(opts?: {
 			// hyperlinks, cross-origin refs) but not resized.
 			// https://developers.cloudflare.com/images/transform-images/
 			if (isVector) {
-				return `${TLDRAWFILES_URL}/cdn-cgi/image/format=auto/${objectName}`
+				return `${USER_CONTENT_URL}/cdn-cgi/image/format=auto/${objectName}`
 			}
 
 			// Assets that are under a certain file size aren't worth resizing.
@@ -135,10 +135,10 @@ export function multiplayerAssetStore(opts?: {
 					)
 				)
 
-				return `${TLDRAWFILES_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
+				return `${USER_CONTENT_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
 			}
 
-			return `${TLDRAWFILES_URL}/cdn-cgi/image/format=auto/${objectName}`
+			return `${USER_CONTENT_URL}/cdn-cgi/image/format=auto/${objectName}`
 		},
 	} satisfies TLAssetStore
 }

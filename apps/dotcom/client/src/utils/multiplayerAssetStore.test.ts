@@ -63,7 +63,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
 	})
 
 	it('should return the original src for if original is asked for', async () => {
@@ -131,7 +131,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/format=auto/vector.svg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/vector.svg')
 	})
 
 	it("should return null if the asset type is not 'image'", async () => {
@@ -163,7 +163,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: null,
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=100,format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=100,format=auto/image.jpg')
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
@@ -179,7 +179,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '3g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=50,format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=50,format=auto/image.jpg')
 	})
 
 	it('should not scale image above natural size', async () => {
@@ -195,6 +195,6 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawfiles.com/cdn-cgi/image/w=100,format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=100,format=auto/image.jpg')
 	})
 })

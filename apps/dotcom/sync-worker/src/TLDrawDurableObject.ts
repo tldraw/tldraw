@@ -805,20 +805,20 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
-	private getTldrawfilesUrl(): string {
-		return assertExists(this.env.TLDRAWFILES_URL, 'TLDRAWFILES_URL is required')
+	private getUserContentUrl(): string {
+		return assertExists(this.env.USER_CONTENT_URL, 'USER_CONTENT_URL is required')
 	}
 
 	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
 	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
-	// Also migrates old-format asset URLs to tldrawfiles.com.
+	// Also migrates old-format asset URLs to tldrawusercontent.com.
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
 
 		const slug = this.documentInfo.slug
 		const storage = await this.getStorage()
 
-		const tldrawfilesUrl = this.getTldrawfilesUrl()
+		const userContentUrl = this.getUserContentUrl()
 		const {
 			result: { assetsToReplace, assetsToMigrate },
 		} = storage.transaction((txn) => {
@@ -839,13 +839,13 @@ export class TLDrawDurableObject extends DurableObject {
 				const src = asset.props.src
 				if (!src) continue
 
-				// Migrate old-format HTTP URLs to tldrawfiles.com (same R2 bucket, no copy needed)
-				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(tldrawfilesUrl)) {
+				// Migrate old-format HTTP URLs to tldrawusercontent.com (same R2 bucket, no copy needed)
+				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(userContentUrl)) {
 					const objectName = src.split('/').pop()
 					if (objectName) {
 						assetsToMigrate.push({
 							assetId: asset.id,
-							newSrc: `${tldrawfilesUrl}/${objectName}`,
+							newSrc: `${userContentUrl}/${objectName}`,
 						})
 					}
 					continue
@@ -863,7 +863,7 @@ export class TLDrawDurableObject extends DurableObject {
 					objectName,
 					newObjectName,
 					assetId: asset.id,
-					newSrc: `${tldrawfilesUrl}/${newObjectName}`,
+					newSrc: `${userContentUrl}/${newObjectName}`,
 				})
 			}
 			return { assetsToReplace, assetsToMigrate }

@@ -15,6 +15,7 @@ export interface Environment {
 	SYNC_WORKER: SyncWorkerRpc
 
 	// environment variables
+	SENTRY_DSN: string | undefined
 	TLDRAW_ENV: string | undefined
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined

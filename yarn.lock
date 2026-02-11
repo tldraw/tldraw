@@ -14995,9 +14995,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"dotcom-tldrawfiles@workspace:apps/dotcom/tldrawfiles-worker":
+"dotcom-tldrawusercontent@workspace:apps/dotcom/tldrawusercontent-worker":
   version: 0.0.0-use.local
-  resolution: "dotcom-tldrawfiles@workspace:apps/dotcom/tldrawfiles-worker"
+  resolution: "dotcom-tldrawusercontent@workspace:apps/dotcom/tldrawusercontent-worker"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@tldraw/worker-shared": "workspace:*"

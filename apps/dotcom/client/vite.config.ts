@@ -68,7 +68,11 @@ export default defineConfig((env) => ({
 		),
 		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
 		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, 4848),
-		'process.env.TLDRAWFILES_URL': urlOrLocalFallback(env.mode, process.env.TLDRAWFILES_URL, 8789),
+		'process.env.USER_CONTENT_URL': urlOrLocalFallback(
+			env.mode,
+			process.env.USER_CONTENT_URL,
+			8789
+		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to

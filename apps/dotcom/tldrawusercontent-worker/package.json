@@ -1,6 +1,6 @@
 {
-	"name": "dotcom-tldrawfiles",
-	"description": "A Cloudflare Worker to upload and serve user assets from tldrawfiles.com",
+	"name": "dotcom-tldrawusercontent",
+	"description": "A Cloudflare Worker to upload and serve user assets from tldrawusercontent.com",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
