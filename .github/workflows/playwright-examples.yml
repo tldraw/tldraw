@@ -51,7 +51,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Run Playwright tests
-        run: yarn workspace examples.tldraw.com e2e -- --shard=${{ matrix.shard }}/3
+        run: yarn workspace examples.tldraw.com e2e --shard=${{ matrix.shard }}/3
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}
