@@ -23,6 +23,7 @@ import {
 	ToggleGridItem,
 	ToggleLockMenuItem,
 	TogglePasteAtCursorItem,
+	ToggleRightClickToDragItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
@@ -161,6 +162,7 @@ export function PreferencesGroup() {
 					<ToggleWrapModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
+					<ToggleRightClickToDragItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />

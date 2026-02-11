@@ -104,6 +104,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-edge-scrolling'
 	| 'action.toggle-invert-zoom.menu'
 	| 'action.toggle-invert-zoom'
+	| 'action.toggle-right-click-to-drag.menu'
+	| 'action.toggle-right-click-to-drag'
 	| 'action.toggle-debug-mode.menu'
 	| 'action.toggle-debug-mode'
 	| 'action.toggle-focus-mode.menu'

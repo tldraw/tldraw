@@ -105,6 +105,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-edge-scrolling': 'Toggle edge scrolling',
 	'action.toggle-invert-zoom.menu': 'Invert mouse zoom',
 	'action.toggle-invert-zoom': 'Toggle invert mouse zoom',
+	'action.toggle-right-click-to-drag.menu': 'Drag on right-click',
+	'action.toggle-right-click-to-drag': 'Toggle drag on right-click',
 	'action.toggle-debug-mode.menu': 'Debug mode',
 	'action.toggle-debug-mode': 'Toggle debug mode',
 	'action.toggle-focus-mode.menu': 'Focus mode',
