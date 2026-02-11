@@ -1,0 +1,16 @@
+{
+	"name": "svg-scanner-worker",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "wrangler dev --env dev",
+		"deploy": "wrangler deploy",
+		"lint": "yarn run -T tsx ../scripts/lint.ts"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"@types/node": "^22.15.31",
+		"typescript": "^5.8.3",
+		"wrangler": "^4.37.1"
+	}
+}

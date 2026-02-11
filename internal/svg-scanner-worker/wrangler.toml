@@ -1,0 +1,104 @@
+main = "src/worker.ts"
+compatibility_date = "2024-10-30"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8790
+
+#################### Environment names ####################
+[env.dev]
+name = "svg-scanner-worker-dev"
+
+[env.staging]
+name = "svg-scanner-worker-staging"
+
+[env.production]
+name = "svg-scanner-worker-production"
+
+#################### UPLOADS R2 bucket ####################
+[[env.dev.r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "uploads-preview"
+preview_bucket_name = "uploads-preview"
+
+[[env.staging.r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "uploads-preview"
+
+[[env.production.r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "uploads"
+
+#################### ROOMS R2 bucket ####################
+[[env.dev.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms-preview"
+preview_bucket_name = "rooms-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms-preview"
+
+[[env.production.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms"
+
+#################### Room snapshots R2 bucket ####################
+[[env.dev.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+preview_bucket_name = "room-snapshots-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+
+[[env.production.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots"
+
+#################### Scan queue ####################
+[[env.dev.queues.producers]]
+queue = "svg-scanner-queue-dev"
+binding = "SCAN_QUEUE"
+
+[[env.dev.queues.consumers]]
+queue = "svg-scanner-queue-dev"
+max_retries = 3
+max_batch_size = 10
+max_batch_timeout = 30
+
+[[env.staging.queues.producers]]
+queue = "svg-scanner-queue-staging"
+binding = "SCAN_QUEUE"
+
+[[env.staging.queues.consumers]]
+queue = "svg-scanner-queue-staging"
+max_retries = 3
+max_batch_size = 10
+max_batch_timeout = 30
+
+[[env.production.queues.producers]]
+queue = "svg-scanner-queue"
+binding = "SCAN_QUEUE"
+
+[[env.production.queues.consumers]]
+queue = "svg-scanner-queue"
+max_retries = 3
+max_batch_size = 10
+max_batch_timeout = 30
+dead_letter_queue = "svg-scanner-dlq"
+
+#################### Results KV namespace ####################
+# Create these with: wrangler kv namespace create SCAN_RESULTS
+[[env.dev.kv_namespaces]]
+binding = "SCAN_RESULTS"
+id = "svg-scanner-results-dev"
+
+[[env.staging.kv_namespaces]]
+binding = "SCAN_RESULTS"
+id = "svg-scanner-results-staging"
+
+[[env.production.kv_namespaces]]
+binding = "SCAN_RESULTS"
+id = "svg-scanner-results-production"

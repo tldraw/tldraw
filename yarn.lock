@@ -27528,6 +27528,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"svg-scanner-worker@workspace:internal/svg-scanner-worker":
+  version: 0.0.0-use.local
+  resolution: "svg-scanner-worker@workspace:internal/svg-scanner-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
+    "@types/node": "npm:^22.15.31"
+    typescript: "npm:^5.8.3"
+    wrangler: "npm:^4.37.1"
+  languageName: unknown
+  linkType: soft
+
 "svgo@npm:^3.3.2":
   version: 3.3.2
   resolution: "svgo@npm:3.3.2"
