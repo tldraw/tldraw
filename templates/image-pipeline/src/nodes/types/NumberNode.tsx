@@ -24,6 +24,7 @@ export class NumberNodeDefinition extends NodeDefinition<NumberNode> {
 	static validator = NumberNode
 	title = 'Number'
 	heading = 'Number'
+	hidden = true as const
 	icon = (<NumberIcon />)
 	category = 'input'
 	getDefault(): NumberNode {

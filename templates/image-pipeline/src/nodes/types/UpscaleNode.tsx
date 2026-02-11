@@ -50,6 +50,7 @@ export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
 	static validator = UpscaleNode
 	title = 'Upscale'
 	heading = 'Upscale'
+	hidden = true as const
 	icon = (<UpscaleIcon />)
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const

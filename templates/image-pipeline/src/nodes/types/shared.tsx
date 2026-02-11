@@ -83,6 +83,8 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	abstract readonly category: string
 	readonly resultKeys?: readonly string[]
 	readonly canResizeNode: boolean = false
+	/** If true, this node type is hidden from the toolbar and on-canvas picker. */
+	readonly hidden: boolean = false
 
 	getWidthPx(_shape: NodeShape, _node: Node): number {
 		return NODE_WIDTH_PX

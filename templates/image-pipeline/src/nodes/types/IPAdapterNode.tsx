@@ -39,6 +39,7 @@ export class IPAdapterNodeDefinition extends NodeDefinition<IPAdapterNode> {
 	static validator = IPAdapterNode
 	title = 'IP-Adapter'
 	heading = 'IP-Adapter'
+	hidden = true as const
 	icon = (<IPAdapterIcon />)
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const

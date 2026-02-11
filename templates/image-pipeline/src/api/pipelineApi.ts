@@ -39,10 +39,7 @@ export async function apiGenerate(params: GenerateParams): Promise<GenerateResul
 
 		return (await response.json()) as GenerateResult
 	} catch (e) {
-		// If the worker isn't running (e.g. plain `vite dev`), fall back to
-		// a local placeholder so the template still works without a backend.
-		console.warn('Backend unavailable, using placeholder:', e)
-		return generateLocalPlaceholder(params)
+		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
 	}
 }
 
@@ -74,8 +71,7 @@ export async function apiUpscale(params: UpscaleParams): Promise<UpscaleResult> 
 
 		return (await response.json()) as UpscaleResult
 	} catch (e) {
-		console.warn('Backend unavailable, using placeholder:', e)
-		return upscaleLocalPlaceholder(params)
+		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
 	}
 }
 
@@ -108,8 +104,7 @@ export async function apiIPAdapter(params: IPAdapterParams): Promise<IPAdapterRe
 
 		return (await response.json()) as IPAdapterResult
 	} catch (e) {
-		console.warn('Backend unavailable, using placeholder:', e)
-		return ipAdapterLocalPlaceholder(params)
+		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
 	}
 }
 
@@ -143,8 +138,7 @@ export async function apiStyleTransfer(params: StyleTransferParams): Promise<Sty
 
 		return (await response.json()) as StyleTransferResult
 	} catch (e) {
-		console.warn('Backend unavailable, using placeholder:', e)
-		return styleTransferLocalPlaceholder(params)
+		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
 	}
 }
 
@@ -181,8 +175,7 @@ export async function apiGenerateText(params: GenerateTextParams): Promise<Gener
 
 		return (await response.json()) as GenerateTextResult
 	} catch (e) {
-		console.warn('Backend unavailable, using placeholder:', e)
-		return generateTextLocalPlaceholder(params)
+		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
 	}
 }
 

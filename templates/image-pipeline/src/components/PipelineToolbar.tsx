@@ -49,6 +49,7 @@ function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: 
 export const overrides: TLUiOverrides = {
 	tools: (editor, tools, _) => {
 		for (const nodeDef of Object.values(getNodeDefinitions(editor))) {
+			if (nodeDef.hidden) continue
 			tools[`node-${nodeDef.type}`] = {
 				id: `node-${nodeDef.type}`,
 				label: nodeDef.title,
@@ -80,7 +81,7 @@ export const overrides: TLUiOverrides = {
 
 export function PipelineToolbar() {
 	const editor = useEditor()
-	const nodeDefs = Object.values(getNodeDefinitions(editor))
+	const nodeDefs = Object.values(getNodeDefinitions(editor)).filter((d) => !d.hidden)
 
 	return (
 		<DefaultToolbar>

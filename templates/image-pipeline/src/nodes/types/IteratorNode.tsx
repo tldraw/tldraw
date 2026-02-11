@@ -39,6 +39,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 	static validator = IteratorNode
 	title = 'Iterator'
 	heading = 'Iterator'
+	hidden = true as const
 	icon = (<IteratorIcon />)
 	category = 'utility'
 	resultKeys = ['lastResultUrl', 'completedCount', 'totalCount'] as const

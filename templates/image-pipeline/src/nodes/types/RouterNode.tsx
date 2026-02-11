@@ -29,6 +29,7 @@ export class RouterNodeDefinition extends NodeDefinition<RouterNode> {
 	static validator = RouterNode
 	title = 'Router'
 	heading = 'Router'
+	hidden = true as const
 	icon = (<RouterIcon />)
 	category = 'utility'
 	getDefault(): RouterNode {
