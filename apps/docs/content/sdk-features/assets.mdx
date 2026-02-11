@@ -298,6 +298,18 @@ Asset records use the migration system to evolve their schema. Each asset type h
 
 Validators ensure asset data matches the expected structure at runtime. The [assetValidator](?) uses a discriminated union on the `type` field. If you're creating custom asset types, create validators following the same pattern and add migration sequences to handle schema changes.
 
+## Security
+
+### SVG sanitization
+
+SVG files can contain embedded scripts, event handlers, and other potentially dangerous content. When SVGs are pasted, dropped, or inserted as external content, tldraw sanitizes them before they reach the store. The built-in sanitizer strips disallowed elements and attributes, removes `javascript:` and `data:` URIs, and returns clean SVG markup. If the sanitizer removes everything, the file is rejected.
+
+This happens automatically through the default external content handlers—you don't need to configure anything.
+
+### Hosting assets on a separate domain
+
+Even with SVG sanitization in place, we recommend serving user-uploaded assets from a completely separate domain (e.g. `example-assets.com` rather than a subdomain like `assets.example.com`). This provides an extra layer of protection: if a malicious file somehow bypasses sanitization, browser same-origin policies prevent it from accessing cookies, storage, or APIs on your main domain.
+
 ## Related examples
 
 - [Hosted images](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/hosted-images) - Implement a TLAssetStore that uploads images to a server

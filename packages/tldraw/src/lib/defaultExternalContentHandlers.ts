@@ -147,8 +147,10 @@ export async function defaultHandleExternalFileAsset(
 	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
-	const assetInfo = await getAssetInfo(file, options, assetId)
-	const result = await editor.uploadAsset(assetInfo, file)
+	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
+	const assetInfo = await getAssetInfo(sanitizedFile, options, assetId)
+	const result = await editor.uploadAsset(assetInfo, sanitizedFile)
 	assetInfo.props.src = result.src
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
@@ -164,14 +166,16 @@ export async function defaultHandleExternalFileReplaceContent(
 	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
+	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
 	const shape = editor.getShape(shapeId)
 	if (!shape) assert(false, 'Shape not found')
 
-	const hash = getHashForBuffer(await file.arrayBuffer())
+	const hash = getHashForBuffer(await sanitizedFile.arrayBuffer())
 	const assetId = AssetRecordType.createId(hash)
-	editor.createTemporaryAssetPreview(assetId, file)
+	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
 	const assetInfoPartial = await getMediaAssetInfoPartial(
-		file,
+		sanitizedFile,
 		assetId,
 		isImage /* isImage */,
 		!isImage /* isVideo */
@@ -235,7 +239,7 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	const asset = (await editor.getAssetForExternalContent({
 		type: 'file',
-		file,
+		file: sanitizedFile,
 		assetId,
 	})) as TLAsset
 
@@ -305,6 +309,12 @@ export async function defaultHandleExternalSvgTextContent(
 	editor: Editor,
 	{ point, text }: { point?: VecLike; text: string }
 ) {
+	const { defaultSanitizeSvg } = await import('./utils/svg/sanitizeSvg')
+	text = defaultSanitizeSvg(text)
+	if (!text.includes('<svg')) {
+		throw new Error('SVG was fully sanitized — it contained no safe content')
+	}
+
 	const position =
 		point ??
 		(editor.inputs.getShiftKey()
@@ -402,12 +412,14 @@ export async function defaultHandleExternalFileContent(
 		const isSuccess = notifyIfFileNotAllowed(file, options)
 		if (!isSuccess) continue
 
-		const assetInfo = await getAssetInfo(file, options)
-		if (acceptedImageMimeTypes.includes(file.type)) {
-			editor.createTemporaryAssetPreview(assetInfo.id, file)
+		const sanitizedFile = await maybeSanitizeSvgFile(file)
+		if (!sanitizedFile) continue
+		const assetInfo = await getAssetInfo(sanitizedFile, options)
+		if (acceptedImageMimeTypes.includes(sanitizedFile.type)) {
+			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
 		}
 		assetPartials.push(assetInfo)
-		assetsToUpdate.push({ asset: assetInfo, file })
+		assetsToUpdate.push({ asset: assetInfo, file: sanitizedFile })
 	}
 
 	Promise.allSettled(
@@ -845,6 +857,15 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
+	if (file.type !== 'image/svg+xml') return file
+	const text = await file.text()
+	const { defaultSanitizeSvg } = await import('./utils/svg/sanitizeSvg')
+	const sanitized = defaultSanitizeSvg(text)
+	if (!sanitized.includes('<svg')) return null
+	return new File([sanitized], file.name, { type: file.type, lastModified: file.lastModified })
 }
 
 /**
