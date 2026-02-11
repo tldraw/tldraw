@@ -7,12 +7,14 @@
 html[data-theme='dark'],
 html[data-theme='dark'] body,
 html[data-theme='dark'] #root {
-	background-color: hsl(210, 5%, 6.5%);
+	/* this is the same as --tl-color-background, if you ever update that, update this too */
+	background-color: hsl(240, 5%, 6.5%);
 	color-scheme: dark;
 }
 html[data-theme='light'],
 html[data-theme='light'] body,
 html[data-theme='light'] #root {
+	/* this is the same as --tl-color-background, if you ever update that, update this too */
 	background-color: hsl(210, 20%, 98%);
 	color-scheme: light;
 }
@@ -24,7 +26,7 @@ html[data-theme='light'] #root {
 	html:not([data-theme='light']),
 	html:not([data-theme='light']) body,
 	html:not([data-theme='light']) #root {
-		background-color: hsl(210, 5%, 6.5%);
+		background-color: hsl(240, 5%, 6.5%);
 		color-scheme: dark;
 	}
 }
