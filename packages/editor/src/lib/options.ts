@@ -148,6 +148,13 @@ export interface TldrawOptions {
 	 * ```
 	 */
 	readonly deepLinks: true | TLDeepLinkOptions | undefined
+	/**
+	 * Whether the quick-zoom brush preserves its screen-pixel size when the user
+	 * zooms the overview. When true, zooming in shrinks the target viewport (higher
+	 * return zoom); zooming out expands it. When false, the brush keeps the original
+	 * viewport's page dimensions regardless of overview zoom changes.
+	 */
+	readonly quickZoomPreservesScreenBounds: boolean
 }
 
 /** @public */
@@ -209,4 +216,5 @@ export const defaultTldrawOptions = {
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 	deepLinks: undefined,
+	quickZoomPreservesScreenBounds: true,
 } as const satisfies TldrawOptions

@@ -153,7 +153,13 @@ import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndex
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLEditStartInfo, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import {
+	ShapeUtil,
+	TLEditStartInfo,
+	TLGeometryOpts,
+	TLResizeMode,
+	TLShapeUtilCanBindOpts,
+} from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -6267,7 +6273,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
 		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindOpts = { fromShapeType, toShapeType, bindingType } as const
+		const canBindOpts: TLShapeUtilCanBindOpts = {
+			fromShape: typeof fromShape === 'string' ? { type: fromShape } : fromShape,
+			toShape: typeof toShape === 'string' ? { type: toShape } : toShape,
+			bindingType,
+			fromShapeType,
+			toShapeType,
+		}
 
 		if (fromShapeType === toShapeType) {
 			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)
@@ -7860,6 +7872,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialShape: options.initialShape,
 			initialBounds: options.initialBounds,
 			isAspectRatioLocked: options.isAspectRatioLocked,
+			initialPageTransform: options.initialPageTransform,
 		})
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation

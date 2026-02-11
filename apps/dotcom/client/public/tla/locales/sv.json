@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
   },
-  "0ab1ef22a3": {
-    "translation": "Prata med gruppen…"
-  },
   "0b27918290": {
     "translation": "Fil"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Publicera"
-  },
-  "11a755d598": {
-    "translation": "Stopp"
   },
   "129b9e34ea": {
     "translation": "Lämna gruppen"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Om tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Modell:"
-  },
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Redigeringsverktyg"
-  },
-  "34e34c43ec": {
-    "translation": "Hantera"
-  },
-  "3596c1b1f7": {
-    "translation": "Sluta följa"
-  },
-  "3903aab323": {
-    "translation": "Följa"
-  },
-  "3b6c2b4caa": {
-    "translation": "Användarvillkor"
   },
   "3bc7d6ea2f": {
     "translation": "Fortsätt med e-post"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Namn"
   },
-  "4c41e0bd95": {
-    "translation": "Markera alla"
-  },
   "4d0d3ddec9": {
     "translation": "Den här webbplatsen använder cookies för att appen ska fungera och för att samla in analyser."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Radera grupp…"
-  },
-  "4dab36ac83": {
-    "translation": "Fler alternativ"
   },
   "4e6fbf032b": {
     "translation": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Sekretesspolicy"
   },
-  "5a2ccdc00a": {
-    "translation": "Det gick inte att lösa in inbjudningskoden"
-  },
   "5a86b22fa0": {
     "translation": "Dra filer hit, <create>skapa en fil</create> eller <invite>kopiera inbjudningslänken</invite> för att komma igång."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Senare"
   },
-  "61daf2e53d": {
-    "translation": "Prata med {name}…"
-  },
   "625fd29749": {
     "translation": "Äldre"
   },
   "639bae9ac6": {
     "translation": "du"
-  },
-  "6602bbeb29": {
-    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Något gick fel"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Ange din e-postadress"
-  },
-  "68d390535e": {
-    "translation": "Ange ditt meddelande"
   },
   "6a26f54883": {
     "translation": "Hjälp"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta! Fyll i det här formuläret så återkommer vi via e-post om det behövs. Du kan också <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Rensa alla"
-  },
-  "83218ac34c": {
-    "translation": "Välkomna"
-  },
   "85a082de1b": {
     "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Byt namn på filen"
   },
-  "8726ef8909": {
-    "translation": "Hård återställning"
-  },
   "8ad4303b83": {
     "translation": "Nej tack"
   },
   "8c2d3d730c": {
     "translation": "Kontrollera din e-post för en verifieringskod."
   },
-  "8cf04a9734": {
-    "translation": "Hem"
-  },
   "8eb2c00e96": {
     "translation": "Delas med dig"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Om"
   },
   "8ff3d0a705": {
     "translation": "Begränsad hastighet"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Kopierad inbjudningslänk"
   },
-  "94186070ef": {
-    "translation": "Välja bort"
-  },
   "9489b2f82a": {
     "translation": "Du är redan medlem i den här gruppen"
-  },
-  "94966d9074": {
-    "translation": "Skicka"
   },
   "95aacd4d4a": {
     "translation": "Logga in med Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Ljus"
-  },
-  "9953e9946b": {
-    "translation": "Felsökningsvy"
   },
   "9b33f5c63c": {
     "translation": "Fick du ingen kod? <resend>Skicka igen</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Exportera bild"
   },
-  "a286d9991c": {
-    "translation": "Ansluta sig till"
-  },
   "a3debabee7": {
     "translation": "Cookiepolicy"
   },
   "a4d3b161ce": {
     "translation": "Överlämna"
-  },
-  "a603905470": {
-    "translation": "Felsök"
   },
   "a6cc403d56": {
     "translation": "Alla som har länken"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Filen blir stor"
-  },
-  "a917baaf14": {
-    "translation": "Ny chatt"
   },
   "a9ded1e5ce": {
     "translation": "Bakgrund"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Filen är full"
-  },
-  "b34a671e2c": {
-    "translation": "Loggsvarstid"
   },
   "b357b524e7": {
     "translation": "E-postadress"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Det gick inte att publicera filen."
   },
-  "c3bf447eab": {
-    "translation": "Öppna"
-  },
-  "c3eb5c3b90": {
-    "translation": "Jag förstår"
-  },
   "c4b39a1cc3": {
     "translation": "Viktiga cookies"
   },
-  "c54a624f46": {
-    "translation": "Acceptera inbjudan"
-  },
   "c6155aaecc": {
     "translation": "Gruppnamn"
-  },
-  "c64518704c": {
-    "translation": "Användande"
   },
   "c655b27b1e": {
     "translation": "i18n: Lång sträng"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Endast inbjudan"
   },
-  "dc30bc0c79": {
-    "translation": "Rensa"
-  },
   "dcdaa754fe": {
     "translation": "Ogiltig URL för tldraw-fil"
   },
   "dfdb78a4e4": {
     "translation": "Appfelsökningsflaggor"
-  },
-  "e062622261": {
-    "translation": "Välja"
   },
   "e0c88179b3": {
     "translation": "Bjud in medlemmar"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Användarvillkor"
-  },
-  "e43ec38a93": {
-    "translation": "Gå till"
   },
   "e81c4e4f2b": {
     "translation": "eller"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Läs vår <a>cookiepolicy</a> för att lära dig mer."
   },
-  "eee6f05922": {
-    "translation": "Upplösa"
-  },
   "ef53538ae4": {
     "translation": "Medlemmar"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Användarinställningar"
-  },
-  "f1206f9fad": {
-    "translation": "Konfigurera"
   },
   "f2569594b2": {
     "translation": "Vi använder dessa cookies för att spara dina filer och inställningar."

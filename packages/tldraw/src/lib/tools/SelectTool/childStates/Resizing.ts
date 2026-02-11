@@ -95,6 +95,7 @@ export class Resizing extends StateNode {
 
 	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
+		if (!editor.inputs.getIsDragging() || editor.inputs.getIsPanning()) return
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 

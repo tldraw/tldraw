@@ -51,12 +51,6 @@
       "value": "Tento soubor dosáhl limitu velikosti a změny se již nemusí uložit. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Promluvte si se skupinou…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Publikovat"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Zastávka"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "O tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Spravovat"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Přestat sledovat"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Následovat"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Podmínky služby"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Jméno"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Vybrat vše"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Smazat skupinu…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Více možností"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Zásady ochrany osobních údajů"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Uplatnění pozvánkového kódu se nezdařilo"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Později"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Promluvte si s "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "Vy"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Průvodce"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Zadejte svou e-mailovou adresu"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Zadejte svou zprávu"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Vymazat vše"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Vítejte"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Přejmenovat soubor"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Tvrdý reset"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Domov"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Sdíleno s vámi"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "O"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Zkopírován odkaz na pozvánku"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Zrušit výběr"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Již jste členem této skupiny"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Poslat"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Světlo"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Zobrazení ladění"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Export obrázku"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Připojit se"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Předložit"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Ladit"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Soubor se zvětšuje"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Nový chat"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Soubor je plný"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Doba odezvy protokolu"
     }
   ],
   "b357b524e7": [
@@ -1199,40 +1041,16 @@
       "value": "Soubor nelze publikovat."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "OTEVŘENO"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Rozumím"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Základní soubory cookie"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Přijmout pozvání"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Název skupiny"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Používání"
     }
   ],
   "c655b27b1e": [
@@ -1377,12 +1195,6 @@
       "value": "Pouze na pozvání"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Jasný"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1393,12 +1205,6 @@
     {
       "type": 0,
       "value": "Příznaky ladění aplikace"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Vybrat"
     }
   ],
   "e0c88179b3": [
@@ -1429,12 +1235,6 @@
     {
       "type": 0,
       "value": "Podmínky služby"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Jdi na"
     }
   ],
   "e81c4e4f2b": [
@@ -1505,12 +1305,6 @@
       "value": " a dozvíte se více."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Rozpustit"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1533,12 +1327,6 @@
     {
       "type": 0,
       "value": "Uživatelská nastavení"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Konfigurovat"
     }
   ],
   "f2569594b2": [

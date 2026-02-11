@@ -90,6 +90,7 @@
 	"action.save-copy": "บันทึกสำเนา",
 	"action.select-all": "เลือกทั้งหมด",
 	"action.select-none": "ไม่เลือกทั้งหมด",
+	"action.select-zoom-tool": "ขยาย",
 	"action.send-backward": "ย้ายไปข้างหลัง",
 	"action.send-to-back": "ย้ายไปด้านหลังสุด",
 	"action.share-project": "แบ่งปันโครงการนี้",

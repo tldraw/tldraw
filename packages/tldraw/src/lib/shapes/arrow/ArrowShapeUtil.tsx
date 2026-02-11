@@ -129,9 +129,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override canEdit() {
 		return true
 	}
-	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
+	override canBind({ toShape }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
 		// bindings can go from arrows to shapes, but not from shapes to arrows
-		return toShapeType !== 'arrow'
+		return toShape.type !== 'arrow'
 	}
 	override canSnap() {
 		return false

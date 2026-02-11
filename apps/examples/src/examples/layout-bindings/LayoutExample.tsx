@@ -12,6 +12,7 @@ import {
 	T,
 	TLBinding,
 	TLShape,
+	TLShapeUtilCanBindOpts,
 	Tldraw,
 	Vec,
 	clamp,
@@ -48,16 +49,10 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 		}
 	}
 
-	override canBind({
-		fromShapeType,
-		toShapeType,
-		bindingType,
-	}: {
-		fromShapeType: string
-		toShapeType: string
-		bindingType: string
-	}) {
-		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === LAYOUT_TYPE
+	override canBind({ fromShape, toShape, bindingType }: TLShapeUtilCanBindOpts<ContainerShape>) {
+		return (
+			fromShape.type === 'container' && toShape.type === 'element' && bindingType === LAYOUT_TYPE
+		)
 	}
 	override canEdit() {
 		return false
@@ -113,16 +108,10 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		}
 	}
 
-	override canBind({
-		fromShapeType,
-		toShapeType,
-		bindingType,
-	}: {
-		fromShapeType: string
-		toShapeType: string
-		bindingType: string
-	}) {
-		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === LAYOUT_TYPE
+	override canBind({ fromShape, toShape, bindingType }: TLShapeUtilCanBindOpts<ElementShape>) {
+		return (
+			fromShape.type === 'container' && toShape.type === 'element' && bindingType === LAYOUT_TYPE
+		)
 	}
 	override canEdit() {
 		return false

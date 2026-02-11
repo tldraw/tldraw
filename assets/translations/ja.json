@@ -90,6 +90,7 @@
 	"action.save-copy": "コピーを保存",
 	"action.select-all": "すべて選択",
 	"action.select-none": "選択を解除",
+	"action.select-zoom-tool": "ズーム",
 	"action.send-backward": "ひとつ後ろに移動",
 	"action.send-to-back": "最背面に移動",
 	"action.share-project": "このプロジェクトを共有",
