@@ -65,7 +65,7 @@ async function main() {
 
 					console.error('Please fix the errors above and try again.')
 					console.error('='.repeat(80) + '\n')
-					process.exit(err.code || 1)
+					process.exit(typeof err.code === 'number' ? err.code : 1)
 				} else {
 					resolve()
 				}

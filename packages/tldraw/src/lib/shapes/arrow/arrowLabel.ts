@@ -58,6 +58,9 @@ const labelSizeCache = createComputedCache(
 	'arrow label size',
 	(editor: Editor, shape: TLArrowShape) => {
 		editor.fonts.trackFontsForShape(shape)
+		// Access styles to create reactive dependency - when styles change,
+		// this cache will invalidate even if shape props haven't changed
+		const styles = editor.getShapeStyles(shape)
 		let width = 0
 		let height = 0
 
@@ -71,7 +74,10 @@ const labelSizeCache = createComputedCache(
 
 		const bodyBounds = bodyGeom.bounds
 
-		const fontSize = getArrowLabelFontSize(shape)
+		// Use resolved labelFontSize from styles if available
+		const fontSize =
+			(styles as { labelFontSize?: number } | undefined)?.labelFontSize ??
+			getArrowLabelFontSize(shape)
 
 		// First we measure the text with no constraints
 		const { w, h } = editor.textMeasure.measureHtml(html, {
