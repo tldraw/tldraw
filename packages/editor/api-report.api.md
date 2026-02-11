@@ -726,6 +726,7 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
@@ -1279,7 +1280,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
-    // @internal
     getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
@@ -2010,9 +2010,9 @@ export class HistoryManager<R extends UnknownRecord> {
             diff: RecordsDiff<R>;
             isEmpty: boolean;
         };
-        redos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
+        redos: TLHistoryEntry<R>[];
         state: string;
-        undos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
+        undos: TLHistoryEntry<R>[];
     };
     // (undocumented)
     readonly dispose: () => void;
@@ -3533,6 +3533,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
@@ -4340,7 +4341,15 @@ export interface TLShapeUtilCanBeLaidOutOpts {
 // @public
 export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
     bindingType: string;
+    fromShape: {
+        type: TLShape['type'];
+    } | TLShape;
+    // @deprecated
     fromShapeType: TLShape['type'];
+    toShape: {
+        type: TLShape['type'];
+    } | TLShape;
+    // @deprecated
     toShapeType: TLShape['type'];
 }
 

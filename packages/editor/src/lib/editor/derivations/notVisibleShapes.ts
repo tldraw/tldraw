@@ -1,5 +1,5 @@
 import { computed, isUninitialized } from '@tldraw/state'
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
 /**
@@ -9,34 +9,56 @@ import { Editor } from '../Editor'
  * @returns Incremental derivation of non visible shapes.
  */
 export function notVisibleShapes(editor: Editor) {
+	const emptySet = new Set<TLShapeId>()
+
 	return computed<Set<TLShapeId>>('notVisibleShapes', function (prevValue) {
-		const allShapeIds = editor.getCurrentPageShapeIds()
+		const allShapes = editor.getCurrentPageShapes()
 		const viewportPageBounds = editor.getViewportPageBounds()
 		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
 
-		const nextValue = new Set<TLShapeId>()
+		let shape: TLShape | undefined
 
-		// Non-visible shapes are all shapes minus visible shapes
-		for (const id of allShapeIds) {
-			if (!visibleIds.has(id)) {
-				const shape = editor.getShape(id)
-				if (!shape) continue
-
-				const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-				if (!canCull) continue
-
-				nextValue.add(id)
+		// Fast path: if all shapes are visible, return empty set
+		if (visibleIds.size === allShapes.length) {
+			if (isUninitialized(prevValue) || prevValue.size > 0) {
+				return emptySet
 			}
+			return prevValue
 		}
 
-		if (isUninitialized(prevValue) || prevValue.size !== nextValue.size) {
+		// First run: compute from scratch
+		if (isUninitialized(prevValue)) {
+			const nextValue = new Set<TLShapeId>()
+			for (let i = 0; i < allShapes.length; i++) {
+				shape = allShapes[i]
+				if (visibleIds.has(shape.id)) continue
+				if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+				nextValue.add(shape.id)
+			}
 			return nextValue
 		}
 
-		for (const prev of prevValue) {
-			if (!nextValue.has(prev)) return nextValue
+		// Subsequent runs: single pass to collect IDs and detect changes
+		const notVisibleIds: TLShapeId[] = []
+		for (let i = 0; i < allShapes.length; i++) {
+			shape = allShapes[i]
+			if (visibleIds.has(shape.id)) continue
+			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+			notVisibleIds.push(shape.id)
 		}
 
-		return prevValue
+		// Check if the result changed
+		if (notVisibleIds.length === prevValue.size) {
+			let same = true
+			for (let i = 0; i < notVisibleIds.length; i++) {
+				if (!prevValue.has(notVisibleIds[i])) {
+					same = false
+					break
+				}
+			}
+			if (same) return prevValue
+		}
+
+		return new Set(notVisibleIds)
 	})
 }

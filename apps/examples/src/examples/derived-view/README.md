@@ -3,7 +3,8 @@ title: Derived view
 component: ./DerivedViewExample.tsx
 category: events
 priority: 6
-keywords: [basic, intro, simple, quick, start]
+keywords:
+  [computed, incremental, derivation, performance, store history, diffsince, reactive, usevalue]
 ---
 
 Derive data from the editor's document in an efficient way.

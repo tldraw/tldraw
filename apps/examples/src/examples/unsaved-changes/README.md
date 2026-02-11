@@ -2,7 +2,19 @@
 title: Unsaved changes
 component: ./UnsavedChangesExample.tsx
 category: events
-keywords: [save, unsaved, changes, document, listen, state]
+keywords:
+  [
+    save,
+    unsaved changes,
+    document changes,
+    store.listen,
+    document scope,
+    RecordsDiff,
+    squashRecordDiffs,
+    persistence,
+    dirty state,
+    getSnapshot,
+  ]
 ---
 
 Track unsaved changes and enable save functionality.

@@ -6,6 +6,7 @@ import {
 	TlaGroup,
 	TlaGroupFile,
 	TlaGroupUser,
+	TlaRow,
 	TlaUser,
 	ZEvent,
 	ZRowUpdate,
@@ -28,7 +29,7 @@ import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
 import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
-import { ReplicatedRow, ReplicatedTable } from './replicator/replicatorTypes'
+import { ReplicatedTable } from './replicator/replicatorTypes'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -37,7 +38,7 @@ type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
-	row: ReplicatedRow
+	row: TlaRow
 	table: ReplicatedTable
 	event: ZEvent
 }
@@ -170,8 +171,6 @@ function migrateStateSnapshot(snapshot: any) {
 			group: data.group,
 			group_user: data.group_user,
 			group_file: data.group_file,
-			user_fairies: [],
-			file_fairies: [],
 		} satisfies ZStoreData
 	}
 }
@@ -335,8 +334,6 @@ export class UserDataSyncer {
 			group: [],
 			group_user: [],
 			group_file: [],
-			user_fairies: [],
-			file_fairies: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}

@@ -3,7 +3,16 @@ title: Before delete shape
 component: ./BeforeDeleteShapeExample.tsx
 category: events
 priority: 4
-keywords: [handler, register, side effects, records]
+keywords:
+  [
+    side effects,
+    registerbeforedeletehandler,
+    intercept,
+    prevent deletion,
+    lifecycle,
+    hooks,
+    validation,
+  ]
 ---
 
 Register a handler to run before shapes are deleted.

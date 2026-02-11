@@ -3,7 +3,18 @@ title: Custom handle snap reference
 component: ./CustomRelativeSnappingExample.tsx
 category: shapes/tools
 priority: 2
-keywords: [handles, snapping, snap reference]
+keywords:
+  [
+    handles,
+    snapping,
+    snapReferenceHandleId,
+    angle snapping,
+    shift modifier,
+    getHandles,
+    control points,
+    vertex,
+    reference point,
+  ]
 ---
 
 An example demonstrating `snapReferenceHandleId` for control point angle snapping.

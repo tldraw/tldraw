@@ -3,7 +3,20 @@ title: External UI (using context)
 component: ./ExternalUiContextExample.tsx
 category: layout
 priority: 20
-keywords: [outside, editor, context]
+keywords:
+  [
+    custom ui,
+    toolbar,
+    buttons,
+    context,
+    createcontext,
+    usecontext,
+    onmount,
+    getcurrenttoolid,
+    setcurrenttool,
+    getstylefornextshape,
+    setstylefornextshapes,
+  ]
 ---
 
 This example shows how to control the tldraw editor from an external UI, using React context.

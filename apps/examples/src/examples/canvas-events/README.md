@@ -3,7 +3,18 @@ title: Canvas events
 component: ./CanvasEventsExample.tsx
 category: events
 priority: 1
-keywords: [cursor, pointer, mouse, click, keyboard, handler, input]
+keywords:
+  [
+    events,
+    pointer events,
+    mouse events,
+    click,
+    keyboard events,
+    canvas events,
+    event listeners,
+    oncanvasmove,
+    oncanvasclick,
+  ]
 ---
 
 Listen to events from tldraw's canvas.

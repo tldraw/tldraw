@@ -90,6 +90,7 @@
 	"action.save-copy": "Сохранить копию",
 	"action.select-all": "Выбрать всё",
 	"action.select-none": "Снять выделение",
+	"action.select-zoom-tool": "Увеличить",
 	"action.send-backward": "Переместить назад",
 	"action.send-to-back": "На задний план",
 	"action.share-project": "Поделиться этим проектом",

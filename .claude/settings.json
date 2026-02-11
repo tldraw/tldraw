@@ -1,14 +1,32 @@
 {
-	"hooks": {
-		"Stop": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write"
-					}
-				]
-			}
+	"spinnerVerbs": {
+		"mode": "replace",
+		"verbs": [
+			"panning",
+			"zooming",
+			"scrolling",
+			"drawing",
+			"erasing",
+			"creating",
+			"typing",
+			"selecting",
+			"deselecting",
+			"duplicating",
+			"nudging",
+			"resizing",
+			"rotating",
+			"flipping",
+			"stretching",
+			"aligning",
+			"distributing",
+			"stacking",
+			"packing",
+			"grouping",
+			"ungrouping",
+			"editing",
+			"cropping",
+			"styling",
+			"embedding"
 		]
 	},
 	"permissions": {
@@ -23,5 +41,18 @@
 			"mcp__Context7__resolve-library-id",
 			"mcp__Context7__get-library-docs"
 		]
-	}
+	},
+	"hooks": {
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write"
+					}
+				]
+			}
+		]
+	},
+	"enabledPlugins": {}
 }

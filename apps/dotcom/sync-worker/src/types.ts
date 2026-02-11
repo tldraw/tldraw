@@ -29,7 +29,6 @@ export interface Environment {
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
-	DISCORD_FAIRY_PURCHASE_WEBHOOK_URL?: string
 
 	MEASURE: Analytics | undefined
 
@@ -70,9 +69,6 @@ export interface Environment {
 	ANALYTICS_API_TOKEN: string | undefined
 
 	PIERRE_KEY: string | undefined
-
-	PADDLE_WEBHOOK_SECRET: string | undefined
-	PADDLE_ENVIRONMENT: 'sandbox' | 'production' | undefined
 
 	RATE_LIMITER: RateLimit
 

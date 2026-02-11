@@ -51,12 +51,6 @@
       "value": "Tiedosto on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Puhu ryhmälle…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -69,12 +63,6 @@
       "value": "Tiedosto-valikko"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Keijut"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -85,12 +73,6 @@
     {
       "type": 0,
       "value": "Julkaista"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -147,18 +129,6 @@
       "value": "Tänään"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Viikoittainen keijujen käyttökiintiösi on saavutettu. Se nollautuu ensi viikon alussa."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Nukkua"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,24 +139,6 @@
     {
       "type": 0,
       "value": "Tietoja tldraw'sta"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Keijut odottavat"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Kutsu kaikki"
-    }
-  ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Malli:"
     }
   ],
   "299cb00a7a": [
@@ -201,26 +153,6 @@
       "value": "Omat tiedostoni"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Parvi "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "keijuja"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " on saapunut arpomaan joulukuuta. Jos haluat tutkia asiaa tarkemmin, etsi keiju ja napsauta sitä."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +163,6 @@
     {
       "type": 0,
       "value": "i18n: Korosta puuttuu"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "kolme keijua"
     }
   ],
   "32210b37e4": [
@@ -261,36 +187,6 @@
     {
       "type": 0,
       "value": "Toimittaja"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Nuku kaikki"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Hallitse"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Lopeta seuraaminen"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Seuraa"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Palveluehdot"
     }
   ],
   "3bc7d6ea2f": [
@@ -329,32 +225,10 @@
       "value": "Hanki apua Discordissa"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Keijut"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " ovat tulleet piirtämään joulukuun viettoon."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Kiitos, että autat meitä parantamaan tldraw:ta!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Ei valittuja keijuja"
     }
   ],
   "477df802ca": [
@@ -393,12 +267,6 @@
       "value": "Nimi"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Valitse kaikki"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -415,12 +283,6 @@
     {
       "type": 0,
       "value": "Poista ryhmä…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Lisää vaihtoehtoja"
     }
   ],
   "4e6fbf032b": [
@@ -485,12 +347,6 @@
     {
       "type": 0,
       "value": "Tietosuojakäytäntö"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Kutsukoodin lunastus epäonnistui"
     }
   ],
   "5a86b22fa0": [
@@ -575,20 +431,6 @@
       "value": "Myöhemmin"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Puhu käyttäjälle "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -599,12 +441,6 @@
     {
       "type": 0,
       "value": "sinä"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Opas"
     }
   ],
   "6609dd239e": [
@@ -623,24 +459,6 @@
     {
       "type": 0,
       "value": "Anna sähköpostiosoitteesi"
-    }
-  ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Herätä"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Kirjoita viestisi"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Keijun nimi"
     }
   ],
   "6a26f54883": [
@@ -733,22 +551,6 @@
       "value": "Virheellinen pyyntö."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Sinut on kutsuttu "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw-keijuihin"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +567,6 @@
     {
       "type": 0,
       "value": "Lähetä ongelma GitHubissa"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Keiju on pieni hahmo, joka voi työskennellä kanssasi kankaalla. Keijut voivat työskennellä yksin tai tiiminä. Keijun kyvyillä ei ole rajoja. Kukaan ei tiedä, mistä he ovat kotoisin."
     }
   ],
   "7b1329f5ca": [
@@ -855,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Tyhjennä kaikki"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Tervetuloa"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -893,28 +677,10 @@
       "value": "Nimeä tiedosto uudelleen"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Pakkolunastus"
-    }
-  ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Osta keijupaketti"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Ei kiitos"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "kertaluonteinen maksu"
     }
   ],
   "8c2d3d730c": [
@@ -923,22 +689,10 @@
       "value": "Tarkista sähköpostistasi vahvistuskoodi."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Kotiin"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Jaettu kanssasi"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Noin"
     }
   ],
   "8ff3d0a705": [
@@ -971,22 +725,10 @@
       "value": "Kutsulinkki kopioitu"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Poista valinta"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Olet jo tämän ryhmän jäsen"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Lähetä"
     }
   ],
   "95aacd4d4a": [
@@ -1023,12 +765,6 @@
     {
       "type": 0,
       "value": "Kevyt"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Virheenkorjausnäkymä"
     }
   ],
   "9b33f5c63c": [
@@ -1105,12 +841,6 @@
       "value": "Vie kuva"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Liity"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1121,12 +851,6 @@
     {
       "type": 0,
       "value": "Lähetä"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Virheenjäljitys"
     }
   ],
   "a6cc403d56": [
@@ -1145,18 +869,6 @@
     {
       "type": 0,
       "value": "Tiedosto kasvaa suureksi"
-    }
-  ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Viikoittainen keijuraja saavutettu"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Uusi keskustelu"
     }
   ],
   "a9ded1e5ce": [
@@ -1193,12 +905,6 @@
     {
       "type": 0,
       "value": "Tiedosto on täynnä"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Lokin vasteaika"
     }
   ],
   "b357b524e7": [
@@ -1295,12 +1001,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoomaa keijuun"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1333,40 +1033,16 @@
       "value": "Tiedostoa ei voi julkaista."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Avata"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Ymmärrän"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Välttämättömät evästeet"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Hyväksy kutsu"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Ryhmän nimi"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Käyttö"
     }
   ],
   "c655b27b1e": [
@@ -1415,12 +1091,6 @@
     {
       "type": 0,
       "value": "Tämä tiedosto lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
-    }
-  ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Sinulla on jo keijujen käyttöoikeus!"
     }
   ],
   "cea291e45e": [
@@ -1517,48 +1187,16 @@
       "value": "Vain kutsu"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Tyhjennä"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Virheellinen tldraw-tiedoston URL-osoite"
     }
   ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Keijut ovat "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "väliaikainen"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " ominaisuus. Kaikki keijut poistetaan sovelluksesta 1. tammikuuta 2026. Ehkä ne palaavat jonain päivänä. Ostoksesi oikeuttaa keijujen käyttöoikeuteen vain joulukuussa 2025."
-    }
-  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Sovelluksen virheenkorjausliput"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Valitse"
     }
   ],
   "e0c88179b3": [
@@ -1589,12 +1227,6 @@
     {
       "type": 0,
       "value": "Palveluehdot"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Siirry osoitteeseen"
     }
   ],
   "e81c4e4f2b": [
@@ -1665,12 +1297,6 @@
       "value": "."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Hajoaminen"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1683,12 +1309,6 @@
       "value": "valittu"
     }
   ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Kutsu"
-    }
-  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1699,12 +1319,6 @@
     {
       "type": 0,
       "value": "Käyttäjäasetukset"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Määritä"
     }
   ],
   "f2569594b2": [

@@ -1,7 +1,7 @@
 import { useComputed, useQuickReactor } from '@tldraw/state-react'
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { dedupe, isEqual } from '@tldraw/utils'
+import { dedupe } from '@tldraw/utils'
 import { memo, useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
@@ -12,6 +12,50 @@ import { useActivePeerIds$ } from '../../hooks/usePeerIds'
 interface CollaboratorIndicatorData {
 	color: string
 	shapeIds: TLShapeId[]
+}
+
+interface RenderData {
+	idsToDisplay: Set<TLShapeId>
+	renderingShapeIds: Set<TLShapeId>
+	hintingShapeIds: TLShapeId[]
+	collaboratorIndicators: CollaboratorIndicatorData[]
+}
+
+function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+	if (a.size !== b.size) return false
+	for (const item of a) {
+		if (!b.has(item)) return false
+	}
+	return true
+}
+
+function arraysEqual<T>(a: readonly T[], b: readonly T[]): boolean {
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+	return true
+}
+
+function collaboratorIndicatorsEqual(
+	a: CollaboratorIndicatorData[],
+	b: CollaboratorIndicatorData[]
+): boolean {
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i].color !== b[i].color) return false
+		if (!arraysEqual(a[i].shapeIds, b[i].shapeIds)) return false
+	}
+	return true
+}
+
+function renderDataEqual(a: RenderData, b: RenderData): boolean {
+	return (
+		setsEqual(a.idsToDisplay, b.idsToDisplay) &&
+		setsEqual(a.renderingShapeIds, b.renderingShapeIds) &&
+		arraysEqual(a.hintingShapeIds, b.hintingShapeIds) &&
+		collaboratorIndicatorsEqual(a.collaboratorIndicators, b.collaboratorIndicators)
+	)
 }
 
 const indicatorPathCache = createComputedCache(
@@ -162,7 +206,7 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 				collaboratorIndicators,
 			}
 		},
-		{ isEqual: isEqual },
+		{ isEqual: renderDataEqual },
 		[editor, activePeerIds$]
 	)
 

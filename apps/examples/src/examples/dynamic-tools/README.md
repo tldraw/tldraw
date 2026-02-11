@@ -3,7 +3,8 @@ title: Dynamic tools with setTool and removeTool
 component: ./DynamicToolsExample.tsx
 category: editor-api
 priority: 2
-keywords: [setTool, removeTool, dynamic, tools, state chart, toolbar]
+keywords:
+  [settool, removetool, dynamic tools, runtime, conditional, permissions, feature flags, toolbar]
 ---
 
 Dynamically add and remove tools from the editor and toolbar after initialization.

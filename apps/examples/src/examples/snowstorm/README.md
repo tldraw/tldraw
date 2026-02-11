@@ -2,7 +2,7 @@
 title: Snowstorm
 component: ./SnowStormExample.tsx
 category: use-cases
-keywords: [snowstorm, front]
+keywords: [overlay, visual effects, animation, css, children, layering, infrontofthecanvas]
 priority: 10
 ---
 

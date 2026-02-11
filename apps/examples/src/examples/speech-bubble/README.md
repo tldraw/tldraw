@@ -3,7 +3,8 @@ title: Custom shape with handles
 component: ./CustomShapeWithHandles.tsx
 category: shapes/tools
 priority: 2
-keywords: [handles, handle, geometry, interaction, text label]
+keywords:
+  [handles, custom handles, gethandles, onhandledrag, interaction, geometry, tail, shapeutil, tool]
 ---
 
 A speech bubble shape with custom handles.

@@ -1,0 +1,47 @@
+{
+	"name": "tldraw-image-pipeline",
+	"private": true,
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"type": "module",
+	"tldraw_template": {
+		"repo": "tldraw/image-pipeline-template",
+		"cli": {
+			"name": "Image pipeline",
+			"description": "Create a node-based builder for image generation pipelines.",
+			"shortDescription": "Visual node-based builder for image pipelines.",
+			"order": 6
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"classnames": "^2.5.1",
+		"itty-router": "^5.0.18",
+		"radix-ui": "^1.4.2",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.13.2",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
+		"wrangler": "^4.37.1"
+	}
+}

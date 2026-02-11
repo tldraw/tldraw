@@ -1,7 +1,7 @@
 [
 	{
 		"id": "getting-started",
-		"title": "Get Started",
+		"title": "Introduction",
 		"description": "Introduction articles for tldraw.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
@@ -24,6 +24,13 @@
 		"id": "starter-kits",
 		"title": "Starter Kits",
 		"description": "Ready-to-use templates to jumpstart your tldraw projects.",
+		"categories": [],
+		"sidebar_behavior": "show-links"
+	},
+	{
+		"id": "sdk-features",
+		"title": "SDK features",
+		"description": "Detailed guides to tldraw's features and capabilities.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
 	},

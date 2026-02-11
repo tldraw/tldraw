@@ -1,0 +1,151 @@
+---
+title: Shape transforms
+created_at: 12/20/2025
+updated_at: 12/20/2025
+keywords:
+  - transform
+  - align
+  - distribute
+  - group
+  - flip
+  - rotate
+  - stack
+  - pack
+status: published
+date: 12/20/2025
+readability: 7
+voice: 6
+completeness: 8
+accuracy: 10
+notes: "Opening paragraph overly dense - break into shorter sentences. Voice issues: formulaic phrases ('These operations fall into two categories', 'particularly useful for'), passive 'is called' in rotation section."
+---
+
+The shape transform system provides operations for manipulating multiple shapes together as a unified group. These operations include grouping and ungrouping shapes into hierarchical containers, aligning shapes to common edges or centers, distributing shapes with even spacing, stacking shapes with consistent gaps, packing shapes into compact grid arrangements, flipping shapes along horizontal or vertical axes, and rotating shapes around a common pivot point.
+
+All transform operations respect the editor's parent-child coordinate system and work seamlessly with shapes that have different parents or rotations. Shapes connected by arrow bindings automatically move together as clusters, preserving diagram relationships during transforms.
+
+## Transform operations
+
+The editor provides seven primary transform operations, each accessible through a dedicated method on the Editor class. These methods accept either shape IDs or shape objects and typically operate on the current selection. The operations fall into two categories: structural transforms (grouping) that change the shape hierarchy, and spatial transforms (alignment, distribution, stacking, packing, flipping, rotation) that reposition shapes without changing their parent relationships.
+
+### Grouping and ungrouping
+
+Grouping creates a new group shape that serves as a parent container for the selected shapes. The editor calculates a common ancestor for all shapes being grouped and creates the group at the appropriate position in the hierarchy. When shapes are grouped, they are reparented to the new group container, maintaining their visual positions on the page while changing their coordinate space to be relative to the group.
+
+```typescript
+editor.groupShapes([shape1, shape2, shape3])
+editor.ungroupShapes([groupShape])
+```
+
+Ungrouping reverses this process by moving the group's children back to the group's parent and removing the group shape itself. The shapes maintain their page positions but return to using their original parent's coordinate space.
+
+### Alignment
+
+Alignment moves shapes so they share a common edge or center line. The editor supports six alignment operations: left, right, top, bottom, center-horizontal, and center-vertical. When aligning shapes, the editor first calculates the common bounding box of all selected shapes, then moves each shape to align with the appropriate edge or center of that common box.
+
+```typescript
+editor.alignShapes(editor.getSelectedShapeIds(), 'left')
+editor.alignShapes([box1, box2], 'center-vertical')
+```
+
+Shapes connected by arrow bindings move together as a cluster during alignment. This ensures that if shape A is bound to shape B by an arrow, and you align shape A with shape C, then shape B will move along with shape A to maintain the arrow relationship.
+
+### Distribution
+
+Distribution spaces shapes evenly between the outermost shapes in a selection. The editor identifies the first and last shapes based on their positions, then calculates the gap needed to distribute the remaining shapes evenly in the space between them. This can create negative gaps if shapes overlap.
+
+```typescript
+editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
+editor.distributeShapes([box1, box2, box3], 'vertical')
+```
+
+Distribution requires at least three shape clusters. Like alignment, shapes connected by arrows form clusters that move together, so the actual number of moveable units may be less than the number of selected shapes.
+
+### Stacking
+
+Stacking arranges shapes in a sequence with consistent gaps between them. Unlike distribution, which spaces shapes within a fixed range, stacking positions each shape relative to the previous one with a specified gap. The gap can be explicitly provided or calculated automatically by detecting existing patterns in the current spacing.
+
+```typescript
+editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal', 16)
+editor.stackShapes([box1, box2, box3], 'vertical')
+```
+
+When no gap is specified and automatic gap detection is used, the editor analyzes the current spacing between shapes to find the most common gap or calculates an average if no pattern exists.
+
+### Packing
+
+Packing arranges shapes into a compact grid layout using a bin-packing algorithm based on potpack. The editor groups shapes by their parent containers, then arranges each group into an efficient rectangular grid. The packed arrangement is centered on the shapes' original center point, minimizing the distance shapes need to move.
+
+```typescript
+editor.packShapes(editor.getSelectedShapeIds(), 8)
+editor.packShapes([box1, box2, box3, box4])
+```
+
+Packing is particularly useful for cleaning up scattered shapes or creating organized layouts from randomly positioned elements. The gap parameter controls the padding between packed shapes.
+
+### Flipping
+
+Flipping mirrors shapes along either the horizontal or vertical axis. The operation uses the center point of all selected shapes' common bounding box as the flip origin. Shapes are scaled by -1 on the appropriate axis, which inverts their position and visual appearance while maintaining their size.
+
+```typescript
+editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+editor.flipShapes([box1, box2], 'vertical')
+```
+
+When flipping groups, the editor automatically includes all children of the group to ensure the entire hierarchy is flipped together. Some shapes may opt out of flipping by returning false from their ShapeUtil's canBeLaidOut method.
+
+### Rotation
+
+Rotation spins shapes around a common center point. The editor calculates the collective center of all selected shapes, then rotates each shape both around that center point and around its own center. This produces the expected result where shapes orbit the selection center while also rotating individually.
+
+```typescript
+editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
+```
+
+The rotation system maintains a snapshot of the initial shape positions and rotations, allowing for smooth incremental updates during drag operations. Shape utilities can respond to rotation events through the onRotateStart, onRotate, and onRotateEnd methods.
+
+## Parent coordinate transforms
+
+All transform operations handle parent coordinate spaces correctly. When a shape has a rotated parent, the editor converts page-space movement deltas back into the parent's local coordinate space before updating the shape's position. This ensures that moving a child shape always produces the correct visual result regardless of parent rotation or nesting depth.
+
+The conversion process uses the parent's page transform matrix to inverse-rotate the delta vector. For example, if a parent is rotated 45 degrees and you want to move a child 10 pixels to the right in page space, the editor calculates what movement in the parent's coordinate space would produce that page-space result.
+
+```typescript
+const parent = editor.getShapeParent(shape) // [1]
+if (parent) {
+	const parentTransform = editor.getShapePageTransform(parent) // [2]
+	if (parentTransform) shapeDelta.rot(-parentTransform.rotation()) // [3]
+}
+```
+
+1. Get the shape's parent to check if coordinate conversion is needed
+2. Retrieve the parent's full page transform matrix (position, rotation, scale)
+3. Rotate the movement delta by the negative of the parent's rotation to convert from page space to parent space
+
+This parent transform handling is critical for operations like align, distribute, and stack, which calculate movement in page space but must apply it in each shape's local space.
+
+## Shape clustering via arrow bindings
+
+Several transform operations group shapes into clusters based on arrow bindings. When shapes are connected by arrows, they form a logical unit that should move together during transforms. The editor uses a recursive algorithm to collect all shapes connected through arrow bindings, starting from each selected shape and traversing the binding graph.
+
+The clustering algorithm maintains a visited set to avoid processing shapes multiple times and only includes shapes that were part of the initial selection. This means that if A connects to B via an arrow, but only A is selected, then B will not be included in the transform unless B is also explicitly selected.
+
+Each cluster is treated as a single unit with a common bounding box. When the transform calculates movement for the cluster, it applies that movement to all shapes in the cluster, maintaining their relative positions and arrow relationships.
+
+## Shape utility integration
+
+Shape utilities can control whether their shapes participate in transforms through the canBeLaidOut method. This method receives information about the transform type and the full list of shapes being transformed, allowing the utility to make context-aware decisions.
+
+```typescript
+canBeLaidOut(shape: MyShape, info: TLShapeUtilCanBeLaidOutOpts): boolean {
+  // type is one of: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
+  return true
+}
+```
+
+For rotation operations, shape utilities can respond to rotation lifecycle events. The onRotateStart method is called when rotation begins, onRotate is called for each update, and onRotateEnd is called when rotation completes. These methods can return shape partials to modify the shape during rotation.
+
+## Related examples
+
+- **[Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/keyboard-shortcuts)** - Customize shortcuts for align, distribute, and other transform operations.
+- **[Selection UI](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/selection-ui)** - Build custom controls that can trigger transform operations on selected shapes.

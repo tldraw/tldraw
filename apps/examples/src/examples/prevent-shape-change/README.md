@@ -3,7 +3,18 @@ title: Prevent shape changes
 component: ./PreventShapeChangeExample.tsx
 category: events
 priority: 2
-keywords: [side, effect, move, prevent]
+keywords:
+  [
+    prevent transform,
+    lock shape,
+    registerbeforechangehandler,
+    side effects,
+    immutable shape,
+    disable move,
+    disable resize,
+    disable rotate,
+    shape protection,
+  ]
 ---
 
 Prevent changes to a shape's properties.
