@@ -29,6 +29,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				context: this.ctx,
 			})
 		})
+		// Upload flow for app file assets:
+		// 1. validateUpload — "file" = tldraw document record in postgres (not the asset blob).
+		//    Checks the document exists and the user has write access (owner, shared-edit link, or group member).
+		// 2. R2 upload — writes the asset blob to the R2 bucket.
+		// 3. confirmUpload — queues a message to asynchronously insert an `asset` row
+		//    linking the uploaded blob to the document.
 		.post('/:objectName', async (request) => {
 			const objectName = request.params.objectName
 			const fileId = new URL(request.url).searchParams.get('fileId')
