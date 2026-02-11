@@ -170,6 +170,7 @@ export function StylePanelFillPicker() {
 					type="icon"
 					id="fill-extra"
 					uiType="fill"
+					testIdType="fill-extra"
 					stylePanelType="fill"
 					style={DefaultFillStyle}
 					items={STYLES.fillExtra}
