@@ -8,7 +8,7 @@ status: published
 last_version: v4.3.1
 ---
 
-This release adds 2D canvas rendering for shape indicators, R-tree spatial indexing for faster queries, telestrator-style laser behavior, a preference for inverting mouse wheel zoom direction, and improved sync performance. It also includes various bug fixes for collaborator indicators, hidden shape handling, and spatial indexing.
+This release adds 2D canvas rendering for shape indicators, R-tree spatial indexing for faster queries, telestrator-style laser behavior, a preference for inverting mouse wheel zoom direction, quick zoom navigation, a new `TldrawUiSelect` component, and improved sync and panning performance. It also includes various bug fixes for collaborator indicators, hidden shape handling, Safari pinch zoom, and menu item states.
 
 ## What's new
 
@@ -65,6 +65,14 @@ New options in `TldrawOptions`:
 - `laserSessionTimeoutMs` (default: 2000ms) - Inactivity duration before the laser session ends
 - `laserMaxSessionDurationMs` (default: 60000ms) - Maximum duration for a laser session
 
+### Quick zoom navigation ([#7801](https://github.com/tldraw/tldraw/pull/7801))
+
+Press `z` to enter zoom mode, then hold Shift to zoom out to 5% for an "eagle eye" view of your entire canvas. A viewport brush appears showing where you'll zoom to. Move the cursor to pick a location, then release Shift to zoom there. Press Escape to cancel and return to your original view.
+
+### TldrawUiSelect component ([#7566](https://github.com/tldraw/tldraw/pull/7566))
+
+Added a new `TldrawUiSelect` component for building custom select dropdowns that match tldraw's UI style. The component exports `TldrawUiSelect`, `TldrawUiSelectTrigger`, `TldrawUiSelectValue`, `TldrawUiSelectContent`, and `TldrawUiSelectItem` for composing dropdowns. Also exports the `iconTypes` array for enumerating all available icon types.
+
 ## API changes
 
 - Remove `editor.spatialIndex` from public API. The spatial index is now internal; use `editor.getShapesAtPoint()` and `editor.getShapeAtPoint()` for shape queries. ([#7699](https://github.com/tldraw/tldraw/pull/7699))
@@ -73,6 +81,10 @@ New options in `TldrawOptions`:
 - Add `complete` to `TL_SCRIBBLE_STATES` enum and `ScribbleManager.complete(id)` method for marking scribbles as complete before fading. ([#7760](https://github.com/tldraw/tldraw/pull/7760))
 - Add `ScribbleManager.endLaserSession()` and `ScribbleManager.isScribbleInLaserSession()` methods for controlling laser sessions. Add `laserSessionTimeoutMs` and `laserMaxSessionDurationMs` to `TldrawOptions`. ([#7681](https://github.com/tldraw/tldraw/pull/7681))
 - Add `FpsScheduler` class to create FPS-throttled function queues with configurable target rates. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
+- Add `TLInstance.cameraState` property (`'idle' | 'moving'`) to track camera movement state. ([#7826](https://github.com/tldraw/tldraw/pull/7826))
+- Add `TldrawUiSelect`, `TldrawUiSelectTrigger`, `TldrawUiSelectValue`, `TldrawUiSelectContent`, and `TldrawUiSelectItem` components with corresponding prop types. Add `iconTypes` export. ([#7566](https://github.com/tldraw/tldraw/pull/7566))
+- Add `useCanApplySelectionAction()` hook that returns true when in the select tool with shapes selected. ([#7811](https://github.com/tldraw/tldraw/pull/7811))
+- Add `'action.select-zoom-tool'` to `TLUiTranslationKey` type. ([#7801](https://github.com/tldraw/tldraw/pull/7801))
 
 ## Improvements
 
@@ -83,6 +95,9 @@ New options in `TldrawOptions`:
 - Reduce solo-mode network traffic by using a dedicated FPS-based scheduler that throttles to 1 FPS when no collaborators are present. ([#7657](https://github.com/tldraw/tldraw/pull/7657))
 - Improve performance by separating UI and network scheduling into independent queues with configurable target FPS. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
 - Improve frame label sizing on smaller viewports and when zoomed out. ([#7746](https://github.com/tldraw/tldraw/pull/7746))
+- Improve panning performance by skipping hover hit-testing while the camera is moving. ([#7826](https://github.com/tldraw/tldraw/pull/7826))
+- Improve arrow translation performance by skipping unnecessary binding updates when arrows move together with their bound shapes. ([#7733](https://github.com/tldraw/tldraw/pull/7733))
+- Remove `core-js` polyfill dependency from `@tldraw/editor`. ([#7769](https://github.com/tldraw/tldraw/pull/7769))
 
 ## Bug fixes
 
@@ -91,3 +106,7 @@ New options in `TldrawOptions`:
 - Fix rich text content not updating correctly with message squashing due to reference comparison. ([#7758](https://github.com/tldraw/tldraw/pull/7758))
 - Fix keyboard shortcut menu item labels to use consistent ellipsis formatting. ([#7757](https://github.com/tldraw/tldraw/pull/7757))
 - Fix spatial index not removing shapes when moved to a different page. ([#7700](https://github.com/tldraw/tldraw/pull/7700))
+- Fix Safari pinch zoom resetting selection to previous shapes. ([#7777](https://github.com/tldraw/tldraw/pull/7777))
+- Fix excessive tab indentation in rich text shapes (reduced from 8 spaces to 2). ([#7796](https://github.com/tldraw/tldraw/pull/7796))
+- Fix toggle-lock action (Shift+L) firing when no shapes are selected. ([#7815](https://github.com/tldraw/tldraw/pull/7815))
+- Fix menu items (zoom to selection, cut, copy, delete) being enabled when not in the select tool. ([#7811](https://github.com/tldraw/tldraw/pull/7811))
