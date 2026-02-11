@@ -23,6 +23,7 @@ Run `yarn typecheck` from the **monorepo root**, never bare `tsc`.
 Uses Next.js App Router with a `(site)` route group that applies the shared SiteLayout (Header/Footer) to all main pages. The `/studio` route is outside this group and hosts the Sanity Studio admin interface.
 
 Key routes:
+
 - `/` - Homepage (singleton document from Sanity)
 - `/blog`, `/blog/[slug]`, `/blog/category/[category]` - Blog
 - `/features`, `/features/[slug]`, `/features/[slug]/[child]` - Feature pages (nested: group → capability)
@@ -55,6 +56,7 @@ Fallback content in `content/` (homepage.ts, careers.ts) is used when Sanity is 
 ### Styling
 
 Tailwind CSS with class-based dark mode (`next-themes`). Custom config in `tailwind.config.js`:
+
 - Brand blue: `#155DFC`
 - Fonts: Archivo (sans), Geist Mono (mono)
 - Typography plugin for prose styling
@@ -64,6 +66,7 @@ Global styles in `app/globals.css` include Shiki syntax highlighting themes and 
 ### Environment variables
 
 Create `.env.local` from `.env.example`:
+
 - `NEXT_PUBLIC_SANITY_PROJECT_ID` / `NEXT_PUBLIC_SANITY_DATASET` - Sanity project config
 - `SANITY_API_TOKEN` - API token for server-side fetching
 - `SANITY_PREVIEW_SECRET` - Draft mode authentication
