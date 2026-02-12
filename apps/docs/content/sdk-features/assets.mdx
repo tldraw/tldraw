@@ -313,7 +313,9 @@ SVG files can contain scripts, event handlers, and external resource references 
 - Preserves `<foreignObject>` content (needed for text rendering) with a separate HTML allowlist
 - Preserves `<style>` elements with `data:` font URLs (needed for embedded fonts)
 
-If you're implementing custom external content handlers, you can import the sanitizer directly:
+For stronger guarantees, we recommend using [DOMPurify](https://github.com/cure53/DOMPurify) — a battle-tested, widely-audited sanitizer. We don't bundle it to avoid imposing a ~17KB dependency, but if your app already uses it or you want the extra assurance, you can wire it into your external content handlers. Note that DOMPurify's default SVG profile strips `<foreignObject>` and `<style>` elements, which tldraw uses for text rendering and embedded fonts — you'll need to configure it to preserve those for tldraw's SVG output to round-trip correctly.
+
+If you're implementing custom external content handlers, you can also import our built-in sanitizer directly:
 
 ```typescript
 import { sanitizeSvg } from 'tldraw'
