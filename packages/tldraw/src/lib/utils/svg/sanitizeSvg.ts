@@ -1,3 +1,9 @@
+/*!
+ * SVG/attribute allowlists and URI sanitization approach derived from DOMPurify.
+ * DOMPurify — MIT License, Copyright (c) 2015 Mario Heiderich
+ * https://github.com/cure53/DOMPurify/blob/main/LICENSE
+ */
+
 // --- Allowed SVG elements (lowercase) ---
 // Includes foreignObject, style, and animation elements.
 const ALLOWED_SVG_TAGS = new Set([
