@@ -148,7 +148,7 @@ export async function defaultHandleExternalFileAsset(
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const sanitizedFile = await maybeSanitizeSvgFile(file)
-	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
+	if (!sanitizedFile) return null as never
 	const assetInfo = await getAssetInfo(sanitizedFile, options, assetId)
 	const result = await editor.uploadAsset(assetInfo, sanitizedFile)
 	assetInfo.props.src = result.src
@@ -167,7 +167,7 @@ export async function defaultHandleExternalFileReplaceContent(
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const sanitizedFile = await maybeSanitizeSvgFile(file)
-	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
+	if (!sanitizedFile) return null as never
 	const shape = editor.getShape(shapeId)
 	if (!shape) assert(false, 'Shape not found')
 

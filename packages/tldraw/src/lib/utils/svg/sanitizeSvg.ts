@@ -523,7 +523,7 @@ function sanitizeSvgAttributes(el: Element): void {
 
 		// Presentation attributes that accept url() references — sanitize to allow
 		// only data: (safe MIME) and fragment (#id) refs, strip external URLs
-		if (URL_BEARING_SVG_ATTRS.has(name) && attr.value.includes('url(')) {
+		if (URL_BEARING_SVG_ATTRS.has(name) && /url\s*\(/i.test(attr.value)) {
 			attr.value = sanitizeCssValue(attr.value)
 		}
 	}

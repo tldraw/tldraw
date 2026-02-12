@@ -379,6 +379,13 @@ describe('sanitizeSvg', () => {
 			expect(result).not.toContain('evil.com')
 		})
 
+		it('strips uppercase URL() in presentation attributes', () => {
+			const result = sanitizeSvg(
+				wrap('<rect fill="URL(https://evil.com/track)" width="10" height="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
 		it('does not throw on CSS escapes above Unicode max', () => {
 			const result = sanitizeSvg(wrap('<rect style="color: \\999999" width="10" height="10"/>'))
 			expect(result).toContain('<rect')
