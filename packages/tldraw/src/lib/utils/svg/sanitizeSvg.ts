@@ -372,6 +372,10 @@ const SAFE_LINK_PROTOCOLS = /^(?:https?:|mailto:)/i
 // data: URI (for images, fonts)
 const DATA_URI = /^data:/i
 
+// data: URI restricted to raster image formats (no svg+xml — could embed unsanitized SVG)
+const RASTER_DATA_URI =
+	/^data:image\/(?:png|jpeg|jpg|gif|webp|avif|bmp|tiff|x-icon|vnd\.microsoft\.icon)[;,]/i
+
 // Fragment-only ref (#id)
 const FRAGMENT_REF = /^#/
 
@@ -386,20 +390,23 @@ function decodeCssEscapes(css: string): string {
 
 // Allowed data: MIME types in CSS url()
 const SAFE_CSS_DATA_MIME =
-	/^data:(?:image\/(?:png|jpeg|jpg|gif|svg\+xml|webp|avif)|font\/(?:woff2?|opentype|truetype|sfnt)|application\/(?:x-font-woff|font-woff2?|x-font-ttf|x-font-opentype|font-sfnt))[;,]/i
+	/^data:(?:image\/(?:png|jpeg|jpg|gif|webp|avif)|font\/(?:woff2?|opentype|truetype|sfnt)|application\/(?:x-font-woff|font-woff2?|x-font-ttf|x-font-opentype|font-sfnt))[;,]/i
 
 function sanitizeCssValue(css: string): string {
 	let decoded = decodeCssEscapes(css)
-	// Strip @import
-	decoded = decoded.replace(/@import\b[^;]*;?/gi, '')
+	// Strip @import — handle url() with semicolons inside quotes
+	decoded = decoded.replace(
+		/@import\s+(?:url\s*\([^)]*\)|"[^"]*"|'[^']*')[^;]*;?|@import\b[^;]*;?/gi,
+		''
+	)
 	// Strip expression(), -moz-binding, behavior:
 	decoded = decoded.replace(/expression\s*\([^)]*\)/gi, '')
 	decoded = decoded.replace(/-moz-binding\s*:[^;]*/gi, '')
 	decoded = decoded.replace(/behavior\s*:[^;]*/gi, '')
 	// Sanitize url() — allow only data: with safe MIME types
-	decoded = decoded.replace(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/gi, (match, _quote, uri) => {
+	decoded = decoded.replace(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/gis, (match, _quote, uri) => {
 		const stripped = uri.replace(INVISIBLE_WHITESPACE, '')
-		if (SAFE_CSS_DATA_MIME.test(stripped)) {
+		if (SAFE_CSS_DATA_MIME.test(stripped) || FRAGMENT_REF.test(stripped)) {
 			return match
 		}
 		return ''
@@ -409,6 +416,19 @@ function sanitizeCssValue(css: string): string {
 
 function sanitizeStyleElement(textContent: string): string {
 	return sanitizeCssValue(textContent)
+}
+
+// --- Animation safety ---
+// Animation elements (<animate>, <set>) can overwrite attributes at runtime.
+// If attributeName targets a URI attr (href) or event handler (on*), the animation
+// can inject javascript: URIs or re-add stripped handlers, bypassing static sanitization.
+const ANIMATION_TAGS = new Set(['animate', 'set', 'animatecolor'])
+const DANGEROUS_ANIMATION_TARGETS = /^(?:href|xlink:href|on)/i
+
+function isAnimationDangerous(el: Element): boolean {
+	const attrName = el.getAttribute('attributeName')
+	if (!attrName) return false
+	return DANGEROUS_ANIMATION_TARGETS.test(attrName.replace(INVISIBLE_WHITESPACE, ''))
 }
 
 // --- Event handler detection ---
@@ -423,9 +443,9 @@ function sanitizeUri(el: Element, attrName: string, value: string): string | nul
 	const stripped = value.replace(INVISIBLE_WHITESPACE, '')
 	const tagName = el.tagName.toLowerCase()
 
-	// <image> and <feImage>: data: only
+	// <image> and <feImage>: raster data: only (no svg+xml — could embed unsanitized SVG)
 	if (tagName === 'image' || tagName === 'feimage') {
-		if (DATA_URI.test(stripped)) return value
+		if (RASTER_DATA_URI.test(stripped)) return value
 		return null
 	}
 
@@ -545,6 +565,9 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 				if (child.textContent) {
 					child.textContent = sanitizeStyleElement(child.textContent)
 				}
+			} else if (ANIMATION_TAGS.has(tag) && isAnimationDangerous(child)) {
+				// Animation targeting href/on* can inject javascript: URIs at runtime
+				child.remove()
 			} else if (ALLOWED_SVG_TAGS.has(tag)) {
 				sanitizeSvgAttributes(child)
 				sanitizeNode(child, 'svg')
@@ -570,8 +593,8 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
  * while preserving safe content including foreignObject (for text rendering),
  * style elements (for fonts with data: URLs), and animation elements.
  *
- * Returns the sanitized SVG string, or an empty string if the SVG contained
- * no safe content.
+ * Returns the sanitized SVG string, or an empty string if the input was
+ * malformed (parse error) or contained no safe content after sanitization.
  *
  * @public
  */

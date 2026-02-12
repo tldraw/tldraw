@@ -411,7 +411,13 @@ export async function defaultHandleExternalFileContent(
 		if (!isSuccess) continue
 
 		const sanitizedFile = await maybeSanitizeSvgFile(file)
-		if (!sanitizedFile) continue
+		if (!sanitizedFile) {
+			toasts.addToast({
+				title: msg('assets.files.upload-failed'),
+				severity: 'error',
+			})
+			continue
+		}
 		const assetInfo = await getAssetInfo(sanitizedFile, options)
 		if (acceptedImageMimeTypes.includes(sanitizedFile.type)) {
 			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
@@ -859,11 +865,15 @@ export function createEmptyBookmarkShape(
 
 async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 	if (file.type !== 'image/svg+xml') return file
-	const text = await file.text()
-	const { sanitizeSvg } = await import('./utils/svg/sanitizeSvg')
-	const sanitized = sanitizeSvg(text)
-	if (!sanitized) return null
-	return new File([sanitized], file.name, { type: file.type, lastModified: file.lastModified })
+	try {
+		const text = await file.text()
+		const { sanitizeSvg } = await import('./utils/svg/sanitizeSvg')
+		const sanitized = sanitizeSvg(text)
+		if (!sanitized) return null
+		return new File([sanitized], file.name, { type: file.type, lastModified: file.lastModified })
+	} catch {
+		return null
+	}
 }
 
 /**
