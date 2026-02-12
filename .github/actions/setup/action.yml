@@ -11,10 +11,9 @@ runs:
       shell: bash
 
     - name: Setup Node.js Environment
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: 22.16.0
-        cache: ''
 
     - name: Restore node_modules cache
       uses: actions/cache@v4
