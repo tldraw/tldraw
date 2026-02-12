@@ -32,3 +32,7 @@ runs:
     - name: Install dependencies
       run: yarn install --immutable
       shell: bash
+      env:
+        # Hardened mode enables --check-resolutions on public PRs, adding ~15s.
+        # See https://yarnpkg.com/features/security - Yarn recommends disabling in most jobs.
+        YARN_ENABLE_HARDENED_MODE: 0
