@@ -9697,7 +9697,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vercel: "npm:^34.4.0"
     vitest: "npm:^3.2.4"
-    vitest-canvas-mock: "npm:^0.3.3"
+    vitest-canvas-mock: "npm:^1.1.3"
   languageName: unknown
   linkType: soft
 
@@ -14228,7 +14228,7 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.5.0"
     jest-matcher-utils: "npm:^30.0.5"
     lazyrepo: "npm:0.0.0-alpha.27"
-    vitest-canvas-mock: "npm:^0.3.3"
+    vitest-canvas-mock: "npm:^1.1.3"
   languageName: unknown
   linkType: soft
 
@@ -19618,16 +19618,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-canvas-mock@npm:~2.5.2":
-  version: 2.5.2
-  resolution: "jest-canvas-mock@npm:2.5.2"
-  dependencies:
-    cssfontparser: "npm:^1.2.1"
-    moo-color: "npm:^1.0.2"
-  checksum: 10/094e2e1c773c658fab7e91e9279027fc38a55060865b5b6a3c9acc47fc912fb9d3451ab4fdf544d016578f77b975626707c3a62e396575aa878f46d939c7ca5e
-  languageName: node
-  linkType: hard
-
 "jest-diff@npm:30.0.5":
   version: 30.0.5
   resolution: "jest-diff@npm:30.0.5"
@@ -22073,7 +22063,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moo-color@npm:^1.0.2":
+"moo-color@npm:^1.0.3":
   version: 1.0.3
   resolution: "moo-color@npm:1.0.3"
   dependencies:
@@ -29676,14 +29666,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest-canvas-mock@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "vitest-canvas-mock@npm:0.3.3"
+"vitest-canvas-mock@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "vitest-canvas-mock@npm:1.1.3"
   dependencies:
-    jest-canvas-mock: "npm:~2.5.2"
+    cssfontparser: "npm:^1.2.1"
+    moo-color: "npm:^1.0.3"
   peerDependencies:
-    vitest: "*"
-  checksum: 10/bf564fe0cb701f228eb20cacdbd3abb9eb83c948bebbbea7fe907082ef830b2f8d7865277eade77fd84806bd1ddccdf1426c85ad716b8da8a977ae6b82e4f85f
+    vitest: ^3.0.0 || ^4.0.0
+  checksum: 10/0885142f98d543dca70993e36d63664ca8585a0d8533933b19bf28c5819c8419760462b017f9372ae0050f351625cabfb0ffecdcb8e6997f2bde5324396c8222
   languageName: node
   linkType: hard
 
