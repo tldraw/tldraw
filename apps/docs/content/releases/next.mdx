@@ -8,9 +8,85 @@ status: published
 last_version: v4.3.1
 ---
 
-This release adds 2D canvas rendering for shape indicators, R-tree spatial indexing for faster queries, telestrator-style laser behavior, a preference for inverting mouse wheel zoom direction, and improved sync performance. It also includes various bug fixes for collaborator indicators, hidden shape handling, and spatial indexing.
+This release consolidates editor configuration into a unified `options` prop, adds quick zoom navigation, a new `TldrawUiSelect` component, and a fill styles dropdown. It also brings significant performance improvements for panning and arrow translation, along with breaking changes to `ShapeUtil.canBind()` and several bug fixes.
 
 ## What's new
+
+### 💥 Consolidate cameraOptions, textOptions, and deepLinks into options prop ([#7888](https://github.com/tldraw/tldraw/pull/7888))
+
+The standalone `cameraOptions`, `textOptions`, and `deepLinks` props on `Tldraw`, `TldrawEditor`, and `TldrawImage` are now consolidated into the existing `options` prop.
+
+The deprecated props are preserved for backward compatibility. When both a deprecated prop and the equivalent `options` field are provided, the `options` value takes precedence.
+
+```tsx
+// Before
+<Tldraw
+  cameraOptions={{ isLocked: true }}
+  textOptions={{ tipTapConfig: { extensions: [...] } }}
+  deepLinks
+/>
+
+// After
+<Tldraw
+  options={{
+    camera: { isLocked: true },
+    text: { tipTapConfig: { extensions: [...] } },
+    deepLinks: true,
+  }}
+/>
+```
+
+<details>
+<summary>Migration guide</summary>
+
+Before:
+```tsx
+<Tldraw cameraOptions={...} textOptions={...} deepLinks={...} />
+```
+
+After:
+```tsx
+<Tldraw options={{ camera: ..., text: ..., deepLinks: ... }} />
+```
+
+The old props still work but are deprecated and will be removed in a future release.
+
+</details>
+
+### 💥 Pass shapes to ShapeUtil.canBind() ([#7821](https://github.com/tldraw/tldraw/pull/7821))
+
+`ShapeUtil.canBind()` now receives full shapes (when available) instead of just shape types, enabling binding decisions based on shape props.
+
+<details>
+<summary>Migration guide</summary>
+
+Before:
+```tsx
+canBind(opts: { fromShapeType: string; toShapeType: string; bindingType: string }) {
+  return opts.fromShapeType !== 'locked-shape'
+}
+```
+
+After:
+```tsx
+canBind(opts: { fromShape: TLShape | { type: string }; toShape: TLShape | { type: string }; bindingType: string }) {
+  return opts.fromShape.type !== 'locked-shape'
+}
+```
+
+</details>
+
+### Quick zoom navigation ([#7801](https://github.com/tldraw/tldraw/pull/7801))
+
+Press `Z` then hold Shift to zoom out and see the whole canvas. Move your cursor to pick a location, then release to zoom there. This provides a fast way to navigate large canvases without losing your place.
+
+### TldrawUiSelect component ([#7566](https://github.com/tldraw/tldraw/pull/7566))
+
+Added a new `TldrawUiSelect` component for building custom select dropdowns that match tldraw's UI style. The component provides `TldrawUiSelect`, `TldrawUiSelectTrigger`, `TldrawUiSelectValue`, `TldrawUiSelectContent`, and `TldrawUiSelectItem` primitives.
+
+### Fill styles dropdown ([#7885](https://github.com/tldraw/tldraw/pull/7885))
+
+Added a dropdown to the fill style picker exposing pattern, fill, and lined-fill options that were previously hidden from the UI.
 
 ### 2D canvas rendering for shape indicators ([#7708](https://github.com/tldraw/tldraw/pull/7708))
 
@@ -67,12 +143,20 @@ New options in `TldrawOptions`:
 
 ## API changes
 
+- 💥 **`cameraOptions`**, **`textOptions`**, and **`deepLinks`** props deprecated on `Tldraw`, `TldrawEditor`, and `TldrawImage`. Use `options.camera`, `options.text`, and `options.deepLinks` instead. ([#7888](https://github.com/tldraw/tldraw/pull/7888))
+- 💥 **`ShapeUtil.canBind()`** now receives `fromShape` and `toShape` (full shapes or `{ type }` objects) instead of `fromShapeType` and `toShapeType`. ([#7821](https://github.com/tldraw/tldraw/pull/7821))
 - Remove `editor.spatialIndex` from public API. The spatial index is now internal; use `editor.getShapesAtPoint()` and `editor.getShapeAtPoint()` for shape queries. ([#7699](https://github.com/tldraw/tldraw/pull/7699))
 - Add `ShapeUtil.getIndicatorPath()` method and `TLIndicatorPath` type for canvas-based indicator rendering. Add `ShapeUtil.useLegacyIndicator()` to control whether shapes use SVG or canvas indicators. ([#7708](https://github.com/tldraw/tldraw/pull/7708))
 - Add `isZoomDirectionInverted` to `TLUserPreferences` interface and `UserPreferencesManager.getIsZoomDirectionInverted()` method. Add `ToggleInvertZoomItem` component export and `toggle-invert-zoom` action. ([#7732](https://github.com/tldraw/tldraw/pull/7732))
 - Add `complete` to `TL_SCRIBBLE_STATES` enum and `ScribbleManager.complete(id)` method for marking scribbles as complete before fading. ([#7760](https://github.com/tldraw/tldraw/pull/7760))
 - Add `ScribbleManager.endLaserSession()` and `ScribbleManager.isScribbleInLaserSession()` methods for controlling laser sessions. Add `laserSessionTimeoutMs` and `laserMaxSessionDurationMs` to `TldrawOptions`. ([#7681](https://github.com/tldraw/tldraw/pull/7681))
 - Add `FpsScheduler` class to create FPS-throttled function queues with configurable target rates. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
+- Add `TldrawUiSelect`, `TldrawUiSelectTrigger`, `TldrawUiSelectValue`, `TldrawUiSelectContent`, and `TldrawUiSelectItem` components. Add `iconTypes` export. ([#7566](https://github.com/tldraw/tldraw/pull/7566))
+- Add `Editor.getShapeIdsInsideBounds()` as a public method. ([#7863](https://github.com/tldraw/tldraw/pull/7863))
+- Add `TLInstance.cameraState` property tracking whether the camera is idle or moving. ([#7826](https://github.com/tldraw/tldraw/pull/7826))
+- Add `quickZoomPreservesScreenBounds` to `TldrawOptions`. ([#7836](https://github.com/tldraw/tldraw/pull/7836))
+- Add `useCanApplySelectionAction()` hook for checking if selection actions should be enabled. ([#7811](https://github.com/tldraw/tldraw/pull/7811))
+- Add `action.select-zoom-tool` translation key. ([#7801](https://github.com/tldraw/tldraw/pull/7801))
 
 ## Improvements
 
@@ -83,6 +167,11 @@ New options in `TldrawOptions`:
 - Reduce solo-mode network traffic by using a dedicated FPS-based scheduler that throttles to 1 FPS when no collaborators are present. ([#7657](https://github.com/tldraw/tldraw/pull/7657))
 - Improve performance by separating UI and network scheduling into independent queues with configurable target FPS. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
 - Improve frame label sizing on smaller viewports and when zoomed out. ([#7746](https://github.com/tldraw/tldraw/pull/7746))
+- Improve performance when panning in large documents by skipping hover updates during camera movement. ([#7826](https://github.com/tldraw/tldraw/pull/7826))
+- Improve performance when translating arrows together with their bound shapes. ([#7733](https://github.com/tldraw/tldraw/pull/7733))
+- Reduce allocations and hash computation overhead for improved performance in large canvases and multiplayer rooms. ([#7840](https://github.com/tldraw/tldraw/pull/7840))
+- Remove `core-js` dependency. ([#7769](https://github.com/tldraw/tldraw/pull/7769))
+- Add fill styles dropdown to the style panel, exposing pattern, fill, and lined-fill options. ([#7885](https://github.com/tldraw/tldraw/pull/7885))
 
 ## Bug fixes
 
@@ -91,3 +180,12 @@ New options in `TldrawOptions`:
 - Fix rich text content not updating correctly with message squashing due to reference comparison. ([#7758](https://github.com/tldraw/tldraw/pull/7758))
 - Fix keyboard shortcut menu item labels to use consistent ellipsis formatting. ([#7757](https://github.com/tldraw/tldraw/pull/7757))
 - Fix spatial index not removing shapes when moved to a different page. ([#7700](https://github.com/tldraw/tldraw/pull/7700))
+- Fix asset resolution being delayed by 500ms when updating an image shape's asset. ([#7612](https://github.com/tldraw/tldraw/pull/7612))
+- Fix canvas-in-front elements (cursors, following indicators) appearing in front of UI panels instead of behind them. ([#7865](https://github.com/tldraw/tldraw/pull/7865))
+- Fix shapes exploding when resizing unaligned arrows. ([#7855](https://github.com/tldraw/tldraw/pull/7855))
+- Fix geo shapes with text not being resizable to a smaller size. ([#7878](https://github.com/tldraw/tldraw/pull/7878))
+- Fix Safari pinch zoom resetting selection to previous shapes. ([#7777](https://github.com/tldraw/tldraw/pull/7777))
+- Fix excessive tab indentation in rich text shapes (now 2 spaces instead of 8). ([#7796](https://github.com/tldraw/tldraw/pull/7796))
+- Fix toggle-lock action firing when no shapes are selected. ([#7815](https://github.com/tldraw/tldraw/pull/7815))
+- Fix menu items (zoom to selection, cut, copy, delete) being enabled when not in select tool. ([#7811](https://github.com/tldraw/tldraw/pull/7811))
+- Fix fill dropdown test ID ambiguity and missing translations. ([#7889](https://github.com/tldraw/tldraw/pull/7889))
