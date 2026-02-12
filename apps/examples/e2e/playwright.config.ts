@@ -104,7 +104,8 @@ const config: PlaywrightTestConfig = {
 	webServer: {
 		command: 'yarn dev',
 		port: 5420,
-		reuseExistingServer: !process.env.CI,
+		// When PARALLEL_SHARDS=1, we start the server once before running 3 shards in parallel
+		reuseExistingServer: !process.env.CI || process.env.PARALLEL_SHARDS === '1',
 		cwd: path.join(__dirname, '../../..'),
 	},
 }

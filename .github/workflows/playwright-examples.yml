@@ -16,13 +16,9 @@ defaults:
 
 jobs:
   build:
-    name: 'End to end tests (examples) shard ${{ matrix.shard }}/3'
+    name: 'End to end tests (examples)'
     timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-open
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3]
 
     steps:
       - name: Check out code
@@ -50,42 +46,23 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
-      - name: Run Playwright tests
-        run: yarn workspace examples.tldraw.com e2e --shard=${{ matrix.shard }}/3
+      - name: Start dev server
+        run: |
+          yarn workspace examples.tldraw.com dev &
+          for i in {1..60}; do curl -sf http://localhost:5420 > /dev/null && break; sleep 2; done
+
+      - name: Run Playwright tests (3 shards in parallel)
+        run: |
+          (PLAYWRIGHT_BLOB_OUTPUT_DIR=blob-reports/shard-1 PARALLEL_SHARDS=1 yarn workspace examples.tldraw.com e2e --shard=1/3 --workers=4) &
+          (PLAYWRIGHT_BLOB_OUTPUT_DIR=blob-reports/shard-2 PARALLEL_SHARDS=1 yarn workspace examples.tldraw.com e2e --shard=2/3 --workers=4) &
+          (PLAYWRIGHT_BLOB_OUTPUT_DIR=blob-reports/shard-3 PARALLEL_SHARDS=1 yarn workspace examples.tldraw.com e2e --shard=3/3 --workers=4) &
+          wait
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}
 
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: blob-report-${{ matrix.shard }}
-          path: apps/examples/blob-report
-          retention-days: 5
-
-  merge-reports:
-    name: 'Merge E2E reports (examples)'
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    needs: build
-    if: always() && needs.build.result != 'cancelled'
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Download blob reports
-        uses: actions/download-artifact@v4
-        with:
-          pattern: blob-report-*
-          path: blob-reports
-          merge-multiple: true
-
-      - name: Run setup
-        uses: ./.github/actions/setup
-
       - name: Merge Playwright reports
-        run: npx playwright merge-reports --reporter=html ../../blob-reports
+        run: npx playwright merge-reports --reporter=html ./blob-reports/shard-1 ./blob-reports/shard-2 ./blob-reports/shard-3
         working-directory: apps/examples
 
       - uses: actions/upload-artifact@v4

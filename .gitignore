@@ -92,6 +92,7 @@ apps/examples/build.esbuild.json
 apps/examples/e2e/test-results
 apps/examples/playwright-report
 apps/examples/blob-report
+apps/examples/blob-reports
 apps/dotcom/client/test-results
 apps/dotcom/client/playwright-report
 apps/dotcom/client/blob-report
