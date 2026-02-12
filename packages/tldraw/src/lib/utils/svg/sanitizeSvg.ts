@@ -631,6 +631,8 @@ export function sanitizeSvg(svgText: string): string {
 	if (parseError) return ''
 
 	const svg = doc.documentElement
+	if (svg.tagName.toLowerCase() !== 'svg') return ''
+
 	sanitizeSvgAttributes(svg)
 	sanitizeNode(svg, 'svg')
 

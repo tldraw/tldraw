@@ -244,6 +244,13 @@ describe('sanitizeSvg', () => {
 			expect(result).toBe('')
 		})
 
+		it('rejects non-svg root element', () => {
+			const result = sanitizeSvg(
+				'<script xmlns="http://www.w3.org/2000/svg">alert(1)<rect width="10" height="10"/></script>'
+			)
+			expect(result).toBe('')
+		})
+
 		it('removes <animate> targeting href (XSS via animation)', () => {
 			const result = sanitizeSvg(
 				wrap(
