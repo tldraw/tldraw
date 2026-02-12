@@ -91,8 +91,10 @@ apps/examples/build.esbuild.json
 
 apps/examples/e2e/test-results
 apps/examples/playwright-report
+apps/examples/blob-report
 apps/dotcom/client/test-results
 apps/dotcom/client/playwright-report
+apps/dotcom/client/blob-report
 apps/dotcom/client/e2e/.auth
 apps/dotcom/zero-cache/.schema.js
 sst-env.d.ts
