@@ -26,6 +26,8 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	items: StyleValuesForUi<T>
 	type: 'icon' | 'tool' | 'menu'
 	onValueChange?(style: StyleProp<T>, value: T): void
+	/** Override the test ID prefix. Defaults to uiType. */
+	testIdType?: string
 }
 
 function StylePanelDropdownPickerInner<T extends string>(props: StylePanelDropdownPickerProps<T>) {
@@ -54,6 +56,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		type,
 		value,
 		onValueChange = ctx.onValueChange,
+		testIdType = uiType,
 	} = props
 	const msg = useTranslation()
 	const editor = useEditor()
@@ -84,7 +87,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 			<TldrawUiPopoverTrigger>
 				<TldrawUiToolbarButton
 					type={type}
-					data-testid={`style.${uiType}`}
+					data-testid={`style.${testIdType}`}
 					data-direction="left"
 					title={titleStr}
 				>
@@ -100,7 +103,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 								<TldrawUiToolbarButton
 									key={item.value}
 									type="icon"
-									data-testid={`style.${uiType}.${item.value}`}
+									data-testid={`style.${testIdType}.${item.value}`}
 									title={
 										stylePanelName +
 										' — ' +
