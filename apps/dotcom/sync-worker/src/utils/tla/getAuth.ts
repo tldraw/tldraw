@@ -20,12 +20,11 @@ export function getClerkClient(env: Environment) {
 }
 
 function getAuthorizedParties(env: Environment): string[] {
-	const parties = [
-		'http://localhost:3000',
-		'https://tldraw.com',
-		'https://www.tldraw.com',
-		'https://staging.tldraw.com',
-	]
+	const parties = ['https://tldraw.com', 'https://www.tldraw.com', 'https://staging.tldraw.com']
+	// Only include localhost in non-production environments
+	if (env.TLDRAW_ENV !== 'production') {
+		parties.push('http://localhost:3000')
+	}
 	// For preview envs, add the preview domain
 	// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
 	if (env.TLDRAW_ENV === 'preview' && env.WORKER_NAME) {

@@ -203,19 +203,31 @@ export class TldrawApp {
 				kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 			})
 			this.z = z
-			// Set up token refresh on auth errors
+			// Set up token refresh on auth errors with backoff
+			let authRetryCount = 0
+			const MAX_AUTH_RETRIES = 5
 			const unsubscribe = z.connection.state.subscribe((state) => {
 				if (state.name === 'needs-auth') {
-					getToken()
-						.then((token) => {
-							if (token) {
-								z.connection.connect({ auth: token })
-							}
-						})
-						.catch((err) => {
-							console.error('Failed to refresh auth token:', err)
-							captureException(err)
-						})
+					if (authRetryCount >= MAX_AUTH_RETRIES) {
+						console.error(`Auth retry limit reached (${MAX_AUTH_RETRIES}), giving up`)
+						captureException(new Error('Auth retry limit reached'))
+						return
+					}
+					const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
+					authRetryCount++
+					setTimeout(() => {
+						getToken()
+							.then((token) => {
+								if (token) {
+									authRetryCount = 0
+									z.connection.connect({ auth: token })
+								}
+							})
+							.catch((err) => {
+								console.error('Failed to refresh auth token:', err)
+								captureException(err)
+							})
+					}, delay)
 				}
 			})
 			this.disposables.push(unsubscribe)
@@ -262,7 +274,7 @@ export class TldrawApp {
 			// Ensure user exists in DB before Zero can query
 			const token = await this.getToken()
 			if (!token) {
-				console.error('No auth token available for init')
+				throw new Error('No auth token available for init')
 			} else {
 				const res = await fetch(`/api/app/${this.userId}/init`, {
 					method: 'POST',
@@ -277,8 +289,10 @@ export class TldrawApp {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
-		await this.z.preload(this.fileStateQuery()).complete
-		await this.z.preload(this.groupMembershipsQuery()).complete
+		await Promise.all([
+			this.z.preload(this.fileStateQuery()).complete,
+			this.z.preload(this.groupMembershipsQuery()).complete,
+		])
 	}
 
 	messages = defineMessages({

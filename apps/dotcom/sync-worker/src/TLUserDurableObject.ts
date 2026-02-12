@@ -174,6 +174,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				)
 			}
 		})
+		// User creation is handled by the .all() handler above; this just returns 200.
 		.post('/app/:userId/init', () => new Response('ok', { status: 200 }))
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
@@ -266,8 +267,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				}
 				case 'correlatedSubquery':
 					throw new Error('Correlated subquery conditions are not supported')
-				default:
-					throw new Error(`Unknown condition type: ${(condition as any).type}`)
+				default: {
+					const _exhaustive: never = condition
+					throw new Error(`Unknown condition type: ${(_exhaustive as any).type}`)
+				}
 			}
 		}
 

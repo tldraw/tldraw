@@ -81,7 +81,13 @@ export function evaluateCondition(
 			return (rowValue as number) >= (value as number)
 		case '<=':
 			return (rowValue as number) <= (value as number)
-		default:
-			throw new Error(`Unsupported operator: ${op}`)
+		case 'IS':
+			return rowValue === value
+		case 'IS NOT':
+			return rowValue !== value
+		default: {
+			const _exhaustive: never = op as never
+			throw new Error(`Unsupported operator: ${_exhaustive}`)
+		}
 	}
 }
