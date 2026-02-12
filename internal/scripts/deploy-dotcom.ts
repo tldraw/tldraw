@@ -513,6 +513,7 @@ async function deployZeroViaFlyIoMultiNode() {
 			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
 			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
 			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
 			'-a',
@@ -541,6 +542,7 @@ async function deployZeroViaFlyIoMultiNode() {
 			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
 			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
 			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
 			'-a',
