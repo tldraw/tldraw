@@ -18,13 +18,15 @@ notes: "Strong technical content with accurate code examples. Opening could use 
 
 On an infinite canvas, every interaction raises a spatial question. What did you click? Which shapes are currently visible? What area surrounds a group of selected shapes?
 
-In tldraw, as in any graphical interface that responds to fast spatial queries, we answer these questions with _bounding boxes_. A bounding box is the smallest axis-aligned rectangle that can contain a shape.
+These questions need to be answered _fast_—on every mouse move, every frame. The precise approach would be to test against each shape's exact geometry: its curves, its vertices, its rotation. But on a canvas with hundreds or thousands of shapes, that's too expensive to do constantly.
+
+We simplify instead. We wrap each shape in the smallest axis-aligned rectangle that contains it—its _bounding box_. Now spatial queries become rectangle-against-rectangle checks, which are dramatically cheaper than testing against arbitrary polygons.
 
 [img]
 
 ## Why axis-aligned?
 
-"Axis-aligned" means the edges stay horizontal and vertical relative to the canvas, even when the shape is rotated. This constraint makes bounding boxes fast. When checking if two boxes overlap, we don't need to make expensive calculations - instead, just four simple comparisons between the edges of the two boxes:
+"Axis-aligned" means the edges stay horizontal and vertical relative to the canvas, even when the shape is rotated.
 
 ```tsx
 // packages/editor/src/lib/primitives/Box.ts:421-423
@@ -71,7 +73,7 @@ The rotated points describe the shape's new position, but the edges are no longe
 
 ## A new bounding box
 
-Instead, we take the shape's bounding box vertices in its own coordinate system, transform them to page space, and compute a new axis-aligned box from those points.
+We want the best of both worlds: the speed of axis-aligned box comparisons, but correct results for rotated shapes. The solution is to let the shape rotate, then compute a _new_ axis-aligned box that wraps the rotated result. We take the shape's bounding box vertices in its own coordinate system, transform them to page space, and find the tightest axis-aligned box around those transformed points.
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:4838-4847 (simplified)
@@ -115,7 +117,9 @@ After this, we find the min and max (x, y) values among those rotated points. Th
 
 ## Nested transforms
 
-Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. If a rectangle sits inside a frame that is rotated by 30°, the rectangle's position on the page depends on both transforms. We multiply them together to get the shape's final page transform.
+Shapes in tldraw can be nested inside frames, which can themselves be rotated and positioned anywhere. If a rectangle sits inside a frame that's rotated 30°, the rectangle's position on the page depends on both its own transform, and that of its parent.
+
+Each transform (position, rotation, scale) is represented as a matrix. To get the shape's final position on the page, we need to apply the parent's transform first, then the shape's local transform on top of that. Matrix multiplication does this by combining two transforms into one:
 
 ```tsx
 // packages/editor/src/lib/editor/Editor.ts:4784-4798 (simplified)
@@ -133,7 +137,7 @@ If a shape sits directly on the page, its page transform is just its local trans
 
 ## Viewport culling
 
-Bounding boxes are also used in viewport culling, where we skip rendering any shape whose bounds don't intersect the bounds of the viewport itself:
+An infinite canvas can hold thousands of shapes, but at any given zoom level only a handful are visible. Rendering all of them every frame would be wasteful. Bounding boxes give us a cheap way to skip the invisible ones—if a shape's bounding box doesn't overlap the viewport's bounding box, we don't render it:
 
 ```tsx
 // packages/editor/src/lib/editor/derivations/notVisibleShapes.ts:11-30 (simplified)
@@ -196,4 +200,6 @@ getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
 
 ## Tradeoffs
 
-Axis-aligned boxes are approximations. A rotated rectangle's AABB is always larger than the shape itself, which means we sometimes check shapes that weren't actually clicked or render shapes that aren't quite visible. But the speed we gain from simple min/max comparisons far outweighs the cost of those extra checks.
+Every bounding box in this article is an approximation. A rotated rectangle's AABB is always larger than the shape itself—it has to be, since it's stretched to fit all four corners into an axis-aligned rectangle. That means we sometimes check shapes that weren't actually clicked, or render shapes that aren't quite visible at the edge of the viewport.
+
+That's a deliberate trade. The alternative—testing against exact shape geometry—requires the expensive math we avoided by using bounding boxes in the first place. The extra false positives are cheap to filter out in a second pass, and for the vast majority of spatial queries, the four-comparison AABB check is all we need.

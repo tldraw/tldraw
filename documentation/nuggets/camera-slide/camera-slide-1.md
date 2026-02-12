@@ -16,7 +16,7 @@ Drag the canvas with the hand tool, then let go with some speed. The camera keep
 
 ## Capturing velocity at release
 
-When you drag with the hand tool and release the pointer, the editor checks how fast you were moving:
+To slide the camera, we need two things at the moment of release: how fast you were moving, and in what direction. Together they give us a velocity vector—the starting condition for the whole animation.
 
 ```typescript
 private complete() {
@@ -33,13 +33,11 @@ private complete() {
 }
 ```
 
-The velocity is measured in pixels per millisecond. If you release while moving faster than 0.1 px/ms, the camera slides. The speed gets capped at 2 to prevent the canvas from flying off into the distance.
-
-We added a minimum threshold to filter out tiny movements so that if you're barely dragging when you release, the camera just stops. This keeps slow, deliberate pans from accidentally triggering momentum.
+The velocity is measured in pixels per millisecond. The speed gets capped at 2 to prevent the canvas from flying off into the distance, and there's a minimum threshold of 0.1 below which we don't slide at all. Without that threshold, slow deliberate pans—where you're barely moving when you release—would accidentally trigger a little drift. The threshold separates "I want this to glide" from "I'm done moving."
 
 ## Smoothed velocity tracking
 
-To avoid jitter, we smooth pointer velocity using linear interpolation across frames:
+Pointer events don't arrive at perfectly regular intervals, and individual frames can spike—move a pixel more or less than expected due to timing jitter. If we used the raw velocity from the last frame, the slide direction and speed at release would feel unpredictable. So we smooth the velocity, blending each new measurement with the previous one:
 
 ```typescript
 updatePointerVelocity(elapsed: number) {
@@ -67,13 +65,13 @@ updatePointerVelocity(elapsed: number) {
 }
 ```
 
-The `lrp` (linear interpolation) with a factor of 0.5 means the new velocity is calculated at half-way between the previous (smoothed) velocity and the new raw velocity. This removes spikes from individual frames while still responding quickly to changes in pointer movement. As a fun fact, we do the same with pointer positions while drawing to remove noise there, too.
+The `lrp` (linear interpolation) with a factor of 0.5 means each new velocity is the midpoint between the previous smoothed velocity and the latest raw measurement. That's enough to absorb single-frame spikes while still responding quickly when you genuinely change direction. As a fun fact, we do the same with pointer positions while drawing to remove noise there, too.
 
-Very small velocity components (< 0.01) get zeroed out. This prevents tiny residual movements that would be imperceptible but would keep the velocity calculation active.
+Very small velocity components (< 0.01) get zeroed out. Without this, tiny residual movements—imperceptible on screen—would keep the velocity vector slightly nonzero, and the slide would start from a direction you didn't intend.
 
 ## Applying friction
 
-When the camera starts sliding, we reduce its speed on every tick using friction:
+Once we have a velocity, the camera needs to slow down and eventually stop. Without friction the slide would continue forever—or until the camera hits the edge of the coordinate space. We apply friction on every tick, draining a fraction of the speed each frame:
 
 ```typescript
 slideCamera(opts) {
@@ -99,21 +97,21 @@ slideCamera(opts) {
 }
 ```
 
-We use a default friction value of 0.09, meaning the camera retains 91% of its speed each tick. On every animation frame (roughly 60fps), the speed multiplies by 0.91. This creates exponential decay: quick to slow down at first, then gradually tapering off.
+The key line is `currentSpeed *= 1 - friction`. With the default friction of 0.09, the camera retains 91% of its speed each tick. On every animation frame (roughly 60fps), the speed multiplies by 0.91—creating exponential decay that's quick to slow down at first, then gradually tapers off.
 
-The slide continues until speed drops below 0.01. At that point, the movement between frames is imperceptible, so we stop the animation.
+The slide continues until speed drops below 0.01. At that point, the movement between frames is imperceptible, so we stop the animation and avoid burning CPU on invisible updates.
 
 ## Why friction feels physical
 
-We chose a friction value of 0.09 to feel natural—like sliding something across a smooth surface—and to match the decay of the Mac trackpad scroll decay. Higher friction (like 0.2) makes the camera stop too abruptly. Lower friction (like 0.03) makes it drift too far.
+Getting the friction value right is more about feel than physics, but the physics help. Real-world friction is proportional to velocity: the faster you're moving, the more resistance you encounter. Our `currentSpeed *= 1 - friction` produces the same relationship—an exponential decay where the rate of slowdown tracks the current speed, creating that characteristic "ease-out" feeling.
 
-The exponential decay from `currentSpeed *= 1 - friction` matches physical intuition. Real-world friction is proportional to velocity: the faster you're moving, the more resistance you encounter. As speed decreases, so does the rate of slowdown, creating that characteristic "ease-out" feeling.
+We landed on 0.09 by tuning against the Mac trackpad scroll decay, which most users have internalized as "how momentum should feel." Higher friction (like 0.2) makes the camera stop too abruptly, as if it hit sand. Lower friction (like 0.03) makes it drift too far, like ice with no resistance. 0.09 splits the difference—a smooth surface with just enough grip.
 
-We also divide the movement by camera zoom so the slide feels consistent at any zoom level. At higher zoom, the same screen-space velocity translates to less canvas-space movement—but the slide looks and feels the same to you.
+There's one more detail: we divide the movement by camera zoom (`/ cz` in the code above). Without this, zooming in would make the slide cover more canvas distance for the same screen-space gesture. Dividing by zoom keeps the slide feeling consistent—the same flick produces the same visual result at any zoom level.
 
 ## When it doesn't slide
 
-A few conditions prevent sliding:
+Not every release should trigger momentum. Some users have accessibility needs that make unexpected motion disorienting, and some editor configurations intentionally lock the camera in place. We check for these before starting a slide:
 
 - Velocity at release is below 0.1 px/ms (too slow to feel intentional)
 - User has animations disabled (`animationSpeed === 0`)
@@ -130,10 +128,9 @@ if (velocity.len() > 0.1) {
 	editor.slideCamera({
 		speed: velocity.len(),
 		direction: velocity,
-		friction: 0.09  // or customize this
+		friction: 0.09, // or customize this
 	})
 }
 ```
 
 The friction parameter is optional—it defaults to 0.09, but you can adjust it for different feels. Try 0.15 for a quicker stop, or 0.05 for a longer glide. The difference is subtle but noticeable, especially on trackpads where momentum scrolling sets expectations for how things should feel.
-

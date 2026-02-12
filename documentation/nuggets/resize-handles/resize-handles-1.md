@@ -18,26 +18,29 @@ notes: "Strong problem framing and genuine insights (counter-rotating shadow, XO
 
 # Resize handles on rotated shapes
 
-Rotate a rectangle in tldraw, then hover over a corner handle. The resize cursor rotates with the shape, perfectly aligned with the handle's orientation. Drag the handle and the cursor stays locked to the correct angle, even as the shape flips during resize. This feels natural—the cursor direction matches the resize direction.
+When you select a shape on a canvas application, handles appear around it for resizing and rotating. Each handle gets a cursor that shows what dragging it would do—a double-headed arrow pointing in the resize direction, or a curved arrow for rotation.
 
-The problem is that browsers don't support rotated cursors. The CSS `cursor` property gives you eight fixed orientations for resize cursors: four cardinal directions and four diagonals. No rotation, no transform properties, no way to rotate them via CSS. If your shape is rotated 37 degrees, you're supposed to pick the closest available cursor and accept the mismatch.
+Browsers provide these cursor icons (`nw-resize`, `e-resize`, etc.) but they're fixed at their predefined angles—you can't rotate them. So if a shape on your canvas app is rotated, the mismatch would look like this:
 
-We don't accept that mismatch. We generate custom cursors at any angle using SVG embedded in data URIs.
+[gif]
+
+In tldraw, like other canvas apps, the cursor rotates with the shape so it always matches the handle's direction. Getting this to feel right means handling a surprising number of small details—custom SVG cursors, counter-rotating shadows, flip logic, theming, and zoom. This post walks through them.
 
 ## Browsers give you eight cursors
 
-The standard resize cursors cover the basic cases:
+The CSS `cursor` property gives you eight fixed orientations for resize cursors: `nwse-resize` and `nesw-resize` for diagonals, and `ew-resize` and `ns-resize` for edges:
 
-- `nwse-resize` and `nesw-resize` for diagonals
-- `ew-resize` and `ns-resize` for edges
+[img]
 
-These work fine for axis-aligned shapes. But as soon as a shape rotates, the cursor becomes misleading. A handle at the visual "top" of a 45-degree rotated square should show a cursor pointing upward at 45 degrees. The browser's `ns-resize` cursor points straight up at 0 degrees.
+When shapes are aligned with the axes of the page, the cursors are positioned correctly - but as soon as a shape rotates, the cursor becomes misleading. A handle at the visual "top" of a 45-degree rotated square should show the same `ns-resize` cursor, but rotated by 45 degrees.
 
 We could snap to the nearest of the eight available angles, but that creates jarring jumps as rotation crosses thresholds. A shape rotating smoothly from 0 to 90 degrees would cause the cursor to suddenly flip from one diagonal to another. And for rotations near 22.5, 67.5, or other midpoints between the fixed angles, you'd always be visibly wrong.
 
 ## SVG in a data URI
 
-Instead of using CSS cursor keywords, we construct SVG graphics on the fly and embed them as data URIs in the cursor property.
+The CSS `cursor` property does accept one escape hatch: the `url()` function. You can point it at a custom image. The obvious approach would be to pre-render cursor images at every angle—but that's hundreds of images, and you'd still be snapping to the nearest pre-rendered angle.
+
+SVG changes the equation. Because SVG is a text format, you can build it as a string, set the rotation to whatever angle you need, and generate a new cursor on the fly. And because browsers accept data URIs in `cursor: url(...)`, you can inline the whole thing—no files, no network requests, just a string in a style property.
 
 ```typescript
 function getCursorCss(
@@ -68,7 +71,7 @@ function getCursorCss(
 }
 ```
 
-The cursor canvas is 32x32 pixels. The hotspot sits at (16, 16)—the center—so the visual cursor graphic rotates around the point where the user is clicking.
+The cursor canvas is 32x32 pixels, but since the cursors are SVG they scale cleanly to any display density. The hotspot sits at (16, 16)—the center—so the visual cursor graphic rotates around the point where the user is clicking.
 
 The SVG content comes from predefined path strings for corner and edge handles:
 
@@ -82,9 +85,9 @@ Each SVG has a white outline and black fill to stay visible against any backgrou
 
 ## The shadow always points down
 
-Drop shadows need special handling. If we just rotated the entire SVG including the shadow filter, the shadow would rotate with the cursor graphic. A cursor rotated 180 degrees would have its shadow pointing upward, which looks wrong—shadows come from above.
+Cursors need drop shadows to stay readable—without one, a thin arrow can vanish against busy canvas content. But shadows introduce a subtle problem. A drop shadow has a direction: it falls down and to the right, matching the way light falls on screen UI. If we just rotated the entire SVG including the shadow filter, the shadow would rotate with the cursor graphic. A cursor rotated 180 degrees would have its shadow pointing upward, which looks wrong.
 
-We want the cursor graphic itself to rotate, but the shadow to always fall "downward" in screen space. To achieve this, we rotate the shadow's offset vector by the negative of the cursor rotation:
+We want the cursor graphic itself to rotate, but the shadow to always fall "downward" in screen space. The fix is to rotate the shadow's offset vector by the _negative_ of the cursor rotation:
 
 ```typescript
 const a = (-tr - r) * (PI / 180) // Negate the rotation
@@ -100,7 +103,7 @@ The shadow is defined in the SVG filter as `<feDropShadow dx='${dx}' dy='${dy}' 
 
 ## Cursor types and rotation offsets
 
-We have different cursor graphics for different handle types, each with a base rotation offset:
+A selection box has several kinds of handles: edges, corners, and rotation zones just outside each corner. Each needs a different cursor graphic—a double-headed arrow for edges, a diagonal arrow for corners, a curved arrow for rotation. But we don't need a unique SVG for every one. We only need three base SVGs, then rotate them to the right angle with an offset:
 
 ```typescript
 const CURSORS: Record<TLCursorType, CursorFunction> = {
@@ -108,18 +111,22 @@ const CURSORS: Record<TLCursorType, CursorFunction> = {
 	'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),
 	'nesw-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 0, f, c),
 	'nwse-resize': (r, f, c) => getCursorCss(CORNER_SVG, r, 90, f, c),
+	'nwse-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 0, f, c),
+	'nesw-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 90, f, c),
+	'senw-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 180, f, c),
+	'swne-rotate': (r, f, c) => getCursorCss(ROTATE_CORNER_SVG, r, 270, f, c),
 }
 ```
 
-Edge handles use the same SVG but with different rotation offsets. `ew-resize` is horizontal (0°), `ns-resize` is vertical (90°). Corner handles work similarly—the diagonal cursors are the same graphic rotated by 90 degrees.
+Three SVG graphics, ten cursor types. Edge handles use the same SVG but with different rotation offsets. `ew-resize` is horizontal (0°), `ns-resize` is vertical (90°). Corner handles work similarly—the diagonal cursors are the same graphic rotated by 90 degrees. And the rotation cursors—the curved arrows that appear when you hover just outside a corner—use a third SVG with four offsets, one per corner.
 
-The shape's actual rotation gets added to these base offsets, so a `nesw-resize` handle on a shape rotated 45 degrees will render at 45 degrees, perfectly aligned with the handle's orientation.
+The shape's actual rotation gets added to these base offsets, so a `nesw-resize` handle on a shape rotated 45 degrees will render at 45 degrees, perfectly aligned with the handle's orientation. The rotation cursors follow the same rule.
 
 ## Flipping during resize
 
 When you resize a shape past its opposite edge, it flips. The scale goes negative, the shape mirrors, and the cursor needs to flip too. A northwest handle that crosses to the southeast should become a southeast cursor.
 
-The flip logic uses XOR on the scale signs:
+Think about which diagonal cursor to show: `nwse-resize` (↘↖) or `nesw-resize` (↗↙). Flipping on the X axis swaps left and right, turning one diagonal into the other. Flipping on the Y axis does the same. But flipping on _both_ axes? That's a 180° rotation—the diagonal direction is unchanged. So the cursor should only switch when exactly one axis is flipped. That's an XOR:
 
 ```typescript
 updateCursor({
@@ -142,7 +149,7 @@ The SVG rendering also receives the flip flag and applies a scale transform: `sc
 
 ## Theme and color
 
-The cursor color adapts to the editor's theme:
+A black cursor disappears on a dark canvas. The cursor SVGs already have both a white outline and a black fill for contrast, but the overall color needs to match the theme:
 
 ```typescript
 getCursor(type, rotation, isDarkMode ? 'white' : 'black')
@@ -174,6 +181,33 @@ useQuickReactor(
 
 Static cursors like `pointer`, `grab`, and `text` use CSS variables. Only resize and rotate cursors get the dynamic SVG treatment.
 
+## Handle distance scales with zoom
+
+Resize handles sit directly on the selection box, but rotation cursors need to sit just outside each corner—close enough to discover, far enough to not overlap the resize handles.
+
+[img]
+
+The tricky part is zoom. If that gap were a fixed number of canvas units, it would balloon when you zoom in and vanish when you zoom out. We need it to stay the same visual size on screen regardless of zoom level:
+
+```typescript
+const targetSize = (6 / zoom) * mobileHandleMultiplier
+```
+
+Each rotation zone is an invisible rectangle, `targetSize * 3` wide and tall, positioned `targetSize * 3` beyond the corner:
+
+```typescript
+<rect
+  x={cx - targetSize * 3}
+  y={cy - targetSize * 3}
+  width={Math.max(1, targetSize * 3)}
+  height={Math.max(1, targetSize * 3)}
+/>
+```
+
+At 2x zoom, `targetSize` is 3 canvas units. At 0.5x, it's 12. The rotation zones—and all the resize handles—scale inversely with zoom, staying the same visual size on screen. Zoom in on a shape and the handles don't grow to dominate the canvas. Zoom out and they don't shrink to subpixel invisibility.
+
+The same `targetSize` controls the resize handle hit areas (3× targetSize for corners, 2× for edges) and adjusts for touch input—on coarse pointer devices, `mobileHandleMultiplier` is 1.75, making handles 75% larger to accommodate finger taps.
+
 ## The multi-selection compromise
 
 When multiple shapes with different rotations are selected together, showing a rotated cursor would be misleading—it couldn't match all the shapes. We show an unrotated cursor instead:
@@ -189,8 +223,6 @@ Single selection: cursor rotates with the shape. Multiple selection: cursor stay
 
 ## The tradeoff
 
-This technique works because data URI cursors are widely supported and SVG is flexible enough to handle rotation, shadows, and flipping in a single inline string. The implementation is compact—about 30 lines to generate the cursor CSS.
+We traded native cursor rendering for rotational freedom. The browser's built-in cursors are pixel-perfect at their intended size and consistent across platforms. Our SVG cursors scale with DPI but might look slightly different across browsers, and every cursor update constructs a new data URI string—potentially many times per second during hover and resize.
 
-The cost is that every cursor update constructs a new data URI string. This happens on hover and during resize, potentially many times per second. But string construction is fast, and browsers cache cursor rendering, so the overhead is negligible compared to the rest of the resize operation.
-
-We also don't get native cursor rendering. The browser's built-in cursors are pixel-perfect at their intended size. Our SVG cursors scale with DPI but might look slightly different across browsers. That's a worthwhile tradeoff for correct rotation at any angle.
+In practice, the cost is negligible. String construction is fast, browsers cache cursor rendering, and the whole implementation is about 30 lines. The payoff—correct rotation at any angle, consistent shadows, theme-aware colors, and flip handling—would be impossible with the browser's eight fixed cursors.

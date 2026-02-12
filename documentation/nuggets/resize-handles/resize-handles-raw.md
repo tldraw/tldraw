@@ -773,6 +773,50 @@ const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
 
 Minimum visible height: `4` zoom-adjusted pixels (line 194).
 
+## Rotation handle positioning
+
+**Source:** `/packages/tldraw/src/lib/canvas/TldrawSelectionForeground.tsx:479-515`
+
+Rotation cursors appear when hovering just outside the corners of the selection. The hit areas are invisible `<rect>` elements positioned relative to each corner.
+
+**RotateCornerHandle component:**
+
+```typescript
+export const RotateCornerHandle = function RotateCornerHandle({ cx, cy, targetSize, corner, cursor, isHidden }) {
+	return (
+		<rect
+			className={classNames('tl-transparent', 'tl-rotate-corner', { 'tl-hidden': isHidden })}
+			pointerEvents="all"
+			x={toDomPrecision(cx - targetSize * 3)}
+			y={toDomPrecision(cy - targetSize * 3)}
+			width={toDomPrecision(Math.max(1, targetSize * 3))}
+			height={toDomPrecision(Math.max(1, targetSize * 3))}
+			cursor={cursor}
+		/>
+	)
+}
+```
+
+**Corner positions passed in (lines 213-248):**
+
+```typescript
+// top-left:     cx=0, cy=0
+// top-right:    cx=width + targetSize * 3, cy=0
+// bottom-left:  cx=0, cy=height + targetSize * 3
+// bottom-right: cx=width + targetSize * 3, cy=height + targetSize * 3
+```
+
+The rect is `targetSize * 3` wide/tall and offset by `targetSize * 3` from its cx/cy point. Since `targetSize = (6 / zoom) * mobileHandleMultiplier`, the rotation zone distance from the shape scales inversely with zoom — handles stay the same visual size on screen regardless of zoom level. At 2x zoom, targetSize = 3 canvas units; at 0.5x, targetSize = 12.
+
+The rotation cursors use the same `getCursorCss` function as resize cursors, with `ROTATE_CORNER_SVG` (a curved arrow) and four base offsets (0°, 90°, 180°, 270°):
+
+```typescript
+<RotateCornerHandle corner="top_left_rotate" cursor={getCursor('nwse-rotate', rotation)} />
+<RotateCornerHandle corner="top_right_rotate" cursor={getCursor('nesw-rotate', rotation)} />
+<RotateCornerHandle corner="bottom_left_rotate" cursor={getCursor('swne-rotate', rotation)} />
+<RotateCornerHandle corner="bottom_right_rotate" cursor={getCursor('senw-rotate', rotation)} />
+```
+
 ## Selection handle types
 
 **TypeScript types:**
