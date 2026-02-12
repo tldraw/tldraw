@@ -10,6 +10,9 @@ import {
 import { TextDecoder, TextEncoder } from 'util'
 import { beforeAll } from 'vitest'
 
+// Capture real setTimeout before any test file can install fake timers.
+const realSetTimeout = globalThis.setTimeout
+
 if (typeof window !== 'undefined') {
 	await import('vitest-canvas-mock')
 }
@@ -56,7 +59,7 @@ if (typeof HTMLImageElement !== 'undefined') {
 // is in place before we polyfill roundRect onto it. The async yield
 // guarantees the un-awaited dynamic import has settled.
 beforeAll(async () => {
-	await new Promise((resolve) => setTimeout(resolve, 0))
+	await new Promise((resolve) => realSetTimeout(resolve, 0))
 	if (typeof Path2D !== 'undefined' && typeof Path2D.prototype.roundRect !== 'function') {
 		Path2D.prototype.roundRect = function (x: number, y: number, w: number, h: number, _: any) {
 			this.rect(x, y, w, h)
