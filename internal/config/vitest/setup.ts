@@ -8,6 +8,7 @@ import {
 	stringify,
 } from 'jest-matcher-utils'
 import { TextDecoder, TextEncoder } from 'util'
+import { beforeAll } from 'vitest'
 
 if (typeof window !== 'undefined') {
 	await import('vitest-canvas-mock')
@@ -50,12 +51,18 @@ if (typeof HTMLImageElement !== 'undefined') {
 	}
 }
 
-// Path2D polyfills
-if (typeof Path2D !== 'undefined' && typeof Path2D.prototype.roundRect !== 'function') {
-	Path2D.prototype.roundRect = function (x, y, w, h, _) {
-		this.rect(x, y, w, h)
+// Path2D polyfills — must run in beforeAll so that vitest-canvas-mock's
+// unwaited async importMockWindow() has resolved and the real mock Path2D
+// is in place before we polyfill roundRect onto it. The async yield
+// guarantees the un-awaited dynamic import has settled.
+beforeAll(async () => {
+	await new Promise((resolve) => setTimeout(resolve, 0))
+	if (typeof Path2D !== 'undefined' && typeof Path2D.prototype.roundRect !== 'function') {
+		Path2D.prototype.roundRect = function (x: number, y: number, w: number, h: number, _: any) {
+			this.rect(x, y, w, h)
+		}
 	}
-}
+})
 
 // CSS.supports polyfill for tests that use color spaces (e.g., highlight shapes)
 if (typeof CSS === 'undefined') {
