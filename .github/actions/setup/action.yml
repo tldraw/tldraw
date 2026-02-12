@@ -25,9 +25,9 @@ runs:
           **/node_modules
           .yarn/cache
           .yarn/unplugged
-        key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
+        key: ${{ runner.os }}-node-22.16.0-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
         restore-keys: |
-          ${{ runner.os }}-yarn-
+          ${{ runner.os }}-node-22.16.0-yarn-
 
     - name: Install dependencies
       run: yarn install --immutable
