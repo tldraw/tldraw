@@ -243,6 +243,139 @@ describe('sanitizeSvg', () => {
 			const result = sanitizeSvg('this is not svg')
 			expect(result).toBe('')
 		})
+
+		it('removes <animate> targeting href (XSS via animation)', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<a href="https://safe.com"><animate attributeName="href" values="javascript:alert(1)" dur="1s"/><text>x</text></a>'
+				)
+			)
+			expect(result).not.toContain('javascript')
+			expect(result).not.toContain('attributeName="href"')
+			expect(result).toContain('<text')
+		})
+
+		it('removes <set> targeting href', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<a href="https://safe.com"><set attributeName="href" to="javascript:alert(1)"/><text>x</text></a>'
+				)
+			)
+			expect(result).not.toContain('javascript')
+			expect(result).not.toContain('attributeName="href"')
+		})
+
+		it('removes <animateTransform> targeting href', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<a href="https://safe.com"><animateTransform attributeName="href" values="javascript:alert(1)"/><text>x</text></a>'
+				)
+			)
+			expect(result).not.toContain('attributeName="href"')
+		})
+
+		it('removes <animate> targeting xlink:href', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<a href="https://safe.com"><animate attributeName="xlink:href" values="javascript:alert(1)"/><text>x</text></a>',
+					'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+				)
+			)
+			expect(result).not.toContain('attributeName="xlink:href"')
+		})
+
+		it('removes <animate> targeting on* attributes', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<rect width="10" height="10"><animate attributeName="onclick" values="alert(1)" dur="1s"/></rect>'
+				)
+			)
+			expect(result).not.toContain('attributeName="onclick"')
+		})
+
+		it('strips multiline CSS url() values', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<style>rect { background: url(\nhttps://evil.com/x.png\n) }</style><rect width="10" height="10"/>'
+				)
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('blocks data:image/svg+xml on <image> (nested unsanitized SVG)', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<image href="data:image/svg+xml;base64,PHN2Zz48c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+PC9zdmc+" width="10" height="10"/>'
+				)
+			)
+			expect(result).not.toContain('data:image/svg+xml')
+		})
+
+		it('blocks data:image/svg+xml in CSS url()', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<style>rect { background: url(data:image/svg+xml;base64,PHN2Zz4=) }</style><rect width="10" height="10"/>'
+				)
+			)
+			expect(result).not.toContain('data:image/svg+xml')
+		})
+
+		it('strips @import with semicolons inside quoted URL', () => {
+			const result = sanitizeSvg(
+				wrap(
+					'<style>@import url("https://evil.com/foo;bar.css");</style><rect width="10" height="10"/>'
+				)
+			)
+			expect(result).not.toContain('evil.com')
+			expect(result).not.toContain('@import')
+		})
+
+		it('strips external url() in fill attribute', () => {
+			const result = sanitizeSvg(
+				wrap('<rect fill="url(https://evil.com/track.png)" width="10" height="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('strips external url() in filter attribute', () => {
+			const result = sanitizeSvg(
+				wrap('<rect filter="url(https://evil.com/filter)" width="10" height="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('strips external url() in clip-path attribute', () => {
+			const result = sanitizeSvg(
+				wrap('<rect clip-path="url(https://evil.com/clip)" width="10" height="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('strips external url() in mask attribute', () => {
+			const result = sanitizeSvg(
+				wrap('<rect mask="url(https://evil.com/mask)" width="10" height="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('strips external url() in marker-end attribute', () => {
+			const result = sanitizeSvg(
+				wrap('<line marker-end="url(https://evil.com/m)" x1="0" y1="0" x2="10" y2="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('strips external url() in stroke attribute', () => {
+			const result = sanitizeSvg(
+				wrap('<rect stroke="url(https://evil.com/s)" width="10" height="10"/>')
+			)
+			expect(result).not.toContain('evil.com')
+		})
+
+		it('does not throw on CSS escapes above Unicode max', () => {
+			const result = sanitizeSvg(wrap('<rect style="color: \\999999" width="10" height="10"/>'))
+			expect(result).toContain('<rect')
+		})
 	})
 
 	describe('preservation — must keep intact', () => {
@@ -272,6 +405,8 @@ describe('sanitizeSvg', () => {
 			expect(result).toContain('linearGradient')
 			expect(result).toContain('radialGradient')
 			expect(result).toContain('<stop')
+			// fill="url(#lg)" must survive url-bearing attr sanitization
+			expect(result).toContain('url(#lg)')
 		})
 
 		it('preserves filters', () => {
@@ -284,6 +419,8 @@ describe('sanitizeSvg', () => {
 			expect(result).toContain('feGaussianBlur')
 			expect(result).toContain('feDropShadow')
 			expect(result).toContain('feBlend')
+			// filter="url(#f)" must survive url-bearing attr sanitization
+			expect(result).toContain('url(#f)')
 		})
 
 		it('preserves clipPath, mask, pattern, marker', () => {
@@ -401,6 +538,28 @@ describe('sanitizeSvg', () => {
 			expect(result).toContain('<animate')
 			expect(result).toContain('<set')
 			expect(result).toContain('animateTransform')
+		})
+
+		it('preserves CSS url(#id) fragment references in <style>', () => {
+			const svg = wrap(
+				'<defs><linearGradient id="grad"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="blue"/></linearGradient></defs>' +
+					'<style>rect { fill: url(#grad) }</style>' +
+					'<rect width="10" height="10"/>'
+			)
+			const result = sanitizeSvg(svg)
+			expect(result).toContain('url(#grad)')
+		})
+
+		it('preserves safe <animate> targeting non-URI attributes', () => {
+			const svg = wrap(
+				'<rect width="10" height="10">' +
+					'<animate attributeName="opacity" from="0" to="1" dur="1s"/>' +
+					'<animate attributeName="fill" from="red" to="blue" dur="1s"/>' +
+					'</rect>'
+			)
+			const result = sanitizeSvg(svg)
+			expect(result).toContain('attributeName="opacity"')
+			expect(result).toContain('attributeName="fill"')
 		})
 
 		it('preserves data: image in CSS url()', () => {

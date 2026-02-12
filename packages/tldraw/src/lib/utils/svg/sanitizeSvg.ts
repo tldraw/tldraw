@@ -383,7 +383,11 @@ const FRAGMENT_REF = /^#/
 
 function decodeCssEscapes(css: string): string {
 	return css.replace(/\\([0-9a-fA-F]{1,6})\s?|\\([^\n])/g, (_, hex, literal) => {
-		if (hex) return String.fromCodePoint(parseInt(hex, 16))
+		if (hex) {
+			const codePoint = parseInt(hex, 16)
+			if (codePoint > 0x10ffff || codePoint === 0) return '\uFFFD'
+			return String.fromCodePoint(codePoint)
+		}
 		return literal
 	})
 }
@@ -422,7 +426,7 @@ function sanitizeStyleElement(textContent: string): string {
 // Animation elements (<animate>, <set>) can overwrite attributes at runtime.
 // If attributeName targets a URI attr (href) or event handler (on*), the animation
 // can inject javascript: URIs or re-add stripped handlers, bypassing static sanitization.
-const ANIMATION_TAGS = new Set(['animate', 'set', 'animatecolor'])
+const ANIMATION_TAGS = new Set(['animate', 'set', 'animatecolor', 'animatetransform'])
 const DANGEROUS_ANIMATION_TARGETS = /^(?:href|xlink:href|on)/i
 
 function isAnimationDangerous(el: Element): boolean {
@@ -434,6 +438,20 @@ function isAnimationDangerous(el: Element): boolean {
 // --- Event handler detection ---
 // Matches on* after normalizing invisible chars — catches all current and future event handlers
 const EVENT_HANDLER_PATTERN = /^on/i
+
+// --- SVG presentation attributes that accept url() references ---
+// These can exfiltrate data via external URL loads if not sanitized.
+const URL_BEARING_SVG_ATTRS = new Set([
+	'clip-path',
+	'cursor',
+	'fill',
+	'filter',
+	'marker-end',
+	'marker-mid',
+	'marker-start',
+	'mask',
+	'stroke',
+])
 
 // --- Node sanitization ---
 
@@ -499,6 +517,13 @@ function sanitizeSvgAttributes(el: Element): void {
 
 		// style attribute: sanitize CSS
 		if (name === 'style') {
+			attr.value = sanitizeCssValue(attr.value)
+			continue
+		}
+
+		// Presentation attributes that accept url() references — sanitize to allow
+		// only data: (safe MIME) and fragment (#id) refs, strip external URLs
+		if (URL_BEARING_SVG_ATTRS.has(name) && attr.value.includes('url(')) {
 			attr.value = sanitizeCssValue(attr.value)
 		}
 	}

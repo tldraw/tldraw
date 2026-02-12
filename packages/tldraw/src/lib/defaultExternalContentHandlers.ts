@@ -311,7 +311,7 @@ export async function defaultHandleExternalSvgTextContent(
 ) {
 	const { sanitizeSvg } = await import('./utils/svg/sanitizeSvg')
 	text = sanitizeSvg(text)
-	if (!text) throw new Error('SVG contained no safe content')
+	if (!text) return
 
 	const position =
 		point ??
