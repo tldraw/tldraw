@@ -14,7 +14,7 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: 22.16.0
-        cache: 'yarn'
+        cache: ''
 
     - name: Restore node_modules cache
       uses: actions/cache@v4
