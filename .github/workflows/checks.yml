@@ -15,6 +15,18 @@ defaults:
     shell: bash
 
 jobs:
+  lint:
+    name: 'Lint'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup
+
+      - name: Lint
+        run: yarn lint
+
   test:
     name: 'Tests & checks'
     timeout-minutes: 15
@@ -45,9 +57,6 @@ jobs:
         run: yarn update-pr-template --check
         env:
           GH_TOKEN: ${{ github.token }}
-
-      - name: Lint
-        run: yarn lint
 
       - name: Check API declarations and docs work as intended
         run: yarn api-check
