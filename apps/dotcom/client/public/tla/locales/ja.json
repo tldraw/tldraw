@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "このファイルはサイズ制限に達したため、変更を保存できない可能性があります。一部のコンテンツを削除するか、新しいファイルを作成してください。"
   },
-  "0ab1ef22a3": {
-    "translation": "グループに話しかける…"
-  },
   "0b27918290": {
     "translation": "ファイル"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "公開"
-  },
-  "11a755d598": {
-    "translation": "停止"
   },
   "129b9e34ea": {
     "translation": "グループを脱退"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "tldrawについて"
   },
-  "284d5cd0dd": {
-    "translation": "モデル："
-  },
   "299cb00a7a": {
     "translation": "アップロードに失敗しました"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "エディタ"
-  },
-  "34e34c43ec": {
-    "translation": "管理"
-  },
-  "3596c1b1f7": {
-    "translation": "フォロー解除"
-  },
-  "3903aab323": {
-    "translation": "フォローする"
-  },
-  "3b6c2b4caa": {
-    "translation": "利用規約"
   },
   "3bc7d6ea2f": {
     "translation": "メールで続行"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "名前"
   },
-  "4c41e0bd95": {
-    "translation": "すべて選択"
-  },
   "4d0d3ddec9": {
     "translation": "このサイトでは、アプリの動作と分析情報の収集のために Cookie を使用します。"
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "グループを削除…"
-  },
-  "4dab36ac83": {
-    "translation": "その他のオプション"
   },
   "4e6fbf032b": {
     "translation": "このグループを削除してもよろしいですか? この操作は元に戻せません。"
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "プライバシーポリシー"
   },
-  "5a2ccdc00a": {
-    "translation": "招待コードの引き換えに失敗しました"
-  },
   "5a86b22fa0": {
     "translation": "開始するには、ファイルをここにドラッグするか、<create>ファイルを作成</create>するか、<invite>招待リンクをコピー</invite>してください。"
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "後で"
   },
-  "61daf2e53d": {
-    "translation": "{name}と話してください…"
-  },
   "625fd29749": {
     "translation": "より古い"
   },
   "639bae9ac6": {
     "translation": "あなた"
-  },
-  "6602bbeb29": {
-    "translation": "ガイド"
   },
   "6609dd239e": {
     "translation": "エラーが発生しました"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "メールアドレスを入力してください"
-  },
-  "68d390535e": {
-    "translation": "メッセージを入力してください"
   },
   "6a26f54883": {
     "translation": "ヘルプ"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "tldraw に関するバグ、問題、またはアイデアがありましたら、ぜひお知らせください。こちらのフォームにご記入いただければ、必要に応じてメールでご連絡いたします。また、<discord>Discord でチャット</discord>、<github>GitHub で問題を提出</github>することも可能です。"
   },
-  "81aa2078d1": {
-    "translation": "すべてクリア"
-  },
-  "83218ac34c": {
-    "translation": "いらっしゃいませ"
-  },
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
-  "8726ef8909": {
-    "translation": "ハードリセット"
-  },
   "8ad4303b83": {
     "translation": "結構です"
   },
   "8c2d3d730c": {
     "translation": "確認コードをメールで確認してください。"
   },
-  "8cf04a9734": {
-    "translation": "家"
-  },
   "8eb2c00e96": {
     "translation": "あなたと共有しました"
-  },
-  "8f7f4c1ce7": {
-    "translation": "について"
   },
   "8ff3d0a705": {
     "translation": "レートが制限されています"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "招待リンクをコピーしました"
   },
-  "94186070ef": {
-    "translation": "選択解除"
-  },
   "9489b2f82a": {
     "translation": "あなたはすでにこのグループのメンバーです"
-  },
-  "94966d9074": {
-    "translation": "送信"
   },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "ライト"
-  },
-  "9953e9946b": {
-    "translation": "デバッグビュー"
   },
   "9b33f5c63c": {
     "translation": "コードが届きませんか？ <resend>再送信</resend>"
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "画像をエクスポート"
   },
-  "a286d9991c": {
-    "translation": "参加する"
-  },
   "a3debabee7": {
     "translation": "クッキーポリシー"
   },
   "a4d3b161ce": {
     "translation": "提出する"
-  },
-  "a603905470": {
-    "translation": "デバッグ"
   },
   "a6cc403d56": {
     "translation": "リンクを持つ人なら誰でも"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "ファイルが大きくなりつつあります"
-  },
-  "a917baaf14": {
-    "translation": "新しいチャット"
   },
   "a9ded1e5ce": {
     "translation": "背景"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "ファイルがいっぱいです"
-  },
-  "b34a671e2c": {
-    "translation": "ログ応答時間"
   },
   "b357b524e7": {
     "translation": "電子メールアドレス"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "ファイルを公開できません"
   },
-  "c3bf447eab": {
-    "translation": "開ける"
-  },
-  "c3eb5c3b90": {
-    "translation": "わかりました"
-  },
   "c4b39a1cc3": {
     "translation": "必須クッキー"
   },
-  "c54a624f46": {
-    "translation": "招待を承諾する"
-  },
   "c6155aaecc": {
     "translation": "グループ名"
-  },
-  "c64518704c": {
-    "translation": "使用法"
   },
   "c655b27b1e": {
     "translation": "i18n：長い文字列"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "招待のみ"
   },
-  "dc30bc0c79": {
-    "translation": "クリア"
-  },
   "dcdaa754fe": {
     "translation": "無効なtldrawファイルURL"
   },
   "dfdb78a4e4": {
     "translation": "デバッグのフラグを追加"
-  },
-  "e062622261": {
-    "translation": "選択"
   },
   "e0c88179b3": {
     "translation": "メンバーを招待する"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "利用規約"
-  },
-  "e43ec38a93": {
-    "translation": "へ移動"
   },
   "e81c4e4f2b": {
     "translation": "または"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "詳細については、<a>Cookie ポリシー</a> をお読みください。"
   },
-  "eee6f05922": {
-    "translation": "解散"
-  },
   "ef53538ae4": {
     "translation": "メンバー"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "ユーザー設定"
-  },
-  "f1206f9fad": {
-    "translation": "設定"
   },
   "f2569594b2": {
     "translation": "これらの Cookie は、ファイルと設定を保存するために使用されます。"

@@ -38,12 +38,12 @@ export function Component() {
 						replace: true,
 						state: location.state,
 					})
+					return
 				} else {
 					// if the user has too many files we end up here.
 					// don't slurp the file and when they log out they'll
 					// be able to see the same content that was there before
 				}
-				return
 			}
 
 			const recentFiles = app.getMyFiles()

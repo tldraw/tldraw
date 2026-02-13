@@ -51,12 +51,6 @@
       "value": "Tệp này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Nói chuyện với nhóm…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Xuất bản"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Dừng lại"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Giới thiệu về tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Người mẫu:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Biên tập viên"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Quản lý"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Bỏ theo dõi"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Theo"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Điều khoản dịch vụ"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Tên"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Chọn tất cả"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Xóa nhóm…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Thêm tùy chọn"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Chính sách bảo mật"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Không đổi được mã mời"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Để sau"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Nói chuyện với "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "Bạn"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Hướng dẫn"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Nhập địa chỉ email của bạn"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Nhập tin nhắn của bạn"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Xóa tất cả"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Chào mừng"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Đổi tên tập tin"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Đặt lại cứng"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Kiểm tra email của bạn để lấy mã xác minh."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Trang chủ"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Chia sẻ với bạn"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Về"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Đã sao chép liên kết mời"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Bỏ chọn"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Bạn đã là thành viên của nhóm này"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Gửi"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Sáng"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Chế độ xem gỡ lỗi"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Xuất ảnh"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Tham gia"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Nộp"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Gỡ lỗi"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Tệp đang trở nên lớn hơn"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Trò chuyện mới"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Tệp đã đầy"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Thời gian phản hồi của Nhật ký"
     }
   ],
   "b357b524e7": [
@@ -1183,40 +1025,16 @@
       "value": "Không thể xuất bản tệp này."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Mở"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Tôi hiểu"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Cookie thiết yếu"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Chấp nhận lời mời"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Tên nhóm"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Cách sử dụng"
     }
   ],
   "c655b27b1e": [
@@ -1361,12 +1179,6 @@
       "value": "Chỉ mời"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Thông thoáng"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1377,12 +1189,6 @@
     {
       "type": 0,
       "value": "Cờ gỡ lỗi ứng dụng"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Lựa chọn"
     }
   ],
   "e0c88179b3": [
@@ -1413,12 +1219,6 @@
     {
       "type": 0,
       "value": "Điều khoản dịch vụ"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Đi đến"
     }
   ],
   "e81c4e4f2b": [
@@ -1489,12 +1289,6 @@
       "value": " của chúng tôi để tìm hiểu thêm."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Giải tán"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1517,12 +1311,6 @@
     {
       "type": 0,
       "value": "Cài đặt người dùng"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Cấu hình"
     }
   ],
   "f2569594b2": [

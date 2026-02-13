@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Fail ini telah mencapai had saiznya dan perubahan mungkin tidak lagi disimpan. Alih keluar beberapa kandungan atau mulakan fail baharu."
   },
-  "0ab1ef22a3": {
-    "translation": "Bercakap kepada kumpulan…"
-  },
   "0b27918290": {
     "translation": "Fail"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Terbitkan"
-  },
-  "11a755d598": {
-    "translation": "Berhenti"
   },
   "129b9e34ea": {
     "translation": "Tinggalkan kumpulan"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Mengenai tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Model:"
-  },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Uruskan"
-  },
-  "3596c1b1f7": {
-    "translation": "nyahikut"
-  },
-  "3903aab323": {
-    "translation": "Ikut"
-  },
-  "3b6c2b4caa": {
-    "translation": "Syarat Perkhidmatan"
   },
   "3bc7d6ea2f": {
     "translation": "Teruskan dengan e-mel"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Nama"
   },
-  "4c41e0bd95": {
-    "translation": "Pilih semua"
-  },
   "4d0d3ddec9": {
     "translation": "Tapak ini menggunakan kuki untuk menjadikan apl berfungsi dan mengumpul analitik."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Padamkan kumpulan…"
-  },
-  "4dab36ac83": {
-    "translation": "Lebih banyak pilihan"
   },
   "4e6fbf032b": {
     "translation": "Adakah anda pasti mahu memadamkan kumpulan ini? Tindakan ini tidak boleh dibuat asal."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Dasar privasi"
   },
-  "5a2ccdc00a": {
-    "translation": "Gagal menebus kod jemputan"
-  },
   "5a86b22fa0": {
     "translation": "Seret fail ke sini, <create>buat fail</create> atau <invite>copy link invite</invite> untuk bermula."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Nanti"
   },
-  "61daf2e53d": {
-    "translation": "Bercakap dengan {name}…"
-  },
   "625fd29749": {
     "translation": "Lebih tua"
   },
   "639bae9ac6": {
     "translation": "awak"
-  },
-  "6602bbeb29": {
-    "translation": "Panduan"
   },
   "6609dd239e": {
     "translation": "Sesuatu telah berlaku"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Masukkan alamat e-mel anda"
-  },
-  "68d390535e": {
-    "translation": "Masukkan mesej anda"
   },
   "6a26f54883": {
     "translation": "Tolong"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami! Isi borang ini dan kami akan membuat susulan melalui e-mel jika perlu. Anda juga boleh <discord>berbual dengan kami di Discord</discord> atau <github>menyerahkan isu pada GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Kosongkan semua"
-  },
-  "83218ac34c": {
-    "translation": "Selamat datang"
-  },
   "85a082de1b": {
     "translation": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Namakan semula fail"
   },
-  "8726ef8909": {
-    "translation": "Tetapan semula keras"
-  },
   "8ad4303b83": {
     "translation": "Tidak terima kasih"
   },
   "8c2d3d730c": {
     "translation": "Semak e-mel anda untuk mendapatkan kod pengesahan."
   },
-  "8cf04a9734": {
-    "translation": "Rumah"
-  },
   "8eb2c00e96": {
     "translation": "Dikongsi dengan anda"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Tentang"
   },
   "8ff3d0a705": {
     "translation": "Kadar terhad"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Pautan jemputan disalin"
   },
-  "94186070ef": {
-    "translation": "Nyahpilih"
-  },
   "9489b2f82a": {
     "translation": "Anda sudah pun menjadi ahli kumpulan ini"
-  },
-  "94966d9074": {
-    "translation": "Hantar"
   },
   "95aacd4d4a": {
     "translation": "Log masuk dengan Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Cahaya"
-  },
-  "9953e9946b": {
-    "translation": "Paparan nyahpepijat"
   },
   "9b33f5c63c": {
     "translation": "Tidak menerima kod? <resend>Hantar semula</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Eksport imej"
   },
-  "a286d9991c": {
-    "translation": "Sertai"
-  },
   "a3debabee7": {
     "translation": "Dasar kuki"
   },
   "a4d3b161ce": {
     "translation": "Hantar"
-  },
-  "a603905470": {
-    "translation": "Nyahpepijat"
   },
   "a6cc403d56": {
     "translation": "Sesiapa sahaja yang mempunyai pautan"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Fail semakin besar"
-  },
-  "a917baaf14": {
-    "translation": "Sembang baharu"
   },
   "a9ded1e5ce": {
     "translation": "Latar belakang"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Fail sudah penuh"
-  },
-  "b34a671e2c": {
-    "translation": "Log masa tindak balas"
   },
   "b357b524e7": {
     "translation": "Alamat e-mel"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan fail."
   },
-  "c3bf447eab": {
-    "translation": "Buka"
-  },
-  "c3eb5c3b90": {
-    "translation": "saya faham"
-  },
   "c4b39a1cc3": {
     "translation": "Kuki penting"
   },
-  "c54a624f46": {
-    "translation": "Terima jemputan"
-  },
   "c6155aaecc": {
     "translation": "Nama kumpulan"
-  },
-  "c64518704c": {
-    "translation": "Penggunaan"
   },
   "c655b27b1e": {
     "translation": "i18n: Rentetan Panjang"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Jemput sahaja"
   },
-  "dc30bc0c79": {
-    "translation": "Jelas"
-  },
   "dcdaa754fe": {
     "translation": "URL fail tldraw tidak sah"
   },
   "dfdb78a4e4": {
     "translation": "Bendera nyahpepijat apl"
-  },
-  "e062622261": {
-    "translation": "Pilih"
   },
   "e0c88179b3": {
     "translation": "Jemput ahli"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Syarat perkhidmatan"
-  },
-  "e43ec38a93": {
-    "translation": "Pergi ke"
   },
   "e81c4e4f2b": {
     "translation": "atau"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Baca <a>dasar kuki</a> kami untuk mengetahui lebih lanjut."
   },
-  "eee6f05922": {
-    "translation": "bubar"
-  },
   "ef53538ae4": {
     "translation": "ahli"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Tetapan pengguna"
-  },
-  "f1206f9fad": {
-    "translation": "Konfigurasikan"
   },
   "f2569594b2": {
     "translation": "Kami menggunakan kuki ini untuk menyimpan fail dan tetapan anda."

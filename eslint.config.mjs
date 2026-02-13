@@ -58,6 +58,7 @@ export default [
 			'apps/docs/postcss.config.js',
 			'apps/docs/tailwind.config.js',
 			'apps/dotcom/client/public/sw.js',
+			'apps/dotcom/client/public/theme-init.js',
 			'apps/analytics/public/*',
 			'**/.clasp.json',
 			'**/*.mjs',

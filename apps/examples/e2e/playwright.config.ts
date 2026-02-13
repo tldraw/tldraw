@@ -101,13 +101,22 @@ const config: PlaywrightTestConfig = {
 	outputDir: './test-results',
 
 	/* Run your local dev server before starting the tests */
-	webServer: {
-		command: 'yarn dev',
-		port: 5420,
-		// When PARALLEL_SHARDS=1, we start the server once before running 3 shards in parallel
-		reuseExistingServer: !process.env.CI || process.env.PARALLEL_SHARDS === '1',
-		cwd: path.join(__dirname, '../../..'),
-	},
+	webServer: [
+		{
+			command: 'yarn preview-examples',
+			port: 5420,
+			reuseExistingServer: !process.env.CI || process.env.PARALLEL_SHARDS === '1',
+			cwd: path.join(__dirname, '../../..'),
+			timeout: 300_000, // 5 minutes: preview-examples builds the app before starting the server
+		},
+		{
+			command: 'yarn dev',
+			port: 8989,
+			reuseExistingServer: !process.env.CI || process.env.PARALLEL_SHARDS === '1',
+			cwd: path.join(__dirname, '../../../apps/bemo-worker'),
+			timeout: 60_000,
+		},
+	],
 }
 
 export default config

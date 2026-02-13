@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Faylkan waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
   },
-  "0ab1ef22a3": {
-    "translation": "La hadal kooxda..."
-  },
   "0b27918290": {
     "translation": "Faylka"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Daabac"
-  },
-  "11a755d598": {
-    "translation": "Jooji"
   },
   "129b9e34ea": {
     "translation": "Ka tag kooxda"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Ku saabsan tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Qaabka:"
-  },
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Tafatire"
-  },
-  "34e34c43ec": {
-    "translation": "Maamul"
-  },
-  "3596c1b1f7": {
-    "translation": "Lasoco"
-  },
-  "3903aab323": {
-    "translation": "Raac"
-  },
-  "3b6c2b4caa": {
-    "translation": "Shuruudaha Adeegga"
   },
   "3bc7d6ea2f": {
     "translation": "Ku sii wad iimaylka"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Magaca"
   },
-  "4c41e0bd95": {
-    "translation": "Dhammaan dooro"
-  },
   "4d0d3ddec9": {
     "translation": "Goobtani waxay isticmaashaa cookies si ay abka uga dhigto mid shaqaynaysa iyo si ay u ururiso falanqaynta."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Tirtir kooxda…"
-  },
-  "4dab36ac83": {
-    "translation": "Ikhtiyaar badan"
   },
   "4e6fbf032b": {
     "translation": "Ma hubtaa inaad doonayso inaad tirtirto kooxdan? Tallaabadan lama noqon karo."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Siyaasada gaarka ah"
   },
-  "5a2ccdc00a": {
-    "translation": "Ku guuldarraystay inuu soo furto summada martiqaadka"
-  },
   "5a86b22fa0": {
     "translation": "Halkan ku soo jiid faylasha, <create>abuur fayl</create>, ama <invite>koobiyi xidhiidhka martiqaadka</invite> si aad u bilowdo."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Ka dib"
   },
-  "61daf2e53d": {
-    "translation": "La hadal {name}…"
-  },
   "625fd29749": {
     "translation": "Ka weyn"
   },
   "639bae9ac6": {
     "translation": "adiga"
-  },
-  "6602bbeb29": {
-    "translation": "Hagaha"
   },
   "6609dd239e": {
     "translation": "Wax baa khaldamay"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Geli ciwaanka iimaylkaaga"
-  },
-  "68d390535e": {
-    "translation": "Geli fariintaada"
   },
   "6a26f54883": {
     "translation": "Caawin"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Ma haysaa bug, arin, ama fikrad tldraw? Aan ogaano! Buuxi foomkan waxaanu kula socon doonaa iimaylka haddii loo baahdo. Waxa kale oo aad <discord>nagula sheekaysan kartaa Discord </discord>ama <github>gudbi arrin ku saabsan GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Nadiifi dhammaan"
-  },
-  "83218ac34c": {
-    "translation": "Soo dhawoow"
-  },
   "85a082de1b": {
     "translation": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Magaca beddelo faylka"
   },
-  "8726ef8909": {
-    "translation": "Dib u dejin adag"
-  },
   "8ad4303b83": {
     "translation": "Maya mahadsanid"
   },
   "8c2d3d730c": {
     "translation": "Hubi iimaylkaga koodka xaqiijinta"
   },
-  "8cf04a9734": {
-    "translation": "Guriga"
-  },
   "8eb2c00e96": {
     "translation": "kula wadaagay"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Ku saabsan"
   },
   "8ff3d0a705": {
     "translation": "Qiimaha xaddidan"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Xiriirinta martiqaadka oo la guuriyay"
   },
-  "94186070ef": {
-    "translation": "Ha dooran"
-  },
   "9489b2f82a": {
     "translation": "Horay ayaad xubin uga ahayd kooxdan"
-  },
-  "94966d9074": {
-    "translation": "Dir"
   },
   "95aacd4d4a": {
     "translation": "Ku gal Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Iftiin"
-  },
-  "9953e9946b": {
-    "translation": "Aragtida qaladka"
   },
   "9b33f5c63c": {
     "translation": "kood ma helin? <resend>dib u dir </resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Dhoofinta sawirka"
   },
-  "a286d9991c": {
-    "translation": "Ku biir"
-  },
   "a3debabee7": {
     "translation": "Siyaasadda kukiyada"
   },
   "a4d3b161ce": {
     "translation": "Gudbi"
-  },
-  "a603905470": {
-    "translation": "Ciribtirka"
   },
   "a6cc403d56": {
     "translation": "Qof kasta oo xiriir la leh"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Faylku wuu weynaaday"
-  },
-  "a917baaf14": {
-    "translation": "Sheeko cusub"
   },
   "a9ded1e5ce": {
     "translation": "Asalkii hore"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Faylku wuu buuxaa"
-  },
-  "b34a671e2c": {
-    "translation": "Log waqtiga jawaabta"
   },
   "b357b524e7": {
     "translation": "Ciwaanka iimaylka"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Aan awoodin in la daabaco faylka"
   },
-  "c3bf447eab": {
-    "translation": "Furan"
-  },
-  "c3eb5c3b90": {
-    "translation": "waan fahmay"
-  },
   "c4b39a1cc3": {
     "translation": "Kukiyada muhiimka ah"
   },
-  "c54a624f46": {
-    "translation": "Aqbal martiqaadka"
-  },
   "c6155aaecc": {
     "translation": "Magaca kooxda"
-  },
-  "c64518704c": {
-    "translation": "Isticmaalka"
   },
   "c655b27b1e": {
     "translation": "i18n: Xarig dheer"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "martiqaad kaliya"
   },
-  "dc30bc0c79": {
-    "translation": "Cad"
-  },
   "dcdaa754fe": {
     "translation": "URL faylka tldraw aan sax ahayn"
   },
   "dfdb78a4e4": {
     "translation": "Calaamadaha cilladaha abka"
-  },
-  "e062622261": {
-    "translation": "Dooro"
   },
   "e0c88179b3": {
     "translation": "martiqaad xubnaha"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Shuruudaha adeegga"
-  },
-  "e43ec38a93": {
-    "translation": "Tag"
   },
   "e81c4e4f2b": {
     "translation": "ama"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Si aad wax badan u barato akhri <a> siyaasadayada kukiyada</a>"
   },
-  "eee6f05922": {
-    "translation": "Kala dir"
-  },
   "ef53538ae4": {
     "translation": "Xubnaha"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Dejinta isticmaalaha"
-  },
-  "f1206f9fad": {
-    "translation": "Habee"
   },
   "f2569594b2": {
     "translation": "Waxaan u isticmaalnaa cookies-kan si aan u kaydiyo faylashaada iyo dejintaada."
