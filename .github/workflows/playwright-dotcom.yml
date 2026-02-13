@@ -49,12 +49,39 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
-      - name: Run Playwright tests
+      - name: Set up Clerk secrets
         run: |
           echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
           echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
-          yarn e2e-dotcom
+
+      - name: Run Playwright tests (single-user, 6 workers)
+        run: |
+          rm -rf e2e/.auth
+          NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium \
+            e2e/tests/database.spec.ts \
+            e2e/tests/homepage.spec.ts \
+            e2e/tests/signin-dialog.spec.ts \
+            e2e/tests/sidebar-dotdev-link.spec.ts \
+            e2e/tests/not-logged-in.spec.ts \
+            e2e/tests/legacy.spec.ts \
+            e2e/tests/cookie-consent.spec.ts \
+            e2e/tests/client-too-old.spec.ts \
+            e2e/tests/file-not-found.spec.ts
+        working-directory: apps/dotcom/client
         env:
+          E2E_WORKERS: 6
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10') }}
+
+      - name: Run Playwright tests (multiplayer, 2 workers)
+        run: |
+          NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium \
+            e2e/tests/sharing.spec.ts \
+            e2e/tests/groups.spec.ts
+        working-directory: apps/dotcom/client
+        env:
+          E2E_WORKERS: 2
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10') }}

@@ -24,7 +24,14 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 0,
 	// For now we need to use 1 worker for dev as well, otherwise clearing the db fails since there might
 	// an open connection to the db when we are trying to clear it.
-	workers: process.env.STAGING_TESTS ? 6 : process.env.CI ? 2 : 3,
+	// E2E_WORKERS overrides for split runs (single-user vs multiplayer).
+	workers: process.env.E2E_WORKERS
+		? parseInt(process.env.E2E_WORKERS, 10)
+		: process.env.STAGING_TESTS
+			? 6
+			: process.env.CI
+				? 2
+				: 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
