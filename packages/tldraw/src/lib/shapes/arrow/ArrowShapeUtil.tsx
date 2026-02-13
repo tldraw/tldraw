@@ -199,6 +199,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelColor: getColorValue(ctx.theme, shape.props.labelColor, 'solid'),
 			labelFontSize: ctx.sizes[shape.props.size].arrowLabelFont,
 			fontFamily: ctx.fonts[shape.props.font],
+			fillSolidColor: getColorValue(ctx.theme, shape.props.color, 'semi'),
+			fillColor: getColorValue(ctx.theme, shape.props.color, 'fill'),
+			fillPatternColor: getColorValue(ctx.theme, shape.props.color, 'pattern'),
+			fillLinedFillColor: getColorValue(ctx.theme, shape.props.color, 'linedFill'),
 		}
 	}
 
@@ -1141,6 +1145,10 @@ export interface TLArrowShapeResolvedStyles {
 	labelColor: string
 	labelFontSize: number
 	fontFamily: string
+	fillSolidColor: string
+	fillColor: string
+	fillPatternColor: string
+	fillLinedFillColor: string
 }
 
 declare module '@tldraw/editor' {
@@ -1261,7 +1269,7 @@ const ArrowSvg = track(function ArrowSvg({
 					<ShapeFill
 						theme={theme}
 						d={as}
-						color={shape.props.color}
+						fillColors={styles}
 						fill={shape.props.fill}
 						scale={shape.props.scale}
 					/>
@@ -1270,7 +1278,7 @@ const ArrowSvg = track(function ArrowSvg({
 					<ShapeFill
 						theme={theme}
 						d={ae}
-						color={shape.props.color}
+						fillColors={styles}
 						fill={shape.props.fill}
 						scale={shape.props.scale}
 					/>

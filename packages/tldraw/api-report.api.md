@@ -3253,6 +3253,14 @@ export interface TLArrowPoint {
 // @public (undocumented)
 export interface TLArrowShapeResolvedStyles {
     // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillLinedFillColor: string;
+    // (undocumented)
+    fillPatternColor: string;
+    // (undocumented)
+    fillSolidColor: string;
+    // (undocumented)
     fontFamily: string;
     // (undocumented)
     labelColor: string;
@@ -3405,6 +3413,14 @@ export function TldrawShapeIndicators(): JSX.Element;
 
 // @public (undocumented)
 export interface TLDrawShapeResolvedStyles {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillLinedFillColor: string;
+    // (undocumented)
+    fillPatternColor: string;
+    // (undocumented)
+    fillSolidColor: string;
     // (undocumented)
     strokeColor: string;
     // (undocumented)
@@ -3720,6 +3736,14 @@ export interface TLFrameShapeResolvedStyles {
 
 // @public (undocumented)
 export interface TLGeoShapeResolvedStyles {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    fillLinedFillColor: string;
+    // (undocumented)
+    fillPatternColor: string;
+    // (undocumented)
+    fillSolidColor: string;
     // (undocumented)
     fontFamily: string;
     // (undocumented)

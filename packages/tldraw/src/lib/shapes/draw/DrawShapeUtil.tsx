@@ -89,6 +89,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return {
 			strokeWidth: ctx.sizes[shape.props.size].stroke + 1,
 			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
+			fillSolidColor: getColorValue(ctx.theme, shape.props.color, 'semi'),
+			fillColor: getColorValue(ctx.theme, shape.props.color, 'fill'),
+			fillPatternColor: getColorValue(ctx.theme, shape.props.color, 'pattern'),
+			fillLinedFillColor: getColorValue(ctx.theme, shape.props.color, 'linedFill'),
 		}
 	}
 
@@ -290,6 +294,10 @@ function getIsDot(shape: TLDrawShape) {
 export interface TLDrawShapeResolvedStyles {
 	strokeWidth: number
 	strokeColor: string
+	fillSolidColor: string
+	fillColor: string
+	fillPatternColor: string
+	fillLinedFillColor: string
 }
 
 declare module '@tldraw/editor' {
@@ -353,7 +361,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 							shape.props.isClosed
 						)}
 						theme={theme}
-						color={shape.props.color}
+						fillColors={styles}
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						scale={shape.props.scale}
 					/>
@@ -378,7 +386,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 			<ShapeFill
 				d={solidStrokePath}
 				theme={theme}
-				color={shape.props.color}
+				fillColors={styles}
 				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
 				scale={shape.props.scale}
 			/>

@@ -97,6 +97,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			labelColor: getColorValue(ctx.theme, shape.props.labelColor, 'solid'),
 			labelFontSize: ctx.sizes[shape.props.size].labelFont,
 			fontFamily: ctx.fonts[shape.props.font],
+			fillSolidColor: getColorValue(ctx.theme, shape.props.color, 'semi'),
+			fillColor: getColorValue(ctx.theme, shape.props.color, 'fill'),
+			fillPatternColor: getColorValue(ctx.theme, shape.props.color, 'pattern'),
+			fillLinedFillColor: getColorValue(ctx.theme, shape.props.color, 'linedFill'),
 		}
 	}
 
@@ -618,6 +622,10 @@ export interface TLGeoShapeResolvedStyles {
 	labelColor: string
 	labelFontSize: number
 	fontFamily: string
+	fillSolidColor: string
+	fillColor: string
+	fillPatternColor: string
+	fillLinedFillColor: string
 }
 
 declare module '@tldraw/editor' {
