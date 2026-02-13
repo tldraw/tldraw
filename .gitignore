@@ -125,3 +125,6 @@ license-report.md
 # ESLint cache
 .eslintcache
 opencode.json
+
+# PR walkthrough intermediate files
+pr-walkthrough/tmp

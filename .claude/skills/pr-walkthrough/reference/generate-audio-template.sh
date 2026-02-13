@@ -1,11 +1,19 @@
 #!/bin/bash
 # Template for per-slide TTS audio generation using Gemini 2.5 Flash Preview TTS
-# Copy this to pr-walkthrough/generate-audio.sh and customize the slide narrations.
+# Copy this to pr-walkthrough/tmp/generate-audio.sh and customize the slide narrations.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 
-GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY environment variable}"
+# Source .env from the repo root if GEMINI_API_KEY is not already set
+if [ -z "${GEMINI_API_KEY:-}" ]; then
+  REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "../..")
+  if [ -f "${REPO_ROOT}/.env" ]; then
+    export $(grep '^GEMINI_API_KEY=' "${REPO_ROOT}/.env" | xargs)
+  fi
+fi
+
+GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY environment variable or add it to .env}"
 MODEL="gemini-2.5-flash-preview-tts"
 ENDPOINT="https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent"
 VOICE="Iapetus"
@@ -61,17 +69,17 @@ sys.stdout.buffer.write(base64.b64decode(audio_b64))
 
   ffmpeg -y -f s16le -ar 24000 -ac 1 -i "$out_pcm" "$out_wav" 2>/dev/null
   rm "$out_pcm"
+  echo "  [done] ${out_wav}"
 }
 
 # --- Customize below ---
 # Call generate_audio for each slide with its narration text.
-# Example:
+# Use background processes (&) and wait for parallel generation:
 #
-# echo "Slide 00: Intro"
-# generate_audio "00" "Your intro narration here..."
-#
-# echo "Slide 01: The problem"
-# generate_audio "01" "Your narration for slide 1..."
+# generate_audio "00" "Your intro narration here..." &
+# generate_audio "01" "Your narration for slide 1..." &
+# generate_audio "02" "Your narration for slide 2..." &
+# wait
 #
 # echo ""
 # echo "Done! Generated audio files:"

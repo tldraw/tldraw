@@ -13,6 +13,8 @@ Create a narrated walkthrough video for a pull request. The output is an MP4 at 
 
 **Output:** `pr-walkthrough/pr-<number>-walkthrough.mp4`
 
+All intermediate files (HTML slides, audio, PNGs, scripts) go in `pr-walkthrough/tmp/`. This directory is gitignored. Only the final `.mp4` lives at the top level of `pr-walkthrough/`.
+
 ## Philosophy
 
 **The narration drives the visuals, not the other way around.** Write the story first, generate the audio, then create visuals that support each beat. This means:
@@ -50,12 +52,16 @@ Avoid redundancy between intro and first content slide.
 
 Generate audio **per slide** using Gemini TTS. This gives you exact per-slide durations and eliminates the need for timestamp detection.
 
-Use the `pr-walkthrough/generate-audio.sh` script pattern:
+Use the `pr-walkthrough/tmp/generate-audio.sh` script pattern:
 - Voice: **Iapetus** (always)
 - API: Gemini 2.5 Flash Preview TTS
 - Output: one WAV file per slide (`audio-00.wav`, `audio-01.wav`, etc.)
 
 See [generate-audio.sh reference](reference/generate-audio-template.sh) for the TTS function.
+
+**API key:** Source from the repo `.env` file (e.g., `source .env` or `grep GEMINI_API_KEY .env`). The key is stored as `GEMINI_API_KEY` in the project root `.env`.
+
+**Parallel generation:** TTS calls are independent — fire them all in background (`&`) and `wait` to cut generation time significantly. See the template for the parallel pattern.
 
 **Do NOT use** `[pause long]` or `[pause medium]` markup tags — the model reads them aloud literally.
 
@@ -70,6 +76,7 @@ Use for: intro card, problem statement, approach overview, wrap-up, silent outro
 - Use the intro.html pattern for the intro card (tldraw logo + PR title)
 - Font sizes: h1 at 52px, h2 at 32px, body steps at 28px, detail text at 22px
 - Always include a 3-second silent outro slide (logo only, no title)
+- **Logo:** Copy from `pr-walkthrough/assets/tldraw.svg` into `pr-walkthrough/tmp/` for HTML slides to reference
 
 See [text slide template](reference/text-slide-template.html) for the base CSS.
 
@@ -111,6 +118,8 @@ for (const row of rows) {
 
 Note: `blob-code-inner` selectors don't reliably find text — search `tr` textContent instead.
 
+**Scrolling tip:** For files with small diffs, scrolling to the `[data-path]` file header often lands on unchanged imports instead of the actual change. Prefer scrolling to the specific changed content (e.g., the new value like `projectService`) using `tr` textContent search with `block: 'center'`.
+
 Do NOT use CSS zoom on GitHub pages — it makes text blurry.
 
 ### Step 5: Assemble the video
@@ -121,7 +130,9 @@ Use the `pr-walkthrough/make-video.sh` script pattern:
 2. Create per-slide video segments using each audio file's duration as the segment length
 3. Add a 3-second silent outro segment (logo slide)
 4. Concatenate all video segments
-5. Mux with audio — do **NOT** use `-shortest` (it would trim the silent outro)
+5. **Pad audio** to match video duration (covers the silent outro), then mux
+
+Do **NOT** use `-shortest` (it would trim the silent outro). Instead, pad the audio with silence to match the total video length:
 
 ```bash
 # Per-slide segment
@@ -130,32 +141,41 @@ ffmpeg -y -loop 1 -i "slide-XX.png" -c:v libx264 -tune stillimage \
   -vf "scale=1600:900:force_original_aspect_ratio=decrease:flags=lanczos,pad=1600:900:(ow-iw)/2:(oh-ih)/2:white" \
   -r 30 -an "segment-XX.mp4"
 
+# Pad audio to match video length (covers silent outro)
+VIDEO_DURATION=$(ffprobe -v error -show_entries format=duration -of csv=p=0 silent-video.mp4)
+ffmpeg -y -i full-audio.wav -af "apad" -t "$VIDEO_DURATION" padded-audio.wav
+
 # Final mux (no -shortest!)
-ffmpeg -y -i silent-video.mp4 -i full-audio.wav \
+ffmpeg -y -i silent-video.mp4 -i padded-audio.wav \
   -c:v copy -c:a aac -b:a 192k \
   output.mp4
 ```
 
 ## File organization
 
-All walkthrough assets go in `pr-walkthrough/`:
+Final output lives in `pr-walkthrough/`. Shared assets live in `pr-walkthrough/assets/`. All intermediate files go in `pr-walkthrough/tmp/` (gitignored):
 
 ```
 pr-walkthrough/
-├── SCRIPT.md              # Narration script
-├── generate-audio.sh      # TTS generation script
-├── make-video.sh          # Video assembly script
-├── intro.html             # Intro card template
-├── outro.html             # Outro card (logo only)
-├── tldraw.svg             # Logo
-├── audio-XX.wav           # Per-slide audio files
-├── slide-XX.png           # Per-slide screenshots
-└── pr-XXXX-walkthrough.mp4  # Final output
+├── assets/                  # Shared assets (checked in)
+│   ├── tldraw.svg           # Logo for slides
+│   ├── intro-template.html  # Intro card template
+│   └── outro.html           # Outro card (logo only)
+├── scripts/                 # Reusable scripts (checked in)
+├── pr-XXXX-walkthrough.mp4  # Final output
+└── tmp/                     # Intermediate files (gitignored)
+    ├── SCRIPT.md            # Narration script
+    ├── generate-audio.sh    # TTS generation script
+    ├── make-video.sh        # Video assembly script
+    ├── tldraw.svg           # Logo (copied from assets/)
+    ├── *.html               # Slide HTML files
+    ├── audio-XX.wav         # Per-slide audio files
+    └── slide-XX.png         # Per-slide screenshots
 ```
 
-## GCloud / API configuration
+## API configuration
 
-- **Gemini API key:** Use `GEMINI_API_KEY` env var or the default in generate-audio.sh
+- **Gemini API key:** Stored as `GEMINI_API_KEY` in the project root `.env` file. Source it in your generate-audio script or pass it explicitly.
 - **TTS model:** `gemini-2.5-flash-preview-tts`
 - **TTS voice:** `Iapetus` (always)
 

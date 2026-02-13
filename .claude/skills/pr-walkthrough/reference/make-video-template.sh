@@ -1,6 +1,6 @@
 #!/bin/bash
 # Template for assembling the walkthrough video from per-slide audio and screenshots.
-# Copy this to pr-walkthrough/make-video.sh and adjust the slide count.
+# Copy this to pr-walkthrough/tmp/make-video.sh and adjust the slide count.
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -59,13 +59,18 @@ echo "file 'segment-${OUTRO_NUM}.mp4'" >> concat-video.txt
 echo "[3/3] Assembling final video..."
 ffmpeg -y -f concat -safe 0 -i concat-video.txt -c copy silent-video.mp4 2>/dev/null
 
-# Do NOT use -shortest — it would trim the silent outro
-ffmpeg -y -i silent-video.mp4 -i full-audio.wav \
+# Pad audio with silence to cover the outro segment.
+# Do NOT use -shortest — it would trim the silent outro.
+VIDEO_DURATION=$(ffprobe -v error -show_entries format=duration -of csv=p=0 silent-video.mp4)
+echo "  Audio: ${TOTAL_DUR}s, Video: ${VIDEO_DURATION}s"
+ffmpeg -y -i full-audio.wav -af "apad" -t "$VIDEO_DURATION" padded-audio.wav 2>/dev/null
+
+ffmpeg -y -i silent-video.mp4 -i padded-audio.wav \
   -c:v copy -c:a aac -b:a 192k \
   "$OUTPUT" 2>/dev/null
 
 # Cleanup
-rm -f concat-audio.txt concat-video.txt full-audio.wav silent-video.mp4
+rm -f concat-audio.txt concat-video.txt full-audio.wav padded-audio.wav silent-video.mp4
 rm -f segment-*.mp4
 
 # Report
