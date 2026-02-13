@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Geometry2d,
 	HTMLContainer,
@@ -106,43 +107,38 @@ class CardShapeUtil extends ShapeUtil<ICardShape> {
 
 	// [6]
 	component(shape: ICardShape) {
-		return <CardComponent shape={shape} />
+		const styles = useShapeStyles(shape)
+
+		return (
+			<HTMLContainer
+				style={{
+					borderColor: styles.borderColor,
+					backgroundColor: styles.backgroundColor,
+					borderWidth: styles.borderWidth,
+					borderStyle: 'solid',
+					borderRadius: styles.borderRadius,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					pointerEvents: 'all',
+				}}
+			>
+				<span
+					style={{
+						fontSize: styles.titleFontSize,
+						color: styles.titleColor,
+						fontWeight: 600,
+					}}
+				>
+					{shape.props.title}
+				</span>
+			</HTMLContainer>
+		)
 	}
 
 	indicator(shape: ICardShape) {
 		return <rect width={shape.props.w} height={shape.props.h} rx={12} ry={12} />
 	}
-}
-
-// [7]
-function CardComponent({ shape }: { shape: ICardShape }) {
-	const styles = useShapeStyles(shape)
-
-	return (
-		<HTMLContainer
-			style={{
-				borderColor: styles.borderColor,
-				backgroundColor: styles.backgroundColor,
-				borderWidth: styles.borderWidth,
-				borderStyle: 'solid',
-				borderRadius: styles.borderRadius,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				pointerEvents: 'all',
-			}}
-		>
-			<span
-				style={{
-					fontSize: styles.titleFontSize,
-					color: styles.titleColor,
-					fontWeight: 600,
-				}}
-			>
-				{shape.props.title}
-			</span>
-		</HTMLContainer>
-	)
 }
 
 const shapeUtils = [CardShapeUtil]
@@ -202,15 +198,11 @@ the shape and a TLStyleContext with the resolved theme, size tokens, and font ma
 Use getColorValue() to look up color variants from the theme.
 
 [6]
-The component delegates to a separate function component so it can call the
-useShapeStyles() hook (hooks can't be called in class methods).
-
-[7]
-CardComponent uses useShapeStyles() to get the resolved style values. These
+The component uses useShapeStyles() to get the resolved style values. These
 automatically update when the theme changes, tokens are customized, or runtime
 overrides are applied via getShapeStyleOverrides.
 
-[8]
+[7]
 Create a grid of cards in different colors and sizes to show how the style
 tokens map to different visual results.
 */

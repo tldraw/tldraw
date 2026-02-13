@@ -9,12 +9,14 @@ import {
 	TLResizeInfo,
 	TLShapeId,
 	TLStyleContext,
+	TLStylesConfig,
 	TLTextShape,
 	Vec,
 	createComputedCache,
 	getColorValue,
 	getFontsFromRichText,
 	isEqual,
+	mergeStylesIntoContext,
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
@@ -44,6 +46,8 @@ export interface TextShapeOptions {
 	extraArrowHorizontalPadding: number
 	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
 	showTextOutline: boolean
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
 }
 
 /** @public */
@@ -71,6 +75,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getDefaultStyles(shape: TLTextShape, ctx: TLStyleContext): TLTextShapeResolvedStyles {
+		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		return {
 			fontSize: ctx.sizes[shape.props.size].font,
 			textColor: getColorValue(ctx.theme, shape.props.color, 'solid'),

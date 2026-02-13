@@ -152,7 +152,11 @@ export {
 	type TLFrameShapeResolvedStyles,
 } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
-export { GeoShapeUtil, type TLGeoShapeResolvedStyles } from './lib/shapes/geo/GeoShapeUtil'
+export {
+	GeoShapeUtil,
+	type GeoShapeOptions,
+	type TLGeoShapeResolvedStyles,
+} from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,
@@ -161,7 +165,11 @@ export {
 } from './lib/shapes/highlight/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
-export { LineShapeUtil, type TLLineShapeResolvedStyles } from './lib/shapes/line/LineShapeUtil'
+export {
+	LineShapeUtil,
+	type LineShapeOptions,
+	type TLLineShapeResolvedStyles,
+} from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,

@@ -9,12 +9,14 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	TLStyleContext,
+	TLStylesConfig,
 	VecLike,
 	getColorValue,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
 	lerp,
+	mergeStylesIntoContext,
 	rng,
 	useEditor,
 	useValue,
@@ -38,6 +40,8 @@ export interface HighlightShapeOptions {
 	readonly maxPointsPerShape: number
 	readonly underlayOpacity: number
 	readonly overlayOpacity: number
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
 }
 
 /** @public */
@@ -79,6 +83,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		shape: TLHighlightShape,
 		ctx: TLStyleContext
 	): TLHighlightShapeResolvedStyles {
+		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		return {
 			strokeWidth: ctx.sizes[shape.props.size].font * 1.12,
 			highlightColorSrgb: getColorValue(ctx.theme, shape.props.color, 'highlightSrgb'),

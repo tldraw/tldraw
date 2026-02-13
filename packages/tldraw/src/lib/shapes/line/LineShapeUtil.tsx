@@ -9,6 +9,7 @@ import {
 	TLLineShapePoint,
 	TLResizeInfo,
 	TLStyleContext,
+	TLStylesConfig,
 	Vec,
 	WeakCache,
 	ZERO_INDEX_KEY,
@@ -22,6 +23,7 @@ import {
 	lineShapeProps,
 	mapObjectMapValues,
 	maybeSnapToGrid,
+	mergeStylesIntoContext,
 	sortByIndex,
 	useEditor,
 } from '@tldraw/editor'
@@ -31,10 +33,18 @@ import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
+export interface LineShapeOptions {
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
+}
+
+/** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override type = 'line' as const
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
+
+	override options: LineShapeOptions = {}
 
 	override hideResizeHandles() {
 		return true
@@ -68,6 +78,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getDefaultStyles(shape: TLLineShape, ctx: TLStyleContext): TLLineShapeResolvedStyles {
+		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		return {
 			strokeWidth: ctx.sizes[shape.props.size].stroke,
 			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),

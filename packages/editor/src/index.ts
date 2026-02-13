@@ -195,6 +195,7 @@ export {
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export {
+	mergeStylesIntoContext,
 	type AsStyleOverrides,
 	type Themeable,
 	type TLGetShapeStyleOverrides,

@@ -1,4 +1,10 @@
-import { Editor, TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
+import {
+	Editor,
+	TLArrowShapeArrowheadStyle,
+	TLDefaultSizeStyle,
+	TLStylesConfig,
+	VecLike,
+} from '@tldraw/editor'
 import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
 import { TLArrowBindings } from './shared'
 
@@ -97,6 +103,8 @@ export interface ArrowShapeOptions {
 	shouldIgnoreTargets(editor: Editor): boolean
 	/** Whether to show the outline of the arrow shape's label (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
 	readonly showTextOutline: boolean
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
 }
 
 /** @public */

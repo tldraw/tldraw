@@ -126,6 +126,56 @@ const STYLE_CONFIG_PROPS: Record<string, EnumStyleProp<any>[]> = {
 }
 
 /**
+ * Merge a per-shape TLStylesConfig into a TLStyleContext, producing a new context
+ * with the shape-level overrides applied on top of the global config.
+ *
+ * @public
+ */
+export function mergeStylesIntoContext(
+	ctx: TLStyleContext,
+	config: TLStylesConfig
+): TLStyleContext {
+	let { theme, sizes, fonts } = ctx
+
+	if (config.colors) {
+		const modeKey = ctx.isDarkMode ? 'dark' : 'light'
+		const themeColors: Record<string, any> = {}
+		for (const [name, def] of Object.entries(config.colors)) {
+			if (def === null) continue
+			const baseColor = (theme as any)[name]
+			if (baseColor && def[modeKey]) {
+				themeColors[name] = { ...baseColor, ...def[modeKey] }
+			}
+		}
+		theme = { ...theme, ...themeColors }
+	}
+
+	if (config.sizes) {
+		sizes = { ...sizes }
+		for (const [name, def] of Object.entries(config.sizes)) {
+			if (def === null) {
+				delete sizes[name]
+			} else {
+				sizes[name] = { ...sizes[name], ...def }
+			}
+		}
+	}
+
+	if (config.fonts) {
+		fonts = { ...fonts }
+		for (const [name, def] of Object.entries(config.fonts)) {
+			if (def === null) {
+				delete fonts[name]
+			} else {
+				fonts[name] = def
+			}
+		}
+	}
+
+	return { ...ctx, theme, sizes, fonts }
+}
+
+/**
  * Extend the runtime validators for style props so that the store
  * accepts custom token names (and rejects nulled ones). Must run
  * before any persisted data is loaded into the store.

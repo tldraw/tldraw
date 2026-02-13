@@ -15,6 +15,7 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	TLStyleContext,
+	TLStylesConfig,
 	Vec,
 	WeakCache,
 	exhaustiveSwitchError,
@@ -24,6 +25,7 @@ import {
 	getFontsFromRichText,
 	isEqual,
 	lerp,
+	mergeStylesIntoContext,
 	toRichText,
 	useValue,
 } from '@tldraw/editor'
@@ -44,12 +46,20 @@ import { getGeoShapePath } from './getGeoShapePath'
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
+export interface GeoShapeOptions {
+	/** Whether to show the outline of the text label (using the same color as the canvas). */
+	showTextOutline: boolean
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
+}
+
+/** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
-	override options = {
+	override options: GeoShapeOptions = {
 		showTextOutline: true,
 	}
 
@@ -80,6 +90,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles {
+		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		return {
 			strokeWidth: ctx.sizes[shape.props.size].stroke,
 			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),

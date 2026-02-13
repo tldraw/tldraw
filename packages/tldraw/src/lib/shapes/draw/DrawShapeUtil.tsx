@@ -11,12 +11,14 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	TLStyleContext,
+	TLStylesConfig,
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
 	last,
 	lerp,
+	mergeStylesIntoContext,
 	rng,
 	useEditor,
 	useValue,
@@ -42,6 +44,8 @@ export interface DrawShapeOptions {
 	 * A higher number will lead to poor performance while drawing very long lines.
 	 */
 	readonly maxPointsPerShape: number
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
 }
 
 /** @public */
@@ -81,6 +85,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override getDefaultStyles(shape: TLDrawShape, ctx: TLStyleContext): TLDrawShapeResolvedStyles {
+		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		return {
 			strokeWidth: ctx.sizes[shape.props.size].stroke + 1,
 			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
