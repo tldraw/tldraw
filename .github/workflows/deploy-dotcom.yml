@@ -46,6 +46,8 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - uses: ./.github/actions/restore-build-caches
+
       - name: Determine zero deploy target
         id: deploy_target
         env:

@@ -99,17 +99,7 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Restore build tool caches
-        uses: actions/cache@v5
-        with:
-          path: |
-            .lazy
-            **/.lazy
-            **/.tsbuild
-            **/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-${{ github.sha }}
-          restore-keys: |
-            build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-
+      - uses: ./.github/actions/restore-build-caches
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
