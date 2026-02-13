@@ -595,10 +595,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('COMMIT', [])
 
-			// Check mutation status after 5 seconds
+			// Check mutation status after the commit timeout has elapsed
 			setTimeout(() => {
 				this.cache?.checkMutationDidCommit(msg.mutationId).catch((e) => this.captureException(e))
-			}, 5000)
+			}, 15_000)
 
 			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
 		} catch (e) {
