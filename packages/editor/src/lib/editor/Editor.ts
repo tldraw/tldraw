@@ -91,7 +91,6 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import React from 'react'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
@@ -267,12 +266,6 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
-	/**
-	 * Called when content is dropped on the canvas. Provides the page position
-	 * where the drop occurred and the underlying drag event object.
-	 * Return true to prevent default drop handling (files, URLs, etc.)
-	 */
-	onDropOnCanvas?(options: { point: VecLike; event: React.DragEvent<Element> }): boolean
 }
 
 /**
@@ -314,13 +307,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
-		onDropOnCanvas,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
-		this._onDropOnCanvas = onDropOnCanvas
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -830,7 +821,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
-	private readonly _onDropOnCanvas?: TLEditorOptions['onDropOnCanvas']
 
 	@computed
 	private getIsShapeHiddenCache() {

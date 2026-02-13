@@ -105,8 +105,11 @@ export function useCanvasEvents() {
 				const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
 
 				// Call the custom onDropOnCanvas callback if provided
-				if ((editor as any)._onDropOnCanvas) {
-					const handled = (editor as any)._onDropOnCanvas({ point: pagePoint, event: e })
+				if (editor.options.experimental__onDropOnCanvas) {
+					const handled = editor.options.experimental__onDropOnCanvas({
+						point: pagePoint,
+						event: e,
+					})
 					if (handled) return
 				}
 
