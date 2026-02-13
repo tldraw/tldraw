@@ -18,7 +18,7 @@ defaults:
 jobs:
   build:
     name: 'End to end tests (dotcom)'
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
     if: ${{ github.event.pull_request.head.repo.fork == false }}
