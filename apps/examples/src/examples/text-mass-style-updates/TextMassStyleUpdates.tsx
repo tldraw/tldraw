@@ -1,6 +1,8 @@
+import { getSchema, JSONContent } from '@tiptap/core'
+import { Fragment, Node, Schema } from '@tiptap/pm/model'
 import {
 	Editor,
-	structuredClone,
+	tipTapDefaultExtensions,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -12,97 +14,68 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-interface RTMark {
-	type: string
-}
-interface RTNode {
-	content?: RTNode[]
-	type: string
-	marks?: RTMark[]
-}
-function hasMark(node: RTNode, type: string): boolean {
-	if (node.type === 'paragraph' || node.type === 'text' || node.marks) {
-		if (node.marks) {
-			return node.marks.some((mark) => mark.type === type)
-		}
-	}
-	if (node.content) {
-		return node.content.some((child) => hasMark(child, type))
-	}
+const schema = getSchema(tipTapDefaultExtensions)
 
-	return false
-}
+type Style = 'bold' | 'italic' | 'highlight'
 
-function isUniformlyMarked(node: RTNode, type: string): boolean {
-	const topLevelTextNodes: RTNode[] = []
-	function collectTextNodes(node: RTNode) {
-		if (node.type === 'text' || node.type === 'paragraph') {
-			if (node.marks?.some((mark) => mark.type === type)) {
-				topLevelTextNodes.push(node)
-				return
+/** Check whether every text node in the document carries the given mark. */
+function isUniformlyMarked(doc: Node, markName: string): boolean {
+	let hasText = false
+	let allMarked = true
+	doc.descendants((node) => {
+		if (node.isText) {
+			hasText = true
+			if (!node.marks.some((m) => m.type.name === markName)) {
+				allMarked = false
 			}
 		}
-		if (node.content) {
-			node.content.forEach((child) => collectTextNodes(child))
+	})
+	return hasText && allMarked
+}
+
+/** Return a new document with the mark added to or removed from every text node. */
+function toggleMark(doc: Node, schema: Schema, markName: string): Node {
+	const markType = schema.marks[markName]
+	const shouldRemove = isUniformlyMarked(doc, markName)
+
+	return mapTextNodes(doc, schema, (node) => {
+		if (shouldRemove) {
+			return node.mark(node.marks.filter((m) => m.type !== markType))
+		} else {
+			return node.mark(markType.create().addToSet(node.marks))
 		}
-	}
-	collectTextNodes(node)
-
-	return (
-		topLevelTextNodes.length > 0 &&
-		topLevelTextNodes.every((node) => node.marks?.some((mark) => mark.type === type))
-	)
+	})
 }
 
-function clearMark(node: RTNode, type: string) {
-	if (node.type === 'paragraph' || node.type === 'text') {
-		if (node.marks) {
-			node.marks = node.marks.filter((mark) => mark.type !== type)
-		}
-	}
-	if (node.content) {
-		node.content.forEach((child) => clearMark(child, type))
-	}
+/** Map over all text nodes in a document, returning a new document. */
+function mapTextNodes(node: Node, schema: Schema, fn: (textNode: Node) => Node): Node {
+	if (node.isText) return fn(node)
+	if (node.content.size === 0) return node
+	const children: Node[] = []
+	node.content.forEach((child) => {
+		children.push(mapTextNodes(child, schema, fn))
+	})
+	return node.copy(Fragment.from(children))
 }
 
-function addMark(node: RTNode, type: string) {
-	if (node.type === 'text') {
-		if (!node.marks) {
-			node.marks = []
-		}
-		node.marks.push({ type })
-		// no need to process children
-		return
-	}
-	if (node.content) {
-		node.content.forEach((child) => addMark(child, type))
-	}
-}
-
-function toggleMark(node: RTNode, type: string) {
-	if (hasMark(node, type)) {
-		clearMark(node, type)
-	} else {
-		clearMark(node, type)
-		addMark(node, type)
-	}
-}
-
-function toggleMarkOnShape(editor: Editor, id: TLShapeId, mark: string) {
+function toggleMarkOnShape(editor: Editor, id: TLShapeId, style: Style) {
 	const shape = editor.getShape(id)
 	if (!shape) return
 	if (shape.type === 'text') {
-		const rt = structuredClone((shape as TLTextShape).props.richText)
-		if (rt) {
-			toggleMark(rt as any, mark)
-		}
-		editor.updateShape<TLTextShape>({ id, type: 'text', props: { richText: rt } })
+		const richText = (shape as TLTextShape).props.richText
+		const doc = Node.fromJSON(schema, richText as JSONContent)
+		const updated = toggleMark(doc, schema, style)
+		editor.updateShape<TLTextShape>({
+			id,
+			type: 'text',
+			props: { richText: updated.toJSON() },
+		})
 	} else {
-		editor.getSortedChildIdsForParent(id).forEach((id) => toggleMarkOnShape(editor, id, mark))
+		editor
+			.getSortedChildIdsForParent(id)
+			.forEach((childId) => toggleMarkOnShape(editor, childId, style))
 	}
 }
-
-type Style = 'bold' | 'italic' | 'highlight'
 
 function toggleRichTextStyle(editor: Editor, style: Style) {
 	editor.run(() => {
@@ -115,9 +88,9 @@ function toggleRichTextStyle(editor: Editor, style: Style) {
 function isUniformlyStyled(editor: Editor, shapeId: TLTextShape['id'], style: Style) {
 	const shape = editor.getShape(shapeId)
 	if (!shape) return false
-	if (shape?.type === 'text') {
-		const rt = (shape as TLTextShape).props.richText
-		return isUniformlyMarked(rt as any, style)
+	if (shape.type === 'text') {
+		const doc = Node.fromJSON(schema, (shape as TLTextShape).props.richText as JSONContent)
+		return isUniformlyMarked(doc, style)
 	}
 	return false
 }
