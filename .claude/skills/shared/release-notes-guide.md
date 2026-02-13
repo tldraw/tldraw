@@ -56,7 +56,10 @@ Skip PRs with these labels:
 - `chore`
 - `dotcom`
 
-Also skip reverts unless they fix something user-facing.
+Also skip:
+
+- Reverts, unless they fix something user-facing
+- Fixes for bugs introduced in the same release cycle (i.e., the bug was caused by a PR that is also in `next.mdx` and was not in the previous release)
 
 ## Team members (do not credit)
 
