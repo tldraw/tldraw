@@ -137,7 +137,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				if (deepLink) {
 					// When using a deep link, only load preferences (not camera/page states)
 					// since the deep link will control navigation
-					const { pageStates: _, ...preferencesOnly } = sessionState
+					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
 					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
 					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 				} else {
