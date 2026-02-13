@@ -191,9 +191,11 @@ export class UserDataSyncer {
 
 	sentry
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {
 			if (extras) scope.setExtras(extras)
-			this.sentry?.captureException(exception) as any
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(exception)
 		})
 		if (!this.sentry) {
 			console.error(`[UserDataSyncer]: `, exception)
